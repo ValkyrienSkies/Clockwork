@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.core.api.ships.getAttachment
 import org.valkyrienskies.clockwork.ClockWorkConfig
-import org.valkyrienskies.clockwork.ship.EurekaShipControl
+import org.valkyrienskies.clockwork.ship.ClockWorkShipControl
 import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 
@@ -29,7 +29,7 @@ class BalloonBlock(properties: Properties) : Block(properties) {
         level as ServerLevel
 
         val ship = level.getShipObjectManagingPos(pos) ?: level.getShipManagingPos(pos) ?: return
-        EurekaShipControl.getOrCreate(ship).balloons += 1
+        ClockWorkShipControl.getOrCreate(ship).balloons += 1
     }
 
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
@@ -38,7 +38,7 @@ class BalloonBlock(properties: Properties) : Block(properties) {
         if (level.isClientSide) return
         level as ServerLevel
 
-        level.getShipManagingPos(pos)?.getAttachment<EurekaShipControl>()?.let {
+        level.getShipManagingPos(pos)?.getAttachment<ClockWorkShipControl>()?.let {
             it.balloons -= 1
         }
     }

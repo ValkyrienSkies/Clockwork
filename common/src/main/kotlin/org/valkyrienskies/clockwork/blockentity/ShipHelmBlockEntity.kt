@@ -27,7 +27,7 @@ import org.valkyrienskies.clockwork.ClockWorkBlockEntities
 import org.valkyrienskies.clockwork.ClockWorkConfig
 import org.valkyrienskies.clockwork.block.ShipHelmBlock
 import org.valkyrienskies.clockwork.gui.shiphelm.ShipHelmScreenMenu
-import org.valkyrienskies.clockwork.ship.EurekaShipControl
+import org.valkyrienskies.clockwork.ship.ClockWorkShipControl
 import org.valkyrienskies.clockwork.util.ShipAssembler
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.entity.ShipMountingEntity
@@ -40,7 +40,7 @@ class ShipHelmBlockEntity(pos: BlockPos, state: BlockState) :
 
     override var ship: ServerShip? = null // TODO ship is not being set in vs2?
         get() = field ?: (level as ServerLevel).getShipObjectManagingPos(this.blockPos)
-    val control by shipValue<EurekaShipControl>()
+    val control by shipValue<ClockWorkShipControl>()
     val assembled get() = ship != null
     val aligning get() = control?.aligning ?: false
     var shouldDisassembleWhenPossible = false
@@ -86,7 +86,7 @@ class ShipHelmBlockEntity(pos: BlockPos, state: BlockState) :
     }
 
     fun tick() {
-        if (shouldDisassembleWhenPossible && ship?.getAttachment<EurekaShipControl>()?.canDisassemble == true) {
+        if (shouldDisassembleWhenPossible && ship?.getAttachment<ClockWorkShipControl>()?.canDisassemble == true) {
             this.disassemble()
         }
     }

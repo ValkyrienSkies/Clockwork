@@ -25,7 +25,7 @@ import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.core.api.ships.getAttachment
 import org.valkyrienskies.clockwork.blockentity.ShipHelmBlockEntity
-import org.valkyrienskies.clockwork.ship.EurekaShipControl
+import org.valkyrienskies.clockwork.ship.ClockWorkShipControl
 import org.valkyrienskies.clockwork.util.DirectionalShape
 import org.valkyrienskies.clockwork.util.RotShapes
 import org.valkyrienskies.mod.common.getShipManagingPos
@@ -48,7 +48,7 @@ class ShipHelmBlock(properties: Properties, val woodType: WoodType) : BaseEntity
         level as ServerLevel
 
         val ship = level.getShipObjectManagingPos(pos) ?: level.getShipManagingPos(pos) ?: return
-        EurekaShipControl.getOrCreate(ship).helms += 1
+        ClockWorkShipControl.getOrCreate(ship).helms += 1
     }
 
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
@@ -57,7 +57,7 @@ class ShipHelmBlock(properties: Properties, val woodType: WoodType) : BaseEntity
         if (level.isClientSide) return
         level as ServerLevel
 
-        level.getShipManagingPos(pos)?.getAttachment<EurekaShipControl>()?.let {
+        level.getShipManagingPos(pos)?.getAttachment<ClockWorkShipControl>()?.let {
             it.helms -= 1
         }
     }

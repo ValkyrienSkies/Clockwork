@@ -10,7 +10,7 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BlockStateProperties.POWER
 import net.minecraft.world.level.material.Material
 import org.valkyrienskies.core.api.ships.getAttachment
-import org.valkyrienskies.clockwork.ship.EurekaShipControl
+import org.valkyrienskies.clockwork.ship.ClockWorkShipControl
 import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 
@@ -36,7 +36,7 @@ class FloaterBlock : Block(
         val floaterPower = 15 - state.getValue(POWER)
 
         val ship = level.getShipObjectManagingPos(pos) ?: level.getShipManagingPos(pos) ?: return
-        EurekaShipControl.getOrCreate(ship).floaters += floaterPower
+        ClockWorkShipControl.getOrCreate(ship).floaters += floaterPower
     }
 
     override fun neighborChanged(
@@ -54,7 +54,7 @@ class FloaterBlock : Block(
         val signal = level.getBestNeighborSignal(pos)
         val currentPower = state.getValue(POWER)
 
-        level.getShipManagingPos(pos)?.getAttachment<EurekaShipControl>()?.let {
+        level.getShipManagingPos(pos)?.getAttachment<ClockWorkShipControl>()?.let {
             it.floaters += (currentPower - signal)
         }
 
@@ -69,7 +69,7 @@ class FloaterBlock : Block(
 
         val floaterPower = 15 - state.getValue(POWER)
 
-        level.getShipManagingPos(pos)?.getAttachment<EurekaShipControl>()?.let {
+        level.getShipManagingPos(pos)?.getAttachment<ClockWorkShipControl>()?.let {
             it.floaters -= floaterPower
         }
     }

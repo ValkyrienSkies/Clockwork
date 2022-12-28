@@ -16,7 +16,7 @@ import net.minecraft.world.level.material.Material
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.core.api.ships.getAttachment
-import org.valkyrienskies.clockwork.ship.EurekaShipControl
+import org.valkyrienskies.clockwork.ship.ClockWorkShipControl
 import org.valkyrienskies.clockwork.util.DirectionalShape
 import org.valkyrienskies.clockwork.util.RotShapes
 import org.valkyrienskies.mod.common.getShipManagingPos
@@ -84,7 +84,7 @@ class AnchorBlock :
         val bl = state.getValue(BlockStateProperties.POWERED)
 
         val ship = level.getShipObjectManagingPos(pos) ?: level.getShipManagingPos(pos) ?: return
-        val attachment = EurekaShipControl.getOrCreate(ship)
+        val attachment = ClockWorkShipControl.getOrCreate(ship)
 
         attachment.anchors += 1
         attachment.anchorsActive += if (bl) 1 else 0
@@ -98,7 +98,7 @@ class AnchorBlock :
 
         val bl = state.getValue(BlockStateProperties.POWERED)
 
-        level.getShipManagingPos(pos)?.getAttachment<EurekaShipControl>()?.let {
+        level.getShipManagingPos(pos)?.getAttachment<ClockWorkShipControl>()?.let {
             it.anchors -= 1
             it.anchorsActive -= if (bl) 1 else 0
         }

@@ -27,7 +27,7 @@ import org.valkyrienskies.clockwork.ClockWorkBlockEntities
 import org.valkyrienskies.clockwork.ClockWorkConfig
 import org.valkyrienskies.clockwork.ClockWorkProperties.HEAT
 import org.valkyrienskies.clockwork.gui.engine.EngineScreenMenu
-import org.valkyrienskies.clockwork.ship.EurekaShipControl
+import org.valkyrienskies.clockwork.ship.ClockWorkShipControl
 import org.valkyrienskies.clockwork.util.KtContainerData
 import org.valkyrienskies.mod.common.getShipManagingPos
 import kotlin.math.ceil
@@ -39,7 +39,7 @@ class EngineBlockEntity(pos: BlockPos, state: BlockState) :
     WorldlyContainer {
 
     override val ship: ServerShip? get() = (this.level as ServerLevel).getShipManagingPos(this.blockPos)
-    private val eurekaShipControl by shipValue<EurekaShipControl>()
+    private val clockWorkShipControl by shipValue<ClockWorkShipControl>()
     val data = KtContainerData()
     var heatLevel by data
     var fuelLeft by data
@@ -80,14 +80,14 @@ class EngineBlockEntity(pos: BlockPos, state: BlockState) :
                 level!!.setBlock(blockPos, this.blockState.setValue(HEAT, heatLevel), 11)
             }
 
-            if (heat > 0 && ship != null && eurekaShipControl != null) {
-                eurekaShipControl!!.power += lerp(
+            if (heat > 0 && ship != null && clockWorkShipControl != null) {
+                clockWorkShipControl!!.power += lerp(
                     heat / 100f,
                     ClockWorkConfig.SERVER.minEnginePower,
                     ClockWorkConfig.SERVER.enginePower
                 )
 
-                heat -= eurekaShipControl!!.consumed
+                heat -= clockWorkShipControl!!.consumed
             }
 
             if (heat > 0) {

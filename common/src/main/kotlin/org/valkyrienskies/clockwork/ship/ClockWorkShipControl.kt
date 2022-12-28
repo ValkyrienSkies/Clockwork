@@ -29,7 +29,7 @@ import kotlin.math.*
     isGetterVisibility = JsonAutoDetect.Visibility.NONE,
     setterVisibility = JsonAutoDetect.Visibility.NONE
 )
-class EurekaShipControl : ShipForcesInducer, ServerShipUser, Ticked {
+class ClockWorkShipControl : ShipForcesInducer, ServerShipUser, Ticked {
 
     @JsonIgnore
     override var ship: ServerShip? = null
@@ -353,14 +353,14 @@ class EurekaShipControl : ShipForcesInducer, ServerShipUser, Ticked {
 
     private fun deleteIfEmpty() {
         if (helms == 0 && floaters == 0 && anchors == 0 && balloons == 0) {
-            ship?.saveAttachment<EurekaShipControl>(null)
+            ship?.saveAttachment<ClockWorkShipControl>(null)
         }
     }
 
     companion object {
-        fun getOrCreate(ship: ServerShip): EurekaShipControl {
-            return ship.getAttachment<EurekaShipControl>()
-                ?: EurekaShipControl().also { ship.saveAttachment(it) }
+        fun getOrCreate(ship: ServerShip): ClockWorkShipControl {
+            return ship.getAttachment<ClockWorkShipControl>()
+                ?: ClockWorkShipControl().also { ship.saveAttachment(it) }
         }
 
         private const val ALIGN_THRESHOLD = 0.01
