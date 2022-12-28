@@ -4,30 +4,30 @@ issueTrackerURL = "https://github.com/ValkyrienSkies/Valkyrien-Skies-2/issues"
 license = "Apache-2.0"
 
 [[mods]]
-modId = "vs_eureka"
+modId = "vs_clockwork"
 version = "${version}"
-displayName = "VS Eureka Mod"
+displayName = "Create Clockwork Mod"
 authors = ["Tri0de", "ewoudje", "VS2 Discord Artists"]
 description = '''
 Basically Archimedes Ships, but with VS2 as the backend!
 '''
 logoFile = "icon.png"
 
-[[dependencies.vs_eureka]]
+[[dependencies.vs_clockwork]]
 modId = "forge"
 mandatory = true
 versionRange = "[40.1.69,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.vs_eureka]]
+[[dependencies.vs_clockwork]]
 modId = "minecraft"
 mandatory = true
 versionRange = "[1.18.2,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.vs_eureka]]
+[[dependencies.vs_clockwork]]
 modId = "valkyrienskies"
 mandatory = true
 versionRange = "[2,)"
