@@ -36,11 +36,11 @@ public class ClockWorkModFabric implements ModInitializer {
         new ValkyrienSkiesModFabric().onInitialize();
         AllClockworkBlocks.register();
         AllClockworkItems.register();
-        AllClockworkConfigs.register();
+
         AllClockworkTileEntities.register();
 
         REGISTRATE.register();
-
+        AllClockworkConfigs.register();
         ClockWorkMod.init();
 
     }
