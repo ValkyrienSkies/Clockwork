@@ -9,11 +9,9 @@
     "create.MixinControlsInputPacket",
     "create.MixinCrushingWheelBlock",
     "create.MixinCurvedTrackDestroyPacket",
-    "create.MixinCurvedTrackSelectionPacket",
     "create.MixinFriendlyByteBuf",
     "create.MixinTileEntityConfigurationPacket",
-    "create.MixinTrackNodeLocation",
-    "create.MixinTrackPropagator"
+    "create.MixinTrackNodeLocation"
   ],
   "client": [
     "create.client.MixinCarriageContraptionInstance",
