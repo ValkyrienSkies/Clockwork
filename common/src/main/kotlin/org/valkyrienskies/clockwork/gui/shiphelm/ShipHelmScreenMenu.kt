@@ -3,12 +3,12 @@ package org.valkyrienskies.clockwork.gui.shiphelm
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.inventory.AbstractContainerMenu
-import org.valkyrienskies.clockwork.EurekaConfig
-import org.valkyrienskies.clockwork.EurekaScreens
+import org.valkyrienskies.clockwork.ClockWorkConfig
+import org.valkyrienskies.clockwork.ClockWorkScreens
 import org.valkyrienskies.clockwork.blockentity.ShipHelmBlockEntity
 
 class ShipHelmScreenMenu(syncId: Int, playerInv: Inventory, val blockEntity: ShipHelmBlockEntity?) :
-    AbstractContainerMenu(EurekaScreens.SHIP_HELM.get(), syncId) {
+    AbstractContainerMenu(ClockWorkScreens.SHIP_HELM.get(), syncId) {
 
     constructor(syncId: Int, playerInv: Inventory) : this(syncId, playerInv, null)
 
@@ -31,7 +31,7 @@ class ShipHelmScreenMenu(syncId: Int, playerInv: Inventory, val blockEntity: Shi
             return true
         }
 
-        if (id == 3 && assembled && !player.level.isClientSide && EurekaConfig.SERVER.enableDisassembly) {
+        if (id == 3 && assembled && !player.level.isClientSide && ClockWorkConfig.SERVER.enableDisassembly) {
             blockEntity.disassemble()
             return true
         }

@@ -23,8 +23,8 @@ import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.getAttachment
 import org.valkyrienskies.core.impl.api.ServerShipProvider
 import org.valkyrienskies.core.impl.api.shipValue
-import org.valkyrienskies.clockwork.EurekaBlockEntities
-import org.valkyrienskies.clockwork.EurekaConfig
+import org.valkyrienskies.clockwork.ClockWorkBlockEntities
+import org.valkyrienskies.clockwork.ClockWorkConfig
 import org.valkyrienskies.clockwork.block.ShipHelmBlock
 import org.valkyrienskies.clockwork.gui.shiphelm.ShipHelmScreenMenu
 import org.valkyrienskies.clockwork.ship.EurekaShipControl
@@ -36,7 +36,7 @@ import org.valkyrienskies.mod.common.util.toDoubles
 import org.valkyrienskies.mod.common.util.toJOMLD
 
 class ShipHelmBlockEntity(pos: BlockPos, state: BlockState) :
-    BlockEntity(EurekaBlockEntities.SHIP_HELM.get(), pos, state), MenuProvider, ServerShipProvider {
+    BlockEntity(ClockWorkBlockEntities.SHIP_HELM.get(), pos, state), MenuProvider, ServerShipProvider {
 
     override var ship: ServerShip? = null // TODO ship is not being set in vs2?
         get() = field ?: (level as ServerLevel).getShipObjectManagingPos(this.blockPos)
@@ -102,7 +102,7 @@ class ShipHelmBlockEntity(pos: BlockPos, state: BlockState) :
         ShipAssembler.collectBlocks(
             level,
             blockPos
-        ) { !it.isAir && !EurekaConfig.SERVER.blockBlacklist.contains(Registry.BLOCK.getKey(it.block).toString()) }
+        ) { !it.isAir && !ClockWorkConfig.SERVER.blockBlacklist.contains(Registry.BLOCK.getKey(it.block).toString()) }
     }
 
     fun disassemble() {

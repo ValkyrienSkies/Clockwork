@@ -6,8 +6,8 @@ import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.inventory.AbstractContainerMenu
 import net.minecraft.world.inventory.MenuType
-import org.valkyrienskies.clockwork.EurekaScreens.ENGINE
-import org.valkyrienskies.clockwork.EurekaScreens.SHIP_HELM
+import org.valkyrienskies.clockwork.ClockWorkScreens.ENGINE
+import org.valkyrienskies.clockwork.ClockWorkScreens.SHIP_HELM
 import org.valkyrienskies.clockwork.gui.engine.EngineScreen
 import org.valkyrienskies.clockwork.gui.shiphelm.ShipHelmScreen
 import org.valkyrienskies.clockwork.registry.RegistrySupplier
@@ -21,7 +21,7 @@ private data class ClientScreenRegistar<T : AbstractContainerMenu>(
     fun register() = MenuScreens.register(type.get(), factory)
 }
 
-object EurekaClientScreens {
+object ClockWorkClientScreens {
     private val SCREENS_CLIENT = mutableListOf<ClientScreenRegistar<*>>()
 
     init {

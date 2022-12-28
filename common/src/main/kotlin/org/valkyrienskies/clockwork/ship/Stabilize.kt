@@ -4,7 +4,7 @@ import org.joml.Vector3d
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 import org.valkyrienskies.core.impl.pipelines.SegmentUtils
-import org.valkyrienskies.clockwork.EurekaConfig
+import org.valkyrienskies.clockwork.ClockWorkConfig
 import org.valkyrienskies.physics_api.SegmentDisplacement
 
 fun stabilize(
@@ -55,17 +55,17 @@ fun stabilize(
         idealAngularAcceleration
     )
 
-    stabilizationTorque.mul(EurekaConfig.SERVER.stabilizationTorqueConstant)
+    stabilizationTorque.mul(ClockWorkConfig.SERVER.stabilizationTorqueConstant)
     forces.applyInvariantTorque(stabilizationTorque)
 
     if (linear) {
         val idealVelocity = Vector3d(vel).negate()
         idealVelocity.y = 0.0
 
-        if (idealVelocity.lengthSquared() > (EurekaConfig.SERVER.linearStabilizeMaxAntiVelocity * EurekaConfig.SERVER.linearStabilizeMaxAntiVelocity))
-            idealVelocity.normalize(EurekaConfig.SERVER.linearStabilizeMaxAntiVelocity)
+        if (idealVelocity.lengthSquared() > (ClockWorkConfig.SERVER.linearStabilizeMaxAntiVelocity * ClockWorkConfig.SERVER.linearStabilizeMaxAntiVelocity))
+            idealVelocity.normalize(ClockWorkConfig.SERVER.linearStabilizeMaxAntiVelocity)
 
-        idealVelocity.mul(ship.inertia.shipMass * (10 - EurekaConfig.SERVER.antiVelocityMassRelevance))
+        idealVelocity.mul(ship.inertia.shipMass * (10 - ClockWorkConfig.SERVER.antiVelocityMassRelevance))
         forces.applyInvariantForce(idealVelocity)
     }
 }

@@ -10,7 +10,7 @@ import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.impl.datastructures.DenseBlockPosSet
 import org.valkyrienskies.core.impl.game.ships.ShipObjectServer
 import org.valkyrienskies.core.impl.util.logger
-import org.valkyrienskies.clockwork.EurekaConfig
+import org.valkyrienskies.clockwork.ClockWorkConfig
 import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.util.relocateBlock
@@ -93,7 +93,7 @@ object ShipAssembler {
     }
 
     private fun directions(center: BlockPos, lambda: (BlockPos) -> Unit) {
-        if (!EurekaConfig.SERVER.diagonals) Direction.values().forEach { lambda(center.relative(it)) }
+        if (!ClockWorkConfig.SERVER.diagonals) Direction.values().forEach { lambda(center.relative(it)) }
         for (x in -1..1) {
             for (y in -1..1) {
                 for (z in -1..1) {

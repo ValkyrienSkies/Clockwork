@@ -9,17 +9,17 @@ import org.valkyrienskies.clockwork.registry.CreativeTabs
 import org.valkyrienskies.clockwork.registry.DeferredRegister
 
 @Suppress("unused")
-object EurekaItems {
-    private val ITEMS = DeferredRegister.create(EurekaMod.MOD_ID, Registry.ITEM_REGISTRY)
+object ClockWorkItems {
+    private val ITEMS = DeferredRegister.create(ClockWorkMod.MOD_ID, Registry.ITEM_REGISTRY)
     val TAB: CreativeModeTab = CreativeTabs.create(
         ResourceLocation(
-            EurekaMod.MOD_ID,
+            ClockWorkMod.MOD_ID,
             "eureka_tab"
         )
-    ) { ItemStack(EurekaBlocks.OAK_SHIP_HELM.get()) }
+    ) { ItemStack(ClockWorkBlocks.OAK_SHIP_HELM.get()) }
 
     fun register() {
-        EurekaBlocks.registerItems(ITEMS)
+        ClockWorkBlocks.registerItems(ITEMS)
         ITEMS.applyAll()
     }
 

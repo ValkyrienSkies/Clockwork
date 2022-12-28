@@ -8,8 +8,8 @@ import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.TranslatableComponent
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.player.Inventory
-import org.valkyrienskies.clockwork.EurekaConfig
-import org.valkyrienskies.clockwork.EurekaMod
+import org.valkyrienskies.clockwork.ClockWorkConfig
+import org.valkyrienskies.clockwork.ClockWorkMod
 
 class ShipHelmScreen(handler: ShipHelmScreenMenu, playerInventory: Inventory, text: Component) :
     AbstractContainerScreen<ShipHelmScreenMenu>(handler, playerInventory, text) {
@@ -31,7 +31,7 @@ class ShipHelmScreen(handler: ShipHelmScreenMenu, playerInventory: Inventory, te
             ShipHelmButton(x + BUTTON_1_X, y + BUTTON_1_Y, ASSEMBLE_TEXT, font) {
                 // Send assemble or dissemble packet
                 if (this.menu.assembled) {
-                    assembleButton.active = EurekaConfig.SERVER.enableDisassembly
+                    assembleButton.active = ClockWorkConfig.SERVER.enableDisassembly
                     minecraft!!.gameMode!!.handleInventoryButtonClick(menu.containerId, 3)
                 } else {
                     minecraft!!.gameMode!!.handleInventoryButtonClick(menu.containerId, 0)
@@ -52,7 +52,7 @@ class ShipHelmScreen(handler: ShipHelmScreenMenu, playerInventory: Inventory, te
                 minecraft!!.gameMode!!.handleInventoryButtonClick(menu.containerId, 3)
             }
         )
-        todoButton.active = EurekaConfig.SERVER.enableDisassembly
+        todoButton.active = ClockWorkConfig.SERVER.enableDisassembly
     }
 
     override fun renderBg(matrixStack: PoseStack, partialTicks: Float, mouseX: Int, mouseY: Int) {
@@ -87,7 +87,7 @@ class ShipHelmScreen(handler: ShipHelmScreenMenu, playerInventory: Inventory, te
     }
 
     companion object { // TEXTURE DATA
-        internal val TEXTURE = ResourceLocation(EurekaMod.MOD_ID, "textures/gui/ship_helm.png")
+        internal val TEXTURE = ResourceLocation(ClockWorkMod.MOD_ID, "textures/gui/ship_helm.png")
 
         private const val BUTTON_1_X = 10
         private const val BUTTON_1_Y = 73

@@ -18,7 +18,7 @@ import org.valkyrienskies.core.impl.api.Ticked
 import org.valkyrienskies.core.impl.api.shipValue
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 import org.valkyrienskies.core.impl.pipelines.SegmentUtils
-import org.valkyrienskies.clockwork.EurekaConfig
+import org.valkyrienskies.clockwork.ClockWorkConfig
 import org.valkyrienskies.mod.api.SeatedControllingPlayer
 import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.math.*
@@ -41,7 +41,7 @@ class EurekaShipControl : ShipForcesInducer, ServerShipUser, Ticked {
     var aligning = false
     private var physConsumption = 0f
     private val anchored get() = anchorsActive > 0
-    private val anchorSpeed = EurekaConfig.SERVER.anchorSpeed
+    private val anchorSpeed = ClockWorkConfig.SERVER.anchorSpeed
     private var wasAnchored = false
     private var anchorTargetPos = Vector3d()
     private var anchorTargetRot = Quaterniond()
@@ -85,7 +85,7 @@ class EurekaShipControl : ShipForcesInducer, ServerShipUser, Ticked {
             return
         }
         // Disable fluid drag when helms are present, because it makes ships hard to drive
-        physShip.doFluidDrag = EurekaConfig.SERVER.doFluidDrag
+        physShip.doFluidDrag = ClockWorkConfig.SERVER.doFluidDrag
 
         val forcesApplier = physShip
 
@@ -98,8 +98,8 @@ class EurekaShipControl : ShipForcesInducer, ServerShipUser, Ticked {
         val vel = SegmentUtils.getVelocity(physShip.poseVel, segment, Vector3d())
 
         val buoyantFactorPerFloater = min(
-            EurekaConfig.SERVER.floaterBuoyantFactorPerKg / 15 / mass,
-            EurekaConfig.SERVER.maxFloaterBuoyantFactor
+            ClockWorkConfig.SERVER.floaterBuoyantFactorPerKg / 15 / mass,
+            ClockWorkConfig.SERVER.maxFloaterBuoyantFactor
         )
 
         physShip.buoyantFactor = 1.0 + floaters * buoyantFactorPerFloater
@@ -130,7 +130,7 @@ class EurekaShipControl : ShipForcesInducer, ServerShipUser, Ticked {
 
             val idealOmega = Vector3d(invRotationAxisAngle.x, invRotationAxisAngle.y, invRotationAxisAngle.z)
                 .mul(-angleUntilAligned)
-                .mul(EurekaConfig.SERVER.stabilizationSpeed)
+                .mul(ClockWorkConfig.SERVER.stabilizationSpeed)
 
             val idealTorque = moiTensor.transform(idealOmega)
 
@@ -177,9 +177,9 @@ class EurekaShipControl : ShipForcesInducer, ServerShipUser, Ticked {
             var rotationVector = Vector3d(
                 0.0,
                 if (control.leftImpulse != 0.0f)
-                    (control.leftImpulse.toDouble() * EurekaConfig.SERVER.turnSpeed)
+                    (control.leftImpulse.toDouble() * ClockWorkConfig.SERVER.turnSpeed)
                 else
-                    -omega.y() * EurekaConfig.SERVER.turnSpeed,
+                    -omega.y() * ClockWorkConfig.SERVER.turnSpeed,
                 0.0
             )
 
@@ -209,7 +209,7 @@ class EurekaShipControl : ShipForcesInducer, ServerShipUser, Ticked {
 
             rotationVector.y = 0.0
 
-            rotationVector.mul(control.leftImpulse.toDouble() * EurekaConfig.SERVER.turnSpeed * -1.5)
+            rotationVector.mul(control.leftImpulse.toDouble() * ClockWorkConfig.SERVER.turnSpeed * -1.5)
 
             SegmentUtils.transformDirectionWithScale(
                 physShip.poseVel,
@@ -246,11 +246,11 @@ class EurekaShipControl : ShipForcesInducer, ServerShipUser, Ticked {
                 vel.sub(playerUpDirection.mul(playerUpDirection.dot(vel), Vector3d()), Vector3d())
 
             // This is the speed that the ship is always allowed to go out, without engines
-            val baseForwardVel = Vector3d(forwardVector).mul(EurekaConfig.SERVER.baseSpeed)
+            val baseForwardVel = Vector3d(forwardVector).mul(ClockWorkConfig.SERVER.baseSpeed)
             val baseForwardForce = Vector3d(baseForwardVel).sub(velOrthogonalToPlayerUp).mul(mass * 10)
 
             // This is the maximum speed we want to go in any scenario (when not sprinting)
-            val idealForwardVel = Vector3d(forwardVector).mul(EurekaConfig.SERVER.maxCasualSpeed.toDouble())
+            val idealForwardVel = Vector3d(forwardVector).mul(ClockWorkConfig.SERVER.maxCasualSpeed.toDouble())
             val idealForwardForce = Vector3d(idealForwardVel).sub(velOrthogonalToPlayerUp).mul(mass * 10)
 
             val extraForceNeeded = Vector3d(idealForwardForce).sub(baseForwardForce)
@@ -267,7 +267,7 @@ class EurekaShipControl : ShipForcesInducer, ServerShipUser, Ticked {
             if (control.upImpulse != 0.0f) {
                 idealUpwardVel = Vector3d(0.0, 1.0, 0.0)
                     .mul(control.upImpulse.toDouble())
-                    .mul(EurekaConfig.SERVER.impulseElevationRate.toDouble())
+                    .mul(ClockWorkConfig.SERVER.impulseElevationRate.toDouble())
             }
         }
 
@@ -310,7 +310,7 @@ class EurekaShipControl : ShipForcesInducer, ServerShipUser, Ticked {
             val angleUntilAligned = abs((alignTarget * (0.5 * Math.PI)) - invRotationAxisAngle.angle)
             val idealOmega = Vector3d(invRotationAxisAngle.x, invRotationAxisAngle.y, invRotationAxisAngle.z)
                 .mul(angleUntilAligned)
-                .mul(EurekaConfig.SERVER.stabilizationSpeed)
+                .mul(ClockWorkConfig.SERVER.stabilizationSpeed)
 
             val idealTorque = moiTensor.transform(idealOmega)
 
@@ -365,7 +365,7 @@ class EurekaShipControl : ShipForcesInducer, ServerShipUser, Ticked {
 
         private const val ALIGN_THRESHOLD = 0.01
         private const val DISASSEMBLE_THRESHOLD = 0.02
-        private val forcePerBalloon get() = EurekaConfig.SERVER.massPerBalloon * -GRAVITY
+        private val forcePerBalloon get() = ClockWorkConfig.SERVER.massPerBalloon * -GRAVITY
 
         private const val GRAVITY = -10.0
     }

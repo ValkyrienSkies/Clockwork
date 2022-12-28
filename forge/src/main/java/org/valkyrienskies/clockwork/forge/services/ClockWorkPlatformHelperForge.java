@@ -9,7 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.valkyrienskies.clockwork.services.EurekaPlatformHelper;
 
-public class EurekaPlatformHelperForge implements EurekaPlatformHelper {
+public class ClockWorkPlatformHelperForge implements EurekaPlatformHelper {
     @NotNull
     @Override
     public CreativeModeTab createCreativeTab(@NotNull ResourceLocation id, @NotNull Function0<ItemStack> stack) {

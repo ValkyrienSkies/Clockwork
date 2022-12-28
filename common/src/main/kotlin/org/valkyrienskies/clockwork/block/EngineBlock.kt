@@ -23,7 +23,7 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING
 import net.minecraft.world.level.material.Material
 import net.minecraft.world.phys.BlockHitResult
-import org.valkyrienskies.clockwork.EurekaProperties.HEAT
+import org.valkyrienskies.clockwork.ClockWorkProperties.HEAT
 import org.valkyrienskies.clockwork.blockentity.EngineBlockEntity
 import java.util.*
 

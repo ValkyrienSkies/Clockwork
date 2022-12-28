@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "id": "vs_clockwork",
   "version": "${version}",
-  "name": "Create Clockwork Mod",
-  "description": "Basically Archimedes Ships, but with VS2 as the backend!",
+  "name": "VS ClockWork Mod",
+  "description": "Create VS integration addon",
   "authors": [
     "ewoudje",
     "Tri0de",
@@ -23,16 +23,16 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "org.valkyrienskies.clockwork.fabric.EurekaModFabric"
+      "org.valkyrienskies.clockwork.fabric.ClockWorkModFabric"
     ],
     "client": [
-      "org.valkyrienskies.clockwork.fabric.EurekaModFabric${'$'}Client"
+      "org.valkyrienskies.clockwork.fabric.ClockWorkModFabric${'$'}Client"
     ],
     "preLaunch": [
       "org.valkyrienskies.clockwork.fabric.ValkyrienPreLaunch"
     ],
     "modmenu": [
-      "org.valkyrienskies.clockwork.fabric.EurekaModFabric${'$'}ModMenu"
+      "org.valkyrienskies.clockwork.fabric.ClockWorkModFabric${'$'}ModMenu"
     ]
   },
   "mixins": [

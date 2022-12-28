@@ -8,13 +8,13 @@ import org.valkyrienskies.core.game.VSBlockType
 import org.valkyrienskies.mod.common.BlockStateInfo
 import org.valkyrienskies.mod.common.BlockStateInfoProvider
 
-object EurekaWeights : BlockStateInfoProvider {
+object ClockWorkWeights : BlockStateInfoProvider {
     override val priority: Int
         get() = 200
 
     override fun getBlockStateMass(blockState: BlockState): Double? {
-        if (blockState.block == EurekaBlocks.BALLAST.get()) {
-            return EurekaConfig.SERVER.ballastWeight + (EurekaConfig.SERVER.ballastNoWeight - EurekaConfig.SERVER.ballastWeight) * (
+        if (blockState.block == ClockWorkBlocks.BALLAST.get()) {
+            return ClockWorkConfig.SERVER.ballastWeight + (ClockWorkConfig.SERVER.ballastNoWeight - ClockWorkConfig.SERVER.ballastWeight) * (
                     (
                             blockState.getValue(
                                 BlockStateProperties.POWER
@@ -31,6 +31,6 @@ object EurekaWeights : BlockStateInfoProvider {
     }
 
     fun register() {
-        Registry.register(BlockStateInfo.REGISTRY, ResourceLocation(EurekaMod.MOD_ID, "ballast"), this)
+        Registry.register(BlockStateInfo.REGISTRY, ResourceLocation(ClockWorkMod.MOD_ID, "ballast"), this)
     }
 }

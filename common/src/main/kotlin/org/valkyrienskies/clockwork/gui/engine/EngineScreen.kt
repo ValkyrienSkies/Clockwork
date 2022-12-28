@@ -7,7 +7,7 @@ import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.player.Inventory
-import org.valkyrienskies.clockwork.EurekaMod
+import org.valkyrienskies.clockwork.ClockWorkMod
 
 class EngineScreen(handler: EngineScreenMenu, playerInventory: Inventory, text: Component) :
     AbstractContainerScreen<EngineScreenMenu>(handler, playerInventory, text) {
@@ -70,7 +70,7 @@ class EngineScreen(handler: EngineScreenMenu, playerInventory: Inventory, text: 
     }
 
     companion object { // TEXTURE DATA
-        internal val TEXTURE = ResourceLocation(EurekaMod.MOD_ID, "textures/gui/engine.png")
+        internal val TEXTURE = ResourceLocation(ClockWorkMod.MOD_ID, "textures/gui/engine.png")
 
         private const val FIRE_HOLE_X = 10 / 2
         private const val FIRE_HOLE_Y = 8 / 2

@@ -12,22 +12,22 @@ import net.fabricmc.fabric.api.client.rendereregistry.v1.BlockEntityRendererRegi
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import org.valkyrienskies.core.impl.config.VSConfigClass;
-import org.valkyrienskies.clockwork.EurekaBlockEntities;
-import org.valkyrienskies.clockwork.EurekaConfig;
-import org.valkyrienskies.clockwork.EurekaMod;
+import org.valkyrienskies.clockwork.ClockWorkBlockEntities;
+import org.valkyrienskies.clockwork.ClockWorkConfig;
+import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.clockwork.block.WoodType;
 import org.valkyrienskies.clockwork.blockentity.renderer.ShipHelmBlockEntityRenderer;
 import org.valkyrienskies.clockwork.blockentity.renderer.WheelModels;
 import org.valkyrienskies.mod.compat.clothconfig.VSClothConfig;
 import org.valkyrienskies.mod.fabric.common.ValkyrienSkiesModFabric;
 
-public class EurekaModFabric implements ModInitializer {
+public class ClockWorkModFabric implements ModInitializer {
     @Override
     public void onInitialize() {
         // force VS2 to load before eureka
         new ValkyrienSkiesModFabric().onInitialize();
 
-        EurekaMod.init();
+        ClockWorkMod.init();
     }
 
     @Environment(EnvType.CLIENT)
@@ -35,21 +35,21 @@ public class EurekaModFabric implements ModInitializer {
 
         @Override
         public void onInitializeClient() {
-            EurekaMod.initClient();
+            ClockWorkMod.initClient();
             BlockEntityRendererRegistry.INSTANCE.register(
-                    EurekaBlockEntities.INSTANCE.getSHIP_HELM().get(),
+                    ClockWorkBlockEntities.INSTANCE.getSHIP_HELM().get(),
                     ShipHelmBlockEntityRenderer::new
             );
 
             ModelLoadingRegistry.INSTANCE.registerModelProvider((manager, out) -> {
                 for (WoodType woodType : WoodType.values()) {
-                    out.accept(new ResourceLocation(EurekaMod.MOD_ID, "block/" + woodType.getResourceName() + "_ship_helm_wheel"));
+                    out.accept(new ResourceLocation(ClockWorkMod.MOD_ID, "block/" + woodType.getResourceName() + "_ship_helm_wheel"));
                 }
             });
 
             WheelModels.INSTANCE.setModelGetter(woodType ->
                 BakedModelManagerHelper.getModel(Minecraft.getInstance().getModelManager(),
-                    new ResourceLocation(EurekaMod.MOD_ID, "block/" + woodType.getResourceName() + "_ship_helm_wheel")));
+                    new ResourceLocation(ClockWorkMod.MOD_ID, "block/" + woodType.getResourceName() + "_ship_helm_wheel")));
         }
     }
 
@@ -58,7 +58,7 @@ public class EurekaModFabric implements ModInitializer {
         public ConfigScreenFactory<?> getModConfigScreenFactory() {
             return (parent) -> VSClothConfig.createConfigScreenFor(
                     parent,
-                    VSConfigClass.Companion.getRegisteredConfig(EurekaConfig.class)
+                    VSConfigClass.Companion.getRegisteredConfig(ClockWorkConfig.class)
             );
         }
     }

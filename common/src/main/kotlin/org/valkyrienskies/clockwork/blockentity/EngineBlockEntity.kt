@@ -23,9 +23,9 @@ import org.joml.Math.min
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.impl.api.ServerShipProvider
 import org.valkyrienskies.core.impl.api.shipValue
-import org.valkyrienskies.clockwork.EurekaBlockEntities
-import org.valkyrienskies.clockwork.EurekaConfig
-import org.valkyrienskies.clockwork.EurekaProperties.HEAT
+import org.valkyrienskies.clockwork.ClockWorkBlockEntities
+import org.valkyrienskies.clockwork.ClockWorkConfig
+import org.valkyrienskies.clockwork.ClockWorkProperties.HEAT
 import org.valkyrienskies.clockwork.gui.engine.EngineScreenMenu
 import org.valkyrienskies.clockwork.ship.EurekaShipControl
 import org.valkyrienskies.clockwork.util.KtContainerData
@@ -33,7 +33,7 @@ import org.valkyrienskies.mod.common.getShipManagingPos
 import kotlin.math.ceil
 
 class EngineBlockEntity(pos: BlockPos, state: BlockState) :
-    BaseContainerBlockEntity(EurekaBlockEntities.ENGINE.get(), pos, state),
+    BaseContainerBlockEntity(ClockWorkBlockEntities.ENGINE.get(), pos, state),
     ServerShipProvider,
     StackedContentsCompatible,
     WorldlyContainer {
@@ -65,7 +65,7 @@ class EngineBlockEntity(pos: BlockPos, state: BlockState) :
                 this.fuelLeft--
 
                 if (this.heat < 100f) {
-                    this.heat += EurekaConfig.SERVER.engineHeatGain
+                    this.heat += ClockWorkConfig.SERVER.engineHeatGain
                 }
             } else if (!fuel.isEmpty && this.heat < 100f) {
                 fuelTotal = (FurnaceBlockEntity.getFuel()[fuel.item] ?: 0) * 2
@@ -83,15 +83,15 @@ class EngineBlockEntity(pos: BlockPos, state: BlockState) :
             if (heat > 0 && ship != null && eurekaShipControl != null) {
                 eurekaShipControl!!.power += lerp(
                     heat / 100f,
-                    EurekaConfig.SERVER.minEnginePower,
-                    EurekaConfig.SERVER.enginePower
+                    ClockWorkConfig.SERVER.minEnginePower,
+                    ClockWorkConfig.SERVER.enginePower
                 )
 
                 heat -= eurekaShipControl!!.consumed
             }
 
             if (heat > 0) {
-                heat -= min(EurekaConfig.SERVER.engineHeatLoss, heat)
+                heat -= min(ClockWorkConfig.SERVER.engineHeatLoss, heat)
             }
         }
     }

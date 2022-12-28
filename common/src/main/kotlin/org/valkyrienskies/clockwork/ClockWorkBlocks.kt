@@ -15,8 +15,8 @@ import org.valkyrienskies.clockwork.registry.DeferredRegister
 import org.valkyrienskies.mod.event.RegistryEvents
 
 @Suppress("unused")
-object EurekaBlocks {
-    private val BLOCKS = DeferredRegister.create(EurekaMod.MOD_ID, Registry.BLOCK_REGISTRY)
+object ClockWorkBlocks {
+    private val BLOCKS = DeferredRegister.create(ClockWorkMod.MOD_ID, Registry.BLOCK_REGISTRY)
 
     val ANCHOR = BLOCKS.register("anchor", ::AnchorBlock)
     val ENGINE = BLOCKS.register("engine", ::EngineBlock)
@@ -209,7 +209,7 @@ object EurekaBlocks {
     // aka all blocks
     fun registerItems(items: DeferredRegister<Item>) {
         BLOCKS.forEach {
-            items.register(it.name) { BlockItem(it.get(), Item.Properties().tab(EurekaItems.TAB)) }
+            items.register(it.name) { BlockItem(it.get(), Item.Properties().tab(ClockWorkItems.TAB)) }
         }
     }
 

@@ -14,24 +14,24 @@ import org.valkyrienskies.clockwork.registry.DeferredRegister
 import org.valkyrienskies.clockwork.registry.RegistrySupplier
 
 @Suppress("unused")
-object EurekaBlockEntities {
-    private val BLOCKENTITIES = DeferredRegister.create(EurekaMod.MOD_ID, Registry.BLOCK_ENTITY_TYPE_REGISTRY)
+object ClockWorkBlockEntities {
+    private val BLOCKENTITIES = DeferredRegister.create(ClockWorkMod.MOD_ID, Registry.BLOCK_ENTITY_TYPE_REGISTRY)
 
     val SHIP_HELM = setOf(
-        EurekaBlocks.OAK_SHIP_HELM,
-        EurekaBlocks.SPRUCE_SHIP_HELM,
-        EurekaBlocks.BIRCH_SHIP_HELM,
-        EurekaBlocks.JUNGLE_SHIP_HELM,
-        EurekaBlocks.ACACIA_SHIP_HELM,
-        EurekaBlocks.DARK_OAK_SHIP_HELM,
-        EurekaBlocks.CRIMSON_SHIP_HELM,
-        EurekaBlocks.WARPED_SHIP_HELM
+        ClockWorkBlocks.OAK_SHIP_HELM,
+        ClockWorkBlocks.SPRUCE_SHIP_HELM,
+        ClockWorkBlocks.BIRCH_SHIP_HELM,
+        ClockWorkBlocks.JUNGLE_SHIP_HELM,
+        ClockWorkBlocks.ACACIA_SHIP_HELM,
+        ClockWorkBlocks.DARK_OAK_SHIP_HELM,
+        ClockWorkBlocks.CRIMSON_SHIP_HELM,
+        ClockWorkBlocks.WARPED_SHIP_HELM
     ) withBE ::ShipHelmBlockEntity byName "ship_helm"
 
-    val ENGINE = EurekaBlocks.ENGINE withBE ::EngineBlockEntity byName "engine"
+    val ENGINE = ClockWorkBlocks.ENGINE withBE ::EngineBlockEntity byName "engine"
 
     fun register() {
-        EurekaBlockEntities.BLOCKENTITIES.applyAll()
+        ClockWorkBlockEntities.BLOCKENTITIES.applyAll()
     }
 
     private infix fun <T : BlockEntity> Set<RegistrySupplier<out Block>>.withBE(blockEntity: (BlockPos, BlockState) -> T) =
@@ -42,7 +42,7 @@ object EurekaBlockEntities {
 
     private infix fun <T : BlockEntity> Block.withBE(blockEntity: (BlockPos, BlockState) -> T) = Pair(this, blockEntity)
     private infix fun <T : BlockEntity> Pair<Set<RegistrySupplier<out Block>>, (BlockPos, BlockState) -> T>.byName(name: String): RegistrySupplier<BlockEntityType<T>> =
-        EurekaBlockEntities.BLOCKENTITIES.register(name) {
+        ClockWorkBlockEntities.BLOCKENTITIES.register(name) {
             val type = Util.fetchChoiceType(References.BLOCK_ENTITY, name)
 
             BlockEntityType.Builder.of(

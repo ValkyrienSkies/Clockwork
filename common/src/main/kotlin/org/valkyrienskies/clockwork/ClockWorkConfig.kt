@@ -2,7 +2,7 @@ package org.valkyrienskies.clockwork
 
 import com.github.imifou.jsonschema.module.addon.annotation.JsonSchema
 
-object EurekaConfig {
+object ClockWorkConfig {
     @JvmField
     val CLIENT = Client()
 

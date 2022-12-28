@@ -21,8 +21,8 @@ private data class ToRegEntityRenderer<T : Entity>(
         EntityRenderers.register(type.get(), renderer)
 }
 
-object EurekaEntities {
-    private val ENTITIES = DeferredRegister.create(EurekaMod.MOD_ID, Registry.ENTITY_TYPE_REGISTRY)
+object ClockWorkEntities {
+    private val ENTITIES = DeferredRegister.create(ClockWorkMod.MOD_ID, Registry.ENTITY_TYPE_REGISTRY)
     private val ENTITY_RENDERERS = mutableListOf<ToRegEntityRenderer<*>>()
 
     // val SEAT = ::SeatEntity category MobCategory.MISC byName "seat" registerRenderer ::EmptyRenderer

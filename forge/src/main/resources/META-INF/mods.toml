@@ -9,7 +9,7 @@ version = "${version}"
 displayName = "Create Clockwork Mod"
 authors = ["Tri0de", "ewoudje", "VS2 Discord Artists"]
 description = '''
-Basically Archimedes Ships, but with VS2 as the backend!
+
 '''
 logoFile = "icon.png"
 

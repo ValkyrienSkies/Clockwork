@@ -8,13 +8,13 @@ import net.minecraft.world.inventory.AbstractContainerMenu
 import net.minecraft.world.inventory.FurnaceFuelSlot.isBucket
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity
-import org.valkyrienskies.clockwork.EurekaScreens
+import org.valkyrienskies.clockwork.ClockWorkScreens
 import org.valkyrienskies.clockwork.blockentity.EngineBlockEntity
 import org.valkyrienskies.clockwork.util.KtContainerData
 import org.valkyrienskies.clockwork.util.inventorySlots
 
 class EngineScreenMenu(syncId: Int, playerInv: Inventory, val blockEntity: EngineBlockEntity?) :
-    AbstractContainerMenu(EurekaScreens.ENGINE.get(), syncId) {
+    AbstractContainerMenu(ClockWorkScreens.ENGINE.get(), syncId) {
 
     constructor(syncId: Int, playerInv: Inventory) : this(syncId, playerInv, null)
 

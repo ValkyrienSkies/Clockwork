@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.core.api.ships.getAttachment
-import org.valkyrienskies.clockwork.EurekaConfig
+import org.valkyrienskies.clockwork.ClockWorkConfig
 import org.valkyrienskies.clockwork.ship.EurekaShipControl
 import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
@@ -50,7 +50,7 @@ class BalloonBlock(properties: Properties) : Block(properties) {
         Direction.values().forEach {
             val neighbor = hit.blockPos.relative(it)
             if (level.getBlockState(neighbor).block == this &&
-                level.random.nextFloat() < EurekaConfig.SERVER.popSideBalloonChance
+                level.random.nextFloat() < ClockWorkConfig.SERVER.popSideBalloonChance
             ) {
                 level.destroyBlock(neighbor, false)
             }
