@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "vs_clockwork",
   "version": "${version}",
-  "name": "VS Eureka Mod",
+  "name": "Create Clockwork Mod",
   "description": "Basically Archimedes Ships, but with VS2 as the backend!",
   "authors": [
     "ewoudje",
@@ -26,13 +26,13 @@
       "org.valkyrienskies.clockwork.fabric.EurekaModFabric"
     ],
     "client": [
-      "org.valkyrienskies.clockwork.fabric.EurekaModFabric"
+      "org.valkyrienskies.clockwork.fabric.EurekaModFabric${'$'}Client"
     ],
     "preLaunch": [
       "org.valkyrienskies.clockwork.fabric.ValkyrienPreLaunch"
     ],
     "modmenu": [
-      "org.valkyrienskies.clockwork.fabric.EurekaModFabric"
+      "org.valkyrienskies.clockwork.fabric.EurekaModFabric${'$'}ModMenu"
     ]
   },
   "mixins": [

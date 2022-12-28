@@ -50,7 +50,7 @@ class ShipHelmBlockEntity(pos: BlockPos, state: BlockState) :
     }
 
     override fun getDisplayName(): Component {
-        return TranslatableComponent("gui.vs_eureka.ship_helm")
+        return TranslatableComponent("gui.vs_clockwork.ship_helm")
     }
 
     // Needs to get called server-side

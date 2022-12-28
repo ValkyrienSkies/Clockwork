@@ -2,7 +2,7 @@
   "parent": "minecraft:block/orientable",
   "textures": {
     "top": "minecraft:block/blast_furnace_top",
-    "front": "vs_eureka:block/engine_front",
+    "front": "vs_clockwork:block/engine_front",
     "side": "minecraft:block/blast_furnace_side"
   }
 }

@@ -1,6 +1,6 @@
 {
-  "parent": "vs_eureka:block/engine",
+  "parent": "vs_clockwork:block/engine",
   "textures": {
-    "front": "vs_eureka:block/engine_front_on_2"
+    "front": "vs_clockwork:block/engine_front_on_2"
   }
 }

@@ -49,7 +49,7 @@ class EngineBlockEntity(pos: BlockPos, state: BlockState) :
     override fun createMenu(containerId: Int, inventory: Inventory): AbstractContainerMenu =
         EngineScreenMenu(containerId, inventory, this)
 
-    override fun getDefaultName(): Component = TranslatableComponent("gui.vs_eureka.engine")
+    override fun getDefaultName(): Component = TranslatableComponent("gui.vs_clockwork.engine")
 
     private var heat = 0f
     fun tick() {

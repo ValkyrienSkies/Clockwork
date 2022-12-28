@@ -1,7 +1,7 @@
 {
   "variants": {
     "": {
-      "model": "vs_eureka:block/black_balloon"
+      "model": "vs_clockwork:block/black_balloon"
     }
   }
 }

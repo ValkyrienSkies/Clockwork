@@ -1,7 +1,7 @@
 {
   "variants": {
     "": {
-      "model": "vs_eureka:block/floater"
+      "model": "vs_clockwork:block/floater"
     }
   }
 }

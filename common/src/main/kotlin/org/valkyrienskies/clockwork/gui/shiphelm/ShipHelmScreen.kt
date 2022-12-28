@@ -96,10 +96,10 @@ class ShipHelmScreen(handler: ShipHelmScreenMenu, playerInventory: Inventory, te
         private const val BUTTON_3_X = 10
         private const val BUTTON_3_Y = 133
 
-        private val ASSEMBLE_TEXT = TranslatableComponent("gui.vs_eureka.assemble")
-        private val DISSEMBLE_TEXT = TranslatableComponent("gui.vs_eureka.disassemble")
-        private val ALIGN_TEXT = TranslatableComponent("gui.vs_eureka.align")
-        private val ALIGNING_TEXT = TranslatableComponent("gui.vs_eureka.aligning")
-        private val TODO_TEXT = TranslatableComponent("gui.vs_eureka.todo")
+        private val ASSEMBLE_TEXT = TranslatableComponent("gui.vs_clockwork.assemble")
+        private val DISSEMBLE_TEXT = TranslatableComponent("gui.vs_clockwork.disassemble")
+        private val ALIGN_TEXT = TranslatableComponent("gui.vs_clockwork.align")
+        private val ALIGNING_TEXT = TranslatableComponent("gui.vs_clockwork.aligning")
+        private val TODO_TEXT = TranslatableComponent("gui.vs_clockwork.todo")
     }
 }

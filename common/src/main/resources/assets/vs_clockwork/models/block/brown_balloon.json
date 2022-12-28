@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "vs_eureka:block/brown_balloon"
+    "all": "vs_clockwork:block/brown_balloon"
   }
 }

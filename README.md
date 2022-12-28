@@ -1,4 +1,4 @@
-![Logo-Recovered](vs_eureka_logo.png)
+![Logo-Recovered](vs_clockwork_logo.png)
 
 # Eureka
 

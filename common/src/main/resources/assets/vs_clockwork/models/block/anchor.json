@@ -1,7 +1,7 @@
 {
   "credit": "Made with Blockbench",
   "textures": {
-    "4": "vs_eureka:block/anchor",
+    "4": "vs_clockwork:block/anchor",
     "particle": "minecraft:block/anvil"
   },
   "elements": [
