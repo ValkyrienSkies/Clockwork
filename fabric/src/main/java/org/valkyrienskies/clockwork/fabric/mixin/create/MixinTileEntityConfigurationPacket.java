@@ -6,8 +6,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.joml.Vector3d;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -22,9 +20,6 @@ import org.valkyrienskies.mod.common.VSGameUtilsKt;
 @Mixin(TileEntityConfigurationPacket.class)
 public abstract class MixinTileEntityConfigurationPacket {
     @Unique
-    private static final Logger LOGGER = LogManager.getLogger("VS2 create.MixinTileEntityConfigurationPacket");
-
-    @Unique
     private Level world;
 
     @Redirect(
@@ -36,14 +31,11 @@ public abstract class MixinTileEntityConfigurationPacket {
     )
     private boolean redirectCloserThan(final BlockPos instance, final Vec3i vec3i, final double v) {
         BlockPos blockPos = instance;
-        LOGGER.warn("handle closerThan");
         if (VSGameUtilsKt.isBlockInShipyard(this.world, instance)) {
-            LOGGER.warn("Block in shipyard");
             final Ship ship = VSGameUtilsKt.getShipManagingPos(this.world, instance);
             final Vector3d tempVec = VSGameUtilsKt.toWorldCoordinates(ship, instance);
             blockPos = new BlockPos(tempVec.x, tempVec.y, tempVec.z);
         }
-
         return blockPos.closerThan(vec3i, v);
     }
 

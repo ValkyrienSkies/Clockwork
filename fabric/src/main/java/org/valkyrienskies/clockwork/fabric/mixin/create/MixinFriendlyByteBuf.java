@@ -2,19 +2,13 @@ package org.valkyrienskies.clockwork.fabric.mixin.create;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(FriendlyByteBuf.class)
 public abstract class MixinFriendlyByteBuf {
-    @Unique
-    private static final Logger LOGGER = LogManager.getLogger("VS2 create.MixinTrackNodeLocation");
-
     @Inject(
         method = "readBlockPos",
         at = @At("HEAD"), cancellable = true

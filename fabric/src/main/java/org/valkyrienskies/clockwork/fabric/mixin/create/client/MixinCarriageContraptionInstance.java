@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.fabric.mixin.create.client;
 
 import static org.joml.Matrix4dc.PROPERTY_IDENTITY;
+import static org.joml.Matrix4dc.PROPERTY_PERSPECTIVE;
 
 import com.jozufozu.flywheel.api.MaterialManager;
 import com.jozufozu.flywheel.util.AnimationTickHolder;
@@ -8,21 +9,14 @@ import com.jozufozu.flywheel.util.transform.TransformStack;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
-import com.simibubi.create.content.logistics.trains.entity.BogeyInstance;
 import com.simibubi.create.content.logistics.trains.entity.Carriage;
 import com.simibubi.create.content.logistics.trains.entity.CarriageContraptionEntity;
 import com.simibubi.create.content.logistics.trains.entity.CarriageContraptionInstance;
-import com.simibubi.create.foundation.utility.Couple;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.joml.Matrix4d;
 import org.joml.Vector3d;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -37,21 +31,15 @@ import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
 @Mixin(CarriageContraptionInstance.class)
 public class MixinCarriageContraptionInstance {
-    @Unique
-    private static final Logger LOGGER = LogManager.getLogger("VS2 create.client.MixinCarriageContraptionInstance");
-
-    @Final
-    @Shadow
-    PoseStack ms;
-
-    @Shadow
-    private Couple<BogeyInstance> bogeys;
-
     @Shadow
     private Carriage carriage;
 
+    /**
+    * the Matrix4d call ends up doing funky type conversion because of built-in Math.fma
+    * so using this one from JOML (which itself calls to built in fma instead of just doing the math)
+     */
     @Unique
-    private double fullMetalAlchemist(final double a, final double b, final double c) {
+    private double fma(final double a, final double b, final double c) {
         return a * b + c;
     }
 
@@ -60,20 +48,12 @@ public class MixinCarriageContraptionInstance {
         if ((matrix4d.properties() & PROPERTY_IDENTITY) != 0) {
             return matrix4d.translation(x, y, z);
         }
-        matrix4d.m30(
-            fullMetalAlchemist(matrix4d.m00(), x,
-                fullMetalAlchemist(matrix4d.m10(), y, fullMetalAlchemist(matrix4d.m20(), z, matrix4d.m30()))));
-        matrix4d.m31(
-            fullMetalAlchemist(matrix4d.m01(), x,
-                fullMetalAlchemist(matrix4d.m11(), y, fullMetalAlchemist(matrix4d.m21(), z, matrix4d.m31()))));
-        matrix4d.m32(
-            fullMetalAlchemist(matrix4d.m02(), x,
-                fullMetalAlchemist(matrix4d.m12(), y, fullMetalAlchemist(matrix4d.m22(), z, matrix4d.m32()))));
-        matrix4d.m33(
-            fullMetalAlchemist(matrix4d.m03(), x,
-                fullMetalAlchemist(matrix4d.m13(), y, fullMetalAlchemist(matrix4d.m23(), z, matrix4d.m33()))));
+        matrix4d.m30(fma(matrix4d.m00(), x,fma(matrix4d.m10(), y, fma(matrix4d.m20(), z, matrix4d.m30()))));
+        matrix4d.m31(fma(matrix4d.m01(), x,fma(matrix4d.m11(), y, fma(matrix4d.m21(), z, matrix4d.m31()))));
+        matrix4d.m32(fma(matrix4d.m02(), x,fma(matrix4d.m12(), y, fma(matrix4d.m22(), z, matrix4d.m32()))));
+        matrix4d.m33(fma(matrix4d.m03(), x,fma(matrix4d.m13(), y, fma(matrix4d.m23(), z, matrix4d.m33()))));
 
-        //matrix4d.assume(matrix4d.properties() & ~(PROPERTY_PERSPECTIVE | PROPERTY_IDENTITY));
+        matrix4d.assume(matrix4d.properties() & ~(PROPERTY_PERSPECTIVE | PROPERTY_IDENTITY));
         return matrix4d;
     }
 
@@ -86,7 +66,7 @@ public class MixinCarriageContraptionInstance {
             target = "Lcom/simibubi/create/foundation/utility/Couple;mapNotNullWithParam(Ljava/util/function/BiFunction;Ljava/lang/Object;)Lcom/simibubi/create/foundation/utility/Couple;")
 
     )
-    private void injectHead(final Args args) {
+    private void harvestMaterialManager(final Args args) {
         matManage = args.get(1);
         args.set(0, args.get(0));
         args.set(1, args.get(1));
@@ -99,70 +79,30 @@ public class MixinCarriageContraptionInstance {
     private Object redirectTranslate(final TransformStack instance, final Vector3f vector3f) {
 
         final float partialTicks = AnimationTickHolder.getPartialTicks();
-        final Vector3f instancePosition =
-            ((CarriageContraptionInstance) (Object) this).getInstancePosition(partialTicks);
-
-        final Level level = ((CarriageContraptionInstance) (Object) this).world;
-        //final BlockPos position = ((CarriageContraptionInstance) (Object) this).getWorldPosition();
-        //LOGGER.warn("Checking at vector3f " + vector3f);
-        //LOGGER.warn("Checking at instancePosition " + instancePosition);
+        final Level level = ((CarriageContraptionInstance)(Object)this).world;
         final ClientShip ship =
-            (ClientShip) VSGameUtilsKt.getShipObjectManagingPos(level, vector3f.x(), vector3f.y(), vector3f.z());
-
-        final LocalPlayer player = Minecraft.getInstance().player;
+            (ClientShip)VSGameUtilsKt.getShipObjectManagingPos(level, vector3f.x(), vector3f.y(), vector3f.z());
 
         if (ship != null) {
-            boolean crouchTest = false;
-            if (player != null) {
-                crouchTest = player.isCrouching();
-            }
             final CarriageContraptionEntity carriageContraptionEntity = carriage.anyAvailableEntity();
             final Vector3d origin = VectorConversionsMCKt.toJOMLD(matManage.getOriginCoordinate());
             final Vec3 pos = carriageContraptionEntity.position();
-            final Vector3d lerped =
+            final Vector3d newPosition =
                 new Vector3d(
-                    Mth.lerp(partialTicks, carriageContraptionEntity.xOld, pos.x),// - origin.x,
-                    Mth.lerp(partialTicks, carriageContraptionEntity.yOld, pos.y),// - origin.y,
-                    Mth.lerp(partialTicks, carriageContraptionEntity.zOld, pos.z)// - origin.z
+                    Mth.lerp(partialTicks, carriageContraptionEntity.xOld, pos.x),
+                    Mth.lerp(partialTicks, carriageContraptionEntity.yOld, pos.y),
+                    Mth.lerp(partialTicks, carriageContraptionEntity.zOld, pos.z)
                 );
-            /*
-            LOGGER.warn("Checking carriageContraptionEntity lerpedVec3 [" +
-                lerped.x + "," +
-                lerped.y + "," +
-                lerped.z +
-                "] " + lerped + " partialTicks " + partialTicks);*/
-
             final ShipTransform transform = ship.getRenderTransform();
-            final Vector3d a = new Vector3d(0, 0, 0);
-            ship.getRenderTransform().getShipToWorld()
-                .transformPosition(lerped.x, lerped.y, lerped.z, a);
-            //LOGGER.warn("Checking at where-everAis " + a);
-
-            final Vector3d vector3d = new Vector3d(vector3f.x(), vector3f.y(), vector3f.z());
-            //LOGGER.warn("vector3d " + vector3d + " x " + vector3d.x + " y " + vector3d.y + " z " + vector3d.z);
-            //LOGGER.warn("vector3f " + vector3f + " x " + vector3f.x() + " y " + vector3f.y() + " z " + vector3f.z());
-            Matrix4d renderMatrix = new Matrix4d();
-            renderMatrix.translate(origin.mul(-1));
-            renderMatrix.mul(transform.getShipToWorld());
-            renderMatrix = trans(renderMatrix, lerped.x, lerped.y, lerped.z);
-            //renderMatrix.translate(vector3d);
-
-            //.translate(vector3f.x(), vector3f.y(), vector3f.z());
-            //renderMatrix.rotate()
-            final Matrix4f mat4f = VectorConversionsMCKt.toMinecraft(renderMatrix);
-            //LOGGER.warn("mat4f " + mat4f + "\ncrouched " + crouchTest);
+            Matrix4d renderMatrix = new Matrix4d()
+                    .translate(origin.mul(-1))
+                    .mul(transform.getShipToWorld());
+            Matrix4f mat4f = VectorConversionsMCKt.toMinecraft(
+                    trans(renderMatrix, newPosition.x, newPosition.y, newPosition.z));
             ((PoseStack) instance).last().pose().multiply(mat4f);
-            if (crouchTest) {
-                instance.translate(new Vector3f(0.5f, 0, -0.5f));
-            }
-
-            //VectorConversionsMCKt.multiply((PoseStack) instance, renderMatrix);
-
-            //VSClientGameUtils.transformRenderIfInShipyard((PoseStack) instance, vector3f.x(), vector3f.y(),vector3f.z());
         } else {
             instance.translate(vector3f);
         }
         return null;
     }
-
 }

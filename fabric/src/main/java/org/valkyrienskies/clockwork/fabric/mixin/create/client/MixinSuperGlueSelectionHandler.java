@@ -8,8 +8,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult.Type;
 import net.minecraft.world.phys.Vec3;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.joml.Vector3d;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -24,9 +22,6 @@ import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 @Mixin(SuperGlueSelectionHandler.class)
 public abstract class MixinSuperGlueSelectionHandler {
     @Unique
-    private static final Logger LOGGER = LogManager.getLogger("VS2 create.MixinSuperGlueSelectionHandler");
-
-    @Unique
     private Vec3 oldOrigin;
 
     @ModifyVariable(
@@ -36,7 +31,6 @@ public abstract class MixinSuperGlueSelectionHandler {
         ), ordinal = 0, remap = false
     )
     private Vec3 getTraceOrigin(final Vec3 value) {
-        LOGGER.warn("getTraceOrigin " + value);
         oldOrigin = value;
         return modVec3ToShip(value);
     }
@@ -48,7 +42,6 @@ public abstract class MixinSuperGlueSelectionHandler {
     )
     private Vec3 redirectGetTraceTarget(final Player playerIn, final double range, final Vec3 origin) {
         final Vec3 value = RaycastHelper.getTraceTarget(playerIn, range, oldOrigin);
-        LOGGER.warn("getTraceOrigin " + value);
         return modVec3ToShip(value);
     }
 
@@ -63,7 +56,6 @@ public abstract class MixinSuperGlueSelectionHandler {
                 final ShipTransform transform = ship.getRenderTransform();
                 final Vector3d transformed =
                     transform.getWorldToShip().transformPosition(VectorConversionsMCKt.toJOML(value));
-                LOGGER.warn("toWorlding " + value + " to " + transformed);
                 return VectorConversionsMCKt.toMinecraft(transformed);
             }
         }
