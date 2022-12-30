@@ -18,6 +18,7 @@ import org.valkyrienskies.core.impl.config.VSConfigClass;
 import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.mod.compat.clothconfig.VSClothConfig;
 import org.valkyrienskies.mod.fabric.common.ValkyrienSkiesModFabric;
+import org.valkyrienskies.clockwork.fabric.AllClockworkPartials;
 
 import static org.valkyrienskies.clockwork.ClockWorkMod.MOD_ID;
 
@@ -36,13 +37,13 @@ public class ClockWorkModFabric implements ModInitializer {
         new ValkyrienSkiesModFabric().onInitialize();
         AllClockworkBlocks.register();
         AllClockworkItems.register();
-
         AllClockworkTileEntities.register();
 
         REGISTRATE.register();
+
+        AllClockworkParticles.register();
         AllClockworkConfigs.register();
         ClockWorkMod.init();
-
     }
 
     @Environment(EnvType.CLIENT)
@@ -51,7 +52,10 @@ public class ClockWorkModFabric implements ModInitializer {
         @Override
         public void onInitializeClient() {
             ClockWorkMod.initClient();
+            AllClockworkPartials.init();
+            AllClockworkParticles.registerFactories();
         }
+
 
     }
 

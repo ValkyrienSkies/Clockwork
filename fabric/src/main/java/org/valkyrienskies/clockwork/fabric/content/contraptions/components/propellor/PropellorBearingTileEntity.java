@@ -1,5 +1,9 @@
 package org.valkyrienskies.clockwork.fabric.content.contraptions.components.propellor;
 
+
+import com.simibubi.create.AllTags;
+import com.simibubi.create.Create;
+import com.simibubi.create.content.contraptions.components.structureMovement.ControlledContraptionEntity;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingContraption;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.MechanicalBearingTileEntity;
 import com.simibubi.create.foundation.gui.AllIcons;
@@ -7,25 +11,47 @@ import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
 import com.simibubi.create.foundation.tileEntity.behaviour.scrollvalue.INamedIconOptions;
 import com.simibubi.create.foundation.tileEntity.behaviour.scrollvalue.ScrollOptionBehaviour;
 import com.simibubi.create.foundation.utility.Lang;
+import com.simibubi.create.foundation.utility.ServerSpeedProvider;
+import com.simibubi.create.foundation.utility.VecHelper;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.levelgen.structure.TemplateStructurePiece;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
+import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
+import org.valkyrienskies.clockwork.fabric.content.curiosities.particles.PropellorStreamParticle;
+import org.valkyrienskies.clockwork.fabric.content.curiosities.particles.PropellorStreamParticleData;
+import org.valkyrienskies.clockwork.fabric.util.propellor.IPropellor;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-public class PropellorBearingTileEntity extends MechanicalBearingTileEntity {
-
+public class PropellorBearingTileEntity extends MechanicalBearingTileEntity implements IPropellor {
     protected ScrollOptionBehaviour<RotationDirection> movementDirection;
-
-    protected boolean running;
-    protected boolean assembleNextTick;
     protected boolean queuedReassembly;
+    protected double lastGeneratedSpeed;
 
+    float rotspeed=0;
+    float targetSpeed=0;
+    int sails;
+    public List<BlockPos> sailPositions;
+    boolean slowingDown=false;
+
+    float disassembling;
+    float spinup;
+    boolean spinningUp=false;
     public PropellorBearingTileEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
+        sailPositions = new ArrayList<>();
     }
 
     @Override
@@ -33,18 +59,84 @@ public class PropellorBearingTileEntity extends MechanicalBearingTileEntity {
         boolean cancelAssembly = assembleNextTick;
         super.onSpeedChanged(prevSpeed);
         assembleNextTick = cancelAssembly;
+
+    }
+    private void modSpeed() {
+        float nextSpeed = convertToAngular(getSpeed());
+        if (getSpeed() == 0) {
+            nextSpeed = 0;
+        }
+        if(sailPositions.size()>0) {
+            float lerpcount = 0.7f / sailPositions.size();
+            rotspeed = Mth.lerp(lerpcount, rotspeed, nextSpeed);
+        } else {
+            rotspeed = nextSpeed;
+        }
+    }
+    private void modSlowdownSpeed() {
+        disassembling--;
+        if (disassembling==0) {
+            if(!level.isClientSide) {
+                disassemble();
+            }
+            slowingDown = false;
+            return;
+        }
+        float stoppingPoint = (angle + rotspeed*disassembling*0.5f);
+        float optimalStoppingPoint = 90f*Math.round(stoppingPoint/90f);
+        float Q = (optimalStoppingPoint - stoppingPoint)/disassembling;
+        rotspeed = (rotspeed + 6f*Q/disassembling)*(1f - 1f/disassembling);
+        speed = rotspeed;
     }
 
+
+    private void modSpinupSpeed() {
+
+        spinup--;
+        if (speed == targetSpeed) {
+            spinningUp = false;
+            return;
+        }
+//            float time = 1f - (spinup / 20f);
+//            float Q = (rotspeed + (targetSpeed - rotspeed)) * time;
+        float startingPoint = (angle + targetSpeed*spinup*0.5f);
+        float Q = (startingPoint)/spinup;
+        rotspeed = (rotspeed + 6f*Q/spinup)*(1f - 1f/spinup);
+        speed = rotspeed;
+
+    }
     @Override
     public void tick() {
         super.tick();
-        if (level.isClientSide())
+
+        if (slowingDown) {
+            modSlowdownSpeed();
+        } else if (spinningUp) {
+            modSpinupSpeed();
+        } else {
+            modSpeed();
+        }
+        if (level.isClientSide()) {
+            particles();
             return;
-        if (!queuedReassembly)
-            return;
-        queuedReassembly = false;
-        if (!running)
-            assembleNextTick = true;
+        }
+//        if (!queuedReassembly)
+//            return;
+        if (speed!=0) {
+            lastGeneratedSpeed = speed;
+        }
+        if (lastGeneratedSpeed<0 && movementDirection.getValue()==0 || (lastGeneratedSpeed>0 && movementDirection.getValue()!=0)) {
+            setBlockDirection(PropellorBearingBlock.Direction.PULL);
+        } else {
+            setBlockDirection(PropellorBearingBlock.Direction.PUSH);
+        }
+//        queuedReassembly = false;
+//        if (!running)
+//            assembleNextTick = true;
+//        if (assembleNextTickCW)
+//            assembleNextTick = true;
+//        if (!assembleNextTickCW)
+//            assembleNextTick = false;
     }
 
     public void disassembleForMovement() {
@@ -53,39 +145,77 @@ public class PropellorBearingTileEntity extends MechanicalBearingTileEntity {
         disassemble();
         queuedReassembly = true;
     }
-
-    public float getGeneratedPropulsion() {
+    @Override
+    public float calculateStressApplied() {
         if (!running)
             return 0;
-        int sails = ((BearingContraption) movedContraption.getContraption()).getSailBlocks()
-                / AllClockworkConfigs.SERVER.kinetics.propellorRPMPerSail.get();
-        return Mth.clamp(sails, 1, 16) * getAngleSpeedDirection();
+        if (movedContraption != null) {
+            sails = ((BearingContraption) movedContraption.getContraption()).getSailBlocks();
+        }
+        sails = Math.max(sails,2);
+        return sails*2.0f;
     }
-
-    protected boolean isPropellor() {
+    @Override
+    public boolean isPropellor() {
         return true;
     }
-
-    protected float getAngleSpeedDirection() {
-        RotationDirection rotationDirection = RotationDirection.values()[movementDirection.getValue()];
-        return (rotationDirection == RotationDirection.CLOCKWISE ? 1 : -1);
+    @Override
+    public float getAngularSpeed() {
+        float speed = rotspeed;
+        if (level.isClientSide) {
+            speed*= ServerSpeedProvider.get();
+            speed+=clientAngleDiff / 3f;
+        }
+        return speed;
     }
-
+    @Override
+    public void assemble() {
+        rotspeed = 0;
+        super.assemble();
+        getSails();
+        spinup = (int)Math.abs(targetSpeed);
+//        sails = ((BearingContraption) movedContraption.getContraption()).getSailBlocks();
+    }
+    @Override
+    public void disassemble() {
+        rotspeed = 0;
+        speed = targetSpeed;
+        super.disassemble();
+    }
+    public void setAssembleNextTick(boolean bool) {
+        assembleNextTick = bool;
+    }
+    public void startSlowdown() {
+        if(!slowingDown) {
+            slowingDown = true;
+            disassembling = 20;
+        }
+    }
+    public void startSpinup() {
+        if(!spinningUp) {
+            spinningUp = true;
+        }
+    }
     @Override
     public void write(CompoundTag compound, boolean clientPacket) {
-        compound.putBoolean("QueueAssembly", queuedReassembly);
+        compound.putDouble("LastGenerated", lastGeneratedSpeed);
+        compound.putFloat("RotationSpeed", rotspeed);
         super.write(compound, clientPacket);
     }
 
     @Override
     protected void read(CompoundTag compound, boolean clientPacket) {
-        queuedReassembly = compound.getBoolean("QueueAssembly");
+        if (!wasMoved) {
+            lastGeneratedSpeed = compound.getDouble("LastGenerated");
+        }
+        rotspeed = compound.getFloat("RotationSpeed");
         super.read(compound, clientPacket);
     }
 
     @Override
     public void addBehaviours(List<TileEntityBehaviour> behaviours) {
         super.addBehaviours(behaviours);
+        movementMode.setValue(2);
         behaviours.remove(movementMode);
         movementDirection = new ScrollOptionBehaviour<>(RotationDirection.class,
                 Lang.translateDirect("contraptions.propellor.rotation_direction"), this, getMovementModeSlot());
@@ -95,10 +225,14 @@ public class PropellorBearingTileEntity extends MechanicalBearingTileEntity {
     }
 
     private void onDirectionChanged() {
-        if (!running)
-            return;
-        if (!level.isClientSide)
-            updateGeneratedRotation();
+    BlockState state = getBlockState();
+    PropellorBearingBlock.Direction previouslyPowered = state.getValue(PropellorBearingBlock.DIRECTION);
+    if (previouslyPowered == PropellorBearingBlock.Direction.PULL)
+        level.setBlock(getBlockPos(), state.cycle(PropellorBearingBlock.DIRECTION), 2);
+    if (!running)
+        return;
+    if (!level.isClientSide)
+        updateGeneratedRotation();
     }
 
     @Override
@@ -106,6 +240,57 @@ public class PropellorBearingTileEntity extends MechanicalBearingTileEntity {
         return false;
     }
 
+    public PropellorBearingBlock.Direction getDirectonFromBlock() {
+        return PropellorBearingBlock.getDirectionof(getBlockState());
+    }
+    protected void setBlockDirection(PropellorBearingBlock.Direction direction) {
+        PropellorBearingBlock.Direction inBlockState = getDirectonFromBlock();
+        if (inBlockState == direction)
+            return;
+        level.setBlockAndUpdate(worldPosition, getBlockState().setValue(PropellorBearingBlock.DIRECTION, direction));
+        notifyUpdate();
+    }
+
+    void getSails() {
+        sailPositions = new ArrayList<>();
+        if(movedContraption!=null) {
+            Map<BlockPos, StructureTemplate.StructureBlockInfo> Blocks = ((BearingContraption) movedContraption.getContraption()).getBlocks();
+            for (Map.Entry<BlockPos, StructureTemplate.StructureBlockInfo> entry : Blocks.entrySet()) {
+                if (AllTags.AllBlockTags.WINDMILL_SAILS.matches(entry.getValue().state)) {
+                    sailPositions.add(entry.getKey());
+                }
+            }
+        }
+    }
+
+    public void particles() {
+        if (Math.abs(rotspeed)>0.01 && movedContraption != null && isRunning()) {
+            Level level = getLevel();
+            Direction direction = getBlockState().getValue(BlockStateProperties.FACING);
+            Vector3f speed = new Vector3f(direction.getNormal().getX(), direction.getNormal().getY(), direction.getNormal().getZ());
+
+            float dirScale = 1f;
+
+            if((rotspeed<0 && movementDirection.getValue()==0) || (rotspeed>0 && movementDirection.getValue()!=0)) {
+                dirScale *= -1;
+            }
+
+            float offset = 1.0f+dirScale*0.5f;
+            float speedScale = 0.2f*dirScale*Math.abs(rotspeed)/5f;
+            float particleCount = 0.1f*sailPositions.size()*Math.abs(rotspeed)/5f;
+
+            particleCount += Create.RANDOM.nextFloat()-1.0f;
+            for (int i=0;i<particleCount;i++) {
+                BlockPos sailPos = sailPositions.get(Create.RANDOM.nextInt(sailPositions.size()));
+                Vec3 floatPos = new Vec3(sailPos.getX(), sailPos.getY(), sailPos.getZ());
+                floatPos = movedContraption.applyRotation(floatPos,0);
+
+                Vec3 pos = VecHelper.getCenterOf(this.worldPosition).add(Vec3.atLowerCornerOf(direction.getNormal()).scale(offset).add(floatPos));
+
+                level.addParticle(new PropellorStreamParticleData(this.worldPosition),pos.x,pos.y,pos.z,speed.x()*speedScale,speed.y()*speedScale,speed.z()*speedScale);
+            }
+        }
+    }
     public static enum RotationDirection implements INamedIconOptions {
 
         CLOCKWISE(AllIcons.I_REFRESH), COUNTER_CLOCKWISE(AllIcons.I_ROTATE_CCW),

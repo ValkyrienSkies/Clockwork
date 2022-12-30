@@ -3,8 +3,8 @@
 	"textures": {
 		"1": "create:block/mechanical_bearing_side",
 		"2": "create:block/bearing_top",
-		"3": "vs_clockwork:block/PropBearingBase",
-		"particle": "vs_clockwork:block/PropBearingBase"
+		"3": "vs_clockwork:block/propbearingbase",
+		"particle": "vs_clockwork:block/propbearingbase"
 	},
 	"elements": [
 		{
