@@ -16,6 +16,7 @@
     "create.MixinContraptionCollider"
   ],
   "client": [
+    "create.client.MixinOrientedContraptionEntity",
     "create.client.MixinCarriageContraptionInstance",
     "create.client.MixinContraptionHandlerClient",
     "create.client.MixinContraptionRenderDispatcher",
