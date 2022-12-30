@@ -1,0 +1,8 @@
+{
+  "parent": "vs_clockwork:block/propellor_bearing/item",
+  "textures": {
+    "1": "create:block/mechanical_bearing_side",
+    "2": "create:block/bearing_top",
+    "3": "vs_clockwork:block/propbearingbase"
+  }
+}

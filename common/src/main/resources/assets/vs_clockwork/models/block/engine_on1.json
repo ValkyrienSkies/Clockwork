@@ -1,6 +1,0 @@
-{
-  "parent": "vs_clockwork:block/engine",
-  "textures": {
-    "front": "vs_clockwork:block/engine_front_on_1"
-  }
-}
