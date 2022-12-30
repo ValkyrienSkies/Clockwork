@@ -11,7 +11,8 @@
     "create.MixinCurvedTrackDestroyPacket",
     "create.MixinFriendlyByteBuf",
     "create.MixinTileEntityConfigurationPacket",
-    "create.MixinTrackNodeLocation"
+    "create.MixinTrackNodeLocation",
+    "create.MixinContraptionCollider"
   ],
   "client": [
     "create.client.MixinCarriageContraptionInstance",
