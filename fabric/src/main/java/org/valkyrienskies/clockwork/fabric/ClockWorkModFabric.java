@@ -14,6 +14,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
+import org.valkyrienskies.clockwork.fabric.content.curiosities.tools.bluperglue.BluperGlueSelectionHandler;
+import org.valkyrienskies.clockwork.fabric.content.events.ClockworkClientEvents;
+import org.valkyrienskies.clockwork.fabric.content.events.ClockworkInputEvents;
 import org.valkyrienskies.core.impl.config.VSConfigClass;
 import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.mod.compat.clothconfig.VSClothConfig;
@@ -38,22 +41,35 @@ public class ClockWorkModFabric implements ModInitializer {
         AllClockworkBlocks.register();
         AllClockworkItems.register();
         AllClockworkTileEntities.register();
+        AllClockworkEntities.register();
 
         REGISTRATE.register();
 
         AllClockworkParticles.register();
         AllClockworkConfigs.register();
         ClockWorkMod.init();
+        ClockWorkModFabric.init();
+        AllClockworkPackets.channel.initServerListener();
+    }
+
+    public static void init() {
+        AllClockworkPackets.registerPackets();
     }
 
     @Environment(EnvType.CLIENT)
     public static class Client implements ClientModInitializer {
 
+        public static final BluperGlueSelectionHandler BLUPER_HANDLER = new BluperGlueSelectionHandler();
         @Override
         public void onInitializeClient() {
             ClockWorkMod.initClient();
             AllClockworkPartials.init();
             AllClockworkParticles.registerFactories();
+            AllClockworkPackets.channel.initClientListener();
+
+            ClockworkClientEvents.register();
+            ClockworkInputEvents.register();
+
         }
 
 
