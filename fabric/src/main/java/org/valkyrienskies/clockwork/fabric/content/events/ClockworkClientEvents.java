@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.fabric.content.events;
 import net.minecraft.client.Minecraft;
 import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.clockwork.fabric.ClockWorkModFabric;
+import org.valkyrienskies.clockwork.fabric.content.contraptions.components.propellor.stream.PropStream;
 
 import static com.jozufozu.flywheel.backend.Backend.isGameActive;
 
@@ -12,7 +13,7 @@ public class ClockworkClientEvents {
 
     public static void onTickStart(Minecraft client) {
 
-        //PropStream.tickClientPlayerSounds();
+        PropStream.tickClientPlayerSounds();
 
     }
 
