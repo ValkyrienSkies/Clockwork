@@ -3,9 +3,13 @@ package org.valkyrienskies.clockwork.fabric.content.contraptions.components.prop
 
 import com.simibubi.create.AllTags;
 import com.simibubi.create.Create;
+import com.simibubi.create.content.contraptions.components.fan.AirCurrent;
+import com.simibubi.create.content.contraptions.components.fan.EncasedFanBlock;
+import com.simibubi.create.content.contraptions.components.fan.IAirCurrentSource;
 import com.simibubi.create.content.contraptions.components.structureMovement.ControlledContraptionEntity;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingContraption;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.MechanicalBearingTileEntity;
+import com.simibubi.create.foundation.config.AllConfigs;
 import com.simibubi.create.foundation.gui.AllIcons;
 import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
 import com.simibubi.create.foundation.tileEntity.behaviour.scrollvalue.INamedIconOptions;
@@ -24,9 +28,12 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.levelgen.structure.TemplateStructurePiece;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
+import org.valkyrienskies.clockwork.fabric.content.contraptions.components.propellor.stream.IPropStreamSource;
+import org.valkyrienskies.clockwork.fabric.content.contraptions.components.propellor.stream.PropStream;
 import org.valkyrienskies.clockwork.fabric.content.curiosities.particles.PropellorStreamParticle;
 import org.valkyrienskies.clockwork.fabric.content.curiosities.particles.PropellorStreamParticleData;
 import org.valkyrienskies.clockwork.fabric.util.propellor.IPropellor;
@@ -35,10 +42,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class PropellorBearingTileEntity extends MechanicalBearingTileEntity implements IPropellor {
+public class PropellorBearingTileEntity extends MechanicalBearingTileEntity implements IPropellor, IPropStreamSource {
     protected ScrollOptionBehaviour<RotationDirection> movementDirection;
     protected boolean queuedReassembly;
     protected double lastGeneratedSpeed;
+
+    public PropStream propStream;
+    protected int airCurrentUpdateCooldown;
+    protected int entitySearchCooldown;
+    protected boolean updateAirFlow;
 
     float rotspeed=0;
     float targetSpeed=0;
@@ -52,6 +64,8 @@ public class PropellorBearingTileEntity extends MechanicalBearingTileEntity impl
     public PropellorBearingTileEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
         sailPositions = new ArrayList<>();
+        propStream = new PropStream(this);
+        updateAirFlow = true;
     }
 
     @Override
@@ -59,7 +73,7 @@ public class PropellorBearingTileEntity extends MechanicalBearingTileEntity impl
         boolean cancelAssembly = assembleNextTick;
         super.onSpeedChanged(prevSpeed);
         assembleNextTick = cancelAssembly;
-
+        updateAirFlow = true;
     }
     private void modSpeed() {
         float nextSpeed = convertToAngular(getSpeed());
@@ -87,6 +101,7 @@ public class PropellorBearingTileEntity extends MechanicalBearingTileEntity impl
         float Q = (optimalStoppingPoint - stoppingPoint)/disassembling;
         rotspeed = (rotspeed + 6f*Q/disassembling)*(1f - 1f/disassembling);
         speed = rotspeed;
+        updateAirFlow = true;
     }
 
 
@@ -103,11 +118,23 @@ public class PropellorBearingTileEntity extends MechanicalBearingTileEntity impl
         float Q = (startingPoint)/spinup;
         rotspeed = (rotspeed + 6f*Q/spinup)*(1f - 1f/spinup);
         speed = rotspeed;
-
+        updateAirFlow = true;
     }
     @Override
     public void tick() {
         super.tick();
+
+        boolean server = !level.isClientSide || isVirtual();
+
+        if (server && airCurrentUpdateCooldown == 0) {
+            airCurrentUpdateCooldown = AllConfigs.SERVER.kinetics.fanBlockCheckRate.get();
+            updateAirFlow = true;
+        }
+        if (updateAirFlow) {
+            updateAirFlow = false;
+            propStream.rebuild();
+            sendData();
+        }
 
         if (slowingDown) {
             modSlowdownSpeed();
@@ -116,8 +143,18 @@ public class PropellorBearingTileEntity extends MechanicalBearingTileEntity impl
         } else {
             modSpeed();
         }
+
+        if (overStressed) {
+            stressShutdown();
+        }
+
+        if (entitySearchCooldown-- <= 0) {
+            entitySearchCooldown = 5;
+            propStream.findEntities();
+            propStream.findShips();
+        }
         if (level.isClientSide()) {
-            particles();
+//            particles();
             return;
         }
 //        if (!queuedReassembly)
@@ -130,6 +167,7 @@ public class PropellorBearingTileEntity extends MechanicalBearingTileEntity impl
         } else {
             setBlockDirection(PropellorBearingBlock.Direction.PUSH);
         }
+        propStream.tick();
 //        queuedReassembly = false;
 //        if (!running)
 //            assembleNextTick = true;
@@ -139,6 +177,66 @@ public class PropellorBearingTileEntity extends MechanicalBearingTileEntity impl
 //            assembleNextTick = false;
     }
 
+    private void stressShutdown() {
+        if (Math.abs(speed) < 3f) {
+            if (!level.isClientSide) {
+                disassemble();
+            }
+            return;
+        }
+    }
+
+    @Override
+    public Vector3d getStreamScale() {
+        Vector3d distance = new Vector3d(1, 1, 1);
+
+        //facing Z
+        if (this.getBlockState().getValue(PropellorBearingBlock.FACING) == Direction.NORTH || this.getBlockState().getValue(PropellorBearingBlock.FACING) == Direction.SOUTH) {
+
+            sailPositions.forEach(pos -> {
+                if (Math.abs(pos.getX()) > Math.abs(this.worldPosition.getX())) {
+                    if (Math.abs(pos.getX()) > distance.x) {
+                        distance.x = pos.getX();
+                    }
+                }
+                if (Math.abs(pos.getY()) > Math.abs(this.worldPosition.getY())) {
+                    if (Math.abs(pos.getY()) > distance.y) {
+                        distance.y = pos.getY();
+                    }
+                }
+            });
+
+        } else if (this.getBlockState().getValue(PropellorBearingBlock.FACING) == Direction.WEST || this.getBlockState().getValue(PropellorBearingBlock.FACING) == Direction.EAST) {
+            sailPositions.forEach(pos -> {
+                if (Math.abs(pos.getZ()) > Math.abs(this.worldPosition.getZ())) {
+                    if (Math.abs(pos.getZ()) > distance.z) {
+                        distance.z = pos.getZ();
+                    }
+                }
+                if (Math.abs(pos.getY()) > Math.abs(this.worldPosition.getY())) {
+                    if (Math.abs(pos.getY()) > distance.y) {
+                        distance.y = pos.getY();
+                    }
+                }
+            });
+        } else if (this.getBlockState().getValue(PropellorBearingBlock.FACING) == Direction.UP || this.getBlockState().getValue(PropellorBearingBlock.FACING) == Direction.DOWN) {
+            sailPositions.forEach(pos -> {
+                if (Math.abs(pos.getZ()) > Math.abs(this.worldPosition.getZ())) {
+                    if (Math.abs(pos.getZ()) > distance.x) {
+                        distance.z = pos.getZ();
+                    }
+                }
+                if (Math.abs(pos.getX()) > Math.abs(this.worldPosition.getX())) {
+                    if (Math.abs(pos.getX()) > distance.x) {
+                        distance.x = pos.getX();
+                    }
+                }
+            });
+        } else {
+            return distance;
+        }
+        return distance;
+    }
     public void disassembleForMovement() {
         if (!running)
             return;
@@ -173,14 +271,14 @@ public class PropellorBearingTileEntity extends MechanicalBearingTileEntity impl
         rotspeed = 0;
         super.assemble();
         getSails();
-        spinup = (int)Math.abs(targetSpeed);
+//        startSpinup();
 //        sails = ((BearingContraption) movedContraption.getContraption()).getSailBlocks();
     }
     @Override
     public void disassemble() {
         rotspeed = 0;
-        speed = targetSpeed;
         super.disassemble();
+        this.speed = targetSpeed;
     }
     public void setAssembleNextTick(boolean bool) {
         assembleNextTick = bool;
@@ -188,12 +286,14 @@ public class PropellorBearingTileEntity extends MechanicalBearingTileEntity impl
     public void startSlowdown() {
         if(!slowingDown) {
             slowingDown = true;
-            disassembling = 20;
+            disassembling = (int)Math.abs(targetSpeed);
         }
     }
     public void startSpinup() {
         if(!spinningUp) {
             spinningUp = true;
+            spinup = (int)Math.abs(targetSpeed);
+            assemble();
         }
     }
     @Override
@@ -263,34 +363,68 @@ public class PropellorBearingTileEntity extends MechanicalBearingTileEntity impl
         }
     }
 
-    public void particles() {
-        if (Math.abs(rotspeed)>0.01 && movedContraption != null && isRunning()) {
-            Level level = getLevel();
-            Direction direction = getBlockState().getValue(BlockStateProperties.FACING);
-            Vector3f speed = new Vector3f(direction.getNormal().getX(), direction.getNormal().getY(), direction.getNormal().getZ());
-
-            float dirScale = 1f;
-
-            if((rotspeed<0 && movementDirection.getValue()==0) || (rotspeed>0 && movementDirection.getValue()!=0)) {
-                dirScale *= -1;
-            }
-
-            float offset = 1.0f+dirScale*0.5f;
-            float speedScale = 0.2f*dirScale*Math.abs(rotspeed)/5f;
-            float particleCount = 0.1f*sailPositions.size()*Math.abs(rotspeed)/5f;
-
-            particleCount += Create.RANDOM.nextFloat()-1.0f;
-            for (int i=0;i<particleCount;i++) {
-                BlockPos sailPos = sailPositions.get(Create.RANDOM.nextInt(sailPositions.size()));
-                Vec3 floatPos = new Vec3(sailPos.getX(), sailPos.getY(), sailPos.getZ());
-                floatPos = movedContraption.applyRotation(floatPos,0);
-
-                Vec3 pos = VecHelper.getCenterOf(this.worldPosition).add(Vec3.atLowerCornerOf(direction.getNormal()).scale(offset).add(floatPos));
-
-                level.addParticle(new PropellorStreamParticleData(this.worldPosition),pos.x,pos.y,pos.z,speed.x()*speedScale,speed.y()*speedScale,speed.z()*speedScale);
-            }
-        }
+    @Override
+    public PropStream getStream() {
+        return propStream;
     }
+
+    @Override
+    public Level getStreamWorld() {
+        return level;
+    }
+
+    @Override
+    public BlockPos getStreamPos() {
+        return worldPosition.offset(this.getBlockState().getValue(PropellorBearingBlock.FACING).getNormal());
+    }
+
+    @Override
+    public Direction getStreamOriginSide() {
+        return this.getBlockState().getValue(PropellorBearingBlock.FACING);
+    }
+    @Override
+    public Direction getStreamDirection() {
+        float speed = getSpeed();
+        if (speed == 0)
+            return null;
+        Direction facing = getBlockState().getValue(BlockStateProperties.FACING);
+        speed = convertToDirection(speed, facing);
+        return speed > 0 ? facing : facing.getOpposite();
+    }
+
+    @Override
+    public boolean isSourceRemoved() {
+        return remove;
+    }
+
+    //    public void particles() {
+//        if (Math.abs(rotspeed)>0.01 && movedContraption != null && isRunning()) {
+//            Level level = getLevel();
+//            Direction direction = getBlockState().getValue(BlockStateProperties.FACING);
+//            Vector3f speed = new Vector3f(direction.getNormal().getX(), direction.getNormal().getY(), direction.getNormal().getZ());
+//
+//            float dirScale = 1f;
+//
+//            if((rotspeed<0 && movementDirection.getValue()==0) || (rotspeed>0 && movementDirection.getValue()!=0)) {
+//                dirScale *= -1;
+//            }
+//
+//            float offset = 1.0f+dirScale*0.5f;
+//            float speedScale = 0.2f*dirScale*Math.abs(rotspeed)/5f;
+//            float particleCount = 0.1f*sailPositions.size()*Math.abs(rotspeed)/5f;
+//
+//            particleCount += Create.RANDOM.nextFloat()-1.0f;
+//            for (int i=0;i<particleCount;i++) {
+//                BlockPos sailPos = sailPositions.get(Create.RANDOM.nextInt(sailPositions.size()));
+//                Vec3 floatPos = new Vec3(sailPos.getX(), sailPos.getY(), sailPos.getZ());
+//                floatPos = movedContraption.applyRotation(floatPos,0);
+//
+//                Vec3 pos = VecHelper.getCenterOf(this.worldPosition).add(Vec3.atLowerCornerOf(direction.getNormal()).scale(offset).add(floatPos));
+//
+//                level.addParticle(new PropellorStreamParticleData(this.worldPosition),pos.x,pos.y,pos.z,speed.x()*speedScale,speed.y()*speedScale,speed.z()*speedScale);
+//            }
+//        }
+//    }
     public static enum RotationDirection implements INamedIconOptions {
 
         CLOCKWISE(AllIcons.I_REFRESH), COUNTER_CLOCKWISE(AllIcons.I_ROTATE_CCW),
