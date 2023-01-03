@@ -13,9 +13,13 @@
     "create.MixinFriendlyByteBuf",
     "create.MixinTileEntityConfigurationPacket",
     "create.MixinTrackNodeLocation",
-    "create.MixinContraptionCollider"
+    "create.MixinContraptionCollider",
+    "create.MixinSuperGlueRemovalPacket",
+    "create.MixinTrainRelocationPacket"
   ],
   "client": [
+    "create.client.MixinTrainRelocator",
+    "create.client.MixinOrientedContraptionEntity",
     "create.client.MixinCarriageContraptionInstance",
     "create.client.MixinContraptionHandlerClient",
     "create.client.MixinContraptionRenderDispatcher",
