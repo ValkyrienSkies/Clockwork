@@ -49,11 +49,11 @@ public class BluperGlueHandler {
         }
 
         if (entity instanceof Player)
-            return glueInOffHandAppliesOnBlockPlace(context.getLevel().getBlockState(context.getClickedPos().relative(context.getClickedFace().getOpposite())), pos, (Player) entity);
+            return bluperglueInOffHandAppliesOnBlockPlace(context.getLevel().getBlockState(context.getClickedPos().relative(context.getClickedFace().getOpposite())), pos, (Player) entity);
         return InteractionResult.PASS;
     }
 
-    public static InteractionResult glueInOffHandAppliesOnBlockPlace(BlockState placedAgainst, BlockPos pos, Player placer) {
+    public static InteractionResult bluperglueInOffHandAppliesOnBlockPlace(BlockState placedAgainst, BlockPos pos, Player placer) {
         ItemStack itemstack = placer.getOffhandItem();
         if (!AllClockworkItems.BLUPERGLUE.isIn(itemstack))
             return InteractionResult.PASS;

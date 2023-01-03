@@ -16,6 +16,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.fabric.content.curiosities.tools.bluperglue.BluperGlueSelectionHandler;
 import org.valkyrienskies.clockwork.fabric.content.events.ClockworkClientEvents;
+import org.valkyrienskies.clockwork.fabric.content.events.ClockworkCommonEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.ClockworkInputEvents;
 import org.valkyrienskies.core.impl.config.VSConfigClass;
 import org.valkyrienskies.clockwork.ClockWorkMod;
@@ -49,6 +50,8 @@ public class ClockWorkModFabric implements ModInitializer {
         AllClockworkConfigs.register();
         ClockWorkMod.init();
         ClockWorkModFabric.init();
+
+        ClockworkCommonEvents.register();
         AllClockworkPackets.channel.initServerListener();
     }
 

@@ -3,5 +3,6 @@
   "block.vs_clockwork.propellor_bearing": "Propellor Bearing",
   "item.vs_clockwork.propellor_bearing": "Propellor Bearing",
   "item.vs_clockwork.bluuguu": "Bluu Guu",
-  "item.vs_clockwork.bluperglue": "Bluperglue"
+  "item.vs_clockwork.bluperglue": "Bluperglue",
+  "entity.vs_clockwork.super_glue": "Super Glue"
 }
