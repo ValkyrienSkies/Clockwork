@@ -24,18 +24,20 @@ configurations {
 }
 
 repositories {
-    maven { url = "https://api.modrinth.com/maven" } // LazyDFU, Suggestion Tweaker
-    maven { url = "https://maven.terraformersmc.com/releases/" } // Mod Menu, EMI
-    maven { url = "https://maven.shedaniel.me/" } // Cloth Config, REI
-    maven { url = "https://mvn.devos.one/snapshots/" } // Create, Porting Lib, Forge Tags, Milk Lib
-    maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" } // Forge Config API Port
-    maven { url = "https://maven.tterrag.com/" } // Registrate and Flywheel
-    maven { url = "https://maven.cafeteria.dev/releases" } // Fake Player API
-    maven { url = "https://maven.jamieswhiteshirt.com/libs-release" } // Reach Entity Attributes
-    maven { url = "https://jitpack.io/" } // Mixin Extras, fabric ASM
-    maven { url = "https://dvs1.progwml6.com/files/maven/" } // JEI
-    maven { url = "https://maven.parchmentmc.org" } // Parchment mappings
-    maven { url = "https://maven.fabricmc.net/" } // Fabric API
+    if (!project.block_external_repositories) {
+        maven { url = "https://api.modrinth.com/maven" } // LazyDFU, Suggestion Tweaker
+        maven { url = "https://maven.terraformersmc.com/releases/" } // Mod Menu, EMI
+        maven { url = "https://maven.shedaniel.me/" } // Cloth Config, REI
+        maven { url = "https://mvn.devos.one/snapshots/" } // Create, Porting Lib, Forge Tags, Milk Lib
+        maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" } // Forge Config API Port
+        maven { url = "https://maven.tterrag.com/" } // Registrate and Flywheel
+        maven { url = "https://maven.cafeteria.dev/releases" } // Fake Player API
+        maven { url = "https://maven.jamieswhiteshirt.com/libs-release" } // Reach Entity Attributes
+        maven { url = "https://jitpack.io/" } // Mixin Extras, fabric ASM
+        maven { url = "https://dvs1.progwml6.com/files/maven/" } // JEI
+        maven { url = "https://maven.parchmentmc.org" } // Parchment mappings
+        maven { url = "https://maven.fabricmc.net/" } // Fabric API
+    }
 }
 
 

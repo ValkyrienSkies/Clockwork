@@ -35,9 +35,11 @@ loom {
 }
 
 repositories {
-    maven {
-        name = 'Kotlin for Forge'
-        url = 'https://thedarkcolour.github.io/KotlinForForge/'
+    if (!project.block_external_repositories) {
+        maven {
+            name = 'Kotlin for Forge'
+            url = 'https://thedarkcolour.github.io/KotlinForForge/'
+        }
     }
 }
 
