@@ -15,7 +15,8 @@
     "create.MixinTrackNodeLocation",
     "create.MixinContraptionCollider",
     "create.MixinSuperGlueRemovalPacket",
-    "create.MixinTrainRelocationPacket"
+    "create.MixinTrainRelocationPacket",
+    "create.MixinBeltInventory"
   ],
   "client": [
     "create.client.MixinTrainRelocator",
