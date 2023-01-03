@@ -24,7 +24,7 @@ import org.valkyrienskies.core.api.ships.ClientShip;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.fabric.mixinducks.MixinTileInstanceManagerDuck;
 
-@Mixin(value = BlockEntityInstanceManager.class, remap = false)
+@Mixin(value = BlockEntityInstanceManager.class)
 @ParametersAreNonnullByDefault
 public abstract class MixinTileInstanceManager extends InstanceManager<BlockEntity> implements
     MixinTileInstanceManagerDuck {
