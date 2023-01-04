@@ -16,7 +16,10 @@
     "create.MixinContraptionCollider",
     "create.MixinSuperGlueRemovalPacket",
     "create.MixinTrainRelocationPacket",
-    "create.MixinBeltInventory"
+    "create.MixinBeltInventory",
+    "create.MixinBeltMovementHandler",
+    "create.MixinAbstractContraptionEntity",
+    "create.MixinSeatEntity"
   ],
   "client": [
     "create.client.MixinTrainRelocator",

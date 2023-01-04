@@ -64,7 +64,12 @@ public abstract class MixinContraptionCollider {
             if (instance.position().distanceTo(VectorConversionsMCKt.toMinecraft(newPos)) < 20) {
                 instance.setPos(newPos.x, newPos.y, newPos.z);
             } else LOGGER.warn("Warning setPosDistance too high ignoring setPos request");
-        } else instance.setPos(x, y, z);
+        } else {
+
+            if (instance.position().distanceTo(new Vec3(x, y, z)) < 20) {
+                instance.setPos(x, y, z);
+            } else LOGGER.warn("Warning DEFAULT setPosDistance too high ignoring setPos request");
+        }
     }
 
     @Redirect(method = "collideEntities", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/contraptions/components/structureMovement/AbstractContraptionEntity;getBoundingBox()Lnet/minecraft/world/phys/AABB;"))
