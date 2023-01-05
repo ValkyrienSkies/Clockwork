@@ -33,7 +33,6 @@ public abstract class MixinContraptionHandlerClient {
     private static void redirectedOrigin(final LocalPlayer player, final CallbackInfoReturnable<Couple<Vec3>> cir, final Minecraft mc, Vec3 origin, final double reach, Vec3 target) {
 
         if (mc.hitResult != null) {
-            //Vec3 searchLocation = mc.hitResult.getLocation();
             AABB searchAABB = new AABB(origin, target).inflate(0.25, 2, 0.25);
             final Iterator<Ship> ships = VSGameUtilsKt.getShipsIntersecting(player.level, searchAABB).iterator();
 
@@ -42,6 +41,8 @@ public abstract class MixinContraptionHandlerClient {
 
                 Matrix4d world2Ship = (Matrix4d) ship.getTransform().getWorldToShip();
                 AABBic shAABBi = ship.getShipAABB();
+                if(shAABBi==null)
+                    return;
                 AABB shipAABB = new AABB(shAABBi.minX(), shAABBi.minY(), shAABBi.minZ(), shAABBi.maxX(), shAABBi.maxY(), shAABBi.maxZ());
 
 
