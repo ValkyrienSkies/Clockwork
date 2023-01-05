@@ -19,9 +19,11 @@
     "create.MixinBeltInventory",
     "create.MixinBeltMovementHandler",
     "create.MixinAbstractContraptionEntity",
-    "create.MixinSeatEntity"
+    "create.MixinSeatEntity",
+    "create.MixinFilteringHandler"
   ],
   "client": [
+    "create.client.MixinFilteringRenderer",
     "create.client.MixinTrainRelocator",
     "create.client.MixinOrientedContraptionEntity",
     "create.client.MixinCarriageContraptionInstance",
