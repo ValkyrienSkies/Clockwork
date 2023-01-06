@@ -33,3 +33,10 @@ mandatory = true
 versionRange = "[2,)"
 ordering = "AFTER"
 side = "BOTH"
+
+[[dependencies.vs_clockwork]]
+modId="create"
+mandatory=true
+versionRange="[0.5.0.g,)"
+ordering="NONE"
+side="BOTH"
