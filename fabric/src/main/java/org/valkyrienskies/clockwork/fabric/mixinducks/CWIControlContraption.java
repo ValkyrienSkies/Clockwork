@@ -4,7 +4,7 @@ import com.simibubi.create.content.contraptions.components.structureMovement.ICo
 
 public interface CWIControlContraption extends IControlContraption {
 
-    boolean containsShip();
+    boolean isShipContraptionController();
 
     // TODO get ship etc
 

@@ -26,7 +26,7 @@ public class MixinBearingInstance {
     @Redirect(method = "<init>", at = @At(value = "INVOKE", target = "Lcom/jozufozu/flywheel/api/Material;getModel(Lcom/jozufozu/flywheel/core/PartialModel;Lnet/minecraft/world/level/block/state/BlockState;)Lcom/jozufozu/flywheel/api/Instancer;"))
     Instancer getVSModel(Material instance, PartialModel partial, BlockState referenceState)
     {
-        if (!(bearing instanceof CWIControlContraption && ((CWIControlContraption) bearing).containsShip()))
+        if (!(bearing instanceof CWIControlContraption && ((CWIControlContraption) bearing).isShipContraptionController()))
             return instance.getModel(partial, referenceState);
 
         return instance.getModel(AllClockworkPartials.BEARING_TOP_VSIFIED);
