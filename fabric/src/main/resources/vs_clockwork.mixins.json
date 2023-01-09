@@ -20,9 +20,13 @@
     "create.MixinBeltMovementHandler",
     "create.MixinAbstractContraptionEntity",
     "create.MixinSeatEntity",
-    "create.MixinFilteringHandler"
+    "create.MixinFilteringHandler",
+    "create.MixinAirFlowParticle",
+    "create.MixinAirCurrent",
+    "create.MixinCrushingWheelControllerTileEntity"
   ],
   "client": [
+    "create.client.MixinSoundScapes",
     "create.client.MixinFilteringRenderer",
     "create.client.MixinTrainRelocator",
     "create.client.MixinOrientedContraptionEntity",
