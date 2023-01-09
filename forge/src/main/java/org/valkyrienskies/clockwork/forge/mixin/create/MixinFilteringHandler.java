@@ -32,7 +32,7 @@ public abstract class MixinFilteringHandler {
 
     @Inject(
             method = "onBlockActivated",
-            at = @At("HEAD")
+            at = @At("HEAD"), remap = false
     )
     private static void injectHead(Player player, Level world, InteractionHand hand, BlockHitResult hitResult, CallbackInfoReturnable<InteractionResult> cir) {
         injectedLevel = world;
@@ -44,7 +44,7 @@ public abstract class MixinFilteringHandler {
             at = @At(
                     value = "INVOKE",
                     target = "Lcom/simibubi/create/foundation/tileEntity/behaviour/filtering/FilteringBehaviour;testHit(Lnet/minecraft/world/phys/Vec3;)Z"
-            ), index = 0
+            ), index = 0, remap = false
     )
     private static Vec3 modTestHit1(Vec3 hit) {
         return modTestHit(hit, injectedLevel, injectedHitResult);
@@ -56,7 +56,7 @@ public abstract class MixinFilteringHandler {
             at = @At(
                     value = "INVOKE",
                     target = "Lcom/simibubi/create/foundation/tileEntity/behaviour/filtering/FilteringBehaviour;testHit(Lnet/minecraft/world/phys/Vec3;)Z"
-            ), index = 0
+            ), index = 0, remap = false
     )
     private static Vec3 modTestHit2(Vec3 hit) {
         Minecraft mc = Minecraft.getInstance();

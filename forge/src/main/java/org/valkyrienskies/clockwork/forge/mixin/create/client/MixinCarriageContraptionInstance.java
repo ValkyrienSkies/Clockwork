@@ -52,7 +52,7 @@ public class MixinCarriageContraptionInstance {
 
     @Redirect(
             method = "beginFrame", at = @At(value = "INVOKE",
-            target = "Lcom/jozufozu/flywheel/util/transform/TransformStack;translate(Lcom/mojang/math/Vector3f;)Ljava/lang/Object;")
+            target = "Lcom/jozufozu/flywheel/util/transform/TransformStack;translate(Lcom/mojang/math/Vector3f;)Ljava/lang/Object;"), remap = false
     )
     private Object redirectTranslate(final TransformStack instance, final Vector3f vector3f) {
 

@@ -30,7 +30,7 @@ public abstract class MixinOutline {
 
     @Inject(
         method = "putVertex(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;Lnet/minecraft/world/phys/Vec3;FFLnet/minecraft/core/Direction;)V",
-        at = @At(value = "HEAD"), cancellable = true
+        at = @At(value = "HEAD"), cancellable = true, remap = false
     )
     public void injectPutVertex(final PoseStack ms, final VertexConsumer builder, final Vec3 pos, final float u,
         final float v,
@@ -53,7 +53,8 @@ public abstract class MixinOutline {
     @Redirect(
         method = "renderCuboidLine",
         at = @At(value = "INVOKE",
-            target = "Lcom/jozufozu/flywheel/util/transform/TransformStack;translate(Lnet/minecraft/world/phys/Vec3;)Ljava/lang/Object;")
+            target = "Lcom/jozufozu/flywheel/util/transform/TransformStack;translate(Lnet/minecraft/world/phys/Vec3;)Ljava/lang/Object;"),
+            remap = false
     )
     private Object redirectTranslate(final TransformStack instance, final Vec3 vec3) {
         VSClientGameUtils.transformRenderIfInShipyard((PoseStack) instance, vec3.x, vec3.y, vec3.z);

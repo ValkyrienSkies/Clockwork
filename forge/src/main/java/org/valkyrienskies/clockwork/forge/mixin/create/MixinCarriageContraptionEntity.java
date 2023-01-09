@@ -23,7 +23,7 @@ public abstract class MixinCarriageContraptionEntity {
     private Level world;
     @Inject(
         method = "control",
-        at = @At("HEAD"), locals = LocalCapture.CAPTURE_FAILHARD
+        at = @At("HEAD"), locals = LocalCapture.CAPTURE_FAILHARD, remap = false
     )
     private void injectCaptureLevel(
         final BlockPos controlsLocalPos, final Collection<Integer> heldControls, final Player player,

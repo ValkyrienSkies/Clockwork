@@ -53,6 +53,7 @@ configurations {
     compileClasspath.extendsFrom common
             runtimeClasspath.extendsFrom common
             developmentForge.extendsFrom common
+            forgeRuntimeLibrary.extendsFrom core
 }
 
 dependencies {
@@ -67,6 +68,9 @@ dependencies {
     compileOnly("org.joml:joml-primitives:1.10.0")
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
+
+    // Add Kotlin for Forge.
+    forgeRuntimeLibrary('curse.maven:kotlinforforge-351264:3925887')
 }
 
 processResources {

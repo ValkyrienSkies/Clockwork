@@ -11,10 +11,10 @@ public class AllClockworkPartials {
     ;
 
     private static PartialModel block(String path) {
-        return new PartialModel(ClockWorkModFabric.asResource("block/" + path));
+        return new PartialModel(ClockWorkModForge.asResource("block/" + path));
     }
     private static PartialModel entity(String path) {
-        return new PartialModel(ClockWorkModFabric.asResource("entity/" + path));
+        return new PartialModel(ClockWorkModForge.asResource("entity/" + path));
     }
 
     public static void init() {

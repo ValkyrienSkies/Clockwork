@@ -41,7 +41,7 @@ public abstract class MixinCurvedTrackDestroyPacket {
 
     @Inject(
         method = "applySettings(Lnet/minecraft/server/level/ServerPlayer;Lcom/simibubi/create/content/logistics/trains/track/TrackTileEntity;)V",
-        at = @At("HEAD"), locals = LocalCapture.CAPTURE_FAILHARD
+        at = @At("HEAD"), locals = LocalCapture.CAPTURE_FAILHARD, remap = false
     )
     private void injectCaptureLevel(final ServerPlayer player, final TrackTileEntity te, final CallbackInfo ci) {
         this.world = player.level;

@@ -13,7 +13,7 @@ public abstract class MixinTrackNodeLocation {
      * This method overwrites getLocation to make it actually parse things as a double, not needed in forge create
      */
     @Inject(
-        method = "getLocation", at = @At("HEAD"), cancellable = true
+        method = "getLocation", at = @At("HEAD"), cancellable = true, remap = false
     )
     protected void getLocation(final CallbackInfoReturnable<Vec3> cir) {
 

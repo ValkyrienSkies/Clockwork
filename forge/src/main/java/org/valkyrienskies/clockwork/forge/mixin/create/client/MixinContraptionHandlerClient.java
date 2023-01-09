@@ -29,7 +29,7 @@ import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 @Mixin(ContraptionHandlerClient.class)
 public abstract class MixinContraptionHandlerClient {
 
-    @Inject(method = "getRayInputs", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/foundation/utility/Couple;create(Ljava/lang/Object;Ljava/lang/Object;)Lcom/simibubi/create/foundation/utility/Couple;"), locals = LocalCapture.CAPTURE_FAILHARD, cancellable = true)
+    @Inject(method = "getRayInputs", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/foundation/utility/Couple;create(Ljava/lang/Object;Ljava/lang/Object;)Lcom/simibubi/create/foundation/utility/Couple;"), locals = LocalCapture.CAPTURE_FAILHARD, cancellable = true, remap = false)
     private static void redirectedOrigin(final LocalPlayer player, final CallbackInfoReturnable<Couple<Vec3>> cir, final Minecraft mc, Vec3 origin, final double reach, Vec3 target) {
 
         if (mc.hitResult != null) {

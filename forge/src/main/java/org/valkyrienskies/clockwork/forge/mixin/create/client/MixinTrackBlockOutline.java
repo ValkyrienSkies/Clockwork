@@ -72,7 +72,7 @@ public class MixinTrackBlockOutline {
         at = @At(
             value = "INVOKE",
             target = "Lcom/simibubi/create/foundation/utility/RaycastHelper;getTraceTarget(Lnet/minecraft/world/entity/player/Player;DLnet/minecraft/world/phys/Vec3;)Lnet/minecraft/world/phys/Vec3;"
-        )
+        ), remap = false
     )
     private static Vec3 redirectedTarget(final Player playerIn, final double range, final Vec3 origin) {
         if (isShip) {
