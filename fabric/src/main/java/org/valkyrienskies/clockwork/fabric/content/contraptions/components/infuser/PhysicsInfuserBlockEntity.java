@@ -84,6 +84,10 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
 
         coreAngle++;
 
+        if (coreAngle == 360) {
+            coreAngle = 0;
+        }
+
         if (isVirtual())
             return Mth.lerp(partialTicks + .5f, previousCoreAngle, coreAngle);
 
