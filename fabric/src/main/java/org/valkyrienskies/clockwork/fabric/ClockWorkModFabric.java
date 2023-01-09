@@ -10,9 +10,11 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.model.BakedModelManagerHelper;
 import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry;
 import net.fabricmc.fabric.api.client.rendereregistry.v1.BlockEntityRendererRegistry;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraftforge.common.data.ExistingFileHelper;
 import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.fabric.content.curiosities.tools.bluperglue.BluperGlueSelectionHandler;
 import org.valkyrienskies.clockwork.fabric.content.events.ClockworkClientEvents;
@@ -39,6 +41,7 @@ public class ClockWorkModFabric implements ModInitializer {
     public void onInitialize() {
         // force VS2 to load before eureka
         new ValkyrienSkiesModFabric().onInitialize();
+        AllClockworkSounds.prepare();
         AllClockworkBlocks.register();
         AllClockworkItems.register();
         AllClockworkTileEntities.register();
@@ -51,12 +54,17 @@ public class ClockWorkModFabric implements ModInitializer {
         ClockWorkMod.init();
         ClockWorkModFabric.init();
 
+        AllClockworkSounds.register();
         ClockworkCommonEvents.register();
         AllClockworkPackets.channel.initServerListener();
     }
 
     public static void init() {
         AllClockworkPackets.registerPackets();
+    }
+
+    public static void gatherData(FabricDataGenerator gen, ExistingFileHelper helper) {
+        gen.addProvider(AllClockworkSounds.provider(gen));
     }
 
     @Environment(EnvType.CLIENT)
