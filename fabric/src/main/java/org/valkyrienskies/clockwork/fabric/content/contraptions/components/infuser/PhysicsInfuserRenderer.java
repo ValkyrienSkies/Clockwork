@@ -1,7 +1,10 @@
 package org.valkyrienskies.clockwork.fabric.content.contraptions.components.infuser;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Matrix4f;
 import com.mojang.math.Quaternion;
 import com.simibubi.create.foundation.render.CachedBufferer;
 import com.simibubi.create.foundation.render.RenderTypes;
@@ -11,19 +14,38 @@ import com.simibubi.create.foundation.tileEntity.renderer.SmartTileEntityRendere
 import com.simibubi.create.foundation.utility.AngleHelper;
 import com.simibubi.create.foundation.utility.AnimationTickHolder;
 import com.simibubi.create.foundation.utility.animation.LerpedFloat;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.valkyrienskies.clockwork.fabric.AllClockworkPartials;
 import org.valkyrienskies.clockwork.fabric.ClockWorkModFabric;
+import org.valkyrienskies.clockwork.fabric.render.assemblyscan.ScannerRenderer;
+import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
+import javax.annotation.Nullable;
+import java.util.*;
+
+import static org.valkyrienskies.clockwork.fabric.content.contraptions.components.infuser.PhysicsInfuserRenderer.ScanManager.*;
 
 public class PhysicsInfuserRenderer extends SmartTileEntityRenderer<PhysicsInfuserBlockEntity> {
 
     private boolean doneAnimating = false;
+
+    private static PhysicsInfuserBlockEntity te;
     public PhysicsInfuserRenderer(BlockEntityRendererProvider.Context context) {
         super(context);
     }
@@ -34,8 +56,11 @@ public class PhysicsInfuserRenderer extends SmartTileEntityRenderer<PhysicsInfus
         if (!(te instanceof PhysicsInfuserBlockEntity))
             return;
 
+        this.te = te;
         PhysicsInfuserBlockEntity infuser = (PhysicsInfuserBlockEntity) te;
         BlockState blockState = te.getBlockState();
+
+        ScannerRenderer.currentCenterSetter = VectorConversionsMCKt.toMinecraft(VectorConversionsMCKt.toJOMLD(te.getBlockPos()));
 
         VertexConsumer vb = buffer.getBuffer(RenderType.translucent());
 
@@ -144,6 +169,113 @@ public class PhysicsInfuserRenderer extends SmartTileEntityRenderer<PhysicsInfus
         float interpolatedAngle = infuser.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1);
         buffer.translateY(coreOffset*2).rotateCentered(Direction.UP, (float) (interpolatedAngle / 180 * Math.PI));
         return buffer;
+    }
+
+    @Environment(EnvType.CLIENT)
+    public final class ScanManager {
+        // The number of ticks over which to compute scan results. Which is at the
+        // same time the use time of the scanner item.
+        public static final int SCAN_COMPUTE_DURATION = 40;
+        // Initial radius of the scan wave.
+        public static final int SCAN_INITIAL_RADIUS = 10;
+        // Scan wave growth time offset to avoid super slow start speed.
+        public static final int SCAN_TIME_OFFSET = 200;
+        // How long the ping takes to reach the end of the visible area.
+        private static final int SCAN_GROWTH_DURATION = 2000;
+        // Reference render distance the above constants are relative to.
+        private static final int REFERENCE_RENDER_DISTANCE = 12;
+
+        // --------------------------------------------------------------------- //
+
+        public static float computeTargetRadius() {
+            return Minecraft.getInstance().gameRenderer.getRenderDistance();
+        }
+
+        public static int computeScanGrowthDuration() {
+            return SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance / REFERENCE_RENDER_DISTANCE;
+        }
+
+        public static float computeRadius(final long start, final float duration) {
+            // Scan wave speeds up exponentially. To avoid the initial speed being
+            // near zero due to that we offset the time and adjust the remaining
+            // parameters accordingly. Base equation is:
+            //   r = a + (t + b)^2 * c
+            // with r := 0 and target radius and t := 0 and target time this yields:
+            //   c = r1/((t1 + b)^2 - b*b)
+            //   a = -r1*b*b/((t1 + b)^2 - b*b)
+
+            final float r1 = computeTargetRadius();
+            final float t1 = duration;
+            final float b = SCAN_TIME_OFFSET;
+            final float n = 1f / ((t1 + b) * (t1 + b) - b * b);
+            final float a = -r1 * b * b * n;
+            final float c = r1 * n;
+
+            final float t = (float) (System.currentTimeMillis() - start);
+
+            return SCAN_INITIAL_RADIUS + a + (t + b) * (t + b) * c;
+        }
+
+        // --------------------------------------------------------------------- //
+
+        // List of providers currently used to scan.
+
+
+
+        public static int scanningTicks = -1;
+        public static long currentStart = -1;
+        @Nullable
+        public static Vec3 lastScanCenter;
+
+        public static PoseStack viewModelStack;
+        public static Matrix4f projectionMatrix;
+
+        // --------------------------------------------------------------------- //
+
+        public static void beginScan(final PhysicsInfuserBlockEntity te) {
+            cancelScan();
+
+            float scanRadius = 1000;
+
+            final Vec3 center = Vec3.atCenterOf(te.getBlockPos());
+
+            te.initialize(center, scanRadius, SCAN_COMPUTE_DURATION);
+
+        }
+
+        public static void updateScan(final Entity entity, final boolean finish) {
+            final int remaining = SCAN_COMPUTE_DURATION - scanningTicks;
+
+            if (!finish) {
+                if (remaining <= 0) {
+                    return;
+                }
+
+                ++scanningTicks;
+
+                return;
+            }
+
+            clear();
+
+            lastScanCenter = entity.position();
+            currentStart = System.currentTimeMillis();
+
+            ScannerRenderer.INSTANCE.ping(lastScanCenter);
+
+            cancelScan();
+        }
+
+        public static void cancelScan() {
+            scanningTicks = 0;
+        }
+
+        // --------------------------------------------------------------------- //
+
+        private static void clear() {
+            lastScanCenter = null;
+            currentStart = -1;
+        }
     }
 
 

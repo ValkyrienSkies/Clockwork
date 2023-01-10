@@ -20,6 +20,7 @@ import org.valkyrienskies.clockwork.fabric.content.curiosities.tools.bluperglue.
 import org.valkyrienskies.clockwork.fabric.content.events.ClockworkClientEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.ClockworkCommonEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.ClockworkInputEvents;
+import org.valkyrienskies.clockwork.fabric.render.assemblyscan.ScanShaders;
 import org.valkyrienskies.core.impl.config.VSConfigClass;
 import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.mod.compat.clothconfig.VSClothConfig;
@@ -77,7 +78,7 @@ public class ClockWorkModFabric implements ModInitializer {
             AllClockworkPartials.init();
             AllClockworkParticles.registerFactories();
             AllClockworkPackets.channel.initClientListener();
-
+            ScanShaders.initialize();
             ClockworkClientEvents.register();
             ClockworkInputEvents.register();
 

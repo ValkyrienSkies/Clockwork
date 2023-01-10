@@ -8,12 +8,15 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.valkyrienskies.clockwork.fabric.AllClockworkSounds;
 import org.valkyrienskies.clockwork.fabric.content.curiosities.particles.PhysLightningParticle;
+import org.valkyrienskies.clockwork.fabric.render.assemblyscan.ScannerRenderer;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 import java.util.Random;
 import java.util.List;
@@ -40,6 +43,9 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
     public static final int DISASSEMBLY_TIME = 1000;
 
     private boolean sendAnimationUpdate;
+
+    public void initialize(Vec3 center, float scanRadius, int scanComputeDuration) {
+    }
 
     enum Animation {
         ASSEMBLY, DISASSEMBLY, IDLE;
@@ -82,6 +88,11 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
             }
             if (assemblyProgress.getValue() == 460) {
                 playFinishSound(level, thisposition);
+                if (level.isClientSide) {
+                    ScannerRenderer.INSTANCE.ping(thisposition);
+                }
+
+
             }
         }
     }
