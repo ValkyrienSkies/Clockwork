@@ -8,7 +8,8 @@ public class AllClockworkPartials {
 
         BEARING_TOP_VSIFIED = block("vstop"),
         PHYSICS_CORE = block("physics_infuser/core"),
-        STRANGE_FLUID = block("physics_infuser/liquid")
+        STRANGE_FLUID = block("physics_infuser/liquid"),
+        ZAP = block("physics_infuser/zap")
 
     ;
 

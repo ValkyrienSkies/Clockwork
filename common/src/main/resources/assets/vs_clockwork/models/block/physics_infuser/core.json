@@ -3,7 +3,7 @@
 	"texture_size": [32, 32],
 	"textures": {
 		"0": "vs_clockwork:block/core",
-		"particle": "vs_clockwork:block/core"
+		"particle": "create:block/brass_block"
 	},
 	"elements": [
 		{

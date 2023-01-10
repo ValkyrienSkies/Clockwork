@@ -55,15 +55,16 @@ public class PhysicsInfuserBlock extends Block implements ITE<PhysicsInfuserBloc
         if (player.getItemInHand(handIn)
                 .isEmpty()) {
             if (worldIn.isClientSide) {
-                withTileEntityDo(worldIn, pos, te -> {if (te.isAssembled) te.startDisassembly();});
+                withTileEntityDo(worldIn, pos, te -> {if (te.isAssembled && !te.assembling && !te.disassembling) te.startDisassembly();});
+                withTileEntityDo(worldIn, pos, te -> {if (!te.isAssembled && !te.assembling && !te.disassembling) te.startAssembly();});
                 return InteractionResult.SUCCESS;
             }
 
             withTileEntityDo(worldIn, pos, te -> {
-                if (te.isAssembled && !te.disassembling && !te.assembling) {
+                if (te.isAssembled && !te.assembling &&  !te.disassembling) {
                     te.startDisassembly();
                     return;
-                } else if (!te.isAssembled && !te.disassembling && !te.assembling) {
+                } else if (!te.isAssembled && !te.assembling &&  !te.disassembling) {
                     te.startAssembly();
                     return;
                 }

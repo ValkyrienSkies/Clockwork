@@ -1,8 +1,14 @@
 {
-  "itemGroup.vs_clockwork.eureka_tab": "VS Eureka",
+  "itemGroup.vs_clockwork.base": "VS: Clockwork",
   "block.vs_clockwork.propellor_bearing": "Propellor Bearing",
   "item.vs_clockwork.propellor_bearing": "Propellor Bearing",
   "item.vs_clockwork.bluuguu": "Bluu Guu",
   "item.vs_clockwork.bluperglue": "Bluperglue",
-  "entity.vs_clockwork.super_glue": "Super Glue"
+  "entity.vs_clockwork.super_glue": "Super Glue",
+  "block.vs_clockwork.physics_infuser": "Physics Infuser",
+  "item.vs_clockwork.physics_infuser": "Physics Infuser",
+  "vs_clockwork.subtitle.physinitialize": "Physics Infuser Initialized",
+  "vs_clockwork.subtitle.physfinish": "Physics Infused",
+  "vs_clockwork.subtitle.zap": "Zap!",
+  "vs_clockwork.subtitle.physwindup": "Zap!"
 }

@@ -5,7 +5,7 @@
 		"0": "vs_clockwork:block/infuserblock",
 		"1": "vs_clockwork:block/mysteriousliquidtransparent",
 		"2": "vs_clockwork:block/core",
-		"particle": "vs_clockwork:block/infuserblock"
+		"particle": "create:block/brass_block"
 	},
 	"elements": [
 		{
