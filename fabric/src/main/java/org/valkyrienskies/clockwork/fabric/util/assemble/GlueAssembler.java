@@ -6,6 +6,7 @@ import com.simibubi.create.foundation.utility.UniqueLinkedList;
 import com.tterrag.registrate.fabric.TriFunction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
@@ -48,11 +49,15 @@ public class GlueAssembler {
         DenseBlockPosSet result = new DenseBlockPosSet();
         Queue<BlockPos> frontier = new UniqueLinkedList<>();
 
+        if (level.getBlockState(pos).isAir()) return null;
+
         frontier.add(pos);
 
         for (int limit = 100000; limit > 0; limit--) {
-            if (frontier.isEmpty())
+            if (frontier.isEmpty()) {
+                if (result.isEmpty()) throw new AssemblyException(new TextComponent("No blocks found!"));
                 return result;
+            }
 
             visitBlock(level, frontier, result, isGlued);
         }
@@ -81,7 +86,7 @@ public class GlueAssembler {
             if (visited.contains(newPos.getX(), newPos.getY(), newPos.getZ())) continue;
 
             BlockState state = level.getBlockState(newPos);
-            if (!isAllowed(state)) continue;
+            if (!isAllowed(state) || state.isAir()) continue;
 
             frontier.add(newPos);
         }
