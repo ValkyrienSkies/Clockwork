@@ -8,7 +8,6 @@
     "create.MixinAirCurrent",
     "create.MixinAirFlowParticle",
     "create.MixinBearingContraption",
-    "create.MixinBeltInventory",
     "create.MixinBeltMovementHandler",
     "create.MixinBlockBreakingKineticTileEntity",
     "create.MixinBlocks",
