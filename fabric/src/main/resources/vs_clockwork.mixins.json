@@ -22,7 +22,11 @@
     "create.MixinFilteringHandler",
     "create.MixinAirFlowParticle",
     "create.MixinAirCurrent",
-    "create.MixinCrushingWheelControllerTileEntity"
+    "create.MixinCrushingWheelControllerTileEntity",
+    "create.MixinEjectorTileEntity",
+    "create.MixinSharedDepotBlockMethods",
+    "create.MixinEjectorBlock",
+    "create.MixinEntityLauncher"
   ],
   "client": [
     "create.client.MixinSoundScapes",
