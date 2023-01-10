@@ -62,7 +62,8 @@
     "flywheel.client.MixinInstanceManager",
     "flywheel.client.MixinInstanceWorld",
     "flywheel.client.MixinInstancingEngine",
-    "flywheel.client.MixinTileInstanceManager"
+    "flywheel.client.MixinTileInstanceManager",
+    "minecraft.client.MixinLevelRenderer"
   ],
   "injectors": {
     "defaultRequire": 1

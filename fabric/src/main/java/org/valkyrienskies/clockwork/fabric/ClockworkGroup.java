@@ -18,6 +18,6 @@ public class ClockworkGroup extends ClockworkGroupBase {
 
     @Override
     public ItemStack makeIcon() {
-        return AllClockworkBlocks.PROPELLOR_BEARING.asStack();
+        return AllClockworkBlocks.PHYSICS_INFUSER.asStack();
     }
 }
