@@ -24,7 +24,20 @@
     "create.MixinSuperGlueRemovalPacket",
     "create.MixinTileEntityConfigurationPacket",
     "create.MixinTrackNodeLocation",
-    "create.MixinTrainRelocationPacket"
+    "create.MixinContraptionCollider",
+    "create.MixinSuperGlueRemovalPacket",
+    "create.MixinTrainRelocationPacket",
+    "create.MixinBeltMovementHandler",
+    "create.MixinAbstractContraptionEntity",
+    "create.MixinSeatEntity",
+    "create.MixinFilteringHandler",
+    "create.MixinAirFlowParticle",
+    "create.MixinAirCurrent",
+    "create.MixinCrushingWheelControllerTileEntity",
+    "create.MixinEjectorTileEntity",
+    "create.MixinSharedDepotBlockMethods",
+    "create.MixinEjectorBlock",
+    "create.MixinEntityLauncher"
   ],
   "client": [
     "content.vs_contraptions.render.MixinBearingInstance",
