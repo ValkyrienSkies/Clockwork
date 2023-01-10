@@ -21,6 +21,7 @@ import org.valkyrienskies.clockwork.fabric.content.contraptions.components.infus
 import org.valkyrienskies.clockwork.fabric.content.contraptions.components.infuser.PhysicsInfuserBlockEntity;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
+import javax.annotation.Nullable;
 
 import static org.valkyrienskies.clockwork.fabric.content.contraptions.components.infuser.PhysicsInfuserRenderer.ScanManager.computeRadius;
 import static org.valkyrienskies.clockwork.fabric.content.contraptions.components.infuser.PhysicsInfuserRenderer.ScanManager.computeScanGrowthDuration;
