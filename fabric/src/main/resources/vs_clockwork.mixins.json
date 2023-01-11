@@ -14,13 +14,20 @@
     "create.MixinContraptionCollider",
     "create.MixinSuperGlueRemovalPacket",
     "create.MixinTrainRelocationPacket",
-    "create.MixinBeltInventory",
     "create.MixinBeltMovementHandler",
     "create.MixinAbstractContraptionEntity",
     "create.MixinSeatEntity",
-    "create.MixinFilteringHandler"
+    "create.MixinFilteringHandler",
+    "create.MixinAirFlowParticle",
+    "create.MixinAirCurrent",
+    "create.MixinCrushingWheelControllerTileEntity",
+    "create.MixinEjectorTileEntity",
+    "create.MixinSharedDepotBlockMethods",
+    "create.MixinEjectorBlock",
+    "create.MixinEntityLauncher"
   ],
   "client": [
+    "create.client.MixinSoundScapes",
     "create.client.MixinFilteringRenderer",
     "create.client.MixinTrainRelocator",
     "create.client.MixinOrientedContraptionEntity",

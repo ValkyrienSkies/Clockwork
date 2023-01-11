@@ -69,7 +69,7 @@ dependencies {
 
     // Remove the next line if you don't want to depend on the API
     modApi("org.valkyrienskies:valkyrienskies-118-fabric:${rootProject.vs2_version}")
-    modApi("org.valkyrienskies.eureka:eureka-fabric:${rootProject.eureka_version}")
+    modApi("org.valkyrienskies.eureka:eureka-fabric:${rootProject.eureka_version}") { transitive = false }
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
