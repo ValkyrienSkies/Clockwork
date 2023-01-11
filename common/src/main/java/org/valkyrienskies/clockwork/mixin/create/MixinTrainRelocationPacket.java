@@ -23,7 +23,7 @@ public abstract class MixinTrainRelocationPacket {
     @Unique
     private Level level;
 
-    @Redirect(method = "lambda$handle$2", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/phys/Vec3;closerThan(Lnet/minecraft/core/Position;D)Z"))
+    @Redirect(method = "*", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/phys/Vec3;closerThan(Lnet/minecraft/core/Position;D)Z"))
     private boolean redirectCloserThan(final Vec3 instance, final Position arg, final double d) {
         Vec3 newVec3 = (Vec3) arg;
         final Ship ship = VSGameUtilsKt.getShipManagingPos(this.level, arg);
@@ -33,7 +33,7 @@ public abstract class MixinTrainRelocationPacket {
         return instance.closerThan(newVec3, d);
     }
 
-    @Redirect(method = "lambda$handle$2", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;getEntity(I)Lnet/minecraft/world/entity/Entity;"))
+    @Redirect(method = "*", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;getEntity(I)Lnet/minecraft/world/entity/Entity;"))
     private Entity stealLevel(Level instance, int i) {
         return (level = instance).getEntity(i);
     }
