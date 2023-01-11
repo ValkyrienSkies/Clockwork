@@ -4,9 +4,7 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "create.MixinBearingContraption",
-    "create.MixinControlsInputPacket",
     "create.MixinFilteringHandler",
-    "create.MixinTrainRelocationPacket"
   ],
   "client": [
     "create.client.MixinSuperGlueSelectionHandler"

@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.valkyrienskies.clockwork.forge.util.propellor.IBearingExtended;
 
-@Mixin(BearingContraption.class)
+@Mixin(BearingContraption.class) // TODO review this to just make it our own contraption
 public class MixinBearingContraption implements IBearingExtended {
 
     @Shadow(remap = false)

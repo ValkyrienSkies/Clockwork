@@ -10,6 +10,7 @@
     "create.MixinBeltMovementHandler",
     "create.MixinCarriageContraptionEntity",
     "create.MixinContraptionCollider",
+    "create.MixinControlsInputPacket",
     "create.MixinCrushingWheelBlock",
     "create.MixinCrushingWheelControllerTileEntity",
     "create.MixinCurvedTrackDestroyPacket",
@@ -21,7 +22,8 @@
     "create.MixinSharedDepotBlockMethods",
     "create.MixinSuperGlueRemovalPacket",
     "create.MixinTileEntityConfigurationPacket",
-    "create.MixinTrackNodeLocation"
+    "create.MixinTrackNodeLocation",
+    "create.MixinTrainRelocationPacket"
   ],
   "client": [
     "create.client.MixinCarriageContraptionInstance",
