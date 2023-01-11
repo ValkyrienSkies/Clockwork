@@ -23,7 +23,11 @@
     "create.MixinSuperGlueRemovalPacket",
     "create.MixinTileEntityConfigurationPacket",
     "create.MixinTrackNodeLocation",
-    "create.MixinTrainRelocationPacket"
+    "create.MixinTrainRelocationPacket",
+    "create.MixinSidedFilteringBehaviour",
+    "create.MixinLinkBehaviour",
+    "create.MixinRedstoneLinkNetworkHandler",
+    "create.MixinFilteringBehaviour"
   ],
   "client": [
     "create.client.MixinCarriageContraptionInstance",
@@ -38,7 +42,8 @@
     "create.client.MixinTileEntityRenderHelper",
     "create.client.MixinTrackBlockOutline",
     "create.client.MixinTrackTargetingBehaviour",
-    "create.client.MixinTrainRelocator"
+    "create.client.MixinTrainRelocator",
+    "create.client.MixinLinkRenderer"
   ],
   "injectors": {
     "defaultRequire": 1

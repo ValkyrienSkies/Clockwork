@@ -1,6 +1,6 @@
-package org.valkyrienskies.clockwork.fabric.mixin.create;
+package org.valkyrienskies.clockwork.mixin.create;
 
-import com.simibubi.create.foundation.tileEntity.behaviour.filtering.SidedFilteringBehaviour;
+import com.simibubi.create.foundation.tileEntity.behaviour.linked.LinkBehaviour;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
@@ -10,8 +10,8 @@ import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
-@Mixin(SidedFilteringBehaviour.class)
-public class MixinSidedFilteringBehaviour {
+@Mixin(LinkBehaviour.class)
+public class MixinLinkBehaviour {
     @Redirect(
             method = "testHit",
             at = @At(
@@ -20,7 +20,7 @@ public class MixinSidedFilteringBehaviour {
             )
     )
     public Vec3 redirectSubtract(Vec3 instance, Vec3 vec) {
-        Level level = ((SidedFilteringBehaviour) (Object) this).getWorld();
+        Level level = ((LinkBehaviour) (Object) this).getWorld();
 
         Vec3 pos1 = instance;
         Vec3 pos2 = vec;
