@@ -58,14 +58,19 @@ configurations {
 
 dependencies {
     forge "net.minecraftforge:forge:${rootProject.forge_version}"
+    annotationProcessor(implementation("com.github.LlamaLad7:MixinExtras:0.1.1"))
+
     modApi("org.valkyrienskies:valkyrienskies-118-forge:${rootProject.vs2_version}") { transitive = false }
     implementation("org.valkyrienskies.core:api:1.1.0+c92814e9b7") { transitive = false }
     modApi("org.valkyrienskies.eureka:eureka-forge:${rootProject.eureka_version}") { transitive = false }
-    implementation("com.simibubi.create:create-${create_minecraft_version}:${create_version}:slim") { transitive = false }
-    implementation("com.jozufozu.flywheel:flywheel-forge-${flywheel_minecraft_version}:${flywheel_version}")
-    implementation("com.tterrag.registrate:Registrate:${registrate_version}")
+
+    modImplementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
+    modImplementation("com.jozufozu.flywheel:flywheel-forge-${minecraft_version}:${flywheel_version}")
+    modImplementation("com.tterrag.registrate:Registrate:${registrate_version}")
+
     compileOnly("org.joml:joml:1.10.4")
     compileOnly("org.joml:joml-primitives:1.10.0")
+
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 

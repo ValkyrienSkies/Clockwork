@@ -12,12 +12,14 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import org.joml.Vector3d;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
@@ -34,9 +36,9 @@ public abstract class MixinFilteringHandler {
             method = "onBlockActivated",
             at = @At("HEAD"), remap = false
     )
-    private static void injectHead(Player player, Level world, InteractionHand hand, BlockHitResult hitResult, CallbackInfoReturnable<InteractionResult> cir) {
-        injectedLevel = world;
-        injectedHitResult = hitResult;
+    private static void injectHead(PlayerInteractEvent.RightClickBlock event, CallbackInfo ci) {
+        injectedLevel = event.getWorld();
+        injectedHitResult = event.getHitVec();
     }
 
     @ModifyArg(

@@ -1,34 +1,38 @@
-package org.valkyrienskies.clockwork.forge.mixin.create;
+package org.valkyrienskies.clockwork.mixin.create;
 
-import com.simibubi.create.content.contraptions.components.structureMovement.interaction.controls.ControlsInputPacket;
-import com.simibubi.create.foundation.networking.SimplePacketBase;
-import java.util.UUID;
-import java.util.function.Supplier;
-
+import com.simibubi.create.content.logistics.trains.entity.CarriageContraptionEntity;
+import java.util.Collection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Position;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkEvent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
-import net.minecraftforge.network.NetworkEvent.Context;
 
-@Mixin(ControlsInputPacket.class)
-public abstract class MixinControlsInputPacket {
+@Mixin(CarriageContraptionEntity.class)
+public abstract class MixinCarriageContraptionEntity {
     @Unique
     private Level world;
+    @Inject(
+        method = "control",
+        at = @At("HEAD"), locals = LocalCapture.CAPTURE_FAILHARD, remap = false
+    )
+    private void injectCaptureLevel(
+        final BlockPos controlsLocalPos, final Collection<Integer> heldControls, final Player player,
+        final CallbackInfoReturnable<Boolean> cir) {
+        this.world = player.level;
+    }
 
     @Redirect(
-        method = "lambda$handle$0",
+        method = "control",
         at = @At(
             value = "INVOKE",
             target = "Lnet/minecraft/world/phys/Vec3;closerThan(Lnet/minecraft/core/Position;D)Z"
@@ -41,18 +45,5 @@ public abstract class MixinControlsInputPacket {
             newVec3 = VSGameUtilsKt.toWorldCoordinates(ship, instance);
         }
         return newVec3.closerThan(arg, d);
-    }
-
-    @Inject(
-        method = "lambda$handle$0",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/world/level/Level;getEntity(I)Lnet/minecraft/world/entity/Entity;"
-        ), locals = LocalCapture.CAPTURE_FAILHARD
-    )
-    private void injectCaptureLevel(
-            final NetworkEvent.Context ctx, final CallbackInfo ci, final ServerPlayer player, final Level world,
-            final UUID uniqueID) {
-        this.world = world;
     }
 }

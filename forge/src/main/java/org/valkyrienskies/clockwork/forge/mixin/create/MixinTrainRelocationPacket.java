@@ -10,6 +10,7 @@ import net.minecraft.core.Position;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.network.NetworkEvent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -29,7 +30,7 @@ public abstract class MixinTrainRelocationPacket {
     @Unique
     private Level world;
 
-    @Redirect(method = "lambda$handle$2", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/phys/Vec3;closerThan(Lnet/minecraft/core/Position;D)Z"))
+    @Redirect(method = "lambda$handle$3", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/phys/Vec3;closerThan(Lnet/minecraft/core/Position;D)Z"))
     private boolean redirectCloserThan(final Vec3 instance, final Position arg, final double d) {
         Vec3 newVec3 = (Vec3) arg;
         final Ship ship = VSGameUtilsKt.getShipManagingPos(this.world, arg);
@@ -39,8 +40,8 @@ public abstract class MixinTrainRelocationPacket {
         return instance.closerThan(newVec3, d);
     }
 
-    @Inject(method = "lambda$handle$2", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;getEntity(I)Lnet/minecraft/world/entity/Entity;"), locals = LocalCapture.CAPTURE_FAILHARD)
-    private void injectCaptureLevel(Supplier<Context> ctx, CallbackInfo ci, ServerPlayer sender, Train train) {
+    @Inject(method = "lambda$handle$3", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;getEntity(I)Lnet/minecraft/world/entity/Entity;"), locals = LocalCapture.CAPTURE_FAILHARD)
+    private void injectCaptureLevel(NetworkEvent.Context ctx, CallbackInfo ci, ServerPlayer sender, Train train) {
         this.world = sender.level;
     }
 }
