@@ -13,12 +13,12 @@ public abstract class MixinTrackNodeLocation {
      * This method overwrites getLocation to make it actually parse things as a double, not needed in forge create
      */
     @Inject(
-        method = "getLocation", at = @At("HEAD"), cancellable = true, remap = false
+            method = "getLocation", at = @At("HEAD"), cancellable = true
     )
     protected void getLocation(final CallbackInfoReturnable<Vec3> cir) {
 
         cir.setReturnValue(new Vec3((double) ((TrackNodeLocation) (Object) this).getX() / 2,
-            (double) ((TrackNodeLocation) (Object) this).getY() / 2,
-            (double) ((TrackNodeLocation) (Object) this).getZ() / 2));
+                (double) ((TrackNodeLocation) (Object) this).getY() / 2,
+                (double) ((TrackNodeLocation) (Object) this).getZ() / 2));
     }
 }

@@ -51,8 +51,8 @@ subprojects {
         repositories.removeIf {
             def url = it.url.toString()
             url.contains("maven.minecraftforge.net") ||
-                url.contains("maven.fabricmc.net") ||
-                url.contains("maven.architectury.dev")
+                    url.contains("maven.fabricmc.net") ||
+                    url.contains("maven.architectury.dev")
         }
     }
 

@@ -25,8 +25,8 @@ public class MixinCrushingWheelBlock {
 
     @Inject(method = "entityInside", at = @At("HEAD"))
     void startInside(
-        final BlockState state, final Level worldIn, final BlockPos pos, final Entity entityIn,
-        final CallbackInfo info) {
+            final BlockState state, final Level worldIn, final BlockPos pos, final Entity entityIn,
+            final CallbackInfo info) {
         blockPosInside = pos;
         levelInside = worldIn;
     }
@@ -40,11 +40,11 @@ public class MixinCrushingWheelBlock {
     }
 
     @Redirect(
-        method = "entityInside",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/world/entity/Entity;getX()D"
-        )
+            method = "entityInside",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/entity/Entity;getX()D"
+            )
     )
     double getXPos(final Entity entity) {
         final Vector3d vector3d = new Vector3d(entity.getX(), entity.getY(), entity.getZ());
@@ -53,11 +53,11 @@ public class MixinCrushingWheelBlock {
     }
 
     @Redirect(
-        method = "entityInside",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/world/entity/Entity;getY()D"
-        )
+            method = "entityInside",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/entity/Entity;getY()D"
+            )
     )
     double getYPos(final Entity entity) {
         final Vector3d vector3d = new Vector3d(entity.getX(), entity.getY(), entity.getZ());
@@ -66,11 +66,11 @@ public class MixinCrushingWheelBlock {
     }
 
     @Redirect(
-        method = "entityInside",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/world/entity/Entity;getZ()D"
-        )
+            method = "entityInside",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/entity/Entity;getZ()D"
+            )
     )
     double getZPos(final Entity entity) {
         final Vector3d vector3d = new Vector3d(entity.getX(), entity.getY(), entity.getZ());

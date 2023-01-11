@@ -35,8 +35,8 @@ ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.vs_clockwork]]
-modId="create"
-mandatory=true
-versionRange="[0.5.0.g,)"
-ordering="NONE"
-side="BOTH"
+modId = "create"
+mandatory = true
+versionRange = "[0.5.0.g,)"
+ordering = "NONE"
+side = "BOTH"

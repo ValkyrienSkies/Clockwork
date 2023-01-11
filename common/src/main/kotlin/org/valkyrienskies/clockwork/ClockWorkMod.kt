@@ -1,8 +1,6 @@
 package org.valkyrienskies.clockwork
 
 
-
-
 object ClockWorkMod {
     const val MOD_ID = "vs_clockwork"
 

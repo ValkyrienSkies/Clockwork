@@ -1,11 +1,8 @@
 package org.valkyrienskies.clockwork.fabric.mixin.create;
 
-import com.simibubi.create.content.contraptions.components.structureMovement.interaction.controls.ControlsInputPacket;
 import com.simibubi.create.content.logistics.trains.entity.Train;
 import com.simibubi.create.content.logistics.trains.entity.TrainRelocationPacket;
 import com.simibubi.create.foundation.networking.SimplePacketBase;
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Position;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
@@ -19,8 +16,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
-
-import java.util.UUID;
 
 @Mixin(TrainRelocationPacket.class)
 public abstract class MixinTrainRelocationPacket {

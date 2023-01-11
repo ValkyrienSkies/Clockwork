@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.mixin.create;
 
 import com.simibubi.create.content.logistics.trains.entity.CarriageContraptionEntity;
-import java.util.Collection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Position;
 import net.minecraft.world.entity.player.Player;
@@ -17,26 +16,29 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 
+import java.util.Collection;
+
 @Mixin(CarriageContraptionEntity.class)
 public abstract class MixinCarriageContraptionEntity {
     @Unique
     private Level world;
+
     @Inject(
-        method = "control",
-        at = @At("HEAD"), locals = LocalCapture.CAPTURE_FAILHARD, remap = false
+            method = "control",
+            at = @At("HEAD"), locals = LocalCapture.CAPTURE_FAILHARD
     )
     private void injectCaptureLevel(
-        final BlockPos controlsLocalPos, final Collection<Integer> heldControls, final Player player,
-        final CallbackInfoReturnable<Boolean> cir) {
+            final BlockPos controlsLocalPos, final Collection<Integer> heldControls, final Player player,
+            final CallbackInfoReturnable<Boolean> cir) {
         this.world = player.level;
     }
 
     @Redirect(
-        method = "control",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/world/phys/Vec3;closerThan(Lnet/minecraft/core/Position;D)Z"
-        )
+            method = "control",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/phys/Vec3;closerThan(Lnet/minecraft/core/Position;D)Z"
+            )
     )
     private boolean redirectCloserThan(final Vec3 instance, final Position arg, final double d) {
         Vec3 newVec3 = instance;

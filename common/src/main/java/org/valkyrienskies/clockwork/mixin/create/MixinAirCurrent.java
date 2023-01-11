@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.fabric.mixin.create;
+package org.valkyrienskies.clockwork.mixin.create;
 
 import com.simibubi.create.content.contraptions.components.fan.AirCurrent;
 import com.simibubi.create.content.contraptions.components.fan.IAirCurrentSource;
@@ -21,18 +21,33 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.*;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 import org.valkyrienskies.mod.common.world.RaycastUtilsKt;
+
 import java.util.Iterator;
 import java.util.List;
 
 @Mixin(AirCurrent.class)
 public abstract class MixinAirCurrent {
+
+    @Unique
+    private final float maxAcceleration = 5;
+    @Shadow
+    @Final
+    public IAirCurrentSource source;
+    @Unique
+    private Vec3 transformedFlow = Vec3.ZERO;
+    @Unique
+    private float acceleration;
+    @Unique
+    private Ship ship;
 
     @Redirect(method = "getFlowLimit", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;clipWithInteractionOverride(Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/VoxelShape;Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/world/phys/BlockHitResult;"))
     private static BlockHitResult redirectClip(Level instance, Vec3 vec3, Vec3 vec32, BlockPos blockPos, VoxelShape voxelShape, BlockState blockState) {
@@ -104,16 +119,4 @@ public abstract class MixinAirCurrent {
         }
         return result;
     }
-
-    @Unique
-    private Vec3 transformedFlow = Vec3.ZERO;
-    @Unique
-    private float acceleration;
-    @Unique
-    private final float maxAcceleration = 5;
-    @Unique
-    private Ship ship;
-    @Shadow
-    @Final
-    public IAirCurrentSource source;
 }

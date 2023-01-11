@@ -1,14 +1,13 @@
 package org.valkyrienskies.clockwork.fabric.content.curiosities.tools.bluperglue;
 
-import java.util.function.Supplier;
-
 import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.foundation.networking.SimplePacketBase;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+
+import java.util.function.Supplier;
 
 public class BluperGlueRemovalPacket extends SimplePacketBase {
 

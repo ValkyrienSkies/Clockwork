@@ -1,8 +1,12 @@
 package org.valkyrienskies.clockwork.fabric.content.curiosities.tools.bluperglue;
 
-import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.content.contraptions.components.structureMovement.BlockMovementChecks;
+import com.simibubi.create.content.schematics.ISpecialEntityItemRequirement;
+import com.simibubi.create.content.schematics.ItemRequirement;
+import com.simibubi.create.content.schematics.ItemRequirement.ItemUseType;
+import com.simibubi.create.foundation.utility.Iterate;
+import com.simibubi.create.foundation.utility.VecHelper;
 import io.github.fabricators_of_create.porting_lib.entity.ExtraSpawnDataEntity;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.minecraft.core.BlockPos;
@@ -19,34 +23,19 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityDimensions;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LightningBolt;
-import net.minecraft.world.entity.MoverType;
-import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.DirectionalBlock;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.portal.PortalInfo;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import com.simibubi.create.content.schematics.ISpecialEntityItemRequirement;
-import com.simibubi.create.content.schematics.ItemRequirement;
-import com.simibubi.create.content.schematics.ItemRequirement.ItemUseType;
-import com.simibubi.create.foundation.utility.Iterate;
-import com.simibubi.create.foundation.utility.VecHelper;
 import org.valkyrienskies.clockwork.fabric.AllClockworkEntities;
 import org.valkyrienskies.clockwork.fabric.AllClockworkItems;
-import org.valkyrienskies.clockwork.fabric.AllClockworkParticles;
-import org.valkyrienskies.clockwork.fabric.content.materials.solids.bluuguu.BluuGuuParticle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,12 +44,22 @@ import java.util.Set;
 public class BluperGlueEntity extends Entity
         implements ExtraSpawnDataEntity, ISpecialEntityItemRequirement {
 
+    public BluperGlueEntity(EntityType<?> type, Level world) {
+        super(type, world);
+    }
+
+    public BluperGlueEntity(Level world, AABB boundingBox) {
+        this(AllClockworkEntities.BLUPERGLUE.get(), world);
+        setBoundingBox(boundingBox);
+        resetPositionToBB();
+    }
+
     public static AABB span(BlockPos startPos, BlockPos endPos) {
         return new AABB(startPos, endPos).expandTowards(1, 1, 1);
     }
 
     public static boolean isBluGlued(LevelAccessor level, BlockPos blockPos, Direction direction,
-                                  Set<BluperGlueEntity> cached) {
+                                     Set<BluperGlueEntity> cached) {
         BlockPos targetPos = blockPos.relative(direction);
         if (cached != null)
             for (BluperGlueEntity glueEntity : cached)
@@ -91,24 +90,6 @@ public class BluperGlueEntity extends Entity
         return glue;
     }
 
-    public BluperGlueEntity(EntityType<?> type, Level world) {
-        super(type, world);
-    }
-
-    public BluperGlueEntity(Level world, AABB boundingBox) {
-        this(AllClockworkEntities.BLUPERGLUE.get(), world);
-        setBoundingBox(boundingBox);
-        resetPositionToBB();
-    }
-
-    public void resetPositionToBB() {
-        AABB bb = getBoundingBox();
-        setPosRaw(bb.getCenter().x, bb.minY, bb.getCenter().z);
-    }
-
-    @Override
-    protected void defineSynchedData() {}
-
     public static boolean isValidFace(Level world, BlockPos pos, Direction direction) {
         BlockState state = world.getBlockState(pos);
         if (BlockMovementChecks.isBlockAttachedTowards(state, world, pos, direction))
@@ -118,6 +99,32 @@ public class BluperGlueEntity extends Entity
         if (BlockMovementChecks.isNotSupportive(state, direction))
             return false;
         return true;
+    }
+
+    public static void writeBoundingBox(CompoundTag compound, AABB bb) {
+        compound.put("From", VecHelper.writeNBT(new Vec3(bb.minX, bb.minY, bb.minZ)));
+        compound.put("To", VecHelper.writeNBT(new Vec3(bb.maxX, bb.maxY, bb.maxZ)));
+    }
+
+    public static AABB readBoundingBox(CompoundTag compound) {
+        Vec3 from = VecHelper.readNBT(compound.getList("From", Tag.TAG_DOUBLE));
+        Vec3 to = VecHelper.readNBT(compound.getList("To", Tag.TAG_DOUBLE));
+        return new AABB(from, to);
+    }
+
+    public static FabricEntityTypeBuilder<?> build(FabricEntityTypeBuilder<?> builder) {
+//		@SuppressWarnings("unchecked")
+//		EntityType.Builder<BluperGlueEntity> entityBuilder = (EntityType.Builder<BluperGlueEntity>) builder;
+        return builder;
+    }
+
+    public void resetPositionToBB() {
+        AABB bb = getBoundingBox();
+        setPosRaw(bb.getCenter().x, bb.minY, bb.getCenter().z);
+    }
+
+    @Override
+    protected void defineSynchedData() {
     }
 
     @Override
@@ -184,17 +191,6 @@ public class BluperGlueEntity extends Entity
         setBoundingBox(readBoundingBox(compound).move(position));
     }
 
-    public static void writeBoundingBox(CompoundTag compound, AABB bb) {
-        compound.put("From", VecHelper.writeNBT(new Vec3(bb.minX, bb.minY, bb.minZ)));
-        compound.put("To", VecHelper.writeNBT(new Vec3(bb.maxX, bb.maxY, bb.maxZ)));
-    }
-
-    public static AABB readBoundingBox(CompoundTag compound) {
-        Vec3 from = VecHelper.readNBT(compound.getList("From", Tag.TAG_DOUBLE));
-        Vec3 to = VecHelper.readNBT(compound.getList("To", Tag.TAG_DOUBLE));
-        return new AABB(from, to);
-    }
-
     @Override
     protected boolean repositionEntityAfterLoad() {
         return false;
@@ -214,15 +210,11 @@ public class BluperGlueEntity extends Entity
     }
 
     @Override
-    public void thunderHit(ServerLevel world, LightningBolt lightningBolt) {}
+    public void thunderHit(ServerLevel world, LightningBolt lightningBolt) {
+    }
 
     @Override
-    public void refreshDimensions() {}
-
-    public static FabricEntityTypeBuilder<?> build(FabricEntityTypeBuilder<?> builder) {
-//		@SuppressWarnings("unchecked")
-//		EntityType.Builder<BluperGlueEntity> entityBuilder = (EntityType.Builder<BluperGlueEntity>) builder;
-        return builder;
+    public void refreshDimensions() {
     }
 
     @Override

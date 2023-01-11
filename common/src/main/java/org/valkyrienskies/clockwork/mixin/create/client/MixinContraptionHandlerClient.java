@@ -2,20 +2,13 @@ package org.valkyrienskies.clockwork.mixin.create.client;
 
 import com.simibubi.create.content.contraptions.components.structureMovement.ContraptionHandlerClient;
 import com.simibubi.create.foundation.utility.Couple;
-
-import java.util.Iterator;
-import java.util.List;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4d;
-import org.joml.Matrix4f;
 import org.joml.Quaterniond;
 import org.joml.Vector3d;
-import org.joml.primitives.AABBd;
 import org.joml.primitives.AABBic;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -26,10 +19,12 @@ import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
+import java.util.Iterator;
+
 @Mixin(ContraptionHandlerClient.class)
 public abstract class MixinContraptionHandlerClient {
 
-    @Inject(method = "getRayInputs", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/foundation/utility/Couple;create(Ljava/lang/Object;Ljava/lang/Object;)Lcom/simibubi/create/foundation/utility/Couple;"), locals = LocalCapture.CAPTURE_FAILHARD, cancellable = true, remap = false)
+    @Inject(method = "getRayInputs", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/foundation/utility/Couple;create(Ljava/lang/Object;Ljava/lang/Object;)Lcom/simibubi/create/foundation/utility/Couple;"), locals = LocalCapture.CAPTURE_FAILHARD, cancellable = true)
     private static void redirectedOrigin(final LocalPlayer player, final CallbackInfoReturnable<Couple<Vec3>> cir, final Minecraft mc, Vec3 origin, final double reach, Vec3 target) {
 
         if (mc.hitResult != null) {
@@ -41,7 +36,7 @@ public abstract class MixinContraptionHandlerClient {
 
                 Matrix4d world2Ship = (Matrix4d) ship.getTransform().getWorldToShip();
                 AABBic shAABBi = ship.getShipAABB();
-                if(shAABBi==null)
+                if (shAABBi == null)
                     return;
                 AABB shipAABB = new AABB(shAABBi.minX(), shAABBi.minY(), shAABBi.minZ(), shAABBi.maxX(), shAABBi.maxY(), shAABBi.maxZ());
 

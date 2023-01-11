@@ -2,15 +2,15 @@ package org.valkyrienskies.clockwork.fabric.content.curiosities.tools.bluperglue
 
 import com.jamieswhiteshirt.reachentityattributes.ReachEntityAttributes;
 import com.simibubi.create.foundation.networking.SimplePacketBase;
-
-import java.util.Set;
-import java.util.function.Supplier;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+
+import java.util.Set;
+import java.util.function.Supplier;
+
 public class BluperGlueSelectionPacket extends SimplePacketBase {
 
     private BlockPos from;

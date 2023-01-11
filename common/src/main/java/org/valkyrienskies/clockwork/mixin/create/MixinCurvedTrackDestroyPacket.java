@@ -23,11 +23,11 @@ public abstract class MixinCurvedTrackDestroyPacket {
     private Level world;
 
     @Redirect(
-        method = "applySettings(Lnet/minecraft/server/level/ServerPlayer;Lcom/simibubi/create/content/logistics/trains/track/TrackTileEntity;)V",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/core/BlockPos;closerThan(Lnet/minecraft/core/Vec3i;D)Z"
-        )
+            method = "applySettings(Lnet/minecraft/server/level/ServerPlayer;Lcom/simibubi/create/content/logistics/trains/track/TrackTileEntity;)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/core/BlockPos;closerThan(Lnet/minecraft/core/Vec3i;D)Z"
+            )
     )
     private boolean redirectCloserThan(final BlockPos instance, final Vec3i vec3i, final double v) {
         BlockPos blockPos = instance;
@@ -40,8 +40,8 @@ public abstract class MixinCurvedTrackDestroyPacket {
     }
 
     @Inject(
-        method = "applySettings(Lnet/minecraft/server/level/ServerPlayer;Lcom/simibubi/create/content/logistics/trains/track/TrackTileEntity;)V",
-        at = @At("HEAD"), locals = LocalCapture.CAPTURE_FAILHARD, remap = false
+            method = "applySettings(Lnet/minecraft/server/level/ServerPlayer;Lcom/simibubi/create/content/logistics/trains/track/TrackTileEntity;)V",
+            at = @At("HEAD"), locals = LocalCapture.CAPTURE_FAILHARD
     )
     private void injectCaptureLevel(final ServerPlayer player, final TrackTileEntity te, final CallbackInfo ci) {
         this.world = player.level;

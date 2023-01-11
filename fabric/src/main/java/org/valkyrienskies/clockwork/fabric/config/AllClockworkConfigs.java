@@ -10,7 +10,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.valkyrienskies.clockwork.ClockWorkMod;
 
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 

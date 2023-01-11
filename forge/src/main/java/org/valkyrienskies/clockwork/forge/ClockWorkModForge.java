@@ -15,22 +15,15 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
-import org.valkyrienskies.mod.forge.common.ValkyrienSkiesModForge;
 
 import static org.valkyrienskies.clockwork.ClockWorkMod.MOD_ID;
 
 @Mod(ClockWorkMod.MOD_ID)
 public class ClockWorkModForge {
-    boolean happendClientSetup = false;
-    static IEventBus MOD_BUS;
-
-    public static ResourceLocation asResource(String path) {
-        return new ResourceLocation(MOD_ID, path);
-    }
     public static final CreateRegistrate REGISTRATE = CreateRegistrate.create(MOD_ID);
-
     public static final CreativeModeTab BASE_CREATIVE_TAB = new ClockworkGroup();
-
+    static IEventBus MOD_BUS;
+    boolean happendClientSetup = false;
 
     public ClockWorkModForge() {
         // Submit our event bus to let architectury register our content on the right time
@@ -58,6 +51,10 @@ public class ClockWorkModForge {
         ClockWorkMod.init();
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClockworkClientForge.onCWClient(modEventBus, forgeEventBus));
+    }
+
+    public static ResourceLocation asResource(String path) {
+        return new ResourceLocation(MOD_ID, path);
     }
 
     void clientSetup(final FMLClientSetupEvent event) {

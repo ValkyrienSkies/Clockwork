@@ -13,5 +13,6 @@ public class AllClockworkItems {
         REGISTRATE.startSection(AllSections.KINETICS);
     }
 
-    public static void register() {}
+    public static void register() {
+    }
 }

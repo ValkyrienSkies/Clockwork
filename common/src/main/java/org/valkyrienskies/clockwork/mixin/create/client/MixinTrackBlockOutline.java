@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork.mixin.create.client;
 
 import com.simibubi.create.content.logistics.trains.track.TrackBlockOutline;
 import com.simibubi.create.foundation.utility.RaycastHelper;
-import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -20,6 +19,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 
+import java.util.List;
+
 @Mixin(TrackBlockOutline.class)
 public class MixinTrackBlockOutline {
     @Unique
@@ -28,35 +29,35 @@ public class MixinTrackBlockOutline {
     private static BlockPos shipBlockPos;
 
     @Inject(
-        method = "pickCurves",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/client/player/LocalPlayer;getEyePosition(F)Lnet/minecraft/world/phys/Vec3;"
-        ), locals = LocalCapture.CAPTURE_FAILHARD
+            method = "pickCurves",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/player/LocalPlayer;getEyePosition(F)Lnet/minecraft/world/phys/Vec3;"
+            ), locals = LocalCapture.CAPTURE_FAILHARD
     )
     private static void stuff(final CallbackInfo ci, final Minecraft mc) {
         if (mc.hitResult != null && mc.level != null && mc.hitResult.getType() == Type.BLOCK) {
             shipBlockPos = ((BlockHitResult) mc.hitResult).getBlockPos();
 
             final List<Vector3d>
-                ships = VSGameUtilsKt.transformToNearbyShipsAndWorld(mc.level, shipBlockPos.getX(), shipBlockPos.getY(),
-                shipBlockPos.getZ(), 10);
+                    ships = VSGameUtilsKt.transformToNearbyShipsAndWorld(mc.level, shipBlockPos.getX(), shipBlockPos.getY(),
+                    shipBlockPos.getZ(), 10);
             isShip = !ships.isEmpty();
         }
     }
 
     @Redirect(
-        method = "pickCurves()V",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/client/player/LocalPlayer;getEyePosition(F)Lnet/minecraft/world/phys/Vec3;"
-        )
+            method = "pickCurves()V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/player/LocalPlayer;getEyePosition(F)Lnet/minecraft/world/phys/Vec3;"
+            )
     )
     private static Vec3 redirectedOrigin(final LocalPlayer instance, final float v) {
         final Vec3 eyePos = instance.getEyePosition(v);
         if (isShip) {
             final List<Vector3d>
-                ships = VSGameUtilsKt.transformToNearbyShipsAndWorld(instance.level, eyePos.x, eyePos.y, eyePos.z, 10);
+                    ships = VSGameUtilsKt.transformToNearbyShipsAndWorld(instance.level, eyePos.x, eyePos.y, eyePos.z, 10);
             if (ships.isEmpty()) {
                 return eyePos;
             }
@@ -68,11 +69,11 @@ public class MixinTrackBlockOutline {
     }
 
     @Redirect(
-        method = "pickCurves()V",
-        at = @At(
-            value = "INVOKE",
-            target = "Lcom/simibubi/create/foundation/utility/RaycastHelper;getTraceTarget(Lnet/minecraft/world/entity/player/Player;DLnet/minecraft/world/phys/Vec3;)Lnet/minecraft/world/phys/Vec3;"
-        ), remap = false
+            method = "pickCurves()V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lcom/simibubi/create/foundation/utility/RaycastHelper;getTraceTarget(Lnet/minecraft/world/entity/player/Player;DLnet/minecraft/world/phys/Vec3;)Lnet/minecraft/world/phys/Vec3;"
+            )
     )
     private static Vec3 redirectedTarget(final Player playerIn, final double range, final Vec3 origin) {
         if (isShip) {

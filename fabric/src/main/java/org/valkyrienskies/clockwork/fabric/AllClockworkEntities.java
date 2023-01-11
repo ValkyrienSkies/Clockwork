@@ -48,5 +48,6 @@ public class AllClockworkEntities {
                 .renderer(renderer);
     }
 
-    public static void register() {}
+    public static void register() {
+    }
 }

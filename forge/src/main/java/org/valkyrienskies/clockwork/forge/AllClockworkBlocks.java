@@ -13,16 +13,6 @@ import static org.valkyrienskies.clockwork.forge.ClockWorkModForge.REGISTRATE;
 
 public class AllClockworkBlocks {
 
-    static {
-        REGISTRATE.creativeModeTab(() -> ClockWorkModForge.BASE_CREATIVE_TAB);
-    }
-
-    static {
-        REGISTRATE.startSection(AllSections.KINETICS);
-    }
-
-    //////// Propellor Bearing ////////
-
     public static final BlockEntry<PropellorBearingBlock> PROPELLOR_BEARING =
             REGISTRATE.block("propellor_bearing", PropellorBearingBlock::new)
                     .transform(axeOrPickaxe())
@@ -32,7 +22,16 @@ public class AllClockworkBlocks {
                     .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
                     .register();
 
+    static {
+        REGISTRATE.creativeModeTab(() -> ClockWorkModForge.BASE_CREATIVE_TAB);
+    }
 
+    //////// Propellor Bearing ////////
 
-    public static void register() {}
+    static {
+        REGISTRATE.startSection(AllSections.KINETICS);
+    }
+
+    public static void register() {
+    }
 }

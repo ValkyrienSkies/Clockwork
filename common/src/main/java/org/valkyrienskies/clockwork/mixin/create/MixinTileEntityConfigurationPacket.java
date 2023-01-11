@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.mixin.create;
 
 import com.simibubi.create.foundation.networking.TileEntityConfigurationPacket;
-import java.util.function.Supplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,17 +16,19 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 
+import java.util.function.Supplier;
+
 @Mixin(TileEntityConfigurationPacket.class)
 public abstract class MixinTileEntityConfigurationPacket {
     @Unique
     private Level world;
 
     @Redirect(
-        method = "lambda$handle$0",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/core/BlockPos;closerThan(Lnet/minecraft/core/Vec3i;D)Z"
-        )
+            method = "lambda$handle$0",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/core/BlockPos;closerThan(Lnet/minecraft/core/Vec3i;D)Z"
+            )
     )
     private boolean redirectCloserThan(final BlockPos instance, final Vec3i vec3i, final double v) {
         BlockPos blockPos = instance;
@@ -40,14 +41,14 @@ public abstract class MixinTileEntityConfigurationPacket {
     }
 
     @Inject(
-        method = "lambda$handle$0",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/world/level/Level;isLoaded(Lnet/minecraft/core/BlockPos;)Z"
-        ), locals = LocalCapture.CAPTURE_FAILHARD
+            method = "lambda$handle$0",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/level/Level;isLoaded(Lnet/minecraft/core/BlockPos;)Z"
+            ), locals = LocalCapture.CAPTURE_FAILHARD
     )
     private void injectCaptureLevel(
-        final Supplier context, final CallbackInfo ci, final ServerPlayer player, final Level world) {
+            final Supplier context, final CallbackInfo ci, final ServerPlayer player, final Level world) {
         this.world = world;
     }
 }

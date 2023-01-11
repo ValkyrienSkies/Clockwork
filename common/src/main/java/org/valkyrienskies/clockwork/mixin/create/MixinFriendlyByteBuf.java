@@ -10,8 +10,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(FriendlyByteBuf.class)
 public abstract class MixinFriendlyByteBuf {
     @Inject(
-        method = "readBlockPos",
-        at = @At("HEAD"), cancellable = true
+            method = "readBlockPos",
+            at = @At("HEAD"), cancellable = true
     )
     private void redirectReadBlockPos(final CallbackInfoReturnable<BlockPos> cir) {
         final double x = ((FriendlyByteBuf) (Object) this).readDouble();
@@ -21,8 +21,8 @@ public abstract class MixinFriendlyByteBuf {
     }
 
     @Inject(
-        method = "writeBlockPos",
-        at = @At("HEAD"), cancellable = true
+            method = "writeBlockPos",
+            at = @At("HEAD"), cancellable = true
     )
     private void redirectWriteBlockPos(final BlockPos blockPos, final CallbackInfoReturnable<FriendlyByteBuf> cir) {
         ((FriendlyByteBuf) (Object) this).writeDouble(blockPos.getX());

@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork.fabric.mixin.create;
 
 import com.simibubi.create.content.contraptions.components.structureMovement.interaction.controls.ControlsInputPacket;
 import com.simibubi.create.foundation.networking.SimplePacketBase;
-import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Position;
 import net.minecraft.server.level.ServerPlayer;
@@ -18,17 +17,19 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 
+import java.util.UUID;
+
 @Mixin(ControlsInputPacket.class)
 public abstract class MixinControlsInputPacket {
     @Unique
     private Level world;
 
     @Redirect(
-        method = "lambda$handle$0",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/world/phys/Vec3;closerThan(Lnet/minecraft/core/Position;D)Z"
-        )
+            method = "lambda$handle$0",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/phys/Vec3;closerThan(Lnet/minecraft/core/Position;D)Z"
+            )
     )
     private boolean redirectCloserThan(final Vec3 instance, final Position arg, final double d) {
         Vec3 newVec3 = instance;
@@ -40,15 +41,15 @@ public abstract class MixinControlsInputPacket {
     }
 
     @Inject(
-        method = "lambda$handle$0",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/world/level/Level;getEntity(I)Lnet/minecraft/world/entity/Entity;"
-        ), locals = LocalCapture.CAPTURE_FAILHARD
+            method = "lambda$handle$0",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/level/Level;getEntity(I)Lnet/minecraft/world/entity/Entity;"
+            ), locals = LocalCapture.CAPTURE_FAILHARD
     )
     private void injectCaptureLevel(
-        final SimplePacketBase.Context ctx, final CallbackInfo ci, final ServerPlayer player, final Level world,
-        final UUID uniqueID) {
+            final SimplePacketBase.Context ctx, final CallbackInfo ci, final ServerPlayer player, final Level world,
+            final UUID uniqueID) {
         this.world = world;
     }
 }

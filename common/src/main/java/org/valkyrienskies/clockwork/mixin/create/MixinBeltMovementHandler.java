@@ -13,7 +13,10 @@ import org.joml.Quaterniond;
 import org.joml.Vector3d;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.*;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import org.valkyrienskies.core.api.ships.Ship;
@@ -48,7 +51,7 @@ public abstract class MixinBeltMovementHandler {
         }
     }
 
-    @ModifyVariable(method = "transportEntity", at = @At(value = "STORE"), name = "axis", remap = false)
+    @ModifyVariable(method = "transportEntity", at = @At(value = "STORE"), name = "axis")
     private static Direction.Axis injectHarvestAxis(Direction.Axis value) {
         axis = value;
         return value;
@@ -88,7 +91,7 @@ public abstract class MixinBeltMovementHandler {
         return instance.choose(x, y, z);
     }
 
-    @ModifyVariable(method = "transportEntity", at = @At(value = "STORE"), name = "diffCenter", remap = false)
+    @ModifyVariable(method = "transportEntity", at = @At(value = "STORE"), name = "diffCenter")
     private static double modDiffCenter(double value) {
         //if (ship != null) value = value + Math.copySign(value) );
         return axis == Direction.Axis.Z ? (blockPos.x + .5 - getPos(entity).x) : (blockPos.z + .5 - getPos(entity).z);

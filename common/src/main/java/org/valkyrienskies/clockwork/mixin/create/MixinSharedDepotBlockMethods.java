@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.fabric.mixin.create;
+package org.valkyrienskies.clockwork.mixin.create;
 
 import com.simibubi.create.content.logistics.block.depot.SharedDepotBlockMethods;
 import net.minecraft.core.BlockPos;

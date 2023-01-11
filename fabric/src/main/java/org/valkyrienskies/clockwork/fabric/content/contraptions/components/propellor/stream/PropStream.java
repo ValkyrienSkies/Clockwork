@@ -3,9 +3,8 @@ package org.valkyrienskies.clockwork.fabric.content.contraptions.components.prop
 import com.simibubi.create.AllTags;
 import com.simibubi.create.foundation.config.AllConfigs;
 import com.simibubi.create.foundation.utility.VecHelper;
-import io.github.fabricators_of_create.porting_lib.mixin.common.accessor.ServerGamePacketListenerImplAccessor;
 import com.tterrag.registrate.fabric.EnvExecutor;
-
+import io.github.fabricators_of_create.porting_lib.mixin.common.accessor.ServerGamePacketListenerImplAccessor;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -25,7 +24,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.valkyrienskies.clockwork.fabric.content.contraptions.components.propellor.PropellorBearingTileEntity;
 import org.valkyrienskies.clockwork.fabric.content.curiosities.particles.PropellorStreamParticleData;
 import org.valkyrienskies.clockwork.fabric.content.curiosities.sounds.PropStreamSound;
 import org.valkyrienskies.core.api.ships.LoadedShip;
@@ -41,20 +39,115 @@ import java.util.Objects;
 
 public class PropStream {
 
+    static boolean isClientPlayerInPropStream;
+    @Environment(EnvType.CLIENT)
+    static PropStreamSound flyingSound;
     public final IPropStreamSource source;
     public AABB bounds = new AABB(0, 0, 0, 0, 0, 0);
     public List<PropStreamSegment> segments = new ArrayList<>();
     public Direction direction;
     public boolean pushing;
     public float maxDistance;
-
     protected List<Entity> caughtEntities = new ArrayList<>();
     protected List<LoadedShip> caughtShips = new ArrayList<>();
 
-    static boolean isClientPlayerInPropStream;
-
     public PropStream(IPropStreamSource source) {
         this.source = source;
+    }
+
+    public static float getFlowLimit(Level world, BlockPos start, float max, Direction facing) {
+        Vec3 directionVec = Vec3.atLowerCornerOf(facing.getNormal());
+        Vec3 planeVec = VecHelper.axisAlingedPlaneOf(directionVec);
+
+        // 4 Rays test for holes in the shapes blocking the flow
+        float offsetDistance = .25f;
+        Vec3[] offsets = new Vec3[]{planeVec.multiply(offsetDistance, offsetDistance, offsetDistance),
+                planeVec.multiply(-offsetDistance, -offsetDistance, offsetDistance),
+                planeVec.multiply(offsetDistance, -offsetDistance, -offsetDistance),
+                planeVec.multiply(-offsetDistance, offsetDistance, -offsetDistance),};
+
+        float limitedDistance = 0;
+
+        // Determine the distance of the air flow
+        Outer:
+        for (int i = 1; i <= max; i++) {
+            BlockPos streamPos = start.relative(facing, i);
+            if (!world.isLoaded(streamPos))
+                break;
+            BlockState state = world.getBlockState(streamPos);
+            if (shouldAlwaysPass(state))
+                continue;
+            VoxelShape voxelshape = state.getCollisionShape(world, streamPos, CollisionContext.empty());
+            if (voxelshape.isEmpty())
+                continue;
+            if (voxelshape == Shapes.block()) {
+                max = i - 1;
+                break;
+            }
+
+            for (Vec3 offset : offsets) {
+                Vec3 rayStart = VecHelper.getCenterOf(streamPos)
+                        .subtract(directionVec.scale(.5f + 1 / 32f))
+                        .add(offset);
+                Vec3 rayEnd = rayStart.add(directionVec.scale(1 + 1 / 32f));
+                BlockHitResult blockraytraceresult =
+                        world.clipWithInteractionOverride(rayStart, rayEnd, streamPos, voxelshape, state);
+                if (blockraytraceresult == null)
+                    continue Outer;
+
+                double distance = i - 1 + blockraytraceresult.getLocation()
+                        .distanceTo(rayStart);
+                if (limitedDistance < distance)
+                    limitedDistance = (float) distance;
+            }
+
+            max = limitedDistance;
+            break;
+        }
+        return max;
+    }
+
+    private static boolean shouldAlwaysPass(BlockState state) {
+        return AllTags.AllBlockTags.FAN_TRANSPARENT.matches(state);
+    }
+
+    @Environment(EnvType.CLIENT)
+    private static void enableClientPlayerSound(Entity e, float maxVolume) {
+        if (e != Minecraft.getInstance()
+                .getCameraEntity())
+            return;
+
+        isClientPlayerInPropStream = true;
+
+        float pitch = (float) Mth.clamp(e.getDeltaMovement()
+                .length() * .5f, .5f, 2f);
+
+        if (flyingSound == null || flyingSound.isStopped()) {
+            flyingSound = new PropStreamSound(SoundEvents.ELYTRA_FLYING, pitch);
+            Minecraft.getInstance()
+                    .getSoundManager()
+                    .play(flyingSound);
+        }
+        flyingSound.setPitch(pitch);
+        flyingSound.fadeIn(maxVolume);
+    }
+
+    @Environment(EnvType.CLIENT)
+    public static void tickClientPlayerSounds() {
+        if (!PropStream.isClientPlayerInPropStream && flyingSound != null)
+            if (flyingSound.isFaded())
+                flyingSound.stopSound();
+            else
+                flyingSound.fadeOut();
+        isClientPlayerInPropStream = false;
+    }
+
+    public static boolean isPlayerCreativeFlying(Entity entity) {
+        if (entity instanceof Player) {
+            Player player = (Player) entity;
+            return player.isCreative() && player.getAbilities().flying;
+        }
+        return false;
     }
 
     public void tick() {
@@ -76,7 +169,7 @@ public class PropStream {
     }
 
     protected void tickAffectedEntities(Level world, Direction facing) {
-        for (Iterator<Entity> iterator = caughtEntities.iterator(); iterator.hasNext();) {
+        for (Iterator<Entity> iterator = caughtEntities.iterator(); iterator.hasNext(); ) {
             Entity entity = iterator.next();
             if (!entity.isAlive() || !entity.getBoundingBox()
                     .intersects(bounds) || isPlayerCreativeFlying(entity)) {
@@ -113,7 +206,8 @@ public class PropStream {
 
     }
 
-    protected void tickAffectedShips() {}
+    protected void tickAffectedShips() {
+    }
 
     public void rebuild() {
         if (source.getSpeed() == 0) {
@@ -164,57 +258,6 @@ public class PropStream {
 
     }
 
-    public static float getFlowLimit(Level world, BlockPos start, float max, Direction facing) {
-        Vec3 directionVec = Vec3.atLowerCornerOf(facing.getNormal());
-        Vec3 planeVec = VecHelper.axisAlingedPlaneOf(directionVec);
-
-        // 4 Rays test for holes in the shapes blocking the flow
-        float offsetDistance = .25f;
-        Vec3[] offsets = new Vec3[] { planeVec.multiply(offsetDistance, offsetDistance, offsetDistance),
-                planeVec.multiply(-offsetDistance, -offsetDistance, offsetDistance),
-                planeVec.multiply(offsetDistance, -offsetDistance, -offsetDistance),
-                planeVec.multiply(-offsetDistance, offsetDistance, -offsetDistance), };
-
-        float limitedDistance = 0;
-
-        // Determine the distance of the air flow
-        Outer: for (int i = 1; i <= max; i++) {
-            BlockPos streamPos = start.relative(facing, i);
-            if (!world.isLoaded(streamPos))
-                break;
-            BlockState state = world.getBlockState(streamPos);
-            if (shouldAlwaysPass(state))
-                continue;
-            VoxelShape voxelshape = state.getCollisionShape(world, streamPos, CollisionContext.empty());
-            if (voxelshape.isEmpty())
-                continue;
-            if (voxelshape == Shapes.block()) {
-                max = i - 1;
-                break;
-            }
-
-            for (Vec3 offset : offsets) {
-                Vec3 rayStart = VecHelper.getCenterOf(streamPos)
-                        .subtract(directionVec.scale(.5f + 1 / 32f))
-                        .add(offset);
-                Vec3 rayEnd = rayStart.add(directionVec.scale(1 + 1 / 32f));
-                BlockHitResult blockraytraceresult =
-                        world.clipWithInteractionOverride(rayStart, rayEnd, streamPos, voxelshape, state);
-                if (blockraytraceresult == null)
-                    continue Outer;
-
-                double distance = i - 1 + blockraytraceresult.getLocation()
-                        .distanceTo(rayStart);
-                if (limitedDistance < distance)
-                    limitedDistance = (float) distance;
-            }
-
-            max = limitedDistance;
-            break;
-        }
-        return max;
-    }
-
     public void findEntities() {
         caughtEntities.clear();
         caughtEntities = source.getStreamWorld()
@@ -227,54 +270,9 @@ public class PropStream {
         caughtShips = (List<LoadedShip>) world.getLoadedShips().getIntersecting(VectorConversionsMCKt.toJOML(bounds));
     }
 
-    private static boolean shouldAlwaysPass(BlockState state) {
-        return AllTags.AllBlockTags.FAN_TRANSPARENT.matches(state);
-    }
     public static class PropStreamSegment {
         int startOffset;
         int endOffset;
-    }
-
-    @Environment(EnvType.CLIENT)
-    static PropStreamSound flyingSound;
-
-    @Environment(EnvType.CLIENT)
-    private static void enableClientPlayerSound(Entity e, float maxVolume) {
-        if (e != Minecraft.getInstance()
-                .getCameraEntity())
-            return;
-
-        isClientPlayerInPropStream = true;
-
-        float pitch = (float) Mth.clamp(e.getDeltaMovement()
-                .length() * .5f, .5f, 2f);
-
-        if (flyingSound == null || flyingSound.isStopped()) {
-            flyingSound = new PropStreamSound(SoundEvents.ELYTRA_FLYING, pitch);
-            Minecraft.getInstance()
-                    .getSoundManager()
-                    .play(flyingSound);
-        }
-        flyingSound.setPitch(pitch);
-        flyingSound.fadeIn(maxVolume);
-    }
-
-    @Environment(EnvType.CLIENT)
-    public static void tickClientPlayerSounds() {
-        if (!PropStream.isClientPlayerInPropStream && flyingSound != null)
-            if (flyingSound.isFaded())
-                flyingSound.stopSound();
-            else
-                flyingSound.fadeOut();
-        isClientPlayerInPropStream = false;
-    }
-
-    public static boolean isPlayerCreativeFlying(Entity entity) {
-        if (entity instanceof Player) {
-            Player player = (Player) entity;
-            return player.isCreative() && player.getAbilities().flying;
-        }
-        return false;
     }
 
 }

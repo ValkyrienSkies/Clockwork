@@ -4,7 +4,6 @@ import com.simibubi.create.content.contraptions.particle.ICustomParticleData;
 import com.simibubi.create.foundation.utility.Lang;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.ParticleEngine;
-import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraftforge.api.distmarker.Dist;

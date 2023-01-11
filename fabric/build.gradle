@@ -19,8 +19,8 @@ configurations {
     common
     shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
     compileClasspath.extendsFrom common
-            runtimeClasspath.extendsFrom common
-            developmentFabric.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentFabric.extendsFrom common
 }
 
 repositories {
@@ -93,8 +93,8 @@ shadowJar {
 remapJar {
     injectAccessWidener = true
     input.set shadowJar.archiveFile
-            dependsOn shadowJar
-            classifier null
+    dependsOn shadowJar
+    classifier null
 }
 
 jar {
@@ -104,7 +104,7 @@ jar {
 sourcesJar {
     def commonSources = project(":common").sourcesJar
     dependsOn commonSources
-            from commonSources.archiveFile.map { zipTree(it) }
+    from commonSources.archiveFile.map { zipTree(it) }
 }
 
 components.java {

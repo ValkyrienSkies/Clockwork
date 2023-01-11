@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.fabric.mixin.create.client;
+package org.valkyrienskies.clockwork.mixin.create.client;
 
 import com.simibubi.create.foundation.sound.SoundScapes;
 import net.minecraft.client.Minecraft;

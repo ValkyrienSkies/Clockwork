@@ -10,11 +10,11 @@ import org.valkyrienskies.mod.common.VSClientGameUtils;
 @Mixin(TrackTargetingBehaviour.class)
 public class MixinTrackTargetingBehaviour {
     @Redirect(
-        method = "render",
-        at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(DDD)V", ordinal = 0)
+            method = "render",
+            at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(DDD)V", ordinal = 0)
     )
     private static void redirectTranslate(
-        final PoseStack instance, final double pose, final double d, final double e) {
+            final PoseStack instance, final double pose, final double d, final double e) {
         VSClientGameUtils.transformRenderIfInShipyard(instance, pose, d, e);
     }
 }

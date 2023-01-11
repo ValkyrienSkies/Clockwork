@@ -9,6 +9,12 @@ import static com.simibubi.create.content.AllSections.MATERIALS;
 import static org.valkyrienskies.clockwork.fabric.ClockWorkModFabric.REGISTRATE;
 
 public class AllClockworkItems {
+    public static final ItemEntry<Item> BLUUGUU = ingredient("bluuguu");
+    public static final ItemEntry<BluperGlueItem> BLUPERGLUE = REGISTRATE.item("bluperglue", BluperGlueItem::new)
+            .properties(p -> p.stacksTo(1)
+                    .durability(99))
+            .register();
+
     static {
         REGISTRATE.creativeModeTab(() -> ClockWorkModFabric.BASE_CREATIVE_TAB);
     }
@@ -16,8 +22,6 @@ public class AllClockworkItems {
     static {
         REGISTRATE.startSection(MATERIALS);
     }
-
-    public static final ItemEntry<Item> BLUUGUU = ingredient("bluuguu");
 
     static {
         REGISTRATE.startSection(AllSections.KINETICS);
@@ -27,12 +31,6 @@ public class AllClockworkItems {
         REGISTRATE.startSection(AllSections.CURIOSITIES);
     }
 
-    public static final ItemEntry<BluperGlueItem> BLUPERGLUE = REGISTRATE.item("bluperglue", BluperGlueItem::new)
-            .properties(p -> p.stacksTo(1)
-                    .durability(99))
-            .register();
-
-
 
     //Shortcuts
 
@@ -41,5 +39,6 @@ public class AllClockworkItems {
                 .register();
     }
 
-    public static void register() {}
+    public static void register() {
+    }
 }

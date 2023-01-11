@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork.forge;
 
 import com.simibubi.create.content.AllSections;
 import com.tterrag.registrate.util.entry.RegistryEntry;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.model.BakedModel;
@@ -14,12 +13,9 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.valkyrienskies.clockwork.ClockWorkMod;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.stream.Collectors;
-
-import static org.valkyrienskies.clockwork.ClockWorkMod.MOD_ID;
 
 public abstract class ClockworkGroupBase extends CreativeModeTab {
 

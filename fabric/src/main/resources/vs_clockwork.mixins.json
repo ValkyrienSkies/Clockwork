@@ -4,43 +4,12 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "create.MixinBearingContraption",
-    "create.MixinCarriageContraptionEntity",
     "create.MixinControlsInputPacket",
-    "create.MixinCrushingWheelBlock",
-    "create.MixinCurvedTrackDestroyPacket",
-    "create.MixinFriendlyByteBuf",
-    "create.MixinTileEntityConfigurationPacket",
-    "create.MixinTrackNodeLocation",
-    "create.MixinContraptionCollider",
-    "create.MixinSuperGlueRemovalPacket",
-    "create.MixinTrainRelocationPacket",
-    "create.MixinBeltMovementHandler",
-    "create.MixinAbstractContraptionEntity",
-    "create.MixinSeatEntity",
     "create.MixinFilteringHandler",
-    "create.MixinAirFlowParticle",
-    "create.MixinAirCurrent",
-    "create.MixinCrushingWheelControllerTileEntity",
-    "create.MixinEjectorTileEntity",
-    "create.MixinSharedDepotBlockMethods",
-    "create.MixinEjectorBlock",
-    "create.MixinEntityLauncher"
+    "create.MixinTrainRelocationPacket"
   ],
   "client": [
-    "create.client.MixinSoundScapes",
-    "create.client.MixinFilteringRenderer",
-    "create.client.MixinTrainRelocator",
-    "create.client.MixinOrientedContraptionEntity",
-    "create.client.MixinCarriageContraptionInstance",
-    "create.client.MixinContraptionHandlerClient",
-    "create.client.MixinContraptionRenderDispatcher",
-    "create.client.MixinCullingBlockEntityIterator",
-    "create.client.MixinGhostBlockRenderer",
-    "create.client.MixinOutline",
-    "create.client.MixinSuperGlueSelectionHandler",
-    "create.client.MixinTileEntityRenderHelper",
-    "create.client.MixinTrackBlockOutline",
-    "create.client.MixinTrackTargetingBehaviour"
+    "create.client.MixinSuperGlueSelectionHandler"
   ],
   "injectors": {
     "defaultRequire": 1

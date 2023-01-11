@@ -19,5 +19,6 @@ public class AllClockworkTileEntities {
             .register();
 
 
-    public static void register() {}
+    public static void register() {
+    }
 }

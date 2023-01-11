@@ -1,16 +1,15 @@
 package org.valkyrienskies.clockwork.forge.content.contraptions.components.propellor.stream;
 
-import javax.annotation.Nullable;
-
 import com.simibubi.create.foundation.config.AllConfigs;
 import com.simibubi.create.foundation.config.CKinetics;
-
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import org.joml.Vector3d;
+
+import javax.annotation.Nullable;
 
 @MethodsReturnNonnullByDefault
 public interface IPropStreamSource {

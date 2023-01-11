@@ -5,7 +5,6 @@ import com.simibubi.create.foundation.block.ITE;
 import com.simibubi.create.foundation.utility.Couple;
 import com.simibubi.create.foundation.utility.Lang;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -22,15 +21,18 @@ import org.valkyrienskies.clockwork.fabric.AllClockworkTileEntities;
 public class PropellorBearingBlock extends BearingBlock implements ITE<PropellorBearingTileEntity> {
 
     public static final EnumProperty<Direction> DIRECTION = EnumProperty.create("direction", Direction.class);
-    public enum Direction implements StringRepresentable {
-        PUSH, PULL, ;
-        @Override
-        public String getSerializedName() {
-            return Lang.asId(name());
-        }
-    }
+
     public PropellorBearingBlock(Properties properties) {
         super(properties);
+    }
+
+    public static Couple<Integer> getSpeedRange() {
+        return Couple.create(1, 16);
+    }
+
+    public static PropellorBearingBlock.Direction getDirectionof(BlockState blockState) {
+        return blockState.hasProperty(PropellorBearingBlock.DIRECTION) ? blockState.getValue(PropellorBearingBlock.DIRECTION) : Direction.PULL;
+
     }
 
     @Override
@@ -38,6 +40,7 @@ public class PropellorBearingBlock extends BearingBlock implements ITE<Propellor
         builder.add(DIRECTION);
         super.createBlockStateDefinition(builder);
     }
+
     @Override
     public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn,
                                  BlockHitResult hit) {
@@ -48,7 +51,9 @@ public class PropellorBearingBlock extends BearingBlock implements ITE<Propellor
         if (player.getItemInHand(handIn)
                 .isEmpty()) {
             if (worldIn.isClientSide) {
-                withTileEntityDo(worldIn, pos, te -> {if (te.isRunning()) te.startSlowdown();});
+                withTileEntityDo(worldIn, pos, te -> {
+                    if (te.isRunning()) te.startSlowdown();
+                });
                 return InteractionResult.SUCCESS;
             }
 
@@ -79,12 +84,13 @@ public class PropellorBearingBlock extends BearingBlock implements ITE<Propellor
         return AllClockworkTileEntities.PROPELLOR_BEARING.get();
     }
 
-    public static Couple<Integer> getSpeedRange() {
-        return Couple.create(1, 16);
-    }
+    public enum Direction implements StringRepresentable {
+        PUSH, PULL,
+        ;
 
-    public static PropellorBearingBlock.Direction getDirectionof(BlockState blockState) {
-        return blockState.hasProperty(PropellorBearingBlock.DIRECTION) ? blockState.getValue(PropellorBearingBlock.DIRECTION) : Direction.PULL;
-
+        @Override
+        public String getSerializedName() {
+            return Lang.asId(name());
+        }
     }
 }
