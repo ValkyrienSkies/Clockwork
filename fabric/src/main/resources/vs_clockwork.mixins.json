@@ -26,9 +26,14 @@
     "create.MixinEjectorTileEntity",
     "create.MixinSharedDepotBlockMethods",
     "create.MixinEjectorBlock",
-    "create.MixinEntityLauncher"
+    "create.MixinEntityLauncher",
+    "create.MixinRedstoneLinkNetworkHandler",
+    "create.MixinLinkBehaviour",
+    "create.MixinFilteringBehaviour",
+    "create.MixinSidedFilteringBehaviour"
   ],
   "client": [
+    "create.client.MixinLinkRenderer",
     "create.client.MixinSoundScapes",
     "create.client.MixinFilteringRenderer",
     "create.client.MixinTrainRelocator",
