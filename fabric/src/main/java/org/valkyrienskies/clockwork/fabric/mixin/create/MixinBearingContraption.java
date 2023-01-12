@@ -14,6 +14,10 @@ import org.valkyrienskies.clockwork.fabric.util.propellor.IBearingExtended;
 @Mixin(BearingContraption.class)
 public class MixinBearingContraption implements IBearingExtended {
 
+    @Shadow(remap = false)
+    protected int sailBlocks;
+    private boolean isPropellor = false;
+
     @Inject(
             method = "assemble",
             at = @At(value = "RETURN", ordinal = 1),
@@ -29,15 +33,11 @@ public class MixinBearingContraption implements IBearingExtended {
     private void onSucceededAssemble(Level level, BlockPos pos, CallbackInfoReturnable<Boolean> cir) throws AssemblyException {
         failAssembly();
     }
-    private boolean isPropellor = false;
-
 
     @Override
     public void setPropellor() {
         isPropellor = true;
     }
-
-    @Shadow(remap = false) protected int sailBlocks;
 
     private void failAssembly() throws AssemblyException {
         if (isPropellor && sailBlocks < 2) {
