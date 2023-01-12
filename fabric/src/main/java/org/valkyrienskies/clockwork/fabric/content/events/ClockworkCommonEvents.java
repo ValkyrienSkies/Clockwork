@@ -7,7 +7,7 @@ import org.valkyrienskies.clockwork.fabric.content.curiosities.tools.bluperglue.
 
 public class ClockworkCommonEvents {
 
-    public static void register() {
+    public static void register () {
         UseBlockCallback.EVENT.register(BluperGlueItem::glueItemAlwaysPlacesWhenUsed);
         BlockPlaceCallback.EVENT.register(BluperGlueHandler::glueListensForBlockPlacement);
     }

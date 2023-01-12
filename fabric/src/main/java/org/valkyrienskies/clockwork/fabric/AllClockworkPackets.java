@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.fabric;
 
 import com.simibubi.create.foundation.networking.SimplePacketBase;
-import com.simibubi.create.foundation.networking.SimplePacketBase.NetworkDirection;
 import me.pepperbell.simplenetworking.S2CPacket;
 import me.pepperbell.simplenetworking.SimpleChannel;
 import net.minecraft.core.BlockPos;
@@ -17,6 +16,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import com.simibubi.create.foundation.networking.SimplePacketBase.NetworkDirection;
 import static com.simibubi.create.foundation.networking.SimplePacketBase.NetworkDirection.PLAY_TO_CLIENT;
 import static com.simibubi.create.foundation.networking.SimplePacketBase.NetworkDirection.PLAY_TO_SERVER;
 
@@ -40,7 +40,7 @@ public enum AllClockworkPackets {
     private LoadedPacket<?> packet;
 
     <T extends SimplePacketBase> AllClockworkPackets(Class<T> type, Function<FriendlyByteBuf, T> factory,
-                                                     NetworkDirection direction) {
+                                            NetworkDirection direction) {
         packet = new LoadedPacket<>(type, factory, direction);
     }
 

@@ -18,7 +18,10 @@ public class PropStreamSound extends AbstractTickableSoundInstance {
     }
 
     @Override
-    public void tick() {
+    public void tick() {}
+
+    public void setPitch(float pitch) {
+        this.pitch = pitch;
     }
 
     public void fadeIn(float maxVolume) {
@@ -36,10 +39,6 @@ public class PropStreamSound extends AbstractTickableSoundInstance {
     @Override
     public float getPitch() {
         return pitch;
-    }
-
-    public void setPitch(float pitch) {
-        this.pitch = pitch;
     }
 
     public void stopSound() {

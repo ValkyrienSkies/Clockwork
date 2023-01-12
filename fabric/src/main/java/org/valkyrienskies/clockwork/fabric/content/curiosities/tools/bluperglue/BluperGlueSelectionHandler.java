@@ -253,7 +253,7 @@ public class BluperGlueSelectionHandler {
 
         if (currentCluster != null)
             CreateClient.OUTLINER.showCluster(clusterOutlineSlot, currentCluster)
-                    .colored(0xD1FFF5)
+                    .colored(0xD1FFF5 )
                     .withFaceTextures(AllSpecialTextures.GLUE, AllSpecialTextures.HIGHLIGHT_CHECKERED)
                     .disableNormals()
                     .lineWidth(1 / 24f);

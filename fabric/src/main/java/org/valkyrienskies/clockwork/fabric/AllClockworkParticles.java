@@ -11,14 +11,17 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import org.valkyrienskies.clockwork.ClockWorkMod;
+import org.valkyrienskies.clockwork.fabric.content.curiosities.particles.PhysLightningParticle;
 import org.valkyrienskies.clockwork.fabric.content.curiosities.particles.PropellorStreamParticleData;
 
 import java.util.function.Supplier;
 
 public enum AllClockworkParticles {
 
-    PROP_STREAM(PropellorStreamParticleData::new);
+    PROP_STREAM(PropellorStreamParticleData::new),
+    PHYS_LIGHTNING(PhysLightningParticle.Data::new)
 
+    ;
     private final ParticleEntry<?> entry;
 
     <D extends ParticleOptions> AllClockworkParticles(Supplier<? extends ICustomParticleData<D>> typeFactory) {
