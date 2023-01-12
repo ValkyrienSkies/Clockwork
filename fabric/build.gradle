@@ -39,6 +39,7 @@ dependencies {
     modImplementation("com.simibubi.create:create-fabric-${minecraft_version}:${create_version}+${minecraft_version}") {
         exclude group: "com.github.AlphaMode", module: "fakeconfigtoml"
     }
+    modImplementation("net.minecraftforge:forgeconfigapiport-fabric:${project.forge_config_api_port_version}")
 
     // Development QOL & Modmenu
     modLocalRuntime("maven.modrinth:lazydfu:${lazydfu_version}")
