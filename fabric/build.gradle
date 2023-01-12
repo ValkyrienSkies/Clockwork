@@ -23,56 +23,31 @@ configurations {
     developmentFabric.extendsFrom common
 }
 
-repositories {
-    if (!project.block_external_repositories) {
-        maven { url = "https://api.modrinth.com/maven" } // LazyDFU, Suggestion Tweaker
-        maven { url = "https://maven.terraformersmc.com/releases/" } // Mod Menu, EMI
-        maven { url = "https://maven.shedaniel.me/" } // Cloth Config, REI
-        maven { url = "https://mvn.devos.one/snapshots/" } // Create, Porting Lib, Forge Tags, Milk Lib
-        maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" } // Forge Config API Port
-        maven { url = "https://maven.tterrag.com/" } // Registrate and Flywheel
-        maven { url = "https://maven.cafeteria.dev/releases" } // Fake Player API
-        maven { url = "https://maven.jamieswhiteshirt.com/libs-release" } // Reach Entity Attributes
-        maven { url = "https://jitpack.io/" } // Mixin Extras, fabric ASM
-        maven { url = "https://dvs1.progwml6.com/files/maven/" } // JEI
-        maven { url = "https://maven.parchmentmc.org" } // Parchment mappings
-        maven { url = "https://maven.fabricmc.net/" } // Fabric API
-    }
-}
-
 
 dependencies {
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
+    common(project(path: ":common", configuration: "namedElements")) { transitive false }
+    shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
+
     modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
     modImplementation("net.fabricmc:fabric-language-kotlin:1.8.5+kotlin.1.7.20")
 
-    // Mod menu
-    modImplementation("com.terraformersmc:modmenu:3.2.3")
+
+
+
+    // Create - dependencies are added transitively
+    modImplementation("com.simibubi.create:create-fabric-${minecraft_version}:${create_version}+${minecraft_version}") {
+        exclude group: "com.github.AlphaMode", module: "fakeconfigtoml"
+    }
+
+    // Development QOL & Modmenu
+    modLocalRuntime("maven.modrinth:lazydfu:${lazydfu_version}")
+    modLocalRuntime("com.terraformersmc:modmenu:${modmenu_version}")
     modImplementation("me.shedaniel.cloth:cloth-config:${cloth_config_version}")
 
-    // Create compat
-    modImplementation("com.simibubi.create:create-fabric-${project.create_minecraft_version}:${project.create_version}+${project.minecraft_version}") { transitive = false }
-    modImplementation("com.jozufozu.flywheel:flywheel-fabric-${flywheel_minecraft_version}:${project.flywheel_version}")
-    modImplementation("com.tterrag.registrate_fabric:Registrate:${project.registrate_version}")
-
-    //blah
-    modImplementation("io.github.fabricators_of_create:Porting-Lib:${project.port_lib_version}+${project.minecraft_version}")
-    modImplementation("me.alphamode:ForgeTags:${project.forge_tags_version}")
-    modImplementation(include("com.electronwill.night-config:core:${project.night_config_core_version}"))
-    modImplementation(include("com.electronwill.night-config:toml:${project.night_config_toml_version}"))
-    modImplementation("net.minecraftforge:forgeconfigapiport-fabric:${project.forge_config_api_port_version}")
-    modImplementation("com.jamieswhiteshirt:reach-entity-attributes:${project.reach_entity_attributes_version}")
-    modImplementation("dev.cafeteria:fake-player-api:${project.fake_player_api_version}")
-    modImplementation("io.github.tropheusj:milk-lib:${project.milk_lib_version}")
-    modImplementation(include("me.luligabi:NoIndium:${project.no_indium_version}"))
-    implementation("com.google.code.findbugs:jsr305:${project.jsr305_version}")
-
     // Remove the next line if you don't want to depend on the API
-    modApi("org.valkyrienskies:valkyrienskies-118-fabric:${rootProject.vs2_version}")
-    modApi("org.valkyrienskies.eureka:eureka-fabric:${rootProject.eureka_version}") { transitive = false }
-
-    common(project(path: ":common", configuration: "namedElements")) { transitive false }
-    shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
+    modApi("org.valkyrienskies:valkyrienskies-118-fabric:${vs2_version}")
+    modApi("org.valkyrienskies.eureka:eureka-fabric:${eureka_version}") { transitive = false }
 }
 
 processResources {

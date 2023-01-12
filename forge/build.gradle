@@ -36,13 +36,18 @@ loom {
 
 repositories {
     if (!project.block_external_repositories) {
+        // mavens for Forge-exclusives
         maven {
             name = 'Kotlin for Forge'
             url = 'https://thedarkcolour.github.io/KotlinForForge/'
         }
-        maven {
-            name = 'tterrag maven'
-            url = 'https://maven.tterrag.com/'
+        maven { url = "https://maven.theillusivec4.top/" } // Curios
+        maven { // Create Forge and Registrate Forge
+            url = "https://maven.tterrag.com/"
+            content {
+                includeGroup("com.tterrag.registrate")
+                includeGroup("com.simibubi.create")
+            }
         }
     }
 }
@@ -57,8 +62,9 @@ configurations {
 }
 
 dependencies {
-    forge "net.minecraftforge:forge:${rootProject.forge_version}"
-    annotationProcessor(implementation("com.github.LlamaLad7:MixinExtras:0.1.1"))
+    forge "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+    common(project(path: ":common", configuration: "namedElements")) { transitive false }
+    shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 
     modApi("org.valkyrienskies:valkyrienskies-118-forge:${rootProject.vs2_version}") { transitive = false }
     implementation("org.valkyrienskies.core:api:1.1.0+c92814e9b7") { transitive = false }
@@ -70,9 +76,6 @@ dependencies {
 
     compileOnly("org.joml:joml:1.10.4")
     compileOnly("org.joml:joml-primitives:1.10.0")
-
-    common(project(path: ":common", configuration: "namedElements")) { transitive false }
-    shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 
     // Add Kotlin for Forge.
     forgeRuntimeLibrary('curse.maven:kotlinforforge-351264:3925887')

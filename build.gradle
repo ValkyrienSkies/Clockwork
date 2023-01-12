@@ -1,7 +1,8 @@
 plugins {
     // Needed for Forge+Fabric
     id "architectury-plugin" version "3.4-SNAPSHOT"
-    id "dev.architectury.loom" version "0.12.0-SNAPSHOT" apply false
+    id "dev.architectury.loom" version "1.0-SNAPSHOT" apply false
+    id "io.github.juuxel.loom-quiltflower" version "1.+" apply false
     // Kotlin
     id "org.jetbrains.kotlin.jvm" version "1.7.21" apply false
     // Kotlin linter
@@ -29,6 +30,7 @@ architectury {
 
 subprojects {
     apply plugin: "dev.architectury.loom"
+    apply plugin: "io.github.juuxel.loom-quiltflower"
     // Apply checkstyle and ktlint to check the code style of every sub project
     apply plugin: "org.jlleitschuh.gradle.ktlint"
     apply plugin: "checkstyle"
@@ -40,9 +42,22 @@ subprojects {
 
     repositories {
         if (!project.block_external_repositories) {
-            maven {
-                name = "ParchmentMC"
-                url = "https://maven.parchmentmc.org"
+            mavenCentral()
+            maven { url = "https://maven.shedaniel.me/" } // Cloth Config, REI
+            maven { url = "https://dvs1.progwml6.com/files/maven/" } // JEI
+            maven { url = "https://maven.parchmentmc.org" } // Parchment mappings
+            maven { url = "https://maven.quiltmc.org/repository/release" } // Quilt Mappings
+            maven { url = "https://mvn.devos.one/snapshots/" } // Create Fabric, Porting Lib, Forge Tags, Milk Lib, Registrate Fabric
+            maven { url = "https://jitpack.io/" } // Mixin Extras, Fabric ASM
+            maven { url = "https://maven.cafeteria.dev/releases" } // Fake Player API
+            //maven { url = "https://maven.jamieswhiteshirt.com/libs-release" } // Reach Entity Attributes
+            maven { url = "https://cursemaven.com" } // Forge Config API Port
+            maven { // Flywheel
+                url = "https://maven.tterrag.com/"
+                content {
+                    // need to be specific here due to version overlaps
+                    includeGroup("com.jozufozu.flywheel")
+                }
             }
         }
     }
@@ -57,11 +72,12 @@ subprojects {
     }
 
     dependencies {
-        minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
-        // The following line declares the mojmap mappings, you may use other mappings as well
+        minecraft "com.mojang:minecraft:${minecraft_version}"
+        // layered mappings - Mojmap names, parchment and QM docs and parameters
         mappings(loom.layered {
-            officialMojangMappings()
-            parchment("org.parchmentmc.data:parchment-1.18.2:2022.09.04@zip")
+            it.mappings("org.quiltmc:quilt-mappings:${minecraft_version}+build.${qm_version}:intermediary-v2")
+            it.parchment("org.parchmentmc.data:parchment-${minecraft_version}:${parchment_version}@zip")
+            it.officialMojangMappings { nameSyntheticMembers = false }
         })
     }
 

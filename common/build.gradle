@@ -7,21 +7,19 @@ loom {
 }
 
 dependencies {
-    annotationProcessor(implementation("com.github.LlamaLad7:MixinExtras:0.1.1"))
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
 
-    // We depend on fabric loader here to use the fabric @Environment annotations and get the mixin dependencies
-    // Do NOT use other classes from fabric loader
-    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
-    // Remove the next line if you don't want to depend on the API
-//    modApi "me.shedaniel:architectury:${rootProject.architectury_version}"
-    modApi("org.valkyrienskies:valkyrienskies-118-common:${rootProject.vs2_version}")
-    modApi("org.valkyrienskies.eureka:eureka-common:${rootProject.eureka_version}") { transitive = false }
+    //VS2 and eureka
+    modApi("org.valkyrienskies:valkyrienskies-118-common:${vs2_version}")
+    modApi("org.valkyrienskies.eureka:eureka-common:${eureka_version}") { transitive = false }
     implementation("org.valkyrienskies.core:api:1.1.0+c92814e9b7") { transitive = false }
 
-    modCompileOnly("com.simibubi.create:create-fabric-1.18.2:0.5.0g-821+1.18.2") { transitive = false }
-    modCompileOnly("com.jozufozu.flywheel:flywheel-fabric-1.18.2:0.6.8-33")
-    modCompileOnly("io.github.fabricators_of_create:Porting-Lib:1.2.677-beta+1.18.2")
+    // Create - dependencies are added transitively
+    modCompileOnly("com.simibubi.create:create-fabric-${minecraft_version}:0.5.0.g-833+${minecraft_version}") {
+        exclude group: "com.github.AlphaMode", module: "fakeconfigtoml"
+    }
 
+    // Kotlin
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.21"
     api "org.jetbrains.kotlin:kotlin-reflect:1.7.21"
 }
