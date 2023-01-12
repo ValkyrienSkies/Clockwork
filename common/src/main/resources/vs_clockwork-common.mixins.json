@@ -17,7 +17,6 @@
     "create.MixinEjectorBlock",
     "create.MixinEjectorTileEntity",
     "create.MixinEntityLauncher",
-    "create.MixinFriendlyByteBuf",
     "create.MixinSeatEntity",
     "create.MixinSharedDepotBlockMethods",
     "create.MixinSuperGlueRemovalPacket",
