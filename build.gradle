@@ -50,7 +50,6 @@ subprojects {
             maven { url = "https://mvn.devos.one/snapshots/" } // Create Fabric, Porting Lib, Forge Tags, Milk Lib, Registrate Fabric
             maven { url = "https://jitpack.io/" } // Mixin Extras, Fabric ASM
             maven { url = "https://maven.cafeteria.dev/releases" } // Fake Player API
-            //maven { url = "https://maven.jamieswhiteshirt.com/libs-release" } // Reach Entity Attributes
             maven { url = "https://cursemaven.com" } // Forge Config API Port
             maven { // Flywheel
                 url = "https://maven.tterrag.com/"

@@ -79,13 +79,23 @@ dependencies {
 
     // Add Kotlin for Forge.
     forgeRuntimeLibrary('curse.maven:kotlinforforge-351264:3925887')
+
+    // Create big cannons
+    modLocalRuntime('curse.maven:create-big-cannons-646668:4033862')
 }
 
 processResources {
-    inputs.property "version", project.version
+    Map<String, String> properties = Map.of(
+            "version", version,
+            "forge_version", forge_version.split("\\.")[0], // only specify major version of forge
+            "minecraft_version", minecraft_version,
+            "create_version", create_version.split("-")[0] // cut off build number
+    )
+
+    properties.forEach((k, v) -> inputs.property(k, v))
 
     filesMatching("META-INF/mods.toml") {
-        expand "version": project.version
+        expand properties
     }
 }
 
