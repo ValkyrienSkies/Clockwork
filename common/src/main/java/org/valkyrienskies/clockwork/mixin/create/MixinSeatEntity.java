@@ -28,6 +28,8 @@ public abstract class MixinSeatEntity {
         injectedLevel = world;
     }
 
+    /*
+TODO YES I DID IT AGAIN :mental
 
     @ModifyArgs(method = "setPos", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/phys/Vec3;<init>(DDD)V"))
     private void modNewVec3(Args args) {
@@ -50,6 +52,7 @@ public abstract class MixinSeatEntity {
             }
         }
     }
+    */
 
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;getBlockState(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;"))
     private BlockState redirectGetBlockState(Level instance, BlockPos pos) {

@@ -6,18 +6,36 @@ loom {
     accessWidenerPath = file("src/main/resources/vs_clockwork.accesswidener")
 }
 
-dependencies {
-    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
-
-    //VS2 and eureka
-    modApi("org.valkyrienskies:valkyrienskies-118-common:${vs2_version}")
-    modApi("org.valkyrienskies.eureka:eureka-common:${eureka_version}") { transitive = false }
-    implementation("org.valkyrienskies.core:api:1.1.0+c92814e9b7") { transitive = false }
-
-    // Create - dependencies are added transitively
-    modCompileOnly("com.simibubi.create:create-fabric-${minecraft_version}:0.5.0.g-833+${minecraft_version}") {
-        exclude group: "com.github.AlphaMode", module: "fakeconfigtoml"
+repositories {
+    if (!block_external_repositories) {
+        // mavens for Create Fabric and dependencies
+        maven { url = "https://api.modrinth.com/maven" } // LazyDFU
+        maven { url = "https://maven.terraformersmc.com/releases/" } // Mod Menu
+        maven { url = "https://mvn.devos.one/snapshots/" }
+        // Create Fabric, Porting Lib, Forge Tags, Milk Lib, Registrate Fabric
+        maven { url = "https://cursemaven.com" } // Forge Config API Port
+        maven { url = "https://maven.cafeteria.dev/releases" } // Fake Player API
+        //maven { url = "https://maven.jamieswhiteshirt.com/libs-release" } // Reach Entity Attributes
+        maven { url = "https://jitpack.io/" } // Mixin Extras, Fabric ASM
     }
+}
+
+dependencies {
+    // We depend on fabric loader here to use the fabric @Environment annotations and get the mixin dependencies
+    // Do NOT use other classes from fabric loader
+    modImplementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
+
+    // Compile against Create Fabric in common
+    // beware of differences across platforms!
+    // dependencies must also be pulled in to minimize problems, from remapping issues to compile errors.
+    // All dependencies except Flywheel and Registrate are NOT safe to use!
+    // Flywheel and Registrate must also be used carefully due to differences.
+    modCompileOnly("com.simibubi.create:create-fabric-${minecraft_version}:${create_fabric_version}")
+            {exclude group:'com.github.AlphaMode', module:'fakeconfigtoml'}
+
+    // VS2
+    modApi("org.valkyrienskies:valkyrienskies-118-common:${vs2_version}")
+    implementation("org.valkyrienskies.core:api:1.1.0+c92814e9b7") { transitive = false }
 
     // Kotlin
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.21"

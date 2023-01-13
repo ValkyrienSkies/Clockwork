@@ -16,11 +16,9 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
 
-import static org.valkyrienskies.clockwork.ClockWorkMod.MOD_ID;
-
 @Mod(ClockWorkMod.MOD_ID)
 public class ClockWorkModForge {
-    public static final CreateRegistrate REGISTRATE = CreateRegistrate.create(MOD_ID);
+    public static final CreateRegistrate REGISTRATE = CreateRegistrate.create(ClockWorkMod.MOD_ID);
     public static final CreativeModeTab BASE_CREATIVE_TAB = new ClockworkGroup();
     static IEventBus MOD_BUS;
     boolean happendClientSetup = false;
@@ -54,7 +52,7 @@ public class ClockWorkModForge {
     }
 
     public static ResourceLocation asResource(String path) {
-        return new ResourceLocation(MOD_ID, path);
+        return new ResourceLocation(ClockWorkMod.MOD_ID, path);
     }
 
     void clientSetup(final FMLClientSetupEvent event) {
@@ -63,8 +61,6 @@ public class ClockWorkModForge {
 
         ClockWorkMod.initClient();
         AllClockworkPartials.init();
-
-
     }
 
     void entityRenderers(final EntityRenderersEvent.RegisterRenderers event) {

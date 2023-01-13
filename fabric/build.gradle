@@ -1,10 +1,6 @@
 plugins {
     id "com.github.johnrengelman.shadow" version "7.1.2"
-    id "com.matthewprenger.cursegradle"
-    id "com.modrinth.minotaur"
 }
-
-apply from: '../gradle-scripts/publish-curseforge.gradle'
 
 architectury {
     platformSetupLoomIde()
@@ -23,39 +19,78 @@ configurations {
     developmentFabric.extendsFrom common
 }
 
+repositories {
+    if (!block_external_repositories) {
+        // mavens for Fabric-exclusives
+        maven { url = "https://api.modrinth.com/maven" } // LazyDFU
+        maven { url = "https://maven.terraformersmc.com/releases/" } // Mod Menu
+        maven { url = "https://mvn.devos.one/snapshots/" }
+        // Create Fabric, Porting Lib, Forge Tags, Milk Lib, Registrate Fabric
+        maven { url = "https://cursemaven.com" } // Forge Config API Port
+        maven { url = "https://maven.cafeteria.dev/releases" } // Fake Player API
+        //maven { url = "https://maven.jamieswhiteshirt.com/libs-release" } // Reach Entity Attributes
+        maven { url = "https://jitpack.io/" } // Mixin Extras, Fabric ASM
+    }
+}
 
 dependencies {
-    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
-    common(project(path: ":common", configuration: "namedElements")) { transitive false }
-    shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
+    modImplementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
+    common(project(path: ":common", configuration: "namedElements")) { transitive = false }
+    shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive = false }
 
-    modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
+    // dependencies
+    modImplementation("net.fabricmc.fabric-api:fabric-api:${fabric_api_version}")
+
+    //VS2
+    modApi("org.valkyrienskies:valkyrienskies-118-fabric:${vs2_version}")
+    implementation("org.valkyrienskies.core:api:1.1.0+c92814e9b7") { transitive = false }
+
+    // Kotlin
     modImplementation("net.fabricmc:fabric-language-kotlin:1.8.5+kotlin.1.7.20")
-
-
-
+    api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.21"
+    api "org.jetbrains.kotlin:kotlin-reflect:1.7.21"
 
     // Create - dependencies are added transitively
-    modImplementation("com.simibubi.create:create-fabric-${minecraft_version}:${create_version}+${minecraft_version}") {
-        exclude group: "com.github.AlphaMode", module: "fakeconfigtoml"
-    }
-    modImplementation("net.minecraftforge:forgeconfigapiport-fabric:${project.forge_config_api_port_version}")
+    modImplementation("com.simibubi.create:create-fabric-${minecraft_version}:${create_fabric_version}")
+            {exclude group:'com.github.AlphaMode', module:'fakeconfigtoml'}
+    modImplementation("net.minecraftforge:forgeconfigapiport-fabric:3.2.4") // TODO do we still need this?
 
-    // Development QOL & Modmenu
+    // Development QOL
     modLocalRuntime("maven.modrinth:lazydfu:${lazydfu_version}")
     modLocalRuntime("com.terraformersmc:modmenu:${modmenu_version}")
-    modImplementation("me.shedaniel.cloth:cloth-config:${cloth_config_version}")
+    modImplementation("org.valkyrienskies.eureka:eureka-fabric:${eureka_version}") { transitive = false }
 
-    // Remove the next line if you don't want to depend on the API
-    modApi("org.valkyrienskies:valkyrienskies-118-fabric:${vs2_version}")
-    modApi("org.valkyrienskies.eureka:eureka-fabric:${eureka_version}") { transitive = false }
+    // Recipe Viewers - Create Fabric supports JEI, REI, and EMI.
+    // See root gradle.properties to choose which to use at runtime.
+    switch (fabric_recipe_viewer.toLowerCase(Locale.ROOT)) {
+        case "jei": modLocalRuntime("mezz.jei:jei-${minecraft_version}-fabric:${jei_fabric_version}"); break
+        case "rei": modLocalRuntime("me.shedaniel:RoughlyEnoughItems-fabric:${rei_version}"); break
+        case "emi": modLocalRuntime("dev.emi:emi:${emi_version}"); break
+        case "disabled": break
+        default: println("Unknown recipe viewer specified: ${fabric_recipe_viewer}. Must be JEI, REI, EMI, or disabled.")
+    }
+    // if you would like to add integration with them, uncomment them here.
+//    modCompileOnly("mezz.jei:jei-${minecraft_version}-fabric:${jei_fabric_version}")
+//    modCompileOnly("mezz.jei:jei-${minecraft_version}-common:${jei_fabric_version}")
+//    modCompileOnly("me.shedaniel:RoughlyEnoughItems-api-fabric:${rei_version}")
+//    modCompileOnly("me.shedaniel:RoughlyEnoughItems-default-plugin-fabric:${rei_version}")
+//    modCompileOnly("dev.emi:emi:${emi_version}")
 }
 
 processResources {
-    inputs.property "version", project.version
+    // set up properties for filling into metadata
+    Map<String, String> properties = Map.of(
+            "vs2_version", vs2_version,
+            "version", version,
+            "fabric_loader_version", fabric_loader_version,
+            "fabric_api_version", fabric_api_version,
+            "minecraft_version", minecraft_version,
+            "create_version", create_fabric_version // on fabric, use the entire version, unlike forge
+    )
+    properties.forEach((k, v) -> inputs.property(k, v))
 
     filesMatching("fabric.mod.json") {
-        expand "version": project.version, "vs2_version": project.vs2_version.substring(0, project.vs2_version.indexOf('+'))
+        expand properties
     }
 }
 
@@ -91,9 +126,7 @@ components.java {
 
 publishing {
     publications {
-        mavenCommon(MavenPublication) {
-            groupId = "org.valkyrienskies.clockwork"
-            version = project.version
+        mavenFabric(MavenPublication) {
             artifactId = rootProject.archives_base_name + "-" + project.name
             from components.java
         }
