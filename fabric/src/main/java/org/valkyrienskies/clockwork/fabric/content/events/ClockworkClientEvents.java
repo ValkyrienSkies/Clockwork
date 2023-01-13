@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.fabric.content.events;
 
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.clockwork.fabric.ClockWorkModFabric;
@@ -25,6 +26,7 @@ public class ClockworkClientEvents {
     }
 
     public static void register() {
-
+        ClientTickEvents.END_CLIENT_TICK.register(ClockworkClientEvents::onTick);
+        ClientTickEvents.START_CLIENT_TICK.register(ClockworkClientEvents::onTickStart);
     }
 }

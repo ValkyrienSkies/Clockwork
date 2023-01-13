@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.fabric.content.curiosities.tools.bluperglue;
 
-import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.content.contraptions.components.structureMovement.BlockMovementChecks;
 import io.github.fabricators_of_create.porting_lib.entity.ExtraSpawnDataEntity;

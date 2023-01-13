@@ -13,6 +13,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
@@ -20,11 +21,11 @@ import org.lwjgl.opengl.GL30;
 import org.valkyrienskies.clockwork.fabric.content.contraptions.components.infuser.PhysicsInfuserRenderer;
 import org.valkyrienskies.clockwork.fabric.content.contraptions.components.infuser.PhysicsInfuserBlockEntity;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
+import org.valkyrienskies.clockwork.fabric.content.contraptions.components.infuser.PhysicsInfuserRenderer.ScanManager;
 
 import javax.annotation.Nullable;
 
-import static org.valkyrienskies.clockwork.fabric.content.contraptions.components.infuser.PhysicsInfuserRenderer.ScanManager.computeRadius;
-import static org.valkyrienskies.clockwork.fabric.content.contraptions.components.infuser.PhysicsInfuserRenderer.ScanManager.computeScanGrowthDuration;
+import static org.valkyrienskies.clockwork.fabric.content.contraptions.components.infuser.PhysicsInfuserRenderer.ScanManager.SCAN_GROWTH_DURATION;
 
 @Environment(EnvType.CLIENT)
 public enum ScannerRenderer {
@@ -44,14 +45,15 @@ public enum ScannerRenderer {
     // State of the scanner, set when triggering a ping.
 
     private long currentStart;
-    public static Vec3 currentCenterSetter;
     private Vec3 currentCenter;
+    private PhysicsInfuserBlockEntity currentBlockEntity;
 
     // --------------------------------------------------------------------- //
 
-    public void ping(final Vec3 pos) {
+    public void ping(final Vec3 pos, PhysicsInfuserBlockEntity te) {
         currentStart = System.currentTimeMillis();
         currentCenter = pos;
+        currentBlockEntity = te;
     }
 
     public static void render(final PoseStack poseStack) {
@@ -59,9 +61,14 @@ public enum ScannerRenderer {
     }
 
     public void doRender(final PoseStack poseStack) {
-        final int adjustedDuration = computeScanGrowthDuration();
+        int adjustedDuration;
+        if (currentBlockEntity != null) {
+            adjustedDuration = currentBlockEntity.getScanGrowthDuration();
+        } else {
+            adjustedDuration = SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance / 12;
+        }
+
         final boolean shouldRender = currentStart > 0 && adjustedDuration > (int) (System.currentTimeMillis() - currentStart);
-        currentCenter = currentCenterSetter;
         if (shouldRender) {
             if (depthCopyFbo == 0) {
                 createDepthCopyBuffer();
@@ -110,9 +117,15 @@ public enum ScannerRenderer {
         invertedProjectionMatrix.invert();
 
         final Vec3 cameraPosition = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
-
-        final int adjustedDuration = computeScanGrowthDuration();
-        final float radius = computeRadius(currentStart, (float) adjustedDuration);
+        final int adjustedDuration;
+        final float radius;
+        if (currentBlockEntity != null) {
+            adjustedDuration = currentBlockEntity.getScanGrowthDuration();
+            radius = currentBlockEntity.computeRadius(currentStart, (float) adjustedDuration);
+        } else {
+            adjustedDuration = SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance / 12;
+            radius = 0;
+        }
 
         shader.setSampler("depthTex", depthCopyDepthBuffer);
         shader.safeGetUniform("center").set(new Vector3f(currentCenter));

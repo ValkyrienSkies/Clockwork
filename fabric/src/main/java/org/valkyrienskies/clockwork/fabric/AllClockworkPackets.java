@@ -23,11 +23,11 @@ import static com.simibubi.create.foundation.networking.SimplePacketBase.Network
 public enum AllClockworkPackets {
 
     // Client to Server
-    GLUE_IN_AREA(BluperGlueSelectionPacket.class, BluperGlueSelectionPacket::new, PLAY_TO_SERVER),
-    GLUE_REMOVED(BluperGlueRemovalPacket.class, BluperGlueRemovalPacket::new, PLAY_TO_SERVER),
+    BLUPERGLUE_IN_AREA(BluperGlueSelectionPacket.class, BluperGlueSelectionPacket::new, PLAY_TO_SERVER),
+    BLUPERGLUE_REMOVED(BluperGlueRemovalPacket.class, BluperGlueRemovalPacket::new, PLAY_TO_SERVER),
 
     // Server to Client
-    GLUE_EFFECT(BluperGlueEffectPacket.class, BluperGlueEffectPacket::new, PLAY_TO_CLIENT),
+    BLUPERGLUE_EFFECT(BluperGlueEffectPacket.class, BluperGlueEffectPacket::new, PLAY_TO_CLIENT),
     ;
 
 

@@ -4,7 +4,10 @@ import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
 import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
 import com.simibubi.create.foundation.utility.VecHelper;
 import com.simibubi.create.foundation.utility.animation.LerpedFloat;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -13,13 +16,20 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.joml.primitives.AABBic;
 import org.valkyrienskies.clockwork.fabric.AllClockworkSounds;
 import org.valkyrienskies.clockwork.fabric.content.curiosities.particles.PhysLightningParticle;
 import org.valkyrienskies.clockwork.fabric.render.assemblyscan.ScannerRenderer;
+import org.valkyrienskies.core.api.ships.LoadedShip;
+import org.valkyrienskies.core.api.ships.ServerShip;
+import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 import java.util.Random;
 import java.util.List;
+
+import static org.valkyrienskies.clockwork.fabric.content.contraptions.components.infuser.PhysicsInfuserRenderer.ScanManager.SCAN_GROWTH_DURATION;
 
 public class PhysicsInfuserBlockEntity extends SmartTileEntity {
 
@@ -28,13 +38,18 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
     public boolean assembling = false;
     public boolean disassembling = false;
 
-    public Animation animationType;
+    public boolean skippedAssembly = false;
+    boolean skippingAssembly = false;
+
+    public Animation animationType = Animation.IDLE;
     public LerpedFloat assemblyProgress = LerpedFloat.linear();
-    public float slamProgress;
     public LerpedFloat disassemblyProgress = LerpedFloat.linear();
     public LerpedFloat idleProgress = LerpedFloat.linear();
     float coreAngle = 0;
     float previousCoreAngle = 0;
+
+    int useCooldown = 0;
+    boolean onCooldown = false;
 
     private Vec3 thisposition = VectorConversionsMCKt.toMinecraft(VectorConversionsMCKt.toJOMLD(worldPosition));
     boolean initPlayed=false;
@@ -43,6 +58,8 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
     public static final int DISASSEMBLY_TIME = 1000;
 
     private boolean sendAnimationUpdate;
+
+    public ServerShip ship;
 
     public void initialize(Vec3 center, float scanRadius, int scanComputeDuration) {
     }
@@ -59,6 +76,23 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
     public void tick() {
         super.tick();
 
+        if (level instanceof ServerLevel s) {
+            ship = VSGameUtilsKt.getShipManagingPos(s, worldPosition);
+        }
+
+        if (ship != null) {
+            isAssembled = true;
+        }
+
+        if (useCooldown > 0) {
+            onCooldown = true;
+            useCooldown--;
+        }
+
+        if (useCooldown == 0) {
+            onCooldown = false;
+        }
+
         if (animationType == null) {
             animationType = Animation.IDLE;
         }
@@ -68,6 +102,10 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
 
         if(assembling) {
             assemblyProgress.setValue(assemblyProgress.getValue() + 1);
+            if (skippingAssembly) {
+                assemblyProgress.setValueNoUpdate(400);
+                skippingAssembly = false;
+            }
         }
         if (disassembling) {
             disassemblyProgress.setValue(disassemblyProgress.getValue() + 1);
@@ -89,7 +127,13 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
             if (assemblyProgress.getValue() == 460) {
                 playFinishSound(level, thisposition);
                 if (level.isClientSide) {
-                    ScannerRenderer.INSTANCE.ping(thisposition);
+                    Vec3 funnypos;
+                    if (ship != null) {
+                        funnypos = VectorConversionsMCKt.toMinecraft(ship.getTransform().getShipToWorld().transformPosition(VectorConversionsMCKt.toJOML(thisposition)));
+                    } else {
+                        funnypos = thisposition;
+                    }
+                    ScannerRenderer.INSTANCE.ping(funnypos, this);
                 }
             }
             if (assemblyProgress.getValue() == 500) {
@@ -98,6 +142,8 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
                 initPlayed=false;
                 animationType = Animation.IDLE;
                 assemblyProgress.setValue(0);
+                skippedAssembly = false;
+                useCooldown = 400;
             }
         }
     }
@@ -109,10 +155,60 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
         this.animationType = Animation.ASSEMBLY;
         startAnimation(Animation.ASSEMBLY);
     }
+
+    public void skipAssembly() {
+        skippedAssembly = true;
+        skippingAssembly = true;
+    }
     public void startDisassembly() {
         disassembling = true;
         this.animationType = Animation.DISASSEMBLY;
         startAnimation(Animation.DISASSEMBLY);
+    }
+
+    public float getPulseRange() {
+        if (this.ship != null) {
+            AABBic shipAABB = ship.getShipAABB();
+            double distanceToMax = thisposition.distanceToSqr(shipAABB.maxX(), shipAABB.maxY(), shipAABB.maxZ());
+            double distanceToMin = thisposition.distanceToSqr(shipAABB.minX(), shipAABB.minY(), shipAABB.minZ());
+
+            if (distanceToMax > distanceToMin) {
+                return (float) Math.sqrt(distanceToMax);
+            } else {
+                return (float) Math.sqrt(distanceToMin);
+            }
+        } else {
+            return Minecraft.getInstance().gameRenderer.getRenderDistance();
+        }
+    }
+
+    public int getScanGrowthDuration() {
+        if (this.ship != null) {
+            float range = getPulseRange();
+            return SCAN_GROWTH_DURATION * (int) range / 12;
+        }
+        return SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance / 12;
+    }
+
+    public float computeRadius(final long start, final float duration) {
+        // Scan wave speeds up exponentially. To avoid the initial speed being
+        // near zero due to that we offset the time and adjust the remaining
+        // parameters accordingly. Base equation is:
+        //   r = a + (t + b)^2 * c
+        // with r := 0 and target radius and t := 0 and target time this yields:
+        //   c = r1/((t1 + b)^2 - b*b)
+        //   a = -r1*b*b/((t1 + b)^2 - b*b)
+
+        final float r1 = getPulseRange();
+        final float t1 = duration;
+        final float b = 200;
+        final float n = 1f / ((t1 + b) * (t1 + b) - b * b);
+        final float a = -r1 * b * b * n;
+        final float c = r1 * n;
+
+        final float t = (float) (System.currentTimeMillis() - start);
+
+        return 10 + a + (t + b) * (t + b) * c;
     }
 
     public void assemble() {
@@ -224,6 +320,35 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
         double y = 0.5d;
         double z = radius* Math.sin(angle);
     }
+
+    //NBT stuff
+
+    @Override
+    public void write(CompoundTag compound, boolean clientPacket) {
+        compound.putString("animationState", animationType.toString());
+        compound.putFloat("assemblyProgress", assemblyProgress.getValue());
+        compound.putFloat("disassemblyProgress", disassemblyProgress.getValue());
+        compound.putFloat("idleProgress", idleProgress.getValue());
+        compound.putBoolean("isAssembled", isAssembled);
+        compound.putBoolean("assembling", assembling);
+        compound.putBoolean("disassembling", disassembling);
+        compound.putBoolean("skippedAssembly", skippedAssembly);
+        super.write(compound, clientPacket);
+    }
+
+    @Override
+    protected void read(CompoundTag compound, boolean clientPacket) {
+        animationType = compound.getString("animationState").equals("ASSEMBLY") ? Animation.ASSEMBLY : compound.getString("animationState").equals("DISASSEMBLY") ? Animation.DISASSEMBLY : Animation.IDLE;
+        assemblyProgress.setValueNoUpdate(compound.getFloat("assemblyProgress"));
+        disassemblyProgress.setValueNoUpdate(compound.getFloat("disassemblyProgress"));
+        idleProgress.setValueNoUpdate(compound.getFloat("idleProgress"));
+        isAssembled = compound.getBoolean("isAssembled");
+        assembling = compound.getBoolean("assembling");
+        disassembling = compound.getBoolean("disassembling");
+        skippedAssembly = compound.getBoolean("skippedAssembly");
+        super.read(compound, clientPacket);
+    }
+
     //Create Behaviors
 
     @Override

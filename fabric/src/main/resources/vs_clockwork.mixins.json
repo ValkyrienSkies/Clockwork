@@ -3,12 +3,13 @@
   "package": "org.valkyrienskies.clockwork.fabric.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "create.MixinBearingContraption",
+    "content.propellor.MixinBearingContraption",
     "create.MixinFilteringHandler",
     "create.MixinBlocks",
     "create.MixinBlockBreakingKineticTileEntity"
   ],
   "client": [
+    "content.pulse.MixinLevelRenderer",
     "create.client.MixinSuperGlueSelectionHandler",
     "create.client.MixinFlwContraption",
     "create.client.MixinContraptionRenderInfo",

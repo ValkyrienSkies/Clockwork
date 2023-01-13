@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.fabric.mixin.create;
+package org.valkyrienskies.clockwork.fabric.mixin.content.propellor;
 
 import com.simibubi.create.content.contraptions.components.structureMovement.AssemblyException;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingContraption;

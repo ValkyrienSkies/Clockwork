@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.fabric.mixin.minecraft.client;
+package org.valkyrienskies.clockwork.fabric.mixin.content.pulse;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Matrix4f;
