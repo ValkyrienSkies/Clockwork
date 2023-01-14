@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.client.render.assemblyscan;
+package org.valkyrienskies.clockwork.client.render;
 //Thanks to Scannable for this code! (https://github.com/MightyPirates/Scannable)
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
@@ -16,6 +16,7 @@ import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.world.phys.Vec3;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
+import org.valkyrienskies.clockwork.ClockWorkShaders;
 import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserRenderer;
 
@@ -77,16 +78,11 @@ public enum ScannerRenderer {
     }
 
     private void render(final Matrix4f viewMatrix) {
-        final ShaderInstance shader = ScanShaders.getScanEffectShader();
-        if (shader == null) {
-            return;
-        }
-
         final RenderTarget target = Minecraft.getInstance().getMainRenderTarget();
 
         updateDepthTexture(target);
 
-        updateShaderUniforms(shader, viewMatrix);
+        updateShaderUniforms(ClockWorkShaders.SCAN_EFFECT.getShader(), viewMatrix);
 
         blit(target);
     }
@@ -136,7 +132,7 @@ public enum ScannerRenderer {
         RenderSystem.enableBlend();
 
         final ShaderInstance oldShader = RenderSystem.getShader();
-        RenderSystem.setShader(ScanShaders::getScanEffectShader);
+        RenderSystem.setShader(ClockWorkShaders.SCAN_EFFECT::getShader);
 
         RenderSystem.backupProjectionMatrix();
         RenderSystem.setProjectionMatrix(Matrix4f.orthographic(0, width, 0, height, 1, 100));

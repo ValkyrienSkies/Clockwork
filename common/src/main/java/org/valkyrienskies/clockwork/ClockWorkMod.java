@@ -2,12 +2,10 @@ package org.valkyrienskies.clockwork;
 
 import com.mojang.logging.LogUtils;
 import com.simibubi.create.foundation.data.CreateRegistrate;
-import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.valkyrienskies.clockwork.client.render.assemblyscan.ScanShaders;
 import org.valkyrienskies.clockwork.platform.SharedValues;
 
 public class ClockWorkMod {

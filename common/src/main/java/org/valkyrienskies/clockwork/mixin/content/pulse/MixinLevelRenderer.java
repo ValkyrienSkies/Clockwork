@@ -2,7 +2,7 @@ package org.valkyrienskies.clockwork.mixin.content.pulse;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Matrix4f;
-import org.valkyrienskies.clockwork.client.render.assemblyscan.ScannerRenderer;
+import org.valkyrienskies.clockwork.client.render.ScannerRenderer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LevelRenderer;

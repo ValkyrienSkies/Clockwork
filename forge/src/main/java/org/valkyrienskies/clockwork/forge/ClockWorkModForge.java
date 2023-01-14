@@ -63,6 +63,8 @@ public class ClockWorkModForge {
             // It prob gets staticly loaded earlier and well yhea...
             ClockWorkPartials.init();
             // TODO forge partials
+
+            ShaderLoader.init(modEventBus);
         });
     }
 

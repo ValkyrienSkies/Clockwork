@@ -14,7 +14,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.joml.primitives.AABBic;
 import org.valkyrienskies.clockwork.ClockWorkSounds;
-import org.valkyrienskies.clockwork.client.render.assemblyscan.ScannerRenderer;
+import org.valkyrienskies.clockwork.client.render.ScannerRenderer;
 import org.valkyrienskies.core.api.ships.ServerShip;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
