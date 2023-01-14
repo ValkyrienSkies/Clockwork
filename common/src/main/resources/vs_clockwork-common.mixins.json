@@ -4,6 +4,8 @@
   "compatibilityLevel": "JAVA_17",
   "plugin": "org.valkyrienskies.clockwork.mixin.CommonMixinConfigPlugin",
   "mixins": [
+    "content.propellor.MixinBearingContraption",
+    "content.vs_contraptions.MixinMechanicalBearingTileEntity",
     "create.MixinAbstractContraptionEntity",
     "create.MixinAirCurrent",
     "create.MixinAirFlowParticle",
@@ -17,16 +19,16 @@
     "create.MixinEjectorBlock",
     "create.MixinEjectorTileEntity",
     "create.MixinEntityLauncher",
+    "create.MixinFilteringBehaviour",
+    "create.MixinLinkBehaviour",
+    "create.MixinRedstoneLinkNetworkHandler",
     "create.MixinSeatEntity",
     "create.MixinSharedDepotBlockMethods",
+    "create.MixinSidedFilteringBehaviour",
     "create.MixinSuperGlueRemovalPacket",
     "create.MixinTileEntityConfigurationPacket",
     "create.MixinTrackNodeLocation",
-    "create.MixinTrainRelocationPacket",
-    "create.MixinSidedFilteringBehaviour",
-    "create.MixinLinkBehaviour",
-    "create.MixinRedstoneLinkNetworkHandler",
-    "create.MixinFilteringBehaviour"
+    "create.MixinTrainRelocationPacket"
   ],
   "client": [
     "create.client.MixinCarriageContraptionInstance",
@@ -35,6 +37,7 @@
     "create.client.MixinCullingBlockEntityIterator",
     "create.client.MixinFilteringRenderer",
     "create.client.MixinGhostBlockRenderer",
+    "create.client.MixinLinkRenderer",
     "create.client.MixinOrientedContraptionEntity",
     "create.client.MixinOutline",
     "create.client.MixinSoundScapes",
@@ -42,7 +45,8 @@
     "create.client.MixinTrackBlockOutline",
     "create.client.MixinTrackTargetingBehaviour",
     "create.client.MixinTrainRelocator",
-    "create.client.MixinLinkRenderer"
+    "content.pulse.MixinLevelRenderer",
+    "content.vs_contraptions.render.MixinBearingInstance"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -1,8 +1,6 @@
 package org.valkyrienskies.clockwork.forge;
 
-import com.simibubi.create.foundation.data.CreateRegistrate;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.CreativeModeTab;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
@@ -13,14 +11,13 @@ import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import org.valkyrienskies.clockwork.ClockWorkMod;
+import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
+
+import static org.valkyrienskies.clockwork.ClockWorkMod.REGISTRATE;
 
 @Mod(ClockWorkMod.MOD_ID)
 public class ClockWorkModForge {
-    public static final CreateRegistrate REGISTRATE = CreateRegistrate.create(ClockWorkMod.MOD_ID);
-    public static final CreativeModeTab BASE_CREATIVE_TAB = new ClockworkGroup();
-    static IEventBus MOD_BUS;
     boolean happendClientSetup = false;
 
     public ClockWorkModForge() {
@@ -37,18 +34,36 @@ public class ClockWorkModForge {
                 .getModEventBus();
         IEventBus forgeEventBus = MinecraftForge.EVENT_BUS;
 
+        modEventBus.addListener(this::clientSetup);
+        modEventBus.addListener(this::onModelRegistry);
         REGISTRATE.registerEventListeners(modEventBus);
 
-        AllClockworkBlocks.register();
-        AllClockworkItems.register();
-        AllClockworkTileEntities.register();
+        ClockWorkBlocks.register();
+        ForgeClockworkBlocks.register();
 
-        AllClockworkParticles.register(modEventBus);
+        // TODO common items
+        ForgeClockworkItems.register();
+
+        ClockWorkBlockEntities.register();
+        ForgeClockworkBlockEntities.register();
+
+        AllClockworkParticles.init(modEventBus);
         AllClockworkConfigs.register(modLoadingContext);
+
+        ClockWorkSounds.register();
+        // TODO forge sounds
 
         ClockWorkMod.init();
 
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClockworkClientForge.onCWClient(modEventBus, forgeEventBus));
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
+            FMLJavaModLoadingContext.get()
+                    .getModEventBus().addListener(AllClockworkParticles::register);
+
+            // In create itself they do it FMLClientSetupEvent this does not work (what a scam)
+            // It prob gets staticly loaded earlier and well yhea...
+            ClockWorkPartials.init();
+            // TODO forge partials
+        });
     }
 
     public static ResourceLocation asResource(String path) {
@@ -60,7 +75,6 @@ public class ClockWorkModForge {
         happendClientSetup = true;
 
         ClockWorkMod.initClient();
-        AllClockworkPartials.init();
     }
 
     void entityRenderers(final EntityRenderersEvent.RegisterRenderers event) {

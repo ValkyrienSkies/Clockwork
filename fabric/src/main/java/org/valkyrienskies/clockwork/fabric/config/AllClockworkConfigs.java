@@ -10,7 +10,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.valkyrienskies.clockwork.ClockWorkMod;
 
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -25,7 +24,7 @@ public class AllClockworkConfigs {
         return CONFIGS.get(type);
     }
 
-    private static <T extends CWConfigBase> T register(Supplier<T> factory, ModConfig.Type side) {
+    private static <T extends CWConfigBase> T init(Supplier<T> factory, ModConfig.Type side) {
         Pair<T, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(builder -> {
             T config = factory.get();
             config.registerAll(builder);
@@ -38,10 +37,10 @@ public class AllClockworkConfigs {
         return config;
     }
 
-    public static void register() {
-        CLIENT = register(CWClient::new, ModConfig.Type.CLIENT);
-        COMMON = register(CWCommon::new, ModConfig.Type.COMMON);
-        SERVER = register(CWServer::new, ModConfig.Type.SERVER);
+    public static void init() {
+        CLIENT = init(CWClient::new, ModConfig.Type.CLIENT);
+        COMMON = init(CWCommon::new, ModConfig.Type.COMMON);
+        SERVER = init(CWServer::new, ModConfig.Type.SERVER);
 
         for (Map.Entry<ModConfig.Type, ConfigBase> pair : CONFIGS.entrySet())
             ModLoadingContext.registerConfig(ClockWorkMod.MOD_ID, pair.getKey(), pair.getValue().specification);

@@ -27,12 +27,9 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.DirectionalBlock;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.portal.PortalInfo;
 import net.minecraft.world.phys.AABB;
@@ -42,10 +39,8 @@ import com.simibubi.create.content.schematics.ItemRequirement;
 import com.simibubi.create.content.schematics.ItemRequirement.ItemUseType;
 import com.simibubi.create.foundation.utility.Iterate;
 import com.simibubi.create.foundation.utility.VecHelper;
-import org.valkyrienskies.clockwork.fabric.AllClockworkEntities;
-import org.valkyrienskies.clockwork.fabric.AllClockworkItems;
-import org.valkyrienskies.clockwork.fabric.AllClockworkParticles;
-import org.valkyrienskies.clockwork.fabric.content.materials.solids.bluuguu.BluuGuuParticle;
+import org.valkyrienskies.clockwork.fabric.FabricClockworkEntities;
+import org.valkyrienskies.clockwork.fabric.FabricClockworkItems;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -95,7 +90,7 @@ public class BluperGlueEntity extends Entity
     }
 
     public BluperGlueEntity(Level world, AABB boundingBox) {
-        this(AllClockworkEntities.BLUPERGLUE.get(), world);
+        this(FabricClockworkEntities.BLUPERGLUE.get(), world);
         setBoundingBox(boundingBox);
         resetPositionToBB();
     }
@@ -243,7 +238,7 @@ public class BluperGlueEntity extends Entity
 
     @Override
     public ItemRequirement getRequiredItems() {
-        return new ItemRequirement(ItemUseType.DAMAGE, AllClockworkItems.BLUPERGLUE.get());
+        return new ItemRequirement(ItemUseType.DAMAGE, FabricClockworkItems.BLUPERGLUE.get());
     }
 
     @Override

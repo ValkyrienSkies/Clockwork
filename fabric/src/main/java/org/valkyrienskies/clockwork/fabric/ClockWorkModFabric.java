@@ -1,71 +1,61 @@
 package org.valkyrienskies.clockwork.fabric;
 
-import com.simibubi.create.foundation.data.CreateRegistrate;
-import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.client.model.BakedModelManagerHelper;
-import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry;
-import net.fabricmc.fabric.api.client.rendereregistry.v1.BlockEntityRendererRegistry;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
-import net.minecraft.client.Minecraft;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.CreativeModeTab;
 import net.minecraftforge.common.data.ExistingFileHelper;
+import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.fabric.content.curiosities.tools.bluperglue.BluperGlueSelectionHandler;
-import org.valkyrienskies.clockwork.fabric.content.events.ClockworkClientEvents;
-import org.valkyrienskies.clockwork.fabric.content.events.ClockworkCommonEvents;
-import org.valkyrienskies.clockwork.fabric.content.events.ClockworkInputEvents;
-import org.valkyrienskies.clockwork.fabric.render.assemblyscan.ScanShaders;
-import org.valkyrienskies.core.impl.config.VSConfigClass;
-import org.valkyrienskies.clockwork.ClockWorkMod;
-import org.valkyrienskies.mod.compat.clothconfig.VSClothConfig;
+import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkClientEvents;
+import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkCommonEvents;
+import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkInputEvents;
 import org.valkyrienskies.mod.fabric.common.ValkyrienSkiesModFabric;
-import org.valkyrienskies.clockwork.fabric.AllClockworkPartials;
-
-import static org.valkyrienskies.clockwork.ClockWorkMod.MOD_ID;
 
 public class ClockWorkModFabric implements ModInitializer {
-    public static ResourceLocation asResource(String path) {
-        return new ResourceLocation(MOD_ID, path);
-    }
-    public static final CreateRegistrate REGISTRATE = CreateRegistrate.create(MOD_ID);
-
-    public static final CreativeModeTab BASE_CREATIVE_TAB = new ClockworkGroup();
-
 
     @Override
     public void onInitialize() {
         // force VS2 to load before eureka
         new ValkyrienSkiesModFabric().onInitialize();
-        AllClockworkSounds.prepare();
-        AllClockworkBlocks.register();
-        AllClockworkItems.register();
-        AllClockworkTileEntities.register();
-        AllClockworkEntities.register();
 
-        REGISTRATE.register();
+        FabricClockworkSounds.prepare();
+        ClockWorkSounds.prepare();
 
-        AllClockworkParticles.register();
-        AllClockworkConfigs.register();
+        ClockWorkBlocks.register();
+        FabricClockworkBlocks.register();
+
+        // TODO common items
+        FabricClockworkItems.register();
+
+        ClockWorkBlockEntities.register();
+        FabricClockworkBlockEntities.register();
+
+        // TODO common entities
+        FabricClockworkEntities.register();
+
+        ClockworkParticles.init();
+        FabricClockworkParticles.init();
+
+        AllClockworkConfigs.init();
+
         ClockWorkMod.init();
         ClockWorkModFabric.init();
 
-        AllClockworkSounds.register();
-        ClockworkCommonEvents.register();
-        AllClockworkPackets.channel.initServerListener();
+        FabricClockworkSounds.init();
     }
 
     public static void init() {
-        AllClockworkPackets.registerPackets();
+        FabricClockworkPackets.registerPackets();
+        FabricClockworkCommonEvents.register();
+        FabricClockworkPackets.channel.initServerListener();
     }
 
     public static void gatherData(FabricDataGenerator gen, ExistingFileHelper helper) {
-        gen.addProvider(AllClockworkSounds.provider(gen));
+        gen.addProvider(FabricClockworkSounds.provider(gen));
     }
 
     @Environment(EnvType.CLIENT)
@@ -75,12 +65,14 @@ public class ClockWorkModFabric implements ModInitializer {
         @Override
         public void onInitializeClient() {
             ClockWorkMod.initClient();
-            AllClockworkPartials.init();
-            AllClockworkParticles.registerFactories();
-            AllClockworkPackets.channel.initClientListener();
-            ScanShaders.initialize();
-            ClockworkClientEvents.register();
-            ClockworkInputEvents.register();
+            ClockWorkPartials.init();
+            FabricClockworkPartials.init();
+            ClockworkParticles.initClient();
+            FabricClockworkParticles.initClient();
+            FabricClockworkPackets.channel.initClientListener();
+
+            FabricClockworkClientEvents.register();
+            FabricClockworkInputEvents.register();
 
         }
 

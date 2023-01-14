@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork.fabric.content.curiosities.tools.bluperglue
 
 import com.simibubi.create.content.contraptions.components.structureMovement.chassis.AbstractChassisBlock;
 import com.simibubi.create.foundation.utility.VecHelper;
-import io.github.fabricators_of_create.porting_lib.item.CustomMaxCountItem;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -16,14 +15,12 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
-import org.apache.logging.log4j.core.Filter.Result;
-import org.valkyrienskies.clockwork.fabric.AllClockworkItems;
+import org.valkyrienskies.clockwork.fabric.FabricClockworkItems;
 
 
 public class BluperGlueItem extends Item {
@@ -68,7 +65,7 @@ public class BluperGlueItem extends Item {
 
         float distance = fullBlock ? 1f : .25f + .25f * (world.random.nextFloat() - .5f);
         plane = plane.scale(distance);
-        ItemStack stack = new ItemStack(AllClockworkItems.BLUUGUU.get());
+        ItemStack stack = new ItemStack(FabricClockworkItems.BLUUGUU.get());
 
         for (int i = fullBlock ? 40 : 15; i > 0; i--) {
             Vec3 offset = VecHelper.rotate(plane, 360 * world.random.nextFloat(), direction.getAxis());

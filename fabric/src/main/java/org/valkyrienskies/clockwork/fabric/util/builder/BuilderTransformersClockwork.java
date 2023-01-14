@@ -6,15 +6,16 @@ import com.tterrag.registrate.builders.BlockBuilder;
 import com.tterrag.registrate.util.nullness.NonNullUnaryOperator;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
+import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.clockwork.fabric.ClockWorkModFabric;
 
 public class BuilderTransformersClockwork {
 
     public static <B extends Block, P> NonNullUnaryOperator<BlockBuilder<B, P>> infuser() {
-        ResourceLocation baseBlockModelLocation = ClockWorkModFabric.asResource("block/physics_infuser/block");
-        ResourceLocation baseItemModelLocation = ClockWorkModFabric.asResource("block/physics_infuser/item");
-        ResourceLocation liquidTextureLocation = ClockWorkModFabric.asResource("block/physics_infuser/liquid");
-        ResourceLocation coreTextureLocation = ClockWorkModFabric.asResource("block/physics_infuser/core");
+        ResourceLocation baseBlockModelLocation = ClockWorkMod.asResource("block/physics_infuser/block");
+        ResourceLocation baseItemModelLocation = ClockWorkMod.asResource("block/physics_infuser/item");
+        ResourceLocation liquidTextureLocation = ClockWorkMod.asResource("block/physics_infuser/liquid");
+        ResourceLocation coreTextureLocation = ClockWorkMod.asResource("block/physics_infuser/core");
 
         return b -> b.initialProperties(SharedProperties::stone)
                 .properties(p -> p.noOcclusion())

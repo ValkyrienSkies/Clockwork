@@ -19,12 +19,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult.Type;
 import net.minecraft.world.phys.Vec3;
-import org.valkyrienskies.clockwork.fabric.AllClockworkItems;
-import org.valkyrienskies.clockwork.fabric.AllClockworkPackets;
+import org.valkyrienskies.clockwork.fabric.FabricClockworkItems;
+import org.valkyrienskies.clockwork.fabric.FabricClockworkPackets;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -45,7 +44,7 @@ public class BluperGlueHandler {
         for (Direction direction : Iterate.directions) {
             BlockPos relative = pos.relative(direction);
             if (BluperGlueEntity.isBluGlued(world, pos, direction, cached))
-                AllClockworkPackets.channel.sendToClientsTrackingAndSelf(new BluperGlueEffectPacket(pos, direction, true), entity);
+                FabricClockworkPackets.channel.sendToClientsTrackingAndSelf(new BluperGlueEffectPacket(pos, direction, true), entity);
         }
 
         if (entity instanceof Player)
@@ -55,7 +54,7 @@ public class BluperGlueHandler {
 
     public static InteractionResult bluperglueInOffHandAppliesOnBlockPlace(BlockState placedAgainst, BlockPos pos, Player placer) {
         ItemStack itemstack = placer.getOffhandItem();
-        if (!AllClockworkItems.BLUPERGLUE.isIn(itemstack))
+        if (!FabricClockworkItems.BLUPERGLUE.isIn(itemstack))
             return InteractionResult.PASS;
         if (AllItems.WRENCH.isIn(placer.getMainHandItem()))
             return InteractionResult.PASS;
@@ -94,7 +93,7 @@ public class BluperGlueHandler {
         if (BluperGlueEntity.isValidFace(world, gluePos, face)) {
             if (!world.isClientSide) {
                 world.addFreshEntity(entity);
-                AllClockworkPackets.channel.sendToClientsTracking(new BluperGlueEffectPacket(gluePos, face, true), entity);
+                FabricClockworkPackets.channel.sendToClientsTracking(new BluperGlueEffectPacket(gluePos, face, true), entity);
             }
             itemstack.hurtAndBreak(1, placer, BluperGlueItem::onBroken);
         }
