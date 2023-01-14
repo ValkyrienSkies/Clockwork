@@ -54,11 +54,9 @@ public class PropellorBearingBlock extends BearingBlock implements ITE<Propellor
 
             withTileEntityDo(worldIn, pos, te -> {
                 if (te.isRunning() && !te.isOverStressed()) {
-                    te.targetSpeed = te.getSpeed();
                     te.startSlowdown();
                     return;
                 } else if (!te.isRunning() && !te.isOverStressed()) {
-                    te.targetSpeed = te.getSpeed();
                     te.startSpinup();
                     return;
                 }

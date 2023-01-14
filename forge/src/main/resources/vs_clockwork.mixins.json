@@ -2,9 +2,13 @@
   "required": true,
   "package": "org.valkyrienskies.clockwork.forge.mixin",
   "compatibilityLevel": "JAVA_17",
-  "plugin": "org.valkyrienskies.clockwork.forge.mixin.ValkyrienForgeMixinConfigPlugin",
-  "mixins": [],
-  "client": [],
+  "mixins": [
+    "create.MixinBearingContraption",
+    "create.MixinFilteringHandler"
+  ],
+  "client": [
+    "create.client.MixinSuperGlueSelectionHandler"
+  ],
   "injectors": {
     "defaultRequire": 1
   },

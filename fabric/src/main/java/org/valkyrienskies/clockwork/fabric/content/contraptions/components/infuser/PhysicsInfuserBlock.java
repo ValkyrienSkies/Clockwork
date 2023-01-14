@@ -24,11 +24,11 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.valkyrienskies.clockwork.fabric.AllClockworkTileEntities;
 
 public class PhysicsInfuserBlock extends Block implements ITE<PhysicsInfuserBlockEntity> {
-
     private static final VoxelShape SHAPE = makeShape();
 
     public PhysicsInfuserBlock(Properties properties) {
         super(properties);
+
     }
 
     public static boolean isInfuser(BlockState state) {
@@ -61,10 +61,13 @@ public class PhysicsInfuserBlock extends Block implements ITE<PhysicsInfuserBloc
             }
 
             withTileEntityDo(worldIn, pos, te -> {
-                if (te.isAssembled && !te.assembling &&  !te.disassembling) {
+                if (te.isAssembled && !te.assembling &&  !te.disassembling && !te.onCooldown) {
                     te.startDisassembly();
                     return;
-                } else if (!te.isAssembled && !te.assembling &&  !te.disassembling) {
+                } else if (!te.isAssembled && te.assembling &&  !te.disassembling && !te.onCooldown && !te.skippedAssembly) {
+                    te.skipAssembly();
+                    return;
+                } else if (!te.isAssembled && !te.assembling &&  !te.disassembling && !te.onCooldown) {
                     te.startAssembly();
                     return;
                 }

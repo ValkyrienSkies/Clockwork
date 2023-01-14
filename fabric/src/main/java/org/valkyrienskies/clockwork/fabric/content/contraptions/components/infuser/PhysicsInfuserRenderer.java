@@ -43,9 +43,7 @@ import static org.valkyrienskies.clockwork.fabric.content.contraptions.component
 
 public class PhysicsInfuserRenderer extends SmartTileEntityRenderer<PhysicsInfuserBlockEntity> {
 
-    private boolean doneAnimating = false;
-
-    private static PhysicsInfuserBlockEntity te;
+    private PhysicsInfuserBlockEntity te;
     public PhysicsInfuserRenderer(BlockEntityRendererProvider.Context context) {
         super(context);
     }
@@ -59,8 +57,6 @@ public class PhysicsInfuserRenderer extends SmartTileEntityRenderer<PhysicsInfus
         this.te = te;
         PhysicsInfuserBlockEntity infuser = (PhysicsInfuserBlockEntity) te;
         BlockState blockState = te.getBlockState();
-
-        ScannerRenderer.currentCenterSetter = VectorConversionsMCKt.toMinecraft(VectorConversionsMCKt.toJOMLD(te.getBlockPos()));
 
         VertexConsumer vb = buffer.getBuffer(RenderType.translucent());
 
@@ -95,33 +91,20 @@ public class PhysicsInfuserRenderer extends SmartTileEntityRenderer<PhysicsInfus
             if (infuser.animationType == PhysicsInfuserBlockEntity.Animation.ASSEMBLY) {
                 float value = infuser.assemblyProgress.getValue();
                 float coreOffset = te.getCoreOffset(partialTicks - 1);
-                if (value == 500) {
-                    doneAnimating = true;
-                }
                 animateAssembly(core, angle, coreOffset, value, infuser).light(light).renderInto(ms, vb);
                 if (value >= 160 && value <= 200 || value >= 300 && value <= 340 || value >= 420 && value <= 440) {
-                    animateZapping(zap1,0,coreOffset,1,infuser).light(light).renderInto(ms,buffer.getBuffer(RenderType.translucentMovingBlock()));
+                    animateZapping(zap1,0,coreOffset,1,infuser).light(light).renderInto(ms,buffer.getBuffer(RenderType.translucentNoCrumbling()));
                 }
                 if (value >= 220 && value <= 260 || value >= 360 && value <= 400 || value >= 400 && value <= 420) {
-                    animateZapping(zap2,120,coreOffset,2,infuser).light(light).renderInto(ms,buffer.getBuffer(RenderType.translucentMovingBlock()));
+                    animateZapping(zap2,120,coreOffset,2,infuser).light(light).renderInto(ms,buffer.getBuffer(RenderType.translucentNoCrumbling()));
                 }
                 if (value >= 240 && value <= 280 || value >= 320 && value <= 360 || value >= 410 && value <= 430) {
-                    animateZapping(zap3,240,coreOffset,3,infuser).light(light).renderInto(ms,buffer.getBuffer(RenderType.translucentMovingBlock()));
-                }
-                if (doneAnimating == true) {
-                    infuser.animationType = PhysicsInfuserBlockEntity.Animation.IDLE;
-                    infuser.assembling = false;
-                    infuser.isAssembled = true;
-                    infuser.assemblyProgress.setValue(0);
-                    infuser.initPlayed=false;
+                    animateZapping(zap3,240,coreOffset,3,infuser).light(light).renderInto(ms,buffer.getBuffer(RenderType.translucentNoCrumbling()));
                 }
             }
             if (infuser.animationType == PhysicsInfuserBlockEntity.Animation.DISASSEMBLY) {
                 float value = infuser.disassemblyProgress.getValue();
                 //animateDisassembly(core, angle, offset, value).light(light).renderInto(ms, vb);
-                if (doneAnimating == true) {
-                    infuser.animationType = PhysicsInfuserBlockEntity.Animation.IDLE;
-                }
             }
 
             if (infuser.animationType == PhysicsInfuserBlockEntity.Animation.IDLE) {idleRotateCore(core, angle, offset, infuser).light(light).renderInto(ms, vb);}
@@ -181,39 +164,15 @@ public class PhysicsInfuserRenderer extends SmartTileEntityRenderer<PhysicsInfus
         // Scan wave growth time offset to avoid super slow start speed.
         public static final int SCAN_TIME_OFFSET = 200;
         // How long the ping takes to reach the end of the visible area.
-        private static final int SCAN_GROWTH_DURATION = 2000;
+        public static final int SCAN_GROWTH_DURATION = 2000;
         // Reference render distance the above constants are relative to.
         private static final int REFERENCE_RENDER_DISTANCE = 12;
 
         // --------------------------------------------------------------------- //
 
-        public static float computeTargetRadius() {
-            return Minecraft.getInstance().gameRenderer.getRenderDistance();
-        }
 
-        public static int computeScanGrowthDuration() {
-            return SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance / REFERENCE_RENDER_DISTANCE;
-        }
-
-        public static float computeRadius(final long start, final float duration) {
-            // Scan wave speeds up exponentially. To avoid the initial speed being
-            // near zero due to that we offset the time and adjust the remaining
-            // parameters accordingly. Base equation is:
-            //   r = a + (t + b)^2 * c
-            // with r := 0 and target radius and t := 0 and target time this yields:
-            //   c = r1/((t1 + b)^2 - b*b)
-            //   a = -r1*b*b/((t1 + b)^2 - b*b)
-
-            final float r1 = computeTargetRadius();
-            final float t1 = duration;
-            final float b = SCAN_TIME_OFFSET;
-            final float n = 1f / ((t1 + b) * (t1 + b) - b * b);
-            final float a = -r1 * b * b * n;
-            final float c = r1 * n;
-
-            final float t = (float) (System.currentTimeMillis() - start);
-
-            return SCAN_INITIAL_RADIUS + a + (t + b) * (t + b) * c;
+        public int computeScanGrowthDuration() {
+            return te.getScanGrowthDuration();
         }
 
         // --------------------------------------------------------------------- //
@@ -231,41 +190,6 @@ public class PhysicsInfuserRenderer extends SmartTileEntityRenderer<PhysicsInfus
         public static Matrix4f projectionMatrix;
 
         // --------------------------------------------------------------------- //
-
-        public static void beginScan(final PhysicsInfuserBlockEntity te) {
-            cancelScan();
-
-            float scanRadius = 1000;
-
-            final Vec3 center = Vec3.atCenterOf(te.getBlockPos());
-
-            te.initialize(center, scanRadius, SCAN_COMPUTE_DURATION);
-
-        }
-
-        public static void updateScan(final Entity entity, final boolean finish) {
-            final int remaining = SCAN_COMPUTE_DURATION - scanningTicks;
-
-            if (!finish) {
-                if (remaining <= 0) {
-                    return;
-                }
-
-                ++scanningTicks;
-
-                return;
-            }
-
-            clear();
-
-            lastScanCenter = entity.position();
-            currentStart = System.currentTimeMillis();
-
-            ScannerRenderer.INSTANCE.ping(lastScanCenter);
-
-            cancelScan();
-        }
-
         public static void cancelScan() {
             scanningTicks = 0;
         }

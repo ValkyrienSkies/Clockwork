@@ -5,14 +5,13 @@
   "name": "VS ClockWork Mod",
   "description": "Create VS integration addon",
   "authors": [
-    "ewoudje",
-    "Tri0de",
-    "Rubydesic"
+    "fluffy",
+    "potato"
   ],
   "contributors": [
-    "Copper",
-    "Anarava",
-    "VS Discord"
+    "ewoudje",
+    "triode",
+    "rubydesic"
   ],
   "contact": {
     "homepage": "https://valkyrienskies.org/",

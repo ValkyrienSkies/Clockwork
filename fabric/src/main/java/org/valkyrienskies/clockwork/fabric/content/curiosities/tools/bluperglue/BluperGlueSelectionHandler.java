@@ -16,6 +16,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -23,17 +24,25 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.HitResult.Type;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Matrix4d;
+import org.joml.Quaterniond;
+import org.joml.Vector3d;
+import org.joml.primitives.AABBic;
 import org.valkyrienskies.clockwork.fabric.AllClockworkPackets;
+import org.valkyrienskies.core.api.ships.Ship;
+import org.valkyrienskies.mod.common.VSGameUtilsKt;
+import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 public class BluperGlueSelectionHandler {
 
-    private static final int PASSIVE = 0x4D9162;
-    private static final int HIGHLIGHT = 0x68c586;
-    private static final int FAIL = 0xc5b548;
+    private static final int PASSIVE = 0x4d8c91;
+    private static final int HIGHLIGHT = 0x68c5c2;
+    private static final int FAIL = 0x7c48c5;
 
     private Object clusterOutlineSlot = new Object();
     private Object bbOutlineSlot = new Object();
@@ -47,13 +56,54 @@ public class BluperGlueSelectionHandler {
     private BluperGlueEntity selected;
     private BlockPos soundSourceForRemoval;
 
+    private Vec3 newTarget;
+
+    private Vec3 getTraceOrigin(Player playerIn) {
+        Minecraft mc = Minecraft.getInstance();
+        double range = ReachEntityAttributes.getReachDistance(playerIn, mc.gameMode.getPickRange()) + 1;
+        Vec3 origin = RaycastHelper.getTraceOrigin(playerIn);
+        Vec3 target = RaycastHelper.getTraceTarget(playerIn, range, origin);
+
+
+        AABB searchAABB = new AABB(origin, target).inflate(0.25, 2, 0.25);
+        final Iterator<Ship> ships = VSGameUtilsKt.getShipsIntersecting(playerIn.level, searchAABB).iterator();
+
+        if (ships.hasNext()) {
+            Ship ship = ships.next();
+
+            Matrix4d world2Ship = (Matrix4d) ship.getTransform().getWorldToShip();
+            AABBic shAABBi = ship.getShipAABB();
+            AABB shipAABB = new AABB(shAABBi.minX(), shAABBi.minY(), shAABBi.minZ(), shAABBi.maxX(), shAABBi.maxY(), shAABBi.maxZ());
+
+
+            origin = VectorConversionsMCKt.toMinecraft(world2Ship.transformPosition(VectorConversionsMCKt.toJOML(origin)));
+            target = VectorConversionsMCKt.toMinecraft(world2Ship.transformPosition(VectorConversionsMCKt.toJOML(target)));
+
+            Quaterniond tempQuat = new Quaterniond();
+            if (playerIn.getVehicle() != null && playerIn.getVehicle().getBoundingBox().intersects(shipAABB.inflate(20))) {
+                ship.getTransform().getWorldToShip().getNormalizedRotation(tempQuat);
+                tempQuat.invert();
+                Vector3d offset = VectorConversionsMCKt.toJOML(target.subtract(origin));
+                tempQuat.transform(offset);
+                target = origin.add(VectorConversionsMCKt.toMinecraft(offset));
+            }
+        }
+
+        newTarget = target;
+        return origin;
+    }
+
+    private Vec3 getTraceTarget(final Player playerIn, final double range, final Vec3 origin) {
+        return newTarget;
+    }
+
     public void tick() {
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer player = mc.player;
         BlockPos hovered = null;
         ItemStack stack = player.getMainHandItem();
 
-        if (!isGlue(stack)) {
+        if (!isBluperGlue(stack)) {
             if (firstPos != null)
                 discard();
             return;
@@ -74,8 +124,8 @@ public class BluperGlueSelectionHandler {
         selected = null;
         if (firstPos == null) {
             double range = ReachEntityAttributes.getReachDistance(player, mc.gameMode.getPickRange()) + 1;
-            Vec3 traceOrigin = RaycastHelper.getTraceOrigin(player);
-            Vec3 traceTarget = RaycastHelper.getTraceTarget(player, range, traceOrigin);
+            Vec3 traceOrigin = getTraceOrigin(player);
+            Vec3 traceTarget = getTraceTarget(player, range, traceOrigin);
 
             double bestDistance = Double.MAX_VALUE;
             for (BluperGlueEntity glueEntity : glueNearby) {
@@ -157,7 +207,7 @@ public class BluperGlueSelectionHandler {
                             .lineWidth(1 / 16f);
 
                 CreateClient.OUTLINER.showCluster(clusterOutlineSlot, currentCluster)
-                        .colored(0x4D9162)
+                        .colored(0x4d8c91)
                         .disableNormals()
                         .lineWidth(1 / 64f);
             }
@@ -172,7 +222,7 @@ public class BluperGlueSelectionHandler {
         glueRequired = 1;
     }
 
-    private boolean isGlue(ItemStack stack) {
+    private boolean isBluperGlue(ItemStack stack) {
         return stack.getItem() instanceof BluperGlueItem;
     }
 
@@ -185,7 +235,7 @@ public class BluperGlueSelectionHandler {
         LocalPlayer player = mc.player;
         ClientLevel level = mc.level;
 
-        if (!isGlue(player.getMainHandItem()))
+        if (!isBluperGlue(player.getMainHandItem()))
             return false;
 
         if (attack) {

@@ -9,6 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import org.valkyrienskies.mod.common.VSGameUtilsKt;
 
 public class BluperGlueRemovalPacket extends SimplePacketBase {
 
@@ -40,7 +41,7 @@ public class BluperGlueRemovalPacket extends SimplePacketBase {
             if (!(entity instanceof BluperGlueEntity BluperGlue))
                 return;
             double range = 32;
-            if (player.distanceToSqr(BluperGlue.position()) > range * range)
+            if (VSGameUtilsKt.squaredDistanceToInclShips(player, BluperGlue.position().x, BluperGlue.position().y, BluperGlue.position().z) > range * range)
                 return;
             AllSoundEvents.SLIME_ADDED.play(player.level, null, soundSource, 0.5F, 0.5F);
             BluperGlue.spawnParticles();

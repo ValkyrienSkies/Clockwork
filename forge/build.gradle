@@ -1,22 +1,6 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        // Make sure this version matches the one included in Kotlin for Forge
-        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10'
-        // OPTIONAL Gradle plugin for Kotlin Serialization
-        classpath 'org.jetbrains.kotlin:kotlin-serialization:1.6.10'
-    }
-}
-
 plugins {
     id "com.github.johnrengelman.shadow" version "7.1.2"
-    id "com.matthewprenger.cursegradle"
-    id "com.modrinth.minotaur"
 }
-
-apply from: '../gradle-scripts/publish-curseforge.gradle'
 
 architectury {
     platformSetupLoomIde()
@@ -28,18 +12,7 @@ loom {
 
     forge {
         convertAccessWideners = true
-        mixinConfig "vs_clockwork.mixins.json"
-        mixinConfig "vs_clockwork-common.mixins.json"
         extraAccessWideners.add loom.accessWidenerPath.get().asFile.name
-    }
-}
-
-repositories {
-    if (!project.block_external_repositories) {
-        maven {
-            name = 'Kotlin for Forge'
-            url = 'https://thedarkcolour.github.io/KotlinForForge/'
-        }
     }
 }
 
@@ -47,31 +20,87 @@ configurations {
     common
     shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
     compileClasspath.extendsFrom common
-            runtimeClasspath.extendsFrom common
-            developmentForge.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentForge.extendsFrom common
 }
 
-dependencies {
-    forge "net.minecraftforge:forge:${rootProject.forge_version}"
-    modApi("org.valkyrienskies:valkyrienskies-118-forge:${rootProject.vs2_version}") { transitive = false }
-    implementation("org.valkyrienskies.core:api:1.1.0+c92814e9b7") { transitive = false }
-    modApi("org.valkyrienskies.eureka:eureka-forge:${rootProject.eureka_version}") { transitive = false }
+repositories {
+    if (!block_external_repositories) {
+        // mavens for Forge-exclusives
+        maven { url = "https://maven.theillusivec4.top/" } // Curios
+        maven { // Create Forge and Registrate Forge
+            url = "https://maven.tterrag.com/"
+            content {
+                includeGroup("com.tterrag.registrate")
+                includeGroup("com.simibubi.create")
+            }
+        }
+    }
 
-    common(project(path: ":common", configuration: "namedElements")) { transitive false }
-    shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
-}
-
-processResources {
-    inputs.property "version", project.version
-
-    filesMatching("META-INF/mods.toml") {
-        expand "version": project.version
+    flatDir { // REMOVE IF CBC HAS BEEN UPDATED
+        dirs 'mods'
     }
 }
 
-tasks.withType(JavaCompile).configureEach {
-    // Minecraft 1.18 (1.18-pre2) upwards uses Java 17.
-    it.options.release = 17
+dependencies {
+    forge("net.minecraftforge:forge:${minecraft_version}-${forge_version}")
+    common(project(path: ":common", configuration: "namedElements")) { transitive = false }
+    shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
+
+    //VS2
+    modApi("org.valkyrienskies:valkyrienskies-118-forge:${rootProject.vs2_version}") { transitive = false }
+    implementation("org.valkyrienskies.core:api:1.1.0+c92814e9b7") { transitive = false }
+
+    // Create and its dependencies
+    modImplementation("com.simibubi.create:create-${minecraft_version}:${create_forge_version}:slim") { transitive = false }
+    modImplementation("com.tterrag.registrate:Registrate:${registrate_forge_version}")
+    modImplementation("com.jozufozu.flywheel:flywheel-forge-${flywheel_forge_minecraft_version}:${flywheel_forge_version}")
+
+    // Development QOL
+    modLocalRuntime("mezz.jei:jei-${minecraft_version}:${jei_forge_version}")
+
+    //Create big cannons
+    // modLocalRuntime('curse.maven:create-big-cannons-646668:4033862') is create .5.0.e not g
+    modLocalRuntime name: "createbigcannons" // REMOVE IF CBC HAS BEEN UPDATED
+    modImplementation("org.valkyrienskies.eureka:eureka-forge:${eureka_version}") { transitive = false }
+
+    // JOML
+    compileOnly("org.joml:joml:1.10.4")
+    compileOnly("org.joml:joml-primitives:1.10.0")
+
+    // Add Kotlin for Forge.
+    api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.21"
+    api "org.jetbrains.kotlin:kotlin-reflect:1.7.21"
+    forgeRuntimeLibrary('curse.maven:kotlinforforge-351264:3925887')
+
+
+    // if you would like to add integration with JEI, uncomment this line.
+//    modCompileOnly("mezz.jei:jei-${minecraft_version}:${jei_forge_version}:api")
+}
+
+processResources {
+    // set up properties for filling into metadata
+    Map<String, String> properties = Map.of(
+            "vs2_version", vs2_version,
+            "version", version,
+            "forge_version", forge_version.split("\\.")[0], // only specify major version of forge
+            "minecraft_version", minecraft_version,
+            "create_version", create_forge_version.split("-")[0] // cut off build number
+    )
+    properties.forEach((k, v) -> inputs.property(k, v))
+
+    filesMatching("META-INF/mods.toml") {
+        expand properties
+    }
+}
+
+loom {
+    forge {
+        mixinConfig(
+                "vs_clockwork-common.mixins.json",
+                "vs_clockwork.mixins.json"
+        )
+    }
 }
 
 shadowJar {
@@ -84,8 +113,8 @@ shadowJar {
 
 remapJar {
     input.set shadowJar.archiveFile
-            dependsOn shadowJar
-            classifier null
+    dependsOn shadowJar
+    classifier null
 }
 
 jar {
@@ -95,7 +124,7 @@ jar {
 sourcesJar {
     def commonSources = project(":common").sourcesJar
     dependsOn commonSources
-            from commonSources.archiveFile.map { zipTree(it) }
+    from commonSources.archiveFile.map { zipTree(it) }
 }
 
 components.java {
@@ -106,9 +135,7 @@ components.java {
 
 publishing {
     publications {
-        mavenCommon(MavenPublication) {
-            groupId = "org.valkyrienskies.clockwork"
-            version = project.version
+        mavenForge(MavenPublication) {
             artifactId = rootProject.archives_base_name + "-" + project.name
             from components.java
         }

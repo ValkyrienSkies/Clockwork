@@ -3,12 +3,14 @@ package org.valkyrienskies.clockwork.fabric.content.contraptions.components.prop
 
 import com.simibubi.create.AllTags;
 import com.simibubi.create.Create;
+import com.simibubi.create.content.contraptions.base.KineticTileEntity;
 import com.simibubi.create.content.contraptions.components.fan.AirCurrent;
 import com.simibubi.create.content.contraptions.components.fan.EncasedFanBlock;
 import com.simibubi.create.content.contraptions.components.fan.IAirCurrentSource;
 import com.simibubi.create.content.contraptions.components.structureMovement.ControlledContraptionEntity;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingContraption;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.MechanicalBearingTileEntity;
+import com.simibubi.create.content.contraptions.relays.encased.SplitShaftTileEntity;
 import com.simibubi.create.foundation.config.AllConfigs;
 import com.simibubi.create.foundation.gui.AllIcons;
 import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
@@ -22,6 +24,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -68,6 +71,22 @@ public class PropellorBearingTileEntity extends MechanicalBearingTileEntity impl
         updateAirFlow = true;
     }
 
+//    @Override
+//    public float getRotationSpeedModifier(Direction face) {
+//        if (hasSource()) {
+//            if (face != getSourceFacing() && getBlockState().getValue(BlockStateProperties.POWERED))
+//                return 0;
+//        }
+//        return 1;
+//    }
+
+
+    public Direction getSourceFacing() {
+        BlockPos localSource = source.subtract(getBlockPos());
+        return Direction.getNearest(localSource.getX(), localSource.getY(), localSource.getZ());
+    }
+
+
     @Override
     public void onSpeedChanged(float prevSpeed) {
         boolean cancelAssembly = assembleNextTick;
@@ -89,6 +108,10 @@ public class PropellorBearingTileEntity extends MechanicalBearingTileEntity impl
     }
     private void modSlowdownSpeed() {
         disassembling--;
+        if (speed == 0) {
+            disassemble();
+            return;
+        }
         if (disassembling==0) {
             if(!level.isClientSide) {
                 disassemble();
@@ -104,14 +127,26 @@ public class PropellorBearingTileEntity extends MechanicalBearingTileEntity impl
         updateAirFlow = true;
     }
 
+    public float getSourceSpeed() {
+        if (source == null || level == null) {
+            return 0;
+        }
+        BlockEntity tileEnt = level.getBlockEntity(source);
+        KineticTileEntity sourceTe = tileEnt instanceof KineticTileEntity ? (KineticTileEntity) tileEnt : null;
+        if (sourceTe == null || sourceTe.getSpeed() == 0) {
+            return 0;
+        } else {
+            return sourceTe.getSpeed();
+        }
+    }
 
     private void modSpinupSpeed() {
-
         spinup--;
         if (speed == targetSpeed) {
             spinningUp = false;
             return;
         }
+
 //            float time = 1f - (spinup / 20f);
 //            float Q = (rotspeed + (targetSpeed - rotspeed)) * time;
         float startingPoint = (angle + targetSpeed*spinup*0.5f);
@@ -123,7 +158,7 @@ public class PropellorBearingTileEntity extends MechanicalBearingTileEntity impl
     @Override
     public void tick() {
         super.tick();
-
+        targetSpeed = getSourceSpeed();
         boolean server = !level.isClientSide || isVirtual();
 
         if (server && airCurrentUpdateCooldown == 0) {

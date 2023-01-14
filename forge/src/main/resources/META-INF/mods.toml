@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[40,)"
+loaderVersion = "[${forge_version},)"
 issueTrackerURL = "https://github.com/ValkyrienSkies/Valkyrien-Skies-2/issues"
 license = "Apache-2.0"
 
@@ -7,7 +7,7 @@ license = "Apache-2.0"
 modId = "vs_clockwork"
 version = "${version}"
 displayName = "Create Clockwork Mod"
-authors = ["Tri0de", "ewoudje", "VS2 Discord Artists"]
+authors = ["fluffy", "potato", "ewoudje"]
 description = '''
 
 '''
@@ -16,14 +16,14 @@ logoFile = "icon.png"
 [[dependencies.vs_clockwork]]
 modId = "forge"
 mandatory = true
-versionRange = "[40.1.69,)"
+versionRange = "[${forge_version},)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.vs_clockwork]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[1.18.2,)"
+versionRange = "${minecraft_version}"
 ordering = "NONE"
 side = "BOTH"
 
@@ -32,4 +32,11 @@ modId = "valkyrienskies"
 mandatory = true
 versionRange = "[2,)"
 ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.vs_clockwork]]
+modId = "create"
+mandatory = true
+versionRange="${create_version}"
+ordering = "NONE"
 side = "BOTH"
