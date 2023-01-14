@@ -29,8 +29,8 @@ public class ShaderLoader {
                     @NotNull ProfilerFiller reloadProfiler,
                     @NotNull Executor backgroundExecutor,
                     @NotNull Executor gameExecutor) {
-                ClockWorkShaders.reloadShaders(resourceManager);
-                return CompletableFuture.completedFuture(null);
+                ClockWorkShaders.reloadShaders(resourceManager); // TODO load shaders async?
+                return CompletableFuture.completedFuture(null).thenCompose(preparationBarrier::wait).thenAccept((i -> {}));
             }
 
             @Override
