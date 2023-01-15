@@ -2,7 +2,10 @@ package org.valkyrienskies.clockwork.fabric.content.forces;
 
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+<<<<<<< HEAD
 import net.minecraft.util.Mth;
+=======
+>>>>>>> cbc1e5f... bruhmomento
 import org.jetbrains.annotations.NotNull;
 import org.joml.*;
 import org.valkyrienskies.clockwork.fabric.content.contraptions.components.propellor.PropellorCreatePhysData;
@@ -65,12 +68,13 @@ public class PropellorController implements ShipForcesInducer {
             netForce.add(forceTorque.left());
             netTorque.add(forceTorque.right());
         }
+
+        physShip.applyInvariantForce(netForce);
+        physShip.applyInvariantTorque(netTorque);
         if (netForce.isFinite() && netTorque.isFinite()) {
             physShip.applyInvariantForce(netForce);
             physShip.applyInvariantTorque(netTorque.mul(0.1));
         }
-
-
 
         // Propellor Pushing
 
