@@ -10,6 +10,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.model.BakedModelManagerHelper;
 import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry;
 import net.fabricmc.fabric.api.client.rendereregistry.v1.BlockEntityRendererRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
@@ -17,6 +18,8 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.fabric.content.curiosities.tools.bluperglue.BluperGlueSelectionHandler;
+import org.valkyrienskies.clockwork.fabric.content.curiosities.tools.gravitron.GravitronItem;
+import org.valkyrienskies.clockwork.fabric.content.curiosities.tools.gravitron.GravitronItemRenderer;
 import org.valkyrienskies.clockwork.fabric.content.events.ClockworkClientEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.ClockworkCommonEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.ClockworkInputEvents;
@@ -81,6 +84,7 @@ public class ClockWorkModFabric implements ModInitializer {
             ScanShaders.initialize();
             ClockworkClientEvents.register();
             ClockworkInputEvents.register();
+            BuiltinItemRendererRegistry.INSTANCE.register(AllClockworkItems.GRAVITRON.get(), new GravitronItemRenderer());
 
         }
 

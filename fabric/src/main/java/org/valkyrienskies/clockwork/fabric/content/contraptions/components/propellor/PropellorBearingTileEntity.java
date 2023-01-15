@@ -93,6 +93,9 @@ public class PropellorBearingTileEntity extends MechanicalBearingTileEntity impl
         updateAirFlow = true;
     }
     private void modSpeed() {
+        if (movedContraption == null) {
+            return;
+        }
         if (rotspeed == targetSpeed) {
             return;
         }
@@ -344,6 +347,8 @@ public class PropellorBearingTileEntity extends MechanicalBearingTileEntity impl
         rotspeed = 0;
         super.disassemble();
         this.speed = targetSpeed;
+        clearKineticInformation();
+        attachKinetics();
         if (physPropId != null) {
             if (!level.isClientSide) {
                 final LoadedServerShip ship = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, getBlockPos());
