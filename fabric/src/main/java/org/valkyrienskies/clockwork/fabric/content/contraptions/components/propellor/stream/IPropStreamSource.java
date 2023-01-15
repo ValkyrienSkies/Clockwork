@@ -31,6 +31,8 @@ public interface IPropStreamSource {
 
     Vector3d getStreamScale();
 
+    int getSailCount();
+
     default float getMaxDistance() {
         float speed = Math.abs(this.getSpeed());
         CKinetics config = AllConfigs.SERVER.kinetics;

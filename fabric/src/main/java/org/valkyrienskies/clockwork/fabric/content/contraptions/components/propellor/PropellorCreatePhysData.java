@@ -1,0 +1,10 @@
+package org.valkyrienskies.clockwork.fabric.content.contraptions.components.propellor;
+
+import org.joml.Vector3dc;
+import org.joml.Vector3ic;
+
+import java.util.List;
+
+public record PropellorCreatePhysData(Vector3dc bearingPos, Vector3dc bearingAxis, double bearingAngle, double bearingSpeed, List<Vector3ic> propellorPositions) {
+
+}

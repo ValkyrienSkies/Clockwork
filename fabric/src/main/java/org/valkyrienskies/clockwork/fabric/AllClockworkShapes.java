@@ -25,7 +25,7 @@ public class AllClockworkShapes {
 
     public static final VoxelShaper
 
-    WING = shape(0,0,0,16,9.5,16).forAxis()
+    WING = shape(0,4,0,16,12,16).forAxis()
 
             ;
 
