@@ -229,11 +229,11 @@ public class PropStream {
     }
 
     public void findShips() {
-        if (!source.getStreamWorld().isClientSide)
-            return;
-        ServerShipWorld world = VSGameUtilsKt.getShipObjectWorld(Objects.requireNonNull((ServerLevel) source.getStreamWorld()));
-        caughtShips.clear();
-        caughtShips = (List<LoadedServerShip>) world.getLoadedShips().getIntersecting(VectorConversionsMCKt.toJOML(bounds));
+//        if (!source.getStreamWorld().isClientSide)
+//            return;
+//        ServerShipWorld world = VSGameUtilsKt.getShipObjectWorld(Objects.requireNonNull((ServerLevel) source.getStreamWorld()));
+//        caughtShips.clear();
+//        caughtShips = (List<LoadedServerShip>) world.getLoadedShips().getIntersecting(VectorConversionsMCKt.toJOML(bounds));
     }
 
     private static boolean shouldAlwaysPass(BlockState state) {
