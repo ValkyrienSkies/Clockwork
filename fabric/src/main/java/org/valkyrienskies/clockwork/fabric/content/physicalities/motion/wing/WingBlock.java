@@ -11,14 +11,21 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.jetbrains.annotations.NotNull;
+import org.joml.Vector3d;
+import org.joml.Vector3dc;
 import org.valkyrienskies.clockwork.fabric.AllClockworkShapes;
 import org.valkyrienskies.clockwork.fabric.util.blocktype.TriAxisBlockWithConnections;
+import org.valkyrienskies.core.api.ships.Wing;
+import org.valkyrienskies.core.api.ships.WingManager;
+import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
-public class WingBlock extends TriAxisBlockWithConnections {
+public class WingBlock extends TriAxisBlockWithConnections implements org.valkyrienskies.mod.common.block.WingBlock {
 
     public WingBlock(Properties properties) {
         super(properties);
@@ -28,8 +35,7 @@ public class WingBlock extends TriAxisBlockWithConnections {
     public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
         return AllClockworkShapes.WING.get(pState.getValue(AXIS));
     }
-
-//    @Override
+    //    @Override
 //    public void onPlace (BlockState state, Level level, BlockPos pos, BlockState oldState, boolean isMoving) {
 //        super.onPlace(state, level, pos, oldState, isMoving);
 //        int flag = 2;
@@ -118,5 +124,27 @@ public class WingBlock extends TriAxisBlockWithConnections {
         } else if (neighbor4.getBlock() instanceof WingBlock && !(neighbor4.getValue(AXIS) == ax)) {
                 level.setBlock(pos, state.setValue(connectedFour, false), flag);
         }
+    }
+    @Override
+    public Wing getWing(@NotNull Level level, @NotNull BlockPos blockPos, @NotNull BlockState blockState) {
+        double wingPower = 150;
+        double wingDrag = 150;
+        double wingBreakingForce = 10;
+        Vector3dc normal;
+        switch (blockState.getValue(AXIS)) {
+            case X -> {
+                normal = new Vector3d(1, 0, 0);
+                return new Wing(normal, wingPower, wingDrag, wingBreakingForce);
+            }
+            case Y -> {
+                normal = new Vector3d(0, 1, 0);
+                return new Wing(normal, wingPower, wingDrag, wingBreakingForce);
+            }
+            case Z -> {
+                normal = new Vector3d(0, 0, 1);
+                return new Wing(normal, wingPower, wingDrag, wingBreakingForce);
+            }
+        }
+        return null;
     }
 }
