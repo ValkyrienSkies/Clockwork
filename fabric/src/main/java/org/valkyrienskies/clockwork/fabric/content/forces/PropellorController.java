@@ -67,7 +67,7 @@ public class PropellorController implements ShipForcesInducer {
         }
         if (netForce.isFinite() && netTorque.isFinite()) {
             physShip.applyInvariantForce(netForce);
-            physShip.applyInvariantTorque(netTorque);
+            physShip.applyInvariantTorque(netTorque.mul(0.1));
         }
 
 
@@ -93,7 +93,7 @@ public class PropellorController implements ShipForcesInducer {
             Vector3dc rotatedDiff = rotation.transform(diff, new Vector3d());
             Vector3dc sailVel = rotatedDiff.cross(angVel, new Vector3d());
 
-            Vector3dc force = physTransform.getShipToWorldRotation().transform(axis.mul(sailVel.lengthSquared() * 30, new Vector3d()));
+            Vector3dc force = physTransform.getShipToWorldRotation().transform(axis.mul(sailVel.lengthSquared() * 50, new Vector3d()));
             Vector3dc sailPosWorld = physTransform.getShipToWorld().transformPosition(sailVector, new Vector3d());
             Vector3dc sailPosRelShip = sailPosWorld.sub(physTransform.getPositionInWorld(), new Vector3d());
             Vector3dc torque = sailPosRelShip.cross(force, new Vector3d());
