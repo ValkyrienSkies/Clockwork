@@ -1,6 +1,0 @@
-{
-  "parent": "vs_clockwork:item/gravitron/gravitronbase",
-  "loader": "forge:obj",
-  "flip-v": true,
-  "model": "vs_clockwork:models/item/gravitron/gravileftprongtip.obj"
-}
