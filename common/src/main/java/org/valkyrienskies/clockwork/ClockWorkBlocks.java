@@ -10,6 +10,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.level.material.MaterialColor;
 import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserBlock;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingBlock;
+import org.valkyrienskies.clockwork.content.contraptions.flap.contraption.FlapBearingBlock;
 
 import static com.simibubi.create.foundation.data.TagGen.axeOrPickaxe;
 import static org.valkyrienskies.clockwork.ClockWorkMod.REGISTRATE;
@@ -59,6 +60,7 @@ public class ClockWorkBlocks {
                     .item()
                     .transform(ModelGen.customItemModel("physics_infuser", "item"))
                     .register();
+
 
     public static void register() {}
 }

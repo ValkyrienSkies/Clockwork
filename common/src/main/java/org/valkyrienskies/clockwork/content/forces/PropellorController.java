@@ -2,15 +2,12 @@ package org.valkyrienskies.clockwork.content.forces;
 
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-<<<<<<< HEAD
 import net.minecraft.util.Mth;
-=======
->>>>>>> cbc1e5f... bruhmomento
 import org.jetbrains.annotations.NotNull;
 import org.joml.*;
-import org.valkyrienskies.clockwork.fabric.content.contraptions.components.propellor.PropellorCreatePhysData;
-import org.valkyrienskies.clockwork.fabric.content.contraptions.components.propellor.PropellorPhysData;
-import org.valkyrienskies.clockwork.fabric.content.contraptions.components.propellor.PropellorUpdatePhysData;
+import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorCreatePhysData;
+import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorPhysData;
+import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorUpdatePhysData;
 import org.valkyrienskies.core.api.ships.PhysShip;
 import org.valkyrienskies.core.api.ships.ServerShip;
 import org.valkyrienskies.core.api.ships.properties.ShipTransform;

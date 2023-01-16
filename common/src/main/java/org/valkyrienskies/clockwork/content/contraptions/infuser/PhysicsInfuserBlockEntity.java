@@ -29,6 +29,7 @@ import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.List;
+import java.util.Set;
 
 import static org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserRenderer.ScanManager.SCAN_GROWTH_DURATION;
 

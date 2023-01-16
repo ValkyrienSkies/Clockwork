@@ -1,9 +1,6 @@
-package org.valkyrienskies.clockwork.platform.api;
+package org.valkyrienskies.clockwork.fabric.util.propellor;
 
-/*
- * BlockEntity
- */
-public interface IExtendedBearing {
+public interface IBearingExtended {
     boolean isPropellor = false;
     boolean isFlap = false;
     void setPropellor();
