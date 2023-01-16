@@ -20,6 +20,7 @@ import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.fabric.content.curiosities.tools.bluperglue.BluperGlueSelectionHandler;
 import org.valkyrienskies.clockwork.fabric.content.curiosities.tools.gravitron.GravitronItem;
 import org.valkyrienskies.clockwork.fabric.content.curiosities.tools.gravitron.GravitronItemRenderer;
+import org.valkyrienskies.clockwork.fabric.content.curiosities.tools.gravitron.GravitronRenderHandler;
 import org.valkyrienskies.clockwork.fabric.content.events.ClockworkClientEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.ClockworkCommonEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.ClockworkInputEvents;
@@ -75,6 +76,7 @@ public class ClockWorkModFabric implements ModInitializer {
     public static class Client implements ClientModInitializer {
 
         public static final BluperGlueSelectionHandler BLUPER_HANDLER = new BluperGlueSelectionHandler();
+        public static final GravitronRenderHandler GRAVITRON_HANDLER = new GravitronRenderHandler();
         @Override
         public void onInitializeClient() {
             ClockWorkMod.initClient();
