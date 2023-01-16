@@ -25,6 +25,7 @@ import org.valkyrienskies.clockwork.fabric.content.events.ClockworkClientEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.ClockworkCommonEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.ClockworkInputEvents;
 import org.valkyrienskies.clockwork.fabric.render.assemblyscan.ScanShaders;
+import org.valkyrienskies.clockwork.fabric.util.contraption.ClockworkContraptionTypes;
 import org.valkyrienskies.core.impl.config.VSConfigClass;
 import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.mod.compat.clothconfig.VSClothConfig;
@@ -59,6 +60,7 @@ public class ClockWorkModFabric implements ModInitializer {
         ClockWorkMod.init();
         ClockWorkModFabric.init();
 
+        ClockworkContraptionTypes.prepare();
         AllClockworkSounds.register();
         ClockworkCommonEvents.register();
         AllClockworkPackets.channel.initServerListener();

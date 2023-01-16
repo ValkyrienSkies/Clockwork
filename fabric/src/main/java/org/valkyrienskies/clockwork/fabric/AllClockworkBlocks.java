@@ -8,9 +8,11 @@ import com.simibubi.create.foundation.data.ModelGen;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.level.material.MaterialColor;
+import org.valkyrienskies.clockwork.fabric.content.contraptions.components.flap.FlapBearingBlock;
 import org.valkyrienskies.clockwork.fabric.content.contraptions.components.infuser.PhysicsInfuserBlock;
 import org.valkyrienskies.clockwork.fabric.content.contraptions.components.propellor.PropellorBearingBlock;
 import org.valkyrienskies.clockwork.fabric.content.physicalities.motion.wing.WingBlock;
+import org.valkyrienskies.clockwork.fabric.util.builder.BuilderTransformersClockwork;
 
 import static com.simibubi.create.foundation.data.TagGen.axeOrPickaxe;
 import static org.valkyrienskies.clockwork.fabric.ClockWorkModFabric.REGISTRATE;
@@ -31,7 +33,18 @@ public class AllClockworkBlocks {
             REGISTRATE.block("propellor_bearing", PropellorBearingBlock::new)
                     .transform(axeOrPickaxe())
                     .properties(p -> p.color(MaterialColor.PODZOL))
-                    .transform(BuilderTransformers.bearing("propellor", "gearbox", true))
+                    .transform(BuilderTransformers.bearing("propellor", "gearbox", false))
+                    .transform(BlockStressDefaults.setImpact(12.0))
+                    .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+                    .register();
+
+    //////// Flap Bearing ////////
+
+    public static final BlockEntry<FlapBearingBlock> FLAP_BEARING =
+            REGISTRATE.block("flap_bearing", FlapBearingBlock::new)
+                    .transform(axeOrPickaxe())
+                    .properties(p -> p.color(MaterialColor.PODZOL))
+                    .transform(BuilderTransformersClockwork.flapbearing())
                     .transform(BlockStressDefaults.setImpact(12.0))
                     .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
                     .register();

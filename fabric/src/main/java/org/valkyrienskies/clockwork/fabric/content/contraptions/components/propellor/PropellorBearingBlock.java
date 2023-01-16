@@ -34,11 +34,6 @@ public class PropellorBearingBlock extends BearingBlock implements ITE<Propellor
     }
 
     @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(DIRECTION);
-        super.createBlockStateDefinition(builder);
-    }
-    @Override
     public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn,
                                  BlockHitResult hit) {
         if (!player.mayBuild())
