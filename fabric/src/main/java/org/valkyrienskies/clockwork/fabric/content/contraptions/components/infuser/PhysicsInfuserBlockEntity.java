@@ -248,10 +248,12 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
             if (selection == null) return;
 
             ship = ShipAssemblyKt.createNewShipWithBlocks(worldPosition, selection, (ServerLevel) level);
-            caughtEntities.forEach(entity -> {
+            if (caughtEntities != null) {
+                caughtEntities.forEach(entity -> {
 
-                ship.getTransform().getWorldToShip().transformPosition(VectorConversionsMCKt.toJOML(entity.position()));
-            });
+                    ship.getTransform().getWorldToShip().transformPosition(VectorConversionsMCKt.toJOML(entity.position()));
+                });
+            }
         }
     }
 
