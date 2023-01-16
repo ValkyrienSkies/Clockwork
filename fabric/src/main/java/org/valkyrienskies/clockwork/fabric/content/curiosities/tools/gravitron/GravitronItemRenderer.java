@@ -33,13 +33,20 @@ public class GravitronItemRenderer extends CustomRenderedItemModelRenderer<Gravi
         boolean offHand = player.getOffhandItem() == stack;
         float animation = getAnimationProgress(pt, leftHanded, mainHand);
 
-        renderer.render(model.getPartial("gravidial"), light);
-        renderer.render(model.getPartial("gravileftprong"), light);
-        renderer.render(model.getPartial("gravirightprong"), light);
-        renderer.render(model.getPartial("gravitopprong"), light);
-        renderer.render(model.getPartial("gravileftprongtip"), light);
-        renderer.render(model.getPartial("gravirightprongtip"), light);
-        renderer.render(model.getPartial("gravitopprongtip"), light);
+        float angle = worldTime * -25;
+        if (mainHand || offHand)
+            angle += 360 * animation;
+
+        renderer.render(model.getPartial("dialhand"), light);
+        renderer.render(model.getPartial("prongleftone"), light);
+        renderer.render(model.getPartial("prongrightone"), light);
+        renderer.render(model.getPartial("prongtopone"), light);
+        renderer.render(model.getPartial("pronglefttwo"), light);
+        renderer.render(model.getPartial("prongrighttwo"), light);
+        renderer.render(model.getPartial("prongtoptwo"), light);
+        renderer.render(model.getPartial("prongleftthree"), light);
+        renderer.render(model.getPartial("prongrightthree"), light);
+        renderer.render(model.getPartial("prongtopthree"), light);
     }
 
     protected float getAnimationProgress(float pt, boolean leftHanded, boolean mainHand) {
