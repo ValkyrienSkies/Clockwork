@@ -86,7 +86,6 @@ public class ClockWorkModFabric implements ModInitializer {
             ScanShaders.initialize();
             ClockworkClientEvents.register();
             ClockworkInputEvents.register();
-            BuiltinItemRendererRegistry.INSTANCE.register(AllClockworkItems.GRAVITRON.get(), new GravitronItemRenderer());
 
         }
 
