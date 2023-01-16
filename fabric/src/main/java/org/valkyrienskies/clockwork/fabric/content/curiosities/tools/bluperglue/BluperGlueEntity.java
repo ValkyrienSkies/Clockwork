@@ -1,9 +1,12 @@
 package org.valkyrienskies.clockwork.fabric.content.curiosities.tools.bluperglue;
 
 import com.simibubi.create.AllSoundEvents;
+import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
 import com.simibubi.create.content.contraptions.components.structureMovement.BlockMovementChecks;
+import com.simibubi.create.content.contraptions.components.structureMovement.glue.SuperGlueEntity;
 import io.github.fabricators_of_create.porting_lib.entity.ExtraSpawnDataEntity;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
@@ -48,12 +51,14 @@ import org.valkyrienskies.clockwork.fabric.AllClockworkParticles;
 import org.valkyrienskies.clockwork.fabric.content.materials.solids.bluuguu.BluuGuuParticle;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class BluperGlueEntity extends Entity
         implements ExtraSpawnDataEntity, ISpecialEntityItemRequirement {
 
+    protected List<Entity> caughtEntities = new ArrayList<>();
     public static AABB span(BlockPos startPos, BlockPos endPos) {
         return new AABB(startPos, endPos).expandTowards(1, 1, 1);
     }
@@ -74,6 +79,44 @@ public class BluperGlueEntity extends Entity
             return true;
         }
         return false;
+    }
+
+    public static Set<Entity> searchGlueGroupForEntities(Level level, BlockPos startPos, BlockPos endPos) {
+        if (endPos == null || startPos == null)
+            return null;
+
+        AABB bb = BluperGlueEntity.span(startPos, endPos);
+
+        List<BlockPos> frontier = new ArrayList<>();
+        Set<BlockPos> visited = new HashSet<>();
+        Set<BlockPos> attached = new HashSet<>();
+        Set<BluperGlueEntity> cachedOther = new HashSet<>();
+
+        visited.add(startPos);
+        frontier.add(startPos);
+
+        Set<Entity> caughtEntities = new HashSet<>();
+
+        caughtEntities.addAll(level.getEntities(null, bb));
+        for (BluperGlueEntity bluperGlueEntity : cachedOther) {
+            AABB box = bluperGlueEntity.getBoundingBox();
+
+            caughtEntities.addAll(new HashSet<>(level
+                    .getEntities(null, box)));
+
+        }
+
+        if (attached.size() < 2 && attached.contains(endPos))
+            return null;
+
+        caughtEntities.forEach(entity -> {
+            if (entity instanceof AbstractContraptionEntity || entity instanceof SuperGlueEntity || entity instanceof BluperGlueEntity) {
+
+            } else {
+                caughtEntities.remove(entity);
+            }
+        });
+        return caughtEntities;
     }
 
     public static List<BluperGlueEntity> collectCropped(Level level, AABB bb) {

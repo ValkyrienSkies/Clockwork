@@ -12,6 +12,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -35,8 +36,11 @@ import org.valkyrienskies.core.impl.datastructures.DenseBlockPosSet;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.assembly.ShipAssemblyKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
+
+import java.util.HashSet;
 import java.util.Random;
 import java.util.List;
+import java.util.Set;
 
 import static org.valkyrienskies.clockwork.fabric.content.contraptions.components.infuser.PhysicsInfuserRenderer.ScanManager.SCAN_GROWTH_DURATION;
 
@@ -139,7 +143,7 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
             if (assemblyProgress.getValue() == 160 || assemblyProgress.getValue() == 220 || assemblyProgress.getValue() == 240 || assemblyProgress.getValue() == 300 || assemblyProgress.getValue() == 320 || assemblyProgress.getValue() == 360 || assemblyProgress.getValue() == 400 || assemblyProgress.getValue() == 410 || assemblyProgress.getValue() == 420) {
                 playZapSound(level, thisposition, rand);
             }
-            if (assemblyProgress.getValue() == 450) {
+            if (assemblyProgress.getValue() == 455) {
                 assemble();
             }
             if (assemblyProgress.getValue() == 460) {
@@ -230,10 +234,11 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
     public void assemble() {
         //INSERT ASSEMBLY LOGIC TROL
         DenseBlockPosSet selection;
-
+        Set<Entity> caughtEntities = new HashSet<>();
         if (level instanceof ServerLevel s) {
             try {
                 selection = GlueAssembler.collectGlued(this.level, worldPosition, GlueType.BLUPER);
+                caughtEntities = GlueAssembler.collectEntities(this.level, worldPosition, GlueType.BLUPER);
                 this.lastException = null;
             } catch (AssemblyException e) {
                 this.lastException = e;
@@ -243,6 +248,10 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
             if (selection == null) return;
 
             ship = ShipAssemblyKt.createNewShipWithBlocks(worldPosition, selection, (ServerLevel) level);
+            caughtEntities.forEach(entity -> {
+
+                ship.getTransform().getWorldToShip().transformPosition(VectorConversionsMCKt.toJOML(entity.position()));
+            });
         }
     }
 

@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import org.valkyrienskies.core.impl.datastructures.DenseBlockPosSet;
@@ -17,13 +18,14 @@ import java.util.Set;
 public class GlueAssembler {
 
     public static DenseBlockPosSet collectGlued(
-            LevelAccessor level,
+            Level level,
             BlockPos pos,
             GlueType glueType
     ) throws AssemblyException {
         Set<Entity> toRemove = new HashSet<>();
         DenseBlockPosSet result = new DenseBlockPosSet();
         Queue<BlockPos> frontier = new UniqueLinkedList<>();
+
 
         if (level.getBlockState(pos).isAir()) return null;
 
@@ -36,11 +38,23 @@ public class GlueAssembler {
             }
 
             visitBlock(level, frontier, result, glueType, toRemove);
+            ;
         }
 
         toRemove.forEach(Entity::discard);
 
         throw AssemblyException.structureTooLarge();
+    }
+
+    public static Set<Entity> collectEntities(
+            Level level,
+            BlockPos pos,
+            GlueType glueType
+    ) throws AssemblyException {
+        Set<Entity> toTranspose = new HashSet<>();
+
+        toTranspose = visitEntity(level, pos, pos, glueType, toTranspose);
+        return toTranspose;
     }
 
     private static void visitBlock(
@@ -83,6 +97,24 @@ public class GlueAssembler {
                 frontier.add(newPos);
             }
         }
+    }
+
+    private static Set<Entity> visitEntity(
+            Level level,
+            BlockPos pos,
+            BlockPos endPos,
+            GlueType glue,
+            Set<Entity> cache
+    ) throws AssemblyException {
+
+        if (glue == GlueType.BLUPER) {
+            cache = glue.caughtEntities(level, pos, endPos);
+        }
+        if (cache.isEmpty()) {
+            return null;
+        }
+        return cache;
+
     }
 
     private static boolean isAllowed(BlockState state) {
