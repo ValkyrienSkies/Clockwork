@@ -1,6 +1,10 @@
 package org.valkyrienskies.clockwork.fabric.content.curiosities.tools.gravitron;
 
 
+import com.simibubi.create.foundation.item.CustomArmPoseItem;
+import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -8,9 +12,12 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemCooldowns;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import org.joml.Quaterniond;
 import org.joml.Quaterniondc;
 import org.joml.Vector2d;
@@ -21,13 +28,17 @@ import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 import org.valkyrienskies.physics_api.constraints.AttachmentConstraint;
 
+import javax.annotation.Nullable;
+import java.util.Objects;
 
-public class GravitronItem extends Item {
+
+public class GravitronItem extends Item implements CustomArmPoseItem {
     public GravitronItem(Properties properties) {
         super(properties);
     }
 
     boolean grabbing = false;
+    boolean shouldDrop = false;
 
     Vector3d HeldBlockPos;
     Vector2d PlayerGrabbedRotation; // Pitch , Yaw
@@ -41,28 +52,40 @@ public class GravitronItem extends Item {
     Integer positionDampeningConstraintID;
     Integer rotationDampeningConstraintID;
 
+    int grabCD = 0;
+
     // || ITEM FUNCTIONS || //
 
     @Override
     public InteractionResult useOn(UseOnContext context) {
-        grabShip(context);
-            return super.useOn(context);
+        if (context.getPlayer() != null) {
+            if (shipID == null && !context.getPlayer().getCooldowns().isOnCooldown(this) && !grabbing) {
+                grabShip(context);
+            }
+        }
+        return super.useOn(context);
     }
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
-        //dropShip();
+
+        if (shipID != null && grabCD == 0 && grabbing) {
+            shouldDrop = true;
+        }
+
         return super.use(level, player, usedHand);
     }
 
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected) {
-        if(isSelected){
+        if(isSelected && !shouldDrop){
             updateShip(level, entity);
         } else {
             dropShip(level);
         }
-
+        if (grabCD > 0) {
+            grabCD--;
+        }
         super.inventoryTick(stack, level, entity, slotId, isSelected);
     }
 
@@ -71,7 +94,11 @@ public class GravitronItem extends Item {
     // called first to put the ship into the players grasp
     void grabShip(UseOnContext context) {
         grabbing = true;
-
+        context.getPlayer().getCooldowns().addCooldown(this, 20);
+        grabCD = 20;
+        if (VSGameUtilsKt.getShipObjectManagingPos(context.getLevel(), context.getClickedPos()) == null) {
+            return;
+        }
         shipID = VSGameUtilsKt.getShipObjectManagingPos(context.getLevel(), context.getClickedPos()).getId();
         Ship ship = VSGameUtilsKt.getShipObjectWorld(context.getLevel()).getLoadedShips().getById(shipID);
 
@@ -95,10 +122,22 @@ public class GravitronItem extends Item {
             delConstraint(sLevel, positionDampeningConstraintID);
             delConstraint(sLevel, rotationConstraintID);
             delConstraint(sLevel, rotationDampeningConstraintID);
+            shipID = null;
+            positionConstraintID = null;
+            rotationConstraintID = null;
+            positionDampeningConstraintID = null;
+            rotationDampeningConstraintID = null;
+            shouldDrop = false;
         }
+    }
 
-
-        shipID = null;
+    // ONLY IN DEBUG SHOULD THIS BE USED
+    void printRemovedConstraints(Integer... constraints) {
+        for (Integer constraint : constraints) {
+            if (constraint != null) {
+                System.out.println("Removed " + constraint);
+            }
+        }
     }
 
     void updateShip(Level level, Entity entity) {
@@ -133,29 +172,29 @@ public class GravitronItem extends Item {
                     Vector3d Position = new Vector3d(HeldBlockPos).sub(posGlobalOffset);
 
 
-                    Double AttachmentCompliance = 1e-7;
-                    Double AttachmentMaxForce = 1e10;
-                    Double AttachmentFixedDistance = 0.0;
+                    double AttachmentCompliance = 1e-7;
+                    double AttachmentMaxForce = 1e10;
+                    double AttachmentFixedDistance = 0.0;
                     VSAttachmentConstraint AttachmentConstraint = new VSAttachmentConstraint(
                             shipID, worldShipID, AttachmentCompliance, Location, Position,
                             AttachmentMaxForce, AttachmentFixedDistance );
 
-                    Double RotationCompliance = 1e-8;
-                    Double RotationMaxForce = 1e10;
+                    double RotationCompliance = 1e-8;
+                    double RotationMaxForce = 1e10;
                     VSFixedOrientationConstraint RotationConstraint = new VSFixedOrientationConstraint(
                             shipID, worldShipID, RotationCompliance, new Quaterniond(), Rotation,
                             RotationMaxForce );
 
-                    Double PosDampingCompliance = 0.0;
-                    Double PosDampingMaxForce = 0.0;
-                    Double PosDampingEff = 100.0;
+                    double PosDampingCompliance = 0.0;
+                    double PosDampingMaxForce = 0.0;
+                    double PosDampingEff = 100.0;
                     VSPosDampingConstraint PosDampingConstraint = new VSPosDampingConstraint(
                             shipID, worldShipID, PosDampingCompliance, Location, Position,
                             PosDampingMaxForce, PosDampingEff );
 
-                    Double RotDampingCompliance = 0.0;
-                    Double RotDampingMaxForce = 0.0;
-                    Double RotDampingEff = 100.0;
+                    double RotDampingCompliance = 0.0;
+                    double RotDampingMaxForce = 0.0;
+                    double RotDampingEff = 100.0;
                     VSRotDampingConstraint RotDampingConstraint = new VSRotDampingConstraint(
                             shipID, worldShipID, RotDampingCompliance, new Quaterniond(), Rotation,
                             RotDampingMaxForce, RotDampingEff, VSRotDampingAxes.ALL_AXES );
@@ -165,6 +204,11 @@ public class GravitronItem extends Item {
                     System.out.println(Location);
                     System.out.println(Position);
                     System.out.println();
+
+                    delConstraint(sLevel, positionConstraintID);
+                    delConstraint(sLevel, positionDampeningConstraintID);
+                    delConstraint(sLevel, rotationConstraintID);
+                    delConstraint(sLevel, rotationDampeningConstraintID);
 
                     positionConstraintID            = VSGameUtilsKt.getShipObjectWorld(sLevel).createNewConstraint(AttachmentConstraint);
                     rotationConstraintID            = VSGameUtilsKt.getShipObjectWorld(sLevel).createNewConstraint(RotationConstraint);
@@ -185,9 +229,9 @@ public class GravitronItem extends Item {
         }
     }
 
-    Double getShipSize(Ship thisship){
+    double getShipSize(Ship thisship){
 
-        if(thisship != null) {
+        if(thisship != null && shipID != null) {
             Vector3d MinVector = new Vector3d(thisship.getShipAABB().minX(),thisship.getShipAABB().minY(),thisship.getShipAABB().minZ());
             Vector3d MaxVector = new Vector3d(thisship.getShipAABB().maxX(),thisship.getShipAABB().maxY(),thisship.getShipAABB().maxZ());
             return MinVector.sub(MaxVector).length() + 0.75;
@@ -197,7 +241,26 @@ public class GravitronItem extends Item {
 
 
 
-    Quaterniond playerRotToQuaternion(Double pitch, Double yaw) {
+    Quaterniond playerRotToQuaternion(double pitch, double yaw) {
         return new Quaterniond().rotateY(Math.toRadians(yaw)).rotateX(Math.toRadians(pitch));
+    }
+
+    @Override
+    public UseAnim getUseAnimation(ItemStack stack) {
+        return UseAnim.NONE;
+    }
+
+    @Override
+    @Nullable
+    public HumanoidModel.ArmPose getArmPose(ItemStack stack, AbstractClientPlayer player, InteractionHand hand) {
+        if (!player.swinging) {
+            return HumanoidModel.ArmPose.CROSSBOW_HOLD;
+        }
+        return null;
+    }
+
+    @Override
+    public boolean canAttackBlock(BlockState state, Level world, BlockPos pos, Player player) {
+        return false;
     }
 }

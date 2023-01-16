@@ -53,7 +53,7 @@ public class FlapBearingRenderer extends BearingRenderer {
     @Override
     protected SuperByteBuffer getRotatedModel(KineticTileEntity te, BlockState state) {
         return CachedBufferer.partialFacing(AllBlockPartials.SHAFT_HALF, state, state
-                .getValue(BearingBlock.FACING)
+                .getValue(FlapBearingBlock.FACING)
                 .getOpposite());
     }
 
