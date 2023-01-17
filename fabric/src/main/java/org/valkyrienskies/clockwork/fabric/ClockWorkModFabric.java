@@ -41,6 +41,8 @@ public class ClockWorkModFabric implements ModInitializer {
 
         ClockWorkMod.init();
         ClockWorkModFabric.init();
+
+        ClockworkContraptionTypes.prepare();
     }
 
     public static void init() {
@@ -63,6 +65,7 @@ public class ClockWorkModFabric implements ModInitializer {
     public static class Client implements ClientModInitializer {
 
         public static final BluperGlueSelectionHandler BLUPER_HANDLER = new BluperGlueSelectionHandler();
+        public static final GravitronRenderHandler GRAVITRON_HANDLER = new GravitronRenderHandler();
         @Override
         public void onInitializeClient() {
             ClockWorkMod.initClient();

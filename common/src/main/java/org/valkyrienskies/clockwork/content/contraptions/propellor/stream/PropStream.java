@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.contraptions.propellor.stream;
 
 import com.simibubi.create.AllTags;
+import com.simibubi.create.content.contraptions.particle.AirFlowParticleData;
 import com.simibubi.create.foundation.config.AllConfigs;
 import com.simibubi.create.foundation.utility.VecHelper;
 import io.github.fabricators_of_create.porting_lib.mixin.common.accessor.ServerGamePacketListenerImplAccessor;
@@ -12,6 +13,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
@@ -27,7 +29,13 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.valkyrienskies.clockwork.content.curiosities.particles.PropellorStreamParticleData;
 import org.valkyrienskies.clockwork.content.curiosities.sounds.PropStreamSound;
+import org.valkyrienskies.clockwork.fabric.content.contraptions.components.propellor.PropellorBearingTileEntity;
+import org.valkyrienskies.clockwork.fabric.content.curiosities.particles.PropellorStreamParticleData;
+import org.valkyrienskies.clockwork.fabric.content.curiosities.sounds.PropStreamSound;
+import org.valkyrienskies.core.api.ships.LoadedServerShip;
 import org.valkyrienskies.core.api.ships.LoadedShip;
+import org.valkyrienskies.core.api.ships.ServerShip;
+import org.valkyrienskies.core.api.world.ServerShipWorld;
 import org.valkyrienskies.core.api.world.ShipWorld;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
@@ -48,7 +56,7 @@ public class PropStream {
     public float maxDistance;
 
     protected List<Entity> caughtEntities = new ArrayList<>();
-    protected List<LoadedShip> caughtShips = new ArrayList<>();
+    protected List<LoadedServerShip> caughtShips = new ArrayList<>();
 
     static boolean isClientPlayerInPropStream;
 
@@ -67,11 +75,11 @@ public class PropStream {
                     .add(Vec3.atLowerCornerOf(facing.getNormal())
                             .scale(offset));
             if (world.random.nextFloat() < AllConfigs.CLIENT.fanParticleDensity.get())
-                world.addParticle(new PropellorStreamParticleData(source.getStreamPos()), pos.x, pos.y, pos.z, 0, 0, 0);
+                world.addParticle(new AirFlowParticleData(source.getStreamPos()), pos.x, pos.y, pos.z, 0, 0, 0);
         }
 
         tickAffectedEntities(world, facing);
-        tickAffectedShips();
+        tickAffectedShips(world, facing);
     }
 
     protected void tickAffectedEntities(Level world, Direction facing) {
@@ -90,9 +98,9 @@ public class PropStream {
             float speed = Math.abs(source.getSpeed());
             double entityDistance = entity.position()
                     .distanceTo(center);
-            float acceleration = (float) (speed / sneakModifier / (entityDistance / maxDistance));
+            float acceleration = (float) (speed / sneakModifier / (entityDistance / maxDistance) * source.getSailCount());
             Vec3 previousMotion = entity.getDeltaMovement();
-            float maxAcceleration = 5;
+            float maxAcceleration = 25;
 
             double xIn = Mth.clamp(flow.getX() * acceleration - previousMotion.x, -maxAcceleration, maxAcceleration);
             double yIn = Mth.clamp(flow.getY() * acceleration - previousMotion.y, -maxAcceleration, maxAcceleration);
@@ -112,7 +120,9 @@ public class PropStream {
 
     }
 
-    protected void tickAffectedShips() {}
+    protected void tickAffectedShips(Level world, Direction facing) {
+
+    }
 
     public void rebuild() {
         if (source.getSpeed() == 0) {
@@ -221,9 +231,11 @@ public class PropStream {
     }
 
     public void findShips() {
-        ShipWorld world = VSGameUtilsKt.getShipObjectWorld(Objects.requireNonNull(source.getStreamWorld()));
-        caughtShips.clear();
-        caughtShips = (List<LoadedShip>) world.getLoadedShips().getIntersecting(VectorConversionsMCKt.toJOML(bounds));
+//        if (!source.getStreamWorld().isClientSide)
+//            return;
+//        ServerShipWorld world = VSGameUtilsKt.getShipObjectWorld(Objects.requireNonNull((ServerLevel) source.getStreamWorld()));
+//        caughtShips.clear();
+//        caughtShips = (List<LoadedServerShip>) world.getLoadedShips().getIntersecting(VectorConversionsMCKt.toJOML(bounds));
     }
 
     private static boolean shouldAlwaysPass(BlockState state) {

@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.contraptions.infuser;
 
+import com.simibubi.create.content.contraptions.components.structureMovement.AssemblyException;
 import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
 import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
 import com.simibubi.create.foundation.utility.animation.LerpedFloat;
@@ -8,25 +9,46 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3d;
 import org.joml.primitives.AABBic;
+import org.valkyrienskies.clockwork.fabric.AllClockworkSounds;
+import org.valkyrienskies.clockwork.fabric.content.curiosities.particles.PhysLightningParticle;
+import org.valkyrienskies.clockwork.fabric.render.assemblyscan.ScannerRenderer;
+import org.valkyrienskies.clockwork.fabric.util.ContraptionController;
+import org.valkyrienskies.clockwork.fabric.util.GlueAssembler;
+import org.valkyrienskies.clockwork.fabric.util.GlueType;
+import org.valkyrienskies.core.api.ships.LoadedServerShip;
+import org.valkyrienskies.core.api.ships.LoadedShip;
 import org.valkyrienskies.clockwork.ClockWorkSounds;
 import org.valkyrienskies.clockwork.client.render.ScannerRenderer;
 import org.valkyrienskies.core.api.ships.ServerShip;
+import org.valkyrienskies.core.api.ships.Ship;
+import org.valkyrienskies.core.impl.datastructures.DenseBlockPosSet;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
+import org.valkyrienskies.mod.common.assembly.ShipAssemblyKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
+import java.util.HashSet;
+import java.util.Random;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 import static org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserRenderer.ScanManager.SCAN_GROWTH_DURATION;
 
 public class PhysicsInfuserBlockEntity extends SmartTileEntity {
 
     public boolean isAssembled = false;
+
+    protected AssemblyException lastException;
+
 
     public boolean assembling = false;
     public boolean disassembling = false;
@@ -41,6 +63,8 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
     float coreAngle = 0;
     float previousCoreAngle = 0;
 
+    private Ship ship = null;
+
     int useCooldown = 0;
     boolean onCooldown = false;
 
@@ -51,8 +75,6 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
     public static final int DISASSEMBLY_TIME = 1000;
 
     private boolean sendAnimationUpdate;
-
-    public ServerShip ship;
 
     public void initialize(Vec3 center, float scanRadius, int scanComputeDuration) {
     }
@@ -65,12 +87,16 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
         super(type, pos, state);
     }
 
+    public Ship getConnectedShip() {
+        return ship;
+    }
+
     @Override
     public void tick() {
         super.tick();
 
         if (level instanceof ServerLevel s) {
-            ship = VSGameUtilsKt.getShipManagingPos(s, worldPosition);
+            ship = VSGameUtilsKt.getShipObjectManagingPos(s, worldPosition);
         }
 
         if (ship != null) {
@@ -107,15 +133,17 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
         //client sounds
 
         if (assembling) {
-            if (!initPlayed) {
+            if (assemblyProgress.getValue() == 0) {
                 playInitializeSound(level, thisposition);
-                initPlayed=true;
             }
             if (assemblyProgress.getValue() == 100) {
                 playWindupSound(level, thisposition);
             }
             if (assemblyProgress.getValue() == 160 || assemblyProgress.getValue() == 220 || assemblyProgress.getValue() == 240 || assemblyProgress.getValue() == 300 || assemblyProgress.getValue() == 320 || assemblyProgress.getValue() == 360 || assemblyProgress.getValue() == 400 || assemblyProgress.getValue() == 410 || assemblyProgress.getValue() == 420) {
                 playZapSound(level, thisposition, rand);
+            }
+            if (assemblyProgress.getValue() == 455) {
+                assemble();
             }
             if (assemblyProgress.getValue() == 460) {
                 playFinishSound(level, thisposition);
@@ -159,17 +187,15 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
         startAnimation(Animation.DISASSEMBLY);
     }
 
-    public float getPulseRange() {
+    public double getPulseRange() {
         if (this.ship != null) {
             AABBic shipAABB = ship.getShipAABB();
-            double distanceToMax = thisposition.distanceToSqr(shipAABB.maxX(), shipAABB.maxY(), shipAABB.maxZ());
-            double distanceToMin = thisposition.distanceToSqr(shipAABB.minX(), shipAABB.minY(), shipAABB.minZ());
+            Vector3d max = new Vector3d(shipAABB.maxX(), shipAABB.maxY(), shipAABB.maxZ());
+            Vector3d min = new Vector3d(shipAABB.minX(), shipAABB.minY(), shipAABB.minZ());
 
-            if (distanceToMax > distanceToMin) {
-                return (float) Math.sqrt(distanceToMax);
-            } else {
-                return (float) Math.sqrt(distanceToMin);
-            }
+            double range = max.distance(min);
+
+            return range;
         } else {
             return Minecraft.getInstance().gameRenderer.getRenderDistance();
         }
@@ -177,7 +203,7 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
 
     public int getScanGrowthDuration() {
         if (this.ship != null) {
-            float range = getPulseRange();
+            double range = getPulseRange();
             return SCAN_GROWTH_DURATION * (int) range / 12;
         }
         return SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance / 12;
@@ -192,7 +218,7 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
         //   c = r1/((t1 + b)^2 - b*b)
         //   a = -r1*b*b/((t1 + b)^2 - b*b)
 
-        final float r1 = getPulseRange();
+        final float r1 = (float) getPulseRange();
         final float t1 = duration;
         final float b = 200;
         final float n = 1f / ((t1 + b) * (t1 + b) - b * b);
@@ -206,6 +232,28 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
 
     public void assemble() {
         //INSERT ASSEMBLY LOGIC TROL
+        DenseBlockPosSet selection;
+        Set<Entity> caughtEntities = new HashSet<>();
+        if (level instanceof ServerLevel s) {
+            try {
+                selection = GlueAssembler.collectGlued(this.level, worldPosition, GlueType.BLUPER);
+                caughtEntities = GlueAssembler.collectEntities(this.level, worldPosition, GlueType.BLUPER);
+                this.lastException = null;
+            } catch (AssemblyException e) {
+                this.lastException = e;
+                this.sendData();
+                return;
+            }
+            if (selection == null) return;
+
+            ship = ShipAssemblyKt.createNewShipWithBlocks(worldPosition, selection, (ServerLevel) level);
+            if (caughtEntities != null) {
+                caughtEntities.forEach(entity -> {
+
+                    ship.getTransform().getWorldToShip().transformPosition(VectorConversionsMCKt.toJOML(entity.position()));
+                });
+            }
+        }
     }
 
     public void disassemble() {

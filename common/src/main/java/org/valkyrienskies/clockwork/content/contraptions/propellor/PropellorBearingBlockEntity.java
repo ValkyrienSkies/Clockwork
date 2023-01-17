@@ -15,6 +15,7 @@ import com.simibubi.create.foundation.utility.ServerSpeedProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -23,6 +24,15 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import org.joml.Vector3d;
+import org.joml.Vector3dc;
+import org.joml.Vector3ic;
+import org.valkyrienskies.clockwork.fabric.content.contraptions.components.propellor.stream.IPropStreamSource;
+import org.valkyrienskies.clockwork.fabric.content.contraptions.components.propellor.stream.PropStream;
+import org.valkyrienskies.clockwork.fabric.content.forces.PropellorController;
+import org.valkyrienskies.clockwork.fabric.util.propellor.IPropellor;
+import org.valkyrienskies.core.api.ships.LoadedServerShip;
+import org.valkyrienskies.mod.common.VSGameUtilsKt;
+import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.stream.IPropStreamSource;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.stream.PropStream;
 import org.valkyrienskies.clockwork.platform.api.Propellor;
@@ -43,13 +53,19 @@ public class PropellorBearingBlockEntity extends MechanicalBearingTileEntity imp
 
     float rotspeed=0;
     float targetSpeed=0;
+    float lastSpeed=0;
     int sails;
+    int moddingSpeed;
     public List<BlockPos> sailPositions;
     boolean slowingDown=false;
-
     float disassembling;
+    int countDown = 200;
     float spinup;
     boolean spinningUp=false;
+
+    private Integer physPropId = null;
+
+    public PropellorBearingTileEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
     public PropellorBearingBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
         sailPositions = new ArrayList<>();
@@ -81,30 +97,29 @@ public class PropellorBearingBlockEntity extends MechanicalBearingTileEntity imp
         updateAirFlow = true;
     }
     private void modSpeed() {
-        float nextSpeed = convertToAngular(getSpeed());
-        if (getSpeed() == 0) {
-            nextSpeed = 0;
+        if (movedContraption == null) {
+            return;
         }
-        if(sailPositions.size()>0) {
-            float lerpcount = 0.7f / sailPositions.size();
-            rotspeed = Mth.lerp(lerpcount, rotspeed, nextSpeed);
-        } else {
-            rotspeed = nextSpeed;
+        if (rotspeed == targetSpeed) {
+            return;
         }
+        float diff = targetSpeed - rotspeed;
+        rotspeed = rotspeed + Mth.clamp(diff / 10, -32, 32);
+//        float delta = Mth.clamp(, lastSpeed, 10)
+        //rotspeed = (float) Mth.lerp(delta, lastSpeed, targetSpeed);
+        speed = rotspeed;
+        updateAirFlow = true;
     }
     private void modSlowdownSpeed() {
         disassembling--;
-        if (speed == 0) {
-            disassemble();
-            return;
-        }
-        if (disassembling==0) {
+        if (((int) speed) == 0 && disassembling <= 0 || disassembling == 0) {
             if(!level.isClientSide) {
                 disassemble();
             }
             slowingDown = false;
             return;
         }
+
         float stoppingPoint = (angle + rotspeed*disassembling*0.5f);
         float optimalStoppingPoint = 90f*Math.round(stoppingPoint/90f);
         float Q = (optimalStoppingPoint - stoppingPoint)/disassembling;
@@ -127,9 +142,15 @@ public class PropellorBearingBlockEntity extends MechanicalBearingTileEntity imp
     }
 
     private void modSpinupSpeed() {
+        if(level.isClientSide) {
+            return;
+        }
         spinup--;
-        if (speed == targetSpeed) {
+        if (speed >= targetSpeed) {
             spinningUp = false;
+            if (speed > targetSpeed) {
+                speed = targetSpeed;
+            }
             return;
         }
 
@@ -147,6 +168,7 @@ public class PropellorBearingBlockEntity extends MechanicalBearingTileEntity imp
         targetSpeed = getSourceSpeed();
         boolean server = !level.isClientSide || isVirtual();
 
+
         if (server && airCurrentUpdateCooldown == 0) {
             airCurrentUpdateCooldown = AllConfigs.SERVER.kinetics.fanBlockCheckRate.get();
             updateAirFlow = true;
@@ -161,10 +183,10 @@ public class PropellorBearingBlockEntity extends MechanicalBearingTileEntity imp
             modSlowdownSpeed();
         } else if (spinningUp) {
             modSpinupSpeed();
-        } else {
+        }
+        if (!spinningUp && !slowingDown) {
             modSpeed();
         }
-
         if (overStressed) {
             stressShutdown();
         }
@@ -196,14 +218,30 @@ public class PropellorBearingBlockEntity extends MechanicalBearingTileEntity imp
 //            assembleNextTick = true;
 //        if (!assembleNextTickCW)
 //            assembleNextTick = false;
+
+
+        if (physPropId != null) {
+            if (server) {
+                final LoadedServerShip ship = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, getBlockPos());
+                if (ship != null) {
+                    final PropellorUpdatePhysData data = new PropellorUpdatePhysData(speed, angle);
+                    PropellorController.getOrCreate(ship).updatePropellor(physPropId, data);
+                }
+            }
+        }
+
     }
 
     private void stressShutdown() {
         if (Math.abs(speed) < 3f) {
-            if (!level.isClientSide) {
-                disassemble();
+            countDown--;
+            if (countDown <= 0) {
+                if (!level.isClientSide) {
+                    disassemble();
+                    countDown = 200;
+                }
+                return;
             }
-            return;
         }
     }
 
@@ -292,6 +330,19 @@ public class PropellorBearingBlockEntity extends MechanicalBearingTileEntity imp
         rotspeed = 0;
         super.assemble();
         getSails();
+        List<Vector3ic> sailVecs = sailPositions.stream().map(v -> (Vector3ic) VectorConversionsMCKt.toJOML(v)).toList();
+        Vector3dc axis = VectorConversionsMCKt.toJOMLD(getBlockState().getValue(PropellorBearingBlock.FACING).getNormal());
+        Vector3dc vecpos = VectorConversionsMCKt.toJOMLD(getBlockPos());
+        PropellorCreatePhysData data = new PropellorCreatePhysData(vecpos, axis, angle, speed, sailVecs);
+
+        if (!level.isClientSide) {
+            final LoadedServerShip ship = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, getBlockPos());
+            if (ship != null) {
+                physPropId = PropellorController.getOrCreate(ship).addPropellor(data);
+            }
+        }
+        // Vector3dc bearingPos, Vector3dc bearingAxis, double bearingAngle, double bearingSpeed, List<Vector3ic> propellorPositions
+
 //        startSpinup();
 //        sails = ((BearingContraption) movedContraption.getContraption()).getSailBlocks();
     }
@@ -300,6 +351,16 @@ public class PropellorBearingBlockEntity extends MechanicalBearingTileEntity imp
         rotspeed = 0;
         super.disassemble();
         this.speed = targetSpeed;
+        clearKineticInformation();
+        attachKinetics();
+        if (physPropId != null) {
+            if (!level.isClientSide) {
+                final LoadedServerShip ship = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, getBlockPos());
+                if (ship != null) {
+                    PropellorController.getOrCreate(ship).removePropellor(physPropId);
+                }
+            }
+        }
     }
     public void setAssembleNextTick(boolean bool) {
         assembleNextTick = bool;
@@ -313,8 +374,8 @@ public class PropellorBearingBlockEntity extends MechanicalBearingTileEntity imp
     public void startSpinup() {
         if(!spinningUp) {
             spinningUp = true;
-            spinup = (int)Math.abs(targetSpeed);
             assemble();
+            spinup = (int)Math.abs(targetSpeed);
         }
     }
     @Override
@@ -382,6 +443,11 @@ public class PropellorBearingBlockEntity extends MechanicalBearingTileEntity imp
                 }
             }
         }
+    }
+
+    @Override
+    public int getSailCount() {
+        return sailPositions.size();
     }
 
     @Override
