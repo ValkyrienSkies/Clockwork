@@ -13,10 +13,6 @@ public class FabricBluperGlueEntity extends BluperGlueEntity implements ExtraSpa
         super(type, world);
     }
 
-    public FabricBluperGlueEntity(Level world, AABB boundingBox) {
-        super(world, boundingBox);
-    }
-
     public static FabricEntityTypeBuilder<?> build(FabricEntityTypeBuilder<?> builder) {
         return builder;
     }

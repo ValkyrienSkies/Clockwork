@@ -15,6 +15,7 @@ import java.util.function.BiConsumer;
 
 public class SharedValuesImpl {
     private static final CreativeModeTab TAB = new ClockworkGroup();
+    private static final PacketChannel CHANNEL = new PacketChannelImpl();
 
     public static CreativeModeTab creativeTab() {
         return TAB;
@@ -25,7 +26,7 @@ public class SharedValuesImpl {
     }
 
     public static PacketChannel getPacketChannel() {
-        return null;
+        return CHANNEL;
     }
 
     public static BiConsumer<CWItem, CustomRenderedItemModelRenderer<?>> customRenderedRegisterer() {

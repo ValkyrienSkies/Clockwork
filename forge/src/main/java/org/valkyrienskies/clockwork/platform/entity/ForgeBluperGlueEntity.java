@@ -13,10 +13,6 @@ public class ForgeBluperGlueEntity extends BluperGlueEntity implements IEntityAd
         super(type, world);
     }
 
-    public ForgeBluperGlueEntity(Level world, AABB boundingBox) {
-        super(world, boundingBox);
-    }
-
     public static void build(EntityType.Builder<ForgeBluperGlueEntity> tBuilder) {
 
     }

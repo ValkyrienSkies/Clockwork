@@ -11,6 +11,16 @@ import org.valkyrienskies.clockwork.platform.SharedValues;
 
 public class ClockWorkMod {
     public static final String MOD_ID = "vs_clockwork";
+
+    // versioning
+    public static final int BUILD_VERSION = 1;
+    public static final int NETWORK_VERSION = 1;
+    public static final String NETWORK_VERSION_STR = String.valueOf(NETWORK_VERSION);
+
+    public static final ResourceLocation NETWORK_CHANNEL = ClockWorkMod.asResource("main");
+
+
+
     public static final CreateRegistrate REGISTRATE = CreateRegistrate.create(ClockWorkMod.MOD_ID);
     public static final CreativeModeTab BASE_CREATIVE_TAB = SharedValues.creativeTab();
     public static final Logger MIXIN_LOGGER = LoggerFactory.getLogger("ClockworkMixins");

@@ -10,6 +10,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.valkyrienskies.clockwork.platform.PlatformUtils;
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket;
 import org.valkyrienskies.clockwork.platform.api.network.ClientNetworkContext;
 import org.valkyrienskies.clockwork.platform.api.network.ServerNetworkContext;
@@ -40,7 +41,7 @@ public class BluperGlueSelectionPacket implements C2SCWPacket {
         ctx.enqueueWork(() -> {
             ServerPlayer player = ctx.getSender();
 
-            double range = ReachEntityAttributes.getReachDistance(player, player.isCreative() ? 5 : 4.5) + 2;
+            double range = PlatformUtils.getReachDistance(player) + 2;
             if (player.distanceToSqr(Vec3.atCenterOf(to)) > range * range)
                 return;
             if (!to.closerThan(from, 25))
@@ -56,7 +57,7 @@ public class BluperGlueSelectionPacket implements C2SCWPacket {
 
             AABB bb = BluperGlueEntity.span(from, to);
             BluperGlueSelectionHelper.collectGlueFromInventory(player, 1, false);
-            BluperGlueEntity entity = new BluperGlueEntity(player.level, bb);
+            BluperGlueEntity entity = BluperGlueEntity.create(player.level, bb);
             player.level.addFreshEntity(entity);
             entity.spawnParticles();
         });

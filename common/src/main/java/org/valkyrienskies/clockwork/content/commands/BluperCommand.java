@@ -21,7 +21,7 @@ public class BluperCommand {
                                     ServerLevel world = ctx.getSource()
                                             .getLevel();
 
-                                    BluperGlueEntity entity = new BluperGlueEntity(world, BluperGlueEntity.span(from, to));
+                                    BluperGlueEntity entity = BluperGlueEntity.create(world, BluperGlueEntity.span(from, to));
                                     entity.playPlaceSound();
                                     world.addFreshEntity(entity);
                                     return 1;

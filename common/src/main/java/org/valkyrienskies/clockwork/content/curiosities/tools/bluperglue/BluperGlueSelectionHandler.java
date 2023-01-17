@@ -30,6 +30,7 @@ import org.joml.Quaterniond;
 import org.joml.Vector3d;
 import org.joml.primitives.AABBic;
 import org.valkyrienskies.clockwork.ClockWorkPackets;
+import org.valkyrienskies.clockwork.platform.PlatformUtils;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
@@ -62,7 +63,7 @@ public class BluperGlueSelectionHandler {
 
     private Vec3 getTraceOrigin(Player playerIn) {
         Minecraft mc = Minecraft.getInstance();
-        double range = ReachEntityAttributes.getReachDistance(playerIn, mc.gameMode.getPickRange()) + 1;
+        double range = PlatformUtils.getReachDistance(playerIn) + 1;
         Vec3 origin = RaycastHelper.getTraceOrigin(playerIn);
         Vec3 target = RaycastHelper.getTraceTarget(playerIn, range, origin);
 
@@ -125,7 +126,7 @@ public class BluperGlueSelectionHandler {
 
         selected = null;
         if (firstPos == null) {
-            double range = ReachEntityAttributes.getReachDistance(player, mc.gameMode.getPickRange()) + 1;
+            double range = PlatformUtils.getReachDistance(player) + 1;
             Vec3 traceOrigin = getTraceOrigin(player);
             Vec3 traceTarget = getTraceTarget(player, range, traceOrigin);
 

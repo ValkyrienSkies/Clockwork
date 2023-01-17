@@ -42,6 +42,7 @@ import com.simibubi.create.foundation.utility.Iterate;
 import com.simibubi.create.foundation.utility.VecHelper;
 import org.valkyrienskies.clockwork.ClockWorkEntities;
 import org.valkyrienskies.clockwork.ClockWorkItems;
+import org.valkyrienskies.clockwork.platform.PlatformUtils;
 import org.valkyrienskies.clockwork.platform.api.network.EntityExtraSpawnData;
 
 import java.util.ArrayList;
@@ -122,19 +123,21 @@ public class BluperGlueEntity extends Entity
                 continue;
             if (Mth.equal(intersect.getSize(), 1))
                 continue;
-            glue.add(new BluperGlueEntity(level, intersect));
+            glue.add(create(level, intersect));
         }
         return glue;
     }
 
+    // DON4T USE
     public BluperGlueEntity(EntityType<?> type, Level world) {
         super(type, world);
     }
 
-    public BluperGlueEntity(Level world, AABB boundingBox) {
-        this(ClockWorkEntities.BLUPERGLUE.get(), world);
-        setBoundingBox(boundingBox);
-        resetPositionToBB();
+    public static BluperGlueEntity create(Level world, AABB boundingBox) {
+        BluperGlueEntity entity = ClockWorkEntities.BLUPERGLUE.create(world);
+        entity.setBoundingBox(boundingBox);
+        entity.resetPositionToBB();
+        return entity;
     }
 
     public void resetPositionToBB() {
@@ -257,7 +260,7 @@ public class BluperGlueEntity extends Entity
 
     @Override
     public Packet<?> getAddEntityPacket() {
-        return ExtraSpawnDataEntity.createExtraDataSpawnPacket(this);
+        return PlatformUtils.createExtraDataSpawnPacket(this);
     }
 
     @Override

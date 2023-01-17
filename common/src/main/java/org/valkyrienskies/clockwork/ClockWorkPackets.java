@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork;
 
-import com.simibubi.create.foundation.networking.SimplePacketBase;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -13,53 +12,38 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperG
 
 import java.util.function.Function;
 
-import com.simibubi.create.foundation.networking.SimplePacketBase.NetworkDirection;
+import org.valkyrienskies.clockwork.platform.SharedValues;
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket;
 import org.valkyrienskies.clockwork.platform.api.network.CWPacket;
-import org.valkyrienskies.clockwork.platform.api.network.PacketChannel;
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket;
-
-import static com.simibubi.create.foundation.networking.SimplePacketBase.NetworkDirection.PLAY_TO_CLIENT;
-import static com.simibubi.create.foundation.networking.SimplePacketBase.NetworkDirection.PLAY_TO_SERVER;
 
 public enum ClockWorkPackets {
 
     // Client to Server
-    BLUPERGLUE_IN_AREA(BluperGlueSelectionPacket.class, BluperGlueSelectionPacket::new, PLAY_TO_SERVER),
-    BLUPERGLUE_REMOVED(BluperGlueRemovalPacket.class, BluperGlueRemovalPacket::new, PLAY_TO_SERVER),
+    BLUPERGLUE_IN_AREA(BluperGlueSelectionPacket.class, BluperGlueSelectionPacket::new),
+    BLUPERGLUE_REMOVED(BluperGlueRemovalPacket.class, BluperGlueRemovalPacket::new),
 
     // Server to Client
-    BLUPERGLUE_EFFECT(BluperGlueEffectPacket.class, BluperGlueEffectPacket::new, PLAY_TO_CLIENT),
+    BLUPERGLUE_EFFECT(BluperGlueEffectPacket.class, BluperGlueEffectPacket::new),
     ;
 
-
-    // versioning
-    public static final ResourceLocation CHANNEL_NAME = ClockWorkMod.asResource("main");
-    public static final int NETWORK_VERSION = 1;
-    public static final String NETWORK_VERSION_STR = String.valueOf(NETWORK_VERSION);
-
-    <T extends CWPacket> ClockWorkPackets(Class<T> type, Function<FriendlyByteBuf, T> factory,
-                                          NetworkDirection direction) {
-        // TODO load packets
-    }
-
-    public static void registerPackets() {
-
+    <T extends CWPacket> ClockWorkPackets(Class<T> type, Function<FriendlyByteBuf, T> factory) {
+        SharedValues.getPacketChannel().registerPacket(type, factory);
     }
 
     public static void sendToNear(Level world, BlockPos pos, int range, S2CCWPacket message) {
-
+        SharedValues.getPacketChannel().sendToNear(world, pos, range, message);
     }
 
     public static void sendToServer(C2SCWPacket packet) {
-
+        SharedValues.getPacketChannel().sendToServer(packet);
     }
 
     public static void sendToClientsTracking(S2CCWPacket packet, Entity entity) {
-
+        SharedValues.getPacketChannel().sendToClientsTracking(packet, entity);
     }
 
     public static void sendToClientsTrackingAndSelf(S2CCWPacket packet, ServerPlayer player) {
-
+        SharedValues.getPacketChannel().sendToClientsTrackingAndSelf(packet, player);
     }
 }

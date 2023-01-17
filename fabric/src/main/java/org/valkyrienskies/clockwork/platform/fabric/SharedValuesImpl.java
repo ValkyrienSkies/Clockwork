@@ -28,7 +28,7 @@ public class SharedValuesImpl {
 
     public static PacketChannel getPacketChannel() {
         return FabricClockWorkPackets.INSTANCE;
-    }
+    } // TODO
 
     public static BiConsumer<CWItem, CustomRenderedItemModelRenderer<?>> customRenderedRegisterer() {
         return BuiltinItemRendererRegistry.INSTANCE::register;

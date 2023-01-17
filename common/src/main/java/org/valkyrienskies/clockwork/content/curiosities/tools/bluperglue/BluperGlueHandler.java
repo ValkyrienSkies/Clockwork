@@ -25,6 +25,7 @@ import net.minecraft.world.phys.HitResult.Type;
 import net.minecraft.world.phys.Vec3;
 import org.valkyrienskies.clockwork.ClockWorkItems;
 import org.valkyrienskies.clockwork.ClockWorkPackets;
+import org.valkyrienskies.clockwork.platform.PlatformUtils;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -68,7 +69,7 @@ public class BluperGlueHandler {
         if (placedAgainst == IPlacementHelper.ID)
             return InteractionResult.PASS;
 
-        double distance = ReachEntityAttributes.getReachDistance(placer, placer.isCreative() ? 5 : 4.5);
+        double distance = PlatformUtils.getReachDistance(placer);
         Vec3 start = placer.getEyePosition(1);
         Vec3 look = placer.getViewVector(1);
         Vec3 end = start.add(look.x * distance, look.y * distance, look.z * distance);
@@ -92,7 +93,7 @@ public class BluperGlueHandler {
         if (BluperGlueEntity.isBluGlued(world, gluePos, face, null))
             return InteractionResult.PASS;
 
-        BluperGlueEntity entity = new BluperGlueEntity(world, BluperGlueEntity.span(gluePos, gluePos.relative(face)));
+        BluperGlueEntity entity = BluperGlueEntity.create(world, BluperGlueEntity.span(gluePos, gluePos.relative(face)));
         CompoundTag compoundnbt = itemstack.getTag();
         if (compoundnbt != null)
             EntityType.updateCustomEntityTag(world, placer, entity, compoundnbt);
