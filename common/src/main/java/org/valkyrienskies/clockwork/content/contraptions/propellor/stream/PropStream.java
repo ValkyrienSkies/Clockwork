@@ -27,17 +27,8 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.valkyrienskies.clockwork.content.curiosities.particles.PropellorStreamParticleData;
 import org.valkyrienskies.clockwork.content.curiosities.sounds.PropStreamSound;
-import org.valkyrienskies.clockwork.fabric.content.contraptions.components.propellor.PropellorBearingTileEntity;
-import org.valkyrienskies.clockwork.fabric.content.curiosities.particles.PropellorStreamParticleData;
-import org.valkyrienskies.clockwork.fabric.content.curiosities.sounds.PropStreamSound;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
-import org.valkyrienskies.core.api.ships.LoadedShip;
-import org.valkyrienskies.core.api.ships.ServerShip;
-import org.valkyrienskies.core.api.world.ServerShipWorld;
-import org.valkyrienskies.core.api.world.ShipWorld;
-import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
 import java.util.ArrayList;
