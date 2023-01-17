@@ -35,7 +35,7 @@ public interface GlueType {
         }
     };
 
-    public static final GlueType BLUPER = null;/*new GlueType() {
+    public static final GlueType BLUPER = SUPER;/*new GlueType() {
         @Override
         public boolean isGlued(LevelAccessor level, BlockPos pos, Direction dir, Set<Entity> cache) {
             return false;

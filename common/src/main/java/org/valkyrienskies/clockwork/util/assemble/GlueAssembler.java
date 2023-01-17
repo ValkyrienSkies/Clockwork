@@ -111,9 +111,11 @@ public class GlueAssembler {
         if (glue == GlueType.BLUPER) {
             cache = glue.caughtEntities(level, pos, endPos);
         }
-        if (cache.isEmpty()) {
+
+        if (cache == null || cache.isEmpty()) {
             return null;
         }
+
         return cache;
 
     }

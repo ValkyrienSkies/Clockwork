@@ -98,10 +98,10 @@ public class PropStream {
 
             entity.setDeltaMovement(previousMotion.add(new Vec3(xIn, yIn, zIn).scale(1 / 8f)));
             entity.fallDistance = 0;
-            EnvExecutor.runWhenOn(EnvType.CLIENT,
-                    () -> () -> enableClientPlayerSound(entity, Mth.clamp(speed / 128f * .4f, 0.01f, .4f)));
 
-            if (entity instanceof ServerPlayer)
+            if (entity.level.isClientSide)
+                enableClientPlayerSound(entity, Mth.clamp(speed / 128f * .4f, 0.01f, .4f));
+            else if (entity instanceof ServerPlayer)
                 ((ServerGamePacketListenerImplAccessor) ((ServerPlayer) entity).connection).port_lib$setAboveGroundTickCount(0);
 
             entityDistance -= .5f;
