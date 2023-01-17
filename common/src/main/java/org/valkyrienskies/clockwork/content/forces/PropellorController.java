@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.fabric.content.forces;
+package org.valkyrienskies.clockwork.content.forces;
 
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;

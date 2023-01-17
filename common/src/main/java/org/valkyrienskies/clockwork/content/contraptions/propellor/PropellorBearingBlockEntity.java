@@ -26,10 +26,12 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 import org.joml.Vector3ic;
-import org.valkyrienskies.clockwork.fabric.content.contraptions.components.propellor.stream.IPropStreamSource;
-import org.valkyrienskies.clockwork.fabric.content.contraptions.components.propellor.stream.PropStream;
-import org.valkyrienskies.clockwork.fabric.content.forces.PropellorController;
-import org.valkyrienskies.clockwork.fabric.util.propellor.IPropellor;
+import org.valkyrienskies.clockwork.content.contraptions.propellor.stream.IPropStreamSource;
+import org.valkyrienskies.clockwork.content.contraptions.propellor.stream.PropStream;
+import org.valkyrienskies.clockwork.content.forces.PropellorController;
+import org.valkyrienskies.clockwork.fabric.content.contraptions.components.propellor.PropellorCreatePhysData;
+import org.valkyrienskies.clockwork.fabric.content.contraptions.components.propellor.PropellorUpdatePhysData;
+import org.valkyrienskies.clockwork.platform.api.Propellor;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
@@ -62,7 +64,7 @@ public class PropellorBearingBlockEntity extends MechanicalBearingTileEntity imp
 
     private Integer physPropId = null;
 
-    public PropellorBearingTileEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+    public PropellorBearingBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
         sailPositions = new ArrayList<>();
         propStream = new PropStream(this);

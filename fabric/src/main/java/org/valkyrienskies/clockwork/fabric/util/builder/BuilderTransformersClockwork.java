@@ -32,10 +32,10 @@ public class BuilderTransformersClockwork {
                 .build();
     }
     public static <B extends Block, P> NonNullUnaryOperator<BlockBuilder<B, P>> flapbearing() {
-        ResourceLocation baseBlockModelLocation = ClockWorkModFabric.asResource("block/flap_bearing/block");
-        ResourceLocation baseItemModelLocation = ClockWorkModFabric.asResource("block/bearing/item");
-        ResourceLocation topTextureLocation = ClockWorkModFabric.asResource("block/flap_bearing/top");
-        ResourceLocation baseTextureLocation = ClockWorkModFabric.asResource("block/flap_bearing");
+        ResourceLocation baseBlockModelLocation = ClockWorkMod.asResource("block/flap_bearing/block");
+        ResourceLocation baseItemModelLocation = ClockWorkMod.asResource("block/bearing/item");
+        ResourceLocation topTextureLocation = ClockWorkMod.asResource("block/flap_bearing/top");
+        ResourceLocation baseTextureLocation = ClockWorkMod.asResource("block/flap_bearing");
         return b -> b.initialProperties(SharedProperties::stone)
                 .properties(p -> p.noOcclusion())
                 .blockstate((c, p) -> p.directionalBlock(c.get(), p.models()

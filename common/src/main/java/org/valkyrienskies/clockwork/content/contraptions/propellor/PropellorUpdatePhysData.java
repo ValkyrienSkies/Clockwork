@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.fabric.content.contraptions.components.propellor;
+package org.valkyrienskies.clockwork.content.contraptions.propellor;
 
 import org.joml.Vector3dc;
 

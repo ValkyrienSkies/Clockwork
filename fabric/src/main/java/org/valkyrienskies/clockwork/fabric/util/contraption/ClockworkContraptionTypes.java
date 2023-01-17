@@ -10,6 +10,7 @@ import com.simibubi.create.content.contraptions.components.structureMovement.mou
 import com.simibubi.create.content.contraptions.components.structureMovement.piston.PistonContraption;
 import com.simibubi.create.content.contraptions.components.structureMovement.pulley.PulleyContraption;
 import com.simibubi.create.content.logistics.trains.entity.CarriageContraption;
+import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.clockwork.fabric.ClockWorkModFabric;
 import org.valkyrienskies.clockwork.fabric.content.contraptions.components.flap.contraption.FlapContraption;
 
@@ -19,7 +20,7 @@ import java.util.function.Supplier;
 
 public class ClockworkContraptionTypes {
     public static final ContraptionType
-            FLAP = ContraptionType.register(ClockWorkModFabric.asResource("flap").toString(), FlapContraption::new);
+            FLAP = ContraptionType.register(ClockWorkMod.asResource("flap").toString(), FlapContraption::new);
 
     public static void prepare() {}
 
