@@ -19,10 +19,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import org.valkyrienskies.clockwork.ClockworkItems;
+import org.valkyrienskies.clockwork.ClockWorkItems;
+import org.valkyrienskies.clockwork.platform.CWItem;
 
 
-public class BluperGlueItem extends Item {
+public class BluperGlueItem extends CWItem {
 
     public static InteractionResult glueItemAlwaysPlacesWhenUsed(Player player, Level world, InteractionHand hand, BlockHitResult hitResult) {
         if (hitResult != null) {
@@ -64,7 +65,7 @@ public class BluperGlueItem extends Item {
 
         float distance = fullBlock ? 1f : .25f + .25f * (world.random.nextFloat() - .5f);
         plane = plane.scale(distance);
-        ItemStack stack = new ItemStack(ClockworkItems.BLUUGUU.get());
+        ItemStack stack = new ItemStack(ClockWorkItems.BLUUGUU.get());
 
         for (int i = fullBlock ? 40 : 15; i > 0; i--) {
             Vec3 offset = VecHelper.rotate(plane, 360 * world.random.nextFloat(), direction.getAxis());

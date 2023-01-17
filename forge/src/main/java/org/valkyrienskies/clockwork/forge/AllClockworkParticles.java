@@ -14,7 +14,7 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import org.valkyrienskies.clockwork.ClockWorkMod;
-import org.valkyrienskies.clockwork.ClockworkParticles;
+import org.valkyrienskies.clockwork.ClockWorkParticles;
 
 import java.util.function.Supplier;
 
@@ -30,13 +30,13 @@ public enum AllClockworkParticles {
     }
 
     public static void init(IEventBus modEventBus) {
-        ClockworkParticles.init();
+        ClockWorkParticles.init();
         ParticleEntry.REGISTER.register(modEventBus);
     }
 
     @OnlyIn(Dist.CLIENT)
     public static void register(ParticleFactoryRegisterEvent event) {
-        ClockworkParticles.initClient();
+        ClockWorkParticles.initClient();
 
         ParticleEngine particles = Minecraft.getInstance().particleEngine;
         for (AllClockworkParticles particle : values())

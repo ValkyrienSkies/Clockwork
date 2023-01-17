@@ -5,18 +5,15 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
+import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.ModLoadingStage;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.valkyrienskies.clockwork.*;
-import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueSelectionHandler;
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronRenderHandler;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
 
 import static org.valkyrienskies.clockwork.ClockWorkMod.REGISTRATE;
@@ -47,11 +44,14 @@ public class ClockWorkModForge {
         ForgeClockworkBlocks.register();
 
         // TODO common items
-        ClockworkItems.register();
+        ClockWorkItems.register();
         ForgeClockworkItems.register();
 
         ClockWorkBlockEntities.register();
         ForgeClockworkBlockEntities.register();
+
+        ClockWorkEntities.register();
+        ForgeClockworkEntities.register();
 
         AllClockworkParticles.init(modEventBus);
         AllClockworkConfigs.register(modLoadingContext);
@@ -68,7 +68,6 @@ public class ClockWorkModForge {
             // In create itself they do it FMLClientSetupEvent this does not work (what a scam)
             // It prob gets staticly loaded earlier and well yhea...
             ClockWorkPartials.init();
-            ClockworkParticles.initClient();
             modEventBus.addListener(AllParticleTypes::registerFactories);
             // TODO forge partials
 

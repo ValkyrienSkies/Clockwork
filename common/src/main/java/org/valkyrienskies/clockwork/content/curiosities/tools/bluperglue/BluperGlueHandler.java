@@ -8,6 +8,7 @@ import com.simibubi.create.foundation.utility.worldWrappers.RayTraceWorld;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -22,8 +23,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult.Type;
 import net.minecraft.world.phys.Vec3;
-import org.valkyrienskies.clockwork.ClockworkItems;
-import org.valkyrienskies.clockwork.ClockworkPackets;
+import org.valkyrienskies.clockwork.ClockWorkItems;
+import org.valkyrienskies.clockwork.ClockWorkPackets;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -44,17 +45,23 @@ public class BluperGlueHandler {
         for (Direction direction : Iterate.directions) {
             BlockPos relative = pos.relative(direction);
             if (BluperGlueEntity.isBluGlued(world, pos, direction, cached))
-                ClockworkPackets.channel.sendToClientsTrackingAndSelf(new BluperGlueEffectPacket(pos, direction, true), entity);
+                ClockWorkPackets.sendToClientsTrackingAndSelf(new BluperGlueEffectPacket(pos, direction, true), (ServerPlayer) entity);
         }
 
-        if (entity instanceof Player)
-            return bluperglueInOffHandAppliesOnBlockPlace(context.getLevel().getBlockState(context.getClickedPos().relative(context.getClickedFace().getOpposite())), pos, (Player) entity);
+        if (entity instanceof ServerPlayer)
+            return bluperglueInOffHandAppliesOnBlockPlace(
+                    context.getLevel().getBlockState(
+                            context.getClickedPos().relative(context.getClickedFace().getOpposite())
+                    ),
+                    pos,
+                    (ServerPlayer) entity
+            );
         return InteractionResult.PASS;
     }
 
     public static InteractionResult bluperglueInOffHandAppliesOnBlockPlace(BlockState placedAgainst, BlockPos pos, Player placer) {
         ItemStack itemstack = placer.getOffhandItem();
-        if (!ClockworkItems.BLUPERGLUE.isIn(itemstack))
+        if (!ClockWorkItems.BLUPERGLUE.isIn(itemstack))
             return InteractionResult.PASS;
         if (AllItems.WRENCH.isIn(placer.getMainHandItem()))
             return InteractionResult.PASS;
@@ -93,7 +100,7 @@ public class BluperGlueHandler {
         if (BluperGlueEntity.isValidFace(world, gluePos, face)) {
             if (!world.isClientSide) {
                 world.addFreshEntity(entity);
-                ClockworkPackets.channel.sendToClientsTracking(new BluperGlueEffectPacket(gluePos, face, true), entity);
+                ClockWorkPackets.sendToClientsTracking(new BluperGlueEffectPacket(gluePos, face, true), entity);
             }
             itemstack.hurtAndBreak(1, placer, BluperGlueItem::onBroken);
         }

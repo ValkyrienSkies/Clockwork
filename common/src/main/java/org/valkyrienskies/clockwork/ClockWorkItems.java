@@ -9,10 +9,11 @@ import net.minecraft.world.item.Item;
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItemRenderer;
+import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate;
 
 import static com.simibubi.create.content.AllSections.MATERIALS;
 import static org.valkyrienskies.clockwork.ClockWorkMod.REGISTRATE;
-public class ClockworkItems {
+public class ClockWorkItems {
         static {
             REGISTRATE.creativeModeTab(() -> ClockWorkMod.BASE_CREATIVE_TAB);
         }
@@ -38,7 +39,7 @@ public class ClockworkItems {
 
         public static final ItemEntry<GravitronItem> GRAVITRON = REGISTRATE.item("gravitron", GravitronItem::new)
                 .properties(p -> p.stacksTo(1))
-                .transform(CreateRegistrate.customRenderedItem(() -> GravitronItemRenderer::new))
+                .transform(ClockworkRegistrate.customRenderedItem(() -> GravitronItemRenderer::new))
                 .tag(AllTags.AllItemTags.WRENCH.tag)
                 .model(AssetLookup.itemModelWithPartials())
                 .register();

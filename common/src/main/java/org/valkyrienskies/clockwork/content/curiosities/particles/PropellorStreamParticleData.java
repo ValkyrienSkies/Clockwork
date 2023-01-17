@@ -12,13 +12,13 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.network.FriendlyByteBuf;
-import org.valkyrienskies.clockwork.ClockworkParticles;
+import org.valkyrienskies.clockwork.ClockWorkParticles;
 
 public class PropellorStreamParticleData implements ParticleOptions, ICustomParticleDataWithSprite<PropellorStreamParticleData> {
 
     @Override
     public ParticleType<?> getType() {
-        return ClockworkParticles.PROP_STREAM.get();
+        return ClockWorkParticles.PROP_STREAM.get();
     }
 
     public static final Codec<PropellorStreamParticleData> CODEC = RecordCodecBuilder.create(i -> i.group(
@@ -65,7 +65,7 @@ public class PropellorStreamParticleData implements ParticleOptions, ICustomPart
 
     @Override
     public String writeToString() {
-        return String.format("%s %d %d %d", ClockworkParticles.PROP_STREAM.parameter(), posX, posY, posZ);
+        return String.format("%s %d %d %d", ClockWorkParticles.PROP_STREAM.parameter(), posX, posY, posZ);
     }
     @Override
     public Deserializer<PropellorStreamParticleData> getDeserializer() {

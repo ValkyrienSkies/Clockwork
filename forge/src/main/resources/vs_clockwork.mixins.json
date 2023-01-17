@@ -4,7 +4,8 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "create.MixinFilteringHandler",
-    "create.MixinAirFlowParticle"
+    "create.MixinAirFlowParticle",
+    "MixinCWItem"
   ],
   "client": [
     "create.client.MixinSuperGlueSelectionHandler"

@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.fabric.content.events;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
+import org.valkyrienskies.clockwork.ClockWorkHandlers;
 import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.stream.PropStream;
 import org.valkyrienskies.clockwork.fabric.ClockWorkModFabric;
@@ -22,8 +23,7 @@ public class FabricClockworkClientEvents {
         if (!isGameActive())
             return;
 
-        ClockWorkMod.BLUPER_HANDLER.tick();
-        ClockWorkMod.GRAVITRON_HANDLER.tick();
+        ClockWorkHandlers.tick();
     }
 
     public static void register() {

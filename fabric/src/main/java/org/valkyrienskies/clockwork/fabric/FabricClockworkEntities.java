@@ -15,14 +15,23 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueEntity;
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueRenderer;
+import org.valkyrienskies.clockwork.platform.entity.FabricBluperGlueEntity;
 
 import static org.valkyrienskies.clockwork.ClockWorkMod.REGISTRATE;
 
 public class FabricClockworkEntities {
 
-    public static final EntityEntry<BluperGlueEntity> BLUPERGLUE =
-            register("bluperglue", BluperGlueEntity::new, () -> BluperGlueRenderer::new, MobCategory.MISC, 10,
-                    Integer.MAX_VALUE, false, true, BluperGlueEntity::build).register();
+    public static final EntityEntry<FabricBluperGlueEntity> BLUPERGLUE =
+            FabricClockworkEntities.<FabricBluperGlueEntity>register("bluperglue",
+                    FabricBluperGlueEntity::new,
+                    () -> BluperGlueRenderer::new,
+                    MobCategory.MISC,
+                    10,
+                    Integer.MAX_VALUE,
+                    false,
+                    true,
+                    FabricBluperGlueEntity::build
+            ).register();
     //
 
     private static <T extends Entity> CreateEntityBuilder<T, ?> contraption(String name, EntityType.EntityFactory<T> factory,

@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue;
 
 import com.jamieswhiteshirt.reachentityattributes.ReachEntityAttributes;
-import com.simibubi.create.foundation.networking.SimplePacketBase;
 
 import java.util.Set;
 import java.util.function.Supplier;
@@ -11,7 +10,11 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-public class BluperGlueSelectionPacket extends SimplePacketBase {
+import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket;
+import org.valkyrienskies.clockwork.platform.api.network.ClientNetworkContext;
+import org.valkyrienskies.clockwork.platform.api.network.ServerNetworkContext;
+
+public class BluperGlueSelectionPacket implements C2SCWPacket {
 
     private BlockPos from;
     private BlockPos to;
@@ -33,8 +36,7 @@ public class BluperGlueSelectionPacket extends SimplePacketBase {
     }
 
     @Override
-    public void handle(Supplier<Context> context) {
-        Context ctx = context.get();
+    public void handle(ServerNetworkContext ctx) {
         ctx.enqueueWork(() -> {
             ServerPlayer player = ctx.getSender();
 

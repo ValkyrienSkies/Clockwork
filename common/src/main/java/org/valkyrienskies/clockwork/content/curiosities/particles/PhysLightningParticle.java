@@ -9,7 +9,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
-import org.valkyrienskies.clockwork.ClockworkParticles;
+import org.valkyrienskies.clockwork.ClockWorkParticles;
 
 public class PhysLightningParticle extends CustomRotationParticle {
 
@@ -85,7 +85,7 @@ public class PhysLightningParticle extends CustomRotationParticle {
 
         @Override
         public ParticleType<?> getType() {
-            return ClockworkParticles.PHYS_LIGHTNING.get();
+            return ClockWorkParticles.PHYS_LIGHTNING.get();
         }
     }
 

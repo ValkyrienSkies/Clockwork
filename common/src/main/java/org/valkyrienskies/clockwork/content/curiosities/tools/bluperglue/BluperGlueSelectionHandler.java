@@ -29,7 +29,7 @@ import org.joml.Matrix4d;
 import org.joml.Quaterniond;
 import org.joml.Vector3d;
 import org.joml.primitives.AABBic;
-import org.valkyrienskies.clockwork.ClockworkPackets;
+import org.valkyrienskies.clockwork.ClockWorkPackets;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
@@ -245,7 +245,7 @@ public class BluperGlueSelectionHandler {
         if (attack) {
             if (selected == null)
                 return false;
-            ClockworkPackets.channel.sendToServer(new BluperGlueRemovalPacket(selected.getId(), soundSourceForRemoval));
+            ClockWorkPackets.sendToServer(new BluperGlueRemovalPacket(selected.getId(), soundSourceForRemoval));
             selected = null;
             clusterCooldown = 0;
             return true;
@@ -301,7 +301,7 @@ public class BluperGlueSelectionHandler {
 
     public void confirm() {
         LocalPlayer player = Minecraft.getInstance().player;
-        ClockworkPackets.channel.sendToServer(new BluperGlueSelectionPacket(firstPos, hoveredPos));
+        ClockWorkPackets.sendToServer(new BluperGlueSelectionPacket(firstPos, hoveredPos));
         AllSoundEvents.SLIME_ADDED.playAt(player.level, hoveredPos, 0.5F, 0.95F, false);
         player.level.playSound(player, hoveredPos, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.BLOCKS, 0.75f, 1);
 

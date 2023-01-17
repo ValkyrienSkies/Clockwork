@@ -1,27 +1,19 @@
 package org.valkyrienskies.clockwork;
 
-import static net.minecraft.core.Direction.EAST;
-import static net.minecraft.core.Direction.NORTH;
-import static net.minecraft.core.Direction.SOUTH;
 import static net.minecraft.core.Direction.UP;
 
 import java.util.function.BiFunction;
 
-import com.simibubi.create.content.logistics.block.chute.ChuteShapes;
-import com.simibubi.create.content.logistics.trains.track.TrackVoxelShapes;
 import com.simibubi.create.foundation.utility.VoxelShaper;
 
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.DirectionalBlock;
-import net.minecraft.world.level.block.piston.PistonHeadBlock;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-public class AllClockworkShapes {
+public class ClockWorkShapes {
 
     public static final VoxelShaper
 

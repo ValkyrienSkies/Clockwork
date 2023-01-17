@@ -11,7 +11,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
-import org.valkyrienskies.clockwork.ClockworkContraptions;
+import org.valkyrienskies.clockwork.ClockWorkContraptions;
 
 import java.util.Queue;
 import java.util.Set;
@@ -53,7 +53,7 @@ public class FlapContraption extends Contraption {
 
     @Override
     protected ContraptionType getType() {
-        return ClockworkContraptions.FLAP;
+        return ClockWorkContraptions.FLAP;
     }
 
     @Override

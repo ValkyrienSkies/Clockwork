@@ -5,7 +5,6 @@ import com.simibubi.create.content.contraptions.components.structureMovement.Abs
 import com.simibubi.create.content.contraptions.components.structureMovement.BlockMovementChecks;
 import com.simibubi.create.content.contraptions.components.structureMovement.glue.SuperGlueEntity;
 import io.github.fabricators_of_create.porting_lib.entity.ExtraSpawnDataEntity;
-import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
@@ -41,8 +40,9 @@ import com.simibubi.create.content.schematics.ItemRequirement;
 import com.simibubi.create.content.schematics.ItemRequirement.ItemUseType;
 import com.simibubi.create.foundation.utility.Iterate;
 import com.simibubi.create.foundation.utility.VecHelper;
-import org.valkyrienskies.clockwork.ClockworkEntities;
-import org.valkyrienskies.clockwork.ClockworkItems;
+import org.valkyrienskies.clockwork.ClockWorkEntities;
+import org.valkyrienskies.clockwork.ClockWorkItems;
+import org.valkyrienskies.clockwork.platform.api.network.EntityExtraSpawnData;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -50,7 +50,7 @@ import java.util.List;
 import java.util.Set;
 
 public class BluperGlueEntity extends Entity
-        implements ExtraSpawnDataEntity, ISpecialEntityItemRequirement {
+        implements EntityExtraSpawnData, ISpecialEntityItemRequirement {
 
     protected List<Entity> caughtEntities = new ArrayList<>();
     public static AABB span(BlockPos startPos, BlockPos endPos) {
@@ -132,7 +132,7 @@ public class BluperGlueEntity extends Entity
     }
 
     public BluperGlueEntity(Level world, AABB boundingBox) {
-        this(ClockworkEntities.BLUPERGLUE.get(), world);
+        this(ClockWorkEntities.BLUPERGLUE.get(), world);
         setBoundingBox(boundingBox);
         resetPositionToBB();
     }
@@ -255,12 +255,6 @@ public class BluperGlueEntity extends Entity
     @Override
     public void refreshDimensions() {}
 
-    public static FabricEntityTypeBuilder<?> build(FabricEntityTypeBuilder<?> builder) {
-//		@SuppressWarnings("unchecked")
-//		EntityType.Builder<BluperGlueEntity> entityBuilder = (EntityType.Builder<BluperGlueEntity>) builder;
-        return builder;
-    }
-
     @Override
     public Packet<?> getAddEntityPacket() {
         return ExtraSpawnDataEntity.createExtraDataSpawnPacket(this);
@@ -280,7 +274,7 @@ public class BluperGlueEntity extends Entity
 
     @Override
     public ItemRequirement getRequiredItems() {
-        return new ItemRequirement(ItemUseType.DAMAGE, ClockworkItems.BLUPERGLUE.get());
+        return new ItemRequirement(ItemUseType.DAMAGE, ClockWorkItems.BLUPERGLUE.get());
     }
 
     @Override

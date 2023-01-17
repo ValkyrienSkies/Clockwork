@@ -11,7 +11,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
-import org.valkyrienskies.clockwork.AllClockworkShapes;
+import org.valkyrienskies.clockwork.ClockWorkShapes;
 import org.valkyrienskies.clockwork.util.blocktype.TriAxisBlockWithConnections;
 import org.valkyrienskies.core.api.ships.Wing;
 
@@ -23,7 +23,7 @@ public class WingBlock extends TriAxisBlockWithConnections implements org.valkyr
 
     @Override
     public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
-        return AllClockworkShapes.WING.get(pState.getValue(AXIS));
+        return ClockWorkShapes.WING.get(pState.getValue(AXIS));
     }
     //    @Override
 //    public void onPlace (BlockState state, Level level, BlockPos pos, BlockState oldState, boolean isMoving) {

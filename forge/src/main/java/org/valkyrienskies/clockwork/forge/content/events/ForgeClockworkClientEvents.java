@@ -11,6 +11,7 @@ import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
+import org.valkyrienskies.clockwork.ClockWorkHandlers;
 import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.stream.PropStream;
 import org.valkyrienskies.clockwork.forge.ClockWorkModForge;
@@ -33,8 +34,7 @@ public class ForgeClockworkClientEvents {
         if (!isGameActive())
             return;
 
-        ClockWorkMod.BLUPER_HANDLER.tick();
-        ClockWorkMod.GRAVITRON_HANDLER.tick();
+        ClockWorkHandlers.tick();
     }
 
     @Mod.EventBusSubscriber(value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)

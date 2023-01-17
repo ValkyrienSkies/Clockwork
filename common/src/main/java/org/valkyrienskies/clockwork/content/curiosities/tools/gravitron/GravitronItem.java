@@ -22,6 +22,7 @@ import org.joml.Quaterniond;
 import org.joml.Quaterniondc;
 import org.joml.Vector2d;
 import org.joml.Vector3d;
+import org.valkyrienskies.clockwork.platform.CWItem;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.core.apigame.constraints.*;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
@@ -32,7 +33,7 @@ import javax.annotation.Nullable;
 import java.util.Objects;
 
 
-public class GravitronItem extends Item implements CustomArmPoseItem {
+public class GravitronItem extends CWItem implements CustomArmPoseItem {
     public GravitronItem(Properties properties) {
         super(properties);
     }

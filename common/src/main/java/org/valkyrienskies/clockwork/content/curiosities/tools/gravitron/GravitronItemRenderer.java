@@ -12,6 +12,7 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.ItemStack;
+import org.valkyrienskies.clockwork.ClockWorkHandlers;
 import org.valkyrienskies.clockwork.ClockWorkMod;
 
 public class GravitronItemRenderer extends CustomRenderedItemModelRenderer<GravitronModel> {
@@ -48,7 +49,7 @@ public class GravitronItemRenderer extends CustomRenderedItemModelRenderer<Gravi
     }
 
     protected float getAnimationProgress(float pt, boolean leftHanded, boolean mainHand) {
-        float animation = ClockWorkMod.GRAVITRON_HANDLER.getAnimation(mainHand ^ leftHanded, pt);
+        float animation = ClockWorkHandlers.GRAVITRON_HANDLER.getAnimation(mainHand ^ leftHanded, pt);
         return Mth.clamp(animation * 5, 0, 1);
     }
 

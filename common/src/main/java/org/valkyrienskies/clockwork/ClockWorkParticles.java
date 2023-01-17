@@ -15,7 +15,7 @@ import org.valkyrienskies.clockwork.platform.api.DeferredRegister;
 
 import java.util.function.Supplier;
 
-public enum ClockworkParticles {
+public enum ClockWorkParticles {
 
     PROP_STREAM(PropellorStreamParticleData::new),
     PHYS_LIGHTNING(PhysLightningParticle.Data::new)
@@ -23,7 +23,7 @@ public enum ClockworkParticles {
     ;
     private final ParticleEntry<?> entry;
 
-    <D extends ParticleOptions> ClockworkParticles(Supplier<? extends ICustomParticleData<D>> typeFactory) {
+    <D extends ParticleOptions> ClockWorkParticles(Supplier<? extends ICustomParticleData<D>> typeFactory) {
         String name = Lang.asId(name());
         entry = new ParticleEntry<>(name, typeFactory);
     }
@@ -35,7 +35,7 @@ public enum ClockworkParticles {
     @Environment(EnvType.CLIENT)
     public static void initClient() {
         ParticleEngine particles = Minecraft.getInstance().particleEngine;
-        for (ClockworkParticles particle : values())
+        for (ClockWorkParticles particle : values())
             particle.entry.registerFactory(particles);
     }
 

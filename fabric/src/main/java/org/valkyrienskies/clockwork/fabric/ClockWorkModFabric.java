@@ -12,7 +12,6 @@ import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueSelectionHandler;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronRenderHandler;
 import org.valkyrienskies.clockwork.content.events.ClockworkClientEvents;
-import org.valkyrienskies.clockwork.content.events.ClockworkCommonEvents;
 import org.valkyrienskies.clockwork.content.events.ClockworkInputEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkClientEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkCommonEvents;
@@ -30,14 +29,14 @@ public class ClockWorkModFabric implements ModInitializer {
         FabricClockworkBlocks.register();
 
         // TODO common items
-        ClockworkItems.register();
+        ClockWorkItems.register();
         FabricClockworkItems.register();
 
         ClockWorkBlockEntities.register();
         FabricClockworkBlockEntities.register();
 
         // TODO common entities
-        ClockworkEntities.register();
+        ClockWorkEntities.register();
         FabricClockworkEntities.register();
 
         ClockWorkSounds.register();
@@ -50,16 +49,15 @@ public class ClockWorkModFabric implements ModInitializer {
     }
 
     public static void init() {
-        ClockworkParticles.init();
+        ClockWorkParticles.init();
         AllClockworkConfigs.init();
 
         FabricClockworkParticles.init();
         FabricClockworkSounds.init();
 
-        ClockworkPackets.registerPackets();
-        ClockworkCommonEvents.register();
+        ClockWorkPackets.registerPackets();
+        //ClockworkCommonEvents.register();
         FabricClockworkCommonEvents.register();
-        ClockworkPackets.channel.initServerListener();
     }
 
     public static void gatherData(FabricDataGenerator gen, ExistingFileHelper helper) {
@@ -78,10 +76,8 @@ public class ClockWorkModFabric implements ModInitializer {
             ClockWorkPartials.init();
             FabricClockworkPartials.init();
 
-            ClockworkParticles.initClient();
+            ClockWorkParticles.initClient();
             FabricClockworkParticles.initClient();
-
-            ClockworkPackets.channel.initClientListener();
 
             ClockworkClientEvents.register();
             FabricClockworkClientEvents.register();

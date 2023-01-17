@@ -7,10 +7,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
+import org.valkyrienskies.clockwork.platform.api.network.ClientNetworkContext;
+import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket;
 
 import java.util.function.Supplier;
 
-public class BluperGlueEffectPacket extends SimplePacketBase {
+public class BluperGlueEffectPacket implements S2CCWPacket {
 
     private BlockPos pos;
     private Direction direction;
@@ -35,9 +37,9 @@ public class BluperGlueEffectPacket extends SimplePacketBase {
     }
 
     @Environment(EnvType.CLIENT)
-    public void handle(Supplier<Context> context) {
-        context.get().enqueueWork(this::exec);
-        context.get().setPacketHandled(true);
+    public void handle(ClientNetworkContext ctx) {
+        ctx.enqueueWork(this::exec);
+        ctx.setPacketHandled(true);
     }
 
     // fabric: lambda funk
