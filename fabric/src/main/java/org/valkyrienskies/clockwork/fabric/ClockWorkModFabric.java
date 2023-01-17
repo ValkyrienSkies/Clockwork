@@ -9,8 +9,11 @@ import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
-import org.valkyrienskies.clockwork.fabric.content.curiosities.tools.bluperglue.BluperGlueSelectionHandler;
-import org.valkyrienskies.clockwork.fabric.content.curiosities.tools.gravitron.GravitronRenderHandler;
+import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueSelectionHandler;
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronRenderHandler;
+import org.valkyrienskies.clockwork.content.events.ClockworkClientEvents;
+import org.valkyrienskies.clockwork.content.events.ClockworkCommonEvents;
+import org.valkyrienskies.clockwork.content.events.ClockworkInputEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkClientEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkCommonEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkInputEvents;
@@ -27,12 +30,14 @@ public class ClockWorkModFabric implements ModInitializer {
         FabricClockworkBlocks.register();
 
         // TODO common items
+        ClockworkItems.register();
         FabricClockworkItems.register();
 
         ClockWorkBlockEntities.register();
         FabricClockworkBlockEntities.register();
 
         // TODO common entities
+        ClockworkEntities.register();
         FabricClockworkEntities.register();
 
         ClockWorkSounds.register();
@@ -51,9 +56,10 @@ public class ClockWorkModFabric implements ModInitializer {
         FabricClockworkParticles.init();
         FabricClockworkSounds.init();
 
-        FabricClockworkPackets.registerPackets();
+        ClockworkPackets.registerPackets();
+        ClockworkCommonEvents.register();
         FabricClockworkCommonEvents.register();
-        FabricClockworkPackets.channel.initServerListener();
+        ClockworkPackets.channel.initServerListener();
     }
 
     public static void gatherData(FabricDataGenerator gen, ExistingFileHelper helper) {
@@ -62,9 +68,9 @@ public class ClockWorkModFabric implements ModInitializer {
 
     @Environment(EnvType.CLIENT)
     public static class Client implements ClientModInitializer {
-
         public static final BluperGlueSelectionHandler BLUPER_HANDLER = new BluperGlueSelectionHandler();
         public static final GravitronRenderHandler GRAVITRON_HANDLER = new GravitronRenderHandler();
+
         @Override
         public void onInitializeClient() {
             ClockWorkMod.initClient();
@@ -73,13 +79,14 @@ public class ClockWorkModFabric implements ModInitializer {
             FabricClockworkPartials.init();
 
             ClockworkParticles.initClient();
-
             FabricClockworkParticles.initClient();
-            FabricClockworkPackets.channel.initClientListener();
 
+            ClockworkPackets.channel.initClientListener();
+
+            ClockworkClientEvents.register();
             FabricClockworkClientEvents.register();
+            ClockworkInputEvents.register();
             FabricClockworkInputEvents.register();
-
             ShaderLoader.init();
         }
 

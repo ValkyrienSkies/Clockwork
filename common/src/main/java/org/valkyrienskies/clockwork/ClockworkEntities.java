@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.fabric;
+package org.valkyrienskies.clockwork;
 
 import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
 import com.simibubi.create.foundation.data.CreateEntityBuilder;
@@ -18,7 +18,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperG
 
 import static org.valkyrienskies.clockwork.ClockWorkMod.REGISTRATE;
 
-public class FabricClockworkEntities {
+public class ClockworkEntities {
 
     public static final EntityEntry<BluperGlueEntity> BLUPERGLUE =
             register("bluperglue", BluperGlueEntity::new, () -> BluperGlueRenderer::new, MobCategory.MISC, 10,

@@ -95,12 +95,13 @@ public class PropellorController implements ShipForcesInducer {
             Vector3dc sailVel = rotatedDiff.cross(angVel, new Vector3d());
 
             Vector3dc force = physTransform.getShipToWorldRotation().transform(axis.mul(sailVel.lengthSquared() * 50, new Vector3d()));
+            Vector3dc force2 = force.mul(physProp.bearingSpeed, new Vector3d());
             Vector3dc sailPosWorld = physTransform.getShipToWorld().transformPosition(sailVector, new Vector3d());
             Vector3dc sailPosRelShip = sailPosWorld.sub(physTransform.getPositionInWorld(), new Vector3d());
-            Vector3dc torque = sailPosRelShip.cross(force, new Vector3d());
+            Vector3dc torque = sailPosRelShip.cross(force2, new Vector3d());
 
             double airPress = airPressure(sailPosWorld);
-            netForce.add(force).mul(airPress);
+            netForce.add(force2).mul(airPress);
             netTorque.add(torque).mul(airPress);
         }
         return Pair.of(netForce, netTorque);

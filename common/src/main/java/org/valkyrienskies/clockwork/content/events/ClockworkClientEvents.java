@@ -1,14 +1,13 @@
-package org.valkyrienskies.clockwork.fabric.content.events;
+package org.valkyrienskies.clockwork.content.events;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.stream.PropStream;
-import org.valkyrienskies.clockwork.fabric.ClockWorkModFabric;
 
 import static com.jozufozu.flywheel.backend.Backend.isGameActive;
 
-public class FabricClockworkClientEvents {
+public class ClockworkClientEvents {
     private static final String ITEM_PREFIX = "item." + ClockWorkMod.MOD_ID;
     private static final String BLOCK_PREFIX = "block." + ClockWorkMod.MOD_ID;
 
@@ -22,12 +21,12 @@ public class FabricClockworkClientEvents {
         if (!isGameActive())
             return;
 
-        ClockWorkMod.BLUPER_HANDLER.tick();
-        ClockWorkMod.GRAVITRON_HANDLER.tick();
+//        ClockWorkMod.Client.BLUPER_HANDLER.tick();
+//        ClockWorkMod.Client.GRAVITRON_HANDLER.tick();
     }
 
     public static void register() {
-        ClientTickEvents.END_CLIENT_TICK.register(FabricClockworkClientEvents::onTick);
-        ClientTickEvents.START_CLIENT_TICK.register(FabricClockworkClientEvents::onTickStart);
+        ClientTickEvents.END_CLIENT_TICK.register(ClockworkClientEvents::onTick);
+        ClientTickEvents.START_CLIENT_TICK.register(ClockworkClientEvents::onTickStart);
     }
 }

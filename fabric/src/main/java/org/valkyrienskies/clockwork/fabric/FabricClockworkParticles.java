@@ -15,7 +15,7 @@ import org.valkyrienskies.clockwork.ClockWorkMod;
 import java.util.function.Supplier;
 
 public enum FabricClockworkParticles {
-    // platform specific sounds
+    // platform specific sharticles
     ;
     private final ParticleEntry<?> entry;
 

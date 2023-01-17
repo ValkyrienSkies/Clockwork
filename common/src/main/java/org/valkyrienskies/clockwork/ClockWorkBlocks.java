@@ -11,6 +11,7 @@ import net.minecraft.world.level.material.MaterialColor;
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock;
 import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserBlock;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingBlock;
+import org.valkyrienskies.clockwork.content.physicalities.motion.wing.WingBlock;
 import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork;
 
 import static com.simibubi.create.foundation.data.TagGen.axeOrPickaxe;
@@ -62,6 +63,16 @@ public class ClockWorkBlocks {
                     .transform(ModelGen.customItemModel("physics_infuser", "item"))
                     .register();
 
+    /////// WINX CLUB //////
+    public static final BlockEntry<WingBlock> WING =
+            REGISTRATE.block("wing", WingBlock::new)
+                    .transform(axeOrPickaxe())
+                    .properties(p -> p.color(MaterialColor.TERRACOTTA_WHITE))
+                    .addLayer(() -> RenderType::cutoutMipped)
+                    .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
+                    .item()
+                    .transform(ModelGen.customItemModel("wing", "item"))
+                    .register();
 
     public static void register() {}
 }

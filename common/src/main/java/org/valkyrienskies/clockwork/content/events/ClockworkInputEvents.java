@@ -1,14 +1,12 @@
-package org.valkyrienskies.clockwork.fabric.content.events;
+package org.valkyrienskies.clockwork.content.events;
 
 
 import io.github.fabricators_of_create.porting_lib.event.client.MouseButtonCallback;
 import io.github.fabricators_of_create.porting_lib.util.KeyBindingHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionResult;
-import org.valkyrienskies.clockwork.ClockWorkMod;
-import org.valkyrienskies.clockwork.fabric.ClockWorkModFabric;
 
-public class FabricClockworkInputEvents {
+public class ClockworkInputEvents {
 
     public static InteractionResult onClickInputCW(int button, int action, int mods) {
         Minecraft mc = Minecraft.getInstance();
@@ -20,14 +18,10 @@ public class FabricClockworkInputEvents {
         boolean isUse = button == use;
         boolean isAttack = button == attack;
 
-        if (isUse || isAttack) {
-            if (ClockWorkModFabric.Client.BLUPER_HANDLER.onMouseInput(isAttack))
-                return InteractionResult.SUCCESS;
-        }
         return InteractionResult.PASS;
     }
 
     public static void register() {
-        MouseButtonCallback.EVENT.register(FabricClockworkInputEvents::onClickInputCW);
+        MouseButtonCallback.EVENT.register(ClockworkInputEvents::onClickInputCW);
     }
 }
