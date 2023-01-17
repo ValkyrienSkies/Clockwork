@@ -40,9 +40,10 @@ public abstract class MixinRedstoneLinkNetworkHandler {
         Ship ship2 = VSGameUtilsKt.getShipManagingPos(harvestedWorld, new BlockPos(vec3i));
         Vec3 pos1 = Vec3.atLowerCornerOf(instance);
         Vec3 pos2 = Vec3.atLowerCornerOf(vec3i);
-        if (ship1 != null && ship2 == null) {
+        if (ship1 != null) {
             pos1 = VectorConversionsMCKt.toMinecraft(ship1.getShipToWorld().transformPosition(VectorConversionsMCKt.toJOML(pos1)));
-        } else if (ship1 == null && ship2 != null) {
+        }
+        if (ship2 != null) {
             pos2 = VectorConversionsMCKt.toMinecraft(ship2.getShipToWorld().transformPosition(VectorConversionsMCKt.toJOML(pos2)));
         }
         return pos1.closerThan(pos2, v);

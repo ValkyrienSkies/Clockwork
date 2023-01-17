@@ -7,6 +7,7 @@ public class ClockWorkPartials {
     public static final PartialModel
 
         BEARING_TOP_VSIFIED = block("vstop"),
+        BEARING_TOP_FLAP = block("flap_bearing/top"),
         PHYSICS_CORE = block("physics_infuser/core"),
         STRANGE_FLUID = block("physics_infuser/liquid"),
         ZAP = block("physics_infuser/zap")

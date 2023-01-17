@@ -18,9 +18,7 @@ import org.joml.Matrix4d;
 import org.joml.Vector3d;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.valkyrienskies.core.api.ships.ClientShip;
 import org.valkyrienskies.core.api.ships.properties.ShipTransform;
@@ -29,8 +27,6 @@ import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
 @Mixin(CarriageContraptionInstance.class)
 public abstract class MixinCarriageContraptionInstance extends EntityInstance {
-    @Shadow
-    private Carriage carriage;
 
     public MixinCarriageContraptionInstance(MaterialManager materialManager, Entity entity) {
         super(materialManager, entity);
@@ -48,7 +44,7 @@ public abstract class MixinCarriageContraptionInstance extends EntityInstance {
                 (ClientShip) VSGameUtilsKt.getShipObjectManagingPos(level, vector3f.x(), vector3f.y(), vector3f.z());
 
         if (ship != null) {
-            final CarriageContraptionEntity carriageContraptionEntity = carriage.anyAvailableEntity();
+            final CarriageContraptionEntity carriageContraptionEntity = (CarriageContraptionEntity)this.entity;
             final Vector3d origin = VectorConversionsMCKt.toJOMLD(this.materialManager.getOriginCoordinate());
             final Vec3 pos = carriageContraptionEntity.position();
             final Vector3d newPosition =

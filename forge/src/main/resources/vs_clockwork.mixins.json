@@ -3,7 +3,8 @@
   "package": "org.valkyrienskies.clockwork.forge.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "create.MixinFilteringHandler"
+    "create.MixinFilteringHandler",
+    "create.MixinAirFlowParticle"
   ],
   "client": [
     "create.client.MixinSuperGlueSelectionHandler"

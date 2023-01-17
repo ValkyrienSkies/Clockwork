@@ -24,6 +24,10 @@ subprojects {
             maven { url = "https://dvs1.progwml6.com/files/maven/" } // JEI
             maven { url = "https://maven.parchmentmc.org" } // Parchment mappings
             maven { url = "https://maven.quiltmc.org/repository/release" } // Quilt Mappings
+            maven {
+                name = 'Ladysnake Mods'
+                url = 'https://ladysnake.jfrog.io/artifactory/mods'
+            }
             maven { // Flywheel
                 url = "https://maven.tterrag.com/"
                 content {
@@ -32,8 +36,6 @@ subprojects {
                 }
             }
         }
-
-        maven { url = "https://maven.valkyrienskies.org/" }
     }
 
     if (project.block_external_repositories) {
@@ -72,11 +74,17 @@ allprojects {
     version = "${mod_version}+${project.name}-${minecraft_version}" + (buildNumber != null ? "-${buildNumber}" : "")
 
     repositories {
-        // Add repositories to retrieve artifacts from in here.
-        // You should only use this when depending on other mods because
-        // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-        // See https://docs.gradle.org/current/userguide/declaring_repositories.html
-        // for more information about repositories.
+        mavenLocal()
+        maven {
+            name = "Valkyrien Skies Internal"
+            url = project.vs_maven_url ?: 'https://maven.valkyrienskies.org'
+            if (project.vs_maven_username && project.vs_maven_password) {
+                credentials {
+                    username = project.vs_maven_username
+                    password = project.vs_maven_password
+                }
+            }
+        }
     }
 
     tasks.withType(JavaCompile) {

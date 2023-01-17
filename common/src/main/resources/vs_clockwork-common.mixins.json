@@ -8,7 +8,6 @@
     "content.vs_contraptions.MixinMechanicalBearingTileEntity",
     "create.MixinAbstractContraptionEntity",
     "create.MixinAirCurrent",
-    "create.MixinAirFlowParticle",
     "create.MixinBeltMovementHandler",
     "create.MixinCarriageContraptionEntity",
     "create.MixinContraptionCollider",
@@ -31,6 +30,8 @@
     "create.MixinTrainRelocationPacket"
   ],
   "client": [
+    "create.client.MixinContraptionRenderInfo",
+    "create.client.MixinMinecartInstance",
     "create.client.MixinCarriageContraptionInstance",
     "create.client.MixinContraptionHandlerClient",
     "create.client.MixinContraptionRenderDispatcher",

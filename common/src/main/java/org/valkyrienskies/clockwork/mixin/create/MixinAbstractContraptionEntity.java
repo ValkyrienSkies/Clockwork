@@ -19,7 +19,7 @@ import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 public abstract class MixinAbstractContraptionEntity {
     @Unique
     private static final Logger LOGGER = LogManager.getLogger("Clockwork.MixinAbstractContraptionEntity");
-    @Shadow
+    @Shadow(remap = false)
     protected Contraption contraption;
 
     @Redirect(method = "moveCollidedEntitiesOnDisassembly", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;setPos(DDD)V"))

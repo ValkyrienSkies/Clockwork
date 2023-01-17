@@ -17,6 +17,7 @@ public class MixinBearingContraption implements IExtendedBearing {
     @Shadow(remap = false)
     protected int sailBlocks;
     private boolean isPropellor = false;
+    private boolean isFlap = false;
 
     @Inject(
             method = "assemble",
@@ -38,6 +39,12 @@ public class MixinBearingContraption implements IExtendedBearing {
     public void setPropellor() {
         isPropellor = true;
     }
+
+    @Override
+    public void setFlap() {
+        isFlap = true;
+    }
+
 
     private void failAssembly() throws AssemblyException {
         if (isPropellor && sailBlocks < 2) {

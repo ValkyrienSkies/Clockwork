@@ -23,6 +23,7 @@ public class FabricClockworkClientEvents {
             return;
 
         ClockWorkModFabric.Client.BLUPER_HANDLER.tick();
+        ClockWorkModFabric.Client.GRAVITRON_HANDLER.tick();
     }
 
     public static void register() {
