@@ -5,7 +5,7 @@
   "mixins": [
     "create.MixinFilteringHandler",
     "create.MixinAirFlowParticle",
-    "MixinCWItem"
+    "accessors.ItemAccessor"
   ],
   "client": [
     "create.client.MixinSuperGlueSelectionHandler"
