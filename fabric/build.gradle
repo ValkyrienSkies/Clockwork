@@ -51,8 +51,12 @@ dependencies {
     api "org.jetbrains.kotlin:kotlin-reflect:1.7.21"
 
     // Create - dependencies are added transitively
-    modImplementation("com.simibubi.create:create-fabric-${minecraft_version}:${create_fabric_version}")
-            {exclude group:'com.github.AlphaMode', module:'fakeconfigtoml'}
+    modImplementation("com.simibubi.create:create-fabric-${minecraft_version}:${create_fabric_version}") {
+        exclude group: 'com.github.AlphaMode', module: 'fakeconfigtoml'
+    }
+
+    modImplementation("curse.maven:indium-459496:3911811")
+
     modImplementation("net.minecraftforge:forgeconfigapiport-fabric:3.2.4") // TODO do we still need this?
 
     // Development QOL
