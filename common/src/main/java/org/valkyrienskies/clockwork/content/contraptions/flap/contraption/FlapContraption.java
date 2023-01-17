@@ -5,14 +5,13 @@ import com.simibubi.create.content.contraptions.components.structureMovement.Con
 import com.simibubi.create.content.contraptions.components.structureMovement.ContraptionType;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.AnchoredLighter;
 import com.simibubi.create.content.contraptions.components.structureMovement.render.ContraptionLighter;
-import com.simibubi.create.foundation.utility.NBTHelper;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
-import org.valkyrienskies.clockwork.fabric.util.contraption.ClockworkContraptionTypes;
+import org.valkyrienskies.clockwork.ClockworkContraptions;
 
 import java.util.Queue;
 import java.util.Set;
@@ -54,7 +53,7 @@ public class FlapContraption extends Contraption {
 
     @Override
     protected ContraptionType getType() {
-        return ClockworkContraptionTypes.FLAP;
+        return ClockworkContraptions.FLAP;
     }
 
     @Override

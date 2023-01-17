@@ -29,8 +29,6 @@ import org.joml.Vector3ic;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.stream.IPropStreamSource;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.stream.PropStream;
 import org.valkyrienskies.clockwork.content.forces.PropellorController;
-import org.valkyrienskies.clockwork.fabric.content.contraptions.components.propellor.PropellorCreatePhysData;
-import org.valkyrienskies.clockwork.fabric.content.contraptions.components.propellor.PropellorUpdatePhysData;
 import org.valkyrienskies.clockwork.platform.api.Propellor;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;

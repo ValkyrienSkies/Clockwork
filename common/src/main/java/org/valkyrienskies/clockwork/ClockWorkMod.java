@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.valkyrienskies.clockwork.content.contraptions.flap.contraption.FlapContraption;
 import org.valkyrienskies.clockwork.platform.SharedValues;
 
 public class ClockWorkMod {
@@ -16,7 +17,7 @@ public class ClockWorkMod {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public static void init() {
-
+        ClockworkContraptions.init();
     }
 
     public static void initClient() {

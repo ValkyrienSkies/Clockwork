@@ -15,6 +15,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.valkyrienskies.clockwork.content.contraptions.flap.contraption.FlapContraption;
+import org.valkyrienskies.clockwork.platform.api.IFlap;
 
 import java.util.List;
 

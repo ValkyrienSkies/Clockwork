@@ -8,9 +8,10 @@ import com.simibubi.create.foundation.data.ModelGen;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.level.material.MaterialColor;
+import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock;
 import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserBlock;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingBlock;
-import org.valkyrienskies.clockwork.content.contraptions.flap.contraption.FlapBearingBlock;
+import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork;
 
 import static com.simibubi.create.foundation.data.TagGen.axeOrPickaxe;
 import static org.valkyrienskies.clockwork.ClockWorkMod.REGISTRATE;

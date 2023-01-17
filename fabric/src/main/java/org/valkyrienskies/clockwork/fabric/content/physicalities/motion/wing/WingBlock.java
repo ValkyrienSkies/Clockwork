@@ -134,15 +134,15 @@ public class WingBlock extends TriAxisBlockWithConnections implements org.valkyr
         switch (blockState.getValue(AXIS)) {
             case X -> {
                 normal = new Vector3d(1, 0, 0);
-                return new Wing(normal, wingPower, wingDrag, wingBreakingForce);
+                return new Wing(normal, wingPower, wingDrag, wingBreakingForce, 0);
             }
             case Y -> {
                 normal = new Vector3d(0, 1, 0);
-                return new Wing(normal, wingPower, wingDrag, wingBreakingForce);
+                return new Wing(normal, wingPower, wingDrag, wingBreakingForce, 0);
             }
             case Z -> {
                 normal = new Vector3d(0, 0, 1);
-                return new Wing(normal, wingPower, wingDrag, wingBreakingForce);
+                return new Wing(normal, wingPower, wingDrag, wingBreakingForce, 0);
             }
         }
         return null;

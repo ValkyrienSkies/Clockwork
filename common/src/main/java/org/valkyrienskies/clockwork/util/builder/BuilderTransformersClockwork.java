@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.fabric.util.builder;
+package org.valkyrienskies.clockwork.util.builder;
 
 
 import com.simibubi.create.foundation.data.SharedProperties;
@@ -7,7 +7,6 @@ import com.tterrag.registrate.util.nullness.NonNullUnaryOperator;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import org.valkyrienskies.clockwork.ClockWorkMod;
-import org.valkyrienskies.clockwork.fabric.ClockWorkModFabric;
 
 public class BuilderTransformersClockwork {
 

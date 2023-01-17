@@ -10,6 +10,7 @@ import net.minecraftforge.common.data.ExistingFileHelper;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.fabric.content.curiosities.tools.bluperglue.BluperGlueSelectionHandler;
+import org.valkyrienskies.clockwork.fabric.content.curiosities.tools.gravitron.GravitronRenderHandler;
 import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkClientEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkCommonEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkInputEvents;
@@ -41,8 +42,6 @@ public class ClockWorkModFabric implements ModInitializer {
 
         ClockWorkMod.init();
         ClockWorkModFabric.init();
-
-        ClockworkContraptionTypes.prepare();
     }
 
     public static void init() {

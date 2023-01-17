@@ -7,7 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
-import org.valkyrienskies.clockwork.fabric.AllClockworkSounds;
+import org.valkyrienskies.clockwork.ClockWorkSounds;
 
 public class GravitronRenderHandler extends ShootableGadgetRenderHandler {
 
@@ -21,7 +21,7 @@ public class GravitronRenderHandler extends ShootableGadgetRenderHandler {
     protected void playSound(InteractionHand hand, Vec3 position) {
         float pitch = hand == InteractionHand.MAIN_HAND ? 0.1f : 0.9f;
         Minecraft mc = Minecraft.getInstance();
-        AllClockworkSounds.PHYSICS_INFUSER_LIGHTNING.play(mc.level, mc.player, position, 0.1f, pitch);
+        ClockWorkSounds.PHYSICS_INFUSER_LIGHTNING.play(mc.level, mc.player, position, 0.1f, pitch);
     }
 
     @Override
