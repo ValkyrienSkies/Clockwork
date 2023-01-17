@@ -62,16 +62,14 @@ dependencies {
     //Create big cannons
     // modLocalRuntime('curse.maven:create-big-cannons-646668:4033862') is create .5.0.e not g
     modLocalRuntime name: "createbigcannons" // REMOVE IF CBC HAS BEEN UPDATED
-    modLocalRuntime("org.valkyrienskies.eureka:eureka-forge:${eureka_version}")
+    modLocalRuntime("org.valkyrienskies.eureka:eureka-forge:${eureka_version}") { transitive = false }
 
     // JOML
     compileOnly("org.joml:joml:1.10.4")
     compileOnly("org.joml:joml-primitives:1.10.0")
 
     // Add Kotlin for Forge.
-    api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.21"
-    api "org.jetbrains.kotlin:kotlin-reflect:1.7.21"
-    forgeRuntimeLibrary('curse.maven:kotlinforforge-351264:3925887')
+    implementation(forgeRuntimeLibrary('curse.maven:kotlinforforge-351264:3925887'))
 
 
     // if you would like to add integration with JEI, uncomment this line.
