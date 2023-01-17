@@ -6,13 +6,14 @@
     "content.propellor.MixinBearingContraption",
     "create.MixinFilteringHandler",
     "create.MixinBlocks",
-    "create.MixinBlockBreakingKineticTileEntity"
+    "create.MixinBlockBreakingKineticTileEntity",
+    "create.MixinAirFlowParticle"
   ],
   "client": [
+    "create.client.MixinContraptionRenderInfo",
     "content.pulse.MixinLevelRenderer",
     "create.client.MixinSuperGlueSelectionHandler",
     "create.client.MixinFlwContraption",
-    "create.client.MixinContraptionRenderInfo",
     "create.client.MixinScrollValueBehaviour",
     "create.client.MixinValueBox"
   ],
