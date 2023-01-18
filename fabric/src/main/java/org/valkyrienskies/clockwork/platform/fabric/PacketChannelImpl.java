@@ -33,33 +33,34 @@ public class PacketChannelImpl implements PacketChannel {
     private int idCounter = 0;
 
     public PacketChannelImpl() {
-        EnvExecutor.runWhenOn(EnvType.SERVER, () -> () -> {
-            if (!ServerPlayNetworking.registerGlobalReceiver(ClockWorkMod.NETWORK_CHANNEL,
-                    (server, player, handler, buf, responseSender) -> {
-                int id = buf.readVarInt();
 
-                Function<FriendlyByteBuf, ? extends C2SCWPacket> decoder = c2sDecoderMap.get(id);
-                if (decoder == null) {
-                    throw new RuntimeException("Unknown packet id: " + id);
-                }
-
-                C2SCWPacket packet = decoder.apply(buf);
-                packet.handle(serverContext(server, player));
-            })) throw new RuntimeException("Failed to register server packet handler"); });
-
-        EnvExecutor.runWhenOn(EnvType.SERVER, () -> () -> {
-                if (!ClientPlayNetworking.registerGlobalReceiver(ClockWorkMod.NETWORK_CHANNEL,
-                        (client, handler, buf, responseSender) -> {
+        if (!ServerPlayNetworking.registerGlobalReceiver(ClockWorkMod.NETWORK_CHANNEL,
+                (server, player, handler, buf, responseSender) -> {
                     int id = buf.readVarInt();
 
-                    Function<FriendlyByteBuf, ? extends S2CCWPacket> decoder = s2cDecoderMap.get(id);
+                    Function<FriendlyByteBuf, ? extends C2SCWPacket> decoder = c2sDecoderMap.get(id);
                     if (decoder == null) {
                         throw new RuntimeException("Unknown packet id: " + id);
                     }
 
-                    S2CCWPacket packet = decoder.apply(buf);
-                    packet.handle(clientContext(client));
-            })) throw new RuntimeException("Failed to register client packet handler"); });
+                    C2SCWPacket packet = decoder.apply(buf);
+                    packet.handle(serverContext(server, player));
+                })) throw new RuntimeException("Failed to register server packet handler");
+
+        EnvExecutor.runWhenOn(EnvType.SERVER, () -> () -> {
+            if (!ClientPlayNetworking.registerGlobalReceiver(ClockWorkMod.NETWORK_CHANNEL,
+                    (client, handler, buf, responseSender) -> {
+                        int id = buf.readVarInt();
+
+                        Function<FriendlyByteBuf, ? extends S2CCWPacket> decoder = s2cDecoderMap.get(id);
+                        if (decoder == null) {
+                            throw new RuntimeException("Unknown packet id: " + id);
+                        }
+
+                        S2CCWPacket packet = decoder.apply(buf);
+                        packet.handle(clientContext(client));
+                    })) throw new RuntimeException("Failed to register client packet handler");
+        });
     }
 
     @Override
