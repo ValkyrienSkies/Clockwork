@@ -190,7 +190,9 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
                     // Update Rot Values
                     Vector2d playerCurrentRotation = new Vector2d(entity.getXRot(), entity.getYRot());
 
-                    Quaterniondc deltaPlayerRot = playerRotToQuaternion(playerCurrentRotation.x - s.PlayerGrabbedRotation.x, playerCurrentRotation.y - s.PlayerGrabbedRotation.y).normalize();
+                    Quaterniondc origPlayerRot = playerRotToQuaternion(s.PlayerGrabbedRotation.x, s.PlayerGrabbedRotation.y).normalize();
+                    Quaterniondc newPlayerRot = playerRotToQuaternion(playerCurrentRotation.x, playerCurrentRotation.y).normalize();
+                    Quaterniondc deltaPlayerRot = newPlayerRot.mul(origPlayerRot.conjugate(new Quaterniond()), new Quaterniond());
                     Quaterniond rotation = deltaPlayerRot.mul(s.ShipGrabbedRot, new Quaterniond()).normalize();
 
                     // Update Pos Values
