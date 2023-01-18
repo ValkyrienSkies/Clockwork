@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "vs_clockwork",
   "version": "${version}",
-  "name": "VS ClockWork Mod",
+  "name": "Clockwork: Create x Valkyrien Skies",
   "description": "Create VS integration addon",
   "authors": [
     "fluffy",
