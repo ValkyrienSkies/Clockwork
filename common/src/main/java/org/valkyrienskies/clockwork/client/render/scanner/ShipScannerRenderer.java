@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.client.render;
+package org.valkyrienskies.clockwork.client.render.scanner;
 //Thanks to Scannable for this code! (https://github.com/MightyPirates/Scannable)
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
@@ -16,13 +16,14 @@ import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.world.phys.Vec3;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
+import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.clockwork.ClockWorkShaders;
 import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserRenderer;
+import org.valkyrienskies.core.api.ships.ClientShip;
 
 @Environment(EnvType.CLIENT)
-public enum ScannerRenderer {
-    INSTANCE;
+public class ShipScannerRenderer implements ScannerRenderer {
 
     // --------------------------------------------------------------------- //
     // Settings
@@ -43,14 +44,12 @@ public enum ScannerRenderer {
 
     // --------------------------------------------------------------------- //
 
-    public void ping(final Vec3 pos, PhysicsInfuserBlockEntity te) {
+    public void ping(final ClientShip ship, Vec3 pos, PhysicsInfuserBlockEntity te) {
         currentStart = System.currentTimeMillis();
         currentCenter = pos;
         currentBlockEntity = te;
-    }
-
-    public static void render(final PoseStack poseStack) {
-        INSTANCE.doRender(poseStack);
+        if (ship == null) return;
+        ClockWorkMod.LOGGER.info("Pinging ship: " + ship.getId());
     }
 
     public void doRender(final PoseStack poseStack) {

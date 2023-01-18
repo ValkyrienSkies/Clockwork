@@ -17,9 +17,11 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3d;
 import org.joml.primitives.AABBic;
 import org.valkyrienskies.clockwork.ClockWorkSounds;
-import org.valkyrienskies.clockwork.client.render.ScannerRenderer;
+import org.valkyrienskies.clockwork.client.render.scanner.ScannerRenderer;
+import org.valkyrienskies.clockwork.client.render.scanner.WorldScannerRenderer;
 import org.valkyrienskies.clockwork.platform.api.GlueType;
 import org.valkyrienskies.clockwork.util.assemble.GlueAssembler;
+import org.valkyrienskies.core.api.ships.ClientShip;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.core.impl.datastructures.DenseBlockPosSet;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
@@ -138,13 +140,7 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
             if (assemblyProgress.getValue() == 460) {
                 playFinishSound(level, thisposition);
                 if (level.isClientSide) {
-                    Vec3 funnypos;
-                    if (ship != null) {
-                        funnypos = VectorConversionsMCKt.toMinecraft(ship.getTransform().getShipToWorld().transformPosition(VectorConversionsMCKt.toJOML(thisposition)));
-                    } else {
-                        funnypos = thisposition;
-                    }
-                    ScannerRenderer.INSTANCE.ping(funnypos, this);
+                    ScannerRenderer.INSTANCE.ping((ClientShip) ship, thisposition, this);
                 }
             }
             if (assemblyProgress.getValue() == 500) {

@@ -2,7 +2,8 @@ package org.valkyrienskies.clockwork.mixin.content.pulse;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Matrix4f;
-import org.valkyrienskies.clockwork.client.render.ScannerRenderer;
+import org.valkyrienskies.clockwork.client.render.scanner.ScannerRenderer;
+import org.valkyrienskies.clockwork.client.render.scanner.WorldScannerRenderer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
@@ -16,6 +17,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class MixinLevelRenderer {
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/OutlineBufferSource;endOutlineBatch()V", shift = At.Shift.BEFORE))
     private void renderLevel(final PoseStack poseStack, final float tickDelta, final long nanos, final boolean shouldRenderBlockOutline, final Camera camera, final GameRenderer gameRenderer, final LightTexture lightTexture, final Matrix4f projectionMatrix, final CallbackInfo ci) {
-        ScannerRenderer.render(poseStack);
+        ScannerRenderer.INSTANCE.doRender(poseStack);
     }
 }
