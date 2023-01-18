@@ -27,6 +27,9 @@ public enum ClockWorkPackets {
     BLUPERGLUE_EFFECT(BluperGlueEffectPacket.class, BluperGlueEffectPacket::new),
     ;
 
+    // Force the class to load
+    public static void init() {}
+
     <T extends CWPacket> ClockWorkPackets(Class<T> type, Function<FriendlyByteBuf, T> factory) {
         SharedValues.getPacketChannel().registerPacket(type, factory);
     }

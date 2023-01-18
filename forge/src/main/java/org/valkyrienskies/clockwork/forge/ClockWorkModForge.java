@@ -60,6 +60,7 @@ public class ClockWorkModForge {
         // TODO forge sounds
 
         ClockWorkMod.init();
+        ClockWorkPackets.init();
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
             FMLJavaModLoadingContext.get()
