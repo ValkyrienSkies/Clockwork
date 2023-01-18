@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_17",
   "plugin": "org.valkyrienskies.clockwork.mixin.CommonMixinConfigPlugin",
   "mixins": [
+    "MixinPlayer",
     "content.propellor.MixinBearingContraption",
     "content.vs_contraptions.MixinMechanicalBearingTileEntity",
     "create.MixinAbstractContraptionEntity",
@@ -30,24 +31,24 @@
     "create.MixinTrainRelocationPacket"
   ],
   "client": [
-    "create.client.MixinContraptionRenderInfo",
-    "create.client.MixinMinecartInstance",
+    "content.pulse.MixinLevelRenderer",
+    "content.vs_contraptions.render.MixinBearingInstance",
     "create.client.MixinCarriageContraptionInstance",
     "create.client.MixinContraptionHandlerClient",
     "create.client.MixinContraptionRenderDispatcher",
+    "create.client.MixinContraptionRenderInfo",
     "create.client.MixinCullingBlockEntityIterator",
     "create.client.MixinFilteringRenderer",
     "create.client.MixinGhostBlockRenderer",
     "create.client.MixinLinkRenderer",
+    "create.client.MixinMinecartInstance",
     "create.client.MixinOrientedContraptionEntity",
     "create.client.MixinOutline",
     "create.client.MixinSoundScapes",
     "create.client.MixinTileEntityRenderHelper",
     "create.client.MixinTrackBlockOutline",
     "create.client.MixinTrackTargetingBehaviour",
-    "create.client.MixinTrainRelocator",
-    "content.pulse.MixinLevelRenderer",
-    "content.vs_contraptions.render.MixinBearingInstance"
+    "create.client.MixinTrainRelocator"
   ],
   "injectors": {
     "defaultRequire": 1

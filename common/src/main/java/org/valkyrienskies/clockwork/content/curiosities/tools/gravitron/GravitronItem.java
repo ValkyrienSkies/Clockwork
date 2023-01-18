@@ -16,26 +16,23 @@ import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import org.joml.Quaterniond;
-import org.joml.Quaterniondc;
-import org.joml.Vector2d;
-import org.joml.Vector3d;
+import org.joml.*;
+import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck;
 import org.valkyrienskies.clockwork.platform.CWItem;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.core.apigame.constraints.*;
+import org.valkyrienskies.core.impl.api.LoadedServerShipInternal;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
 import javax.annotation.Nullable;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.lang.Math;
 
 
 public class GravitronItem extends CWItem implements CustomArmPoseItem {
 
-    private static class GravitronState {
+    public static class GravitronState {
         boolean grabbing = false;
         boolean shouldDrop = false;
         Vector3d HeldBlockPos;
@@ -50,11 +47,15 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
         Integer grabCD = 0;
     }
 
-
-    private ConcurrentMap<UUID, GravitronState> gravitrons = new ConcurrentHashMap<>();
-
     private GravitronState getState(Player player) {
-        return gravitrons.computeIfAbsent(player.getUUID(), k -> new GravitronState());
+        var p = (MixinPlayerDuck) player;
+        var s = p.cw_getGravitronState();
+        if (s == null) {
+            s = new GravitronState();
+            p.cw_setGravitronState(s);
+        }
+
+        return s;
     }
 
     public GravitronItem(Properties properties) {
@@ -65,10 +66,14 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
 
     @Override
     public InteractionResult useOn(UseOnContext context) {
-        if (context.getPlayer() != null) {
+        if (context.getLevel() instanceof ServerLevel level && context.getPlayer() != null) {
             GravitronState s = getState(context.getPlayer());
             if (s.shipID == null && !context.getPlayer().getCooldowns().isOnCooldown(this) && !s.grabbing) {
-                grabShip(s, context);
+                s.grabbing = true;
+                context.getPlayer().getCooldowns().addCooldown(this, 20);
+                s.grabCD = 20;
+
+                tryGrabShip(s, level, context);
             }
         }
         return super.useOn(context);
@@ -86,16 +91,16 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
 
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected) {
-        if (!(entity instanceof  Player p)) {
+        if (!(entity instanceof Player p) || !(level instanceof ServerLevel sLevel)) {
             return;
         }
 
         GravitronState s = getState(p);
 
         if (isSelected && !s.shouldDrop) {
-            updateShip(s, level, p);
+            updateShip(s, sLevel, p);
         } else {
-            dropShip(s, level);
+            dropShip(s, sLevel);
         }
         if (s.grabCD > 0) {
             s.grabCD--;
@@ -106,36 +111,51 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
     // || SHIP FUNCTIONS || //
 
     // called first to put the ship into the players grasp
-    void grabShip(GravitronState s, UseOnContext context) {
-        s.grabbing = true;
-        context.getPlayer().getCooldowns().addCooldown(this, 20);
-        s.grabCD = 20;
-        if (VSGameUtilsKt.getShipObjectManagingPos(context.getLevel(), context.getClickedPos()) == null) {
+    void tryGrabShip(GravitronState s, ServerLevel level, UseOnContext context) {
+        if (context.getPlayer() == null) {
             return;
         }
-        s.shipID = VSGameUtilsKt.getShipObjectManagingPos(context.getLevel(), context.getClickedPos()).getId();
-        Ship ship = VSGameUtilsKt.getShipObjectWorld(context.getLevel()).getLoadedShips().getById(s.shipID);
 
-        s.HeldBlockPos = ship.getTransform().getShipToWorld().transformPosition(VectorConversionsMCKt.toJOML(context.getClickLocation()));
-        s.PlayerGrabbedRotation = new Vector2d(-context.getPlayer().xRotO, -context.getPlayer().yRotO);
+        Ship ship = VSGameUtilsKt.getShipManagingPos(context.getLevel(), context.getClickedPos());
+        Vector3d grabPosInShip = VectorConversionsMCKt.toJOML(context.getClickLocation());
+        Vector3d grabPosInWorld = new Vector3d(grabPosInShip);
 
-        //ShipGrabbedPos = ship.getShipTransform().getShipToWorld().transformPosition(HeldBlockPos);
-        s.ShipGrabbedPos = VectorConversionsMCKt.toJOML(context.getClickLocation());
+        if (VSGameUtilsKt.isBlockInShipyard(level, context.getClickedPos()) && ship == null) {
+            return;
+        }
+
+        if (ship == null) {
+            return; // todo: try to assemble a ship when grabbing
+//            DenseBlockPosSet toAssemble = new DenseBlockPosSet();
+//            toAssemble.add(context.getClickedPos().getX(), context.getClickedPos().getY(), context.getClickedPos().getZ());
+//            ship = ShipAssemblyKt.createNewShipWithBlocks(context.getClickedPos(), toAssemble, level);
+//            ship.getWorldToShip().transformPosition(grabPosInShip);
+        } else {
+            ship.getShipToWorld().transformPosition(grabPosInWorld);
+        }
+
+        grabShip(s, context.getPlayer(), ship, grabPosInShip);
+    }
+
+    void grabShip(GravitronState s, Player p, Ship ship, Vector3dc grabPosInShip) {
+        s.shipID = ship.getId();
+
+        s.HeldBlockPos = ship.getTransform().getShipToWorld().transformPosition(new Vector3d(grabPosInShip));
+        s.PlayerGrabbedRotation = new Vector2d(-p.xRotO, -p.yRotO);
+
+        s.ShipGrabbedPos = new Vector3d(grabPosInShip);
         s.ShipGrabbedRot = ship.getTransform().getShipToWorldRotation();
-
     }
 
     // sets down the ship
-    void dropShip(GravitronState s, Level level) {
+    void dropShip(GravitronState s, ServerLevel level) {
         s.grabbing = false;
 
         if (level != null && !level.isClientSide) {
-            ServerLevel sLevel = (ServerLevel) level;
-
-            delConstraint(sLevel, s.positionConstraintID);
-            delConstraint(sLevel, s.positionDampeningConstraintID);
-            delConstraint(sLevel, s.rotationConstraintID);
-            delConstraint(sLevel, s.rotationDampeningConstraintID);
+            delConstraint(level, s.positionConstraintID);
+            delConstraint(level, s.positionDampeningConstraintID);
+            delConstraint(level, s.rotationConstraintID);
+            delConstraint(level, s.rotationDampeningConstraintID);
             s.shipID = null;
             s.positionConstraintID = null;
             s.rotationConstraintID = null;
@@ -154,20 +174,17 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
         }
     }
 
-    void updateShip(GravitronState s, Level level, Entity entity) {
+    void updateShip(GravitronState s, ServerLevel level, Entity entity) {
         if (s.grabbing) {
             if (s.shipID != null) {
 
-                if (!(level instanceof ServerLevel sLevel)) {
-                    return;
-                }
+                Ship shipUnloaded = VSGameUtilsKt.getShipObjectWorld(level).getAllShips().getById(s.shipID);
+                LoadedServerShip ship = VSGameUtilsKt.getShipObjectWorld(level).getLoadedShips().getById(s.shipID);
 
-                LoadedServerShip ship = VSGameUtilsKt.getShipObjectWorld(sLevel).getLoadedShips().getById(s.shipID);
-
-                Long worldShipID = VSGameUtilsKt.getShipObjectWorld(sLevel).getDimensionToGroundBodyIdImmutable().get(VSGameUtilsKt.getDimensionId(sLevel));
+                Long worldShipID = VSGameUtilsKt.getShipObjectWorld(level).getDimensionToGroundBodyIdImmutable().get(VSGameUtilsKt.getDimensionId(level));
 
 
-                if (ship != null) {
+                if (ship != null && ((LoadedServerShipInternal) ship).areVoxelsFullyLoaded()) {
                     double mass = ship.getInertiaData().getMass();
 
                     // Update Rot Values
@@ -221,20 +238,18 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
                     System.out.println(Position);
                     System.out.println();
 
-                    delConstraint(sLevel, s.positionConstraintID);
-                    delConstraint(sLevel, s.positionDampeningConstraintID);
-                    delConstraint(sLevel, s.rotationConstraintID);
-                    delConstraint(sLevel, s.rotationDampeningConstraintID);
+                    delConstraint(level, s.positionConstraintID);
+                    delConstraint(level, s.positionDampeningConstraintID);
+                    delConstraint(level, s.rotationConstraintID);
+                    delConstraint(level, s.rotationDampeningConstraintID);
 
-                    s.positionConstraintID = VSGameUtilsKt.getShipObjectWorld(sLevel).createNewConstraint(AttachmentConstraint);
-                    s.rotationConstraintID = VSGameUtilsKt.getShipObjectWorld(sLevel).createNewConstraint(RotationConstraint);
-                    s.positionDampeningConstraintID = VSGameUtilsKt.getShipObjectWorld(sLevel).createNewConstraint(PosDampingConstraint);
-                    s.rotationDampeningConstraintID = VSGameUtilsKt.getShipObjectWorld(sLevel).createNewConstraint(RotDampingConstraint);
-
-
+                    s.positionConstraintID = VSGameUtilsKt.getShipObjectWorld(level).createNewConstraint(AttachmentConstraint);
+                    s.rotationConstraintID = VSGameUtilsKt.getShipObjectWorld(level).createNewConstraint(RotationConstraint);
+                    s.positionDampeningConstraintID = VSGameUtilsKt.getShipObjectWorld(level).createNewConstraint(PosDampingConstraint);
+                    s.rotationDampeningConstraintID = VSGameUtilsKt.getShipObjectWorld(level).createNewConstraint(RotDampingConstraint);
+                } else if (shipUnloaded == null) {
+                    dropShip(s, level);
                 }
-            } else {
-                dropShip(s, level);
             }
         }
     }
