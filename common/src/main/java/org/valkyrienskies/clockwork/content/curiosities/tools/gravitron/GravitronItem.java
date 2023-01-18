@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentMap;
 
 public class GravitronItem extends CWItem implements CustomArmPoseItem {
 
-    private class GravitronState {
+    private static class GravitronState {
         boolean grabbing = false;
         boolean shouldDrop = false;
         Vector3d HeldBlockPos;
