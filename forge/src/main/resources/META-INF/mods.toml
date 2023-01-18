@@ -6,7 +6,7 @@ license = "Apache-2.0"
 [[mods]]
 modId = "vs_clockwork"
 version = "${version}"
-displayName = "Create Clockwork Mod"
+displayName = "Clockwork: Create x Valkyrien Skies"
 authors = ["fluffy", "potato", "ewoudje"]
 description = '''
 
