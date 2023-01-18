@@ -27,7 +27,9 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.apache.logging.log4j.core.jmx.Server;
 import org.valkyrienskies.clockwork.content.curiosities.sounds.PropStreamSound;
+import org.valkyrienskies.clockwork.platform.PlatformUtils;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
@@ -102,7 +104,7 @@ public class PropStream {
             if (entity.level.isClientSide)
                 enableClientPlayerSound(entity, Mth.clamp(speed / 128f * .4f, 0.01f, .4f));
             else if (entity instanceof ServerPlayer)
-                ((ServerGamePacketListenerImplAccessor) ((ServerPlayer) entity).connection).port_lib$setAboveGroundTickCount(0);
+                PlatformUtils.setAboveGroundTicks((ServerPlayer) entity, 1);
 
             entityDistance -= .5f;
 

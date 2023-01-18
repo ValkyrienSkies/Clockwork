@@ -43,7 +43,7 @@ dependencies {
 
     //VS2
     modApi("org.valkyrienskies:valkyrienskies-118-fabric:${vs2_version}")
-    implementation("org.valkyrienskies.core:api:1.1.0+b8034cc22c") { transitive = false }
+    implementation("org.valkyrienskies.core:api:1.1.0+2b2f93f793") { transitive = false }
 
     // Kotlin
     modImplementation("net.fabricmc:fabric-language-kotlin:1.8.5+kotlin.1.7.20")

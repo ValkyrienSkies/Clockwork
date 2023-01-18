@@ -6,6 +6,7 @@ import com.simibubi.create.foundation.data.AssetLookup;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.tterrag.registrate.util.entry.ItemEntry;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Rarity;
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItemRenderer;
@@ -38,7 +39,7 @@ public class ClockWorkItems {
                 .register();
 
         public static final ItemEntry<GravitronItem> GRAVITRON = REGISTRATE.item("gravitron", GravitronItem::new)
-                .properties(p -> p.stacksTo(1))
+                .properties(p -> p.stacksTo(1)).properties(p -> p.rarity(Rarity.UNCOMMON))
                 .transform(ClockworkRegistrate.customRenderedItem(() -> GravitronItemRenderer::new))
                 .tag(AllTags.AllItemTags.WRENCH.tag)
                 .model(AssetLookup.itemModelWithPartials())

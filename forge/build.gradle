@@ -49,7 +49,7 @@ dependencies {
 
     //VS2
     modApi("org.valkyrienskies:valkyrienskies-118-forge:${rootProject.vs2_version}") { transitive = false }
-    implementation("org.valkyrienskies.core:api:1.1.0+c92814e9b7") { transitive = false }
+    implementation("org.valkyrienskies.core:api:1.1.0+2b2f93f793") { transitive = false }
 
     // Create and its dependencies
     modImplementation("com.simibubi.create:create-${minecraft_version}:${create_forge_version}:slim") { transitive = false }

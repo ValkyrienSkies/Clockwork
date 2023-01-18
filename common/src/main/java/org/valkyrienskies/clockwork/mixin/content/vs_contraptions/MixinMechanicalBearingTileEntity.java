@@ -42,7 +42,7 @@ public abstract class MixinMechanicalBearingTileEntity extends GeneratingKinetic
 
     @Override
     public boolean isShipContraptionController() {
-        return true;
+        return false;
     }
 
     @Nullable
