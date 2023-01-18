@@ -65,9 +65,6 @@ public class ClockWorkModFabric implements ModInitializer {
 
     @Environment(EnvType.CLIENT)
     public static class Client implements ClientModInitializer {
-        public static final BluperGlueSelectionHandler BLUPER_HANDLER = new BluperGlueSelectionHandler();
-        public static final GravitronRenderHandler GRAVITRON_HANDLER = new GravitronRenderHandler();
-
         @Override
         public void onInitializeClient() {
             ClockWorkMod.initClient();

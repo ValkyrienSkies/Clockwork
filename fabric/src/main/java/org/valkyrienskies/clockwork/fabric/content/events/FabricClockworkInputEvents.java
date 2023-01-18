@@ -5,6 +5,7 @@ import io.github.fabricators_of_create.porting_lib.event.client.MouseButtonCallb
 import io.github.fabricators_of_create.porting_lib.util.KeyBindingHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionResult;
+import org.valkyrienskies.clockwork.ClockWorkHandlers;
 import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.clockwork.fabric.ClockWorkModFabric;
 
@@ -21,7 +22,7 @@ public class FabricClockworkInputEvents {
         boolean isAttack = button == attack;
 
         if (isUse || isAttack) {
-            if (ClockWorkModFabric.Client.BLUPER_HANDLER.onMouseInput(isAttack))
+            if (ClockWorkHandlers.BLUPER_HANDLER.onMouseInput(isAttack))
                 return InteractionResult.SUCCESS;
         }
         return InteractionResult.PASS;
