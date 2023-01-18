@@ -141,7 +141,7 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
         s.shipID = ship.getId();
 
         s.HeldBlockPos = ship.getTransform().getShipToWorld().transformPosition(new Vector3d(grabPosInShip));
-        s.PlayerGrabbedRotation = new Vector2d(-p.xRotO, -p.yRotO);
+        s.PlayerGrabbedRotation = new Vector2d(p.getXRot(), p.getYRot());
 
         s.ShipGrabbedPos = new Vector3d(grabPosInShip);
         s.ShipGrabbedRot = ship.getTransform().getShipToWorldRotation();
@@ -188,12 +188,10 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
                     double mass = ship.getInertiaData().getMass();
 
                     // Update Rot Values
-                    Vector2d PlayerCurrentRotation = new Vector2d(entity.xRotO, entity.yRotO);
+                    Vector2d playerCurrentRotation = new Vector2d(entity.getXRot(), entity.getYRot());
 
-                    Quaterniond ogPlayerRot = playerRotToQuaternion(PlayerCurrentRotation.x, PlayerCurrentRotation.y).normalize();
-                    Quaterniond newPlayerRot = playerRotToQuaternion(s.PlayerGrabbedRotation.x, s.PlayerGrabbedRotation.y).normalize();
-                    Quaterniond deltaPlayerRot = newPlayerRot.mul(ogPlayerRot.conjugate(), new Quaterniond()).normalize();
-                    Quaterniond Rotation = deltaPlayerRot.mul(s.ShipGrabbedRot, new Quaterniond()).normalize();
+                    Quaterniondc deltaPlayerRot = playerRotToQuaternion(playerCurrentRotation.x - s.PlayerGrabbedRotation.x, playerCurrentRotation.y - s.PlayerGrabbedRotation.y).normalize();
+                    Quaterniond rotation = deltaPlayerRot.mul(s.ShipGrabbedRot, new Quaterniond()).normalize();
 
                     // Update Pos Values
                     s.HeldBlockPos = VectorConversionsMCKt.toJOML(entity.position()).add(0.0, entity.getEyeHeight(), 0.0).add(VectorConversionsMCKt.toJOML(entity.getLookAngle()).normalize().mul(getShipSize(ship)));
@@ -215,7 +213,7 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
                     double RotationCompliance = 1e-7 / Math.sqrt(mass);
                     double RotationMaxForce = 1e10;
                     VSFixedOrientationConstraint RotationConstraint = new VSFixedOrientationConstraint(
-                        s.shipID, worldShipID, RotationCompliance, new Quaterniond(), Rotation,
+                        s.shipID, worldShipID, RotationCompliance, new Quaterniond(), rotation,
                         RotationMaxForce);
 
                     double PosDampingCompliance = 0.0;
@@ -229,7 +227,7 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
                     double RotDampingMaxForce = 0.0;
                     double RotDampingEff = 100.0;
                     VSRotDampingConstraint RotDampingConstraint = new VSRotDampingConstraint(
-                        s.shipID, worldShipID, RotDampingCompliance, new Quaterniond(), Rotation,
+                        s.shipID, worldShipID, RotDampingCompliance, new Quaterniond(), rotation,
                         RotDampingMaxForce, RotDampingEff, VSRotDampingAxes.ALL_AXES);
 
                     //Drop and re grab the Constraints
@@ -273,7 +271,7 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
 
 
     Quaterniond playerRotToQuaternion(double pitch, double yaw) {
-        return new Quaterniond().rotateY(Math.toRadians(yaw)).rotateX(Math.toRadians(pitch));
+        return new Quaterniond().rotateY(Math.toRadians(-yaw)).rotateX(Math.toRadians(pitch));
     }
 
     @Override
