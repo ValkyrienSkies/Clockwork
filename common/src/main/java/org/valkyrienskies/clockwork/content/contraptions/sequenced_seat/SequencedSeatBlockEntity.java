@@ -1,0 +1,42 @@
+package org.valkyrienskies.clockwork.content.contraptions.sequenced_seat;
+
+import com.simibubi.create.content.contraptions.relays.encased.SplitShaftTileEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import org.valkyrienskies.clockwork.util.MinecraftUtil;
+
+public class SequencedSeatBlockEntity extends SplitShaftTileEntity {
+
+    private SequencedSeatRuleList forwardRules = new SequencedSeatRuleList();
+    private SequencedSeatRuleList backwardRules = new SequencedSeatRuleList();
+    private SequencedSeatRuleList leftRules = new SequencedSeatRuleList();
+    private SequencedSeatRuleList rightRules = new SequencedSeatRuleList();
+
+    public SequencedSeatBlockEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {
+        super(typeIn, pos, state);
+    }
+
+    @Override
+    public float getRotationSpeedModifier(Direction face) {
+        if (getSourceFacing() != Direction.DOWN)
+            return 0;
+
+        if (isVirtual())
+            return 1;
+        return (!hasSource() || face == getSourceFacing()) ? 1 : getList(face).currentModifier(this);
+    }
+
+    public SequencedSeatRuleList getList(Direction face) {
+        Direction forward = getBlockState().getValue(SequencedSeatBlock.HORIZONTAL_FACING);
+        Rotation rotation = MinecraftUtil.between(forward, face);
+        return switch (rotation) {
+            case NONE -> forwardRules;
+            case CLOCKWISE_90 -> rightRules;
+            case CLOCKWISE_180 -> backwardRules;
+            case COUNTERCLOCKWISE_90 -> leftRules;
+        };
+    }
+}
