@@ -5,6 +5,7 @@ import com.jozufozu.flywheel.core.PartialModel;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.AllBlockPartials;
 import com.simibubi.create.content.contraptions.base.KineticTileEntity;
+import com.simibubi.create.content.contraptions.base.KineticTileEntityRenderer;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingBlock;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingRenderer;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.IBearingTileEntity;
@@ -19,7 +20,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.valkyrienskies.clockwork.ClockWorkPartials;
 
-public class FlapBearingRenderer extends BearingRenderer {
+public class FlapBearingRenderer extends KineticTileEntityRenderer {
 
     public FlapBearingRenderer(BlockEntityRendererProvider.Context context) {
         super(context);
@@ -53,7 +54,7 @@ public class FlapBearingRenderer extends BearingRenderer {
     @Override
     protected SuperByteBuffer getRotatedModel(KineticTileEntity te, BlockState state) {
         return CachedBufferer.partialFacing(AllBlockPartials.SHAFT_HALF, state, state
-                .getValue(BearingBlock.FACING)
+                .getValue(FlapBearingBlock.FACING)
                 .getOpposite());
     }
 

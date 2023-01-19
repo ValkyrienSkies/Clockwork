@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.contraptions.propellor;
 
-
 import com.simibubi.create.AllTags;
 import com.simibubi.create.content.contraptions.base.KineticTileEntity;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingContraption;
@@ -175,6 +174,8 @@ public class PropellorBearingBlockEntity extends MechanicalBearingTileEntity imp
             sendData();
         }
 
+        refreshKineticState();
+
         if (slowingDown) {
             modSlowdownSpeed();
         } else if (spinningUp) {
@@ -226,6 +227,15 @@ public class PropellorBearingBlockEntity extends MechanicalBearingTileEntity imp
             }
         }
 
+    }
+
+    private void refreshKineticState() {
+        if (isSourceRemoved()) {
+            detachKinetics();
+        }
+        else if (source == null) {
+            detachKinetics();
+        }
     }
 
     private void stressShutdown() {
@@ -403,14 +413,14 @@ public class PropellorBearingBlockEntity extends MechanicalBearingTileEntity imp
     }
 
     private void onDirectionChanged() {
-    BlockState state = getBlockState();
-    PropellorBearingBlock.Direction previouslyPowered = state.getValue(PropellorBearingBlock.DIRECTION);
-    if (previouslyPowered == PropellorBearingBlock.Direction.PULL)
-        level.setBlock(getBlockPos(), state.cycle(PropellorBearingBlock.DIRECTION), 2);
-    if (!running)
-        return;
-    if (!level.isClientSide)
-        updateGeneratedRotation();
+        BlockState state = getBlockState();
+        PropellorBearingBlock.Direction previouslyPowered = state.getValue(PropellorBearingBlock.DIRECTION);
+        if (previouslyPowered == PropellorBearingBlock.Direction.PULL)
+            level.setBlock(getBlockPos(), state.cycle(PropellorBearingBlock.DIRECTION), 2);
+        if (!running)
+            return;
+        if (!level.isClientSide)
+            updateGeneratedRotation();
     }
 
     @Override
