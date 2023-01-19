@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.contraptions.sequenced_seat;
 
+import net.minecraft.nbt.ListTag;
 import net.minecraft.world.level.block.Rotation;
 
 import javax.annotation.Nonnull;
@@ -46,6 +47,20 @@ public class SequencedSeatRuleList {
     public void setOperation(int index, SequencedSeatOperation operation) {
         SequencedSeatRule rule = getRule(index);
         setRule(index, new SequencedSeatRule(rule.inputKeys(), operation, operation.defaultValue()));
+    }
+
+    public ListTag serializeNBT() {
+        ListTag list = new ListTag();
+        for (SequencedSeatRule rule : rules) {
+            list.add(rule.serializeNBT());
+        }
+        return list;
+    }
+
+    public void deserializeNBT(ListTag tag) {
+        for (int i = 0; i < MAX_RULES; i++) {
+            rules[i] = SequencedSeatRule.deserializeNBT(tag.getCompound(i));
+        }
     }
 
     public static SequencedSeatRuleList defaultList(Rotation rotation) {

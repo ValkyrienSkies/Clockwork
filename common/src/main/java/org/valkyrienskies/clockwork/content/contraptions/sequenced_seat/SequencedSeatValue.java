@@ -1,6 +1,9 @@
 package org.valkyrienskies.clockwork.content.contraptions.sequenced_seat;
 
 import com.simibubi.create.foundation.gui.widget.ScrollInput;
+import net.minecraft.nbt.FloatTag;
+import net.minecraft.nbt.IntTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -23,6 +26,9 @@ public interface SequencedSeatValue {
 
     void configureInput(ScrollInput input);
 
+    Tag serializeNBT();
+    void deserializeNBT(Tag tag);
+
     class DistanceValue implements SequencedSeatValue {
         public int meters;
 
@@ -39,8 +45,18 @@ public interface SequencedSeatValue {
         public void configureInput(ScrollInput input) {
             input.setState(meters);
             input.titled(KEY);
-            input.withRange(0, Integer.MAX_VALUE);
+            input.withRange(1, Integer.MAX_VALUE);
             input.calling(v -> meters = v);
+        }
+
+        @Override
+        public Tag serializeNBT() {
+            return IntTag.valueOf(meters);
+        }
+
+        @Override
+        public void deserializeNBT(Tag tag) {
+            meters = ((IntTag) tag).getAsInt();
         }
 
         private static final TranslatableComponent KEY = new TranslatableComponent("sequenced_seat.value.distance");
@@ -66,6 +82,16 @@ public interface SequencedSeatValue {
             input.calling(v -> degrees = v);
         }
 
+        @Override
+        public Tag serializeNBT() {
+            return IntTag.valueOf(degrees);
+        }
+
+        @Override
+        public void deserializeNBT(Tag tag) {
+            degrees = ((IntTag) tag).getAsInt();
+        }
+
         private static final TranslatableComponent KEY = new TranslatableComponent("sequenced_seat.value.angle");
     }
 
@@ -87,6 +113,16 @@ public interface SequencedSeatValue {
             input.titled(KEY);
             input.withRange(-8, 8);
             input.calling(v -> multiplier = ((float) v) / 2f);
+        }
+
+        @Override
+        public Tag serializeNBT() {
+            return FloatTag.valueOf(multiplier);
+        }
+
+        @Override
+        public void deserializeNBT(Tag tag) {
+            multiplier = ((FloatTag) tag).getAsFloat();
         }
 
         private static final TranslatableComponent KEY = new TranslatableComponent("sequenced_seat.value.multiply");

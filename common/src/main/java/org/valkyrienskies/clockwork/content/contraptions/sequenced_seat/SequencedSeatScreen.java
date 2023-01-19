@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.Rotation;
 import org.jetbrains.annotations.NotNull;
 import org.valkyrienskies.clockwork.ClockWorkBlocks;
 import org.valkyrienskies.clockwork.ClockWorkGuiTextures;
+import org.valkyrienskies.clockwork.ClockWorkPackets;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -48,6 +49,12 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
         makeValueInputs();
 
         this.addRenderableWidget(this.confirmButton);
+    }
+
+    @Override
+    public void onClose() {
+        super.onClose();
+        ClockWorkPackets.sendToServer(new UpdateSeatRulesPacket(be));
     }
 
     @Override

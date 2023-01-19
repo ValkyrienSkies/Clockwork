@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.contraptions.sequenced_seat;
 import com.simibubi.create.content.contraptions.relays.encased.SplitShaftTileEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -49,5 +50,52 @@ public class SequencedSeatBlockEntity extends SplitShaftTileEntity {
 
     public Set<InputKey> pressedKeys() {
         return Set.of();
+    }
+
+    @Override
+    protected void write(CompoundTag compound, boolean clientPacket) {
+        super.write(compound, clientPacket);
+        compound.put("ForwardRules", forwardRules.serializeNBT());
+        compound.put("BackwardRules", backwardRules.serializeNBT());
+        compound.put("LeftRules", leftRules.serializeNBT());
+        compound.put("RightRules", rightRules.serializeNBT());
+    }
+
+    @Override
+    protected void read(CompoundTag compound, boolean clientPacket) {
+        super.read(compound, clientPacket);
+        forwardRules.deserializeNBT(compound.getList("ForwardRules", CompoundTag.TAG_COMPOUND));
+        backwardRules.deserializeNBT(compound.getList("BackwardRules", CompoundTag.TAG_COMPOUND));
+        leftRules.deserializeNBT(compound.getList("LeftRules", CompoundTag.TAG_COMPOUND));
+        rightRules.deserializeNBT(compound.getList("RightRules", CompoundTag.TAG_COMPOUND));
+    }
+
+    public SequencedSeatRuleList getForwardRules() {
+        return forwardRules;
+    }
+
+    public SequencedSeatRuleList getBackwardRules() {
+        return backwardRules;
+    }
+
+    public SequencedSeatRuleList getLeftRules() {
+        return leftRules;
+    }
+
+    public SequencedSeatRuleList getRightRules() {
+        return rightRules;
+    }
+
+    public void updateRules(
+            SequencedSeatRuleList forwardRules,
+            SequencedSeatRuleList backwardRules,
+            SequencedSeatRuleList leftRules,
+            SequencedSeatRuleList rightRules) {
+        this.forwardRules = forwardRules;
+        this.backwardRules = backwardRules;
+        this.leftRules = leftRules;
+        this.rightRules = rightRules;
+        sendData();
+        setChanged();
     }
 }
