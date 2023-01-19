@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.simibubi.create.Create;
 import com.simibubi.create.foundation.gui.UIRenderHelper;
 import com.simibubi.create.foundation.gui.element.ScreenElement;
 import com.simibubi.create.foundation.utility.Color;
@@ -11,8 +12,7 @@ import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.resources.ResourceLocation;
 
 public enum ClockWorkGuiTextures implements ScreenElement {
-    SEQUENCED_SEAT("sequenced_seat", 176, 108),
-    ;
+    SEQUENCED_SEAT("sequenced_seat", 173, 159);
     public static final int FONT_COLOR = 0x575F7A;
 
     public final ResourceLocation location;

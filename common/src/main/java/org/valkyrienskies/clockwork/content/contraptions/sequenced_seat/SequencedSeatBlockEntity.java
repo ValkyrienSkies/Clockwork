@@ -8,12 +8,15 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.valkyrienskies.clockwork.util.MinecraftUtil;
 
+import java.util.Set;
+
 public class SequencedSeatBlockEntity extends SplitShaftTileEntity {
 
     private SequencedSeatRuleList forwardRules = new SequencedSeatRuleList();
     private SequencedSeatRuleList backwardRules = new SequencedSeatRuleList();
     private SequencedSeatRuleList leftRules = new SequencedSeatRuleList();
     private SequencedSeatRuleList rightRules = new SequencedSeatRuleList();
+
 
     public SequencedSeatBlockEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {
         super(typeIn, pos, state);
@@ -32,11 +35,19 @@ public class SequencedSeatBlockEntity extends SplitShaftTileEntity {
     public SequencedSeatRuleList getList(Direction face) {
         Direction forward = getBlockState().getValue(SequencedSeatBlock.HORIZONTAL_FACING);
         Rotation rotation = MinecraftUtil.between(forward, face);
+        return getList(rotation);
+    }
+
+    public SequencedSeatRuleList getList(Rotation rotation) {
         return switch (rotation) {
             case NONE -> forwardRules;
             case CLOCKWISE_90 -> rightRules;
             case CLOCKWISE_180 -> backwardRules;
             case COUNTERCLOCKWISE_90 -> leftRules;
         };
+    }
+
+    public Set<InputKey> pressedKeys() {
+        return Set.of();
     }
 }
