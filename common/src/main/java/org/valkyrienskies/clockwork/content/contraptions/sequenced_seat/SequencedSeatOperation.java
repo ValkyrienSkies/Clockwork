@@ -26,4 +26,13 @@ public enum SequencedSeatOperation {
     public AllIcons getIcon() {
         return icon;
     }
+
+    public SequencedSeatValue defaultValue() {
+        return switch (this) {
+            case NOTHING -> null;
+            case TURN_ANGLE -> SequencedSeatValue.angle(90);
+            case TURN_DISTANCE -> SequencedSeatValue.distance(1);
+            case MULTIPLY -> SequencedSeatValue.multiply(1);
+        };
+    }
 }

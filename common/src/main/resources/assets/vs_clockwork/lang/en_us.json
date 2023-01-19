@@ -19,5 +19,8 @@
   "sequenced_seat.operation.nothing": "None",
   "sequenced_seat.operation.distance": "Move",
   "sequenced_seat.operation.angle": "Rotate",
-  "sequenced_seat.operation.multiply": "Multiply"
+  "sequenced_seat.operation.multiply": "Multiply",
+  "sequenced_seat.value.distance": "Distance",
+  "sequenced_seat.value.angle": "Angle",
+  "sequenced_seat.value.multiply": "Multiplier"
 }

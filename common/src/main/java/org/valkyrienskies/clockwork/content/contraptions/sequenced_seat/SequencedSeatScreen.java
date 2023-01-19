@@ -72,7 +72,7 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
         SequencedSeatRuleList list = currentList();
         for (int i = 0; i < SequencedSeatRuleList.MAX_RULES; i++) {
             SequencedSeatRule rule = list.getRule(i);
-            int ruleX = x + 36;
+            int ruleX = x + 38;
             int ruleY = y + 18 + i * (INPUT_FIELDS_HEIGHT + INPUT_FIELDS_MARGIN);
             if (!rule.inputKeys().isEmpty() || i == 0) {
                 operationInputs[i].visible = true;
@@ -82,6 +82,15 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
                     valueInputs[i].visible = true;
 
                     drawInputField(ruleX, ruleY, ms, partialTicks, 0);
+
+                    drawCenteredString(
+                            ms,
+                            font,
+                            rule.value().asComponent(),
+                            ruleX + 62 + (INPUT_VALUE_WIDTH / 2),
+                            ruleY + ((INPUT_FIELDS_HEIGHT - font.lineHeight) / 2) + 1,
+                            0xFFFFFF
+                    );
                 } else {
                     valueInputs[i].visible = false;
                     drawInputField(ruleX, ruleY, ms, partialTicks, 1);
@@ -92,8 +101,8 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
                         ms,
                         font,
                         operation.asComponent(),
-                        ruleX + 18,
-                        ruleY + ((INPUT_FIELDS_HEIGHT - font.lineHeight) / 2),
+                        ruleX + 16,
+                        ruleY + ((INPUT_FIELDS_HEIGHT - font.lineHeight) / 2) + 1,
                         0xFFFFFF
                 );
             } else {
@@ -107,7 +116,7 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
 
     private void drawInputField(int x, int y, @NotNull PoseStack ms, float partialTicks, int i) {
         background.bind();
-        blit(ms, x, y,
+        blit(ms, x - 2, y,
                 INPUT_FIELDS_X,
                 INPUT_FIELDS_Y + (i * (INPUT_FIELDS_HEIGHT + INPUT_FIELDS_MARGIN)),
                 INPUT_FIELDS_WIDTH,
@@ -144,6 +153,10 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
         return (ordinal) -> {
             SequencedSeatOperation operation = SequencedSeatOperation.values()[ordinal];
             currentList().setOperation(index, operation);
+            SequencedSeatValue value = currentList().getRule(index).value();
+
+            if (value != null)
+                value.configureInput(valueInputs[index]);
         };
     }
 
@@ -151,27 +164,21 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
         int x = guiLeft;
         int y = guiTop;
         for (int i = 0; i < SequencedSeatRuleList.MAX_RULES; i++) {
-            int ruleX = x + 36;
+            int ruleX = x + 100;
             int ruleY = y + 18 + i * (INPUT_FIELDS_HEIGHT + INPUT_FIELDS_MARGIN);
 
             ScrollInput input = valueInputs[i] = new ScrollInput(
                     ruleX + 2,
                     ruleY + 2,
-                    INPUT_OPERATION_WIDTH - 4,
+                    INPUT_VALUE_WIDTH - 4,
                     INPUT_FIELDS_HEIGHT - 4
             );
 
             input.visible = false;
+
+            addRenderableWidget(input);
         }
     }
-
-    private Consumer<Integer> onValueChanged(int index) {
-        return (ordinal) -> {
-            //TODO value
-            //currentList().setValue(index, new SequencedSeatValue());
-        };
-    }
-
 
     private void makeTabButtons() {
         for (Rotation rotation : Rotation.values()) {
@@ -336,4 +343,5 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
     private static final int INPUT_FIELDS_HEIGHT = 18;
     private static final int INPUT_FIELDS_MARGIN = 4;
     private static final int INPUT_OPERATION_WIDTH = 60;
+    private static final int INPUT_VALUE_WIDTH = 46;
 }

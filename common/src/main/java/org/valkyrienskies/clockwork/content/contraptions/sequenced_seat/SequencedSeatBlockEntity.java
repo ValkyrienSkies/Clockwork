@@ -12,10 +12,10 @@ import java.util.Set;
 
 public class SequencedSeatBlockEntity extends SplitShaftTileEntity {
 
-    private SequencedSeatRuleList forwardRules = new SequencedSeatRuleList();
-    private SequencedSeatRuleList backwardRules = new SequencedSeatRuleList();
-    private SequencedSeatRuleList leftRules = new SequencedSeatRuleList();
-    private SequencedSeatRuleList rightRules = new SequencedSeatRuleList();
+    private SequencedSeatRuleList forwardRules = SequencedSeatRuleList.defaultList(Rotation.NONE);
+    private SequencedSeatRuleList backwardRules = SequencedSeatRuleList.defaultList(Rotation.CLOCKWISE_180);
+    private SequencedSeatRuleList leftRules = SequencedSeatRuleList.defaultList(Rotation.COUNTERCLOCKWISE_90);
+    private SequencedSeatRuleList rightRules = SequencedSeatRuleList.defaultList(Rotation.CLOCKWISE_90);
 
 
     public SequencedSeatBlockEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {

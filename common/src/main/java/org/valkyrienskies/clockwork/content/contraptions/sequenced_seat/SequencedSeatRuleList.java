@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.content.contraptions.sequenced_seat;
 
+import net.minecraft.world.level.block.Rotation;
+
 import javax.annotation.Nonnull;
 
 public class SequencedSeatRuleList {
@@ -43,11 +45,29 @@ public class SequencedSeatRuleList {
 
     public void setOperation(int index, SequencedSeatOperation operation) {
         SequencedSeatRule rule = getRule(index);
-        setRule(index, new SequencedSeatRule(rule.inputKeys(), operation, rule.value()));
+        setRule(index, new SequencedSeatRule(rule.inputKeys(), operation, operation.defaultValue()));
     }
 
-    public void setValue(int index, SequencedSeatValue value) {
-        SequencedSeatRule rule = getRule(index);
-        setRule(index, new SequencedSeatRule(rule.inputKeys(), rule.operation(), value));
+    public static SequencedSeatRuleList defaultList(Rotation rotation) {
+        SequencedSeatRuleList list = new SequencedSeatRuleList();
+
+        list.setOperation(1, SequencedSeatOperation.MULTIPLY);
+
+        switch (rotation) {
+            case NONE -> {
+                list.addKey(1, InputKey.FORWARD);
+            }
+            case CLOCKWISE_90 -> {
+                list.addKey(1, InputKey.RIGHT);
+            }
+            case CLOCKWISE_180 -> {
+                list.addKey(1, InputKey.BACKWARD);
+            }
+            case COUNTERCLOCKWISE_90 -> {
+                list.addKey(1, InputKey.LEFT);
+            }
+        }
+
+        return list;
     }
 }
