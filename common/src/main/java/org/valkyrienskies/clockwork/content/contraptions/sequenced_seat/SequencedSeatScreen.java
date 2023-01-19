@@ -6,6 +6,8 @@ import com.simibubi.create.foundation.gui.AllIcons;
 import com.simibubi.create.foundation.gui.element.GuiGameElement;
 import com.simibubi.create.foundation.gui.widget.AbstractSimiWidget;
 import com.simibubi.create.foundation.gui.widget.IconButton;
+import com.simibubi.create.foundation.gui.widget.ScrollInput;
+import com.simibubi.create.foundation.gui.widget.SelectionScrollInput;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Rotation;
@@ -13,7 +15,8 @@ import org.jetbrains.annotations.NotNull;
 import org.valkyrienskies.clockwork.ClockWorkBlocks;
 import org.valkyrienskies.clockwork.ClockWorkGuiTextures;
 
-import java.util.Set;
+import java.util.Arrays;
+import java.util.function.Consumer;
 
 public class SequencedSeatScreen extends AbstractSimiScreen {
     private final ItemStack renderedItem = ClockWorkBlocks.SEQUENCED_SEAT.asStack();
@@ -21,6 +24,8 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
     private final SequencedSeatBlockEntity be;
 
     private IconButton confirmButton;
+    private SelectionScrollInput[] operationInputs = new SelectionScrollInput[SequencedSeatRuleList.MAX_RULES];
+    private ScrollInput[] valueInputs = new ScrollInput[SequencedSeatRuleList.MAX_RULES];
     private Rotation currentShaft = Rotation.NONE;
     public SequencedSeatScreen(SequencedSeatBlockEntity be) {
         this.be = be;
@@ -39,6 +44,8 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
 
         makeTabButtons();
         makeKeyButtons();
+        makeOperationInputs();
+        makeValueInputs();
 
         this.addRenderableWidget(this.confirmButton);
     }
@@ -65,15 +72,106 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
         SequencedSeatRuleList list = currentList();
         for (int i = 0; i < SequencedSeatRuleList.MAX_RULES; i++) {
             SequencedSeatRule rule = list.getRule(i);
-            int ruleX = x + 8;
-            int ruleY = y + 20 + i * 12;
-            //drawString(ms, font, rule.toString(), ruleX, ruleY, 0xFFFFFF);
+            int ruleX = x + 36;
+            int ruleY = y + 18 + i * (INPUT_FIELDS_HEIGHT + INPUT_FIELDS_MARGIN);
+            if (!rule.inputKeys().isEmpty() || i == 0) {
+                operationInputs[i].visible = true;
+                SequencedSeatOperation operation = rule.operation();
+
+                if (operation != SequencedSeatOperation.NOTHING) {
+                    valueInputs[i].visible = true;
+
+                    drawInputField(ruleX, ruleY, ms, partialTicks, 0);
+                } else {
+                    valueInputs[i].visible = false;
+                    drawInputField(ruleX, ruleY, ms, partialTicks, 1);
+                }
+                operation.getIcon().render(ms, ruleX + 1, ruleY + 1);
+
+                drawString(
+                        ms,
+                        font,
+                        operation.asComponent(),
+                        ruleX + 18,
+                        ruleY + ((INPUT_FIELDS_HEIGHT - font.lineHeight) / 2),
+                        0xFFFFFF
+                );
+            } else {
+                operationInputs[i].visible = false;
+                valueInputs[i].visible = false;
+
+                drawInputField(ruleX, ruleY, ms, partialTicks, 2);
+            }
         }
     }
 
-    private SequencedSeatRuleList currentList() {
-        return be.getList(currentShaft);
+    private void drawInputField(int x, int y, @NotNull PoseStack ms, float partialTicks, int i) {
+        background.bind();
+        blit(ms, x, y,
+                INPUT_FIELDS_X,
+                INPUT_FIELDS_Y + (i * (INPUT_FIELDS_HEIGHT + INPUT_FIELDS_MARGIN)),
+                INPUT_FIELDS_WIDTH,
+                INPUT_FIELDS_HEIGHT
+        );
     }
+
+    private void makeOperationInputs() {
+        int x = guiLeft;
+        int y = guiTop;
+        for (int i = 0; i < SequencedSeatRuleList.MAX_RULES; i++) {
+            int ruleX = x + 36;
+            int ruleY = y + 18 + i * (INPUT_FIELDS_HEIGHT + INPUT_FIELDS_MARGIN);
+
+            SelectionScrollInput input = operationInputs[i] = new SelectionScrollInput(
+                    ruleX,
+                    ruleY,
+                    INPUT_OPERATION_WIDTH,
+                    INPUT_FIELDS_HEIGHT
+            );
+
+            input.visible = false;
+            input.forOptions(Arrays.stream(SequencedSeatOperation.values())
+                    .map(SequencedSeatOperation::asComponent)
+                    .toList());
+            input.calling(onOperationChanged(i));
+            input.setState(currentList().getRule(i).operation().ordinal());
+
+            addRenderableWidget(input);
+        }
+    }
+
+    private Consumer<Integer> onOperationChanged(int index) {
+        return (ordinal) -> {
+            SequencedSeatOperation operation = SequencedSeatOperation.values()[ordinal];
+            currentList().setOperation(index, operation);
+        };
+    }
+
+    private void makeValueInputs() {
+        int x = guiLeft;
+        int y = guiTop;
+        for (int i = 0; i < SequencedSeatRuleList.MAX_RULES; i++) {
+            int ruleX = x + 36;
+            int ruleY = y + 18 + i * (INPUT_FIELDS_HEIGHT + INPUT_FIELDS_MARGIN);
+
+            ScrollInput input = valueInputs[i] = new ScrollInput(
+                    ruleX + 2,
+                    ruleY + 2,
+                    INPUT_OPERATION_WIDTH - 4,
+                    INPUT_FIELDS_HEIGHT - 4
+            );
+
+            input.visible = false;
+        }
+    }
+
+    private Consumer<Integer> onValueChanged(int index) {
+        return (ordinal) -> {
+            //TODO value
+            //currentList().setValue(index, new SequencedSeatValue());
+        };
+    }
+
 
     private void makeTabButtons() {
         for (Rotation rotation : Rotation.values()) {
@@ -118,7 +216,7 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
                     Component.nullToEmpty(rotation.toString())
             );
 
-            blitX = x + 222;
+            blitX = x + 205;
             blitY = y;
 
             this.rotation = rotation;
@@ -130,7 +228,7 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
             isHovered = rotation == currentShaft || (mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height);
 
             background.bind();
-            blit(ms, x, y, isHovered ? blitX : 17 + blitX, blitY, width, height);
+            blit(ms, x, y, isHovered ? 17 + blitX : blitX, blitY, width, height);
         }
     }
 
@@ -149,13 +247,11 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
     }
 
     private void selectKey(InputKey key, int index) {
-        SequencedSeatRule rule = currentList().getRule(index);
-        rule.inputKeys().add(key);
+        currentList().addKey(index, key);
     }
 
     private void deselectKey(InputKey key, int index) {
-        SequencedSeatRule rule = currentList().getRule(index);
-        rule.inputKeys().remove(key);
+        currentList().removeKey(index, key);
     }
 
     KeyButton createKeyButton(InputKey key, int index) {
@@ -202,7 +298,7 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
                     Component.nullToEmpty(key.toString())
             );
 
-            blitX = x + 222;
+            blitX = x + 205;
             blitY = y + 17;
 
             this.key = key;
@@ -219,15 +315,25 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
         @Override
         public void renderButton(@NotNull PoseStack ms, int mouseX, int mouseY, float partialTicks) {
             isHovered = isKeySelected(key, index) || (mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height);
+
             background.bind();
             blit(ms, x, y, isHovered ? 17 + blitX : blitX, blitY, width, height);
         }
     }
 
+    private SequencedSeatRuleList currentList() {
+        return be.getList(currentShaft);
+    }
+
     private static final int TAB_PAD_X = 11;
     private static final int TAB_PAD_Y = 16;
-
     private static final int INPUT_PAD_X = 11;
     private static final int INPUT_PAD_Y = 41;
     private static final int INPUT_PAD_MARGIN = 22;
+    private static final int INPUT_FIELDS_X = 36;
+    private static final int INPUT_FIELDS_Y = 62;
+    private static final int INPUT_FIELDS_WIDTH = 110;
+    private static final int INPUT_FIELDS_HEIGHT = 18;
+    private static final int INPUT_FIELDS_MARGIN = 4;
+    private static final int INPUT_OPERATION_WIDTH = 60;
 }
