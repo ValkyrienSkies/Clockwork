@@ -14,13 +14,13 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import org.valkyrienskies.clockwork.ClockWorkMod;
-import org.valkyrienskies.clockwork.forge.content.curiosities.particles.PropellorStreamParticleData;
+import org.valkyrienskies.clockwork.ClockWorkParticles;
 
 import java.util.function.Supplier;
 
+// Why all and not forge? cus it also loads the common thus all of them
 public enum AllClockworkParticles {
-
-    PROP_STREAM(PropellorStreamParticleData::new);
+    ;
 
     private final ParticleEntry<?> entry;
 
@@ -29,12 +29,15 @@ public enum AllClockworkParticles {
         entry = new ParticleEntry<>(name, typeFactory);
     }
 
-    public static void register(IEventBus modEventBus) {
+    public static void init(IEventBus modEventBus) {
+        ClockWorkParticles.init();
         ParticleEntry.REGISTER.register(modEventBus);
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static void registerFactories(ParticleFactoryRegisterEvent event) {
+    public static void register(ParticleFactoryRegisterEvent event) {
+        ClockWorkParticles.initClient();
+
         ParticleEngine particles = Minecraft.getInstance().particleEngine;
         for (AllClockworkParticles particle : values())
             particle.entry.registerFactory(particles);

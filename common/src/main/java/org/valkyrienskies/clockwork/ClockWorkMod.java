@@ -1,14 +1,41 @@
 package org.valkyrienskies.clockwork;
 
+import com.mojang.logging.LogUtils;
+import com.simibubi.create.foundation.data.CreateRegistrate;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.CreativeModeTab;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronRenderHandler;
+import org.valkyrienskies.clockwork.platform.SharedValues;
+
 public class ClockWorkMod {
     public static final String MOD_ID = "vs_clockwork";
 
-    public static void init() {
+    // versioning
+    public static final int BUILD_VERSION = 1;
+    public static final int NETWORK_VERSION = 1;
+    public static final String NETWORK_VERSION_STR = String.valueOf(NETWORK_VERSION);
 
+    public static final ResourceLocation NETWORK_CHANNEL = ClockWorkMod.asResource("main");
+
+
+
+    public static final CreateRegistrate REGISTRATE = CreateRegistrate.create(ClockWorkMod.MOD_ID);
+    public static final CreativeModeTab BASE_CREATIVE_TAB = SharedValues.creativeTab();
+    public static final Logger MIXIN_LOGGER = LoggerFactory.getLogger("ClockworkMixins");
+    public static final Logger LOGGER = LogUtils.getLogger();
+    public static void init() {
+        ClockWorkContraptions.init();
     }
 
     public static void initClient() {
 
+
+
     }
 
+    public static ResourceLocation asResource(String path) {
+        return new ResourceLocation(MOD_ID, path);
+    }
 }

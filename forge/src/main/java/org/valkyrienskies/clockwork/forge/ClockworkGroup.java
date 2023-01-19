@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.forge;
 
 import com.simibubi.create.content.AllSections;
 import net.minecraft.world.item.ItemStack;
+import org.valkyrienskies.clockwork.ClockWorkBlocks;
 
 import java.util.EnumSet;
 
@@ -18,6 +19,6 @@ public class ClockworkGroup extends ClockworkGroupBase {
 
     @Override
     public ItemStack makeIcon() {
-        return AllClockworkBlocks.PROPELLOR_BEARING.asStack();
+        return ClockWorkBlocks.PHYSICS_INFUSER.asStack();
     }
 }

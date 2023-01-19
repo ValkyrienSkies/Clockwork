@@ -15,6 +15,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.valkyrienskies.clockwork.platform.PlatformUtils;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
@@ -29,7 +30,7 @@ public abstract class MixinSuperGlueSelectionHandler {
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/foundation/utility/RaycastHelper;getTraceOrigin(Lnet/minecraft/world/entity/player/Player;)Lnet/minecraft/world/phys/Vec3;"))
     private Vec3 redirectGetTraceOrigin(Player playerIn) {
         Minecraft mc = Minecraft.getInstance();
-        double range = ReachEntityAttributes.getReachDistance(playerIn, mc.gameMode.getPickRange()) + 1;
+        double range = PlatformUtils.getReachDistance(playerIn) + 1;
         Vec3 origin = RaycastHelper.getTraceOrigin(playerIn);
         Vec3 target = RaycastHelper.getTraceTarget(playerIn, range, origin);
 
