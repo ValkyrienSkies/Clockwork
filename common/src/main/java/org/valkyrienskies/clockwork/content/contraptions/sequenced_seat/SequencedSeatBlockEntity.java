@@ -17,10 +17,17 @@ public class SequencedSeatBlockEntity extends SplitShaftTileEntity {
     private SequencedSeatRuleList backwardRules = SequencedSeatRuleList.defaultList(Rotation.CLOCKWISE_180);
     private SequencedSeatRuleList leftRules = SequencedSeatRuleList.defaultList(Rotation.COUNTERCLOCKWISE_90);
     private SequencedSeatRuleList rightRules = SequencedSeatRuleList.defaultList(Rotation.CLOCKWISE_90);
-
+    private Set<InputKey> pressedKeys = Set.of();
+    private int ticksSinceLastUpdate = 0;
 
     public SequencedSeatBlockEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {
         super(typeIn, pos, state);
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        ticksSinceLastUpdate++;
     }
 
     @Override
@@ -49,7 +56,7 @@ public class SequencedSeatBlockEntity extends SplitShaftTileEntity {
     }
 
     public Set<InputKey> pressedKeys() {
-        return Set.of();
+        return pressedKeys;
     }
 
     @Override
@@ -97,5 +104,21 @@ public class SequencedSeatBlockEntity extends SplitShaftTileEntity {
         this.rightRules = rightRules;
         sendData();
         setChanged();
+        detachKinetics();
+        attachKinetics();
+    }
+
+    public int getTicksSinceLastUpdate() {
+        return ticksSinceLastUpdate;
+    }
+
+    public void updateInput(Set<InputKey> pressedKeys) {
+        if (this.pressedKeys.equals(pressedKeys))
+            return;
+
+        this.pressedKeys = pressedKeys;
+        ticksSinceLastUpdate = 0;
+        detachKinetics();
+        attachKinetics();
     }
 }

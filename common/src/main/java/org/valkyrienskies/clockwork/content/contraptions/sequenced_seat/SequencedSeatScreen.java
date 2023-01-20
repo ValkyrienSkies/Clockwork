@@ -49,6 +49,7 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
         makeValueInputs();
 
         this.addRenderableWidget(this.confirmButton);
+        updateTab(Rotation.NONE);
     }
 
     @Override
@@ -150,8 +151,6 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
                     .map(SequencedSeatOperation::asComponent)
                     .toList());
             input.calling(onOperationChanged(i));
-            input.setState(currentList().getRule(i).operation().ordinal());
-
             addRenderableWidget(input);
         }
     }
@@ -234,7 +233,7 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
             blitY = y;
 
             this.rotation = rotation;
-            withCallback(() -> currentShaft = rotation);
+            withCallback(() -> updateTab(rotation));
         }
 
         @Override
@@ -243,6 +242,21 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
 
             background.bind();
             blit(ms, x, y, isHovered ? 17 + blitX : blitX, blitY, width, height);
+        }
+    }
+
+    private void updateTab(Rotation rotation) {
+        this.currentShaft = rotation;
+
+        for (int i = 0; i < SequencedSeatRuleList.MAX_RULES; i++) {
+            operationInputs[i].setState(currentList().getRule(i).operation().ordinal());
+        }
+
+        for (int i = 0; i < SequencedSeatRuleList.MAX_RULES; i++) {
+            SequencedSeatValue value = currentList().getRule(i).value();
+
+            if (value != null)
+                value.configureInput(valueInputs[i]);
         }
     }
 

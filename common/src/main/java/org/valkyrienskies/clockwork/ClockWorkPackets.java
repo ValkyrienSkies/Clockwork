@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
+import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatDrivingPacket;
 import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.UpdateSeatRulesPacket;
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueEffectPacket;
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueRemovalPacket;
@@ -24,6 +25,7 @@ public enum ClockWorkPackets {
     BLUPERGLUE_IN_AREA(BluperGlueSelectionPacket.class, BluperGlueSelectionPacket::new),
     BLUPERGLUE_REMOVED(BluperGlueRemovalPacket.class, BluperGlueRemovalPacket::new),
     UPDATE_SEAT_RULES(UpdateSeatRulesPacket.class, UpdateSeatRulesPacket::new),
+    SEQUENCER_SEAT_DRIVING(SequencedSeatDrivingPacket.class, SequencedSeatDrivingPacket::new),
 
     // Server to Client
     BLUPERGLUE_EFFECT(BluperGlueEffectPacket.class, BluperGlueEffectPacket::new),

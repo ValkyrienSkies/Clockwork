@@ -17,8 +17,6 @@ public class SequencedSeatRuleList {
 
     public float currentModifier(SequencedSeatBlockEntity be) {
         for (SequencedSeatRule rule : rules) {
-            if (rule == null) continue;
-
             if (rule.matches(be.pressedKeys())) {
                 return rule.calculateModifier(be);
             }

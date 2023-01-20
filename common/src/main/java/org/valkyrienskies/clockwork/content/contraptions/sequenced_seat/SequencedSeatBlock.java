@@ -12,6 +12,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
@@ -56,10 +58,25 @@ public class SequencedSeatBlock extends HorizontalKineticBlock implements ITE<Se
                 return InteractionResult.PASS;
         }
 
-        if (level.isClientSide)
-            withTileEntityDo(level, pos, te -> this.displayScreen(te, player));
+        if (player.isShiftKeyDown()) {
+            if (level.isClientSide)
+                withTileEntityDo(level, pos, te -> this.displayScreen(te, player));
+        } else {
+            sitDown(level, pos, player);
+        }
 
         return InteractionResult.SUCCESS;
+    }
+
+    public static void sitDown(Level level, BlockPos pos, Entity entity) {
+        if (level.isClientSide)
+            return;
+        SequencedSeatEntity seat = SequencedSeatEntity.create(level, pos);
+        seat.setPos(pos.getX() + .5f, pos.getY(), pos.getZ() + .5f);
+        level.addFreshEntity(seat);
+        entity.startRiding(seat, true);
+        if (entity instanceof TamableAnimal ta)
+            ta.setInSittingPose(true);
     }
 
     @Override
