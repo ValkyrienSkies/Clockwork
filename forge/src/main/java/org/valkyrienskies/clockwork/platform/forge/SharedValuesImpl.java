@@ -4,6 +4,7 @@ import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRendere
 import com.simibubi.create.foundation.item.render.SimpleCustomRenderer;
 import com.tterrag.registrate.util.entry.EntityEntry;
 import net.minecraft.world.item.CreativeModeTab;
+import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatEntity;
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueEntity;
 import org.valkyrienskies.clockwork.forge.ClockworkGroup;
 import org.valkyrienskies.clockwork.forge.ForgeClockworkEntities;
@@ -21,16 +22,20 @@ public class SharedValuesImpl {
         return TAB;
     }
 
-    public static EntityEntry<BluperGlueEntity> getBluperGlue() {
-        return (EntityEntry) ForgeClockworkEntities.BLUPERGLUE;
-    }
-
     public static PacketChannel getPacketChannel() {
         return CHANNEL;
     }
 
     public static BiConsumer<CWItem, CustomRenderedItemModelRenderer<?>> customRenderedRegisterer() {
         return (item, renderer) -> ((ItemAccessor) item).setRenderProperties(SimpleCustomRenderer.create(item, renderer));
+    }
+
+    public static EntityEntry<BluperGlueEntity> getBluperGlue() {
+        return (EntityEntry) ForgeClockworkEntities.BLUPERGLUE;
+    }
+
+    public static EntityEntry<SequencedSeatEntity> getSequencedSeat() {
+        return (EntityEntry) ForgeClockworkEntities.SEQUENCED_SEAT;
     }
 
 }

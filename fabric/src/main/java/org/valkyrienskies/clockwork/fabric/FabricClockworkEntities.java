@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.fabric;
 
+import com.simibubi.create.content.contraptions.components.actors.SeatEntity;
 import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
 import com.simibubi.create.foundation.data.CreateEntityBuilder;
 import com.simibubi.create.foundation.utility.Lang;
@@ -13,9 +14,9 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueEntity;
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueRenderer;
 import org.valkyrienskies.clockwork.platform.entity.FabricBluperGlueEntity;
+import org.valkyrienskies.clockwork.platform.entity.FabricSequencedSeatEntity;
 
 import static org.valkyrienskies.clockwork.ClockWorkMod.REGISTRATE;
 
@@ -32,6 +33,18 @@ public class FabricClockworkEntities {
                     true,
                     FabricBluperGlueEntity::build
             ).register();
+
+    public static final EntityEntry<FabricSequencedSeatEntity> SEQUENCED_SEAT = register(
+            "sequenced_seat",
+            FabricSequencedSeatEntity::new,
+            () -> SeatEntity.Render::new,
+            MobCategory.MISC,
+            5,
+            Integer.MAX_VALUE,
+            false,
+            true,
+            FabricSequencedSeatEntity::build
+    ).register();
     //
 
     private static <T extends Entity> CreateEntityBuilder<T, ?> contraption(String name, EntityType.EntityFactory<T> factory,

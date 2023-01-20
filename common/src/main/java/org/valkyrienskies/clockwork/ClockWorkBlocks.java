@@ -11,6 +11,7 @@ import net.minecraft.world.level.material.MaterialColor;
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock;
 import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserBlock;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingBlock;
+import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatBlock;
 import org.valkyrienskies.clockwork.content.physicalities.motion.wing.FlapBlock;
 import org.valkyrienskies.clockwork.content.physicalities.motion.wing.WingBlock;
 import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork;
@@ -48,6 +49,15 @@ public class ClockWorkBlocks {
                     .transform(BuilderTransformersClockwork.flapbearing())
                     .transform(BlockStressDefaults.setImpact(12.0))
                     .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+                    .register();
+
+    /////// Sequenced Seat ////////
+    public static final BlockEntry<SequencedSeatBlock> SEQUENCED_SEAT =
+            REGISTRATE.block("sequenced_seat", SequencedSeatBlock::new)
+                    .transform(axeOrPickaxe())
+                    .properties(p -> p.color(MaterialColor.COLOR_PURPLE))
+                    .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+                    .item().build()
                     .register();
 
     static {REGISTRATE.startSection(AllSections.CURIOSITIES);}

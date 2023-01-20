@@ -49,7 +49,7 @@ public class ShipScannerRenderer implements ScannerRenderer {
         currentCenter = pos;
         currentBlockEntity = te;
         if (ship == null) return;
-        ClockWorkMod.LOGGER.info("Pinging ship: " + ship.getId());
+        ClockWorkMod.LOGGER.info("Pinging ship: " + ship.getId()); // TODO implment it actualy using a ship
     }
 
     public void doRender(final PoseStack poseStack) {

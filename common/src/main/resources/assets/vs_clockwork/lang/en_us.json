@@ -17,5 +17,12 @@
   "vs_clockwork.subtitle.physinitialize": "Physics Infuser Initialized",
   "vs_clockwork.subtitle.physfinish": "Physics Infused",
   "vs_clockwork.subtitle.zap": "Zap!",
-  "vs_clockwork.subtitle.physwindup": "Zap!"
+  "vs_clockwork.subtitle.physwindup": "Zap!",
+  "sequenced_seat.operation.nothing": "None",
+  "sequenced_seat.operation.distance": "Move",
+  "sequenced_seat.operation.angle": "Rotate",
+  "sequenced_seat.operation.multiply": "Multiply",
+  "sequenced_seat.value.distance": "Distance",
+  "sequenced_seat.value.angle": "Angle",
+  "sequenced_seat.value.multiply": "Multiplier"
 }

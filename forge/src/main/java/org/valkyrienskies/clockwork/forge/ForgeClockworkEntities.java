@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.forge;
 
+import com.simibubi.create.content.contraptions.components.actors.SeatEntity;
 import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
 import com.simibubi.create.foundation.data.CreateEntityBuilder;
 import com.simibubi.create.foundation.utility.Lang;
@@ -15,6 +16,7 @@ import net.minecraft.world.entity.MobCategory;
 import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueRenderer;
 import org.valkyrienskies.clockwork.platform.entity.ForgeBluperGlueEntity;
+import org.valkyrienskies.clockwork.platform.entity.ForgeSequencedSeatEntity;
 
 public class ForgeClockworkEntities {
 
@@ -29,6 +31,19 @@ public class ForgeClockworkEntities {
                     false,
                     true,
                     ForgeBluperGlueEntity::build
+            ).register();
+
+    public static final EntityEntry<ForgeSequencedSeatEntity> SEQUENCED_SEAT =
+            register(
+                    "sequenced_seat",
+                    ForgeSequencedSeatEntity::new,
+                    () -> SeatEntity.Render::new,
+                    MobCategory.MISC,
+                    5,
+                    Integer.MAX_VALUE,
+                    false,
+                    true,
+                    ForgeSequencedSeatEntity::build
             ).register();
 
     private static <T extends Entity> CreateEntityBuilder<T, ?> contraption(String name, EntityType.EntityFactory<T> factory,
