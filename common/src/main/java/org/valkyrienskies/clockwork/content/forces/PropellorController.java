@@ -12,6 +12,7 @@ import org.valkyrienskies.core.api.ships.PhysShip;
 import org.valkyrienskies.core.api.ships.ServerShip;
 import org.valkyrienskies.core.api.ships.properties.ShipTransform;
 import org.valkyrienskies.core.impl.api.ShipForcesInducer;
+import org.valkyrienskies.core.impl.game.ships.PhysShipImpl;
 
 import java.lang.Math;
 import java.util.concurrent.ConcurrentHashMap;
@@ -61,16 +62,14 @@ public class PropellorController implements ShipForcesInducer {
         Vector3d netTorque = new Vector3d();
 
         for (PropellorPhysData physData: propellorPhysData.values()) {
-            Pair<Vector3dc, Vector3dc> forceTorque = computeForce(physShip.getTransform(), physData);
+            Pair<Vector3dc, Vector3dc> forceTorque = computeForce(physShip.getTransform(), physData, ((PhysShipImpl) physShip).getPoseVel().getVel(), ((PhysShipImpl) physShip).getPoseVel().getOmega());
             netForce.add(forceTorque.left());
             netTorque.add(forceTorque.right());
         }
 
-        physShip.applyInvariantForce(netForce);
-        physShip.applyInvariantTorque(netTorque);
         if (netForce.isFinite() && netTorque.isFinite()) {
             physShip.applyInvariantForce(netForce);
-            physShip.applyInvariantTorque(netTorque.mul(0.1));
+            physShip.applyInvariantTorque(netTorque);
         }
 
         // Propellor Pushing
@@ -79,9 +78,9 @@ public class PropellorController implements ShipForcesInducer {
 
     }
 
-    public Pair<Vector3dc, Vector3dc> computeForce(ShipTransform physTransform, PropellorPhysData physProp) {
+    private Pair<Vector3dc, Vector3dc> computeForce(ShipTransform physTransform, PropellorPhysData physProp, Vector3dc vel, Vector3dc omega) {
         Vector3dc bearingVector = new Vector3d(physProp.bearingPos).add(0.5, 0.5, 0.5);
-        Vector3dc axis = physProp.bearingAxis;
+        Vector3dc axis = physProp.bearingAxis.mul(Math.signum(physProp.bearingSpeed), new Vector3d());
         Quaterniondc rotation = new Quaterniond(new AxisAngle4d(Math.toRadians(physProp.bearingAngle), axis));
         Vector3dc angVel = axis.mul((physProp.bearingSpeed/60.0) * (2.0 * Math.PI), new Vector3d());
 
@@ -94,20 +93,28 @@ public class PropellorController implements ShipForcesInducer {
             Vector3dc rotatedDiff = rotation.transform(diff, new Vector3d());
             Vector3dc sailVel = rotatedDiff.cross(angVel, new Vector3d());
 
-            Vector3dc force = physTransform.getShipToWorldRotation().transform(axis.mul(sailVel.lengthSquared() * 50, new Vector3d()));
-            Vector3dc force2 = force.mul(physProp.bearingSpeed, new Vector3d());
+            Vector3d force = physTransform.getShipToWorldRotation().transform(axis.mul(sailVel.lengthSquared() * 50, new Vector3d()));
+//            Vector3d force2 = force.mul(physProp.bearingSpeed, new Vector3d());
             Vector3dc sailPosWorld = physTransform.getShipToWorld().transformPosition(sailVector, new Vector3d());
             Vector3dc sailPosRelShip = sailPosWorld.sub(physTransform.getPositionInWorld(), new Vector3d());
-            Vector3dc torque = sailPosRelShip.cross(force2, new Vector3d());
-
+            Vector3d torque = sailPosRelShip.cross(force, new Vector3d());
+            Vector3dc sailPosRelCenterMass = physTransform.getShipToWorld().transformPosition(sailVector, new Vector3d()).sub(physTransform.getPositionInWorld(), new Vector3d());
+            Vector3dc worldVelAtSail = omega.cross(sailPosRelCenterMass, new Vector3d()).add(vel, new Vector3d());
+            double exhaustVel = exhaustVelocity(rotatedDiff, angVel);
+            double factor = 1.0 - Mth.clamp(axis.dot(worldVelAtSail) / exhaustVel, 0.0, 1.0);
+            if (!Double.isFinite(factor)) {
+                factor = 1;
+            }
             double airPress = airPressure(sailPosWorld);
-            netForce.add(force2).mul(airPress);
-            netTorque.add(torque).mul(airPress);
+            force.mul(airPress * factor);
+            torque.mul(airPress * factor);
+            netForce.add(force);
+            netTorque.add(torque);
         }
         return Pair.of(netForce, netTorque);
     }
 
-    public static double airPressure(Vector3dc pos) {
+    private static double airPressure(Vector3dc pos) {
         double offset = Math.exp(-(320.0-64.0)/192.0);
         double height = pos.y();
         double airPress = (Math.exp(-(height-64.0)/192)-offset)/(1.0-offset);
@@ -116,6 +123,11 @@ public class PropellorController implements ShipForcesInducer {
         } else {
             return 0.0;
         }
+    }
+
+    private static double exhaustVelocity(Vector3dc posRelBearing, Vector3dc omega) {
+        double vel = posRelBearing.cross(omega, new Vector3d()).length();
+        return vel;
     }
 
     public int addPropellor(PropellorCreatePhysData data) {

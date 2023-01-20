@@ -6,6 +6,16 @@ plugins {
     id "org.jetbrains.kotlin.jvm" version "1.7.21" apply false
 }
 
+// Determine the version
+if (project.hasProperty("CustomReleaseVersion")) {
+    // Remove release/ from the version if present
+    version = project.property("CustomReleaseVersion").replaceFirst("^release/", "")
+} else {
+    String gitRevision = "git rev-parse HEAD".execute().text.trim()
+
+    version = mod_version + '+' + gitRevision.substring(0, 10)
+}
+
 architectury {
     minecraft = rootProject.minecraft_version
 }

@@ -15,9 +15,9 @@ import org.valkyrienskies.clockwork.ClockWorkShapes;
 import org.valkyrienskies.clockwork.util.blocktype.TriAxisBlockWithConnections;
 import org.valkyrienskies.core.api.ships.Wing;
 
-public class WingBlock extends TriAxisBlockWithConnections implements org.valkyrienskies.mod.common.block.WingBlock {
+public class FlapBlock extends TriAxisBlockWithConnections implements org.valkyrienskies.mod.common.block.WingBlock {
 
-    public WingBlock(Properties properties) {
+    public FlapBlock(Properties properties) {
         super(properties);
     }
 
@@ -90,29 +90,29 @@ public class WingBlock extends TriAxisBlockWithConnections implements org.valkyr
             neighbor4Pos = pos.east(1);
         }
 
-        if (neighbor1.getBlock() instanceof WingBlock && neighbor1.getValue(AXIS) == ax) {
-                level.setBlock(pos, state.setValue(connectedOne, true), flag);
-                level.setBlock(neighbor1Pos, neighbor1.setValue(connectedThree, true), flag);
-        } else if (neighbor1.getBlock() instanceof WingBlock && !(neighbor1.getValue(AXIS) == ax)) {
-                level.setBlock(pos, state.setValue(connectedOne, false), flag);
+        if (neighbor1.getBlock() instanceof FlapBlock && neighbor1.getValue(AXIS) == ax) {
+            level.setBlock(pos, state.setValue(connectedOne, true), flag);
+            level.setBlock(neighbor1Pos, neighbor1.setValue(connectedThree, true), flag);
+        } else if (neighbor1.getBlock() instanceof FlapBlock && !(neighbor1.getValue(AXIS) == ax)) {
+            level.setBlock(pos, state.setValue(connectedOne, false), flag);
         }
-        if (neighbor2.getBlock() instanceof WingBlock && neighbor2.getValue(AXIS) == ax) {
-                level.setBlock(pos, state.setValue(connectedTwo, true), flag);
-                level.setBlock(neighbor2Pos, neighbor2.setValue(connectedFour, true), flag);
-        } else if (neighbor2.getBlock() instanceof WingBlock && !(neighbor2.getValue(AXIS) == ax)) {
-                level.setBlock(pos, state.setValue(connectedTwo, false), flag);
+        if (neighbor2.getBlock() instanceof FlapBlock && neighbor2.getValue(AXIS) == ax) {
+            level.setBlock(pos, state.setValue(connectedTwo, true), flag);
+            level.setBlock(neighbor2Pos, neighbor2.setValue(connectedFour, true), flag);
+        } else if (neighbor2.getBlock() instanceof FlapBlock && !(neighbor2.getValue(AXIS) == ax)) {
+            level.setBlock(pos, state.setValue(connectedTwo, false), flag);
         }
-        if (neighbor3.getBlock() instanceof WingBlock && neighbor3.getValue(AXIS) == ax) {
-                level.setBlock(pos, state.setValue(connectedThree, true), flag);
-                level.setBlock(neighbor3Pos, neighbor3.setValue(connectedOne, true), flag);
-        } else if (neighbor3.getBlock() instanceof WingBlock && !(neighbor3.getValue(AXIS) == ax)) {
-                level.setBlock(pos, state.setValue(connectedThree, false), flag);
+        if (neighbor3.getBlock() instanceof FlapBlock && neighbor3.getValue(AXIS) == ax) {
+            level.setBlock(pos, state.setValue(connectedThree, true), flag);
+            level.setBlock(neighbor3Pos, neighbor3.setValue(connectedOne, true), flag);
+        } else if (neighbor3.getBlock() instanceof FlapBlock && !(neighbor3.getValue(AXIS) == ax)) {
+            level.setBlock(pos, state.setValue(connectedThree, false), flag);
         }
-        if (neighbor4.getBlock() instanceof WingBlock && neighbor4.getValue(AXIS) == ax) {
-                level.setBlock(pos, state.setValue(connectedFour, true), flag);
-                level.setBlock(neighbor4Pos, neighbor4.setValue(connectedTwo, true), flag);
-        } else if (neighbor4.getBlock() instanceof WingBlock && !(neighbor4.getValue(AXIS) == ax)) {
-                level.setBlock(pos, state.setValue(connectedFour, false), flag);
+        if (neighbor4.getBlock() instanceof FlapBlock && neighbor4.getValue(AXIS) == ax) {
+            level.setBlock(pos, state.setValue(connectedFour, true), flag);
+            level.setBlock(neighbor4Pos, neighbor4.setValue(connectedTwo, true), flag);
+        } else if (neighbor4.getBlock() instanceof FlapBlock && !(neighbor4.getValue(AXIS) == ax)) {
+            level.setBlock(pos, state.setValue(connectedFour, false), flag);
         }
     }
     @Override
@@ -120,20 +120,19 @@ public class WingBlock extends TriAxisBlockWithConnections implements org.valkyr
         double wingPower = 150;
         double wingDrag = 150;
         double wingBreakingForce = 10;
-        double wingCamberAttackingBias = Math.toRadians(10.0);
         Vector3dc normal;
         switch (blockState.getValue(AXIS)) {
             case X -> {
                 normal = new Vector3d(1, 0, 0);
-                return new Wing(normal, wingPower, wingDrag, wingBreakingForce, wingCamberAttackingBias);
+                return new Wing(normal, wingPower, wingDrag, wingBreakingForce, 0);
             }
             case Y -> {
                 normal = new Vector3d(0, 1, 0);
-                return new Wing(normal, wingPower, wingDrag, wingBreakingForce, wingCamberAttackingBias);
+                return new Wing(normal, wingPower, wingDrag, wingBreakingForce, 0);
             }
             case Z -> {
                 normal = new Vector3d(0, 0, 1);
-                return new Wing(normal, wingPower, wingDrag, wingBreakingForce, wingCamberAttackingBias);
+                return new Wing(normal, wingPower, wingDrag, wingBreakingForce, 0);
             }
         }
         return null;
