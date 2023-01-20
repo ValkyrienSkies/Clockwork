@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.contraptions.sequenced_seat;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.content.contraptions.base.HorizontalKineticBlock;
 import com.simibubi.create.content.contraptions.base.KineticBlock;
+import com.simibubi.create.content.contraptions.components.actors.SeatBlock;
 import com.simibubi.create.foundation.block.ITE;
 import com.simibubi.create.foundation.gui.ScreenOpener;
 import net.fabricmc.api.EnvType;
@@ -72,7 +73,7 @@ public class SequencedSeatBlock extends HorizontalKineticBlock implements ITE<Se
         if (level.isClientSide)
             return;
         SequencedSeatEntity seat = SequencedSeatEntity.create(level, pos);
-        seat.setPos(pos.getX() + .5f, pos.getY(), pos.getZ() + .5f);
+        seat.setPos(pos.getX() + .5, pos.getY(), pos.getZ() + .5);
         level.addFreshEntity(seat);
         entity.startRiding(seat, true);
         if (entity instanceof TamableAnimal ta)
