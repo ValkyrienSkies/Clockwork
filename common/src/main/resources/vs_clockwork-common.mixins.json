@@ -23,12 +23,11 @@
     "compat.behaviour.MixinLinkBehaviour",
     "compat.MixinRedstoneLinkNetworkHandler",
     "compat.block.MixinSeatBlock",
-    "compat.entity.MixinSeatEntity",
     "compat.MixinSharedDepotBlockMethods",
     "compat.behaviour.MixinSidedFilteringBehaviour",
     "compat.packets.MixinSuperGlueRemovalPacket",
     "compat.packets.MixinTileEntityConfigurationPacket",
-    "create.MixinTrackNodeLocation",
+    "compat.MixinTrackNodeLocation",
     "compat.packets.MixinTrainRelocationPacket"
   ],
   "client": [
