@@ -25,7 +25,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
+import org.valkyrienskies.clockwork.ClockWorkMod;
+import org.valkyrienskies.clockwork.mixinduck.IExtendedAirCurrentSource;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
@@ -46,31 +49,47 @@ public abstract class MixinAirCurrent {
     private Vec3 transformedFlow = Vec3.ZERO;
     @Unique
     private float acceleration;
-    @Unique
-    private Ship ship;
 
-    @Redirect(method = "getFlowLimit", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;clipWithInteractionOverride(Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/VoxelShape;Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/world/phys/BlockHitResult;"))
-    private static BlockHitResult redirectClip(Level instance, Vec3 vec3, Vec3 vec32, BlockPos blockPos, VoxelShape voxelShape, BlockState blockState) {
-        return RaycastUtilsKt.clipIncludeShips(instance, new ClipContext(vec3, vec32, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, null));
+    @Unique
+    private Ship getShip() {
+        if (source instanceof IExtendedAirCurrentSource se)
+            return se.getShip();
+        else if (source.getAirCurrentWorld() != null)
+            return VSGameUtilsKt.getShipManagingPos(source.getAirCurrentWorld(), source.getAirCurrentPos());
+        else
+            return null;
     }
 
-    @Redirect(method = "findEntities", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;getEntities(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/AABB;)Ljava/util/List;"))
-    private List<Entity> redirectFindEntities(Level instance, Entity entity, AABB aabb) {
-        return instance.getEntities(entity, VSGameUtilsKt.transformAabbToWorld(instance, aabb));
+    @Inject(method = "getFlowLimit", at = @At("HEAD"), cancellable = true)
+    private static void clipFlowLimit(Level level, BlockPos start, float max, Direction facing, CallbackInfoReturnable<Float> cir) {
+        Ship ship = VSGameUtilsKt.getShipManagingPos(level, start);
+        if (ship != null) {
+            Vector3d startVec = ship.getTransform().getShipToWorld().transformPosition(new Vector3d(start.getX() + 0.5, start.getY() + 0.5, start.getZ() + 0.5));
+            Vector3d direction = ship.getTransform().getShipToWorld().transformDirection(VectorConversionsMCKt.toJOMLD(facing.getNormal()));
+            startVec.add(direction.x, direction.y, direction.z);
+            direction.mul(max);
+            Vec3 mcStart = VectorConversionsMCKt.toMinecraft(startVec);
+            BlockHitResult result = RaycastUtilsKt.clipIncludeShips(level,
+                    new ClipContext(
+                            mcStart,
+                            VectorConversionsMCKt.toMinecraft(startVec.add(direction.x, direction.y, direction.z)),
+                            ClipContext.Block.OUTLINE,
+                            ClipContext.Fluid.NONE,
+                            null));
+
+            // Distance from start to end but, its not squared so, slow -_-
+            cir.setReturnValue((float) result.getLocation().distanceTo(mcStart));
+        }
     }
 
     @Redirect(method = "tickAffectedEntities", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/phys/AABB;intersects(Lnet/minecraft/world/phys/AABB;)Z"))
     private boolean redirectIntersects(AABB instance, AABB other) {
-        Level level = this.source.getAirCurrentWorld();
-        if (level != null) {
-            Iterator<Ship> ships = VSGameUtilsKt.getShipsIntersecting(level, instance).iterator();
-            if (ships.hasNext()) {
-                AABBd result = new AABBd();
-                VectorConversionsMCKt.toJOML(instance).transform(ships.next().getTransform().getWorldToShip(), result);
-                instance = VectorConversionsMCKt.toMinecraft(result);
-            }
-        }
-        return instance.intersects(other);
+        Ship ship = getShip();
+        if (ship != null) {
+            AABBd thisAABB = VectorConversionsMCKt.toJOML(instance);
+            thisAABB.transform(ship.getWorldToShip());
+            return other.intersects(thisAABB.minX, thisAABB.minY, thisAABB.minZ, thisAABB.maxX, thisAABB.maxY, thisAABB.maxZ);
+        } else return instance.intersects(other);
     }
 
     @Inject(
@@ -82,7 +101,7 @@ public abstract class MixinAirCurrent {
             locals = LocalCapture.CAPTURE_FAILHARD
     )
     private void harvester(Level world, Direction facing, CallbackInfo ci, Iterator<Entity> iterator, Entity entity, Vec3 center, Vec3i flow, float sneakModifier, float speed, double entityDistance, float acceleration) {
-        ship = VSGameUtilsKt.getShipManagingPos(world, source.getAirCurrentPos());
+        Ship ship = getShip();
         if (ship != null) {
             Vector3d tempVec = new Vector3d();
             ship.getTransform().getShipToWorld().transformDirection(flow.getX(), flow.getY(), flow.getZ(), tempVec);
@@ -95,6 +114,7 @@ public abstract class MixinAirCurrent {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;setDeltaMovement(Lnet/minecraft/world/phys/Vec3;)V")
     )
     private void redirectSetDeltaMovement(Entity instance, Vec3 motion) {
+        Ship ship = getShip();
         if (ship != null) {
             Vec3 previousMotion = instance.getDeltaMovement();
             double xIn = Mth.clamp(transformedFlow.x * acceleration - previousMotion.x, -maxAcceleration, maxAcceleration);
@@ -108,14 +128,12 @@ public abstract class MixinAirCurrent {
 
     @Redirect(method = "tickAffectedEntities", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/foundation/utility/VecHelper;getCenterOf(Lnet/minecraft/core/Vec3i;)Lnet/minecraft/world/phys/Vec3;"), allow = 1)
     private Vec3 redirectGetCenterOf(Vec3i pos) {
+        Ship ship = getShip();
         Vec3 result = VecHelper.getCenterOf(pos);
-        if (this.source.getAirCurrentWorld() != null) {
-            Ship ship = VSGameUtilsKt.getShipManagingPos(this.source.getAirCurrentWorld(), result);
-            if (ship != null) {
-                Vector3d tempVec = new Vector3d();
-                ship.getTransform().getShipToWorld().transformPosition(result.x, result.y, result.z, tempVec);
-                result = VectorConversionsMCKt.toMinecraft(tempVec);
-            }
+        if (ship != null && this.source.getAirCurrentWorld() != null) {
+            Vector3d tempVec = new Vector3d();
+            ship.getTransform().getShipToWorld().transformPosition(result.x, result.y, result.z, tempVec);
+            result = VectorConversionsMCKt.toMinecraft(tempVec);
         }
         return result;
     }

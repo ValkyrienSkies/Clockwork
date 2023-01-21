@@ -13,8 +13,10 @@ import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.valkyrienskies.clockwork.mixinduck.IExtendedAirCurrentSource;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
@@ -25,6 +27,16 @@ public abstract class MixinAirFlowParticle {
     @Shadow
     @Final
     private IAirCurrentSource source;
+
+    @Unique
+    private Ship getShip() {
+        if (source instanceof IExtendedAirCurrentSource se)
+            return se.getShip();
+        else if (source.getAirCurrentWorld() != null)
+            return VSGameUtilsKt.getShipManagingPos(source.getAirCurrentWorld(), source.getAirCurrentPos());
+        else
+            return null;
+    }
 
     @Redirect(method = "tick", at = @At(value = "FIELD", target = "Lcom/simibubi/create/content/contraptions/components/fan/AirCurrent;bounds:Lnet/minecraft/world/phys/AABB;", opcode = Opcodes.GETFIELD), remap = false)
     private AABB redirectBounds(AirCurrent instance) {
@@ -37,14 +49,12 @@ public abstract class MixinAirFlowParticle {
 
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/foundation/utility/VecHelper;getCenterOf(Lnet/minecraft/core/Vec3i;)Lnet/minecraft/world/phys/Vec3;"), allow = 1)
     private Vec3 redirectGetCenterOf(Vec3i pos) {
+        Ship ship = getShip();
         Vec3 result = VecHelper.getCenterOf(pos);
-        if (this.source.getAirCurrentWorld() != null) {
-            Ship ship = VSGameUtilsKt.getShipManagingPos(this.source.getAirCurrentWorld(), result);
-            if (ship != null) {
-                Vector3d tempVec = new Vector3d();
-                ship.getTransform().getShipToWorld().transformPosition(result.x, result.y, result.z, tempVec);
-                result = VectorConversionsMCKt.toMinecraft(tempVec);
-            }
+        if (ship != null) {
+            Vector3d tempVec = new Vector3d();
+            ship.getTransform().getShipToWorld().transformPosition(result.x, result.y, result.z, tempVec);
+            result = VectorConversionsMCKt.toMinecraft(tempVec);
         }
         return result;
     }
@@ -52,13 +62,11 @@ public abstract class MixinAirFlowParticle {
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/phys/Vec3;atLowerCornerOf(Lnet/minecraft/core/Vec3i;)Lnet/minecraft/world/phys/Vec3;"), allow = 1)
     private Vec3 redirectToLowerCorner(Vec3i pos) {
         Vec3 result = Vec3.atLowerCornerOf(pos);
-        if (this.source.getAirCurrentWorld() != null) {
-            Ship ship = VSGameUtilsKt.getShipManagingPos(this.source.getAirCurrentWorld(), this.source.getAirCurrentPos());
-            if (ship != null) {
-                Vector3d tempVec = new Vector3d();
-                ship.getTransform().getShipToWorld().transformDirection(result.x, result.y, result.z, tempVec);
-                result = VectorConversionsMCKt.toMinecraft(tempVec);
-            }
+        Ship ship = getShip();
+        if (ship != null) {
+            Vector3d tempVec = new Vector3d();
+            ship.getTransform().getShipToWorld().transformDirection(result.x, result.y, result.z, tempVec);
+            result = VectorConversionsMCKt.toMinecraft(tempVec);
         }
         return result;
     }

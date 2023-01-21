@@ -19,6 +19,7 @@
     "compat.block.MixinEjectorBlock",
     "compat.blockentity.MixinCrushingWheelControllerTileEntity",
     "compat.blockentity.MixinEjectorTileEntity",
+    "compat.blockentity.MixinEncasedFanTileEntity",
     "compat.entity.MixinAbstractContraptionEntity",
     "compat.entity.MixinCarriageContraptionEntity",
     "compat.packets.MixinControlsInputPacket",
