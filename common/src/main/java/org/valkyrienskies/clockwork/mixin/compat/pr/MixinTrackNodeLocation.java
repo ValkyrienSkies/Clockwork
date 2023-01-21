@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.mixin.compat;
+package org.valkyrienskies.clockwork.mixin.compat.pr;
 
 import com.simibubi.create.content.logistics.trains.TrackNodeLocation;
 import net.minecraft.core.BlockPos;

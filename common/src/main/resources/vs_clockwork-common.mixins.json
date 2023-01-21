@@ -22,7 +22,7 @@
     "compat.behaviour.MixinFilteringBehaviour",
     "compat.behaviour.MixinLinkBehaviour",
     "compat.MixinRedstoneLinkNetworkHandler",
-    "compat.block.MixinSeatBlock",
+    "compat.pr.MixinSeatBlock",
     "compat.MixinSharedDepotBlockMethods",
     "compat.behaviour.MixinSidedFilteringBehaviour",
     "compat.packets.MixinSuperGlueRemovalPacket",

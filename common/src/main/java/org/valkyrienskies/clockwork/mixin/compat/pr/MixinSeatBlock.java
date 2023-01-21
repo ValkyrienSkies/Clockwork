@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.mixin.compat.block;
+package org.valkyrienskies.clockwork.mixin.compat.pr;
 
 import com.simibubi.create.content.contraptions.components.actors.SeatBlock;
 import com.simibubi.create.content.contraptions.components.actors.SeatEntity;
