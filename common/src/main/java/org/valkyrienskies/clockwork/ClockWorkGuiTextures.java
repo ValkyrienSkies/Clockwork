@@ -11,7 +11,7 @@ import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.resources.ResourceLocation;
 
 public enum ClockWorkGuiTextures implements ScreenElement {
-    SEQUENCED_SEAT("sequenced_seat", 173, 159);
+    COMMAND_SEAT("command_seat", 173, 159);
     public static final int FONT_COLOR = 0x575F7A;
 
     public final ResourceLocation location;

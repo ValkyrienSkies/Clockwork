@@ -97,6 +97,9 @@ public class PropellorBearingBlockEntity extends MechanicalBearingTileEntity imp
         if (rotspeed == targetSpeed) {
             return;
         }
+        if ((int) targetSpeed == 0) {
+            return;
+        }
         float diff = targetSpeed - rotspeed;
         rotspeed = rotspeed + Mth.clamp(diff / 10, -32, 32);
 //        float delta = Mth.clamp(, lastSpeed, 10)
@@ -174,7 +177,9 @@ public class PropellorBearingBlockEntity extends MechanicalBearingTileEntity imp
             propStream.rebuild();
             sendData();
         }
-
+//        if ((int) speed == 0 && !spinningUp && !slowingDown) {
+//            clearKineticInformation();
+//        }
         refreshKineticState();
 
         if (slowingDown) {
@@ -501,34 +506,6 @@ public class PropellorBearingBlockEntity extends MechanicalBearingTileEntity imp
         return remove;
     }
 
-    //    public void particles() {
-//        if (Math.abs(rotspeed)>0.01 && movedContraption != null && isRunning()) {
-//            Level level = getLevel();
-//            Direction direction = getBlockState().getValue(BlockStateProperties.FACING);
-//            Vector3f speed = new Vector3f(direction.getNormal().getX(), direction.getNormal().getY(), direction.getNormal().getZ());
-//
-//            float dirScale = 1f;
-//
-//            if((rotspeed<0 && movementDirection.getValue()==0) || (rotspeed>0 && movementDirection.getValue()!=0)) {
-//                dirScale *= -1;
-//            }
-//
-//            float offset = 1.0f+dirScale*0.5f;
-//            float speedScale = 0.2f*dirScale*Math.abs(rotspeed)/5f;
-//            float particleCount = 0.1f*sailPositions.size()*Math.abs(rotspeed)/5f;
-//
-//            particleCount += Create.RANDOM.nextFloat()-1.0f;
-//            for (int i=0;i<particleCount;i++) {
-//                BlockPos sailPos = sailPositions.get(Create.RANDOM.nextInt(sailPositions.size()));
-//                Vec3 floatPos = new Vec3(sailPos.getX(), sailPos.getY(), sailPos.getZ());
-//                floatPos = movedContraption.applyRotation(floatPos,0);
-//
-//                Vec3 pos = VecHelper.getCenterOf(this.worldPosition).add(Vec3.atLowerCornerOf(direction.getNormal()).scale(offset).add(floatPos));
-//
-//                level.addParticle(new PropellorStreamParticleData(this.worldPosition),pos.x,pos.y,pos.z,speed.x()*speedScale,speed.y()*speedScale,speed.z()*speedScale);
-//            }
-//        }
-//    }
     public enum RotationDirection implements INamedIconOptions {
 
         CLOCKWISE(AllIcons.I_REFRESH), COUNTER_CLOCKWISE(AllIcons.I_ROTATE_CCW),

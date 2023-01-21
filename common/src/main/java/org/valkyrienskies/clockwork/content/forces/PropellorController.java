@@ -30,29 +30,6 @@ public class PropellorController implements ShipForcesInducer {
 
     private int nextPropID = 0;
 
-    private static double airPressure(Vector3dc pos) {
-        double offset = Math.exp(-(320.0 - 64.0) / 192.0);
-        double height = pos.y();
-        double airPress = (Math.exp(-(height - 64.0) / 192) - offset) / (1.0 - offset);
-        if (Double.isFinite(airPress)) {
-            return Mth.clamp(airPress, 0, 1);
-        } else {
-            return 0.0;
-        }
-    }
-
-    private static double exhaustVelocity(Vector3dc posRelBearing, Vector3dc omega) {
-        double vel = posRelBearing.cross(omega, new Vector3d()).length();
-        return vel;
-    }
-
-    public static PropellorController getOrCreate(ServerShip ship) {
-        if (ship.getAttachment(PropellorController.class) == null) {
-            ship.saveAttachment(PropellorController.class, new PropellorController());
-        }
-        return ship.getAttachment(PropellorController.class);
-    }
-
     @Override
     public void applyForces(@NotNull PhysShip physShip) {
         while (!createdProps.isEmpty()) {
@@ -84,7 +61,7 @@ public class PropellorController implements ShipForcesInducer {
         Vector3d netForce = new Vector3d();
         Vector3d netTorque = new Vector3d();
 
-        for (PropellorPhysData physData : propellorPhysData.values()) {
+        for (PropellorPhysData physData: propellorPhysData.values()) {
             Pair<Vector3dc, Vector3dc> forceTorque = computeForce(physShip.getTransform(), physData, ((PhysShipImpl) physShip).getPoseVel().getVel(), ((PhysShipImpl) physShip).getPoseVel().getOmega());
             netForce.add(forceTorque.left());
             netTorque.add(forceTorque.right());
@@ -98,13 +75,14 @@ public class PropellorController implements ShipForcesInducer {
         // Propellor Pushing
 
 
+
     }
 
     private Pair<Vector3dc, Vector3dc> computeForce(ShipTransform physTransform, PropellorPhysData physProp, Vector3dc vel, Vector3dc omega) {
         Vector3dc bearingVector = new Vector3d(physProp.bearingPos).add(0.5, 0.5, 0.5);
         Vector3dc axis = physProp.bearingAxis.mul(Math.signum(physProp.bearingSpeed), new Vector3d());
         Quaterniondc rotation = new Quaterniond(new AxisAngle4d(Math.toRadians(physProp.bearingAngle), axis));
-        Vector3dc angVel = axis.mul((physProp.bearingSpeed / 60.0) * (2.0 * Math.PI), new Vector3d());
+        Vector3dc angVel = axis.mul((physProp.bearingSpeed/60.0) * (2.0 * Math.PI), new Vector3d());
 
         Vector3d netForce = new Vector3d();
         Vector3d netTorque = new Vector3d();
@@ -136,6 +114,22 @@ public class PropellorController implements ShipForcesInducer {
         return Pair.of(netForce, netTorque);
     }
 
+    private static double airPressure(Vector3dc pos) {
+        double offset = Math.exp(-(320.0-64.0)/192.0);
+        double height = pos.y();
+        double airPress = (Math.exp(-(height-64.0)/192)-offset)/(1.0-offset);
+        if (Double.isFinite(airPress)) {
+            return Mth.clamp(airPress, 0, 1);
+        } else {
+            return 0.0;
+        }
+    }
+
+    private static double exhaustVelocity(Vector3dc posRelBearing, Vector3dc omega) {
+        double vel = posRelBearing.cross(omega, new Vector3d()).length();
+        return vel;
+    }
+
     public int addPropellor(PropellorCreatePhysData data) {
         int id = nextPropID++;
         createdProps.add(Pair.of(id, data));
@@ -148,5 +142,12 @@ public class PropellorController implements ShipForcesInducer {
 
     public void updatePropellor(int id, PropellorUpdatePhysData data) {
         propellorUpdatePhysData.put(id, data);
+    }
+
+    public static PropellorController getOrCreate(ServerShip ship) {
+        if(ship.getAttachment(PropellorController.class) == null) {
+            ship.saveAttachment(PropellorController.class, new PropellorController());
+        }
+        return ship.getAttachment(PropellorController.class);
     }
 }

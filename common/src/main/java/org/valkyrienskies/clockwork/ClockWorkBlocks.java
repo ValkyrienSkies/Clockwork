@@ -21,6 +21,14 @@ import static org.valkyrienskies.clockwork.ClockWorkMod.REGISTRATE;
 
 public class ClockWorkBlocks {
 
+    static {
+        REGISTRATE.creativeModeTab(() -> ClockWorkMod.BASE_CREATIVE_TAB);
+    }
+
+    static {
+        REGISTRATE.startSection(AllSections.KINETICS);
+    }
+
     public static final BlockEntry<PropellorBearingBlock> PROPELLOR_BEARING =
             REGISTRATE.block("propellor_bearing", PropellorBearingBlock::new)
                     .transform(axeOrPickaxe())
@@ -40,12 +48,13 @@ public class ClockWorkBlocks {
 
     //////// Propellor Bearing ////////
     /////// Sequenced Seat ////////
-    public static final BlockEntry<SequencedSeatBlock> SEQUENCED_SEAT =
-            REGISTRATE.block("sequenced_seat", SequencedSeatBlock::new)
+    public static final BlockEntry<SequencedSeatBlock> COMMAND_SEAT =
+            REGISTRATE.block("command_seat", SequencedSeatBlock::new)
                     .transform(axeOrPickaxe())
-                    .properties(p -> p.color(MaterialColor.COLOR_PURPLE))
+                    .properties(p -> p.color(MaterialColor.COLOR_LIGHT_GREEN))
                     .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
-                    .item().build()
+                    .item()
+                    .transform(ModelGen.customItemModel("command_seat", "item"))
                     .register();
 
     //////// Flap Bearing ////////
@@ -58,6 +67,11 @@ public class ClockWorkBlocks {
                     .item()
                     .transform(ModelGen.customItemModel("physics_infuser", "item"))
                     .register();
+
+    static {
+        REGISTRATE.startSection(AllSections.CURIOSITIES);
+    }
+
     /////// WINX CLUB //////
     public static final BlockEntry<WingBlock> WING =
             REGISTRATE.block("wing", WingBlock::new)
@@ -79,18 +93,6 @@ public class ClockWorkBlocks {
                     .register();
 
     /////// Physics infuser ////////
-
-    static {
-        REGISTRATE.creativeModeTab(() -> ClockWorkMod.BASE_CREATIVE_TAB);
-    }
-
-    static {
-        REGISTRATE.startSection(AllSections.KINETICS);
-    }
-
-    static {
-        REGISTRATE.startSection(AllSections.CURIOSITIES);
-    }
 
     public static void register() {
     }

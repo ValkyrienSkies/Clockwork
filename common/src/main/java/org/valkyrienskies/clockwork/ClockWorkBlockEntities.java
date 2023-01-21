@@ -10,6 +10,7 @@ import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserB
 import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatBlockEntity;
+import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatRenderer;
 
 import static org.valkyrienskies.clockwork.ClockWorkMod.REGISTRATE;
 
@@ -30,10 +31,10 @@ public class ClockWorkBlockEntities {
             .register();
 
     /////// Sequenced Seat ////////
-    public static final BlockEntityEntry<SequencedSeatBlockEntity> SEQUENCED_SEAT = REGISTRATE
+    public static final BlockEntityEntry<SequencedSeatBlockEntity> COMMAND_SEAT = REGISTRATE
             .tileEntity("sequenced_seat", SequencedSeatBlockEntity::new)
-            .validBlocks(ClockWorkBlocks.SEQUENCED_SEAT)
-            //.renderer(() -> SequencedSeatRenderer::new)
+            .validBlocks(ClockWorkBlocks.COMMAND_SEAT)
+            .renderer(() -> SequencedSeatRenderer::new)
             .register();
 
     // FALP

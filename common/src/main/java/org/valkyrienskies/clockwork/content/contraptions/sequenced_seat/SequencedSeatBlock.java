@@ -36,7 +36,7 @@ public class SequencedSeatBlock extends HorizontalKineticBlock implements ITE<Se
         if (level.isClientSide)
             return;
         SequencedSeatEntity seat = SequencedSeatEntity.create(level, pos);
-        seat.setPos(pos.getX() + .5, pos.getY(), pos.getZ() + .5);
+        seat.setPos(pos.getX() + .5, pos.getY() + .4, pos.getZ() + .5);
         level.addFreshEntity(seat);
         entity.startRiding(seat, true);
         if (entity instanceof TamableAnimal ta)
@@ -105,6 +105,6 @@ public class SequencedSeatBlock extends HorizontalKineticBlock implements ITE<Se
 
     @Override
     public BlockEntityType<? extends SequencedSeatBlockEntity> getTileEntityType() {
-        return ClockWorkBlockEntities.SEQUENCED_SEAT.get();
+        return ClockWorkBlockEntities.COMMAND_SEAT.get();
     }
 }

@@ -1,0 +1,9 @@
+{
+  "parent": "vs_clockwork:block/command_seat/item",
+  "textures": {
+    "4": "vs_clockwork:block/commandseat",
+    "particle": "create:block/axis",
+    "1_0": "create:block/axis",
+    "1_1": "create:block/axis_top"
+  }
+}

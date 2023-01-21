@@ -8,6 +8,9 @@ public class ClockWorkPartials {
 
             BEARING_TOP_VSIFIED = block("vstop"),
             BEARING_TOP_FLAP = block("flap_bearing/top"),
+            JOYSTICK = block("command_seat/joystick"),
+            BUTTON_ONE = block("command_seat/buttonone"),
+            BUTTON_TWO = block("command_seat/buttontwo"),
             PHYSICS_CORE = block("physics_infuser/core"),
             STRANGE_FLUID = block("physics_infuser/liquid"),
             ZAP = block("physics_infuser/zap");

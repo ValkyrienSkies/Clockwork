@@ -32,8 +32,8 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
     private static final int INPUT_FIELDS_MARGIN = 4;
     private static final int INPUT_OPERATION_WIDTH = 60;
     private static final int INPUT_VALUE_WIDTH = 46;
-    private final ItemStack renderedItem = ClockWorkBlocks.SEQUENCED_SEAT.asStack();
-    private final ClockWorkGuiTextures background = ClockWorkGuiTextures.SEQUENCED_SEAT;
+    private final ItemStack renderedItem = ClockWorkBlocks.COMMAND_SEAT.asStack();
+    private final ClockWorkGuiTextures background = ClockWorkGuiTextures.COMMAND_SEAT;
     private final SequencedSeatBlockEntity be;
     private final SelectionScrollInput[] operationInputs = new SelectionScrollInput[SequencedSeatRuleList.MAX_RULES];
     private final ScrollInput[] valueInputs = new ScrollInput[SequencedSeatRuleList.MAX_RULES];
