@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.fabric.mixin.create.client;
+package org.valkyrienskies.clockwork.fabric.mixin.compat.client;
 
 import com.jozufozu.flywheel.core.virtual.VirtualRenderWorld;
 import com.mojang.math.Matrix4f;

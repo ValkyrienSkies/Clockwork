@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.fabric.mixin.create;
+package org.valkyrienskies.clockwork.mixin.compat;
 
 import com.simibubi.create.content.contraptions.components.fan.AirCurrent;
 import com.simibubi.create.content.contraptions.components.fan.IAirCurrentSource;
@@ -26,7 +26,7 @@ public abstract class MixinAirFlowParticle {
     @Final
     private IAirCurrentSource source;
 
-    @Redirect(method = "tick", at = @At(value = "FIELD", target = "Lcom/simibubi/create/content/contraptions/components/fan/AirCurrent;bounds:Lnet/minecraft/world/phys/AABB;", opcode = Opcodes.GETFIELD))
+    @Redirect(method = "tick", at = @At(value = "FIELD", target = "Lcom/simibubi/create/content/contraptions/components/fan/AirCurrent;bounds:Lnet/minecraft/world/phys/AABB;", opcode = Opcodes.GETFIELD), remap = false)
     private AABB redirectBounds(AirCurrent instance) {
         Level level = instance.source.getAirCurrentWorld();
         if (level != null) {

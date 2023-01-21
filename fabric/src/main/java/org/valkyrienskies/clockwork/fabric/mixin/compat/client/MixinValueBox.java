@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.fabric.mixin.create.client;
+package org.valkyrienskies.clockwork.fabric.mixin.compat.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.foundation.tileEntity.behaviour.ValueBox;

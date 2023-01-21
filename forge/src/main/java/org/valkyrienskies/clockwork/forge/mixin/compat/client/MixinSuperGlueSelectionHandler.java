@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.forge.mixin.create.client;
+package org.valkyrienskies.clockwork.forge.mixin.compat.client;
 
 import com.simibubi.create.content.contraptions.components.structureMovement.glue.SuperGlueSelectionHandler;
 import com.simibubi.create.foundation.utility.RaycastHelper;

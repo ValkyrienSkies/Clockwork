@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.fabric.mixin.create;
+package org.valkyrienskies.clockwork.fabric.mixin.compat;
 
 import com.simibubi.create.content.contraptions.components.actors.BlockBreakingKineticTileEntity;
 import net.minecraft.core.BlockPos;

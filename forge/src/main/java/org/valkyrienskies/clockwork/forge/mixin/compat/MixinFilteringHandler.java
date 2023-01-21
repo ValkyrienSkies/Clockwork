@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.forge.mixin.create;
+package org.valkyrienskies.clockwork.forge.mixin.compat;
 
 import com.simibubi.create.foundation.tileEntity.behaviour.filtering.FilteringHandler;
 import net.minecraft.client.Minecraft;

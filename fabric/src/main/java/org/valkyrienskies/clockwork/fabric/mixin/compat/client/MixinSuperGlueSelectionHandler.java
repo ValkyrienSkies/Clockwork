@@ -1,6 +1,5 @@
-package org.valkyrienskies.clockwork.fabric.mixin.create.client;
+package org.valkyrienskies.clockwork.fabric.mixin.compat.client;
 
-import com.jamieswhiteshirt.reachentityattributes.ReachEntityAttributes;
 import com.simibubi.create.content.contraptions.components.structureMovement.glue.SuperGlueSelectionHandler;
 import com.simibubi.create.foundation.utility.RaycastHelper;
 import net.minecraft.client.Minecraft;

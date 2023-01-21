@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.fabric.mixin.create;
+package org.valkyrienskies.clockwork.fabric.mixin.compat;
 
 import com.simibubi.create.foundation.tileEntity.behaviour.filtering.FilteringHandler;
 import net.fabricmc.api.EnvType;
