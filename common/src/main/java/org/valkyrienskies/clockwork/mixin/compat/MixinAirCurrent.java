@@ -79,6 +79,23 @@ public abstract class MixinAirCurrent {
 
             // Distance from start to end but, its not squared so, slow -_-
             cir.setReturnValue((float) result.getLocation().distanceTo(mcStart));
+        } else {
+            BlockPos end = start.relative(facing, (int) max);
+            if (VSGameUtilsKt.getShipsIntersecting(level,
+                    new AABB(start.getX(), start.getY(), start.getZ(),
+                            end.getX() + 1.0, end.getY() + 1.0, end.getZ() + 1.0)).iterator().hasNext()) {
+                Vec3 centerStart = Vec3.atCenterOf(start);
+                BlockHitResult result = RaycastUtilsKt.clipIncludeShips(level,
+                        new ClipContext(
+                                centerStart.add(facing.getStepX(), facing.getStepY(), facing.getStepZ()),
+                                Vec3.atCenterOf(end),
+                                ClipContext.Block.OUTLINE,
+                                ClipContext.Fluid.NONE,
+                                null));
+
+                // Distance from start to end but, its not squared so, slow -_-
+                cir.setReturnValue((float) result.getLocation().distanceTo(centerStart));
+            }
         }
     }
 
