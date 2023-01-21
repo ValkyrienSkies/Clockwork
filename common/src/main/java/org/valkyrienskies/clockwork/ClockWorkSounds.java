@@ -28,11 +28,9 @@ import java.util.function.Supplier;
 
 public class ClockWorkSounds {
     public static final Map<ResourceLocation, SoundEntry> ALL = new HashMap<>();
-    private static final DeferredRegister<SoundEvent> sounds = DeferredRegister.create(Registry.SOUND_EVENT, ClockWorkMod.MOD_ID);
-
     public static final SoundEntry
 
-    PHYSICS_INFUSER_INITIALIZE = create("physics_infuser_initialize").subtitle("Physics Infuser starts")
+            PHYSICS_INFUSER_INITIALIZE = create("physics_infuser_initialize").subtitle("Physics Infuser starts")
             .category(SoundSource.BLOCKS)
             .attenuationDistance(32)
             .build(),
@@ -51,7 +49,7 @@ public class ClockWorkSounds {
             .category(SoundSource.BLOCKS)
             .attenuationDistance(64)
             .build();
-
+    private static final DeferredRegister<SoundEvent> sounds = DeferredRegister.create(Registry.SOUND_EVENT, ClockWorkMod.MOD_ID);
 
     private static SoundEntryBuilder create(String name) {
         return create(ClockWorkMod.asResource(name));
@@ -83,7 +81,7 @@ public class ClockWorkSounds {
 
     private static class SoundEntryProvider implements DataProvider {
 
-        private DataGenerator generator;
+        private final DataGenerator generator;
 
         public SoundEntryProvider(DataGenerator generator) {
             this.generator = generator;
@@ -122,6 +120,7 @@ public class ClockWorkSounds {
         }
 
     }
+
     public record ConfiguredSoundEvent(Supplier<SoundEvent> event, float volume, float pitch) {
     }
 
@@ -273,8 +272,8 @@ public class ClockWorkSounds {
 
     private static class WrappedSoundEntry extends SoundEntry {
 
-        private List<ConfiguredSoundEvent> wrappedEvents;
-        private List<CompiledSoundEvent> compiledEvents;
+        private final List<ConfiguredSoundEvent> wrappedEvents;
+        private final List<CompiledSoundEvent> compiledEvents;
 
         public WrappedSoundEntry(ResourceLocation id, String subtitle,
                                  List<ConfiguredSoundEvent> wrappedEvents, SoundSource category, int attenuationDistance) {

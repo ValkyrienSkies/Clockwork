@@ -18,7 +18,6 @@ import org.joml.Vector3d;
 import org.joml.primitives.AABBic;
 import org.valkyrienskies.clockwork.ClockWorkSounds;
 import org.valkyrienskies.clockwork.client.render.scanner.ScannerRenderer;
-import org.valkyrienskies.clockwork.client.render.scanner.WorldScannerRenderer;
 import org.valkyrienskies.clockwork.platform.api.GlueType;
 import org.valkyrienskies.clockwork.util.assemble.GlueAssembler;
 import org.valkyrienskies.core.api.ships.ClientShip;
@@ -29,54 +28,69 @@ import org.valkyrienskies.mod.common.assembly.ShipAssemblyKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
 import java.util.HashSet;
-import java.util.Random;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 import static org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserRenderer.ScanManager.SCAN_GROWTH_DURATION;
 
 public class PhysicsInfuserBlockEntity extends SmartTileEntity {
 
+    public static final int ASSEMBLY_TIME = 500;
+    public static final int DISASSEMBLY_TIME = 1000;
+    private final Vec3 thisposition = VectorConversionsMCKt.toMinecraft(VectorConversionsMCKt.toJOMLD(worldPosition));
     public boolean isAssembled = false;
-
-    protected AssemblyException lastException;
-
-
     public boolean assembling = false;
     public boolean disassembling = false;
-
     public boolean skippedAssembly = false;
-    boolean skippingAssembly = false;
-
     public Animation animationType = Animation.IDLE;
     public LerpedFloat assemblyProgress = LerpedFloat.linear();
     public LerpedFloat disassemblyProgress = LerpedFloat.linear();
     public LerpedFloat idleProgress = LerpedFloat.linear();
+    protected AssemblyException lastException;
+    boolean skippingAssembly = false;
     float coreAngle = 0;
     float previousCoreAngle = 0;
-
-    private Ship ship = null;
-
     int useCooldown = 0;
     boolean onCooldown = false;
-
-    private Vec3 thisposition = VectorConversionsMCKt.toMinecraft(VectorConversionsMCKt.toJOMLD(worldPosition));
-    boolean initPlayed=false;
-
-    public static final int ASSEMBLY_TIME = 500;
-    public static final int DISASSEMBLY_TIME = 1000;
-
+    boolean initPlayed = false;
+    private Ship ship = null;
     private boolean sendAnimationUpdate;
-
-    public void initialize(Vec3 center, float scanRadius, int scanComputeDuration) {
-    }
-
-    enum Animation {
-        ASSEMBLY, DISASSEMBLY, IDLE;
-    }
 
     public PhysicsInfuserBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
+    }
+
+    public static void playInitializeSound(Level world, Vec3 location) {
+        ClockWorkSounds.PHYSICS_INFUSER_INITIALIZE.playAt(world, location, 1, 1, false);
+    }
+
+    public static void playWindupSound(Level world, Vec3 location) {
+        ClockWorkSounds.PHYSICS_INFUSER_WINDUP.playAt(world, location, 1, 1, false);
+    }
+
+    public static void playZapSound(Level world, Vec3 location, Random rand) {
+        float pitch = 0.6F + rand.nextFloat() * 0.4F;
+        ClockWorkSounds.PHYSICS_INFUSER_LIGHTNING.playAt(world, location, 1, 1, false);
+    }
+
+    public static void playFinishSound(Level world, Vec3 location) {
+        ClockWorkSounds.PHYSICS_INFUSER_FINISH.playAt(world, location, 1, 1, false);
+    }
+
+    public static void spawnParticlesAssembly(Level world, Vec3 pos, Random rand) {
+        double degrees = rand.nextDouble() * 360;
+
+        double angle = Math.toRadians(degrees);
+
+        double radius = 2.0D;
+
+        double x = radius * Math.cos(angle);
+        double y = 0.5d;
+        double z = radius * Math.sin(angle);
+    }
+
+    public void initialize(Vec3 center, float scanRadius, int scanComputeDuration) {
     }
 
     public Ship getConnectedShip() {
@@ -111,7 +125,7 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
             startAnimation(Animation.IDLE);
         }
 
-        if(assembling) {
+        if (assembling) {
             assemblyProgress.setValue(assemblyProgress.getValue() + 1);
             if (skippingAssembly) {
                 assemblyProgress.setValueNoUpdate(400);
@@ -146,7 +160,7 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
             if (assemblyProgress.getValue() == 500) {
                 isAssembled = true;
                 assembling = false;
-                initPlayed=false;
+                initPlayed = false;
                 animationType = Animation.IDLE;
                 assemblyProgress.setValue(0);
                 skippedAssembly = false;
@@ -154,7 +168,6 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
             }
         }
     }
-
 
     //Ship Assembly Handlers
     public void startAssembly() {
@@ -167,6 +180,7 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
         skippedAssembly = true;
         skippingAssembly = true;
     }
+
     public void startDisassembly() {
         disassembling = true;
         this.animationType = Animation.DISASSEMBLY;
@@ -186,6 +200,8 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
             return Minecraft.getInstance().gameRenderer.getRenderDistance();
         }
     }
+
+    //Animation Jargon
 
     public int getScanGrowthDuration() {
         if (this.ship != null) {
@@ -246,8 +262,6 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
 
     }
 
-    //Animation Jargon
-
     public void startAnimation(Animation animation) {
         animationType = animation;
         if (animation == Animation.ASSEMBLY) {
@@ -280,20 +294,18 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
 
     }
 
-    public float getCoreOffset (float partialTicks) {
+    public float getCoreOffset(float partialTicks) {
         if (animationType == Animation.IDLE) {
             return 0;
-        }
-        else if (animationType == Animation.ASSEMBLY) {
+        } else if (animationType == Animation.ASSEMBLY) {
             int runningTicks = (int) Math.abs(this.assemblyProgress.getValue());
             int prevRunningTicks = (int) Math.abs(this.assemblyProgress.getValue() - 1);
             float ticks = Mth.lerp(partialTicks, prevRunningTicks, runningTicks);
-            if (runningTicks < (ASSEMBLY_TIME*3)/4) {
-                return (float) Mth.clamp(Math.pow(ticks/ASSEMBLY_TIME*3,4),0,1);
+            if (runningTicks < (ASSEMBLY_TIME * 3) / 4) {
+                return (float) Mth.clamp(Math.pow(ticks / ASSEMBLY_TIME * 3, 4), 0, 1);
             }
-            return easeInBounce(Mth.clamp((ASSEMBLY_TIME - ticks) / ASSEMBLY_TIME * 8,0,1));
-        }
-        else if (animationType == Animation.DISASSEMBLY) {
+            return easeInBounce(Mth.clamp((ASSEMBLY_TIME - ticks) / ASSEMBLY_TIME * 8, 0, 1));
+        } else if (animationType == Animation.DISASSEMBLY) {
             return disassemblyProgress.getValue(partialTicks);
         }
         return 0f;
@@ -303,6 +315,7 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
         return 1 - easeOutBounce(1 - x);
 
     }
+
     public float easeOutBounce(float x) {
         double n1 = 7.5625;
         double d1 = 2.75;
@@ -319,37 +332,6 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
 
     }
 
-    public static void playInitializeSound(Level world, Vec3 location) {
-        ClockWorkSounds.PHYSICS_INFUSER_INITIALIZE.playAt(world, location, 1, 1, false);
-    }
-
-    public static void playWindupSound(Level world, Vec3 location) {
-        ClockWorkSounds.PHYSICS_INFUSER_WINDUP.playAt(world, location, 1, 1, false);
-    }
-
-    public static void playZapSound(Level world, Vec3 location, Random rand) {
-        float pitch = 0.6F + rand.nextFloat() * 0.4F;
-        ClockWorkSounds.PHYSICS_INFUSER_LIGHTNING.playAt(world, location, 1, 1, false);
-    }
-
-    public static void playFinishSound(Level world, Vec3 location) {
-        ClockWorkSounds.PHYSICS_INFUSER_FINISH.playAt(world, location, 1, 1, false);
-    }
-
-    public static void spawnParticlesAssembly(Level world, Vec3 pos, Random rand) {
-        double degrees = rand.nextDouble() * 360;
-
-        double angle = Math.toRadians(degrees);
-
-        double radius = 2.0D;
-
-        double x = radius* Math.cos(angle);
-        double y = 0.5d;
-        double z = radius* Math.sin(angle);
-    }
-
-    //NBT stuff
-
     @Override
     public void write(CompoundTag compound, boolean clientPacket) {
         compound.putString("animationState", animationType.toString());
@@ -362,6 +344,8 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
         compound.putBoolean("skippedAssembly", skippedAssembly);
         super.write(compound, clientPacket);
     }
+
+    //NBT stuff
 
     @Override
     protected void read(CompoundTag compound, boolean clientPacket) {
@@ -376,9 +360,13 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
         super.read(compound, clientPacket);
     }
 
-    //Create Behaviors
-
     @Override
     public void addBehaviours(List<TileEntityBehaviour> behaviours) {
+    }
+
+    //Create Behaviors
+
+    enum Animation {
+        ASSEMBLY, DISASSEMBLY, IDLE
     }
 }

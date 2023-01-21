@@ -15,7 +15,6 @@ import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.valkyrienskies.clockwork.ClockWorkHandlers;
-import org.valkyrienskies.clockwork.ClockWorkMod;
 
 public class GravitronItemRenderer extends CustomRenderedItemModelRenderer<GravitronModel> {
 

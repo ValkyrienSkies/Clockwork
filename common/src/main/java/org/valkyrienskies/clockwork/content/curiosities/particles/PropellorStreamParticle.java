@@ -15,21 +15,23 @@ import javax.annotation.Nonnull;
 public class PropellorStreamParticle extends SimpleAnimatedParticle {
 
     private final IAirCurrentSource source;
+
     protected PropellorStreamParticle(ClientLevel world, IAirCurrentSource source, double x, double y, double z,
                                       SpriteSet sprite) {
-        super(world, x, y ,z ,sprite, world.random.nextFloat()*.5f);
+        super(world, x, y, z, sprite, world.random.nextFloat() * .5f);
         this.source = source;
         this.quadSize *= 0.75f;
         this.lifetime = 20;
         hasPhysics = false;
         grabSprite(7);
         Vec3 offset = VecHelper.offsetRandomly(Vec3.ZERO, Create.RANDOM, .5f);
-        this.setPos(x+offset.x,y+offset.y,z+offset.z);
+        this.setPos(x + offset.x, y + offset.y, z + offset.z);
         this.xo = x;
         this.yo = y;
         this.zo = z;
         setAlpha(.25f);
     }
+
     @Nonnull
     public ParticleRenderType getRenderType() {
         return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
@@ -53,7 +55,7 @@ public class PropellorStreamParticle extends SimpleAnimatedParticle {
                 dissipate();
                 return;
             }
-            grabSprite((int) Mth.clamp((this.age / (float)this.lifetime)*8 + level.random.nextInt(1), 0, 7));
+            grabSprite((int) Mth.clamp((this.age / (float) this.lifetime) * 8 + level.random.nextInt(1), 0, 7));
             Vec3 directionVec = Vec3.atLowerCornerOf(source.getAirCurrent().direction.getNormal());
             Vec3 motion = directionVec.scale(1 / 8f);
             if (!source.getAirCurrent().pushing)
@@ -68,14 +70,14 @@ public class PropellorStreamParticle extends SimpleAnimatedParticle {
             motion = motion.scale(source.getAirCurrent().maxDistance - (distance - 1f)).scale(.5f);
             grabSprite((int) Mth.clamp((distance / source.getAirCurrent().maxDistance) * 8 + level.random.nextInt(4),
                     0, 7));
-            double friction = 0.2*motion.lengthSqr();
-            friction=Math.min(friction,0.5f);
-            motion=motion.scale(1.0-friction);
+            double friction = 0.2 * motion.lengthSqr();
+            friction = Math.min(friction, 0.5f);
+            motion = motion.scale(1.0 - friction);
             xd = motion.x;
             yd = motion.y;
             zd = motion.z;
 
-            this.move(this.xd,this.yd,this.zd);
+            this.move(this.xd, this.yd, this.zd);
         }
     }
 

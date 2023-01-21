@@ -7,7 +7,6 @@ import com.jozufozu.flywheel.util.transform.TransformStack;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
-import com.simibubi.create.content.logistics.trains.entity.Carriage;
 import com.simibubi.create.content.logistics.trains.entity.CarriageContraptionEntity;
 import com.simibubi.create.content.logistics.trains.entity.CarriageContraptionInstance;
 import net.minecraft.util.Mth;
@@ -17,7 +16,6 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4d;
 import org.joml.Vector3d;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.valkyrienskies.core.api.ships.ClientShip;
@@ -44,7 +42,7 @@ public abstract class MixinCarriageContraptionInstance extends EntityInstance {
                 (ClientShip) VSGameUtilsKt.getShipObjectManagingPos(level, vector3f.x(), vector3f.y(), vector3f.z());
 
         if (ship != null) {
-            final CarriageContraptionEntity carriageContraptionEntity = (CarriageContraptionEntity)this.entity;
+            final CarriageContraptionEntity carriageContraptionEntity = (CarriageContraptionEntity) this.entity;
             final Vector3d origin = VectorConversionsMCKt.toJOMLD(this.materialManager.getOriginCoordinate());
             final Vec3 pos = carriageContraptionEntity.position();
             final Vector3d newPosition =

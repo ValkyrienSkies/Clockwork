@@ -12,13 +12,6 @@ import java.util.Set;
 
 public interface GlueType {
 
-    boolean isGlued(LevelAccessor level, BlockPos pos, Direction dir, Set<Entity> cache);
-
-    boolean isBluGlued(LevelAccessor level, BlockPos pos, Direction dir, Set<Entity> cache);
-
-    Set<Entity> caughtEntities(Level level, BlockPos startPos, BlockPos endPos);
-
-
     GlueType SUPER = new GlueType() {
         @Override
         public boolean isGlued(LevelAccessor level, BlockPos pos, Direction dir, Set<Entity> cache) {
@@ -35,7 +28,6 @@ public interface GlueType {
             return null;
         }
     };
-
     GlueType BLUPER = new GlueType() {
         @Override
         public boolean isGlued(LevelAccessor level, BlockPos pos, Direction dir, Set<Entity> cache) {
@@ -52,4 +44,10 @@ public interface GlueType {
             return BluperGlueEntity.searchGlueGroupForEntities(level, startPos, endPos);
         }
     };
+
+    boolean isGlued(LevelAccessor level, BlockPos pos, Direction dir, Set<Entity> cache);
+
+    boolean isBluGlued(LevelAccessor level, BlockPos pos, Direction dir, Set<Entity> cache);
+
+    Set<Entity> caughtEntities(Level level, BlockPos startPos, BlockPos endPos);
 }

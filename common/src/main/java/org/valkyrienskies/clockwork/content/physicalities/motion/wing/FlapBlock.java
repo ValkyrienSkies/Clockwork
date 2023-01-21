@@ -115,6 +115,7 @@ public class FlapBlock extends TriAxisBlockWithConnections implements org.valkyr
             level.setBlock(pos, state.setValue(connectedFour, false), flag);
         }
     }
+
     @Override
     public Wing getWing(@NotNull Level level, @NotNull BlockPos blockPos, @NotNull BlockState blockState) {
         double wingPower = 150;

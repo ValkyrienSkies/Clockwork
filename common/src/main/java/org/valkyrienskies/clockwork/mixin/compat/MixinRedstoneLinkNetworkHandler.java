@@ -23,11 +23,6 @@ public abstract class MixinRedstoneLinkNetworkHandler {
     @Unique
     private static Level harvestedWorld;
 
-    @Inject(method = "updateNetworkOf", at = @At("HEAD"))
-    private void harvestLevel(LevelAccessor world, IRedstoneLinkable actor, CallbackInfo ci) {
-        harvestedWorld = (Level) world;
-    }
-
     @Redirect(
             method = "withinRange",
             at = @At(
@@ -47,5 +42,10 @@ public abstract class MixinRedstoneLinkNetworkHandler {
             pos2 = VectorConversionsMCKt.toMinecraft(ship2.getShipToWorld().transformPosition(VectorConversionsMCKt.toJOML(pos2)));
         }
         return pos1.closerThan(pos2, v);
+    }
+
+    @Inject(method = "updateNetworkOf", at = @At("HEAD"))
+    private void harvestLevel(LevelAccessor world, IRedstoneLinkable actor, CallbackInfo ci) {
+        harvestedWorld = (Level) world;
     }
 }

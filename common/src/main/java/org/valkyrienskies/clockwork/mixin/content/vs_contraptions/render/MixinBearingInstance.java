@@ -19,12 +19,12 @@ import static org.valkyrienskies.clockwork.ClockWorkMod.MIXIN_LOGGER;
 @Mixin(BearingInstance.class)
 public class MixinBearingInstance {
 
-    @Shadow @Final
+    @Shadow
+    @Final
     KineticTileEntity bearing;
 
     @Redirect(method = "<init>", at = @At(value = "INVOKE", target = "Lcom/jozufozu/flywheel/api/Material;getModel(Lcom/jozufozu/flywheel/core/PartialModel;Lnet/minecraft/world/level/block/state/BlockState;)Lcom/jozufozu/flywheel/api/Instancer;"))
-    Instancer getVSModel(Material instance, PartialModel partial, BlockState referenceState)
-    {
+    Instancer getVSModel(Material instance, PartialModel partial, BlockState referenceState) {
         if (!(bearing instanceof ContraptionController)) {
             MIXIN_LOGGER.warn("We found contraption controller that does not has CW-compat implemented, this shouldn't happen.\n" +
                     "controller: " + bearing.getClass().getName());

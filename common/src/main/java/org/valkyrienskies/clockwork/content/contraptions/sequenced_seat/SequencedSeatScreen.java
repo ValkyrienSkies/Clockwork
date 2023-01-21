@@ -20,14 +20,26 @@ import java.util.Arrays;
 import java.util.function.Consumer;
 
 public class SequencedSeatScreen extends AbstractSimiScreen {
+    private static final int TAB_PAD_X = 11;
+    private static final int TAB_PAD_Y = 16;
+    private static final int INPUT_PAD_X = 11;
+    private static final int INPUT_PAD_Y = 41;
+    private static final int INPUT_PAD_MARGIN = 22;
+    private static final int INPUT_FIELDS_X = 36;
+    private static final int INPUT_FIELDS_Y = 62;
+    private static final int INPUT_FIELDS_WIDTH = 110;
+    private static final int INPUT_FIELDS_HEIGHT = 18;
+    private static final int INPUT_FIELDS_MARGIN = 4;
+    private static final int INPUT_OPERATION_WIDTH = 60;
+    private static final int INPUT_VALUE_WIDTH = 46;
     private final ItemStack renderedItem = ClockWorkBlocks.SEQUENCED_SEAT.asStack();
     private final ClockWorkGuiTextures background = ClockWorkGuiTextures.SEQUENCED_SEAT;
     private final SequencedSeatBlockEntity be;
-
+    private final SelectionScrollInput[] operationInputs = new SelectionScrollInput[SequencedSeatRuleList.MAX_RULES];
+    private final ScrollInput[] valueInputs = new ScrollInput[SequencedSeatRuleList.MAX_RULES];
     private IconButton confirmButton;
-    private SelectionScrollInput[] operationInputs = new SelectionScrollInput[SequencedSeatRuleList.MAX_RULES];
-    private ScrollInput[] valueInputs = new ScrollInput[SequencedSeatRuleList.MAX_RULES];
     private Rotation currentShaft = Rotation.NONE;
+
     public SequencedSeatScreen(SequencedSeatBlockEntity be) {
         this.be = be;
     }
@@ -217,33 +229,6 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
 
         return new TabButton(buttonX, buttonY, width, height, rotation);
     }
-    private class TabButton extends AbstractSimiWidget {
-        private final Rotation rotation;
-        private final int blitX, blitY;
-        private TabButton(int x, int y, int width, int height, Rotation rotation) {
-            super(
-                    guiLeft + x + TAB_PAD_X,
-                    guiTop + y + TAB_PAD_Y,
-                    width,
-                    height,
-                    Component.nullToEmpty(rotation.toString())
-            );
-
-            blitX = x + 205;
-            blitY = y;
-
-            this.rotation = rotation;
-            withCallback(() -> updateTab(rotation));
-        }
-
-        @Override
-        public void renderButton(@NotNull PoseStack ms, int mouseX, int mouseY, float partialTicks) {
-            isHovered = rotation == currentShaft || (mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height);
-
-            background.bind();
-            blit(ms, x, y, isHovered ? 17 + blitX : blitX, blitY, width, height);
-        }
-    }
 
     private void updateTab(Rotation rotation) {
         this.currentShaft = rotation;
@@ -313,10 +298,44 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
         return new KeyButton(buttonX, buttonY, width, height, key, index);
     }
 
+    private SequencedSeatRuleList currentList() {
+        return be.getList(currentShaft);
+    }
+
+    private class TabButton extends AbstractSimiWidget {
+        private final Rotation rotation;
+        private final int blitX, blitY;
+
+        private TabButton(int x, int y, int width, int height, Rotation rotation) {
+            super(
+                    guiLeft + x + TAB_PAD_X,
+                    guiTop + y + TAB_PAD_Y,
+                    width,
+                    height,
+                    Component.nullToEmpty(rotation.toString())
+            );
+
+            blitX = x + 205;
+            blitY = y;
+
+            this.rotation = rotation;
+            withCallback(() -> updateTab(rotation));
+        }
+
+        @Override
+        public void renderButton(@NotNull PoseStack ms, int mouseX, int mouseY, float partialTicks) {
+            isHovered = rotation == currentShaft || (mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height);
+
+            background.bind();
+            blit(ms, x, y, isHovered ? 17 + blitX : blitX, blitY, width, height);
+        }
+    }
+
     private class KeyButton extends AbstractSimiWidget {
         private final InputKey key;
         private final int index;
         private final int blitX, blitY;
+
         private KeyButton(int x, int y, int width, int height, InputKey key, int index) {
             super(
                     guiLeft + x + INPUT_PAD_X,
@@ -348,21 +367,4 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
             blit(ms, x, y, isHovered ? 17 + blitX : blitX, blitY, width, height);
         }
     }
-
-    private SequencedSeatRuleList currentList() {
-        return be.getList(currentShaft);
-    }
-
-    private static final int TAB_PAD_X = 11;
-    private static final int TAB_PAD_Y = 16;
-    private static final int INPUT_PAD_X = 11;
-    private static final int INPUT_PAD_Y = 41;
-    private static final int INPUT_PAD_MARGIN = 22;
-    private static final int INPUT_FIELDS_X = 36;
-    private static final int INPUT_FIELDS_Y = 62;
-    private static final int INPUT_FIELDS_WIDTH = 110;
-    private static final int INPUT_FIELDS_HEIGHT = 18;
-    private static final int INPUT_FIELDS_MARGIN = 4;
-    private static final int INPUT_OPERATION_WIDTH = 60;
-    private static final int INPUT_VALUE_WIDTH = 46;
 }

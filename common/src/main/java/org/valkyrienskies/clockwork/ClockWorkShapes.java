@@ -1,11 +1,6 @@
 package org.valkyrienskies.clockwork;
 
-import static net.minecraft.core.Direction.UP;
-
-import java.util.function.BiFunction;
-
 import com.simibubi.create.foundation.utility.VoxelShaper;
-
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.world.level.block.Block;
@@ -13,14 +8,15 @@ import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
+import java.util.function.BiFunction;
+
+import static net.minecraft.core.Direction.UP;
+
 public class ClockWorkShapes {
 
     public static final VoxelShaper
 
-    WING = shape(0,4,0,16,12,16).forAxis()
-
-            ;
-
+            WING = shape(0, 4, 0, 16, 12, 16).forAxis();
 
 
     private static Builder shape(VoxelShape shape) {

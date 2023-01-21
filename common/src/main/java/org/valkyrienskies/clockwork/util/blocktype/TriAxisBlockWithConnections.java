@@ -31,16 +31,6 @@ public abstract class TriAxisBlockWithConnections extends Block {
                 .setValue(connectedFour, false));
     }
 
-    @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(AXIS);
-        builder.add(connectedOne);
-        builder.add(connectedTwo);
-        builder.add(connectedThree);
-        builder.add(connectedFour);
-        super.createBlockStateDefinition(builder);
-    }
-
     public static Axis getPreferredAxis(BlockPlaceContext context) {
         Axis preferredAxis = null;
         for (Direction side : Iterate.directions) {
@@ -59,6 +49,16 @@ public abstract class TriAxisBlockWithConnections extends Block {
             }
         }
         return preferredAxis;
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(AXIS);
+        builder.add(connectedOne);
+        builder.add(connectedTwo);
+        builder.add(connectedThree);
+        builder.add(connectedFour);
+        super.createBlockStateDefinition(builder);
     }
 
     @Override

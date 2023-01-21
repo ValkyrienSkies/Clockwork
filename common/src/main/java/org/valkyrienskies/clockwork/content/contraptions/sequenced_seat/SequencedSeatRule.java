@@ -12,6 +12,18 @@ public record SequencedSeatRule(Set<InputKey> inputKeys, SequencedSeatOperation 
         return new SequencedSeatRule(new HashSet<>(), SequencedSeatOperation.NOTHING, null);
     }
 
+    public static SequencedSeatRule deserializeNBT(CompoundTag tag) {
+        Set<InputKey> keys = InputKey.fromInt(tag.getInt("keys"));
+
+        SequencedSeatOperation operation = SequencedSeatOperation.values()[tag.getInt("operation")];
+        SequencedSeatValue value = operation.defaultValue();
+
+        if (value != null)
+            value.deserializeNBT(tag.get("value"));
+
+        return new SequencedSeatRule(keys, operation, value);
+    }
+
     public boolean matches(Set<InputKey> inputKeys) {
         return inputKeys.equals(this.inputKeys);
     }
@@ -28,15 +40,15 @@ public record SequencedSeatRule(Set<InputKey> inputKeys, SequencedSeatOperation 
         int duration = switch (operation) {
             case TURN_ANGLE -> {
                 int target = ((SequencedSeatValue.AngleValue) value).degrees;
-                double degreesPerTick = (double) KineticTileEntity.convertToAngular(be.getSpeed());
-                int ticks = (int)(target / degreesPerTick);
-                double degreesErr = target - degreesPerTick * (double)ticks;
+                double degreesPerTick = KineticTileEntity.convertToAngular(be.getSpeed());
+                int ticks = (int) (target / degreesPerTick);
+                double degreesErr = target - degreesPerTick * (double) ticks;
                 yield ticks + (degreesPerTick > 2.0 * degreesErr ? 0 : 1);
             }
             case TURN_DISTANCE -> {
                 int target = ((SequencedSeatValue.DistanceValue) value).meters;
-                double metersPerTick = (double)KineticTileEntity.convertToLinear(be.getSpeed());
-                yield  (int)(target / metersPerTick + 1.0);
+                double metersPerTick = KineticTileEntity.convertToLinear(be.getSpeed());
+                yield (int) (target / metersPerTick + 1.0);
             }
             default -> Integer.MAX_VALUE;
         };
@@ -55,17 +67,5 @@ public record SequencedSeatRule(Set<InputKey> inputKeys, SequencedSeatOperation 
 
 
         return tag;
-    }
-
-    public static SequencedSeatRule deserializeNBT(CompoundTag tag) {
-        Set<InputKey> keys = InputKey.fromInt(tag.getInt("keys"));
-
-        SequencedSeatOperation operation = SequencedSeatOperation.values()[tag.getInt("operation")];
-        SequencedSeatValue value = operation.defaultValue();
-
-        if (value != null)
-            value.deserializeNBT(tag.get("value"));
-
-        return new SequencedSeatRule(keys, operation, value);
     }
 }

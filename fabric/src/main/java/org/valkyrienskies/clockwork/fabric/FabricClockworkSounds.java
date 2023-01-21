@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-
 import net.minecraft.core.Registry;
 import net.minecraft.core.Vec3i;
 import net.minecraft.data.DataGenerator;
@@ -65,7 +64,7 @@ public class FabricClockworkSounds {
 
     private static class SoundEntryProvider implements DataProvider {
 
-        private DataGenerator generator;
+        private final DataGenerator generator;
 
         public SoundEntryProvider(DataGenerator generator) {
             this.generator = generator;
@@ -104,6 +103,7 @@ public class FabricClockworkSounds {
         }
 
     }
+
     public record ConfiguredSoundEvent(Supplier<SoundEvent> event, float volume, float pitch) {
     }
 
@@ -257,8 +257,8 @@ public class FabricClockworkSounds {
 
     private static class WrappedSoundEntry extends SoundEntry {
 
-        private List<ConfiguredSoundEvent> wrappedEvents;
-        private List<CompiledSoundEvent> compiledEvents;
+        private final List<ConfiguredSoundEvent> wrappedEvents;
+        private final List<CompiledSoundEvent> compiledEvents;
 
         public WrappedSoundEntry(ResourceLocation id, String subtitle,
                                  List<ConfiguredSoundEvent> wrappedEvents, SoundSource category, int attenuationDistance) {

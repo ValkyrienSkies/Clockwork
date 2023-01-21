@@ -5,5 +5,4 @@ public class FabricClockworkShapes {
 //    public final VoxelShaper
 
 
-
 }

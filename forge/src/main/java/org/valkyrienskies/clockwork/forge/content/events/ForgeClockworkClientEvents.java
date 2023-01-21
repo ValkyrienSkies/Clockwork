@@ -5,7 +5,7 @@ import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
-import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.TickEvent.ClientTickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModList;
@@ -14,8 +14,6 @@ import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import org.valkyrienskies.clockwork.ClockWorkHandlers;
 import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.stream.PropStream;
-import org.valkyrienskies.clockwork.forge.ClockWorkModForge;
-import net.minecraftforge.event.TickEvent.ClientTickEvent;
 
 import static com.jozufozu.flywheel.backend.Backend.isGameActive;
 
@@ -29,6 +27,7 @@ public class ForgeClockworkClientEvents {
         PropStream.tickClientPlayerSounds();
 
     }
+
     @SubscribeEvent
     public static void onTick(ClientTickEvent event) {
         if (!isGameActive())

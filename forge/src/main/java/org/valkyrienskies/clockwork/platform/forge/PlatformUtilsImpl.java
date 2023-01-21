@@ -14,8 +14,8 @@ public class PlatformUtilsImpl {
     public static Packet<?> createExtraDataSpawnPacket(Entity entity) {
         return NetworkHooks.getEntitySpawningPacket(entity);
     }
+
     public static void setAboveGroundTicks(ServerPlayer player, int ticks) {
         // todo
-        return;
     }
 }

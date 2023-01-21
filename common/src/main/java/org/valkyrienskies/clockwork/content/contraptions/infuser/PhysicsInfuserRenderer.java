@@ -24,6 +24,7 @@ import javax.annotation.Nullable;
 public class PhysicsInfuserRenderer extends SmartTileEntityRenderer<PhysicsInfuserBlockEntity> {
 
     private PhysicsInfuserBlockEntity te;
+
     public PhysicsInfuserRenderer(BlockEntityRendererProvider.Context context) {
         super(context);
     }
@@ -35,7 +36,7 @@ public class PhysicsInfuserRenderer extends SmartTileEntityRenderer<PhysicsInfus
             return;
 
         this.te = te;
-        PhysicsInfuserBlockEntity infuser = (PhysicsInfuserBlockEntity) te;
+        PhysicsInfuserBlockEntity infuser = te;
         BlockState blockState = te.getBlockState();
 
         VertexConsumer vb = buffer.getBuffer(RenderType.translucent());
@@ -73,13 +74,13 @@ public class PhysicsInfuserRenderer extends SmartTileEntityRenderer<PhysicsInfus
                 float coreOffset = te.getCoreOffset(partialTicks - 1);
                 animateAssembly(core, angle, coreOffset, value, infuser).light(light).renderInto(ms, vb);
                 if (value >= 160 && value <= 200 || value >= 300 && value <= 340 || value >= 420 && value <= 440) {
-                    animateZapping(zap1,0,coreOffset,1,infuser).light(light).renderInto(ms,buffer.getBuffer(RenderType.translucentNoCrumbling()));
+                    animateZapping(zap1, 0, coreOffset, 1, infuser).light(light).renderInto(ms, buffer.getBuffer(RenderType.translucentNoCrumbling()));
                 }
                 if (value >= 220 && value <= 260 || value >= 360 && value <= 400 || value >= 400 && value <= 420) {
-                    animateZapping(zap2,120,coreOffset,2,infuser).light(light).renderInto(ms,buffer.getBuffer(RenderType.translucentNoCrumbling()));
+                    animateZapping(zap2, 120, coreOffset, 2, infuser).light(light).renderInto(ms, buffer.getBuffer(RenderType.translucentNoCrumbling()));
                 }
                 if (value >= 240 && value <= 280 || value >= 320 && value <= 360 || value >= 410 && value <= 430) {
-                    animateZapping(zap3,240,coreOffset,3,infuser).light(light).renderInto(ms,buffer.getBuffer(RenderType.translucentNoCrumbling()));
+                    animateZapping(zap3, 240, coreOffset, 3, infuser).light(light).renderInto(ms, buffer.getBuffer(RenderType.translucentNoCrumbling()));
                 }
             }
             if (infuser.animationType == PhysicsInfuserBlockEntity.Animation.DISASSEMBLY) {
@@ -87,7 +88,9 @@ public class PhysicsInfuserRenderer extends SmartTileEntityRenderer<PhysicsInfus
                 //animateDisassembly(core, angle, offset, value).light(light).renderInto(ms, vb);
             }
 
-            if (infuser.animationType == PhysicsInfuserBlockEntity.Animation.IDLE) {idleRotateCore(core, angle, offset, infuser).light(light).renderInto(ms, vb);}
+            if (infuser.animationType == PhysicsInfuserBlockEntity.Animation.IDLE) {
+                idleRotateCore(core, angle, offset, infuser).light(light).renderInto(ms, vb);
+            }
         }
 
     }
@@ -104,9 +107,9 @@ public class PhysicsInfuserRenderer extends SmartTileEntityRenderer<PhysicsInfus
     }
 
     private SuperByteBuffer animateZapping(SuperByteBuffer buffer, float angle, float coreOffset, float value, PhysicsInfuserBlockEntity infuser) {
-        float pivotX = 8f/16f;
+        float pivotX = 8f / 16f;
         float pivotY = 0;
-        float pivotZ = 8f/16f;
+        float pivotZ = 8f / 16f;
         float transX;
         float transZ;
         if (value == 1) {
@@ -120,17 +123,18 @@ public class PhysicsInfuserRenderer extends SmartTileEntityRenderer<PhysicsInfus
             transZ = 0.25f;
         }
 
-        buffer.translateY((coreOffset*2)-0.15f);
+        buffer.translateY((coreOffset * 2) - 0.15f);
         buffer.translate(pivotX, pivotY, pivotZ);
-        buffer.rotate(Direction.UP, (float) (angle/180  * Math.PI));
+        buffer.rotate(Direction.UP, (float) (angle / 180 * Math.PI));
         buffer.translate(transX, 0, transZ);
         buffer.translate(-pivotX, -pivotY, -pivotZ);
         return buffer;
     }
+
     private SuperByteBuffer animateAssembly(SuperByteBuffer buffer, float angle, float coreOffset, float value, PhysicsInfuserBlockEntity infuser) {
 
         float interpolatedAngle = infuser.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1);
-        buffer.translateY(coreOffset*2).rotateCentered(Direction.UP, (float) (interpolatedAngle / 180 * Math.PI));
+        buffer.translateY(coreOffset * 2).rotateCentered(Direction.UP, (float) (interpolatedAngle / 180 * Math.PI));
         return buffer;
     }
 
@@ -149,23 +153,14 @@ public class PhysicsInfuserRenderer extends SmartTileEntityRenderer<PhysicsInfus
         private static final int REFERENCE_RENDER_DISTANCE = 12;
 
         // --------------------------------------------------------------------- //
-
-
-        public int computeScanGrowthDuration() {
-            return te.getScanGrowthDuration();
-        }
+        public static int scanningTicks = -1;
 
         // --------------------------------------------------------------------- //
 
         // List of providers currently used to scan.
-
-
-
-        public static int scanningTicks = -1;
         public static long currentStart = -1;
         @Nullable
         public static Vec3 lastScanCenter;
-
         public static PoseStack viewModelStack;
         public static Matrix4f projectionMatrix;
 
@@ -174,11 +169,15 @@ public class PhysicsInfuserRenderer extends SmartTileEntityRenderer<PhysicsInfus
             scanningTicks = 0;
         }
 
-        // --------------------------------------------------------------------- //
-
         private static void clear() {
             lastScanCenter = null;
             currentStart = -1;
+        }
+
+        // --------------------------------------------------------------------- //
+
+        public int computeScanGrowthDuration() {
+            return te.getScanGrowthDuration();
         }
     }
 

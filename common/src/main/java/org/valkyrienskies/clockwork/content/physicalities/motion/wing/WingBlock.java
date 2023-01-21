@@ -91,30 +91,31 @@ public class WingBlock extends TriAxisBlockWithConnections implements org.valkyr
         }
 
         if (neighbor1.getBlock() instanceof WingBlock && neighbor1.getValue(AXIS) == ax) {
-                level.setBlock(pos, state.setValue(connectedOne, true), flag);
-                level.setBlock(neighbor1Pos, neighbor1.setValue(connectedThree, true), flag);
+            level.setBlock(pos, state.setValue(connectedOne, true), flag);
+            level.setBlock(neighbor1Pos, neighbor1.setValue(connectedThree, true), flag);
         } else if (neighbor1.getBlock() instanceof WingBlock && !(neighbor1.getValue(AXIS) == ax)) {
-                level.setBlock(pos, state.setValue(connectedOne, false), flag);
+            level.setBlock(pos, state.setValue(connectedOne, false), flag);
         }
         if (neighbor2.getBlock() instanceof WingBlock && neighbor2.getValue(AXIS) == ax) {
-                level.setBlock(pos, state.setValue(connectedTwo, true), flag);
-                level.setBlock(neighbor2Pos, neighbor2.setValue(connectedFour, true), flag);
+            level.setBlock(pos, state.setValue(connectedTwo, true), flag);
+            level.setBlock(neighbor2Pos, neighbor2.setValue(connectedFour, true), flag);
         } else if (neighbor2.getBlock() instanceof WingBlock && !(neighbor2.getValue(AXIS) == ax)) {
-                level.setBlock(pos, state.setValue(connectedTwo, false), flag);
+            level.setBlock(pos, state.setValue(connectedTwo, false), flag);
         }
         if (neighbor3.getBlock() instanceof WingBlock && neighbor3.getValue(AXIS) == ax) {
-                level.setBlock(pos, state.setValue(connectedThree, true), flag);
-                level.setBlock(neighbor3Pos, neighbor3.setValue(connectedOne, true), flag);
+            level.setBlock(pos, state.setValue(connectedThree, true), flag);
+            level.setBlock(neighbor3Pos, neighbor3.setValue(connectedOne, true), flag);
         } else if (neighbor3.getBlock() instanceof WingBlock && !(neighbor3.getValue(AXIS) == ax)) {
-                level.setBlock(pos, state.setValue(connectedThree, false), flag);
+            level.setBlock(pos, state.setValue(connectedThree, false), flag);
         }
         if (neighbor4.getBlock() instanceof WingBlock && neighbor4.getValue(AXIS) == ax) {
-                level.setBlock(pos, state.setValue(connectedFour, true), flag);
-                level.setBlock(neighbor4Pos, neighbor4.setValue(connectedTwo, true), flag);
+            level.setBlock(pos, state.setValue(connectedFour, true), flag);
+            level.setBlock(neighbor4Pos, neighbor4.setValue(connectedTwo, true), flag);
         } else if (neighbor4.getBlock() instanceof WingBlock && !(neighbor4.getValue(AXIS) == ax)) {
-                level.setBlock(pos, state.setValue(connectedFour, false), flag);
+            level.setBlock(pos, state.setValue(connectedFour, false), flag);
         }
     }
+
     @Override
     public Wing getWing(@NotNull Level level, @NotNull BlockPos blockPos, @NotNull BlockState blockState) {
         double wingPower = 150;

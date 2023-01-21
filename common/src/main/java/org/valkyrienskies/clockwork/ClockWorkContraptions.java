@@ -7,6 +7,7 @@ public class ClockWorkContraptions {
     public static final ContraptionType
             FLAP = ContraptionType.register(ClockWorkMod.asResource("flap").toString(), FlapContraption::new);
 
-    public static void init() {}
+    public static void init() {
+    }
 
 }

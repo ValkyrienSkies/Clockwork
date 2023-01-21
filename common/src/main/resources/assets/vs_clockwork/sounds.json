@@ -9,34 +9,34 @@
     ],
     "subtitle": "vs_clockwork.subtitle.physinitialize"
   },
-    "physics_infuser_windup": {
-        "sounds": [
-        {
-            "name": "vs_clockwork:physics_infuser_windup",
-            "type": "file",
-            "attenuation_distance": 32
-        }
-        ],
-      "subtitle": "vs_clockwork.subtitle.physwindup"
-    },
-    "physics_infuser_lightning": {
-        "sounds": [
-        {
-            "name": "vs_clockwork:physics_infuser_lightning",
-            "type": "file",
-            "attenuation_distance": 16
-        }
-        ],
-      "subtitle": "vs_clockwork.subtitle.zap"
-    },
-    "physics_infuser_finish": {
-        "sounds": [
-        {
-            "name": "vs_clockwork:physics_infuser_finish",
-            "type": "file",
-            "attenuation_distance": 64
-        }
-        ],
-      "subtitle": "vs_clockwork.subtitle.physfinish"
-    }
+  "physics_infuser_windup": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:physics_infuser_windup",
+        "type": "file",
+        "attenuation_distance": 32
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.physwindup"
+  },
+  "physics_infuser_lightning": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:physics_infuser_lightning",
+        "type": "file",
+        "attenuation_distance": 16
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.zap"
+  },
+  "physics_infuser_finish": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:physics_infuser_finish",
+        "type": "file",
+        "attenuation_distance": 64
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.physfinish"
+  }
 }

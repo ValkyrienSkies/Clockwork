@@ -4,7 +4,6 @@ import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
-import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import org.jetbrains.annotations.NotNull;
 import org.valkyrienskies.clockwork.ClockWorkMod;
@@ -30,7 +29,8 @@ public class ShaderLoader {
                     @NotNull Executor backgroundExecutor,
                     @NotNull Executor gameExecutor) {
                 ClockWorkShaders.reloadShaders(resourceManager); // TODO load shaders async?
-                return CompletableFuture.completedFuture(null).thenCompose(preparationBarrier::wait).thenAccept((i -> {}));
+                return CompletableFuture.completedFuture(null).thenCompose(preparationBarrier::wait).thenAccept((i -> {
+                }));
             }
 
             @Override

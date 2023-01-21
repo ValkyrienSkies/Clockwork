@@ -1,9 +1,6 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue;
 
-import java.util.function.Supplier;
-
 import com.simibubi.create.AllSoundEvents;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -14,8 +11,8 @@ import org.valkyrienskies.mod.common.VSGameUtilsKt;
 
 public class BluperGlueRemovalPacket implements C2SCWPacket {
 
-    private int entityId;
-    private BlockPos soundSource;
+    private final int entityId;
+    private final BlockPos soundSource;
 
     public BluperGlueRemovalPacket(int id, BlockPos soundSource) {
         entityId = id;

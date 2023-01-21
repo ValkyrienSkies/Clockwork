@@ -15,6 +15,29 @@ public class SequencedSeatRuleList {
         }
     }
 
+    public static SequencedSeatRuleList defaultList(Rotation rotation) {
+        SequencedSeatRuleList list = new SequencedSeatRuleList();
+
+        list.setOperation(1, SequencedSeatOperation.MULTIPLY);
+
+        switch (rotation) {
+            case NONE -> {
+                list.addKey(1, InputKey.FORWARD);
+            }
+            case CLOCKWISE_90 -> {
+                list.addKey(1, InputKey.RIGHT);
+            }
+            case CLOCKWISE_180 -> {
+                list.addKey(1, InputKey.BACKWARD);
+            }
+            case COUNTERCLOCKWISE_90 -> {
+                list.addKey(1, InputKey.LEFT);
+            }
+        }
+
+        return list;
+    }
+
     public float currentModifier(SequencedSeatBlockEntity be) {
         for (SequencedSeatRule rule : rules) {
             if (rule.matches(be.pressedKeys())) {
@@ -59,28 +82,5 @@ public class SequencedSeatRuleList {
         for (int i = 0; i < MAX_RULES; i++) {
             rules[i] = SequencedSeatRule.deserializeNBT(tag.getCompound(i));
         }
-    }
-
-    public static SequencedSeatRuleList defaultList(Rotation rotation) {
-        SequencedSeatRuleList list = new SequencedSeatRuleList();
-
-        list.setOperation(1, SequencedSeatOperation.MULTIPLY);
-
-        switch (rotation) {
-            case NONE -> {
-                list.addKey(1, InputKey.FORWARD);
-            }
-            case CLOCKWISE_90 -> {
-                list.addKey(1, InputKey.RIGHT);
-            }
-            case CLOCKWISE_180 -> {
-                list.addKey(1, InputKey.BACKWARD);
-            }
-            case COUNTERCLOCKWISE_90 -> {
-                list.addKey(1, InputKey.LEFT);
-            }
-        }
-
-        return list;
     }
 }

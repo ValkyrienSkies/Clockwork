@@ -1,7 +1,5 @@
 package org.valkyrienskies.clockwork.fabric.config;
 
-import com.simibubi.create.foundation.config.ConfigBase;
-
 public class CWServer extends CWConfigBase {
 
 

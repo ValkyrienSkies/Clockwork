@@ -27,11 +27,14 @@ import org.valkyrienskies.mod.common.assembly.ShipAssemblyKt;
 @Mixin(MechanicalBearingTileEntity.class)
 public abstract class MixinMechanicalBearingTileEntity extends GeneratingKineticTileEntity implements ContraptionController {
 
-    @Shadow protected AssemblyException lastException;
+    @Shadow
+    protected AssemblyException lastException;
 
-    @Shadow protected boolean running;
+    @Shadow
+    protected boolean running;
 
-    @Shadow protected float angle;
+    @Shadow
+    protected float angle;
 
     @Unique // Rn only set serverside, is null client-side
     private Ship ship = null;

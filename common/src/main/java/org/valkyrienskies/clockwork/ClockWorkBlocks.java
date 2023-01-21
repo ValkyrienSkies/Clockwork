@@ -21,16 +21,6 @@ import static org.valkyrienskies.clockwork.ClockWorkMod.REGISTRATE;
 
 public class ClockWorkBlocks {
 
-    static {
-        REGISTRATE.creativeModeTab(() -> ClockWorkMod.BASE_CREATIVE_TAB);
-    }
-
-    static {
-        REGISTRATE.startSection(AllSections.KINETICS);
-    }
-
-    //////// Propellor Bearing ////////
-
     public static final BlockEntry<PropellorBearingBlock> PROPELLOR_BEARING =
             REGISTRATE.block("propellor_bearing", PropellorBearingBlock::new)
                     .transform(axeOrPickaxe())
@@ -39,9 +29,6 @@ public class ClockWorkBlocks {
                     .transform(BlockStressDefaults.setImpact(12.0))
                     .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
                     .register();
-
-    //////// Flap Bearing ////////
-
     public static final BlockEntry<FlapBearingBlock> FLAP_BEARING =
             REGISTRATE.block("flap_bearing", FlapBearingBlock::new)
                     .transform(axeOrPickaxe())
@@ -51,6 +38,7 @@ public class ClockWorkBlocks {
                     .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
                     .register();
 
+    //////// Propellor Bearing ////////
     /////// Sequenced Seat ////////
     public static final BlockEntry<SequencedSeatBlock> SEQUENCED_SEAT =
             REGISTRATE.block("sequenced_seat", SequencedSeatBlock::new)
@@ -60,10 +48,7 @@ public class ClockWorkBlocks {
                     .item().build()
                     .register();
 
-    static {REGISTRATE.startSection(AllSections.CURIOSITIES);}
-
-    /////// Physics infuser ////////
-
+    //////// Flap Bearing ////////
     public static final BlockEntry<PhysicsInfuserBlock> PHYSICS_INFUSER =
             REGISTRATE.block("physics_infuser", PhysicsInfuserBlock::new)
                     .transform(axeOrPickaxe())
@@ -73,7 +58,6 @@ public class ClockWorkBlocks {
                     .item()
                     .transform(ModelGen.customItemModel("physics_infuser", "item"))
                     .register();
-
     /////// WINX CLUB //////
     public static final BlockEntry<WingBlock> WING =
             REGISTRATE.block("wing", WingBlock::new)
@@ -84,7 +68,6 @@ public class ClockWorkBlocks {
                     .item()
                     .transform(ModelGen.customItemModel("wing", "item"))
                     .register();
-
     public static final BlockEntry<FlapBlock> FLAP =
             REGISTRATE.block("flap", FlapBlock::new)
                     .transform(axeOrPickaxe())
@@ -95,5 +78,20 @@ public class ClockWorkBlocks {
                     .transform(ModelGen.customItemModel("wing", "item"))
                     .register();
 
-    public static void register() {}
+    /////// Physics infuser ////////
+
+    static {
+        REGISTRATE.creativeModeTab(() -> ClockWorkMod.BASE_CREATIVE_TAB);
+    }
+
+    static {
+        REGISTRATE.startSection(AllSections.KINETICS);
+    }
+
+    static {
+        REGISTRATE.startSection(AllSections.CURIOSITIES);
+    }
+
+    public static void register() {
+    }
 }

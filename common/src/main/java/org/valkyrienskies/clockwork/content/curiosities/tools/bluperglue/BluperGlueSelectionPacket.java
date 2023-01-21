@@ -1,10 +1,5 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue;
 
-import com.jamieswhiteshirt.reachentityattributes.ReachEntityAttributes;
-
-import java.util.Set;
-import java.util.function.Supplier;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -12,13 +7,14 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.valkyrienskies.clockwork.platform.PlatformUtils;
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket;
-import org.valkyrienskies.clockwork.platform.api.network.ClientNetworkContext;
 import org.valkyrienskies.clockwork.platform.api.network.ServerNetworkContext;
+
+import java.util.Set;
 
 public class BluperGlueSelectionPacket implements C2SCWPacket {
 
-    private BlockPos from;
-    private BlockPos to;
+    private final BlockPos from;
+    private final BlockPos to;
 
     public BluperGlueSelectionPacket(BlockPos from, BlockPos to) {
         this.from = from;

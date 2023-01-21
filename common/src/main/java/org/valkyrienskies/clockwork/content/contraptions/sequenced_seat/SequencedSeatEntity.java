@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.contraptions.sequenced_seat;
 
-import com.simibubi.create.content.contraptions.components.actors.SeatBlock;
 import com.simibubi.create.content.contraptions.components.actors.SeatEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.Input;
@@ -16,6 +15,8 @@ import java.util.Objects;
 import java.util.Set;
 
 public class SequencedSeatEntity extends SeatEntity {
+
+    private Set<InputKey> prevKeys = Set.of();
 
     public SequencedSeatEntity(EntityType<?> type, Level level) {
         super(type, level);
@@ -39,8 +40,6 @@ public class SequencedSeatEntity extends SeatEntity {
             this.discard();
         }
     }
-
-    private Set<InputKey> prevKeys = Set.of();
 
     private void checkKeybinds() {
         Input input = Objects.requireNonNull(Minecraft.getInstance().player).input;

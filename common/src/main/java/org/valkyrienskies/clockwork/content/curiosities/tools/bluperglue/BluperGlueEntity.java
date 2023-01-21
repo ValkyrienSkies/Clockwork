@@ -4,7 +4,11 @@ import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
 import com.simibubi.create.content.contraptions.components.structureMovement.BlockMovementChecks;
 import com.simibubi.create.content.contraptions.components.structureMovement.glue.SuperGlueEntity;
-import io.github.fabricators_of_create.porting_lib.entity.ExtraSpawnDataEntity;
+import com.simibubi.create.content.schematics.ISpecialEntityItemRequirement;
+import com.simibubi.create.content.schematics.ItemRequirement;
+import com.simibubi.create.content.schematics.ItemRequirement.ItemUseType;
+import com.simibubi.create.foundation.utility.Iterate;
+import com.simibubi.create.foundation.utility.VecHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
@@ -19,12 +23,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityDimensions;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LightningBolt;
-import net.minecraft.world.entity.MoverType;
-import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -35,11 +34,6 @@ import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.portal.PortalInfo;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import com.simibubi.create.content.schematics.ISpecialEntityItemRequirement;
-import com.simibubi.create.content.schematics.ItemRequirement;
-import com.simibubi.create.content.schematics.ItemRequirement.ItemUseType;
-import com.simibubi.create.foundation.utility.Iterate;
-import com.simibubi.create.foundation.utility.VecHelper;
 import org.valkyrienskies.clockwork.ClockWorkEntities;
 import org.valkyrienskies.clockwork.ClockWorkItems;
 import org.valkyrienskies.clockwork.platform.PlatformUtils;
@@ -54,12 +48,18 @@ public class BluperGlueEntity extends Entity
         implements EntityExtraSpawnData, ISpecialEntityItemRequirement {
 
     protected List<Entity> caughtEntities = new ArrayList<>();
+
+    // DON4T USE
+    public BluperGlueEntity(EntityType<?> type, Level world) {
+        super(type, world);
+    }
+
     public static AABB span(BlockPos startPos, BlockPos endPos) {
         return new AABB(startPos, endPos).expandTowards(1, 1, 1);
     }
 
     public static boolean isBluGlued(LevelAccessor level, BlockPos blockPos, Direction direction,
-                                  Set<BluperGlueEntity> cached) {
+                                     Set<BluperGlueEntity> cached) {
         BlockPos targetPos = blockPos.relative(direction);
         if (cached != null)
             for (BluperGlueEntity glueEntity : cached)
@@ -128,16 +128,31 @@ public class BluperGlueEntity extends Entity
         return glue;
     }
 
-    // DON4T USE
-    public BluperGlueEntity(EntityType<?> type, Level world) {
-        super(type, world);
-    }
-
     public static BluperGlueEntity create(Level world, AABB boundingBox) {
         BluperGlueEntity entity = ClockWorkEntities.BLUPERGLUE.create(world);
         entity.setBoundingBox(boundingBox);
         entity.resetPositionToBB();
         return entity;
+    }
+
+    public static boolean isValidFace(Level world, BlockPos pos, Direction direction) {
+        BlockState state = world.getBlockState(pos);
+        if (BlockMovementChecks.isBlockAttachedTowards(state, world, pos, direction))
+            return true;
+        if (!BlockMovementChecks.isMovementNecessary(state, world, pos))
+            return false;
+        return !BlockMovementChecks.isNotSupportive(state, direction);
+    }
+
+    public static void writeBoundingBox(CompoundTag compound, AABB bb) {
+        compound.put("From", VecHelper.writeNBT(new Vec3(bb.minX, bb.minY, bb.minZ)));
+        compound.put("To", VecHelper.writeNBT(new Vec3(bb.maxX, bb.maxY, bb.maxZ)));
+    }
+
+    public static AABB readBoundingBox(CompoundTag compound) {
+        Vec3 from = VecHelper.readNBT(compound.getList("From", Tag.TAG_DOUBLE));
+        Vec3 to = VecHelper.readNBT(compound.getList("To", Tag.TAG_DOUBLE));
+        return new AABB(from, to);
     }
 
     public void resetPositionToBB() {
@@ -146,17 +161,7 @@ public class BluperGlueEntity extends Entity
     }
 
     @Override
-    protected void defineSynchedData() {}
-
-    public static boolean isValidFace(Level world, BlockPos pos, Direction direction) {
-        BlockState state = world.getBlockState(pos);
-        if (BlockMovementChecks.isBlockAttachedTowards(state, world, pos, direction))
-            return true;
-        if (!BlockMovementChecks.isMovementNecessary(state, world, pos))
-            return false;
-        if (BlockMovementChecks.isNotSupportive(state, direction))
-            return false;
-        return true;
+    protected void defineSynchedData() {
     }
 
     @Override
@@ -223,17 +228,6 @@ public class BluperGlueEntity extends Entity
         setBoundingBox(readBoundingBox(compound).move(position));
     }
 
-    public static void writeBoundingBox(CompoundTag compound, AABB bb) {
-        compound.put("From", VecHelper.writeNBT(new Vec3(bb.minX, bb.minY, bb.minZ)));
-        compound.put("To", VecHelper.writeNBT(new Vec3(bb.maxX, bb.maxY, bb.maxZ)));
-    }
-
-    public static AABB readBoundingBox(CompoundTag compound) {
-        Vec3 from = VecHelper.readNBT(compound.getList("From", Tag.TAG_DOUBLE));
-        Vec3 to = VecHelper.readNBT(compound.getList("To", Tag.TAG_DOUBLE));
-        return new AABB(from, to);
-    }
-
     @Override
     protected boolean repositionEntityAfterLoad() {
         return false;
@@ -253,10 +247,12 @@ public class BluperGlueEntity extends Entity
     }
 
     @Override
-    public void thunderHit(ServerLevel world, LightningBolt lightningBolt) {}
+    public void thunderHit(ServerLevel world, LightningBolt lightningBolt) {
+    }
 
     @Override
-    public void refreshDimensions() {}
+    public void refreshDimensions() {
+    }
 
     @Override
     public Packet<?> getAddEntityPacket() {

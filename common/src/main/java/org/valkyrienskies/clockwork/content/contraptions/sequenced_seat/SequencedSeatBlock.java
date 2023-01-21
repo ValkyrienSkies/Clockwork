@@ -3,7 +3,6 @@ package org.valkyrienskies.clockwork.content.contraptions.sequenced_seat;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.content.contraptions.base.HorizontalKineticBlock;
 import com.simibubi.create.content.contraptions.base.KineticBlock;
-import com.simibubi.create.content.contraptions.components.actors.SeatBlock;
 import com.simibubi.create.foundation.block.ITE;
 import com.simibubi.create.foundation.gui.ScreenOpener;
 import net.fabricmc.api.EnvType;
@@ -33,9 +32,20 @@ public class SequencedSeatBlock extends HorizontalKineticBlock implements ITE<Se
         super(properties);
     }
 
+    public static void sitDown(Level level, BlockPos pos, Entity entity) {
+        if (level.isClientSide)
+            return;
+        SequencedSeatEntity seat = SequencedSeatEntity.create(level, pos);
+        seat.setPos(pos.getX() + .5, pos.getY(), pos.getZ() + .5);
+        level.addFreshEntity(seat);
+        entity.startRiding(seat, true);
+        if (entity instanceof TamableAnimal ta)
+            ta.setInSittingPose(true);
+    }
+
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        Direction preferredFacing= getPreferredHorizontalFacing(context);
+        Direction preferredFacing = getPreferredHorizontalFacing(context);
         if (preferredFacing != null && (context.getPlayer() == null || !context.getPlayer().isShiftKeyDown()))
             return withDirection(preferredFacing);
         return withDirection(context.getHorizontalDirection().getOpposite());
@@ -53,8 +63,7 @@ public class SequencedSeatBlock extends HorizontalKineticBlock implements ITE<Se
         ItemStack held = player.getMainHandItem();
         if (AllItems.WRENCH.isIn(held))
             return InteractionResult.PASS;
-        if (held.getItem() instanceof BlockItem) {
-            BlockItem blockItem = (BlockItem) held.getItem();
+        if (held.getItem() instanceof BlockItem blockItem) {
             if (blockItem.getBlock() instanceof KineticBlock && hasShaftTowards(level, pos, state, hit.getDirection()))
                 return InteractionResult.PASS;
         }
@@ -67,17 +76,6 @@ public class SequencedSeatBlock extends HorizontalKineticBlock implements ITE<Se
         }
 
         return InteractionResult.SUCCESS;
-    }
-
-    public static void sitDown(Level level, BlockPos pos, Entity entity) {
-        if (level.isClientSide)
-            return;
-        SequencedSeatEntity seat = SequencedSeatEntity.create(level, pos);
-        seat.setPos(pos.getX() + .5, pos.getY(), pos.getZ() + .5);
-        level.addFreshEntity(seat);
-        entity.startRiding(seat, true);
-        if (entity instanceof TamableAnimal ta)
-            ta.setInSittingPose(true);
     }
 
     @Override

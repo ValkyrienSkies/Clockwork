@@ -32,19 +32,8 @@ import java.lang.Math;
 
 public class GravitronItem extends CWItem implements CustomArmPoseItem {
 
-    public static class GravitronState {
-        boolean grabbing = false;
-        boolean shouldDrop = false;
-        Vector3d HeldBlockPos;
-        Vector2d PlayerGrabbedRotation; // Pitch , Yaw
-        Vector3d ShipGrabbedPos;
-        Quaterniondc ShipGrabbedRot;
-        Long shipID;
-        Integer positionConstraintID;
-        Integer rotationConstraintID;
-        Integer positionDampeningConstraintID;
-        Integer rotationDampeningConstraintID;
-        Integer grabCD = 0;
+    public GravitronItem(Properties properties) {
+        super(properties);
     }
 
     private GravitronState getState(Player player) {
@@ -57,12 +46,6 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
 
         return s;
     }
-
-    public GravitronItem(Properties properties) {
-        super(properties);
-    }
-
-    // || ITEM FUNCTIONS || //
 
     @Override
     public InteractionResult useOn(UseOnContext context) {
@@ -78,6 +61,8 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
         }
         return super.useOn(context);
     }
+
+    // || ITEM FUNCTIONS || //
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
@@ -108,8 +93,6 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
         super.inventoryTick(stack, level, entity, slotId, isSelected);
     }
 
-    // || SHIP FUNCTIONS || //
-
     // called first to put the ship into the players grasp
     void tryGrabShip(GravitronState s, ServerLevel level, UseOnContext context) {
         if (context.getPlayer() == null) {
@@ -136,6 +119,8 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
 
         grabShip(s, context.getPlayer(), ship, grabPosInShip);
     }
+
+    // || SHIP FUNCTIONS || //
 
     void grabShip(GravitronState s, Player p, Ship ship, Vector3dc grabPosInShip) {
         s.shipID = ship.getId();
@@ -209,28 +194,28 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
                     double AttachmentMaxForce = 1e10;
                     double AttachmentFixedDistance = 0.0;
                     VSAttachmentConstraint AttachmentConstraint = new VSAttachmentConstraint(
-                        s.shipID, worldShipID, AttachmentCompliance, Location, Position,
-                        AttachmentMaxForce, AttachmentFixedDistance);
+                            s.shipID, worldShipID, AttachmentCompliance, Location, Position,
+                            AttachmentMaxForce, AttachmentFixedDistance);
 
                     double RotationCompliance = 1e-7 / Math.sqrt(mass);
                     double RotationMaxForce = 1e10;
                     VSFixedOrientationConstraint RotationConstraint = new VSFixedOrientationConstraint(
-                        s.shipID, worldShipID, RotationCompliance, new Quaterniond(), rotation,
-                        RotationMaxForce);
+                            s.shipID, worldShipID, RotationCompliance, new Quaterniond(), rotation,
+                            RotationMaxForce);
 
                     double PosDampingCompliance = 0.0;
                     double PosDampingMaxForce = 0.0;
                     double PosDampingEff = 100.0;
                     VSPosDampingConstraint PosDampingConstraint = new VSPosDampingConstraint(
-                        s.shipID, worldShipID, PosDampingCompliance, Location, Position,
-                        PosDampingMaxForce, PosDampingEff);
+                            s.shipID, worldShipID, PosDampingCompliance, Location, Position,
+                            PosDampingMaxForce, PosDampingEff);
 
                     double RotDampingCompliance = 0.0;
                     double RotDampingMaxForce = 0.0;
                     double RotDampingEff = 100.0;
                     VSRotDampingConstraint RotDampingConstraint = new VSRotDampingConstraint(
-                        s.shipID, worldShipID, RotDampingCompliance, new Quaterniond(), rotation,
-                        RotDampingMaxForce, RotDampingEff, VSRotDampingAxes.ALL_AXES);
+                            s.shipID, worldShipID, RotDampingCompliance, new Quaterniond(), rotation,
+                            RotDampingMaxForce, RotDampingEff, VSRotDampingAxes.ALL_AXES);
 
                     //Drop and re grab the Constraints
 
@@ -254,13 +239,13 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
         }
     }
 
-    // || MATH FUNCTIONS || //
-
     void delConstraint(ServerLevel level, Integer ID) {
         if (ID != null) {
             VSGameUtilsKt.getShipObjectWorld(level).removeConstraint(ID);
         }
     }
+
+    // || MATH FUNCTIONS || //
 
     double getShipSize(Ship thisship) {
         if (thisship != null) {
@@ -270,7 +255,6 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
         } else return 0.0;
 
     }
-
 
     Quaterniond playerRotToQuaternion(double pitch, double yaw) {
         return new Quaterniond().rotateY(Math.toRadians(-yaw)).rotateX(Math.toRadians(pitch));
@@ -293,5 +277,20 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
     @Override
     public boolean canAttackBlock(BlockState state, Level world, BlockPos pos, Player player) {
         return false;
+    }
+
+    public static class GravitronState {
+        boolean grabbing = false;
+        boolean shouldDrop = false;
+        Vector3d HeldBlockPos;
+        Vector2d PlayerGrabbedRotation; // Pitch , Yaw
+        Vector3d ShipGrabbedPos;
+        Quaterniondc ShipGrabbedRot;
+        Long shipID;
+        Integer positionConstraintID;
+        Integer rotationConstraintID;
+        Integer positionDampeningConstraintID;
+        Integer rotationDampeningConstraintID;
+        Integer grabCD = 0;
     }
 }

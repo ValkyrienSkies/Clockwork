@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue;
 
 import com.simibubi.create.content.contraptions.components.structureMovement.chassis.AbstractChassisBlock;
 import com.simibubi.create.foundation.utility.VecHelper;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.core.BlockPos;
@@ -13,7 +12,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -25,12 +23,16 @@ import org.valkyrienskies.clockwork.platform.CWItem;
 
 public class BluperGlueItem extends CWItem {
 
+    public BluperGlueItem(Properties properties) {
+        super(properties.durability(99));
+    }
+
     public static InteractionResult glueItemAlwaysPlacesWhenUsed(Player player, Level world, InteractionHand hand, BlockHitResult hitResult) {
         if (hitResult != null) {
             BlockState blockState = world
                     .getBlockState(hitResult
                             .getBlockPos());
-            if (blockState.getBlock()instanceof AbstractChassisBlock cb)
+            if (blockState.getBlock() instanceof AbstractChassisBlock cb)
                 if (cb.getGlueableSide(blockState, hitResult.getDirection()) != null)
                     return InteractionResult.PASS;
         }
@@ -40,21 +42,8 @@ public class BluperGlueItem extends CWItem {
         return InteractionResult.PASS;
     }
 
-    public BluperGlueItem(Properties properties) {
-        super(properties.durability(99));
+    public static void onBroken(Player player) {
     }
-
-    @Override
-    public boolean canAttackBlock(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer) {
-        return false;
-    }
-
-    @Override
-    public boolean canBeDepleted() {
-        return true;
-    }
-
-    public static void onBroken(Player player) {}
 
     @Environment(EnvType.CLIENT)
     public static void spawnParticles(Level world, BlockPos pos, Direction direction, boolean fullBlock) {
@@ -79,6 +68,16 @@ public class BluperGlueItem extends CWItem {
                     particlePos.z, motion.x, motion.y, motion.z);
         }
 
+    }
+
+    @Override
+    public boolean canAttackBlock(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer) {
+        return false;
+    }
+
+    @Override
+    public boolean canBeDepleted() {
+        return true;
     }
 
 }

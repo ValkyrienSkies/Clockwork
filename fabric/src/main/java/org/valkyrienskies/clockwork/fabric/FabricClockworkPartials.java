@@ -11,6 +11,7 @@ public class FabricClockworkPartials {
     private static PartialModel block(String path) {
         return new PartialModel(ClockWorkMod.asResource("block/" + path));
     }
+
     private static PartialModel entity(String path) {
         return new PartialModel(ClockWorkMod.asResource("entity/" + path));
     }

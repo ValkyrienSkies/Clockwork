@@ -5,7 +5,6 @@ import net.minecraft.client.Minecraft;
 import org.valkyrienskies.clockwork.ClockWorkHandlers;
 import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.stream.PropStream;
-import org.valkyrienskies.clockwork.fabric.ClockWorkModFabric;
 
 import static com.jozufozu.flywheel.backend.Backend.isGameActive;
 

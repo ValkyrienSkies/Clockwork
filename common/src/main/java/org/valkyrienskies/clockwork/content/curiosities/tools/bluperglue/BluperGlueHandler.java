@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue;
 
-import com.jamieswhiteshirt.reachentityattributes.ReachEntityAttributes;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.foundation.utility.Iterate;
 import com.simibubi.create.foundation.utility.placement.IPlacementHelper;

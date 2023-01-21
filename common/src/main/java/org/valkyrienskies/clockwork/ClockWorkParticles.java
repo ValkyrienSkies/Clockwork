@@ -18,9 +18,7 @@ import java.util.function.Supplier;
 public enum ClockWorkParticles {
 
     PROP_STREAM(PropellorStreamParticleData::new),
-    PHYS_LIGHTNING(PhysLightningParticle.Data::new)
-
-    ;
+    PHYS_LIGHTNING(PhysLightningParticle.Data::new);
     private final ParticleEntry<?> entry;
 
     <D extends ParticleOptions> ClockWorkParticles(Supplier<? extends ICustomParticleData<D>> typeFactory) {

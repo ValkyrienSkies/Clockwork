@@ -15,7 +15,7 @@ public class FabricClockworkCommonEvents {
         AllClockworkCommands.register(dispatcher);
     }
 
-    public static void register () {
+    public static void register() {
         UseBlockCallback.EVENT.register(BluperGlueItem::glueItemAlwaysPlacesWhenUsed);
         BlockPlaceCallback.EVENT.register(BluperGlueHandler::glueListensForBlockPlacement);
         CommandRegistrationCallback.EVENT.register(FabricClockworkCommonEvents::registerCommands);

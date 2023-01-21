@@ -21,11 +21,11 @@ public abstract class MixinBlockBreakingKineticTileEntity {
     protected abstract BlockPos getBreakingPos();
 
     @Redirect(
-        method = "tick",
-        at = @At(
-            value = "INVOKE",
-            target = "Lcom/simibubi/create/content/contraptions/components/actors/BlockBreakingKineticTileEntity;getBreakingPos()Lnet/minecraft/core/BlockPos;"
-        )
+            method = "tick",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lcom/simibubi/create/content/contraptions/components/actors/BlockBreakingKineticTileEntity;getBreakingPos()Lnet/minecraft/core/BlockPos;"
+            )
     )
     private BlockPos getBreakingBlockPos(final BlockBreakingKineticTileEntity self) {
         final BlockPos orig = this.getBreakingPos();
@@ -35,11 +35,11 @@ public abstract class MixinBlockBreakingKineticTileEntity {
 
         if (ship != null) {
             origin = VectorConversionsMCKt.toMinecraft(
-                ship.getShipToWorld()
-                    .transformPosition(VectorConversionsMCKt.toJOMLD(self.getBlockPos()).add(0.5, 0.5, 0.5))
+                    ship.getShipToWorld()
+                            .transformPosition(VectorConversionsMCKt.toJOMLD(self.getBlockPos()).add(0.5, 0.5, 0.5))
             );
             target = VectorConversionsMCKt.toMinecraft(
-                ship.getShipToWorld().transformPosition(VectorConversionsMCKt.toJOMLD(orig).add(0.5, 0.5, 0.5))
+                    ship.getShipToWorld().transformPosition(VectorConversionsMCKt.toJOMLD(orig).add(0.5, 0.5, 0.5))
             );
         } else {
             origin = Vec3.atCenterOf(self.getBlockPos());
@@ -48,11 +48,11 @@ public abstract class MixinBlockBreakingKineticTileEntity {
 
         final Vec3 diff = target.subtract(origin);
         final BlockHitResult result = self.getLevel().clip(new ClipContext(
-            origin.add(diff.scale(0.4)),
-            target.add(diff.scale(0.2)),
-            ClipContext.Block.COLLIDER,
-            ClipContext.Fluid.NONE,
-            null
+                origin.add(diff.scale(0.4)),
+                target.add(diff.scale(0.2)),
+                ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.NONE,
+                null
         ));
 
         if (result.getType() == HitResult.Type.MISS) {

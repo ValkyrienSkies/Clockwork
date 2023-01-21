@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
@@ -11,13 +10,12 @@ import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.UpdateSe
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueEffectPacket;
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueRemovalPacket;
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueSelectionPacket;
-
-import java.util.function.Function;
-
 import org.valkyrienskies.clockwork.platform.SharedValues;
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket;
 import org.valkyrienskies.clockwork.platform.api.network.CWPacket;
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket;
+
+import java.util.function.Function;
 
 public enum ClockWorkPackets {
 
@@ -31,11 +29,12 @@ public enum ClockWorkPackets {
     BLUPERGLUE_EFFECT(BluperGlueEffectPacket.class, BluperGlueEffectPacket::new),
     ;
 
-    // Force the class to load
-    public static void init() {}
-
     <T extends CWPacket> ClockWorkPackets(Class<T> type, Function<FriendlyByteBuf, T> factory) {
         SharedValues.getPacketChannel().registerPacket(type, factory);
+    }
+
+    // Force the class to load
+    public static void init() {
     }
 
     public static void sendToNear(Level world, BlockPos pos, int range, S2CCWPacket message) {

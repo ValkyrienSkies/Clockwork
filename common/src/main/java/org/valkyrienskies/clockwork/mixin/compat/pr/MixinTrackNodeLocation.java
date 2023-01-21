@@ -21,6 +21,17 @@ abstract class MixinTrackNodeLocation extends Vec3i {
         super(x, y, z);
     }
 
+    @Redirect(
+            method = "receive",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/network/FriendlyByteBuf;readBlockPos()Lnet/minecraft/core/BlockPos;")
+    )
+    private static BlockPos redirectReadBlockPos(FriendlyByteBuf instance) {
+        final double x = instance.readInt();
+        final double y = instance.readInt();
+        final double z = instance.readInt();
+        return new BlockPos(x, y, z);
+    }
+
     /**
      * This method overwrites getLocation to make it actually parse things as a double, not needed in forge create
      */
@@ -33,19 +44,8 @@ abstract class MixinTrackNodeLocation extends Vec3i {
     }
 
     @Redirect(
-            method = "receive",
-            at = @At(value="INVOKE",target = "Lnet/minecraft/network/FriendlyByteBuf;readBlockPos()Lnet/minecraft/core/BlockPos;")
-    )
-    private static BlockPos redirectReadBlockPos(FriendlyByteBuf instance) {
-        final double x = instance.readInt();
-        final double y = instance.readInt();
-        final double z = instance.readInt();
-        return new BlockPos(x, y, z);
-    }
-
-    @Redirect(
             method = "send",
-            at = @At(value="INVOKE",target = "Lnet/minecraft/network/FriendlyByteBuf;writeBlockPos(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/network/FriendlyByteBuf;")
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/network/FriendlyByteBuf;writeBlockPos(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/network/FriendlyByteBuf;")
     )
     private FriendlyByteBuf redirectWriteBlockPos(FriendlyByteBuf instance, BlockPos pos) {
         instance.writeInt(pos.getX());

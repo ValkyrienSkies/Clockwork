@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.content.commands;
 
-import net.minecraft.commands.CommandSourceStack;
 import com.mojang.brigadier.builder.ArgumentBuilder;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.core.BlockPos;

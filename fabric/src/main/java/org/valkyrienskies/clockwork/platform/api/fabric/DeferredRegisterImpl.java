@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.platform.api.fabric;
 
-import io.github.fabricators_of_create.porting_lib.util.LazyRegistrar;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 

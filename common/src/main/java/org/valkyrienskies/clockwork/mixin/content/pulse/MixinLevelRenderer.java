@@ -2,8 +2,6 @@ package org.valkyrienskies.clockwork.mixin.content.pulse;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Matrix4f;
-import org.valkyrienskies.clockwork.client.render.scanner.ScannerRenderer;
-import org.valkyrienskies.clockwork.client.render.scanner.WorldScannerRenderer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
@@ -12,6 +10,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.valkyrienskies.clockwork.client.render.scanner.ScannerRenderer;
 
 @Mixin(LevelRenderer.class)
 public class MixinLevelRenderer {

@@ -71,5 +71,6 @@ public class ForgeClockworkEntities {
                 .renderer(renderer);
     }
 
-    public static void register() {}
+    public static void register() {
+    }
 }

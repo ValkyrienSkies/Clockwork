@@ -8,5 +8,6 @@ import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 public class ValkyrienPreLaunch implements PreLaunchEntrypoint {
 
     @Override
-    public void onPreLaunch() {}
+    public void onPreLaunch() {
+    }
 }

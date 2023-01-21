@@ -6,6 +6,7 @@
   "mixins": [
     "MixinPlayer",
     "compat.MixinAirCurrent",
+    "compat.MixinAirFlowParticle",
     "compat.MixinBeltMovementHandler",
     "compat.MixinContraptionCollider",
     "compat.MixinEntityLauncher",
@@ -28,8 +29,7 @@
     "compat.pr.MixinSeatBlock",
     "compat.pr.MixinTrackNodeLocation",
     "content.propellor.MixinBearingContraption",
-    "content.vs_contraptions.MixinMechanicalBearingTileEntity",
-    "compat.MixinAirFlowParticle"
+    "content.vs_contraptions.MixinMechanicalBearingTileEntity"
   ],
   "client": [
     "compat.client.MixinCarriageContraptionInstance",

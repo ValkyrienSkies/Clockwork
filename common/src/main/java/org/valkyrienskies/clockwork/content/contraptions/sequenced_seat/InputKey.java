@@ -1,7 +1,5 @@
 package org.valkyrienskies.clockwork.content.contraptions.sequenced_seat;
 
-import net.minecraft.nbt.Tag;
-
 import java.util.Set;
 import java.util.stream.Collectors;
 

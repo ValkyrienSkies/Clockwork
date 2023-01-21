@@ -10,5 +10,6 @@ public class FabricClockworkBlocks {
         REGISTRATE.creativeModeTab(() -> ClockWorkMod.BASE_CREATIVE_TAB);
     }
 
-    public static void register() {}
+    public static void register() {
+    }
 }

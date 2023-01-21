@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.simibubi.create.Create;
 import com.simibubi.create.foundation.gui.UIRenderHelper;
 import com.simibubi.create.foundation.gui.element.ScreenElement;
 import com.simibubi.create.foundation.utility.Color;
@@ -19,19 +18,19 @@ public enum ClockWorkGuiTextures implements ScreenElement {
     public int width, height;
     public int startX, startY;
 
-    private ClockWorkGuiTextures(String location, int width, int height) {
+    ClockWorkGuiTextures(String location, int width, int height) {
         this(location, 0, 0, width, height);
     }
 
-    private ClockWorkGuiTextures(int startX, int startY) {
+    ClockWorkGuiTextures(int startX, int startY) {
         this("icons", startX * 16, startY * 16, 16, 16);
     }
 
-    private ClockWorkGuiTextures(String location, int startX, int startY, int width, int height) {
+    ClockWorkGuiTextures(String location, int startX, int startY, int width, int height) {
         this(ClockWorkMod.MOD_ID, location, startX, startY, width, height);
     }
 
-    private ClockWorkGuiTextures(String namespace, String location, int startX, int startY, int width, int height) {
+    ClockWorkGuiTextures(String namespace, String location, int startX, int startY, int width, int height) {
         this.location = new ResourceLocation(namespace, "textures/gui/" + location + ".png");
         this.width = width;
         this.height = height;

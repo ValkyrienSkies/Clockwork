@@ -29,57 +29,6 @@ public class PhysicsInfuserBlock extends Block implements ITE<PhysicsInfuserBloc
         return state.getBlock() instanceof PhysicsInfuserBlock;
     }
 
-    @Override
-    public void onPlace(BlockState state, Level world, BlockPos pos, BlockState oldState, boolean moved) {
-        if (oldState.getBlock() == state.getBlock()) {
-            return;
-        }
-        if (moved) {
-            return;
-        }
-    }
-
-    @Override
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn,
-                                 BlockHitResult hit) {
-        if (!player.mayBuild())
-            return InteractionResult.FAIL;
-        if (player.isShiftKeyDown())
-            return InteractionResult.FAIL;
-        if (player.getItemInHand(handIn)
-                .isEmpty()) {
-            if (worldIn.isClientSide) {
-                withTileEntityDo(worldIn, pos, te -> {if (te.isAssembled && !te.assembling && !te.disassembling) te.startDisassembly();});
-                withTileEntityDo(worldIn, pos, te -> {if (!te.isAssembled && !te.assembling && !te.disassembling) te.startAssembly();});
-                return InteractionResult.SUCCESS;
-            }
-
-            withTileEntityDo(worldIn, pos, te -> {
-                if (te.isAssembled && !te.assembling &&  !te.disassembling && !te.onCooldown) {
-                    te.startDisassembly();
-                    return;
-                } else if (!te.isAssembled && te.assembling &&  !te.disassembling && !te.onCooldown && !te.skippedAssembly) {
-                    te.skipAssembly();
-                    return;
-                } else if (!te.isAssembled && !te.assembling &&  !te.disassembling && !te.onCooldown) {
-                    te.startAssembly();
-                    return;
-                }
-
-            });
-            return InteractionResult.SUCCESS;
-        }
-        return InteractionResult.PASS;
-    }
-
-
-
-    //Voxelshape Hell
-    @Override
-    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext ctx) {
-        return SHAPE;
-    }
-
     public static VoxelShape makeShape() {
         VoxelShape shape = Shapes.empty();
         shape = Shapes.join(shape, Shapes.box(0.1859375, 0.25, 0.25, 0.1859375, 0.75, 0.75), BooleanOp.OR);
@@ -171,6 +120,55 @@ public class PhysicsInfuserBlock extends Block implements ITE<PhysicsInfuserBloc
         shape = Shapes.join(shape, Shapes.box(0.125, 0.3125, 0.75, 0.25, 0.6875, 0.875), BooleanOp.OR);
 
         return shape;
+    }
+
+    @Override
+    public void onPlace(BlockState state, Level world, BlockPos pos, BlockState oldState, boolean moved) {
+        if (oldState.getBlock() == state.getBlock()) {
+            return;
+        }
+        if (moved) {
+        }
+    }
+
+    @Override
+    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn,
+                                 BlockHitResult hit) {
+        if (!player.mayBuild())
+            return InteractionResult.FAIL;
+        if (player.isShiftKeyDown())
+            return InteractionResult.FAIL;
+        if (player.getItemInHand(handIn)
+                .isEmpty()) {
+            if (worldIn.isClientSide) {
+                withTileEntityDo(worldIn, pos, te -> {
+                    if (te.isAssembled && !te.assembling && !te.disassembling) te.startDisassembly();
+                });
+                withTileEntityDo(worldIn, pos, te -> {
+                    if (!te.isAssembled && !te.assembling && !te.disassembling) te.startAssembly();
+                });
+                return InteractionResult.SUCCESS;
+            }
+
+            withTileEntityDo(worldIn, pos, te -> {
+                if (te.isAssembled && !te.assembling && !te.disassembling && !te.onCooldown) {
+                    te.startDisassembly();
+                } else if (!te.isAssembled && te.assembling && !te.disassembling && !te.onCooldown && !te.skippedAssembly) {
+                    te.skipAssembly();
+                } else if (!te.isAssembled && !te.assembling && !te.disassembling && !te.onCooldown) {
+                    te.startAssembly();
+                }
+
+            });
+            return InteractionResult.SUCCESS;
+        }
+        return InteractionResult.PASS;
+    }
+
+    //Voxelshape Hell
+    @Override
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext ctx) {
+        return SHAPE;
     }
 
     @Override

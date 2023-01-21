@@ -28,6 +28,7 @@ public class GravitronRenderHandler extends ShootableGadgetRenderHandler {
     protected boolean appliesTo(ItemStack stack) {
         return false;
     }
+
     @Override
     protected void transformHand(PoseStack ms, float flip, float equipProgress, float recoil, float pt) {
 

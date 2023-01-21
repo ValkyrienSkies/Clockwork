@@ -18,8 +18,8 @@ public class ClockworkClientEvents {
     }
 
     public static void onTick(Minecraft client) {
-        if (!isGameActive())
-            return;
+        if (!isGameActive()) {
+        }
 
 //        ClockWorkMod.Client.BLUPER_HANDLER.tick();
 //        ClockWorkMod.Client.GRAVITRON_HANDLER.tick();

@@ -39,7 +39,6 @@ public class GlueAssembler {
             }
 
             visitBlock(level, frontier, result, glueType, toRemove);
-            ;
         }
 
         toRemove.forEach(Entity::discard);

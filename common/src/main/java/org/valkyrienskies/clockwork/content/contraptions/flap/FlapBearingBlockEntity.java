@@ -21,17 +21,14 @@ import java.util.List;
 
 public class FlapBearingBlockEntity extends KineticTileEntity implements IFlap, IBearingTileEntity {
 
+    public boolean redstoneSideOne;
+    public boolean redstoneSideTwo;
     protected float angle;
     protected float clientAngleDiff;
-
     protected boolean running;
     protected boolean assembleNextTick;
     protected AssemblyException lastException;
     protected ControlledContraptionEntity flap;
-
-    public boolean redstoneSideOne;
-    public boolean redstoneSideTwo;
-
     private float prevForcedAngle;
 
     public FlapBearingBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -92,7 +89,7 @@ public class FlapBearingBlockEntity extends KineticTileEntity implements IFlap, 
         if (!(flap != null && flap.isStalled())) {
             float testSpeed = getAngularSpeed() / 2f;
             float newAngle = angle + getFlapSpeed();
-            angle = (float) (newAngle % 360);
+            angle = newAngle % 360;
         }
 
         if (!running)
@@ -165,6 +162,7 @@ public class FlapBearingBlockEntity extends KineticTileEntity implements IFlap, 
         angle = 0;
         sendData();
     }
+
     public void disassemble() {
         if (!running && flap == null)
             return;
@@ -196,10 +194,9 @@ public class FlapBearingBlockEntity extends KineticTileEntity implements IFlap, 
 
     @Override
     public void attach(ControlledContraptionEntity contraption) {
-        if (!(contraption.getContraption() instanceof FlapContraption))
+        if (!(contraption.getContraption() instanceof FlapContraption cc))
             return;
 
-        FlapContraption cc = (FlapContraption) contraption.getContraption();
         setChanged();
         Direction facing = getBlockState().getValue(FlapBearingBlock.FACING);
         BlockPos anchor = worldPosition.relative(facing, cc.offset + 1);
@@ -281,9 +278,8 @@ public class FlapBearingBlockEntity extends KineticTileEntity implements IFlap, 
 
     @Override
     public boolean isAttachedTo(AbstractContraptionEntity contraption) {
-        if (!(contraption.getContraption() instanceof FlapContraption))
+        if (!(contraption.getContraption() instanceof FlapContraption cc))
             return false;
-        FlapContraption cc = (FlapContraption) contraption.getContraption();
 
         return this.flap == contraption;
     }

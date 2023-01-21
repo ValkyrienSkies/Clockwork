@@ -12,11 +12,11 @@ import org.valkyrienskies.mod.common.VSGameUtilsKt;
 public class MixinScrollValueBehaviour {
 
     @Redirect(
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/world/phys/Vec3;subtract(Lnet/minecraft/world/phys/Vec3;)Lnet/minecraft/world/phys/Vec3;"
-        ),
-        method = "testHit"
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/phys/Vec3;subtract(Lnet/minecraft/world/phys/Vec3;)Lnet/minecraft/world/phys/Vec3;"
+            ),
+            method = "testHit"
     )
     private Vec3 transformHitToShip(final Vec3 hitPos, final Vec3 blockPos) {
         final Vec3 inShipHit = VSGameUtilsKt.toShipRenderCoordinates(Minecraft.getInstance().level, blockPos, hitPos);

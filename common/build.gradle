@@ -31,7 +31,7 @@ dependencies {
     // All dependencies except Flywheel and Registrate are NOT safe to use!
     // Flywheel and Registrate must also be used carefully due to differences.
     modCompileOnly("com.simibubi.create:create-fabric-${minecraft_version}:${create_fabric_version}")
-            {exclude group:'com.github.AlphaMode', module:'fakeconfigtoml'}
+            { exclude group: 'com.github.AlphaMode', module: 'fakeconfigtoml' }
 
     // VS2
     modApi("org.valkyrienskies:valkyrienskies-118-common:${vs2_version}")

@@ -4,7 +4,7 @@ public interface NetworkContext {
 
     void enqueueWork(Runnable runnable);
 
-    default void handled()  {
+    default void handled() {
         setPacketHandled(true);
     }
 

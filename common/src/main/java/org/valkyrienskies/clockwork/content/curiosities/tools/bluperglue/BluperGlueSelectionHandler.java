@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue;
 
 import com.google.common.base.Objects;
-import com.jamieswhiteshirt.reachentityattributes.ReachEntityAttributes;
 import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.AllSpecialTextures;
 import com.simibubi.create.CreateClient;
@@ -46,14 +45,13 @@ public class BluperGlueSelectionHandler {
     private static final int HIGHLIGHT = 0x68c5c2;
     private static final int FAIL = 0x7c48c5;
 
-    private Object clusterOutlineSlot = new Object();
-    private Object bbOutlineSlot = new Object();
+    private final Object clusterOutlineSlot = new Object();
+    private final Object bbOutlineSlot = new Object();
+    public Set<Entity> currentEntityCluster;
     private int clusterCooldown;
-
     private BlockPos firstPos;
     private BlockPos hoveredPos;
     private Set<BlockPos> currentCluster;
-    public Set<Entity> currentEntityCluster;
     private int glueRequired;
 
     private BluperGlueEntity selected;
@@ -308,7 +306,7 @@ public class BluperGlueSelectionHandler {
 
         if (currentCluster != null)
             CreateClient.OUTLINER.showCluster(clusterOutlineSlot, currentCluster)
-                    .colored(0xD1FFF5 )
+                    .colored(0xD1FFF5)
                     .withFaceTextures(AllSpecialTextures.GLUE, AllSpecialTextures.HIGHLIGHT_CHECKERED)
                     .disableNormals()
                     .lineWidth(1 / 24f);

@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue;
 
-import com.simibubi.create.foundation.networking.SimplePacketBase;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -10,13 +9,11 @@ import net.minecraft.network.FriendlyByteBuf;
 import org.valkyrienskies.clockwork.platform.api.network.ClientNetworkContext;
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket;
 
-import java.util.function.Supplier;
-
 public class BluperGlueEffectPacket implements S2CCWPacket {
 
-    private BlockPos pos;
-    private Direction direction;
-    private boolean fullBlock;
+    private final BlockPos pos;
+    private final Direction direction;
+    private final boolean fullBlock;
 
     public BluperGlueEffectPacket(BlockPos pos, Direction direction, boolean fullBlock) {
         this.pos = pos;

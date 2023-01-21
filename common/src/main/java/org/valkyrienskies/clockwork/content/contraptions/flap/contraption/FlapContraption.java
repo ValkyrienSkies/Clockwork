@@ -17,8 +17,29 @@ import java.util.Queue;
 import java.util.Set;
 
 public class FlapContraption extends Contraption {
-    protected Direction facing;
     public int offset;
+    protected Direction facing;
+
+    public static FlapContraption assembleFlap(Level world, BlockPos pos, Direction direction) throws AssemblyException {
+        FlapContraption contraption = new FlapContraption();
+        int flapBlocks = 0;
+
+        contraption.facing = direction;
+        if (!contraption.assemble(world, pos)) {
+            return null;
+        }
+        for (int i = 0; i < 16; i++) {
+            BlockPos offsetPos = BlockPos.ZERO.relative(direction, i);
+            if (contraption.getBlocks()
+                    .containsKey(offsetPos))
+                continue;
+        }
+
+        contraption.startMoving(world);
+        contraption.expandBoundsAroundAxis(direction.getAxis());
+
+        return contraption;
+    }
 
     @Override
     public boolean assemble(Level world, BlockPos pos) throws AssemblyException {
@@ -66,29 +87,6 @@ public class FlapContraption extends Contraption {
         if (BlockPos.ZERO.equals(localPos) || BlockPos.ZERO.equals(localPos.relative(facing)))
             return false;
         return facing.getAxis() == this.facing.getAxis();
-    }
-
-
-
-    public static FlapContraption assembleFlap(Level world, BlockPos pos, Direction direction) throws AssemblyException {
-        FlapContraption contraption = new FlapContraption();
-        int flapBlocks = 0;
-
-        contraption.facing = direction;
-        if(!contraption.assemble(world, pos)) {
-            return null;
-        }
-        for (int i = 0; i < 16; i++) {
-            BlockPos offsetPos = BlockPos.ZERO.relative(direction, i);
-            if (contraption.getBlocks()
-                    .containsKey(offsetPos))
-                continue;
-            }
-
-        contraption.startMoving(world);
-        contraption.expandBoundsAroundAxis(direction.getAxis());
-
-        return contraption;
     }
 
     @Environment(EnvType.CLIENT)

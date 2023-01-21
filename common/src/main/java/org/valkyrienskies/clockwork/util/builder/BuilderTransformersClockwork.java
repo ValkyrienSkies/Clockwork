@@ -30,6 +30,7 @@ public class BuilderTransformersClockwork {
                         .texture("2", liquidTextureLocation))
                 .build();
     }
+
     public static <B extends Block, P> NonNullUnaryOperator<BlockBuilder<B, P>> flapbearing() {
         ResourceLocation baseBlockModelLocation = ClockWorkMod.asResource("block/flap_bearing/block");
         ResourceLocation baseItemModelLocation = ClockWorkMod.asResource("block/bearing/item");

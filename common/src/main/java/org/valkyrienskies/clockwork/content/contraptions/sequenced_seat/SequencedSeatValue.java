@@ -27,9 +27,11 @@ public interface SequencedSeatValue {
     void configureInput(ScrollInput input);
 
     Tag serializeNBT();
+
     void deserializeNBT(Tag tag);
 
     class DistanceValue implements SequencedSeatValue {
+        private static final TranslatableComponent KEY = new TranslatableComponent("sequenced_seat.value.distance");
         public int meters;
 
         private DistanceValue(int meters) {
@@ -58,11 +60,10 @@ public interface SequencedSeatValue {
         public void deserializeNBT(Tag tag) {
             meters = ((IntTag) tag).getAsInt();
         }
-
-        private static final TranslatableComponent KEY = new TranslatableComponent("sequenced_seat.value.distance");
     }
 
     class AngleValue implements SequencedSeatValue {
+        private static final TranslatableComponent KEY = new TranslatableComponent("sequenced_seat.value.angle");
         public int degrees;
 
         private AngleValue(int degrees) {
@@ -91,11 +92,10 @@ public interface SequencedSeatValue {
         public void deserializeNBT(Tag tag) {
             degrees = ((IntTag) tag).getAsInt();
         }
-
-        private static final TranslatableComponent KEY = new TranslatableComponent("sequenced_seat.value.angle");
     }
 
     class MultiplyValue implements SequencedSeatValue {
+        private static final TranslatableComponent KEY = new TranslatableComponent("sequenced_seat.value.multiply");
         public float multiplier;
 
         private MultiplyValue(float multiplier) {
@@ -124,7 +124,5 @@ public interface SequencedSeatValue {
         public void deserializeNBT(Tag tag) {
             multiplier = ((FloatTag) tag).getAsFloat();
         }
-
-        private static final TranslatableComponent KEY = new TranslatableComponent("sequenced_seat.value.multiply");
     }
 }

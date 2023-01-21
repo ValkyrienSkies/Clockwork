@@ -8,17 +8,30 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import org.valkyrienskies.clockwork.*;
-import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
-import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueSelectionHandler;
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronRenderHandler;
 import org.valkyrienskies.clockwork.content.events.ClockworkClientEvents;
 import org.valkyrienskies.clockwork.content.events.ClockworkInputEvents;
+import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkClientEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkCommonEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkInputEvents;
 import org.valkyrienskies.mod.fabric.common.ValkyrienSkiesModFabric;
 
 public class ClockWorkModFabric implements ModInitializer {
+
+    public static void init() {
+        ClockWorkParticles.init();
+        AllClockworkConfigs.init();
+
+        FabricClockworkParticles.init();
+        FabricClockworkSounds.init();
+
+        //ClockworkCommonEvents.register();
+        FabricClockworkCommonEvents.register();
+    }
+
+    public static void gatherData(FabricDataGenerator gen, ExistingFileHelper helper) {
+        gen.addProvider(FabricClockworkSounds.provider(gen));
+    }
 
     @Override
     public void onInitialize() {
@@ -46,21 +59,6 @@ public class ClockWorkModFabric implements ModInitializer {
 
         ClockWorkMod.init();
         ClockWorkModFabric.init();
-    }
-
-    public static void init() {
-        ClockWorkParticles.init();
-        AllClockworkConfigs.init();
-
-        FabricClockworkParticles.init();
-        FabricClockworkSounds.init();
-
-        //ClockworkCommonEvents.register();
-        FabricClockworkCommonEvents.register();
-    }
-
-    public static void gatherData(FabricDataGenerator gen, ExistingFileHelper helper) {
-        gen.addProvider(FabricClockworkSounds.provider(gen));
     }
 
     @Environment(EnvType.CLIENT)
