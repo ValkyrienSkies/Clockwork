@@ -182,26 +182,19 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
 
                     // Update Pos Values
                     s.HeldBlockPos = VectorConversionsMCKt.toJOML(entity.position()).add(0.0, entity.getEyeHeight(), 0.0).add(VectorConversionsMCKt.toJOML(entity.getLookAngle()).normalize().mul(getShipSize(ship)));
-                    Vector3d posOffset = new Vector3d(s.ShipGrabbedPos).sub(ship.getTransform().getPositionInShip());
-                    Vector3d posGlobalOffset = ship.getTransform().getShipToWorld().transformDirection(posOffset, new Vector3d());
+
+                    Vector3d Location = new Vector3d(s.ShipGrabbedPos);
+                    Vector3d Position = new Vector3d(s.HeldBlockPos);
 
 
-                    Vector3d Location = new Vector3d(s.ShipGrabbedPos).sub(posOffset);
-                    Vector3d Position = new Vector3d(s.HeldBlockPos).sub(posGlobalOffset);
-
-
-                    double AttachmentCompliance = 1e-6 / Math.sqrt(mass);
+                    double AttachmentCompliance = 1e-8 / Math.sqrt(mass);
                     double AttachmentMaxForce = 1e10;
-                    double AttachmentFixedDistance = 0.0;
-                    VSAttachmentConstraint AttachmentConstraint = new VSAttachmentConstraint(
-                            s.shipID, worldShipID, AttachmentCompliance, Location, Position,
-                            AttachmentMaxForce, AttachmentFixedDistance);
-
-                    double RotationCompliance = 1e-7 / Math.sqrt(mass);
                     double RotationMaxForce = 1e10;
-                    VSFixedOrientationConstraint RotationConstraint = new VSFixedOrientationConstraint(
-                            s.shipID, worldShipID, RotationCompliance, new Quaterniond(), rotation,
-                            RotationMaxForce);
+
+                    VSAttachmentOrientationConstraint constraint = new VSAttachmentOrientationConstraint(
+                            s.shipID, worldShipID, AttachmentCompliance, Location, Position,
+                            AttachmentMaxForce, rotation, new Quaterniond(), RotationMaxForce
+                    );
 
                     double PosDampingCompliance = 0.0;
                     double PosDampingMaxForce = 0.0;
@@ -214,7 +207,7 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
                     double RotDampingMaxForce = 0.0;
                     double RotDampingEff = 100.0;
                     VSRotDampingConstraint RotDampingConstraint = new VSRotDampingConstraint(
-                            s.shipID, worldShipID, RotDampingCompliance, new Quaterniond(), rotation,
+                            s.shipID, worldShipID, RotDampingCompliance, rotation, new Quaterniond(),
                             RotDampingMaxForce, RotDampingEff, VSRotDampingAxes.ALL_AXES);
 
                     //Drop and re grab the Constraints
@@ -225,11 +218,11 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
 
                     delConstraint(level, s.positionConstraintID);
                     delConstraint(level, s.positionDampeningConstraintID);
-                    delConstraint(level, s.rotationConstraintID);
+                    // delConstraint(level, s.rotationConstraintID);
                     delConstraint(level, s.rotationDampeningConstraintID);
 
-                    s.positionConstraintID = VSGameUtilsKt.getShipObjectWorld(level).createNewConstraint(AttachmentConstraint);
-                    s.rotationConstraintID = VSGameUtilsKt.getShipObjectWorld(level).createNewConstraint(RotationConstraint);
+                    s.positionConstraintID = VSGameUtilsKt.getShipObjectWorld(level).createNewConstraint(constraint);
+                    // s.rotationConstraintID = VSGameUtilsKt.getShipObjectWorld(level).createNewConstraint(RotationConstraint);
                     s.positionDampeningConstraintID = VSGameUtilsKt.getShipObjectWorld(level).createNewConstraint(PosDampingConstraint);
                     s.rotationDampeningConstraintID = VSGameUtilsKt.getShipObjectWorld(level).createNewConstraint(RotDampingConstraint);
                 } else if (shipUnloaded == null) {
