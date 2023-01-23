@@ -13,7 +13,13 @@ public class ClockWorkPartials {
             BUTTON_TWO = block("command_seat/buttontwo"),
             PHYSICS_CORE = block("physics_infuser/core"),
             STRANGE_FLUID = block("physics_infuser/liquid"),
-            ZAP = block("physics_infuser/zap");
+            ZAP = block("physics_infuser/zap"),
+
+            BLAZE_INFURIATED = block("afterblazer/blaze_infuriated"),
+
+            PLUME_ANGRY = block("afterblazer/plume_angry"),
+            PLUME_FUMING = block("afterblazer/plume_angry"),
+            PLUME_INFURIATED = block("afterblazer/plume_infuriated");
 
     private static PartialModel block(String path) {
         return new PartialModel(ClockWorkMod.asResource("block/" + path));

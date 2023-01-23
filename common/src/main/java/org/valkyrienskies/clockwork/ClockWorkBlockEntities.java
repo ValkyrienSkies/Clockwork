@@ -4,10 +4,14 @@ package org.valkyrienskies.clockwork;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingInstance;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingRenderer;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
+import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlockEntity;
+import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserRenderer;
+import org.valkyrienskies.clockwork.content.contraptions.intake.IntakeBlockEntity;
+import org.valkyrienskies.clockwork.content.contraptions.intake.IntakeRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatRenderer;
@@ -22,6 +26,12 @@ public class ClockWorkBlockEntities {
             .instance(() -> BearingInstance::new)
             .validBlocks(ClockWorkBlocks.PROPELLOR_BEARING)
             .renderer(() -> BearingRenderer::new)
+            .register();
+
+    public static final BlockEntityEntry<AfterblazerBlockEntity> AFTERBLAZER = REGISTRATE
+            .tileEntity("afterblazer", AfterblazerBlockEntity::new)
+            .validBlocks(ClockWorkBlocks.AFTERBLAZER)
+            .renderer(() -> AfterblazerRenderer::new)
             .register();
 
     public static final BlockEntityEntry<PhysicsInfuserBlockEntity> PHYSICS_INFUSER = REGISTRATE
@@ -42,6 +52,12 @@ public class ClockWorkBlockEntities {
             .tileEntity("flap_bearing", FlapBearingBlockEntity::new)
             .validBlocks(ClockWorkBlocks.FLAP_BEARING)
             .renderer(() -> FlapBearingRenderer::new)
+            .register();
+    // Intake
+    public static final BlockEntityEntry<IntakeBlockEntity> INTAKE = REGISTRATE
+            .tileEntity("intake", IntakeBlockEntity::new)
+            .validBlocks(ClockWorkBlocks.INTAKE)
+            .renderer(() -> IntakeRenderer::new)
             .register();
 
     public static void register() {

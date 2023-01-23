@@ -16,7 +16,8 @@ public class ClockWorkShapes {
 
     public static final VoxelShaper
 
-            WING = shape(0, 4, 0, 16, 12, 16).forAxis();
+            WING = shape(0, 4, 0, 16, 12, 16).forAxis(),
+            AFTERBLAZER = shape(1, 0, 1, 15, 14, 15).forDirectional();
 
 
     private static Builder shape(VoxelShape shape) {

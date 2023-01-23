@@ -97,7 +97,8 @@ public class PropellorBearingBlockEntity extends MechanicalBearingTileEntity imp
         if (rotspeed == targetSpeed) {
             return;
         }
-        if ((int) targetSpeed == 0) {
+        if ((int) getSourceSpeed() == 0 && (int) speed == 0) {
+            speed = 0;
             return;
         }
         float diff = targetSpeed - rotspeed;

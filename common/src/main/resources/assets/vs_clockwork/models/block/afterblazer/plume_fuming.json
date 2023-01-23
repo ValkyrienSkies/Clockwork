@@ -1,0 +1,70 @@
+{
+	"credit": "Made with Blockbench",
+	"texture_size": [32, 32],
+	"textures": {
+		"0": "vs_clockwork:block/fuming",
+		"particle": "vs_clockwork:block/fuming"
+	},
+	"elements": [
+		{
+			"from": [6.125, 6.125, 16],
+			"to": [6.125, 9.875, 32],
+			"rotation": {"angle": 0, "axis": "y", "origin": [0, 0, 0]},
+			"faces": {
+				"north": {"uv": [0, 0, 0, 2], "texture": "#0"},
+				"east": {"uv": [0, 2, 8, 4], "rotation": 180, "texture": "#0"},
+				"south": {"uv": [0, 0, 0, 2], "texture": "#0"},
+				"west": {"uv": [0, 2, 8, 4], "texture": "#0"},
+				"up": {"uv": [0, 8, 0, 0], "texture": "#0"},
+				"down": {"uv": [0, 0, 0, 8], "texture": "#0"}
+			}
+		},
+		{
+			"from": [6.125, 9.874, 16],
+			"to": [9.875, 9.874, 32],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 9.874, 31]},
+			"faces": {
+				"north": {"uv": [0, 0, 2, 0], "texture": "#0"},
+				"east": {"uv": [0, 0, 8, 0], "texture": "#0"},
+				"south": {"uv": [0, 0, 2, 0], "texture": "#0"},
+				"west": {"uv": [0, 0, 8, 0], "texture": "#0"},
+				"up": {"uv": [2, 12, 0, 4], "texture": "#0"},
+				"down": {"uv": [2, 4, 0, 12], "texture": "#0"}
+			}
+		},
+		{
+			"from": [9.875, 6.125, 16],
+			"to": [9.875, 9.875, 32],
+			"rotation": {"angle": 0, "axis": "y", "origin": [0, 0, 0]},
+			"faces": {
+				"north": {"uv": [0, 0, 0, 2], "texture": "#0"},
+				"east": {"uv": [4, 4, 12, 6], "texture": "#0"},
+				"south": {"uv": [0, 0, 0, 2], "texture": "#0"},
+				"west": {"uv": [4, 4, 12, 6], "rotation": 180, "texture": "#0"},
+				"up": {"uv": [0, 8, 0, 0], "texture": "#0"},
+				"down": {"uv": [0, 0, 0, 8], "texture": "#0"}
+			}
+		},
+		{
+			"from": [6.125, 6.124, 16],
+			"to": [9.875, 6.124, 32],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 10.124, 31]},
+			"faces": {
+				"north": {"uv": [0, 0, 2, 0], "texture": "#0"},
+				"east": {"uv": [0, 0, 8, 0], "texture": "#0"},
+				"south": {"uv": [0, 0, 2, 0], "texture": "#0"},
+				"west": {"uv": [0, 0, 8, 0], "texture": "#0"},
+				"up": {"uv": [8, 16, 6, 8], "texture": "#0"},
+				"down": {"uv": [8, 8, 6, 16], "texture": "#0"}
+			}
+		}
+	],
+	"groups": [
+		{
+			"name": "exhaust",
+			"origin": [8, 10.124, 31],
+			"color": 0,
+			"children": [0, 1, 2, 3]
+		}
+	]
+}

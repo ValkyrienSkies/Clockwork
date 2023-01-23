@@ -3,13 +3,14 @@ package org.valkyrienskies.clockwork;
 import com.simibubi.create.AllTags;
 import com.simibubi.create.content.AllSections;
 import com.simibubi.create.foundation.block.BlockStressDefaults;
-import com.simibubi.create.foundation.data.BuilderTransformers;
-import com.simibubi.create.foundation.data.ModelGen;
+import com.simibubi.create.foundation.data.*;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.level.material.MaterialColor;
+import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlock;
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock;
 import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserBlock;
+import org.valkyrienskies.clockwork.content.contraptions.intake.IntakeBlock;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingBlock;
 import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatBlock;
 import org.valkyrienskies.clockwork.content.physicalities.motion.wing.FlapBlock;
@@ -17,6 +18,7 @@ import org.valkyrienskies.clockwork.content.physicalities.motion.wing.WingBlock;
 import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork;
 
 import static com.simibubi.create.foundation.data.TagGen.axeOrPickaxe;
+import static com.simibubi.create.foundation.data.TagGen.pickaxeOnly;
 import static org.valkyrienskies.clockwork.ClockWorkMod.REGISTRATE;
 
 public class ClockWorkBlocks {
@@ -44,6 +46,31 @@ public class ClockWorkBlocks {
                     .transform(BuilderTransformersClockwork.flapbearing())
                     .transform(BlockStressDefaults.setImpact(12.0))
                     .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+                    .register();
+
+    public static final BlockEntry<AfterblazerBlock> AFTERBLAZER =
+            REGISTRATE.block("afterblazer", AfterblazerBlock::new)
+                    .initialProperties(SharedProperties::softMetal)
+                    .properties(p -> p.color(MaterialColor.COLOR_GRAY))
+                    .properties(p -> p.lightLevel(AfterblazerBlock::getLight))
+                    .transform(pickaxeOnly())
+                    .addLayer(() -> RenderType::cutoutMipped)
+                    .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
+                    .blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
+                    .item()
+                    .model(AssetLookup.customBlockItemModel("afterblazer"))
+                    .build()
+                    .register();
+
+    public static final BlockEntry<IntakeBlock> INTAKE =
+            REGISTRATE.block("intake", IntakeBlock::new)
+                    .initialProperties(SharedProperties::softMetal)
+                    .properties(p -> p.color(MaterialColor.COLOR_GRAY))
+                    .transform(pickaxeOnly())
+                    .addLayer(() -> RenderType::cutoutMipped)
+                    .blockstate((c, p) -> p.directionalBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
+                    .item()
+                    .transform(ModelGen.customItemModel("intake", "item"))
                     .register();
 
     //////// Propellor Bearing ////////

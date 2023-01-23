@@ -114,7 +114,7 @@ public class PropellorController implements ShipForcesInducer {
         return Pair.of(netForce, netTorque);
     }
 
-    private static double airPressure(Vector3dc pos) {
+    private double airPressure(Vector3dc pos) {
         double offset = Math.exp(-(320.0-64.0)/192.0);
         double height = pos.y();
         double airPress = (Math.exp(-(height-64.0)/192)-offset)/(1.0-offset);
@@ -125,7 +125,7 @@ public class PropellorController implements ShipForcesInducer {
         }
     }
 
-    private static double exhaustVelocity(Vector3dc posRelBearing, Vector3dc omega) {
+    private double exhaustVelocity(Vector3dc posRelBearing, Vector3dc omega) {
         double vel = posRelBearing.cross(omega, new Vector3d()).length();
         return vel;
     }

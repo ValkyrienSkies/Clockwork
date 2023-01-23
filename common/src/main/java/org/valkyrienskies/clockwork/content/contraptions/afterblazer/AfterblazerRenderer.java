@@ -1,0 +1,193 @@
+package org.valkyrienskies.clockwork.content.contraptions.afterblazer;
+
+import com.jozufozu.flywheel.core.PartialModel;
+import com.jozufozu.flywheel.core.virtual.VirtualRenderWorld;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.simibubi.create.AllBlockPartials;
+import com.simibubi.create.AllSpriteShifts;
+import com.simibubi.create.content.contraptions.components.structureMovement.MovementContext;
+import com.simibubi.create.content.contraptions.components.structureMovement.render.ContraptionMatrices;
+import com.simibubi.create.foundation.block.render.SpriteShiftEntry;
+import com.simibubi.create.foundation.render.CachedBufferer;
+import com.simibubi.create.foundation.render.SuperByteBuffer;
+import com.simibubi.create.foundation.tileEntity.renderer.SafeTileEntityRenderer;
+import com.simibubi.create.foundation.utility.AngleHelper;
+import com.simibubi.create.foundation.utility.AnimationTickHolder;
+import com.simibubi.create.foundation.utility.animation.LerpedFloat;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.core.Direction;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import org.valkyrienskies.clockwork.ClockWorkPartials;
+import org.valkyrienskies.clockwork.ClockWorkParticles;
+import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlock.EngineHeatLevel;
+
+import javax.annotation.Nullable;
+
+public class AfterblazerRenderer extends SafeTileEntityRenderer<AfterblazerBlockEntity> {
+
+    public AfterblazerRenderer(BlockEntityRendererProvider.Context context) {}
+
+    @Override
+    protected void renderSafe(AfterblazerBlockEntity te, float partialTicks, PoseStack ms, MultiBufferSource bufferSource,
+                              int light, int overlay) {
+        if (!(te instanceof AfterblazerBlockEntity)) {
+            return;
+        }
+
+        EngineHeatLevel heatLevel = te.getEngineHeatLevelFromBlock();
+
+        Level level = te.getLevel();
+        BlockState blockState = te.getBlockState();
+        float animation = te.headAnimation.getValue(partialTicks) * .175f;
+        float horizontalAngle = AngleHelper.rad(te.headAngle.getValue(partialTicks));
+        boolean canDrawFlame = heatLevel.isAtLeast(EngineHeatLevel.FADING);
+        boolean drawGoggles = te.goggles;
+        boolean drawHat = te.hat;
+        int hashCode = te.hashCode();
+        double plumeOffset = te.redstoneLevel/15f;
+        renderShared(ms, null, bufferSource,
+                level, blockState, heatLevel, animation, horizontalAngle,
+                canDrawFlame, drawGoggles, drawHat, hashCode, plumeOffset);
+    }
+
+    public static void renderInContraption(MovementContext context, VirtualRenderWorld renderWorld,
+                                           ContraptionMatrices matrices, MultiBufferSource bufferSource, LerpedFloat headAngle, boolean conductor) {
+        BlockState state = context.state;
+        EngineHeatLevel heatLevel = AfterblazerBlock.getHeatLevelOf(state);
+
+        if (!heatLevel.isAtLeast(EngineHeatLevel.FADING)) {
+            heatLevel = EngineHeatLevel.FADING;
+        }
+
+        Level level = context.world;
+        float horizontalAngle = AngleHelper.rad(headAngle.getValue(AnimationTickHolder.getPartialTicks(level)));
+        boolean drawGoggles = context.tileData.contains("Goggles");
+        boolean drawHat = conductor || context.tileData.contains("TrainHat");
+        int hashCode = context.hashCode();
+
+
+        renderShared(matrices.getViewProjection(), matrices.getModel(), bufferSource,
+                level, state, heatLevel, 0, horizontalAngle,
+                false, drawGoggles, drawHat, hashCode, 1f);
+    }
+
+    private static void renderShared(PoseStack ms, @Nullable PoseStack modelTransform, MultiBufferSource bufferSource,
+                                     Level level, BlockState blockState, EngineHeatLevel heatLevel, float animation, float horizontalAngle,
+                                     boolean canDrawFlame, boolean drawGoggles, boolean drawHat, int hashCode, double plumeOffset) {
+
+        boolean blockAbove = animation > 0.125f;
+        float time = AnimationTickHolder.getRenderTime(level);
+        float renderTick = time + (hashCode % 13) * 16f;
+        float offsetMult = heatLevel.isAtLeast(EngineHeatLevel.FADING) ? 64 : 16;
+        float offset = Mth.sin((float) ((renderTick / 16f) % (2 * Math.PI))) / offsetMult;
+        float offset1 = Mth.sin((float) ((renderTick / 16f + Math.PI) % (2 * Math.PI))) / offsetMult;
+        float offset2 = Mth.sin((float) ((renderTick / 16f + Math.PI / 2) % (2 * Math.PI))) / offsetMult;
+        float headY = offset - (animation * .75f);
+
+        VertexConsumer solid = bufferSource.getBuffer(RenderType.solid());
+        VertexConsumer cutout = bufferSource.getBuffer(RenderType.cutoutMipped());
+
+        ms.pushPose();
+
+        PartialModel blazeModel;
+        if (heatLevel.isAtLeast(EngineHeatLevel.INFURIATED)) {
+            blazeModel = ClockWorkPartials.BLAZE_INFURIATED;
+        } else if (heatLevel.isAtLeast(EngineHeatLevel.SEETHING)) {
+            blazeModel = AllBlockPartials.BLAZE_SUPER_ACTIVE;
+        } else if (heatLevel.isAtLeast(EngineHeatLevel.FADING)) {
+            blazeModel = AllBlockPartials.BLAZE_ACTIVE;
+        } else {
+            blazeModel = AllBlockPartials.BLAZE_INERT;
+        }
+
+        SuperByteBuffer blazeBuffer = CachedBufferer.partial(blazeModel, blockState);
+        if (modelTransform != null)
+            blazeBuffer.transform(modelTransform);
+        blazeBuffer.translate(0, headY, 0);
+        draw(blazeBuffer, horizontalAngle, ms, solid);
+
+        if (drawGoggles) {
+            PartialModel gogglesModel = blazeModel == AllBlockPartials.BLAZE_INERT
+                    ? AllBlockPartials.BLAZE_GOGGLES_SMALL : AllBlockPartials.BLAZE_GOGGLES;
+
+            SuperByteBuffer gogglesBuffer = CachedBufferer.partial(gogglesModel, blockState);
+            if (modelTransform != null)
+                gogglesBuffer.transform(modelTransform);
+            gogglesBuffer.translate(0, headY + 8 / 16f, 0);
+            draw(gogglesBuffer, horizontalAngle, ms, solid);
+        }
+
+        if (drawHat) {
+            SuperByteBuffer hatBuffer = CachedBufferer.partial(AllBlockPartials.TRAIN_HAT, blockState);
+            if (modelTransform != null)
+                hatBuffer.transform(modelTransform);
+            hatBuffer.translate(0, headY, 0);
+            if (blazeModel == AllBlockPartials.BLAZE_INERT) {
+                hatBuffer.translateY(0.5f)
+                        .centre()
+                        .scale(0.75f)
+                        .unCentre();
+            } else {
+                hatBuffer.translateY(0.75f);
+            }
+            hatBuffer
+                    .rotateCentered(Direction.UP, horizontalAngle + Mth.PI)
+                    .translate(0.5f, 0, 0.5f)
+                    .light(LightTexture.FULL_BRIGHT)
+                    .renderInto(ms, solid);
+        }
+
+        if (heatLevel.isAtLeast(EngineHeatLevel.FADING)) {
+            PartialModel plumeModel;
+            if (heatLevel.equals(EngineHeatLevel.INFURIATED)) {
+                plumeModel = ClockWorkPartials.PLUME_INFURIATED;
+            } else if (heatLevel.equals(EngineHeatLevel.SEETHING)) {
+                plumeModel = ClockWorkPartials.PLUME_FUMING;
+            } else {
+                plumeModel = ClockWorkPartials.PLUME_ANGRY;
+            }
+
+            SuperByteBuffer plumeBuffer = CachedBufferer.partial(plumeModel, blockState);
+            if (modelTransform != null)
+                plumeBuffer.transform(modelTransform);
+            if (blockState.getValue(BlockStateProperties.FACING) == Direction.UP) {
+                plumeBuffer.rotateCentered(Direction.NORTH, 90);
+                plumeBuffer.translate(0, -plumeOffset, 0);
+            } else if (blockState.getValue(BlockStateProperties.FACING) == Direction.DOWN) {
+                plumeBuffer.rotateCentered(Direction.NORTH, 270);
+                plumeBuffer.translate(0, plumeOffset, 0);
+            } else if (blockState.getValue(BlockStateProperties.FACING) == Direction.NORTH) {
+                plumeBuffer.translate(0, 0, plumeOffset);
+            } else if (blockState.getValue(BlockStateProperties.FACING) == Direction.SOUTH) {
+                plumeBuffer.rotateCentered(Direction.UP, 180);
+                plumeBuffer.translate(0, 0, -plumeOffset);
+            } else if (blockState.getValue(BlockStateProperties.FACING) == Direction.EAST) {
+                plumeBuffer.rotateCentered(Direction.UP, 90);
+                plumeBuffer.translate(plumeOffset, 0, 0);
+            } else if (blockState.getValue(BlockStateProperties.FACING) == Direction.WEST) {
+                plumeBuffer.rotateCentered(Direction.UP, 270);
+                plumeBuffer.translate(-plumeOffset, 0, 0);
+            }
+            plumeBuffer.translate(0, 0, 0)
+                    .light(LightTexture.FULL_BRIGHT)
+                    .renderInto(ms, solid);
+        }
+
+        ms.popPose();
+    }
+
+    private static void draw(SuperByteBuffer buffer, float horizontalAngle, PoseStack ms, VertexConsumer vc) {
+        buffer.rotateCentered(Direction.UP, horizontalAngle)
+                .light(LightTexture.FULL_BRIGHT)
+                .renderInto(ms, vc);
+    }
+
+}
