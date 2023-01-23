@@ -38,7 +38,7 @@ public abstract class MixinAirFlowParticle {
             return null;
     }
 
-    @Redirect(method = "tick", at = @At(value = "FIELD", target = "Lcom/simibubi/create/content/contraptions/components/fan/AirCurrent;bounds:Lnet/minecraft/world/phys/AABB;", opcode = Opcodes.GETFIELD), remap = false)
+    @Redirect(method = "tick", at = @At(value = "FIELD", target = "Lcom/simibubi/create/content/contraptions/components/fan/AirCurrent;bounds:Lnet/minecraft/world/phys/AABB;", opcode = Opcodes.GETFIELD))
     private AABB redirectBounds(AirCurrent instance) {
         Level level = instance.source.getAirCurrentWorld();
         if (level != null) {
