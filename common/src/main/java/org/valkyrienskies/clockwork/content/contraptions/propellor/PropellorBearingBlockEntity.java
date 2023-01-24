@@ -97,10 +97,10 @@ public class PropellorBearingBlockEntity extends MechanicalBearingTileEntity imp
         if (rotspeed == targetSpeed) {
             return;
         }
-        if ((int) getSourceSpeed() == 0 && (int) speed == 0) {
-            speed = 0;
-            return;
-        }
+//        if ((int) getSourceSpeed() == 0 && (int) speed == 0) {
+//            speed = 0;
+//            return;
+//        }
         float diff = targetSpeed - rotspeed;
         rotspeed = rotspeed + Mth.clamp(diff / 10, -32, 32);
 //        float delta = Mth.clamp(, lastSpeed, 10)
