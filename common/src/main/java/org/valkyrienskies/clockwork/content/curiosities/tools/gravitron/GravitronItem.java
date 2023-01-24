@@ -187,7 +187,7 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
                     Vector3d Position = new Vector3d(s.HeldBlockPos);
 
 
-                    double AttachmentCompliance = 1e-8 / Math.sqrt(mass);
+                    double AttachmentCompliance = 1e-6 / mass;
                     double AttachmentMaxForce = 1e10;
                     double RotationMaxForce = 1e10;
 
@@ -217,14 +217,14 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
                     System.out.println();
 
                     delConstraint(level, s.positionConstraintID);
-                    delConstraint(level, s.positionDampeningConstraintID);
+                    // delConstraint(level, s.positionDampeningConstraintID);
                     // delConstraint(level, s.rotationConstraintID);
-                    delConstraint(level, s.rotationDampeningConstraintID);
+                    // delConstraint(level, s.rotationDampeningConstraintID);
 
                     s.positionConstraintID = VSGameUtilsKt.getShipObjectWorld(level).createNewConstraint(constraint);
                     // s.rotationConstraintID = VSGameUtilsKt.getShipObjectWorld(level).createNewConstraint(RotationConstraint);
-                    s.positionDampeningConstraintID = VSGameUtilsKt.getShipObjectWorld(level).createNewConstraint(PosDampingConstraint);
-                    s.rotationDampeningConstraintID = VSGameUtilsKt.getShipObjectWorld(level).createNewConstraint(RotDampingConstraint);
+                    // s.positionDampeningConstraintID = VSGameUtilsKt.getShipObjectWorld(level).createNewConstraint(PosDampingConstraint);
+                    // s.rotationDampeningConstraintID = VSGameUtilsKt.getShipObjectWorld(level).createNewConstraint(RotDampingConstraint);
                 } else if (shipUnloaded == null) {
                     dropShip(s, level);
                 }
