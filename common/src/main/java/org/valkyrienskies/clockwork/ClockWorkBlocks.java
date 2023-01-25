@@ -6,12 +6,15 @@ import com.simibubi.create.foundation.block.BlockStressDefaults;
 import com.simibubi.create.foundation.data.*;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MaterialColor;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlock;
+import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlock;
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock;
 import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserBlock;
 import org.valkyrienskies.clockwork.content.contraptions.intake.IntakeBlock;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingBlock;
+import org.valkyrienskies.clockwork.content.contraptions.resistor.RedstoneResistorBlock;
 import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatBlock;
 import org.valkyrienskies.clockwork.content.physicalities.motion.wing.FlapBlock;
 import org.valkyrienskies.clockwork.content.physicalities.motion.wing.WingBlock;
@@ -74,6 +77,34 @@ public class ClockWorkBlocks {
                     .register();
 
     //////// Propellor Bearing ////////
+
+    /////// Ballooner ////////
+
+    public static final BlockEntry<BalloonerBlock> BALLOONER =
+            REGISTRATE.block("ballooner", BalloonerBlock::new)
+                    .initialProperties(SharedProperties::softMetal)
+                    .properties(p -> p.color(MaterialColor.COLOR_GRAY))
+                    .transform(pickaxeOnly())
+                    .addLayer(() -> RenderType::cutoutMipped)
+                    .item()
+                    .transform(ModelGen.customItemModel("ballooner", "item"))
+                    .register();
+
+
+    /////// REDSTONE RESISTOR ////////
+
+    public static final BlockEntry<RedstoneResistorBlock> REDSTONE_RESISTOR =
+            REGISTRATE.block("redstone_resistor", RedstoneResistorBlock::new)
+                    .initialProperties(SharedProperties::stone)
+                    .properties(BlockBehaviour.Properties::noOcclusion)
+                    .properties(p -> p.color(MaterialColor.PODZOL))
+                    .transform(BlockStressDefaults.setNoImpact())
+                    .transform(axeOrPickaxe())
+                    .addLayer(() -> RenderType::cutoutMipped)
+                    .item()
+                    .transform(ModelGen.customItemModel("redstone_resistor", "item"))
+                    .register();
+
     /////// Sequenced Seat ////////
     public static final BlockEntry<SequencedSeatBlock> COMMAND_SEAT =
             REGISTRATE.block("command_seat", SequencedSeatBlock::new)

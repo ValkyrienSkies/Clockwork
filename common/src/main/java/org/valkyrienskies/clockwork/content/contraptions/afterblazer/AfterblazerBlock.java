@@ -162,7 +162,7 @@ public class AfterblazerBlock extends DirectionalBlock implements ITE<Afterblaze
         }
 
         world.playLocalSound((double) ((float) pos.getX() + 0.5F), (double) ((float) pos.getY() + 0.5F),
-                (double) ((float) pos.getZ() + 0.5F), SoundEvents.ELYTRA_FLYING, SoundSource.BLOCKS,
+                (double) ((float) pos.getZ() + 0.5F), SoundEvents.CAMPFIRE_CRACKLE, SoundSource.BLOCKS,
                 0.2F + random.nextFloat(), random.nextFloat() * 0.7F + 0.6F, false);
     }
 
