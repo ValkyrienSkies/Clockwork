@@ -266,6 +266,16 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
 
     @Override
     public double getHotAirProduction() {
-        return 0;
+        EngineHeatLevel heatLevel = getHeatLevelFromBlock();
+
+        double modifier = switch (heatLevel) {
+            case INFURIATED -> 1.5;
+            case SEETHING -> 1.25;
+            case KINDLED -> 1;
+            case FADING -> .75;
+            default -> 0;
+        };
+        double throttle = Mth.abs(getSpeed() / 256f);
+        return modifier * throttle;
     }
 }

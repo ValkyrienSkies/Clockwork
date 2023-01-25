@@ -60,8 +60,12 @@ public class RedstoneResistorRenderer extends KineticTileEntityRenderer {
             kineticRotationTransform(superByteBuffer, te, axis, angle, light);
             superByteBuffer.renderInto(ms, buffer.getBuffer(RenderType.solid()));
         }
+        float state = 0;
         BlockState resistorState = te.getBlockState();
-        float state = resistor.clientState.getValue(partialTicks);
+        if (resistor.clientState != null) {
+            state = resistor.clientState.getValue(partialTicks);
+        }
+
         VertexConsumer vb = buffer.getBuffer(RenderType.solid());
         int color = Color.mixColors(0x2C0300, 0xCD0000, state / 15f);
         SuperByteBuffer indicator = transform(CachedBufferer.partial(ClockWorkPartials.RESISTOR_INDICATOR, resistorState), resistorState);

@@ -51,7 +51,7 @@ public class BalloonerBlock extends HorizontalKineticBlock implements ITE<Balloo
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
-        builder.add(HEAT_LEVEL, FACING);
+        builder.add(HEAT_LEVEL);
     }
 
     @Override
@@ -104,7 +104,6 @@ public class BalloonerBlock extends HorizontalKineticBlock implements ITE<Balloo
         return PlatformUtils.tryInsert(state, world, pos, stack, doNotConsume, forceOverflow, simulate);
     }
 
-    public static Callback
     @Override
     public boolean showCapacityWithAnnotation() {
         return super.showCapacityWithAnnotation();
