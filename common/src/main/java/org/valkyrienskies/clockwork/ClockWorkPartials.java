@@ -15,7 +15,7 @@ public class ClockWorkPartials {
             STRANGE_FLUID = block("physics_infuser/liquid"),
             ZAP = block("physics_infuser/zap"),
 
-            RESISTOR_INDICATOR = block("redstone_resistor/indicator"),
+            RESISTOR_INDICATOR = block("redstone_resistor/resistorindicator"),
 
             BLAZE_INFURIATED = block("afterblazer/blaze_infuriated"),
 

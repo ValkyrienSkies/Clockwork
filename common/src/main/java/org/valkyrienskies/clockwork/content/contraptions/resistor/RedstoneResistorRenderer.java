@@ -62,12 +62,9 @@ public class RedstoneResistorRenderer extends KineticTileEntityRenderer {
         }
         float state = 0;
         BlockState resistorState = te.getBlockState();
-        if (resistor.clientState != null) {
-            state = resistor.clientState.getValue(partialTicks);
-        }
 
         VertexConsumer vb = buffer.getBuffer(RenderType.solid());
-        int color = Color.mixColors(0x2C0300, 0xCD0000, state / 15f);
+        int color = Color.mixColors(0x2C0300, 0xCD0000, resistor.getRedstoneLevel() / 15f);
         SuperByteBuffer indicator = transform(CachedBufferer.partial(ClockWorkPartials.RESISTOR_INDICATOR, resistorState), resistorState);
         indicator.light(light)
                 .color(color)

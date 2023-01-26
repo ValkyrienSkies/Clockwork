@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.content.contraptions.resistor;
 
+import com.simibubi.create.content.contraptions.RotationPropagator;
+import com.simibubi.create.content.contraptions.base.KineticTileEntity;
 import com.simibubi.create.content.contraptions.goggles.IHaveGoggleInformation;
 import com.simibubi.create.content.contraptions.relays.encased.SplitShaftTileEntity;
 import com.simibubi.create.foundation.utility.Iterate;
@@ -13,6 +15,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.ticks.TickPriority;
 
 import java.util.List;
 
@@ -20,16 +23,30 @@ public class RedstoneResistorBlockEntity extends SplitShaftTileEntity implements
 
     int redstoneLevel = 0;
     int lastChange;
-    LerpedFloat clientState;
 
     public RedstoneResistorBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }
 
+    public int getRedstoneLevel() {
+        return redstoneLevel;
+    }
     @Override
     public void tick() {
         super.tick();
+        lastChange = redstoneLevel;
         redstoneLevel = getPower(level, worldPosition);
+
+        if (redstoneLevel != lastChange) {
+            detachKinetics();
+        }
+    }
+    @Override
+    public void detachKinetics() {
+        RotationPropagator.handleRemoved(level, worldPosition, this);
+
+        // Re-attach next tick
+        level.scheduleTick(worldPosition, getBlockState().getBlock(), 0, TickPriority.EXTREMELY_HIGH);
     }
 
     @Override
@@ -44,7 +61,6 @@ public class RedstoneResistorBlockEntity extends SplitShaftTileEntity implements
     protected void read(CompoundTag compound, boolean clientPacket) {
         redstoneLevel = compound.getInt("RedstoneLevel");
         lastChange = compound.getInt("ChangeTimer");
-        clientState.chase(redstoneLevel, 0.2f, LerpedFloat.Chaser.EXP);
         super.read(compound, clientPacket);
     }
 
@@ -60,8 +76,8 @@ public class RedstoneResistorBlockEntity extends SplitShaftTileEntity implements
     @Override
     public float getRotationSpeedModifier(Direction face) {
         if (hasSource()) {
-            if (face != getSourceFacing() && getBlockState().getValue(BlockStateProperties.POWERED)) {
-                int power = redstoneLevel/15;
+            if (face != getSourceFacing()) {
+                float power = redstoneLevel/15f;
                 return power;
             }
         }
