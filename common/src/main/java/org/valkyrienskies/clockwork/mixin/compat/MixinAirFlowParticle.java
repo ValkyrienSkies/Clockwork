@@ -10,6 +10,7 @@ import net.minecraft.client.particle.SimpleAnimatedParticle;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3d;
 import org.spongepowered.asm.mixin.Final;
@@ -44,19 +45,18 @@ public abstract class MixinAirFlowParticle extends SimpleAnimatedParticle {
             return null;
     }
 
-    // Insane looking mixin because the original broke everything for some reason
-    @ModifyExpressionValue(method = "tick", at = @At(
+    @Redirect(method = "tick", at = @At(
         value = "INVOKE",
         target = "Lnet/minecraft/world/phys/AABB;contains(DDD)Z"
-    ))
-    private boolean redirectBounds(final boolean original) {
+    ), remap = false)
+    private boolean redirectBounds(AABB instance, double x, double y, double z) {
         AirCurrent current = source.getAirCurrent();
         Level level = source.getAirCurrentWorld();
         if (current != null && level != null) {
-            return VSGameUtilsKt.transformAabbToWorld(level, current.bounds).inflate(0.25f).contains(x, y, z);
+            return VSGameUtilsKt.transformAabbToWorld(level, instance).contains(x, y, z);
         }
 
-        return original;
+        return instance.contains(x, y, z);
     }
 
 
