@@ -77,13 +77,17 @@ public class ShipScannerRenderer implements ScannerRenderer {
     }
 
     private void render(final Matrix4f viewMatrix) {
-        final RenderTarget target = Minecraft.getInstance().getMainRenderTarget();
+        ShaderInstance scanEffect = ClockWorkShaders.SCAN_EFFECT.getShader();
 
-        updateDepthTexture(target);
+        if (scanEffect != null) {
+            final RenderTarget target = Minecraft.getInstance().getMainRenderTarget();
 
-        updateShaderUniforms(ClockWorkShaders.SCAN_EFFECT.getShader(), viewMatrix);
+            updateDepthTexture(target);
 
-        blit(target);
+            updateShaderUniforms(scanEffect, viewMatrix);
+
+            blit(target);
+        }
     }
 
     private void updateDepthTexture(final RenderTarget target) {
