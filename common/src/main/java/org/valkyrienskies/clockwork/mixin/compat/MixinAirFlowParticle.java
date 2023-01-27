@@ -1,15 +1,18 @@
 package org.valkyrienskies.clockwork.mixin.compat;
 
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.simibubi.create.content.contraptions.components.fan.AirCurrent;
 import com.simibubi.create.content.contraptions.components.fan.IAirCurrentSource;
 import com.simibubi.create.content.contraptions.particle.AirFlowParticle;
 import com.simibubi.create.foundation.utility.VecHelper;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.particle.SimpleAnimatedParticle;
+import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3d;
-import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -22,11 +25,15 @@ import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
 @Mixin(AirFlowParticle.class)
-public abstract class MixinAirFlowParticle {
+public abstract class MixinAirFlowParticle extends SimpleAnimatedParticle {
 
     @Shadow
     @Final
     private IAirCurrentSource source;
+
+    protected MixinAirFlowParticle(ClientLevel level, double x, double y, double z, SpriteSet sprites, float gravity) {
+        super(level, x, y, z, sprites, gravity);
+    }
 
     @Unique
     private Ship getShip() {
@@ -38,13 +45,21 @@ public abstract class MixinAirFlowParticle {
             return null;
     }
 
-    @Redirect(method = "tick", at = @At(value = "FIELD", target = "Lcom/simibubi/create/content/contraptions/components/fan/AirCurrent;bounds:Lnet/minecraft/world/phys/AABB;", opcode = Opcodes.GETFIELD))
-    private AABB redirectBounds(AirCurrent instance) {
-        Level level = instance.source.getAirCurrentWorld();
+    // Insane looking mixin because the original broke everything for some reason
+    @ModifyExpressionValue(method = "tick", at = @At(
+        value = "INVOKE",
+        target = "Lcom/simibubi/create/content/contraptions/components/fan/IAirCurrentSource;getAirCurrent()Lcom/simibubi/create/content/contraptions/components/fan/AirCurrent;",
+        ordinal = 0
+    ))
+    private AirCurrent redirectBounds(AirCurrent current) {
+        Level level = source.getAirCurrentWorld();
         if (level != null) {
-            return VSGameUtilsKt.transformAabbToWorld(level, instance.bounds);
+            AABB aabb = VSGameUtilsKt.transformAabbToWorld(level, source.getAirCurrent().bounds);
+            if (!aabb.inflate(0.25f).contains(x, y, z)) {
+                return null;
+            }
         }
-        return instance.bounds;
+        return current;
     }
 
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/foundation/utility/VecHelper;getCenterOf(Lnet/minecraft/core/Vec3i;)Lnet/minecraft/world/phys/Vec3;"), allow = 1)
