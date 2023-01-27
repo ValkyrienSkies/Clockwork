@@ -77,7 +77,7 @@ public class RedstoneResistorBlockEntity extends SplitShaftTileEntity implements
     public float getRotationSpeedModifier(Direction face) {
         if (hasSource()) {
             if (face != getSourceFacing()) {
-                float power = redstoneLevel/15f;
+                float power = (Math.abs(redstoneLevel-15))/15f;
                 return power;
             }
         }
