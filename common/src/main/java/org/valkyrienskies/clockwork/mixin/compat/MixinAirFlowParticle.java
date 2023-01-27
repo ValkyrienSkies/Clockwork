@@ -53,8 +53,8 @@ public abstract class MixinAirFlowParticle extends SimpleAnimatedParticle {
     ))
     private AirCurrent redirectBounds(AirCurrent current) {
         Level level = source.getAirCurrentWorld();
-        if (level != null) {
-            AABB aabb = VSGameUtilsKt.transformAabbToWorld(level, source.getAirCurrent().bounds);
+        if (level != null && current != null) {
+            AABB aabb = VSGameUtilsKt.transformAabbToWorld(level, current.bounds);
             if (!aabb.inflate(0.25f).contains(x, y, z)) {
                 return null;
             }
