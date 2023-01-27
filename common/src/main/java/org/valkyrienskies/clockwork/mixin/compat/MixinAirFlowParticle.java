@@ -10,7 +10,6 @@ import net.minecraft.client.particle.SimpleAnimatedParticle;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3d;
 import org.spongepowered.asm.mixin.Final;
@@ -48,19 +47,18 @@ public abstract class MixinAirFlowParticle extends SimpleAnimatedParticle {
     // Insane looking mixin because the original broke everything for some reason
     @ModifyExpressionValue(method = "tick", at = @At(
         value = "INVOKE",
-        target = "Lcom/simibubi/create/content/contraptions/components/fan/IAirCurrentSource;getAirCurrent()Lcom/simibubi/create/content/contraptions/components/fan/AirCurrent;",
-        ordinal = 0
+        target = "Lnet/minecraft/world/phys/AABB;contains(DDD)Z"
     ))
-    private AirCurrent redirectBounds(AirCurrent current) {
+    private boolean redirectBounds(final boolean original) {
+        AirCurrent current = source.getAirCurrent();
         Level level = source.getAirCurrentWorld();
-        if (level != null && current != null) {
-            AABB aabb = VSGameUtilsKt.transformAabbToWorld(level, current.bounds);
-            if (!aabb.inflate(0.25f).contains(x, y, z)) {
-                return null;
-            }
+        if (current != null && level != null) {
+            return VSGameUtilsKt.transformAabbToWorld(level, current.bounds).inflate(0.25f).contains(x, y, z);
         }
-        return current;
+
+        return original;
     }
+
 
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/foundation/utility/VecHelper;getCenterOf(Lnet/minecraft/core/Vec3i;)Lnet/minecraft/world/phys/Vec3;"), allow = 1)
     private Vec3 redirectGetCenterOf(Vec3i pos) {
