@@ -7,9 +7,11 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import org.valkyrienskies.clockwork.ClockWorkEntities;
 import org.valkyrienskies.clockwork.ClockWorkPackets;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -38,6 +40,10 @@ public class SequencedSeatEntity extends SeatEntity {
             if (isVehicle() && blockPresent)
                 return;
             this.discard();
+            BlockEntity be = this.level.getBlockEntity(this.blockPosition());
+            if (be instanceof SequencedSeatBlockEntity seatBlock) {
+                seatBlock.updateInput(Collections.emptySet());
+            }
         }
     }
 
