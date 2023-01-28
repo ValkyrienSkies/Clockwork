@@ -23,6 +23,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.valkyrienskies.clockwork.content.curiosities.particles.PropellorStreamParticleData;
 import org.valkyrienskies.clockwork.content.curiosities.sounds.PropStreamSound;
 import org.valkyrienskies.clockwork.platform.PlatformUtils;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
@@ -148,19 +149,21 @@ public class PropStream {
     public void tick() {
         if (direction == null)
             rebuild();
-        Level world = source.getStreamWorld();
-        Direction facing = direction;
-        if (world != null && world.isClientSide) {
-            float offset = pushing ? 0.5f : maxDistance + .5f;
-            Vec3 pos = VecHelper.getCenterOf(source.getStreamPos())
-                    .add(Vec3.atLowerCornerOf(facing.getNormal())
-                            .scale(offset));
-            if (world.random.nextFloat() < AllConfigs.CLIENT.fanParticleDensity.get())
-                world.addParticle(new AirFlowParticleData(source.getStreamPos()), pos.x, pos.y, pos.z, 0, 0, 0);
-        }
+        if (direction != null) {
+            Level world = source.getStreamWorld();
+            Direction facing = direction;
+            if (world != null && world.isClientSide) {
+                float offset = pushing ? 0.5f : maxDistance + .5f;
+                Vec3 pos = VecHelper.getCenterOf(source.getStreamPos())
+                        .add(Vec3.atLowerCornerOf(facing.getNormal())
+                                .scale(offset));
+                if (world.random.nextFloat() < AllConfigs.CLIENT.fanParticleDensity.get())
+                    world.addParticle(new AirFlowParticleData(source.getStreamPos()), pos.x, pos.y, pos.z, 0, 0, 0);
+            }
 
-        tickAffectedEntities(world, facing);
-        tickAffectedShips(world, facing);
+            tickAffectedEntities(world, facing);
+            tickAffectedShips(world, facing);
+        }
     }
 
     protected void tickAffectedEntities(Level world, Direction facing) {
@@ -176,7 +179,7 @@ public class PropStream {
             Vec3i flow = (pushing ? facing : facing.getOpposite()).getNormal();
 
             float sneakModifier = entity.isShiftKeyDown() ? 4096f : 512f;
-            float speed = Math.abs(source.getSpeed());
+            float speed = Math.abs(source.getRotspeed());
             double entityDistance = entity.position()
                     .distanceTo(center);
             float acceleration = (float) (speed / sneakModifier / (entityDistance / maxDistance) * source.getSailCount());
@@ -206,7 +209,7 @@ public class PropStream {
     }
 
     public void rebuild() {
-        if (source.getSpeed() == 0) {
+        if (source.getRotspeed() == 0) {
             maxDistance = 0;
             segments.clear();
             bounds = new AABB(0, 0, 0, 0, 0, 0);

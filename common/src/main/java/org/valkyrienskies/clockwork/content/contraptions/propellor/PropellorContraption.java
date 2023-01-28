@@ -15,13 +15,16 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import org.apache.commons.lang3.tuple.Pair;
+import org.valkyrienskies.clockwork.ClockWorkContraptions;
+
+import java.util.Queue;
+import java.util.Set;
 
 public class PropellorContraption extends Contraption {
 
+    public int offset;
     protected int sailBlocks;
     protected Direction facing;
-
-    private boolean isWindmill;
 
     public PropellorContraption() {}
 
@@ -29,28 +32,63 @@ public class PropellorContraption extends Contraption {
         this.facing = facing;
     }
 
+    public static PropellorContraption assembleProp(Level world, BlockPos pos, Direction direction) throws AssemblyException {
+        PropellorContraption contraption = new PropellorContraption();
+        int flapBlocks = 0;
+
+        contraption.facing = direction;
+        if (!contraption.assemble(world, pos)) {
+            return null;
+        }
+        for (int i = 0; i < 16; i++) {
+            BlockPos offsetPos = BlockPos.ZERO.relative(direction, i);
+            if (contraption.getBlocks()
+                    .containsKey(offsetPos))
+                continue;
+        }
+
+        contraption.startMoving(world);
+        contraption.expandBoundsAroundAxis(direction.getAxis());
+
+        return contraption;
+    }
+//    @Override
+//    public boolean assemble(Level world, BlockPos pos) throws AssemblyException {
+//        BlockPos offset = pos.relative(facing);
+//        if (!searchMovedStructure(world, offset, null))
+//            return false;
+//        startMoving(world);
+//        expandBoundsAroundAxis(facing.getAxis());
+//        if (sailBlocks < 2)
+//            throw AssemblyException.notEnoughSails(sailBlocks);
+//        if (blocks.isEmpty())
+//            return false;
+//        return true;
+//    }
+
     @Override
     public boolean assemble(Level world, BlockPos pos) throws AssemblyException {
-        BlockPos offset = pos.relative(facing);
-        if (!searchMovedStructure(world, offset, null))
-            return false;
-        startMoving(world);
-        expandBoundsAroundAxis(facing.getAxis());
-        if (sailBlocks < 2)
-            throw AssemblyException.notEnoughSails(sailBlocks);
-        if (blocks.isEmpty())
-            return false;
-        return true;
+        return searchMovedStructure(world, pos, facing);
+    }
+    @Override
+    protected boolean moveBlock(Level world, Direction direction, Queue<BlockPos> frontier,
+                                Set<BlockPos> visited) throws AssemblyException {
+        return super.moveBlock(world, direction, frontier, visited);
+    }
+
+    @Override
+    public boolean searchMovedStructure(Level world, BlockPos pos, Direction direction) throws AssemblyException {
+        return super.searchMovedStructure(world, pos.relative(direction, offset + 1), null);
     }
 
     @Override
     protected ContraptionType getType() {
-        return ContraptionType.BEARING;
+        return ClockWorkContraptions.PROPELLOR;
     }
 
     @Override
     protected boolean isAnchoringBlockAt(BlockPos pos) {
-        return pos.equals(anchor.relative(facing.getOpposite()));
+        return pos.equals(anchor.relative(facing.getOpposite(), offset + 1));
     }
 
     @Override
@@ -66,6 +104,7 @@ public class PropellorContraption extends Contraption {
         CompoundTag tag = super.writeNBT(spawnPacket);
         tag.putInt("Sails", sailBlocks);
         tag.putInt("Facing", facing.get3DDataValue());
+        tag.putInt("Offset", offset);
         return tag;
     }
 
@@ -73,6 +112,7 @@ public class PropellorContraption extends Contraption {
     public void readNBT(Level world, CompoundTag tag, boolean spawnData) {
         sailBlocks = tag.getInt("Sails");
         facing = Direction.from3DDataValue(tag.getInt("Facing"));
+        offset = tag.getInt("Offset");
         super.readNBT(world, tag, spawnData);
     }
 

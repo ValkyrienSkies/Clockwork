@@ -212,9 +212,9 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
 
                     //Drop and re grab the Constraints
 
-                    System.out.println(Location);
-                    System.out.println(Position);
-                    System.out.println();
+//                    System.out.println(Location);
+//                    System.out.println(Position);
+//                    System.out.println();
 
                     delConstraint(level, s.positionConstraintID);
                     // delConstraint(level, s.positionDampeningConstraintID);

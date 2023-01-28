@@ -5,11 +5,13 @@ import com.simibubi.create.foundation.block.ITE;
 import com.simibubi.create.foundation.utility.Couple;
 import com.simibubi.create.foundation.utility.Lang;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -50,21 +52,15 @@ public class PropellorBearingBlock extends BearingBlock implements ITE<Propellor
             return InteractionResult.FAIL;
         if (player.getItemInHand(handIn)
                 .isEmpty()) {
-            if (worldIn.isClientSide) {
+            if (!worldIn.isClientSide) {
                 withTileEntityDo(worldIn, pos, te -> {
-                    if (te.isRunning()) te.startSlowdown();
+                    if (te.running) {
+                        te.shutDown();
+                        return;
+                    }
+                    te.assembleNextTick = true;
                 });
-                return InteractionResult.SUCCESS;
             }
-
-            withTileEntityDo(worldIn, pos, te -> {
-                if (te.isRunning() && !te.isOverStressed()) {
-                    te.startSlowdown();
-                } else if (!te.isRunning() && !te.isOverStressed()) {
-                    te.startSpinup();
-                }
-
-            });
             return InteractionResult.SUCCESS;
         }
         return InteractionResult.PASS;
@@ -78,6 +74,14 @@ public class PropellorBearingBlock extends BearingBlock implements ITE<Propellor
     @Override
     public BlockEntityType<? extends PropellorBearingBlockEntity> getTileEntityType() {
         return ClockWorkBlockEntities.PROPELLOR_BEARING.get();
+    }
+    @Override
+    public boolean hasShaftTowards(LevelReader world, BlockPos pos, BlockState state, net.minecraft.core.Direction face) {
+        return face == state.getValue(FACING).getOpposite();
+    }
+    @Override
+    public net.minecraft.core.Direction.Axis getRotationAxis(BlockState state) {
+        return state.getValue(FACING).getAxis();
     }
 
     public enum Direction implements StringRepresentable {

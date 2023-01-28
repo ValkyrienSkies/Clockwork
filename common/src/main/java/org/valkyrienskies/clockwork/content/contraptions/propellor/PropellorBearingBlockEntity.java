@@ -10,22 +10,32 @@ import com.simibubi.create.content.contraptions.components.structureMovement.bea
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingContraption;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.IBearingTileEntity;
 import com.simibubi.create.foundation.advancement.AllAdvancements;
+import com.simibubi.create.foundation.config.AllConfigs;
 import com.simibubi.create.foundation.tileEntity.behaviour.scrollvalue.ScrollOptionBehaviour;
+import com.simibubi.create.foundation.utility.AngleHelper;
 import com.simibubi.create.foundation.utility.ServerSpeedProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
+import org.joml.Vector3dc;
+import org.joml.Vector3ic;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.stream.IPropStreamSource;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.stream.PropStream;
+import org.valkyrienskies.clockwork.content.forces.PropellorController;
 import org.valkyrienskies.clockwork.platform.api.Propellor;
+import org.valkyrienskies.core.api.ships.LoadedServerShip;
+import org.valkyrienskies.mod.common.VSGameUtilsKt;
+import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,12 +45,13 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
 
     public PropStream propStream;
     public List<BlockPos> sailPositions;
-    protected ScrollOptionBehaviour<PropellorBearingBlockEntityOLD.RotationDirection> movementDirection;
     protected int airCurrentUpdateCooldown;
     protected int entitySearchCooldown;
     protected boolean updateAirFlow;
-    float rotspeed = 0;
-
+    boolean speedChanged = false;
+    float rotspeed;
+    float oldRotspeed;
+    boolean assembleNextTick = false;
     int sails;
     int moddingSpeed;
     boolean slowingDown = false;
@@ -71,50 +82,254 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
             return Mth.lerp(partialTicks + .5f, prevAngle, angle);
         if (movedContraption == null || movedContraption.isStalled() || !running)
             partialTicks = 0;
-        return Mth.lerp(partialTicks, angle, angle + getCurrentSpeed());
+        return Mth.lerp(partialTicks, angle, angle + (rotspeed*3/10f));
     }
-
-    public float getAngularSpeed() {
-        float speed = getSpeed();
-        if (level.isClientSide) {
-            speed *= ServerSpeedProvider.get();
-            speed += clientAngleDiff / 3f;
+    @Override
+    public float getRotspeed() {
+        return rotspeed;
+    }
+    @Override
+    public void tick() {
+        super.tick();
+        boolean server = !level.isClientSide || isVirtual();
+        if (server && airCurrentUpdateCooldown == 0) {
+            airCurrentUpdateCooldown = AllConfigs.SERVER.kinetics.fanBlockCheckRate.get();
+            updateAirFlow = true;
         }
-        return speed;
-    }
+        if (updateAirFlow) {
+            updateAirFlow = false;
+            propStream.rebuild();
+            sendData();
+        }
 
-    public float getCurrentSpeed() {
+        if (entitySearchCooldown-- <= 0) {
+            entitySearchCooldown = 5;
+            propStream.findEntities();
+            propStream.findShips();
+        }
+        oldRotspeed = rotspeed;
         if (spinningUp) {
-            return getSpinupSpeed(rotspeed);
+            modSpinupSpeed();
+        } else if (slowingDown) {
+            modSlowdownSpeed();
+        } else {
+            modSpeed();
         }
 
-        return getAngularSpeed() * speedModifier;
+        if (overStressed) {
+            stressShutdown();
+        }
+
+        if (rotspeed < 0) {
+            setBlockDirection(PropellorBearingBlock.Direction.PULL);
+        } else {
+            setBlockDirection(PropellorBearingBlock.Direction.PUSH);
+        }
+        if (speedChanged) {
+            onRotspeedChanged();
+            speedChanged = false;
+        }
+
+        propStream.tick();
+        prevAngle = angle;
+        if (level.isClientSide)
+            clientAngleDiff /= 2;
+
+        if (!level.isClientSide && assembleNextTick) {
+            assembleNextTick = false;
+            if (!running) {
+                assemble();
+            }
+        }
+
+        if (!running)
+            return;
+
+        if (!(movedContraption != null && movedContraption.isStalled())) {
+            float angularSpeed = getAngularSpeed(rotspeed);
+            float newAngle = angle + (rotspeed*3/10f);
+            angle = (float) (newAngle % 360);
+        }
+
+        applyRotation();
+
+        if (physPropId != null) {
+            if (server) {
+                final LoadedServerShip ship = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, getBlockPos());
+                if (ship != null) {
+                    final PropellorUpdatePhysData data = new PropellorUpdatePhysData(rotspeed, angle);
+                    PropellorController.getOrCreate(ship).updatePropellor(physPropId, data);
+                }
+            }
+        }
     }
 
-    public float getSpinupSpeed(float spinupSpeed) {
+    private void modSpeed() {
+        if (movedContraption == null) {
+            return;
+        }
+        if (rotspeed == speed) {
+            return;
+        }
+//        if ((int) getSourceSpeed() == 0 && (int) speed == 0) {
+//            speed = 0;
+//            return;
+//        }
+        float diff = speed - rotspeed;
+        rotspeed = rotspeed + Mth.clamp(diff / 10, -32, 32);
+//        float delta = Mth.clamp(, lastSpeed, 10)
+        //rotspeed = (float) Mth.lerp(delta, lastSpeed, targetSpeed);
+        updateAirFlow = true;
+    }
+
+    private void modSlowdownSpeed() {
+        disassembling--;
+        if (disassembling <= 0) {
+            if (!level.isClientSide) {
+                disassemble();
+            }
+            slowingDown = false;
+            return;
+        }
+
+        float stoppingPoint = (angle + rotspeed * disassembling * 0.5f);
+        float optimalStoppingPoint = 90f * Math.round(stoppingPoint / 90f);
+        float Q = (optimalStoppingPoint - stoppingPoint) / disassembling;
+        rotspeed = (rotspeed + 6f * Q / disassembling) * (1f - 1f / disassembling);
+        updateAirFlow = true;
+    }
+
+    public float getSourceSpeed() {
+        if (source == null || level == null) {
+            return 0;
+        }
+        BlockEntity tileEnt = level.getBlockEntity(source);
+        KineticTileEntity sourceTe = tileEnt instanceof KineticTileEntity ? (KineticTileEntity) tileEnt : null;
+        if (sourceTe == null || sourceTe.getSpeed() == 0) {
+            return 0;
+        } else {
+            return sourceTe.getSpeed();
+        }
+    }
+
+    private void modSpinupSpeed() {
         if (level.isClientSide) {
-            return spinupSpeed;
+            return;
         }
         spinup--;
-        if (spinupSpeed >= speed) {
+        if (Math.abs(rotspeed) >= Math.abs(speed)) {
             spinningUp = false;
-            if (spinupSpeed > speed) {
-                spinupSpeed = speed;
+            if (Math.abs(rotspeed) > Math.abs(speed)) {
+                rotspeed = speed;
             }
-            return spinupSpeed;
+            return;
         }
 
 //            float time = 1f - (spinup / 20f);
 //            float Q = (rotspeed + (targetSpeed - rotspeed)) * time;
         float startingPoint = (angle + speed * spinup * 0.5f);
         float Q = (startingPoint) / spinup;
-        spinupSpeed = (spinupSpeed + 6f * Q / spinup) * (1f - 1f / spinup);
-        return spinupSpeed;
+        rotspeed = (rotspeed + 6f * Q / spinup) * (1f - 1f / spinup);
+        updateAirFlow = true;
     }
 
-    public float getSlowdownSpeed(float slowdownSpeed) {
-        return slowdownSpeed;
+    @Override
+    public float calculateStressApplied() {
+        if (!running)
+            return 0;
+        if (movedContraption != null) {
+            sails = ((PropellorContraption) movedContraption.getContraption()).getSailBlocks();
+        }
+        sails = Math.max(sails, 2);
+        if (speed != 0) {
+            return (sails * 2.0f * rotspeed)/speed;
+        }
+        return 0;
     }
+
+    public float getAngularSpeed(float angSpeed) {
+        if (level.isClientSide) {
+            angSpeed *= ServerSpeedProvider.get();
+            angSpeed += clientAngleDiff / 3f;
+        }
+        return angSpeed;
+    }
+
+//    public float getCurrentSpeed() {
+//        float transitionSpeed = rotspeed;
+//        if (spinningUp) {
+//            transitionSpeed = getSpinupSpeed(transitionSpeed);
+//            return transitionSpeed;
+//        }
+//        if (slowingDown) {
+//            transitionSpeed = getSlowdownSpeed(transitionSpeed);
+//            return transitionSpeed;
+//        }
+//        if (transitionSpeed != speed) {
+//            float diff = speed - transitionSpeed;
+//            transitionSpeed = transitionSpeed + Mth.clamp(diff / 10f, -32f, 32f);
+////        float delta = Mth.clamp(, lastSpeed, 10)
+//            //rotspeed = (float) Mth.lerp(delta, lastSpeed, targetSpeed);
+//            if ((int) diff == 0) {
+//                transitionSpeed = speed;
+//            }
+//            return transitionSpeed;
+//        }
+//
+//        return transitionSpeed;
+//    }
+
+//    public float getSpinupSpeed(float spinupSpeed) {
+//        if (level.isClientSide) {
+//            return spinupSpeed;
+//        }
+//        spinup--;
+//        if (spinupSpeed >= speed) {
+//            spinningUp = false;
+//            if (spinupSpeed > speed) {
+//                spinupSpeed = speed;
+//            }
+//            return spinupSpeed;
+//        }
+//
+////            float time = 1f - (spinup / 20f);
+////            float Q = (rotspeed + (targetSpeed - rotspeed)) * time;
+//        float startingPoint = (angle + spinupSpeed * spinup * 0.5f);
+//        float Q = (startingPoint) / spinup;
+//        spinupSpeed = (spinupSpeed + 6f * Q / spinup) * (1f - 1f / spinup);
+//        return spinupSpeed;
+//    }
+//
+//    public float getSlowdownSpeed(float slowdownSpeed) {
+//        disassembling--;
+//        if (((int) slowdownSpeed) == 0 && disassembling <= 0 || disassembling == 0) {
+//            if (!level.isClientSide) {
+//                disassemble();
+//            }
+//            slowingDown = false;
+//            return slowdownSpeed;
+//        }
+//
+//        float stoppingPoint = (angle + slowdownSpeed * disassembling * 0.5f);
+//        float optimalStoppingPoint = 90f * Math.round(stoppingPoint / 90f);
+//        float Q = (optimalStoppingPoint - stoppingPoint) / disassembling;
+//        slowdownSpeed = (slowdownSpeed + 6f * Q / disassembling) * (1f - 1f / disassembling);
+//        return slowdownSpeed;
+//    }
+
+//    protected void applyRotation() {
+//        BlockState blockState = getBlockState();
+//        Direction.Axis axis = Direction.Axis.X;
+//
+//        if (blockState.hasProperty(PropellorBearingBlock.FACING))
+//            axis = blockState.getValue(PropellorBearingBlock.FACING)
+//                    .getAxis();
+//
+//        if (movedContraption != null) {
+//            movedContraption.setAngle(angle);
+//            movedContraption.setRotationAxis(axis);
+//        }
+//    }
 
     protected void applyRotation() {
         if (movedContraption == null)
@@ -126,30 +341,67 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
                     .getAxis());
     }
 
+
     @Override
     public void write(CompoundTag compound, boolean clientPacket) {
-        compound.putFloat("RotationSpeed", rotspeed);
+        compound.putFloat("Rotspeed", rotspeed);
+        compound.putBoolean("Running", running);
+        compound.putFloat("Angle", angle);
+        AssemblyException.write(compound, lastException);
         super.write(compound, clientPacket);
     }
 
     @Override
     protected void read(CompoundTag compound, boolean clientPacket) {
-        rotspeed = compound.getFloat("RotationSpeed");
+        float angleBefore = angle;
+        rotspeed = compound.getFloat("Rotspeed");
+        running = compound.getBoolean("Running");
+        angle = compound.getFloat("Angle");
+        lastException = AssemblyException.read(compound);
         super.read(compound, clientPacket);
+
+        if (!clientPacket)
+            return;
+
+        if (running) {
+            clientAngleDiff = AngleHelper.getShortestAngleDiff(angleBefore, angle);
+            angle = angleBefore;
+        } else {
+            movedContraption = null;
+        }
     }
+
+//    @Override
+//    public void attach(ControlledContraptionEntity contraption) {
+//        BlockState blockState = getBlockState();
+//        if (!(contraption.getContraption() instanceof PropellorContraption))
+//            return;
+//        if (!blockState.hasProperty(BearingBlock.FACING))
+//            return;
+//
+//        this.movedContraption = contraption;
+//        setChanged();
+//        BlockPos anchor = worldPosition.relative(blockState.getValue(BearingBlock.FACING));
+//        movedContraption.setPos(anchor.getX(), anchor.getY(), anchor.getZ());
+//        if (!level.isClientSide) {
+//            this.running = true;
+//            sendData();
+//        }
+//    }
+
 
     @Override
     public void attach(ControlledContraptionEntity contraption) {
-        BlockState blockState = getBlockState();
-        if (!(contraption.getContraption() instanceof PropellorContraption))
-            return;
-        if (!blockState.hasProperty(BearingBlock.FACING))
+        if (!(contraption.getContraption() instanceof PropellorContraption cc))
             return;
 
-        this.movedContraption = contraption;
         setChanged();
-        BlockPos anchor = worldPosition.relative(blockState.getValue(BearingBlock.FACING));
+        Direction facing = getBlockState().getValue(PropellorBearingBlock.FACING);
+        BlockPos anchor = worldPosition.relative(facing, cc.offset + 1);
+
+        this.movedContraption = contraption;
         movedContraption.setPos(anchor.getX(), anchor.getY(), anchor.getZ());
+
         if (!level.isClientSide) {
             this.running = true;
             sendData();
@@ -194,9 +446,8 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
         }
     }
 
-    @Override
     public void setAngle(float forcedAngle) {
-
+        angle = forcedAngle;
     }
 
     @Override
@@ -221,7 +472,7 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
 
     @Override
     public Direction getStreamOriginSide() {
-        return this.getBlockState().getValue(PropellorBearingBlock.FACING);
+        return this.getBlockState().getValue(BlockStateProperties.FACING);
     }
 
     @Override
@@ -320,45 +571,76 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
 
     public void assemble() {
         if (!(level.getBlockState(worldPosition)
-                .getBlock() instanceof BearingBlock))
+                .getBlock() instanceof PropellorBearingBlock))
             return;
 
-        Direction direction = getBlockState().getValue(BearingBlock.FACING);
-        PropellorContraption contraption = new PropellorContraption(direction);
-        try {
-            if (!contraption.assemble(level, worldPosition))
-                return;
+        Direction direction = getBlockState().getValue(PropellorBearingBlock.FACING);
+        PropellorContraption contraption;
 
+        try {
+            contraption = PropellorContraption.assembleProp(level, worldPosition, direction);
             lastException = null;
         } catch (AssemblyException e) {
             lastException = e;
             sendData();
             return;
         }
+        speedChanged = rotSpeedChanged();
+        if (contraption == null)
+            return;
+        if (contraption.getBlocks()
+                .isEmpty())
+            return;
+        BlockPos anchor = worldPosition.relative(direction);
 
         contraption.removeBlocksFromWorld(level, BlockPos.ZERO);
         movedContraption = ControlledContraptionEntity.create(level, this, contraption);
-        BlockPos anchor = worldPosition.relative(direction);
         movedContraption.setPos(anchor.getX(), anchor.getY(), anchor.getZ());
         movedContraption.setRotationAxis(direction.getAxis());
         level.addFreshEntity(movedContraption);
 
         AllSoundEvents.CONTRAPTION_ASSEMBLE.playOnServer(level, worldPosition);
 
-        if (contraption.containsBlockBreakers())
-            award(AllAdvancements.CONTRAPTION_ACTORS);
-
         running = true;
         angle = 0;
+        rotspeed = 0;
         spinningUp = true;
-        spinup = speed;
+        spinup = (int) Math.abs(speed);
+        getSails();
+        List<Vector3ic> sailVecs = sailPositions.stream().map(v -> (Vector3ic) VectorConversionsMCKt.toJOML(v)).toList();
+        Vector3dc axis = VectorConversionsMCKt.toJOMLD(getBlockState().getValue(BlockStateProperties.FACING).getNormal());
+        Vector3dc vecpos = VectorConversionsMCKt.toJOMLD(getBlockPos());
+        PropellorCreatePhysData data = new PropellorCreatePhysData(vecpos, axis, angle, rotspeed, sailVecs);
+
+        if (!level.isClientSide) {
+            final LoadedServerShip ship = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, getBlockPos());
+            if (ship != null) {
+                physPropId = PropellorController.getOrCreate(ship).addPropellor(data);
+            }
+        }
         sendData();
     }
 
+    @Override
+    public void lazyTick() {
+        super.lazyTick();
+        if (movedContraption != null && !level.isClientSide)
+            sendData();
+    }
+
+    public void shutDown() {
+        slowingDown = true;
+        disassembling = (int) Math.abs(rotspeed);
+        spinningUp = false;
+        spinup = 0;
+    }
     public void disassemble() {
         if (!running && movedContraption == null)
             return;
+        rotspeed = 0;
         angle = 0;
+        slowingDown = false;
+        disassembling = 0;
         if (movedContraption != null) {
             movedContraption.disassemble();
             AllSoundEvents.CONTRAPTION_DISASSEMBLE.playOnServer(level, worldPosition);
@@ -366,6 +648,14 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
 
         movedContraption = null;
         running = false;
+        if (physPropId != null) {
+            if (!level.isClientSide) {
+                final LoadedServerShip ship = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, getBlockPos());
+                if (ship != null) {
+                    PropellorController.getOrCreate(ship).removePropellor(physPropId);
+                }
+            }
+        }
         sendData();
     }
 
@@ -376,9 +666,19 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
 
     @Override
     public boolean isPropellor() {
+        return true;
+    }
+    public boolean rotSpeedChanged() {
+        if (rotspeed != oldRotspeed) {
+            return true;
+        }
         return false;
     }
 
+    @Override
+    public void onRotspeedChanged() {
+        updateAirFlow = true;
+    }
     @Override
     public void onSpeedChanged(float prevSpeed) {
         super.onSpeedChanged(prevSpeed);
@@ -387,22 +687,26 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
 
     @Override
     public boolean isAttachedTo(AbstractContraptionEntity contraption) {
-        return false;
+        if (!(contraption.getContraption() instanceof PropellorContraption cc))
+            return false;
+
+        return this.movedContraption == contraption;
     }
 
 
     @Override
     public void onStall() {
-
+        if (!level.isClientSide)
+            sendData();
     }
 
     @Override
     public boolean isValid() {
-        return false;
+        return !isRemoved();
     }
 
     @Override
     public BlockPos getBlockPosition() {
-        return null;
+        return worldPosition;
     }
 }

@@ -15,6 +15,7 @@ import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserR
 import org.valkyrienskies.clockwork.content.contraptions.intake.IntakeBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.intake.IntakeRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingBlockEntity;
+import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.resistor.RedstoneResistorBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.resistor.RedstoneResistorRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatBlockEntity;
@@ -27,9 +28,9 @@ public class ClockWorkBlockEntities {
     // Kinetics
     public static final BlockEntityEntry<PropellorBearingBlockEntity> PROPELLOR_BEARING = REGISTRATE
             .tileEntity("propellor_bearing", PropellorBearingBlockEntity::new)
-            .instance(() -> BearingInstance::new)
+//            .instance(() -> BearingInstance::new)
             .validBlocks(ClockWorkBlocks.PROPELLOR_BEARING)
-            .renderer(() -> BearingRenderer::new)
+            .renderer(() -> PropellorBearingRenderer::new)
             .register();
 
     public static final BlockEntityEntry<AfterblazerBlockEntity> AFTERBLAZER = REGISTRATE

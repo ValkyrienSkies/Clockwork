@@ -22,6 +22,8 @@ public interface IPropStreamSource {
     BlockPos getStreamPos();
 
     float getSpeed();
+    float getRotspeed();
+    void onRotspeedChanged();
 
     Direction getStreamOriginSide();
 
