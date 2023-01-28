@@ -48,7 +48,7 @@ public abstract class MixinAirFlowParticle extends SimpleAnimatedParticle {
     @Redirect(method = "tick", at = @At(
         value = "INVOKE",
         target = "Lnet/minecraft/world/phys/AABB;contains(DDD)Z"
-    ), remap = false)
+    ))
     private boolean redirectBounds(AABB instance, double x, double y, double z) {
         AirCurrent current = source.getAirCurrent();
         Level level = source.getAirCurrentWorld();
