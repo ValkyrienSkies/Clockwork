@@ -46,15 +46,21 @@ public class RedstoneResistorBlock extends AbstractEncasedShaftBlock implements 
     }
 
     @Override
-    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos,
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block blockIn, BlockPos fromPos,
                                 boolean isMoving) {
-        if (worldIn.isClientSide)
+        if (level.isClientSide)
             return;
 
+        int redstone = level.getBestNeighborSignal(pos);
+
         boolean previouslyPowered = state.getValue(POWERED);
-        if (previouslyPowered != worldIn.hasNeighborSignal(pos)) {
-            detachKinetics(worldIn, pos, true);
-            worldIn.setBlock(pos, state.cycle(POWERED), 2);
+        if (previouslyPowered != (redstone > 0)) {
+            level.setBlock(pos, state.cycle(POWERED), 2);
+        }
+
+        BlockEntity te = level.getBlockEntity(pos);
+        if (te instanceof RedstoneResistorBlockEntity resistor) {
+            resistor.onRedstoneUpdate(redstone);
         }
     }
 
@@ -66,17 +72,6 @@ public class RedstoneResistorBlock extends AbstractEncasedShaftBlock implements 
     @Override
     public BlockEntityType<? extends SplitShaftTileEntity> getTileEntityType() {
         return ClockWorkBlockEntities.REDSTONE_RESISTOR.get();
-    }
-
-    public void detachKinetics(Level worldIn, BlockPos pos, boolean reAttachNextTick) {
-        BlockEntity te = worldIn.getBlockEntity(pos);
-        if (te == null || !(te instanceof KineticTileEntity))
-            return;
-        RotationPropagator.handleRemoved(worldIn, pos, (KineticTileEntity) te);
-
-        // Re-attach next tick
-        if (reAttachNextTick)
-            worldIn.scheduleTick(pos, this, 0, TickPriority.EXTREMELY_HIGH);
     }
 
     @Override
