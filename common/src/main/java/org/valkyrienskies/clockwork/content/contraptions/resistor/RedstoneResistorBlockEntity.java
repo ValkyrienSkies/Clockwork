@@ -3,7 +3,6 @@ package org.valkyrienskies.clockwork.content.contraptions.resistor;
 import com.simibubi.create.content.contraptions.RotationPropagator;
 import com.simibubi.create.content.contraptions.base.KineticTileEntity;
 import com.simibubi.create.content.contraptions.goggles.IHaveGoggleInformation;
-import com.simibubi.create.content.contraptions.relays.advanced.sequencer.SequencedGearshiftBlock;
 import com.simibubi.create.content.contraptions.relays.encased.SplitShaftTileEntity;
 import com.simibubi.create.foundation.utility.Iterate;
 import com.simibubi.create.foundation.utility.Lang;
@@ -23,6 +22,7 @@ import java.util.List;
 public class RedstoneResistorBlockEntity extends SplitShaftTileEntity implements IHaveGoggleInformation {
 
     int redstoneLevel = 0;
+    int lastChange;
 
     public RedstoneResistorBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -31,19 +31,28 @@ public class RedstoneResistorBlockEntity extends SplitShaftTileEntity implements
     public int getRedstoneLevel() {
         return redstoneLevel;
     }
+    @Override
+    public void tick() {
+        super.tick();
+        lastChange = redstoneLevel;
+        redstoneLevel = getPower(level, worldPosition);
 
-    public void onRedstoneUpdate(int redstoneLevel) {
-        if (redstoneLevel == this.redstoneLevel) return;
+        if (redstoneLevel != lastChange) {
+            detachKinetics();
+        }
+    }
+    @Override
+    public void detachKinetics() {
+        RotationPropagator.handleRemoved(level, worldPosition, this);
 
-        this.redstoneLevel = redstoneLevel;
-
-        this.setChanged();
-        this.detachKinetics();
+        // Re-attach next tick
+        level.scheduleTick(worldPosition, getBlockState().getBlock(), 0, TickPriority.EXTREMELY_HIGH);
     }
 
     @Override
     public void write(CompoundTag compound, boolean clientPacket) {
         compound.putInt("RedstoneLevel", redstoneLevel);
+        compound.putInt("ChangeTimer", lastChange);
         super.write(compound, clientPacket);
     }
 
@@ -51,17 +60,28 @@ public class RedstoneResistorBlockEntity extends SplitShaftTileEntity implements
     @Override
     protected void read(CompoundTag compound, boolean clientPacket) {
         redstoneLevel = compound.getInt("RedstoneLevel");
+        lastChange = compound.getInt("ChangeTimer");
         super.read(compound, clientPacket);
+    }
+
+    private int getPower(Level worldIn, BlockPos pos) {
+        int power = 0;
+        for (Direction direction : Iterate.directions)
+            power = Math.max(worldIn.getSignal(pos.relative(direction), direction), power);
+        for (Direction direction : Iterate.directions)
+            power = Math.max(worldIn.getSignal(pos.relative(direction), Direction.UP), power);
+        return power;
     }
 
     @Override
     public float getRotationSpeedModifier(Direction face) {
-        if (isVirtual())
-            return 1;
-        if (!hasSource() || face == getSourceFacing())
-            return 1;
-
-        return (Math.abs(redstoneLevel-15))/15f;
+        if (hasSource()) {
+            if (face != getSourceFacing()) {
+                float power = (Math.abs(redstoneLevel-15))/15f;
+                return power;
+            }
+        }
+        return 1;
     }
 
     @Override
