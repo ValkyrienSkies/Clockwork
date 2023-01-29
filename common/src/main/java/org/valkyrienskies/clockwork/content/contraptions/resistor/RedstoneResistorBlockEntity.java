@@ -39,6 +39,7 @@ public class RedstoneResistorBlockEntity extends SplitShaftTileEntity implements
 
         this.setChanged();
         this.detachKinetics();
+        this.attachKinetics();
     }
 
     @Override
