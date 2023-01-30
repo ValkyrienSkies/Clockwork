@@ -82,6 +82,8 @@ jobs:
     steps:
       # Checkout repo
       - checkout_and_cache
+      # Run build twice because proguard obfuscation code is a little weird
+      - run: "./gradlew build --no-daemon --stacktrace"
       # Run build
       - run:
           name: "Build"
@@ -94,6 +96,8 @@ jobs:
     steps:
       # Checkout repo
       - checkout_and_cache
+      # Run build twice because proguard obfuscation code is a little weird
+      - run: "./gradlew build --no-daemon --stacktrace"
       # Run build
       - run:
           name: "Build"
@@ -103,6 +107,8 @@ jobs:
     steps:
       - checkout_and_cache
       - run: echo 'export ORG_GRADLE_PROJECT_CustomReleaseVersion=${CIRCLE_TAG}' >> "$BASH_ENV"
+      # Run build twice because proguard obfuscation code is a little weird
+      - run: "./gradlew build --no-daemon --stacktrace"
       - run:
           command: "./gradlew build modrinth curseforge --no-daemon --stacktrace --continue"
   notify_playtesters:
