@@ -146,6 +146,7 @@ tasks.register('proguardJar', ProGuardTask) {
     repackageclasses 'org.valkyrienskies.clockwork'
     allowaccessmodification()
     ignorewarnings()
+    optimizationpasses(5)
 
     // Automatically handle the Java version of this build.
     if (System.getProperty('java.version').startsWith('1.')) {
