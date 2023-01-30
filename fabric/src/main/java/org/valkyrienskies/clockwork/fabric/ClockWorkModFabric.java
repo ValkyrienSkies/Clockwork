@@ -1,10 +1,12 @@
 package org.valkyrienskies.clockwork.fabric;
 
 import com.terraformersmc.modmenu.api.ModMenuApi;
+import io.github.fabricators_of_create.porting_lib.event.client.MouseButtonCallback;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import org.valkyrienskies.clockwork.*;
@@ -73,14 +75,21 @@ public class ClockWorkModFabric implements ModInitializer {
             ClockWorkParticles.initClient();
             FabricClockworkParticles.initClient();
 
-            ClockworkClientEvents.register();
+            registerClientEvents();
+            registerClientEvents();
             FabricClockworkClientEvents.register();
-            ClockworkInputEvents.register();
             FabricClockworkInputEvents.register();
             ShaderLoader.init();
         }
 
+        public static void registerClientEvents() {
+            ClientTickEvents.END_CLIENT_TICK.register(ClockworkClientEvents::onTick);
+            ClientTickEvents.START_CLIENT_TICK.register(ClockworkClientEvents::onTickStart);
+        }
 
+        public static void registerInputEvents() {
+            MouseButtonCallback.EVENT.register(ClockworkInputEvents::onClickInputCW);
+        }
     }
 
     public static class ModMenu implements ModMenuApi {

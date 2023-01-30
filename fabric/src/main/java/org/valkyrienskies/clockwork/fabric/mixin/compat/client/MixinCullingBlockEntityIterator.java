@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.mixin.compat.client;
+package org.valkyrienskies.clockwork.fabric.mixin.compat.client;
 
 import io.github.fabricators_of_create.porting_lib.block.CullingBlockEntityIterator;
 import net.minecraft.client.Minecraft;

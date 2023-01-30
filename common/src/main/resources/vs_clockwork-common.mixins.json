@@ -37,7 +37,6 @@
     "compat.client.MixinContraptionHandlerClient",
     "compat.client.MixinContraptionRenderDispatcher",
     "compat.client.MixinContraptionRenderInfo",
-    "compat.client.MixinCullingBlockEntityIterator",
     "compat.client.MixinFilteringRenderer",
     "compat.client.MixinGhostBlockRenderer",
     "compat.client.MixinLinkRenderer",

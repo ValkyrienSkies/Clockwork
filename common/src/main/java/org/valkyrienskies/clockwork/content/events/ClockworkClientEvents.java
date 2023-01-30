@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.events;
 
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.stream.PropStream;
@@ -25,8 +24,5 @@ public class ClockworkClientEvents {
 //        ClockWorkMod.Client.GRAVITRON_HANDLER.tick();
     }
 
-    public static void register() {
-        ClientTickEvents.END_CLIENT_TICK.register(ClockworkClientEvents::onTick);
-        ClientTickEvents.START_CLIENT_TICK.register(ClockworkClientEvents::onTickStart);
-    }
+
 }
