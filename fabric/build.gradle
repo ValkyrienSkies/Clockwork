@@ -1,3 +1,16 @@
+import proguard.gradle.ProGuardTask
+
+import java.util.stream.Stream
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.guardsquare:proguard-gradle:7.3.1'
+    }
+}
+
 plugins {
     id "com.github.johnrengelman.shadow" version "7.1.2"
 }
@@ -107,10 +120,59 @@ shadowJar {
     classifier "dev-shadow"
 }
 
+def proguardOutputDir = project.rootDir.toString() + '/fabric/build/libs'
+def proguardOutput = file(proguardOutputDir + '/clockwork-dev-shadow-obf.jar')
+def proguardMap = file(proguardOutputDir + '/proguard.map')
+
+tasks.register('proguardJar', ProGuardTask) {
+    dependsOn shadowJar
+
+    injars(shadowJar.archiveFile)
+    outjars(proguardOutput)
+    printmapping(proguardMap)
+
+    def compileJars = configurations.compileClasspath.toList().stream().filter {
+        it.toString().contains('org.joml') ||
+                it.toString().contains('dev.architectury') ||
+                it.toString().contains('com.llamalad7.mixinextras')
+    }
+    def runtimeJars = configurations.runtimeClasspath.toList().stream()
+
+    def jars = Stream.concat(compileJars, runtimeJars).distinct().toList()
+
+    libraryjars(jars)
+
+    overloadaggressively()
+    repackageclasses 'org.valkyrienskies.clockwork'
+    allowaccessmodification()
+    ignorewarnings()
+
+    // Automatically handle the Java version of this build.
+    if (System.getProperty('java.version').startsWith('1.')) {
+        // Before Java 9, the runtime classes were packaged in a single jar file.
+        libraryjars "${System.getProperty('java.home')}/lib/rt.jar"
+    } else {
+        // As of Java 9, the runtime classes are packaged in modular jmod files.
+        libraryjars "${System.getProperty('java.home')}/jmods/java.base.jmod", jarfilter: '!**.jar', filter: '!module-info.class'
+        libraryjars "${System.getProperty('java.home')}/jmods/java.sql.jmod", jarfilter: '!**.jar', filter: '!module-info.class'
+        //libraryjars "${System.getProperty('java.home')}/jmods/....."
+    }
+
+    keep 'public class org.valkyrienskies.clockwork.forge.ClockWorkModForge { *; }'
+    keep '@org.spongepowered.asm.mixin.Mixin class * { *; }'
+    keep 'class * implements org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin'
+    keepclassmembers 'enum * {\n' +
+            '    <fields>;\n' +
+            '    public static **[] values();\n' +
+            '    public static ** valueOf(java.lang.String);\n' +
+            '}'
+    keepattributes '*Annotation*'
+}
+
 remapJar {
     injectAccessWidener = true
-    input.set shadowJar.archiveFile
-    dependsOn shadowJar
+    input.set(proguardOutput)
+    dependsOn('proguardJar')
     classifier null
 }
 
