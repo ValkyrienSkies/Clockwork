@@ -28,11 +28,13 @@
     "compat.packets.MixinTileEntityConfigurationPacket",
     "compat.packets.MixinTrainRelocationPacket",
     "compat.pr.MixinSeatBlock",
-    "compat.pr.MixinTrackNodeLocation",
     "content.propellor.MixinBearingContraption",
     "content.vs_contraptions.MixinMechanicalBearingTileEntity"
   ],
   "client": [
+    "compat.client.MixinCogwheelBlockItem",
+    "compat.client.MixinCogwheelBlockItemHitOnShaft",
+    "compat.client.MixinMultiplePlacementHelpers",
     "compat.client.MixinCarriageContraptionInstance",
     "compat.client.MixinContraptionHandlerClient",
     "compat.client.MixinContraptionRenderDispatcher",
@@ -43,6 +45,7 @@
     "compat.client.MixinMinecartInstance",
     "compat.client.MixinOrientedContraptionEntity",
     "compat.client.MixinOutline",
+    "compat.client.MixinPlacementHelpers",
     "compat.client.MixinSoundScapes",
     "compat.client.MixinTileEntityRenderHelper",
     "compat.client.MixinTrackBlockOutline",
