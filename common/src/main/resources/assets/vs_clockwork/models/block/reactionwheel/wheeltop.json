@@ -1,0 +1,6 @@
+{
+  "parent": "vs_clockwork:block/reactionwheel/wheel",
+  "loader": "forge:obj",
+  "flip-v": true,
+  "model": "vs_clockwork:block/reactionwheel/wheeltop.obj"
+}

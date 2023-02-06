@@ -16,6 +16,8 @@ import org.valkyrienskies.clockwork.content.contraptions.intake.IntakeBlockEntit
 import org.valkyrienskies.clockwork.content.contraptions.intake.IntakeRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingRenderer;
+import org.valkyrienskies.clockwork.content.contraptions.reaction_wheel.ReactionWheelBlockEntity;
+import org.valkyrienskies.clockwork.content.contraptions.reaction_wheel.ReactionWheelRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.resistor.RedstoneResistorBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.resistor.RedstoneResistorRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatBlockEntity;
@@ -79,6 +81,14 @@ public class ClockWorkBlockEntities {
             .tileEntity("redstone_resistor", RedstoneResistorBlockEntity::new)
             .validBlocks(ClockWorkBlocks.REDSTONE_RESISTOR)
             .renderer(() -> RedstoneResistorRenderer::new)
+            .register();
+
+    //REACTION WHEEL
+
+    public static final BlockEntityEntry<ReactionWheelBlockEntity> REACTIONWHEEL = REGISTRATE
+            .tileEntity("reaction_wheel", ReactionWheelBlockEntity::new)
+            .validBlocks(ClockWorkBlocks.REACTIONWHEEL)
+            .renderer(() -> ReactionWheelRenderer::new)
             .register();
 
     public static void register() {

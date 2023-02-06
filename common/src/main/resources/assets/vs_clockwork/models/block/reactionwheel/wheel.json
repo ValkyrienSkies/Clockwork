@@ -1,0 +1,10 @@
+{
+  "parent": "block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "0": "vs_clockwork:block/reactionwheel",
+    "1": "vs_clockwork:block/reactionwheelmid",
+    "2": "vs_clockwork:block/reactionwheelspokes",
+    "particle": "create:block/axis"
+  }
+}

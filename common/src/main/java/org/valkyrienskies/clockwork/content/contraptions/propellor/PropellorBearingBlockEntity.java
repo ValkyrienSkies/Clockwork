@@ -347,6 +347,9 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
         compound.putFloat("Rotspeed", rotspeed);
         compound.putBoolean("Running", running);
         compound.putFloat("Angle", angle);
+        if (physPropId != null) {
+            compound.putInt("ID", physPropId);
+        }
         AssemblyException.write(compound, lastException);
         super.write(compound, clientPacket);
     }
@@ -358,6 +361,7 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
         running = compound.getBoolean("Running");
         angle = compound.getFloat("Angle");
         lastException = AssemblyException.read(compound);
+        physPropId = compound.contains("ID") ? compound.getInt("ID") : null;
         super.read(compound, clientPacket);
 
         if (!clientPacket)

@@ -14,6 +14,7 @@ import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock;
 import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserBlock;
 import org.valkyrienskies.clockwork.content.contraptions.intake.IntakeBlock;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingBlock;
+import org.valkyrienskies.clockwork.content.contraptions.reaction_wheel.ReactionWheelBlock;
 import org.valkyrienskies.clockwork.content.contraptions.resistor.RedstoneResistorBlock;
 import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatBlock;
 import org.valkyrienskies.clockwork.content.physicalities.motion.wing.FlapBlock;
@@ -76,7 +77,20 @@ public class ClockWorkBlocks {
                     .transform(ModelGen.customItemModel("intake", "item"))
                     .register();
 
-    //////// Propellor Bearing ////////
+    ////////  REACTION WHEEL ///////
+
+    public static final BlockEntry<ReactionWheelBlock> REACTIONWHEEL =
+            REGISTRATE.block("reactionwheel", ReactionWheelBlock::new)
+                    .transform(axeOrPickaxe())
+                    .properties(p -> p.color(MaterialColor.COLOR_ORANGE))
+                    .properties(BlockBehaviour.Properties::noOcclusion)
+                    .addLayer(() -> RenderType::cutoutMipped)
+                    .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+                    .item()
+                    .transform(ModelGen.customItemModel("reactionwheel", "item"))
+                    .register();
+
+
 
     /////// Ballooner ////////
 

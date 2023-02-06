@@ -33,7 +33,6 @@ import org.valkyrienskies.clockwork.ClockWorkParticles;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlock.EngineHeatLevel;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlock;
 import org.valkyrienskies.clockwork.content.forces.AfterblazerController;
-import org.valkyrienskies.clockwork.content.forces.IntakeController;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
@@ -138,7 +137,7 @@ public class AfterblazerBlockEntity extends SmartTileEntity {
                 }
                 if (this.isRemoved()) {
                     if (afterblazerID != null) {
-                        IntakeController.getOrCreate(ship).removeIntake(afterblazerID);
+                        AfterblazerController.getOrCreate(ship).removeAfterblazer(afterblazerID);
                         afterblazerID = null;
                         alreadyAdded = false;
                     }
@@ -250,6 +249,9 @@ public class AfterblazerBlockEntity extends SmartTileEntity {
                 compound.putBoolean("Goggles", true);
             if (hat)
                 compound.putBoolean("TrainHat", true);
+            if (afterblazerID != null) {
+                compound.putInt("ID", afterblazerID);
+            }
             super.write(compound, clientPacket);
         }
 
@@ -260,6 +262,7 @@ public class AfterblazerBlockEntity extends SmartTileEntity {
             isCreative = compound.getBoolean("isCreative");
             goggles = compound.contains("Goggles");
             hat = compound.contains("TrainHat");
+            afterblazerID = compound.contains("ID") ? compound.getInt("ID") : null;
             super.read(compound, clientPacket);
         }
 

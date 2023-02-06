@@ -1,0 +1,8 @@
+# Made in Blockbench 4.6.4
+newmtl m_0
+map_Kd reactionwheel.png 
+newmtl m_1
+map_Kd reactionwheelmid.png 
+newmtl m_2
+map_Kd reactionwheelspokes.png 
+newmtl none

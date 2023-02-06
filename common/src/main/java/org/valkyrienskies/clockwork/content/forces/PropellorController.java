@@ -30,8 +30,6 @@ public class PropellorController implements ShipForcesInducer {
 
     private int nextPropID = 0;
 
-    public Pair<Vector3d, Vector3d> lastForceNTorque;
-
     @Override
     public void applyForces(@NotNull PhysShip physShip) {
         while (!createdProps.isEmpty()) {
@@ -67,7 +65,6 @@ public class PropellorController implements ShipForcesInducer {
             Pair<Vector3dc, Vector3dc> forceTorque = computeForce(physShip.getTransform(), physData, ((PhysShipImpl) physShip).getPoseVel().getVel(), ((PhysShipImpl) physShip).getPoseVel().getOmega());
             netForce.add(forceTorque.left());
             netTorque.add(forceTorque.right());
-            lastForceNTorque = Pair.of(netForce, netTorque);
         }
 
         if (netForce.isFinite() && netTorque.isFinite()) {
@@ -127,10 +124,6 @@ public class PropellorController implements ShipForcesInducer {
         } else {
             return 0.0;
         }
-    }
-
-    public Pair<Vector3d, Vector3d> getLastForceNTorque() {
-        return lastForceNTorque;
     }
 
     private double exhaustVelocity(Vector3dc posRelBearing, Vector3dc omega) {
