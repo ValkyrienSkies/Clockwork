@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.phys.Vec3;
 import org.valkyrienskies.clockwork.ClockWorkPartials;
 
 public class ReactionWheelRenderer extends KineticTileEntityRenderer {
@@ -46,13 +47,20 @@ public class ReactionWheelRenderer extends KineticTileEntityRenderer {
 
         Direction direction = switch (blockState.getValue(BlockStateProperties.AXIS)) {
             case X -> Direction.EAST;
-            case Y -> Direction.UP;
-            case Z -> Direction.NORTH;
+            case Y -> Direction.NORTH;
+            case Z -> Direction.UP;
         };
-        SuperByteBuffer wheelBottom = CachedBufferer.partialFacing(ClockWorkPartials.WHEEL_BOTTOM, blockState, direction);
-        SuperByteBuffer wheelTop = CachedBufferer.partialFacing(ClockWorkPartials.WHEEL_TOP, blockState, direction);
-        kineticRotationTransform(wheelBottom, te, getRotationAxisOf(te), AngleHelper.rad(angle), light);
-        kineticRotationTransform(wheelTop, te, getRotationAxisOf(te), AngleHelper.rad(angle), light);
+        Vec3 offset = switch (blockState.getValue(BlockStateProperties.AXIS)) {
+            case X -> new Vec3(0, 0.5, 0.5);
+            case Y -> new Vec3(0.5, 0, 0.5);
+            case Z -> new Vec3(0.5, -0.5, 0);
+        };
+        SuperByteBuffer wheelBottom = CachedBufferer.partial(ClockWorkPartials.WHEEL_BOTTOM, blockState);
+        SuperByteBuffer wheelTop = CachedBufferer.partial(ClockWorkPartials.WHEEL_TOP, blockState);
+        wheelBottom.rotateToFace(direction).translate(offset);
+        wheelTop.rotateToFace(direction).translate(offset);
+        kineticRotationTransform(wheelBottom, te, blockState.getValue(BlockStateProperties.AXIS), AngleHelper.rad(angle), light);
+        kineticRotationTransform(wheelTop, te, blockState.getValue(BlockStateProperties.AXIS), AngleHelper.rad(angle), light);
         wheelTop.renderInto(ms, vb);
         wheelBottom.renderInto(ms, vb);
     }
