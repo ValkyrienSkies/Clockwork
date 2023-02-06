@@ -49,8 +49,8 @@ public class ReactionWheelRenderer extends KineticTileEntityRenderer {
             case Y -> Direction.UP;
             case Z -> Direction.NORTH;
         };
-        SuperByteBuffer wheelBottom = CachedBufferer.partial(ClockWorkPartials.WHEEL_BOTTOM, blockState);
-        SuperByteBuffer wheelTop = CachedBufferer.partial(ClockWorkPartials.WHEEL_TOP, blockState);
+        SuperByteBuffer wheelBottom = CachedBufferer.partialFacing(ClockWorkPartials.WHEEL_BOTTOM, blockState, direction);
+        SuperByteBuffer wheelTop = CachedBufferer.partialFacing(ClockWorkPartials.WHEEL_TOP, blockState, direction);
         kineticRotationTransform(wheelBottom, te, getRotationAxisOf(te), AngleHelper.rad(angle), light);
         kineticRotationTransform(wheelTop, te, getRotationAxisOf(te), AngleHelper.rad(angle), light);
         wheelTop.renderInto(ms, vb);

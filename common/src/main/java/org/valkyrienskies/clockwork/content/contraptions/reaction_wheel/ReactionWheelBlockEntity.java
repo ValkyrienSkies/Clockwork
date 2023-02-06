@@ -47,10 +47,6 @@ public class ReactionWheelBlockEntity extends KineticTileEntity {
         compound.putBoolean("active", active);
         compound.putBoolean("wasActive", wasActive);
         compound.putBoolean("alreadyAdded", alreadyAdded);
-        compound.putBoolean("spinup", spinup);
-        compound.putBoolean("spindown", spindown);
-        compound.putFloat("spinupProg", spinupProg);
-        compound.putFloat("spindownProg", spindownProg);
         if (rwID != null) {
             compound.putInt("rwID", rwID);
         }
@@ -64,11 +60,9 @@ public class ReactionWheelBlockEntity extends KineticTileEntity {
         active = compound.getBoolean("active");
         wasActive = compound.getBoolean("wasActive");
         alreadyAdded = compound.getBoolean("alreadyAdded");
-        spinup = compound.getBoolean("spinup");
-        spindown = compound.getBoolean("spindown");
-        spinupProg = compound.getFloat("spinupProg");
-        spindownProg = compound.getFloat("spindownProg");
-
+        if (compound.contains("rwID")) {
+            rwID = compound.getInt("rwID");
+        }
 
         super.read(compound, clientPacket);
 
@@ -120,12 +114,12 @@ public class ReactionWheelBlockEntity extends KineticTileEntity {
                     case Y -> new Vector3d(0, 1, 0);
                     case Z -> new Vector3d(0, 0, 1);
                 };
-                final ReactionWheelCreateData data = new ReactionWheelCreateData(pos, axis, rotspeed, spinup, spindown, active);
+                final ReactionWheelCreateData data = new ReactionWheelCreateData(pos, axis, rotspeed, spinup, spindown, active, speed);
                 rwID = ReactionWheelController.getOrCreate(ship).addReactionWheel(data);
                 alreadyAdded = true;
             }
             if (alreadyAdded && rwID != null) {
-                final ReactionWheelUpdateData data = new ReactionWheelUpdateData(rotspeed);
+                final ReactionWheelUpdateData data = new ReactionWheelUpdateData(rotspeed, speed);
                 ReactionWheelController.getOrCreate(ship).updateReactionWheel(rwID, data);
                 active = switch (getBlockState().getValue(BlockStateProperties.AXIS)) {
                     case X -> ship.getOmega().x() != 0;

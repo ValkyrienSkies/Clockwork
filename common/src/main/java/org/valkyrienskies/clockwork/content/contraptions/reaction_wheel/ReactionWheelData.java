@@ -15,14 +15,16 @@ public class ReactionWheelData {
     private boolean spindown;
     public Vector3d prevAngMomentum = new Vector3d();
     public boolean active;
+    public double sourceSpeed;
 
-    public ReactionWheelData(Vector3dc wheelPos, Vector3dc wheelAxis, double wheelSpeed, boolean spinup, boolean spindown, boolean active) {
+    public ReactionWheelData(Vector3dc wheelPos, Vector3dc wheelAxis, double wheelSpeed, boolean spinup, boolean spindown, boolean active, double sourceSpeed) {
         this.wheelPos = wheelPos;
         this.wheelAxis = wheelAxis;
         this.wheelSpeed = wheelSpeed;
         this.spinup = spinup;
         this.spindown = spindown;
         this.active = active;
+        this.sourceSpeed = sourceSpeed;
     }
 
 }
