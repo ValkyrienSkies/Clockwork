@@ -42,9 +42,11 @@ import java.util.Random;
 @Mixin(RedstoneContactBlock.class)
 public abstract class MixinRedstoneContactBlock extends WrenchableDirectionalBlock {
 
-    private static Map<Pair<Level,BlockPos>, BlockPos> contactCache = new HashMap<>();
+    private static Map<Pair<Level, BlockPos>, BlockPos> contactCache = new HashMap<>();
 
-    @Shadow @Final public static BooleanProperty POWERED;
+    @Shadow
+    @Final
+    public static BooleanProperty POWERED;
     @Unique
     private static final double MAX_ALIGNMENT_ANGLE = -0.93972176; //Mth.cos(20*(Mth.DEG_TO_RAD))
 
@@ -53,10 +55,10 @@ public abstract class MixinRedstoneContactBlock extends WrenchableDirectionalBlo
     }
 
     @Inject(method = "onRemove", at = @At("HEAD"))
-    private void injectOnRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving, CallbackInfo ci){
-        if (state.getBlock() == this && newState.isAir()){
-            Pair<Level,BlockPos> key = Pair.of(worldIn,pos);
-            if(state.getValue(POWERED) && contactCache.containsKey(key)){
+    private void injectOnRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving, CallbackInfo ci) {
+        if (state.getBlock() == this && newState.isAir()) {
+            Pair<Level, BlockPos> key = Pair.of(worldIn, pos);
+            if (state.getValue(POWERED) && contactCache.containsKey(key)) {
                 worldIn.scheduleTick(contactCache.get(key), AllBlocks.REDSTONE_CONTACT.get(), 2, TickPriority.NORMAL);
                 contactCache.remove(key);
             }
@@ -66,8 +68,8 @@ public abstract class MixinRedstoneContactBlock extends WrenchableDirectionalBlo
     @Inject(method = "tick", at = @At(value = "INVOKE_ASSIGN", shift = At.Shift.BY, by = 2, target = "Lcom/simibubi/create/content/logistics/block/redstone/RedstoneContactBlock;hasValidContact(Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Z"), locals = LocalCapture.CAPTURE_FAILHARD)
     private void injectTick(BlockState state, ServerLevel worldIn, BlockPos pos, Random random, CallbackInfo ci, boolean hasValidContact) {
         if (VSGameUtilsKt.isBlockInShipyard(worldIn, pos)) {
-            Pair<Level,BlockPos> key = Pair.of(worldIn,pos);
-            if(!hasValidContact && state.getValue(POWERED) && contactCache.containsKey(key)){
+            Pair<Level, BlockPos> key = Pair.of(worldIn, pos);
+            if (!hasValidContact && state.getValue(POWERED) && contactCache.containsKey(key)) {
                 worldIn.scheduleTick(contactCache.get(key), AllBlocks.REDSTONE_CONTACT.get(), 2, TickPriority.NORMAL);
                 contactCache.remove(key);
             }
@@ -76,16 +78,16 @@ public abstract class MixinRedstoneContactBlock extends WrenchableDirectionalBlo
     }
 
     @Unique
-    private static boolean hasContact(Level world, Ship ship, Vector3d searchPos, Direction direction,Ship shipItr) {
+    private static boolean hasContact(Level world, Ship ship, Vector3d searchPos, Direction direction, Ship shipItr) {
         BlockState blockState = world.getBlockState(new BlockPos(VectorConversionsMCKt.toMinecraft(searchPos)));
         if (AllBlocks.REDSTONE_CONTACT.has(blockState)) {
             Vector3d worldDirection = toJOML(Vec3.atLowerCornerOf(direction.getNormal()));
             Vector3d targetDirection = toJOML(Vec3.atLowerCornerOf(blockState.getValue(FACING).getNormal()));
-            if(ship != null){
-                ship.getShipToWorld().transformDirection(worldDirection,worldDirection);
+            if (ship != null) {
+                ship.getShipToWorld().transformDirection(worldDirection, worldDirection);
             }
-            if(shipItr != null){
-                shipItr.getShipToWorld().transformDirection(targetDirection,targetDirection);
+            if (shipItr != null) {
+                shipItr.getShipToWorld().transformDirection(targetDirection, targetDirection);
             }
             double dotAngle = worldDirection.dot(targetDirection);
             return dotAngle < MAX_ALIGNMENT_ANGLE;
@@ -113,7 +115,7 @@ public abstract class MixinRedstoneContactBlock extends WrenchableDirectionalBlo
                 searchAABB = new AABB(tempVec.x - bounds, tempVec.y - bounds, tempVec.z - bounds,
                         tempVec.x + bounds, tempVec.y + bounds, tempVec.z + bounds);
 
-                result = hasContact(worldLevel, ship, searchPos, direction,null);
+                result = hasContact(worldLevel, ship, searchPos, direction, null);
             }
             Iterator<Ship> ships = VSGameUtilsKt.getShipsIntersecting(worldLevel, searchAABB).iterator();
             if (ships.hasNext() && !result) {
@@ -121,12 +123,12 @@ public abstract class MixinRedstoneContactBlock extends WrenchableDirectionalBlo
                     Ship shipItr = ships.next();
                     if (shipItr == ship) continue;
                     Vector3d newSearchPos = shipItr.getWorldToShip().transformPosition(searchPos, new Vector3d());
-                    result = hasContact(worldLevel, ship, newSearchPos, direction,shipItr);
+                    result = hasContact(worldLevel, ship, newSearchPos, direction, shipItr);
                     if (result) searchPos = newSearchPos;
                 } while (ships.hasNext() && !result);
             }
             if (result) {
-                contactCache.put(Pair.of(worldLevel,pos),new BlockPos(VectorConversionsMCKt.toMinecraft(searchPos)));
+                contactCache.put(Pair.of(worldLevel, pos), new BlockPos(VectorConversionsMCKt.toMinecraft(searchPos)));
                 world.scheduleTick(new BlockPos(VectorConversionsMCKt.toMinecraft(searchPos)), AllBlocks.REDSTONE_CONTACT.get(), 2, TickPriority.NORMAL);
             }
             cir.setReturnValue(result);
