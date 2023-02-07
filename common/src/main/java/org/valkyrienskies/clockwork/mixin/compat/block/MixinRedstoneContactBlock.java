@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.mixin.compat.block;
 
-import com.jozufozu.flywheel.util.Pair;
+import com.mojang.datafixers.util.Pair;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.content.logistics.block.redstone.RedstoneContactBlock;
 import com.simibubi.create.foundation.block.WrenchableDirectionalBlock;
@@ -14,9 +14,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.ticks.TickPriority;
-import org.checkerframework.checker.units.qual.A;
 import org.joml.Vector3d;
-import org.joml.primitives.AABBd;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -26,7 +24,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
-import org.valkyrienskies.clockwork.util.MinecraftUtil;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
