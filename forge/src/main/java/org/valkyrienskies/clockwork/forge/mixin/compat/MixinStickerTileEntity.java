@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.DistExecutor;
 import org.joml.Quaterniond;
 import org.joml.Quaterniondc;
@@ -47,6 +48,7 @@ public abstract class MixinStickerTileEntity extends SmartTileEntity {
     private LerpedFloat piston;
 
 
+    @OnlyIn(Dist.CLIENT)
     @Shadow
     public abstract void playSound(boolean attach);
 
