@@ -57,6 +57,7 @@ public class ReactionWheelController implements ShipForcesInducer {
                 return;
             }
             physData.wheelSpeed = data.speed();
+            physData.sourceSpeed = data.sourceSpeed();
         });
 
         reactionwheelUpdateData.clear();
@@ -64,13 +65,15 @@ public class ReactionWheelController implements ShipForcesInducer {
 //        Vector3d netForce = new Vector3d();
         for (ReactionWheelData physData: reactionwheelData.values()) {
 
-            if (physData.wheelAxis.x() == 1) {
-                physData.active = Math.abs((((PhysShipImpl) physShip).getPoseVel().getOmega().x())) > 0;
-            } else if (physData.wheelAxis.y() == 1) {
-                physData.active = Math.abs((((PhysShipImpl) physShip).getPoseVel().getOmega().y())) > 0;
-            } else if (physData.wheelAxis.z() == 1) {
-                physData.active = Math.abs((((PhysShipImpl) physShip).getPoseVel().getOmega().z())) > 0;
-            }
+//            if (physData.wheelAxis.x() == 1) {
+//                physData.active = Math.abs((((PhysShipImpl) physShip).getPoseVel().getOmega().x())) >= 10;
+//            } else if (physData.wheelAxis.y() == 1) {
+//                physData.active = Math.abs((((PhysShipImpl) physShip).getPoseVel().getOmega().y())) >= 10;
+//            } else if (physData.wheelAxis.z() == 1) {
+//                physData.active = Math.abs((((PhysShipImpl) physShip).getPoseVel().getOmega().z())) >= 10;
+//            }
+            //FOR TESTING
+            physData.active = true;
 
             if (physData.sourceSpeed != 0) {
                 if (physData.active) {
@@ -97,13 +100,13 @@ public class ReactionWheelController implements ShipForcesInducer {
 
 
         // 1/2 * Mass * (Outer Wheel Radius^2 + Total Wheel Radius^2)
-        double wheelInertia = (0.5*5000) * (Math.pow(0.25, 2) + Math.pow(0.75, 2));
+        double wheelInertia = (0.5*18000) * (Math.pow(0.25, 2) + Math.pow(0.75, 2));
 
         double rotVel = wheelSpeed * ((2 * Math.PI)/60);
         Vector3dc wheelVel = new Vector3d(wheelAxis).mul(rotVel);
         Vector3d prevAngMomentum = physWheel.prevAngMomentum;
         Vector3dc r = wheelPos.sub(physTransform.getPositionInShip(), new Vector3d()).rotate(physTransform.getShipToWorldRotation());
-        Vector3dc momentumModifier = new Vector3d(r).cross(new Vector3d(omega).mul(5000));
+        Vector3dc momentumModifier = new Vector3d(r).cross(new Vector3d(omega).mul(18000));
         Vector3dc angMomentum = ((wheelAxis.mul(rotVel, new Vector3d()).mul(wheelInertia, new Vector3d()))).add(momentumModifier);
 
         Vector3dc torque = prevAngMomentum.sub(angMomentum, new Vector3d()).div(1/60.0);

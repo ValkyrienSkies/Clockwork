@@ -1,0 +1,11 @@
+{
+  "parent": "vs_clockwork:block/reactionwheel/item",
+  "textures": {
+    "0": "vs_clockwork:block/reactionwheel",
+    "1": "vs_clockwork:block/reactionwheelmid",
+    "2": "vs_clockwork:block/reactionwheelspokes",
+    "3": "create:block/axis",
+    "4": "create:block/axis_top",
+    "particle": "minecraft:block/copper"
+  }
+}

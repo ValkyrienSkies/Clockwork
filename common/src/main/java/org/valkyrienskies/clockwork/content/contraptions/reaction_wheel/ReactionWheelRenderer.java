@@ -46,21 +46,22 @@ public class ReactionWheelRenderer extends KineticTileEntityRenderer {
                                 VertexConsumer vb) {
 
         Direction direction = switch (blockState.getValue(BlockStateProperties.AXIS)) {
-            case X -> Direction.EAST;
-            case Y -> Direction.NORTH;
-            case Z -> Direction.UP;
+            case X -> Direction.NORTH;
+            case Y -> Direction.UP;
+            case Z -> Direction.EAST;
         };
-        Vec3 offset = switch (blockState.getValue(BlockStateProperties.AXIS)) {
-            case X -> new Vec3(0, 0.5, 0.5);
-            case Y -> new Vec3(0.5, 0, 0.5);
-            case Z -> new Vec3(0.5, -0.5, 0);
+
+        float offset = switch (blockState.getValue(BlockStateProperties.AXIS)) {
+            case X, Z -> 90f;
+            case Y -> 0;
         };
         SuperByteBuffer wheelBottom = CachedBufferer.partial(ClockWorkPartials.WHEEL_BOTTOM, blockState);
         SuperByteBuffer wheelTop = CachedBufferer.partial(ClockWorkPartials.WHEEL_TOP, blockState);
-        wheelBottom.rotateToFace(direction).translate(offset);
-        wheelTop.rotateToFace(direction).translate(offset);
-        kineticRotationTransform(wheelBottom, te, blockState.getValue(BlockStateProperties.AXIS), AngleHelper.rad(angle), light);
+
+        kineticRotationTransform(wheelBottom, te, blockState.getValue(BlockStateProperties.AXIS), AngleHelper.rad(-angle), light);
         kineticRotationTransform(wheelTop, te, blockState.getValue(BlockStateProperties.AXIS), AngleHelper.rad(angle), light);
+        wheelBottom.rotateCentered(direction, (float) Math.toRadians(offset));
+        wheelTop.rotateCentered(direction, (float) Math.toRadians(offset));
         wheelTop.renderInto(ms, vb);
         wheelBottom.renderInto(ms, vb);
     }

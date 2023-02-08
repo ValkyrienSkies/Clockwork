@@ -121,11 +121,13 @@ public class ReactionWheelBlockEntity extends KineticTileEntity {
             if (alreadyAdded && rwID != null) {
                 final ReactionWheelUpdateData data = new ReactionWheelUpdateData(rotspeed, speed);
                 ReactionWheelController.getOrCreate(ship).updateReactionWheel(rwID, data);
-                active = switch (getBlockState().getValue(BlockStateProperties.AXIS)) {
-                    case X -> ship.getOmega().x() != 0;
-                    case Y -> ship.getOmega().y() != 0;
-                    case Z -> ship.getOmega().z() != 0;
-                };
+//                active = switch (getBlockState().getValue(BlockStateProperties.AXIS)) {
+//                    case X -> Math.abs(ship.getOmega().x()) >= 10;
+//                    case Y -> Math.abs(ship.getOmega().y()) >= 10;
+//                    case Z -> Math.abs(ship.getOmega().z()) >= 10;
+//                };
+                //FOR TESTING
+                active = true;
             }
             if (this.isRemoved()) {
                 if (rwID != null) {
