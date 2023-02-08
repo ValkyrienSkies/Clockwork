@@ -60,18 +60,22 @@ public class ReactionWheelController implements ShipForcesInducer {
                 return;
             }
             physData.wheelSpeed = data.speed();
+            physData.sourceSpeed = data.sourceSpeed();
         });
 
         reactionwheelUpdateData.clear();
 
         for (ReactionWheelData physData : reactionwheelData.values()) {
-            if (physData.wheelAxis.x() == 1) {
-                physData.active = Math.abs((((PhysShipImpl) physShip).getPoseVel().getOmega().x())) > 0;
-            } else if (physData.wheelAxis.y() == 1) {
-                physData.active = Math.abs((((PhysShipImpl) physShip).getPoseVel().getOmega().y())) > 0;
-            } else if (physData.wheelAxis.z() == 1) {
-                physData.active = Math.abs((((PhysShipImpl) physShip).getPoseVel().getOmega().z())) > 0;
-            }
+//            if (physData.wheelAxis.x() == 1) {
+//                physData.active = Math.abs((((PhysShipImpl) physShip).getPoseVel().getOmega().x())) >= 10;
+//            } else if (physData.wheelAxis.y() == 1) {
+//                physData.active = Math.abs((((PhysShipImpl) physShip).getPoseVel().getOmega().y())) >= 10;
+//            } else if (physData.wheelAxis.z() == 1) {
+//                physData.active = Math.abs((((PhysShipImpl) physShip).getPoseVel().getOmega().z())) >= 10;
+//            }
+            //FOR TESTING
+            physData.active = true;
+
 
             if (physData.sourceSpeed != 0) {
                 if (physData.active) {
@@ -91,7 +95,7 @@ public class ReactionWheelController implements ShipForcesInducer {
         double wheelSpeed = physWheel.wheelSpeed;
 
 
-        double wheelMass = 5000;
+        double wheelMass = 18000;
 
         // 1/2 * Mass * (Outer Wheel Radius^2 + Total Wheel Radius^2)
         double wheelInertia = (0.5 * wheelMass) * (Math.pow(0.25, 2) + Math.pow(0.75, 2));
