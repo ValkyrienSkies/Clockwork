@@ -194,22 +194,6 @@ public abstract class MixinAbstractContraptionEntity extends Entity {
                 Vector3d searchPos = toJOML(toGlobalVector(VecHelper.getCenterOf(blockInfo.pos)
                         .add(instance.getActiveAreaOffset(context)), 1));
                 Vector3d searchPos2 = new Vector3d(searchPos);
-                int ttl = 100;
-                if (false && instance instanceof DeployerMovementBehaviour) {
-                    if (blockInfo.state.hasProperty(DirectionalBlock.FACING)) {
-                        for (int i = 1; i <= 10; i++) {
-                            BlockPos testPos = new BlockPos(searchPos.x, searchPos.y, searchPos.z).relative(blockInfo.state.getValue(DirectionalBlock.FACING), i);
-                            boolean check = !context.world.getBlockState(testPos).isAir();
-                            if (level.isClientSide && Minecraft.getInstance().options.renderDebug) {
-                                CreateClient.OUTLINER.showAABB("actorPosDeployerDebug-" + context.localPos + "-" + context.contraption.anchor, new AABB(testPos.getX(), testPos.getY(), testPos.getZ(), testPos.getX() + 1, testPos.getY() + 1, testPos.getZ() + 1), ttl)
-                                        .colored(check ? 0xff7000 : 0x70ff00)
-                                        .lineWidth(2 / 16f);
-                            }
-                            if (check)
-                                return pos;
-                        }
-                    }
-                }
 
                 Vec3 transformedSearchPos = toMinecraft(ship.getShipToWorld().transformPosition(searchPos, new Vector3d()));
                 if (blockInfo.state.hasProperty(DirectionalBlock.FACING)) {
@@ -221,9 +205,10 @@ public abstract class MixinAbstractContraptionEntity extends Entity {
                 BlockPos blockPos = new BlockPos(transformedSearchPos);
                 boolean check = isValidBlock(context.world, blockPos, instance, context);
                 if (level.isClientSide) {
-                    boolean debugView = Minecraft.getInstance().options.renderDebug;
-                    if (debugView) {
-
+                    //Debug helper for future mixin work
+                    //boolean debugView = Minecraft.getInstance().options.renderDebug;
+                    if (false) {
+                        int ttl = 100;
                         CreateClient.OUTLINER.showLine("actorPosDebugLine-" + context.localPos + "-" + context.contraption.anchor, transformedSearchPos, transformedSearchPos2)
                                 .colored(0x0070ff)
                                 .lineWidth(2 / 32f);

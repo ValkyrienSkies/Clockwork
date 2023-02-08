@@ -26,6 +26,7 @@ public class ClockWorkMod {
 
     public static void init() {
         ClockWorkContraptions.init();
+        ClockWorkPackets.init();
     }
 
     public static void initClient() {

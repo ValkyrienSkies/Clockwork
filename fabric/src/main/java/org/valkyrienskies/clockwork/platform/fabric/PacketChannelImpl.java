@@ -46,7 +46,7 @@ public class PacketChannelImpl implements PacketChannel {
                     packet.handle(serverContext(server, player));
                 })) throw new RuntimeException("Failed to register server packet handler");
 
-        EnvExecutor.runWhenOn(EnvType.SERVER, () -> () -> {
+        EnvExecutor.runWhenOn(EnvType.CLIENT, () -> () -> {
             if (!ClientPlayNetworking.registerGlobalReceiver(ClockWorkMod.NETWORK_CHANNEL,
                     (client, handler, buf, responseSender) -> {
                         int id = buf.readVarInt();

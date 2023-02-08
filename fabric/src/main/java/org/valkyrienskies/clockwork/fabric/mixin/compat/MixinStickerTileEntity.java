@@ -6,6 +6,7 @@ import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
 import com.simibubi.create.foundation.utility.animation.LerpedFloat;
 import com.tterrag.registrate.fabric.EnvExecutor;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -47,6 +48,7 @@ public abstract class MixinStickerTileEntity extends SmartTileEntity {
     private LerpedFloat piston;
 
 
+    @Environment(EnvType.CLIENT)
     @Shadow
     public abstract void playSound(boolean attach);
 

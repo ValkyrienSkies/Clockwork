@@ -2,9 +2,6 @@ package org.valkyrienskies.clockwork.content.contraptions.reaction_wheel;
 
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
-import org.joml.Vector3ic;
-
-import java.util.List;
 
 public class ReactionWheelData {
 
@@ -13,7 +10,7 @@ public class ReactionWheelData {
     public double wheelSpeed;
     private boolean spinup;
     private boolean spindown;
-    public Vector3d prevAngMomentum = new Vector3d();
+    public Vector3dc prevAngMomentum = new Vector3d();
     public boolean active;
     public double sourceSpeed;
 
