@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.mixin.compat.entity;
 
 import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
 import com.simibubi.create.content.contraptions.components.structureMovement.ControlledContraptionEntity;
+import com.simibubi.create.content.contraptions.components.structureMovement.IControlContraption;
 import com.simibubi.create.content.contraptions.components.structureMovement.MovementContext;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingContraption;
 import net.minecraft.core.Direction;
@@ -15,9 +16,12 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.valkyrienskies.clockwork.mixinduck.IMixinControlledContraptionEntity;
 
 @Mixin(ControlledContraptionEntity.class)
-public abstract class MixinControlledContraptionEntity extends AbstractContraptionEntity {
+public abstract class MixinControlledContraptionEntity extends AbstractContraptionEntity implements IMixinControlledContraptionEntity {
+    @Shadow protected abstract IControlContraption getController();
+
     public MixinControlledContraptionEntity(EntityType<?> entityTypeIn, Level worldIn) {
         super(entityTypeIn, worldIn);
     }
@@ -42,4 +46,9 @@ public abstract class MixinControlledContraptionEntity extends AbstractContrapti
     }
 
     //Region end
+
+    @Override
+    public IControlContraption grabController(){
+        return getController();
+    }
 }

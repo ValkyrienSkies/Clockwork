@@ -9,11 +9,11 @@ import com.simibubi.create.content.contraptions.components.deployer.DeployerFake
 import com.simibubi.create.content.contraptions.components.deployer.DeployerMovementBehaviour;
 import com.simibubi.create.content.contraptions.components.structureMovement.*;
 import com.simibubi.create.foundation.utility.VecHelper;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.vehicle.AbstractMinecart;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.CocoaBlock;
@@ -39,6 +39,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import org.valkyrienskies.clockwork.mixin.compat.IMixinDeployerHandler;
 import org.valkyrienskies.clockwork.mixin.compat.IMixinDeployerMovementBehaviour;
+import org.valkyrienskies.clockwork.mixinduck.MixinAbstractContraptionEntityDuck;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
@@ -49,7 +50,7 @@ import static org.valkyrienskies.mod.common.util.VectorConversionsMCKt.toJOML;
 import static org.valkyrienskies.mod.common.util.VectorConversionsMCKt.toMinecraft;
 
 @Mixin(AbstractContraptionEntity.class)
-public abstract class MixinAbstractContraptionEntity extends Entity {
+public abstract class MixinAbstractContraptionEntity extends Entity implements MixinAbstractContraptionEntityDuck {
 
     public MixinAbstractContraptionEntity(EntityType<?> entityType, Level level) {
         super(entityType, level);
@@ -86,16 +87,27 @@ public abstract class MixinAbstractContraptionEntity extends Entity {
     private void redirectTeleportTo(Entity instance, double x, double y, double z) {
         Vector3d result = transformPosition(instance, x, y, z);
         if (instance.position().distanceTo(toMinecraft(result)) < 20) {
+            if (VSGameUtilsKt.isBlockInShipyard(instance.getCommandSenderWorld(), result.x, result.y, result.z) && instance instanceof AbstractMinecart) {
+                result.y += 0.5;
+            }
             instance.teleportTo(result.x, result.y, result.z);
         } else LOGGER.warn("Warning distance too high ignoring teleportTo request");
     }
 
     private Vector3d transformPosition(Entity instance, double x, double y, double z) {
-
-        Ship ship = VSGameUtilsKt.getShipManagingPos(instance.getCommandSenderWorld(), this.contraption.anchor);
         Vector3d newPos = new Vector3d(x, y, z);
-        if (ship != null) {
-            ship.getTransform().getShipToWorld().transformPosition(x, y, z, newPos);
+        if (!VSGameUtilsKt.isBlockInShipyard(instance.getCommandSenderWorld(), instance.blockPosition()) &&
+                VSGameUtilsKt.isBlockInShipyard(instance.getCommandSenderWorld(), x, y, z)) {
+            Ship ship = VSGameUtilsKt.getShipManagingPos(instance.getCommandSenderWorld(), this.contraption.anchor);
+            if (ship != null) {
+                ship.getTransform().getShipToWorld().transformPosition(x, y, z, newPos);
+            }
+        } else if (VSGameUtilsKt.isBlockInShipyard(instance.getCommandSenderWorld(), instance.blockPosition()) &&
+                !VSGameUtilsKt.isBlockInShipyard(instance.getCommandSenderWorld(), x, y, z)) {
+            Ship ship = VSGameUtilsKt.getShipManagingPos(instance.getCommandSenderWorld(), this.contraption.anchor);
+            if (ship != null) {
+                ship.getTransform().getWorldToShip().transformPosition(x, y, z, newPos);
+            }
         }
         return newPos;
     }
@@ -110,12 +122,13 @@ public abstract class MixinAbstractContraptionEntity extends Entity {
         if (transformedVector == null)
             return;
         Vec3 riderPos = new Vec3(transformedVector.x, transformedVector.y + SeatEntity.getCustomEntitySeatOffset(passenger) - 1 / 8f, transformedVector.z);
-
-        Ship ship = VSGameUtilsKt.getShipManagingPos(passenger.level, riderPos.x, riderPos.y, riderPos.z);
-        if (VSGameUtilsKt.isBlockInShipyard(passenger.level, riderPos.x, riderPos.y, riderPos.z) && ship != null) {
-            Vector3d tempVec = VectorConversionsMCKt.toJOML(riderPos);
-            ship.getShipToWorld().transformPosition(tempVec, tempVec);
-            riderPos = toMinecraft(tempVec);
+        if (!(passenger instanceof OrientedContraptionEntity)) {
+            Ship ship = VSGameUtilsKt.getShipManagingPos(passenger.level, riderPos.x, riderPos.y, riderPos.z);
+            if (VSGameUtilsKt.isBlockInShipyard(passenger.level, riderPos.x, riderPos.y, riderPos.z) && ship != null) {
+                Vector3d tempVec = VectorConversionsMCKt.toJOML(riderPos);
+                ship.getShipToWorld().transformPosition(tempVec, tempVec);
+                riderPos = toMinecraft(tempVec);
+            }
         }
         passenger.setPos(riderPos);
     }
@@ -145,6 +158,19 @@ public abstract class MixinAbstractContraptionEntity extends Entity {
     //Region start - Ship contraption actors affecting world
     @Shadow
     public abstract Vec3 toGlobalVector(Vec3 localVec, float partialTicks);
+
+    @Shadow
+    public abstract Vec3 toGlobalVector(Vec3 localVec, float partialTicks, boolean prevAnchor);
+
+    @Shadow
+    protected boolean prevPosInvalid;
+
+    @Shadow
+    public abstract Vec3 toLocalVector(Vec3 globalVec, float partialTicks, boolean prevAnchor);
+
+    @Shadow public abstract Vec3 getPrevPositionVec();
+
+    @Shadow protected abstract StructureTransform makeStructureTransform();
 
     @Unique
     private static Boolean isValidBlock(Level world, BlockPos colliderPos, MovementBehaviour movementBehaviour, MovementContext context) {
@@ -228,5 +254,44 @@ public abstract class MixinAbstractContraptionEntity extends Entity {
     private void redirectVisitNewPosition(MovementBehaviour instance, MovementContext context, BlockPos pos) {
         instance.visitNewPosition(context, getTargetPos(instance, context, pos, structureBlockInfo));
     }
+
     //Region end
+    //Region start - Contraption Entity Collision
+    private Vec3 doMod(Vec3 globalContactPoint) {
+        Vec3 result = globalContactPoint;
+        if (VSGameUtilsKt.isBlockInShipyard(level, blockPosition()) && !VSGameUtilsKt.isBlockInShipyard(level, globalContactPoint.x, globalContactPoint.y, globalContactPoint.z)) {
+            Ship ship = VSGameUtilsKt.getShipManagingPos(level, position());
+            if (ship != null) {
+                result = toMinecraft(ship.getWorldToShip().transformPosition(toJOML(globalContactPoint)));
+            }
+        } else if (!VSGameUtilsKt.isBlockInShipyard(level, blockPosition()) && VSGameUtilsKt.isBlockInShipyard(level, globalContactPoint.x, globalContactPoint.y, globalContactPoint.z)) {
+            Ship ship = VSGameUtilsKt.getShipManagingPos(level, globalContactPoint);
+            if (ship != null) {
+                result = toMinecraft(ship.getShipToWorld().transformPosition(toJOML(globalContactPoint)));
+            }
+        }
+        return result;
+    }
+
+    @Inject(method = "getContactPointMotion", at = @At("HEAD"), cancellable = true)
+    private void modGetContactPointMotion(Vec3 globalContactPoint, CallbackInfoReturnable<Vec3> cir) {
+        if (VSGameUtilsKt.isBlockInShipyard(level, new BlockPos(getAnchorVec())) && !VSGameUtilsKt.isBlockInShipyard(level, new BlockPos(getPrevAnchorVec()))) {
+            Ship ship = VSGameUtilsKt.getShipManagingPos(level,getAnchorVec());
+            if(ship!=null){
+                Vec3 result = toMinecraft(ship.getWorldToShip().transformPosition(toJOML(getPrevPositionVec())));
+                xo = result.x;
+                yo = result.y;
+                zo = result.z;
+            }
+            //VSGameUtilsKt.isBlockInShipyard(level, new BlockPos(globalContactPoint)) &&
+            //setOldPosAndRot();
+            doMod(globalContactPoint);
+        }
+    }
+    //Region end
+
+    @Override
+    public StructureTransform getStructureTransform(){
+        return makeStructureTransform();
+    }
 }

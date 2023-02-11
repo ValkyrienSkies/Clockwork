@@ -63,6 +63,8 @@ dependencies {
 
     // Development QOL
     modLocalRuntime("maven.modrinth:lazydfu:${lazydfu_version}")
+
+    modLocalRuntime("org.valkyrienskies.eureka:eureka-fabric:${eureka_version}") { transitive = false }
     modLocalRuntime("curse.maven:lithium-360438:4143613")
     modLocalRuntime("curse.maven:dynamic-fps-335493:3606973")
     modLocalRuntime("curse.maven:smooth-boot-415758:3692365")
