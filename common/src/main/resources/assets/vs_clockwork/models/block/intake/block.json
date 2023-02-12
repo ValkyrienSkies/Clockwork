@@ -3,7 +3,7 @@
 	"texture_size": [128, 128],
 	"textures": {
 		"1": "vs_clockwork:block/intake",
-		"particle": "minecraft:block/iron"
+		"particle": "minecraft:block/iron_block"
 	},
 	"elements": [
 		{

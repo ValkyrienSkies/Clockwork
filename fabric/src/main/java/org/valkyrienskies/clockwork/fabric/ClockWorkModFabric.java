@@ -12,6 +12,7 @@ import net.minecraftforge.common.data.ExistingFileHelper;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.content.events.ClockworkClientEvents;
 import org.valkyrienskies.clockwork.content.events.ClockworkInputEvents;
+import org.valkyrienskies.clockwork.data.ClockWorkTags;
 import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkClientEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkCommonEvents;
@@ -39,6 +40,8 @@ public class ClockWorkModFabric implements ModInitializer {
     public void onInitialize() {
         // force VS2 to load before eureka
         new ValkyrienSkiesModFabric().onInitialize();
+
+        ClockWorkTags.init();
 
         ClockWorkBlocks.register();
         FabricClockworkBlocks.register();

@@ -9,12 +9,10 @@ import com.simibubi.create.foundation.utility.VecHelper;
 import com.simibubi.create.foundation.utility.animation.LerpedFloat;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -29,10 +27,9 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
 import org.joml.*;
 import org.valkyrienskies.clockwork.ClockWorkItems;
-import org.valkyrienskies.clockwork.ClockWorkParticles;
-import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlock.EngineHeatLevel;
-import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlock;
 import org.valkyrienskies.clockwork.content.forces.AfterblazerController;
+import org.valkyrienskies.clockwork.util.blocktype.EngineHeatLevel;
+import org.valkyrienskies.clockwork.util.blocktype.IHeatableBlock;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
@@ -40,7 +37,6 @@ import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 import java.lang.Math;
 import java.util.List;
 import java.util.Random;
-import java.util.Vector;
 
 public class AfterblazerBlockEntity extends SmartTileEntity {
 
@@ -266,8 +262,8 @@ public class AfterblazerBlockEntity extends SmartTileEntity {
             super.read(compound, clientPacket);
         }
 
-        public AfterblazerBlock.EngineHeatLevel getEngineHeatLevelFromBlock() {
-            return AfterblazerBlock.getHeatLevelOf(getBlockState());
+        public EngineHeatLevel getEngineHeatLevelFromBlock() {
+            return IHeatableBlock.getHeatLevelOf(getBlockState());
         }
 
         public void updateBlockState() {

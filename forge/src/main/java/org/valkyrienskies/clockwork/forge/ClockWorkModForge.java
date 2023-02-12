@@ -13,6 +13,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.valkyrienskies.clockwork.*;
+import org.valkyrienskies.clockwork.data.ClockWorkTags;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
 
 import static org.valkyrienskies.clockwork.ClockWorkMod.REGISTRATE;
@@ -42,7 +43,9 @@ public class ClockWorkModForge {
         ClockWorkBlocks.register();
         ForgeClockworkBlocks.register();
 
-        // TODO common items
+        ClockWorkTags.init();
+        // ForgeClockWorkTags.init();
+
         ClockWorkItems.register();
         ForgeClockworkItems.register();
 

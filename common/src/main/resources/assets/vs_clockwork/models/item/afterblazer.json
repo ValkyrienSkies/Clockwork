@@ -3,6 +3,6 @@
   "textures": {
     "1": "vs_clockwork:block/afterblazer",
     "2": "create:block/blaze_active",
-    "particle": "create:block/blaze_active"
+    "particle": "minecraft:block/iron_block"
   }
 }

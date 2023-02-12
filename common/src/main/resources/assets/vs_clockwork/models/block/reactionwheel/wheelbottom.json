@@ -7,6 +7,6 @@
     "0": "vs_clockwork:block/reactionwheel",
     "1": "vs_clockwork:block/reactionwheelmid",
     "2": "vs_clockwork:block/reactionwheelspokes",
-    "particle": "minecraft:block/copper"
+    "particle": "minecraft:block/copper_block"
   }
 }

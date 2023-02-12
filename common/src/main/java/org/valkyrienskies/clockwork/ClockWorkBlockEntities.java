@@ -1,8 +1,11 @@
 package org.valkyrienskies.clockwork;
 
 
+import com.simibubi.create.content.contraptions.base.KineticTileEntity;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingInstance;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingRenderer;
+import com.simibubi.create.content.contraptions.relays.encased.ShaftInstance;
+import com.simibubi.create.content.contraptions.relays.encased.ShaftRenderer;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerRenderer;
@@ -89,6 +92,13 @@ public class ClockWorkBlockEntities {
             .tileEntity("reaction_wheel", ReactionWheelBlockEntity::new)
             .validBlocks(ClockWorkBlocks.REACTIONWHEEL)
             .renderer(() -> ReactionWheelRenderer::new)
+            .register();
+
+    public static final BlockEntityEntry<KineticTileEntity> EXTENDED_ENCASED_SHAFT = REGISTRATE
+            .tileEntity("extended_encased_shaft", KineticTileEntity::new)
+            .instance(() -> ShaftInstance::new, false)
+            .validBlocks(ClockWorkBlocks.BALLOON_ENCASED_SHAFT)
+            .renderer(() -> ShaftRenderer::new)
             .register();
 
     public static void register() {

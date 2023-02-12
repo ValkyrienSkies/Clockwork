@@ -2,14 +2,17 @@ package org.valkyrienskies.clockwork;
 
 import com.simibubi.create.AllTags;
 import com.simibubi.create.content.AllSections;
+import com.simibubi.create.content.contraptions.base.CasingBlock;
 import com.simibubi.create.foundation.block.BlockStressDefaults;
 import com.simibubi.create.foundation.data.*;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MaterialColor;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlock;
 import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlock;
+import org.valkyrienskies.clockwork.content.contraptions.casing.ExtendedEncasedShaftBlock;
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock;
 import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserBlock;
 import org.valkyrienskies.clockwork.content.contraptions.intake.IntakeBlock;
@@ -19,8 +22,10 @@ import org.valkyrienskies.clockwork.content.contraptions.resistor.RedstoneResist
 import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatBlock;
 import org.valkyrienskies.clockwork.content.physicalities.motion.wing.FlapBlock;
 import org.valkyrienskies.clockwork.content.physicalities.motion.wing.WingBlock;
+import org.valkyrienskies.clockwork.util.blocktype.IHeatableBlock;
 import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork;
 
+import static com.simibubi.create.foundation.data.ModelGen.customItemModel;
 import static com.simibubi.create.foundation.data.TagGen.axeOrPickaxe;
 import static com.simibubi.create.foundation.data.TagGen.pickaxeOnly;
 import static org.valkyrienskies.clockwork.ClockWorkMod.REGISTRATE;
@@ -56,7 +61,7 @@ public class ClockWorkBlocks {
             REGISTRATE.block("afterblazer", AfterblazerBlock::new)
                     .initialProperties(SharedProperties::softMetal)
                     .properties(p -> p.color(MaterialColor.COLOR_GRAY))
-                    .properties(p -> p.lightLevel(AfterblazerBlock::getLight))
+                    .properties(p -> p.lightLevel(IHeatableBlock::getLight))
                     .transform(pickaxeOnly())
                     .addLayer(() -> RenderType::cutoutMipped)
                     .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
@@ -74,20 +79,20 @@ public class ClockWorkBlocks {
                     .addLayer(() -> RenderType::cutoutMipped)
                     .blockstate((c, p) -> p.directionalBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
                     .item()
-                    .transform(ModelGen.customItemModel("intake", "item"))
+                    .transform(customItemModel("intake", "item"))
                     .register();
 
     ////////  REACTION WHEEL ///////
 
     public static final BlockEntry<ReactionWheelBlock> REACTIONWHEEL =
             REGISTRATE.block("reactionwheel", ReactionWheelBlock::new)
+                    .initialProperties(SharedProperties::softMetal)
                     .transform(axeOrPickaxe())
                     .properties(p -> p.color(MaterialColor.COLOR_ORANGE))
                     .properties(BlockBehaviour.Properties::noOcclusion)
-                    .addLayer(() -> RenderType::cutoutMipped)
                     .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
                     .item()
-                    .transform(ModelGen.customItemModel("reactionwheel", "item"))
+                    .transform(customItemModel())
                     .register();
 
 
@@ -100,7 +105,7 @@ public class ClockWorkBlocks {
                     .transform(pickaxeOnly())
                     .addLayer(() -> RenderType::cutoutMipped)
                     .item()
-                    .transform(ModelGen.customItemModel("ballooner", "item"))
+                    .transform(customItemModel("ballooner", "item"))
                     .register();
 
 
@@ -115,7 +120,7 @@ public class ClockWorkBlocks {
                     .transform(axeOrPickaxe())
                     .addLayer(() -> RenderType::cutoutMipped)
                     .item()
-                    .transform(ModelGen.customItemModel("redstone_resistor", "item"))
+                    .transform(customItemModel("redstone_resistor", "item"))
                     .register();
 
     /////// Sequenced Seat ////////
@@ -125,7 +130,7 @@ public class ClockWorkBlocks {
                     .properties(p -> p.color(MaterialColor.COLOR_LIGHT_GREEN))
                     .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
                     .item()
-                    .transform(ModelGen.customItemModel("command_seat", "item"))
+                    .transform(customItemModel("command_seat", "item"))
                     .register();
 
     //////// Flap Bearing ////////
@@ -136,7 +141,7 @@ public class ClockWorkBlocks {
                     .addLayer(() -> RenderType::cutoutMipped)
                     .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
                     .item()
-                    .transform(ModelGen.customItemModel("physics_infuser", "item"))
+                    .transform(customItemModel("physics_infuser", "item"))
                     .register();
 
     static {
@@ -151,7 +156,7 @@ public class ClockWorkBlocks {
                     .addLayer(() -> RenderType::cutoutMipped)
                     .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
                     .item()
-                    .transform(ModelGen.customItemModel("wing", "item"))
+                    .transform(customItemModel("wing", "item"))
                     .register();
     public static final BlockEntry<FlapBlock> FLAP =
             REGISTRATE.block("flap", FlapBlock::new)
@@ -160,10 +165,28 @@ public class ClockWorkBlocks {
                     .addLayer(() -> RenderType::cutoutMipped)
                     .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
                     .item()
-                    .transform(ModelGen.customItemModel("wing", "item"))
+                    .transform(customItemModel("wing", "item"))
                     .register();
 
     /////// Physics infuser ////////
+
+    public static final BlockEntry<CasingBlock> BALLOON_CASING = REGISTRATE.block("balloon_casing", CasingBlock::new)
+            .properties(p -> p.color(MaterialColor.WOOL))
+            .properties(p -> p.sound(SoundType.BAMBOO))
+            .transform(BuilderTransformers.casing(() -> ClockWorkSpriteShifts.BALLOON_CASING))
+            .transform(axeOrPickaxe())
+
+            .register();
+
+
+    public static final BlockEntry<ExtendedEncasedShaftBlock> BALLOON_ENCASED_SHAFT =
+            REGISTRATE.block("balloon_encased_shaft", ExtendedEncasedShaftBlock::balloon)
+                    .properties(p -> p.color(MaterialColor.WOOL))
+                    .properties(p -> p.sound(SoundType.BAMBOO))
+                    .transform(BuilderTransformersClockwork.encasedShaft("balloon", () -> ClockWorkSpriteShifts.BALLOON_CASING))
+                    .transform(axeOrPickaxe())
+                    .register();
+
 
     public static void register() {
     }

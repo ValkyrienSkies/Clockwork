@@ -1,7 +1,9 @@
 package org.valkyrienskies.clockwork.content.contraptions.ballooner;
 
+import com.simibubi.create.AllItems;
 import com.simibubi.create.AllShapes;
 import com.simibubi.create.content.contraptions.base.HorizontalKineticBlock;
+import com.simibubi.create.content.contraptions.wrench.WrenchItem;
 import com.simibubi.create.foundation.block.ITE;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -18,6 +20,7 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -30,8 +33,9 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.valkyrienskies.clockwork.ClockWorkBlockEntities;
 import org.valkyrienskies.clockwork.ClockWorkBlocks;
-import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlock.EngineHeatLevel;
 import org.valkyrienskies.clockwork.platform.PlatformUtils;
+import org.valkyrienskies.clockwork.util.blocktype.EngineHeatLevel;
+import org.valkyrienskies.clockwork.util.blocktype.IHeatableBlock;
 
 import javax.annotation.Nullable;
 
@@ -39,9 +43,9 @@ import java.util.Random;
 
 import static com.simibubi.create.content.contraptions.base.DirectionalKineticBlock.FACING;
 
-public class BalloonerBlock extends HorizontalKineticBlock implements ITE<BalloonerBlockEntity> {
+public class BalloonerBlock extends HorizontalKineticBlock implements ITE<BalloonerBlockEntity>, IHeatableBlock {
 
-    public static final EnumProperty<EngineHeatLevel> HEAT_LEVEL = EnumProperty.create("blaze", EngineHeatLevel.class);
+//    public static final EnumProperty<EngineHeatLevel> HEAT_LEVEL = EnumProperty.create("blaze", EngineHeatLevel.class);
 
     public BalloonerBlock(Properties properties) {
         super(properties);
@@ -80,7 +84,13 @@ public class BalloonerBlock extends HorizontalKineticBlock implements ITE<Balloo
                                  BlockHitResult blockRayTraceResult) {
         ItemStack heldItem = player.getItemInHand(hand);
         EngineHeatLevel heat = state.getValue(HEAT_LEVEL);
-
+        BalloonerBlockEntity te = (BalloonerBlockEntity) world.getBlockEntity(pos);
+        // FOR TESTING, DONT LEAVE IT AS A HAND DIPSHIT
+        if (AllItems.BRASS_HAND.isIn(heldItem)) {
+            if (te != null) {
+                te.tryScan();
+            }
+        }
         boolean doNotConsume = player.isCreative();
         boolean forceOverflow = false;
 
@@ -140,24 +150,24 @@ public class BalloonerBlock extends HorizontalKineticBlock implements ITE<Balloo
                 0.5F + random.nextFloat(), random.nextFloat() * 0.7F + 0.6F, false);
     }
 
-    public static EngineHeatLevel getHeatLevelOf(BlockState blockState) {
-        return blockState.hasProperty(BalloonerBlock.HEAT_LEVEL) ? blockState.getValue(BalloonerBlock.HEAT_LEVEL)
-                : EngineHeatLevel.SMOULDERING;
-    }
-
-    public static int getLight(BlockState state) {
-        EngineHeatLevel level = state.getValue(HEAT_LEVEL);
-        return switch (level) {
-            case SMOULDERING -> 8;
-            default -> 15;
-        };
-    }
+//    public static EngineHeatLevel getHeatLevelOf(BlockState blockState) {
+//        return blockState.hasProperty(BalloonerBlock.HEAT_LEVEL) ? blockState.getValue(BalloonerBlock.HEAT_LEVEL)
+//                : EngineHeatLevel.SMOULDERING;
+//    }
+//
+//    public static int getLight(BlockState state) {
+//        EngineHeatLevel level = state.getValue(HEAT_LEVEL);
+//        return switch (level) {
+//            case SMOULDERING -> 8;
+//            default -> 15;
+//        };
+//    }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockState defaultState = defaultBlockState();
         return defaultState.setValue(HEAT_LEVEL, EngineHeatLevel.SMOULDERING)
-                .setValue(FACING, context.getHorizontalDirection()
+                .setValue(HORIZONTAL_FACING, context.getHorizontalDirection()
                         .getOpposite());
     }
 
@@ -165,7 +175,10 @@ public class BalloonerBlock extends HorizontalKineticBlock implements ITE<Balloo
     public InteractionResult onWrenched(BlockState state, UseOnContext context) {
         return super.onWrenched(state, context);
     }
-
+    @Override
+    public boolean hasShaftTowards(LevelReader world, BlockPos pos, BlockState state, Direction face) {
+        return face.getAxis() == getRotationAxis(state);
+    }
     @Override
     public Class<BalloonerBlockEntity> getTileEntityClass() {
         return BalloonerBlockEntity.class;
