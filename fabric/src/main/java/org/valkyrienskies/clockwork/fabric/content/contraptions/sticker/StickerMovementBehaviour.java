@@ -17,7 +17,6 @@ import net.minecraft.world.level.block.DirectionalBlock;
 import net.minecraft.world.level.block.SupportType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.apache.logging.log4j.LogManager;
@@ -36,7 +35,6 @@ import org.valkyrienskies.core.apigame.world.ServerShipWorldCore;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 
 import javax.annotation.Nullable;
-
 import java.util.Iterator;
 
 import static org.valkyrienskies.mod.common.util.VectorConversionsMCKt.toJOML;
