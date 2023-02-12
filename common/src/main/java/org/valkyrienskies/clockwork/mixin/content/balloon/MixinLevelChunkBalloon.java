@@ -57,10 +57,12 @@ public abstract class MixinLevelChunkBalloon {
                 BlockState checkstate = level.getBlockState(checkpos);
                 if (checkstate.getBlock() instanceof BalloonerBlock) {
                     BalloonerBlockEntity ballooner = (BalloonerBlockEntity) getBlockEntity(checkpos);
-                    if (!ballooner.getBalloonPositions().isEmpty()) {
-                        if (ballooner.getBalloonPositions().contains(pos)) {
-                            if (!(state.is(ClockWorkTags.AllBlockTags.BALLOON_BLOCK.tag))) {
-                                ballooner.tryCheck();
+                    if (ballooner != null) {
+                        if (!ballooner.getBalloonPositions().isEmpty()) {
+                            if (ballooner.getBalloonPositions().contains(pos)) {
+                                if (!(state.is(ClockWorkTags.AllBlockTags.BALLOON_BLOCK.tag))) {
+                                    ballooner.tryCheck();
+                                }
                             }
                         }
                     }

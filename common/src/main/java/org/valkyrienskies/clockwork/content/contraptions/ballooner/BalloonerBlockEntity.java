@@ -59,6 +59,8 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
 
     Set<BlockPos> volume = new HashSet<>();
 
+    boolean wasProviding = false;
+
     public boolean alreadyAdded = false;
 
     private Integer balloonID = null;
@@ -159,7 +161,22 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
         if (activeFuel == FuelType.NORMAL)
             updateBlockState();
 
+        if (volume.isEmpty()) {
+            internalTemperature = 0;
+        }
+
         internalTemperature = Mth.clamp(internalTemperature + getTemp(), 0, 1);
+
+        if (internalTemperature < 0) {
+            internalTemperature = 0;
+        } else if (internalTemperature > 1) {
+            internalTemperature = 1;
+        }
+
+        if (wasProviding && internalTemperature == 0) {
+            wasProviding = false;
+            scanBalloon();
+        }
 
         updateBlockState();
         LoadedServerShip ship = null;
@@ -175,7 +192,7 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
                         volumePos.add(VectorConversionsMCKt.toJOMLD(posit));
                     }
                 }
-                final BalloonCreateData data = new BalloonCreateData(pos, volumePos, speed, getTemp(), getHeatLevelFromBlock());
+                final BalloonCreateData data = new BalloonCreateData(pos, volumePos, speed, internalTemperature, getHeatLevelFromBlock());
                 balloonID = BalloonController.getOrCreate(ship).addBalloon(data);
                 alreadyAdded = true;
             }
@@ -186,7 +203,7 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
                         volumePos.add(VectorConversionsMCKt.toJOMLD(posit));
                     }
                 }
-                final BalloonUpdateData data = new BalloonUpdateData(volumePos, speed, getTemp(), getHeatLevelFromBlock());
+                final BalloonUpdateData data = new BalloonUpdateData(volumePos, speed, internalTemperature, getHeatLevelFromBlock());
                 BalloonController.getOrCreate(ship).updateBalloon(balloonID, data);
             }
             if (this.isRemoved()) {
@@ -211,9 +228,14 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
     }
 
     public double getTemp() {
-        double temp = internalTemperature;
+        if (volume.isEmpty()) {
+            return 0;
+        }
+        double temp = 0;
         if (getHeatLevelFromBlock().equals(EngineHeatLevel.SMOULDERING) || speed == 0) {
-            return -0.001;
+            double passiveCooling = -0.008;
+
+            return passiveCooling * (1.0/volume.size());
         }
 
         double tempinc = switch (getHeatLevelFromBlock()) {
@@ -228,10 +250,13 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
 
         double volmod = 1/vol;
 
-        double throttle = speed / 256f;
+        double throttle = Math.abs(speed) / 256f;
 
         temp = temp + ((tempinc * throttle) * volmod);
 
+        if (leaking) {
+            temp = temp - 0.024;
+        }
 
         return temp;
     }
@@ -250,6 +275,9 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
             leaking = false;
             volume = balloonAndSpacePositions.left();
             balloonPositions = balloonAndSpacePositions.right();
+            wasProviding = true;
+        } else if (wasProviding && !canProvide(balloonAndSpacePositions.left().size())) {
+            leaking = true;
         } else {
             volume.clear();
             balloonPositions.clear();
@@ -258,7 +286,7 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
     }
 
     public void checkBalloon() {
-    if (balloonPositions == null) {
+    if (balloonPositions.isEmpty()) {
         return;
     }
         for (BlockPos pos : balloonPositions) {
