@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.mixin.accessors;
+package org.valkyrienskies.clockwork.mixinduck;
 
 public interface IMixinStickerTileEntity {
 

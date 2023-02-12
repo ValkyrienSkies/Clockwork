@@ -9,7 +9,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.DirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3d;
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,6 +19,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.valkyrienskies.clockwork.forge.content.contraptions.sticker.StickerParticleUtil;
 import org.valkyrienskies.clockwork.forge.content.contraptions.sticker.StickerMovementBehaviour;
+import org.valkyrienskies.clockwork.mixinduck.IMixinStickerTileEntity;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 
 import javax.annotation.Nullable;
@@ -28,7 +28,7 @@ import static net.minecraft.world.level.block.state.properties.BlockStatePropert
 import static org.valkyrienskies.mod.common.util.VectorConversionsMCKt.toJOML;
 
 @Mixin(StickerTileEntity.class)
-public abstract class MixinStickerTileEntity extends SmartTileEntity {
+public abstract class MixinStickerTileEntity extends SmartTileEntity implements IMixinStickerTileEntity {
     public MixinStickerTileEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }
@@ -116,5 +116,12 @@ public abstract class MixinStickerTileEntity extends SmartTileEntity {
                 removeConstraint((ServerLevel) level, true);
             }
         } else throw new RuntimeException("ERROR Couldn't try to clean up constraint!");
+    }
+
+    public boolean isAlreadyPowered(boolean reset){
+        boolean result = getTileData().contains("ShipStickerAlreadyPowered");
+        if(reset)
+            getTileData().remove("ShipStickerAlreadyPowered");
+        return result;
     }
 }

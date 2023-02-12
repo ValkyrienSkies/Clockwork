@@ -142,7 +142,9 @@ public class StickerMovementBehaviour implements MovementBehaviour {
         Direction myDir = context.state.getValue(DirectionalBlock.FACING);
         Vec3 myDirNormal = toMinecraft(toJOML(Vec3.atLowerCornerOf(myDir.getNormal())).mul(.5));
 
-        if (!getAssembleNextTick(context)) { //context.position == null
+        if (!getAssembleNextTick(context)) {
+            if (context.state.getValue(BlockStateProperties.POWERED))
+                extraData.putBoolean("ShipStickerAlreadyPowered", true);
             StructureTransform structureTransform = ((MixinAbstractContraptionEntityDuck) context.contraption.entity).getStructureTransform();
 
             position = toJOML(Vec3.atCenterOf(structureTransform.apply(context.localPos)).add(structureTransform.applyWithoutOffsetUncentered(myDirNormal)));
