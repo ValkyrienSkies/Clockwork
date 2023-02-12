@@ -84,8 +84,11 @@ public class BalloonController implements ShipForcesInducer {
             z /= physData.volume.size();
             Vector3dc center = new Vector3d(x, y, z);
 
-            Vector3dc centervec = physShip.getTransform().getShipToWorld().transformPosition(center.add(0.5,0.5,0.5, new Vector3d()), new Vector3d()).sub(physShip.getTransform().getPositionInWorld(), new Vector3d());
-            physShip.applyInvariantForceToPos(force, centervec);
+            Vector3dc centervec = physShip.getTransform().getShipToWorld().transformPosition(center, new Vector3d());
+            if(force.y() > 0) {
+                System.out.println("Balloon " + force + " , " + centervec);
+                physShip.applyInvariantForceToPos(force, centervec);
+            }
         }
     }
 
