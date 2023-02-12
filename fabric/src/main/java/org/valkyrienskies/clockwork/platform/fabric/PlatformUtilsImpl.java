@@ -27,6 +27,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlock;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlockEntity.FuelType;
 import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity;
+import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
+import org.valkyrienskies.clockwork.util.blocktype.EngineHeatLevel;
 
 public class PlatformUtilsImpl {
     public static double getReachDistance(Player player) {
@@ -111,7 +113,7 @@ public class PlatformUtilsImpl {
                 blockEntity.spawnParticleBurst(blockEntity.activeFuel == FuelType.SPECIAL, blockEntity.activeFuel == FuelType.HYPER);
                 return true;
             }
-            AfterblazerBlock.EngineHeatLevel prev = blockEntity.getHeatLevelFromBlock();
+            EngineHeatLevel prev = blockEntity.getHeatLevelFromBlock();
             blockEntity.playSound();
             blockEntity.updateBlockState();
 
@@ -120,5 +122,9 @@ public class PlatformUtilsImpl {
                         .125f + blockEntity.getLevel().random.nextFloat() * .125f, 1.15f - blockEntity.getLevel().random.nextFloat() * .25f);
 
         return true;
+    }
+
+    public static int maxBalloonRange() {
+        return AllClockworkConfigs.SERVER.kinetics.balloonRange.get();
     }
 }

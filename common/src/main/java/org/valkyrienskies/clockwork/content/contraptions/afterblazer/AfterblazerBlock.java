@@ -3,9 +3,6 @@ package org.valkyrienskies.clockwork.content.contraptions.afterblazer;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.content.contraptions.wrench.IWrenchable;
 import com.simibubi.create.foundation.block.ITE;
-import com.simibubi.create.foundation.utility.Iterate;
-import com.simibubi.create.foundation.utility.Lang;
-import io.github.fabricators_of_create.porting_lib.block.ConnectableRedstoneBlock;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.core.BlockPos;
@@ -13,7 +10,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -29,7 +25,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -37,14 +32,16 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.valkyrienskies.clockwork.ClockWorkBlockEntities;
 import org.valkyrienskies.clockwork.ClockWorkItems;
 import org.valkyrienskies.clockwork.ClockWorkShapes;
+import org.valkyrienskies.clockwork.util.blocktype.EngineHeatLevel;
+import org.valkyrienskies.clockwork.util.blocktype.IHeatableBlock;
 
 import javax.annotation.Nullable;
 import java.util.Random;
 
-public class AfterblazerBlock extends DirectionalBlock implements ITE<AfterblazerBlockEntity>, IWrenchable {
+public class AfterblazerBlock extends DirectionalBlock implements ITE<AfterblazerBlockEntity>, IWrenchable, IHeatableBlock {
 
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
-    public static final EnumProperty<EngineHeatLevel> HEAT_LEVEL = EnumProperty.create("afterblazer", EngineHeatLevel.class);
+//    public static final EnumProperty<EngineHeatLevel> HEAT_LEVEL = EnumProperty.create("afterblazer", EngineHeatLevel.class);
 
     public AfterblazerBlock(Properties properties) {
         super(properties);
@@ -148,7 +145,7 @@ public class AfterblazerBlock extends DirectionalBlock implements ITE<Afterblaze
         AfterblazerBlockEntity te = getTileEntity(world, pos);
         double force = 0;
         if (te != null) {
-            force = te.getParticleThrust(getHeatLevelOf(state));
+            force = te.getParticleThrust(IHeatableBlock.getHeatLevelOf(state));
         }
         double speedX = dir.getStepX() * force;
         double speedY = dir.getStepY() * force;
@@ -166,45 +163,9 @@ public class AfterblazerBlock extends DirectionalBlock implements ITE<Afterblaze
                 0.2F + random.nextFloat(), random.nextFloat() * 0.7F + 0.6F, false);
     }
 
-    public static EngineHeatLevel getHeatLevelOf(BlockState blockState) {
-        return blockState.hasProperty(AfterblazerBlock.HEAT_LEVEL) ? blockState.getValue(AfterblazerBlock.HEAT_LEVEL)
-                : EngineHeatLevel.SMOULDERING;
-    }
-
-    public static int getLight(BlockState state) {
-        EngineHeatLevel level = state.getValue(HEAT_LEVEL);
-        return switch (level) {
-            case SMOULDERING -> 8;
-            case INFURIATED -> 20;
-            default -> 15;
-        };
-    }
 
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter reader, BlockPos pos, CollisionContext context) {
         return ClockWorkShapes.AFTERBLAZER.get(state.getValue(FACING));
-    }
-
-
-
-    public enum EngineHeatLevel implements StringRepresentable {
-        SMOULDERING, FADING, KINDLED, SEETHING, INFURIATED;
-
-        public static EngineHeatLevel byIndex(int index) {
-            return values()[index];
-        }
-
-        public EngineHeatLevel nextActiveLevel() {
-            return byIndex(ordinal() % (values().length - 1) + 1);
-        }
-
-        public boolean isAtLeast(EngineHeatLevel heatLevel) {
-            return this.ordinal() >= heatLevel.ordinal();
-        }
-
-        @Override
-        public String getSerializedName() {
-            return Lang.asId(name());
-        }
     }
 }

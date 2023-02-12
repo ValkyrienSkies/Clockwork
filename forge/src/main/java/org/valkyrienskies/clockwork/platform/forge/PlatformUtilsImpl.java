@@ -16,8 +16,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.network.NetworkHooks;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlockEntity.FuelType;
-import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlock.EngineHeatLevel;
 import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity;
+import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
+import org.valkyrienskies.clockwork.util.blocktype.EngineHeatLevel;
 
 import static org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity.INSERTION_THRESHOLD;
 import static org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity.MAX_HEAT_CAPACITY;
@@ -123,4 +124,8 @@ public class PlatformUtilsImpl {
 
         return true;
     }
+    public static int maxBalloonRange() {
+        return AllClockworkConfigs.SERVER.kinetics.balloonRange.get();
+    }
+
 }

@@ -2,6 +2,6 @@
   "parent": "vs_clockwork:block/intake/item",
   "textures": {
     "1": "vs_clockwork:block/intake",
-    "particle": "minecraft:blocks/iron_block"
+    "particle": "minecraft:block/iron_block"
   }
 }

@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.AllBlockPartials;
 import com.simibubi.create.content.contraptions.base.KineticTileEntity;
 import com.simibubi.create.content.contraptions.base.KineticTileEntityRenderer;
+import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingBlock;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.IBearingTileEntity;
 import com.simibubi.create.foundation.render.CachedBufferer;
 import com.simibubi.create.foundation.render.SuperByteBuffer;
@@ -51,7 +52,7 @@ public class FlapBearingRenderer extends KineticTileEntityRenderer {
     @Override
     protected SuperByteBuffer getRotatedModel(KineticTileEntity te, BlockState state) {
         return CachedBufferer.partialFacing(AllBlockPartials.SHAFT_HALF, state, state
-                .getValue(FlapBearingBlock.FACING)
+                .getValue(BearingBlock.FACING)
                 .getOpposite());
     }
 

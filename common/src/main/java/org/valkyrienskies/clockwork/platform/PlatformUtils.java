@@ -42,6 +42,8 @@ public class PlatformUtils {
 
     @ExpectPlatform
     public static boolean tryUpdateFuel(ItemStack itemStack, boolean forceOverflow, boolean simulate, BalloonerBlockEntity blockEntity) {throw new AssertionError();}
+    @ExpectPlatform
+    public static int maxBalloonRange() {throw new AssertionError();}
 
     @ExpectPlatform
     public void useBallooner(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand,

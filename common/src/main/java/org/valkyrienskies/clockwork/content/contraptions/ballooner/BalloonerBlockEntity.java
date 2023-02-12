@@ -1,28 +1,38 @@
 package org.valkyrienskies.clockwork.content.contraptions.ballooner;
 
 import com.simibubi.create.AllItems;
-import com.simibubi.create.AllTags;
 import com.simibubi.create.content.contraptions.base.KineticTileEntity;
 import com.simibubi.create.content.contraptions.goggles.IHaveGoggleInformation;
 import com.simibubi.create.foundation.utility.VecHelper;
-import net.fabricmc.fabric.api.registry.FuelRegistry;
+import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3dc;
 import org.valkyrienskies.clockwork.ClockWorkItems;
-import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlock;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlockEntity.FuelType;
-import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlock.EngineHeatLevel;
+import org.valkyrienskies.clockwork.content.forces.BalloonController;
+import org.valkyrienskies.clockwork.data.ClockWorkTags;
 import org.valkyrienskies.clockwork.platform.PlatformUtils;
+import org.valkyrienskies.clockwork.util.blocktype.EngineHeatLevel;
+import org.valkyrienskies.clockwork.util.blocktype.IHeatableBlock;
+import org.valkyrienskies.core.api.ships.LoadedServerShip;
+import org.valkyrienskies.mod.common.VSGameUtilsKt;
+import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGoggleInformation, IHotAirProducer {
 
@@ -35,6 +45,29 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
     protected boolean isCreative;
     protected boolean pissedOff;
 
+    double internalTemperature = 0;
+
+    public boolean shouldScan = true;
+
+    private boolean active = false;
+
+    private boolean shouldCheck = false;
+
+    private boolean leaking = false;
+
+    Set<BlockPos> balloonPositions = new HashSet<>();
+
+    Set<BlockPos> volume = new HashSet<>();
+
+    public boolean alreadyAdded = false;
+
+    private Integer balloonID = null;
+
+    int buffer = 20;
+    boolean bufferPulse = false;
+
+//    BalloonStructure balloonStructure;
+
     public BalloonerBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
         activeFuel = FuelType.NONE;
@@ -43,6 +76,30 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
         isCreative = false;
 
 
+    }
+
+    public int getMaxScanRange() {
+        return PlatformUtils.maxBalloonRange();
+    }
+
+    public Set<BlockPos> getBalloonPositions() {
+        return balloonPositions;
+    }
+
+    public Set<BlockPos> getVolume() {
+        return volume;
+    }
+
+    public void tryCheck() {
+        bufferPulse = true;
+    }
+
+    public void tryScan() {
+        shouldScan = true;
+    }
+
+    public boolean canProvide(int size) {
+        return size <= getMaxScanRange();
     }
 
     public BlockPos getWorldPosition() {
@@ -71,20 +128,76 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
                 spawnParticles(getHeatLevelFromBlock(), 1);
             return;
         }
+        if (shouldScan) {
+            scanBalloon();
+            shouldScan = false;
+        } else {
+            if (shouldCheck) {
+                checkBalloon();
+                shouldCheck = false;
+            }
+        }
+
+        if (buffer == 0) {
+            if (bufferPulse) {
+                bufferPulse = false;
+                shouldCheck = true;
+            }
+            buffer = 20;
+        } else if (buffer > 0) {
+            buffer--;
+        }
 
         if (pissedOff) {
             applyHyperFuel();
             pissedOff = false;
         }
 
-        if (isCreative)
-            return;
-
         if (remainingBurnTime > 0)
             remainingBurnTime--;
 
         if (activeFuel == FuelType.NORMAL)
             updateBlockState();
+
+        internalTemperature = Mth.clamp(internalTemperature + getTemp(), 0, 1);
+
+        updateBlockState();
+        LoadedServerShip ship = null;
+        if (!level.isClientSide) {
+            ship = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, worldPosition);
+        }
+        if (ship != null) {
+            if (!alreadyAdded && balloonID == null) {
+                Vector3dc pos = VectorConversionsMCKt.toJOMLD(worldPosition);
+                Set<Vector3dc> volumePos = new HashSet<>();
+                if (!volume.isEmpty()) {
+                    for (BlockPos posit : volume) {
+                        volumePos.add(VectorConversionsMCKt.toJOMLD(posit));
+                    }
+                }
+                final BalloonCreateData data = new BalloonCreateData(pos, volumePos, speed, getTemp(), getHeatLevelFromBlock());
+                balloonID = BalloonController.getOrCreate(ship).addBalloon(data);
+                alreadyAdded = true;
+            }
+            if (alreadyAdded && balloonID != null) {
+                Set<Vector3dc> volumePos = new HashSet<>();
+                if (!volume.isEmpty()) {
+                    for (BlockPos posit : volume) {
+                        volumePos.add(VectorConversionsMCKt.toJOMLD(posit));
+                    }
+                }
+                final BalloonUpdateData data = new BalloonUpdateData(volumePos, speed, getTemp(), getHeatLevelFromBlock());
+                BalloonController.getOrCreate(ship).updateBalloon(balloonID, data);
+            }
+            if (this.isRemoved()) {
+                if (balloonID != null) {
+                    BalloonController.getOrCreate(ship).removeBalloon(balloonID);
+                    balloonID = null;
+                    alreadyAdded = false;
+                }
+            }
+
+        }
         if (remainingBurnTime > 0)
             return;
 
@@ -94,7 +207,66 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
         } else
             activeFuel = FuelType.NONE;
 
-        updateBlockState();
+
+    }
+
+    public double getTemp() {
+        double temp = internalTemperature;
+        if (getHeatLevelFromBlock().equals(EngineHeatLevel.SMOULDERING) || speed == 0) {
+            return -0.001;
+        }
+
+        double tempinc = switch (getHeatLevelFromBlock()) {
+            case SMOULDERING -> 0.0;
+            case FADING -> 0.001;
+            case KINDLED -> 0.002;
+            case SEETHING -> 0.004;
+            case INFURIATED -> 0.016;
+        };
+
+        double vol = volume.size();
+
+        double volmod = 1/vol;
+
+        double throttle = speed / 256f;
+
+        temp = temp + ((tempinc * throttle) * volmod);
+
+
+        return temp;
+    }
+
+    public void scanBalloon() {
+        if (level.isClientSide) {
+            if (getHeatLevelFromBlock() == EngineHeatLevel.SMOULDERING) {
+                return;
+            }
+        }
+
+        EnclosedBalloonScanner scanner = new EnclosedBalloonScanner(level, getMaxScanRange());
+        Pair<Set<BlockPos>, Set<BlockPos>> balloonAndSpacePositions = scanner.getEnclosedBalloons(worldPosition.above());
+
+        if (canProvide(balloonAndSpacePositions.left().size())) {
+            leaking = false;
+            volume = balloonAndSpacePositions.left();
+            balloonPositions = balloonAndSpacePositions.right();
+        } else {
+            volume.clear();
+            balloonPositions.clear();
+            leaking = true;
+        }
+    }
+
+    public void checkBalloon() {
+    if (balloonPositions == null) {
+        return;
+    }
+        for (BlockPos pos : balloonPositions) {
+            if (!level.getBlockState(pos).is(ClockWorkTags.AllBlockTags.BALLOON_BLOCK.tag)) {
+                shouldScan = true;
+                return;
+            }
+        }
     }
 
     public boolean tryUpdateFuel(ItemStack itemStack, boolean forceOverflow, boolean simulate) {
@@ -113,6 +285,12 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
             compound.putInt("burnTimeRemaining", remainingBurnTime);
         } else
             compound.putBoolean("isCreative", true);
+
+        compound.putBoolean("alreadyAdded", alreadyAdded);
+        if (balloonID != null) {
+            compound.putInt("balloonID", balloonID);
+        }
+        compound.putFloat("speed", speed);
         super.write(compound, clientPacket);
     }
 
@@ -121,6 +299,11 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
         activeFuel = FuelType.values()[compound.getInt("fuelLevel")];
         remainingBurnTime = compound.getInt("burnTimeRemaining");
         isCreative = compound.getBoolean("isCreative");
+        alreadyAdded = compound.getBoolean("alreadyAdded");
+        if (compound.contains("balloonID")) {
+            balloonID = compound.getInt("balloonID");
+        }
+        speed = compound.getFloat("speed");
         super.read(compound, clientPacket);
     }
 
@@ -218,7 +401,7 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
         EngineHeatLevel inBlockState = getHeatLevelFromBlock();
         if (inBlockState == heat)
             return;
-        level.setBlockAndUpdate(worldPosition, getBlockState().setValue(AfterblazerBlock.HEAT_LEVEL, heat));
+        level.setBlockAndUpdate(worldPosition, getBlockState().setValue(BalloonerBlock.HEAT_LEVEL, heat));
         notifyUpdate();
     }
 
@@ -256,7 +439,7 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
     }
 
     public EngineHeatLevel getHeatLevelFromBlock() {
-        return BalloonerBlock.getHeatLevelOf(getBlockState());
+        return IHeatableBlock.getHeatLevelOf(getBlockState());
     }
 
     @Override

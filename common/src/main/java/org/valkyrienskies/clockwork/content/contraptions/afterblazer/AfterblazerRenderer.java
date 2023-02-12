@@ -5,10 +5,8 @@ import com.jozufozu.flywheel.core.virtual.VirtualRenderWorld;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.simibubi.create.AllBlockPartials;
-import com.simibubi.create.AllSpriteShifts;
 import com.simibubi.create.content.contraptions.components.structureMovement.MovementContext;
 import com.simibubi.create.content.contraptions.components.structureMovement.render.ContraptionMatrices;
-import com.simibubi.create.foundation.block.render.SpriteShiftEntry;
 import com.simibubi.create.foundation.render.CachedBufferer;
 import com.simibubi.create.foundation.render.SuperByteBuffer;
 import com.simibubi.create.foundation.tileEntity.renderer.SafeTileEntityRenderer;
@@ -22,12 +20,11 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.valkyrienskies.clockwork.ClockWorkPartials;
-import org.valkyrienskies.clockwork.ClockWorkParticles;
-import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlock.EngineHeatLevel;
+import org.valkyrienskies.clockwork.util.blocktype.EngineHeatLevel;
+import org.valkyrienskies.clockwork.util.blocktype.IHeatableBlock;
 
 import javax.annotation.Nullable;
 
@@ -61,7 +58,7 @@ public class AfterblazerRenderer extends SafeTileEntityRenderer<AfterblazerBlock
     public static void renderInContraption(MovementContext context, VirtualRenderWorld renderWorld,
                                            ContraptionMatrices matrices, MultiBufferSource bufferSource, LerpedFloat headAngle, boolean conductor) {
         BlockState state = context.state;
-        EngineHeatLevel heatLevel = AfterblazerBlock.getHeatLevelOf(state);
+        EngineHeatLevel heatLevel = IHeatableBlock.getHeatLevelOf(state);
 
         if (!heatLevel.isAtLeast(EngineHeatLevel.FADING)) {
             heatLevel = EngineHeatLevel.FADING;

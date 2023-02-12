@@ -35,7 +35,9 @@
     "compat.packets.MixinTrainRelocationPacket",
     "compat.pr.MixinSeatBlock",
     "content.propellor.MixinBearingContraption",
-    "content.vs_contraptions.MixinMechanicalBearingTileEntity"
+    "content.vs_contraptions.MixinMechanicalBearingTileEntity",
+    "content.casing.MixinShaftBlock",
+    "content.balloon.MixinLevelChunkBalloon"
   ],
   "client": [
     "compat.client.MixinCarriageContraptionInstance",

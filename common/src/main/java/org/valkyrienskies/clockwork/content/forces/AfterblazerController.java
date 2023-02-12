@@ -11,6 +11,7 @@ import org.valkyrienskies.clockwork.content.contraptions.afterblazer.Afterblazer
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerData;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerUpdateData;
 
+import org.valkyrienskies.clockwork.util.blocktype.EngineHeatLevel;
 import org.valkyrienskies.core.api.ships.PhysShip;
 import org.valkyrienskies.core.api.ships.ServerShip;
 import org.valkyrienskies.core.api.ships.properties.ShipTransform;
@@ -120,7 +121,7 @@ public class AfterblazerController implements ShipForcesInducer {
         return Pair.of(force,jetVector);
     }
 
-    private double exhaustVelocity(AfterblazerBlock.EngineHeatLevel heatLevel) {
+    private double exhaustVelocity(EngineHeatLevel heatLevel) {
         double exhaustVel = switch (heatLevel) {
             case INFURIATED -> 50;
             case SEETHING -> 25;
