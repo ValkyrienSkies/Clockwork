@@ -120,7 +120,7 @@ public class BalloonController implements ShipForcesInducer {
         // f = v * dp * g
         double force = volume * (standardDensity - internalDensity) * gravity;
 
-        Vector3dc forceVec = new Vector3d(0, force*5000, 0);
+        Vector3dc forceVec = new Vector3d(0, force*10000, 0);
         return forceVec;
     }
 

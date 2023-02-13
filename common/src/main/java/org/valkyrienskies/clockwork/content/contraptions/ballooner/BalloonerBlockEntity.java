@@ -276,13 +276,15 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
             volume = balloonAndSpacePositions.left();
             balloonPositions = balloonAndSpacePositions.right();
             wasProviding = true;
-        } else if (wasProviding && !canProvide(balloonAndSpacePositions.left().size())) {
-            leaking = true;
         } else {
             volume.clear();
             balloonPositions.clear();
             leaking = true;
         }
+
+        //else if (wasProviding && !canProvide(balloonAndSpacePositions.left().size())) {
+        //            leaking = true;
+        //        }
     }
 
     public void checkBalloon() {
