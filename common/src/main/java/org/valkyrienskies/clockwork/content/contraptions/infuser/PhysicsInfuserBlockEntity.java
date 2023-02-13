@@ -27,7 +27,6 @@ import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.assembly.ShipAssemblyKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -246,11 +245,11 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
     public void assemble() {
         //INSERT ASSEMBLY LOGIC TROL
         DenseBlockPosSet selection;
-        Set<Entity> caughtEntities = new HashSet<>();
-        if (level instanceof ServerLevel s) {
+        Set<Entity> caughtEntities;
+        if (level instanceof ServerLevel sLevel) {
             try {
-                selection = GlueAssembler.collectGlued(this.level, worldPosition, GlueType.BLUPER);
-                caughtEntities = GlueAssembler.collectEntities(this.level, worldPosition, GlueType.BLUPER);
+                selection = GlueAssembler.collectGlued(sLevel, worldPosition, GlueType.BLUPER);
+                caughtEntities = GlueAssembler.collectEntities(sLevel, worldPosition, GlueType.BLUPER);
                 this.lastException = null;
             } catch (AssemblyException e) {
                 this.lastException = e;
@@ -259,13 +258,14 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
             }
             if (selection == null) return;
 
-            ship = ShipAssemblyKt.createNewShipWithBlocks(worldPosition, selection, (ServerLevel) level);
-            if (caughtEntities != null) {
-                caughtEntities.forEach(entity -> {
-
-                    ship.getTransform().getWorldToShip().transformPosition(VectorConversionsMCKt.toJOML(entity.position()));
-                });
-            }
+            ship = ShipAssemblyKt.createNewShipWithBlocks(worldPosition, selection, sLevel);
+            // TODO: relocate entities
+//            if (caughtEntities != null) {
+//                caughtEntities.forEach(entity -> {
+//
+//                    ship.getTransform().getWorldToShip().transformPosition(VectorConversionsMCKt.toJOML(entity.position()));
+//                });
+//            }
         }
     }
 
