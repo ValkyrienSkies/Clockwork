@@ -43,8 +43,6 @@ public abstract class MixinStickerTileEntity extends SmartTileEntity implements 
     public abstract boolean isBlockStateExtended();
 
     @Unique
-    private boolean lastExtended = false;
-    @Unique
     private boolean waitForNoPower = false;
 
     @Unique
@@ -84,17 +82,22 @@ public abstract class MixinStickerTileEntity extends SmartTileEntity implements 
             new StickerParticleUtil().doBluperParticle(level, worldPosition, myDir);
         }
         if (isBlockStateExtended() && !shipStuck) {
+            //Sticker extended with no ship related thing stuck to it
             waitForNoPower = false;
             if (!blockAttached && shipAttached) {
-                if(StickerMovementBehaviour.isAttachedToShipOrWorld(true, level, toJOML(Vec3.atCenterOf(getBlockPos())), myDirNormal, getTileData()))
+                //no sameworld block attached but there is a ship related thing near enough
+                if (StickerMovementBehaviour.isAttachedToShipOrWorld(true, level, toJOML(Vec3.atCenterOf(getBlockPos())), myDirNormal, getTileData())) {
                     shipStuck = true;
+                }
             }
         } else if (!isBlockStateExtended() && shipStuck) {
+            //Sticker retracted with ship related thing stuck to it
             if (!level.isClientSide) {
                 removeConstraint((ServerLevel) level, true);
             }
             waitForNoPower = true;
         } else if (isBlockStateExtended() && !getTileData().contains("ShipStickerConstraint") && !shipStuck && !blockAttached && shipAttached && getBlockState().getValue(POWERED)) {
+            //Sticker extended with nothing attached and is powered but there is a ship thing in range
             waitForNoPower = false;
             if (StickerMovementBehaviour.isAttachedToShipOrWorld(true, level, toJOML(Vec3.atCenterOf(getBlockPos())), myDirNormal, getTileData())) {
                 new StickerParticleUtil().doBluperParticle(level, worldPosition, myDir);
@@ -105,8 +108,6 @@ public abstract class MixinStickerTileEntity extends SmartTileEntity implements 
             waitForNoPower = false;
             shipStuck = false;
         }
-
-        lastExtended = isBlockStateExtended();
     }
 
     @Override
@@ -115,13 +116,16 @@ public abstract class MixinStickerTileEntity extends SmartTileEntity implements 
             if (!level.isClientSide) {
                 removeConstraint((ServerLevel) level, true);
             }
-        } else throw new RuntimeException("ERROR Couldn't try to clean up constraint!");
+        } else {
+            throw new RuntimeException("ERROR Couldn't try to clean up constraint!");
+        }
     }
 
-    public boolean isAlreadyPowered(boolean reset){
+    public boolean isAlreadyPowered(boolean reset) {
         boolean result = getTileData().contains("ShipStickerAlreadyPowered");
-        if(reset)
+        if (reset) {
             getTileData().remove("ShipStickerAlreadyPowered");
+        }
         return result;
     }
 }

@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.util;
+package org.valkyrienskies.clockwork.util.compat;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

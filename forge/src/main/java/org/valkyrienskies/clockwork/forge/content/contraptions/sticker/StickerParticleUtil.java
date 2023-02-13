@@ -9,7 +9,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.DistExecutor;
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueItem;
-import org.valkyrienskies.clockwork.util.StickerParticleUtilInterface;
+import org.valkyrienskies.clockwork.util.compat.StickerParticleUtilInterface;
 
 import java.util.function.Supplier;
 

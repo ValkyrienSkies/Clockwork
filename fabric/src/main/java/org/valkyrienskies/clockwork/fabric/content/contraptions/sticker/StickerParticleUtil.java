@@ -9,7 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueItem;
-import org.valkyrienskies.clockwork.util.StickerParticleUtilInterface;
+import org.valkyrienskies.clockwork.util.compat.StickerParticleUtilInterface;
 
 import java.util.function.Supplier;
 
