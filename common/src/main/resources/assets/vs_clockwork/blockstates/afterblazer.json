@@ -1,232 +1,232 @@
 {
   "variants": {
-    "afterblazer#blaze=fading,facing=down,powered=true": {
+    "blaze=fading,facing=down,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block",
       "x": 90
     },
-    "afterblazer#blaze=fading,facing=up,powered=true": {
+    "blaze=fading,facing=up,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block",
       "x": 270
     },
-    "afterblazer#blaze=fading,facing=north,powered=true": {
+    "blaze=fading,facing=north,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block"
     },
-    "afterblazer#blaze=fading,facing=south,powered=true": {
+    "blaze=fading,facing=south,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 180
     },
-    "afterblazer#blaze=fading,facing=west,powered=true": {
+    "blaze=fading,facing=west,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 270
     },
-    "afterblazer#blaze=fading,facing=east,powered=true": {
+    "blaze=fading,facing=east,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 90
     },
-    "afterblazer#blaze=smouldering,facing=down,powered=true": {
+    "blaze=smouldering,facing=down,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block",
       "x": 90
     },
-    "afterblazer#blaze=smouldering,facing=up,powered=true": {
+    "blaze=smouldering,facing=up,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block",
       "x": 270
     },
-    "afterblazer#blaze=smouldering,facing=north,powered=true": {
+    "blaze=smouldering,facing=north,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block"
     },
-    "afterblazer#blaze=smouldering,facing=south,powered=true": {
+    "blaze=smouldering,facing=south,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 180
     },
-    "afterblazer#blaze=smouldering,facing=west,powered=true": {
+    "blaze=smouldering,facing=west,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 270
     },
-    "afterblazer#blaze=smouldering,facing=east,powered=true": {
+    "blaze=smouldering,facing=east,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 90
     },
-    "afterblazer#blaze=kindled,facing=down,powered=true": {
+    "blaze=kindled,facing=down,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block",
       "x": 90
     },
-    "afterblazer#blaze=kindled,facing=up,powered=true": {
+    "blaze=kindled,facing=up,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block",
       "x": 270
     },
-    "afterblazer#blaze=kindled,facing=north,powered=true": {
+    "blaze=kindled,facing=north,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block"
     },
-    "afterblazer#blaze=kindled,facing=south,powered=true": {
+    "blaze=kindled,facing=south,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 180
     },
-    "afterblazer#blaze=kindled,facing=west,powered=true": {
+    "blaze=kindled,facing=west,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 270
     },
-    "afterblazer#blaze=kindled,facing=east,powered=true": {
+    "blaze=kindled,facing=east,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 90
     },
-    "afterblazer#blaze=seething,facing=down,powered=true": {
+    "blaze=seething,facing=down,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block",
       "x": 90
     },
-    "afterblazer#blaze=seething,facing=up,powered=true": {
+    "blaze=seething,facing=up,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block",
       "x": 270
     },
-    "afterblazer#blaze=seething,facing=north,powered=true": {
+    "blaze=seething,facing=north,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block"
     },
-    "afterblazer#blaze=seething,facing=south,powered=true": {
+    "blaze=seething,facing=south,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 180
     },
-    "afterblazer#blaze=seething,facing=west,powered=true": {
+    "blaze=seething,facing=west,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 270
     },
-    "afterblazer#blaze=seething,facing=east,powered=true": {
+    "blaze=seething,facing=east,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 90
     },
-    "afterblazer#blaze=infuriated,facing=down,powered=true": {
+    "blaze=infuriated,facing=down,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block",
       "x": 90
     },
-    "afterblazer#blaze=infuriated,facing=up,powered=true": {
+    "blaze=infuriated,facing=up,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block",
       "x": 270
     },
-    "afterblazer#blaze=infuriated,facing=north,powered=true": {
+    "blaze=infuriated,facing=north,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block"
     },
-    "afterblazer#blaze=infuriated,facing=south,powered=true": {
+    "blaze=infuriated,facing=south,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 180
     },
-    "afterblazer#blaze=infuriated,facing=west,powered=true": {
+    "blaze=infuriated,facing=west,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 270
     },
-    "afterblazer#blaze=infuriated,facing=east,powered=true": {
+    "blaze=infuriated,facing=east,powered=true": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 90
     },
-    "afterblazer#blaze=fading,facing=down,powered=false": {
+    "blaze=fading,facing=down,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block",
       "x": 90
     },
-    "afterblazer#blaze=fading,facing=up,powered=false": {
+    "blaze=fading,facing=up,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block",
       "x": 270
     },
-    "afterblazer#blaze=fading,facing=north,powered=false": {
+    "blaze=fading,facing=north,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block"
     },
-    "afterblazer#blaze=fading,facing=south,powered=false": {
+    "blaze=fading,facing=south,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 180
     },
-    "afterblazer#blaze=fading,facing=west,powered=false": {
+    "blaze=fading,facing=west,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 270
     },
-    "afterblazer#blaze=fading,facing=east,powered=false": {
+    "blaze=fading,facing=east,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 90
     },
-    "afterblazer#blaze=smouldering,facing=down,powered=false": {
+    "blaze=smouldering,facing=down,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block",
       "x": 90
     },
-    "afterblazer#blaze=smouldering,facing=up,powered=false": {
+    "blaze=smouldering,facing=up,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block",
       "x": 270
     },
-    "afterblazer#blaze=smouldering,facing=north,powered=false": {
+    "blaze=smouldering,facing=north,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block"
     },
-    "afterblazer#blaze=smouldering,facing=south,powered=false": {
+    "blaze=smouldering,facing=south,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 180
     },
-    "afterblazer#blaze=smouldering,facing=west,powered=false": {
+    "blaze=smouldering,facing=west,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 270
     },
-    "afterblazer#blaze=smouldering,facing=east,powered=false": {
+    "blaze=smouldering,facing=east,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 90
     },
-    "afterblazer#blaze=kindled,facing=down,powered=false": {
+    "blaze=kindled,facing=down,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block",
       "x": 90
     },
-    "afterblazer#blaze=kindled,facing=up,powered=false": {
+    "blaze=kindled,facing=up,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block",
       "x": 270
     },
-    "afterblazer#blaze=kindled,facing=north,powered=false": {
+    "blaze=kindled,facing=north,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block"
     },
-    "afterblazer#blaze=kindled,facing=south,powered=false": {
+    "blaze=kindled,facing=south,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 180
     },
-    "afterblazer#blaze=kindled,facing=west,powered=false": {
+    "blaze=kindled,facing=west,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 270
     },
-    "afterblazer#blaze=kindled,facing=east,powered=false": {
+    "blaze=kindled,facing=east,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 90
     },
-    "afterblazer#blaze=seething,facing=down,powered=false": {
+    "blaze=seething,facing=down,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block",
       "x": 90
     },
-    "afterblazer#blaze=seething,facing=up,powered=false": {
+    "blaze=seething,facing=up,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block",
       "x": 270
     },
-    "afterblazer#blaze=seething,facing=north,powered=false": {
+    "blaze=seething,facing=north,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block"
     },
-    "afterblazer#blaze=seething,facing=south,powered=false": {
+    "blaze=seething,facing=south,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 180
     },
-    "afterblazer#blaze=seething,facing=west,powered=false": {
+    "blaze=seething,facing=west,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 270
     },
-    "afterblazer#blaze=seething,facing=east,powered=false": {
+    "blaze=seething,facing=east,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 90
     },
-    "afterblazer#blaze=infuriated,facing=down,powered=false": {
+    "blaze=infuriated,facing=down,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block",
       "x": 90
     },
-    "afterblazer#blaze=infuriated,facing=up,powered=false": {
+    "blaze=infuriated,facing=up,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block",
       "x": 270
     },
-    "afterblazer#blaze=infuriated,facing=north,powered=false": {
+    "blaze=infuriated,facing=north,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block"
     },
-    "afterblazer#blaze=infuriated,facing=south,powered=false": {
+    "blaze=infuriated,facing=south,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 180
     },
-    "afterblazer#blaze=infuriated,facing=west,powered=false": {
+    "blaze=infuriated,facing=west,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 270
     },
-    "afterblazer#blaze=infuriated,facing=east,powered=false": {
+    "blaze=infuriated,facing=east,powered=false": {
       "model": "vs_clockwork:block/afterblazer/block",
       "y": 90
     }

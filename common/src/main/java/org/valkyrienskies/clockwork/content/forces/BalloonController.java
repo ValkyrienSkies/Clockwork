@@ -91,7 +91,7 @@ public class BalloonController implements ShipForcesInducer {
             Vector3dc drag = airResistance((PhysShipImpl) physShip);
 //            Vector3dc centervec = center.sub(physShip.getTransform().getPositionInShip(), new Vector3d());
             if(force.y() > 0) {
-                System.out.println("Balloon " + force + " , " + center);
+//                System.out.println("Balloon " + force + " , " + center);
                 physShip.applyInvariantForceToPos(force, center);
                 physShip.applyRotDependentTorque(torque);
                 physShip.applyInvariantForce(drag);

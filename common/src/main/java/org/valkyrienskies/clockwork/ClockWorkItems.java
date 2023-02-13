@@ -37,12 +37,12 @@ public class ClockWorkItems {
                     .onRegister(i -> i.setBurnTime(Short.MAX_VALUE)) // fabric: furnaces are limited to Short values without Forge patches
                     .register();
 
-    public static final ItemEntry<SodaBottleItem> EMPTY_SODA =
-            REGISTRATE.item("empty_soda", SodaBottleItem::new)
-                    .properties(p -> p.rarity(Rarity.COMMON))
-                    .properties(p -> p.stacksTo(1))
-                    .tag(AllTags.AllItemTags.UPRIGHT_ON_BELT.tag)
-                    .register();
+//    public static final ItemEntry<SodaBottleItem> EMPTY_SODA =
+//            REGISTRATE.item("empty_soda", SodaBottleItem::new)
+//                    .properties(p -> p.rarity(Rarity.COMMON))
+//                    .properties(p -> p.stacksTo(1))
+//                    .tag(AllTags.AllItemTags.UPRIGHT_ON_BELT.tag)
+//                    .register();
     static {
         REGISTRATE.startSection(AllSections.KINETICS);
     }
