@@ -153,12 +153,11 @@ public class PhysicsInfuserBlock extends Block implements ITE<PhysicsInfuserBloc
             withTileEntityDo(worldIn, pos, te -> {
                 if (te.isAssembled && !te.assembling && !te.disassembling && !te.onCooldown) {
                     te.startDisassembly();
-                } else if (!te.isAssembled && te.assembling && !te.disassembling && !te.onCooldown && !te.skippedAssembly) {
+                } else if (!te.isAssembled && te.assembling && !te.disassembling && !te.onCooldown) {
                     te.skipAssembly();
                 } else if (!te.isAssembled && !te.assembling && !te.disassembling && !te.onCooldown) {
                     te.startAssembly();
                 }
-
             });
             return InteractionResult.SUCCESS;
         }
