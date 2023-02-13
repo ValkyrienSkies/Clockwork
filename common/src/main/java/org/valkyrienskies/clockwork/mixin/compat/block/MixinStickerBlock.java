@@ -29,11 +29,6 @@ public abstract class MixinStickerBlock extends WrenchableDirectionalBlock imple
 
     @Inject(method = "neighborChanged", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getValue(Lnet/minecraft/world/level/block/state/properties/Property;)Ljava/lang/Comparable;", ordinal = 0), cancellable = true)
     private void injectNeighbourChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving, CallbackInfo ci) {
-        doNeighbourChanged(state, worldIn, pos, blockIn, fromPos, isMoving, ci);
-    }
-
-
-    private void doNeighbourChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving, CallbackInfo ci) {
         StickerTileEntity ste = getTileEntity(worldIn, pos);
         if (ste != null && ((IMixinStickerTileEntity) ste).isAlreadyPowered(false)) {
             if (!worldIn.hasNeighborSignal(pos)) {
