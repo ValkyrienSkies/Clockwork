@@ -5,6 +5,7 @@ import com.simibubi.create.content.AllSections;
 import com.simibubi.create.content.curiosities.CombustibleItem;
 import com.simibubi.create.foundation.data.AssetLookup;
 import com.tterrag.registrate.util.entry.ItemEntry;
+import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueItem;

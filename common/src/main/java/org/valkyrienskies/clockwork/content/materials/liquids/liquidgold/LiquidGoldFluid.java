@@ -1,4 +1,8 @@
 package org.valkyrienskies.clockwork.content.materials.liquids.liquidgold;
 
-public class LiquidGoldFluid {
+import net.minecraft.world.level.material.FluidState;
+import org.valkyrienskies.clockwork.content.materials.liquids.AbstractUniqueFluidMaterial;
+
+public class LiquidGoldFluid extends AbstractUniqueFluidMaterial {
+
 }

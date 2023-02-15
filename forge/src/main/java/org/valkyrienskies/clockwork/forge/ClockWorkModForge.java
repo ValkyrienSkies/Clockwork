@@ -52,6 +52,9 @@ public class ClockWorkModForge {
         ClockWorkBlockEntities.register();
         ForgeClockworkBlockEntities.register();
 
+        ClockWorkFluids.register();
+        ForgeClockworkFluids.register();
+
         ClockWorkEntities.register();
         ForgeClockworkEntities.register();
 
