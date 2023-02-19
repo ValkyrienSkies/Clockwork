@@ -32,7 +32,9 @@ public record EnclosedBalloonScanner(Level level, int maxChecks) {
                 continue;
             }
 
-            positions.add(pos);
+            if (state.isAir() || !state.isCollisionShapeFullBlock(level, pos)) {
+                positions.add(pos);
+            }
 
 
             for (Direction dir : Direction.values()) {

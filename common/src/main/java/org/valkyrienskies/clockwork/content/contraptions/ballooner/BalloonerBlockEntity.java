@@ -163,9 +163,9 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
 
         if (volume.isEmpty()) {
             internalTemperature = 0;
+        } else {
+            internalTemperature = Mth.clamp(internalTemperature + getTemp(), 0, 1);
         }
-
-        internalTemperature = Mth.clamp(internalTemperature + getTemp(), 0, 1);
 
         if (internalTemperature < 0) {
             internalTemperature = 0;
@@ -245,10 +245,12 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
             case SEETHING -> 0.004;
             case INFURIATED -> 0.016;
         };
-
-        double vol = volume.size();
-
-        double volmod = 1/vol;
+        double vol = 0;
+        double volmod = 0;
+        if (!volume.isEmpty()) {
+            vol = volume.size();
+            volmod = 1/vol;
+        }
 
         double throttle = Math.abs(speed) / 256f;
 
@@ -275,7 +277,6 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
             leaking = false;
             volume = balloonAndSpacePositions.left();
             balloonPositions = balloonAndSpacePositions.right();
-            wasProviding = true;
         } else {
             volume.clear();
             balloonPositions.clear();

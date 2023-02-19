@@ -66,6 +66,11 @@ public class BalloonController implements ShipForcesInducer {
 
         balloonUpdateData.clear();
 
+        Vector3dc torque = resistRotation((PhysShipImpl) physShip);
+        Vector3dc drag = airResistance((PhysShipImpl) physShip);
+        physShip.applyRotDependentTorque(torque);
+        physShip.applyInvariantForce(drag);
+
         for (BalloonData physData : balloonData.values()) {
             if (physData.volume.isEmpty()) {
                 continue;
@@ -87,14 +92,10 @@ public class BalloonController implements ShipForcesInducer {
             z /= physData.volume.size();
             Vector3dc center = new Vector3d(x, y, z);
 
-            Vector3dc torque = resistRotation((PhysShipImpl) physShip);
-            Vector3dc drag = airResistance((PhysShipImpl) physShip);
 //            Vector3dc centervec = center.sub(physShip.getTransform().getPositionInShip(), new Vector3d());
             if(force.y() > 0) {
 //                System.out.println("Balloon " + force + " , " + center);
                 physShip.applyInvariantForceToPos(force, center);
-                physShip.applyRotDependentTorque(torque);
-                physShip.applyInvariantForce(drag);
             }
         }
     }
@@ -125,7 +126,7 @@ public class BalloonController implements ShipForcesInducer {
     }
 
     private Vector3d resistRotation(PhysShipImpl physShip) {
-        double resistance = 0.05;
+        double resistance = 0.025;
 
         resistance = resistance;
 
