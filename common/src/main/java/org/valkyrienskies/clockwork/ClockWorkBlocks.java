@@ -13,6 +13,7 @@ import net.minecraft.world.level.material.MaterialColor;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlock;
 import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlock;
 import org.valkyrienskies.clockwork.content.contraptions.casing.ExtendedEncasedShaftBlock;
+import org.valkyrienskies.clockwork.content.contraptions.combustion_engine.CombustionEngineBlock;
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock;
 import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserBlock;
 import org.valkyrienskies.clockwork.content.contraptions.intake.IntakeBlock;
@@ -187,6 +188,19 @@ public class ClockWorkBlocks {
                     .transform(axeOrPickaxe())
                     .register();
 
+
+    // COMBUSTION ENGINE //
+
+    public static final BlockEntry<CombustionEngineBlock> COMBUSTION_ENGINE =
+            REGISTRATE.block("combustion_engine", CombustionEngineBlock::new)
+                    .initialProperties(SharedProperties::copperMetal)
+                    .transform(pickaxeOnly())
+                    .blockstate((c, p) -> p.horizontalFaceBlock(c.get(), AssetLookup.partialBaseModel(c, p)))
+                    .transform(BlockStressDefaults.setCapacity(1024.0))
+                    .transform(BlockStressDefaults.setGeneratorSpeed(CombustionEngineBlock::getSpeedRange))
+                    .item()
+                    .transform(customItemModel())
+                    .register();
 
     public static void register() {
     }
