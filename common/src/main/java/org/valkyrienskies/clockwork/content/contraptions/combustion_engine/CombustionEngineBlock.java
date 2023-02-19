@@ -36,9 +36,11 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.ticks.TickPriority;
 import org.valkyrienskies.clockwork.ClockWorkBlockEntities;
+import org.valkyrienskies.clockwork.platform.PlatformUtils;
+import org.valkyrienskies.clockwork.util.blocktype.IHeatableBlock;
 
-public class CombustionEngineBlock extends DirectionalKineticBlock
-        implements SimpleWaterloggedBlock, ITE<CombustionEngineBlockEntity> {
+public abstract class CombustionEngineBlock extends DirectionalKineticBlock
+        implements SimpleWaterloggedBlock, IHeatableBlock {
 
     public CombustionEngineBlock(Properties p_i48415_1_) {
         super(p_i48415_1_);
@@ -147,15 +149,15 @@ public class CombustionEngineBlock extends DirectionalKineticBlock
         return false;
     }
 
-    @Override
-    public Class<CombustionEngineBlockEntity> getTileEntityClass() {
-        return CombustionEngineBlockEntity.class;
-    }
-
-    @Override
-    public BlockEntityType<? extends CombustionEngineBlockEntity> getTileEntityType() {
-        return ClockWorkBlockEntities.COMBUSTION_ENGINE.get();
-    }
+//    @Override
+//    public Class<CombustionEngineBlockEntity> getTileEntityClass() {
+//        return getTileEntityClassLoader();
+//    }
+//
+//    @Override
+//    public BlockEntityType<? extends CombustionEngineBlockEntity> getTileEntityType() {
+//        return getTileEntityTypeLoader();
+//    }
 
     public static Couple<Integer> getSpeedRange() {
         return Couple.create(32,128);

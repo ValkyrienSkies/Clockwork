@@ -103,11 +103,11 @@ public class ClockWorkBlockEntities {
 
     // COMBUSTION ENGINE
 
-    public static final BlockEntityEntry<CombustionEngineBlockEntity> COMBUSTION_ENGINE = REGISTRATE
-            .tileEntity("combustion_engine", CombustionEngineBlockEntity::new)
-            .validBlocks(ClockWorkBlocks.COMBUSTION_ENGINE)
-            //.renderer(() -> CombustionEngineRenderer::new)
-            .register();
+//    public static final BlockEntityEntry<CombustionEngineBlockEntity> COMBUSTION_ENGINE = REGISTRATE
+//            .tileEntity("combustion_engine", CombustionEngineBlockEntity::new)
+//            .validBlocks(ClockWorkBlocks.COMBUSTION_ENGINE)
+//            //.renderer(() -> CombustionEngineRenderer::new)
+//            .register();
 
     public static void register() {
     }

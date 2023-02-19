@@ -191,16 +191,16 @@ public class ClockWorkBlocks {
 
     // COMBUSTION ENGINE //
 
-    public static final BlockEntry<CombustionEngineBlock> COMBUSTION_ENGINE =
-            REGISTRATE.block("combustion_engine", CombustionEngineBlock::new)
-                    .initialProperties(SharedProperties::copperMetal)
-                    .transform(pickaxeOnly())
-                    .blockstate((c, p) -> p.horizontalFaceBlock(c.get(), AssetLookup.partialBaseModel(c, p)))
-                    .transform(BlockStressDefaults.setCapacity(1024.0))
-                    .transform(BlockStressDefaults.setGeneratorSpeed(CombustionEngineBlock::getSpeedRange))
-                    .item()
-                    .transform(customItemModel())
-                    .register();
+//    public static final BlockEntry<CombustionEngineBlock> COMBUSTION_ENGINE =
+//            REGISTRATE.block("combustion_engine", CombustionEngineBlock::new)
+//                    .initialProperties(SharedProperties::copperMetal)
+//                    .transform(pickaxeOnly())
+//                    .blockstate((c, p) -> p.horizontalFaceBlock(c.get(), AssetLookup.partialBaseModel(c, p)))
+//                    .transform(BlockStressDefaults.setCapacity(1024.0))
+//                    .transform(BlockStressDefaults.setGeneratorSpeed(CombustionEngineBlock::getSpeedRange))
+//                    .item()
+//                    .transform(customItemModel())
+//                    .register();
 
     public static void register() {
     }

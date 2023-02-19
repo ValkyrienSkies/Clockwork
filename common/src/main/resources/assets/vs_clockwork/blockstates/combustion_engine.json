@@ -1,0 +1,26 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "vs_clockwork:block/combustion_engine/block_vertical",
+      "x": 180
+    },
+    "facing=up": {
+      "model": "vs_clockwork:block/combustion_engine/block_vertical"
+    },
+    "facing=north": {
+      "model": "vs_clockwork:block/combustion_engine/block",
+      "y": 180
+    },
+    "facing=south": {
+      "model": "vs_clockwork:block/combustion_engine/block"
+    },
+    "facing=west": {
+      "model": "vs_clockwork:block/combustion_engine/block",
+      "y": 90
+    },
+    "facing=east": {
+      "model": "vs_clockwork:block/combustion_engine/block",
+      "y": 270
+    }
+  }
+}

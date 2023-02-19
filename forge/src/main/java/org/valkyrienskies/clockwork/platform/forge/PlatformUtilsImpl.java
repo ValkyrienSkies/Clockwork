@@ -12,12 +12,15 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.network.NetworkHooks;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlockEntity.FuelType;
 import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity;
+import org.valkyrienskies.clockwork.content.contraptions.combustion_engine.CombustionEngineBlockEntity;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
+import org.valkyrienskies.clockwork.forge.content.contraptions.combustion_engine.ForgeCombustionEngineBlockEntity;
 import org.valkyrienskies.clockwork.util.blocktype.EngineHeatLevel;
 
 import static org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity.INSERTION_THRESHOLD;
@@ -127,5 +130,12 @@ public class PlatformUtilsImpl {
     public static int maxBalloonRange() {
         return AllClockworkConfigs.SERVER.kinetics.balloonRange.get();
     }
+
+
+    public static Class<?> getCombustionEngineTileEntityClass() {
+        return ForgeCombustionEngineBlockEntity.class;
+    }
+
+    public static BlockEntityType<? extends CombustionEngineBlockEntity> getCombustionEngineTileEntityType() {throw new AssertionError();}
 
 }

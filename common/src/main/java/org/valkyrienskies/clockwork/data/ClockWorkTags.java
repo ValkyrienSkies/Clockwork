@@ -15,6 +15,7 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
 import org.valkyrienskies.clockwork.ClockWorkMod;
 
 
@@ -22,6 +23,8 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import static org.valkyrienskies.clockwork.ClockWorkMod.REGISTRATE;
+import static org.valkyrienskies.clockwork.data.ClockWorkTags.NameSpace.MOD;
+
 public class ClockWorkTags {
 
     public static <T> TagKey<T> optionalTag(Registry<T> registry,
@@ -65,13 +68,54 @@ public class ClockWorkTags {
         }
     }
 
+    public enum AllFluidTags {
+        STALE(MOD, "fuel/stale"),
+        PLAIN(MOD, "fuel/plain"),
+        SWEET(MOD, "fuel/sweet"),
+        GOURMET(MOD, "fuel/gourmet"),
+        EXTRA(MOD, "fuel/extra");
+
+        public final TagKey<Fluid> tag;
+
+        public final boolean alwaysDatagen;
+
+        AllFluidTags() {
+            this(MOD);
+        }
+
+        AllFluidTags(NameSpace namespace) {
+            this(namespace, namespace.optionalDefault, namespace.alwaysDatagenDefault);
+        }
+        AllFluidTags(NameSpace namespace, String path) {
+            this(namespace, path, namespace.optionalDefault, namespace.alwaysDatagenDefault);
+        }
+        AllFluidTags(NameSpace namespace, boolean optional, boolean alwaysDatagen) {
+            this(namespace, null, optional, alwaysDatagen);
+        }
+        AllFluidTags(NameSpace namespace, String path, boolean optional, boolean alwaysDatagen) {
+            ResourceLocation id = new ResourceLocation(namespace.id, path == null ? Lang.asId(name()) : path);
+            tag = optionalTag(Registry.FLUID, id);
+            this.alwaysDatagen = alwaysDatagen;
+        }
+        @SuppressWarnings("deprecation")
+        public boolean matches(Fluid fluid) {
+            return fluid.is(tag);
+        }
+        public boolean matches(FluidState state) {
+            return state.is(tag);
+        }
+
+        private static void init() {
+        }
+    }
+
     public enum AllBlockTags {
         BALLOON_BLOCK;
         public final TagKey<Block> tag;
         public final boolean alwaysDatagen;
 
         AllBlockTags() {
-            this(NameSpace.MOD);
+            this(MOD);
         }
 
         AllBlockTags(NameSpace namespace) {

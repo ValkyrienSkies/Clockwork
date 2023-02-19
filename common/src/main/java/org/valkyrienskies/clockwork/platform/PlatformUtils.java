@@ -13,9 +13,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity;
+import org.valkyrienskies.clockwork.content.contraptions.combustion_engine.CombustionEngineBlockEntity;
 
 import javax.annotation.Nullable;
 
@@ -46,6 +48,12 @@ public class PlatformUtils {
     public static int maxBalloonRange() {throw new AssertionError();}
 
     @ExpectPlatform
-    public void useBallooner(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand,
+    public static void useBallooner(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand,
                                           BlockHitResult blockRayTraceResult) {throw new AssertionError();}
+
+    @ExpectPlatform
+    public static Class<?> getCombustionEngineTileEntityClass() {throw new AssertionError();}
+
+    @ExpectPlatform
+    public static BlockEntityType<? extends CombustionEngineBlockEntity> getCombustionEngineTileEntityType() {throw new AssertionError();}
 }

@@ -23,7 +23,11 @@ public class ClockWorkPartials {
             PLUME_FUMING = block("afterblazer/plume_angry"),
             PLUME_INFURIATED = block("afterblazer/plume_infuriated"),
             WHEEL_BOTTOM = block("reactionwheel/wheelbottom"),
-            WHEEL_TOP = block("reactionwheel/wheeltop");
+            WHEEL_TOP = block("reactionwheel/wheeltop"),
+
+            ENGINE = block("combustion_engine/main"),
+
+            ENGINE_PISTONS = block("combustion_engine/pistons");
 
     private static PartialModel block(String path) {
         return new PartialModel(ClockWorkMod.asResource("block/" + path));
