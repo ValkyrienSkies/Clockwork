@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.platform.fabric;
 
 import com.jamieswhiteshirt.reachentityattributes.ReachEntityAttributes;
 import com.simibubi.create.AllTags;
+import com.simibubi.create.foundation.tileEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import io.github.fabricators_of_create.porting_lib.entity.ExtraSpawnDataEntity;
 import io.github.fabricators_of_create.porting_lib.mixin.common.accessor.ServerGamePacketListenerImplAccessor;
 import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil;
@@ -27,6 +28,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlock;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlockEntity.FuelType;
 import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity;
+import org.valkyrienskies.clockwork.fabric.FabricClockworkItems;
 import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.util.blocktype.EngineHeatLevel;
 
@@ -126,5 +128,13 @@ public class PlatformUtilsImpl {
 
     public static int maxBalloonRange() {
         return AllClockworkConfigs.SERVER.kinetics.balloonRange.get();
+    }
+
+    public static boolean isCannon(ItemStack stack) {
+        return FabricClockworkItems.PASTRYMAKER.get().isCannon(stack);
+    }
+
+    public static void drainTank(SmartFluidTankBehaviour tank, int amount) {
+        tank.getPrimaryHandler().getFluid().shrink(amount);
     }
 }

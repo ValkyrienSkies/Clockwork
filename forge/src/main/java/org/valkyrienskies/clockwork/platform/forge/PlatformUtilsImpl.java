@@ -19,8 +19,9 @@ import net.minecraftforge.network.NetworkHooks;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlockEntity.FuelType;
 import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.combustion_engine.CombustionEngineBlockEntity;
+import org.valkyrienskies.clockwork.forge.ForgeClockworkItems;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
-import org.valkyrienskies.clockwork.forge.content.contraptions.combustion_engine.ForgeCombustionEngineBlockEntity;
+//import org.valkyrienskies.clockwork.forge.content.contraptions.combustion_engine.ForgeCombustionEngineBlockEntity;
 import org.valkyrienskies.clockwork.util.blocktype.EngineHeatLevel;
 
 import static org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity.INSERTION_THRESHOLD;
@@ -132,10 +133,14 @@ public class PlatformUtilsImpl {
     }
 
 
-    public static Class<?> getCombustionEngineTileEntityClass() {
-        return ForgeCombustionEngineBlockEntity.class;
-    }
+//    public static Class<?> getCombustionEngineTileEntityClass() {
+//        return ForgeCombustionEngineBlockEntity.class;
+//    }
+//
+//    public static BlockEntityType<? extends CombustionEngineBlockEntity> getCombustionEngineTileEntityType() {throw new AssertionError();}
 
-    public static BlockEntityType<? extends CombustionEngineBlockEntity> getCombustionEngineTileEntityType() {throw new AssertionError();}
+    public static boolean isCannon(ItemStack stack) {
+        return ForgeClockworkItems.PASTRYMAKER.get().isCannon(stack);
+    }
 
 }

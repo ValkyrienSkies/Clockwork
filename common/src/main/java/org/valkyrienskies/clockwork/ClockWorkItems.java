@@ -4,6 +4,7 @@ import com.simibubi.create.AllTags;
 import com.simibubi.create.content.AllSections;
 import com.simibubi.create.content.curiosities.CombustibleItem;
 import com.simibubi.create.foundation.data.AssetLookup;
+import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.tterrag.registrate.util.entry.ItemEntry;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
@@ -11,6 +12,8 @@ import net.minecraft.world.item.Rarity;
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItemRenderer;
+import org.valkyrienskies.clockwork.content.curiosities.tools.pastrymaker.PastrymakerItem;
+import org.valkyrienskies.clockwork.content.curiosities.tools.pastrymaker.PastrymakerItemRenderer;
 import org.valkyrienskies.clockwork.content.materials.solids.soda.SodaBottleItem;
 import org.valkyrienskies.clockwork.content.materials.solids.stratodonut.StratodonutItem;
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate;
@@ -63,6 +66,12 @@ public class ClockWorkItems {
             .model(AssetLookup.itemModelWithPartials())
             .register();
 
+
+//    public static final ItemEntry<PastrymakerItem> PASTRYMAKER =
+//            REGISTRATE.item("pastrymaker", PastrymakerItem::new)
+//                    .transform(CreateRegistrate.customRenderedItem(() -> PastrymakerItemRenderer::new))
+//                    .model(AssetLookup.itemModelWithPartials())
+//                    .register();
     //Shortcuts
 
     private static ItemEntry<Item> ingredient(String name) {

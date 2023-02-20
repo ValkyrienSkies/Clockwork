@@ -35,13 +35,13 @@ public class CombustionEngineRenderer extends KineticTileEntityRenderer {
         SuperByteBuffer pistons = CachedBufferer.partialFacing(ClockWorkPartials.ENGINE_PISTONS, blockState);
 
         pistons.light(light).renderInto(ms, buffer.getBuffer(RenderType.cutout()));
-        shakeEngine(engine, speed).light(light).renderInto(ms, buffer.getBuffer(RenderType.cutout()));
+        shakeEngine(engine, speed, partialTicks).light(light).renderInto(ms, buffer.getBuffer(RenderType.cutout()));
     }
 
-    private SuperByteBuffer shakeEngine(SuperByteBuffer buffer, float speed) {
-        float offsetX = (float) (((Math.sin(speed) + Math.sin(speed * 2) + Math.sin(speed * -0.5)) * 2)/ 3);
-        float offsetY = (float) (((Math.sin(speed) + Math.sin(speed * 0.5) + Math.sin(speed * 3)) * 2)/ 3);
-        float offsetZ = (float) (((Math.sin(speed) + Math.sin(speed * 4) + Math.sin(speed * -1)) * 2)/ 3);
+    private SuperByteBuffer shakeEngine(SuperByteBuffer buffer, float speed, float partialTicks) {
+        float offsetX = (float) (((Math.sin(partialTicks) + Math.sin(partialTicks * 2) + Math.sin(partialTicks * -0.5)) * 2)/ 3) * speed;
+        float offsetY = (float) (((Math.sin(partialTicks) + Math.sin(partialTicks * 0.5) + Math.sin(partialTicks * 3)) * 2)/ 3) * speed;
+        float offsetZ = (float) (((Math.sin(partialTicks) + Math.sin(partialTicks * 4) + Math.sin(partialTicks * -1)) * 2)/ 3) * speed;
 
         buffer.translate(offsetX, offsetY, offsetZ);
         return buffer;

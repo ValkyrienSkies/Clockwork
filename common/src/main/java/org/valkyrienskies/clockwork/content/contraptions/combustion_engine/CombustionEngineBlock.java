@@ -39,8 +39,8 @@ import org.valkyrienskies.clockwork.ClockWorkBlockEntities;
 import org.valkyrienskies.clockwork.platform.PlatformUtils;
 import org.valkyrienskies.clockwork.util.blocktype.IHeatableBlock;
 
-public abstract class CombustionEngineBlock extends DirectionalKineticBlock
-        implements SimpleWaterloggedBlock, IHeatableBlock {
+public class CombustionEngineBlock extends DirectionalKineticBlock
+        implements SimpleWaterloggedBlock, IHeatableBlock, ITE<CombustionEngineBlockEntity> {
 
     public CombustionEngineBlock(Properties p_i48415_1_) {
         super(p_i48415_1_);
@@ -161,5 +161,15 @@ public abstract class CombustionEngineBlock extends DirectionalKineticBlock
 
     public static Couple<Integer> getSpeedRange() {
         return Couple.create(32,128);
+    }
+
+    @Override
+    public Class<CombustionEngineBlockEntity> getTileEntityClass() {
+        return CombustionEngineBlockEntity.class;
+    }
+
+    @Override
+    public BlockEntityType<? extends CombustionEngineBlockEntity> getTileEntityType() {
+        return ClockWorkBlockEntities.COMBUSTION_ENGINE.get();
     }
 }

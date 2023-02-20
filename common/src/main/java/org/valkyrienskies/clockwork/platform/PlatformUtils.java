@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.platform;
 
+import com.simibubi.create.foundation.tileEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.core.BlockPos;
@@ -51,9 +52,12 @@ public class PlatformUtils {
     public static void useBallooner(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand,
                                           BlockHitResult blockRayTraceResult) {throw new AssertionError();}
 
-    @ExpectPlatform
-    public static Class<?> getCombustionEngineTileEntityClass() {throw new AssertionError();}
+//    @ExpectPlatform
+//    public static Class<?> getCombustionEngineTileEntityClass() {throw new AssertionError();}
+//
+//    @ExpectPlatform
+//    public static BlockEntityType<? extends CombustionEngineBlockEntity> getCombustionEngineTileEntityType() {throw new AssertionError();}
 
     @ExpectPlatform
-    public static BlockEntityType<? extends CombustionEngineBlockEntity> getCombustionEngineTileEntityType() {throw new AssertionError();}
+    public static boolean isCannon(ItemStack stack) {throw new AssertionError();}
 }
