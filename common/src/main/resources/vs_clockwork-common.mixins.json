@@ -5,6 +5,7 @@
   "plugin": "org.valkyrienskies.clockwork.mixin.CommonMixinConfigPlugin",
   "mixins": [
     "MixinPlayer",
+    "accessors.FluidAccessor",
     "compat.IMixinDeployerHandler",
     "compat.IMixinDeployerMovementBehaviour",
     "compat.MixinAirCurrent",
@@ -34,10 +35,10 @@
     "compat.packets.MixinTileEntityConfigurationPacket",
     "compat.packets.MixinTrainRelocationPacket",
     "compat.pr.MixinSeatBlock",
-    "content.propellor.MixinBearingContraption",
-    "content.vs_contraptions.MixinMechanicalBearingTileEntity",
+    "content.balloon.MixinLevelChunkBalloon",
     "content.casing.MixinShaftBlock",
-    "content.balloon.MixinLevelChunkBalloon"
+    "content.propellor.MixinBearingContraption",
+    "content.vs_contraptions.MixinMechanicalBearingTileEntity"
   ],
   "client": [
     "compat.client.MixinCarriageContraptionInstance",

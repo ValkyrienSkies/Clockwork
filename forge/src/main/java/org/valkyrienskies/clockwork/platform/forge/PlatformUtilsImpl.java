@@ -1,6 +1,9 @@
 package org.valkyrienskies.clockwork.platform.forge;
 
 import com.simibubi.create.AllTags;
+import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
+import com.simibubi.create.foundation.tileEntity.behaviour.BehaviourType;
+import com.simibubi.create.foundation.tileEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerPlayer;
@@ -22,7 +25,9 @@ import org.valkyrienskies.clockwork.content.contraptions.combustion_engine.Combu
 import org.valkyrienskies.clockwork.forge.ForgeClockworkItems;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
 //import org.valkyrienskies.clockwork.forge.content.contraptions.combustion_engine.ForgeCombustionEngineBlockEntity;
+import org.valkyrienskies.clockwork.platform.SmartFluidTankBlockEntity;
 import org.valkyrienskies.clockwork.util.blocktype.EngineHeatLevel;
+import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour;
 
 import static org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity.INSERTION_THRESHOLD;
 import static org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity.MAX_HEAT_CAPACITY;
@@ -141,6 +146,10 @@ public class PlatformUtilsImpl {
 
     public static boolean isCannon(ItemStack stack) {
         return ForgeClockworkItems.PASTRYMAKER.get().isCannon(stack);
+    }
+
+    public static CWFluidTankBehaviour cwFluidTank(BehaviourType<CWFluidTankBehaviour> type, SmartTileEntity te, int tanks, long tankCapacity, boolean enforceVariety) {
+        return new ForgeCWFluidTankBehaviour(type, te, tanks, tankCapacity, enforceVariety);
     }
 
 }

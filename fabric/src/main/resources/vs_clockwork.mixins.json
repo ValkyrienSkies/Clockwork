@@ -3,11 +3,11 @@
   "package": "org.valkyrienskies.clockwork.fabric.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "compat.MixinControlledContraptionEntity",
-    "compat.MixinStickerTileEntity",
     "compat.MixinBlockBreakingKineticTileEntity",
     "compat.MixinBlocks",
+    "compat.MixinControlledContraptionEntity",
     "compat.MixinFilteringHandler",
+    "compat.MixinStickerTileEntity",
     "compat.client.MixinCullingBlockEntityIterator"
   ],
   "client": [

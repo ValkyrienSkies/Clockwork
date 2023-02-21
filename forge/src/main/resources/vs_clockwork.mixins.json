@@ -6,7 +6,8 @@
     "accessors.ItemAccessor",
     "compat.MixinFilteringHandler",
     "compat.MixinStickerTileEntity",
-    "compat.MixinControlledContraptionEntity"
+    "compat.MixinControlledContraptionEntity",
+    "platform.MixinBlockEntity"
   ],
   "client": [
     "compat.client.MixinSuperGlueSelectionHandler"

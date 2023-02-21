@@ -17,6 +17,7 @@ import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkClientEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkCommonEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkInputEvents;
+import org.valkyrienskies.clockwork.platform.fabric.FallbackFabricTransfer;
 import org.valkyrienskies.mod.fabric.common.ValkyrienSkiesModFabric;
 
 public class ClockWorkModFabric implements ModInitializer {
@@ -27,6 +28,7 @@ public class ClockWorkModFabric implements ModInitializer {
 
         FabricClockworkParticles.init();
         FabricClockworkSounds.init();
+        FallbackFabricTransfer.init();
 
         //ClockworkCommonEvents.register();
         FabricClockworkCommonEvents.register();

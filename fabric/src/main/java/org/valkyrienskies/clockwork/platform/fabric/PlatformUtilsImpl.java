@@ -2,6 +2,8 @@ package org.valkyrienskies.clockwork.platform.fabric;
 
 import com.jamieswhiteshirt.reachentityattributes.ReachEntityAttributes;
 import com.simibubi.create.AllTags;
+import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
+import com.simibubi.create.foundation.tileEntity.behaviour.BehaviourType;
 import com.simibubi.create.foundation.tileEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import io.github.fabricators_of_create.porting_lib.entity.ExtraSpawnDataEntity;
 import io.github.fabricators_of_create.porting_lib.mixin.common.accessor.ServerGamePacketListenerImplAccessor;
@@ -30,7 +32,9 @@ import org.valkyrienskies.clockwork.content.contraptions.afterblazer.Afterblazer
 import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity;
 import org.valkyrienskies.clockwork.fabric.FabricClockworkItems;
 import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
+import org.valkyrienskies.clockwork.platform.SmartFluidTankBlockEntity;
 import org.valkyrienskies.clockwork.util.blocktype.EngineHeatLevel;
+import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour;
 
 public class PlatformUtilsImpl {
     public static double getReachDistance(Player player) {
@@ -136,5 +140,9 @@ public class PlatformUtilsImpl {
 
     public static void drainTank(SmartFluidTankBehaviour tank, int amount) {
         tank.getPrimaryHandler().getFluid().shrink(amount);
+    }
+
+    public static CWFluidTankBehaviour cwFluidTank(BehaviourType<CWFluidTankBehaviour> type, SmartTileEntity te, int tanks, long tankCapacity, boolean enforceVariety) {
+        return new FabricCWFluidTankBehaviour(type, te, tanks, tankCapacity, enforceVariety);
     }
 }
