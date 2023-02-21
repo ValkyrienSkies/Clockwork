@@ -267,7 +267,7 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
         temp = temp + ((tempinc * throttle) * volmod);
 
         if (leaking) {
-            temp = temp - (0.012 * brokenBalloons);
+            temp = temp - ((0.012 * brokenBalloons) * volmod);
         }
 
         return temp;
@@ -304,7 +304,7 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
             volume = balloonAndSpacePositions.left();
             balloonPositions = balloonAndSpacePositions.right();
             wasProviding = true;
-        } else if (wasProviding && !canProvide(balloonAndSpacePositions.left().size()) && !balloonAndSpacePositions.left().isEmpty()) {
+        } else if (wasProviding && !canProvide(balloonAndSpacePositions.left().size()) && balloonAndSpacePositions.left().isEmpty()) {
             leaking = true;
         } else {
             volume.clear();
