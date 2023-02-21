@@ -81,7 +81,8 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
     }
 
     public int getMaxScanRange() {
-        return PlatformUtils.maxBalloonRange();
+        return 4096;
+        // return PlatformUtils.maxBalloonRange();
     }
 
     public Set<BlockPos> getBalloonPositions() {
@@ -120,6 +121,8 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
         return isCreative;
     }
 
+    private int brokenBalloons = 0;
+
     @Override
     public void tick() {
         super.tick();
@@ -137,6 +140,13 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
             if (shouldCheck) {
                 checkBalloon();
                 shouldCheck = false;
+            }
+        }
+
+        if (wasProviding && leaking) {
+            leaking = !checkForRepair();
+            if (!leaking) {
+                brokenBalloons = 0;
             }
         }
 
@@ -173,9 +183,9 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
             internalTemperature = 1;
         }
 
-        if (wasProviding && internalTemperature == 0) {
+        if (wasProviding && internalTemperature == 0 && leaking) {
             wasProviding = false;
-            scanBalloon();
+            shouldScan = true;
         }
 
         updateBlockState();
@@ -257,10 +267,26 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
         temp = temp + ((tempinc * throttle) * volmod);
 
         if (leaking) {
-            temp = temp - 0.024;
+            temp = temp - (0.012 * brokenBalloons);
         }
 
         return temp;
+    }
+
+    public boolean checkForRepair() {
+        if (balloonPositions.isEmpty()) {
+            return false;
+        }
+        int brokenballoons = 0;
+        boolean fixed = true;
+        for (BlockPos pos : balloonPositions) {
+            if (!level.getBlockState(pos).is(ClockWorkTags.AllBlockTags.BALLOON_BLOCK.tag)) {
+                fixed = false;
+                brokenballoons++;
+            }
+        }
+        brokenBalloons = brokenballoons;
+        return fixed;
     }
 
     public void scanBalloon() {
@@ -273,31 +299,35 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
         EnclosedBalloonScanner scanner = new EnclosedBalloonScanner(level, getMaxScanRange());
         Pair<Set<BlockPos>, Set<BlockPos>> balloonAndSpacePositions = scanner.getEnclosedBalloons(worldPosition.above());
 
-        if (canProvide(balloonAndSpacePositions.left().size())) {
+        if (canProvide(balloonAndSpacePositions.left().size()) && !balloonAndSpacePositions.right().isEmpty() && !balloonAndSpacePositions.left().isEmpty()) {
             leaking = false;
             volume = balloonAndSpacePositions.left();
             balloonPositions = balloonAndSpacePositions.right();
+            wasProviding = true;
+        } else if (wasProviding && !canProvide(balloonAndSpacePositions.left().size()) && !balloonAndSpacePositions.left().isEmpty()) {
+            leaking = true;
         } else {
             volume.clear();
             balloonPositions.clear();
-            leaking = true;
+            leaking = false;
         }
 
-        //else if (wasProviding && !canProvide(balloonAndSpacePositions.left().size())) {
-        //            leaking = true;
-        //        }
+
     }
 
     public void checkBalloon() {
     if (balloonPositions.isEmpty()) {
+        shouldScan = true;
         return;
     }
+    int brokenballoons = 0;
         for (BlockPos pos : balloonPositions) {
             if (!level.getBlockState(pos).is(ClockWorkTags.AllBlockTags.BALLOON_BLOCK.tag)) {
+                brokenballoons++;
                 shouldScan = true;
-                return;
             }
         }
+        brokenBalloons = brokenballoons;
     }
 
     public boolean tryUpdateFuel(ItemStack itemStack, boolean forceOverflow, boolean simulate) {

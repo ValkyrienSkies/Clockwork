@@ -16,11 +16,17 @@ public record EnclosedBalloonScanner(Level level, int maxChecks) {
         Set<BlockPos> positions = new HashSet<>();
         Set<BlockPos> balloonPositions = new HashSet<>();
         Set<BlockPos> queuedPositions = new HashSet<>();
+        int scanned = 0;
         queuedPositions.add(burnerPos);
         while (!queuedPositions.isEmpty()) {
-            if (positions.size() >= maxChecks) {
+            scanned++;
+            if (scanned > maxChecks) {
+                positions.clear();
                 break;
             }
+//            if (positions.size() > maxChecks) {
+//                break;
+//            }
             Iterator<BlockPos> iterator = queuedPositions.iterator();
             BlockPos pos = iterator.next();
             iterator.remove();

@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.content.forces;
 
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3d;
@@ -14,6 +15,7 @@ import org.valkyrienskies.core.api.ships.ServerShip;
 import org.valkyrienskies.core.impl.api.ShipForcesInducer;
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl;
 
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -68,28 +70,30 @@ public class BalloonController implements ShipForcesInducer {
 
         Vector3dc torque = resistRotation((PhysShipImpl) physShip);
         Vector3dc drag = airResistance((PhysShipImpl) physShip);
-        physShip.applyRotDependentTorque(torque);
+//        physShip.applyRotDependentTorque(torque);
+        physShip.applyInvariantTorque(torque);
         physShip.applyInvariantForce(drag);
 
         for (BalloonData physData : balloonData.values()) {
-            if (physData.volume.isEmpty()) {
+            Set<Vector3dc> vol = physData.volume;
+            if (vol.isEmpty()) {
                 continue;
             }
-            Vector3dc force = computeForce(physData, (PhysShipImpl) physShip);
+            Vector3dc force = computeForce(physData, (PhysShipImpl) physShip, vol);
             double x = 0;
             double y = 0;
             double z = 0;
 
             //todo: BETTER SOLUTION
-            for (Vector3dc pos : physData.volume) {
+            for (Vector3dc pos : vol) {
                 Vector3d tPos = pos.sub(physShip.getTransform().getPositionInShip(), new Vector3d());
                 x += (tPos.x() + 0.5);
                 y += (tPos.y() + 0.5);
                 z += (tPos.z() + 0.5);
             }
-            x /= physData.volume.size();
-            y /= physData.volume.size();
-            z /= physData.volume.size();
+            x /= vol.size();
+            y /= vol.size();
+            z /= vol.size();
             Vector3dc center = new Vector3d(x, y, z);
 
 //            Vector3dc centervec = center.sub(physShip.getTransform().getPositionInShip(), new Vector3d());
@@ -100,8 +104,12 @@ public class BalloonController implements ShipForcesInducer {
         }
     }
 
-    private Vector3dc computeForce(BalloonData physData, PhysShipImpl physShip) {
-        double volume = physData.volume.size();
+    private Vector3dc computeForce(BalloonData physData, PhysShipImpl physShip, Set<Vector3dc> vol) {
+        double volume = vol.size();
+
+        if (volume == 0) {
+            return new Vector3d();
+        }
 
         double earthAirPressure = 101325; // Pascals
         double roomAirTemp = 293; // Kelvin, Equiv 20C
@@ -126,12 +134,12 @@ public class BalloonController implements ShipForcesInducer {
     }
 
     private Vector3d resistRotation(PhysShipImpl physShip) {
-        double resistance = 0.025;
+        double resistance = 0.05;
 
         resistance = resistance;
-
+//
         Vector3d torque = physShip.getPoseVel().getOmega().mul(physShip.getInertia().getMomentOfInertiaTensor(), new Vector3d()).mul(-resistance);
-
+//        Vector3d torque = physShip.getPoseVel().getOmega().mul(-resistance, new Vector3d());
         return torque;
     }
 
