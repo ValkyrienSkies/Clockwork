@@ -18,6 +18,7 @@ import com.simibubi.create.foundation.utility.animation.LerpedFloat.Chaser;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import org.valkyrienskies.clockwork.ClockWorkBlocks;
 import org.valkyrienskies.clockwork.data.ClockWorkTags;
 import org.valkyrienskies.clockwork.platform.SmartFluidTankBlockEntity;
 import org.valkyrienskies.clockwork.util.blocktype.*;
@@ -46,12 +47,6 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
         arrowDirection = LerpedFloat.linear()
                 .startWithValue(1);
         sidesToUpdate = Couple.create(MutableBoolean::new);
-    }
-    @Override
-    public void removeSource() {
-        if (hasSource() && isSource())
-            reActivateSource = true;
-        super.removeSource();
     }
 
     public float getFillState() {
@@ -85,16 +80,16 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
 
     }
 
-    @Override
-    public void setSource(BlockPos source) {
-        super.setSource(source);
-        BlockEntity tileEntity = level.getBlockEntity(source);
-        if (!(tileEntity instanceof KineticTileEntity))
-            return;
-        KineticTileEntity sourceTe = (KineticTileEntity) tileEntity;
-        if (reActivateSource && Math.abs(sourceTe.getSpeed()) >= Math.abs(getGeneratedSpeed()))
-            reActivateSource = false;
-    }
+//    @Override
+//    public void setSource(BlockPos source) {
+//        super.setSource(source);
+//        BlockEntity tileEntity = level.getBlockEntity(source);
+//        if (!(tileEntity instanceof KineticTileEntity))
+//            return;
+//        KineticTileEntity sourceTe = (KineticTileEntity) tileEntity;
+//        if (reActivateSource && Math.abs(sourceTe.getSpeed()) >= Math.abs(getGeneratedSpeed()))
+//            reActivateSource = false;
+//    }
 
     @Override
     public void addBehaviours(List<TileEntityBehaviour> behaviours) {
@@ -192,13 +187,16 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
         }
     }
 
-    @Override
-    public float calculateAddedStressCapacity() {
-        return Math.abs(getGeneratedSpeed()) * 64;
-    }
+//    @Override
+//    public float calculateAddedStressCapacity() {
+//        return Math.abs(getGeneratedSpeed()) * 64;
+//    }
 
     @Override
     public float getGeneratedSpeed() {
+        if (!ClockWorkBlocks.COMBUSTION_ENGINE.has(getBlockState()))
+            return 0;
+
         return convertToDirection(generatedSpeed, getBlockState().getValue(CombustionEngineBlock.FACING));
     }
 

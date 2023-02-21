@@ -5,6 +5,7 @@ import com.simibubi.create.content.AllSections;
 import com.simibubi.create.content.contraptions.base.CasingBlock;
 import com.simibubi.create.foundation.block.BlockStressDefaults;
 import com.simibubi.create.foundation.data.*;
+import com.simibubi.create.foundation.utility.Couple;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.level.block.SoundType;
@@ -194,10 +195,11 @@ public class ClockWorkBlocks {
     public static final BlockEntry<CombustionEngineBlock> COMBUSTION_ENGINE =
             REGISTRATE.block("combustion_engine", CombustionEngineBlock::new)
                     .initialProperties(SharedProperties::copperMetal)
+                    .properties(BlockBehaviour.Properties::noOcclusion)
                     .transform(pickaxeOnly())
                     .blockstate((c, p) -> p.horizontalFaceBlock(c.get(), AssetLookup.partialBaseModel(c, p)))
-                    .transform(BlockStressDefaults.setCapacity(1024.0))
-                    .transform(BlockStressDefaults.setGeneratorSpeed(CombustionEngineBlock::getSpeedRange))
+                    .transform(BlockStressDefaults.setCapacity(128.0))
+                    .transform(BlockStressDefaults.setGeneratorSpeed(() -> Couple.create(0, 128)))
                     .item()
                     .transform(customItemModel())
                     .register();

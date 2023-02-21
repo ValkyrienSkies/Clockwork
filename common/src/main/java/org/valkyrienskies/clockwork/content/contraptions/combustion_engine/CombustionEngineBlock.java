@@ -22,6 +22,7 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -81,13 +82,13 @@ public class CombustionEngineBlock extends DirectionalKineticBlock
         super.createBlockStateDefinition(builder);
     }
 
-    @Override
-    public BlockState updateShape(BlockState state, Direction direction, BlockState neighbourState, LevelAccessor world,
-                                  BlockPos pos, BlockPos neighbourPos) {
-        if (state.getValue(BlockStateProperties.WATERLOGGED))
-            world.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(world));
-        return state;
-    }
+//    @Override
+//    public BlockState updateShape(BlockState state, Direction direction, BlockState neighbourState, LevelAccessor world,
+//                                  BlockPos pos, BlockPos neighbourPos) {
+//        if (state.getValue(BlockStateProperties.WATERLOGGED))
+//            world.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(world));
+//        return state;
+//    }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
@@ -114,22 +115,27 @@ public class CombustionEngineBlock extends DirectionalKineticBlock
     }
 
     @Override
-    public void onPlace(BlockState state, Level world, BlockPos pos, BlockState oldState, boolean isMoving) {
-        super.onPlace(state, world, pos, oldState, isMoving);
-        if (world.isClientSide)
-            return;
-        if (state != oldState)
-            world.scheduleTick(pos, this, 1, TickPriority.HIGH);
-
-        if (state.getValue(FACING) == oldState.getValue(FACING)
-                .getOpposite()) {
-            BlockEntity tileEntity = world.getBlockEntity(pos);
-            if (!(tileEntity instanceof CombustionEngineBlockEntity))
-                return;
-            CombustionEngineBlockEntity pump = (CombustionEngineBlockEntity) tileEntity;
-            pump.pressureUpdate = true;
-        }
+    public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
+        return AllShapes.MOTOR_BLOCK.get(state.getValue(FACING));
     }
+
+//    @Override
+//    public void onPlace(BlockState state, Level world, BlockPos pos, BlockState oldState, boolean isMoving) {
+//        super.onPlace(state, world, pos, oldState, isMoving);
+//        if (world.isClientSide)
+//            return;
+//        if (state != oldState)
+//            world.scheduleTick(pos, this, 1, TickPriority.HIGH);
+//
+//        if (state.getValue(FACING) == oldState.getValue(FACING)
+//                .getOpposite()) {
+//            BlockEntity tileEntity = world.getBlockEntity(pos);
+//            if (!(tileEntity instanceof CombustionEngineBlockEntity))
+//                return;
+//            CombustionEngineBlockEntity pump = (CombustionEngineBlockEntity) tileEntity;
+//            pump.pressureUpdate = true;
+//        }
+//    }
 
     @Override
     public void tick(BlockState state, ServerLevel world, BlockPos pos, Random r) {
@@ -160,7 +166,7 @@ public class CombustionEngineBlock extends DirectionalKineticBlock
 //    }
 
     public static Couple<Integer> getSpeedRange() {
-        return Couple.create(32,128);
+        return Couple.create(16,128);
     }
 
     @Override
@@ -171,5 +177,10 @@ public class CombustionEngineBlock extends DirectionalKineticBlock
     @Override
     public BlockEntityType<? extends CombustionEngineBlockEntity> getTileEntityType() {
         return ClockWorkBlockEntities.COMBUSTION_ENGINE.get();
+    }
+
+    @Override
+    public boolean hasShaftTowards(LevelReader world, BlockPos pos, BlockState state, Direction face) {
+        return face.getAxis() == state.getValue(FACING).getAxis();
     }
 }
