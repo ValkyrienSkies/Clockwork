@@ -38,7 +38,8 @@
     "content.balloon.MixinLevelChunkBalloon",
     "content.casing.MixinShaftBlock",
     "content.propellor.MixinBearingContraption",
-    "content.vs_contraptions.MixinMechanicalBearingTileEntity"
+    "content.vs_contraptions.MixinMechanicalBearingTileEntity",
+    "content.fan.MixinEncasedFanTileEntity"
   ],
   "client": [
     "compat.client.MixinCarriageContraptionInstance",

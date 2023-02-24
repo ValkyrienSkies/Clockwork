@@ -96,8 +96,8 @@ public class AfterblazerController implements ShipForcesInducer {
         Quaterniondc jetRotation = switch (physJet.jetDirection) {
             case DOWN -> new Quaterniond().rotateX(Math.toRadians(90));
             case UP -> new Quaterniond().rotateX(Math.toRadians(270));
-            case NORTH -> new Quaterniond();
-            case SOUTH -> new Quaterniond().rotateY(Math.toRadians(180));
+            case NORTH -> new Quaterniond().rotateY(Math.toRadians(180));
+            case SOUTH -> new Quaterniond();
             case WEST -> new Quaterniond().rotateY(Math.toRadians(270));
             case EAST -> new Quaterniond().rotateY(Math.toRadians(90));
         };
