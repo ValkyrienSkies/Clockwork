@@ -11,8 +11,12 @@ import com.simibubi.create.content.contraptions.components.structureMovement.bea
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.IBearingTileEntity;
 import com.simibubi.create.foundation.advancement.AllAdvancements;
 import com.simibubi.create.foundation.config.AllConfigs;
+import com.simibubi.create.foundation.gui.AllIcons;
+import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
+import com.simibubi.create.foundation.tileEntity.behaviour.scrollvalue.INamedIconOptions;
 import com.simibubi.create.foundation.tileEntity.behaviour.scrollvalue.ScrollOptionBehaviour;
 import com.simibubi.create.foundation.utility.AngleHelper;
+import com.simibubi.create.foundation.utility.Lang;
 import com.simibubi.create.foundation.utility.ServerSpeedProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -67,6 +71,9 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
     private float prevAngle;
     private float prevSpeed;
 
+    protected ScrollOptionBehaviour<RotationDirection> movementDirection;
+
+    private boolean inverted = false;
     private Integer physPropId = null;
 
     public PropellorBearingBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -76,17 +83,35 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
         updateAirFlow = true;
     }
 
+
+    public boolean isInverted() {
+        return inverted;
+    }
+
     @Override
     public float getInterpolatedAngle(float partialTicks) {
         if (isVirtual())
             return Mth.lerp(partialTicks + .5f, prevAngle, angle);
         if (movedContraption == null || movedContraption.isStalled() || !running)
             partialTicks = 0;
-        return Mth.lerp(partialTicks, angle, angle + (rotspeed*3/10f));
+        return Mth.lerp(partialTicks, angle, angle + getAngularSpeed());
     }
     @Override
     public float getRotspeed() {
         return rotspeed;
+    }
+
+
+    public float getAngularSpeed() {
+        float angspeed = convertToAngular(rotspeed);
+        if (getRotspeed() == 0) {
+            angspeed = 0;
+        }
+        if (level.isClientSide) {
+            angspeed *= ServerSpeedProvider.get();
+            angspeed += clientAngleDiff;
+        }
+        return angspeed;
     }
     @Override
     public void tick() {
@@ -146,8 +171,8 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
             return;
 
         if (!(movedContraption != null && movedContraption.isStalled())) {
-            float angularSpeed = getAngularSpeed(rotspeed);
-            float newAngle = angle + (rotspeed*3/10f);
+            float angularSpeed = getAngularSpeed();
+            float newAngle = angle + angularSpeed;
             angle = (float) (newAngle % 360);
         }
 
@@ -157,7 +182,7 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
             if (server) {
                 final LoadedServerShip ship = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, getBlockPos());
                 if (ship != null) {
-                    final PropellorUpdatePhysData data = new PropellorUpdatePhysData(rotspeed, angle);
+                    final PropellorUpdatePhysData data = new PropellorUpdatePhysData(getAngularSpeed(), angle, inverted);
                     PropellorController.getOrCreate(ship).updatePropellor(physPropId, data);
                 }
             }
@@ -189,6 +214,7 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
                 disassemble();
             }
             slowingDown = false;
+            disassembling = 0;
             return;
         }
 
@@ -241,19 +267,15 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
             sails = ((PropellorContraption) movedContraption.getContraption()).getSailBlocks();
         }
         sails = Math.max(sails, 2);
-        if (speed != 0) {
-            return (sails * 2.0f * rotspeed)/speed;
+        float speedDiff = getSpeed();
+        if (speedDiff == 0) {
+            return 0;
         }
-        return 0;
+        return (sails * 2.0f * Math.abs(rotspeed))/Math.abs(speedDiff);
+
     }
 
-    public float getAngularSpeed(float angSpeed) {
-        if (level.isClientSide) {
-            angSpeed *= ServerSpeedProvider.get();
-            angSpeed += clientAngleDiff / 3f;
-        }
-        return angSpeed;
-    }
+
 
 //    public float getCurrentSpeed() {
 //        float transitionSpeed = rotspeed;
@@ -347,6 +369,7 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
         compound.putFloat("Rotspeed", rotspeed);
         compound.putBoolean("Running", running);
         compound.putFloat("Angle", angle);
+        compound.putBoolean("Inverted", inverted);
         if (physPropId != null) {
             compound.putInt("ID", physPropId);
         }
@@ -360,8 +383,11 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
         rotspeed = compound.getFloat("Rotspeed");
         running = compound.getBoolean("Running");
         angle = compound.getFloat("Angle");
+        inverted = compound.getBoolean("Inverted");
         lastException = AssemblyException.read(compound);
-        physPropId = compound.contains("ID") ? compound.getInt("ID") : null;
+        if (compound.contains("ID")) {
+            physPropId = compound.getInt("ID");
+        }
         super.read(compound, clientPacket);
 
         if (!clientPacket)
@@ -614,7 +640,7 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
         List<Vector3ic> sailVecs = sailPositions.stream().map(v -> (Vector3ic) VectorConversionsMCKt.toJOML(v)).toList();
         Vector3dc axis = VectorConversionsMCKt.toJOMLD(getBlockState().getValue(BlockStateProperties.FACING).getNormal());
         Vector3dc vecpos = VectorConversionsMCKt.toJOMLD(getBlockPos());
-        PropellorCreatePhysData data = new PropellorCreatePhysData(vecpos, axis, angle, rotspeed, sailVecs);
+        PropellorCreatePhysData data = new PropellorCreatePhysData(vecpos, axis, angle, getAngularSpeed(), sailVecs, inverted);
 
         if (!level.isClientSide) {
             final LoadedServerShip ship = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, getBlockPos());
@@ -626,6 +652,20 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
     }
 
     @Override
+    public void addBehaviours(List<TileEntityBehaviour> behaviours) {
+        super.addBehaviours(behaviours);
+        movementDirection = new ScrollOptionBehaviour<>(RotationDirection.class,
+                Lang.translateDirect("contraptions.propellor.movement_direction"), this, getMovementModeSlot());
+        movementDirection.requiresWrench();
+        movementDirection.withCallback($ -> onOrientationChanged());
+        behaviours.add(movementDirection);
+    }
+
+    private void onOrientationChanged() {
+        inverted = !(inverted);
+    }
+
+    @Override
     public void lazyTick() {
         super.lazyTick();
         if (movedContraption != null && !level.isClientSide)
@@ -634,7 +674,7 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
 
     public void shutDown() {
         slowingDown = true;
-        disassembling = (int) Math.abs(rotspeed);
+        disassembling = Math.abs(rotspeed);
         spinningUp = false;
         spinup = 0;
     }
@@ -712,5 +752,30 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
     @Override
     public BlockPos getBlockPosition() {
         return worldPosition;
+    }
+    public static enum RotationDirection implements INamedIconOptions {
+
+        NORMAL(AllIcons.I_REFRESH), INVERTED(AllIcons.I_ROTATE_CCW),
+
+        ;
+
+        private String translationKey;
+        private AllIcons icon;
+
+        private RotationDirection(AllIcons icon) {
+            this.icon = icon;
+            translationKey = "generic." + Lang.asId(name());
+        }
+
+        @Override
+        public AllIcons getIcon() {
+            return icon;
+        }
+
+        @Override
+        public String getTranslationKey() {
+            return translationKey;
+        }
+
     }
 }

@@ -11,12 +11,22 @@ public class PropellorPhysData {
     public final List<Vector3ic> propellorPositions;
     public double bearingAngle;
     public double bearingSpeed;
+    public boolean inverted;
+    public Vector3dc prevAngularMomentum;
 
-    public PropellorPhysData(Vector3dc bearingPos, Vector3dc bearingAxis, double bearingAngle, double bearingSpeed, List<Vector3ic> propellorPositions) {
+    public PropellorPhysData(Vector3dc bearingPos, Vector3dc bearingAxis, double bearingAngle, double bearingSpeed, List<Vector3ic> propellorPositions, boolean inverted) {
         this.bearingPos = bearingPos;
         this.bearingAxis = bearingAxis;
         this.bearingAngle = bearingAngle;
         this.bearingSpeed = bearingSpeed;
         this.propellorPositions = propellorPositions;
+        this.inverted = inverted;
+    }
+
+    public void setPrevAngularMomentum(Vector3dc prevAngularMomentum) {
+        this.prevAngularMomentum = prevAngularMomentum;
+    }
+    public Vector3dc getPrevAngularMomentum() {
+        return prevAngularMomentum;
     }
 }

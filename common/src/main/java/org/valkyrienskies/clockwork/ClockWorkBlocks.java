@@ -47,7 +47,6 @@ public class ClockWorkBlocks {
                     .transform(axeOrPickaxe())
                     .properties(p -> p.color(MaterialColor.PODZOL))
                     .transform(BuilderTransformers.bearing("propellor", "gearbox", false))
-                    .transform(BlockStressDefaults.setImpact(12.0))
                     .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
                     .register();
     public static final BlockEntry<FlapBearingBlock> FLAP_BEARING =
