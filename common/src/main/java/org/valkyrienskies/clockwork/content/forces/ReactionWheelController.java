@@ -95,7 +95,7 @@ public class ReactionWheelController implements ShipForcesInducer {
         Vector3dc prevAngMomentumRelWheel = physWheel.prevAngMomentum;
         Vector3dc wheelPos = physWheel.wheelPos;
 
-        Vector3dc wheelAxis = new Vector3d(physWheel.wheelAxis).rotate(physTransform.getShipToWorldRotation());
+        Vector3dc wheelAxis = new Vector3d(physWheel.wheelAxis);
         double wheelSpeed = physWheel.wheelSpeed;
 
 

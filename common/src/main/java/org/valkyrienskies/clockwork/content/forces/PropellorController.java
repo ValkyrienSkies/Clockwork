@@ -10,9 +10,11 @@ import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorPhys
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorUpdatePhysData;
 import org.valkyrienskies.core.api.ships.PhysShip;
 import org.valkyrienskies.core.api.ships.ServerShip;
+import org.valkyrienskies.core.api.ships.properties.ShipInertiaData;
 import org.valkyrienskies.core.api.ships.properties.ShipTransform;
 import org.valkyrienskies.core.impl.api.ShipForcesInducer;
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl;
+import org.valkyrienskies.core.impl.game.ships.ShipInertiaDataImpl;
 
 import java.lang.Math;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,14 +36,20 @@ public class PropellorController implements ShipForcesInducer {
     public void applyForces(@NotNull PhysShip physShip) {
         while (!createdProps.isEmpty()) {
             final Pair<Integer, PropellorCreatePhysData> createData = createdProps.remove();
+            ShipInertiaDataImpl propInertiaData = ShipInertiaDataImpl.Companion.newEmptyShipInertiaData();
+            for (Vector3ic i : createData.right().propellorPositions()) {
+                propInertiaData.onSetBlock(i.x(), i.y(), i.z(), 0, 100);
+            }
             propellorPhysData.put(createData.left(), new PropellorPhysData(
                     createData.right().bearingPos(),
                     createData.right().bearingAxis(),
                     createData.right().bearingAngle(),
                     createData.right().bearingSpeed(),
                     createData.right().propellorPositions(),
-                    createData.right().inverted()
+                    createData.right().inverted(),
+                    propInertiaData
             ));
+
         }
         while (!removedProps.isEmpty()) {
             propellorPhysData.remove((int) removedProps.remove());
@@ -100,7 +108,7 @@ public class PropellorController implements ShipForcesInducer {
             if (rotatedDiff.length() > furthestTip.length()) {
                 furthestTip.set(rotatedDiff);
             }
-            Vector3d force = physTransform.getShipToWorldRotation().transform(axis.mul(sailVel.length() * 100, new Vector3d()));
+            Vector3d force = physTransform.getShipToWorldRotation().transform(axis.mul(sailVel.length() * 1000, new Vector3d()));
 //            Vector3d force2 = force.mul(physProp.bearingSpeed, new Vector3d());
             Vector3dc sailPosWorld = physTransform.getShipToWorld().transformPosition(sailVector, new Vector3d());
             Vector3dc sailPosRelShip = sailPosWorld.sub(physTransform.getPositionInWorld(), new Vector3d());
@@ -119,10 +127,11 @@ public class PropellorController implements ShipForcesInducer {
             netTorque.add(torque);
         }
 
-//        netTorque.add(conserveMomentum(physShip, physProp, furthestTip, angVel));
+        netTorque.add(conserveMomentum(physShip, physProp, furthestTip, angVel));
         if (physProp.inverted) {
             netForce.mul(-1);
         }
+        System.out.println(netTorque);
         return Pair.of(netForce, netTorque);
     }
 
@@ -133,31 +142,21 @@ public class PropellorController implements ShipForcesInducer {
         }
         Vector3dc propPos = physProp.bearingPos;
 
-        Vector3dc propAxis = new Vector3d(physProp.bearingAxis).rotate(physShip.getTransform().getShipToWorldRotation());
+        Vector3dc propAxis = new Vector3d(physProp.bearingAxis);
         double propSpeed = physProp.bearingSpeed;
 
-
-        double propMass = physProp.propellorPositions.size() * 125;
-
         // 1/2 * Mass * (Outer Wheel Radius^2 + Total Wheel Radius^2)
-//        double wheelInertia = (0.5 * propMass) * (Math.pow(0.25, 2) + Math.pow(0.75, 2));
 
-        Vector3d propCenterOfMass = new Vector3d();
-        for (Vector3ic pos : physProp.propellorPositions) {
-            Vector3d tPos = new Vector3d(pos).sub(physShip.getTransform().getPositionInShip());
-            propCenterOfMass.add(pos.x() + 0.5, pos.y() + 0.5, pos.z() + 0.5);
-        }
+        //negative to fix dir
+        double rotVel = (propSpeed * ((2 * Math.PI) / 60)) * -1;
 
-        Vector3dc comDiff = propCenterOfMass.sub(propPos, new Vector3d());
-        Vector3dc furthestTipDiff = furthestTip.sub(propPos, new Vector3d());
+        Vector3dc angularVelocityPropellor = new Vector3d(propAxis).mul(rotVel);
 
-        double propInertia = 0.5 * propMass * furthestTipDiff.lengthSquared();
-
-        Vector3dc r = new Vector3d(propCenterOfMass).sub(physShip.getTransform().getPositionInShip()).rotate(physShip.getTransform().getShipToWorldRotation());
-        Vector3dc angularMomentumRelProp = new Vector3d(propAxis).mul(angVel).mul(propInertia);
+        Vector3dc angularMomentumRelProp = angularVelocityPropellor.mul(physProp.inertiaData.getMomentOfInertiaTensor(), new Vector3d());
 
         // Add to convert from momentum relative to wheel into relative to ship
-        Vector3dc momentumModifier = new Vector3d(physShip.getPoseVel().getOmega()).cross(r).mul(propMass);
+        Vector3dc r = new Vector3d(physProp.inertiaData.getCenterOfMassInShip().add(physProp.bearingPos, new Vector3d())).sub(physShip.getTransform().getPositionInShip()).rotate(physShip.getTransform().getShipToWorldRotation());
+        Vector3dc momentumModifier = new Vector3d(physShip.getPoseVel().getOmega()).cross(r).mul(physProp.inertiaData.getMass());
 
         Vector3dc angularMomentumRelShip = new Vector3d(angularMomentumRelProp).add(momentumModifier);
         Vector3dc prevAngularMomentumRelShip = new Vector3d(prevAngMomentumRelProp).add(momentumModifier);
@@ -181,7 +180,7 @@ public class PropellorController implements ShipForcesInducer {
     }
 
     private double exhaustVelocity(Vector3dc posRelBearing, Vector3dc omega) {
-        double vel = posRelBearing.cross(omega, new Vector3d()).length() * 5;
+        double vel = Math.min(posRelBearing.cross(omega, new Vector3d()).length() * 15, 40);
         return vel;
     }
 
