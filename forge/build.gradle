@@ -35,6 +35,8 @@ repositories {
                 includeGroup("com.simibubi.create")
             }
         }
+
+        maven { url = "https://cursemaven.com" }
     }
 
     flatDir { // REMOVE IF CBC HAS BEEN UPDATED
@@ -73,6 +75,9 @@ dependencies {
 
     // if you would like to add integration with JEI, uncomment this line.
 //    modCompileOnly("mezz.jei:jei-${minecraft_version}:${jei_forge_version}:api")
+
+    // CC Tweaked
+    modCompileOnly("curse.maven:cctweaked-282001:4061947")
 }
 
 processResources {

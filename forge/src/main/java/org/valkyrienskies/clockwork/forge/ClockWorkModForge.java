@@ -12,9 +12,11 @@ import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLLoader;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.data.ClockWorkTags;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
+import org.valkyrienskies.clockwork.forge.integration.cc_restiched.ClockworkForgePeripheralProviders;
 
 import static org.valkyrienskies.clockwork.ClockWorkMod.REGISTRATE;
 
@@ -79,6 +81,9 @@ public class ClockWorkModForge {
 
             ShaderLoader.init(modEventBus);
         });
+
+        if (FMLLoader.getLoadingModList().getModFileById("computercraft") != null)
+            ClockworkForgePeripheralProviders.register();
     }
 
     public static ResourceLocation asResource(String path) {

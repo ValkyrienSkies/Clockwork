@@ -40,6 +40,9 @@ dependencies {
     // Kotlin
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.21"
     api "org.jetbrains.kotlin:kotlin-reflect:1.7.21"
+
+    // CC Restitched
+    modCompileOnly("curse.maven:cc-restitched-462672:3622561")
 }
 
 publishing {
