@@ -86,7 +86,9 @@ public class AfterblazerBlockEntity extends SmartTileEntity {
         }
 
         public void setGimbal(double pitch, double yaw) {
-            gimbalRotation.set(pitch, yaw);
+            double tPitch = Mth.clamp(pitch, -22.5, 22.5);
+            double tYaw = Mth.clamp(yaw, -22.5, 22.5);
+            gimbalRotation.set(tPitch, tYaw);
         }
 
         public Vector2d getGimbalVector() {
