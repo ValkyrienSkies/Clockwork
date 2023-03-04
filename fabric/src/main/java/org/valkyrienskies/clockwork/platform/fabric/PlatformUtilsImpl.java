@@ -7,18 +7,15 @@ import com.simibubi.create.foundation.tileEntity.behaviour.BehaviourType;
 import com.simibubi.create.foundation.tileEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import io.github.fabricators_of_create.porting_lib.entity.ExtraSpawnDataEntity;
 import io.github.fabricators_of_create.porting_lib.mixin.common.accessor.ServerGamePacketListenerImplAccessor;
-import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil;
-import io.github.fabricators_of_create.porting_lib.transfer.callbacks.TransactionCallback;
 import net.fabricmc.fabric.api.registry.FuelRegistry;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -26,15 +23,16 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
-import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlock;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlockEntity.FuelType;
 import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity;
+import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.InputKey;
 import org.valkyrienskies.clockwork.fabric.FabricClockworkItems;
 import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
-import org.valkyrienskies.clockwork.platform.SmartFluidTankBlockEntity;
+import org.valkyrienskies.clockwork.fabric.integration.cc_restiched.CCEvents;
 import org.valkyrienskies.clockwork.util.blocktype.EngineHeatLevel;
 import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour;
+
+import java.util.Set;
 
 public class PlatformUtilsImpl {
     public static double getReachDistance(Player player) {
@@ -144,5 +142,13 @@ public class PlatformUtilsImpl {
 
     public static CWFluidTankBehaviour cwFluidTank(BehaviourType<CWFluidTankBehaviour> type, SmartTileEntity te, int tanks, long tankCapacity, boolean enforceVariety) {
         return new FabricCWFluidTankBehaviour(type, te, tanks, tankCapacity, enforceVariety);
+    }
+
+    public static boolean isModLoaded(String modId) {
+        return FabricLoader.getInstance().isModLoaded(modId);
+    }
+
+    public static void sequencedSeatKeysUpdated(ServerLevel level, BlockPos pos, Set<InputKey> keys) {
+        CCEvents.sequencedSeatKeysUpdated(pos, keys);
     }
 }

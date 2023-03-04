@@ -3,9 +3,9 @@ package org.valkyrienskies.clockwork.platform.forge;
 import com.simibubi.create.AllTags;
 import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
 import com.simibubi.create.foundation.tileEntity.behaviour.BehaviourType;
-import com.simibubi.create.foundation.tileEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -15,19 +15,21 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.network.NetworkHooks;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlockEntity.FuelType;
 import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity;
-import org.valkyrienskies.clockwork.content.contraptions.combustion_engine.CombustionEngineBlockEntity;
+import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.InputKey;
 import org.valkyrienskies.clockwork.forge.ForgeClockworkItems;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
 //import org.valkyrienskies.clockwork.forge.content.contraptions.combustion_engine.ForgeCombustionEngineBlockEntity;
-import org.valkyrienskies.clockwork.platform.SmartFluidTankBlockEntity;
+import org.valkyrienskies.clockwork.forge.integration.cc_tweaked.CCEvents;
 import org.valkyrienskies.clockwork.util.blocktype.EngineHeatLevel;
 import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour;
+
+import java.util.Set;
 
 import static org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity.INSERTION_THRESHOLD;
 import static org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity.MAX_HEAT_CAPACITY;
@@ -152,4 +154,11 @@ public class PlatformUtilsImpl {
         return new ForgeCWFluidTankBehaviour(type, te, tanks, tankCapacity, enforceVariety);
     }
 
+    public static boolean isModLoaded(String modId) {
+        return FMLLoader.getLoadingModList().getModFileById(modId) != null;
+    }
+
+    public static void sequencedSeatKeysUpdated(ServerLevel level, BlockPos pos, Set<InputKey> keys) {
+        CCEvents.sequencedSeatKeysUpdated(level, pos, keys);
+    }
 }
