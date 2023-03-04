@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.forge.integration.cc_restiched;
+package org.valkyrienskies.clockwork.forge.integration.cc_tweaked;
 
 import dan200.computercraft.api.ComputerCraftAPI;
 import dan200.computercraft.api.peripheral.IPeripheral;

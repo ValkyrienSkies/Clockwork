@@ -16,7 +16,7 @@ import net.minecraftforge.fml.loading.FMLLoader;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.data.ClockWorkTags;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
-import org.valkyrienskies.clockwork.forge.integration.cc_restiched.ClockworkForgePeripheralProviders;
+import org.valkyrienskies.clockwork.forge.integration.cc_tweaked.ClockworkForgePeripheralProviders;
 
 import static org.valkyrienskies.clockwork.ClockWorkMod.REGISTRATE;
 

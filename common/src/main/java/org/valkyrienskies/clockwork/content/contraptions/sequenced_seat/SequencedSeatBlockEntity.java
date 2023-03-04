@@ -4,9 +4,11 @@ import com.simibubi.create.content.contraptions.relays.encased.SplitShaftTileEnt
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import org.valkyrienskies.clockwork.platform.PlatformUtils;
 import org.valkyrienskies.clockwork.util.MinecraftUtil;
 
 import java.util.Set;
@@ -115,6 +117,10 @@ public class SequencedSeatBlockEntity extends SplitShaftTileEntity {
     public void updateInput(Set<InputKey> pressedKeys) {
         if (this.pressedKeys.equals(pressedKeys))
             return;
+
+        if (!level.isClientSide)
+            if (PlatformUtils.isModLoaded("computercraft"))
+                PlatformUtils.sequencedSeatKeysUpdated((ServerLevel) this.level, this.worldPosition, pressedKeys);
 
         this.pressedKeys = pressedKeys;
         ticksSinceLastUpdate = 0;
