@@ -32,19 +32,15 @@ public class PhysicsInfuserBlock extends Block implements ITE<PhysicsInfuserBloc
     public static VoxelShape makeShape() {
         VoxelShape shape = Shapes.empty();
 
+        shape = Shapes.join(shape, Block.box(0, 11, 0, 5, 16, 5), BooleanOp.OR);
         shape = Shapes.join(shape, Block.box(0.5, 0.5, 0.5, 15.5, 15.5, 15.5), BooleanOp.OR);
-        shape = Shapes.join(shape, Block.box(0, 0, 11, 5, 5, 16), BooleanOp.OR);
-        shape = Shapes.join(shape, Block.box(0, 11, 11, 5, 16, 16), BooleanOp.OR);
-        shape = Shapes.join(shape, Block.box(1, 16, 11.25, 4.75, 16.75, 15), BooleanOp.OR);
-        shape = Shapes.join(shape, Block.box(11.25, 16, 11.25, 15, 16.75, 15), BooleanOp.OR);
-        shape = Shapes.join(shape, Block.box(1, 16, 1, 4.75, 16.75, 4.75), BooleanOp.OR);
-        shape = Shapes.join(shape, Block.box(11.25, 16, 1, 15, 16.75, 4.75), BooleanOp.OR);
-        shape = Shapes.join(shape, Block.box(11, 11, 11, 16, 16, 16), BooleanOp.OR);
-        shape = Shapes.join(shape, Block.box(11, 0, 11, 16, 5, 16), BooleanOp.OR);
+        shape = Shapes.join(shape, Block.box(0, 0, 0, 5, 5, 5), BooleanOp.OR);
         shape = Shapes.join(shape, Block.box(11, 0, 0, 16, 5, 5), BooleanOp.OR);
         shape = Shapes.join(shape, Block.box(11, 11, 0, 16, 16, 5), BooleanOp.OR);
-        shape = Shapes.join(shape, Block.box(0, 0, 0, 5, 5, 5), BooleanOp.OR);
-        shape = Shapes.join(shape, Block.box(0, 11, 0, 5, 16, 5), BooleanOp.OR);
+        shape = Shapes.join(shape, Block.box(11, 11, 11, 16, 16, 16), BooleanOp.OR);
+        shape = Shapes.join(shape, Block.box(11, 0, 11, 16, 5, 16), BooleanOp.OR);
+        shape = Shapes.join(shape, Block.box(0, 0, 11, 5, 5, 16), BooleanOp.OR);
+        shape = Shapes.join(shape, Block.box(0, 11, 11, 5, 16, 16), BooleanOp.OR);
 
         /*shape = Shapes.join(shape, Shapes.box(0.1859375, 0.25, 0.25, 0.1859375, 0.75, 0.75), BooleanOp.OR);
         shape = Shapes.join(shape, Shapes.box(0.25, 0.25, 0.1859375, 0.75, 0.75, 0.1859375), BooleanOp.OR);
