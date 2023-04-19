@@ -1,0 +1,15 @@
+{
+  "replace": false,
+  "values": [
+    "vs_clockwork:combustion_engine",
+    "vs_clockwork:propellor_bearing",
+    "vs_clockwork:flap_bearing",
+    "vs_clockwork:afterblazer",
+    "vs_clockwork:intake",
+    "vs_clockwork:ballooner",
+    "vs_clockwork:redstone_resistor",
+    "vs_clockwork:reactionwheel",
+    "vs_clockwork:command_seat",
+    "vs_clockwork:physics_infuser"
+  ]
+}
