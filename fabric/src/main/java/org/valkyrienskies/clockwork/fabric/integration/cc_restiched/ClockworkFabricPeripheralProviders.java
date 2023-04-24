@@ -10,8 +10,10 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity;
+import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity;
 import org.valkyrienskies.clockwork.integration.cc.AfterblazerPeripheral;
 import org.valkyrienskies.clockwork.integration.cc.BalloonerPeripheral;
+import org.valkyrienskies.clockwork.integration.cc.FlapBearingPeripheral;
 
 public class ClockworkFabricPeripheralProviders {
     public static void register() {
@@ -27,6 +29,8 @@ public class ClockworkFabricPeripheralProviders {
                 return new AfterblazerPeripheral(afterblazer);
             else if (be instanceof BalloonerBlockEntity ballooner)
                 return new BalloonerPeripheral(ballooner);
+            else if (be instanceof FlapBearingBlockEntity flap)
+                return new FlapBearingPeripheral(flap);
             return null;
         }
     }
