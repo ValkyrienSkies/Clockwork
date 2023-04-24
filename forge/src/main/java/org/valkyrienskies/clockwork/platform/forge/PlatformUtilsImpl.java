@@ -17,6 +17,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.network.NetworkHooks;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlockEntity.FuelType;
@@ -155,7 +156,7 @@ public class PlatformUtilsImpl {
     }
 
     public static boolean isModLoaded(String modId) {
-        return FMLLoader.getLoadingModList().getModFileById(modId) != null;
+        return ModList.get().isLoaded(modId);
     }
 
     public static void sequencedSeatKeysUpdated(ServerLevel level, BlockPos pos, Set<InputKey> keys) {
