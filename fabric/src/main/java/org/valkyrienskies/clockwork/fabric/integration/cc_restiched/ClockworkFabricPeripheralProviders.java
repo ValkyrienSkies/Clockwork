@@ -6,9 +6,12 @@ import dan200.computercraft.api.peripheral.IPeripheralProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlockEntity;
+import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity;
 import org.valkyrienskies.clockwork.integration.cc.AfterblazerPeripheral;
+import org.valkyrienskies.clockwork.integration.cc.BalloonerPeripheral;
 
 public class ClockworkFabricPeripheralProviders {
     public static void register() {
@@ -19,9 +22,11 @@ public class ClockworkFabricPeripheralProviders {
         @NotNull
         @Override
         public IPeripheral getPeripheral(@NotNull Level level, @NotNull BlockPos blockPos, @NotNull Direction direction) {
-            if (level.getBlockEntity(blockPos) instanceof AfterblazerBlockEntity afterblazer) {
+            BlockEntity be = level.getBlockEntity(blockPos);
+            if (be instanceof AfterblazerBlockEntity afterblazer)
                 return new AfterblazerPeripheral(afterblazer);
-            }
+            else if (be instanceof BalloonerBlockEntity ballooner)
+                return new BalloonerPeripheral(ballooner);
             return null;
         }
     }
