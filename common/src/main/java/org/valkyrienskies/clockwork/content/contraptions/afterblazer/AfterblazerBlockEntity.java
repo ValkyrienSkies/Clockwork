@@ -5,6 +5,7 @@ import com.simibubi.create.content.contraptions.goggles.IHaveGoggleInformation;
 import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
 import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
 import com.simibubi.create.foundation.utility.AngleHelper;
+import com.simibubi.create.foundation.utility.Couple;
 import com.simibubi.create.foundation.utility.Iterate;
 import com.simibubi.create.foundation.utility.VecHelper;
 import com.simibubi.create.foundation.utility.animation.LerpedFloat;
@@ -27,6 +28,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.Vec3;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.joml.*;
 import org.valkyrienskies.clockwork.ClockWorkItems;
 import org.valkyrienskies.clockwork.content.forces.AfterblazerController;
@@ -55,7 +57,7 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
         protected boolean goggles;
         protected boolean hat;
         protected boolean pissedOff;
-
+        Couple<MutableBoolean> sidesToUpdate;
         protected int redstoneLevel;
         protected boolean isPowered;
 
@@ -73,6 +75,8 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
 
             headAngle.startWithValue((AngleHelper.horizontalAngle(state.getOptionalValue(AfterblazerBlock.FACING)
                     .orElse(Direction.SOUTH)) + 180) % 360);
+
+            sidesToUpdate = Couple.create(MutableBoolean::new);
         }
 
 
@@ -115,6 +119,11 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
 
             redstoneLevel = getPower(level, getBlockPos());
 
+            sidesToUpdate.forEachWithContext((update, isFront) -> {
+                if (update.isFalse())
+                    return;
+                update.setFalse();
+            });
 
             LoadedServerShip ship = null;
             if (!level.isClientSide) {

@@ -4,6 +4,7 @@ import com.simibubi.create.AllItems;
 import com.simibubi.create.content.contraptions.base.KineticTileEntity;
 import com.simibubi.create.content.contraptions.goggles.IHaveGoggleInformation;
 import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
+import com.simibubi.create.foundation.utility.Couple;
 import com.simibubi.create.foundation.utility.VecHelper;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.ChatFormatting;
@@ -23,6 +24,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.Vec3;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.joml.Vector3dc;
 import org.valkyrienskies.clockwork.ClockWorkItems;
 import org.valkyrienskies.clockwork.content.forces.BalloonController;
@@ -48,6 +50,7 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
     public CWFluidTankBehaviour tank;
     public int remainingBurnTime;
 
+    Couple<MutableBoolean> sidesToUpdate;
     protected boolean isCreative;
     protected boolean pissedOff;
 
@@ -78,7 +81,7 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
 
     public BalloonerBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
-
+        sidesToUpdate = Couple.create(MutableBoolean::new);
     }
 
     @Override
@@ -152,6 +155,12 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
                 brokenBalloons = 0;
             }
         }
+
+        sidesToUpdate.forEachWithContext((update, isFront) -> {
+            if (update.isFalse())
+                return;
+            update.setFalse();
+        });
 
         if (buffer == 0) {
             if (bufferPulse) {

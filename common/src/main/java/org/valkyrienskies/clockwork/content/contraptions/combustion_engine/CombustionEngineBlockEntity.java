@@ -277,10 +277,6 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
         return null;
     }
 
-    public EngineHeatLevel getHeatLevelFromBlock() {
-        return IHeatableBlock.getHeatLevelOf(getBlockState());
-    }
-
     @Override
     public CWFluidTankBehaviour getFluidTankBehaviour() {
         return tank;
