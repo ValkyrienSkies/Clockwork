@@ -109,7 +109,7 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
         }
         if (level.isClientSide) {
             angspeed *= ServerSpeedProvider.get();
-            angspeed += clientAngleDiff;
+            angspeed += clientAngleDiff / 3f;
         }
         return angspeed;
     }
@@ -132,6 +132,10 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
             propStream.findEntities();
             propStream.findShips();
         }
+        if (rotSpeedChanged()) {
+            sendData();
+        }
+
         oldRotspeed = rotspeed;
         if (spinningUp) {
             modSpinupSpeed();
@@ -225,19 +229,6 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
         updateAirFlow = true;
     }
 
-    public float getSourceSpeed() {
-        if (source == null || level == null) {
-            return 0;
-        }
-        BlockEntity tileEnt = level.getBlockEntity(source);
-        KineticTileEntity sourceTe = tileEnt instanceof KineticTileEntity ? (KineticTileEntity) tileEnt : null;
-        if (sourceTe == null || sourceTe.getSpeed() == 0) {
-            return 0;
-        } else {
-            return sourceTe.getSpeed();
-        }
-    }
-
     private void modSpinupSpeed() {
         if (level.isClientSide) {
             return;
@@ -259,21 +250,21 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
         updateAirFlow = true;
     }
 
+
+    //TODO : FIX IN GENERAL
     @Override
     public float calculateStressApplied() {
-        if (!running)
-            return 0;
-        if (movedContraption != null) {
-            sails = ((PropellorContraption) movedContraption.getContraption()).getSailBlocks();
-        }
-        sails = Math.max(sails, 2);
-        float speedDiff = getSpeed();
-        if (speedDiff == 0) {
-            return 0;
-        }
-        return (sails * 2.0f * Math.abs(rotspeed))/Math.abs(speedDiff);
+        if (running && movedContraption != null) {
+            sails = sailPositions.size();
 
+            return (sails * 2f);
+        }
+        return 0.0f;
     }
+//
+//        //todo: fix this version
+
+//    }
 
 
 
@@ -572,14 +563,6 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
         return distance;
     }
 
-    private void refreshKineticState() {
-        if (isSourceRemoved()) {
-            detachKinetics();
-        } else if (source == null) {
-            detachKinetics();
-        }
-    }
-
     private void stressShutdown() {
         if (Math.abs(speed) < 3f) {
             countDown--;
@@ -668,8 +651,9 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
     @Override
     public void lazyTick() {
         super.lazyTick();
-        if (movedContraption != null && !level.isClientSide)
-            sendData();
+        if (this.running && this.movedContraption != null) {
+            this.sendData();
+        }
     }
 
     public void shutDown() {

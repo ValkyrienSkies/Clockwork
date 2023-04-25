@@ -48,7 +48,7 @@ public class BalloonController implements ShipForcesInducer {
                     createData.right().volume(),
                     createData.right().rpm(),
                     createData.right().burnTemp(),
-                    createData.right().heatLevel()
+                    createData.right().fuelQuality()
             ));
         }
         while (!removedBalloons.isEmpty()) {
@@ -61,7 +61,7 @@ public class BalloonController implements ShipForcesInducer {
                 return;
             }
             physData.volume = data.volume();
-            physData.heatLevel = data.heatLevel();
+            physData.fuelQuality = data.fuelQuality();
             physData.burnTemp = data.burnTemp();
             physData.rpm = data.rpm();
         });
@@ -129,7 +129,7 @@ public class BalloonController implements ShipForcesInducer {
         // f = v * dp * g
         double force = volume * (standardDensity - internalDensity) * gravity;
 
-        Vector3dc forceVec = new Vector3d(0, force*10000, 0);
+        Vector3dc forceVec = new Vector3d(0, force*100000, 0);
         return forceVec;
     }
 

@@ -86,30 +86,31 @@ public class BalloonerBlock extends HorizontalKineticBlock implements ITE<Balloo
         if (AllItems.BRASS_HAND.isIn(heldItem)) {
             if (te != null) {
                 te.tryScan();
+                return InteractionResult.SUCCESS;
             }
         }
         boolean doNotConsume = player.isCreative();
         boolean forceOverflow = false;
 
-        InteractionResultHolder<ItemStack> res =
-                tryInsert(state, world, pos, heldItem, doNotConsume, forceOverflow, false);
-        ItemStack leftover = res.getObject();
-        if (!world.isClientSide && !doNotConsume && !leftover.isEmpty()) {
-            if (heldItem.isEmpty()) {
-                player.setItemInHand(hand, leftover);
-            } else if (!player.getInventory()
-                    .add(leftover)) {
-                player.drop(leftover, false);
-            }
-        }
+//        InteractionResultHolder<ItemStack> res =
+//                tryInsert(state, world, pos, heldItem, doNotConsume, forceOverflow, false);
+//        ItemStack leftover = res.getObject();
+//        if (!world.isClientSide && !doNotConsume && !leftover.isEmpty()) {
+//            if (heldItem.isEmpty()) {
+//                player.setItemInHand(hand, leftover);
+//            } else if (!player.getInventory()
+//                    .add(leftover)) {
+//                player.drop(leftover, false);
+//            }
+//        }
 
-        return res.getResult() == InteractionResult.SUCCESS ? InteractionResult.SUCCESS : InteractionResult.PASS;
+        return InteractionResult.PASS;
     }
 
-    public static InteractionResultHolder<ItemStack> tryInsert(BlockState state, Level world, BlockPos pos,
-                                                               ItemStack stack, boolean doNotConsume, boolean forceOverflow, boolean simulate) {
-        return PlatformUtils.tryInsert(state, world, pos, stack, doNotConsume, forceOverflow, simulate);
-    }
+//    public static InteractionResultHolder<ItemStack> tryInsert(BlockState state, Level world, BlockPos pos,
+//                                                               ItemStack stack, boolean doNotConsume, boolean forceOverflow, boolean simulate) {
+//        return PlatformUtils.tryInsert(state, world, pos, stack, doNotConsume, forceOverflow, simulate);
+//    }
 
     @Override
     public boolean showCapacityWithAnnotation() {

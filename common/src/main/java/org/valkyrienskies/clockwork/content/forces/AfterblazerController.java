@@ -124,10 +124,10 @@ public class AfterblazerController implements ShipForcesInducer {
 
     private double exhaustVelocity(LiquidFuelType heatLevel) {
         double exhaustVel = switch (heatLevel) {
-            case GOURMET -> 50;
-            case SWEET -> 25;
-            case PLAIN -> 15;
-            case STALE -> 5;
+            case GOURMET -> 250;
+            case SWEET -> 125;
+            case PLAIN -> 75;
+            case STALE -> 25;
             default -> 0;
         };
         return exhaustVel;

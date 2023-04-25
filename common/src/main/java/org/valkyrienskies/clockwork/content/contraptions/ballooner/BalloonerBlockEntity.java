@@ -6,9 +6,12 @@ import com.simibubi.create.content.contraptions.goggles.IHaveGoggleInformation;
 import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
 import com.simibubi.create.foundation.utility.VecHelper;
 import it.unimi.dsi.fastutil.Pair;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -22,7 +25,6 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3dc;
 import org.valkyrienskies.clockwork.ClockWorkItems;
-import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlockEntity.FuelType;
 import org.valkyrienskies.clockwork.content.forces.BalloonController;
 import org.valkyrienskies.clockwork.data.ClockWorkTags;
 import org.valkyrienskies.clockwork.platform.PlatformUtils;
@@ -44,8 +46,6 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
     public static final int INSERTION_THRESHOLD = 500;
 
     public CWFluidTankBehaviour tank;
-
-    public FuelType activeFuel;
     public int remainingBurnTime;
 
     protected boolean isCreative;
@@ -114,10 +114,6 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
 
     public BlockPos getWorldPosition() {
         return this.worldPosition;
-    }
-
-    public FuelType getActiveFuel() {
-        return activeFuel;
     }
 
     public int getRemainingBurnTime() {
@@ -225,15 +221,6 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
             }
 
         }
-        if (remainingBurnTime > 0)
-            return;
-
-        if (activeFuel == FuelType.SPECIAL) {
-            activeFuel = FuelType.NORMAL;
-            remainingBurnTime = MAX_HEAT_CAPACITY / 2;
-        } else
-            activeFuel = FuelType.NONE;
-
 
     }
 
@@ -332,12 +319,6 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
 
     @Override
     public void write(CompoundTag compound, boolean clientPacket) {
-        if (!isCreative) {
-            compound.putInt("fuelLevel", activeFuel.ordinal());
-            compound.putInt("burnTimeRemaining", remainingBurnTime);
-        } else
-            compound.putBoolean("isCreative", true);
-
         compound.putBoolean("alreadyAdded", alreadyAdded);
         if (balloonID != null) {
             compound.putInt("balloonID", balloonID);
@@ -348,15 +329,21 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
 
     @Override
     protected void read(CompoundTag compound, boolean clientPacket) {
-        activeFuel = FuelType.values()[compound.getInt("fuelLevel")];
-        remainingBurnTime = compound.getInt("burnTimeRemaining");
-        isCreative = compound.getBoolean("isCreative");
         alreadyAdded = compound.getBoolean("alreadyAdded");
         if (compound.contains("balloonID")) {
             balloonID = compound.getInt("balloonID");
         }
         speed = compound.getFloat("speed");
         super.read(compound, clientPacket);
+    }
+
+    @Override
+    public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
+        super.addToGoggleTooltip(tooltip, isPlayerSneaking);
+        tooltip.add(new TextComponent(spacing).append(new TextComponent("Draining").withStyle(ChatFormatting.GRAY)));
+        tooltip.add(new TextComponent(spacing).append(new TextComponent(" " + getDrainRate() + "mb/t ")
+                .withStyle(ChatFormatting.AQUA)).append(new TextComponent("with current fuel").withStyle(ChatFormatting.DARK_GRAY)));
+        return true;
     }
 
     protected void spawnParticles(LiquidFuelType heatLevel, double burstMult) {
@@ -385,11 +372,11 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
                         .normalize()
                         .scale((empty ? .25f : .5) + r.nextDouble() * .125f))
                 .add(0, .5, 0);
-        if (heatLevel.isAtLeast(EngineHeatLevel.INFURIATED)) {
+        if (heatLevel.isAtLeast(LiquidFuelType.GOURMET)) {
             level.addParticle(ParticleTypes.PORTAL, v2.x, v2.y, v2.z, 0, yMotion, 0);
-        } else if (heatLevel.isAtLeast(EngineHeatLevel.SEETHING)) {
+        } else if (heatLevel.isAtLeast(LiquidFuelType.SWEET)) {
             level.addParticle(ParticleTypes.SOUL_FIRE_FLAME, v2.x, v2.y, v2.z, 0, yMotion, 0);
-        } else if (heatLevel.isAtLeast(EngineHeatLevel.FADING)) {
+        } else if (heatLevel.isAtLeast(LiquidFuelType.STALE)) {
             level.addParticle(ParticleTypes.FLAME, v2.x, v2.y, v2.z, 0, yMotion, 0);
         }
         return;

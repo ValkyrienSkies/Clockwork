@@ -41,7 +41,7 @@ import org.valkyrienskies.clockwork.platform.PlatformUtils;
 import org.valkyrienskies.clockwork.util.blocktype.IHeatableBlock;
 
 public class CombustionEngineBlock extends DirectionalKineticBlock
-        implements SimpleWaterloggedBlock, IHeatableBlock, ITE<CombustionEngineBlockEntity> {
+        implements SimpleWaterloggedBlock, ITE<CombustionEngineBlockEntity> {
 
     public CombustionEngineBlock(Properties p_i48415_1_) {
         super(p_i48415_1_);

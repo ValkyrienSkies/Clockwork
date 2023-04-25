@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.contraptions.afterblazer;
 
 import com.simibubi.create.AllItems;
+import com.simibubi.create.content.contraptions.goggles.IHaveGoggleInformation;
 import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
 import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
 import com.simibubi.create.foundation.utility.AngleHelper;
@@ -41,11 +42,9 @@ import java.lang.Math;
 import java.util.List;
 import java.util.Random;
 
-public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelableTileEntity, SmartFluidTankBlockEntity {
+public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelableTileEntity, SmartFluidTankBlockEntity, IHaveGoggleInformation {
 
         public static final int MAX_HEAT_CAPACITY = 10000;
-
-        protected FuelType activeFuel;
         protected int remainingBurnTime;
 
         public CWFluidTankBehaviour tank;
@@ -67,10 +66,8 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
         private Vector2d gimbalRotation = new Vector2d();
         public AfterblazerBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
             super(type, pos, state);
-            activeFuel = FuelType.NONE;
             headAnimation = LerpedFloat.linear();
             headAngle = LerpedFloat.angular();
-            isCreative = false;
             goggles = false;
             redstoneLevel = 0;
 
@@ -78,17 +75,7 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
                     .orElse(Direction.SOUTH)) + 180) % 360);
         }
 
-        public FuelType getActiveFuel() {
-            return activeFuel;
-        }
 
-        public int getRemainingBurnTime() {
-            return getRemainingFuel();
-        }
-
-        public boolean isCreative() {
-            return isCreative;
-        }
 
         public void setGimbal(double pitch, double yaw) {
             double tPitch = Mth.clamp(pitch, -22.5, 22.5);
@@ -245,11 +232,6 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
 
         @Override
         public void write(CompoundTag compound, boolean clientPacket) {
-            if (!isCreative) {
-                compound.putInt("fuelLevel", activeFuel.ordinal());
-                compound.putInt("burnTimeRemaining", remainingBurnTime);
-            } else
-                compound.putBoolean("isCreative", true);
             if (goggles)
                 compound.putBoolean("Goggles", true);
             if (hat)
@@ -262,8 +244,6 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
 
         @Override
         protected void read(CompoundTag compound, boolean clientPacket) {
-            activeFuel = FuelType.values()[compound.getInt("fuelLevel")];
-            isCreative = compound.getBoolean("isCreative");
             goggles = compound.contains("Goggles");
             hat = compound.contains("TrainHat");
             afterblazerID = compound.contains("ID") ? compound.getInt("ID") : null;
@@ -282,28 +262,8 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
 //                    .125f + level.random.nextFloat() * .125f, .75f - level.random.nextFloat() * .25f);
 //        }
 
-        protected EngineHeatLevel getEngineHeatLevelFromFuelType(FuelType fuel) {
-            EngineHeatLevel level = EngineHeatLevel.SMOULDERING;
-            switch (activeFuel) {
-                case HYPER:
-                    level = EngineHeatLevel.INFURIATED;
-                    break;
-                case SPECIAL:
-                    level = EngineHeatLevel.SEETHING;
-                    break;
-                case NORMAL:
-                    boolean lowPercent = (double) remainingBurnTime / MAX_HEAT_CAPACITY < 0.0125;
-                    level = lowPercent ? EngineHeatLevel.FADING : EngineHeatLevel.KINDLED;
-                    break;
-                default:
-                case NONE:
-                    break;
-            }
-            return level;
-        }
-
-        public double getParticleThrust(EngineHeatLevel heatLevel) {
-            if (!heatLevel.isAtLeast(EngineHeatLevel.SMOULDERING)) {
+        public double getParticleThrust() {
+            if (!getFuelQuality().isAtLeast(LiquidFuelType.STALE)) {
                 return 0;
             }
             double thrust = 1;
@@ -443,9 +403,5 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
     public CWFluidTankBehaviour getFluidTankBehaviour() {
         return tank;
     }
-
-    public enum FuelType {
-            NONE, NORMAL, SPECIAL, HYPER
-        }
 
     }

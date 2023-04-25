@@ -41,12 +41,12 @@ public class PlatformUtils {
         throw new AssertionError();
     }
 
-    @ExpectPlatform
-    public static InteractionResultHolder<ItemStack> tryInsert(BlockState state, Level world, BlockPos pos,
-                                                               ItemStack stack, boolean doNotConsume, boolean forceOverflow, boolean simulate) {throw new AssertionError();}
+//    @ExpectPlatform
+//    public static InteractionResultHolder<ItemStack> tryInsert(BlockState state, Level world, BlockPos pos,
+//                                                               ItemStack stack, boolean doNotConsume, boolean forceOverflow, boolean simulate) {throw new AssertionError();}
 
-    @ExpectPlatform
-    public static boolean tryUpdateFuel(ItemStack itemStack, boolean forceOverflow, boolean simulate, BalloonerBlockEntity blockEntity) {throw new AssertionError();}
+//    @ExpectPlatform
+//    public static boolean tryUpdateFuel(ItemStack itemStack, boolean forceOverflow, boolean simulate, BalloonerBlockEntity blockEntity) {throw new AssertionError();}
     @ExpectPlatform
     public static int maxBalloonRange() {throw new AssertionError();}
 

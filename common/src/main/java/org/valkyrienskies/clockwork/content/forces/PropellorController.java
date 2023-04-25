@@ -90,10 +90,11 @@ public class PropellorController implements ShipForcesInducer {
     }
 
     private Pair<Vector3dc, Vector3dc> computeForce(ShipTransform physTransform, PropellorPhysData physProp, Vector3dc vel, Vector3dc omega, PhysShipImpl physShip) {
+        final double modifiedSpeed = physProp.bearingSpeed;
         Vector3dc bearingVector = new Vector3d(physProp.bearingPos).add(0.5, 0.5, 0.5);
-        Vector3dc axis = physProp.bearingAxis.mul(Math.signum(physProp.bearingSpeed), new Vector3d());
+        Vector3dc axis = physProp.bearingAxis.mul(Math.signum(modifiedSpeed), new Vector3d());
         Quaterniondc rotation = new Quaterniond(new AxisAngle4d(Math.toRadians(physProp.bearingAngle), axis));
-        Vector3dc angVel = axis.mul((physProp.bearingSpeed/60.0) * (2.0 * Math.PI), new Vector3d());
+        Vector3dc angVel = axis.mul((modifiedSpeed/60.0) * (2.0 * Math.PI), new Vector3d());
 
         Vector3d furthestTip = new Vector3d();
 
@@ -108,7 +109,7 @@ public class PropellorController implements ShipForcesInducer {
             if (rotatedDiff.length() > furthestTip.length()) {
                 furthestTip.set(rotatedDiff);
             }
-            Vector3d force = physTransform.getShipToWorldRotation().transform(axis.mul(sailVel.length() * 1000, new Vector3d()));
+            Vector3d force = physTransform.getShipToWorldRotation().transform(axis.mul(sailVel.length(), new Vector3d())).mul(5000, new Vector3d());
 //            Vector3d force2 = force.mul(physProp.bearingSpeed, new Vector3d());
             Vector3dc sailPosWorld = physTransform.getShipToWorld().transformPosition(sailVector, new Vector3d());
             Vector3dc sailPosRelShip = sailPosWorld.sub(physTransform.getPositionInWorld(), new Vector3d());
@@ -127,11 +128,11 @@ public class PropellorController implements ShipForcesInducer {
             netTorque.add(torque);
         }
 
-        netTorque.add(conserveMomentum(physShip, physProp, furthestTip, angVel));
+//        netTorque.add(conserveMomentum(physShip, physProp, furthestTip, angVel));
         if (physProp.inverted) {
             netForce.mul(-1);
         }
-        System.out.println(netTorque);
+//        System.out.println(netTorque);
         return Pair.of(netForce, netTorque);
     }
 

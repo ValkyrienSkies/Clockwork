@@ -114,7 +114,6 @@ public class AfterblazerBlock extends DirectionalBlock implements ITE<Afterblaze
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockState defaultState = defaultBlockState();
-        EngineHeatLevel initialHeat = EngineHeatLevel.SMOULDERING;
         return defaultState.setValue(FACING, context.getNearestLookingDirection()
                         .getOpposite())
                 .setValue(POWERED, false);
@@ -139,7 +138,7 @@ public class AfterblazerBlock extends DirectionalBlock implements ITE<Afterblaze
         AfterblazerBlockEntity te = getTileEntity(world, pos);
         double force = 0;
         if (te != null) {
-            force = te.getParticleThrust(IHeatableBlock.getHeatLevelOf(state));
+            force = te.getParticleThrust();
         }
         double speedX = dir.getStepX() * force;
         double speedY = dir.getStepY() * force;

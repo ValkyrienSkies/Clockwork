@@ -148,27 +148,27 @@ public class AfterblazerRenderer extends SafeTileEntityRenderer<AfterblazerBlock
                 plumeModel = ClockWorkPartials.PLUME_ANGRY;
             }
 
-            SuperByteBuffer plumeBuffer = CachedBufferer.partial(plumeModel, blockState);
+            SuperByteBuffer plumeBuffer = CachedBufferer.partialFacingVertical(plumeModel, blockState, blockState.getValue(BlockStateProperties.FACING));
             if (modelTransform != null)
                 plumeBuffer.transform(modelTransform);
-            if (blockState.getValue(BlockStateProperties.FACING) == Direction.UP) {
-                plumeBuffer.rotateCentered(Direction.NORTH, 90);
-                plumeBuffer.translate(0, -plumeOffset, 0);
-            } else if (blockState.getValue(BlockStateProperties.FACING) == Direction.DOWN) {
-                plumeBuffer.rotateCentered(Direction.NORTH, 270);
-                plumeBuffer.translate(0, plumeOffset, 0);
-            } else if (blockState.getValue(BlockStateProperties.FACING) == Direction.NORTH) {
-                plumeBuffer.translate(0, 0, plumeOffset);
-            } else if (blockState.getValue(BlockStateProperties.FACING) == Direction.SOUTH) {
-                plumeBuffer.rotateCentered(Direction.UP, 180);
-                plumeBuffer.translate(0, 0, -plumeOffset);
-            } else if (blockState.getValue(BlockStateProperties.FACING) == Direction.EAST) {
-                plumeBuffer.rotateCentered(Direction.UP, 90);
-                plumeBuffer.translate(plumeOffset, 0, 0);
-            } else if (blockState.getValue(BlockStateProperties.FACING) == Direction.WEST) {
-                plumeBuffer.rotateCentered(Direction.UP, 270);
-                plumeBuffer.translate(-plumeOffset, 0, 0);
-            }
+//            if (blockState.getValue(BlockStateProperties.FACING) == Direction.UP) {
+//                plumeBuffer.rotateCentered(Direction.NORTH, 90);
+//                plumeBuffer.translate(0, -plumeOffset, 0);
+//            } else if (blockState.getValue(BlockStateProperties.FACING) == Direction.DOWN) {
+//                plumeBuffer.rotateCentered(Direction.NORTH, 270);
+//                plumeBuffer.translate(0, plumeOffset, 0);
+//            } else if (blockState.getValue(BlockStateProperties.FACING) == Direction.NORTH) {
+//                plumeBuffer.translate(0, 0, plumeOffset);
+//            } else if (blockState.getValue(BlockStateProperties.FACING) == Direction.SOUTH) {
+//                plumeBuffer.rotateCentered(Direction.UP, 180);
+//                plumeBuffer.translate(0, 0, -plumeOffset);
+//            } else if (blockState.getValue(BlockStateProperties.FACING) == Direction.EAST) {
+//                plumeBuffer.rotateCentered(Direction.UP, 90);
+//                plumeBuffer.translate(plumeOffset, 0, 0);
+//            } else if (blockState.getValue(BlockStateProperties.FACING) == Direction.WEST) {
+//                plumeBuffer.rotateCentered(Direction.UP, 270);
+//                plumeBuffer.translate(-plumeOffset, 0, 0);
+//            }
             plumeBuffer.translate(0, 0, 0)
                     .light(LightTexture.FULL_BRIGHT)
                     .renderInto(ms, solid);

@@ -58,6 +58,21 @@ public class AfterblazerPeripheral implements IPeripheral {
     }
 
     @LuaFunction
+    public final String getFuelQuality() {
+        return this.afterblazer.getFuelQuality().name();
+    }
+
+    @LuaFunction
+    public final String getFuelType() {
+        return this.afterblazer.tank.getPrimaryHandler().getFluidType().toString();
+    }
+
+    @LuaFunction
+    public final int getRemainingFuel() {
+        return this.afterblazer.getRemainingFuel();
+    }
+
+    @LuaFunction
     public final Map<String, Double> getGimbal() {
         return Map.of("pitch", this.afterblazer.getGimbalPitch(), "yaw", this.afterblazer.getGimbalYaw());
     }
