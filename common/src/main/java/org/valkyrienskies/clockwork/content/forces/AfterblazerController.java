@@ -12,6 +12,7 @@ import org.valkyrienskies.clockwork.content.contraptions.afterblazer.Afterblazer
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerUpdateData;
 
 import org.valkyrienskies.clockwork.util.blocktype.EngineHeatLevel;
+import org.valkyrienskies.clockwork.util.blocktype.LiquidFuelType;
 import org.valkyrienskies.core.api.ships.PhysShip;
 import org.valkyrienskies.core.api.ships.ServerShip;
 import org.valkyrienskies.core.api.ships.properties.ShipTransform;
@@ -86,10 +87,10 @@ public class AfterblazerController implements ShipForcesInducer {
         double gimbalY = physJet.jetGimbal.y;
         double throttle = physJet.redstoneLevel/15f;
         double multiplier = switch (physJet.heatLevel) {
-            case INFURIATED -> 3;
-            case SEETHING -> 1.5;
-            case KINDLED -> 1;
-            case FADING -> 0.5;
+            case GOURMET, EXTRA -> 3;
+            case SWEET -> 1.5;
+            case PLAIN -> 1;
+            case STALE -> 0.5;
             default -> 0;
         };
 
@@ -121,12 +122,12 @@ public class AfterblazerController implements ShipForcesInducer {
         return Pair.of(force,jetVector);
     }
 
-    private double exhaustVelocity(EngineHeatLevel heatLevel) {
+    private double exhaustVelocity(LiquidFuelType heatLevel) {
         double exhaustVel = switch (heatLevel) {
-            case INFURIATED -> 50;
-            case SEETHING -> 25;
-            case KINDLED -> 15;
-            case FADING -> 5;
+            case GOURMET -> 50;
+            case SWEET -> 25;
+            case PLAIN -> 15;
+            case STALE -> 5;
             default -> 0;
         };
         return exhaustVel;

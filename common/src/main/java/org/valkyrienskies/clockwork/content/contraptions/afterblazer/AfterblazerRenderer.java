@@ -25,6 +25,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.valkyrienskies.clockwork.ClockWorkPartials;
 import org.valkyrienskies.clockwork.util.blocktype.EngineHeatLevel;
 import org.valkyrienskies.clockwork.util.blocktype.IHeatableBlock;
+import org.valkyrienskies.clockwork.util.blocktype.LiquidFuelType;
 
 import javax.annotation.Nullable;
 
@@ -39,30 +40,25 @@ public class AfterblazerRenderer extends SafeTileEntityRenderer<AfterblazerBlock
             return;
         }
 
-        EngineHeatLevel heatLevel = te.getEngineHeatLevelFromBlock();
+        LiquidFuelType fuelQuality = te.getFuelQuality();
 
         Level level = te.getLevel();
         BlockState blockState = te.getBlockState();
         float animation = te.headAnimation.getValue(partialTicks) * .175f;
         float horizontalAngle = AngleHelper.rad(te.headAngle.getValue(partialTicks));
-        boolean canDrawFlame = heatLevel.isAtLeast(EngineHeatLevel.FADING);
+        boolean canDrawFlame = fuelQuality.isAtLeast(LiquidFuelType.STALE);
         boolean drawGoggles = te.goggles;
         boolean drawHat = te.hat;
         int hashCode = te.hashCode();
         double plumeOffset = te.redstoneLevel/15f;
         renderShared(ms, null, bufferSource,
-                level, blockState, heatLevel, animation, horizontalAngle,
+                level, blockState, fuelQuality, animation, horizontalAngle,
                 canDrawFlame, drawGoggles, drawHat, hashCode, plumeOffset);
     }
 
     public static void renderInContraption(MovementContext context, VirtualRenderWorld renderWorld,
                                            ContraptionMatrices matrices, MultiBufferSource bufferSource, LerpedFloat headAngle, boolean conductor) {
         BlockState state = context.state;
-        EngineHeatLevel heatLevel = IHeatableBlock.getHeatLevelOf(state);
-
-        if (!heatLevel.isAtLeast(EngineHeatLevel.FADING)) {
-            heatLevel = EngineHeatLevel.FADING;
-        }
 
         Level level = context.world;
         float horizontalAngle = AngleHelper.rad(headAngle.getValue(AnimationTickHolder.getPartialTicks(level)));
@@ -72,18 +68,18 @@ public class AfterblazerRenderer extends SafeTileEntityRenderer<AfterblazerBlock
 
 
         renderShared(matrices.getViewProjection(), matrices.getModel(), bufferSource,
-                level, state, heatLevel, 0, horizontalAngle,
+                level, state, LiquidFuelType.PLAIN, 0, horizontalAngle,
                 false, drawGoggles, drawHat, hashCode, 1f);
     }
 
     private static void renderShared(PoseStack ms, @Nullable PoseStack modelTransform, MultiBufferSource bufferSource,
-                                     Level level, BlockState blockState, EngineHeatLevel heatLevel, float animation, float horizontalAngle,
+                                     Level level, BlockState blockState, LiquidFuelType fuelQuality, float animation, float horizontalAngle,
                                      boolean canDrawFlame, boolean drawGoggles, boolean drawHat, int hashCode, double plumeOffset) {
 
         boolean blockAbove = animation > 0.125f;
         float time = AnimationTickHolder.getRenderTime(level);
         float renderTick = time + (hashCode % 13) * 16f;
-        float offsetMult = heatLevel.isAtLeast(EngineHeatLevel.FADING) ? 64 : 16;
+        float offsetMult = fuelQuality.isAtLeast(LiquidFuelType.STALE) ? 64 : 16;
         float offset = Mth.sin((float) ((renderTick / 16f) % (2 * Math.PI))) / offsetMult;
         float offset1 = Mth.sin((float) ((renderTick / 16f + Math.PI) % (2 * Math.PI))) / offsetMult;
         float offset2 = Mth.sin((float) ((renderTick / 16f + Math.PI / 2) % (2 * Math.PI))) / offsetMult;
@@ -95,11 +91,11 @@ public class AfterblazerRenderer extends SafeTileEntityRenderer<AfterblazerBlock
         ms.pushPose();
 
         PartialModel blazeModel;
-        if (heatLevel.isAtLeast(EngineHeatLevel.INFURIATED)) {
+        if (fuelQuality.isAtLeast(LiquidFuelType.GOURMET)) {
             blazeModel = ClockWorkPartials.BLAZE_INFURIATED;
-        } else if (heatLevel.isAtLeast(EngineHeatLevel.SEETHING)) {
+        } else if (fuelQuality.isAtLeast(LiquidFuelType.SWEET)) {
             blazeModel = AllBlockPartials.BLAZE_SUPER_ACTIVE;
-        } else if (heatLevel.isAtLeast(EngineHeatLevel.FADING)) {
+        } else if (fuelQuality.isAtLeast(LiquidFuelType.PLAIN)) {
             blazeModel = AllBlockPartials.BLAZE_ACTIVE;
         } else {
             blazeModel = AllBlockPartials.BLAZE_INERT;
@@ -142,11 +138,11 @@ public class AfterblazerRenderer extends SafeTileEntityRenderer<AfterblazerBlock
                     .renderInto(ms, solid);
         }
 
-        if (heatLevel.isAtLeast(EngineHeatLevel.FADING)) {
+        if (fuelQuality.isAtLeast(LiquidFuelType.STALE)) {
             PartialModel plumeModel;
-            if (heatLevel.equals(EngineHeatLevel.INFURIATED)) {
+            if (fuelQuality.equals(LiquidFuelType.GOURMET)) {
                 plumeModel = ClockWorkPartials.PLUME_INFURIATED;
-            } else if (heatLevel.equals(EngineHeatLevel.SEETHING)) {
+            } else if (fuelQuality.equals(LiquidFuelType.SWEET)) {
                 plumeModel = ClockWorkPartials.PLUME_FUMING;
             } else {
                 plumeModel = ClockWorkPartials.PLUME_ANGRY;

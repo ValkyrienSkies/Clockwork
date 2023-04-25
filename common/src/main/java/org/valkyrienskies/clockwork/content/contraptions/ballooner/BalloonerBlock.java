@@ -43,19 +43,17 @@ import java.util.Random;
 
 import static com.simibubi.create.content.contraptions.base.DirectionalKineticBlock.FACING;
 
-public class BalloonerBlock extends HorizontalKineticBlock implements ITE<BalloonerBlockEntity>, IHeatableBlock {
+public class BalloonerBlock extends HorizontalKineticBlock implements ITE<BalloonerBlockEntity> {
 
 //    public static final EnumProperty<EngineHeatLevel> HEAT_LEVEL = EnumProperty.create("blaze", EngineHeatLevel.class);
 
     public BalloonerBlock(Properties properties) {
         super(properties);
-        registerDefaultState(defaultBlockState().setValue(HEAT_LEVEL, EngineHeatLevel.SMOULDERING));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
-        builder.add(HEAT_LEVEL);
     }
 
     @Override
@@ -83,7 +81,6 @@ public class BalloonerBlock extends HorizontalKineticBlock implements ITE<Balloo
     public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand,
                                  BlockHitResult blockRayTraceResult) {
         ItemStack heldItem = player.getItemInHand(hand);
-        EngineHeatLevel heat = state.getValue(HEAT_LEVEL);
         BalloonerBlockEntity te = (BalloonerBlockEntity) world.getBlockEntity(pos);
         // FOR TESTING, DONT LEAVE IT AS A HAND DIPSHIT
         if (AllItems.BRASS_HAND.isIn(heldItem)) {
@@ -142,9 +139,6 @@ public class BalloonerBlock extends HorizontalKineticBlock implements ITE<Balloo
     public void animateTick(BlockState state, Level world, BlockPos pos, Random random) {
         if (random.nextInt(10) != 0)
             return;
-        if (!state.getValue(HEAT_LEVEL)
-                .isAtLeast(EngineHeatLevel.SMOULDERING))
-            return;
         world.playLocalSound((double) ((float) pos.getX() + 0.5F), (double) ((float) pos.getY() + 0.5F),
                 (double) ((float) pos.getZ() + 0.5F), SoundEvents.CAMPFIRE_CRACKLE, SoundSource.BLOCKS,
                 0.5F + random.nextFloat(), random.nextFloat() * 0.7F + 0.6F, false);
@@ -166,8 +160,7 @@ public class BalloonerBlock extends HorizontalKineticBlock implements ITE<Balloo
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockState defaultState = defaultBlockState();
-        return defaultState.setValue(HEAT_LEVEL, EngineHeatLevel.SMOULDERING)
-                .setValue(HORIZONTAL_FACING, context.getHorizontalDirection()
+        return defaultState.setValue(HORIZONTAL_FACING, context.getHorizontalDirection()
                         .getOpposite());
     }
 

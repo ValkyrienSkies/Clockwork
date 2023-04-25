@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.contraptions.ballooner;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.content.contraptions.base.KineticTileEntity;
 import com.simibubi.create.content.contraptions.goggles.IHaveGoggleInformation;
+import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
 import com.simibubi.create.foundation.utility.VecHelper;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.core.BlockPos;
@@ -17,6 +18,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3dc;
 import org.valkyrienskies.clockwork.ClockWorkItems;
@@ -24,20 +26,24 @@ import org.valkyrienskies.clockwork.content.contraptions.afterblazer.Afterblazer
 import org.valkyrienskies.clockwork.content.forces.BalloonController;
 import org.valkyrienskies.clockwork.data.ClockWorkTags;
 import org.valkyrienskies.clockwork.platform.PlatformUtils;
-import org.valkyrienskies.clockwork.util.blocktype.EngineHeatLevel;
-import org.valkyrienskies.clockwork.util.blocktype.IHeatableBlock;
+import org.valkyrienskies.clockwork.platform.SmartFluidTankBlockEntity;
+import org.valkyrienskies.clockwork.util.blocktype.*;
+import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGoggleInformation, IHotAirProducer {
+public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGoggleInformation, IHotAirProducer, IFuelableTileEntity, SmartFluidTankBlockEntity {
 
     public static final int MAX_HEAT_CAPACITY = 10000;
     public static final int INSERTION_THRESHOLD = 500;
+
+    public CWFluidTankBehaviour tank;
 
     public FuelType activeFuel;
     public int remainingBurnTime;
@@ -72,12 +78,13 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
 
     public BalloonerBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
-        activeFuel = FuelType.NONE;
-        remainingBurnTime = 0;
 
-        isCreative = false;
+    }
 
-
+    @Override
+    public void addBehaviours(List<TileEntityBehaviour> behaviours) {
+        tank = CWFluidTankBehaviour.single(this, 8000);
+        super.addBehaviours(behaviours);
     }
 
     public int getMaxScanRange() {
@@ -130,7 +137,7 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
         if (level.isClientSide) {
 //            tickAnimation();
             if (!isVirtual())
-                spawnParticles(getHeatLevelFromBlock(), 1);
+                spawnParticles(getFuelQuality(), 1);
             return;
         }
         if (shouldScan) {
@@ -160,16 +167,10 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
             buffer--;
         }
 
-        if (pissedOff) {
-            applyHyperFuel();
-            pissedOff = false;
-        }
 
-        if (remainingBurnTime > 0)
-            remainingBurnTime--;
+        if (getRemainingFuel() > 0)
+            tank.getPrimaryHandler().shrink(getDrainRate() * (long)(getSpeed()/256));
 
-        if (activeFuel == FuelType.NORMAL)
-            updateBlockState();
 
         if (volume.isEmpty()) {
             internalTemperature = 0;
@@ -188,7 +189,6 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
             shouldScan = true;
         }
 
-        updateBlockState();
         LoadedServerShip ship = null;
         if (!level.isClientSide) {
             ship = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, worldPosition);
@@ -202,7 +202,7 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
                         volumePos.add(VectorConversionsMCKt.toJOMLD(posit));
                     }
                 }
-                final BalloonCreateData data = new BalloonCreateData(pos, volumePos, speed, internalTemperature, getHeatLevelFromBlock());
+                final BalloonCreateData data = new BalloonCreateData(pos, volumePos, speed, internalTemperature, getFuelQuality());
                 balloonID = BalloonController.getOrCreate(ship).addBalloon(data);
                 alreadyAdded = true;
             }
@@ -213,7 +213,7 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
                         volumePos.add(VectorConversionsMCKt.toJOMLD(posit));
                     }
                 }
-                final BalloonUpdateData data = new BalloonUpdateData(volumePos, speed, internalTemperature, getHeatLevelFromBlock());
+                final BalloonUpdateData data = new BalloonUpdateData(volumePos, speed, internalTemperature, getFuelQuality());
                 BalloonController.getOrCreate(ship).updateBalloon(balloonID, data);
             }
             if (this.isRemoved()) {
@@ -242,18 +242,18 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
             return 0;
         }
         double temp = 0;
-        if (getHeatLevelFromBlock().equals(EngineHeatLevel.SMOULDERING) || speed == 0) {
+        if (getFuelQuality().equals(LiquidFuelType.NONE) || speed == 0) {
             double passiveCooling = -0.008;
 
             return passiveCooling * (1.0/volume.size());
         }
 
-        double tempinc = switch (getHeatLevelFromBlock()) {
-            case SMOULDERING -> 0.0;
-            case FADING -> 0.001;
-            case KINDLED -> 0.002;
-            case SEETHING -> 0.004;
-            case INFURIATED -> 0.016;
+        double tempinc = switch (getFuelQuality()) {
+            case NONE -> 0.0;
+            case STALE -> 0.001;
+            case PLAIN -> 0.002;
+            case SWEET -> 0.004;
+            case GOURMET, EXTRA -> 0.016;
         };
         double vol = 0;
         double volmod = 0;
@@ -291,7 +291,7 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
 
     public void scanBalloon() {
         if (level.isClientSide) {
-            if (getHeatLevelFromBlock() == EngineHeatLevel.SMOULDERING) {
+            if (getFuelQuality() == LiquidFuelType.NONE) {
                 return;
             }
         }
@@ -330,15 +330,6 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
         brokenBalloons = brokenballoons;
     }
 
-    public boolean tryUpdateFuel(ItemStack itemStack, boolean forceOverflow, boolean simulate) {
-        return PlatformUtils.tryUpdateFuel(itemStack, forceOverflow, simulate, this);
-    }
-
-
-    public void updateBlockState() {
-        setBlockHeat(getHeatLevelFromFuelType(activeFuel));
-    }
-
     @Override
     public void write(CompoundTag compound, boolean clientPacket) {
         if (!isCreative) {
@@ -368,22 +359,7 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
         super.read(compound, clientPacket);
     }
 
-
-    protected void applyHyperFuel() {
-        remainingBurnTime = remainingBurnTime = MAX_HEAT_CAPACITY / 2;
-
-        EngineHeatLevel next = EngineHeatLevel.INFURIATED;
-
-        if (level.isClientSide) {
-            spawnParticleBurst(next.isAtLeast(EngineHeatLevel.SEETHING), next.isAtLeast(EngineHeatLevel.INFURIATED));
-            return;
-        }
-
-        playSound();
-        setBlockHeat(next);
-    }
-
-    protected void spawnParticles(EngineHeatLevel heatLevel, double burstMult) {
+    protected void spawnParticles(LiquidFuelType heatLevel, double burstMult) {
         if (level == null)
             return;
 
@@ -440,67 +416,9 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
         }
     }
 
-    public void applyCreativeFuel() {
-        activeFuel = FuelType.NONE;
-        remainingBurnTime = 0;
-        isCreative = true;
-
-        EngineHeatLevel next = getHeatLevelFromBlock().nextActiveLevel();
-
-        if (level.isClientSide) {
-            spawnParticleBurst(next.isAtLeast(EngineHeatLevel.SEETHING), next.isAtLeast(EngineHeatLevel.INFURIATED));
-            return;
-        }
-
-        playSound();
-        if (next == EngineHeatLevel.FADING)
-            next = next.nextActiveLevel();
-        setBlockHeat(next);
-    }
-
-    public void setBlockHeat(EngineHeatLevel heat) {
-        EngineHeatLevel inBlockState = getHeatLevelFromBlock();
-        if (inBlockState == heat)
-            return;
-        level.setBlockAndUpdate(worldPosition, getBlockState().setValue(BalloonerBlock.HEAT_LEVEL, heat));
-        notifyUpdate();
-    }
-
-    public boolean isCreativeFuel(ItemStack stack) {
-        return AllItems.CREATIVE_BLAZE_CAKE.isIn(stack);
-    }
-
-    public boolean isHyperFuel(ItemStack stack) {
-        return ClockWorkItems.STRATODONUT.isIn(stack);
-    }
-
     public void playSound() {
         level.playSound(null, worldPosition, SoundEvents.BLAZE_SHOOT, SoundSource.BLOCKS,
                 .125f + level.random.nextFloat() * .125f, .75f - level.random.nextFloat() * .25f);
-    }
-
-    public EngineHeatLevel getHeatLevelFromFuelType(FuelType fuel) {
-        EngineHeatLevel level = EngineHeatLevel.SMOULDERING;
-        switch (activeFuel) {
-            case HYPER:
-                level = EngineHeatLevel.INFURIATED;
-                break;
-            case SPECIAL:
-                level = EngineHeatLevel.SEETHING;
-                break;
-            case NORMAL:
-                boolean lowPercent = (double) remainingBurnTime / MAX_HEAT_CAPACITY < 0.0125;
-                level = lowPercent ? EngineHeatLevel.FADING : EngineHeatLevel.KINDLED;
-                break;
-            default:
-            case NONE:
-                break;
-        }
-        return level;
-    }
-
-    public EngineHeatLevel getHeatLevelFromBlock() {
-        return IHeatableBlock.getHeatLevelOf(getBlockState());
     }
 
     @Override
@@ -510,16 +428,79 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
 
     @Override
     public double getHotAirProduction() {
-        EngineHeatLevel heatLevel = getHeatLevelFromBlock();
+        LiquidFuelType fuelQuality = getFuelQuality();
 
-        double modifier = switch (heatLevel) {
-            case INFURIATED -> 1.5;
-            case SEETHING -> 1.25;
-            case KINDLED -> 1;
-            case FADING -> .75;
+        double modifier = switch (fuelQuality) {
+            case GOURMET, EXTRA -> 1.5;
+            case SWEET -> 1.25;
+            case PLAIN -> 1;
+            case STALE -> .75;
             default -> 0;
         };
         double throttle = Mth.abs(getSpeed() / 256f);
         return modifier * throttle;
+    }
+
+    public boolean hasValidFuelType() {
+        if (tank.isEmpty())
+            return false;
+
+        Fluid fuel = tank.getPrimaryHandler().getFluidType();
+
+        if (fuel.is(ClockWorkTags.AllFluidTags.STALE.tag))
+            return true;
+        if (fuel.is(ClockWorkTags.AllFluidTags.PLAIN.tag))
+            return true;
+        if (fuel.is(ClockWorkTags.AllFluidTags.SWEET.tag))
+            return true;
+        if (fuel.is(ClockWorkTags.AllFluidTags.EXTRA.tag))
+            return true;
+        if (fuel.is(ClockWorkTags.AllFluidTags.GOURMET.tag))
+            return true;
+
+        return false;
+    }
+
+    @Override
+    public LiquidFuelType getFuelQuality() {
+        if (!hasValidFuelType()) {
+            return LiquidFuelType.NONE;
+        }
+        Fluid fuel = tank.getPrimaryHandler().getFluidType();
+        if (fuel.is(ClockWorkTags.AllFluidTags.STALE.tag)) {
+            return LiquidFuelType.STALE;
+        } else if (fuel.is(ClockWorkTags.AllFluidTags.PLAIN.tag)) {
+            return LiquidFuelType.PLAIN;
+        } else if (fuel.is(ClockWorkTags.AllFluidTags.SWEET.tag)) {
+            return LiquidFuelType.SWEET;
+        } else if (fuel.is(ClockWorkTags.AllFluidTags.GOURMET.tag)) {
+            return LiquidFuelType.GOURMET;
+        } else {
+            return LiquidFuelType.EXTRA;
+        }
+    }
+
+    @Override
+    public int getRemainingFuel() {
+        if (!hasValidFuelType()) {
+            return 0;
+        }
+
+        return (int) tank.getPrimaryHandler().getAmount();
+    }
+
+    @Override
+    public int getDrainRate() {
+        return 2 * (int)(getSpeed()/256);
+    }
+
+    @Override
+    public FuelBoosterType getFuelBooster() {
+        return null;
+    }
+
+    @Override
+    public CWFluidTankBehaviour getFluidTankBehaviour() {
+        return tank;
     }
 }
