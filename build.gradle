@@ -47,6 +47,12 @@ subprojects {
                     includeGroup("com.jozufozu.flywheel")
                 }
             }
+            maven {
+                url = "https://maven.realrobotix.me/createbigcannons/" // Create Big Cannons
+                content {
+                    includeGroup "com.rbasamoyai"
+                }
+            }
         }
     }
 
