@@ -108,7 +108,7 @@ public class AfterblazerController implements ShipForcesInducer {
 
         Vector3d force = new Vector3d();
 
-        double forceMod = 80000 * throttle * multiplier;
+        double forceMod = 160000 * throttle * multiplier;
         Vector3dc jetPosRelCenterMass = physTransform.getShipToWorld().transformPosition(physJet.jetPos.add(0.5,0.5,0.5, new Vector3d()), new Vector3d()).sub(physTransform.getPositionInWorld(), new Vector3d());
         Vector3dc worldVelAtJet = omega.cross(jetPosRelCenterMass, new Vector3d()).add(vel, new Vector3d());
         double exhaustVel = exhaustVelocity(physJet.heatLevel);
@@ -152,5 +152,12 @@ public class AfterblazerController implements ShipForcesInducer {
             ship.saveAttachment(AfterblazerController.class, new AfterblazerController());
         }
         return ship.getAttachment(AfterblazerController.class);
+    }
+
+    public boolean checkAfterblazer(Integer id) {
+        if (id != null) {
+            return afterblazerData.containsKey(id);
+        }
+        return false;
     }
 }

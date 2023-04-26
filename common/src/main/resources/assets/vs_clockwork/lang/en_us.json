@@ -25,7 +25,6 @@
   "item.vs_clockwork.balloon_encased_shaft": "Balloon Encased Shaft",
   "block.vs_clockwork.combustion_engine": "Combustion Engine",
   "item.vs_clockwork.combustion_engine": "Combustion Engine",
-  "item.vs_clockwork.vanilla_frosting_bucket": "Vanilla Frosting Bucket",
   "item.vs_clockwork.pastrymaker": "Pastrymaker",
   "block.vs_clockwork.ballooner": "Ballooner",
   "item.vs_clockwork.ballooner": "Ballooner",
@@ -48,5 +47,8 @@
   "sequenced_seat.value.multiply": "Multiplier",
   "vs_clockwork.subtitle.thick_fluid_swim": "Wading through thick fluid",
   "vs_clockwork.subtitle.thick_fluid_fill": "Filled with a thick fluid",
-  "vs_clockwork.subtitle.thick_fluid_empty": "Pouring a thick fluid"
+  "vs_clockwork.subtitle.thick_fluid_empty": "Pouring a thick fluid",
+  "item.vs_clockwork.vanilla_frosting_bucket": "Bucket o' Vanilla Frosting",
+  "item.vs_clockwork.chocolate_frosting_bucket": "Bucket o' Chocolate Frosting",
+  "item.vs_clockwork.strawberry_frosting_bucket": "Bucket o' Strawberry Frosting"
 }

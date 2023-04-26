@@ -77,6 +77,8 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
     int buffer = 20;
     boolean bufferPulse = false;
 
+    boolean shouldRemove = false;
+
 //    BalloonStructure balloonStructure;
 
     public BalloonerBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -101,6 +103,10 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
 
     public Set<BlockPos> getVolume() {
         return volume;
+    }
+
+    public void setShouldRemove() {
+        this.shouldRemove = true;
     }
 
     public void tryCheck() {
@@ -221,7 +227,7 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
                 final BalloonUpdateData data = new BalloonUpdateData(volumePos, speed, internalTemperature, getFuelQuality());
                 BalloonController.getOrCreate(ship).updateBalloon(balloonID, data);
             }
-            if (this.isRemoved()) {
+            if (this.isRemoved() || shouldRemove) {
                 if (balloonID != null) {
                     BalloonController.getOrCreate(ship).removeBalloon(balloonID);
                     balloonID = null;

@@ -129,7 +129,7 @@ public class BalloonController implements ShipForcesInducer {
         // f = v * dp * g
         double force = volume * (standardDensity - internalDensity) * gravity;
 
-        Vector3dc forceVec = new Vector3d(0, force*100000, 0);
+        Vector3dc forceVec = new Vector3d(0, force*50000, 0);
         return forceVec;
     }
 
@@ -144,13 +144,9 @@ public class BalloonController implements ShipForcesInducer {
     }
 
     private Vector3d airResistance(PhysShipImpl physShip) {
-        double resistance = 0.05;
+        double resistance = 0.01;
 
-        resistance = resistance;
-
-        Vector3d drag = physShip.getPoseVel().getVel().mul(physShip.getInertia().getMomentOfInertiaTensor(), new Vector3d()).mul(-resistance);
-
-        return drag;
+        return physShip.getPoseVel().getVel().mul(physShip.getInertia().getShipMass(), new Vector3d()).mul(-resistance);
     }
 
     private double airPressure(Vector3dc pos) {

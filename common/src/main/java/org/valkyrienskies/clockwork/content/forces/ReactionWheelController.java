@@ -135,4 +135,11 @@ public class ReactionWheelController implements ShipForcesInducer {
     public void updateReactionWheel(int id, ReactionWheelUpdateData data) {
         reactionwheelUpdateData.put(id, data);
     }
+
+    public boolean checkReactionWheel(Integer id) {
+        if (id != null) {
+            return reactionwheelData.containsKey(id);
+        }
+        return false;
+    }
 }

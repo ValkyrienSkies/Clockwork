@@ -7,11 +7,13 @@ import com.simibubi.create.content.contraptions.components.structureMovement.Con
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.IBearingTileEntity;
 import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
 import com.simibubi.create.foundation.utility.AngleHelper;
+import com.simibubi.create.foundation.utility.Iterate;
 import com.simibubi.create.foundation.utility.ServerSpeedProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.valkyrienskies.clockwork.content.contraptions.flap.contraption.FlapContraption;
@@ -30,6 +32,8 @@ public class FlapBearingBlockEntity extends KineticTileEntity implements IFlap, 
     protected AssemblyException lastException;
     protected ControlledContraptionEntity flap;
     private float prevForcedAngle;
+    private int redstoneLevel;
+    private BlockPos redstonePos;
 
     public FlapBearingBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -45,6 +49,22 @@ public class FlapBearingBlockEntity extends KineticTileEntity implements IFlap, 
         return true;
     }
 
+    private int getPower(Level worldIn, BlockPos pos) {
+        int power = 0;
+        for (Direction direction : Iterate.directions) {
+            power = Math.max(worldIn.getSignal(pos.relative(direction), direction), power);
+            if (power != 0) {
+                redstonePos = pos.relative(direction);
+                break;
+            }
+        }
+
+        if (power == 0) {
+            redstonePos = null;
+        }
+        return power;
+    }
+
     @Override
     public void tick() {
         super.tick();
@@ -57,15 +77,44 @@ public class FlapBearingBlockEntity extends KineticTileEntity implements IFlap, 
             clientAngleDiff /= 2;
         }
 
-        if (getBlockState().getValue(FlapBearingBlock.FACING) == Direction.UP || getBlockState().getValue(FlapBearingBlock.FACING) == Direction.DOWN) {
-            redstoneSideOne = level.hasNeighborSignal(worldPosition.relative(Direction.EAST));
-            redstoneSideTwo = level.hasNeighborSignal(worldPosition.relative(Direction.WEST));
-        } else if (getBlockState().getValue(FlapBearingBlock.FACING) == Direction.NORTH || getBlockState().getValue(FlapBearingBlock.FACING) == Direction.SOUTH) {
-            redstoneSideOne = level.hasNeighborSignal(worldPosition.relative(Direction.EAST));
-            redstoneSideTwo = level.hasNeighborSignal(worldPosition.relative(Direction.WEST));
-        } else if (getBlockState().getValue(FlapBearingBlock.FACING) == Direction.EAST || getBlockState().getValue(FlapBearingBlock.FACING) == Direction.WEST) {
-            redstoneSideOne = level.hasNeighborSignal(worldPosition.relative(Direction.NORTH));
-            redstoneSideTwo = level.hasNeighborSignal(worldPosition.relative(Direction.SOUTH));
+//        if (getBlockState().getValue(FlapBearingBlock.FACING) == Direction.UP || getBlockState().getValue(FlapBearingBlock.FACING) == Direction.DOWN) {
+//            redstoneSideOne = level.hasNeighborSignal(worldPosition.relative(Direction.EAST));
+//            redstoneSideTwo = level.hasNeighborSignal(worldPosition.relative(Direction.WEST));
+//        } else if (getBlockState().getValue(FlapBearingBlock.FACING) == Direction.NORTH || getBlockState().getValue(FlapBearingBlock.FACING) == Direction.SOUTH) {
+//            redstoneSideOne = level.hasNeighborSignal(worldPosition.relative(Direction.EAST));
+//            redstoneSideTwo = level.hasNeighborSignal(worldPosition.relative(Direction.WEST));
+//        } else if (getBlockState().getValue(FlapBearingBlock.FACING) == Direction.EAST || getBlockState().getValue(FlapBearingBlock.FACING) == Direction.WEST) {
+//            redstoneSideOne = level.hasNeighborSignal(worldPosition.relative(Direction.NORTH));
+//            redstoneSideTwo = level.hasNeighborSignal(worldPosition.relative(Direction.SOUTH));
+//        }
+        redstoneLevel = getPower(level, worldPosition);
+
+        if (redstonePos != null) {
+            if (getBlockState().getValue(FlapBearingBlock.FACING) == Direction.UP || getBlockState().getValue(FlapBearingBlock.FACING) == Direction.DOWN) {
+                if (redstonePos == worldPosition.relative(Direction.EAST)) {
+                    redstoneSideOne = true;
+                    redstoneSideTwo = false;
+                } else if (redstonePos == worldPosition.relative(Direction.WEST)) {
+                    redstoneSideOne = false;
+                    redstoneSideTwo = true;
+                }
+            } else if (getBlockState().getValue(FlapBearingBlock.FACING) == Direction.NORTH || getBlockState().getValue(FlapBearingBlock.FACING) == Direction.SOUTH) {
+                if (redstonePos == worldPosition.relative(Direction.EAST)) {
+                    redstoneSideOne = true;
+                    redstoneSideTwo = false;
+                } else if (redstonePos == worldPosition.relative(Direction.WEST)) {
+                    redstoneSideOne = false;
+                    redstoneSideTwo = true;
+                }
+            } else if (getBlockState().getValue(FlapBearingBlock.FACING) == Direction.EAST || getBlockState().getValue(FlapBearingBlock.FACING) == Direction.WEST) {
+                if (redstonePos == worldPosition.relative(Direction.NORTH)) {
+                    redstoneSideOne = true;
+                    redstoneSideTwo = false;
+                } else if (redstonePos == worldPosition.relative(Direction.SOUTH)) {
+                    redstoneSideOne = false;
+                    redstoneSideTwo = true;
+                }
+            }
         }
 
         if (!level.isClientSide && assembleNextTick) {
@@ -236,10 +285,10 @@ public class FlapBearingBlockEntity extends KineticTileEntity implements IFlap, 
 
     protected float getFlapTarget(Boolean negativeActivated, Boolean positiveActivated) {
         if (negativeActivated && !positiveActivated) {
-            return -22.5f;
+            return -22.5f * (float) (15/redstoneLevel);
         }
         if (positiveActivated && !negativeActivated) {
-            return 22.5f;
+            return 22.5f * (float) (15/redstoneLevel);
         }
         if (negativeActivated && positiveActivated) {
             return 0;

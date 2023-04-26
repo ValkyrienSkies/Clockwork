@@ -66,6 +66,11 @@ public class AfterblazerBlock extends DirectionalBlock implements ITE<Afterblaze
     }
 
 
+    @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+        getTileEntity(level, pos).setShouldRemove();
+        super.onRemove(state, level, pos, newState, isMoving);
+    }
 
     @Nullable
     @Override

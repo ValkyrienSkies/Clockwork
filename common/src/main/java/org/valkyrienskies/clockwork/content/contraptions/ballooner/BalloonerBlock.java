@@ -174,6 +174,12 @@ public class BalloonerBlock extends HorizontalKineticBlock implements ITE<Balloo
         return face.getAxis() == getRotationAxis(state);
     }
     @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+        getTileEntity(level, pos).setShouldRemove();
+        super.onRemove(state, level, pos, newState, isMoving);
+    }
+
+    @Override
     public Class<BalloonerBlockEntity> getTileEntityClass() {
         return BalloonerBlockEntity.class;
     }

@@ -155,6 +155,7 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
             setBlockDirection(PropellorBearingBlock.Direction.PUSH);
         }
         if (speedChanged) {
+            onSpeedChanged(prevSpeed);
             onRotspeedChanged();
             speedChanged = false;
         }
@@ -710,6 +711,7 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
     @Override
     public void onSpeedChanged(float prevSpeed) {
         super.onSpeedChanged(prevSpeed);
+        detachKinetics();
         updateAirFlow = true;
     }
 

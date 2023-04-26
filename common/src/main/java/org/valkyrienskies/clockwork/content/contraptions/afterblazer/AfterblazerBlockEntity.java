@@ -66,6 +66,8 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
         private Integer afterblazerID = null;
         protected boolean alreadyAdded = false;
         private Vector2d gimbalRotation = new Vector2d();
+
+        boolean shouldRemove = false;
         public AfterblazerBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
             super(type, pos, state);
             headAnimation = LerpedFloat.linear();
@@ -79,9 +81,11 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
             sidesToUpdate = Couple.create(MutableBoolean::new);
         }
 
+    public void setShouldRemove() {
+        this.shouldRemove = true;
+    }
 
-
-        public void setGimbal(double pitch, double yaw) {
+    public void setGimbal(double pitch, double yaw) {
             double tPitch = Mth.clamp(pitch, -22.5, 22.5);
             double tYaw = Mth.clamp(yaw, -22.5, 22.5);
             gimbalRotation.set(tPitch, tYaw);
@@ -143,7 +147,7 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
                     final AfterblazerUpdateData data = new AfterblazerUpdateData(remainingBurnTime, getFuelQuality(), redstoneLevel, gimbalRotation);
                     AfterblazerController.getOrCreate(ship).updateAfterblazer(afterblazerID, data);
                 }
-                if (this.isRemoved()) {
+                if (this.isRemoved() || shouldRemove) {
                     if (afterblazerID != null) {
                         AfterblazerController.getOrCreate(ship).removeAfterblazer(afterblazerID);
                         afterblazerID = null;
@@ -166,6 +170,8 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
                 power = Math.max(worldIn.getSignal(pos.relative(direction), Direction.UP), power);
             return power;
         }
+
+
 
         public double getThrustPercentage () {
             if (redstoneLevel == 15) {
