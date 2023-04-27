@@ -63,8 +63,8 @@ public class AfterblazerPeripheral implements IPeripheral {
     }
 
     @LuaFunction
-    public final String getFuelType() {
-        return this.afterblazer.tank.getPrimaryHandler().getFluidType().toString();
+    public final String getFuel() {
+        return this.afterblazer.tank.getPrimaryHandler().asSmartFluidTank().getFluid().getDisplayName().getString();
     }
 
     @LuaFunction

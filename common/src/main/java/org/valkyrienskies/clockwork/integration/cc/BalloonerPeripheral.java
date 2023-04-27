@@ -46,8 +46,8 @@ public class BalloonerPeripheral implements IPeripheral {
     }
 
     @LuaFunction
-    public final String getFuelType() {
-        return this.ballooner.tank.getPrimaryHandler().getFluidType().toString();
+    public final String getFuel() {
+        return this.ballooner.tank.getPrimaryHandler().asSmartFluidTank().getFluid().getDisplayName().getString();
     }
 
     @LuaFunction
