@@ -31,8 +31,8 @@ public class FlapBearingPeripheral implements IPeripheral {
     }
 
     @LuaFunction
-    public final void setAngle(float angle) {
-        this.flap.setAngle(angle);
+    public final void setFlapAngle(double angle) {
+        this.flap.setAngle((float) angle);
     }
 
     @LuaFunction
