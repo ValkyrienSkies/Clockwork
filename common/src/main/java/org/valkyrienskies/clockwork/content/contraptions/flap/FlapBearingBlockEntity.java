@@ -77,43 +77,18 @@ public class FlapBearingBlockEntity extends KineticTileEntity implements IFlap, 
             clientAngleDiff /= 2;
         }
 
-//        if (getBlockState().getValue(FlapBearingBlock.FACING) == Direction.UP || getBlockState().getValue(FlapBearingBlock.FACING) == Direction.DOWN) {
-//            redstoneSideOne = level.hasNeighborSignal(worldPosition.relative(Direction.EAST));
-//            redstoneSideTwo = level.hasNeighborSignal(worldPosition.relative(Direction.WEST));
-//        } else if (getBlockState().getValue(FlapBearingBlock.FACING) == Direction.NORTH || getBlockState().getValue(FlapBearingBlock.FACING) == Direction.SOUTH) {
-//            redstoneSideOne = level.hasNeighborSignal(worldPosition.relative(Direction.EAST));
-//            redstoneSideTwo = level.hasNeighborSignal(worldPosition.relative(Direction.WEST));
-//        } else if (getBlockState().getValue(FlapBearingBlock.FACING) == Direction.EAST || getBlockState().getValue(FlapBearingBlock.FACING) == Direction.WEST) {
-//            redstoneSideOne = level.hasNeighborSignal(worldPosition.relative(Direction.NORTH));
-//            redstoneSideTwo = level.hasNeighborSignal(worldPosition.relative(Direction.SOUTH));
-//        }
         redstoneLevel = getPower(level, worldPosition);
 
         if (redstonePos != null) {
             if (getBlockState().getValue(FlapBearingBlock.FACING) == Direction.UP || getBlockState().getValue(FlapBearingBlock.FACING) == Direction.DOWN) {
-                if (redstonePos == worldPosition.relative(Direction.EAST)) {
-                    redstoneSideOne = true;
-                    redstoneSideTwo = false;
-                } else if (redstonePos == worldPosition.relative(Direction.WEST)) {
-                    redstoneSideOne = false;
-                    redstoneSideTwo = true;
-                }
+                redstoneSideOne = (redstonePos.equals(worldPosition.relative(Direction.EAST, 1)));
+                redstoneSideTwo = (redstonePos.equals(worldPosition.relative(Direction.WEST, 1)));
             } else if (getBlockState().getValue(FlapBearingBlock.FACING) == Direction.NORTH || getBlockState().getValue(FlapBearingBlock.FACING) == Direction.SOUTH) {
-                if (redstonePos == worldPosition.relative(Direction.EAST)) {
-                    redstoneSideOne = true;
-                    redstoneSideTwo = false;
-                } else if (redstonePos == worldPosition.relative(Direction.WEST)) {
-                    redstoneSideOne = false;
-                    redstoneSideTwo = true;
-                }
+                redstoneSideOne = (redstonePos.equals(worldPosition.relative(Direction.EAST, 1)));
+                redstoneSideTwo = (redstonePos.equals(worldPosition.relative(Direction.WEST, 1)));
             } else if (getBlockState().getValue(FlapBearingBlock.FACING) == Direction.EAST || getBlockState().getValue(FlapBearingBlock.FACING) == Direction.WEST) {
-                if (redstonePos == worldPosition.relative(Direction.NORTH)) {
-                    redstoneSideOne = true;
-                    redstoneSideTwo = false;
-                } else if (redstonePos == worldPosition.relative(Direction.SOUTH)) {
-                    redstoneSideOne = false;
-                    redstoneSideTwo = true;
-                }
+                redstoneSideOne = (redstonePos.equals(worldPosition.relative(Direction.NORTH, 1)));
+                redstoneSideTwo = (redstonePos.equals(worldPosition.relative(Direction.SOUTH, 1)));
             }
         }
 
@@ -285,15 +260,15 @@ public class FlapBearingBlockEntity extends KineticTileEntity implements IFlap, 
 
     protected float getFlapTarget(Boolean negativeActivated, Boolean positiveActivated) {
         if (negativeActivated && !positiveActivated) {
-            return -22.5f * (float) (15/redstoneLevel);
+            return -22.5f *  (((float) redstoneLevel)/15);
         }
         if (positiveActivated && !negativeActivated) {
-            return 22.5f * (float) (15/redstoneLevel);
+            return 22.5f * (((float) redstoneLevel)/15);
         }
         if (negativeActivated && positiveActivated) {
-            return 0;
+            return 0f;
         }
-        return 0;
+        return 0f;
     }
 
     public boolean isRunning() {

@@ -27,7 +27,6 @@ public class ForgeClockworkFluids {
                     .attributes(b -> b.viscosity(1250)
                             .density(7040)
                             .temperature(20)
-                            .color(0xf9e5bc)
                             .sound(ClockWorkSounds.THICK_FLUID_FILL.getMainEvent(), ClockWorkSounds.THICK_FLUID_EMPTY.getMainEvent()))
                     .properties(p -> p.levelDecreasePerBlock(2)
                             .tickRate(25)
@@ -43,7 +42,6 @@ public class ForgeClockworkFluids {
                     .attributes(b -> b.viscosity(1250)
                             .density(7040)
                             .temperature(20)
-                            .color(0x3d1c02)
                             .sound(ClockWorkSounds.THICK_FLUID_FILL.getMainEvent(), ClockWorkSounds.THICK_FLUID_EMPTY.getMainEvent()))
                     .properties(p -> p.levelDecreasePerBlock(2)
                             .tickRate(25)
@@ -59,7 +57,6 @@ public class ForgeClockworkFluids {
                     .attributes(b -> b.viscosity(1250)
                             .density(7040)
                             .temperature(20)
-                            .color(0xffa3a3)
                             .sound(ClockWorkSounds.THICK_FLUID_FILL.getMainEvent(), ClockWorkSounds.THICK_FLUID_EMPTY.getMainEvent()))
                     .properties(p -> p.levelDecreasePerBlock(2)
                             .tickRate(25)
@@ -72,7 +69,7 @@ public class ForgeClockworkFluids {
 
     private static FluidBuilder<ForgeFlowingFluid.Flowing, CreateRegistrate> standardFluid(String name, NonNullBiFunction<FluidAttributes.Builder, Fluid, FluidAttributes> factory) {
         return ClockWorkMod.REGISTRATE
-                .fluid(name, ClockWorkMod.asResource("fluid/frosting_still"), ClockWorkMod.asResource("fluid/frosting_flow"), factory)
+                .fluid(name, ClockWorkMod.asResource("fluid/" + name + "_still"), ClockWorkMod.asResource("fluid/" + name + "_flow"), factory)
                 .removeTag(FluidTags.WATER);
     }
 

@@ -33,7 +33,7 @@ public class FabricClockworkFluids {
                     .bucket()
                     .tag(AllTags.forgeItemTag("buckets/vanilla_frosting"))
                     .build()
-                    .color(0xf9e5bc)
+                    .renderHandler(() -> SimpleFluidRenderHandler::new)
                     .onRegisterAfter(Item.class, vanilla_frosting -> {
                         Fluid source = vanilla_frosting.getSource();
                         FluidStorage.combinedItemApiProvider(source.getBucket()).register(context ->
@@ -55,7 +55,7 @@ public class FabricClockworkFluids {
                     .bucket()
                     .tag(AllTags.forgeItemTag("buckets/chocolate_frosting"))
                     .build()
-                    .color(0x3d1c02)
+                    .renderHandler(() -> SimpleFluidRenderHandler::new)
                     .onRegisterAfter(Item.class, chocolate_frosting -> {
                         Fluid source = chocolate_frosting.getSource();
                         FluidStorage.combinedItemApiProvider(source.getBucket()).register(context ->
@@ -77,7 +77,7 @@ public class FabricClockworkFluids {
                     .bucket()
                     .tag(AllTags.forgeItemTag("buckets/strawberry_frosting"))
                     .build()
-                    .color(0xffa3a3)
+                    .renderHandler(() -> SimpleFluidRenderHandler::new)
                     .onRegisterAfter(Item.class, chocolate_frosting -> {
                         Fluid source = chocolate_frosting.getSource();
                         FluidStorage.combinedItemApiProvider(source.getBucket()).register(context ->
@@ -88,7 +88,7 @@ public class FabricClockworkFluids {
                     .register();
 
     public static FluidBuilder<SimpleFlowableFluid.Flowing, CreateRegistrate> frostingFluid(String name) {
-        return ClockWorkMod.REGISTRATE.fluid(name, ClockWorkMod.asResource("fluid/frosting_still"), ClockWorkMod.asResource("fluid/frosting_flow"));
+        return ClockWorkMod.REGISTRATE.fluid(name, ClockWorkMod.asResource("fluid/" + name + "_still"), ClockWorkMod.asResource("fluid/" + name + "_flow"));
     }
     public static void register() {}
 
