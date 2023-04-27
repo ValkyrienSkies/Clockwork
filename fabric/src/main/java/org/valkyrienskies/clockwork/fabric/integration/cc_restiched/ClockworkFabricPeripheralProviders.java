@@ -11,9 +11,11 @@ import org.jetbrains.annotations.NotNull;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity;
+import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingBlockEntity;
 import org.valkyrienskies.clockwork.integration.cc.AfterblazerPeripheral;
 import org.valkyrienskies.clockwork.integration.cc.BalloonerPeripheral;
 import org.valkyrienskies.clockwork.integration.cc.FlapBearingPeripheral;
+import org.valkyrienskies.clockwork.integration.cc.PropellorBearingPeripheral;
 
 public class ClockworkFabricPeripheralProviders {
     public static void register() {
@@ -31,6 +33,8 @@ public class ClockworkFabricPeripheralProviders {
                 return new BalloonerPeripheral(ballooner);
             else if (be instanceof FlapBearingBlockEntity flap)
                 return new FlapBearingPeripheral(flap);
+            else if (be instanceof PropellorBearingBlockEntity propellor)
+                return new PropellorBearingPeripheral(propellor);
             return null;
         }
     }
