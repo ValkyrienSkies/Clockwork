@@ -1,56 +1,53 @@
 package org.valkyrienskies.clockwork.content.forces;
 
-import it.unimi.dsi.fastutil.Pair;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.minecraft.core.Direction;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import kotlin.Pair;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
-import org.joml.*;
-import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlock;
+import org.joml.Quaterniond;
+import org.joml.Quaterniondc;
+import org.joml.Vector3d;
+import org.joml.Vector3dc;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerCreateData;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerData;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerUpdateData;
-
-import org.valkyrienskies.clockwork.util.blocktype.EngineHeatLevel;
 import org.valkyrienskies.clockwork.util.blocktype.LiquidFuelType;
 import org.valkyrienskies.core.api.ships.PhysShip;
 import org.valkyrienskies.core.api.ships.ServerShip;
 import org.valkyrienskies.core.api.ships.properties.ShipTransform;
 import org.valkyrienskies.core.impl.api.ShipForcesInducer;
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl;
-import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
-import java.lang.Math;
+import java.util.HashMap;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import static org.valkyrienskies.clockwork.content.forces.PropellorController.areQueuesEqual;
+
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class AfterblazerController implements ShipForcesInducer {
-
-    final Int2ObjectOpenHashMap<AfterblazerData> afterblazerData = new Int2ObjectOpenHashMap<>();
-
+    private final HashMap<Integer, AfterblazerData> afterblazerData = new HashMap<>();
     private final ConcurrentHashMap<Integer, AfterblazerUpdateData> afterblazerUpdateData = new ConcurrentHashMap<>();
-
     private final ConcurrentLinkedQueue<Pair<Integer, AfterblazerCreateData>> createdJets = new ConcurrentLinkedQueue<>();
-
     private final ConcurrentLinkedQueue<Integer> removedJets = new ConcurrentLinkedQueue<>();
-
     private int nextJetID = 0;
 
     @Override
     public void applyForces(@NotNull PhysShip physShip) {
         while (!createdJets.isEmpty()) {
             final Pair<Integer, AfterblazerCreateData> createData = createdJets.remove();
-            afterblazerData.put(createData.left(), new AfterblazerData(
-                    createData.right().jetDirection(),
-                    createData.right().jetBurnTime(),
-                    createData.right().heatLevel(),
-                    createData.right().redstoneLevel(),
-                    createData.right().jetPos(),
-                    createData.right().jetGimbal()
+            afterblazerData.put(createData.component1(), new AfterblazerData(
+                    createData.component2().jetDirection(),
+                    createData.component2().jetBurnTime(),
+                    createData.component2().heatLevel(),
+                    createData.component2().redstoneLevel(),
+                    createData.component2().jetPos(),
+                    createData.component2().jetGimbal()
             ));
         }
         while (!removedJets.isEmpty()) {
-            afterblazerData.remove((int) removedJets.remove());
+            afterblazerData.remove(removedJets.remove());
         }
 
         afterblazerUpdateData.forEach((id, data) -> {
@@ -69,10 +66,10 @@ public class AfterblazerController implements ShipForcesInducer {
 
         for (AfterblazerData physData: afterblazerData.values()) {
             Pair<Vector3dc, Vector3dc> forceNvec = computeForce(physShip.getTransform(), physData, ((PhysShipImpl) physShip).getPoseVel().getVel(), ((PhysShipImpl) physShip).getPoseVel().getOmega());
-            Vector3dc force = forceNvec.left();
-            Vector3dc vec = forceNvec.right();
+            Vector3dc force = forceNvec.component1();
+            Vector3dc vec = forceNvec.component2();
             physShip.applyRotDependentForceToPos(force, vec);
-//            netForce.add(forceTorque.left());
+//            netForce.add(forceTorque.component1());
         }
 
 //        if (netForce.isFinite()) {
@@ -83,8 +80,8 @@ public class AfterblazerController implements ShipForcesInducer {
 
     private Pair<Vector3dc, Vector3dc> computeForce(ShipTransform physTransform, AfterblazerData physJet, Vector3dc vel, Vector3dc omega) {
         Vector3dc jetVector = physJet.jetPos.add(0.5,0.5,0.5, new Vector3d()).sub(physTransform.getPositionInShip());
-        double gimbalX = physJet.jetGimbal.x;
-        double gimbalY = physJet.jetGimbal.y;
+        double gimbalX = physJet.jetGimbal.x();
+        double gimbalY = physJet.jetGimbal.y();
         double throttle = physJet.redstoneLevel/15f;
         double multiplier = switch (physJet.heatLevel) {
             case GOURMET, EXTRA -> 3;
@@ -119,7 +116,7 @@ public class AfterblazerController implements ShipForcesInducer {
 
         force.add(jetDirection.mul(forceMod * factor, new Vector3d()));
 
-        return Pair.of(force,jetVector);
+        return new Pair<>(force,jetVector);
     }
 
     private double exhaustVelocity(LiquidFuelType heatLevel) {
@@ -135,7 +132,7 @@ public class AfterblazerController implements ShipForcesInducer {
 
     public int addAfterblazer(AfterblazerCreateData data) {
         int id = nextJetID++;
-        createdJets.add(Pair.of(id, data));
+        createdJets.add(new Pair<>(id, data));
         return id;
     }
 
@@ -159,5 +156,21 @@ public class AfterblazerController implements ShipForcesInducer {
             return afterblazerData.containsKey(id);
         }
         return false;
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+        // self check
+        if (this == other) {
+            return true;
+        } else if (!(other instanceof final AfterblazerController otherController)) {
+            return false;
+        } else {
+            return Objects.equals(afterblazerData, otherController.afterblazerData)
+                    && Objects.equals(afterblazerUpdateData, otherController.afterblazerUpdateData)
+                    && areQueuesEqual(createdJets, otherController.createdJets)
+                    && areQueuesEqual(removedJets, otherController.removedJets)
+                    && nextJetID == otherController.nextJetID;
+        }
     }
 }

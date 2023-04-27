@@ -207,7 +207,7 @@ public class PropellorController implements ShipForcesInducer {
         return ship.getAttachment(PropellorController.class);
     }
 
-    private static <T> boolean areQueuesEqual(final Queue<T> left, final Queue<T> right) {
+    public static <T> boolean areQueuesEqual(final Queue<T> left, final Queue<T> right) {
         return Arrays.equals(left.toArray(), right.toArray());
     }
 
