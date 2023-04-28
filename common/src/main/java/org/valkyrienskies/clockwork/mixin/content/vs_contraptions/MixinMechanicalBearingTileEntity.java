@@ -20,6 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.valkyrienskies.clockwork.platform.api.ContraptionController;
 import org.valkyrienskies.clockwork.platform.api.GlueType;
 import org.valkyrienskies.clockwork.util.assemble.GlueAssembler;
+import org.valkyrienskies.core.api.ships.ServerShip;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.core.impl.datastructures.DenseBlockPosSet;
 import org.valkyrienskies.mod.common.assembly.ShipAssemblyKt;
@@ -54,7 +55,7 @@ public abstract class MixinMechanicalBearingTileEntity extends GeneratingKinetic
         return ship;
     }
 
-    @Inject(method = "assemble", at = @At("HEAD"), cancellable = true, remap = false)
+    @Inject(method = "assemble", at = @At("HEAD"), cancellable = true)
     void assemble(CallbackInfo ci) {
         if (isShipContraptionController() && level != null && !level.isClientSide) {
             ci.cancel();
@@ -82,6 +83,8 @@ public abstract class MixinMechanicalBearingTileEntity extends GeneratingKinetic
             AllSoundEvents.CONTRAPTION_ASSEMBLE.playOnServer(level, worldPosition);
 
             // TODO setup constraints
+
+
 
             this.running = true;
             this.angle = 0;
