@@ -6,13 +6,16 @@ import dan200.computercraft.api.lua.LuaFunction;
 import dan200.computercraft.api.lua.LuaValues;
 import dan200.computercraft.api.peripheral.IPeripheral;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlockEntity;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class AfterblazerPeripheral implements IPeripheral {
     private final Level level;
@@ -63,17 +66,17 @@ public class AfterblazerPeripheral implements IPeripheral {
     }
 
     @LuaFunction
-    public final String getFuel() {
-        return this.afterblazer.tank.getPrimaryHandler().asSmartFluidTank().getFluid().getDisplayName().getString();
-    }
-
-    @LuaFunction
-    public final int getRemainingFuel() {
-        return this.afterblazer.getRemainingFuel();
-    }
-
-    @LuaFunction
     public final Map<String, Double> getGimbal() {
         return Map.of("pitch", this.afterblazer.getGimbalPitch(), "yaw", this.afterblazer.getGimbalYaw());
+    }
+
+    @LuaFunction
+    public final long getFuelAmount() {
+        return this.afterblazer.tank.getPrimaryHandler().getAmount();
+    }
+
+    @LuaFunction
+    public final long getFuelCapacity() {
+        return this.afterblazer.tank.getPrimaryHandler().getTotalCapacity();
     }
 }

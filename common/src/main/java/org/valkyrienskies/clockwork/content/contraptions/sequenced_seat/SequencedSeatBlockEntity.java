@@ -9,9 +9,12 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import org.valkyrienskies.clockwork.integration.cc.ComputerAttachmentHandler;
 import org.valkyrienskies.clockwork.platform.PlatformUtils;
 import org.valkyrienskies.clockwork.util.MinecraftUtil;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 public class SequencedSeatBlockEntity extends SplitShaftTileEntity {
@@ -23,6 +26,8 @@ public class SequencedSeatBlockEntity extends SplitShaftTileEntity {
     private Set<InputKey> pressedKeys = Set.of();
     private float[] degreesAwayFromBase = new float[4];
     private float[] lastModifier = new float[4];
+
+    public final ComputerAttachmentHandler computerHandler = new ComputerAttachmentHandler();
 
     public SequencedSeatBlockEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {
         super(typeIn, pos, state);
@@ -141,8 +146,13 @@ public class SequencedSeatBlockEntity extends SplitShaftTileEntity {
             return;
 
         if (!level.isClientSide)
-            if (PlatformUtils.isModLoaded("computercraft"))
-                PlatformUtils.sequencedSeatKeysUpdated((ServerLevel) this.level, this.worldPosition, pressedKeys);
+            if (PlatformUtils.isModLoaded("computercraft")) {
+                List<String> event = new ArrayList<>();
+
+                this.pressedKeys.forEach(key -> event.add(key.name()));
+
+                this.computerHandler.sendEvent("command_seat_keys", event);
+            }
 
         this.pressedKeys = pressedKeys;
     }

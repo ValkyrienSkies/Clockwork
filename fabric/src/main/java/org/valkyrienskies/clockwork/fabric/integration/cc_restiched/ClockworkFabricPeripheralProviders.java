@@ -12,17 +12,15 @@ import org.valkyrienskies.clockwork.content.contraptions.afterblazer.Afterblazer
 import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingBlockEntity;
-import org.valkyrienskies.clockwork.integration.cc.AfterblazerPeripheral;
-import org.valkyrienskies.clockwork.integration.cc.BalloonerPeripheral;
-import org.valkyrienskies.clockwork.integration.cc.FlapBearingPeripheral;
-import org.valkyrienskies.clockwork.integration.cc.PropellorBearingPeripheral;
+import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatBlockEntity;
+import org.valkyrienskies.clockwork.integration.cc.*;
 
 public class ClockworkFabricPeripheralProviders {
     public static void register() {
-        ComputerCraftAPI.registerPeripheralProvider(new AfterblazerPeripheralProvider());
+        ComputerCraftAPI.registerPeripheralProvider(new ClockworkPeripheralProvider());
     }
 
-    public static class AfterblazerPeripheralProvider implements IPeripheralProvider {
+    public static class ClockworkPeripheralProvider implements IPeripheralProvider {
         @NotNull
         @Override
         public IPeripheral getPeripheral(@NotNull Level level, @NotNull BlockPos blockPos, @NotNull Direction direction) {
@@ -35,6 +33,8 @@ public class ClockworkFabricPeripheralProviders {
                 return new FlapBearingPeripheral(flap);
             else if (be instanceof PropellorBearingBlockEntity propellor)
                 return new PropellorBearingPeripheral(propellor);
+            else if (be instanceof SequencedSeatBlockEntity seat)
+                return new CommandSeatPeripheral(seat);
             return null;
         }
     }
