@@ -8,6 +8,10 @@ public interface IHeatableBlock {
 
     public static final EnumProperty<EngineHeatLevel> HEAT_LEVEL = EnumProperty.create("blaze", EngineHeatLevel.class);
 
+    public static final EnumProperty<LiquidFuelType> FUEL_TYPE = EnumProperty.create("fuel", LiquidFuelType.class);
+
+    public static final EnumProperty<FuelBoosterType> BOOSTER = EnumProperty.create("booster", FuelBoosterType.class);
+
     static EngineHeatLevel getHeatLevelOf(BlockState blockState) {
         return blockState.hasProperty(HEAT_LEVEL) ? blockState.getValue(HEAT_LEVEL)
                 : EngineHeatLevel.SMOULDERING;

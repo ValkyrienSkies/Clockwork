@@ -27,7 +27,6 @@ import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.assembly.ShipAssemblyKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -42,7 +41,6 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
     public boolean isAssembled = false;
     public boolean assembling = false;
     public boolean disassembling = false;
-    public boolean skippedAssembly = false;
     public Animation animationType = Animation.IDLE;
     public LerpedFloat assemblyProgress = LerpedFloat.linear();
     public LerpedFloat disassemblyProgress = LerpedFloat.linear();
@@ -128,8 +126,7 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
         if (assembling) {
             assemblyProgress.setValue(assemblyProgress.getValue() + 1);
             if (skippingAssembly) {
-                assemblyProgress.setValueNoUpdate(400);
-                skippingAssembly = false;
+                assembleInstantly();
             }
         }
         if (disassembling) {
@@ -158,15 +155,29 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
                 }
             }
             if (assemblyProgress.getValue() == 500) {
-                isAssembled = true;
-                assembling = false;
-                initPlayed = false;
-                animationType = Animation.IDLE;
-                assemblyProgress.setValue(0);
-                skippedAssembly = false;
-                useCooldown = 400;
+                resetAfterAssemble();
             }
         }
+    }
+
+    private void assembleInstantly() {
+        resetAfterAssemble();
+        assemble();
+        playFinishSound(level, thisposition);
+        if (level.isClientSide) {
+            ScannerRenderer.INSTANCE.ping((ClientShip) ship, thisposition, this);
+        }
+    }
+
+    private void resetAfterAssemble() {
+        isAssembled = true;
+        assembling = false;
+        skippingAssembly = false;
+        initPlayed = false;
+        animationType = Animation.IDLE;
+        startAnimation(Animation.IDLE);
+        assemblyProgress.startWithValue(0);
+        useCooldown = 400;
     }
 
     //Ship Assembly Handlers
@@ -177,7 +188,6 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
     }
 
     public void skipAssembly() {
-        skippedAssembly = true;
         skippingAssembly = true;
     }
 
@@ -235,11 +245,11 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
     public void assemble() {
         //INSERT ASSEMBLY LOGIC TROL
         DenseBlockPosSet selection;
-        Set<Entity> caughtEntities = new HashSet<>();
-        if (level instanceof ServerLevel s) {
+        Set<Entity> caughtEntities;
+        if (level instanceof ServerLevel sLevel) {
             try {
-                selection = GlueAssembler.collectGlued(this.level, worldPosition, GlueType.BLUPER);
-                caughtEntities = GlueAssembler.collectEntities(this.level, worldPosition, GlueType.BLUPER);
+                selection = GlueAssembler.collectGlued(sLevel, worldPosition, GlueType.BLUPER);
+                caughtEntities = GlueAssembler.collectEntities(sLevel, worldPosition, GlueType.BLUPER);
                 this.lastException = null;
             } catch (AssemblyException e) {
                 this.lastException = e;
@@ -248,13 +258,14 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
             }
             if (selection == null) return;
 
-            ship = ShipAssemblyKt.createNewShipWithBlocks(worldPosition, selection, (ServerLevel) level);
-            if (caughtEntities != null) {
-                caughtEntities.forEach(entity -> {
-
-                    ship.getTransform().getWorldToShip().transformPosition(VectorConversionsMCKt.toJOML(entity.position()));
-                });
-            }
+            ship = ShipAssemblyKt.createNewShipWithBlocks(worldPosition, selection, sLevel);
+            // TODO: relocate entities
+//            if (caughtEntities != null) {
+//                caughtEntities.forEach(entity -> {
+//
+//                    ship.getTransform().getWorldToShip().transformPosition(VectorConversionsMCKt.toJOML(entity.position()));
+//                });
+//            }
         }
     }
 
@@ -341,7 +352,6 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
         compound.putBoolean("isAssembled", isAssembled);
         compound.putBoolean("assembling", assembling);
         compound.putBoolean("disassembling", disassembling);
-        compound.putBoolean("skippedAssembly", skippedAssembly);
         super.write(compound, clientPacket);
     }
 
@@ -356,7 +366,6 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
         isAssembled = compound.getBoolean("isAssembled");
         assembling = compound.getBoolean("assembling");
         disassembling = compound.getBoolean("disassembling");
-        skippedAssembly = compound.getBoolean("skippedAssembly");
         super.read(compound, clientPacket);
     }
 

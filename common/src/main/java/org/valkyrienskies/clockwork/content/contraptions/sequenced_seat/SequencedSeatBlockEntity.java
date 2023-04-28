@@ -1,14 +1,20 @@
 package org.valkyrienskies.clockwork.content.contraptions.sequenced_seat;
 
+import com.simibubi.create.content.contraptions.base.KineticTileEntity;
 import com.simibubi.create.content.contraptions.relays.encased.SplitShaftTileEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import org.valkyrienskies.clockwork.integration.cc.ComputerAttachmentHandler;
+import org.valkyrienskies.clockwork.platform.PlatformUtils;
 import org.valkyrienskies.clockwork.util.MinecraftUtil;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 public class SequencedSeatBlockEntity extends SplitShaftTileEntity {
@@ -18,7 +24,10 @@ public class SequencedSeatBlockEntity extends SplitShaftTileEntity {
     private SequencedSeatRuleList leftRules = SequencedSeatRuleList.defaultList(Rotation.COUNTERCLOCKWISE_90);
     private SequencedSeatRuleList rightRules = SequencedSeatRuleList.defaultList(Rotation.CLOCKWISE_90);
     private Set<InputKey> pressedKeys = Set.of();
-    private int ticksSinceLastUpdate = 0;
+    private float[] degreesAwayFromBase = new float[4];
+    private float[] lastModifier = new float[4];
+
+    public final ComputerAttachmentHandler computerHandler = new ComputerAttachmentHandler();
 
     public SequencedSeatBlockEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {
         super(typeIn, pos, state);
@@ -27,17 +36,41 @@ public class SequencedSeatBlockEntity extends SplitShaftTileEntity {
     @Override
     public void tick() {
         super.tick();
-        ticksSinceLastUpdate++;
+        if (level.isClientSide)
+            return;
+
+        for (int i = 0; i < 4; i++) {
+            Direction dir = Direction.values()[i + 2];
+            float modifier = getRotationSpeedModifier(dir);
+            degreesAwayFromBase[i] += KineticTileEntity.convertToAngular(modifier * speed);
+
+            if (modifier != lastModifier[i]) {
+                detachKinetics();
+                attachKinetics();
+            }
+
+            lastModifier[i] = modifier;
+
+            if (degreesAwayFromBase[i] > 360)
+                degreesAwayFromBase[i] -= 360;
+
+            if (degreesAwayFromBase[i] < 0)
+                degreesAwayFromBase[i] += 360;
+        }
     }
 
     @Override
     public float getRotationSpeedModifier(Direction face) {
+        if (isVirtual() || !hasSource())
+            return 1;
+
         if (getSourceFacing() != Direction.DOWN)
             return 0;
 
-        if (isVirtual())
+        if (face == getSourceFacing())
             return 1;
-        return (!hasSource() || face == getSourceFacing()) ? 1 : getList(face).currentModifier(this);
+
+        return getList(face).currentModifier(this, face);
     }
 
     public SequencedSeatRuleList getList(Direction face) {
@@ -108,17 +141,23 @@ public class SequencedSeatBlockEntity extends SplitShaftTileEntity {
         attachKinetics();
     }
 
-    public int getTicksSinceLastUpdate() {
-        return ticksSinceLastUpdate;
-    }
-
     public void updateInput(Set<InputKey> pressedKeys) {
         if (this.pressedKeys.equals(pressedKeys))
             return;
 
+        if (!level.isClientSide)
+            if (PlatformUtils.isModLoaded("computercraft")) {
+                List<String> event = new ArrayList<>();
+
+                this.pressedKeys.forEach(key -> event.add(key.name()));
+
+                this.computerHandler.sendEvent("command_seat_keys", event);
+            }
+
         this.pressedKeys = pressedKeys;
-        ticksSinceLastUpdate = 0;
-        detachKinetics();
-        attachKinetics();
+    }
+
+    public float getDegreesAwayFromBase(Direction direction) {
+        return degreesAwayFromBase[direction.ordinal() - 2];
     }
 }

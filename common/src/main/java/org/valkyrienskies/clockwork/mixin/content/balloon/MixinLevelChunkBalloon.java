@@ -40,6 +40,9 @@ public abstract class MixinLevelChunkBalloon {
                                   final CallbackInfoReturnable<BlockState> cir) {
         final BlockState prevState = cir.getReturnValue();
         LoadedServerShip ship = null;
+        if (prevState == state) {
+            return;
+        }
         if (!level.isClientSide) {
             ship = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, pos);
         }
@@ -47,9 +50,10 @@ public abstract class MixinLevelChunkBalloon {
         if (ship != null) {
             if (ship.getAttachment(BalloonController.class) != null) {
                 if (!BalloonController.getOrCreate(ship).balloonData.isEmpty()) {
-                    for (int i = BalloonController.getOrCreate(ship).balloonData.size()-1; i > 0; i--) {
-                        balloonControllers.add(BalloonController.getOrCreate(ship).balloonData.get(i));
-                    }
+                    balloonControllers.addAll(BalloonController.getOrCreate(ship).balloonData.values());
+//                    for (int i = BalloonController.getOrCreate(ship).balloonData.size()-1; i > 0; i--) {
+//                        balloonControllers.add(BalloonController.getOrCreate(ship).balloonData.get(i));
+//                    }
                 }
             }
             for (BalloonData data : balloonControllers) {
@@ -57,10 +61,12 @@ public abstract class MixinLevelChunkBalloon {
                 BlockState checkstate = level.getBlockState(checkpos);
                 if (checkstate.getBlock() instanceof BalloonerBlock) {
                     BalloonerBlockEntity ballooner = (BalloonerBlockEntity) getBlockEntity(checkpos);
-                    if (!ballooner.getBalloonPositions().isEmpty()) {
-                        if (ballooner.getBalloonPositions().contains(pos)) {
-                            if (!(state.is(ClockWorkTags.AllBlockTags.BALLOON_BLOCK.tag))) {
-                                ballooner.tryCheck();
+                    if (ballooner != null) {
+                        if (!ballooner.getBalloonPositions().isEmpty()) {
+                            if (ballooner.getBalloonPositions().contains(pos)) {
+                                if (!(state.is(ClockWorkTags.AllBlockTags.BALLOON_BLOCK.tag))) {
+                                    ballooner.tryCheck();
+                                }
                             }
                         }
                     }

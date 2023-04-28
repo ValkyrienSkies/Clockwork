@@ -6,6 +6,10 @@ loom {
     accessWidenerPath = file("src/main/resources/vs_clockwork.accesswidener")
 }
 
+test {
+    useJUnitPlatform()
+}
+
 repositories {
     if (!block_external_repositories) {
         // mavens for Create Fabric and dependencies
@@ -40,6 +44,13 @@ dependencies {
     // Kotlin
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.21"
     api "org.jetbrains.kotlin:kotlin-reflect:1.7.21"
+
+    // CC Restitched
+    modCompileOnly("curse.maven:cc-restitched-462672:3622561")
+
+    // JUnit
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
 }
 
 publishing {

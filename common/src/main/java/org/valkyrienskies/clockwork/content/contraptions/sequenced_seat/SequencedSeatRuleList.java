@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.contraptions.sequenced_seat;
 
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.level.block.Rotation;
 
@@ -38,10 +39,13 @@ public class SequencedSeatRuleList {
         return list;
     }
 
-    public float currentModifier(SequencedSeatBlockEntity be) {
+    public float currentModifier(SequencedSeatBlockEntity be, Direction face) {
         for (SequencedSeatRule rule : rules) {
-            if (rule.matches(be.pressedKeys())) {
-                return rule.calculateModifier(be);
+            // loop over every possible rule and check if it wants to apply a modifier
+            // It will just take the first one that does
+            float result = rule.calculateModifier(be, face, be.pressedKeys());
+            if (result != 0) {
+                return result;
             }
         }
 
@@ -58,16 +62,16 @@ public class SequencedSeatRuleList {
     }
 
     public void addKey(int index, InputKey key) {
-        getRule(index).inputKeys().add(key);
+        getRule(index).getInputKeys().add(key);
     }
 
     public void removeKey(int index, InputKey key) {
-        getRule(index).inputKeys().remove(key);
+        getRule(index).getInputKeys().remove(key);
     }
 
     public void setOperation(int index, SequencedSeatOperation operation) {
         SequencedSeatRule rule = getRule(index);
-        setRule(index, new SequencedSeatRule(rule.inputKeys(), operation, operation.defaultValue()));
+        setRule(index, new SequencedSeatRule(rule.getInputKeys(), operation, operation.defaultValue()));
     }
 
     public ListTag serializeNBT() {

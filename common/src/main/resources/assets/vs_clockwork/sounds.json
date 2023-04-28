@@ -38,5 +38,35 @@
       }
     ],
     "subtitle": "vs_clockwork.subtitle.physfinish"
+  },
+  "thick_fluid_swim": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:thick_fluid_swim",
+        "type": "file",
+        "attenuation_distance": 16
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.thick_fluid_swim"
+  },
+  "thick_fluid_fill": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:thick_fluid_fill",
+        "type": "file",
+        "attenuation_distance": 16
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.thick_fluid_fill"
+  },
+  "thick_fluid_empty": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:thick_fluid_empty",
+        "type": "file",
+        "attenuation_distance": 16
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.thick_fluid_empty"
   }
 }

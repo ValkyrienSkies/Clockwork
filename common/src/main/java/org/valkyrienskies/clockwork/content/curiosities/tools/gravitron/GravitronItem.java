@@ -154,7 +154,7 @@ public class GravitronItem extends CWItem implements CustomArmPoseItem {
     void printRemovedConstraints(Integer... constraints) {
         for (Integer constraint : constraints) {
             if (constraint != null) {
-                System.out.println("Removed " + constraint);
+//                System.out.println("Removed " + constraint);
             }
         }
     }

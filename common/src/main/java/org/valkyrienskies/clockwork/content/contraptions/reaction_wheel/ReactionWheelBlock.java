@@ -6,6 +6,7 @@ import com.simibubi.create.foundation.block.ITE;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -47,6 +48,12 @@ public class ReactionWheelBlock extends RotatedPillarKineticBlock implements ITE
     @Override
     public BlockEntityType<? extends ReactionWheelBlockEntity> getTileEntityType() {
         return ClockWorkBlockEntities.REACTIONWHEEL.get();
+    }
+
+    @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+        getTileEntity(level, pos).setShouldRemove();
+        super.onRemove(state, level, pos, newState, isMoving);
     }
 
     @Override

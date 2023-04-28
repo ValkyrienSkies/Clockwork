@@ -11,10 +11,12 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.AABB;
+import org.joml.Matrix3dc;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 import org.valkyrienskies.clockwork.content.forces.ReactionWheelController;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
+import org.valkyrienskies.core.impl.game.ships.PhysShipImpl;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
@@ -28,11 +30,19 @@ public class ReactionWheelBlockEntity extends KineticTileEntity {
     boolean spindown = false;
     float spinupProg = 0;
     float spindownProg = 0;
+    float activeControlSpeed = 0;
+    boolean activeControlMode;
+
+    boolean shouldRemove = false;
 
     Integer rwID = null;
 
     public ReactionWheelBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
+    }
+
+    public void setShouldRemove() {
+        this.shouldRemove = true;
     }
 
     @Override
@@ -72,8 +82,10 @@ public class ReactionWheelBlockEntity extends KineticTileEntity {
     public void tick() {
         super.tick();
 
+        activeControlMode = true;
+
         if (active) {
-            if (!wasActive) {
+            if (!wasActive && !activeControlMode) {
                 spindown = false;
                 spinup = true;
                 spinupProg = speed - rotspeed;
@@ -95,6 +107,7 @@ public class ReactionWheelBlockEntity extends KineticTileEntity {
                 rotspeed = 0;
             }
         }
+
         angle += rotspeed * 3 / 10f;
         angle %= 360;
 
@@ -106,7 +119,7 @@ public class ReactionWheelBlockEntity extends KineticTileEntity {
         }
         wasActive = active;
         if (ship != null) {
-            if (!alreadyAdded && rwID == null) {
+            if (!alreadyAdded && rwID == null || ReactionWheelController.getOrCreate(ship).checkReactionWheel(rwID)) {
                 Vector3dc pos = VectorConversionsMCKt.toJOMLD(worldPosition);
 
                 Vector3dc axis = switch (getBlockState().getValue(BlockStateProperties.AXIS)) {
@@ -119,17 +132,35 @@ public class ReactionWheelBlockEntity extends KineticTileEntity {
                 alreadyAdded = true;
             }
             if (alreadyAdded && rwID != null) {
-                final ReactionWheelUpdateData data = new ReactionWheelUpdateData(rotspeed, speed);
-                ReactionWheelController.getOrCreate(ship).updateReactionWheel(rwID, data);
+
+                if (ReactionWheelController.getOrCreate(ship) != null) {
+                    final ReactionWheelUpdateData data = new ReactionWheelUpdateData(rotspeed, speed);
+                    ReactionWheelController.getOrCreate(ship).updateReactionWheel(rwID, data);
 //                active = switch (getBlockState().getValue(BlockStateProperties.AXIS)) {
 //                    case X -> Math.abs(ship.getOmega().x()) >= 10;
 //                    case Y -> Math.abs(ship.getOmega().y()) >= 10;
 //                    case Z -> Math.abs(ship.getOmega().z()) >= 10;
 //                };
-                //FOR TESTING
-                active = true;
+                    //FOR TESTING
+                    Vector3dc axis = switch (getBlockState().getValue(BlockStateProperties.AXIS)) {
+                        case X -> new Vector3d(1, 0, 0);
+                        case Y -> new Vector3d(0, 1, 0);
+                        case Z -> new Vector3d(0, 0, 1);
+                    };
+                    active = true;
+                    if (active && activeControlMode) {
+                        if (Float.isNaN(rotspeed)) {
+                            rotspeed = 0;
+                        }
+                        activeControlSpeed = (float) computeTargetSpeed(ship, rotspeed, axis);
+                        if (Math.abs(activeControlSpeed) > Math.abs(speed)) {
+                            activeControlSpeed = speed;
+                        }
+                    }
+                }
             }
-            if (this.isRemoved()) {
+
+            if (this.isRemoved() || shouldRemove) {
                 if (rwID != null) {
                     ReactionWheelController.getOrCreate(ship).removeReactionWheel(rwID);
                     rwID = null;
@@ -140,15 +171,50 @@ public class ReactionWheelBlockEntity extends KineticTileEntity {
         }
     }
 
+    private double computeTargetSpeed(LoadedServerShip ship, float rspeed, Vector3dc axis) {
+        double wheelSpeed = rspeed;
+        double wheelMass = 18000;
+
+        double wheelInertiaD = (0.5 * wheelMass) * (Math.pow(0.25, 2) + Math.pow(0.75, 2));
+        double wheelOmegaD = wheelSpeed * ((2 * Math.PI) / 20);
+
+        Vector3dc wheelOmega = new Vector3d(axis).mul(wheelOmegaD);
+        Vector3dc wheelInertia = new Vector3d(axis).mul(wheelInertiaD);
+
+        Vector3dc shipOmega = ship.getOmega();
+        Matrix3dc shipInertia = ship.getInertiaData().getMomentOfInertiaTensor();
+
+        Vector3d wheelL = wheelOmega.mul(wheelInertia, new Vector3d());
+
+        Vector3d shipL = shipOmega.mul(shipInertia, new Vector3d());
+
+        Vector3dc Lt = wheelL.add(shipL, new Vector3d());
+
+        Vector3d targetWheelL = Lt.div(wheelInertia.length(), new Vector3d());
+
+//        Vector3d targetWheelOmega = targetWheelL.div(wheelInertiaD, new Vector3d());
+
+        double targetWheelSpeed = targetWheelL.length() / ((2 * Math.PI) / 20);
+
+        return targetWheelSpeed;
+    }
+
     private void modSpeed() {
-        if (rotspeed == speed) {
+        float targetSpeed = speed;
+        if (activeControlMode) {
+            targetSpeed = activeControlSpeed;
+        }
+
+        if (rotspeed == targetSpeed) {
             return;
         }
 //        if ((int) getSourceSpeed() == 0 && (int) speed == 0) {
 //            speed = 0;
 //            return;
 //        }
-        float diff = speed - rotspeed;
+
+
+        float diff = targetSpeed - rotspeed;
         rotspeed = rotspeed + Mth.clamp(diff / 10, -32, 32);
 //        float delta = Mth.clamp(, lastSpeed, 10)
         //rotspeed = (float) Mth.lerp(delta, lastSpeed, targetSpeed);
@@ -171,6 +237,7 @@ public class ReactionWheelBlockEntity extends KineticTileEntity {
         if (level.isClientSide) {
             return;
         }
+
         spinupProg--;
         if (Math.abs(rotspeed) >= Math.abs(speed)) {
             spinup = false;

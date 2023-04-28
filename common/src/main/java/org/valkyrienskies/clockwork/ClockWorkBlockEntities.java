@@ -2,8 +2,6 @@ package org.valkyrienskies.clockwork;
 
 
 import com.simibubi.create.content.contraptions.base.KineticTileEntity;
-import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingInstance;
-import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingRenderer;
 import com.simibubi.create.content.contraptions.relays.encased.ShaftInstance;
 import com.simibubi.create.content.contraptions.relays.encased.ShaftRenderer;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
@@ -11,6 +9,8 @@ import org.valkyrienskies.clockwork.content.contraptions.afterblazer.Afterblazer
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerRenderer;
+import org.valkyrienskies.clockwork.content.contraptions.combustion_engine.CombustionEngineBlockEntity;
+import org.valkyrienskies.clockwork.content.contraptions.combustion_engine.CombustionEngineRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserBlockEntity;
@@ -99,6 +99,15 @@ public class ClockWorkBlockEntities {
             .instance(() -> ShaftInstance::new, false)
             .validBlocks(ClockWorkBlocks.BALLOON_ENCASED_SHAFT)
             .renderer(() -> ShaftRenderer::new)
+            .register();
+
+
+    // COMBUSTION ENGINE
+
+    public static final BlockEntityEntry<CombustionEngineBlockEntity> COMBUSTION_ENGINE = REGISTRATE
+            .tileEntity("combustion_engine", CombustionEngineBlockEntity::new)
+            .validBlocks(ClockWorkBlocks.COMBUSTION_ENGINE)
+            .renderer(() -> CombustionEngineRenderer::new)
             .register();
 
     public static void register() {

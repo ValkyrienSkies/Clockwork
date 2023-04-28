@@ -5,6 +5,7 @@ import com.simibubi.create.content.AllSections;
 import com.simibubi.create.content.contraptions.base.CasingBlock;
 import com.simibubi.create.foundation.block.BlockStressDefaults;
 import com.simibubi.create.foundation.data.*;
+import com.simibubi.create.foundation.utility.Couple;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.level.block.SoundType;
@@ -13,6 +14,7 @@ import net.minecraft.world.level.material.MaterialColor;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlock;
 import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlock;
 import org.valkyrienskies.clockwork.content.contraptions.casing.ExtendedEncasedShaftBlock;
+import org.valkyrienskies.clockwork.content.contraptions.combustion_engine.CombustionEngineBlock;
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock;
 import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserBlock;
 import org.valkyrienskies.clockwork.content.contraptions.intake.IntakeBlock;
@@ -45,7 +47,6 @@ public class ClockWorkBlocks {
                     .transform(axeOrPickaxe())
                     .properties(p -> p.color(MaterialColor.PODZOL))
                     .transform(BuilderTransformers.bearing("propellor", "gearbox", false))
-                    .transform(BlockStressDefaults.setImpact(12.0))
                     .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
                     .register();
     public static final BlockEntry<FlapBearingBlock> FLAP_BEARING =
@@ -53,7 +54,7 @@ public class ClockWorkBlocks {
                     .transform(axeOrPickaxe())
                     .properties(p -> p.color(MaterialColor.PODZOL))
                     .transform(BuilderTransformersClockwork.flapbearing())
-                    .transform(BlockStressDefaults.setImpact(12.0))
+                    .transform(BlockStressDefaults.setImpact(4.0))
                     .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
                     .register();
 
@@ -61,7 +62,6 @@ public class ClockWorkBlocks {
             REGISTRATE.block("afterblazer", AfterblazerBlock::new)
                     .initialProperties(SharedProperties::softMetal)
                     .properties(p -> p.color(MaterialColor.COLOR_GRAY))
-                    .properties(p -> p.lightLevel(IHeatableBlock::getLight))
                     .transform(pickaxeOnly())
                     .addLayer(() -> RenderType::cutoutMipped)
                     .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
@@ -187,6 +187,20 @@ public class ClockWorkBlocks {
                     .transform(axeOrPickaxe())
                     .register();
 
+
+    // COMBUSTION ENGINE //
+
+    public static final BlockEntry<CombustionEngineBlock> COMBUSTION_ENGINE =
+            REGISTRATE.block("combustion_engine", CombustionEngineBlock::new)
+                    .initialProperties(SharedProperties::copperMetal)
+                    .properties(BlockBehaviour.Properties::noOcclusion)
+                    .transform(pickaxeOnly())
+                    .blockstate((c, p) -> p.horizontalFaceBlock(c.get(), AssetLookup.partialBaseModel(c, p)))
+                    .transform(BlockStressDefaults.setCapacity(128.0))
+                    .transform(BlockStressDefaults.setGeneratorSpeed(() -> Couple.create(0, 128)))
+                    .item()
+                    .transform(customItemModel())
+                    .register();
 
     public static void register() {
     }

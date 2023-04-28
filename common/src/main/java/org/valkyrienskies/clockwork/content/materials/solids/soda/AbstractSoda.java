@@ -48,11 +48,11 @@ public abstract class AbstractSoda extends Item {
 
         if (player == null || !player.getAbilities().instabuild) {
             if (stack.isEmpty()) {
-                return new ItemStack(ClockWorkItems.EMPTY_SODA.get());
+//                return new ItemStack(ClockWorkItems.EMPTY_SODA.get());
             }
 
             if (player != null) {
-                player.getInventory().add(new ItemStack(ClockWorkItems.EMPTY_SODA.get()));
+//                player.getInventory().add(new ItemStack(ClockWorkItems.EMPTY_SODA.get()));
             }
         }
 

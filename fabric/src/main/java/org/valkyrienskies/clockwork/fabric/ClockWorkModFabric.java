@@ -8,6 +8,7 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.content.events.ClockworkClientEvents;
@@ -17,6 +18,8 @@ import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkClientEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkCommonEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkInputEvents;
+import org.valkyrienskies.clockwork.fabric.integration.cc_restiched.ClockworkFabricPeripheralProviders;
+import org.valkyrienskies.clockwork.platform.fabric.FallbackFabricTransfer;
 import org.valkyrienskies.mod.fabric.common.ValkyrienSkiesModFabric;
 
 public class ClockWorkModFabric implements ModInitializer {
@@ -27,6 +30,7 @@ public class ClockWorkModFabric implements ModInitializer {
 
         FabricClockworkParticles.init();
         FabricClockworkSounds.init();
+        FallbackFabricTransfer.init();
 
         //ClockworkCommonEvents.register();
         FabricClockworkCommonEvents.register();
@@ -57,6 +61,9 @@ public class ClockWorkModFabric implements ModInitializer {
         ClockWorkEntities.register();
         FabricClockworkEntities.register();
 
+        ClockWorkFluids.register();
+        FabricClockworkFluids.register();
+
         ClockWorkSounds.register();
         FabricClockworkSounds.prepare();
 
@@ -64,6 +71,9 @@ public class ClockWorkModFabric implements ModInitializer {
 
         ClockWorkMod.init();
         ClockWorkModFabric.init();
+
+        if (FabricLoader.getInstance().isModLoaded("computercraft"))
+            ClockworkFabricPeripheralProviders.register();
     }
 
     @Environment(EnvType.CLIENT)

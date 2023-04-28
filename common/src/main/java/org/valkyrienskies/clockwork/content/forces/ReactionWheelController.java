@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.forces;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Matrix3dc;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 import org.valkyrienskies.clockwork.content.contraptions.reaction_wheel.ReactionWheelCreateData;
@@ -80,18 +81,21 @@ public class ReactionWheelController implements ShipForcesInducer {
             if (physData.sourceSpeed != 0) {
                 if (physData.active) {
 
-                    Vector3dc torque = computeTorque(physShip.getTransform(), physData, ((PhysShipImpl) physShip).getPoseVel().getOmega());
-                    physShip.applyInvariantTorque(torque);
+                    Vector3dc torque = computeTorque(physShip.getTransform(), physData, ((PhysShipImpl) physShip).getPoseVel().getOmega(), ((PhysShipImpl) physShip));
+//                    Vector3dc troque = computeResistance(((PhysShipImpl) physShip), physData);
+                    if (torque.isFinite()) {
+                        physShip.applyInvariantTorque(torque);
+                    }
                 }
             }
         }
     }
 
-    private Vector3dc computeTorque(ShipTransform physTransform, ReactionWheelData physWheel, Vector3dc omega) {
+    private Vector3dc computeTorque(ShipTransform physTransform, ReactionWheelData physWheel, Vector3dc omega, PhysShipImpl physShip) {
         Vector3dc prevAngMomentumRelWheel = physWheel.prevAngMomentum;
         Vector3dc wheelPos = physWheel.wheelPos;
 
-        Vector3dc wheelAxis = new Vector3d(physWheel.wheelAxis).rotate(physTransform.getShipToWorldRotation());
+        Vector3dc wheelAxis = new Vector3d(physWheel.wheelAxis);
         double wheelSpeed = physWheel.wheelSpeed;
 
 
@@ -112,9 +116,10 @@ public class ReactionWheelController implements ShipForcesInducer {
         Vector3dc prevAngularMomentumRelShip = new Vector3d(prevAngMomentumRelWheel).add(momentumModifier);
 
         Vector3dc torque = new Vector3d(prevAngularMomentumRelShip).sub(angularMomentumRelShip).div(1 / 60.0);
+
         physWheel.prevAngMomentum = angularMomentumRelWheel;
 
-        return torque;
+        return torque.mul(1000, new Vector3d());
     }
 
     public int addReactionWheel(ReactionWheelCreateData data) {
@@ -129,5 +134,12 @@ public class ReactionWheelController implements ShipForcesInducer {
 
     public void updateReactionWheel(int id, ReactionWheelUpdateData data) {
         reactionwheelUpdateData.put(id, data);
+    }
+
+    public boolean checkReactionWheel(Integer id) {
+        if (id != null) {
+            return reactionwheelData.containsKey(id);
+        }
+        return false;
     }
 }

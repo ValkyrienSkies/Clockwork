@@ -1,9 +1,11 @@
 package org.valkyrienskies.clockwork.content.contraptions.afterblazer;
 
 import com.simibubi.create.AllItems;
+import com.simibubi.create.content.contraptions.goggles.IHaveGoggleInformation;
 import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
 import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
 import com.simibubi.create.foundation.utility.AngleHelper;
+import com.simibubi.create.foundation.utility.Couple;
 import com.simibubi.create.foundation.utility.Iterate;
 import com.simibubi.create.foundation.utility.VecHelper;
 import com.simibubi.create.foundation.utility.animation.LerpedFloat;
@@ -24,12 +26,16 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.Vec3;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.joml.*;
 import org.valkyrienskies.clockwork.ClockWorkItems;
 import org.valkyrienskies.clockwork.content.forces.AfterblazerController;
-import org.valkyrienskies.clockwork.util.blocktype.EngineHeatLevel;
-import org.valkyrienskies.clockwork.util.blocktype.IHeatableBlock;
+import org.valkyrienskies.clockwork.data.ClockWorkTags;
+import org.valkyrienskies.clockwork.platform.SmartFluidTankBlockEntity;
+import org.valkyrienskies.clockwork.util.blocktype.*;
+import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
@@ -38,19 +44,20 @@ import java.lang.Math;
 import java.util.List;
 import java.util.Random;
 
-public class AfterblazerBlockEntity extends SmartTileEntity {
+public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelableTileEntity, SmartFluidTankBlockEntity, IHaveGoggleInformation {
 
         public static final int MAX_HEAT_CAPACITY = 10000;
-
-        protected FuelType activeFuel;
         protected int remainingBurnTime;
+
+        public CWFluidTankBehaviour tank;
+
         protected LerpedFloat headAnimation;
         protected LerpedFloat headAngle;
         protected boolean isCreative;
         protected boolean goggles;
         protected boolean hat;
         protected boolean pissedOff;
-
+        Couple<MutableBoolean> sidesToUpdate;
         protected int redstoneLevel;
         protected boolean isPowered;
 
@@ -59,30 +66,41 @@ public class AfterblazerBlockEntity extends SmartTileEntity {
         private Integer afterblazerID = null;
         protected boolean alreadyAdded = false;
         private Vector2d gimbalRotation = new Vector2d();
+
+        boolean shouldRemove = false;
         public AfterblazerBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
             super(type, pos, state);
-            activeFuel = FuelType.NONE;
-            remainingBurnTime = 0;
             headAnimation = LerpedFloat.linear();
             headAngle = LerpedFloat.angular();
-            isCreative = false;
             goggles = false;
             redstoneLevel = 0;
 
             headAngle.startWithValue((AngleHelper.horizontalAngle(state.getOptionalValue(AfterblazerBlock.FACING)
                     .orElse(Direction.SOUTH)) + 180) % 360);
+
+            sidesToUpdate = Couple.create(MutableBoolean::new);
         }
 
-        public FuelType getActiveFuel() {
-            return activeFuel;
+    public void setShouldRemove() {
+        this.shouldRemove = true;
+    }
+
+    public void setGimbal(double pitch, double yaw) {
+            double tPitch = Mth.clamp(pitch, -22.5, 22.5);
+            double tYaw = Mth.clamp(yaw, -22.5, 22.5);
+            gimbalRotation.set(tPitch, tYaw);
         }
 
-        public int getRemainingBurnTime() {
-            return remainingBurnTime;
+        public Vector2d getGimbalVector() {
+            return gimbalRotation;
         }
 
-        public boolean isCreative() {
-            return isCreative;
+        public double getGimbalPitch() {
+            return gimbalRotation.x;
+        }
+
+        public double getGimbalYaw() {
+            return gimbalRotation.y;
         }
 
         @Override
@@ -92,26 +110,24 @@ public class AfterblazerBlockEntity extends SmartTileEntity {
             if (level.isClientSide) {
                 tickAnimation();
                 if (!isVirtual())
-                    spawnParticles(getEngineHeatLevelFromBlock(), 1);
+                    spawnParticles(getFuelQuality(), 1);
                 return;
-            }
-            if (pissedOff) {
-                applyHyperFuel();
-                pissedOff = false;
             }
             if (isCreative)
                 return;
 
-            if (remainingBurnTime > 0)
-                remainingBurnTime--;
+            if (getRemainingFuel() > 0)
+                tank.getPrimaryHandler().shrink(getDrainRate() * (long) (getThrustPercentage()));
 
             isPowered = getBlockState().getValue(BlockStateProperties.POWERED);
 
             redstoneLevel = getPower(level, getBlockPos());
 
-            if (activeFuel == FuelType.NORMAL)
-                updateBlockState();
-
+            sidesToUpdate.forEachWithContext((update, isFront) -> {
+                if (update.isFalse())
+                    return;
+                update.setFalse();
+            });
 
             LoadedServerShip ship = null;
             if (!level.isClientSide) {
@@ -123,15 +139,15 @@ public class AfterblazerBlockEntity extends SmartTileEntity {
             if (ship != null) {
                 if (!alreadyAdded && afterblazerID == null) {
                     Vector3dc pos = VectorConversionsMCKt.toJOMLD(worldPosition);
-                    final AfterblazerCreateData data = new AfterblazerCreateData(getBlockState().getValue(BlockStateProperties.FACING), remainingBurnTime, getEngineHeatLevelFromBlock(), redstoneLevel, pos, gimbalRotation);
+                    final AfterblazerCreateData data = new AfterblazerCreateData(getBlockState().getValue(BlockStateProperties.FACING), remainingBurnTime, getFuelQuality(), redstoneLevel, pos, gimbalRotation);
                     afterblazerID = AfterblazerController.getOrCreate(ship).addAfterblazer(data);
                     alreadyAdded = true;
                 }
                 if (alreadyAdded && afterblazerID != null) {
-                    final AfterblazerUpdateData data = new AfterblazerUpdateData(remainingBurnTime, getEngineHeatLevelFromBlock(), redstoneLevel, gimbalRotation);
+                    final AfterblazerUpdateData data = new AfterblazerUpdateData(remainingBurnTime, getFuelQuality(), redstoneLevel, gimbalRotation);
                     AfterblazerController.getOrCreate(ship).updateAfterblazer(afterblazerID, data);
                 }
-                if (this.isRemoved()) {
+                if (this.isRemoved() || shouldRemove) {
                     if (afterblazerID != null) {
                         AfterblazerController.getOrCreate(ship).removeAfterblazer(afterblazerID);
                         afterblazerID = null;
@@ -141,18 +157,9 @@ public class AfterblazerBlockEntity extends SmartTileEntity {
 
             }
 
-            if (remainingBurnTime > 0)
+            if (getRemainingFuel() > 0)
                 return;
-            if (activeFuel == FuelType.HYPER) {
-                activeFuel = FuelType.SPECIAL;
-                remainingBurnTime = MAX_HEAT_CAPACITY / 2;
-            } else if (activeFuel == FuelType.SPECIAL) {
-                activeFuel = FuelType.NORMAL;
-                remainingBurnTime = MAX_HEAT_CAPACITY / 2;
-            } else
-                activeFuel = FuelType.NONE;
 
-            updateBlockState();
         }
 
         public int getPower(Level worldIn, BlockPos pos) {
@@ -163,6 +170,8 @@ public class AfterblazerBlockEntity extends SmartTileEntity {
                 power = Math.max(worldIn.getSignal(pos.relative(direction), Direction.UP), power);
             return power;
         }
+
+
 
         public double getThrustPercentage () {
             if (redstoneLevel == 15) {
@@ -201,7 +210,7 @@ public class AfterblazerBlockEntity extends SmartTileEntity {
         }
         @Environment(EnvType.CLIENT)
         private void tickAnimation() {
-            boolean active = getEngineHeatLevelFromBlock().isAtLeast(EngineHeatLevel.FADING);
+            boolean active = getRemainingFuel() > 0;
 
 
                 float target = 0;
@@ -232,15 +241,12 @@ public class AfterblazerBlockEntity extends SmartTileEntity {
         }
 
         @Override
-        public void addBehaviours(List<TileEntityBehaviour> behaviours) {}
+        public void addBehaviours(List<TileEntityBehaviour> behaviours) {
+            tank = CWFluidTankBehaviour.single(this, 8000);
+        }
 
         @Override
         public void write(CompoundTag compound, boolean clientPacket) {
-            if (!isCreative) {
-                compound.putInt("fuelLevel", activeFuel.ordinal());
-                compound.putInt("burnTimeRemaining", remainingBurnTime);
-            } else
-                compound.putBoolean("isCreative", true);
             if (goggles)
                 compound.putBoolean("Goggles", true);
             if (hat)
@@ -253,30 +259,12 @@ public class AfterblazerBlockEntity extends SmartTileEntity {
 
         @Override
         protected void read(CompoundTag compound, boolean clientPacket) {
-            activeFuel = FuelType.values()[compound.getInt("fuelLevel")];
-            remainingBurnTime = compound.getInt("burnTimeRemaining");
-            isCreative = compound.getBoolean("isCreative");
             goggles = compound.contains("Goggles");
             hat = compound.contains("TrainHat");
             afterblazerID = compound.contains("ID") ? compound.getInt("ID") : null;
             super.read(compound, clientPacket);
         }
 
-        public EngineHeatLevel getEngineHeatLevelFromBlock() {
-            return IHeatableBlock.getHeatLevelOf(getBlockState());
-        }
-
-        public void updateBlockState() {
-            setBlockHeat(getEngineHeatLevelFromFuelType(activeFuel));
-        }
-
-        protected void setBlockHeat(EngineHeatLevel heat) {
-            EngineHeatLevel inBlockState = getEngineHeatLevelFromBlock();
-            if (inBlockState == heat)
-                return;
-            level.setBlockAndUpdate(worldPosition, getBlockState().setValue(AfterblazerBlock.HEAT_LEVEL, heat));
-            notifyUpdate();
-        }
 
         /**
          * @return true if the heater updated its burn time and an item should be
@@ -284,94 +272,34 @@ public class AfterblazerBlockEntity extends SmartTileEntity {
          */
 
 
-        protected void applyCreativeFuel() {
-            activeFuel = FuelType.NONE;
-            remainingBurnTime = 0;
-            isCreative = true;
+//        protected void playSound() {
+//            level.playSound(null, worldPosition, SoundEvents.BLAZE_SHOOT, SoundSource.BLOCKS,
+//                    .125f + level.random.nextFloat() * .125f, .75f - level.random.nextFloat() * .25f);
+//        }
 
-            EngineHeatLevel next = getEngineHeatLevelFromBlock().nextActiveLevel();
-
-            if (level.isClientSide) {
-                spawnParticleBurst(next.isAtLeast(EngineHeatLevel.SEETHING), next.isAtLeast(EngineHeatLevel.INFURIATED));
-                return;
-            }
-
-            playSound();
-            if (next == EngineHeatLevel.FADING)
-                next = next.nextActiveLevel();
-            setBlockHeat(next);
-        }
-
-        protected void applyHyperFuel() {
-            remainingBurnTime = remainingBurnTime = MAX_HEAT_CAPACITY / 2;
-
-            EngineHeatLevel next = EngineHeatLevel.INFURIATED;
-
-            if (level.isClientSide) {
-                spawnParticleBurst(next.isAtLeast(EngineHeatLevel.SEETHING), next.isAtLeast(EngineHeatLevel.INFURIATED));
-                return;
-            }
-
-            playSound();
-            setBlockHeat(next);
-        }
-
-        public boolean isCreativeFuel(ItemStack stack) {
-            return AllItems.CREATIVE_BLAZE_CAKE.isIn(stack);
-        }
-
-        public boolean isHyperFuel(ItemStack stack) {
-            return ClockWorkItems.STRATODONUT.isIn(stack);
-        }
-
-        protected void playSound() {
-            level.playSound(null, worldPosition, SoundEvents.BLAZE_SHOOT, SoundSource.BLOCKS,
-                    .125f + level.random.nextFloat() * .125f, .75f - level.random.nextFloat() * .25f);
-        }
-
-        protected EngineHeatLevel getEngineHeatLevelFromFuelType(FuelType fuel) {
-            EngineHeatLevel level = EngineHeatLevel.SMOULDERING;
-            switch (activeFuel) {
-                case HYPER:
-                    level = EngineHeatLevel.INFURIATED;
-                    break;
-                case SPECIAL:
-                    level = EngineHeatLevel.SEETHING;
-                    break;
-                case NORMAL:
-                    boolean lowPercent = (double) remainingBurnTime / MAX_HEAT_CAPACITY < 0.0125;
-                    level = lowPercent ? EngineHeatLevel.FADING : EngineHeatLevel.KINDLED;
-                    break;
-                default:
-                case NONE:
-                    break;
-            }
-            return level;
-        }
-
-        public double getParticleThrust(EngineHeatLevel heatLevel) {
-            if (!heatLevel.isAtLeast(EngineHeatLevel.SMOULDERING)) {
+        public double getParticleThrust() {
+            if (!getFuelQuality().isAtLeast(LiquidFuelType.STALE)) {
                 return 0;
             }
-            double thrust = 0;
+            double thrust = 1;
 
-            if (getRemainingBurnTime() > 5000) {
-
-                thrust = 1;
-            } else if (getRemainingBurnTime() > 1000) {
-                thrust = 0.75;
-            } else if (getRemainingBurnTime() > 500) {
-                thrust = 0.5;
-            } else if (getRemainingBurnTime() > 250) {
-                thrust = 0.25;
-            } else {
-                thrust = 0;
-            }
+//            if (getRemainingBurnTime() > 5000) {
+//
+//                thrust = 1;
+//            } else if (getRemainingBurnTime() > 1000) {
+//                thrust = 0.75;
+//            } else if (getRemainingBurnTime() > 500) {
+//                thrust = 0.5;
+//            } else if (getRemainingBurnTime() > 250) {
+//                thrust = 0.25;
+//            } else {
+//                thrust = 0;
+//            }
 
             return thrust * getThrustPercentage();
         }
 
-        protected void spawnParticles(EngineHeatLevel heatLevel, double burstMult) {
+        protected void spawnParticles(LiquidFuelType fuelQuality, double burstMult) {
             if (level == null)
                 return;
 
@@ -397,11 +325,11 @@ public class AfterblazerBlockEntity extends SmartTileEntity {
                             .normalize()
                             .scale((empty ? .25f : .5) + r.nextDouble() * .125f))
                     .add(0, .5, 0);
-            if (heatLevel.isAtLeast(EngineHeatLevel.INFURIATED)) {
+            if (fuelQuality.isAtLeast(LiquidFuelType.GOURMET)) {
                 level.addParticle(ParticleTypes.PORTAL, v2.x, v2.y, v2.z, 0, yMotion, 0);
-            } else if (heatLevel.isAtLeast(EngineHeatLevel.SEETHING)) {
+            } else if (fuelQuality.isAtLeast(LiquidFuelType.SWEET)) {
                 level.addParticle(ParticleTypes.SOUL_FIRE_FLAME, v2.x, v2.y, v2.z, 0, yMotion, 0);
-            } else if (heatLevel.isAtLeast(EngineHeatLevel.FADING)) {
+            } else if (fuelQuality.isAtLeast(LiquidFuelType.STALE)) {
                 level.addParticle(ParticleTypes.FLAME, v2.x, v2.y, v2.z, 0, yMotion, 0);
             }
             return;
@@ -428,8 +356,67 @@ public class AfterblazerBlockEntity extends SmartTileEntity {
             }
         }
 
-        public enum FuelType {
-            NONE, NORMAL, SPECIAL, HYPER
+    public boolean hasValidFuelType() {
+        if (tank.isEmpty())
+            return false;
+
+        Fluid fuel = tank.getPrimaryHandler().getFluidType();
+
+        if (fuel.is(ClockWorkTags.AllFluidTags.STALE.tag))
+            return true;
+        if (fuel.is(ClockWorkTags.AllFluidTags.PLAIN.tag))
+            return true;
+        if (fuel.is(ClockWorkTags.AllFluidTags.SWEET.tag))
+            return true;
+        if (fuel.is(ClockWorkTags.AllFluidTags.EXTRA.tag))
+            return true;
+        if (fuel.is(ClockWorkTags.AllFluidTags.GOURMET.tag))
+            return true;
+
+        return false;
+    }
+
+    @Override
+    public LiquidFuelType getFuelQuality() {
+        if (!hasValidFuelType()) {
+            return LiquidFuelType.NONE;
         }
+        Fluid fuel = tank.getPrimaryHandler().getFluidType();
+        if (fuel.is(ClockWorkTags.AllFluidTags.STALE.tag)) {
+            return LiquidFuelType.STALE;
+        } else if (fuel.is(ClockWorkTags.AllFluidTags.PLAIN.tag)) {
+            return LiquidFuelType.PLAIN;
+        } else if (fuel.is(ClockWorkTags.AllFluidTags.SWEET.tag)) {
+            return LiquidFuelType.SWEET;
+        } else if (fuel.is(ClockWorkTags.AllFluidTags.GOURMET.tag)) {
+            return LiquidFuelType.GOURMET;
+        } else {
+            return LiquidFuelType.EXTRA;
+        }
+    }
+
+    @Override
+    public int getRemainingFuel() {
+        if (!hasValidFuelType()) {
+            return 0;
+        }
+
+        return (int) tank.getPrimaryHandler().getAmount();
+    }
+
+    @Override
+    public int getDrainRate() {
+        return 10 * (int)(getThrustPercentage());
+    }
+
+    @Override
+    public FuelBoosterType getFuelBooster() {
+        return null;
+    }
+
+    @Override
+    public CWFluidTankBehaviour getFluidTankBehaviour() {
+        return tank;
+    }
 
     }

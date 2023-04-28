@@ -31,7 +31,18 @@ public class PhysicsInfuserBlock extends Block implements ITE<PhysicsInfuserBloc
 
     public static VoxelShape makeShape() {
         VoxelShape shape = Shapes.empty();
-        shape = Shapes.join(shape, Shapes.box(0.1859375, 0.25, 0.25, 0.1859375, 0.75, 0.75), BooleanOp.OR);
+
+        shape = Shapes.join(shape, Block.box(0, 11, 0, 5, 16, 5), BooleanOp.OR);
+        shape = Shapes.join(shape, Block.box(0.5, 0.5, 0.5, 15.5, 15.5, 15.5), BooleanOp.OR);
+        shape = Shapes.join(shape, Block.box(0, 0, 0, 5, 5, 5), BooleanOp.OR);
+        shape = Shapes.join(shape, Block.box(11, 0, 0, 16, 5, 5), BooleanOp.OR);
+        shape = Shapes.join(shape, Block.box(11, 11, 0, 16, 16, 5), BooleanOp.OR);
+        shape = Shapes.join(shape, Block.box(11, 11, 11, 16, 16, 16), BooleanOp.OR);
+        shape = Shapes.join(shape, Block.box(11, 0, 11, 16, 5, 16), BooleanOp.OR);
+        shape = Shapes.join(shape, Block.box(0, 0, 11, 5, 5, 16), BooleanOp.OR);
+        shape = Shapes.join(shape, Block.box(0, 11, 11, 5, 16, 16), BooleanOp.OR);
+
+        /*shape = Shapes.join(shape, Shapes.box(0.1859375, 0.25, 0.25, 0.1859375, 0.75, 0.75), BooleanOp.OR);
         shape = Shapes.join(shape, Shapes.box(0.25, 0.25, 0.1859375, 0.75, 0.75, 0.1859375), BooleanOp.OR);
         shape = Shapes.join(shape, Shapes.box(0.25, 0.25, 0.8140625, 0.75, 0.75, 0.8140625), BooleanOp.OR);
         shape = Shapes.join(shape, Shapes.box(0.8140625, 0.25, 0.25, 0.8140625, 0.75, 0.75), BooleanOp.OR);
@@ -117,9 +128,9 @@ public class PhysicsInfuserBlock extends Block implements ITE<PhysicsInfuserBloc
         shape = Shapes.join(shape, Shapes.box(0.125, 0.3125, 0.125, 0.25, 0.6875, 0.25), BooleanOp.OR);
         shape = Shapes.join(shape, Shapes.box(0.75, 0.3125, 0.125, 0.875, 0.6875, 0.25), BooleanOp.OR);
         shape = Shapes.join(shape, Shapes.box(0.75, 0.3125, 0.75, 0.875, 0.6875, 0.875), BooleanOp.OR);
-        shape = Shapes.join(shape, Shapes.box(0.125, 0.3125, 0.75, 0.25, 0.6875, 0.875), BooleanOp.OR);
+        shape = Shapes.join(shape, Shapes.box(0.125, 0.3125, 0.75, 0.25, 0.6875, 0.875), BooleanOp.OR);*/
 
-        return shape;
+        return shape.optimize();
     }
 
     @Override
@@ -153,12 +164,11 @@ public class PhysicsInfuserBlock extends Block implements ITE<PhysicsInfuserBloc
             withTileEntityDo(worldIn, pos, te -> {
                 if (te.isAssembled && !te.assembling && !te.disassembling && !te.onCooldown) {
                     te.startDisassembly();
-                } else if (!te.isAssembled && te.assembling && !te.disassembling && !te.onCooldown && !te.skippedAssembly) {
+                } else if (!te.isAssembled && te.assembling && !te.disassembling && !te.onCooldown) {
                     te.skipAssembly();
                 } else if (!te.isAssembled && !te.assembling && !te.disassembling && !te.onCooldown) {
                     te.startAssembly();
                 }
-
             });
             return InteractionResult.SUCCESS;
         }

@@ -86,6 +86,9 @@ dependencies {
 //    modCompileOnly("me.shedaniel:RoughlyEnoughItems-api-fabric:${rei_version}")
 //    modCompileOnly("me.shedaniel:RoughlyEnoughItems-default-plugin-fabric:${rei_version}")
 //    modCompileOnly("dev.emi:emi:${emi_version}")
+
+    // CC Restitched
+    modCompileOnly("curse.maven:cc-restitched-462672:3622561")
 }
 
 processResources {
