@@ -10,20 +10,31 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import org.apache.logging.log4j.core.jmx.Server;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Quaterniond;
+import org.joml.Quaterniondc;
+import org.joml.Vector3d;
+import org.joml.Vector3dc;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingCreateData;
 import org.valkyrienskies.clockwork.platform.api.ContraptionController;
 import org.valkyrienskies.clockwork.platform.api.GlueType;
 import org.valkyrienskies.clockwork.util.assemble.GlueAssembler;
+import org.valkyrienskies.core.api.ships.LoadedServerShip;
 import org.valkyrienskies.core.api.ships.ServerShip;
 import org.valkyrienskies.core.api.ships.Ship;
+import org.valkyrienskies.core.apigame.constraints.VSAttachmentOrientationConstraint;
 import org.valkyrienskies.core.impl.datastructures.DenseBlockPosSet;
+import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.assembly.ShipAssemblyKt;
+import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
 @Mixin(MechanicalBearingTileEntity.class)
 public abstract class MixinMechanicalBearingTileEntity extends GeneratingKineticTileEntity implements ContraptionController {
@@ -36,6 +47,12 @@ public abstract class MixinMechanicalBearingTileEntity extends GeneratingKinetic
 
     @Shadow
     protected float angle;
+
+    @Unique
+    private boolean alreadyAdded;
+
+    @Unique
+    private Integer bearingID = null;
 
     @Unique // Rn only set serverside, is null client-side
     private Ship ship = null;
@@ -53,6 +70,32 @@ public abstract class MixinMechanicalBearingTileEntity extends GeneratingKinetic
     @Override
     public Ship getConnectedShip() {
         return ship;
+    }
+
+    @Unique
+    private void handleController() {
+        //do stuff here (I like to have the inject call to a separate function so the breakpoint will work properly for this function)
+
+        if (ship != null) {
+            if (!alreadyAdded && bearingID == null) {
+                Vector3dc pos = VectorConversionsMCKt.toJOMLD(worldPosition);
+                Vector3dc axis = VectorConversionsMCKt.toJOMLD(getBlockState().getValue(BlockStateProperties.FACING).getNormal());
+                final EncasedFanCreateData data = new PhysBearingCreateData(pos, axis, speed);
+                fanID = EncasedFanController.getOrCreate(ship).addEncasedFan(data);
+                alreadyAdded = true;
+            }
+            if (alreadyAdded && fanID != null) {
+                final EncasedFanUpdateData data = new EncasedFanUpdateData(speed);
+                EncasedFanController.getOrCreate(ship).updateEncasedFan(fanID, data);
+            }
+            if (this.isRemoved()) {
+                if (fanID != null) {
+                    EncasedFanController.getOrCreate(ship).removeEncasedFan(fanID);
+                    fanID = null;
+                    alreadyAdded = false;
+                }
+            }
+        }
     }
 
     @Inject(method = "assemble", at = @At("HEAD"), cancellable = true)
@@ -83,8 +126,22 @@ public abstract class MixinMechanicalBearingTileEntity extends GeneratingKinetic
             AllSoundEvents.CONTRAPTION_ASSEMBLE.playOnServer(level, worldPosition);
 
             // TODO setup constraints
+            ServerShip shipOn = (ServerShip) VSGameUtilsKt.getShipObjectManagingPos(level, worldPosition);
+
+//            double compliance = 1e-3;
+//            double maxForce = 1e6;
+//            double maxTorque = 1e6;
+//            Vector3dc attachPoint = new Vector3d();
+            if (shipOn != null) {
+                // make constraint between ships
 
 
+                //VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).createNewConstraint(new VSAttachmentOrientationConstraint(ship.getId(), shipOn.getId(), compliance, worldPosition, attachPoint, maxForce, new Quaterniond(), new Quaterniond(), maxTorque));
+
+                //Vector3dc bearingPosition = (new Vector3d(worldPosition.getX()+0.5, worldPosition.getY()+0.5, worldPosition.getZ()+0.5)).sub(ship.getTransform().getShipToWorld());
+            } else {
+                // just make constraint
+            }
 
             this.running = true;
             this.angle = 0;

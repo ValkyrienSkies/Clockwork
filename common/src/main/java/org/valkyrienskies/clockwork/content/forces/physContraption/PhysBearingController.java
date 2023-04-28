@@ -9,7 +9,10 @@ import org.valkyrienskies.core.api.ships.PhysShip;
 import org.valkyrienskies.core.api.ships.ServerShip;
 import org.valkyrienskies.core.impl.api.ShipForcesInducer;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Objects;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -31,5 +34,39 @@ public class PhysBearingController implements ShipForcesInducer {
     @Override
     public void applyForces(@NotNull PhysShip physShip) {
 
+    }
+
+    public int addPhysBearing(PhysBearingCreateData data) {
+        int id = nextBearingID++;
+        createdBearings.add(new Pair<>(id, data));
+        return id;
+    }
+
+    public void removePhysBearing(int id) {
+        removedBearings.add(id);
+    }
+
+    public void updatePhysBearing(int id, PhysBearingUpdateData data) {
+        bearingUpdateData.put(id, data);
+    }
+
+    public static <T> boolean areQueuesEqual(final Queue<T> left, final Queue<T> right) {
+        return Arrays.equals(left.toArray(), right.toArray());
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+        // self check
+        if (this == other) {
+            return true;
+        } else if (!(other instanceof final PhysBearingController otherController)) {
+            return false;
+        } else {
+            return Objects.equals(bearingData, otherController.bearingData)
+                    && Objects.equals(bearingUpdateData, otherController.bearingUpdateData)
+                    && areQueuesEqual(createdBearings, otherController.createdBearings)
+                    && areQueuesEqual(removedBearings, otherController.removedBearings)
+                    && nextBearingID == otherController.nextBearingID;
+        }
     }
 }
