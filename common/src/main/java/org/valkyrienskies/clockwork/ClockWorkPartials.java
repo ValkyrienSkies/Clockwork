@@ -27,8 +27,6 @@ public class ClockWorkPartials {
 
             ENGINE = block("combustion_engine/main"),
 
-            ENGINE_PISTONS = block("combustion_engine/pistons"),
-
             SINGLE_ENGINE_PISTON = block("combustion_engine/single_piston");
 
     private static PartialModel block(String path) {
