@@ -1,4 +1,7 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.bearing;
 
-public record PhysBearingCreateData() {
+import org.joml.Vector3d;
+import org.joml.Vector3dc;
+
+public record PhysBearingCreateData(Vector3dc bearingPos, Vector3d bearingRotation, float bearingRPM, boolean locked) {
 }
