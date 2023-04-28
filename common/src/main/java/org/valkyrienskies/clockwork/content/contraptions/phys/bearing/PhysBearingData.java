@@ -8,23 +8,39 @@ public class PhysBearingData {
 
     public final Vector3dc bearingPosition;
     public final Vector3dc bearingAxis;
-    public Vector3d bearingRotation;
+    public double bearingAngle;
     public float bearingRPM;
     public boolean locked;
+    public long shiptraptionID;
+    public boolean aligning;
+
+    private Long constraintID = null;
 
     // Default constructor for Jackson, should never be invoked manually
     @Deprecated
     public PhysBearingData() {
         this.bearingPosition = null;
-        this.bearingRotation = null;
         this.bearingAxis = null;
+        this.shiptraptionID = -1;
     }
 
-    public PhysBearingData(Vector3dc bearingPosition, Vector3dc bearingAxis, Vector3dc bearingRotation, float bearingRPM, boolean locked) {
+    public PhysBearingData(Vector3dc bearingPosition, Vector3dc bearingAxis, double bearingAngle, float bearingRPM, boolean locked, long shiptraptionID) {
         this.bearingPosition = bearingPosition;
         this.bearingAxis = bearingAxis;
-        this.bearingRotation = new Vector3d(bearingRotation);
+        this.bearingAngle = bearingAngle;
         this.bearingRPM = bearingRPM;
         this.locked = locked;
+        this.shiptraptionID = shiptraptionID;
+    }
+
+    public void setAligning(boolean yn) {
+        this.aligning = yn;
+    }
+
+    public void setConstraintID(long id) {
+        constraintID = id;
+    }
+    public Long getConstraintID() {
+        return constraintID;
     }
 }

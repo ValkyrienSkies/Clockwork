@@ -23,7 +23,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingCreateData;
 import org.valkyrienskies.clockwork.platform.api.ContraptionController;
 import org.valkyrienskies.clockwork.platform.api.GlueType;
 import org.valkyrienskies.clockwork.util.assemble.GlueAssembler;
@@ -70,32 +69,6 @@ public abstract class MixinMechanicalBearingTileEntity extends GeneratingKinetic
     @Override
     public Ship getConnectedShip() {
         return ship;
-    }
-
-    @Unique
-    private void handleController() {
-        //do stuff here (I like to have the inject call to a separate function so the breakpoint will work properly for this function)
-
-        if (ship != null) {
-            if (!alreadyAdded && bearingID == null) {
-                Vector3dc pos = VectorConversionsMCKt.toJOMLD(worldPosition);
-                Vector3dc axis = VectorConversionsMCKt.toJOMLD(getBlockState().getValue(BlockStateProperties.FACING).getNormal());
-                final EncasedFanCreateData data = new PhysBearingCreateData(pos, axis, speed);
-                fanID = EncasedFanController.getOrCreate(ship).addEncasedFan(data);
-                alreadyAdded = true;
-            }
-            if (alreadyAdded && fanID != null) {
-                final EncasedFanUpdateData data = new EncasedFanUpdateData(speed);
-                EncasedFanController.getOrCreate(ship).updateEncasedFan(fanID, data);
-            }
-            if (this.isRemoved()) {
-                if (fanID != null) {
-                    EncasedFanController.getOrCreate(ship).removeEncasedFan(fanID);
-                    fanID = null;
-                    alreadyAdded = false;
-                }
-            }
-        }
     }
 
     @Inject(method = "assemble", at = @At("HEAD"), cancellable = true)

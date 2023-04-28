@@ -170,7 +170,7 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
 
         if (hasValidFuelType()) {
             active = true;
-            if (getRemainingFuel() >= 2) {
+            if (getRemainingFuel() >= getDrainRate()) {
                 tank.getPrimaryHandler().shrink(getDrainRate());
             } else {
                 tank.getPrimaryHandler().shrink(getRemainingFuel());

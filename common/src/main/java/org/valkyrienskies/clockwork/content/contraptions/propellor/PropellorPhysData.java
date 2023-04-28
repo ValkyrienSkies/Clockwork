@@ -16,7 +16,6 @@ public class PropellorPhysData {
     public double bearingSpeed;
     public boolean inverted;
     public Vector3dc prevAngularMomentum;
-    public Ship contraptionShip;
 
     // Default constructor for Jackson, should never be invoked manually
     @Deprecated
@@ -26,14 +25,13 @@ public class PropellorPhysData {
         this.propellorPositions = null;
     }
 
-    public PropellorPhysData(Vector3dc bearingPos, Vector3dc bearingAxis, double bearingAngle, double bearingSpeed, List<Vector3ic> propellorPositions, boolean inverted, Ship contraptionShip) {
+    public PropellorPhysData(Vector3dc bearingPos, Vector3dc bearingAxis, double bearingAngle, double bearingSpeed, List<Vector3ic> propellorPositions, boolean inverted) {
         this.bearingPos = bearingPos;
         this.bearingAxis = bearingAxis;
         this.bearingAngle = bearingAngle;
         this.bearingSpeed = bearingSpeed;
         this.propellorPositions = propellorPositions;
         this.inverted = inverted;
-        this.contraptionShip = contraptionShip;
     }
 
     public void setPrevAngularMomentum(Vector3dc prevAngularMomentum) {
