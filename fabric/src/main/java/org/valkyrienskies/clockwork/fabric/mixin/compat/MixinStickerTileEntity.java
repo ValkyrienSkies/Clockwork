@@ -1,23 +1,15 @@
 package org.valkyrienskies.clockwork.fabric.mixin.compat;
 
-import com.simibubi.create.content.contraptions.components.structureMovement.chassis.StickerBlock;
 import com.simibubi.create.content.contraptions.components.structureMovement.chassis.StickerTileEntity;
 import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
 import com.simibubi.create.foundation.utility.animation.LerpedFloat;
-import com.tterrag.registrate.fabric.EnvExecutor;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.DirectionalBlock;
-import net.minecraft.world.level.block.SupportType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Quaterniond;
-import org.joml.Quaterniondc;
 import org.joml.Vector3d;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -25,18 +17,18 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueItem;
-import org.valkyrienskies.core.api.ships.Ship;
-import org.valkyrienskies.core.apigame.constraints.VSAttachmentOrientationConstraint;
+import org.valkyrienskies.clockwork.fabric.content.contraptions.sticker.StickerParticleUtil;
+import org.valkyrienskies.clockwork.fabric.content.contraptions.sticker.StickerMovementBehaviour;
+import org.valkyrienskies.clockwork.mixinduck.IMixinStickerTileEntity;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 
-import java.util.Iterator;
+import javax.annotation.Nullable;
 
+import static net.minecraft.world.level.block.state.properties.BlockStateProperties.POWERED;
 import static org.valkyrienskies.mod.common.util.VectorConversionsMCKt.toJOML;
-import static org.valkyrienskies.mod.common.util.VectorConversionsMCKt.toMinecraft;
 
 @Mixin(StickerTileEntity.class)
-public abstract class MixinStickerTileEntity extends SmartTileEntity {
+public abstract class MixinStickerTileEntity extends SmartTileEntity implements IMixinStickerTileEntity {
     public MixinStickerTileEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }
@@ -45,146 +37,95 @@ public abstract class MixinStickerTileEntity extends SmartTileEntity {
     public abstract boolean isAttachedToBlock();
 
     @Shadow
-    private LerpedFloat piston;
-
-
-    @Environment(EnvType.CLIENT)
-    @Shadow
-    public abstract void playSound(boolean attach);
+    LerpedFloat piston;
 
     @Shadow
     public abstract boolean isBlockStateExtended();
 
     @Unique
-    private boolean lastExtended = false;
+    private boolean waitForNoPower = false;
 
     @Unique
-    private void removeConstraint(ServerLevel level) {
+    private void removeConstraint(@Nullable ServerLevel level, boolean removeTags) {
         if (getExtraCustomData().contains("ShipStickerConstraint")) {
-            VSGameUtilsKt.getShipObjectWorld(level).removeConstraint(getExtraCustomData().getInt("ShipStickerConstraint"));
-            getExtraCustomData().remove("ShipStickerConstraint");
-        }
-    }
-
-    @Unique
-    private void doAttach(ServerLevel level, Ship ship1, Ship ship2, Vector3d myPos, Direction myDir) {
-        if (ship1 == null && ship2 == null)
-            return;
-        boolean world2Ship = false;
-        if (ship1 == null) {
-            ship1 = ship2;
-            ship2 = null;
-            world2Ship = true;
-        }
-
-        removeConstraint(level);
-
-        Vector3d myDirNormal = toJOML(Vec3.atLowerCornerOf(myDir.getNormal()));
-        myDirNormal.mul(0.5);
-        Vector3d ship1ConstraintPos = myPos.add(myDirNormal);
-        Vector3d ship2ConstraintPos = new Vector3d(ship1ConstraintPos);
-
-        if(!world2Ship)
-            ship1.getShipToWorld().transformPosition(ship2ConstraintPos, ship2ConstraintPos);
-        else
-            ship1.getWorldToShip().transformPosition(ship1ConstraintPos, ship1ConstraintPos);
-
-        long ship2Id;
-        Quaterniondc ship2Rotation = new Quaterniond();
-
-        if (ship2 == null) {
-            ship2Id = VSGameUtilsKt.getShipObjectWorld(level).getDimensionToGroundBodyIdImmutable().get(VSGameUtilsKt.getDimensionId(level));
-        } else {
-            ship2Id = ship2.getId();
-            ship2.getWorldToShip().transformPosition(ship2ConstraintPos, ship2ConstraintPos);
-            ship2Rotation = ship2.getTransform().getShipToWorldRotation();
-        }
-
-        VSAttachmentOrientationConstraint constraint = new VSAttachmentOrientationConstraint(
-                ship1.getId(),
-                ship2Id,
-                1e-9 / VSGameUtilsKt.getShipObjectWorld(level).getAllShips().getById(ship1.getId()).getInertiaData().getMass(),
-                ship1ConstraintPos,
-                ship2ConstraintPos,
-                1e20,
-                ship1.getTransform().getShipToWorldRotation(),
-                ship2Rotation,
-                1e20
-        );
-        Integer constraintID = VSGameUtilsKt.getShipObjectWorld(level).createNewConstraint(constraint);
-        getExtraCustomData().putInt("ShipStickerConstraint", constraintID.intValue());
-    }
-
-    @Unique
-    private boolean isAttachedToShipOrWorld(boolean attach) {
-        boolean result = false;
-        Vector3d myPos = toJOML(Vec3.atLowerCornerOf(getBlockPos()));
-        if (level == null)
-            return false;
-        Ship ship = VSGameUtilsKt.getShipManagingPos(level, myPos);
-        Ship ship2 = null;
-        Vector3d myPosCentered = toJOML(Vec3.atCenterOf(getBlockPos()));
-        Direction myDir = this.getBlockState().getValue(DirectionalBlock.FACING);
-        Vector3d myDirNormal = toJOML(Vec3.atLowerCornerOf(myDir.getNormal()));
-
-        Vector3d searchPos = myPosCentered.add(myDirNormal);
-        if (ship != null)
-            ship.getShipToWorld().transformPosition(searchPos, searchPos);
-
-        BlockState worldBlockState = level.getBlockState(new BlockPos(toMinecraft(searchPos)));
-        if (!worldBlockState.isAir()) {
-            result = true;
-        } else {
-            double bounds = 0.5;
-            AABB searchAABB = new AABB(searchPos.x - bounds, searchPos.y - bounds, searchPos.z - bounds,
-                    searchPos.x + bounds, searchPos.y + bounds, searchPos.z + bounds);
-
-            Iterator<Ship> ships = VSGameUtilsKt.getShipsIntersecting(level, searchAABB).iterator();
-            Ship shipItr;
-            Vector3d transformedSearchPos = searchPos;
-            if (ships.hasNext()) {
-                do {
-                    shipItr = ships.next();
-                    if (shipItr == ship) continue;
-                    shipItr.getWorldToShip().transformPosition(searchPos, transformedSearchPos);
-                    BlockPos blockPos = new BlockPos(toMinecraft(transformedSearchPos));
-                    BlockState blockState = level.getBlockState(blockPos);
-                    if (!blockState.isAir() && blockState.isFaceSturdy(level, blockPos, Direction.UP, SupportType.RIGID)) {
-                        result = true;
-                        ship2 = shipItr;
-                    }
-                } while (ships.hasNext() && !result);
+            if (level != null)
+                VSGameUtilsKt.getShipObjectWorld(level).removeConstraint(getExtraCustomData().getInt("ShipStickerConstraint"));
+            if (removeTags) {
+                getExtraCustomData().remove("ShipStickerConstraint");
+                getExtraCustomData().remove("ShipStickerShip1Id");
+                getExtraCustomData().remove("ShipStickerShip1Vec");
+                getExtraCustomData().remove("ShipStickerShip1Quat");
+                getExtraCustomData().remove("ShipStickerShip2Id");
+                getExtraCustomData().remove("ShipStickerShip2Vec");
+                getExtraCustomData().remove("ShipStickerShip2Quat");
             }
         }
-        if (result && !level.isClientSide && attach)
-            doAttach((ServerLevel) level, ship, ship2, myPos, myDir);
-
-        return result;
     }
+
+    boolean shipStuck = false;
 
     @Inject(method = "tick", at = @At("HEAD"), remap = false)
     private void injectTick(CallbackInfo ci) {
+        doTick();
+    }
+
+    private void doTick() {
         if (level == null)
             return;
+
+        Direction myDir = this.getBlockState().getValue(DirectionalBlock.FACING);
+        Vector3d myDirNormal = toJOML(Vec3.atLowerCornerOf(myDir.getNormal()));
+
         boolean blockAttached = isAttachedToBlock();
-        boolean shipAttached = isAttachedToShipOrWorld(false);
+        boolean shipAttached = StickerMovementBehaviour.isAttachedToShipOrWorld(false, level, toJOML(Vec3.atCenterOf(getBlockPos())), myDirNormal, getExtraCustomData());//isAttachedToShipOrWorld(false);
         if (!blockAttached && piston.getValue(0) != piston.getValue() && piston.getValue() == 1 && shipAttached) {
-            if (level.isClientSide) {
-                BluperGlueItem.spawnParticles(level, worldPosition, getBlockState().getValue(StickerBlock.FACING), true);
-                EnvExecutor.runWhenOn(EnvType.CLIENT, () -> () -> playSound(true));
-            }
+            new StickerParticleUtil().doBluperParticle(level, worldPosition, myDir);
         }
-        if (!level.isClientSide) {
-            if (lastExtended != isBlockStateExtended()) {
-                if (isBlockStateExtended()) {
-                    if (!blockAttached && shipAttached) {
-                        isAttachedToShipOrWorld(true);
-                    }
-                } else {
-                    removeConstraint((ServerLevel) level);
+        if (isBlockStateExtended() && !shipStuck) {
+            //Sticker extended with no ship related thing stuck to it
+            waitForNoPower = false;
+            if (!blockAttached && shipAttached) {
+                //no sameworld block attached but there is a ship related thing near enough
+                if (StickerMovementBehaviour.isAttachedToShipOrWorld(true, level, toJOML(Vec3.atCenterOf(getBlockPos())), myDirNormal, getExtraCustomData())) {
+                    shipStuck = true;
                 }
             }
+        } else if (!isBlockStateExtended() && shipStuck) {
+            //Sticker retracted with ship related thing stuck to it
+            if (!level.isClientSide) {
+                removeConstraint((ServerLevel) level, true);
+            }
+            waitForNoPower = true;
+        } else if (isBlockStateExtended() && !getExtraCustomData().contains("ShipStickerConstraint") && !shipStuck && !blockAttached && shipAttached && getBlockState().getValue(POWERED)) {
+            //Sticker extended with nothing attached and is powered but there is a ship thing in range
+            waitForNoPower = false;
+            if (StickerMovementBehaviour.isAttachedToShipOrWorld(true, level, toJOML(Vec3.atCenterOf(getBlockPos())), myDirNormal, getExtraCustomData())) {
+                new StickerParticleUtil().doBluperParticle(level, worldPosition, myDir);
+                shipStuck = true;
+            }
         }
-        lastExtended = isBlockStateExtended();
+        if (waitForNoPower && !getBlockState().getValue(POWERED)) {
+            waitForNoPower = false;
+            shipStuck = false;
+        }
+    }
+
+    @Override
+    public void destroy() {
+        if (level != null) {
+            if (!level.isClientSide) {
+                removeConstraint((ServerLevel) level, true);
+            }
+        } else {
+            throw new RuntimeException("ERROR Couldn't try to clean up constraint!");
+        }
+    }
+
+    public boolean isAlreadyPowered(boolean reset) {
+        boolean result = getExtraCustomData().contains("ShipStickerAlreadyPowered");
+        if (reset) {
+            getExtraCustomData().remove("ShipStickerAlreadyPowered");
+        }
+        return result;
     }
 }

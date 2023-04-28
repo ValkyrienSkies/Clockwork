@@ -4,6 +4,10 @@
   "compatibilityLevel": "JAVA_17",
   "plugin": "org.valkyrienskies.clockwork.mixin.CommonMixinConfigPlugin",
   "mixins": [
+    "accessors.IMixinClockworkContraption",
+    "accessors.IMixinPistonContraption",
+    "compat.blockentity.IMixinMechanicalBearingTileEntity",
+    "compat.block.MixinStickerBlock",
     "MixinPlayer",
     "accessors.FluidAccessor",
     "compat.IMixinDeployerHandler",
@@ -11,6 +15,7 @@
     "compat.MixinAirCurrent",
     "compat.MixinAirFlowParticle",
     "compat.MixinBeltMovementHandler",
+    "compat.MixinContraption",
     "compat.MixinContraptionCollider",
     "compat.MixinEntityLauncher",
     "compat.MixinRedstoneLinkNetworkHandler",
