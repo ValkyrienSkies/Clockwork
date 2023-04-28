@@ -13,10 +13,8 @@ import org.valkyrienskies.clockwork.content.contraptions.afterblazer.Afterblazer
 import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingBlockEntity;
-import org.valkyrienskies.clockwork.integration.cc.AfterblazerPeripheral;
-import org.valkyrienskies.clockwork.integration.cc.BalloonerPeripheral;
-import org.valkyrienskies.clockwork.integration.cc.FlapBearingPeripheral;
-import org.valkyrienskies.clockwork.integration.cc.PropellorBearingPeripheral;
+import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatBlockEntity;
+import org.valkyrienskies.clockwork.integration.cc.*;
 
 public class ClockworkForgePeripheralProviders {
     public static void register() {
@@ -35,6 +33,8 @@ public class ClockworkForgePeripheralProviders {
                 return LazyOptional.of(() -> new FlapBearingPeripheral(flap));
             else if (be instanceof PropellorBearingBlockEntity propellor)
                 return LazyOptional.of(() -> new PropellorBearingPeripheral(propellor));
+            else if (be instanceof SequencedSeatBlockEntity seat)
+                return LazyOptional.of(() -> new CommandSeatPeripheral(seat));
             return LazyOptional.empty();
         }
     }
