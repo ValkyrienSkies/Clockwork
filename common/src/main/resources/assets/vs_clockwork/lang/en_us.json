@@ -50,5 +50,8 @@
   "vs_clockwork.subtitle.thick_fluid_empty": "Pouring a thick fluid",
   "item.vs_clockwork.vanilla_frosting_bucket": "Bucket o' Vanilla Frosting",
   "item.vs_clockwork.chocolate_frosting_bucket": "Bucket o' Chocolate Frosting",
-  "item.vs_clockwork.strawberry_frosting_bucket": "Bucket o' Strawberry Frosting"
+  "item.vs_clockwork.strawberry_frosting_bucket": "Bucket o' Strawberry Frosting",
+  "fluid.vs_clockwork.vanilla_frosting_bucket": "Vanilla Frosting",
+  "fluid.vs_clockwork.chocolate_frosting_bucket": "Chocolate Frosting",
+  "fluid.vs_clockwork.strawberry_frosting_bucket": "Strawberry Frosting"
 }
