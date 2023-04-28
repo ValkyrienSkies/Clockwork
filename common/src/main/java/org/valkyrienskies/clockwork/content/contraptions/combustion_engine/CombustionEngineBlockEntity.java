@@ -53,6 +53,9 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
 
     float stressCapacity;
 
+    LerpedFloat visualSpeed = LerpedFloat.linear();
+    float angle;
+
     public CombustionEngineBlockEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {
         super(typeIn, pos, state);
         arrowDirection = LerpedFloat.linear()
@@ -97,10 +100,9 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
         if (compound.contains("LastCapacityProvided"))
             lastCapacityProvided = compound.getFloat("LastCapacityProvided");
 
-        if (!clientPacket)
-            return;
-
-
+        // Configure the chasing algorithm for visualSpeed
+        if (clientPacket)
+            visualSpeed.chase(getGeneratedSpeed(), 1 / 64f, Chaser.EXP);
     }
 
 //    @Override
@@ -132,6 +134,16 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
     @Override
     public void tick() {
         super.tick();
+
+        if (level.isClientSide) {
+            // Copied from FlywheelTileEntity::tick()
+            float targetSpeed = getSpeed();
+            visualSpeed.updateChaseTarget(targetSpeed);
+            visualSpeed.tickChaser();
+            angle += visualSpeed.getValue() * 3 / 10f;
+            angle %= 360;
+        }
+
         float speed = getSpeed();
         if (first) {
 
