@@ -63,7 +63,6 @@ dependencies {
 
     //Create big cannons
     // modLocalRuntime('curse.maven:create-big-cannons-646668:4033862') is create .5.0.e not g
-    modLocalRuntime name: "createbigcannons" // REMOVE IF CBC HAS BEEN UPDATED
 
     // JOML
     compileOnly("org.joml:joml:1.10.4")

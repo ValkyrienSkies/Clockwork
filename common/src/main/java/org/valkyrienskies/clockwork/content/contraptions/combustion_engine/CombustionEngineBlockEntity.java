@@ -2,10 +2,18 @@ package org.valkyrienskies.clockwork.content.contraptions.combustion_engine;
 
 import java.util.List;
 
+import com.simibubi.create.AllBlocks;
 import com.simibubi.create.content.contraptions.base.GeneratingKineticTileEntity;
 import com.simibubi.create.content.contraptions.base.KineticTileEntity;
 import com.simibubi.create.content.contraptions.goggles.IHaveGoggleInformation;
+import com.simibubi.create.foundation.utility.Lang;
+import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.material.Fluid;
 import org.apache.commons.lang3.mutable.MutableBoolean;
@@ -19,6 +27,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.valkyrienskies.clockwork.ClockWorkBlocks;
+import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.clockwork.data.ClockWorkTags;
 import org.valkyrienskies.clockwork.platform.SmartFluidTankBlockEntity;
 import org.valkyrienskies.clockwork.util.blocktype.*;
@@ -34,6 +43,8 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
 
     float generatedSpeed;
 
+    boolean first = true;
+
     public boolean active = false;
 
     public CWFluidTankBehaviour tank;
@@ -42,11 +53,23 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
 
     float stressCapacity;
 
+    LerpedFloat visualSpeed = LerpedFloat.linear();
+    float angle;
+
     public CombustionEngineBlockEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {
         super(typeIn, pos, state);
         arrowDirection = LerpedFloat.linear()
                 .startWithValue(1);
         sidesToUpdate = Couple.create(MutableBoolean::new);
+    }
+
+    @Override
+    public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
+        super.addToGoggleTooltip(tooltip, isPlayerSneaking);
+        tooltip.add(new TextComponent(spacing).append(new TextComponent("Draining").withStyle(ChatFormatting.GRAY)));
+        tooltip.add(new TextComponent(spacing).append(new TextComponent(" " + getDrainRate() + "mb/t ")
+                .withStyle(ChatFormatting.AQUA)).append(new TextComponent("with current fuel").withStyle(ChatFormatting.DARK_GRAY)));
+        return true;
     }
 
     public float getFillState() {
@@ -57,6 +80,8 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
     public void write(CompoundTag compound, boolean clientPacket) {
         super.write(compound, clientPacket);
 
+        compound.putBoolean("active", active);
+
         compound.putFloat("LastCapacityProvided", lastCapacityProvided);
     }
 
@@ -64,6 +89,7 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
     protected void read(CompoundTag compound, boolean clientPacket) {
         super.read(compound, clientPacket);
 
+        active = compound.getBoolean("active");
 //        lastKnownPos = null;
 //
 //        if (compound.contains("LastKnownPos"))
@@ -74,10 +100,9 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
         if (compound.contains("LastCapacityProvided"))
             lastCapacityProvided = compound.getFloat("LastCapacityProvided");
 
-        if (!clientPacket)
-            return;
-
-
+        // Configure the chasing algorithm for visualSpeed
+        if (clientPacket)
+            visualSpeed.chase(getGeneratedSpeed(), 1 / 64f, Chaser.EXP);
     }
 
 //    @Override
@@ -101,13 +126,31 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
     public void initialize() {
         super.initialize();
         reversed = getSpeed() < 0;
+        if (!hasSource() | getGeneratedSpeed() > getTheoreticalSpeed()) {
+            updateGeneratedRotation();
+        }
     }
 
     @Override
     public void tick() {
         super.tick();
-        float speed = getSpeed();
 
+        if (level.isClientSide) {
+            // Copied from FlywheelTileEntity::tick()
+            float targetSpeed = getSpeed();
+            visualSpeed.updateChaseTarget(targetSpeed);
+            visualSpeed.tickChaser();
+            angle += visualSpeed.getValue() * 3 / 10f;
+            angle %= 360;
+        }
+
+        float speed = getSpeed();
+        if (first) {
+
+            updateGeneratedRotation();
+
+            first = false;
+        }
         float prevGeneratedSpeed = generatedSpeed;
         generatedSpeed = switch (getFuelQuality()) {
             case NONE -> 0;
@@ -162,6 +205,11 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
         }
     }
 
+    @Override
+    protected Block getStressConfigKey() {
+        return AllBlocks.WATER_WHEEL.get();
+    }
+
 //    void onFluidStackChanged()
 
 //    public static void drainTank(SmartFluidTankBehaviour tank, int amount) {
@@ -187,17 +235,19 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
         }
     }
 
-//    @Override
-//    public float calculateAddedStressCapacity() {
-//        return Math.abs(getGeneratedSpeed()) * 64;
-//    }
+    @Override
+    public float calculateAddedStressCapacity() {
+        capacity = Mth.abs(getGeneratedSpeed()) * 64;
+        this.lastCapacityProvided = capacity;
+        return capacity;
+    }
 
     @Override
     public float getGeneratedSpeed() {
         if (!ClockWorkBlocks.COMBUSTION_ENGINE.has(getBlockState()))
             return 0;
 
-        return convertToDirection(generatedSpeed, getBlockState().getValue(CombustionEngineBlock.FACING));
+        return convertToDirection(active ? generatedSpeed : 0, getBlockState().getValue(CombustionEngineBlock.FACING));
     }
 
     public boolean hasValidFuelType() {
@@ -237,10 +287,6 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
     @Override
     public FuelBoosterType getFuelBooster() {
         return null;
-    }
-
-    public EngineHeatLevel getHeatLevelFromBlock() {
-        return IHeatableBlock.getHeatLevelOf(getBlockState());
     }
 
     @Override

@@ -6,6 +6,10 @@ loom {
     accessWidenerPath = file("src/main/resources/vs_clockwork.accesswidener")
 }
 
+test {
+    useJUnitPlatform()
+}
+
 repositories {
     if (!block_external_repositories) {
         // mavens for Create Fabric and dependencies
@@ -44,7 +48,13 @@ dependencies {
     // CC Restitched
     modCompileOnly("curse.maven:cc-restitched-462672:3622561")
 
+
     modCompileOnly("com.rbasamoyai:createbigcannons-fabric-${minecraft_version}:${createbigcannons_version}")
+
+    // JUnit
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+
 }
 
 publishing {

@@ -43,19 +43,17 @@ import java.util.Random;
 
 import static com.simibubi.create.content.contraptions.base.DirectionalKineticBlock.FACING;
 
-public class BalloonerBlock extends HorizontalKineticBlock implements ITE<BalloonerBlockEntity>, IHeatableBlock {
+public class BalloonerBlock extends HorizontalKineticBlock implements ITE<BalloonerBlockEntity> {
 
 //    public static final EnumProperty<EngineHeatLevel> HEAT_LEVEL = EnumProperty.create("blaze", EngineHeatLevel.class);
 
     public BalloonerBlock(Properties properties) {
         super(properties);
-        registerDefaultState(defaultBlockState().setValue(HEAT_LEVEL, EngineHeatLevel.SMOULDERING));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
-        builder.add(HEAT_LEVEL);
     }
 
     @Override
@@ -83,36 +81,36 @@ public class BalloonerBlock extends HorizontalKineticBlock implements ITE<Balloo
     public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand,
                                  BlockHitResult blockRayTraceResult) {
         ItemStack heldItem = player.getItemInHand(hand);
-        EngineHeatLevel heat = state.getValue(HEAT_LEVEL);
         BalloonerBlockEntity te = (BalloonerBlockEntity) world.getBlockEntity(pos);
         // FOR TESTING, DONT LEAVE IT AS A HAND DIPSHIT
         if (AllItems.BRASS_HAND.isIn(heldItem)) {
             if (te != null) {
                 te.tryScan();
+                return InteractionResult.SUCCESS;
             }
         }
         boolean doNotConsume = player.isCreative();
         boolean forceOverflow = false;
 
-        InteractionResultHolder<ItemStack> res =
-                tryInsert(state, world, pos, heldItem, doNotConsume, forceOverflow, false);
-        ItemStack leftover = res.getObject();
-        if (!world.isClientSide && !doNotConsume && !leftover.isEmpty()) {
-            if (heldItem.isEmpty()) {
-                player.setItemInHand(hand, leftover);
-            } else if (!player.getInventory()
-                    .add(leftover)) {
-                player.drop(leftover, false);
-            }
-        }
+//        InteractionResultHolder<ItemStack> res =
+//                tryInsert(state, world, pos, heldItem, doNotConsume, forceOverflow, false);
+//        ItemStack leftover = res.getObject();
+//        if (!world.isClientSide && !doNotConsume && !leftover.isEmpty()) {
+//            if (heldItem.isEmpty()) {
+//                player.setItemInHand(hand, leftover);
+//            } else if (!player.getInventory()
+//                    .add(leftover)) {
+//                player.drop(leftover, false);
+//            }
+//        }
 
-        return res.getResult() == InteractionResult.SUCCESS ? InteractionResult.SUCCESS : InteractionResult.PASS;
+        return InteractionResult.PASS;
     }
 
-    public static InteractionResultHolder<ItemStack> tryInsert(BlockState state, Level world, BlockPos pos,
-                                                               ItemStack stack, boolean doNotConsume, boolean forceOverflow, boolean simulate) {
-        return PlatformUtils.tryInsert(state, world, pos, stack, doNotConsume, forceOverflow, simulate);
-    }
+//    public static InteractionResultHolder<ItemStack> tryInsert(BlockState state, Level world, BlockPos pos,
+//                                                               ItemStack stack, boolean doNotConsume, boolean forceOverflow, boolean simulate) {
+//        return PlatformUtils.tryInsert(state, world, pos, stack, doNotConsume, forceOverflow, simulate);
+//    }
 
     @Override
     public boolean showCapacityWithAnnotation() {
@@ -142,9 +140,6 @@ public class BalloonerBlock extends HorizontalKineticBlock implements ITE<Balloo
     public void animateTick(BlockState state, Level world, BlockPos pos, Random random) {
         if (random.nextInt(10) != 0)
             return;
-        if (!state.getValue(HEAT_LEVEL)
-                .isAtLeast(EngineHeatLevel.SMOULDERING))
-            return;
         world.playLocalSound((double) ((float) pos.getX() + 0.5F), (double) ((float) pos.getY() + 0.5F),
                 (double) ((float) pos.getZ() + 0.5F), SoundEvents.CAMPFIRE_CRACKLE, SoundSource.BLOCKS,
                 0.5F + random.nextFloat(), random.nextFloat() * 0.7F + 0.6F, false);
@@ -166,8 +161,7 @@ public class BalloonerBlock extends HorizontalKineticBlock implements ITE<Balloo
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockState defaultState = defaultBlockState();
-        return defaultState.setValue(HEAT_LEVEL, EngineHeatLevel.SMOULDERING)
-                .setValue(HORIZONTAL_FACING, context.getHorizontalDirection()
+        return defaultState.setValue(HORIZONTAL_FACING, context.getHorizontalDirection()
                         .getOpposite());
     }
 
@@ -179,6 +173,12 @@ public class BalloonerBlock extends HorizontalKineticBlock implements ITE<Balloo
     public boolean hasShaftTowards(LevelReader world, BlockPos pos, BlockState state, Direction face) {
         return face.getAxis() == getRotationAxis(state);
     }
+    @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+        getTileEntity(level, pos).setShouldRemove();
+        super.onRemove(state, level, pos, newState, isMoving);
+    }
+
     @Override
     public Class<BalloonerBlockEntity> getTileEntityClass() {
         return BalloonerBlockEntity.class;

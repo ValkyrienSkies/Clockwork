@@ -94,9 +94,9 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
             SequencedSeatRule rule = list.getRule(i);
             int ruleX = x + 38;
             int ruleY = y + 18 + i * (INPUT_FIELDS_HEIGHT + INPUT_FIELDS_MARGIN);
-            if (!rule.inputKeys().isEmpty() || i == 0) {
+            if (!rule.getInputKeys().isEmpty() || i == 0) {
                 operationInputs[i].visible = true;
-                SequencedSeatOperation operation = rule.operation();
+                SequencedSeatOperation operation = rule.getOperation();
 
                 if (operation != SequencedSeatOperation.NOTHING) {
                     valueInputs[i].visible = true;
@@ -106,7 +106,7 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
                     drawCenteredString(
                             ms,
                             font,
-                            rule.value().asComponent(),
+                            rule.getValue().asComponent(),
                             ruleX + 62 + (INPUT_VALUE_WIDTH / 2),
                             ruleY + ((INPUT_FIELDS_HEIGHT - font.lineHeight) / 2) + 1,
                             0xFFFFFF
@@ -171,7 +171,7 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
         return (ordinal) -> {
             SequencedSeatOperation operation = SequencedSeatOperation.values()[ordinal];
             currentList().setOperation(index, operation);
-            SequencedSeatValue value = currentList().getRule(index).value();
+            SequencedSeatValue value = currentList().getRule(index).getValue();
 
             if (value != null)
                 value.configureInput(valueInputs[index]);
@@ -234,11 +234,11 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
         this.currentShaft = rotation;
 
         for (int i = 0; i < SequencedSeatRuleList.MAX_RULES; i++) {
-            operationInputs[i].setState(currentList().getRule(i).operation().ordinal());
+            operationInputs[i].setState(currentList().getRule(i).getOperation().ordinal());
         }
 
         for (int i = 0; i < SequencedSeatRuleList.MAX_RULES; i++) {
-            SequencedSeatValue value = currentList().getRule(i).value();
+            SequencedSeatValue value = currentList().getRule(i).getValue();
 
             if (value != null)
                 value.configureInput(valueInputs[i]);
@@ -256,7 +256,7 @@ public class SequencedSeatScreen extends AbstractSimiScreen {
 
     private boolean isKeySelected(InputKey key, int index) {
         SequencedSeatRule rule = currentList().getRule(index);
-        return rule.inputKeys().contains(key);
+        return rule.getInputKeys().contains(key);
     }
 
     private void selectKey(InputKey key, int index) {

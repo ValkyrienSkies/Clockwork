@@ -6,22 +6,35 @@ import dan200.computercraft.api.peripheral.IPeripheralProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlockEntity;
-import org.valkyrienskies.clockwork.integration.cc.AfterblazerPeripheral;
+import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity;
+import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity;
+import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingBlockEntity;
+import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatBlockEntity;
+import org.valkyrienskies.clockwork.integration.cc.*;
 
 public class ClockworkFabricPeripheralProviders {
     public static void register() {
-        ComputerCraftAPI.registerPeripheralProvider(new AfterblazerPeripheralProvider());
+        ComputerCraftAPI.registerPeripheralProvider(new ClockworkPeripheralProvider());
     }
 
-    public static class AfterblazerPeripheralProvider implements IPeripheralProvider {
+    public static class ClockworkPeripheralProvider implements IPeripheralProvider {
         @NotNull
         @Override
         public IPeripheral getPeripheral(@NotNull Level level, @NotNull BlockPos blockPos, @NotNull Direction direction) {
-            if (level.getBlockEntity(blockPos) instanceof AfterblazerBlockEntity afterblazer) {
+            BlockEntity be = level.getBlockEntity(blockPos);
+            if (be instanceof AfterblazerBlockEntity afterblazer)
                 return new AfterblazerPeripheral(afterblazer);
-            }
+            else if (be instanceof BalloonerBlockEntity ballooner)
+                return new BalloonerPeripheral(ballooner);
+            else if (be instanceof FlapBearingBlockEntity flap)
+                return new FlapBearingPeripheral(flap);
+            else if (be instanceof PropellorBearingBlockEntity propellor)
+                return new PropellorBearingPeripheral(propellor);
+            else if (be instanceof SequencedSeatBlockEntity seat)
+                return new CommandSeatPeripheral(seat);
             return null;
         }
     }

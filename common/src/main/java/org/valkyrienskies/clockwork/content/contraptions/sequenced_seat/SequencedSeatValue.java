@@ -79,7 +79,7 @@ public interface SequencedSeatValue {
         public void configureInput(ScrollInput input) {
             input.setState(degrees);
             input.titled(KEY);
-            input.withRange(-360, 360);
+            input.withRange(-180, 180);
             input.calling(v -> degrees = v);
         }
 

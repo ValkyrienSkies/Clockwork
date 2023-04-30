@@ -54,7 +54,7 @@ public class ClockWorkBlocks {
                     .transform(axeOrPickaxe())
                     .properties(p -> p.color(MaterialColor.PODZOL))
                     .transform(BuilderTransformersClockwork.flapbearing())
-                    .transform(BlockStressDefaults.setImpact(12.0))
+                    .transform(BlockStressDefaults.setImpact(4.0))
                     .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
                     .register();
 
@@ -62,7 +62,6 @@ public class ClockWorkBlocks {
             REGISTRATE.block("afterblazer", AfterblazerBlock::new)
                     .initialProperties(SharedProperties::softMetal)
                     .properties(p -> p.color(MaterialColor.COLOR_GRAY))
-                    .properties(p -> p.lightLevel(IHeatableBlock::getLight))
                     .transform(pickaxeOnly())
                     .addLayer(() -> RenderType::cutoutMipped)
                     .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)

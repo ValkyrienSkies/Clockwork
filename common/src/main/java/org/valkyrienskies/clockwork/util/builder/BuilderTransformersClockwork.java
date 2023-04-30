@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.util.builder;
 
 
 import com.simibubi.create.AllBlocks;
+import com.simibubi.create.Create;
 import com.simibubi.create.content.contraptions.base.RotatedPillarKineticBlock;
 import com.simibubi.create.content.contraptions.relays.encased.EncasedCTBehaviour;
 import com.simibubi.create.foundation.block.BlockStressDefaults;
@@ -10,6 +11,8 @@ import com.simibubi.create.foundation.data.AssetLookup;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.simibubi.create.foundation.data.SharedProperties;
 import com.tterrag.registrate.builders.BlockBuilder;
+import com.tterrag.registrate.builders.FluidBuilder;
+import com.tterrag.registrate.fabric.SimpleFlowableFluid;
 import com.tterrag.registrate.util.nullness.NonNullUnaryOperator;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ItemLike;
@@ -33,7 +36,6 @@ public class BuilderTransformersClockwork {
                 .transform(BlockStressDefaults.setNoImpact())
                 .loot((p, lb) -> p.dropOther(lb, drop.get()));
     }
-
 
     public static <B extends Block, P> NonNullUnaryOperator<BlockBuilder<B, P>> infuser() {
         ResourceLocation baseBlockModelLocation = ClockWorkMod.asResource("block/physics_infuser/block");

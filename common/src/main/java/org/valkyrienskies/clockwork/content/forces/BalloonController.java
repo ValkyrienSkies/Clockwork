@@ -1,8 +1,7 @@
 package org.valkyrienskies.clockwork.content.forces;
 
-import it.unimi.dsi.fastutil.Pair;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.minecraft.core.BlockPos;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import kotlin.Pair;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3d;
@@ -15,20 +14,20 @@ import org.valkyrienskies.core.api.ships.ServerShip;
 import org.valkyrienskies.core.impl.api.ShipForcesInducer;
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl;
 
+import java.util.HashMap;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import static org.valkyrienskies.clockwork.content.forces.PropellorController.areQueuesEqual;
+
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class BalloonController implements ShipForcesInducer {
-
-    public final Int2ObjectOpenHashMap<BalloonData> balloonData = new Int2ObjectOpenHashMap<>();
-
+    public final HashMap<Integer, BalloonData> balloonData = new HashMap<>();
     private final ConcurrentHashMap<Integer, BalloonUpdateData> balloonUpdateData = new ConcurrentHashMap<>();
-
     private final ConcurrentLinkedQueue<Pair<Integer, BalloonCreateData>> createdBalloons = new ConcurrentLinkedQueue<>();
-
     private final ConcurrentLinkedQueue<Integer> removedBalloons = new ConcurrentLinkedQueue<>();
-
     private int nextBalloonID = 0;
 
     public static BalloonController getOrCreate(ServerShip ship) {
@@ -43,12 +42,12 @@ public class BalloonController implements ShipForcesInducer {
     public void applyForces(@NotNull PhysShip physShip) {
         while (!createdBalloons.isEmpty()) {
             final Pair<Integer, BalloonCreateData> createData = createdBalloons.remove();
-            balloonData.put(createData.left(), new BalloonData(
-                    createData.right().burnerPos(),
-                    createData.right().volume(),
-                    createData.right().rpm(),
-                    createData.right().burnTemp(),
-                    createData.right().heatLevel()
+            balloonData.put(createData.component1(), new BalloonData(
+                    createData.component2().burnerPos(),
+                    createData.component2().volume(),
+                    createData.component2().rpm(),
+                    createData.component2().burnTemp(),
+                    createData.component2().fuelQuality()
             ));
         }
         while (!removedBalloons.isEmpty()) {
@@ -61,7 +60,7 @@ public class BalloonController implements ShipForcesInducer {
                 return;
             }
             physData.volume = data.volume();
-            physData.heatLevel = data.heatLevel();
+            physData.fuelQuality = data.fuelQuality();
             physData.burnTemp = data.burnTemp();
             physData.rpm = data.rpm();
         });
@@ -129,7 +128,7 @@ public class BalloonController implements ShipForcesInducer {
         // f = v * dp * g
         double force = volume * (standardDensity - internalDensity) * gravity;
 
-        Vector3dc forceVec = new Vector3d(0, force*10000, 0);
+        Vector3dc forceVec = new Vector3d(0, force*50000, 0);
         return forceVec;
     }
 
@@ -144,13 +143,8 @@ public class BalloonController implements ShipForcesInducer {
     }
 
     private Vector3d airResistance(PhysShipImpl physShip) {
-        double resistance = 0.05;
-
-        resistance = resistance;
-
-        Vector3d drag = physShip.getPoseVel().getVel().mul(physShip.getInertia().getMomentOfInertiaTensor(), new Vector3d()).mul(-resistance);
-
-        return drag;
+        double resistance = 0.01;
+        return physShip.getPoseVel().getVel().mul(physShip.getInertia().getShipMass(), new Vector3d()).mul(-resistance);
     }
 
     private double airPressure(Vector3dc pos) {
@@ -170,7 +164,7 @@ public class BalloonController implements ShipForcesInducer {
 
     public int addBalloon(BalloonCreateData data) {
         int id = nextBalloonID++;
-        createdBalloons.add(Pair.of(id, data));
+        createdBalloons.add(new Pair(id, data));
         return id;
     }
 
@@ -182,5 +176,19 @@ public class BalloonController implements ShipForcesInducer {
         balloonUpdateData.put(id, data);
     }
 
-
+    @Override
+    public boolean equals(final Object other) {
+        // self check
+        if (this == other) {
+            return true;
+        } else if (!(other instanceof final BalloonController otherController)) {
+            return false;
+        } else {
+            return Objects.equals(balloonData, otherController.balloonData)
+                    && Objects.equals(balloonUpdateData, otherController.balloonUpdateData)
+                    && areQueuesEqual(createdBalloons, otherController.createdBalloons)
+                    && areQueuesEqual(removedBalloons, otherController.removedBalloons)
+                    && nextBalloonID == otherController.nextBalloonID;
+        }
+    }
 }

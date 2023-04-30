@@ -1,35 +1,38 @@
 package org.valkyrienskies.clockwork.content.forces;
 
-import it.unimi.dsi.fastutil.Pair;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import kotlin.Pair;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
-import org.joml.*;
+import org.joml.AxisAngle4d;
+import org.joml.Quaterniond;
+import org.joml.Quaterniondc;
+import org.joml.Vector3d;
+import org.joml.Vector3dc;
+import org.joml.Vector3ic;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorCreatePhysData;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorPhysData;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorUpdatePhysData;
 import org.valkyrienskies.core.api.ships.PhysShip;
 import org.valkyrienskies.core.api.ships.ServerShip;
-import org.valkyrienskies.core.api.ships.properties.ShipInertiaData;
 import org.valkyrienskies.core.api.ships.properties.ShipTransform;
 import org.valkyrienskies.core.impl.api.ShipForcesInducer;
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl;
 import org.valkyrienskies.core.impl.game.ships.ShipInertiaDataImpl;
 
-import java.lang.Math;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Objects;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class PropellorController implements ShipForcesInducer {
-
-    final Int2ObjectOpenHashMap<PropellorPhysData> propellorPhysData = new Int2ObjectOpenHashMap<>();
-
+    private final HashMap<Integer, PropellorPhysData> propellorPhysData = new HashMap<>();
     private final ConcurrentHashMap<Integer, PropellorUpdatePhysData> propellorUpdatePhysData = new ConcurrentHashMap<>();
-
     private final ConcurrentLinkedQueue<Pair<Integer, PropellorCreatePhysData>> createdProps = new ConcurrentLinkedQueue<>();
-
     private final ConcurrentLinkedQueue<Integer> removedProps = new ConcurrentLinkedQueue<>();
-
     private int nextPropID = 0;
 
     @Override
@@ -37,17 +40,16 @@ public class PropellorController implements ShipForcesInducer {
         while (!createdProps.isEmpty()) {
             final Pair<Integer, PropellorCreatePhysData> createData = createdProps.remove();
             ShipInertiaDataImpl propInertiaData = ShipInertiaDataImpl.Companion.newEmptyShipInertiaData();
-            for (Vector3ic i : createData.right().propellorPositions()) {
+            for (Vector3ic i : createData.component2().propellorPositions()) {
                 propInertiaData.onSetBlock(i.x(), i.y(), i.z(), 0, 100);
             }
-            propellorPhysData.put(createData.left(), new PropellorPhysData(
-                    createData.right().bearingPos(),
-                    createData.right().bearingAxis(),
-                    createData.right().bearingAngle(),
-                    createData.right().bearingSpeed(),
-                    createData.right().propellorPositions(),
-                    createData.right().inverted(),
-                    propInertiaData
+            propellorPhysData.put(createData.component1(), new PropellorPhysData(
+                    createData.component2().bearingPos(),
+                    createData.component2().bearingAxis(),
+                    createData.component2().bearingAngle(),
+                    createData.component2().bearingSpeed(),
+                    createData.component2().propellorPositions(),
+                    createData.component2().inverted()
             ));
 
         }
@@ -71,10 +73,10 @@ public class PropellorController implements ShipForcesInducer {
         Vector3d netForce = new Vector3d();
         Vector3d netTorque = new Vector3d();
 
-        for (PropellorPhysData physData: propellorPhysData.values()) {
+        for (PropellorPhysData physData : propellorPhysData.values()) {
             Pair<Vector3dc, Vector3dc> forceTorque = computeForce(physShip.getTransform(), physData, ((PhysShipImpl) physShip).getPoseVel().getVel(), ((PhysShipImpl) physShip).getPoseVel().getOmega(), ((PhysShipImpl) physShip));
-            netForce.add(forceTorque.left());
-            netTorque.add(forceTorque.right());
+            netForce.add(forceTorque.component1());
+            netTorque.add(forceTorque.component2());
         }
 
         if (netForce.isFinite() && netTorque.isFinite()) {
@@ -83,17 +85,17 @@ public class PropellorController implements ShipForcesInducer {
         }
 
 
-
         // Propellor Pushing
 
 
     }
 
     private Pair<Vector3dc, Vector3dc> computeForce(ShipTransform physTransform, PropellorPhysData physProp, Vector3dc vel, Vector3dc omega, PhysShipImpl physShip) {
+        final double modifiedSpeed = physProp.bearingSpeed;
         Vector3dc bearingVector = new Vector3d(physProp.bearingPos).add(0.5, 0.5, 0.5);
-        Vector3dc axis = physProp.bearingAxis.mul(Math.signum(physProp.bearingSpeed), new Vector3d());
+        Vector3dc axis = physProp.bearingAxis.mul(Math.signum(modifiedSpeed), new Vector3d());
         Quaterniondc rotation = new Quaterniond(new AxisAngle4d(Math.toRadians(physProp.bearingAngle), axis));
-        Vector3dc angVel = axis.mul((physProp.bearingSpeed/60.0) * (2.0 * Math.PI), new Vector3d());
+        Vector3dc angVel = axis.mul((modifiedSpeed / 60.0) * (2.0 * Math.PI), new Vector3d());
 
         Vector3d furthestTip = new Vector3d();
 
@@ -108,7 +110,7 @@ public class PropellorController implements ShipForcesInducer {
             if (rotatedDiff.length() > furthestTip.length()) {
                 furthestTip.set(rotatedDiff);
             }
-            Vector3d force = physTransform.getShipToWorldRotation().transform(axis.mul(sailVel.length() * 1000, new Vector3d()));
+            Vector3d force = physTransform.getShipToWorldRotation().transform(axis.mul(sailVel.length(), new Vector3d())).mul(5000, new Vector3d());
 //            Vector3d force2 = force.mul(physProp.bearingSpeed, new Vector3d());
             Vector3dc sailPosWorld = physTransform.getShipToWorld().transformPosition(sailVector, new Vector3d());
             Vector3dc sailPosRelShip = sailPosWorld.sub(physTransform.getPositionInWorld(), new Vector3d());
@@ -127,20 +129,19 @@ public class PropellorController implements ShipForcesInducer {
             netTorque.add(torque);
         }
 
-        netTorque.add(conserveMomentum(physShip, physProp, furthestTip, angVel));
+//        netTorque.add(conserveMomentum(physShip, physProp, furthestTip, angVel));
         if (physProp.inverted) {
             netForce.mul(-1);
         }
-        System.out.println(netTorque);
-        return Pair.of(netForce, netTorque);
+//        System.out.println(netTorque);
+        return new Pair<>(netForce, netTorque);
     }
 
-    private Vector3dc conserveMomentum (PhysShipImpl physShip, PropellorPhysData physProp, Vector3dc furthestTip, Vector3dc angVel) {
+    private Vector3dc conserveMomentum(PhysShipImpl physShip, PropellorPhysData physProp, Vector3dc furthestTip, Vector3dc angVel) {
         Vector3dc prevAngMomentumRelProp = new Vector3d();
         if (physProp.getPrevAngularMomentum() != null) {
             prevAngMomentumRelProp = physProp.getPrevAngularMomentum();
         }
-        Vector3dc propPos = physProp.bearingPos;
 
         Vector3dc propAxis = new Vector3d(physProp.bearingAxis);
         double propSpeed = physProp.bearingSpeed;
@@ -152,11 +153,12 @@ public class PropellorController implements ShipForcesInducer {
 
         Vector3dc angularVelocityPropellor = new Vector3d(propAxis).mul(rotVel);
 
-        Vector3dc angularMomentumRelProp = angularVelocityPropellor.mul(physProp.inertiaData.getMomentOfInertiaTensor(), new Vector3d());
+        Vector3dc angularMomentumRelProp = angularVelocityPropellor.mul(physShip.getInertia().getMomentOfInertiaTensor(), new Vector3d());
 
         // Add to convert from momentum relative to wheel into relative to ship
-        Vector3dc r = new Vector3d(physProp.inertiaData.getCenterOfMassInShip().add(physProp.bearingPos, new Vector3d())).sub(physShip.getTransform().getPositionInShip()).rotate(physShip.getTransform().getShipToWorldRotation());
-        Vector3dc momentumModifier = new Vector3d(physShip.getPoseVel().getOmega()).cross(r).mul(physProp.inertiaData.getMass());
+        Vector3dc centerOfMassInShip = physShip.getTransform().getPositionInShip();
+        Vector3dc r = new Vector3d(centerOfMassInShip.add(physProp.bearingPos, new Vector3d())).sub(physShip.getTransform().getPositionInShip()).rotate(physShip.getTransform().getShipToWorldRotation());
+        Vector3dc momentumModifier = new Vector3d(physShip.getPoseVel().getOmega()).cross(r).mul(physShip.getInertia().getShipMass());
 
         Vector3dc angularMomentumRelShip = new Vector3d(angularMomentumRelProp).add(momentumModifier);
         Vector3dc prevAngularMomentumRelShip = new Vector3d(prevAngMomentumRelProp).add(momentumModifier);
@@ -169,9 +171,9 @@ public class PropellorController implements ShipForcesInducer {
     }
 
     private double airPressure(Vector3dc pos) {
-        double offset = Math.exp(-(320.0-64.0)/192.0);
+        double offset = Math.exp(-(320.0 - 64.0) / 192.0);
         double height = pos.y();
-        double airPress = (Math.exp(-(height-64.0)/192)-offset)/(1.0-offset);
+        double airPress = (Math.exp(-(height - 64.0) / 192) - offset) / (1.0 - offset);
         if (Double.isFinite(airPress)) {
             return Mth.clamp(airPress, 0, 1);
         } else {
@@ -186,7 +188,7 @@ public class PropellorController implements ShipForcesInducer {
 
     public int addPropellor(PropellorCreatePhysData data) {
         int id = nextPropID++;
-        createdProps.add(Pair.of(id, data));
+        createdProps.add(new Pair<>(id, data));
         return id;
     }
 
@@ -199,9 +201,29 @@ public class PropellorController implements ShipForcesInducer {
     }
 
     public static PropellorController getOrCreate(ServerShip ship) {
-        if(ship.getAttachment(PropellorController.class) == null) {
+        if (ship.getAttachment(PropellorController.class) == null) {
             ship.saveAttachment(PropellorController.class, new PropellorController());
         }
         return ship.getAttachment(PropellorController.class);
+    }
+
+    public static <T> boolean areQueuesEqual(final Queue<T> left, final Queue<T> right) {
+        return Arrays.equals(left.toArray(), right.toArray());
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+        // self check
+        if (this == other) {
+            return true;
+        } else if (!(other instanceof final PropellorController otherPropeller)) {
+            return false;
+        } else {
+            return Objects.equals(propellorPhysData, otherPropeller.propellorPhysData)
+                    && Objects.equals(propellorUpdatePhysData, otherPropeller.propellorUpdatePhysData)
+                    && areQueuesEqual(createdProps, otherPropeller.createdProps)
+                    && areQueuesEqual(removedProps, otherPropeller.removedProps)
+                    && nextPropID == otherPropeller.nextPropID;
+        }
     }
 }

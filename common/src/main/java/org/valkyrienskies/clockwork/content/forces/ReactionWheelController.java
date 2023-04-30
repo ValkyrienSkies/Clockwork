@@ -119,7 +119,7 @@ public class ReactionWheelController implements ShipForcesInducer {
 
         physWheel.prevAngMomentum = angularMomentumRelWheel;
 
-        return torque;
+        return torque.mul(1000, new Vector3d());
     }
 
     public int addReactionWheel(ReactionWheelCreateData data) {
@@ -134,5 +134,12 @@ public class ReactionWheelController implements ShipForcesInducer {
 
     public void updateReactionWheel(int id, ReactionWheelUpdateData data) {
         reactionwheelUpdateData.put(id, data);
+    }
+
+    public boolean checkReactionWheel(Integer id) {
+        if (id != null) {
+            return reactionwheelData.containsKey(id);
+        }
+        return false;
     }
 }

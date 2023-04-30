@@ -45,6 +45,21 @@ public class ClockWorkSounds {
             .attenuationDistance(16)
             .build(),
 
+    THICK_FLUID_SWIM = create("thick_fluid_swim").subtitle("Swimming through thick fluid")
+            .category(SoundSource.BLOCKS)
+            .attenuationDistance(16)
+            .build(),
+
+    THICK_FLUID_FILL = create("thick_fluid_fill").subtitle("Filled with a thick fluid")
+            .category(SoundSource.PLAYERS)
+            .attenuationDistance(16)
+            .build(),
+
+    THICK_FLUID_EMPTY = create("thick_fluid_empty").subtitle("Emptied a thick fluid")
+            .category(SoundSource.PLAYERS)
+            .attenuationDistance(16)
+            .build(),
+
     PHYSICS_INFUSER_FINISH = create("physics_infuser_finish").subtitle("Physics Infuser infuses")
             .category(SoundSource.BLOCKS)
             .attenuationDistance(64)

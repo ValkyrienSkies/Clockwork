@@ -17,6 +17,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.BlockHitResult;
 import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.InputKey;
@@ -41,12 +42,12 @@ public class PlatformUtils {
         throw new AssertionError();
     }
 
-    @ExpectPlatform
-    public static InteractionResultHolder<ItemStack> tryInsert(BlockState state, Level world, BlockPos pos,
-                                                               ItemStack stack, boolean doNotConsume, boolean forceOverflow, boolean simulate) {throw new AssertionError();}
+//    @ExpectPlatform
+//    public static InteractionResultHolder<ItemStack> tryInsert(BlockState state, Level world, BlockPos pos,
+//                                                               ItemStack stack, boolean doNotConsume, boolean forceOverflow, boolean simulate) {throw new AssertionError();}
 
-    @ExpectPlatform
-    public static boolean tryUpdateFuel(ItemStack itemStack, boolean forceOverflow, boolean simulate, BalloonerBlockEntity blockEntity) {throw new AssertionError();}
+//    @ExpectPlatform
+//    public static boolean tryUpdateFuel(ItemStack itemStack, boolean forceOverflow, boolean simulate, BalloonerBlockEntity blockEntity) {throw new AssertionError();}
     @ExpectPlatform
     public static int maxBalloonRange() {throw new AssertionError();}
 

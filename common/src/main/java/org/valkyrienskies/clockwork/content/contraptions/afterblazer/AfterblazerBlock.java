@@ -38,14 +38,14 @@ import org.valkyrienskies.clockwork.util.blocktype.IHeatableBlock;
 import javax.annotation.Nullable;
 import java.util.Random;
 
-public class AfterblazerBlock extends DirectionalBlock implements ITE<AfterblazerBlockEntity>, IWrenchable, IHeatableBlock {
+public class AfterblazerBlock extends DirectionalBlock implements ITE<AfterblazerBlockEntity>, IWrenchable {
 
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
 //    public static final EnumProperty<EngineHeatLevel> HEAT_LEVEL = EnumProperty.create("afterblazer", EngineHeatLevel.class);
 
     public AfterblazerBlock(Properties properties) {
         super(properties);
-        registerDefaultState(defaultBlockState().setValue(HEAT_LEVEL, EngineHeatLevel.SMOULDERING).setValue(POWERED, false));
+        registerDefaultState(defaultBlockState().setValue(POWERED, false));
     }
 
     @Override
@@ -62,10 +62,15 @@ public class AfterblazerBlock extends DirectionalBlock implements ITE<Afterblaze
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(POWERED);
         super.createBlockStateDefinition(builder);
-        builder.add(HEAT_LEVEL, FACING);
+        builder.add(FACING);
     }
 
 
+    @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+        getTileEntity(level, pos).setShouldRemove();
+        super.onRemove(state, level, pos, newState, isMoving);
+    }
 
     @Nullable
     @Override
@@ -77,8 +82,6 @@ public class AfterblazerBlock extends DirectionalBlock implements ITE<Afterblaze
     public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand,
                                  BlockHitResult blockRayTraceResult) {
         ItemStack heldItem = player.getItemInHand(hand);
-        EngineHeatLevel heat = state.getValue(HEAT_LEVEL);
-
         if (AllItems.GOGGLES.isIn(heldItem))
             return onTileEntityUse(world, pos, bbte -> {
                 if (bbte.goggles)
@@ -116,9 +119,7 @@ public class AfterblazerBlock extends DirectionalBlock implements ITE<Afterblaze
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockState defaultState = defaultBlockState();
-        EngineHeatLevel initialHeat = EngineHeatLevel.SMOULDERING;
-        return defaultState.setValue(HEAT_LEVEL, initialHeat)
-                .setValue(FACING, context.getNearestLookingDirection()
+        return defaultState.setValue(FACING, context.getNearestLookingDirection()
                         .getOpposite())
                 .setValue(POWERED, false);
     }
@@ -134,9 +135,6 @@ public class AfterblazerBlock extends DirectionalBlock implements ITE<Afterblaze
     public void animateTick(BlockState state, Level world, BlockPos pos, Random random) {
         if (random.nextInt(10) != 0)
             return;
-        if (!state.getValue(HEAT_LEVEL)
-                .isAtLeast(EngineHeatLevel.SMOULDERING))
-            return;
 
         Direction dir = state.getValue(FACING);
         double x = pos.getX() + ((dir.getStepX() + 1) * 0.5);
@@ -145,7 +143,7 @@ public class AfterblazerBlock extends DirectionalBlock implements ITE<Afterblaze
         AfterblazerBlockEntity te = getTileEntity(world, pos);
         double force = 0;
         if (te != null) {
-            force = te.getParticleThrust(IHeatableBlock.getHeatLevelOf(state));
+            force = te.getParticleThrust();
         }
         double speedX = dir.getStepX() * force;
         double speedY = dir.getStepY() * force;
