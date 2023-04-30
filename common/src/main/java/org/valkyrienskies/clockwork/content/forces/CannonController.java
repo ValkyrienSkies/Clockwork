@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.forces;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
@@ -12,13 +13,18 @@ import org.valkyrienskies.core.api.ships.PhysShip;
 import org.valkyrienskies.core.api.ships.ServerShip;
 import org.valkyrienskies.core.impl.api.ShipForcesInducer;
 
+import java.util.HashMap;
+import java.util.Objects;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import static org.valkyrienskies.clockwork.content.forces.PropellorController.areQueuesEqual;
+
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class CannonController implements ShipForcesInducer {
 
-    public final Int2ObjectOpenHashMap<CannonData> cannonData = new Int2ObjectOpenHashMap<>();
+    public final HashMap<Integer, CannonData> cannonData = new HashMap<>();
 
     private final ConcurrentHashMap<Integer, CannonUpdateData> cannonUpdateData = new ConcurrentHashMap<>();
 
@@ -53,23 +59,22 @@ public class CannonController implements ShipForcesInducer {
                 return;
             }
             physData.recoilVector = data.recoilVector();
-            physData.recoilForce = data.recoilForce();
         });
 
         cannonUpdateData.clear();
 
         for (CannonData data : cannonData.values()) {
-            if (data.recoilForce == 0) {
+            if (data.recoilVector == null) {
                 continue;
             }
-            Vector3dc force = new Vector3d(data.recoilVector.mul(data.recoilForce, new Vector3d())).mul(1000);
+
+            Vector3dc force = new Vector3d(data.recoilVector.mul(1, new Vector3d())).mul(1000);
 
             Vector3dc cannonPosInShip = data.cannonPos.sub(physShip.getTransform().getPositionInShip(), new Vector3d());
 
             physShip.applyRotDependentForceToPos(force, cannonPosInShip);
 
-            data.recoilForce = 0;
-            data.recoilVector = new Vector3d();
+            data.recoilVector = null;
         }
     }
 
@@ -79,11 +84,27 @@ public class CannonController implements ShipForcesInducer {
         return id;
     }
 
-    public void removeBalloon(int id) {
+    public void removeCannon(int id) {
         removedCannons.add(id);
     }
 
-    public void updateBalloon(int id, CannonUpdateData data) {
+    public void updateCannon(int id, CannonUpdateData data) {
         cannonUpdateData.put(id, data);
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+        // self check
+        if (this == other) {
+            return true;
+        } else if (!(other instanceof final CannonController otherController)) {
+            return false;
+        } else {
+            return Objects.equals(cannonData, otherController.cannonData)
+                    && Objects.equals(cannonUpdateData, otherController.cannonUpdateData)
+                    && areQueuesEqual(createdCannons, otherController.createdCannons)
+                    && areQueuesEqual(removedCannons, otherController.removedCannons)
+                    && nextCannonID == otherController.nextCannonID;
+        }
     }
 }

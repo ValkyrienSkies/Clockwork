@@ -1,12 +1,15 @@
 package org.valkyrienskies.clockwork.mixin.compat.cannons;
 
 import com.simibubi.create.content.contraptions.base.KineticTileEntity;
+import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3d;
 import org.joml.Vector3dc;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -14,6 +17,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.valkyrienskies.clockwork.content.contraptions.cannons.CannonCreateData;
+import org.valkyrienskies.clockwork.content.contraptions.cannons.CannonUpdateData;
+import org.valkyrienskies.clockwork.content.forces.CannonController;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
@@ -21,13 +26,57 @@ import rbasamoyai.createbigcannons.cannon_control.ControlPitchContraption;
 import rbasamoyai.createbigcannons.cannon_control.cannon_mount.CannonMountBlockEntity;
 
 @Mixin(CannonMountBlockEntity.class)
-public class MixinCannonMount extends KineticTileEntity {
+public abstract class MixinCannonMount extends KineticTileEntity implements ControlPitchContraption.Block {
 
     private Integer cannonID = null;
     private boolean alreadyAdded = false;
 
+    Vector3d recoilVec = null;
+    double recoilForce = 0;
+
     public MixinCannonMount(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {
         super(typeIn, pos, state);
+    }
+
+    @Override
+    public void cacheRecoilVector(Vec3 vector, AbstractContraptionEntity cannon) {
+        recoilVec = VectorConversionsMCKt.toJOML(vector);
+    }
+
+    @Unique
+    private void handleAssembly() {
+        LoadedServerShip ship = null;
+        if (!level.isClientSide) {
+            if (VSGameUtilsKt.getShipObjectManagingPos(level, getBlockPos()) != null) {
+                ship = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, getBlockPos());
+            }
+        }
+
+        if (ship != null) {
+            if (!alreadyAdded && cannonID == null) {
+                Vector3dc pos = VectorConversionsMCKt.toJOMLD(worldPosition);
+                final CannonCreateData data = new CannonCreateData(pos);
+                cannonID = CannonController.getOrCreate(ship).addCannon(data);
+                alreadyAdded = true;
+            }
+        }
+    }
+
+    @Unique
+    private void handleDisassembly() {
+        LoadedServerShip ship = null;
+        if (!level.isClientSide) {
+            if (VSGameUtilsKt.getShipObjectManagingPos(level, getBlockPos()) != null) {
+                ship = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, getBlockPos());
+            }
+        }
+        if (cannonID != null) {
+            CannonController.getOrCreate(ship).removeCannon(cannonID);
+            cannonID = null;
+            alreadyAdded = false;
+            recoilVec = null;
+        }
+
     }
 
     @Unique
@@ -41,21 +90,16 @@ public class MixinCannonMount extends KineticTileEntity {
             }
         }
         if (ship != null) {
-            if (!alreadyAdded && cannonID == null) {
-                Vector3dc pos = VectorConversionsMCKt.toJOMLD(worldPosition);
-                Vector3dc axis = VectorConversionsMCKt.toJOMLD(getBlockState().getValue(BlockStateProperties.FACING).getNormal());
-                final CannonCreateData data = new CannonCreateData();
-                fanID = EncasedFanController.getOrCreate(ship).addEncasedFan(data);
-                alreadyAdded = true;
-            }
-            if (alreadyAdded && fanID != null) {
-                final EncasedFanUpdateData data = new EncasedFanUpdateData(speed);
-                EncasedFanController.getOrCreate(ship).updateEncasedFan(fanID, data);
+            if (alreadyAdded && cannonID != null) {
+                if (recoilVec != null) {
+                    final CannonUpdateData data = new CannonUpdateData(recoilVec);
+                    CannonController.getOrCreate(ship).updateCannon(cannonID, data);
+                }
             }
             if (this.isRemoved()) {
-                if (fanID != null) {
-                    EncasedFanController.getOrCreate(ship).removeEncasedFan(fanID);
-                    fanID = null;
+                if (cannonID != null) {
+                    CannonController.getOrCreate(ship).removeCannon(cannonID);
+                    cannonID = null;
                     alreadyAdded = false;
                 }
             }
@@ -66,12 +110,22 @@ public class MixinCannonMount extends KineticTileEntity {
         handleController();
     }
 
+    @Inject(method = "assemble", at = @At("RETURN"), remap = false)
+    private void injectAssemble(CallbackInfo ci) {
+        handleAssembly();
+    }
+
+    @Inject(method = "disassemble", at = @At("HEAD"), remap = false)
+    private void injectDisassemble(CallbackInfo ci) {
+        handleDisassembly();
+    }
+
     @Unique
     private CompoundTag writeToCompound(CompoundTag compound, boolean clientPacket){
         //write here
         compound.putBoolean("alreadyAdded", alreadyAdded);
-        if (fanID != null) {
-            compound.putInt("fanID", fanID);
+        if (cannonID != null) {
+            compound.putInt("cannonID", cannonID);
         }
         return compound;
     }
@@ -86,8 +140,8 @@ public class MixinCannonMount extends KineticTileEntity {
     private CompoundTag readFromCompound(CompoundTag compound, boolean clientPacket){
         //read (and remove before it passes up?) here
         alreadyAdded = compound.getBoolean("alreadyAdded");
-        if (compound.contains("fanID")) {
-            fanID = compound.getInt("fanID");
+        if (compound.contains("cannonID")) {
+            cannonID = compound.getInt("cannonID");
         }
         return compound;
     }
