@@ -67,4 +67,9 @@ public class BalloonerPeripheral implements IPeripheral {
     public final boolean isSealed() {
         return this.ballooner.getVolume().size() > 0;
     }
+
+    @LuaFunction
+    public final double getFuelConsumptionRate() {
+        return this.ballooner.getDrainRate();
+    }
 }
