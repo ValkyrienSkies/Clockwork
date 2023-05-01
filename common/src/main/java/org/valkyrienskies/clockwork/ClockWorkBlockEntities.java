@@ -2,6 +2,8 @@ package org.valkyrienskies.clockwork;
 
 
 import com.simibubi.create.content.contraptions.base.KineticTileEntity;
+import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingInstance;
+import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingRenderer;
 import com.simibubi.create.content.contraptions.relays.encased.ShaftInstance;
 import com.simibubi.create.content.contraptions.relays.encased.ShaftRenderer;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
@@ -17,6 +19,8 @@ import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserB
 import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.intake.IntakeBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.intake.IntakeRenderer;
+import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity;
+import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.reaction_wheel.ReactionWheelBlockEntity;
@@ -36,6 +40,13 @@ public class ClockWorkBlockEntities {
 //            .instance(() -> BearingInstance::new)
             .validBlocks(ClockWorkBlocks.PROPELLOR_BEARING)
             .renderer(() -> PropellorBearingRenderer::new)
+            .register();
+
+    public static final BlockEntityEntry<PhysBearingBlockEntity> PHYS_BEARING = REGISTRATE
+            .tileEntity("phys_bearing", PhysBearingBlockEntity::new)
+//            .instance(() -> BearingInstance::new)
+            .validBlocks(ClockWorkBlocks.PHYS_BEARING)
+            .renderer(() -> PhysBearingRenderer::new)
             .register();
 
     public static final BlockEntityEntry<AfterblazerBlockEntity> AFTERBLAZER = REGISTRATE

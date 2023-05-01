@@ -18,6 +18,7 @@ import org.valkyrienskies.clockwork.content.contraptions.combustion_engine.Combu
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock;
 import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserBlock;
 import org.valkyrienskies.clockwork.content.contraptions.intake.IntakeBlock;
+import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingBlock;
 import org.valkyrienskies.clockwork.content.contraptions.reaction_wheel.ReactionWheelBlock;
 import org.valkyrienskies.clockwork.content.contraptions.resistor.RedstoneResistorBlock;
@@ -48,6 +49,20 @@ public class ClockWorkBlocks {
                     .properties(p -> p.color(MaterialColor.PODZOL))
                     .transform(BuilderTransformers.bearing("propellor", "gearbox", false))
                     .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+                    .register();
+
+    public static final BlockEntry<PhysBearingBlock> PHYS_BEARING =
+            REGISTRATE.block("phys_bearing", PhysBearingBlock::new)
+                    .initialProperties(SharedProperties::stone)
+                    .transform(axeOrPickaxe())
+                    .properties(p -> p.lightLevel(PhysBearingBlock::getLight))
+                    .properties(p -> p.color(MaterialColor.PODZOL))
+                    .addLayer(() -> RenderType::cutout)
+                    .blockstate((c, p) -> p.directionalBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
+                    .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+                    .item()
+                    .model(AssetLookup.customBlockItemModel("phys_bearing"))
+                    .build()
                     .register();
     public static final BlockEntry<FlapBearingBlock> FLAP_BEARING =
             REGISTRATE.block("flap_bearing", FlapBearingBlock::new)

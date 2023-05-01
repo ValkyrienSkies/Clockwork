@@ -27,7 +27,24 @@ public class ClockWorkPartials {
 
             ENGINE = block("combustion_engine/main"),
 
-            SINGLE_ENGINE_PISTON = block("combustion_engine/single_piston");
+            SINGLE_ENGINE_PISTON = block("combustion_engine/single_piston"),
+
+            PHYSFLAP_EAST = block("phys_bearing/flapeast"),
+
+            PHYSFLAP_WEST = block("phys_bearing/flapwest"),
+
+            PHYSFLAP_NORTH = block("phys_bearing/flapnorth"),
+
+            PHYSFLAP_SOUTH = block("phys_bearing/flapsouth"),
+
+            PHYSCORNER_NE = block("phys_bearing/cornerne"),
+
+            PHYSCORNER_NW = block("phys_bearing/cornernw"),
+
+            PHYSCORNER_SE = block("phys_bearing/cornerse"),
+
+            PHYSCORNER_SW = block("phys_bearing/cornersw")
+    ;
 
     private static PartialModel block(String path) {
         return new PartialModel(ClockWorkMod.asResource("block/" + path));

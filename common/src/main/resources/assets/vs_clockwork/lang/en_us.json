@@ -53,5 +53,7 @@
   "item.vs_clockwork.strawberry_frosting_bucket": "Bucket o' Strawberry Frosting",
   "fluid.vs_clockwork.vanilla_frosting_bucket": "Vanilla Frosting",
   "fluid.vs_clockwork.chocolate_frosting_bucket": "Chocolate Frosting",
-  "fluid.vs_clockwork.strawberry_frosting_bucket": "Strawberry Frosting"
+  "fluid.vs_clockwork.strawberry_frosting_bucket": "Strawberry Frosting",
+  "block.vs_clockwork.phys_bearing": "Phys Bearing",
+  "item.vs_clockwork.phys_bearing": "Phys Bearing"
 }

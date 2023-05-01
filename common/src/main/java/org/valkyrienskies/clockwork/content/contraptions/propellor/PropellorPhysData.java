@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.contraptions.propellor;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import org.joml.Vector3dc;
 import org.joml.Vector3ic;
+import org.valkyrienskies.core.api.ships.Ship;
 
 import java.util.List;
 
