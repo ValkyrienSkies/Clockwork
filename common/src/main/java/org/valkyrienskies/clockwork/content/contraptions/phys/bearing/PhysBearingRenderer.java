@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.contraptions.phys.bearing;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Quaternion;
+import com.mojang.math.Vector3f;
 import com.simibubi.create.content.contraptions.base.KineticTileEntity;
 import com.simibubi.create.content.contraptions.base.KineticTileEntityRenderer;
 import com.simibubi.create.foundation.render.CachedBufferer;
@@ -36,9 +37,22 @@ public class PhysBearingRenderer extends KineticTileEntityRenderer {
 
         PhysBearingBlockEntity pte = (PhysBearingBlockEntity) te;
 
-        final Direction facing = te.getBlockState()
+        final Direction ogfacing = te.getBlockState()
                 .getValue(BlockStateProperties.FACING);
 
+        final Direction facing = Direction.UP;
+        ms.pushPose();
+        ms.translate(0.5, 0.5, 0.5);
+        ms.mulPose(Quaternion.fromXYZ(0.0f, (float) Math.toRadians(-180.0), 0.0f));
+        switch (ogfacing) {
+            case SOUTH -> ms.mulPose(Vector3f.XP.rotationDegrees(270));
+            case WEST -> ms.mulPose(Vector3f.ZP.rotationDegrees(270));
+            case NORTH -> ms.mulPose(Vector3f.XP.rotationDegrees(90));
+            case EAST -> ms.mulPose(Vector3f.ZP.rotationDegrees(90));
+            case UP -> ms.mulPose(Vector3f.XP.rotationDegrees(0));
+            case DOWN -> ms.mulPose(Vector3f.XN.rotationDegrees(180));
+        }
+        ms.translate(-0.5, -0.5, -0.5);
         BlockState blockState = te.getBlockState();
 
         SuperByteBuffer core = CachedBufferer.partial(ClockWorkPartials.PHYSICS_CORE, blockState);
@@ -108,6 +122,8 @@ public class PhysBearingRenderer extends KineticTileEntityRenderer {
         cornerNW.renderInto(ms, vb);
         cornerSE.renderInto(ms, vb);
         cornerSW.renderInto(ms, vb);
+
+        ms.popPose();
     }
 
     private SuperByteBuffer idleRotateCore(SuperByteBuffer buffer, float offset, PhysBearingBlockEntity bearing) {

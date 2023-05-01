@@ -62,4 +62,8 @@ public class PhysBearingBlock extends BearingBlock implements ITE<PhysBearingBlo
         return face == state.getValue(FACING).getOpposite();
     }
 
+    public static int getLight(BlockState state) {
+        return 8;
+    }
+
 }

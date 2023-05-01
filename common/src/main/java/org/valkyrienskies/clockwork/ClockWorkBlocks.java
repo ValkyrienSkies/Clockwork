@@ -55,6 +55,7 @@ public class ClockWorkBlocks {
             REGISTRATE.block("phys_bearing", PhysBearingBlock::new)
                     .initialProperties(SharedProperties::stone)
                     .transform(axeOrPickaxe())
+                    .properties(p -> p.lightLevel(PhysBearingBlock::getLight))
                     .properties(p -> p.color(MaterialColor.PODZOL))
                     .addLayer(() -> RenderType::cutout)
                     .blockstate((c, p) -> p.directionalBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
