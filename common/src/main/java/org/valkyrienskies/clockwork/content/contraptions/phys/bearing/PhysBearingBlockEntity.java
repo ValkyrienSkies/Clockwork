@@ -331,17 +331,16 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
 
         Vector3dc posInBearingContraption = shiptraption.getWorldToShip().transformPosition(posInWorld, new Vector3d()).add(0.5, 0.5, 0.5);
 
-        VSAttachmentConstraint constraint = new VSAttachmentConstraint(shiptraptionID, otherShipID, 1e-8, posInBearingContraption, posInOwnerShip, 1e10, 0);
+        VSAttachmentConstraint constraint = new VSAttachmentConstraint(shiptraptionID, otherShipID, 1e-10, posInBearingContraption, posInOwnerShip, 1e10, 0);
         Quaterniondc hingeOrientation = rotationQuaternion.mul(new Quaterniond(new AxisAngle4d(Math.toRadians(90.0), 0.0, 0.0, 1.0)), new Quaterniond()).normalize();
 
         VSHingeOrientationConstraint hingeConstraint = new VSHingeOrientationConstraint(shiptraptionID, otherShipID, 1e-8, hingeOrientation, hingeOrientation, 1e10);
 
         // Add position damping to make the hinge more stable
-        VSPosDampingConstraint posDampingConstraint = new VSPosDampingConstraint(shiptraptionID, otherShipID, 1e-10, posInBearingContraption, posInOwnerShip, 1e10, 1e3);
+        VSPosDampingConstraint posDampingConstraint = new VSPosDampingConstraint(shiptraptionID, otherShipID, 1e-10, posInBearingContraption, posInOwnerShip, 1e10, 1e-2);
 
-                // Add perpendicular rotation damping to make the hinge more stable
-        VSRotDampingConstraint perpendicularRotDampingConstraint = new VSRotDampingConstraint(shiptraptionID, otherShipID, 1e-10, hingeOrientation, hingeOrientation, 1e10, 1e3, VSRotDampingAxes.PERPENDICULAR);
-
+        // Add rotation damping to make the hinge more stable
+        VSRotDampingConstraint perpendicularRotDampingConstraint = new VSRotDampingConstraint(shiptraptionID, otherShipID, 1e-10, hingeOrientation, hingeOrientation, 1e10, 1e-2, VSRotDampingAxes.ALL_AXES);
 
 
         Integer constraintID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).createNewConstraint(constraint);
