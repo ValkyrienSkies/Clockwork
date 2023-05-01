@@ -38,7 +38,6 @@
     "content.balloon.MixinLevelChunkBalloon",
     "content.casing.MixinShaftBlock",
     "content.propellor.MixinBearingContraption",
-    "content.vs_contraptions.MixinMechanicalBearingTileEntity",
     "content.fan.MixinEncasedFanTileEntity"
   ],
   "client": [
@@ -61,8 +60,7 @@
     "compat.client.MixinTrackBlockOutline",
     "compat.client.MixinTrackTargetingBehaviour",
     "compat.client.MixinTrainRelocator",
-    "content.pulse.MixinLevelRenderer",
-    "content.vs_contraptions.render.MixinBearingInstance"
+    "content.pulse.MixinLevelRenderer"
   ],
   "injectors": {
     "defaultRequire": 1

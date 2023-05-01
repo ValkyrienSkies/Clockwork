@@ -3,6 +3,8 @@ package org.valkyrienskies.clockwork.content.forces.physContraption;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaterniond;
+import org.joml.Vector3d;
+import org.joml.Vector3dc;
 import org.joml.Vector3ic;
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingCreateData;
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingData;
@@ -13,6 +15,7 @@ import org.valkyrienskies.core.apigame.constraints.VSAttachmentOrientationConstr
 import org.valkyrienskies.core.apigame.constraints.VSConstraint;
 import org.valkyrienskies.core.apigame.constraints.VSConstraintKt;
 import org.valkyrienskies.core.impl.api.ShipForcesInducer;
+import org.valkyrienskies.core.impl.game.ships.PhysShipImpl;
 import org.valkyrienskies.core.impl.game.ships.ShipInertiaDataImpl;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 
@@ -30,7 +33,6 @@ public class PhysBearingController implements ShipForcesInducer {
     private final ConcurrentLinkedQueue<Pair<Integer, PhysBearingCreateData>> createdBearings = new ConcurrentLinkedQueue<>();
     private final ConcurrentLinkedQueue<Integer> removedBearings = new ConcurrentLinkedQueue<>();
     private int nextBearingID = 0;
-    private static long nextConstraintID = 0;
 
     public static PhysBearingController getOrCreate(ServerShip ship) {
         if (ship.getAttachment(PhysBearingController.class) == null) {
@@ -49,7 +51,11 @@ public class PhysBearingController implements ShipForcesInducer {
                     createData.component2().bearingAngle(),
                     createData.component2().bearingRPM(),
                     createData.component2().locked(),
-                    createData.component2().shiptraptionID()
+                    createData.component2().shiptraptionID(),
+                    createData.component2().constraint(),
+                    createData.component2().hingeConstraint(),
+                    createData.component2().posDampConstraint(),
+                    createData.component2().rotDampConstraint()
             ));
 
         }
@@ -70,25 +76,28 @@ public class PhysBearingController implements ShipForcesInducer {
         bearingUpdateData.clear();
 
         for (PhysBearingData data : bearingData.values()) {
-            if (data.getConstraintID() == null) {
-                ServerShip shipOn = VSGameUtilsKt.getShipObjectManagingPos(data.bearingPosition);
-
-                if (shipOn != null) {
-
-                }
-
-                double AttachmentCompliance = 1e-6;
-                double AttachmentMaxForce = 1e10;
-                double RotationMaxForce = 1e10;
-
-                VSAttachmentOrientationConstraint constraint = new VSAttachmentOrientationConstraint(
-                        data.shiptraptionID, worldShipID, AttachmentCompliance, Location, Position,
-                        AttachmentMaxForce, rotation, new Quaterniond(), RotationMaxForce
-                );
-            } else {
-
+            if (data.constraintAndId != null) {
+                Vector3dc torque = computeRotationalForce(data, (PhysShipImpl) physShip);
+                physShip.applyRotDependentTorque(torque);
             }
         }
+    }
+
+    private Vector3dc computeRotationalForce(PhysBearingData data, PhysShipImpl physShip) {
+        double mass = physShip.getInertia().getShipMass();
+
+        Vector3dc actualOmega = physShip.getPoseVel().getOmega();
+        Vector3d idealOmega;
+        if (data.bearingAxis != null) {
+            idealOmega = data.bearingAxis.mul(data.bearingRPM, new Vector3d()).mul((2*Math.PI)/60);
+        } else {
+            idealOmega = new Vector3d();
+        }
+
+
+        Vector3dc torque = idealOmega.sub(actualOmega, new Vector3d()).mul(mass);
+
+        return torque;
     }
 
     public int addPhysBearing(PhysBearingCreateData data) {
