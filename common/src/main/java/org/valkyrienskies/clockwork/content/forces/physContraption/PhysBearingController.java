@@ -55,8 +55,7 @@ public class PhysBearingController implements ShipForcesInducer {
                     createData.component2().constraint(),
                     createData.component2().hingeConstraint(),
                     createData.component2().posDampConstraint(),
-                    createData.component2().rotDampConstraint(),
-                    null
+                    createData.component2().rotDampConstraint()
             ));
 
         }
@@ -72,7 +71,6 @@ public class PhysBearingController implements ShipForcesInducer {
             physData.bearingAngle = data.bearingAngle();
             physData.bearingRPM = data.bearingRPM();
             physData.locked = data.locked();
-            physData.angleConstraintAndId = data.angleConstraint();
         });
 
         bearingUpdateData.clear();

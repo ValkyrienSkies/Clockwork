@@ -20,7 +20,6 @@ public class PhysBearingData {
     public VSConstraintAndId hingeConstraintAndId;
     public VSConstraintAndId posDampConstraintAndId;
     public VSConstraintAndId rotDampConstraintAndId;
-    public VSConstraintAndId angleConstraintAndId;
 
     // Default constructor for Jackson, should never be invoked manually
     @Deprecated
@@ -30,7 +29,7 @@ public class PhysBearingData {
         this.shiptraptionID = -1;
     }
 
-    public PhysBearingData(Vector3dc bearingPosition, Vector3dc bearingAxis, double bearingAngle, float bearingRPM, boolean locked, long shiptraptionID, VSConstraintAndId constraintAndId, VSConstraintAndId hingeConstraintAndId, VSConstraintAndId posDampConstraintAndId, VSConstraintAndId rotDampConstraintAndId, VSConstraintAndId angleConstraintAndId) {
+    public PhysBearingData(Vector3dc bearingPosition, Vector3dc bearingAxis, double bearingAngle, float bearingRPM, boolean locked, long shiptraptionID, VSConstraintAndId constraintAndId, VSConstraintAndId hingeConstraintAndId, VSConstraintAndId posDampConstraintAndId, VSConstraintAndId rotDampConstraintAndId) {
         this.bearingPosition = bearingPosition;
         this.bearingAxis = bearingAxis;
         this.bearingAngle = bearingAngle;
@@ -41,7 +40,6 @@ public class PhysBearingData {
         this.hingeConstraintAndId = hingeConstraintAndId;
         this.posDampConstraintAndId = posDampConstraintAndId;
         this.rotDampConstraintAndId = rotDampConstraintAndId;
-        this.angleConstraintAndId = angleConstraintAndId;
     }
 
     public void setAligning(boolean yn) {
