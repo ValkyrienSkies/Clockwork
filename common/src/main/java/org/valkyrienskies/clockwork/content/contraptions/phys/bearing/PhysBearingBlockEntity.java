@@ -345,16 +345,16 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
 
         Integer constraintID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).createNewConstraint(constraint);
         Integer hingeID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).createNewConstraint(hingeConstraint);
-        Integer posDamperID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).createNewConstraint(posDampingConstraint);
-        Integer rotDamperID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).createNewConstraint(perpendicularRotDampingConstraint);
+        // Integer posDamperID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).createNewConstraint(posDampingConstraint);
+        // Integer rotDamperID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).createNewConstraint(perpendicularRotDampingConstraint);
 
         VSConstraintAndId contraptionConstraint = new VSConstraintAndId(constraintID, constraint);
         VSConstraintAndId hingeContraptionConstraint = new VSConstraintAndId(hingeID, hingeConstraint);
-        VSConstraintAndId posDampingContraptionConstraint = new VSConstraintAndId(posDamperID, posDampingConstraint);
-        VSConstraintAndId rotDampingContraptionConstraint = new VSConstraintAndId(rotDamperID, perpendicularRotDampingConstraint);
+        // VSConstraintAndId posDampingContraptionConstraint = new VSConstraintAndId(posDamperID, posDampingConstraint);
+        // VSConstraintAndId rotDampingContraptionConstraint = new VSConstraintAndId(rotDamperID, perpendicularRotDampingConstraint);
 
         boolean locked = movementMode.getValue() == 2;
-        PhysBearingCreateData data = new PhysBearingCreateData(pos, axis, angle, getSpeed(), false, shiptraptionID, contraptionConstraint, hingeContraptionConstraint, posDampingContraptionConstraint, rotDampingContraptionConstraint);
+        PhysBearingCreateData data = new PhysBearingCreateData(pos, axis, angle, getSpeed(), false, shiptraptionID, contraptionConstraint, hingeContraptionConstraint, null, null);
 
         if (!level.isClientSide) {
             bearingID = PhysBearingController.getOrCreate(shiptraption).addPhysBearing(data);
