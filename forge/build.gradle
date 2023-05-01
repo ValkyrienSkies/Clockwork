@@ -63,6 +63,7 @@ dependencies {
 
     //Create big cannons
     // modLocalRuntime('curse.maven:create-big-cannons-646668:4033862') is create .5.0.e not g
+    modImplementation("com.rbasamoyai:createbigcannons-forge-${minecraft_version}:${createbigcannons_version}") { transitive = false }
 
     // JOML
     compileOnly("org.joml:joml:1.10.4")
