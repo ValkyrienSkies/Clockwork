@@ -53,5 +53,10 @@
   "item.vs_clockwork.strawberry_frosting_bucket": "Bucket o' Strawberry Frosting",
   "fluid.vs_clockwork.vanilla_frosting_bucket": "Vanilla Frosting",
   "fluid.vs_clockwork.chocolate_frosting_bucket": "Chocolate Frosting",
-  "fluid.vs_clockwork.strawberry_frosting_bucket": "Strawberry Frosting"
+  "fluid.vs_clockwork.strawberry_frosting_bucket": "Strawberry Frosting",
+  "contraptions.movement_mode.locked": "Locked",
+  "contraptions.movement_mode.unlocked": "Unlocked",
+  "contraptions.movement_mode.unlocked_desc": "Unlocked: The contraption will move freely.",
+  "contraptions.movement_mode.locked_desc": "Locked: The contraption will abide by the bearing's axis.",
+  "block.vs_clockwork.phys_bearing": "Phys Bearing"
 }
