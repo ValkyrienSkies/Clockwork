@@ -295,7 +295,7 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
         if (shipOn != null) {
             otherShipID = shipOn.getId();
         }
-        Quaterniond rotationQuaternion = new Quaterniond();
+        Quaterniond rotationQuaternion;
         switch (direction) {
             case DOWN -> {
                 rotationQuaternion = new Quaterniond(new AxisAngle4d(Math.PI, new Vector3d(1.0, 0.0, 0.0)));
@@ -312,23 +312,22 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
             case WEST -> {
                 rotationQuaternion = new Quaterniond(new AxisAngle4d(1.5 * Math.PI, new Vector3d(0.0, 1.0, 0.0))).mul(new Quaterniond(new AxisAngle4d(Math.PI / 2.0, new Vector3d(1.0, 0.0, 0.0)))).normalize();
             }
-            case UP -> {
-                rotationQuaternion = new Quaterniond();
-            }
             default -> {
-                // This should be impossible, but have this here just in case
+                // UP or null
                 rotationQuaternion = new Quaterniond();
             }
-        };
-        ShipTransform transform = shiptraption.getTransform();
-
-        ((ShipDataCommon) shiptraption).setTransform(ShipTransformImpl.Companion.create(transform.getPositionInWorld(), shiptraption.getInertiaData().getCenterOfMassInShip(), transform.getShipToWorldRotation(), transform.getShipToWorldScaling()));
-
+        }
         Vector3dc posInOwnerShip = VectorConversionsMCKt.toJOMLD(worldPosition.relative(getBlockState().getValue(BlockStateProperties.FACING), 1)).add(0.5, 0.5, 0.5);
         Vector3dc posInWorld = posInOwnerShip;
+        Quaterniondc rotInWorld = new Quaterniond();
+        Vector3dc scaling = new Vector3d(1.0, 1.0, 1.0);
         if (shipOn != null) {
             posInWorld = shipOn.getTransform().getShipToWorld().transformPosition(posInOwnerShip, new Vector3d());
+            rotInWorld = shipOn.getTransform().getShipToWorldRotation();
+            scaling = shipOn.getTransform().getShipToWorldScaling();
         }
+
+        ((ShipDataCommon) shiptraption).setTransform(ShipTransformImpl.Companion.create(posInWorld, shiptraption.getInertiaData().getCenterOfMassInShip(), rotInWorld, scaling));
 
         Vector3dc posInBearingContraption = shiptraption.getWorldToShip().transformPosition(posInWorld, new Vector3d()).add(0.5, 0.5, 0.5);
 
