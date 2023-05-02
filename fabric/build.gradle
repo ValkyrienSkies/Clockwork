@@ -55,8 +55,6 @@ dependencies {
         exclude group: 'com.github.AlphaMode', module: 'fakeconfigtoml'
     }
 
-    modImplementation("com.rbasamoyai:createbigcannons-fabric-${minecraft_version}:${createbigcannons_version}") { transitive = false }
-
     modImplementation("curse.maven:indium-459496:3911811")
 
     modImplementation("com.terraformersmc:modmenu:${modmenu_version}")
