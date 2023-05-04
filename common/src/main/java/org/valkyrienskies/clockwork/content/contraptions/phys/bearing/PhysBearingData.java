@@ -1,11 +1,10 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.bearing;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
-import org.valkyrienskies.core.apigame.constraints.VSAttachmentConstraint;
-import org.valkyrienskies.core.apigame.constraints.VSConstraintAndId;
-import org.valkyrienskies.core.apigame.constraints.VSHingeOrientationConstraint;
+import org.valkyrienskies.core.apigame.constraints.*;
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class PhysBearingData {
@@ -19,9 +18,12 @@ public class PhysBearingData {
     public boolean aligning;
 
     public VSAttachmentConstraint attachConstraint;
+    @JsonIgnore
     public Integer attachID;
 
     public VSHingeOrientationConstraint hingeConstraint;
+    public VSFixedOrientationConstraint angleConstraint;
+    @JsonIgnore
     public Integer hingeID;
 
     // Default constructor for Jackson, should never be invoked manually

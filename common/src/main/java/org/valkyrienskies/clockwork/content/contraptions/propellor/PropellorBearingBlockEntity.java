@@ -578,8 +578,9 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
 
     @Override
     public void remove() {
-        if (!level.isClientSide)
+        if (!level.isClientSide) {
             disassemble();
+        }
         super.remove();
     }
 

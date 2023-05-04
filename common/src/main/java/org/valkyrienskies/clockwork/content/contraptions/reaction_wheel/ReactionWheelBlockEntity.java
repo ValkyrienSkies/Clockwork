@@ -14,8 +14,10 @@ import net.minecraft.world.phys.AABB;
 import org.joml.Matrix3dc;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
+import org.valkyrienskies.clockwork.content.forces.AfterblazerController;
 import org.valkyrienskies.clockwork.content.forces.ReactionWheelController;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
+import org.valkyrienskies.core.api.ships.ServerShip;
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
@@ -76,6 +78,21 @@ public class ReactionWheelBlockEntity extends KineticTileEntity {
 
         super.read(compound, clientPacket);
 
+    }
+
+    @Override
+    public void remove() {
+        if (level != null) {
+            if (!level.isClientSide) {
+                ServerShip ship = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, worldPosition);
+                if (ship != null) {
+                    ReactionWheelController controller = ReactionWheelController.getOrCreate(ship);
+
+                    controller.removeReactionWheel(rwID);
+                }
+            }
+        }
+        super.remove();
     }
 
     @Override

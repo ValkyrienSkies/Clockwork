@@ -37,6 +37,7 @@ import org.valkyrienskies.clockwork.platform.SmartFluidTankBlockEntity;
 import org.valkyrienskies.clockwork.util.blocktype.*;
 import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
+import org.valkyrienskies.core.api.ships.ServerShip;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
@@ -103,6 +104,20 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
             return gimbalRotation.y;
         }
 
+    @Override
+    public void remove() {
+        if (level != null) {
+            if (!level.isClientSide) {
+                ServerShip ship = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, worldPosition);
+                if (ship != null) {
+                    AfterblazerController controller = AfterblazerController.getOrCreate(ship);
+
+                    controller.removeAfterblazer(afterblazerID);
+                }
+            }
+        }
+        super.remove();
+    }
         @Override
         public void tick() {
             super.tick();

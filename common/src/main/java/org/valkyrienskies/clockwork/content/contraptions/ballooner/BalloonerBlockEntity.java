@@ -30,6 +30,7 @@ import org.valkyrienskies.clockwork.util.blocktype.IFuelableTileEntity;
 import org.valkyrienskies.clockwork.util.blocktype.LiquidFuelType;
 import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
+import org.valkyrienskies.core.api.ships.ServerShip;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
@@ -284,6 +285,21 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
         }
         brokenBalloons = brokenballoons;
         return fixed;
+    }
+
+    @Override
+    public void remove() {
+        if (level != null) {
+            if (!level.isClientSide) {
+                ServerShip ship = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, worldPosition);
+                if (ship != null) {
+                    BalloonController controller = BalloonController.getOrCreate(ship);
+
+                    controller.removeBalloon(balloonID);
+                }
+            }
+        }
+        super.remove();
     }
 
     public void scanBalloon() {

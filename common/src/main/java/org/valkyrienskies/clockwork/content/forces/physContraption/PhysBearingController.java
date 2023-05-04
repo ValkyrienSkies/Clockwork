@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.forces.physContraption;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaterniond;
@@ -15,6 +16,7 @@ import org.valkyrienskies.core.api.ships.ServerShip;
 import org.valkyrienskies.core.apigame.constraints.VSAttachmentOrientationConstraint;
 import org.valkyrienskies.core.apigame.constraints.VSConstraint;
 import org.valkyrienskies.core.apigame.constraints.VSConstraintKt;
+import org.valkyrienskies.core.apigame.constraints.VSHingeTargetAngleConstraint;
 import org.valkyrienskies.core.impl.api.ShipForcesInducer;
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl;
 import org.valkyrienskies.core.impl.game.ships.ShipInertiaDataImpl;
@@ -30,7 +32,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class PhysBearingController implements ShipForcesInducer {
 
     public final HashMap<Integer, PhysBearingData> bearingData = new HashMap<>();
+    @JsonIgnore
     private final ConcurrentHashMap<Integer, PhysBearingUpdateData> bearingUpdateData = new ConcurrentHashMap<>();
+    @JsonIgnore
     private final ConcurrentLinkedQueue<Pair<Integer, PhysBearingCreateData>> createdBearings = new ConcurrentLinkedQueue<>();
     private final ConcurrentLinkedQueue<Integer> removedBearings = new ConcurrentLinkedQueue<>();
     private int nextBearingID = 0;
@@ -72,12 +76,14 @@ public class PhysBearingController implements ShipForcesInducer {
             physData.bearingAngle = data.bearingAngle();
             physData.bearingRPM = data.bearingRPM();
             physData.locked = data.locked();
+//            physData.hingeConstraint = data.hingeConstraint();
+//            physData.angleConstraint = data.angleConstraint();
         });
 
         bearingUpdateData.clear();
 
         for (PhysBearingData data : bearingData.values()) {
-            if (data.constraintAndId != null) {
+            if (data.angleConstraint == null) {
                 Vector3dc torque = computeRotationalForce(data, (PhysShipImpl) physShip);
                 physShip.applyRotDependentTorque(torque);
             }
@@ -96,7 +102,7 @@ public class PhysBearingController implements ShipForcesInducer {
         }
 
 
-        Vector3dc torque = idealOmega.sub(actualOmega, new Vector3d()).mul(mass);
+        Vector3dc torque = idealOmega.sub(actualOmega, new Vector3d()).mul(mass * 10);
 
         return torque;
     }

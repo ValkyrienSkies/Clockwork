@@ -24,11 +24,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.jetbrains.annotations.Nullable;
-import org.joml.AxisAngle4d;
-import org.joml.Quaterniond;
-import org.joml.Quaterniondc;
-import org.joml.Vector3d;
-import org.joml.Vector3dc;
+import org.joml.*;
 import org.valkyrienskies.clockwork.ClockWorkSounds;
 import org.valkyrienskies.clockwork.content.forces.physContraption.PhysBearingController;
 import org.valkyrienskies.clockwork.platform.api.ContraptionController;
@@ -36,9 +32,7 @@ import org.valkyrienskies.clockwork.platform.api.GlueType;
 import org.valkyrienskies.clockwork.util.assemble.GlueAssembler;
 import org.valkyrienskies.core.api.ships.ServerShip;
 import org.valkyrienskies.core.api.ships.Ship;
-import org.valkyrienskies.core.apigame.constraints.VSAttachmentConstraint;
-import org.valkyrienskies.core.apigame.constraints.VSConstraintAndId;
-import org.valkyrienskies.core.apigame.constraints.VSHingeOrientationConstraint;
+import org.valkyrienskies.core.apigame.constraints.*;
 import org.valkyrienskies.core.impl.datastructures.DenseBlockPosSet;
 import org.valkyrienskies.core.impl.game.ships.ShipDataCommon;
 import org.valkyrienskies.core.impl.game.ships.ShipTransformImpl;
@@ -46,10 +40,11 @@ import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.assembly.ShipAssemblyKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
+import java.lang.Math;
 import java.util.List;
 
 public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implements IBearingTileEntity, IDisplayAssemblyExceptions, ContraptionController {
-    protected ScrollOptionBehaviour<RotationMode> movementMode;
+    protected ScrollOptionBehaviour<LockedMode> movementMode;
     boolean shouldRefresh = false;
     protected float angle;
     protected boolean running;
@@ -93,7 +88,7 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
     @Override
     public void addBehaviours(List<TileEntityBehaviour> behaviours) {
         super.addBehaviours(behaviours);
-        movementMode = new ScrollOptionBehaviour<>(RotationMode.class, new TextComponent("Locked or Unlocked"),
+        movementMode = new ScrollOptionBehaviour<>(LockedMode.class, new TextComponent("Locked or Unlocked"),
                 this, getMovementModeSlot());
         movementMode.requiresWrench();
         behaviours.add(movementMode);
@@ -374,7 +369,6 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
         // VSConstraintAndId posDampingContraptionConstraint = new VSConstraintAndId(posDamperID, posDampingConstraint);
         // VSConstraintAndId rotDampingContraptionConstraint = new VSConstraintAndId(rotDamperID, perpendicularRotDampingConstraint);
 
-        boolean locked = movementMode.getValue() == 2;
         PhysBearingCreateData data = new PhysBearingCreateData(pos, axis, angle, getSpeed(), false, shiptraptionID, contraptionConstraint, hingeContraptionConstraint, null, null);
 
         if (!level.isClientSide) {
@@ -385,6 +379,32 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
         angle = 0;
         sendData();
         updateGeneratedRotation();
+    }
+
+    @Override
+    public void destroy() {
+        if (level != null) {
+            if (!level.isClientSide) {
+                ServerShip ship = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).getAllShips().getById(shiptraptionID);
+                if (ship != null) {
+                    PhysBearingController controller = PhysBearingController.getOrCreate(ship);
+
+                    Integer attachID = controller.bearingData.get(bearingID).attachID;
+
+                    if (attachID != null) {
+                        VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).removeConstraint(attachID);
+                    }
+
+                    Integer hingeID = controller.bearingData.get(bearingID).hingeID;
+
+                    if (hingeID != null) {
+                        VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).removeConstraint(hingeID);
+                    }
+
+                    controller.removePhysBearing(bearingID);
+                }
+            }
+        }
     }
 
     public void disassemble() {
@@ -486,7 +506,6 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
                         if (attachConstraint != null) {
                             Integer attachID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).createNewConstraint(attachConstraint);
                             if (attachID != null) {
-                                VSConstraintAndId attachConstraintAndID = new VSConstraintAndId(attachID, attachConstraint);
                                 PhysBearingController.getOrCreate((ServerShip) ship).bearingData.get(bearingID).attachConstraint = attachConstraint;
                                 PhysBearingController.getOrCreate((ServerShip) ship).bearingData.get(bearingID).attachID = attachID;
                             }
@@ -494,12 +513,12 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
                         if (hingeConstraint != null) {
                             Integer hingeID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).createNewConstraint(hingeConstraint);
                             if (hingeID != null) {
-                                VSConstraintAndId hingeConstraintAndID = new VSConstraintAndId(hingeID, hingeConstraint);
                                 PhysBearingController.getOrCreate((ServerShip) ship).bearingData.get(bearingID).hingeConstraint = hingeConstraint;
                                 PhysBearingController.getOrCreate((ServerShip) ship).bearingData.get(bearingID).hingeID = hingeID;
+                                shouldRefresh = false;
                             }
                         }
-                        shouldRefresh = false;
+
                     }
                 }
 
@@ -530,6 +549,15 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
             openProgress = 1;
         }
 
+        if (!running)
+            return;
+
+        if (shiptraptionID != -1) {
+            float angularSpeed = getAngularSpeed();
+            float newAngle = angle + angularSpeed;
+            angle = (float) (newAngle % 360);
+        }
+
         if (running) {
             if (!level.isClientSide) {
                 if (shiptraptionID != -1) {
@@ -537,7 +565,29 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
 
                     if (ship != null) {
                         //todo add locked mode
-                        PhysBearingUpdateData data = new PhysBearingUpdateData(angle, getSpeed(), false);
+
+                        if (PhysBearingController.getOrCreate(ship).bearingData.get(bearingID) == null) {
+                            return;
+                        }
+
+                        VSHingeOrientationConstraint hingeConstraint = PhysBearingController.getOrCreate(ship).bearingData.get(bearingID).hingeConstraint;
+                        VSFixedOrientationConstraint angleConstraint = PhysBearingController.getOrCreate(ship).bearingData.get(bearingID).angleConstraint;
+//                        if (PhysBearingController.getOrCreate(ship).bearingData.get(bearingID).hingeID == null) {
+//                            return;
+//                        }
+//                        if (movementMode.get() == LockedMode.LOCKED) {
+//                            Vector3dc facing = VectorConversionsMCKt.toJOMLD(getBlockState().getValue(BlockStateProperties.FACING).getNormal());
+//                            Quaterniond localRot0 = new Quaterniond(hingeConstraint.getLocalRot0());
+//                            localRot0 = localRot0.premul(new Quaterniond(new AxisAngle4d(Math.toRadians(angle), facing))).normalize();
+//                            angleConstraint = new VSFixedOrientationConstraint(hingeConstraint.getShipId0(), hingeConstraint.getShipId1(), 1e-10, localRot0, hingeConstraint.getLocalRot1(), 1e8);
+//                            VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).updateConstraint(PhysBearingController.getOrCreate(ship).bearingData.get(bearingID).hingeID, angleConstraint);
+//                        } else if (movementMode.get() == LockedMode.UNLOCKED) {
+//                            hingeConstraint = PhysBearingController.getOrCreate(ship).bearingData.get(bearingID).hingeConstraint;
+//                            VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).updateConstraint(PhysBearingController.getOrCreate(ship).bearingData.get(bearingID).hingeID, hingeConstraint);
+//
+//                        }
+
+                        PhysBearingUpdateData data = new PhysBearingUpdateData(angle, getSpeed(), false, null, null);
                         PhysBearingController.getOrCreate(ship).updatePhysBearing(bearingID, data);
                     }
                 }
@@ -548,14 +598,7 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
             shipDisassemble();
         }
 
-        if (!running)
-            return;
 
-        if (!(shiptraptionID != -1)) {
-            float angularSpeed = getAngularSpeed();
-            float newAngle = angle + angularSpeed;
-            angle = (float) (newAngle % 360);
-        }
 
         applyRotation();
     }

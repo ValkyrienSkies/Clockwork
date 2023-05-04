@@ -187,6 +187,13 @@ public class FlapBearingBlockEntity extends KineticTileEntity implements IFlap, 
         sendData();
     }
 
+    @Override
+    public void remove() {
+        if (!level.isClientSide)
+            disassemble();
+        super.remove();
+    }
+
     public void disassemble() {
         if (!running && flap == null)
             return;
