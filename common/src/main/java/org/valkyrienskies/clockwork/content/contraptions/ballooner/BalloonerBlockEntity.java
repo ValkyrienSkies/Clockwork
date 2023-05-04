@@ -240,10 +240,9 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
             return 0;
         }
         double temp = 0;
-        if (getFuelQuality().equals(LiquidFuelType.NONE) || speed == 0) {
-            double passiveCooling = -0.008;
-
-            return passiveCooling * (1.0/volume.size());
+        double passiveCooling = 0;
+        if (getFuelQuality().equals(LiquidFuelType.NONE) || Math.abs(speed) <= 16) {
+            passiveCooling = -0.0008 * (1.0/volume.size());
         }
 
         double tempinc = switch (getFuelQuality()) {
@@ -262,7 +261,7 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
 
         double throttle = Math.abs(speed) / 256f;
 
-        temp = temp + ((tempinc * throttle) * volmod);
+        temp = temp + ((tempinc * throttle) * volmod) + passiveCooling;
 
         if (leaking) {
             temp = temp - ((0.012 * brokenBalloons) * volmod);
