@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(Contraption.class)
 public class MixinContraption {
-    @WrapOperation(method = "onEntityCreated", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;addFreshEntity(Lnet/minecraft/world/entity/Entity;)Z"))
+    @WrapOperation(method = "onEntityCreated", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;addFreshEntity(Lnet/minecraft/world/entity/Entity;)Z"), remap = false)
     private boolean wrapOp(Level world, Entity entity, Operation<Boolean> addFreshEntity, AbstractContraptionEntity abstractContraptionEntity) {
         // BlockPos anchor = blockFace.getConnectedPos();
         // movedContraption.setPos(anchor.getX() + .5f, anchor.getY(), anchor.getZ() + .5f);
