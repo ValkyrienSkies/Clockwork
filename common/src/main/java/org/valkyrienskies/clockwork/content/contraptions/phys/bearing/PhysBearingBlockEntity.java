@@ -480,21 +480,23 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
                 if (ship != null && bearingID != null) {
                     PhysBearingData bearingData = PhysBearingController.getOrCreate((ServerShip) ship).bearingData.get(bearingID);
                     if (bearingData != null) {
-                        VSAttachmentConstraint attachConstraint = (VSAttachmentConstraint) bearingData.constraintAndId.getVsConstraint();
-                        VSHingeOrientationConstraint hingeConstraint = (VSHingeOrientationConstraint) bearingData.hingeConstraintAndId.getVsConstraint();
+                        VSAttachmentConstraint attachConstraint = bearingData.attachConstraint;
+                        VSHingeOrientationConstraint hingeConstraint = bearingData.hingeConstraint;
 
                         if (attachConstraint != null) {
                             Integer attachID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).createNewConstraint(attachConstraint);
                             if (attachID != null) {
                                 VSConstraintAndId attachConstraintAndID = new VSConstraintAndId(attachID, attachConstraint);
-                                PhysBearingController.getOrCreate((ServerShip) ship).bearingData.get(bearingID).constraintAndId = attachConstraintAndID;
+                                PhysBearingController.getOrCreate((ServerShip) ship).bearingData.get(bearingID).attachConstraint = attachConstraint;
+                                PhysBearingController.getOrCreate((ServerShip) ship).bearingData.get(bearingID).attachID = attachID;
                             }
                         }
                         if (hingeConstraint != null) {
                             Integer hingeID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).createNewConstraint(hingeConstraint);
                             if (hingeID != null) {
                                 VSConstraintAndId hingeConstraintAndID = new VSConstraintAndId(hingeID, hingeConstraint);
-                                PhysBearingController.getOrCreate((ServerShip) ship).bearingData.get(bearingID).hingeConstraintAndId = hingeConstraintAndID;
+                                PhysBearingController.getOrCreate((ServerShip) ship).bearingData.get(bearingID).hingeConstraint = hingeConstraint;
+                                PhysBearingController.getOrCreate((ServerShip) ship).bearingData.get(bearingID).hingeID = hingeID;
                             }
                         }
                         shouldRefresh = false;

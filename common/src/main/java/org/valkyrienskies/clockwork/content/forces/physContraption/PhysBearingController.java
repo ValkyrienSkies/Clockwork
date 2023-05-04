@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.forces.physContraption;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaterniond;
@@ -25,7 +26,7 @@ import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class PhysBearingController implements ShipForcesInducer {
 
     public final HashMap<Integer, PhysBearingData> bearingData = new HashMap<>();

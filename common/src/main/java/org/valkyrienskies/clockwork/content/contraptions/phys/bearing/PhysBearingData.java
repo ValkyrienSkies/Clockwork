@@ -3,7 +3,9 @@ package org.valkyrienskies.clockwork.content.contraptions.phys.bearing;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
+import org.valkyrienskies.core.apigame.constraints.VSAttachmentConstraint;
 import org.valkyrienskies.core.apigame.constraints.VSConstraintAndId;
+import org.valkyrienskies.core.apigame.constraints.VSHingeOrientationConstraint;
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class PhysBearingData {
@@ -16,10 +18,11 @@ public class PhysBearingData {
     public long shiptraptionID;
     public boolean aligning;
 
-    public VSConstraintAndId constraintAndId;
-    public VSConstraintAndId hingeConstraintAndId;
-    public VSConstraintAndId posDampConstraintAndId;
-    public VSConstraintAndId rotDampConstraintAndId;
+    public VSAttachmentConstraint attachConstraint;
+    public Integer attachID;
+
+    public VSHingeOrientationConstraint hingeConstraint;
+    public Integer hingeID;
 
     // Default constructor for Jackson, should never be invoked manually
     @Deprecated
@@ -36,10 +39,10 @@ public class PhysBearingData {
         this.bearingRPM = bearingRPM;
         this.locked = locked;
         this.shiptraptionID = shiptraptionID;
-        this.constraintAndId = constraintAndId;
-        this.hingeConstraintAndId = hingeConstraintAndId;
-        this.posDampConstraintAndId = posDampConstraintAndId;
-        this.rotDampConstraintAndId = rotDampConstraintAndId;
+        this.attachConstraint = (VSAttachmentConstraint) constraintAndId.getVsConstraint();
+        this.attachID = constraintAndId.getConstraintId();
+        this.hingeConstraint = (VSHingeOrientationConstraint) hingeConstraintAndId.getVsConstraint();
+        this.hingeID = hingeConstraintAndId.getConstraintId();
     }
 
     public void setAligning(boolean yn) {
