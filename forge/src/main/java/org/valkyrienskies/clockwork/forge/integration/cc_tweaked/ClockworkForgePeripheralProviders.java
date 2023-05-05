@@ -19,10 +19,11 @@ import org.valkyrienskies.clockwork.integration.cc.*;
 
 public class ClockworkForgePeripheralProviders {
     public static void register() {
-        ComputerCraftAPI.registerPeripheralProvider(new AfterblazerPeripheralProvider());
+        ComputerCraftAPI.registerPeripheralProvider(new ClockworkPeripheralProvider());
     }
 
-    public static class AfterblazerPeripheralProvider implements IPeripheralProvider {
+    public static class ClockworkPeripheralProvider implements IPeripheralProvider {
+        @NotNull
         @Override
         public LazyOptional<IPeripheral> getPeripheral(@NotNull Level level, @NotNull BlockPos blockPos, @NotNull Direction direction) {
             BlockEntity be = level.getBlockEntity(blockPos);
