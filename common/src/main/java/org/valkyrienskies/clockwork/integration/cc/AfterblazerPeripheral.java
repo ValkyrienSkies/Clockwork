@@ -79,4 +79,19 @@ public class AfterblazerPeripheral implements IPeripheral {
     public final long getFuelCapacity() {
         return this.afterblazer.tank.getPrimaryHandler().getTotalCapacity();
     }
+
+    @LuaFunction
+    public final double getFuelConsumptionRate() {
+        return this.afterblazer.getDrainRate() * (long) this.afterblazer.getThrustPercentage();
+    }
+
+    @LuaFunction
+    public final double getDrainRate() {
+        return this.afterblazer.getDrainRate();
+    }
+
+    @LuaFunction
+    public final double getThrustPercentage() {
+        return this.afterblazer.getThrustPercentage();
+    }
 }

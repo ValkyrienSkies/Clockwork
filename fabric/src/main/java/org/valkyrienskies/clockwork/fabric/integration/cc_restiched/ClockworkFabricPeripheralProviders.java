@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity;
+import org.valkyrienskies.clockwork.content.contraptions.combustion_engine.CombustionEngineBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatBlockEntity;
@@ -35,6 +36,8 @@ public class ClockworkFabricPeripheralProviders {
                 return new PropellorBearingPeripheral(propellor);
             else if (be instanceof SequencedSeatBlockEntity seat)
                 return new CommandSeatPeripheral(seat);
+            else if (be instanceof CombustionEngineBlockEntity engine)
+                return new CombustionEnginePeripheral(engine);
             return null;
         }
     }
