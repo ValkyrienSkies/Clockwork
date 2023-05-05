@@ -90,21 +90,41 @@ public class PhysBearingController implements ShipForcesInducer {
         }
     }
 
+//    private Vector3dc computeRotationalForce(PhysBearingData data, PhysShipImpl physShip) {
+//        double mass = physShip.getInertia().getShipMass();
+//
+//        Vector3dc actualOmega = physShip.getPoseVel().getOmega();
+//        Vector3d idealOmega;
+//        if (data.bearingAxis != null) {
+//            idealOmega = data.bearingAxis.mul(data.bearingRPM, new Vector3d()).mul((2*Math.PI)/60);
+//        } else {
+//            idealOmega = new Vector3d();
+//        }
+//
+//
+//        Vector3dc torque = idealOmega.sub(actualOmega, new Vector3d()).mul(mass * 10);
+//
+//        return torque;
+//    }
+
     private Vector3dc computeRotationalForce(PhysBearingData data, PhysShipImpl physShip) {
         double mass = physShip.getInertia().getShipMass();
 
-        Vector3dc actualOmega = physShip.getPoseVel().getOmega();
-        Vector3d idealOmega;
-        if (data.bearingAxis != null) {
-            idealOmega = data.bearingAxis.mul(data.bearingRPM, new Vector3d()).mul((2*Math.PI)/60);
-        } else {
-            idealOmega = new Vector3d();
+        final Vector3dc bearingAxis = data.bearingAxis;
+        if (bearingAxis == null) {
+            return new Vector3d();
         }
+        Vector3dc actualOmega = physShip.getPoseVel().getOmega();
+        Vector3d idealOmega = data.bearingAxis.mul(data.bearingRPM, new Vector3d()).mul((2*Math.PI)/60);
 
+        final Vector3dc angularVelError = idealOmega.sub(actualOmega, new Vector3d());
+        Vector3dc angularVelErrorAlongBearingAxis = bearingAxis.mul(bearingAxis.dot(angularVelError), new Vector3d());
+        // Only apply torque on the bearing axis
+        return angularVelErrorAlongBearingAxis.mul(mass * 10.0, new Vector3d());
+    }
 
-        Vector3dc torque = idealOmega.sub(actualOmega, new Vector3d()).mul(mass * 10);
-
-        return torque;
+    private Vector3dc computeAngleLockRotationalForce(PhysBearingData data, PhysShipImpl physShip) {
+        return new Vector3d();
     }
 
     public int addPhysBearing(PhysBearingCreateData data) {
