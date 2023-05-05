@@ -500,8 +500,18 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
                 if (ship != null && bearingID != null) {
                     PhysBearingData bearingData = PhysBearingController.getOrCreate((ServerShip) ship).bearingData.get(bearingID);
                     if (bearingData != null) {
-                        VSAttachmentConstraint attachConstraint = bearingData.attachConstraint;
-                        VSHingeOrientationConstraint hingeConstraint = bearingData.hingeConstraint;
+                        VSAttachmentConstraint attachConstraint1 = bearingData.attachConstraint;
+                        VSHingeOrientationConstraint hingeConstraint1 = bearingData.hingeConstraint;
+
+                        //todo TEMP, REPLACE ONCE TRIODE FIXES
+                        Ship shipOn = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, worldPosition);
+                        long shipOnID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).getDimensionToGroundBodyIdImmutable().get(VSGameUtilsKt.getDimensionId(level));
+                        if (shipOn != null) {
+                            shipOnID = shipOn.getId();
+                        }
+                        VSAttachmentConstraint attachConstraint = new VSAttachmentConstraint(attachConstraint1.getShipId0(), shipOnID, attachConstraint1.getCompliance(), attachConstraint1.getLocalPos0(), attachConstraint1.getLocalPos1(), attachConstraint1.getMaxForce(), attachConstraint1.getFixedDistance());
+                        VSHingeOrientationConstraint hingeConstraint = new VSHingeOrientationConstraint(hingeConstraint1.getShipId0(), shipOnID, hingeConstraint1.getCompliance(), hingeConstraint1.getLocalRot0(), hingeConstraint1.getLocalRot1(), hingeConstraint1.getMaxTorque());
+                        //todo
 
                         if (attachConstraint != null) {
                             Integer attachID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).createNewConstraint(attachConstraint);
