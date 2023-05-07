@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.contraptions.solver;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.simibubi.create.content.contraptions.base.KineticTileEntity;
+import kotlin.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.BaseComponent;
@@ -41,7 +42,8 @@ public class SolverBlockEntity extends KineticTileEntity implements IFuelableTil
     private BlockPos hitResultPos = BlockPos.ZERO;
     private float destroyProgress = 0;
 
-    List<SolverBeamSection> beamSections = Lists.newArrayList();
+    private Vec3 start = Vec3.ZERO;
+    private Vec3 end = Vec3.ZERO;
 
 
     public SolverBlockEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {
@@ -66,9 +68,26 @@ public class SolverBlockEntity extends KineticTileEntity implements IFuelableTil
 
         Vec3 beamStart = new Vec3(beamPos.x(), beamPos.y(), beamPos.z());
         Vec3 beamEnd = new Vec3(beamEndPos.x(), beamEndPos.y(), beamEndPos.z());
+
+        if (hitResultPos != BlockPos.ZERO) {
+            Vector3dc visualHitPos3d = new Vector3d(hitResultPos.getX()+.5, hitResultPos.getY()+.5, hitResultPos.getZ()+.5);
+
+            Ship shipHit = VSGameUtilsKt.getShipObjectManagingPos(level, hitResultPos);
+
+            if (shipHit != null) {
+                visualHitPos3d = shipHit.getTransform().getShipToWorld().transformPosition(visualHitPos3d, new Vector3d());
+            }
+
+            Vec3 visualHitPos = new Vec3(visualHitPos3d.x(), visualHitPos3d.y(), visualHitPos3d.z());
+
+            start = beamStart;
+            end = visualHitPos;
+
+        } else {
+            start = beamStart;
+            end = beamEnd;
+        }
         if (found) {
-
-
             BlockHitResult beamResult = RaycastUtilsKt.clipIncludeShips(level, new ClipContext(beamStart, beamEnd, ClipContext.Block.VISUAL, ClipContext.Fluid.NONE, null));
 
             if (beamResult.getType() == HitResult.Type.BLOCK) {
@@ -104,37 +123,18 @@ public class SolverBlockEntity extends KineticTileEntity implements IFuelableTil
                 destroyProgress = 0;
 //                found = false;
                 hitResultPos = BlockPos.ZERO;
+
             }
         }
 
 
         //beacon rendering
 
-        if (hitResultPos != BlockPos.ZERO) {
-            Vector3dc trueHitPos3d = new Vector3d(hitResultPos.getX()+.5, hitResultPos.getY()+.5, hitResultPos.getZ()+.5);
 
-            Ship shipHit = VSGameUtilsKt.getShipObjectManagingPos(level, hitResultPos);
-
-            if (shipHit != null) {
-                trueHitPos3d = shipHit.getTransform().getShipToWorld().transformPosition(trueHitPos3d, new Vector3d());
-            }
-            Vec3 trueHitPos = VectorConversionsMCKt.toMinecraft(trueHitPos3d);
-
-            if (beamStart.distanceTo(trueHitPos) > 1) {
-                while (beamSections.size() <= beamStart.distanceTo(trueHitPos)) {
-                    SolverBeamSection beam = new SolverBeamSection(DyeColor.PURPLE.getTextureDiffuseColors());
-                    beam.increaseHeight();
-                    beamSections.add(beam);
-                }
-                if (beamSections.size() > beamStart.distanceTo(trueHitPos)+1) {
-                    beamSections.remove(beamSections.size()-1);
-                }
-            }
-        }
     }
 
-    public List<SolverBeamSection> getBeamSections() {
-        return this.beamSections;
+    public Pair<Vec3, Vec3> getLinePoints() {
+        return new Pair<>(start, end);
     }
 
     @Override
@@ -155,31 +155,5 @@ public class SolverBlockEntity extends KineticTileEntity implements IFuelableTil
     @Override
     public FuelBoosterType getFuelBooster() {
         return null;
-    }
-
-    public static class SolverBeamSection {
-        final float[] color;
-        private int height;
-
-        public SolverBeamSection(float[] color) {
-            this.color = color;
-            this.height = 1;
-        }
-
-        protected void increaseHeight() {
-            ++this.height;
-        }
-
-        public void setHeight(int height) {
-            this.height = height;
-        }
-
-        public float[] getColor() {
-            return this.color;
-        }
-
-        public int getHeight() {
-            return this.height;
-        }
     }
 }
