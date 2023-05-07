@@ -15,6 +15,7 @@ import com.simibubi.create.foundation.render.SuperRenderTypeBuffer;
 import com.simibubi.create.foundation.utility.AngleHelper;
 import com.simibubi.create.foundation.utility.AnimationTickHolder;
 import com.simibubi.create.foundation.utility.outliner.LineOutline;
+import com.simibubi.create.foundation.utility.outliner.Outliner;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LightTexture;
@@ -53,37 +54,20 @@ public class SolverRenderer extends KineticTileEntityRenderer {
         //beam
         Vec3 start = bte.getLinePoints().getFirst();
         Vec3 end = bte.getLinePoints().getSecond();
-        VertexConsumer consumer = Minecraft.getInstance().renderBuffers().bufferSource().getBuffer(RenderType.LINES);
 
-//        SuperRenderTypeBuffer superbuffer = SuperRenderTypeBuffer.getInstance();
+        SuperRenderTypeBuffer superbuffer = SuperRenderTypeBuffer.getInstance();
 
-        Vec3 diff = end.subtract(start);
-        float hAngle = AngleHelper.deg(Mth.atan2(diff.x, diff.z));
-        float hDistance = (float) diff.multiply(1, 0, 1)
-                .length();
-        float vAngle = AngleHelper.deg(Mth.atan2(hDistance, diff.y)) - 90;
-        ms.pushPose();
-        //temp
+        beam.getParams()
+                .colored(0x9400D3)
+                .lineWidth(16/16f)
+                .lightMap(LightTexture.FULL_BRIGHT)
+                .withFaceTexture(AllSpecialTextures.SELECTION);
+        beam.set(start, end)
+                .render(ms, superbuffer, partialTicks);
 
+        
 
-        Vec3 camVec = Minecraft.getInstance().getEntityRenderDispatcher().camera.getPosition();
-        TransformStack.cast(ms)
-                .translate(start)
-                .rotateY(hAngle).rotateX(vAngle);
-        RenderSystem.depthMask(false);
-
-//        beam.getParams()
-//                .colored(0x9400D3)
-//                .lineWidth(16/16f)
-//                .lightMap(LightTexture.FULL_BRIGHT)
-//                .withFaceTexture(AllSpecialTextures.SELECTION);
-//        beam.set(start, end)
-//                .render(ms, superbuffer, partialTicks);
-//        consumer.vertex(start.x(), start.y(), start.z()).color(255, 0, 255, 192).endVertex();
-//        consumer.vertex(end.x(), end.y(), end.z()).color(255, 0, 255, 192).endVertex();
-        LevelRenderer.renderLineBox(ms, consumer, 8/16d, 0d, 8/16d, 8/16d, diff.length(), 8/16d, 1, 1, 1, 1);
-
-        ms.popPose();
+        //beam end
 
 
 

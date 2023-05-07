@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.contraptions.solver;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.simibubi.create.content.contraptions.base.KineticTileEntity;
+import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
 import kotlin.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -16,15 +17,19 @@ import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.block.entity.BeaconBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
+import org.valkyrienskies.clockwork.data.ClockWorkTags;
+import org.valkyrienskies.clockwork.platform.SmartFluidTankBlockEntity;
 import org.valkyrienskies.clockwork.util.blocktype.FuelBoosterType;
 import org.valkyrienskies.clockwork.util.blocktype.IFuelableTileEntity;
 import org.valkyrienskies.clockwork.util.blocktype.LiquidFuelType;
+import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
@@ -32,7 +37,7 @@ import org.valkyrienskies.mod.common.world.RaycastUtilsKt;
 
 import java.util.List;
 
-public class SolverBlockEntity extends KineticTileEntity implements IFuelableTileEntity {
+public class SolverBlockEntity extends KineticTileEntity implements IFuelableTileEntity, SmartFluidTankBlockEntity {
 
     @Nullable
     private Component name;
@@ -45,9 +50,19 @@ public class SolverBlockEntity extends KineticTileEntity implements IFuelableTil
     private Vec3 start = Vec3.ZERO;
     private Vec3 end = Vec3.ZERO;
 
+    public CWFluidTankBehaviour tank;
+
+    private BlockPos previousHitPos = BlockPos.ZERO;
+
 
     public SolverBlockEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {
         super(typeIn, pos, state);
+    }
+
+    @Override
+    public void addBehaviours(List<TileEntityBehaviour> behaviours) {
+        tank = CWFluidTankBehaviour.single(this, 8000);
+        super.addBehaviours(behaviours);
     }
 
 
@@ -58,8 +73,8 @@ public class SolverBlockEntity extends KineticTileEntity implements IFuelableTil
         if (level == null) {
             return;
         }
-        Vector3dc beamPos = new Vector3d(getBlockPos().getX()+.5, getBlockPos().getY()+1.5, getBlockPos().getZ()+.5);
-        Vector3dc beamEndPos = new Vector3d(getBlockPos().getX()+.5, getBlockPos().getY()+200.5, getBlockPos().getZ()+.5);
+        Vector3dc beamPos = new Vector3d(getBlockPos().getX()+.5, getBlockPos().getY()+1, getBlockPos().getZ()+.5);
+        Vector3dc beamEndPos = new Vector3d(getBlockPos().getX()+.5, getBlockPos().getY()+20, getBlockPos().getZ()+.5);
         Ship ship = VSGameUtilsKt.getShipObjectManagingPos(level, getBlockPos());
         if (ship != null) {
             beamPos = ship.getTransform().getShipToWorld().transformPosition(beamPos, new Vector3d());
@@ -90,41 +105,57 @@ public class SolverBlockEntity extends KineticTileEntity implements IFuelableTil
         if (found) {
             BlockHitResult beamResult = RaycastUtilsKt.clipIncludeShips(level, new ClipContext(beamStart, beamEnd, ClipContext.Block.VISUAL, ClipContext.Fluid.NONE, null));
 
+
             if (beamResult.getType() == HitResult.Type.BLOCK) {
                 BlockPos hitPos = beamResult.getBlockPos();
                 BlockState hitState = level.getBlockState(hitPos);
 
-                targetResistance = hitState.getDestroySpeed(level, hitPos);
+//                targetResistance = hitState.getDestroySpeed(level, hitPos);
+                targetResistance = hitState.getBlock().getExplosionResistance();
                 hitResultPos = hitPos;
             }
-            if (targetResistance == -1) {
+            if (targetResistance > 6001) {
                 return;
             }
-            if (Math.abs(getSpeed()) <= 192 || getFuelQuality() != LiquidFuelType.GOURMET) {
 
-                float fuelMod = switch (getFuelQuality()) {
-                    case GOURMET -> 1.5f;
-                    case SWEET -> 1;
-                    case PLAIN -> .5f;
-                    default -> 0;
-                };
-                destroyProgress += 0.25f * getSpeed()/128 * Mth.clamp(1-targetResistance, 0, 0.5) * fuelMod;
-                level.addParticle(ParticleTypes.DRAGON_BREATH, hitResultPos.getX()+.5, hitResultPos.getY()+.5, hitResultPos.getZ()+.5, Math.random(), Math.random(), Math.random());
-                level.destroyBlockProgress(0, hitResultPos, (int) (destroyProgress * 10));
-                if (destroyProgress >= 1) {
-                    level.destroyBlock(hitResultPos, true);
-//                    found = false;
+            if (previousHitPos != BlockPos.ZERO) {
+                if (!(previousHitPos.equals(hitResultPos))) {
                     destroyProgress = 0;
-                    hitResultPos = BlockPos.ZERO;
                 }
-            } else if (Math.abs(getSpeed()) > 192 && getFuelQuality() == LiquidFuelType.GOURMET) {
-                level.destroyBlock(hitResultPos, true);
-                level.explode(null, hitResultPos.getX(), hitResultPos.getY(), hitResultPos.getZ(), 3, false, Explosion.BlockInteraction.BREAK);
-                destroyProgress = 0;
-//                found = false;
-                hitResultPos = BlockPos.ZERO;
-
             }
+            if (Math.abs(getSpeed()) > 64f) {
+                if (Math.abs(getSpeed()) <= 192 || getFuelQuality() != LiquidFuelType.GOURMET) {
+
+
+                    float fuelMod = switch (getFuelQuality()) {
+                        case GOURMET -> 1.5f;
+                        case SWEET -> 1;
+                        case PLAIN -> .5f;
+                        default -> 0;
+                    };
+
+                    destroyProgress += Mth.clamp(0.5f * Math.abs(getSpeed())/128f * Mth.clamp(1/targetResistance, 0.1, 1) * fuelMod, 0, 2);
+                    destroyProgress = Mth.clamp(destroyProgress, 0, 1);
+                    level.addParticle(ParticleTypes.DRAGON_BREATH, hitResultPos.getX()+.5, hitResultPos.getY()+.5, hitResultPos.getZ()+.5, Math.random(), Math.random(), Math.random());
+                    level.destroyBlockProgress(0, hitResultPos, (int) (destroyProgress * 10));
+                    if (destroyProgress >= 1) {
+                        level.destroyBlock(hitResultPos, true);
+//                    found = false;
+                        destroyProgress = 0;
+                        hitResultPos = BlockPos.ZERO;
+                    }
+                } else if (Math.abs(getSpeed()) > 192 && getFuelQuality() == LiquidFuelType.GOURMET) {
+                    level.destroyBlock(hitResultPos, true);
+                    level.explode(null, hitResultPos.getX(), hitResultPos.getY(), hitResultPos.getZ(), 3, false, Explosion.BlockInteraction.BREAK);
+                    destroyProgress = 0;
+//                found = false;
+                    hitResultPos = BlockPos.ZERO;
+
+                }
+            }
+
+
+            previousHitPos = hitResultPos;
         }
 
 
@@ -138,13 +169,56 @@ public class SolverBlockEntity extends KineticTileEntity implements IFuelableTil
     }
 
     @Override
+    public CWFluidTankBehaviour getFluidTankBehaviour() {
+        return tank;
+    }
+
+    public boolean hasValidFuelType() {
+        if (tank.isEmpty())
+            return false;
+
+        Fluid fuel = tank.getPrimaryHandler().getFluidType();
+
+        if (fuel.is(ClockWorkTags.AllFluidTags.STALE.tag))
+            return true;
+        if (fuel.is(ClockWorkTags.AllFluidTags.PLAIN.tag))
+            return true;
+        if (fuel.is(ClockWorkTags.AllFluidTags.SWEET.tag))
+            return true;
+        if (fuel.is(ClockWorkTags.AllFluidTags.EXTRA.tag))
+            return true;
+        if (fuel.is(ClockWorkTags.AllFluidTags.GOURMET.tag))
+            return true;
+
+        return false;
+    }
+
+    @Override
     public LiquidFuelType getFuelQuality() {
-        return LiquidFuelType.SWEET;
+        if (!hasValidFuelType()) {
+            return LiquidFuelType.NONE;
+        }
+        Fluid fuel = tank.getPrimaryHandler().getFluidType();
+        if (fuel.is(ClockWorkTags.AllFluidTags.STALE.tag)) {
+            return LiquidFuelType.STALE;
+        } else if (fuel.is(ClockWorkTags.AllFluidTags.PLAIN.tag)) {
+            return LiquidFuelType.PLAIN;
+        } else if (fuel.is(ClockWorkTags.AllFluidTags.SWEET.tag)) {
+            return LiquidFuelType.SWEET;
+        } else if (fuel.is(ClockWorkTags.AllFluidTags.GOURMET.tag)) {
+            return LiquidFuelType.GOURMET;
+        } else {
+            return LiquidFuelType.EXTRA;
+        }
     }
 
     @Override
     public int getRemainingFuel() {
-        return 0;
+        if (!hasValidFuelType()) {
+            return 0;
+        }
+
+        return (int) tank.getPrimaryHandler().getAmount();
     }
 
     @Override
