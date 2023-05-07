@@ -32,6 +32,7 @@ import java.util.Random;
 import java.util.Set;
 
 import static org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserRenderer.ScanManager.SCAN_GROWTH_DURATION;
+import static org.valkyrienskies.clockwork.util.animation.EaseHelper.easeInBounce;
 
 public class PhysicsInfuserBlockEntity extends SmartTileEntity {
 
@@ -320,27 +321,6 @@ public class PhysicsInfuserBlockEntity extends SmartTileEntity {
             return disassemblyProgress.getValue(partialTicks);
         }
         return 0f;
-    }
-
-    public float easeInBounce(float x) {
-        return 1 - easeOutBounce(1 - x);
-
-    }
-
-    public float easeOutBounce(float x) {
-        double n1 = 7.5625;
-        double d1 = 2.75;
-
-        if (x < 1 / d1) {
-            return (float) (n1 * x * x);
-        } else if (x < 2 / d1) {
-            return (float) (n1 * (x -= 1.5 / d1) * x + 0.75);
-        } else if (x < 2.5 / d1) {
-            return (float) (n1 * (x -= 2.25 / d1) * x + 0.9375);
-        } else {
-            return (float) (n1 * (x -= 2.625 / d1) * x + 0.984375);
-        }
-
     }
 
     @Override

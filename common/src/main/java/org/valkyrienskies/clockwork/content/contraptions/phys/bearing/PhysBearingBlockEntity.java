@@ -39,9 +39,13 @@ import org.valkyrienskies.core.impl.game.ships.ShipTransformImpl;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.assembly.ShipAssemblyKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
+import org.valkyrienskies.clockwork.util.animation.EaseHelper;
 
 import java.lang.Math;
 import java.util.List;
+
+import static org.valkyrienskies.clockwork.util.animation.EaseHelper.easeInOutSine;
+import static org.valkyrienskies.clockwork.util.animation.EaseHelper.easeOutBounce;
 
 public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implements IBearingTileEntity, IDisplayAssemblyExceptions, ContraptionController {
     protected ScrollOptionBehaviour<LockedMode> movementMode;
@@ -189,11 +193,6 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
             return Mth.lerp(easeInOutSine(openProgress), 0, 1f/16f + (float) Math.sin(easeInOutSine(inOutCorner))/16f);
         }
         return 1f/16f + (float) Math.sin(easeInOutSine(inOutCorner))/16f;
-    }
-
-    private float easeInOutSine(float x) {
-        return (float) -(Math.cos(Math.PI * x) - 1) / 2;
-
     }
 
     @Override
@@ -455,27 +454,6 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
                 return;
             }
         }
-    }
-
-    public float easeInBounce(float x) {
-        return 1 - easeOutBounce(1 - x);
-
-    }
-
-    public float easeOutBounce(float x) {
-        double n1 = 7.5625;
-        double d1 = 2.75;
-
-        if (x < 1 / d1) {
-            return (float) (n1 * x * x);
-        } else if (x < 2 / d1) {
-            return (float) (n1 * (x -= 1.5 / d1) * x + 0.75);
-        } else if (x < 2.5 / d1) {
-            return (float) (n1 * (x -= 2.25 / d1) * x + 0.9375);
-        } else {
-            return (float) (n1 * (x -= 2.625 / d1) * x + 0.984375);
-        }
-
     }
 
     @Override
