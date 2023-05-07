@@ -1,8 +1,5 @@
 package org.valkyrienskies.clockwork.mixin.compat;
 
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
 import com.simibubi.create.content.contraptions.components.structureMovement.Contraption;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;

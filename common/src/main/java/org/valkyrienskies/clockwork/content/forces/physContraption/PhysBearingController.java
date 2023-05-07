@@ -3,24 +3,18 @@ package org.valkyrienskies.clockwork.content.forces.physContraption;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import kotlin.Pair;
+import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Quaterniond;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
-import org.joml.Vector3ic;
+import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingCreateData;
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingData;
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingUpdateData;
 import org.valkyrienskies.core.api.ships.PhysShip;
 import org.valkyrienskies.core.api.ships.ServerShip;
-import org.valkyrienskies.core.apigame.constraints.VSAttachmentOrientationConstraint;
-import org.valkyrienskies.core.apigame.constraints.VSConstraint;
-import org.valkyrienskies.core.apigame.constraints.VSConstraintKt;
-import org.valkyrienskies.core.apigame.constraints.VSHingeTargetAngleConstraint;
 import org.valkyrienskies.core.impl.api.ShipForcesInducer;
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl;
-import org.valkyrienskies.core.impl.game.ships.ShipInertiaDataImpl;
-import org.valkyrienskies.mod.common.VSGameUtilsKt;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -48,6 +42,11 @@ public class PhysBearingController implements ShipForcesInducer {
 
     @Override
     public void applyForces(@NotNull PhysShip physShip) {
+        // Do nothing, actual work is in applyForcesAndLookupPhysShips()
+    }
+
+    @Override
+    public void applyForcesAndLookupPhysShips(@NotNull PhysShip physShip, @NotNull Function1<? super Long, ? extends PhysShip> lookupPhysShip) {
         while (!createdBearings.isEmpty()) {
             final Pair<Integer, PhysBearingCreateData> createData = createdBearings.remove();
             bearingData.put(createData.component1(), new PhysBearingData(
@@ -84,8 +83,22 @@ public class PhysBearingController implements ShipForcesInducer {
 
         for (PhysBearingData data : bearingData.values()) {
             if (data.angleConstraint == null) {
-                Vector3dc torque = computeRotationalForce(data, (PhysShipImpl) physShip);
-                physShip.applyRotDependentTorque(torque);
+                final long physShipBearingIsOnId = data.hingeConstraint.getShipId1();
+                if (physShipBearingIsOnId == PhysBearingBlockEntity.NO_SHIPTRAPTION_ID) {
+                    // Constraint connects to world
+                    Vector3dc torque = computeRotationalForce(data, (PhysShipImpl) physShip, null);
+                    physShip.applyInvariantTorque(torque);
+                } else {
+                    final PhysShip physShipBearingIsOn = lookupPhysShip.invoke(physShipBearingIsOnId);
+                    if (physShipBearingIsOn == null) {
+                        Vector3dc torque = computeRotationalForce(data, (PhysShipImpl) physShip, null);
+                        physShip.applyInvariantTorque(torque);
+                    } else {
+                        Vector3dc torque = computeRotationalForce(data, (PhysShipImpl) physShip, (PhysShipImpl) physShipBearingIsOn);
+                        physShip.applyInvariantTorque(torque);
+                        physShipBearingIsOn.applyInvariantTorque(torque.mul(-1.0, new Vector3d()));
+                    }
+                }
             }
         }
     }
@@ -107,20 +120,33 @@ public class PhysBearingController implements ShipForcesInducer {
 //        return torque;
 //    }
 
-    private Vector3dc computeRotationalForce(PhysBearingData data, PhysShipImpl physShip) {
-        double mass = physShip.getInertia().getShipMass();
-
-        final Vector3dc bearingAxis = data.bearingAxis;
-        if (bearingAxis == null) {
+    private Vector3dc computeRotationalForce(final PhysBearingData data, final PhysShipImpl physShip, final PhysShipImpl otherPhysShip) {
+        if (data.bearingAxis == null) {
             return new Vector3d();
         }
-        Vector3dc actualOmega = physShip.getPoseVel().getOmega();
-        Vector3d idealOmega = data.bearingAxis.mul(data.bearingRPM, new Vector3d()).mul((2*Math.PI)/60);
 
-        final Vector3dc angularVelError = idealOmega.sub(actualOmega, new Vector3d());
-        Vector3dc angularVelErrorAlongBearingAxis = bearingAxis.mul(bearingAxis.dot(angularVelError), new Vector3d());
+        final Vector3d bearingAxisInGlobal = new Vector3d(data.bearingAxis);
+        if (otherPhysShip != null) {
+            otherPhysShip.getTransform().getShipToWorldRotation().transform(bearingAxisInGlobal);
+        }
+
+        final Vector3d actualRelativeOmega = new Vector3d(physShip.getPoseVel().getOmega());
+        final Vector3d idealRelativeOmega = bearingAxisInGlobal.mul(data.bearingRPM, new Vector3d()).mul((2 * Math.PI) / 60);
+
+        double torqueMassMultiplier = physShip.getInertia().getShipMass();
+        if (otherPhysShip != null) {
+            actualRelativeOmega.sub(otherPhysShip.getPoseVel().getOmega());
+
+            // Take the min of both ships mass
+            if (!otherPhysShip.isStatic()) {
+                torqueMassMultiplier = Math.min(torqueMassMultiplier, otherPhysShip.getInertia().getShipMass());
+            }
+        }
+
+        final Vector3dc angularVelError = idealRelativeOmega.sub(actualRelativeOmega, new Vector3d());
+        final Vector3dc angularVelErrorAlongBearingAxis = bearingAxisInGlobal.mul(bearingAxisInGlobal.dot(angularVelError), new Vector3d());
         // Only apply torque on the bearing axis
-        return angularVelErrorAlongBearingAxis.mul(mass * 10.0, new Vector3d());
+        return angularVelErrorAlongBearingAxis.mul(torqueMassMultiplier * 10.0, new Vector3d());
     }
 
     private Vector3dc computeAngleLockRotationalForce(PhysBearingData data, PhysShipImpl physShip) {

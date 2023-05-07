@@ -55,7 +55,7 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
 
     private float prevAngle;
 
-    private long shiptraptionID = -1;
+    private long shiptraptionID = NO_SHIPTRAPTION_ID;
 
     private Integer bearingID = null;
 
@@ -74,6 +74,8 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
 
     private float inOutCorner = 0;
     private boolean cornerShrinking = false;
+
+    public static final long NO_SHIPTRAPTION_ID = -1;
 
     public PhysBearingBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -108,7 +110,7 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
         if (bearingID != null) {
             compound.putInt("BearingID", bearingID);
         }
-        if (shiptraptionID != -1) {
+        if (shiptraptionID != NO_SHIPTRAPTION_ID) {
             compound.putLong("ShiptraptionID", shiptraptionID);
         }
         AssemblyException.write(compound, lastException);
@@ -136,12 +138,12 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
             shiptraptionID = compound.getLong("ShiptraptionID");
         }
         if (running) {
-            if (shiptraptionID == -1) {
+            if (shiptraptionID == NO_SHIPTRAPTION_ID) {
                 clientAngleDiff = AngleHelper.getShortestAngleDiff(angleBefore, angle);
                 angle = angleBefore;
             }
         } else {
-            shiptraptionID = -1;
+            shiptraptionID = NO_SHIPTRAPTION_ID;
         }
 
         shouldRefresh = true;
@@ -198,7 +200,7 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
     public float getInterpolatedAngle(float partialTicks) {
         if (isVirtual())
             return Mth.lerp(partialTicks + .5f, prevAngle, angle);
-        if (shiptraptionID == -1 || !running)
+        if (shiptraptionID == NO_SHIPTRAPTION_ID || !running)
             partialTicks = 0;
         return Mth.lerp(partialTicks, angle, angle + getAngularSpeed());
     }
@@ -225,7 +227,7 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
     public void onSpeedChanged(float prevSpeed) {
         super.onSpeedChanged(prevSpeed);
 
-        if (shiptraptionID != -1 && Math.signum(prevSpeed) != Math.signum(getSpeed()) && prevSpeed != 0) {
+        if (shiptraptionID != NO_SHIPTRAPTION_ID && Math.signum(prevSpeed) != Math.signum(getSpeed()) && prevSpeed != 0) {
 //            movedContraption.getContraption()
 //                    .stop(level);
         }
@@ -408,10 +410,10 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
     }
 
     public void disassemble() {
-        if (!running && shiptraptionID == -1)
+        if (!running && shiptraptionID == NO_SHIPTRAPTION_ID)
             return;
         angle = 0;
-        if (shiptraptionID != -1) {
+        if (shiptraptionID != NO_SHIPTRAPTION_ID) {
             ServerShip ship = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).getAllShips().getById(shiptraptionID);
             if (ship != null) {
 //
@@ -434,7 +436,7 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
             return;
         }
 
-        shiptraptionID = -1;
+        shiptraptionID = NO_SHIPTRAPTION_ID;
         running = false;
         updateGeneratedRotation();
         assembleNextTick = false;
@@ -442,7 +444,7 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
     }
 
     private void shipDisassemble() {
-        if (shiptraptionID == -1) { return; }
+        if (shiptraptionID == NO_SHIPTRAPTION_ID) { return; }
         ServerShip ship = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).getAllShips().getById(shiptraptionID);
         if (ship == null) { return; }
         if (bearingID != null) {
@@ -496,9 +498,9 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
 
         if (shouldRefresh) {
             if (!level.isClientSide) {
-                Ship ship = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).getAllShips().getById(shiptraptionID);
+                ServerShip ship = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).getAllShips().getById(shiptraptionID);
                 if (ship != null && bearingID != null) {
-                    PhysBearingData bearingData = PhysBearingController.getOrCreate((ServerShip) ship).bearingData.get(bearingID);
+                    PhysBearingData bearingData = PhysBearingController.getOrCreate(ship).bearingData.get(bearingID);
                     if (bearingData != null) {
                         VSAttachmentConstraint attachConstraint1 = bearingData.attachConstraint;
                         VSHingeOrientationConstraint hingeConstraint1 = bearingData.hingeConstraint;
@@ -508,6 +510,14 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
                         long shipOnID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).getDimensionToGroundBodyIdImmutable().get(VSGameUtilsKt.getDimensionId(level));
                         if (shipOn != null) {
                             shipOnID = shipOn.getId();
+                        } else {
+                            // The ship was deleted, delete this bearing
+                            if (VSGameUtilsKt.isBlockInShipyard(level, worldPosition)) {
+                                running = false;
+                                assembleNextTick = false;
+                                shouldRefresh = false;
+                                return;
+                            }
                         }
                         VSAttachmentConstraint attachConstraint = new VSAttachmentConstraint(attachConstraint1.getShipId0(), shipOnID, attachConstraint1.getCompliance(), attachConstraint1.getLocalPos0(), attachConstraint1.getLocalPos1(), attachConstraint1.getMaxForce(), attachConstraint1.getFixedDistance());
                         VSHingeOrientationConstraint hingeConstraint = new VSHingeOrientationConstraint(hingeConstraint1.getShipId0(), shipOnID, hingeConstraint1.getCompliance(), hingeConstraint1.getLocalRot0(), hingeConstraint1.getLocalRot1(), hingeConstraint1.getMaxTorque());
@@ -516,15 +526,15 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
                         if (attachConstraint != null) {
                             Integer attachID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).createNewConstraint(attachConstraint);
                             if (attachID != null) {
-                                PhysBearingController.getOrCreate((ServerShip) ship).bearingData.get(bearingID).attachConstraint = attachConstraint;
-                                PhysBearingController.getOrCreate((ServerShip) ship).bearingData.get(bearingID).attachID = attachID;
+                                PhysBearingController.getOrCreate(ship).bearingData.get(bearingID).attachConstraint = attachConstraint;
+                                PhysBearingController.getOrCreate(ship).bearingData.get(bearingID).attachID = attachID;
                             }
                         }
                         if (hingeConstraint != null) {
                             Integer hingeID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).createNewConstraint(hingeConstraint);
                             if (hingeID != null) {
-                                PhysBearingController.getOrCreate((ServerShip) ship).bearingData.get(bearingID).hingeConstraint = hingeConstraint;
-                                PhysBearingController.getOrCreate((ServerShip) ship).bearingData.get(bearingID).hingeID = hingeID;
+                                PhysBearingController.getOrCreate(ship).bearingData.get(bearingID).hingeConstraint = hingeConstraint;
+                                PhysBearingController.getOrCreate(ship).bearingData.get(bearingID).hingeID = hingeID;
                                 shouldRefresh = false;
                             }
                         }
@@ -562,7 +572,7 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
         if (!running)
             return;
 
-        if (shiptraptionID != -1) {
+        if (shiptraptionID != NO_SHIPTRAPTION_ID) {
             float angularSpeed = getAngularSpeed();
             float newAngle = angle + angularSpeed;
             angle = (float) (newAngle % 360);
@@ -570,7 +580,7 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
 
         if (running) {
             if (!level.isClientSide) {
-                if (shiptraptionID != -1) {
+                if (shiptraptionID != NO_SHIPTRAPTION_ID) {
                     ServerShip ship = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).getAllShips().getById(shiptraptionID);
 
                     if (ship != null) {
@@ -620,7 +630,7 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
     @Override
     public void lazyTick() {
         super.lazyTick();
-        if (shiptraptionID != -1 && !level.isClientSide)
+        if (shiptraptionID != NO_SHIPTRAPTION_ID && !level.isClientSide)
             sendData();
     }
 
