@@ -130,17 +130,33 @@ public class PhysBearingController implements ShipForcesInducer {
             otherPhysShip.getTransform().getShipToWorldRotation().transform(bearingAxisInGlobal);
         }
 
-        final Vector3d actualRelativeOmega = new Vector3d(physShip.getPoseVel().getOmega());
         final Vector3d idealRelativeOmega = bearingAxisInGlobal.mul(data.bearingRPM, new Vector3d()).mul((2 * Math.PI) / 60);
+        final Vector3d actualRelativeOmega;
+        if (!physShip.isStatic()) {
+            actualRelativeOmega = new Vector3d(physShip.getPoseVel().getOmega());
+        } else {
+            // TODO: What about static bodies that are moving?
+            actualRelativeOmega = new Vector3d();
+        }
 
-        double torqueMassMultiplier = physShip.getInertia().getShipMass();
-        if (otherPhysShip != null) {
-            actualRelativeOmega.sub(otherPhysShip.getPoseVel().getOmega());
-
-            // Take the min of both ships mass
-            if (!otherPhysShip.isStatic()) {
-                torqueMassMultiplier = Math.min(torqueMassMultiplier, otherPhysShip.getInertia().getShipMass());
+        final double torqueMassMultiplier;
+        if (!physShip.isStatic()) {
+            if (otherPhysShip != null && !otherPhysShip.isStatic()) {
+                torqueMassMultiplier = Math.min(physShip.getInertia().getShipMass(), otherPhysShip.getInertia().getShipMass());
+                // Sub otherPhysShip angularVel from actualRelativeOmega if otherPhysShip is not static
+                // TODO: What about static bodies that are moving?
+                actualRelativeOmega.sub(otherPhysShip.getPoseVel().getOmega());
+            } else {
+                torqueMassMultiplier = physShip.getInertia().getShipMass();
             }
+        } else if (otherPhysShip != null && !otherPhysShip.isStatic()){
+            // Set it to be the mass of otherPhysShip
+            torqueMassMultiplier = otherPhysShip.getInertia().getShipMass();
+            // Sub otherPhysShip angularVel from actualRelativeOmega if otherPhysShip is not static
+            // TODO: What about static bodies that are moving?
+            actualRelativeOmega.sub(otherPhysShip.getPoseVel().getOmega());
+        } else {
+            return new Vector3d();
         }
 
         final Vector3dc angularVelError = idealRelativeOmega.sub(actualRelativeOmega, new Vector3d());
