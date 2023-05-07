@@ -29,6 +29,8 @@ import org.valkyrienskies.clockwork.content.contraptions.resistor.RedstoneResist
 import org.valkyrienskies.clockwork.content.contraptions.resistor.RedstoneResistorRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatRenderer;
+import org.valkyrienskies.clockwork.content.contraptions.solver.SolverBlockEntity;
+import org.valkyrienskies.clockwork.content.contraptions.solver.SolverRenderer;
 
 import static org.valkyrienskies.clockwork.ClockWorkMod.REGISTRATE;
 
@@ -47,6 +49,12 @@ public class ClockWorkBlockEntities {
 //            .instance(() -> BearingInstance::new)
             .validBlocks(ClockWorkBlocks.PHYS_BEARING)
             .renderer(() -> PhysBearingRenderer::new)
+            .register();
+
+    public static final BlockEntityEntry<SolverBlockEntity> SOLVER = REGISTRATE
+            .tileEntity("solver", SolverBlockEntity::new)
+            .validBlocks(ClockWorkBlocks.SOLVER)
+            .renderer(() -> SolverRenderer::new)
             .register();
 
     public static final BlockEntityEntry<AfterblazerBlockEntity> AFTERBLAZER = REGISTRATE

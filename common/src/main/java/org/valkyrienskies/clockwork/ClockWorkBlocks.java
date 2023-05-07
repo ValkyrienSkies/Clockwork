@@ -23,6 +23,7 @@ import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBear
 import org.valkyrienskies.clockwork.content.contraptions.reaction_wheel.ReactionWheelBlock;
 import org.valkyrienskies.clockwork.content.contraptions.resistor.RedstoneResistorBlock;
 import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatBlock;
+import org.valkyrienskies.clockwork.content.contraptions.solver.SolverBlock;
 import org.valkyrienskies.clockwork.content.physicalities.motion.wing.FlapBlock;
 import org.valkyrienskies.clockwork.content.physicalities.motion.wing.WingBlock;
 import org.valkyrienskies.clockwork.util.blocktype.IHeatableBlock;
@@ -106,6 +107,17 @@ public class ClockWorkBlocks {
                     .properties(p -> p.color(MaterialColor.COLOR_ORANGE))
                     .properties(BlockBehaviour.Properties::noOcclusion)
                     .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+                    .item()
+                    .transform(customItemModel())
+                    .register();
+
+    public static final BlockEntry<SolverBlock> SOLVER =
+            REGISTRATE.block("solver", SolverBlock::new)
+                    .initialProperties(SharedProperties::softMetal)
+                    .transform(axeOrPickaxe())
+                    .properties(p -> p.color(MaterialColor.COLOR_PURPLE))
+                    .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+                    .transform(BlockStressDefaults.setImpact(4.0))
                     .item()
                     .transform(customItemModel())
                     .register();
