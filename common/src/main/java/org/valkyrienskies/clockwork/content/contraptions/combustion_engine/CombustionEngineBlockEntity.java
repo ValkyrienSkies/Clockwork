@@ -152,7 +152,7 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
             first = false;
         }
         float prevGeneratedSpeed = generatedSpeed;
-        generatedSpeed = switch (getFuelQuality()) {
+        generatedSpeed = switch (getFuelQuality()) { //TODO move this inside fuel quality enum
             case NONE -> 0;
             case STALE -> 16;
             case PLAIN -> 32;
@@ -222,17 +222,7 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
             return LiquidFuelType.NONE;
         }
         Fluid fuel = tank.getPrimaryHandler().getFluidType();
-        if (fuel.is(ClockWorkTags.AllFluidTags.STALE.tag)) {
-            return LiquidFuelType.STALE;
-        } else if (fuel.is(ClockWorkTags.AllFluidTags.PLAIN.tag)) {
-            return LiquidFuelType.PLAIN;
-        } else if (fuel.is(ClockWorkTags.AllFluidTags.SWEET.tag)) {
-            return LiquidFuelType.SWEET;
-        } else if (fuel.is(ClockWorkTags.AllFluidTags.GOURMET.tag)) {
-            return LiquidFuelType.GOURMET;
-        } else {
-            return LiquidFuelType.EXTRA;
-        }
+        return LiquidFuelType.fromFluid(fuel);
     }
 
     @Override
@@ -255,19 +245,7 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
             return false;
 
         Fluid fuel = tank.getPrimaryHandler().getFluidType();
-
-        if (fuel.is(ClockWorkTags.AllFluidTags.STALE.tag))
-            return true;
-        if (fuel.is(ClockWorkTags.AllFluidTags.PLAIN.tag))
-            return true;
-        if (fuel.is(ClockWorkTags.AllFluidTags.SWEET.tag))
-            return true;
-        if (fuel.is(ClockWorkTags.AllFluidTags.EXTRA.tag))
-            return true;
-        if (fuel.is(ClockWorkTags.AllFluidTags.GOURMET.tag))
-            return true;
-
-        return false;
+        return ClockWorkTags.AllFluidTags.isValidFuel(fuel);
     }
 
     @Override

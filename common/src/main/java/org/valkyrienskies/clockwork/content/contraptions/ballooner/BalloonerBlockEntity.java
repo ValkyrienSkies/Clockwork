@@ -459,19 +459,7 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
             return false;
 
         Fluid fuel = tank.getPrimaryHandler().getFluidType();
-
-        if (fuel.is(ClockWorkTags.AllFluidTags.STALE.tag))
-            return true;
-        if (fuel.is(ClockWorkTags.AllFluidTags.PLAIN.tag))
-            return true;
-        if (fuel.is(ClockWorkTags.AllFluidTags.SWEET.tag))
-            return true;
-        if (fuel.is(ClockWorkTags.AllFluidTags.EXTRA.tag))
-            return true;
-        if (fuel.is(ClockWorkTags.AllFluidTags.GOURMET.tag))
-            return true;
-
-        return false;
+        return ClockWorkTags.AllFluidTags.isValidFuel(fuel);
     }
 
     @Override
@@ -479,18 +467,9 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
         if (!hasValidFuelType()) {
             return LiquidFuelType.NONE;
         }
+
         Fluid fuel = tank.getPrimaryHandler().getFluidType();
-        if (fuel.is(ClockWorkTags.AllFluidTags.STALE.tag)) {
-            return LiquidFuelType.STALE;
-        } else if (fuel.is(ClockWorkTags.AllFluidTags.PLAIN.tag)) {
-            return LiquidFuelType.PLAIN;
-        } else if (fuel.is(ClockWorkTags.AllFluidTags.SWEET.tag)) {
-            return LiquidFuelType.SWEET;
-        } else if (fuel.is(ClockWorkTags.AllFluidTags.GOURMET.tag)) {
-            return LiquidFuelType.GOURMET;
-        } else {
-            return LiquidFuelType.EXTRA;
-        }
+        return LiquidFuelType.fromFluid(fuel);
     }
 
     @Override
