@@ -40,11 +40,17 @@ public class FabricCWFluidTank extends SmartFluidTank implements CWFluidTank {
 
     @Override
     public void shrink(long drainAmount) {
-        super.getFluid().shrink(drainAmount);
+        amount -= drainAmount;
+        updateStack();
     }
 
     @Override
     public void grow(long fillAmount) {
-        super.getFluid().grow(fillAmount);
+        amount += fillAmount;
+        updateStack();
+    }
+
+    private void updateStack() {
+        this.stack = new FluidStack(this.variant, this.amount);
     }
 }

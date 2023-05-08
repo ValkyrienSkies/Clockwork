@@ -99,10 +99,26 @@ public class ClockWorkTags {
         }
         @SuppressWarnings("deprecation")
         public boolean matches(Fluid fluid) {
+            if (fluid == null) return false;
             return fluid.is(tag);
         }
         public boolean matches(FluidState state) {
+            if (state == null) return false;
             return state.is(tag);
+        }
+
+        public static boolean isValidFuel(Fluid fuel) {
+
+            if (ClockWorkTags.AllFluidTags.STALE.matches(fuel))
+                return true;
+            if (ClockWorkTags.AllFluidTags.PLAIN.matches(fuel))
+                return true;
+            if (ClockWorkTags.AllFluidTags.SWEET.matches(fuel))
+                return true;
+            if (ClockWorkTags.AllFluidTags.EXTRA.matches(fuel))
+                return true;
+
+            return AllFluidTags.GOURMET.matches(fuel);
         }
 
         private static void init() {
