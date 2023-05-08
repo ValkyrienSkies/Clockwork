@@ -87,8 +87,8 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
     }
 
     public void setGimbal(double pitch, double yaw) {
-            double tPitch = Mth.clamp(pitch, -22.5, 22.5);
-            double tYaw = Mth.clamp(yaw, -22.5, 22.5);
+            double tPitch = Mth.clamp(pitch, -22.5 * Mth.DEG_TO_RAD, 22.5 * Mth.DEG_TO_RAD);
+            double tYaw = Mth.clamp(yaw, -22.5 * Mth.DEG_TO_RAD, 22.5 * Mth.DEG_TO_RAD);
             gimbalRotation.set(tPitch, tYaw);
         }
 

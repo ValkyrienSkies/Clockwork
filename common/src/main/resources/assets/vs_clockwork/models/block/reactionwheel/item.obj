@@ -1,5 +1,5 @@
 # Made in Blockbench 4.7.1
-mtllib new-item.mtl
+mtllib item.mtl
 
 o centerwheel
 v 0.6812179763779524 0.8125 0.937499972440945
