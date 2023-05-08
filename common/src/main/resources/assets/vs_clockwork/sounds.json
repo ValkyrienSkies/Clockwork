@@ -68,5 +68,25 @@
       }
     ],
     "subtitle": "vs_clockwork.subtitle.thick_fluid_empty"
-  }
+  },
+    "welder_weld": {
+        "sounds": [
+        {
+            "name": "vs_clockwork:welder_weld",
+            "type": "file",
+            "attenuation_distance": 16
+        }
+        ],
+        "subtitle": "vs_clockwork.subtitle.welder_weld"
+    },
+    "welder_whirr": {
+        "sounds": [
+        {
+            "name": "vs_clockwork:welder_whirr",
+            "type": "file",
+            "attenuation_distance": 16
+        }
+        ],
+        "subtitle": "vs_clockwork.subtitle.welder_whirr"
+    }
 }

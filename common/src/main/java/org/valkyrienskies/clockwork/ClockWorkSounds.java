@@ -63,7 +63,19 @@ public class ClockWorkSounds {
     PHYSICS_INFUSER_FINISH = create("physics_infuser_finish").subtitle("Physics Infuser infuses")
             .category(SoundSource.BLOCKS)
             .attenuationDistance(64)
-            .build();
+            .build(),
+
+    WELDER_WELD = create("welder_weld").subtitle("Welder welds")
+            .category(SoundSource.PLAYERS)
+            .attenuationDistance(16)
+            .build(),
+
+    WELDER_WHIRR = create("welder_whirr").subtitle("Welder whirrs")
+            .category(SoundSource.PLAYERS)
+            .attenuationDistance(16)
+            .build()
+
+            ;
     private static final DeferredRegister<SoundEvent> sounds = DeferredRegister.create(Registry.SOUND_EVENT, ClockWorkMod.MOD_ID);
 
     private static SoundEntryBuilder create(String name) {
