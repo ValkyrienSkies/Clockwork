@@ -55,6 +55,15 @@ public class SolverRenderer extends KineticTileEntityRenderer {
         Vec3 start = bte.getLinePoints().getFirst();
         Vec3 end = bte.getLinePoints().getSecond();
 
+        double distance = start.distanceTo(end);
+
+        if (distance == 0) {
+            return;
+        }
+
+        Vec3 beamStart = new Vec3(0.5, 0.5, 0.5);
+        Vec3 beamEnd = new Vec3(0.5, distance, 0.5);
+
         SuperRenderTypeBuffer superbuffer = SuperRenderTypeBuffer.getInstance();
 
         beam.getParams()
@@ -62,7 +71,7 @@ public class SolverRenderer extends KineticTileEntityRenderer {
                 .lineWidth(16/16f)
                 .lightMap(LightTexture.FULL_BRIGHT)
                 .withFaceTexture(AllSpecialTextures.SELECTION);
-        beam.set(start, end)
+        beam.set(beamStart, beamEnd)
                 .render(ms, superbuffer, partialTicks);
 
         

@@ -14,6 +14,8 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.Gravitro
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItemRenderer;
 import org.valkyrienskies.clockwork.content.curiosities.tools.pastrymaker.PastrymakerItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.pastrymaker.PastrymakerItemRenderer;
+import org.valkyrienskies.clockwork.content.curiosities.tools.welder.WelderItem;
+import org.valkyrienskies.clockwork.content.curiosities.tools.welder.WelderItemRenderer;
 import org.valkyrienskies.clockwork.content.materials.solids.soda.SodaBottleItem;
 import org.valkyrienskies.clockwork.content.materials.solids.stratodonut.StratodonutItem;
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate;
@@ -62,6 +64,13 @@ public class ClockWorkItems {
     public static final ItemEntry<GravitronItem> GRAVITRON = REGISTRATE.item("gravitron", GravitronItem::new)
             .properties(p -> p.stacksTo(1)).properties(p -> p.rarity(Rarity.UNCOMMON))
             .transform(ClockworkRegistrate.customRenderedItem(() -> GravitronItemRenderer::new))
+            .tag(AllTags.AllItemTags.WRENCH.tag)
+            .model(AssetLookup.itemModelWithPartials())
+            .register();
+
+    public static final ItemEntry<WelderItem> WELDER = REGISTRATE.item("welder", WelderItem::new)
+            .properties(p -> p.stacksTo(1)).properties(p -> p.rarity(Rarity.RARE))
+            .transform(ClockworkRegistrate.customRenderedItem(() -> WelderItemRenderer::new))
             .tag(AllTags.AllItemTags.WRENCH.tag)
             .model(AssetLookup.itemModelWithPartials())
             .register();

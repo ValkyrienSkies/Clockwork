@@ -31,6 +31,8 @@ import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.Sequence
 import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.solver.SolverBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.solver.SolverRenderer;
+import org.valkyrienskies.clockwork.content.contraptions.universal_joint.UniversalJointBlockEntity;
+import org.valkyrienskies.clockwork.content.contraptions.universal_joint.UniversalJointRenderer;
 
 import static org.valkyrienskies.clockwork.ClockWorkMod.REGISTRATE;
 
@@ -118,6 +120,12 @@ public class ClockWorkBlockEntities {
             .instance(() -> ShaftInstance::new, false)
             .validBlocks(ClockWorkBlocks.BALLOON_ENCASED_SHAFT)
             .renderer(() -> ShaftRenderer::new)
+            .register();
+
+    public static final BlockEntityEntry<UniversalJointBlockEntity> UNIVERSAL_JOINT = REGISTRATE
+            .tileEntity("universal_joint", UniversalJointBlockEntity::new)
+            .validBlocks(ClockWorkBlocks.UNIVERSAL_JOINT)
+            .renderer(() -> UniversalJointRenderer::new)
             .register();
 
 

@@ -24,6 +24,7 @@ import org.valkyrienskies.clockwork.content.contraptions.reaction_wheel.Reaction
 import org.valkyrienskies.clockwork.content.contraptions.resistor.RedstoneResistorBlock;
 import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatBlock;
 import org.valkyrienskies.clockwork.content.contraptions.solver.SolverBlock;
+import org.valkyrienskies.clockwork.content.contraptions.universal_joint.UniversalJointBlock;
 import org.valkyrienskies.clockwork.content.physicalities.motion.wing.FlapBlock;
 import org.valkyrienskies.clockwork.content.physicalities.motion.wing.WingBlock;
 import org.valkyrienskies.clockwork.util.blocktype.IHeatableBlock;
@@ -72,6 +73,19 @@ public class ClockWorkBlocks {
                     .transform(BuilderTransformersClockwork.flapbearing())
                     .transform(BlockStressDefaults.setImpact(4.0))
                     .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+                    .register();
+
+    public static final BlockEntry<UniversalJointBlock> UNIVERSAL_JOINT =
+            REGISTRATE.block("universal_joint", UniversalJointBlock::new)
+                    .initialProperties(SharedProperties::copperMetal)
+                    .transform(axeOrPickaxe())
+                    .properties(p -> p.color(MaterialColor.METAL))
+                    .transform(BlockStressDefaults.setNoImpact())
+                    .blockstate((c, p) -> p.directionalBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
+                    .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+                    .item()
+                    .model(AssetLookup.customBlockItemModel("universal_joint"))
+                    .build()
                     .register();
 
     public static final BlockEntry<AfterblazerBlock> AFTERBLAZER =
