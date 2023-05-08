@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import kotlin.Pair;
 import kotlin.jvm.functions.Function1;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
@@ -15,6 +16,7 @@ import org.valkyrienskies.core.api.ships.PhysShip;
 import org.valkyrienskies.core.api.ships.ServerShip;
 import org.valkyrienskies.core.impl.api.ShipForcesInducer;
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl;
+import org.valkyrienskies.mod.common.VSGameUtilsKt;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -121,6 +123,18 @@ public class PhysBearingController implements ShipForcesInducer {
 //    }
 
     private Vector3dc computeRotationalForce(final PhysBearingData data, final PhysShipImpl physShip, final PhysShipImpl otherPhysShip) {
+        Vector3dc torque;
+
+        if (data.locked) {
+            torque = computeLockedRotationalForce(data, physShip, otherPhysShip);
+        } else {
+            torque = computeUnlockedRotationalForce(data, physShip, otherPhysShip);
+        }
+
+        return torque;
+    }
+
+    private Vector3dc computeUnlockedRotationalForce(final PhysBearingData data, final PhysShipImpl physShip, final PhysShipImpl otherPhysShip) {
         if (data.bearingAxis == null) {
             return new Vector3d();
         }
@@ -165,8 +179,102 @@ public class PhysBearingController implements ShipForcesInducer {
         return angularVelErrorAlongBearingAxis.mul(torqueMassMultiplier * 10.0, new Vector3d());
     }
 
-    private Vector3dc computeAngleLockRotationalForce(PhysBearingData data, PhysShipImpl physShip) {
-        return new Vector3d();
+    private Vector3dc computeLockedRotationalForce(PhysBearingData data, PhysShipImpl physShip, final PhysShipImpl otherPhysShip) {
+
+        if (data.bearingAxis == null) {
+            return new Vector3d();
+        }
+
+        final Vector3d bearingAxisInGlobal = new Vector3d(data.bearingAxis);
+        if (otherPhysShip != null) {
+            otherPhysShip.getTransform().getShipToWorldRotation().transform(bearingAxisInGlobal);
+        }
+
+        final Vector3d actualRelativeOmega;
+        if (!physShip.isStatic()) {
+            actualRelativeOmega = new Vector3d(physShip.getPoseVel().getOmega());
+        } else {
+            // TODO: What about static bodies that are moving?
+            actualRelativeOmega = new Vector3d();
+        }
+
+        final double torqueMassMultiplier;
+        if (!physShip.isStatic()) {
+            if (otherPhysShip != null && !otherPhysShip.isStatic()) {
+                torqueMassMultiplier = Math.min(physShip.getInertia().getShipMass(), otherPhysShip.getInertia().getShipMass());
+                // Sub otherPhysShip angularVel from actualRelativeOmega if otherPhysShip is not static
+                // TODO: What about static bodies that are moving?
+                actualRelativeOmega.sub(otherPhysShip.getPoseVel().getOmega());
+            } else {
+                torqueMassMultiplier = physShip.getInertia().getShipMass();
+            }
+        } else if (otherPhysShip != null && !otherPhysShip.isStatic()){
+            // Set it to be the mass of otherPhysShip
+            torqueMassMultiplier = otherPhysShip.getInertia().getShipMass();
+            // Sub otherPhysShip angularVel from actualRelativeOmega if otherPhysShip is not static
+            // TODO: What about static bodies that are moving?
+            actualRelativeOmega.sub(otherPhysShip.getPoseVel().getOmega());
+        } else {
+            return new Vector3d();
+        }
+
+
+        // Only apply torque on the bearing axis
+
+
+        //Proportional
+
+        final Vector3dc perpendicularAxis;
+        if (Math.abs(data.bearingAxis.x()) == 1) {
+            perpendicularAxis = new Vector3d(0, 1, 0);
+        } else if (Math.abs(data.bearingAxis.y()) == 1) {
+            perpendicularAxis = new Vector3d(1, 0, 0);
+        } else if (Math.abs(data.bearingAxis.z()) == 1) {
+            perpendicularAxis = new Vector3d(0, 1, 0);
+        } else {
+            throw new RuntimeException("how the fuck did you mess this up g");
+        }
+
+        Vector3dc perpAfterRot = perpendicularAxis.rotate(physShip.getPoseVel().getRot(), new Vector3d());
+        if (otherPhysShip != null) {
+            perpAfterRot = otherPhysShip.getPoseVel().getRot().transformInverse(perpAfterRot, new Vector3d());
+        }
+
+        Vector3dc perpAfterRotInPlane = perpAfterRot.sub(data.bearingAxis.mul(data.bearingAxis.dot(perpAfterRot), new Vector3d()), new Vector3d());
+
+        double angleBTShipInRadians = perpAfterRotInPlane.angle(perpendicularAxis);
+
+        Vector3dc crossOfYourMother = perpAfterRotInPlane.cross(perpendicularAxis, new Vector3d());
+        final double angleWRespectToBearingAxis;
+        if (crossOfYourMother.lengthSquared() > 1e-12) {
+            angleWRespectToBearingAxis = angleBTShipInRadians * Math.signum(crossOfYourMother.dot(data.bearingAxis)) * -1;
+            // bro what do you expect me to do :sus:
+        } else {
+            angleWRespectToBearingAxis = 0;
+        }
+        double angleErr = Math.toRadians(data.bearingAngle) - angleWRespectToBearingAxis;
+
+        while (angleErr > Math.PI) {
+            angleErr -= 2 * Math.PI;
+        }
+
+        while (angleErr < -Math.PI) {
+            angleErr += 2 * Math.PI;
+        }
+
+        //Derivative
+
+        Vector3dc relativeOmegaInPhysShip = physShip.getTransform().getWorldToShip().transformDirection(actualRelativeOmega, new Vector3d());
+
+        double relativeOmegaInPhysShipParallelBearingAxis = data.bearingAxis.dot(relativeOmegaInPhysShip);
+
+        double omegaErr = data.bearingRPM * ((2 * Math.PI) / 60) - relativeOmegaInPhysShipParallelBearingAxis;
+
+        double torque = ((angleErr * torqueMassMultiplier * 50.0) + (omegaErr * torqueMassMultiplier * 50.0));
+
+//        return angularVelErrorAlongBearingAxis.mul(torqueMassMultiplier * 10.0, new Vector3d());
+
+        return bearingAxisInGlobal.mul(torque, new Vector3d());
     }
 
     public int addPhysBearing(PhysBearingCreateData data) {

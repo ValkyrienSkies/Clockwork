@@ -370,7 +370,7 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
         // VSConstraintAndId posDampingContraptionConstraint = new VSConstraintAndId(posDamperID, posDampingConstraint);
         // VSConstraintAndId rotDampingContraptionConstraint = new VSConstraintAndId(rotDamperID, perpendicularRotDampingConstraint);
 
-        PhysBearingCreateData data = new PhysBearingCreateData(pos, axis, angle, getSpeed(), false, shiptraptionID, contraptionConstraint, hingeContraptionConstraint, null, null);
+        PhysBearingCreateData data = new PhysBearingCreateData(pos, axis, angle, getSpeed(), (movementMode.get().equals(LockedMode.LOCKED)), shiptraptionID, contraptionConstraint, hingeContraptionConstraint, null, null);
 
         if (!level.isClientSide) {
             bearingID = PhysBearingController.getOrCreate(shiptraption).addPhysBearing(data);
@@ -585,7 +585,7 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
 //
 //                        }
 
-                        PhysBearingUpdateData data = new PhysBearingUpdateData(angle, getSpeed(), false, null, null);
+                        PhysBearingUpdateData data = new PhysBearingUpdateData(angle, getSpeed(), (movementMode.get().equals(LockedMode.LOCKED)), null, null);
                         PhysBearingController.getOrCreate(ship).updatePhysBearing(bearingID, data);
                     }
                 }
