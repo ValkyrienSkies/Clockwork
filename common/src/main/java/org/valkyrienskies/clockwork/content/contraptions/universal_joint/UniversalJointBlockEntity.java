@@ -142,7 +142,7 @@ public class UniversalJointBlockEntity extends KineticTileEntity {
                 double distance = posInWorld.distance(otherPosInWorld);
                 distance = Mth.clamp(distance, 1, 4);
 
-                VSRopeConstraint ropeConstraint = new VSRopeConstraint(shipID, otherShip.getId(), 1e-10, pos, otherPos, 1e6, distance);
+                VSRopeConstraint ropeConstraint = new VSRopeConstraint(shipID, otherShip.getId(), 1e-10, pos, otherPos, 1e6, 4);
 
                 if (UniversalJointController.getOrCreate(otherShip).jointData.get(universalJointId).constraint != null) {
                     ropeConstraint = UniversalJointController.getOrCreate(otherShip).jointData.get(universalJointId).constraint;
