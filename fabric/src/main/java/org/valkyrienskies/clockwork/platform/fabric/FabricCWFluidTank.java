@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.platform.fabric;
 
 import com.simibubi.create.foundation.fluid.SmartFluidTank;
 import io.github.fabricators_of_create.porting_lib.util.FluidStack;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.material.Fluid;
 import org.valkyrienskies.clockwork.util.fluid.CWFluidTank;
@@ -9,18 +10,25 @@ import org.valkyrienskies.clockwork.util.fluid.CWFluidTank;
 import java.util.function.Consumer;
 
 public class FabricCWFluidTank extends SmartFluidTank implements CWFluidTank {
+    private final static long FLUID_PER_MB = FluidConstants.BUCKET / 1000;
+
     public FabricCWFluidTank(long capacity, Consumer<FluidStack> updateCallback) {
         super(capacity, updateCallback);
     }
 
     @Override
-    public long getTotalCapacity() {
-        return super.getCapacity();
+    public int getTotalCapacity() {
+        return (int) (super.getCapacity() / FLUID_PER_MB);
     }
 
     @Override
-    public long getSpaceLeft() {
-        return getSpace();
+    public int getCurrentAmount() {
+        return (int) (getAmount() / FLUID_PER_MB);
+    }
+
+    @Override
+    public int getSpaceLeft() {
+        return (int) (getSpace() / FLUID_PER_MB);
     }
 
     @Override
@@ -39,14 +47,14 @@ public class FabricCWFluidTank extends SmartFluidTank implements CWFluidTank {
     }
 
     @Override
-    public void shrink(long drainAmount) {
-        amount -= drainAmount;
+    public void shrink(int drainAmount) {
+        amount -= FLUID_PER_MB * drainAmount;
         updateStack();
     }
 
     @Override
-    public void grow(long fillAmount) {
-        amount += fillAmount;
+    public void grow(int fillAmount) {
+        amount += FLUID_PER_MB * fillAmount;
         updateStack();
     }
 

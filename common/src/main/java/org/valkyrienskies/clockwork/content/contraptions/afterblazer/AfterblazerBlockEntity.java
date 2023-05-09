@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.contraptions.afterblazer;
 
-import com.simibubi.create.AllItems;
 import com.simibubi.create.content.contraptions.goggles.IHaveGoggleInformation;
 import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
 import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
@@ -18,10 +17,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -30,7 +26,6 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.joml.*;
-import org.valkyrienskies.clockwork.ClockWorkItems;
 import org.valkyrienskies.clockwork.content.forces.AfterblazerController;
 import org.valkyrienskies.clockwork.data.ClockWorkTags;
 import org.valkyrienskies.clockwork.platform.SmartFluidTankBlockEntity;
@@ -132,7 +127,7 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
                 return;
 
             if (getRemainingFuel() > 0)
-                tank.getPrimaryHandler().shrink(getDrainRate() * (long) (getThrustPercentage()));
+                tank.getPrimaryHandler().shrink(getDrainRate());
 
             isPowered = getBlockState().getValue(BlockStateProperties.POWERED);
 
@@ -395,12 +390,12 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
             return 0;
         }
 
-        return (int) tank.getPrimaryHandler().getAmount();
+        return tank.getPrimaryHandler().getCurrentAmount();
     }
 
     @Override
     public int getDrainRate() {
-        return 10 * (int)(getThrustPercentage());
+        return (int) Math.ceil(getThrustPercentage() * 10);
     }
 
     @Override

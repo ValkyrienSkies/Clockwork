@@ -14,17 +14,17 @@ public class ForgeCWFluidTank extends SmartFluidTank implements CWFluidTank {
     }
 
     @Override
-    public long getTotalCapacity() {
+    public int getTotalCapacity() {
         return super.getCapacity();
     }
 
     @Override
-    public long getAmount() {
+    public int getCurrentAmount() {
         return super.getCapacity();
     }
 
     @Override
-    public long getSpaceLeft() {
+    public int getSpaceLeft() {
         return super.getSpace();
     }
 
@@ -44,12 +44,12 @@ public class ForgeCWFluidTank extends SmartFluidTank implements CWFluidTank {
     }
 
     @Override
-    public void shrink(long drainAmount) {
-        this.getFluid().shrink((int) drainAmount);
+    public void shrink(int drainAmount) {
+        this.getFluid().shrink(drainAmount);
     }
 
     @Override
-    public void grow(long fillAmount) {
-        this.getFluid().grow((int) fillAmount);
+    public void grow(int fillAmount) {
+        this.getFluid().grow(fillAmount);
     }
 }

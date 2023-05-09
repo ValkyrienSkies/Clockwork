@@ -1,20 +1,12 @@
 package org.valkyrienskies.clockwork.integration.cc;
 
-import dan200.computercraft.api.lua.IArguments;
-import dan200.computercraft.api.lua.LuaException;
 import dan200.computercraft.api.lua.LuaFunction;
 import dan200.computercraft.api.peripheral.IPeripheral;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Registry;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.valkyrienskies.clockwork.ClockWorkMod;
-import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity;
-
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class BalloonerPeripheral implements IPeripheral {
     private final Level level;
@@ -50,7 +42,7 @@ public class BalloonerPeripheral implements IPeripheral {
 
     @LuaFunction
     public final long getFuelAmount() {
-        return this.ballooner.tank.getPrimaryHandler().getAmount();
+        return this.ballooner.tank.getPrimaryHandler().getCurrentAmount();
     }
 
     @LuaFunction

@@ -191,7 +191,7 @@ public abstract class CWFluidTankBehaviour extends TileEntityBehaviour {
         public void onFluidChanged() {
             if (!tileEntity.hasLevel())
                 return;
-            fluidLevel.chase(tank.getAmount() / (float) tank.getTotalCapacity(), .25, LerpedFloat.Chaser.EXP);
+            fluidLevel.chase(tank.getCurrentAmount() / (float) tank.getTotalCapacity(), .25, LerpedFloat.Chaser.EXP);
             if (!getWorld().isClientSide)
                 sendDataLazily();
             if (tileEntity.isVirtual() && !tank.isEmpty())

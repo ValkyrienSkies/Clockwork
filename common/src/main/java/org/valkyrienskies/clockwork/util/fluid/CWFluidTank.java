@@ -6,27 +6,27 @@ import net.minecraft.world.level.material.Fluid;
 
 public interface CWFluidTank {
 
-    long getTotalCapacity();
+    int getTotalCapacity();
 
-    long getAmount();
+    int getCurrentAmount();
 
-    default long getSpaceLeft() {
-        return Math.max(0, getTotalCapacity() - getAmount());
+    default int getSpaceLeft() {
+        return Math.max(0, getTotalCapacity() - getCurrentAmount());
     }
 
     Fluid getFluidType();
 
     default boolean isEmpty() {
-        return getAmount() <= 0;
+        return getCurrentAmount() <= 0;
     }
 
     CompoundTag store(CompoundTag tag);
 
     void read(CompoundTag tag);
 
-    void shrink(long drainAmount);
+    void shrink(int drainAmount);
 
-    void grow(long fillAmount);
+    void grow(int fillAmount);
 
     default SmartFluidTank asSmartFluidTank() {
         return (SmartFluidTank) this;

@@ -1,20 +1,14 @@
 package org.valkyrienskies.clockwork.content.contraptions.solver;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.simibubi.create.content.contraptions.base.KineticTileEntity;
 import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
 import kotlin.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.network.chat.BaseComponent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.util.Mth;
-import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Explosion;
-import net.minecraft.world.level.block.entity.BeaconBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
@@ -32,7 +26,6 @@ import org.valkyrienskies.clockwork.util.blocktype.LiquidFuelType;
 import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
-import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 import org.valkyrienskies.mod.common.world.RaycastUtilsKt;
 
 import java.util.List;
@@ -218,7 +211,7 @@ public class SolverBlockEntity extends KineticTileEntity implements IFuelableTil
             return 0;
         }
 
-        return (int) tank.getPrimaryHandler().getAmount();
+        return (int) tank.getPrimaryHandler().getCurrentAmount();
     }
 
     @Override

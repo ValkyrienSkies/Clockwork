@@ -4,17 +4,13 @@ import java.util.List;
 
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.content.contraptions.base.GeneratingKineticTileEntity;
-import com.simibubi.create.content.contraptions.base.KineticTileEntity;
 import com.simibubi.create.content.contraptions.goggles.IHaveGoggleInformation;
-import com.simibubi.create.foundation.utility.Lang;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.material.Fluid;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
@@ -27,7 +23,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.valkyrienskies.clockwork.ClockWorkBlocks;
-import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.clockwork.data.ClockWorkTags;
 import org.valkyrienskies.clockwork.platform.SmartFluidTankBlockEntity;
 import org.valkyrienskies.clockwork.util.blocktype.*;
@@ -73,7 +68,7 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
     }
 
     public float getFillState() {
-        return (float) tank.getPrimaryHandler().getAmount() / tank.getPrimaryHandler().getTotalCapacity();
+        return (float) tank.getPrimaryHandler().getCurrentAmount() / tank.getPrimaryHandler().getTotalCapacity();
     }
 
     @Override
@@ -254,7 +249,7 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
             return 0;
         }
 
-        return (int) tank.getPrimaryHandler().getAmount();
+        return (int) tank.getPrimaryHandler().getCurrentAmount();
     }
     // TODO: PASTRIES
     @Override

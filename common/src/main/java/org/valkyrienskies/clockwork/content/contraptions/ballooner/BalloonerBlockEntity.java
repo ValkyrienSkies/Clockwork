@@ -177,7 +177,7 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
 
 
         if (getRemainingFuel() > 0)
-            tank.getPrimaryHandler().shrink(getDrainRate() * (long)(getSpeed()/256));
+            tank.getPrimaryHandler().shrink(getDrainRate());
 
 
         if (volume.isEmpty()) {
@@ -478,12 +478,12 @@ public class BalloonerBlockEntity extends KineticTileEntity implements IHaveGogg
             return 0;
         }
 
-        return (int) tank.getPrimaryHandler().getAmount();
+        return tank.getPrimaryHandler().getCurrentAmount();
     }
 
     @Override
     public int getDrainRate() {
-        return 2 * (int)(getSpeed()/256);
+        return (int) Math.ceil((2f * getSpeed()) / 256f);
     }
 
     @Override
