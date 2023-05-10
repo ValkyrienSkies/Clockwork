@@ -8,6 +8,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 import org.valkyrienskies.clockwork.content.forces.UniversalJointController;
@@ -89,6 +90,12 @@ public class UniversalJointBlockEntity extends KineticTileEntity {
                     if (otherShip != null) {
                         if (UniversalJointController.getOrCreate(otherShip).jointData.get(universalJointId) != null) {
                             VSRopeConstraint constraint = UniversalJointController.getOrCreate(otherShip).jointData.get(universalJointId).constraint;
+                            ServerShip shipOn = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, worldPosition);
+                            if (shipOn == null) {
+                                //todo TEMP REMOVE ONCE TRIODE FIXES WORLD ID
+                                long worldID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).getDimensionToGroundBodyIdImmutable().get(VSGameUtilsKt.getDimensionId((ServerLevel) level));
+                                constraint = new VSRopeConstraint(worldID, constraint.getShipId1(), constraint.getCompliance(), constraint.getLocalPos0(), constraint.getLocalPos1(), constraint.getMaxForce(), constraint.getRopeLength());
+                            }
                             if (constraint != null) {
                                 Integer constraintID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).createNewConstraint(constraint);
                                 if (constraintID != null) {
@@ -120,8 +127,8 @@ public class UniversalJointBlockEntity extends KineticTileEntity {
                 return;
             } else {
 
-                Vector3dc pos = VectorConversionsMCKt.toJOMLD(worldPosition);
-                Vector3dc otherPos = VectorConversionsMCKt.toJOMLD(connectedPos);
+                Vector3dc pos = VectorConversionsMCKt.toJOMLD(worldPosition).add(0.5, 0.5, 0.5);
+                Vector3dc otherPos = VectorConversionsMCKt.toJOMLD(connectedPos).add(0.5, 0.5, 0.5);
 
                 if (UniversalJointController.getOrCreate(otherShip).jointData.get(universalJointId) == null) {
                     return;
@@ -162,6 +169,13 @@ public class UniversalJointBlockEntity extends KineticTileEntity {
             }
 
         }
+    }
+
+    public boolean isCustomConnection(KineticTileEntity other, BlockState state, BlockState otherState) {
+        if (other instanceof UniversalJointBlockEntity) {
+            return true;
+        }
+        return false;
     }
 
     @Override
