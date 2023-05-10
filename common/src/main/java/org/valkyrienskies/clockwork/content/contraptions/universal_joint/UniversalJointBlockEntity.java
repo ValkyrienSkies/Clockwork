@@ -180,9 +180,9 @@ public class UniversalJointBlockEntity extends KineticTileEntity {
 
     @Override
     public void remove() {
-        if (level != null && !level.isClientSide) {
-            ServerShip ship = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, worldPosition);
-            if (universalJointId != null) {
+        if (level != null && !level.isClientSide && connectedPos != null) {
+            ServerShip ship = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, connectedPos);
+            if (universalJointId != null && ship != null) {
                 Integer constraintID = UniversalJointController.getOrCreate(ship).jointData.get(universalJointId).constraintID;
 
                 if (constraintID != null) {

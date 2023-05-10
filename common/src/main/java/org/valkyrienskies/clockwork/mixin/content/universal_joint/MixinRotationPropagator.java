@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.mixin.content.universal_joint;
 import com.simibubi.create.content.contraptions.RotationPropagator;
 import com.simibubi.create.content.contraptions.base.KineticTileEntity;
 import net.minecraft.core.BlockPos;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -23,23 +24,23 @@ public abstract class MixinRotationPropagator {
     @Shadow
     private static KineticTileEntity findConnectedNeighbour(KineticTileEntity currentTE, BlockPos neighbourPos) {return null;};
 
-    @Inject(method = "getConnectedNeighbours", at = @At("HEAD"), cancellable = true)
-    private static void getConnectedNeighborsDistant(KineticTileEntity te, CallbackInfoReturnable<List<KineticTileEntity>> cir) {
+    @Inject(method = "getConnectedNeighbours", at = @At("HEAD"), cancellable = true, remap = false)
+    private static void getConnectedNeighborsDistant(@NotNull KineticTileEntity te, CallbackInfoReturnable<List<KineticTileEntity>> cir) {
         cir.cancel();
         List<KineticTileEntity> neighbours = new LinkedList<>();
+        if (te instanceof UniversalJointBlockEntity) {
+            final BlockPos jointNeighbourTEPos = ((UniversalJointBlockEntity) te).getConnectedPos();
+            if (te.getLevel() != null && jointNeighbourTEPos != null) {
+                if (te.getLevel().getBlockEntity(jointNeighbourTEPos) instanceof UniversalJointBlockEntity) {
+                    final KineticTileEntity neighbourTE = (KineticTileEntity) te.getLevel().getBlockEntity(jointNeighbourTEPos);
+                    neighbours.add(neighbourTE);
+                }
+            }
+        }
+
+
         for (BlockPos neighbourPos : getPotentialNeighbourLocations(te)) {
             final KineticTileEntity neighbourTE = findConnectedNeighbour(te, neighbourPos);
-            if (te instanceof UniversalJointBlockEntity) {
-                final BlockPos jointNeighbourTEPos = ((UniversalJointBlockEntity) te).getConnectedPos();
-                if (te.getLevel() == null) {
-                    continue;
-                }
-                if (te.getLevel().getBlockEntity(jointNeighbourTEPos) instanceof UniversalJointBlockEntity) {
-                    neighbours.add(neighbourTE);
-                    continue;
-                }
-
-            }
 
             if (neighbourTE == null)
                 continue;
