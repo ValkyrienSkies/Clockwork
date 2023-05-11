@@ -500,12 +500,15 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
                         VSAttachmentConstraint attachConstraint = new VSAttachmentConstraint(attachConstraint1.getShipId0(), shipOnID, attachConstraint1.getCompliance(), attachConstraint1.getLocalPos0(), attachConstraint1.getLocalPos1(), attachConstraint1.getMaxForce(), attachConstraint1.getFixedDistance());
                         VSHingeOrientationConstraint hingeConstraint = new VSHingeOrientationConstraint(hingeConstraint1.getShipId0(), shipOnID, hingeConstraint1.getCompliance(), hingeConstraint1.getLocalRot0(), hingeConstraint1.getLocalRot1(), hingeConstraint1.getMaxTorque());
                         //todo
+                        boolean createdAttachment = false;
+                        boolean createdHinge = false;
 
                         if (attachConstraint != null) {
                             Integer attachID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).createNewConstraint(attachConstraint);
                             if (attachID != null) {
                                 PhysBearingController.getOrCreate(ship).bearingData.get(bearingID).attachConstraint = attachConstraint;
                                 PhysBearingController.getOrCreate(ship).bearingData.get(bearingID).attachID = attachID;
+                                createdAttachment = true;
                             }
                         }
                         if (hingeConstraint != null) {
@@ -513,8 +516,12 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
                             if (hingeID != null) {
                                 PhysBearingController.getOrCreate(ship).bearingData.get(bearingID).hingeConstraint = hingeConstraint;
                                 PhysBearingController.getOrCreate(ship).bearingData.get(bearingID).hingeID = hingeID;
-                                shouldRefresh = false;
+                                createdHinge = true;
                             }
+                        }
+
+                        if (createdHinge && createdAttachment) {
+                            shouldRefresh = false;
                         }
 
                     }

@@ -4,6 +4,8 @@ import com.jozufozu.flywheel.core.PartialModel;
 import com.jozufozu.flywheel.core.virtual.VirtualRenderWorld;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Quaternion;
+import com.mojang.math.Vector3f;
 import com.simibubi.create.AllBlockPartials;
 import com.simibubi.create.content.contraptions.components.structureMovement.MovementContext;
 import com.simibubi.create.content.contraptions.components.structureMovement.render.ContraptionMatrices;
@@ -23,8 +25,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.valkyrienskies.clockwork.ClockWorkPartials;
-import org.valkyrienskies.clockwork.util.blocktype.EngineHeatLevel;
-import org.valkyrienskies.clockwork.util.blocktype.IHeatableBlock;
 import org.valkyrienskies.clockwork.util.blocktype.LiquidFuelType;
 
 import javax.annotation.Nullable;
@@ -40,10 +40,11 @@ public class AfterblazerRenderer extends SafeTileEntityRenderer<AfterblazerBlock
             return;
         }
 
-        LiquidFuelType fuelQuality = te.getFuelQuality();
+        LiquidFuelType fuelQuality = te.fuelLevel;
 
         Level level = te.getLevel();
         BlockState blockState = te.getBlockState();
+        boolean isAboveYMax = te.isAboveYMax;
         float animation = te.headAnimation.getValue(partialTicks) * .175f;
         float horizontalAngle = AngleHelper.rad(te.headAngle.getValue(partialTicks));
         boolean canDrawFlame = fuelQuality.isAtLeast(LiquidFuelType.STALE);
@@ -53,7 +54,7 @@ public class AfterblazerRenderer extends SafeTileEntityRenderer<AfterblazerBlock
         double plumeOffset = te.redstoneLevel/15f;
         renderShared(ms, null, bufferSource,
                 level, blockState, fuelQuality, animation, horizontalAngle,
-                canDrawFlame, drawGoggles, drawHat, hashCode, plumeOffset);
+                canDrawFlame, drawGoggles, drawHat, hashCode, plumeOffset, isAboveYMax);
     }
 
     public static void renderInContraption(MovementContext context, VirtualRenderWorld renderWorld,
@@ -69,12 +70,12 @@ public class AfterblazerRenderer extends SafeTileEntityRenderer<AfterblazerBlock
 
         renderShared(matrices.getViewProjection(), matrices.getModel(), bufferSource,
                 level, state, LiquidFuelType.PLAIN, 0, horizontalAngle,
-                false, drawGoggles, drawHat, hashCode, 1f);
+                false, drawGoggles, drawHat, hashCode, 1f, false);
     }
 
     private static void renderShared(PoseStack ms, @Nullable PoseStack modelTransform, MultiBufferSource bufferSource,
                                      Level level, BlockState blockState, LiquidFuelType fuelQuality, float animation, float horizontalAngle,
-                                     boolean canDrawFlame, boolean drawGoggles, boolean drawHat, int hashCode, double plumeOffset) {
+                                     boolean canDrawFlame, boolean drawGoggles, boolean drawHat, int hashCode, double plumeOffset, boolean isAboveYMax) {
 
         boolean blockAbove = animation > 0.125f;
         float time = AnimationTickHolder.getRenderTime(level);
@@ -87,11 +88,26 @@ public class AfterblazerRenderer extends SafeTileEntityRenderer<AfterblazerBlock
 
         VertexConsumer solid = bufferSource.getBuffer(RenderType.solid());
         VertexConsumer cutout = bufferSource.getBuffer(RenderType.cutoutMipped());
+        final Direction ogfacing = blockState
+                .getValue(BlockStateProperties.FACING);
 
+        final Direction facing = Direction.NORTH;
         ms.pushPose();
 
+        ms.translate(0.5, 0.5, 0.5);
+        ms.mulPose(Quaternion.fromXYZ(0.0f, (float) Math.toRadians(-180.0), 0.0f));
+        switch (ogfacing) {
+            case SOUTH -> ms.mulPose(Vector3f.YP.rotationDegrees(180));
+            case WEST -> ms.mulPose(Vector3f.YP.rotationDegrees(90));
+            case NORTH -> ms.mulPose(Vector3f.YP.rotationDegrees(0));
+            case EAST -> ms.mulPose(Vector3f.YP.rotationDegrees(270));
+            case UP -> ms.mulPose(Vector3f.XP.rotationDegrees(90));
+            case DOWN -> ms.mulPose(Vector3f.XN.rotationDegrees(90));
+        }
+        ms.translate(-0.5, -0.5, -0.5);
+
         PartialModel blazeModel;
-        if (fuelQuality.isAtLeast(LiquidFuelType.GOURMET)) {
+        if (fuelQuality.equals(LiquidFuelType.GOURMET) || isAboveYMax) {
             blazeModel = ClockWorkPartials.BLAZE_INFURIATED;
         } else if (fuelQuality.isAtLeast(LiquidFuelType.SWEET)) {
             blazeModel = AllBlockPartials.BLAZE_SUPER_ACTIVE;
@@ -140,7 +156,7 @@ public class AfterblazerRenderer extends SafeTileEntityRenderer<AfterblazerBlock
 
         if (fuelQuality.isAtLeast(LiquidFuelType.STALE)) {
             PartialModel plumeModel;
-            if (fuelQuality.equals(LiquidFuelType.GOURMET)) {
+            if (fuelQuality.equals(LiquidFuelType.GOURMET) || isAboveYMax) {
                 plumeModel = ClockWorkPartials.PLUME_INFURIATED;
             } else if (fuelQuality.equals(LiquidFuelType.SWEET)) {
                 plumeModel = ClockWorkPartials.PLUME_FUMING;
@@ -148,7 +164,7 @@ public class AfterblazerRenderer extends SafeTileEntityRenderer<AfterblazerBlock
                 plumeModel = ClockWorkPartials.PLUME_ANGRY;
             }
 
-            SuperByteBuffer plumeBuffer = CachedBufferer.partialFacingVertical(plumeModel, blockState, blockState.getValue(BlockStateProperties.FACING));
+            SuperByteBuffer plumeBuffer = CachedBufferer.partial(plumeModel, blockState);
             if (modelTransform != null)
                 plumeBuffer.transform(modelTransform);
 //            if (blockState.getValue(BlockStateProperties.FACING) == Direction.UP) {

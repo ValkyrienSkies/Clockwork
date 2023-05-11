@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.contraptions.afterblazer;
 
+import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.content.contraptions.goggles.IHaveGoggleInformation;
 import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
 import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
@@ -8,6 +9,7 @@ import com.simibubi.create.foundation.utility.Couple;
 import com.simibubi.create.foundation.utility.Iterate;
 import com.simibubi.create.foundation.utility.VecHelper;
 import com.simibubi.create.foundation.utility.animation.LerpedFloat;
+import io.github.fabricators_of_create.porting_lib.util.Constants;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -17,6 +19,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -26,6 +29,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.joml.*;
+import org.valkyrienskies.clockwork.ClockWorkSounds;
 import org.valkyrienskies.clockwork.content.forces.AfterblazerController;
 import org.valkyrienskies.clockwork.data.ClockWorkTags;
 import org.valkyrienskies.clockwork.platform.SmartFluidTankBlockEntity;
@@ -33,6 +37,7 @@ import org.valkyrienskies.clockwork.util.blocktype.*;
 import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
 import org.valkyrienskies.core.api.ships.ServerShip;
+import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
@@ -47,6 +52,10 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
 
         public CWFluidTankBehaviour tank;
 
+        public boolean startedPlaying = false;
+
+        public LiquidFuelType fuelLevel = LiquidFuelType.NONE;
+
         protected LerpedFloat headAnimation;
         protected LerpedFloat headAngle;
         protected boolean isCreative;
@@ -57,13 +66,19 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
         protected int redstoneLevel;
         protected boolean isPowered;
 
+        boolean isAboveYMax = false;
         Vector3d northNorm;
 
         private Integer afterblazerID = null;
         protected boolean alreadyAdded = false;
         private Vector2d gimbalRotation = new Vector2d();
 
+        protected boolean none = false, stale = false, plain = false, sweet = false, gourmet = false, extra = false;
+
         boolean shouldRemove = false;
+
+        int fuelQualityOrdinal = getFuelQuality().ordinal();
+
         public AfterblazerBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
             super(type, pos, state);
             headAnimation = LerpedFloat.linear();
@@ -119,6 +134,70 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
 
             if (level.isClientSide) {
                 tickAnimation();
+                if (!tank.isEmpty()) {
+                    LiquidFuelType fuelQuality = LiquidFuelType.fromFluid(tank.getPrimaryHandler().getFluidType());
+                    fuelLevel = fuelQuality;
+
+//                    switch (fuelQuality) {
+//                        case NONE -> {
+//                            none = true;
+//                            stale = false;
+//                            plain = false;
+//                            sweet = false;
+//                            gourmet = false;
+//                            extra = false;
+//                        }
+//                        case STALE -> {
+//                            none = false;
+//                            stale = true;
+//                            plain = false;
+//                            sweet = false;
+//                            gourmet = false;
+//                            extra = false;
+//                        }
+//                        case PLAIN -> {
+//                            none = false;
+//                            stale = false;
+//                            plain = true;
+//                            sweet = false;
+//                            gourmet = false;
+//                            extra = false;
+//                        }
+//                        case SWEET -> {
+//                            none = false;
+//                            stale = false;
+//                            plain = false;
+//                            sweet = true;
+//                            gourmet = false;
+//                            extra = false;
+//                        }
+//                        case GOURMET -> {
+//                            none = false;
+//                            stale = false;
+//                            plain = false;
+//                            sweet = false;
+//                            gourmet = true;
+//                            extra = false;
+//                        }
+//                        case EXTRA -> {
+//                            none = false;
+//                            stale = false;
+//                            plain = false;
+//                            sweet = false;
+//                            gourmet = false;
+//                            extra = true;
+//                        }
+//                    }
+                    if (VSGameUtilsKt.getShipObjectManagingPos(level, worldPosition) != null) {
+                        Ship ship = VSGameUtilsKt.getShipObjectManagingPos(level, worldPosition);
+                        Vector3dc worldPos = ship.getShipToWorld().transformPosition(VectorConversionsMCKt.toJOMLD(worldPosition));
+                        if (worldPos.y() > 320) {
+                            isAboveYMax = true;
+                        } else {
+                            isAboveYMax = false;
+                        }
+                    }
+                }
                 if (!isVirtual())
                     spawnParticles(getFuelQuality(), 1);
                 return;
@@ -128,6 +207,13 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
 
             if (getRemainingFuel() > 0)
                 tank.getPrimaryHandler().shrink(getDrainRate());
+
+            if (isAboveYMax) {
+                if (!startedPlaying) {
+                    level.playSound(null, worldPosition, ClockWorkSounds.SUPERSONIC.getMainEvent(), SoundSource.RECORDS, 2f, 1f);
+                    startedPlaying = true;
+                }
+            }
 
             isPowered = getBlockState().getValue(BlockStateProperties.POWERED);
 
@@ -154,7 +240,9 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
                     alreadyAdded = true;
                 }
                 if (alreadyAdded && afterblazerID != null) {
-                    final AfterblazerUpdateData data = new AfterblazerUpdateData(remainingBurnTime, getFuelQuality(), redstoneLevel, gimbalRotation);
+                    Vector3dc pos = VectorConversionsMCKt.toJOMLD(worldPosition);
+                    isAboveYMax = ship.getShipToWorld().transformPosition(pos, new Vector3d()).y() > 320;
+                    final AfterblazerUpdateData data = new AfterblazerUpdateData(remainingBurnTime, getFuelQuality(), redstoneLevel, gimbalRotation, isAboveYMax);
                     AfterblazerController.getOrCreate(ship).updateAfterblazer(afterblazerID, data);
                 }
                 if (this.isRemoved() || shouldRemove) {
@@ -264,15 +352,22 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
             if (afterblazerID != null) {
                 compound.putInt("ID", afterblazerID);
             }
+            compound.putInt("FuelQualityOrdinal", fuelQualityOrdinal);
+            compound.putBoolean("IsAboveYMax", isAboveYMax);
             super.write(compound, clientPacket);
         }
 
         @Override
         protected void read(CompoundTag compound, boolean clientPacket) {
+            super.read(compound, clientPacket);
             goggles = compound.contains("Goggles");
             hat = compound.contains("TrainHat");
-            afterblazerID = compound.contains("ID") ? compound.getInt("ID") : null;
-            super.read(compound, clientPacket);
+            if (compound.contains("ID")) {
+                afterblazerID = compound.getInt("ID");
+            }
+            fuelQualityOrdinal = compound.getInt("FuelQualityOrdinal");
+            isAboveYMax = compound.getBoolean("IsAboveYMax");
+            fuelLevel = LiquidFuelType.byIndex(fuelQualityOrdinal);
         }
 
 
@@ -335,7 +430,7 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
                             .normalize()
                             .scale((empty ? .25f : .5) + r.nextDouble() * .125f))
                     .add(0, .5, 0);
-            if (fuelQuality.isAtLeast(LiquidFuelType.GOURMET)) {
+            if (fuelQuality.isAtLeast(LiquidFuelType.GOURMET) || isAboveYMax) {
                 level.addParticle(ParticleTypes.PORTAL, v2.x, v2.y, v2.z, 0, yMotion, 0);
             } else if (fuelQuality.isAtLeast(LiquidFuelType.SWEET)) {
                 level.addParticle(ParticleTypes.SOUL_FIRE_FLAME, v2.x, v2.y, v2.z, 0, yMotion, 0);
@@ -355,7 +450,7 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
                 Vec3 v = c.add(offset.scale(.5 + r.nextDouble() * .125f))
                         .add(0, .125, 0);
                 Vec3 m = offset.scale(1 / 32f);
-                if (purpleFlame) {
+                if (purpleFlame || isAboveYMax) {
                     level.addParticle(ParticleTypes.PORTAL, v.x, v.y, v.z, m.x, m.y, m.z);
                 } else if
                     (soulFlame) {
@@ -381,7 +476,8 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
         }
 
         Fluid fuel = tank.getPrimaryHandler().getFluidType();
-        return LiquidFuelType.fromFluid(fuel);
+        LiquidFuelType fuelQuality = LiquidFuelType.fromFluid(fuel);
+        return fuelQuality;
     }
 
     @Override
@@ -395,7 +491,11 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
 
     @Override
     public int getDrainRate() {
-        return (int) Math.ceil(getThrustPercentage() * 10);
+            int multiplier = 1;
+            if (isAboveYMax && !(getFuelQuality().isAtLeast(LiquidFuelType.GOURMET))) {
+                multiplier = 2;
+            }
+        return (int) Math.ceil(getThrustPercentage() * 5 * multiplier);
     }
 
     @Override

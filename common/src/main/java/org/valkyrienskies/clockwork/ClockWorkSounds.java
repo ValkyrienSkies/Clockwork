@@ -73,6 +73,12 @@ public class ClockWorkSounds {
     WELDER_WHIRR = create("welder_whirr").subtitle("Welder whirrs")
             .category(SoundSource.PLAYERS)
             .attenuationDistance(16)
+            .build(),
+
+
+    SUPERSONIC = create("supersonic").subtitle("Supersonic")
+            .category(SoundSource.RECORDS)
+            .attenuationDistance(32)
             .build()
 
             ;

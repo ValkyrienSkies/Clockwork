@@ -68,7 +68,7 @@ public class CannonController implements ShipForcesInducer {
                 continue;
             }
 
-            Vector3dc force = new Vector3d(data.recoilVector.mul(1, new Vector3d())).mul(1000);
+            Vector3dc force = new Vector3d(data.recoilVector.mul(1, new Vector3d())).mul(5000);
 
             Vector3dc cannonPosInShip = data.cannonPos.sub(physShip.getTransform().getPositionInShip(), new Vector3d());
 

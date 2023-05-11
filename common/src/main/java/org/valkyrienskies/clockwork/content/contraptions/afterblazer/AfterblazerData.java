@@ -14,6 +14,7 @@ public class AfterblazerData {
     public int redstoneLevel;
     public final Vector3dc jetPos;
     public Vector2dc jetGimbal;
+    public boolean overYMax = false;
 
     // Default constructor for Jackson, should never be invoked manually
     @Deprecated

@@ -88,5 +88,15 @@
         }
         ],
         "subtitle": "vs_clockwork.subtitle.welder_whirr"
+    },
+    "supersonic": {
+      "sounds": [
+        {
+          "name": "vs_clockwork:egg_reverie",
+          "type": "file",
+          "attenuation_distance": 32
+        }
+        ],
+        "subtitle": "vs_clockwork.subtitle.supersonic"
     }
 }

@@ -58,6 +58,8 @@ public class AfterblazerController implements ShipForcesInducer {
             physData.jetBurnTime = data.jetBurnTime();
             physData.heatLevel = data.heatLevel();
             physData.redstoneLevel = data.redstoneLevel();
+            physData.jetGimbal = data.jetGimbal();
+            physData.overYMax = data.overYMax();
         });
 
         afterblazerUpdateData.clear();
@@ -91,6 +93,10 @@ public class AfterblazerController implements ShipForcesInducer {
             default -> 0;
         };
 
+        if (physJet.overYMax) {
+            multiplier = 3;
+        }
+
         Quaterniondc jetRotation = switch (physJet.jetDirection) {
             case DOWN -> new Quaterniond().rotateX(Math.toRadians(90));
             case UP -> new Quaterniond().rotateX(Math.toRadians(270));
@@ -105,10 +111,10 @@ public class AfterblazerController implements ShipForcesInducer {
 
         Vector3d force = new Vector3d();
 
-        double forceMod = 160000 * throttle * multiplier;
+        double forceMod = 320000 * throttle * multiplier;
         Vector3dc jetPosRelCenterMass = physTransform.getShipToWorld().transformPosition(physJet.jetPos.add(0.5,0.5,0.5, new Vector3d()), new Vector3d()).sub(physTransform.getPositionInWorld(), new Vector3d());
         Vector3dc worldVelAtJet = omega.cross(jetPosRelCenterMass, new Vector3d()).add(vel, new Vector3d());
-        double exhaustVel = exhaustVelocity(physJet.heatLevel);
+        double exhaustVel = exhaustVelocity(physJet.heatLevel, physJet.overYMax);
         double factor = 1.0 - Mth.clamp(jetDirection.dot(worldVelAtJet) / exhaustVel, 0.0, 1.0);
         if (!Double.isFinite(factor)) {
             factor = 0;
@@ -119,7 +125,7 @@ public class AfterblazerController implements ShipForcesInducer {
         return new Pair<>(force,jetVector);
     }
 
-    private double exhaustVelocity(LiquidFuelType heatLevel) {
+    private double exhaustVelocity(LiquidFuelType heatLevel, boolean overYMax) {
         double exhaustVel = switch (heatLevel) {
             case GOURMET -> 250;
             case SWEET -> 125;
@@ -127,6 +133,10 @@ public class AfterblazerController implements ShipForcesInducer {
             case STALE -> 25;
             default -> 0;
         };
+
+        if (overYMax) {
+            exhaustVel = 2000;
+        }
         return exhaustVel;
     }
 
