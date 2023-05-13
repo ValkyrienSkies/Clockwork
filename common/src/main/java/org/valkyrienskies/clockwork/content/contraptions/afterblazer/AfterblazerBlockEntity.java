@@ -209,10 +209,10 @@ public class AfterblazerBlockEntity extends SmartTileEntity implements IFuelable
                 tank.getPrimaryHandler().shrink(getDrainRate());
 
             if (isAboveYMax) {
-                if (!startedPlaying) {
-                    level.playSound(null, worldPosition, ClockWorkSounds.SUPERSONIC.getMainEvent(), SoundSource.RECORDS, 2f, 1f);
-                    startedPlaying = true;
-                }
+//                if (!startedPlaying) {
+//                    level.playSound(null, worldPosition, ClockWorkSounds.SUPERSONIC.getMainEvent(), SoundSource.RECORDS, 1f, 1f);
+//                    startedPlaying = true;
+//                }
             }
 
             isPowered = getBlockState().getValue(BlockStateProperties.POWERED);
