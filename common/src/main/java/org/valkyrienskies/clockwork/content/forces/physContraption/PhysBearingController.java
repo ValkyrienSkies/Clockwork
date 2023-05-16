@@ -4,8 +4,9 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import kotlin.Pair;
 import kotlin.jvm.functions.Function1;
-import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Matrix3d;
+import org.joml.Matrix3dc;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity;
@@ -16,7 +17,6 @@ import org.valkyrienskies.core.api.ships.PhysShip;
 import org.valkyrienskies.core.api.ships.ServerShip;
 import org.valkyrienskies.core.impl.api.ShipForcesInducer;
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl;
-import org.valkyrienskies.mod.common.VSGameUtilsKt;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -134,6 +134,22 @@ public class PhysBearingController implements ShipForcesInducer {
         return torque;
     }
 
+    private double getAngularInertia(final PhysShipImpl physShip, final Vector3dc localPos, final Vector3dc axisGlobal) {
+        final Vector3dc globalPos = physShip.getTransform().getShipToWorld().transformPosition(localPos, new Vector3d());
+        final Vector3dc offset = globalPos.sub(physShip.getPoseVel().getPos(), new Vector3d());
+        return getAngularInertia(physShip.getInertia().getMomentOfInertiaTensor(), new Matrix3d().rotation(physShip.getTransform().getShipToWorldRotation()), physShip.getInertia().getShipMass(), offset, axisGlobal);
+    }
+
+    private double getAngularInertia(final Matrix3dc inertiaTensorLocal, final Matrix3dc rotation, final double mass, final Vector3dc offsetGlobal, final Vector3dc axisGlobal) {
+        final Matrix3dc inertiaTensorGlobal = rotation.mul(inertiaTensorLocal, new Matrix3d()).mul(rotation.transpose(new Matrix3d()));
+        final Vector3dc offsetPerpToAxis = offsetGlobal.sub(axisGlobal.mul(axisGlobal.dot(offsetGlobal), new Vector3d()), new Vector3d());
+        return inertiaTensorGlobal.transform(axisGlobal, new Vector3d()).dot(axisGlobal) + offsetPerpToAxis.lengthSquared() * mass;
+    }
+
+    private double parallelOperator(final double left, final double right) {
+        return 1.0 / ((1.0 / left) + (1.0 / right));
+    }
+
     private Vector3dc computeUnlockedRotationalForce(final PhysBearingData data, final PhysShipImpl physShip, final PhysShipImpl otherPhysShip) {
         if (data.bearingAxis == null) {
             return new Vector3d();
@@ -156,20 +172,33 @@ public class PhysBearingController implements ShipForcesInducer {
         final double torqueMassMultiplier;
         if (!physShip.isStatic()) {
             if (otherPhysShip != null && !otherPhysShip.isStatic()) {
-                torqueMassMultiplier = Math.min(physShip.getInertia().getShipMass(), otherPhysShip.getInertia().getShipMass());
+                final double physShipInertia = getAngularInertia(physShip, data.attachConstraint.getLocalPos0(), bearingAxisInGlobal);
+                final double otherShipInertia = getAngularInertia(otherPhysShip, data.attachConstraint.getLocalPos1(), bearingAxisInGlobal);
+
+                torqueMassMultiplier = parallelOperator(physShipInertia, otherShipInertia);
                 // Sub otherPhysShip angularVel from actualRelativeOmega if otherPhysShip is not static
                 // TODO: What about static bodies that are moving?
                 actualRelativeOmega.sub(otherPhysShip.getPoseVel().getOmega());
             } else {
-                torqueMassMultiplier = physShip.getInertia().getShipMass();
+                torqueMassMultiplier = getAngularInertia(physShip, data.attachConstraint.getLocalPos0(), bearingAxisInGlobal);
             }
         } else if (otherPhysShip != null && !otherPhysShip.isStatic()){
-            // Set it to be the mass of otherPhysShip
-            torqueMassMultiplier = otherPhysShip.getInertia().getShipMass();
+            // Set it to be the inertia of otherPhysShip
+            torqueMassMultiplier = getAngularInertia(otherPhysShip, data.attachConstraint.getLocalPos1(), bearingAxisInGlobal);
             // Sub otherPhysShip angularVel from actualRelativeOmega if otherPhysShip is not static
             // TODO: What about static bodies that are moving?
             actualRelativeOmega.sub(otherPhysShip.getPoseVel().getOmega());
         } else {
+            return new Vector3d();
+        }
+
+        Vector3dc bearingAxisAfterRot = data.bearingAxis.rotate(physShip.getPoseVel().getRot(), new Vector3d());
+        if (otherPhysShip != null) {
+            bearingAxisAfterRot = otherPhysShip.getPoseVel().getRot().transformInverse(bearingAxisAfterRot, new Vector3d());
+        }
+
+        // If we are more than 5 degrees out of alignment, then don't apply any torque
+        if (bearingAxisAfterRot.angleCos(data.bearingAxis) < 0.9961947 && bearingAxisAfterRot.angleCos(data.bearingAxis) > -0.9961947) {
             return new Vector3d();
         }
 
@@ -201,16 +230,19 @@ public class PhysBearingController implements ShipForcesInducer {
         final double torqueMassMultiplier;
         if (!physShip.isStatic()) {
             if (otherPhysShip != null && !otherPhysShip.isStatic()) {
-                torqueMassMultiplier = Math.min(physShip.getInertia().getShipMass(), otherPhysShip.getInertia().getShipMass());
+                final double physShipInertia = getAngularInertia(physShip, data.attachConstraint.getLocalPos0(), bearingAxisInGlobal);
+                final double otherShipInertia = getAngularInertia(otherPhysShip, data.attachConstraint.getLocalPos1(), bearingAxisInGlobal);
+
+                torqueMassMultiplier = parallelOperator(physShipInertia, otherShipInertia);
                 // Sub otherPhysShip angularVel from actualRelativeOmega if otherPhysShip is not static
                 // TODO: What about static bodies that are moving?
                 actualRelativeOmega.sub(otherPhysShip.getPoseVel().getOmega());
             } else {
-                torqueMassMultiplier = physShip.getInertia().getShipMass();
+                torqueMassMultiplier = getAngularInertia(physShip, data.attachConstraint.getLocalPos0(), bearingAxisInGlobal);
             }
         } else if (otherPhysShip != null && !otherPhysShip.isStatic()){
-            // Set it to be the mass of otherPhysShip
-            torqueMassMultiplier = otherPhysShip.getInertia().getShipMass();
+            // Set it to be the inertia of otherPhysShip
+            torqueMassMultiplier = getAngularInertia(otherPhysShip, data.attachConstraint.getLocalPos1(), bearingAxisInGlobal);
             // Sub otherPhysShip angularVel from actualRelativeOmega if otherPhysShip is not static
             // TODO: What about static bodies that are moving?
             actualRelativeOmega.sub(otherPhysShip.getPoseVel().getOmega());
@@ -235,9 +267,16 @@ public class PhysBearingController implements ShipForcesInducer {
             throw new RuntimeException("how the fuck did you mess this up g");
         }
 
+        Vector3dc bearingAxisAfterRot = data.bearingAxis.rotate(physShip.getPoseVel().getRot(), new Vector3d());
         Vector3dc perpAfterRot = perpendicularAxis.rotate(physShip.getPoseVel().getRot(), new Vector3d());
         if (otherPhysShip != null) {
             perpAfterRot = otherPhysShip.getPoseVel().getRot().transformInverse(perpAfterRot, new Vector3d());
+            bearingAxisAfterRot = otherPhysShip.getPoseVel().getRot().transformInverse(bearingAxisAfterRot, new Vector3d());
+        }
+
+        // If we are more than 5 degrees out of alignment, then don't apply any torque
+        if (bearingAxisAfterRot.angleCos(data.bearingAxis) < 0.9961947 && bearingAxisAfterRot.angleCos(data.bearingAxis) > -0.9961947) {
+            return new Vector3d();
         }
 
         Vector3dc perpAfterRotInPlane = perpAfterRot.sub(data.bearingAxis.mul(data.bearingAxis.dot(perpAfterRot), new Vector3d()), new Vector3d());
