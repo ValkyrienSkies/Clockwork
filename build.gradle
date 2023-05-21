@@ -108,6 +108,8 @@ allprojects {
         withSourcesJar()
     }
 
+    String buildNumber = System.getenv("GITHUB_RUN_NUMBER")
+    
     machete {
         // disable machete locally for faster builds
         enabled = buildNumber != null
