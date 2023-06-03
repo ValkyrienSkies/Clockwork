@@ -13,6 +13,7 @@ import org.valkyrienskies.clockwork.content.contraptions.afterblazer.Afterblazer
 import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.combustion_engine.CombustionEngineBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity;
+import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatBlockEntity;
 import org.valkyrienskies.clockwork.integration.cc.*;
@@ -39,6 +40,8 @@ public class ClockworkForgePeripheralProviders {
                 return LazyOptional.of(() -> new CommandSeatPeripheral(seat));
             else if (be instanceof CombustionEngineBlockEntity engine)
                 return LazyOptional.of(() -> new CombustionEnginePeripheral(engine));
+            else if (be instanceof PhysBearingBlockEntity phys)
+                return LazyOptional.of(() -> new PhysBearingPeripheral(phys));
             return LazyOptional.empty();
         }
     }
