@@ -682,4 +682,8 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
     public Ship getConnectedShip() {
         return null;
     }
+
+    public float getAngle() {
+        return this.angle;
+    }
 }

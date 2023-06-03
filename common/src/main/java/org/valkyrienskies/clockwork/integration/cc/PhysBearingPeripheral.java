@@ -55,4 +55,9 @@ public class PhysBearingPeripheral implements IPeripheral {
     public final void release() {
         this.phys.destroy();
     }
+
+    @LuaFunction
+    public final double getAngle() {
+        return this.phys.getAngle();
+    }
 }
