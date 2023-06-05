@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import kotlin.Pair;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Matrix3d;
 import org.joml.Matrix3dc;
+import org.joml.Quaterniondc;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity;
@@ -137,13 +137,13 @@ public class PhysBearingController implements ShipForcesInducer {
     private double getAngularInertia(final PhysShipImpl physShip, final Vector3dc localPos, final Vector3dc axisGlobal) {
         final Vector3dc globalPos = physShip.getTransform().getShipToWorld().transformPosition(localPos, new Vector3d());
         final Vector3dc offset = globalPos.sub(physShip.getPoseVel().getPos(), new Vector3d());
-        return getAngularInertia(physShip.getInertia().getMomentOfInertiaTensor(), new Matrix3d().rotation(physShip.getTransform().getShipToWorldRotation()), physShip.getInertia().getShipMass(), offset, axisGlobal);
+        return getAngularInertia(physShip.getInertia().getMomentOfInertiaTensor(), physShip.getTransform().getShipToWorldRotation(), physShip.getInertia().getShipMass(), offset, axisGlobal);
     }
 
-    private double getAngularInertia(final Matrix3dc inertiaTensorLocal, final Matrix3dc rotation, final double mass, final Vector3dc offsetGlobal, final Vector3dc axisGlobal) {
-        final Matrix3dc inertiaTensorGlobal = rotation.mul(inertiaTensorLocal, new Matrix3d()).mul(rotation.transpose(new Matrix3d()));
+    private double getAngularInertia(final Matrix3dc inertiaTensorLocal, final Quaterniondc rotation, final double mass, final Vector3dc offsetGlobal, final Vector3dc axisGlobal) {
         final Vector3dc offsetPerpToAxis = offsetGlobal.sub(axisGlobal.mul(axisGlobal.dot(offsetGlobal), new Vector3d()), new Vector3d());
-        return inertiaTensorGlobal.transform(axisGlobal, new Vector3d()).dot(axisGlobal) + offsetPerpToAxis.lengthSquared() * mass;
+        final Vector3dc axisLocal = rotation.transformInverse(axisGlobal, new Vector3d());
+        return inertiaTensorLocal.transform(axisLocal, new Vector3d()).dot(axisLocal) + offsetPerpToAxis.lengthSquared() * mass;
     }
 
     private double parallelOperator(final double left, final double right) {
