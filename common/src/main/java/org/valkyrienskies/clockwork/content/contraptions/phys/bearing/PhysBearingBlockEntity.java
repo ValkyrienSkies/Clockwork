@@ -39,7 +39,6 @@ import org.valkyrienskies.core.impl.game.ships.ShipTransformImpl;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.assembly.ShipAssemblyKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
-import org.valkyrienskies.clockwork.util.animation.EaseHelper;
 
 import java.lang.Math;
 import java.util.List;
@@ -685,5 +684,13 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
 
     public float getAngle() {
         return this.angle;
+    }
+
+    public ScrollOptionBehaviour<LockedMode> getMovementMode() {
+        return this.movementMode;
+    }
+
+    public void setMovementMode(ScrollOptionBehaviour<LockedMode> newMode) {
+        this.movementMode = newMode;
     }
 }
