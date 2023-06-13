@@ -43,7 +43,11 @@ public class ClockWorkPartials {
 
             PHYSCORNER_SE = block("phys_bearing/cornerse"),
 
-            PHYSCORNER_SW = block("phys_bearing/cornersw")
+            PHYSCORNER_SW = block("phys_bearing/cornersw"),
+
+            WING_MIDDLE = block("wing/wing_middle"),
+
+            WING_SIDE = block("wing/wing_side")
     ;
 
     private static PartialModel block(String path) {

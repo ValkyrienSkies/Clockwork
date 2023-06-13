@@ -6,35 +6,24 @@ import net.minecraft.core.Direction.Axis;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
+import org.valkyrienskies.clockwork.ClockWorkBlockEntities;
 import org.valkyrienskies.clockwork.ClockWorkShapes;
+import org.valkyrienskies.clockwork.content.materials.solids.colorblock.ColorBlockEntity;
 import org.valkyrienskies.clockwork.util.blocktype.ConnectedWingAlike;
 import org.valkyrienskies.core.api.ships.Wing;
 
-public class FlapBlock extends ConnectedWingAlike implements org.valkyrienskies.mod.common.block.WingBlock {
+public class FlapBlock extends WingBlock {
 
     public FlapBlock(Properties properties) {
         super(properties);
-    }
-
-    @Override
-    public VoxelShape getShape(BlockState pState, @NotNull BlockGetter pLevel, @NotNull BlockPos pPos, @NotNull CollisionContext pContext) {
-        return ClockWorkShapes.WING.get(switch (pState.getValue(FACING)) {
-            case EAST, WEST -> Axis.X;
-            case UP, DOWN -> Axis.Y;
-            case NORTH, SOUTH -> Axis.Z;
-        });
-    }
-
-    @Override
-    public void neighborChanged(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull Block block, @NotNull BlockPos fromPos, boolean isMoving) {
-        super.neighborChanged(state, level, pos, block, fromPos, isMoving);
-
-        level.setBlockAndUpdate(pos, getNewState(state, level, pos));
     }
 
     @Override

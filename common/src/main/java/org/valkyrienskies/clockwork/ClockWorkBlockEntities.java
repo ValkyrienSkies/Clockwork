@@ -33,6 +33,8 @@ import org.valkyrienskies.clockwork.content.contraptions.solver.SolverBlockEntit
 import org.valkyrienskies.clockwork.content.contraptions.solver.SolverRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.universal_joint.UniversalJointBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.universal_joint.UniversalJointRenderer;
+import org.valkyrienskies.clockwork.content.materials.solids.colorblock.ColorBlockEntity;
+import org.valkyrienskies.clockwork.util.render.WingBlockEntityRenderer;
 
 import static org.valkyrienskies.clockwork.ClockWorkMod.REGISTRATE;
 
@@ -135,6 +137,14 @@ public class ClockWorkBlockEntities {
             .tileEntity("combustion_engine", CombustionEngineBlockEntity::new)
             .validBlocks(ClockWorkBlocks.COMBUSTION_ENGINE)
             .renderer(() -> CombustionEngineRenderer::new)
+            .register();
+
+    // WINX
+
+    public static final BlockEntityEntry<ColorBlockEntity> WING = REGISTRATE
+            .tileEntity("wing", ColorBlockEntity::new)
+            .validBlocks(ClockWorkBlocks.WING, ClockWorkBlocks.FLAP)
+            .renderer(() -> WingBlockEntityRenderer::new)
             .register();
 
     public static void register() {

@@ -3,19 +3,31 @@ package org.valkyrienskies.clockwork.content.physicalities.motion.wing;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.DyeItem;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
+import org.valkyrienskies.clockwork.ClockWorkBlockEntities;
 import org.valkyrienskies.clockwork.ClockWorkShapes;
+import org.valkyrienskies.clockwork.content.materials.solids.colorblock.ColorBlockEntity;
 import org.valkyrienskies.clockwork.util.blocktype.ConnectedWingAlike;
 import org.valkyrienskies.core.api.ships.Wing;
 
-public class WingBlock extends ConnectedWingAlike implements org.valkyrienskies.mod.common.block.WingBlock {
+public class WingBlock extends ConnectedWingAlike implements org.valkyrienskies.mod.common.block.WingBlock, EntityBlock {
 
     public WingBlock(Properties properties) {
         super(properties);
@@ -87,5 +99,27 @@ public class WingBlock extends ConnectedWingAlike implements org.valkyrienskies.
             case UP, DOWN -> new Wing(new Vector3d(0, 1, 0), wingPower, wingDrag, wingBreakingForce, wingCamberAttackingBias);
             case NORTH, SOUTH -> new Wing(new Vector3d(0, 0, 1), wingPower, wingDrag, wingBreakingForce, wingCamberAttackingBias);
         };
+    }
+
+    @Nullable
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new ColorBlockEntity(ClockWorkBlockEntities.WING.get(), pos, state);
+    }
+
+    @Override
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        ItemStack stack = player.getItemInHand(hand);
+        ColorBlockEntity be = (ColorBlockEntity) level.getBlockEntity(pos);
+
+        if (level.isClientSide || !(stack.getItem() instanceof DyeItem))
+            return super.use(state, level, pos, player, hand, hit);
+
+        DyeColor dye = ((DyeItem) stack.getItem()).getDyeColor();
+
+        assert be != null;
+        be.setColor(dye.getTextColor());
+
+        return InteractionResult.SUCCESS;
     }
 }

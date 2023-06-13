@@ -5,7 +5,7 @@
         "facing": "north"
       },
       "apply": {
-        "model": "vs_clockwork:block/wing/wing",
+        "model": "vs_clockwork:block/wing/wing_frame",
         "x": 90
       }
     },
@@ -14,7 +14,7 @@
         "facing": "south"
       },
       "apply": {
-        "model": "vs_clockwork:block/wing/wing",
+        "model": "vs_clockwork:block/wing/wing_frame",
         "x": 90
       }
     },
@@ -23,7 +23,7 @@
         "facing": "east"
       },
       "apply": {
-        "model": "vs_clockwork:block/wing/wing",
+        "model": "vs_clockwork:block/wing/wing_frame",
         "x": 90,
         "y": 90
       }
@@ -33,7 +33,7 @@
         "facing": "west"
       },
       "apply": {
-        "model": "vs_clockwork:block/wing/wing",
+        "model": "vs_clockwork:block/wing/wing_frame",
         "x": 90,
         "y": 90
       }
@@ -43,7 +43,7 @@
         "facing": "up"
       },
       "apply": {
-        "model": "vs_clockwork:block/wing/wing"
+        "model": "vs_clockwork:block/wing/wing_frame"
       }
     },
     {
@@ -51,7 +51,7 @@
         "facing": "down"
       },
       "apply": {
-        "model": "vs_clockwork:block/wing/wing"
+        "model": "vs_clockwork:block/wing/wing_frame"
       }
     },
     {
@@ -68,246 +68,6 @@
       },
       "apply": {
         "model": "vs_clockwork:block/wing/wing_bottom"
-      }
-    },
-    {
-      "when": {
-        "facing": "north",
-        "east": true
-      },
-      "apply": {
-        "model": "vs_clockwork:block/wing/wing_side_vertical",
-        "y": 90
-      }
-    },
-    {
-      "when": {
-        "facing": "south",
-        "east": true
-      },
-      "apply": {
-        "model": "vs_clockwork:block/wing/wing_side_vertical",
-        "y": 90
-      }
-    },
-    {
-      "when": {
-        "facing": "north",
-        "west": true
-      },
-      "apply": {
-        "model": "vs_clockwork:block/wing/wing_side_vertical",
-        "y": 270
-      }
-    },
-    {
-      "when": {
-        "facing": "south",
-        "west": true
-      },
-      "apply": {
-        "model": "vs_clockwork:block/wing/wing_side_vertical",
-        "y": 270
-      }
-    },
-    {
-      "when": {
-        "facing": "north",
-        "up": true
-      },
-      "apply": {
-        "model": "vs_clockwork:block/wing/wing_side",
-        "x": 270
-      }
-    },
-    {
-      "when": {
-        "facing": "south",
-        "up": true
-      },
-      "apply": {
-        "model": "vs_clockwork:block/wing/wing_side",
-        "x": 270
-      }
-    },
-    {
-      "when": {
-        "facing": "north",
-        "down": true
-      },
-      "apply": {
-        "model": "vs_clockwork:block/wing/wing_side",
-        "x": 90
-      }
-    },
-    {
-      "when": {
-        "facing": "south",
-        "down": true
-      },
-      "apply": {
-        "model": "vs_clockwork:block/wing/wing_side",
-        "x": 90
-      }
-    },
-    {
-      "when": {
-        "facing": "east",
-        "north": true
-      },
-      "apply": {
-        "model": "vs_clockwork:block/wing/wing_side_vertical"
-      }
-    },
-    {
-      "when": {
-        "facing": "west",
-        "north": true
-      },
-      "apply": {
-        "model": "vs_clockwork:block/wing/wing_side_vertical"
-      }
-    },
-    {
-      "when": {
-        "facing": "east",
-        "south": true
-      },
-      "apply": {
-        "model": "vs_clockwork:block/wing/wing_side_vertical",
-        "y": 180
-      }
-    },
-    {
-      "when": {
-        "facing": "west",
-        "south": true
-      },
-      "apply": {
-        "model": "vs_clockwork:block/wing/wing_side_vertical",
-        "y": 180
-      }
-    },
-    {
-      "when": {
-        "facing": "east",
-        "up": true
-      },
-      "apply": {
-        "model": "vs_clockwork:block/wing/wing_side",
-        "y": 90,
-        "x": 270
-      }
-    },
-    {
-      "when": {
-        "facing": "west",
-        "up": true
-      },
-      "apply": {
-        "model": "vs_clockwork:block/wing/wing_side",
-        "y": 90,
-        "x": 270
-      }
-    },
-    {
-      "when": {
-        "facing": "east",
-        "down": true
-      },
-      "apply": {
-        "model": "vs_clockwork:block/wing/wing_side",
-        "y": 90,
-        "x": 90
-      }
-    },
-    {
-      "when": {
-        "facing": "west",
-        "down": true
-      },
-      "apply": {
-        "model": "vs_clockwork:block/wing/wing_side",
-        "y": 90,
-        "x": 90
-      }
-    },
-    {
-      "when": {
-        "facing": "up",
-        "north": true
-      },
-      "apply": {
-        "model": "vs_clockwork:block/wing/wing_side"
-      }
-    },
-    {
-      "when": {
-        "facing": "down",
-        "north": true
-      },
-      "apply": {
-        "model": "vs_clockwork:block/wing/wing_side"
-      }
-    },
-    {
-      "when": {
-        "facing": "up",
-        "south": true
-      },
-      "apply": {
-        "model": "vs_clockwork:block/wing/wing_side",
-        "y": 180
-      }
-    },
-    {
-      "when": {
-        "facing": "down",
-        "south": true
-      },
-      "apply": {
-        "model": "vs_clockwork:block/wing/wing_side",
-        "y": 180
-      }
-    },
-    {
-      "when": {
-        "facing": "up",
-        "east": true
-      },
-      "apply": {
-        "model": "vs_clockwork:block/wing/wing_side",
-        "y": 90
-      }
-    },
-    {
-      "when": {
-        "facing": "down",
-        "east": true
-      },
-      "apply": {
-        "model": "vs_clockwork:block/wing/wing_side",
-        "y": 90
-      }
-    },
-    {
-      "when": {
-        "facing": "up",
-        "west": true
-      },
-      "apply": {
-        "model": "vs_clockwork:block/wing/wing_side",
-        "y": 270
-      }
-    },
-    {
-      "when": {
-        "facing": "down",
-        "west": true
-      },
-      "apply": {
-        "model": "vs_clockwork:block/wing/wing_side",
-        "y": 270
       }
     }
   ]
