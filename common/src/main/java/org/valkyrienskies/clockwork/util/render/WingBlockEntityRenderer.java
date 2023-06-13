@@ -24,6 +24,7 @@ public class WingBlockEntityRenderer extends SmartTileEntityRenderer<ColorBlockE
         super.renderSafe(be, partialTicks, ms, buffer, light, overlay);
         VertexConsumer vb = buffer.getBuffer(RenderType.cutout());
         BlockState state = be.getBlockState();
+        Direction facing = state.getValue(BlockStateProperties.FACING);
 
         SuperByteBuffer middle = CachedBufferer.partial(ClockWorkPartials.WING_MIDDLE, state);
 
@@ -31,10 +32,17 @@ public class WingBlockEntityRenderer extends SmartTileEntityRenderer<ColorBlockE
         if (color != -1)
             middle.color(color);
 
-        switch (state.getValue(BlockStateProperties.FACING)) {
+        switch (facing) {
             case NORTH, SOUTH -> middle.rotateCentered(Direction.EAST, (float) Math.toRadians(90)).light().renderInto(ms, vb);
             case EAST, WEST -> middle.rotateCentered(Direction.NORTH, (float) Math.toRadians(90)).light().renderInto(ms, vb);
             default -> middle.light().renderInto(ms, vb);
+        }
+
+        if (state.getValue(BlockStateProperties.NORTH)) {
+            SuperByteBuffer side = CachedBufferer.partial(ClockWorkPartials.WING_SIDE, state);
+            switch (facing) {
+                default -> side.light().renderInto(ms, vb);
+            }
         }
     }
 }
