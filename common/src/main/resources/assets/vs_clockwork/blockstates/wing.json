@@ -1,164 +1,314 @@
 {
-  "variants": {
-    "axis=y,connectedone=false,connectedtwo=false,connectedthree=false,connectedfour=false": {
-      "model": "vs_clockwork:block/wing/winghorizontal"
+  "multipart": [
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing",
+        "x": 90
+      }
     },
-    "axis=y,connectedone=true,connectedtwo=true,connectedthree=true,connectedfour=true": {
-      "model": "vs_clockwork:block/wing/winghorizontal_all"
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing",
+        "x": 90
+      }
     },
-    "axis=y,connectedone=true,connectedtwo=false,connectedthree=false,connectedfour=false": {
-      "model": "vs_clockwork:block/wing/winghorizontal_north"
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing",
+        "x": 90,
+        "y": 90
+      }
     },
-    "axis=y,connectedone=false,connectedtwo=true,connectedthree=false,connectedfour=false": {
-      "model": "vs_clockwork:block/wing/winghorizontal_east"
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing",
+        "x": 90,
+        "y": 90
+      }
     },
-    "axis=y,connectedone=false,connectedtwo=false,connectedthree=true,connectedfour=false": {
-      "model": "vs_clockwork:block/wing/winghorizontal_south"
+    {
+      "when": {
+        "facing": "up"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing"
+      }
     },
-    "axis=y,connectedone=false,connectedtwo=false,connectedthree=false,connectedfour=true": {
-      "model": "vs_clockwork:block/wing/winghorizontal_west"
+    {
+      "when": {
+        "facing": "down"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing"
+      }
     },
-    "axis=y,connectedone=true,connectedtwo=false,connectedthree=true,connectedfour=false": {
-      "model": "vs_clockwork:block/wing/winghorizontal_north_south"
+    {
+      "when": {
+        "facing": "up"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_bottom"
+      }
     },
-    "axis=y,connectedone=false,connectedtwo=true,connectedthree=false,connectedfour=true": {
-      "model": "vs_clockwork:block/wing/winghorizontal_east_west"
+    {
+      "when": {
+        "facing": "down"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_bottom"
+      }
     },
-    "axis=y,connectedone=true,connectedtwo=true,connectedthree=false,connectedfour=false": {
-      "model": "vs_clockwork:block/wing/winghorizontal_north_east"
+    {
+      "when": {
+        "facing": "north",
+        "east": true
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_side_vertical",
+        "y": 90
+      }
     },
-    "axis=y,connectedone=true,connectedtwo=false,connectedthree=false,connectedfour=true": {
-      "model": "vs_clockwork:block/wing/winghorizontal_north_west"
+    {
+      "when": {
+        "facing": "south",
+        "east": true
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_side_vertical",
+        "y": 90
+      }
     },
-    "axis=y,connectedone=false,connectedtwo=true,connectedthree=true,connectedfour=false": {
-      "model": "vs_clockwork:block/wing/winghorizontal_south_east"
+    {
+      "when": {
+        "facing": "north",
+        "west": true
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_side_vertical",
+        "y": 270
+      }
     },
-    "axis=y,connectedone=false,connectedtwo=false,connectedthree=true,connectedfour=true": {
-      "model": "vs_clockwork:block/wing/winghorizontal_south_west"
+    {
+      "when": {
+        "facing": "south",
+        "west": true
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_side_vertical",
+        "y": 270
+      }
     },
-    "axis=y,connectedone=true,connectedtwo=true,connectedthree=true,connectedfour=false": {
-      "model": "vs_clockwork:block/wing/winghorizontal_north_south_east"
+    {
+      "when": {
+        "facing": "north",
+        "up": true
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_side",
+        "x": 270
+      }
     },
-    "axis=y,connectedone=true,connectedtwo=true,connectedthree=false,connectedfour=true": {
-      "model": "vs_clockwork:block/wing/winghorizontal_north_east_west"
+    {
+      "when": {
+        "facing": "south",
+        "up": true
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_side",
+        "x": 270
+      }
     },
-    "axis=y,connectedone=true,connectedtwo=false,connectedthree=true,connectedfour=true": {
-      "model": "vs_clockwork:block/wing/winghorizontal_north_south_west"
+    {
+      "when": {
+        "facing": "north",
+        "down": true
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_side",
+        "x": 90
+      }
     },
-    "axis=y,connectedone=false,connectedtwo=true,connectedthree=true,connectedfour=true": {
-      "model": "vs_clockwork:block/wing/winghorizontal_south_east_west"
+    {
+      "when": {
+        "facing": "south",
+        "down": true
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_side",
+        "x": 90
+      }
     },
-    "axis=x,connectedone=false,connectedtwo=false,connectedthree=false,connectedfour=false": {
-      "model": "vs_clockwork:block/wing/wingvertical"
+    {
+      "when": {
+        "facing": "east",
+        "north": true
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_side_vertical"
+      }
     },
-    "axis=x,connectedone=true,connectedtwo=true,connectedthree=true,connectedfour=true": {
-      "model": "vs_clockwork:block/wing/wingvertical_all"
+    {
+      "when": {
+        "facing": "west",
+        "north": true
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_side_vertical"
+      }
     },
-    "axis=x,connectedone=true,connectedtwo=false,connectedthree=false,connectedfour=false": {
-      "model": "vs_clockwork:block/wing/wingvertical_up"
+    {
+      "when": {
+        "facing": "east",
+        "south": true
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_side_vertical",
+        "y": 180
+      }
     },
-    "axis=x,connectedone=false,connectedtwo=true,connectedthree=false,connectedfour=false": {
-      "model": "vs_clockwork:block/wing/wingvertical_back"
+    {
+      "when": {
+        "facing": "west",
+        "south": true
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_side_vertical",
+        "y": 180
+      }
     },
-    "axis=x,connectedone=false,connectedtwo=false,connectedthree=true,connectedfour=false": {
-      "model": "vs_clockwork:block/wing/wingvertical_down"
+    {
+      "when": {
+        "facing": "east",
+        "up": true
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_side",
+        "y": 90,
+        "x": 270
+      }
     },
-    "axis=x,connectedone=false,connectedtwo=false,connectedthree=false,connectedfour=true": {
-      "model": "vs_clockwork:block/wing/wingvertical_front"
+    {
+      "when": {
+        "facing": "west",
+        "up": true
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_side",
+        "y": 90,
+        "x": 270
+      }
     },
-    "axis=x,connectedone=true,connectedtwo=false,connectedthree=true,connectedfour=false": {
-      "model": "vs_clockwork:block/wing/wingvertical_up_down"
+    {
+      "when": {
+        "facing": "east",
+        "down": true
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_side",
+        "y": 90,
+        "x": 90
+      }
     },
-    "axis=x,connectedone=false,connectedtwo=true,connectedthree=false,connectedfour=true": {
-      "model": "vs_clockwork:block/wing/wingvertical_front_back"
+    {
+      "when": {
+        "facing": "west",
+        "down": true
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_side",
+        "y": 90,
+        "x": 90
+      }
     },
-    "axis=x,connectedone=true,connectedtwo=true,connectedthree=false,connectedfour=false": {
-      "model": "vs_clockwork:block/wing/wingvertical_up_back"
+    {
+      "when": {
+        "facing": "up",
+        "north": true
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_side"
+      }
     },
-    "axis=x,connectedone=true,connectedtwo=false,connectedthree=false,connectedfour=true": {
-      "model": "vs_clockwork:block/wing/wingvertical_up_front"
+    {
+      "when": {
+        "facing": "down",
+        "north": true
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_side"
+      }
     },
-    "axis=x,connectedone=false,connectedtwo=true,connectedthree=true,connectedfour=false": {
-      "model": "vs_clockwork:block/wing/wingvertical_down_back"
+    {
+      "when": {
+        "facing": "up",
+        "south": true
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_side",
+        "y": 180
+      }
     },
-    "axis=x,connectedone=false,connectedtwo=false,connectedthree=true,connectedfour=true": {
-      "model": "vs_clockwork:block/wing/wingvertical_down_front"
+    {
+      "when": {
+        "facing": "down",
+        "south": true
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_side",
+        "y": 180
+      }
     },
-    "axis=x,connectedone=true,connectedtwo=true,connectedthree=true,connectedfour=false": {
-      "model": "vs_clockwork:block/wing/wingvertical_up_down_back"
+    {
+      "when": {
+        "facing": "up",
+        "east": true
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_side",
+        "y": 90
+      }
     },
-    "axis=x,connectedone=true,connectedtwo=true,connectedthree=false,connectedfour=true": {
-      "model": "vs_clockwork:block/wing/wingvertical_up_front_back"
+    {
+      "when": {
+        "facing": "down",
+        "east": true
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_side",
+        "y": 90
+      }
     },
-    "axis=x,connectedone=true,connectedtwo=false,connectedthree=true,connectedfour=true": {
-      "model": "vs_clockwork:block/wing/wingvertical_up_down_front"
+    {
+      "when": {
+        "facing": "up",
+        "west": true
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_side",
+        "y": 270
+      }
     },
-    "axis=x,connectedone=false,connectedtwo=true,connectedthree=true,connectedfour=true": {
-      "model": "vs_clockwork:block/wing/wingvertical_down_front_back"
-    },
-    "axis=z,connectedone=false,connectedtwo=false,connectedthree=false,connectedfour=false": {
-      "model": "vs_clockwork:block/wing/wingvertical",
-      "y": 90
-    },
-    "axis=z,connectedone=true,connectedtwo=true,connectedthree=true,connectedfour=true": {
-      "model": "vs_clockwork:block/wing/wingvertical_all",
-      "y": 90
-    },
-    "axis=z,connectedone=true,connectedtwo=false,connectedthree=false,connectedfour=false": {
-      "model": "vs_clockwork:block/wing/wingvertical_up",
-      "y": 90
-    },
-    "axis=z,connectedone=false,connectedtwo=true,connectedthree=false,connectedfour=false": {
-      "model": "vs_clockwork:block/wing/wingvertical_back",
-      "y": 90
-    },
-    "axis=z,connectedone=false,connectedtwo=false,connectedthree=true,connectedfour=false": {
-      "model": "vs_clockwork:block/wing/wingvertical_down",
-      "y": 90
-    },
-    "axis=z,connectedone=false,connectedtwo=false,connectedthree=false,connectedfour=true": {
-      "model": "vs_clockwork:block/wing/wingvertical_front",
-      "y": 90
-    },
-    "axis=z,connectedone=true,connectedtwo=false,connectedthree=true,connectedfour=false": {
-      "model": "vs_clockwork:block/wing/wingvertical_up_down",
-      "y": 90
-    },
-    "axis=z,connectedone=false,connectedtwo=true,connectedthree=false,connectedfour=true": {
-      "model": "vs_clockwork:block/wing/wingvertical_front_back",
-      "y": 90
-    },
-    "axis=z,connectedone=true,connectedtwo=true,connectedthree=false,connectedfour=false": {
-      "model": "vs_clockwork:block/wing/wingvertical_up_back",
-      "y": 90
-    },
-    "axis=z,connectedone=true,connectedtwo=false,connectedthree=false,connectedfour=true": {
-      "model": "vs_clockwork:block/wing/wingvertical_up_front",
-      "y": 90
-    },
-    "axis=z,connectedone=false,connectedtwo=true,connectedthree=true,connectedfour=false": {
-      "model": "vs_clockwork:block/wing/wingvertical_down_back",
-      "y": 90
-    },
-    "axis=z,connectedone=false,connectedtwo=false,connectedthree=true,connectedfour=true": {
-      "model": "vs_clockwork:block/wing/wingvertical_down_front",
-      "y": 90
-    },
-    "axis=z,connectedone=true,connectedtwo=true,connectedthree=true,connectedfour=false": {
-      "model": "vs_clockwork:block/wing/wingvertical_up_down_back",
-      "y": 90
-    },
-    "axis=z,connectedone=true,connectedtwo=true,connectedthree=false,connectedfour=true": {
-      "model": "vs_clockwork:block/wing/wingvertical_up_front_back",
-      "y": 90
-    },
-    "axis=z,connectedone=true,connectedtwo=false,connectedthree=true,connectedfour=true": {
-      "model": "vs_clockwork:block/wing/wingvertical_up_down_front",
-      "y": 90
-    },
-    "axis=z,connectedone=false,connectedtwo=true,connectedthree=true,connectedfour=true": {
-      "model": "vs_clockwork:block/wing/wingvertical_down_front_back",
-      "y": 90
+    {
+      "when": {
+        "facing": "down",
+        "west": true
+      },
+      "apply": {
+        "model": "vs_clockwork:block/wing/wing_side",
+        "y": 270
+      }
     }
-  }
+  ]
 }
