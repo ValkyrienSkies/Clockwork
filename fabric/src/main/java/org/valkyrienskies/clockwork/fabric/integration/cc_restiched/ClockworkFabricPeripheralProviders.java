@@ -15,6 +15,7 @@ import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEn
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatBlockEntity;
+import org.valkyrienskies.clockwork.content.materials.solids.colorblock.ColorBlockEntity;
 import org.valkyrienskies.clockwork.integration.cc.*;
 
 public class ClockworkFabricPeripheralProviders {
@@ -41,6 +42,8 @@ public class ClockworkFabricPeripheralProviders {
                 return new CombustionEnginePeripheral(engine);
             else if (be instanceof PhysBearingBlockEntity phys)
                 return new PhysBearingPeripheral(phys);
+            else if (be instanceof ColorBlockEntity color)
+                return new ColorPeripheral(color);
             return null;
         }
     }

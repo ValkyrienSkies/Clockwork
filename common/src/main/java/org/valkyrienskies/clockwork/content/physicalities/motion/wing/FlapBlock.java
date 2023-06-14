@@ -11,6 +11,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
@@ -22,6 +24,8 @@ import org.valkyrienskies.clockwork.content.materials.solids.colorblock.ColorBlo
 import org.valkyrienskies.clockwork.util.blocktype.ConnectedWingAlike;
 import org.valkyrienskies.core.api.ships.Wing;
 import org.valkyrienskies.mod.common.block.WingBlock;
+
+import java.util.List;
 
 public class FlapBlock extends ConnectedWingAlike implements WingBlock {
 

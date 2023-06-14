@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.platform;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer;
 import com.tterrag.registrate.util.entry.EntityEntry;
 import dev.architectury.injectables.annotations.ExpectPlatform;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatEntity;
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueEntity;
@@ -24,6 +25,11 @@ public class SharedValues {
 
     @ExpectPlatform
     public static BiConsumer<CWItem, CustomRenderedItemModelRenderer<?>> customRenderedRegisterer() {
+        throw new AssertionError();
+    }
+
+    @ExpectPlatform
+    public static BiConsumer<BlockItem, CustomRenderedItemModelRenderer<?>> customBlockItemRenderedRegisterer() {
         throw new AssertionError();
     }
 

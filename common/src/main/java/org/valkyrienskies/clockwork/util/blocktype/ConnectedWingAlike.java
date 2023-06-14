@@ -26,6 +26,8 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -34,6 +36,9 @@ import org.jetbrains.annotations.Nullable;
 import org.valkyrienskies.clockwork.ClockWorkBlockEntities;
 import org.valkyrienskies.clockwork.ClockWorkShapes;
 import org.valkyrienskies.clockwork.content.materials.solids.colorblock.ColorBlockEntity;
+import org.valkyrienskies.clockwork.content.physicalities.motion.wing.WingBlockItem;
+
+import java.util.List;
 
 public abstract class ConnectedWingAlike extends BaseEntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
@@ -152,14 +157,32 @@ public abstract class ConnectedWingAlike extends BaseEntityBlock {
             be.setColor(be.getColor() == -1 ? dye.getDyeColor().getTextColor() :
                     Color.mixColors(be.getColor(), dye.getDyeColor().getTextColor(), 0.5f));
 
-            if (!player.isCreative() && stack.getCount() > 1)
-                stack.shrink(1);
-            else if (stack.getCount() == 1)
-                player.setItemInHand(hand, ItemStack.EMPTY);
+            if (!level.isClientSide && !player.isCreative()) {
+                if (stack.getCount() > 1)
+                    stack.shrink(1);
+                else if (stack.getCount() == 1)
+                    player.setItemInHand(hand, ItemStack.EMPTY);
+            }
 
             return InteractionResult.SUCCESS;
         }
 
         return super.use(state, level, pos, player, hand, hit);
+    }
+
+    @Override
+    public List<ItemStack> getDrops(@NotNull BlockState state, LootContext.@NotNull Builder builder) {
+        List<ItemStack> drops = super.getDrops(state, builder);
+
+        drops.replaceAll(stack -> {
+            ColorBlockEntity be = (ColorBlockEntity) builder.getParameter(LootContextParams.BLOCK_ENTITY);
+
+            if (stack.getItem() instanceof WingBlockItem)
+                stack.getOrCreateTag().putInt("Clockwork$color", be.getColor());
+
+            return stack;
+        });
+
+        return drops;
     }
 }

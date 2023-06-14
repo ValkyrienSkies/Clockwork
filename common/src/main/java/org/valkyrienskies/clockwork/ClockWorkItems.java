@@ -18,6 +18,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.welder.WelderItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.welder.WelderItemRenderer;
 import org.valkyrienskies.clockwork.content.materials.solids.soda.SodaBottleItem;
 import org.valkyrienskies.clockwork.content.materials.solids.stratodonut.StratodonutItem;
+import org.valkyrienskies.clockwork.content.physicalities.motion.wing.WingBlockItem;
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate;
 
 import static com.simibubi.create.content.AllSections.MATERIALS;

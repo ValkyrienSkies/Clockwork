@@ -43,4 +43,9 @@ public class ColorBlockEntity extends SmartTileEntity {
     public int getColor() {
         return this.color;
     }
+
+    public void clearColor() {
+        this.color = -1;
+        this.setChanged();
+    }
 }
