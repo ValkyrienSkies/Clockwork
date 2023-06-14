@@ -7,6 +7,7 @@ import com.simibubi.create.foundation.block.BlockStressDefaults;
 import com.simibubi.create.foundation.data.*;
 import com.simibubi.create.foundation.utility.Couple;
 import com.tterrag.registrate.util.entry.BlockEntry;
+import com.tterrag.registrate.util.entry.ItemEntry;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -27,6 +28,7 @@ import org.valkyrienskies.clockwork.content.contraptions.solver.SolverBlock;
 import org.valkyrienskies.clockwork.content.contraptions.universal_joint.UniversalJointBlock;
 import org.valkyrienskies.clockwork.content.physicalities.motion.wing.FlapBlock;
 import org.valkyrienskies.clockwork.content.physicalities.motion.wing.WingBlock;
+import org.valkyrienskies.clockwork.content.physicalities.motion.wing.WingBlockItem;
 import org.valkyrienskies.clockwork.util.blocktype.IHeatableBlock;
 import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork;
 
@@ -208,6 +210,9 @@ public class ClockWorkBlocks {
                     .item()
                     .transform(customItemModel("wing", "item"))
                     .register();
+
+    public static final ItemEntry<WingBlockItem> WING_ITEM =
+            REGISTRATE.item("wing", );
 
     /////// Physics infuser ////////
 

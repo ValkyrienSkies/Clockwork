@@ -3,6 +3,8 @@ package org.valkyrienskies.clockwork.content.physicalities.motion.wing;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -19,11 +21,27 @@ import org.valkyrienskies.clockwork.ClockWorkShapes;
 import org.valkyrienskies.clockwork.content.materials.solids.colorblock.ColorBlockEntity;
 import org.valkyrienskies.clockwork.util.blocktype.ConnectedWingAlike;
 import org.valkyrienskies.core.api.ships.Wing;
+import org.valkyrienskies.mod.common.block.WingBlock;
 
-public class FlapBlock extends WingBlock {
+public class FlapBlock extends ConnectedWingAlike implements WingBlock {
 
     public FlapBlock(Properties properties) {
         super(properties);
+    }
+
+    @Override
+    public ItemStack getCloneItemStack(BlockGetter level, BlockPos pos, BlockState state) {
+        ItemStack stack = super.getCloneItemStack(level, pos, state);
+
+        ColorBlockEntity be = (ColorBlockEntity) level.getBlockEntity(pos);
+
+        assert be != null;
+        if (be.getColor() != -1) {
+            CompoundTag tag = stack.getOrCreateTag();
+            tag.putInt("Clockwork$color", be.getColor());
+        }
+
+        return stack;
     }
 
     @Override

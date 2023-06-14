@@ -1,23 +1,41 @@
 package org.valkyrienskies.clockwork.util.blocktype;
 
 import com.simibubi.create.content.contraptions.base.IRotate;
+import com.simibubi.create.foundation.utility.Color;
 import com.simibubi.create.foundation.utility.Iterate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.DyeItem;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.valkyrienskies.clockwork.ClockWorkBlockEntities;
+import org.valkyrienskies.clockwork.ClockWorkShapes;
+import org.valkyrienskies.clockwork.content.materials.solids.colorblock.ColorBlockEntity;
 
-public abstract class ConnectedWingAlike extends Block {
+public abstract class ConnectedWingAlike extends BaseEntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
     public static final BooleanProperty NORTH = BlockStateProperties.NORTH;
     public static final BooleanProperty SOUTH = BlockStateProperties.SOUTH;
@@ -96,4 +114,52 @@ public abstract class ConnectedWingAlike extends Block {
     }
 
     public abstract BlockState getNewState(BlockState state, Level level, BlockPos pos);
+
+    @Override
+    public VoxelShape getShape(BlockState pState, @NotNull BlockGetter pLevel, @NotNull BlockPos pPos, @NotNull CollisionContext pContext) {
+        return ClockWorkShapes.WING.get(switch (pState.getValue(FACING)) {
+            case EAST, WEST -> Axis.X;
+            case UP, DOWN -> Axis.Y;
+            case NORTH, SOUTH -> Axis.Z;
+        });
+    }
+
+    @Override
+    public void neighborChanged(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull Block block, @NotNull BlockPos fromPos, boolean isMoving) {
+        super.neighborChanged(state, level, pos, block, fromPos, isMoving);
+
+        level.setBlockAndUpdate(pos, getNewState(state, level, pos));
+    }
+
+    @Nullable
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new ColorBlockEntity(ClockWorkBlockEntities.WING.get(), pos, state);
+    }
+
+    @Override
+    public @NotNull RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
+    }
+
+    @Override
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        ItemStack stack = player.getItemInHand(hand);
+        ColorBlockEntity be = (ColorBlockEntity) level.getBlockEntity(pos);
+
+        assert be != null;
+        if (stack.getItem() instanceof DyeItem dye && be.getColor() != dye.getDyeColor().getTextColor()) {
+            be.setColor(be.getColor() == -1 ? dye.getDyeColor().getTextColor() :
+                    Color.mixColors(be.getColor(), dye.getDyeColor().getTextColor(), 0.5f));
+
+            if (!player.isCreative() && stack.getCount() > 1)
+                stack.shrink(1);
+            else if (stack.getCount() == 1)
+                player.setItemInHand(hand, ItemStack.EMPTY);
+
+            return InteractionResult.SUCCESS;
+        }
+
+        return super.use(state, level, pos, player, hand, hit);
+    }
 }

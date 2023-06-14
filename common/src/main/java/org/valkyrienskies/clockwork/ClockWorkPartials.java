@@ -47,7 +47,9 @@ public class ClockWorkPartials {
 
             WING_MIDDLE = block("wing/wing_middle"),
 
-            WING_SIDE = block("wing/wing_side")
+            WING_SIDE = block("wing/wing_side"),
+
+            WING_SIDE_VERTICAL = block("wing/wing_side_vertical")
     ;
 
     private static PartialModel block(String path) {

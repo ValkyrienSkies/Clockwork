@@ -26,11 +26,9 @@ public class WingBlockEntityRenderer extends SmartTileEntityRenderer<ColorBlockE
         BlockState state = be.getBlockState();
         Direction facing = state.getValue(BlockStateProperties.FACING);
 
-        SuperByteBuffer middle = CachedBufferer.partial(ClockWorkPartials.WING_MIDDLE, state);
-
-        int color = be.getColor();
-        if (color != -1)
-            middle.color(color);
+        SuperByteBuffer middle = applyColor(be, CachedBufferer.partial(ClockWorkPartials.WING_MIDDLE, state));
+        SuperByteBuffer side = CachedBufferer.partial(ClockWorkPartials.WING_SIDE, state);
+        SuperByteBuffer side_vertical = CachedBufferer.partial(ClockWorkPartials.WING_SIDE_VERTICAL, state);
 
         switch (facing) {
             case NORTH, SOUTH -> middle.rotateCentered(Direction.EAST, (float) Math.toRadians(90)).light().renderInto(ms, vb);
@@ -39,10 +37,77 @@ public class WingBlockEntityRenderer extends SmartTileEntityRenderer<ColorBlockE
         }
 
         if (state.getValue(BlockStateProperties.NORTH)) {
-            SuperByteBuffer side = CachedBufferer.partial(ClockWorkPartials.WING_SIDE, state);
             switch (facing) {
-                default -> side.light().renderInto(ms, vb);
+                case EAST, WEST -> applyColor(be, side_vertical)
+                        .light().renderInto(ms, vb);
+                case UP, DOWN -> applyColor(be, side)
+                        .light().renderInto(ms, vb);
             }
         }
+
+        if (state.getValue(BlockStateProperties.SOUTH)) {
+            switch (facing) {
+                case EAST, WEST -> applyColor(be, side_vertical)
+                        .rotateCentered(Direction.UP, (float) Math.toRadians(180))
+                        .light().renderInto(ms, vb);
+                case UP, DOWN -> applyColor(be, side)
+                        .rotateCentered(Direction.UP, (float) Math.toRadians(180))
+                        .light().renderInto(ms, vb);
+            }
+        }
+
+        if (state.getValue(BlockStateProperties.EAST)) {
+            switch (facing) {
+                case NORTH, SOUTH -> applyColor(be, side_vertical)
+                        .rotateCentered(Direction.UP, (float) Math.toRadians(270))
+                        .light().renderInto(ms, vb);
+                case UP, DOWN -> applyColor(be, side)
+                        .rotateCentered(Direction.UP, (float) Math.toRadians(270))
+                        .light().renderInto(ms, vb);
+            }
+        }
+
+        if (state.getValue(BlockStateProperties.WEST)) {
+            switch (facing) {
+                case NORTH, SOUTH -> applyColor(be, side_vertical)
+                        .rotateCentered(Direction.UP, (float) Math.toRadians(90))
+                        .light().renderInto(ms, vb);
+                case UP, DOWN -> applyColor(be, side)
+                        .rotateCentered(Direction.UP, (float) Math.toRadians(90))
+                        .light().renderInto(ms, vb);
+            }
+        }
+
+        if (state.getValue(BlockStateProperties.UP)) {
+            switch (facing) {
+                case NORTH, SOUTH -> applyColor(be, side)
+                        .rotateCentered(Direction.EAST, (float) Math.toRadians(90))
+                        .light().renderInto(ms, vb);
+                case EAST, WEST -> applyColor(be, side)
+                        .rotateCentered(Direction.EAST, (float) Math.toRadians(90))
+                        .rotateCentered(Direction.NORTH, (float) Math.toRadians(270))
+                        .light().renderInto(ms, vb);
+            }
+        }
+
+        if (state.getValue(BlockStateProperties.DOWN)) {
+            switch (facing) {
+                case NORTH, SOUTH -> applyColor(be, side)
+                        .rotateCentered(Direction.EAST, (float) Math.toRadians(270))
+                        .light().renderInto(ms, vb);
+                case EAST, WEST -> applyColor(be, side)
+                        .rotateCentered(Direction.NORTH, (float) Math.toRadians(90))
+                        .rotateCentered(Direction.UP, (float) Math.toRadians(270))
+                        //.rotateCentered(Direction.NORTH, (float) Math.toRadians(90))
+                        .light().renderInto(ms, vb);
+            }
+        }
+    }
+
+    private SuperByteBuffer applyColor(ColorBlockEntity be, SuperByteBuffer buf) {
+        int color = be.getColor();
+        if (color != -1)
+            buf.color(color);
+        return buf;
     }
 }

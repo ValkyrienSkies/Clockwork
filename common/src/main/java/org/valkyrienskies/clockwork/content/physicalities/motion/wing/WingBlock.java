@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.physicalities.motion.wing;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -27,26 +28,25 @@ import org.valkyrienskies.clockwork.content.materials.solids.colorblock.ColorBlo
 import org.valkyrienskies.clockwork.util.blocktype.ConnectedWingAlike;
 import org.valkyrienskies.core.api.ships.Wing;
 
-public class WingBlock extends ConnectedWingAlike implements org.valkyrienskies.mod.common.block.WingBlock, EntityBlock {
+public class WingBlock extends ConnectedWingAlike implements org.valkyrienskies.mod.common.block.WingBlock {
 
     public WingBlock(Properties properties) {
         super(properties);
     }
 
     @Override
-    public VoxelShape getShape(BlockState pState, @NotNull BlockGetter pLevel, @NotNull BlockPos pPos, @NotNull CollisionContext pContext) {
-        return ClockWorkShapes.WING.get(switch (pState.getValue(FACING)) {
-            case EAST, WEST -> Axis.X;
-            case UP, DOWN -> Axis.Y;
-            case NORTH, SOUTH -> Axis.Z;
-        });
-    }
+    public ItemStack getCloneItemStack(BlockGetter level, BlockPos pos, BlockState state) {
+        ItemStack stack = super.getCloneItemStack(level, pos, state);
 
-    @Override
-    public void neighborChanged(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull Block block, @NotNull BlockPos fromPos, boolean isMoving) {
-        super.neighborChanged(state, level, pos, block, fromPos, isMoving);
+        ColorBlockEntity be = (ColorBlockEntity) level.getBlockEntity(pos);
 
-        level.setBlockAndUpdate(pos, getNewState(state, level, pos));
+        assert be != null;
+        if (be.getColor() != -1) {
+            CompoundTag tag = stack.getOrCreateTag();
+            tag.putInt("Clockwork$color", be.getColor());
+        }
+
+        return stack;
     }
 
     @Override
@@ -99,27 +99,5 @@ public class WingBlock extends ConnectedWingAlike implements org.valkyrienskies.
             case UP, DOWN -> new Wing(new Vector3d(0, 1, 0), wingPower, wingDrag, wingBreakingForce, wingCamberAttackingBias);
             case NORTH, SOUTH -> new Wing(new Vector3d(0, 0, 1), wingPower, wingDrag, wingBreakingForce, wingCamberAttackingBias);
         };
-    }
-
-    @Nullable
-    @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new ColorBlockEntity(ClockWorkBlockEntities.WING.get(), pos, state);
-    }
-
-    @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        ItemStack stack = player.getItemInHand(hand);
-        ColorBlockEntity be = (ColorBlockEntity) level.getBlockEntity(pos);
-
-        if (level.isClientSide || !(stack.getItem() instanceof DyeItem))
-            return super.use(state, level, pos, player, hand, hit);
-
-        DyeColor dye = ((DyeItem) stack.getItem()).getDyeColor();
-
-        assert be != null;
-        be.setColor(dye.getTextColor());
-
-        return InteractionResult.SUCCESS;
     }
 }
