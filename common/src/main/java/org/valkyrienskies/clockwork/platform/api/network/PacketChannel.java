@@ -2,9 +2,12 @@ package org.valkyrienskies.clockwork.platform.api.network;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import org.valkyrienskies.core.impl.networking.NetworkChannel;
 
 import java.util.function.Function;
 
@@ -19,4 +22,6 @@ public interface PacketChannel {
     void sendToClientsTracking(S2CCWPacket packet, Entity entity);
 
     void sendToClientsTrackingAndSelf(S2CCWPacket packet, ServerPlayer player);
+
+    void sendToAllPlayers(S2CCWPacket packet, ServerLevel level);
 }

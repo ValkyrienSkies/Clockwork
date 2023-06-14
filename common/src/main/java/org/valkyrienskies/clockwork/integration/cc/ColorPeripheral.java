@@ -4,10 +4,12 @@ import dan200.computercraft.api.lua.IArguments;
 import dan200.computercraft.api.lua.LuaException;
 import dan200.computercraft.api.lua.LuaFunction;
 import dan200.computercraft.api.peripheral.IPeripheral;
+import me.shedaniel.math.Color;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.valkyrienskies.clockwork.content.materials.solids.colorblock.ColorBlockEntity;
 
+import java.awt.*;
 import java.util.Optional;
 
 public class ColorPeripheral implements IPeripheral {
@@ -38,6 +40,7 @@ public class ColorPeripheral implements IPeripheral {
 
     @LuaFunction
     public void setColor(IArguments args) throws LuaException {
+        // Is First Argument Hex?
         String hex = args.optString(0, null);
         if (hex != null) {
             if (!hex.matches("0[xX][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]"))
@@ -45,10 +48,23 @@ public class ColorPeripheral implements IPeripheral {
             this.color.setColor(Integer.parseInt(hex));
             return;
         }
+
+        // Is RGB?
         Optional<Integer> r = args.optInt(0);
-        Optional<Integer> g = args.optInt(1, null);
-        Optional<Integer> b = args.optInt(2, null);
-        if ()
+        int g = args.optInt(1, -1);
+        int b = args.optInt(2, -1);
+        if (r.isEmpty())
+            throw new LuaException("missing number or hexidecimal");
+
+        if (g != -1 && b != -1)
+            this.color.setColor(Color.ofRGB(r.get(), g, b).getColor());
+        else if (g != -1 || b != -1)
+            throw new LuaException("missing green and/or blue");
+        else {
+            if (r.get() > 0xFFFFFF || r.get() < 0)
+                throw new LuaException("value too large/small");
+            this.color.setColor(r.get());
+        }
     }
 
     @LuaFunction

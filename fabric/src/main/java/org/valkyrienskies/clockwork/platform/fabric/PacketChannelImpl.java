@@ -13,6 +13,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.clockwork.platform.api.network.*;
@@ -132,6 +133,17 @@ public class PacketChannelImpl implements PacketChannel {
     public void sendToClientsTrackingAndSelf(S2CCWPacket packet, ServerPlayer player) {
         PlayerLookup.tracking(player).forEach(p -> sendTo(p, packet));
         sendTo(player, packet);
+    }
+
+    @Override
+    public void sendToAllPlayers(S2CCWPacket packet, ServerLevel level) {
+        FriendlyByteBuf buf = new FriendlyByteBuf(bufAllocator.buffer());
+        buf.writeVarInt(s2cIdMap.get(packet.getClass()));
+        packet.write(buf);
+
+        for (ServerPlayer player : level.players()) {
+            ServerPlayNetworking.send(player, ClockWorkMod.NETWORK_CHANNEL, buf);
+        }
     }
 
     private void sendTo(ServerPlayer player, S2CCWPacket packet) {

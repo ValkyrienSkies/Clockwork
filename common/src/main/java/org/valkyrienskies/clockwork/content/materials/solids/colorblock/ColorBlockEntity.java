@@ -4,8 +4,11 @@ import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
 import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import org.valkyrienskies.clockwork.ClockWorkPackets;
+import org.valkyrienskies.clockwork.util.render.ColorBlockEntityPacket;
 
 import java.util.List;
 
@@ -47,5 +50,17 @@ public class ColorBlockEntity extends SmartTileEntity {
     public void clearColor() {
         this.color = -1;
         this.setChanged();
+    }
+
+    @Override
+    public void setChanged() {
+        super.setChanged();
+
+        assert level != null;
+        if (level.isClientSide)
+            return;
+
+        ColorBlockEntityPacket packet = new ColorBlockEntityPacket(worldPosition, this.color);
+        ClockWorkPackets.sendToAllPlayers(packet, (ServerLevel) level);
     }
 }

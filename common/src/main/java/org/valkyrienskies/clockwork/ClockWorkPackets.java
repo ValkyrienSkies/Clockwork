@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
@@ -15,6 +16,7 @@ import org.valkyrienskies.clockwork.platform.SharedValues;
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket;
 import org.valkyrienskies.clockwork.platform.api.network.CWPacket;
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket;
+import org.valkyrienskies.clockwork.util.render.ColorBlockEntityPacket;
 
 import java.util.function.Function;
 
@@ -31,6 +33,8 @@ public enum ClockWorkPackets {
     // Server to Client
     BLUPERGLUE_EFFECT(BluperGlueEffectPacket.class, BluperGlueEffectPacket::new),
     PASTRYMAKER(PastrymakerPacket.class, PastrymakerPacket::new),
+
+    COLOR_BLOCK_ENTITY(ColorBlockEntityPacket.class, ColorBlockEntityPacket::new)
     ;
 
     <T extends CWPacket> ClockWorkPackets(Class<T> type, Function<FriendlyByteBuf, T> factory) {
@@ -55,5 +59,9 @@ public enum ClockWorkPackets {
 
     public static void sendToClientsTrackingAndSelf(S2CCWPacket packet, ServerPlayer player) {
         SharedValues.getPacketChannel().sendToClientsTrackingAndSelf(packet, player);
+    }
+
+    public static void sendToAllPlayers(S2CCWPacket packet, ServerLevel level) {
+        SharedValues.getPacketChannel().sendToAllPlayers(packet, level);
     }
 }
