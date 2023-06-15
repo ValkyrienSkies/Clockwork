@@ -39,21 +39,6 @@ public class WingBlock extends ConnectedWingAlike implements org.valkyrienskies.
     }
 
     @Override
-    public ItemStack getCloneItemStack(BlockGetter level, BlockPos pos, BlockState state) {
-        ItemStack stack = super.getCloneItemStack(level, pos, state);
-
-        ColorBlockEntity be = (ColorBlockEntity) level.getBlockEntity(pos);
-
-        assert be != null;
-        if (be.getColor() != -1) {
-            CompoundTag tag = stack.getOrCreateTag();
-            tag.putInt("Clockwork$color", be.getColor());
-        }
-
-        return stack;
-    }
-
-    @Override
     public BlockState getNewState(BlockState state, Level level, BlockPos pos) {
         Direction facing = state.getValue(FACING);
 

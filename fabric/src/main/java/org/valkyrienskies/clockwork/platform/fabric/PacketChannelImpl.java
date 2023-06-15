@@ -135,17 +135,6 @@ public class PacketChannelImpl implements PacketChannel {
         sendTo(player, packet);
     }
 
-    @Override
-    public void sendToAllPlayers(S2CCWPacket packet, ServerLevel level) {
-        FriendlyByteBuf buf = new FriendlyByteBuf(bufAllocator.buffer());
-        buf.writeVarInt(s2cIdMap.get(packet.getClass()));
-        packet.write(buf);
-
-        for (ServerPlayer player : level.players()) {
-            ServerPlayNetworking.send(player, ClockWorkMod.NETWORK_CHANNEL, buf);
-        }
-    }
-
     private void sendTo(ServerPlayer player, S2CCWPacket packet) {
         FriendlyByteBuf buf = new FriendlyByteBuf(bufAllocator.buffer());
         buf.writeVarInt(s2cIdMap.get(packet.getClass()));

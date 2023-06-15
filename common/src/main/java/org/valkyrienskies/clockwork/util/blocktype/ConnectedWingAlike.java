@@ -6,28 +6,27 @@ import com.simibubi.create.foundation.utility.Iterate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.storage.loot.LootContext;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -40,7 +39,7 @@ import org.valkyrienskies.clockwork.content.physicalities.motion.wing.WingBlockI
 
 import java.util.List;
 
-public abstract class ConnectedWingAlike extends BaseEntityBlock {
+public abstract class ConnectedWingAlike extends Block implements EntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
     public static final BooleanProperty NORTH = BlockStateProperties.NORTH;
     public static final BooleanProperty SOUTH = BlockStateProperties.SOUTH;
@@ -48,8 +47,9 @@ public abstract class ConnectedWingAlike extends BaseEntityBlock {
     public static final BooleanProperty WEST = BlockStateProperties.WEST;
     public static final BooleanProperty UP = BlockStateProperties.UP;
     public static final BooleanProperty DOWN = BlockStateProperties.DOWN;
+    public static final IntegerProperty COLOR = IntegerProperty.create("color", 0, 0x1000001);
 
-    public ConnectedWingAlike(BlockBehaviour.Properties properties) {
+    public ConnectedWingAlike(Properties properties) {
         super(properties);
         this.registerDefaultState(defaultBlockState()
                 .setValue(FACING, Direction.UP)
@@ -59,6 +59,7 @@ public abstract class ConnectedWingAlike extends BaseEntityBlock {
                 .setValue(WEST, false)
                 .setValue(UP, false)
                 .setValue(DOWN, false)
+                .setValue(COLOR, 0x1000000)
         );
     }
 
@@ -89,7 +90,7 @@ public abstract class ConnectedWingAlike extends BaseEntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, NORTH, SOUTH, EAST, WEST, UP, DOWN);
+        builder.add(FACING, NORTH, SOUTH, EAST, WEST, UP, DOWN, COLOR);
         super.createBlockStateDefinition(builder);
     }
 
@@ -136,26 +137,14 @@ public abstract class ConnectedWingAlike extends BaseEntityBlock {
         level.setBlockAndUpdate(pos, getNewState(state, level, pos));
     }
 
-    @Nullable
     @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new ColorBlockEntity(ClockWorkBlockEntities.WING.get(), pos, state);
-    }
-
-    @Override
-    public @NotNull RenderShape getRenderShape(BlockState state) {
-        return RenderShape.MODEL;
-    }
-
-    @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+    public InteractionResult use(BlockState state, @NotNull Level level, @NotNull BlockPos pos, Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hit) {
         ItemStack stack = player.getItemInHand(hand);
-        ColorBlockEntity be = (ColorBlockEntity) level.getBlockEntity(pos);
+        int color = state.getValue(COLOR);
 
-        assert be != null;
-        if (stack.getItem() instanceof DyeItem dye && be.getColor() != dye.getDyeColor().getTextColor()) {
-            be.setColor(be.getColor() == -1 ? dye.getDyeColor().getTextColor() :
-                    Color.mixColors(be.getColor(), dye.getDyeColor().getTextColor(), 0.5f));
+        if (stack.getItem() instanceof DyeItem dye && color != dye.getDyeColor().getTextColor()) {
+            state.setValue(COLOR, color == 0x1000000 ? dye.getDyeColor().getTextColor() :
+                    Color.mixColors(color, dye.getDyeColor().getTextColor(), 0.5f));
 
             if (!level.isClientSide && !player.isCreative()) {
                 if (stack.getCount() > 1)
@@ -175,14 +164,37 @@ public abstract class ConnectedWingAlike extends BaseEntityBlock {
         List<ItemStack> drops = super.getDrops(state, builder);
 
         drops.replaceAll(stack -> {
-            ColorBlockEntity be = (ColorBlockEntity) builder.getParameter(LootContextParams.BLOCK_ENTITY);
-
             if (stack.getItem() instanceof WingBlockItem)
-                stack.getOrCreateTag().putInt("Clockwork$color", be.getColor());
-
+                stack.getOrCreateTag().putInt("Clockwork$color", state.getValue(COLOR));
             return stack;
         });
 
         return drops;
+    }
+
+
+
+    @Override
+    public ItemStack getCloneItemStack(@NotNull BlockGetter level, @NotNull BlockPos pos, @NotNull BlockState state) {
+        ItemStack stack = super.getCloneItemStack(level, pos, state);
+        int color = state.getValue(COLOR);
+
+        if (color != 0x1000000) {
+            CompoundTag tag = stack.getOrCreateTag();
+            tag.putInt("Clockwork$color", color);
+        }
+
+        return stack;
+    }
+
+    @Nullable
+    @Override
+    public BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
+        return new ColorBlockEntity(ClockWorkBlockEntities.WING.get(), pos, state);
+    }
+
+    @Override
+    public RenderShape getRenderShape(@NotNull BlockState state) {
+        return RenderShape.MODEL;
     }
 }

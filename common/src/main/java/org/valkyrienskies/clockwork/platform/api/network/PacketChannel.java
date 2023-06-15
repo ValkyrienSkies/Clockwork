@@ -22,6 +22,4 @@ public interface PacketChannel {
     void sendToClientsTracking(S2CCWPacket packet, Entity entity);
 
     void sendToClientsTrackingAndSelf(S2CCWPacket packet, ServerPlayer player);
-
-    void sendToAllPlayers(S2CCWPacket packet, ServerLevel level);
 }

@@ -13,6 +13,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.valkyrienskies.clockwork.ClockWorkPartials;
 import org.valkyrienskies.clockwork.content.materials.solids.colorblock.ColorBlockEntity;
+import org.valkyrienskies.clockwork.util.blocktype.ConnectedWingAlike;
 
 public class WingBlockEntityRenderer extends SmartTileEntityRenderer<ColorBlockEntity> {
     public WingBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
@@ -24,9 +25,10 @@ public class WingBlockEntityRenderer extends SmartTileEntityRenderer<ColorBlockE
         super.renderSafe(be, partialTicks, ms, buffer, light, overlay);
         VertexConsumer vb = buffer.getBuffer(RenderType.cutout());
         BlockState state = be.getBlockState();
+        int color = state.getValue(ConnectedWingAlike.COLOR);
         Direction facing = state.getValue(BlockStateProperties.FACING);
 
-        SuperByteBuffer middle = applyColor(be, CachedBufferer.partial(ClockWorkPartials.WING_MIDDLE, state));
+        SuperByteBuffer middle = applyColor(color, CachedBufferer.partial(ClockWorkPartials.WING_MIDDLE, state));
         SuperByteBuffer side = CachedBufferer.partial(ClockWorkPartials.WING_SIDE, state);
         SuperByteBuffer side_vertical = CachedBufferer.partial(ClockWorkPartials.WING_SIDE_VERTICAL, state);
 
@@ -38,19 +40,19 @@ public class WingBlockEntityRenderer extends SmartTileEntityRenderer<ColorBlockE
 
         if (state.getValue(BlockStateProperties.NORTH)) {
             switch (facing) {
-                case EAST, WEST -> applyColor(be, side_vertical)
+                case EAST, WEST -> applyColor(color, side_vertical)
                         .light().renderInto(ms, vb);
-                case UP, DOWN -> applyColor(be, side)
+                case UP, DOWN -> applyColor(color, side)
                         .light().renderInto(ms, vb);
             }
         }
 
         if (state.getValue(BlockStateProperties.SOUTH)) {
             switch (facing) {
-                case EAST, WEST -> applyColor(be, side_vertical)
+                case EAST, WEST -> applyColor(color, side_vertical)
                         .rotateCentered(Direction.UP, (float) Math.toRadians(180))
                         .light().renderInto(ms, vb);
-                case UP, DOWN -> applyColor(be, side)
+                case UP, DOWN -> applyColor(color, side)
                         .rotateCentered(Direction.UP, (float) Math.toRadians(180))
                         .light().renderInto(ms, vb);
             }
@@ -58,10 +60,10 @@ public class WingBlockEntityRenderer extends SmartTileEntityRenderer<ColorBlockE
 
         if (state.getValue(BlockStateProperties.EAST)) {
             switch (facing) {
-                case NORTH, SOUTH -> applyColor(be, side_vertical)
+                case NORTH, SOUTH -> applyColor(color, side_vertical)
                         .rotateCentered(Direction.UP, (float) Math.toRadians(270))
                         .light().renderInto(ms, vb);
-                case UP, DOWN -> applyColor(be, side)
+                case UP, DOWN -> applyColor(color, side)
                         .rotateCentered(Direction.UP, (float) Math.toRadians(270))
                         .light().renderInto(ms, vb);
             }
@@ -69,10 +71,10 @@ public class WingBlockEntityRenderer extends SmartTileEntityRenderer<ColorBlockE
 
         if (state.getValue(BlockStateProperties.WEST)) {
             switch (facing) {
-                case NORTH, SOUTH -> applyColor(be, side_vertical)
+                case NORTH, SOUTH -> applyColor(color, side_vertical)
                         .rotateCentered(Direction.UP, (float) Math.toRadians(90))
                         .light().renderInto(ms, vb);
-                case UP, DOWN -> applyColor(be, side)
+                case UP, DOWN -> applyColor(color, side)
                         .rotateCentered(Direction.UP, (float) Math.toRadians(90))
                         .light().renderInto(ms, vb);
             }
@@ -80,10 +82,10 @@ public class WingBlockEntityRenderer extends SmartTileEntityRenderer<ColorBlockE
 
         if (state.getValue(BlockStateProperties.UP)) {
             switch (facing) {
-                case NORTH, SOUTH -> applyColor(be, side)
+                case NORTH, SOUTH -> applyColor(color, side)
                         .rotateCentered(Direction.EAST, (float) Math.toRadians(90))
                         .light().renderInto(ms, vb);
-                case EAST, WEST -> applyColor(be, side)
+                case EAST, WEST -> applyColor(color, side)
                         .rotateCentered(Direction.EAST, (float) Math.toRadians(90))
                         .rotateCentered(Direction.NORTH, (float) Math.toRadians(270))
                         .light().renderInto(ms, vb);
@@ -92,21 +94,19 @@ public class WingBlockEntityRenderer extends SmartTileEntityRenderer<ColorBlockE
 
         if (state.getValue(BlockStateProperties.DOWN)) {
             switch (facing) {
-                case NORTH, SOUTH -> applyColor(be, side)
+                case NORTH, SOUTH -> applyColor(color, side)
                         .rotateCentered(Direction.EAST, (float) Math.toRadians(270))
                         .light().renderInto(ms, vb);
-                case EAST, WEST -> applyColor(be, side)
+                case EAST, WEST -> applyColor(color, side)
                         .rotateCentered(Direction.NORTH, (float) Math.toRadians(90))
                         .rotateCentered(Direction.UP, (float) Math.toRadians(270))
-                        //.rotateCentered(Direction.NORTH, (float) Math.toRadians(90))
                         .light().renderInto(ms, vb);
             }
         }
     }
 
-    private SuperByteBuffer applyColor(ColorBlockEntity be, SuperByteBuffer buf) {
-        int color = be.getColor();
-        if (color != -1)
+    private SuperByteBuffer applyColor(int color, SuperByteBuffer buf) {
+        if (color != 0x1000000)
             buf.color(color);
         return buf;
     }

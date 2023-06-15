@@ -76,7 +76,7 @@ dependencies {
 //    modCompileOnly("mezz.jei:jei-${minecraft_version}:${jei_forge_version}:api")
 
     // CC Tweaked
-    modCompileOnly("curse.maven:cctweaked-282001:4061947")
+    modImplementation("curse.maven:cctweaked-282001:4061947")
 }
 
 processResources {

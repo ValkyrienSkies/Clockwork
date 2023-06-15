@@ -1,30 +1,31 @@
 package org.valkyrienskies.clockwork.integration.cc;
 
-import dan200.computercraft.api.lua.IArguments;
 import dan200.computercraft.api.lua.LuaException;
 import dan200.computercraft.api.lua.LuaFunction;
 import dan200.computercraft.api.peripheral.IPeripheral;
 import me.shedaniel.math.Color;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.valkyrienskies.clockwork.content.materials.solids.colorblock.ColorBlockEntity;
-
-import java.awt.*;
-import java.util.Optional;
+import org.valkyrienskies.clockwork.util.blocktype.ConnectedWingAlike;
 
 public class ColorPeripheral implements IPeripheral {
-    private final ColorBlockEntity color;
+    private final BlockState state;
+    private final Level level;
+    private final BlockPos pos;
 
-    public ColorPeripheral(ColorBlockEntity color) {
-        this.color = color;
+    public ColorPeripheral(Level level, BlockPos pos, BlockState state) {
+        this.level = level;
+        this.pos = pos;
+        this.state = state;
     }
 
     @NotNull
     @Override
     public String getType() {
-        String id = this.color.getBlockState().getBlock().getDescriptionId()
-                .replace("vs_clockwork:block.vs_clockwork.", "");
-
+        String id = state.getBlock().getDescriptionId().replace("block.vs_clockwork.", "");
         return id + "_color";
     }
 
@@ -34,46 +35,35 @@ public class ColorPeripheral implements IPeripheral {
     }
 
     @LuaFunction
-    public void setColor(int rgb) {
-        this.color.setColor(rgb);
+    public void setRGBColor(int red, int green, int blue) throws LuaException {
+        if (red > 255 || red < 0)
+            throw new LuaException("red is out of bounds, 0-255");
+        if (green > 255 || green < 0)
+            throw new LuaException("blue is out of bounds, 0-255");
+        if (blue > 255 || blue < 0)
+            throw new LuaException("red is out of bounds, 0-255");
+
+        this.state.setValue(ConnectedWingAlike.COLOR, Color.ofRGB(red, green, blue).getColor());
+        this.level.setBlockAndUpdate(this.pos, this.state);
     }
 
     @LuaFunction
-    public void setColor(IArguments args) throws LuaException {
-        // Is First Argument Hex?
-        String hex = args.optString(0, null);
-        if (hex != null) {
-            if (!hex.matches("0[xX][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]"))
-                throw new LuaException("does not match standard hexidecimal");
-            this.color.setColor(Integer.parseInt(hex));
-            return;
-        }
-
-        // Is RGB?
-        Optional<Integer> r = args.optInt(0);
-        int g = args.optInt(1, -1);
-        int b = args.optInt(2, -1);
-        if (r.isEmpty())
-            throw new LuaException("missing number or hexidecimal");
-
-        if (g != -1 && b != -1)
-            this.color.setColor(Color.ofRGB(r.get(), g, b).getColor());
-        else if (g != -1 || b != -1)
-            throw new LuaException("missing green and/or blue");
-        else {
-            if (r.get() > 0xFFFFFF || r.get() < 0)
-                throw new LuaException("value too large/small");
-            this.color.setColor(r.get());
-        }
+    public void setHexColor(int rgb) throws LuaException {
+        if (rgb > 0xFFFFFF || rgb < 0)
+            throw new LuaException("value out of bounds, 0-0xFFFFFF");
+        this.state.setValue(ConnectedWingAlike.COLOR, rgb);
+        this.level.setBlockAndUpdate(this.pos, this.state);
     }
 
     @LuaFunction
-    public int getColor() {
-        return this.color.getColor();
+    public Integer getColor() {
+        int color = this.state.getValue(ConnectedWingAlike.COLOR);
+        return color > 0xFFFFFF ? null : color;
     }
 
     @LuaFunction
     public void clearColor() {
-        this.color.clearColor();
+        this.state.setValue(ConnectedWingAlike.COLOR, 0x1000000);
+        this.level.setBlockAndUpdate(this.pos, this.state);
     }
 }

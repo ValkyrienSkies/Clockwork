@@ -42,5 +42,4 @@ public class SharedValuesImpl {
     public static EntityEntry<SequencedSeatEntity> getSequencedSeat() {
         return (EntityEntry) ForgeClockworkEntities.SEQUENCED_SEAT;
     }
-
 }
