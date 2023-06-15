@@ -15,8 +15,11 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
+import org.valkyrienskies.clockwork.ClockWorkBlockEntities;
+import org.valkyrienskies.clockwork.content.materials.solids.colorblock.ColorBlockEntity;
 import org.valkyrienskies.clockwork.util.blocktype.ConnectedWingAlike;
 
 import java.util.List;
@@ -39,18 +42,6 @@ public class WingBlockItem extends BlockItem {
         super.appendHoverText(stack, level, tooltipComponents, isAdvanced);
     }
 
-    @Override
-    public InteractionResult useOn(UseOnContext context) {
-        Level level = context.getLevel();
-        BlockPos pos = context.getClickedPos();
-        BlockState state = level.getBlockState(pos);
-
-        if (!(state.getBlock() instanceof LayeredCauldronBlock))
-            return super.useOn(context);
-
-        return InteractionResult.PASS;
-    }
-
     public boolean hasColor(ItemStack stack) {
         return stack.hasTag() && stack.getOrCreateTag().contains("Clockwork$color") && stack.getOrCreateTag().getInt("Clockwork$color") != -1;
     }
@@ -70,10 +61,24 @@ public class WingBlockItem extends BlockItem {
 
     @Override
     protected boolean placeBlock(BlockPlaceContext context, BlockState state) {
-        ItemStack stack = context.getItemInHand();
-        state.setValue(ConnectedWingAlike.COLOR, stack.hasTag() && stack.getOrCreateTag().contains("Clockwork$color") ?
-                stack.getOrCreateTag().getInt("Clockwork$color") : -1);
+        boolean result = super.placeBlock(context, state);
 
-        return super.placeBlock(context, state);
+        if (result) {
+            ItemStack stack = context.getItemInHand();
+            Level level = context.getLevel();
+            BlockPos pos = context.getClickedPos();
+
+            BlockEntity be = level.getBlockEntity(pos);
+            if (be == null) {
+                be = new ColorBlockEntity(ClockWorkBlockEntities.WING.get(), pos, state);
+                level.setBlockEntity(be);
+            }
+            ColorBlockEntity color = (ColorBlockEntity) be;
+
+            color.setColor(stack.hasTag() && stack.getOrCreateTag().contains("Clockwork$color") ?
+                    stack.getOrCreateTag().getInt("Clockwork$color") : -1);
+        }
+
+        return result;
     }
 }

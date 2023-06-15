@@ -9,23 +9,21 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.valkyrienskies.clockwork.content.materials.solids.colorblock.ColorBlockEntity;
 import org.valkyrienskies.clockwork.util.blocktype.ConnectedWingAlike;
 
 public class ColorPeripheral implements IPeripheral {
-    private final BlockState state;
-    private final Level level;
-    private final BlockPos pos;
+    private final ColorBlockEntity color;
 
-    public ColorPeripheral(Level level, BlockPos pos, BlockState state) {
-        this.level = level;
-        this.pos = pos;
-        this.state = state;
+    public ColorPeripheral(ColorBlockEntity color) {
+        this.color = color;
     }
 
     @NotNull
     @Override
     public String getType() {
-        String id = state.getBlock().getDescriptionId().replace("block.vs_clockwork.", "");
+        String id = this.color.getBlockState().getBlock().getDescriptionId()
+                .replace("block.vs_clockwork.", "");
         return id + "_color";
     }
 
@@ -43,27 +41,24 @@ public class ColorPeripheral implements IPeripheral {
         if (blue > 255 || blue < 0)
             throw new LuaException("red is out of bounds, 0-255");
 
-        this.state.setValue(ConnectedWingAlike.COLOR, Color.ofRGB(red, green, blue).getColor());
-        this.level.setBlockAndUpdate(this.pos, this.state);
+        this.color.setColor(Color.ofRGB(red, green, blue).getColor());
     }
 
     @LuaFunction
     public void setHexColor(int rgb) throws LuaException {
         if (rgb > 0xFFFFFF || rgb < 0)
             throw new LuaException("value out of bounds, 0-0xFFFFFF");
-        this.state.setValue(ConnectedWingAlike.COLOR, rgb);
-        this.level.setBlockAndUpdate(this.pos, this.state);
+        this.color.setColor(rgb);
     }
 
     @LuaFunction
     public Integer getColor() {
-        int color = this.state.getValue(ConnectedWingAlike.COLOR);
-        return color > 0xFFFFFF ? null : color;
+        int color = this.color.getColor();
+        return color < 0 ? null : color;
     }
 
     @LuaFunction
     public void clearColor() {
-        this.state.setValue(ConnectedWingAlike.COLOR, 0x1000000);
-        this.level.setBlockAndUpdate(this.pos, this.state);
+        this.color.clearColor();
     }
 }

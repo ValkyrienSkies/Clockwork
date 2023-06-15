@@ -27,6 +27,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -47,7 +48,6 @@ public abstract class ConnectedWingAlike extends Block implements EntityBlock {
     public static final BooleanProperty WEST = BlockStateProperties.WEST;
     public static final BooleanProperty UP = BlockStateProperties.UP;
     public static final BooleanProperty DOWN = BlockStateProperties.DOWN;
-    public static final IntegerProperty COLOR = IntegerProperty.create("color", 0, 0x1000001);
 
     public ConnectedWingAlike(Properties properties) {
         super(properties);
@@ -59,7 +59,6 @@ public abstract class ConnectedWingAlike extends Block implements EntityBlock {
                 .setValue(WEST, false)
                 .setValue(UP, false)
                 .setValue(DOWN, false)
-                .setValue(COLOR, 0x1000000)
         );
     }
 
@@ -90,7 +89,7 @@ public abstract class ConnectedWingAlike extends Block implements EntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, NORTH, SOUTH, EAST, WEST, UP, DOWN, COLOR);
+        builder.add(FACING, NORTH, SOUTH, EAST, WEST, UP, DOWN);
         super.createBlockStateDefinition(builder);
     }
 
@@ -140,10 +139,12 @@ public abstract class ConnectedWingAlike extends Block implements EntityBlock {
     @Override
     public InteractionResult use(BlockState state, @NotNull Level level, @NotNull BlockPos pos, Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hit) {
         ItemStack stack = player.getItemInHand(hand);
-        int color = state.getValue(COLOR);
+        ColorBlockEntity be = (ColorBlockEntity) level.getBlockEntity(pos);
+        assert be != null;
+        int color = be.getColor();
 
         if (stack.getItem() instanceof DyeItem dye && color != dye.getDyeColor().getTextColor()) {
-            state.setValue(COLOR, color == 0x1000000 ? dye.getDyeColor().getTextColor() :
+            be.setColor(color == -1 ? dye.getDyeColor().getTextColor() :
                     Color.mixColors(color, dye.getDyeColor().getTextColor(), 0.5f));
 
             if (!level.isClientSide && !player.isCreative()) {
@@ -164,8 +165,10 @@ public abstract class ConnectedWingAlike extends Block implements EntityBlock {
         List<ItemStack> drops = super.getDrops(state, builder);
 
         drops.replaceAll(stack -> {
-            if (stack.getItem() instanceof WingBlockItem)
-                stack.getOrCreateTag().putInt("Clockwork$color", state.getValue(COLOR));
+            ColorBlockEntity be = (ColorBlockEntity) builder.getParameter(LootContextParams.BLOCK_ENTITY);
+            int color = be.getColor();
+            if ((stack.getItem() instanceof WingBlockItem) && color != -1)
+                stack.getOrCreateTag().putInt("Clockwork$color", color);
             return stack;
         });
 
@@ -177,9 +180,11 @@ public abstract class ConnectedWingAlike extends Block implements EntityBlock {
     @Override
     public ItemStack getCloneItemStack(@NotNull BlockGetter level, @NotNull BlockPos pos, @NotNull BlockState state) {
         ItemStack stack = super.getCloneItemStack(level, pos, state);
-        int color = state.getValue(COLOR);
+        ColorBlockEntity be = (ColorBlockEntity) level.getBlockEntity(pos);
+        assert be != null;
+        int color = be.getColor();
 
-        if (color != 0x1000000) {
+        if (color != -1) {
             CompoundTag tag = stack.getOrCreateTag();
             tag.putInt("Clockwork$color", color);
         }

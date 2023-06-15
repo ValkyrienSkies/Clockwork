@@ -29,7 +29,6 @@ public class ClockworkFabricPeripheralProviders {
         @NotNull
         @Override
         public IPeripheral getPeripheral(@NotNull Level level, @NotNull BlockPos blockPos, @NotNull Direction direction) {
-            BlockState state = level.getBlockState(blockPos);
             BlockEntity be = level.getBlockEntity(blockPos);
             if (be instanceof AfterblazerBlockEntity afterblazer)
                 return new AfterblazerPeripheral(afterblazer);
@@ -45,8 +44,8 @@ public class ClockworkFabricPeripheralProviders {
                 return new CombustionEnginePeripheral(engine);
             else if (be instanceof PhysBearingBlockEntity phys)
                 return new PhysBearingPeripheral(phys);
-            else if (state.getBlock() instanceof ConnectedWingAlike)
-                return new ColorPeripheral(level, blockPos, state);
+            else if (be instanceof ColorBlockEntity color)
+                return new ColorPeripheral(color);
             return null;
         }
     }
