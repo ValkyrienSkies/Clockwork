@@ -27,9 +27,6 @@ public class ColorBlockEntity extends SmartTileEntity {
         if (this.color != -1)
             tag.putInt("Clockwork$color", this.color);
 
-        if (getLevel() != null && !getLevel().isClientSide()) {
-            ClockWorkPackets.sendToNear(getLevel(), getBlockPos(), 64, new BlockEntityColorPacket(this));
-        }
         super.writeSafe(tag);
     }
 
@@ -39,10 +36,6 @@ public class ColorBlockEntity extends SmartTileEntity {
 
         if (tag.contains("Clockwork$color"))
             this.color = tag.getInt("Clockwork$color");
-
-        if (getLevel() != null && !getLevel().isClientSide() && !(getLevel() instanceof SchematicWorld)) {
-            ClockWorkPackets.sendToNear(getLevel(), getBlockPos(), 64, new BlockEntityColorPacket(this));
-        }
     }
 
     public int getColor() {
@@ -57,5 +50,14 @@ public class ColorBlockEntity extends SmartTileEntity {
     public void clearColor() {
         this.color = -1;
         this.setChanged();
+    }
+
+    @Override
+    public void setChanged() {
+        super.setChanged();
+
+        if (getLevel() != null && !getLevel().isClientSide() && !(getLevel() instanceof SchematicWorld)) {
+            ClockWorkPackets.sendToNear(getLevel(), getBlockPos(), 64, new BlockEntityColorPacket(this));
+        }
     }
 }
