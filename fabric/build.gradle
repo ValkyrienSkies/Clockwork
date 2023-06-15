@@ -88,7 +88,7 @@ dependencies {
 //    modCompileOnly("dev.emi:emi:${emi_version}")
 
     // CC Restitched
-    modImplementation("curse.maven:cc-restitched-462672:3622561")
+    modCompileOnly("curse.maven:cc-restitched-462672:3622561")
 }
 
 processResources {

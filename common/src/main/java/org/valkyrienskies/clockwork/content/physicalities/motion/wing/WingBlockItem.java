@@ -70,7 +70,7 @@ public class WingBlockItem extends BlockItem {
 
             BlockEntity be = level.getBlockEntity(pos);
             if (be == null) {
-                be = new ColorBlockEntity(ClockWorkBlockEntities.WING.get(), pos, state);
+                be = new ColorBlockEntity(ClockWorkBlockEntities.COLOR_BLOCK_ENTITY.get(), pos, state);
                 level.setBlockEntity(be);
             }
             ColorBlockEntity color = (ColorBlockEntity) be;

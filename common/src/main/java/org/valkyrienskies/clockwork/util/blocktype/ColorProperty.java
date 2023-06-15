@@ -18,11 +18,11 @@ public class ColorProperty extends Property<String> {
 
         HashSet<String> set = new HashSet<>();
 
-        int count = -1;
-        while (count < 0xFFFFFF) {
-            set.add(convertToHexidecimalString(count));
-            count++;
-        }
+//        int count = -1;
+//        while (count < 0xFFFFFF) {
+//            set.add(convertToHexidecimalString(count));
+//            count++;
+//        }
 
         Pattern pattern = Pattern.compile("0[xX][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]");
 

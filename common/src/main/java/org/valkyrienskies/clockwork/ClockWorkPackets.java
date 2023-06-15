@@ -12,6 +12,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperG
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueRemovalPacket;
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueSelectionPacket;
 import org.valkyrienskies.clockwork.content.curiosities.tools.pastrymaker.PastrymakerPacket;
+import org.valkyrienskies.clockwork.content.physicalities.motion.wing.BlockEntityColorPacket;
 import org.valkyrienskies.clockwork.platform.SharedValues;
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket;
 import org.valkyrienskies.clockwork.platform.api.network.CWPacket;
@@ -29,7 +30,9 @@ public enum ClockWorkPackets {
 
     // Server to Client
     BLUPERGLUE_EFFECT(BluperGlueEffectPacket.class, BluperGlueEffectPacket::new),
-    PASTRYMAKER(PastrymakerPacket.class, PastrymakerPacket::new)
+    PASTRYMAKER(PastrymakerPacket.class, PastrymakerPacket::new),
+
+    COLORBLOCKENTITY(BlockEntityColorPacket.class, BlockEntityColorPacket::new)
     ;
 
     <T extends CWPacket> ClockWorkPackets(Class<T> type, Function<FriendlyByteBuf, T> factory) {

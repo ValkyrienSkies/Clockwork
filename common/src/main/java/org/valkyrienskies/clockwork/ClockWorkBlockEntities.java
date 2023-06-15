@@ -141,8 +141,8 @@ public class ClockWorkBlockEntities {
 
     // WINX
 
-    public static final BlockEntityEntry<ColorBlockEntity> WING = REGISTRATE
-            .tileEntity("wing", ColorBlockEntity::new)
+    public static final BlockEntityEntry<ColorBlockEntity> COLOR_BLOCK_ENTITY = REGISTRATE
+            .tileEntity("color_block_entity", ColorBlockEntity::new)
             .validBlocks(ClockWorkBlocks.WING, ClockWorkBlocks.FLAP)
             .renderer(() -> WingBlockEntityRenderer::new)
             .register();

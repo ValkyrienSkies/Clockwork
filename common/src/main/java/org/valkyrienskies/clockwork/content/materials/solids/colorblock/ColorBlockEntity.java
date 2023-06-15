@@ -1,11 +1,14 @@
 package org.valkyrienskies.clockwork.content.materials.solids.colorblock;
 
+import com.simibubi.create.content.schematics.SchematicWorld;
 import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
 import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import org.valkyrienskies.clockwork.ClockWorkPackets;
+import org.valkyrienskies.clockwork.content.physicalities.motion.wing.BlockEntityColorPacket;
 
 import java.util.List;
 
@@ -24,6 +27,9 @@ public class ColorBlockEntity extends SmartTileEntity {
         if (this.color != -1)
             tag.putInt("Clockwork$color", this.color);
 
+        if (getLevel() != null && !getLevel().isClientSide()) {
+            ClockWorkPackets.sendToNear(getLevel(), getBlockPos(), 64, new BlockEntityColorPacket(this));
+        }
         super.writeSafe(tag);
     }
 
@@ -33,6 +39,10 @@ public class ColorBlockEntity extends SmartTileEntity {
 
         if (tag.contains("Clockwork$color"))
             this.color = tag.getInt("Clockwork$color");
+
+        if (getLevel() != null && !getLevel().isClientSide() && !(getLevel() instanceof SchematicWorld)) {
+            ClockWorkPackets.sendToNear(getLevel(), getBlockPos(), 64, new BlockEntityColorPacket(this));
+        }
     }
 
     public int getColor() {

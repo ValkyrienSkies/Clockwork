@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.util.blocktype;
 
 import com.simibubi.create.content.contraptions.base.IRotate;
+import com.simibubi.create.foundation.block.ITE;
 import com.simibubi.create.foundation.utility.Color;
 import com.simibubi.create.foundation.utility.Iterate;
 import net.minecraft.core.BlockPos;
@@ -20,6 +21,7 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -40,7 +42,7 @@ import org.valkyrienskies.clockwork.content.physicalities.motion.wing.WingBlockI
 
 import java.util.List;
 
-public abstract class ConnectedWingAlike extends Block implements EntityBlock {
+public abstract class ConnectedWingAlike extends Block implements ITE<ColorBlockEntity> {
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
     public static final BooleanProperty NORTH = BlockStateProperties.NORTH;
     public static final BooleanProperty SOUTH = BlockStateProperties.SOUTH;
@@ -161,6 +163,16 @@ public abstract class ConnectedWingAlike extends Block implements EntityBlock {
     }
 
     @Override
+    public Class<ColorBlockEntity> getTileEntityClass() {
+        return ColorBlockEntity.class;
+    }
+
+    @Override
+    public BlockEntityType<? extends ColorBlockEntity> getTileEntityType() {
+        return ClockWorkBlockEntities.COLOR_BLOCK_ENTITY.get();
+    }
+
+    @Override
     public List<ItemStack> getDrops(@NotNull BlockState state, LootContext.@NotNull Builder builder) {
         List<ItemStack> drops = super.getDrops(state, builder);
 
@@ -192,11 +204,12 @@ public abstract class ConnectedWingAlike extends Block implements EntityBlock {
         return stack;
     }
 
-    @Nullable
-    @Override
-    public BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
-        return new ColorBlockEntity(ClockWorkBlockEntities.WING.get(), pos, state);
-    }
+
+//    @Nullable
+//    @Override
+//    public BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
+//        return new ColorBlockEntity(ClockWorkBlockEntities.WING.get(), pos, state);
+//    }
 
     @Override
     public RenderShape getRenderShape(@NotNull BlockState state) {
