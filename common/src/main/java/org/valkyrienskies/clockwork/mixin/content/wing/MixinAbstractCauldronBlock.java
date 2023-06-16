@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.valkyrienskies.clockwork.ClockWorkBlocks;
-import org.valkyrienskies.clockwork.content.physicalities.motion.wing.WingBlockItem;
+import org.valkyrienskies.clockwork.content.physicalities.motion.wing.DyedWingBlockItem;
 
 import java.util.Map;
 
@@ -28,7 +28,7 @@ public class MixinAbstractCauldronBlock {
     @Unique
     CauldronInteraction DYED_WING = (state, world, pos, player, hand, stack) -> {
         Item item = stack.getItem();
-        if (!(item instanceof WingBlockItem wing)) {
+        if (!(item instanceof DyedWingBlockItem wing)) {
             return InteractionResult.PASS;
         } else if (!wing.hasColor(stack)) {
             return InteractionResult.PASS;

@@ -6,12 +6,8 @@ import com.simibubi.create.content.contraptions.base.CasingBlock;
 import com.simibubi.create.foundation.block.BlockStressDefaults;
 import com.simibubi.create.foundation.data.*;
 import com.simibubi.create.foundation.utility.Couple;
-import com.tterrag.registrate.builders.ItemBuilder;
 import com.tterrag.registrate.util.entry.BlockEntry;
-import com.tterrag.registrate.util.entry.ItemEntry;
-import com.tterrag.registrate.util.nullness.NonNullFunction;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MaterialColor;
@@ -29,11 +25,9 @@ import org.valkyrienskies.clockwork.content.contraptions.resistor.RedstoneResist
 import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatBlock;
 import org.valkyrienskies.clockwork.content.contraptions.solver.SolverBlock;
 import org.valkyrienskies.clockwork.content.contraptions.universal_joint.UniversalJointBlock;
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItemRenderer;
 import org.valkyrienskies.clockwork.content.physicalities.motion.wing.FlapBlock;
 import org.valkyrienskies.clockwork.content.physicalities.motion.wing.WingBlock;
-import org.valkyrienskies.clockwork.content.physicalities.motion.wing.WingBlockItem;
-import org.valkyrienskies.clockwork.util.blocktype.IHeatableBlock;
+import org.valkyrienskies.clockwork.content.physicalities.motion.wing.DyedWingBlockItem;
 import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork;
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate;
 import org.valkyrienskies.clockwork.util.render.WingBlockItemRenderer;
@@ -204,7 +198,7 @@ public class ClockWorkBlocks {
                     .properties(p -> p.color(MaterialColor.TERRACOTTA_WHITE))
                     .addLayer(() -> RenderType::cutoutMipped)
                     .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
-                    .item(WingBlockItem::new)
+                    .item(DyedWingBlockItem::new)
                     .transform(ClockworkRegistrate.customRenderedBlockItem(() -> WingBlockItemRenderer::new))
                     .register();
     public static final BlockEntry<FlapBlock> FLAP =
@@ -213,7 +207,7 @@ public class ClockWorkBlocks {
                     .properties(p -> p.color(MaterialColor.TERRACOTTA_WHITE))
                     .addLayer(() -> RenderType::cutoutMipped)
                     .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
-                    .item(WingBlockItem::new)
+                    .item(DyedWingBlockItem::new)
                     .transform(ClockworkRegistrate.customRenderedBlockItem(() -> WingBlockItemRenderer::new))
                     .register();
 

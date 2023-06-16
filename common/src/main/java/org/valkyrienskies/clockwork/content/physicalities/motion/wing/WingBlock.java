@@ -28,11 +28,12 @@ import org.valkyrienskies.clockwork.ClockWorkBlockEntities;
 import org.valkyrienskies.clockwork.ClockWorkShapes;
 import org.valkyrienskies.clockwork.content.materials.solids.colorblock.ColorBlockEntity;
 import org.valkyrienskies.clockwork.util.blocktype.ConnectedWingAlike;
+import org.valkyrienskies.clockwork.util.blocktype.DyedWing;
 import org.valkyrienskies.core.api.ships.Wing;
 
 import java.util.List;
 
-public class WingBlock extends ConnectedWingAlike implements org.valkyrienskies.mod.common.block.WingBlock {
+public class WingBlock extends DyedWing implements org.valkyrienskies.mod.common.block.WingBlock {
 
     public WingBlock(Properties properties) {
         super(properties);

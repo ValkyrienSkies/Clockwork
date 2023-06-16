@@ -4,12 +4,12 @@ import net.minecraft.core.cauldron.CauldronInteraction;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
-import org.valkyrienskies.clockwork.content.physicalities.motion.wing.WingBlockItem;
+import org.valkyrienskies.clockwork.content.physicalities.motion.wing.DyedWingBlockItem;
 
 public class CauldronInteractionsUtil {
     public static CauldronInteraction DYED_WING = (state, world, pos, player, hand, stack) -> {
         Item item = stack.getItem();
-        if (!(item instanceof WingBlockItem wing)) {
+        if (!(item instanceof DyedWingBlockItem wing)) {
             return InteractionResult.PASS;
         } else if (!wing.hasColor(stack)) {
             return InteractionResult.PASS;

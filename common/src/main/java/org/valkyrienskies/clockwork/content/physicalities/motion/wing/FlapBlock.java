@@ -22,12 +22,13 @@ import org.valkyrienskies.clockwork.ClockWorkBlockEntities;
 import org.valkyrienskies.clockwork.ClockWorkShapes;
 import org.valkyrienskies.clockwork.content.materials.solids.colorblock.ColorBlockEntity;
 import org.valkyrienskies.clockwork.util.blocktype.ConnectedWingAlike;
+import org.valkyrienskies.clockwork.util.blocktype.DyedWing;
 import org.valkyrienskies.core.api.ships.Wing;
 import org.valkyrienskies.mod.common.block.WingBlock;
 
 import java.util.List;
 
-public class FlapBlock extends ConnectedWingAlike implements WingBlock {
+public class FlapBlock extends DyedWing implements WingBlock {
 
     public FlapBlock(Properties properties) {
         super(properties);
