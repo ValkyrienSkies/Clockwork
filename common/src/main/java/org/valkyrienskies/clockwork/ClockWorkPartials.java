@@ -43,7 +43,17 @@ public class ClockWorkPartials {
 
             PHYSCORNER_SE = block("phys_bearing/cornerse"),
 
-            PHYSCORNER_SW = block("phys_bearing/cornersw")
+            PHYSCORNER_SW = block("phys_bearing/cornersw"),
+
+            WING_MIDDLE = block("wing/wing_middle"),
+
+            WING_SIDE = block("wing/wing_side"),
+
+            WING_SIDE_VERTICAL = block("wing/wing_side_vertical"),
+
+            WING_SAIL_ITEM = item("wing/wing_sail"),
+
+            WING_FRAME_ITEM = item("wing")
     ;
 
     private static PartialModel block(String path) {
@@ -52,6 +62,12 @@ public class ClockWorkPartials {
 
     private static PartialModel entity(String path) {
         return new PartialModel(ClockWorkMod.asResource("entity/" + path));
+    }
+
+
+
+    private static PartialModel item(String path) {
+        return new PartialModel(ClockWorkMod.asResource("item/" + path));
     }
 
     public static void init() {

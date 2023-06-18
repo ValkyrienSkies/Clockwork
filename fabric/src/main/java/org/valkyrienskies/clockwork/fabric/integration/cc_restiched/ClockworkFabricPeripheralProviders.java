@@ -7,6 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity;
@@ -15,7 +16,9 @@ import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEn
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatBlockEntity;
+import org.valkyrienskies.clockwork.content.materials.solids.colorblock.ColorBlockEntity;
 import org.valkyrienskies.clockwork.integration.cc.*;
+import org.valkyrienskies.clockwork.util.blocktype.ConnectedWingAlike;
 
 public class ClockworkFabricPeripheralProviders {
     public static void register() {
@@ -41,6 +44,8 @@ public class ClockworkFabricPeripheralProviders {
                 return new CombustionEnginePeripheral(engine);
             else if (be instanceof PhysBearingBlockEntity phys)
                 return new PhysBearingPeripheral(phys);
+            else if (be instanceof ColorBlockEntity color)
+                return new ColorPeripheral(color);
             return null;
         }
     }

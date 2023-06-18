@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_17",
   "plugin": "org.valkyrienskies.clockwork.mixin.CommonMixinConfigPlugin",
   "mixins": [
+    "content.wing.MixinAbstractCauldronBlock",
     "accessors.IMixinClockworkContraption",
     "accessors.IMixinPistonContraption",
     "compat.blockentity.IMixinMechanicalBearingTileEntity",

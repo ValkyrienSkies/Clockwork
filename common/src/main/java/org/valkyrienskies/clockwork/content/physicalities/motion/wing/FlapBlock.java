@@ -1,119 +1,76 @@
 package org.valkyrienskies.clockwork.content.physicalities.motion.wing;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
-import org.joml.Vector3dc;
+import org.valkyrienskies.clockwork.ClockWorkBlockEntities;
 import org.valkyrienskies.clockwork.ClockWorkShapes;
-import org.valkyrienskies.clockwork.util.blocktype.TriAxisBlockWithConnections;
+import org.valkyrienskies.clockwork.content.materials.solids.colorblock.ColorBlockEntity;
+import org.valkyrienskies.clockwork.util.blocktype.ConnectedWingAlike;
+import org.valkyrienskies.clockwork.util.blocktype.DyedWing;
 import org.valkyrienskies.core.api.ships.Wing;
+import org.valkyrienskies.mod.common.block.WingBlock;
 
-public class FlapBlock extends TriAxisBlockWithConnections implements org.valkyrienskies.mod.common.block.WingBlock {
+import java.util.List;
+
+public class FlapBlock extends DyedWing implements WingBlock {
 
     public FlapBlock(Properties properties) {
         super(properties);
     }
 
     @Override
-    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
-        return ClockWorkShapes.WING.get(pState.getValue(AXIS));
-    }
-    //    @Override
-//    public void onPlace (BlockState state, Level level, BlockPos pos, BlockState oldState, boolean isMoving) {
-//        super.onPlace(state, level, pos, oldState, isMoving);
-//        int flag = 2;
-//        Axis ax = oldState.getValue(AXIS);
-//        connectivityUpdate(oldState, level, pos, flag, ax);
-//    }
-//
-//    @Override
-//    public void onRemove (BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
-//        int flag = 2;
-//        Axis ax = state.getValue(AXIS);
-//        connectivityUpdate(newState, level, pos, flag, ax);
-//        super.onRemove(state, level, pos, newState, isMoving);
-//
-//    }
+    public BlockState getNewState(BlockState state, Level level, BlockPos pos) {
+        Direction facing = state.getValue(FACING);
 
-    @Override
-    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
-        super.neighborChanged(state, level, pos, block, fromPos, isMoving);
-        int flag = 2 | 16;
-        Axis ax = state.getValue(AXIS);
-        connectivityUpdate(state, level, pos, block, fromPos, flag, ax);
-    }
+        BlockState north = level.getBlockState(pos.north());
+        BlockState south = level.getBlockState(pos.south());
+        BlockState east = level.getBlockState(pos.east());
+        BlockState west = level.getBlockState(pos.west());
+        BlockState up = level.getBlockState(pos.above());
+        BlockState down = level.getBlockState(pos.below());
 
-    private void connectivityUpdate(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, int flag, Axis ax) {
-        BlockState neighbor1;
-        BlockState neighbor2;
-        BlockState neighbor3;
-        BlockState neighbor4;
-
-        BlockPos neighbor1Pos;
-        BlockPos neighbor2Pos;
-        BlockPos neighbor3Pos;
-        BlockPos neighbor4Pos;
-
-        if (ax == Axis.Y) {
-            neighbor1 = level.getBlockState(pos.north(1));
-            neighbor1Pos = pos.north(1);
-            neighbor2 = level.getBlockState(pos.east(1));
-            neighbor2Pos = pos.east(1);
-            neighbor3 = level.getBlockState(pos.south(1));
-            neighbor3Pos = pos.south(1);
-            neighbor4 = level.getBlockState(pos.west(1));
-            neighbor4Pos = pos.west(1);
-        } else if (ax == Axis.X) {
-            neighbor1 = level.getBlockState(pos.above(1));
-            neighbor1Pos = pos.above(1);
-            neighbor2 = level.getBlockState(pos.south(1));
-            neighbor2Pos = pos.south(1);
-            neighbor3 = level.getBlockState(pos.below(1));
-            neighbor3Pos = pos.below(1);
-            neighbor4 = level.getBlockState(pos.north(1));
-            neighbor4Pos = pos.north(1);
-        } else {
-            neighbor1 = level.getBlockState(pos.above(1));
-            neighbor1Pos = pos.above(1);
-            neighbor2 = level.getBlockState(pos.west(1));
-            neighbor2Pos = pos.west(1);
-            neighbor3 = level.getBlockState(pos.below(1));
-            neighbor3Pos = pos.below(1);
-            neighbor4 = level.getBlockState(pos.east(1));
-            neighbor4Pos = pos.east(1);
-        }
-
-        if (neighbor1.getBlock() instanceof FlapBlock && neighbor1.getValue(AXIS) == ax) {
-            level.setBlock(pos, state.setValue(connectedOne, true), flag);
-            level.setBlock(neighbor1Pos, neighbor1.setValue(connectedThree, true), flag);
-        } else if (neighbor1.getBlock() instanceof FlapBlock && !(neighbor1.getValue(AXIS) == ax)) {
-            level.setBlock(pos, state.setValue(connectedOne, false), flag);
-        }
-        if (neighbor2.getBlock() instanceof FlapBlock && neighbor2.getValue(AXIS) == ax) {
-            level.setBlock(pos, state.setValue(connectedTwo, true), flag);
-            level.setBlock(neighbor2Pos, neighbor2.setValue(connectedFour, true), flag);
-        } else if (neighbor2.getBlock() instanceof FlapBlock && !(neighbor2.getValue(AXIS) == ax)) {
-            level.setBlock(pos, state.setValue(connectedTwo, false), flag);
-        }
-        if (neighbor3.getBlock() instanceof FlapBlock && neighbor3.getValue(AXIS) == ax) {
-            level.setBlock(pos, state.setValue(connectedThree, true), flag);
-            level.setBlock(neighbor3Pos, neighbor3.setValue(connectedOne, true), flag);
-        } else if (neighbor3.getBlock() instanceof FlapBlock && !(neighbor3.getValue(AXIS) == ax)) {
-            level.setBlock(pos, state.setValue(connectedThree, false), flag);
-        }
-        if (neighbor4.getBlock() instanceof FlapBlock && neighbor4.getValue(AXIS) == ax) {
-            level.setBlock(pos, state.setValue(connectedFour, true), flag);
-            level.setBlock(neighbor4Pos, neighbor4.setValue(connectedTwo, true), flag);
-        } else if (neighbor4.getBlock() instanceof FlapBlock && !(neighbor4.getValue(AXIS) == ax)) {
-            level.setBlock(pos, state.setValue(connectedFour, false), flag);
-        }
+        return switch (facing) {
+            case NORTH, SOUTH -> state
+                    .setValue(NORTH, false)
+                    .setValue(SOUTH, false)
+                    .setValue(EAST, (east.getBlock() instanceof FlapBlock) && east.getValue(FACING).equals(facing))
+                    .setValue(WEST, (west.getBlock() instanceof FlapBlock) && west.getValue(FACING).equals(facing))
+                    .setValue(UP, (up.getBlock() instanceof FlapBlock) && up.getValue(FACING).equals(facing))
+                    .setValue(DOWN, (down.getBlock() instanceof FlapBlock) && down.getValue(FACING).equals(facing))
+                    .setValue(FACING, Direction.NORTH);
+            case EAST, WEST -> state
+                    .setValue(NORTH, (north.getBlock() instanceof FlapBlock) && north.getValue(FACING).equals(facing))
+                    .setValue(SOUTH, (south.getBlock() instanceof FlapBlock) && south.getValue(FACING).equals(facing))
+                    .setValue(EAST, false)
+                    .setValue(WEST, false)
+                    .setValue(UP, (up.getBlock() instanceof FlapBlock) && up.getValue(FACING).equals(facing))
+                    .setValue(DOWN, (down.getBlock() instanceof FlapBlock) && down.getValue(FACING).equals(facing))
+                    .setValue(FACING, Direction.EAST);
+            case UP, DOWN -> state
+                    .setValue(NORTH, (north.getBlock() instanceof FlapBlock) && north.getValue(FACING).equals(facing))
+                    .setValue(SOUTH, (south.getBlock() instanceof FlapBlock) && south.getValue(FACING).equals(facing))
+                    .setValue(EAST, (east.getBlock() instanceof FlapBlock) && east.getValue(FACING).equals(facing))
+                    .setValue(WEST, (west.getBlock() instanceof FlapBlock) && west.getValue(FACING).equals(facing))
+                    .setValue(UP, false)
+                    .setValue(DOWN, false)
+                    .setValue(FACING, Direction.UP);
+        };
     }
 
     @Override
@@ -121,21 +78,10 @@ public class FlapBlock extends TriAxisBlockWithConnections implements org.valkyr
         double wingPower = 150;
         double wingDrag = 150;
         double wingBreakingForce = 10;
-        Vector3dc normal;
-        switch (blockState.getValue(AXIS)) {
-            case X -> {
-                normal = new Vector3d(1, 0, 0);
-                return new Wing(normal, wingPower, wingDrag, wingBreakingForce, 0);
-            }
-            case Y -> {
-                normal = new Vector3d(0, 1, 0);
-                return new Wing(normal, wingPower, wingDrag, wingBreakingForce, 0);
-            }
-            case Z -> {
-                normal = new Vector3d(0, 0, 1);
-                return new Wing(normal, wingPower, wingDrag, wingBreakingForce, 0);
-            }
-        }
-        return null;
+        return switch (blockState.getValue(FACING)) {
+            case EAST, WEST -> new Wing(new Vector3d(1, 0, 0), wingPower, wingDrag, wingBreakingForce, 0);
+            case UP, DOWN -> new Wing(new Vector3d(0, 1, 0), wingPower, wingDrag, wingBreakingForce, 0);
+            case NORTH, SOUTH -> new Wing(new Vector3d(0, 0, 1), wingPower, wingDrag, wingBreakingForce, 0);
+        };
     }
 }

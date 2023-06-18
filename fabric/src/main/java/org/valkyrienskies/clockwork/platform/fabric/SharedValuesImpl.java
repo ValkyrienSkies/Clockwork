@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.platform.fabric;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer;
 import com.tterrag.registrate.util.entry.EntityEntry;
 import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatEntity;
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueEntity;
@@ -26,6 +27,10 @@ public class SharedValuesImpl {
     }
 
     public static BiConsumer<CWItem, CustomRenderedItemModelRenderer<?>> customRenderedRegisterer() {
+        return BuiltinItemRendererRegistry.INSTANCE::register;
+    }
+
+    public static BiConsumer<BlockItem, CustomRenderedItemModelRenderer<?>> customBlockItemRenderedRegisterer() {
         return BuiltinItemRendererRegistry.INSTANCE::register;
     }
 

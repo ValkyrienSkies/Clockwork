@@ -27,8 +27,10 @@ import org.valkyrienskies.clockwork.content.contraptions.solver.SolverBlock;
 import org.valkyrienskies.clockwork.content.contraptions.universal_joint.UniversalJointBlock;
 import org.valkyrienskies.clockwork.content.physicalities.motion.wing.FlapBlock;
 import org.valkyrienskies.clockwork.content.physicalities.motion.wing.WingBlock;
-import org.valkyrienskies.clockwork.util.blocktype.IHeatableBlock;
+import org.valkyrienskies.clockwork.content.physicalities.motion.wing.DyedWingBlockItem;
 import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork;
+import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate;
+import org.valkyrienskies.clockwork.util.render.WingBlockItemRenderer;
 
 import static com.simibubi.create.foundation.data.ModelGen.customItemModel;
 import static com.simibubi.create.foundation.data.TagGen.axeOrPickaxe;
@@ -196,8 +198,8 @@ public class ClockWorkBlocks {
                     .properties(p -> p.color(MaterialColor.TERRACOTTA_WHITE))
                     .addLayer(() -> RenderType::cutoutMipped)
                     .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
-                    .item()
-                    .transform(customItemModel("wing", "item"))
+                    .item(DyedWingBlockItem::new)
+                    .transform(ClockworkRegistrate.customRenderedBlockItem(() -> WingBlockItemRenderer::new))
                     .register();
     public static final BlockEntry<FlapBlock> FLAP =
             REGISTRATE.block("flap", FlapBlock::new)
@@ -205,8 +207,8 @@ public class ClockWorkBlocks {
                     .properties(p -> p.color(MaterialColor.TERRACOTTA_WHITE))
                     .addLayer(() -> RenderType::cutoutMipped)
                     .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
-                    .item()
-                    .transform(customItemModel("wing", "item"))
+                    .item(DyedWingBlockItem::new)
+                    .transform(ClockworkRegistrate.customRenderedBlockItem(() -> WingBlockItemRenderer::new))
                     .register();
 
     /////// Physics infuser ////////
