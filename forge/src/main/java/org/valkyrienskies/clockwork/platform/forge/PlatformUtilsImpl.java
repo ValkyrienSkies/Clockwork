@@ -6,9 +6,11 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.network.NetworkHooks;
+import org.valkyrienskies.clockwork.forge.ForgeClockworkFluids;
 import org.valkyrienskies.clockwork.forge.ForgeClockworkItems;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour;
@@ -135,5 +137,17 @@ public class PlatformUtilsImpl {
 
     public static boolean isModLoaded(String modId) {
         return ModList.get().isLoaded(modId);
+    }
+
+    public static Item getVanillaFrostingItem() {
+        return ForgeClockworkFluids.VANILLA_FROSTING.get().getBucket();
+    }
+
+    public static Item getChocolateFrostingItem() {
+        return ForgeClockworkFluids.CHOCOLATE_FROSTING.get().getBucket();
+    }
+
+    public static Item getStrawberryFrostingItem() {
+        return ForgeClockworkFluids.STRAWBERRY_FROSTING.get().getBucket();
     }
 }

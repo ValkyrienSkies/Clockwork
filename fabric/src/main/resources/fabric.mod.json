@@ -27,6 +27,9 @@
     "client": [
       "org.valkyrienskies.clockwork.fabric.ClockWorkModFabric${'$'}Client"
     ],
+    "fabric-datagen": [
+      "org.valkyrienskies.clockwork.fabric.ClockworkDataGenFabric"
+    ],
     "preLaunch": [
       "org.valkyrienskies.clockwork.fabric.ValkyrienPreLaunch"
     ],

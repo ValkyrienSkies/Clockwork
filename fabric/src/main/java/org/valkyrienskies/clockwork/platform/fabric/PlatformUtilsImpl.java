@@ -4,6 +4,7 @@ import com.jamieswhiteshirt.reachentityattributes.ReachEntityAttributes;
 import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
 import com.simibubi.create.foundation.tileEntity.behaviour.BehaviourType;
 import com.simibubi.create.foundation.tileEntity.behaviour.fluid.SmartFluidTankBehaviour;
+import com.tterrag.registrate.util.entry.FluidEntry;
 import io.github.fabricators_of_create.porting_lib.entity.ExtraSpawnDataEntity;
 import io.github.fabricators_of_create.porting_lib.mixin.common.accessor.ServerGamePacketListenerImplAccessor;
 import net.fabricmc.loader.api.FabricLoader;
@@ -11,7 +12,10 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BucketItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import org.valkyrienskies.clockwork.fabric.FabricClockworkFluids;
 import org.valkyrienskies.clockwork.fabric.FabricClockworkItems;
 import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour;
@@ -130,5 +134,17 @@ public class PlatformUtilsImpl {
 
     public static boolean isModLoaded(String modId) {
         return FabricLoader.getInstance().isModLoaded(modId);
+    }
+
+    public static Item getVanillaFrostingItem() {
+        return FabricClockworkFluids.VANILLA_FROSTING.get().getBucket();
+    }
+
+    public static Item getChocolateFrostingItem() {
+        return FabricClockworkFluids.CHOCOLATE_FROSTING.get().getBucket();
+    }
+
+    public static Item getStrawberryFrostingItem() {
+        return FabricClockworkFluids.STRAWBERRY_FROSTING.get().getBucket();
     }
 }

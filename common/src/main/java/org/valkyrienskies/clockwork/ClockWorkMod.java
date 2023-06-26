@@ -7,6 +7,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.valkyrienskies.clockwork.platform.SharedValues;
+import org.valkyrienskies.clockwork.ponder.ClockworkPonderIndex;
 
 public class ClockWorkMod {
     public static final String MOD_ID = "vs_clockwork";
@@ -30,8 +31,9 @@ public class ClockWorkMod {
     }
 
     public static void initClient() {
-
-
+        ClockworkPonderIndex.register();
+        ClockworkPonderIndex.registerTags();
+        //ClockworkPonderIndex.registerLang();
     }
 
     public static ResourceLocation asResource(String path) {
