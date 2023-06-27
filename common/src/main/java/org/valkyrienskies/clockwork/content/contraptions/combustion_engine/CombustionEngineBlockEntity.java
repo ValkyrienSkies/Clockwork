@@ -48,6 +48,8 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
 
     float stressCapacity;
 
+    boolean kineticsUpdated = false;
+
     LerpedFloat visualSpeed = LerpedFloat.linear();
     float angle;
 
@@ -168,7 +170,6 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
             if (getRemainingFuel() >= getDrainRate()) {
                 tank.getPrimaryHandler().shrink(getDrainRate());
             } else {
-                tank.getPrimaryHandler().shrink(getRemainingFuel());
                 active = false;
             }
 
@@ -181,6 +182,14 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
             arrowDirection.tickChaser();
             if (!isVirtual())
                 return;
+        }
+
+        if ((getRemainingFuel() < getDrainRate()) && active && !kineticsUpdated) {
+            this.detachKinetics();
+            kineticsUpdated = true;
+        } else if (kineticsUpdated) {
+            this.attachKinetics();
+            kineticsUpdated = false;
         }
 
 //		if (pressureUpdate)

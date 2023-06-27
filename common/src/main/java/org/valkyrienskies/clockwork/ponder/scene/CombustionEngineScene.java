@@ -10,7 +10,7 @@ import net.minecraft.world.phys.Vec3;
 
 public class CombustionEngineScene {
     public static void use(SceneBuilder scene, SceneBuildingUtil util) {
-        scene.title("combustion_engine/combustionengine", "Use");
+        scene.title("combustion_engine", "Use");
         scene.configureBasePlate(0, 0, 5);
         scene.showBasePlate();
 
