@@ -29,27 +29,18 @@ import org.valkyrienskies.clockwork.util.blocktype.*;
 import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour;
 
 public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity implements IFuelableTileEntity, IHaveGoggleInformation, SmartFluidTankBlockEntity {
-
-
     LerpedFloat arrowDirection;
     Couple<MutableBoolean> sidesToUpdate;
     boolean pressureUpdate;
     boolean reversed;
-
     float generatedSpeed;
-
     boolean first = true;
-
     public boolean active = false;
-
     public CWFluidTankBehaviour tank;
-
     int remainingFuel;
-
     float stressCapacity;
-
-    boolean kineticsUpdated = false;
-
+    boolean updatedKinetics = false;
+    int ticks = 0;
     LerpedFloat visualSpeed = LerpedFloat.linear();
     float angle;
 
@@ -166,13 +157,9 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
         }
 
         if (hasValidFuelType()) {
-            active = true;
-            if (getRemainingFuel() >= getDrainRate()) {
+            active = getRemainingFuel() >= getDrainRate();
+            if (active)
                 tank.getPrimaryHandler().shrink(getDrainRate());
-            } else {
-                active = false;
-            }
-
         }
 
         if (level.isClientSide) {
@@ -184,12 +171,17 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
                 return;
         }
 
-        if ((getRemainingFuel() < getDrainRate()) && active && !kineticsUpdated) {
-            this.detachKinetics();
-            kineticsUpdated = true;
-        } else if (kineticsUpdated) {
-            this.attachKinetics();
-            kineticsUpdated = false;
+        ticks++;
+        if (ticks % 5 == 0) {
+            if (!updatedKinetics) {
+                if (getRemainingFuel() < getDrainRate()) {
+                    this.detachKinetics();
+                    this.attachKinetics();
+                }
+                updatedKinetics = true;
+            } else
+                updatedKinetics = false;
+            ticks = 0;
         }
 
 //		if (pressureUpdate)
@@ -263,7 +255,7 @@ public class CombustionEngineBlockEntity extends GeneratingKineticTileEntity imp
     // TODO: PASTRIES
     @Override
     public int getDrainRate() {
-        return 2;
+        return 1;
     }
 
     @Override
