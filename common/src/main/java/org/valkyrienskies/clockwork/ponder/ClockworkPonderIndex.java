@@ -13,7 +13,7 @@ public class ClockworkPonderIndex {
 
     public static void register() {
         HELPER.forComponents(ClockWorkBlocks.COMBUSTION_ENGINE)
-                .addStoryBoard("combustion_engine/combustionengine",
+                .addStoryBoard("combustion_engine/combustion_engine",
                         CombustionEngineScene::use);
     }
 

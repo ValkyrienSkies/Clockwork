@@ -56,5 +56,11 @@
   "fluid.vs_clockwork.chocolate_frosting_bucket": "Chocolate Frosting",
   "fluid.vs_clockwork.strawberry_frosting_bucket": "Strawberry Frosting",
   "block.vs_clockwork.phys_bearing": "Phys Bearing",
-  "item.vs_clockwork.phys_bearing": "Phys Bearing"
+  "item.vs_clockwork.phys_bearing": "Phys Bearing",
+
+  "vs_clockwork.ponder.tag.combustion_engine": "Hear that Purr!",
+  "vs_clockwork.ponder.tag.combustion_engine.description": "How to use the Combustion Engine. Original Ponders Made by West (wesston) in VS2 Discord and Adapted by TechTastic",
+  "vs_clockwork.ponder.combustion_engine.header": "Using the Combustion Engine",
+  "vs_clockwork.ponder.combustion_engine.text_1": "The Combustion Engine is a block added as a way to provide a power source with high stress capacity",
+  "vs_clockwork.ponder.combustion_engine.text_2": "The Combustion Engine accepts Vanilla, Chocolate, or Strawberry frosting as Fuel"
 }

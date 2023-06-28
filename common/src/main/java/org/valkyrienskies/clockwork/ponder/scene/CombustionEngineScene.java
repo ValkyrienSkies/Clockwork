@@ -18,7 +18,7 @@ public class CombustionEngineScene {
         scene.overlay
                 .showText(75)
                 .text("The Combustion Engine is a block added as a way to provide a power source with high stress capacity")
-                .pointAt( new Vec3(2.5, 3.3, 2.5))
+                .pointAt(util.vector.of(2.5, 3.3, 2.5))
                 .colored(PonderPalette.RED)
                 .placeNearTarget();
         scene.idle(85);
@@ -30,7 +30,7 @@ public class CombustionEngineScene {
         scene.overlay
                 .showText(70)
                 .text("The Combustion Engine accepts Vanilla, Chocolate, or Strawberry frosting")
-                .pointAt( new Vec3(3.5, 4.3, 2.5))
+                .pointAt(util.vector.of(3.5, 4.3, 2.5))
                 .colored(PonderPalette.RED)
                 .placeNearTarget();
         scene.addKeyframe();
