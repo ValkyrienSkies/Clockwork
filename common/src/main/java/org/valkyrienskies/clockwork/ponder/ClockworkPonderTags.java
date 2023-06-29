@@ -8,13 +8,8 @@ import org.valkyrienskies.clockwork.ClockWorkMod;
 public class ClockworkPonderTags {
     public static final PonderTag
 
-            COMBUSTION_ENGINE = create("combustion_engine")
-            .item(ClockWorkBlocks.COMBUSTION_ENGINE.get(), true, false)
-            .defaultLang("Hear the Purr!", """
-                    How to use the Combustion Engine
-                    Original Ponders Made by West (wesston) in Discord
-                    Adapted By TechTastic"""
-            )
+            CLOCKWORK = create("clockwork")
+            .item(ClockWorkBlocks.PHYSICS_INFUSER.get(), true, false)
             .addToIndex();
 
     /*MUNITIONS = create("munitions")

@@ -58,9 +58,18 @@
   "block.vs_clockwork.phys_bearing": "Phys Bearing",
   "item.vs_clockwork.phys_bearing": "Phys Bearing",
 
-  "vs_clockwork.ponder.tag.combustion_engine": "Hear that Purr!",
-  "vs_clockwork.ponder.tag.combustion_engine.description": "How to use the Combustion Engine. Original Ponders Made by West (wesston) in VS2 Discord and Adapted by TechTastic",
-  "vs_clockwork.ponder.combustion_engine.header": "Using the Combustion Engine",
-  "vs_clockwork.ponder.combustion_engine.text_1": "The Combustion Engine is a block added as a way to provide a power source with high stress capacity",
-  "vs_clockwork.ponder.combustion_engine.text_2": "The Combustion Engine accepts Vanilla, Chocolate, or Strawberry frosting as Fuel"
+  "vs_clockwork.ponder.tag.clockwork": "Clockwork Utilities",
+  "vs_clockwork.ponder.tag.clockwork.description": "An Array of Miscellaneous Clockwork Utility Blocks. Original Ponders Made by West (wesston) in VS2 Discord and Adapted by TechTastic",
+  "vs_clockwork.ponder.combustion_engine_essential.header": "Using the Combustion Engine",
+  "vs_clockwork.ponder.combustion_engine_essential.text_1": "The Combustion Engine is a block added as a way to provide a power source with high stress capacity",
+  "vs_clockwork.ponder.combustion_engine_essential.text_2": "The Combustion Engine outputs rotation out of either end as shown",
+  "vs_clockwork.ponder.combustion_engine_essential.text_3": "The Combustion Engine can accept liquid fuel from any side including the output",
+
+  "vs_clockwork.ponder.combustion_engine_frosting.header": "Frosting and its Effects on the Engine",
+  "vs_clockwork.ponder.combustion_engine_frosting.text_1": "Vanilla Frosting is the first and least effective fuel for the Combustion Engine",
+  "vs_clockwork.ponder.combustion_engine_frosting.text_2": "Provides 16 RPM and 16,384su",
+  "vs_clockwork.ponder.combustion_engine_frosting.text_3": "Chocolate Frosting is the middle of the road fuel for the Combustion Engine",
+  "vs_clockwork.ponder.combustion_engine_frosting.text_4": "Provides 32 RPM and 65,555su",
+  "vs_clockwork.ponder.combustion_engine_frosting.text_5": "Strawberry Frosting is the best fuel for the Combustion Engine",
+  "vs_clockwork.ponder.combustion_engine_frosting.text_6": "Provides 64 RPM and 262,144su"
 }

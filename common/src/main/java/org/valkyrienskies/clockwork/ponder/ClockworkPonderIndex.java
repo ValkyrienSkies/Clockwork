@@ -13,12 +13,16 @@ public class ClockworkPonderIndex {
 
     public static void register() {
         HELPER.forComponents(ClockWorkBlocks.COMBUSTION_ENGINE)
-                .addStoryBoard("combustion_engine/combustion_engine",
-                        CombustionEngineScene::use);
+                .addStoryBoard("combustion_engine/combustion_engine_essential",
+                        CombustionEngineScene::explanationScene)
+                .addStoryBoard("combustion_engine/combustion_engine_frosting",
+                        CombustionEngineScene::frostingEffectExplanation)
+                .addStoryBoard("combustion_engine/combustion_engine_self",
+                        CombustionEngineScene::selfSufficientExplanation);
     }
 
     public static void registerTags() {
-        PonderRegistry.TAGS.forTag(ClockworkPonderTags.COMBUSTION_ENGINE)
+        PonderRegistry.TAGS.forTag(ClockworkPonderTags.CLOCKWORK)
                 .add(ClockWorkBlocks.COMBUSTION_ENGINE)
                 .add(PlatformUtils.getVanillaFrostingItem())
                 .add(PlatformUtils.getChocolateFrostingItem())
