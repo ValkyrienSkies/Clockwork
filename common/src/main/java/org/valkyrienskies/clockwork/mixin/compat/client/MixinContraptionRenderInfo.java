@@ -1,10 +1,10 @@
 package org.valkyrienskies.clockwork.mixin.compat.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
-import com.simibubi.create.content.contraptions.components.structureMovement.Contraption;
-import com.simibubi.create.content.contraptions.components.structureMovement.render.ContraptionMatrices;
-import com.simibubi.create.content.contraptions.components.structureMovement.render.ContraptionRenderInfo;
+import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
+import com.simibubi.create.content.contraptions.Contraption;
+import com.simibubi.create.content.contraptions.render.ContraptionMatrices;
+import com.simibubi.create.content.contraptions.render.ContraptionRenderInfo;
 import com.simibubi.create.foundation.utility.AnimationTickHolder;
 import net.minecraft.util.Mth;
 import org.spongepowered.asm.mixin.Final;

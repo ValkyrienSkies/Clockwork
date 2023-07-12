@@ -1,11 +1,11 @@
 package org.valkyrienskies.clockwork.content.contraptions.flap;
 
-import com.simibubi.create.content.contraptions.base.KineticTileEntity;
-import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
-import com.simibubi.create.content.contraptions.components.structureMovement.AssemblyException;
-import com.simibubi.create.content.contraptions.components.structureMovement.ControlledContraptionEntity;
-import com.simibubi.create.content.contraptions.components.structureMovement.bearing.IBearingTileEntity;
-import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
+import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
+import com.simibubi.create.content.contraptions.AssemblyException;
+import com.simibubi.create.content.contraptions.ControlledContraptionEntity;
+import com.simibubi.create.content.contraptions.bearing.IBearingBlockEntity;
+import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.utility.AngleHelper;
 import com.simibubi.create.foundation.utility.Iterate;
 import com.simibubi.create.foundation.utility.ServerSpeedProvider;
@@ -21,7 +21,7 @@ import org.valkyrienskies.clockwork.platform.api.IFlap;
 
 import java.util.List;
 
-public class FlapBearingBlockEntity extends KineticTileEntity implements IFlap, IBearingTileEntity {
+public class FlapBearingBlockEntity extends KineticBlockEntity implements IFlap, IBearingBlockEntity {
 
     public boolean redstoneSideOne;
     public boolean redstoneSideTwo;
@@ -40,7 +40,7 @@ public class FlapBearingBlockEntity extends KineticTileEntity implements IFlap, 
     }
 
     @Override
-    public void addBehaviours(List<TileEntityBehaviour> behaviours) {
+    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
         super.addBehaviours(behaviours);
     }
 

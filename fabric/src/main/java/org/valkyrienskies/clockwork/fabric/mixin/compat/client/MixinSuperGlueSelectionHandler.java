@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.fabric.mixin.compat.client;
 
-import com.simibubi.create.content.contraptions.components.structureMovement.glue.SuperGlueSelectionHandler;
+import com.simibubi.create.content.contraptions.glue.SuperGlueSelectionHandler;
 import com.simibubi.create.foundation.utility.RaycastHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;

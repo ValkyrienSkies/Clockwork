@@ -1,12 +1,17 @@
 package org.valkyrienskies.clockwork.forge.content.contraptions.sticker;
 
-import com.simibubi.create.content.contraptions.components.structureMovement.*;
-import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingContraption;
-import com.simibubi.create.content.contraptions.components.structureMovement.bearing.StabilizedContraption;
-import com.simibubi.create.content.contraptions.components.structureMovement.gantry.GantryContraption;
-import com.simibubi.create.content.contraptions.components.structureMovement.piston.LinearActuatorTileEntity;
-import com.simibubi.create.content.contraptions.components.structureMovement.piston.PistonContraption;
-import com.simibubi.create.content.contraptions.components.structureMovement.pulley.PulleyContraption;
+import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
+import com.simibubi.create.content.contraptions.ControlledContraptionEntity;
+import com.simibubi.create.content.contraptions.StructureTransform;
+import com.simibubi.create.content.contraptions.TranslatingContraption;
+import com.simibubi.create.content.contraptions.bearing.BearingContraption;
+import com.simibubi.create.content.contraptions.bearing.StabilizedContraption;
+import com.simibubi.create.content.contraptions.behaviour.MovementBehaviour;
+import com.simibubi.create.content.contraptions.behaviour.MovementContext;
+import com.simibubi.create.content.contraptions.gantry.GantryContraption;
+import com.simibubi.create.content.contraptions.piston.LinearActuatorBlockEntity;
+import com.simibubi.create.content.contraptions.piston.PistonContraption;
+import com.simibubi.create.content.contraptions.pulley.PulleyContraption;
 import com.simibubi.create.foundation.utility.VecHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -48,7 +53,7 @@ public class StickerMovementBehaviour implements MovementBehaviour {
     private static final Logger LOGGER = LogManager.getLogger("Clockwork.StickerMovementBehaviour");
 
     @Override
-    public boolean renderAsNormalTileEntity() {
+    public boolean renderAsNormalBlockEntity() {
         return true;
     }
 
@@ -58,14 +63,14 @@ public class StickerMovementBehaviour implements MovementBehaviour {
             return;
 
         //BlockEntity tileEntity = context.contraption.presentTileEntities.get(context.localPos);
-        CompoundTag extraData = context.tileData.getCompound("ForgeData");
+        CompoundTag extraData = context.blockEntityData.getCompound("ForgeData");
         if (!extraData.isEmpty() && extraData.contains("ShipStickerConstraint")) {
             if (!isStopped)
                 doUpdateConstraint(context, null, null);
         } else {
             if (context.state.getValue(BlockStateProperties.EXTENDED)) {
-                context.tileData.put("ForgeData", new CompoundTag());
-                isAttachedToShipOrWorld(true, context.world, toJOML(context.position), toJOML(context.rotation.apply(Vec3.atLowerCornerOf(context.state.getValue(DirectionalBlock.FACING).getNormal()))), context.tileData.getCompound("ForgeData"));
+                context.blockEntityData.put("ForgeData", new CompoundTag());
+                isAttachedToShipOrWorld(true, context.world, toJOML(context.position), toJOML(context.rotation.apply(Vec3.atLowerCornerOf(context.state.getValue(DirectionalBlock.FACING).getNormal()))), context.blockEntityData.getCompound("ForgeData"));
             }
         }
         //LOGGER.warn("tick");
@@ -113,7 +118,7 @@ public class StickerMovementBehaviour implements MovementBehaviour {
         boolean result = false;
         if (context.contraption.entity instanceof ControlledContraptionEntity) {
             if (context.contraption instanceof TranslatingContraption) {
-                result = ((LinearActuatorTileEntity) ((IMixinControlledContraptionEntity) context.contraption.entity).grabController()).assembleNextTick;
+                result = ((LinearActuatorBlockEntity) ((IMixinControlledContraptionEntity) context.contraption.entity).grabController()).assembleNextTick;
             }
             if (context.contraption instanceof BearingContraption || context.contraption instanceof StabilizedContraption) {
                 result = ((IMixinMechanicalBearingTileEntity) ((IMixinControlledContraptionEntity) context.contraption.entity).grabController()).isAssembleNextTick();
@@ -132,7 +137,7 @@ public class StickerMovementBehaviour implements MovementBehaviour {
         isStopped = true;
         Vector3d position = null;
         Quaterniond quaterniond = null;
-        CompoundTag extraData = context.tileData.getCompound("ForgeData");
+        CompoundTag extraData = context.blockEntityData.getCompound("ForgeData");
 
         double distance = DISTANCE_BUFFER;
         if (extraData.contains("ShipStickerDistance"))
@@ -181,7 +186,7 @@ public class StickerMovementBehaviour implements MovementBehaviour {
         Ship ship2 = null;
         double distance = DISTANCE_BUFFER;
 
-        CompoundTag compoundTag = context.tileData.getCompound("ForgeData");
+        CompoundTag compoundTag = context.blockEntityData.getCompound("ForgeData");
 
         if (compoundTag.contains("ShipStickerConstraint")) {
 

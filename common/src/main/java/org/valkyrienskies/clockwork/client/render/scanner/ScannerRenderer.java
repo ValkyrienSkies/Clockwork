@@ -2,7 +2,7 @@ package org.valkyrienskies.clockwork.client.render.scanner;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.world.phys.Vec3;
-import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserBlockEntity;
+import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity;
 import org.valkyrienskies.core.api.ships.ClientShip;
 
 import javax.annotation.Nullable;

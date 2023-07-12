@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.forge.mixin.compat;
 
-import com.simibubi.create.content.contraptions.components.structureMovement.chassis.StickerTileEntity;
-import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
+import com.simibubi.create.content.contraptions.chassis.StickerBlockEntity;
+import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.utility.animation.LerpedFloat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -27,8 +27,8 @@ import javax.annotation.Nullable;
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.POWERED;
 import static org.valkyrienskies.mod.common.util.VectorConversionsMCKt.toJOML;
 
-@Mixin(StickerTileEntity.class)
-public abstract class MixinStickerTileEntity extends SmartTileEntity implements IMixinStickerTileEntity {
+@Mixin(StickerBlockEntity.class)
+public abstract class MixinStickerTileEntity extends SmartBlockEntity implements IMixinStickerTileEntity {
     public MixinStickerTileEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }

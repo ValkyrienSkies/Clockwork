@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.mixin.compat.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.simibubi.create.foundation.utility.ghost.GhostBlockRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;

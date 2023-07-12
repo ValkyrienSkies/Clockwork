@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork;
 
-import com.simibubi.create.content.contraptions.components.structureMovement.ContraptionType;
+import com.simibubi.create.content.contraptions.ContraptionType;
 import org.valkyrienskies.clockwork.content.contraptions.flap.contraption.FlapContraption;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorContraption;
 

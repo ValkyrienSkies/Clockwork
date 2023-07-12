@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.mixin.compat.packets;
 
-import com.simibubi.create.foundation.networking.TileEntityConfigurationPacket;
+import com.simibubi.create.foundation.networking.BlockEntityConfigurationPacket;
+import com.simibubi.create.foundation.networking.SimplePacketBase;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.server.level.ServerPlayer;
@@ -18,7 +19,7 @@ import org.valkyrienskies.mod.common.VSGameUtilsKt;
 
 import java.util.function.Supplier;
 
-@Mixin(TileEntityConfigurationPacket.class)
+@Mixin(BlockEntityConfigurationPacket.class)
 public abstract class MixinTileEntityConfigurationPacket {
     @Unique
     private Level world;
@@ -47,8 +48,7 @@ public abstract class MixinTileEntityConfigurationPacket {
                     target = "Lnet/minecraft/world/level/Level;isLoaded(Lnet/minecraft/core/BlockPos;)Z"
             ), locals = LocalCapture.CAPTURE_FAILHARD
     )
-    private void injectCaptureLevel(
-            final Supplier context, final CallbackInfo ci, final ServerPlayer player, final Level world) {
+    private void injectCaptureLevel(SimplePacketBase.Context context, CallbackInfo ci, ServerPlayer player, Level world) {
         this.world = world;
     }
 }

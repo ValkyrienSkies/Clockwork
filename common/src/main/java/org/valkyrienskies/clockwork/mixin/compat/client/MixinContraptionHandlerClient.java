@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.mixin.compat.client;
 
-import com.simibubi.create.content.contraptions.components.structureMovement.ContraptionHandlerClient;
+import com.simibubi.create.content.contraptions.ContraptionHandlerClient;
 import com.simibubi.create.foundation.utility.Couple;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;

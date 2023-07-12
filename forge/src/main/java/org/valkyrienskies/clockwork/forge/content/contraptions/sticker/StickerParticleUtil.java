@@ -8,7 +8,6 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.DistExecutor;
-import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueItem;
 import org.valkyrienskies.clockwork.util.compat.StickerParticleUtilInterface;
 
 import java.util.function.Supplier;
@@ -23,7 +22,6 @@ public class StickerParticleUtil implements StickerParticleUtilInterface {
     @Override
     public void doBluperParticle(Level level, BlockPos worldPosition, Direction facing) {
         if (level.isClientSide) {
-            BluperGlueItem.spawnParticles(level, worldPosition, facing, true);
             DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> this.playSound(level, true, worldPosition));
         }
     }

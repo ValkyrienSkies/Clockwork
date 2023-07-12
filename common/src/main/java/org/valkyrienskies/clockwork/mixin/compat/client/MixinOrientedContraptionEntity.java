@@ -2,8 +2,8 @@ package org.valkyrienskies.clockwork.mixin.compat.client;
 
 import com.jozufozu.flywheel.util.transform.TransformStack;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
-import com.simibubi.create.content.contraptions.components.structureMovement.OrientedContraptionEntity;
+import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
+import com.simibubi.create.content.contraptions.OrientedContraptionEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
@@ -25,7 +25,7 @@ public class MixinOrientedContraptionEntity {
         return Vec3.ZERO;
     }
 
-    @Redirect(method = "applyLocalTransforms", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/contraptions/components/structureMovement/OrientedContraptionEntity;repositionOnCart(Lcom/mojang/blaze3d/vertex/PoseStack;FLnet/minecraft/world/entity/Entity;)V"))
+    @Redirect(method = "applyLocalTransforms", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/contraptions/OrientedContraptionEntity;repositionOnCart(Lcom/mojang/blaze3d/vertex/PoseStack;FLnet/minecraft/world/entity/Entity;)V"))
     private void redirectRepositionOnCart(OrientedContraptionEntity instance, PoseStack matrixStack, float partialTicks, Entity ridingEntity) {
 
         Vec3 cartPos = getCartOffset(partialTicks, ridingEntity);
@@ -51,7 +51,7 @@ public class MixinOrientedContraptionEntity {
         }
     }
 
-    @Redirect(method = "getContraptionOffset", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/contraptions/components/structureMovement/AbstractContraptionEntity;getPassengerPosition(Lnet/minecraft/world/entity/Entity;F)Lnet/minecraft/world/phys/Vec3;"))
+    @Redirect(method = "getContraptionOffset", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/contraptions/AbstractContraptionEntity;getPassengerPosition(Lnet/minecraft/world/entity/Entity;F)Lnet/minecraft/world/phys/Vec3;"))
     private Vec3 redirectGetPassengerPosition(AbstractContraptionEntity instance, Entity passenger, float partialTicks) {
         Vec3 result = instance.getPassengerPosition(passenger, partialTicks);
 

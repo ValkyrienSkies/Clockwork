@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.mixin.compat.behaviour;
 
-import com.simibubi.create.content.contraptions.components.actors.BlockBreakingMovementBehaviour;
-import com.simibubi.create.content.contraptions.components.structureMovement.MovementContext;
+import com.simibubi.create.content.contraptions.behaviour.MovementContext;
+import com.simibubi.create.content.kinetics.base.BlockBreakingMovementBehaviour;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3d;

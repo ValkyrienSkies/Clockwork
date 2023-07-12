@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.mixin.compat.entity;
 
-import com.simibubi.create.content.logistics.trains.entity.CarriageContraptionEntity;
+import com.simibubi.create.content.trains.entity.CarriageContraptionEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Position;
 import net.minecraft.world.entity.player.Player;

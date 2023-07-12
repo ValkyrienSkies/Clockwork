@@ -1,8 +1,6 @@
 package org.valkyrienskies.clockwork.fabric;
 
 import com.simibubi.create.AllTags;
-import com.simibubi.create.content.AllSections;
-import com.simibubi.create.foundation.data.AssetLookup;
 import com.simibubi.create.foundation.data.SharedProperties;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import net.minecraft.client.renderer.RenderType;
@@ -17,10 +15,6 @@ public class FabricClockworkBlocks {
 
     static {
         REGISTRATE.creativeModeTab(() -> ClockWorkMod.BASE_CREATIVE_TAB);
-    }
-
-    static {
-        REGISTRATE.startSection(AllSections.KINETICS);
     }
 
     public static void register() {

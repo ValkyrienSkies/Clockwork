@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.mixin.compat.cannons;
 
-import com.simibubi.create.content.contraptions.base.KineticTileEntity;
-import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
+import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
+import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -26,7 +26,7 @@ import rbasamoyai.createbigcannons.cannon_control.ControlPitchContraption;
 import rbasamoyai.createbigcannons.cannon_control.cannon_mount.CannonMountBlockEntity;
 
 @Mixin(CannonMountBlockEntity.class)
-public abstract class MixinCannonMount extends KineticTileEntity implements ControlPitchContraption.Block {
+public abstract class MixinCannonMount extends KineticBlockEntity implements ControlPitchContraption.Block {
 
     private Integer cannonID = null;
     private boolean alreadyAdded = false;

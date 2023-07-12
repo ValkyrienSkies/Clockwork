@@ -1,16 +1,16 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.bearing;
 
 import com.simibubi.create.AllSoundEvents;
-import com.simibubi.create.content.contraptions.base.GeneratingKineticTileEntity;
-import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
-import com.simibubi.create.content.contraptions.components.structureMovement.AssemblyException;
-import com.simibubi.create.content.contraptions.components.structureMovement.ControlledContraptionEntity;
-import com.simibubi.create.content.contraptions.components.structureMovement.IDisplayAssemblyExceptions;
-import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingBlock;
-import com.simibubi.create.content.contraptions.components.structureMovement.bearing.IBearingTileEntity;
+import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
+import com.simibubi.create.content.contraptions.AssemblyException;
+import com.simibubi.create.content.contraptions.ControlledContraptionEntity;
+import com.simibubi.create.content.contraptions.IDisplayAssemblyExceptions;
+import com.simibubi.create.content.contraptions.bearing.BearingBlock;
+import com.simibubi.create.content.contraptions.bearing.IBearingBlockEntity;
+import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity;
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
+import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour;
 import com.simibubi.create.foundation.item.TooltipHelper;
-import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
-import com.simibubi.create.foundation.tileEntity.behaviour.scrollvalue.ScrollOptionBehaviour;
 import com.simibubi.create.foundation.utility.AngleHelper;
 import com.simibubi.create.foundation.utility.ServerSpeedProvider;
 import net.minecraft.core.BlockPos;
@@ -46,7 +46,7 @@ import java.util.List;
 import static org.valkyrienskies.clockwork.util.animation.EaseHelper.easeInOutSine;
 import static org.valkyrienskies.clockwork.util.animation.EaseHelper.easeOutBounce;
 
-public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implements IBearingTileEntity, IDisplayAssemblyExceptions, ContraptionController {
+public class PhysBearingBlockEntity extends GeneratingKineticBlockEntity implements IBearingBlockEntity, IDisplayAssemblyExceptions, ContraptionController {
     protected ScrollOptionBehaviour<LockedMode> movementMode;
     boolean shouldRefresh = false;
     protected float angle;
@@ -91,7 +91,7 @@ public class PhysBearingBlockEntity extends GeneratingKineticTileEntity implemen
     }
 
     @Override
-    public void addBehaviours(List<TileEntityBehaviour> behaviours) {
+    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
         super.addBehaviours(behaviours);
         movementMode = new ScrollOptionBehaviour<>(LockedMode.class, new TextComponent("Locked or Unlocked"),
                 this, getMovementModeSlot());

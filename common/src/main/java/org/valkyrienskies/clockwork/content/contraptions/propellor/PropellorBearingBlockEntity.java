@@ -2,22 +2,21 @@ package org.valkyrienskies.clockwork.content.contraptions.propellor;
 
 import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.AllTags;
-import com.simibubi.create.content.contraptions.base.KineticTileEntity;
-import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
-import com.simibubi.create.content.contraptions.components.structureMovement.AssemblyException;
-import com.simibubi.create.content.contraptions.components.structureMovement.ControlledContraptionEntity;
-import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingBlock;
-import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingContraption;
-import com.simibubi.create.content.contraptions.components.structureMovement.bearing.IBearingTileEntity;
+import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
+import com.simibubi.create.content.contraptions.AssemblyException;
+import com.simibubi.create.content.contraptions.ControlledContraptionEntity;
+import com.simibubi.create.content.contraptions.bearing.IBearingBlockEntity;
+import com.simibubi.create.content.kinetics.base.KineticBlock;
+import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.advancement.AllAdvancements;
-import com.simibubi.create.foundation.config.AllConfigs;
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
+import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.INamedIconOptions;
+import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour;
 import com.simibubi.create.foundation.gui.AllIcons;
-import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
-import com.simibubi.create.foundation.tileEntity.behaviour.scrollvalue.INamedIconOptions;
-import com.simibubi.create.foundation.tileEntity.behaviour.scrollvalue.ScrollOptionBehaviour;
 import com.simibubi.create.foundation.utility.AngleHelper;
 import com.simibubi.create.foundation.utility.Lang;
 import com.simibubi.create.foundation.utility.ServerSpeedProvider;
+import com.simibubi.create.infrastructure.config.AllConfigs;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -45,7 +44,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class PropellorBearingBlockEntity extends KineticTileEntity implements Propellor, IPropStreamSource, IBearingTileEntity {
+public class PropellorBearingBlockEntity extends KineticBlockEntity implements Propellor, IPropStreamSource, IBearingBlockEntity {
 
     public PropStream propStream;
     public List<BlockPos> sailPositions;
@@ -118,7 +117,7 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
         super.tick();
         boolean server = !level.isClientSide || isVirtual();
         if (server && airCurrentUpdateCooldown == 0) {
-            airCurrentUpdateCooldown = AllConfigs.SERVER.kinetics.fanBlockCheckRate.get();
+            airCurrentUpdateCooldown = AllConfigs.server().kinetics.fanBlockCheckRate.get();
             updateAirFlow = true;
         }
         if (updateAirFlow) {
@@ -637,7 +636,7 @@ public class PropellorBearingBlockEntity extends KineticTileEntity implements Pr
     }
 
     @Override
-    public void addBehaviours(List<TileEntityBehaviour> behaviours) {
+    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
         super.addBehaviours(behaviours);
         movementDirection = new ScrollOptionBehaviour<>(RotationDirection.class,
                 Lang.translateDirect("contraptions.propellor.movement_direction"), this, getMovementModeSlot());

@@ -2,7 +2,7 @@ package org.valkyrienskies.clockwork.mixin.compat.block;
 
 import com.mojang.datafixers.util.Pair;
 import com.simibubi.create.AllBlocks;
-import com.simibubi.create.content.logistics.block.redstone.RedstoneContactBlock;
+import com.simibubi.create.content.redstone.contact.RedstoneContactBlock;
 import com.simibubi.create.foundation.block.WrenchableDirectionalBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -62,7 +62,7 @@ public abstract class MixinRedstoneContactBlock extends WrenchableDirectionalBlo
         }
     }
 
-    @Inject(method = "tick", at = @At(value = "INVOKE_ASSIGN", shift = At.Shift.BY, by = 2, target = "Lcom/simibubi/create/content/logistics/block/redstone/RedstoneContactBlock;hasValidContact(Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Z"), locals = LocalCapture.CAPTURE_FAILHARD)
+    @Inject(method = "tick", at = @At(value = "INVOKE_ASSIGN", shift = At.Shift.BY, by = 2, target = "Lcom/simibubi/create/content/redstone/contact/RedstoneContactBlock;hasValidContact(Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Z"), locals = LocalCapture.CAPTURE_FAILHARD)
     private void injectTick(BlockState state, ServerLevel worldIn, BlockPos pos, Random random, CallbackInfo ci, boolean hasValidContact) {
         if (VSGameUtilsKt.isBlockInShipyard(worldIn, pos)) {
             Pair<Level, BlockPos> key = Pair.of(worldIn, pos);

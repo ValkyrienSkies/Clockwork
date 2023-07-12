@@ -8,7 +8,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
-import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueItem;
 import org.valkyrienskies.clockwork.util.compat.StickerParticleUtilInterface;
 
 import java.util.function.Supplier;
@@ -17,7 +16,6 @@ public class StickerParticleUtil implements StickerParticleUtilInterface {
 
     @Environment(EnvType.CLIENT)
     public void playSound(Level level, boolean attach, BlockPos worldPosition, Direction facing) {
-        BluperGlueItem.spawnParticles(level, worldPosition, facing, true);
         AllSoundEvents.SLIME_ADDED.play(level, Minecraft.getInstance().player, worldPosition, 0.35f, attach ? 0.75f : 0.2f);
     }
 

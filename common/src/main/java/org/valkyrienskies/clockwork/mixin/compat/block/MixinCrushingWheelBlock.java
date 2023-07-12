@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.mixin.compat.block;
 
-import com.simibubi.create.content.contraptions.components.crusher.CrushingWheelBlock;
+import com.simibubi.create.content.kinetics.crusher.CrushingWheelBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;

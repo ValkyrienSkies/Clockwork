@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.mixin.compat.entity;
 
-import com.simibubi.create.content.contraptions.components.actors.SeatEntity;
+import com.simibubi.create.content.contraptions.actors.seat.SeatEntity;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;

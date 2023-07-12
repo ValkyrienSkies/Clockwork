@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.util.blocktype;
 
-import com.simibubi.create.foundation.block.ITE;
+import com.simibubi.create.foundation.block.IBE;
 import com.simibubi.create.foundation.utility.Color;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -20,11 +20,11 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
 import org.valkyrienskies.clockwork.ClockWorkBlockEntities;
 import org.valkyrienskies.clockwork.content.materials.solids.colorblock.ColorBlockEntity;
-import org.valkyrienskies.clockwork.content.physicalities.motion.wing.DyedWingBlockItem;
+import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem;
 
 import java.util.List;
 
-public abstract class DyedWing extends ConnectedWingAlike implements ITE<ColorBlockEntity> {
+public abstract class DyedWing extends ConnectedWingAlike implements IBE<ColorBlockEntity> {
     public DyedWing(Properties properties) {
         super(properties);
     }
@@ -54,12 +54,12 @@ public abstract class DyedWing extends ConnectedWingAlike implements ITE<ColorBl
     }
 
     @Override
-    public Class<ColorBlockEntity> getTileEntityClass() {
+    public Class<ColorBlockEntity> getBlockEntityClass() {
         return ColorBlockEntity.class;
     }
 
     @Override
-    public BlockEntityType<? extends ColorBlockEntity> getTileEntityType() {
+    public BlockEntityType<? extends ColorBlockEntity> getBlockEntityType() {
         return ClockWorkBlockEntities.COLOR_BLOCK_ENTITY.get();
     }
 

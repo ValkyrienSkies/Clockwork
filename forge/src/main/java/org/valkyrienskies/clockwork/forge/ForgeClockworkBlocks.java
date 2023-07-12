@@ -1,7 +1,5 @@
 package org.valkyrienskies.clockwork.forge;
 
-import com.simibubi.create.content.AllSections;
-import com.simibubi.create.foundation.block.BlockStressDefaults;
 import com.simibubi.create.foundation.data.AssetLookup;
 import com.simibubi.create.foundation.data.SharedProperties;
 import com.tterrag.registrate.util.entry.BlockEntry;
@@ -20,10 +18,6 @@ public class ForgeClockworkBlocks {
     }
 
     //////// Propellor Bearing ////////
-
-    static {
-        REGISTRATE.startSection(AllSections.KINETICS);
-    }
 
 //    public static final BlockEntry<ForgeCombustionEngineBlock> COMBUSTION_ENGINE =
 //            REGISTRATE.block("combustion_engine", ForgeCombustionEngineBlock::new)

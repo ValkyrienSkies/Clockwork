@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.mixin.compat.packets;
 
-import com.simibubi.create.content.logistics.trains.track.CurvedTrackDestroyPacket;
-import com.simibubi.create.content.logistics.trains.track.TrackTileEntity;
+import com.simibubi.create.content.trains.track.CurvedTrackDestroyPacket;
+import com.simibubi.create.content.trains.track.TrackBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,7 +23,7 @@ public abstract class MixinCurvedTrackDestroyPacket {
     private Level world;
 
     @Redirect(
-            method = "applySettings(Lnet/minecraft/server/level/ServerPlayer;Lcom/simibubi/create/content/logistics/trains/track/TrackTileEntity;)V",
+            method = "applySettings(Lnet/minecraft/server/level/ServerPlayer;Lcom/simibubi/create/content/trains/track/TrackBlockEntity;)V",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/core/BlockPos;closerThan(Lnet/minecraft/core/Vec3i;D)Z"
@@ -40,10 +40,10 @@ public abstract class MixinCurvedTrackDestroyPacket {
     }
 
     @Inject(
-            method = "applySettings(Lnet/minecraft/server/level/ServerPlayer;Lcom/simibubi/create/content/logistics/trains/track/TrackTileEntity;)V",
+            method = "applySettings(Lnet/minecraft/server/level/ServerPlayer;Lcom/simibubi/create/content/trains/track/TrackBlockEntity;)V",
             at = @At("HEAD"), locals = LocalCapture.CAPTURE_FAILHARD
     )
-    private void injectCaptureLevel(final ServerPlayer player, final TrackTileEntity te, final CallbackInfo ci) {
+    private void injectCaptureLevel(final ServerPlayer player, final TrackBlockEntity te, final CallbackInfo ci) {
         this.world = player.level;
     }
 }

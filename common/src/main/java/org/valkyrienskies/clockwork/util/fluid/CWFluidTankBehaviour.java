@@ -1,8 +1,8 @@
 package org.valkyrienskies.clockwork.util.fluid;
 
-import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
-import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
-import com.simibubi.create.foundation.tileEntity.behaviour.BehaviourType;
+import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
+import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.utility.NBTHelper;
 import com.simibubi.create.foundation.utility.animation.LerpedFloat;
 import net.minecraft.nbt.CompoundTag;
@@ -15,7 +15,7 @@ import org.valkyrienskies.clockwork.platform.PlatformUtils;
 
 import java.util.function.Consumer;
 
-public abstract class CWFluidTankBehaviour extends TileEntityBehaviour {
+public abstract class CWFluidTankBehaviour extends BlockEntityBehaviour {
 
     public static final BehaviourType<CWFluidTankBehaviour>
             TYPE = new BehaviourType<>(), INPUT = new BehaviourType<>("Input"), OUTPUT = new BehaviourType<>("Output");
@@ -31,11 +31,11 @@ public abstract class CWFluidTankBehaviour extends TileEntityBehaviour {
 
     private BehaviourType<CWFluidTankBehaviour> behaviourType;
 
-    public static CWFluidTankBehaviour single(SmartTileEntity te, long capacity) {
+    public static CWFluidTankBehaviour single(SmartBlockEntity te, long capacity) {
         return PlatformUtils.cwFluidTank(TYPE, te, 1, capacity, false);
     }
 
-    protected CWFluidTankBehaviour(BehaviourType<CWFluidTankBehaviour> type, SmartTileEntity te, int tanks,
+    protected CWFluidTankBehaviour(BehaviourType<CWFluidTankBehaviour> type, SmartBlockEntity te, int tanks,
                                    long tankCapacity, boolean enforceVariety) {
         super(te);
         insertionAllowed = true;
@@ -122,8 +122,8 @@ public abstract class CWFluidTankBehaviour extends TileEntityBehaviour {
 
     protected void updateFluids() {
         fluidUpdateCallback.run();
-        tileEntity.sendData();
-        tileEntity.setChanged();
+        blockEntity.sendData();
+        blockEntity.setChanged();
     }
 
     @Override
@@ -189,12 +189,12 @@ public abstract class CWFluidTankBehaviour extends TileEntityBehaviour {
         }
 
         public void onFluidChanged() {
-            if (!tileEntity.hasLevel())
+            if (!blockEntity.hasLevel())
                 return;
             fluidLevel.chase(tank.getCurrentAmount() / (float) tank.getTotalCapacity(), .25, LerpedFloat.Chaser.EXP);
             if (!getWorld().isClientSide)
                 sendDataLazily();
-            if (tileEntity.isVirtual() && !tank.isEmpty())
+            if (blockEntity.isVirtual() && !tank.isEmpty())
                 renderedFluid = tank.getFluidType();
         }
 

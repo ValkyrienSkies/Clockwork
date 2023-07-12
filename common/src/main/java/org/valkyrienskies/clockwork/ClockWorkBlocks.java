@@ -1,9 +1,10 @@
 package org.valkyrienskies.clockwork;
 
+import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllTags;
-import com.simibubi.create.content.AllSections;
-import com.simibubi.create.content.contraptions.base.CasingBlock;
-import com.simibubi.create.foundation.block.BlockStressDefaults;
+import com.simibubi.create.content.decoration.encasing.CasingBlock;
+import com.simibubi.create.content.decoration.encasing.EncasingRegistry;
+import com.simibubi.create.content.kinetics.BlockStressDefaults;
 import com.simibubi.create.foundation.data.*;
 import com.simibubi.create.foundation.utility.Couple;
 import com.tterrag.registrate.util.entry.BlockEntry;
@@ -11,23 +12,23 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MaterialColor;
-import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlock;
-import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlock;
-import org.valkyrienskies.clockwork.content.contraptions.casing.ExtendedEncasedShaftBlock;
-import org.valkyrienskies.clockwork.content.contraptions.combustion_engine.CombustionEngineBlock;
-import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock;
-import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserBlock;
-import org.valkyrienskies.clockwork.content.contraptions.intake.IntakeBlock;
-import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingBlock;
-import org.valkyrienskies.clockwork.content.contraptions.reaction_wheel.ReactionWheelBlock;
-import org.valkyrienskies.clockwork.content.contraptions.resistor.RedstoneResistorBlock;
-import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatBlock;
-import org.valkyrienskies.clockwork.content.contraptions.solver.SolverBlock;
-import org.valkyrienskies.clockwork.content.contraptions.universal_joint.UniversalJointBlock;
-import org.valkyrienskies.clockwork.content.physicalities.motion.wing.FlapBlock;
-import org.valkyrienskies.clockwork.content.physicalities.motion.wing.WingBlock;
-import org.valkyrienskies.clockwork.content.physicalities.motion.wing.DyedWingBlockItem;
+import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock;
+import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock;
+import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlock;
+import org.valkyrienskies.clockwork.content.kinetics.casing.ExtendedEncasedShaftBlock;
+import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock;
+import org.valkyrienskies.clockwork.content.kinetics.universal_joint.UniversalJointBlock;
+import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock;
+import org.valkyrienskies.clockwork.content.kinetics.combustion_engine.CombustionEngineBlock;
+import org.valkyrienskies.clockwork.content.munitions.stationary.solver.SolverBlock;
+import org.valkyrienskies.clockwork.content.physicalities.intake.IntakeBlock;
+import org.valkyrienskies.clockwork.content.physicalities.reaction_wheel.ReactionWheelBlock;
+import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem;
+import org.valkyrienskies.clockwork.content.physicalities.wing.WingBlock;
+import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock;
+import org.valkyrienskies.clockwork.content.propulsion.afterblazer.AfterblazerBlock;
+import org.valkyrienskies.clockwork.content.propulsion.ballooner.BalloonerBlock;
 import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork;
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate;
 import org.valkyrienskies.clockwork.util.render.WingBlockItemRenderer;
@@ -43,15 +44,11 @@ public class ClockWorkBlocks {
         REGISTRATE.creativeModeTab(() -> ClockWorkMod.BASE_CREATIVE_TAB);
     }
 
-    static {
-        REGISTRATE.startSection(AllSections.KINETICS);
-    }
-
     public static final BlockEntry<PropellorBearingBlock> PROPELLOR_BEARING =
             REGISTRATE.block("propellor_bearing", PropellorBearingBlock::new)
                     .transform(axeOrPickaxe())
                     .properties(p -> p.color(MaterialColor.PODZOL))
-                    .transform(BuilderTransformers.bearing("propellor", "gearbox", false))
+                    .transform(BuilderTransformers.bearing("propellor", "gearbox"))
                     .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
                     .register();
 
@@ -77,18 +74,18 @@ public class ClockWorkBlocks {
                     .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
                     .register();
 
-    public static final BlockEntry<UniversalJointBlock> UNIVERSAL_JOINT =
-            REGISTRATE.block("universal_joint", UniversalJointBlock::new)
-                    .initialProperties(SharedProperties::copperMetal)
-                    .transform(axeOrPickaxe())
-                    .properties(p -> p.color(MaterialColor.METAL))
-                    .transform(BlockStressDefaults.setNoImpact())
-                    .blockstate((c, p) -> p.directionalBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
-                    .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
-                    .item()
-                    .model(AssetLookup.customBlockItemModel("universal_joint"))
-                    .build()
-                    .register();
+//    public static final BlockEntry<UniversalJointBlock> UNIVERSAL_JOINT =
+//            REGISTRATE.block("universal_joint", UniversalJointBlock::new)
+//                    .initialProperties(SharedProperties::copperMetal)
+//                    .transform(axeOrPickaxe())
+//                    .properties(p -> p.color(MaterialColor.METAL))
+//                    .transform(BlockStressDefaults.setNoImpact())
+//                    .blockstate((c, p) -> p.directionalBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
+//                    .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+//                    .item()
+//                    .model(AssetLookup.customBlockItemModel("universal_joint"))
+//                    .build()
+//                    .register();
 
     public static final BlockEntry<AfterblazerBlock> AFTERBLAZER =
             REGISTRATE.block("afterblazer", AfterblazerBlock::new)
@@ -187,10 +184,6 @@ public class ClockWorkBlocks {
                     .transform(customItemModel("physics_infuser", "item"))
                     .register();
 
-    static {
-        REGISTRATE.startSection(AllSections.CURIOSITIES);
-    }
-
     /////// WINX CLUB //////
     public static final BlockEntry<WingBlock> WING =
             REGISTRATE.block("wing", WingBlock::new)
@@ -227,6 +220,7 @@ public class ClockWorkBlocks {
                     .properties(p -> p.color(MaterialColor.WOOL))
                     .properties(p -> p.sound(SoundType.BAMBOO))
                     .transform(BuilderTransformersClockwork.encasedShaft("balloon", () -> ClockWorkSpriteShifts.BALLOON_CASING))
+                    .transform(EncasingRegistry.addVariantTo(AllBlocks.SHAFT))
                     .transform(axeOrPickaxe())
                     .register();
 

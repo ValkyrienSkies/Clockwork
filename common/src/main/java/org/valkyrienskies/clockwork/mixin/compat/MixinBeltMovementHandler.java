@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.mixin.compat;
 
-import com.simibubi.create.content.contraptions.relays.belt.BeltTileEntity;
-import com.simibubi.create.content.contraptions.relays.belt.transport.BeltMovementHandler;
+import com.simibubi.create.content.kinetics.belt.BeltBlockEntity;
+import com.simibubi.create.content.kinetics.belt.transport.BeltMovementHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
@@ -42,7 +42,7 @@ public abstract class MixinBeltMovementHandler {
     private static Entity entity;
 
     @Inject(method = "transportEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/core/Direction;fromAxisAndDirection(Lnet/minecraft/core/Direction$Axis;Lnet/minecraft/core/Direction$AxisDirection;)Lnet/minecraft/core/Direction;"), locals = LocalCapture.CAPTURE_FAILHARD)
-    private static void injectHead(BeltTileEntity beltTe, Entity entityIn, BeltMovementHandler.TransportedEntityInfo info, CallbackInfo ci, BlockPos pos) {
+    private static void injectHead(BeltBlockEntity beltTe, Entity entityIn, BeltMovementHandler.TransportedEntityInfo info, CallbackInfo ci, BlockPos pos) {
         blockPos = VectorConversionsMCKt.toJOMLD(pos);
         entity = entityIn;
         level = beltTe.getLevel();

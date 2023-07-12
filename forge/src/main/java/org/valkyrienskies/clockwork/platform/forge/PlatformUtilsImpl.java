@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.platform.forge;
 
-import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
-import com.simibubi.create.foundation.tileEntity.behaviour.BehaviourType;
+import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
+import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -125,11 +125,11 @@ public class PlatformUtilsImpl {
 //
 //    public static BlockEntityType<? extends CombustionEngineBlockEntity> getCombustionEngineTileEntityType() {throw new AssertionError();}
 
-    public static boolean isCannon(ItemStack stack) {
-        return ForgeClockworkItems.PASTRYMAKER.get().isCannon(stack);
-    }
+//    public static boolean isCannon(ItemStack stack) {
+//        return ForgeClockworkItems.PASTRYMAKER.get().isCannon(stack);
+//    }
 
-    public static CWFluidTankBehaviour cwFluidTank(BehaviourType<CWFluidTankBehaviour> type, SmartTileEntity te, int tanks, long tankCapacity, boolean enforceVariety) {
+    public static CWFluidTankBehaviour cwFluidTank(BehaviourType<CWFluidTankBehaviour> type, SmartBlockEntity te, int tanks, long tankCapacity, boolean enforceVariety) {
         return new ForgeCWFluidTankBehaviour(type, te, tanks, tankCapacity, enforceVariety);
     }
 

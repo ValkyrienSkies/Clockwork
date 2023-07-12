@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.mixin.compat.packets;
 
-import com.simibubi.create.content.contraptions.components.structureMovement.glue.SuperGlueRemovalPacket;
+import com.simibubi.create.content.contraptions.glue.SuperGlueRemovalPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;

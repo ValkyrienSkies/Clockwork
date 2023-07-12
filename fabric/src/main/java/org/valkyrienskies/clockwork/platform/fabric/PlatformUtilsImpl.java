@@ -1,9 +1,9 @@
 package org.valkyrienskies.clockwork.platform.fabric;
 
 import com.jamieswhiteshirt.reachentityattributes.ReachEntityAttributes;
-import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
-import com.simibubi.create.foundation.tileEntity.behaviour.BehaviourType;
-import com.simibubi.create.foundation.tileEntity.behaviour.fluid.SmartFluidTankBehaviour;
+import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
+import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
+import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import io.github.fabricators_of_create.porting_lib.entity.ExtraSpawnDataEntity;
 import io.github.fabricators_of_create.porting_lib.mixin.common.accessor.ServerGamePacketListenerImplAccessor;
 import net.fabricmc.loader.api.FabricLoader;
@@ -116,15 +116,15 @@ public class PlatformUtilsImpl {
         return AllClockworkConfigs.SERVER.kinetics.balloonRange.get();
     }
 
-    public static boolean isCannon(ItemStack stack) {
-        return FabricClockworkItems.PASTRYMAKER.get().isCannon(stack);
-    }
+//    public static boolean isCannon(ItemStack stack) {
+//        return FabricClockworkItems.PASTRYMAKER.get().isCannon(stack);
+//    }
 
     public static void drainTank(SmartFluidTankBehaviour tank, int amount) {
         tank.getPrimaryHandler().getFluid().shrink(amount);
     }
 
-    public static CWFluidTankBehaviour cwFluidTank(BehaviourType<CWFluidTankBehaviour> type, SmartTileEntity te, int tanks, long tankCapacity, boolean enforceVariety) {
+    public static CWFluidTankBehaviour cwFluidTank(BehaviourType<CWFluidTankBehaviour> type, SmartBlockEntity te, int tanks, long tankCapacity, boolean enforceVariety) {
         return new FabricCWFluidTankBehaviour(type, te, tanks, tankCapacity, enforceVariety);
     }
 

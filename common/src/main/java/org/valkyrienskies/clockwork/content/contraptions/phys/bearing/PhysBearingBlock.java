@@ -1,8 +1,8 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.bearing;
 
 import com.simibubi.create.AllShapes;
-import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingBlock;
-import com.simibubi.create.foundation.block.ITE;
+import com.simibubi.create.content.contraptions.bearing.BearingBlock;
+import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -17,7 +17,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.valkyrienskies.clockwork.ClockWorkBlockEntities;
 
-public class PhysBearingBlock extends BearingBlock implements ITE<PhysBearingBlockEntity> {
+public class PhysBearingBlock extends BearingBlock implements IBE<PhysBearingBlockEntity> {
 
     public PhysBearingBlock(Properties properties) {
         super(properties);
@@ -34,7 +34,7 @@ public class PhysBearingBlock extends BearingBlock implements ITE<PhysBearingBlo
                 .isEmpty()) {
             if (worldIn.isClientSide)
                 return InteractionResult.SUCCESS;
-            withTileEntityDo(worldIn, pos, te -> {
+            withBlockEntityDo(worldIn, pos, te -> {
                 if (te.running) {
 //                    te.disassemble();
                     return;
@@ -47,12 +47,12 @@ public class PhysBearingBlock extends BearingBlock implements ITE<PhysBearingBlo
     }
 
     @Override
-    public Class<PhysBearingBlockEntity> getTileEntityClass() {
+    public Class<PhysBearingBlockEntity> getBlockEntityClass() {
         return PhysBearingBlockEntity.class;
     }
 
     @Override
-    public BlockEntityType<? extends PhysBearingBlockEntity> getTileEntityType() {
+    public BlockEntityType<? extends PhysBearingBlockEntity> getBlockEntityType() {
         return ClockWorkBlockEntities.PHYS_BEARING.get();
     }
 

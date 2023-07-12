@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.content.contraptions.propellor;
 
-import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingBlock;
-import com.simibubi.create.foundation.block.ITE;
+import com.simibubi.create.content.contraptions.bearing.BearingBlock;
+import com.simibubi.create.foundation.block.IBE;
 import com.simibubi.create.foundation.utility.Couple;
 import com.simibubi.create.foundation.utility.Lang;
 import net.minecraft.core.BlockPos;
@@ -20,7 +20,7 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.valkyrienskies.clockwork.ClockWorkBlockEntities;
 
-public class PropellorBearingBlock extends BearingBlock implements ITE<PropellorBearingBlockEntity> {
+public class PropellorBearingBlock extends BearingBlock implements IBE<PropellorBearingBlockEntity> {
 
     public static final EnumProperty<Direction> DIRECTION = EnumProperty.create("direction", Direction.class);
 
@@ -53,7 +53,7 @@ public class PropellorBearingBlock extends BearingBlock implements ITE<Propellor
         if (player.getItemInHand(handIn)
                 .isEmpty()) {
             if (!worldIn.isClientSide) {
-                withTileEntityDo(worldIn, pos, te -> {
+                withBlockEntityDo(worldIn, pos, te -> {
                     if (te.running) {
                         te.shutDown();
                         return;
@@ -67,12 +67,12 @@ public class PropellorBearingBlock extends BearingBlock implements ITE<Propellor
     }
 
     @Override
-    public Class<PropellorBearingBlockEntity> getTileEntityClass() {
+    public Class<PropellorBearingBlockEntity> getBlockEntityClass() {
         return PropellorBearingBlockEntity.class;
     }
 
     @Override
-    public BlockEntityType<? extends PropellorBearingBlockEntity> getTileEntityType() {
+    public BlockEntityType<? extends PropellorBearingBlockEntity> getBlockEntityType() {
         return ClockWorkBlockEntities.PROPELLOR_BEARING.get();
     }
     @Override

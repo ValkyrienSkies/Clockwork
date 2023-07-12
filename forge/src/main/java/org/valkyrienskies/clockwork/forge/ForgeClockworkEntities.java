@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.forge;
 
-import com.simibubi.create.content.contraptions.components.actors.SeatEntity;
-import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
+import com.simibubi.create.content.contraptions.actors.seat.SeatEntity;
+import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
 import com.simibubi.create.foundation.data.CreateEntityBuilder;
 import com.simibubi.create.foundation.utility.Lang;
 import com.tterrag.registrate.util.entry.EntityEntry;
@@ -14,24 +14,10 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import org.valkyrienskies.clockwork.ClockWorkMod;
-import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueRenderer;
 import org.valkyrienskies.clockwork.platform.entity.ForgeBluperGlueEntity;
 import org.valkyrienskies.clockwork.platform.entity.ForgeSequencedSeatEntity;
 
 public class ForgeClockworkEntities {
-
-    public static final EntityEntry<ForgeBluperGlueEntity> BLUPERGLUE =
-            register(
-                    "bluperglue",
-                    ForgeBluperGlueEntity::new,
-                    () -> BluperGlueRenderer::new,
-                    MobCategory.MISC,
-                    10,
-                    Integer.MAX_VALUE,
-                    false,
-                    true,
-                    ForgeBluperGlueEntity::build
-            ).register();
 
     public static final EntityEntry<ForgeSequencedSeatEntity> SEQUENCED_SEAT =
             register(

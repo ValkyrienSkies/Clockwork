@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.util.blocktype;
 
-import com.simibubi.create.content.contraptions.base.IRotate;
+import com.simibubi.create.content.kinetics.base.IRotate;
 import com.simibubi.create.foundation.utility.Iterate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -20,7 +20,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.valkyrienskies.clockwork.ClockWorkShapes;
 
-public abstract class ConnectedWingAlike extends Block{
+public abstract class ConnectedWingAlike extends Block {
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
     public static final BooleanProperty NORTH = BlockStateProperties.NORTH;
     public static final BooleanProperty SOUTH = BlockStateProperties.SOUTH;

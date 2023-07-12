@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.mixin.compat.client;
 
-import com.simibubi.create.foundation.tileEntity.behaviour.linked.LinkRenderer;
+import com.simibubi.create.content.redstone.link.LinkRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
@@ -11,7 +11,7 @@ import org.valkyrienskies.mod.common.VSGameUtilsKt;
 @Mixin(LinkRenderer.class)
 public class MixinLinkRenderer {
     @Redirect(
-            method = "renderOnTileEntity",
+            method = "renderOnBlockEntity",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/phys/Vec3;distanceToSqr(Lnet/minecraft/world/phys/Vec3;)D")
     )
     private static double redirectDistanceToSqr(Vec3 instance, Vec3 vec) {

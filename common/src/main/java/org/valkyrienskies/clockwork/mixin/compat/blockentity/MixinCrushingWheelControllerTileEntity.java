@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.mixin.compat.blockentity;
 
-import com.simibubi.create.content.contraptions.components.crusher.CrushingWheelControllerBlock;
-import com.simibubi.create.content.contraptions.components.crusher.CrushingWheelControllerTileEntity;
+import com.simibubi.create.content.kinetics.crusher.CrushingWheelControllerBlock;
+import com.simibubi.create.content.kinetics.crusher.CrushingWheelControllerBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
@@ -23,7 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.function.Predicate;
 
-@Mixin(CrushingWheelControllerTileEntity.class)
+@Mixin(CrushingWheelControllerBlockEntity.class)
 public abstract class MixinCrushingWheelControllerTileEntity {
 
     @Shadow
@@ -40,7 +40,7 @@ public abstract class MixinCrushingWheelControllerTileEntity {
 
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/phys/AABB;intersects(Lnet/minecraft/world/phys/AABB;)Z"))
     private boolean redirectIntersects(AABB instance, AABB other) {
-        Level level = ((CrushingWheelControllerTileEntity) (Object) this).getLevel();
+        Level level = ((CrushingWheelControllerBlockEntity) (Object) this).getLevel();
         if (level != null) {
             Iterator<Ship> ships = VSGameUtilsKt.getShipsIntersecting(level, instance).iterator();
             if (ships.hasNext()) {
@@ -55,8 +55,8 @@ public abstract class MixinCrushingWheelControllerTileEntity {
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;setDeltaMovement(Lnet/minecraft/world/phys/Vec3;)V"))
     private void redirectSetDeltaMovement(Entity instance, Vec3 motion) {
 
-        BlockPos worldPosition = ((CrushingWheelControllerTileEntity) (Object) this).getBlockPos();
-        Direction facing = ((CrushingWheelControllerTileEntity) (Object) this)
+        BlockPos worldPosition = ((CrushingWheelControllerBlockEntity) (Object) this).getBlockPos();
+        Direction facing = ((CrushingWheelControllerBlockEntity) (Object) this)
                 .getBlockState().getValue(CrushingWheelControllerBlock.FACING);
         Vec3 transformedPos = getTransformedPosition(instance);
         double xMotion = ((worldPosition.getX() + .5) - transformedPos.x) / 2;
@@ -93,7 +93,7 @@ public abstract class MixinCrushingWheelControllerTileEntity {
 
     private Vec3 getTransformedPosition(Entity instance) {
         Vec3 result = instance.position();
-        Ship ship = VSGameUtilsKt.getShipManagingPos(instance.level, ((CrushingWheelControllerTileEntity) (Object) this).getBlockPos());
+        Ship ship = VSGameUtilsKt.getShipManagingPos(instance.level, ((CrushingWheelControllerBlockEntity) (Object) this).getBlockPos());
         if (ship != null) {
             Vector3d tempVec = new Vector3d();
             ship.getTransform().getWorldToShip().transformPosition(result.x, result.y, result.z, tempVec);
@@ -104,7 +104,7 @@ public abstract class MixinCrushingWheelControllerTileEntity {
 
     private Vec3 directionShip2World(Entity instance, Vec3 direction) {
         Vec3 result = direction;
-        Ship ship = VSGameUtilsKt.getShipManagingPos(instance.level, ((CrushingWheelControllerTileEntity) (Object) this).getBlockPos());
+        Ship ship = VSGameUtilsKt.getShipManagingPos(instance.level, ((CrushingWheelControllerBlockEntity) (Object) this).getBlockPos());
         if (ship != null) {
             Vector3d tempVec = new Vector3d();
             ship.getTransform().getShipToWorld().transformDirection(result.x, result.y, result.z, tempVec);

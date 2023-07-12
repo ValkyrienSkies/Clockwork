@@ -22,8 +22,6 @@ public class ForgeClockworkInputEvents {
         KeyMapping key = event.getKeyMapping();
 
         if (key == mc.options.keyUse || key == mc.options.keyAttack) {
-            if (ClockWorkHandlers.BLUPER_HANDLER.onMouseInput(key == mc.options.keyAttack))
-                event.setCanceled(true);
         }
         return InteractionResult.PASS;
     }

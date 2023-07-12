@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.mixin.compat.blockentity;
 
-import com.simibubi.create.content.contraptions.base.KineticTileEntity;
-import com.simibubi.create.content.contraptions.components.fan.EncasedFanTileEntity;
+import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
+import com.simibubi.create.content.kinetics.fan.EncasedFanBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -13,8 +13,8 @@ import org.valkyrienskies.clockwork.mixinduck.IExtendedAirCurrentSource;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 
-@Mixin(EncasedFanTileEntity.class)
-public abstract class MixinEncasedFanTileEntity extends KineticTileEntity implements IExtendedAirCurrentSource {
+@Mixin(EncasedFanBlockEntity.class)
+public abstract class MixinEncasedFanTileEntity extends KineticBlockEntity implements IExtendedAirCurrentSource {
     @Unique
     private Ship ship = null;
 

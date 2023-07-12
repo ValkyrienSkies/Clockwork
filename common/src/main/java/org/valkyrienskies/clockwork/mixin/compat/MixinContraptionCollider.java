@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.mixin.compat;
 
-import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
-import com.simibubi.create.content.contraptions.components.structureMovement.ContraptionCollider;
+import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
+import com.simibubi.create.content.contraptions.ContraptionCollider;
 import com.simibubi.create.foundation.collision.Matrix3d;
 import com.simibubi.create.foundation.utility.VecHelper;
 import net.minecraft.core.BlockPos;
@@ -134,7 +134,7 @@ public abstract class MixinContraptionCollider {
         setOfPos(contraptionEnt, instance, x, y, z);
     }
 
-    @Redirect(method = "collideEntities", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/contraptions/components/structureMovement/AbstractContraptionEntity;getBoundingBox()Lnet/minecraft/world/phys/AABB;"))
+    @Redirect(method = "collideEntities", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/contraptions/AbstractContraptionEntity;getBoundingBox()Lnet/minecraft/world/phys/AABB;"))
     private static AABB redirectContraptionGetBoundingBox(AbstractContraptionEntity instance) {
         return VSGameUtilsKt.transformAabbToWorld(instance.getCommandSenderWorld(), instance.getBoundingBox());
     }
@@ -218,7 +218,7 @@ public abstract class MixinContraptionCollider {
         return ContraptionCollider.getWorldToLocalTranslation(entity, anchorVec, rotationMatrix, yawOffset);
     }
 
-    @Redirect(method = "collideEntities", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/contraptions/components/structureMovement/AbstractContraptionEntity;getPrevPositionVec()Lnet/minecraft/world/phys/Vec3;"))
+    @Redirect(method = "collideEntities", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/contraptions/AbstractContraptionEntity;getPrevPositionVec()Lnet/minecraft/world/phys/Vec3;"))
     private static Vec3 redirectGetPrevPositionVec(AbstractContraptionEntity instance) {
 
         Vec3 prevPos = instance.getPrevPositionVec();
@@ -248,7 +248,7 @@ public abstract class MixinContraptionCollider {
         return prevPos;
     }
 
-    @Redirect(method = "collideEntities", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/contraptions/components/structureMovement/ContraptionCollider;getWorldToLocalTranslation(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/Vec3;Lcom/simibubi/create/foundation/collision/Matrix3d;F)Lnet/minecraft/world/phys/Vec3;"))
+    @Redirect(method = "collideEntities", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/contraptions/ContraptionCollider;getWorldToLocalTranslation(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/Vec3;Lcom/simibubi/create/foundation/collision/Matrix3d;F)Lnet/minecraft/world/phys/Vec3;"))
     private static Vec3 redirectGetWorldToLocalTranslation(Entity entity, Vec3 anchorVec, Matrix3d rotationMatrix, float yawOffset) {
         return aaaaaaaaaaaaaa(contraptionEnt, entity, anchorVec, rotationMatrix, yawOffset);
     }
@@ -278,7 +278,7 @@ public abstract class MixinContraptionCollider {
         return result;
     }
 
-    @Redirect(method = "collideEntities", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/contraptions/components/structureMovement/ContraptionCollider;collide(Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/entity/Entity;)Lnet/minecraft/world/phys/Vec3;"))
+    @Redirect(method = "collideEntities", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/contraptions/ContraptionCollider;collide(Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/entity/Entity;)Lnet/minecraft/world/phys/Vec3;"))
     private static Vec3 redirectEntityGetBoundingBoxCollide(Vec3 contactPoint, Entity entity) {
         return adjustCollide(contactPoint, entity);
     }
@@ -293,14 +293,14 @@ public abstract class MixinContraptionCollider {
         return entityPosition(contraptionEnt, instance, false);
     }
 
-    @Inject(method = "getWorldToLocalTranslation(Lnet/minecraft/world/phys/Vec3;Lcom/simibubi/create/content/contraptions/components/structureMovement/AbstractContraptionEntity;)Lnet/minecraft/world/phys/Vec3;", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "worldToLocalPos(Lnet/minecraft/world/phys/Vec3;Lcom/simibubi/create/content/contraptions/AbstractContraptionEntity;)Lnet/minecraft/world/phys/Vec3;", at = @At("HEAD"), cancellable = true)
     private static void modPosition(Vec3 entity, AbstractContraptionEntity contraptionEntity, CallbackInfoReturnable<Vec3> cir) {
         if (VSGameUtilsKt.isBlockInShipyard(contraptionEntity.getCommandSenderWorld(), new BlockPos(contraptionEntity.getContraption().anchor))
                 && !VSGameUtilsKt.isBlockInShipyard(contraptionEntity.getCommandSenderWorld(), new BlockPos(entity))) {
 
             Ship ship = VSGameUtilsKt.getShipManagingPos(contraptionEntity.getCommandSenderWorld(), contraptionEntity.getContraption().anchor);
             if (ship != null) {
-                cir.setReturnValue(ContraptionCollider.getWorldToLocalTranslation(entity, toMinecraft(ship.getShipToWorld().transformPosition(toJOML(contraptionEntity.getAnchorVec()))), contraptionEntity.getRotationState()));
+                cir.setReturnValue(ContraptionCollider.worldToLocalPos(entity, toMinecraft(ship.getShipToWorld().transformPosition(toJOML(contraptionEntity.getAnchorVec()))), contraptionEntity.getRotationState()));
             }
         }
     }

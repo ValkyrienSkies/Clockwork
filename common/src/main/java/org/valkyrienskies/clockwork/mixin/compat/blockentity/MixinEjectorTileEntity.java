@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.mixin.compat.blockentity;
 
-import com.simibubi.create.content.logistics.block.depot.EjectorTileEntity;
+import com.simibubi.create.content.logistics.depot.EjectorBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
@@ -16,14 +16,14 @@ import org.valkyrienskies.mod.common.VSGameUtilsKt;
 
 import java.util.List;
 
-@Mixin(EjectorTileEntity.class)
+@Mixin(EjectorBlockEntity.class)
 public abstract class MixinEjectorTileEntity {
     @ModifyVariable(method = "*", at = @At("STORE"), name = "ejectVec")
     private Vec3 modEjectVec(Vec3 ejectVec) {
         Vec3 result = ejectVec;
-        Level level = ((EjectorTileEntity) (Object) this).getLevel();
+        Level level = ((EjectorBlockEntity) (Object) this).getLevel();
         if (level != null) {
-            Ship ship = VSGameUtilsKt.getShipManagingPos(level, ((EjectorTileEntity) (Object) this).getBlockPos());
+            Ship ship = VSGameUtilsKt.getShipManagingPos(level, ((EjectorBlockEntity) (Object) this).getBlockPos());
             if (ship != null) {
                 Vector3d tempVec = new Vector3d();
                 ship.getTransform().getShipToWorld().transformPosition(result.x, result.y, result.z, tempVec);
@@ -36,9 +36,9 @@ public abstract class MixinEjectorTileEntity {
     @ModifyVariable(method = "*", at = @At("STORE"), name = "ejectMotionVec")
     private Vec3 modEjectMotionVec(Vec3 ejectMotionVec) {
         Vec3 result = ejectMotionVec;
-        Level level = ((EjectorTileEntity) (Object) this).getLevel();
+        Level level = ((EjectorBlockEntity) (Object) this).getLevel();
         if (level != null) {
-            Ship ship = VSGameUtilsKt.getShipManagingPos(level, ((EjectorTileEntity) (Object) this).getBlockPos());
+            Ship ship = VSGameUtilsKt.getShipManagingPos(level, ((EjectorBlockEntity) (Object) this).getBlockPos());
             if (ship != null) {
                 Vector3d tempVec = new Vector3d();
                 ship.getTransform().getShipToWorld().transformDirection(result.x, result.y, result.z, tempVec);
@@ -57,9 +57,9 @@ public abstract class MixinEjectorTileEntity {
             value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;setPos(DDD)V"
     ))
     private void redirectSetPos(Entity instance, double x, double y, double z) {
-        Ship ship = VSGameUtilsKt.getShipManagingPos(instance.level, ((EjectorTileEntity) (Object) this).getBlockPos());
+        Ship ship = VSGameUtilsKt.getShipManagingPos(instance.level, ((EjectorBlockEntity) (Object) this).getBlockPos());
         if (ship != null) {
-            BlockPos temp = ((EjectorTileEntity) (Object) this).getBlockPos();
+            BlockPos temp = ((EjectorBlockEntity) (Object) this).getBlockPos();
             Vector3d tempVec = new Vector3d(temp.getX() + .5, temp.getY() + 1, temp.getZ() + .5);
             ship.getTransform().getShipToWorld().transformPosition(tempVec, tempVec);
             instance.setPos(tempVec.x, tempVec.y, tempVec.z);

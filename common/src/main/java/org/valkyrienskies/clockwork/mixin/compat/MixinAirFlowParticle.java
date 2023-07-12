@@ -1,9 +1,9 @@
 package org.valkyrienskies.clockwork.mixin.compat;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import com.simibubi.create.content.contraptions.components.fan.AirCurrent;
-import com.simibubi.create.content.contraptions.components.fan.IAirCurrentSource;
-import com.simibubi.create.content.contraptions.particle.AirFlowParticle;
+import com.simibubi.create.content.kinetics.fan.AirCurrent;
+import com.simibubi.create.content.kinetics.fan.AirFlowParticle;
+import com.simibubi.create.content.kinetics.fan.IAirCurrentSource;
 import com.simibubi.create.foundation.utility.VecHelper;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.SimpleAnimatedParticle;

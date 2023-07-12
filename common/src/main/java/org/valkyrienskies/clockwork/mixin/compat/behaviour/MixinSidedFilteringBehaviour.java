@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.mixin.compat.behaviour;
 
-import com.simibubi.create.foundation.tileEntity.behaviour.filtering.SidedFilteringBehaviour;
+import com.simibubi.create.foundation.blockEntity.behaviour.filtering.SidedFilteringBehaviour;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;

@@ -1,8 +1,8 @@
 package org.valkyrienskies.clockwork.content.forces;
 
-import org.valkyrienskies.clockwork.content.contraptions.fan.EncasedFanCreateData;
-import org.valkyrienskies.clockwork.content.contraptions.fan.EncasedFanData;
-import org.valkyrienskies.clockwork.content.contraptions.fan.EncasedFanUpdateData;
+import org.valkyrienskies.clockwork.content.propulsion.fan.EncasedFanCreateData;
+import org.valkyrienskies.clockwork.content.propulsion.fan.EncasedFanData;
+import org.valkyrienskies.clockwork.content.propulsion.fan.EncasedFanUpdateData;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.util.Mth;

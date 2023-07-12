@@ -1,10 +1,9 @@
 package org.valkyrienskies.clockwork.platform.fabric;
 
+import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
+import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
 import com.simibubi.create.foundation.fluid.CombinedTankWrapper;
 import com.simibubi.create.foundation.fluid.SmartFluidTank;
-import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
-import com.simibubi.create.foundation.tileEntity.behaviour.BehaviourType;
-import com.simibubi.create.foundation.tileEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import io.github.fabricators_of_create.porting_lib.util.FluidStack;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
@@ -17,7 +16,7 @@ import java.util.function.Consumer;
 public class FabricCWFluidTankBehaviour extends CWFluidTankBehaviour {
     private InternalFluidHandler capability;
 
-    protected FabricCWFluidTankBehaviour(BehaviourType<CWFluidTankBehaviour> type, SmartTileEntity te, int tanks, long tankCapacity, boolean enforceVariety) {
+    protected FabricCWFluidTankBehaviour(BehaviourType<CWFluidTankBehaviour> type, SmartBlockEntity te, int tanks, long tankCapacity, boolean enforceVariety) {
         super(type, te, tanks, tankCapacity, enforceVariety);
         Storage<FluidVariant>[] handlers = new Storage[tanks];
         for (int i = 0; i < tanks; i++) {

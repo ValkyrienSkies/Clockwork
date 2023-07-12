@@ -6,10 +6,10 @@ import dan200.computercraft.api.peripheral.IComputerAccess;
 import dan200.computercraft.api.peripheral.IPeripheral;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.InputKey;
-import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatBlockEntity;
-import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatRule;
-import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatRuleList;
+import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.InputKey;
+import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlockEntity;
+import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRule;
+import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRuleList;
 
 import java.util.ArrayList;
 import java.util.HashMap;

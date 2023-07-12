@@ -2,9 +2,9 @@ package org.valkyrienskies.clockwork.util.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer;
 import com.simibubi.create.foundation.render.CachedBufferer;
 import com.simibubi.create.foundation.render.SuperByteBuffer;
-import com.simibubi.create.foundation.tileEntity.renderer.SmartTileEntityRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -15,7 +15,7 @@ import org.valkyrienskies.clockwork.ClockWorkPartials;
 import org.valkyrienskies.clockwork.content.materials.solids.colorblock.ColorBlockEntity;
 import org.valkyrienskies.clockwork.util.blocktype.ConnectedWingAlike;
 
-public class WingBlockEntityRenderer extends SmartTileEntityRenderer<ColorBlockEntity> {
+public class WingBlockEntityRenderer extends SmartBlockEntityRenderer<ColorBlockEntity> {
     public WingBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
         super(context);
     }

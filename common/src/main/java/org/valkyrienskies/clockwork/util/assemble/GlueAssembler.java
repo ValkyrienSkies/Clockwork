@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.util.assemble;
 
-import com.simibubi.create.content.contraptions.components.structureMovement.AssemblyException;
+import com.simibubi.create.content.contraptions.AssemblyException;
 import com.simibubi.create.foundation.utility.UniqueLinkedList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

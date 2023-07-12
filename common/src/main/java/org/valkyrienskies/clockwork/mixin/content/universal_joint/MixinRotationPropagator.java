@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.mixin.content.universal_joint;
 
-import com.simibubi.create.content.contraptions.RotationPropagator;
-import com.simibubi.create.content.contraptions.base.KineticTileEntity;
+import com.simibubi.create.content.kinetics.RotationPropagator;
+import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
@@ -19,20 +19,20 @@ import java.util.List;
 public abstract class MixinRotationPropagator {
 
     @Shadow
-    private static List<BlockPos> getPotentialNeighbourLocations(KineticTileEntity te) {return null;};
+    private static List<BlockPos> getPotentialNeighbourLocations(KineticBlockEntity te) {return null;};
 
     @Shadow
-    private static KineticTileEntity findConnectedNeighbour(KineticTileEntity currentTE, BlockPos neighbourPos) {return null;};
+    private static KineticBlockEntity findConnectedNeighbour(KineticBlockEntity currentTE, BlockPos neighbourPos) {return null;};
 
     @Inject(method = "getConnectedNeighbours", at = @At("HEAD"), cancellable = true, remap = false)
-    private static void getConnectedNeighborsDistant(@NotNull KineticTileEntity te, CallbackInfoReturnable<List<KineticTileEntity>> cir) {
+    private static void getConnectedNeighborsDistant(@NotNull KineticBlockEntity te, CallbackInfoReturnable<List<KineticBlockEntity>> cir) {
         cir.cancel();
-        List<KineticTileEntity> neighbours = new LinkedList<>();
+        List<KineticBlockEntity> neighbours = new LinkedList<>();
         if (te instanceof UniversalJointBlockEntity) {
             final BlockPos jointNeighbourTEPos = ((UniversalJointBlockEntity) te).getConnectedPos();
             if (te.getLevel() != null && jointNeighbourTEPos != null) {
                 if (te.getLevel().getBlockEntity(jointNeighbourTEPos) instanceof UniversalJointBlockEntity) {
-                    final KineticTileEntity neighbourTE = (KineticTileEntity) te.getLevel().getBlockEntity(jointNeighbourTEPos);
+                    final KineticBlockEntity neighbourTE = (KineticBlockEntity) te.getLevel().getBlockEntity(jointNeighbourTEPos);
                     neighbours.add(neighbourTE);
                 }
             }
@@ -40,7 +40,7 @@ public abstract class MixinRotationPropagator {
 
 
         for (BlockPos neighbourPos : getPotentialNeighbourLocations(te)) {
-            final KineticTileEntity neighbourTE = findConnectedNeighbour(te, neighbourPos);
+            final KineticBlockEntity neighbourTE = findConnectedNeighbour(te, neighbourPos);
 
             if (neighbourTE == null)
                 continue;

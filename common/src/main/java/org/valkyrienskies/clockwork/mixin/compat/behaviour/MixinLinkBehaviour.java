@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.mixin.compat.behaviour;
 
-import com.simibubi.create.foundation.tileEntity.behaviour.linked.LinkBehaviour;
+import com.simibubi.create.content.redstone.link.LinkBehaviour;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;

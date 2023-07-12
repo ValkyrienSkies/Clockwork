@@ -1,10 +1,9 @@
 package org.valkyrienskies.clockwork.platform.forge;
 
+import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
+import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
 import com.simibubi.create.foundation.fluid.CombinedTankWrapper;
 import com.simibubi.create.foundation.fluid.SmartFluidTank;
-import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
-import com.simibubi.create.foundation.tileEntity.behaviour.BehaviourType;
-import com.simibubi.create.foundation.tileEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
@@ -17,7 +16,7 @@ import java.util.function.Consumer;
 public class ForgeCWFluidTankBehaviour extends CWFluidTankBehaviour {
     private LazyOptional<? extends IFluidHandler> capability;
 
-    protected ForgeCWFluidTankBehaviour(BehaviourType<CWFluidTankBehaviour> type, SmartTileEntity te, int tanks, long tankCapacity, boolean enforceVariety) {
+    protected ForgeCWFluidTankBehaviour(BehaviourType<CWFluidTankBehaviour> type, SmartBlockEntity te, int tanks, long tankCapacity, boolean enforceVariety) {
         super(type, te, tanks, tankCapacity, enforceVariety);
 
         IFluidHandler[] handlers = new IFluidHandler[tanks];

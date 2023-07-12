@@ -1,20 +1,15 @@
 package org.valkyrienskies.clockwork.fabric;
 
-import com.simibubi.create.content.AllSections;
+import com.simibubi.create.infrastructure.item.CreateCreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import org.valkyrienskies.clockwork.ClockWorkBlocks;
 
 import java.util.EnumSet;
 
-public class ClockWorkGroup extends ClockWorkGroupBase {
+public class ClockWorkGroup extends CreateCreativeModeTab {
 
     public ClockWorkGroup() {
-        super("base");
-    }
-
-    @Override
-    protected EnumSet<AllSections> getSections() {
-        return EnumSet.complementOf(EnumSet.of(AllSections.PALETTES));
+        super("clockwork");
     }
 
     @Override
