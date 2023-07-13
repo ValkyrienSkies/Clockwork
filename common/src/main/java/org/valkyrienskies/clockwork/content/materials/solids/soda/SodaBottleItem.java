@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.content.materials.solids.soda;
 
 import com.simibubi.create.AllBlocks;
-import com.simibubi.create.content.contraptions.fluids.tank.FluidTankBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;

@@ -20,7 +20,6 @@ import org.joml.Vector3d;
 import org.joml.Vector3dc;
 import org.valkyrienskies.clockwork.data.ClockWorkTags;
 import org.valkyrienskies.clockwork.platform.SmartFluidTankBlockEntity;
-import org.valkyrienskies.clockwork.util.blocktype.FuelBoosterType;
 import org.valkyrienskies.clockwork.util.blocktype.IFuelableBlockEntity;
 import org.valkyrienskies.clockwork.util.blocktype.LiquidFuelType;
 import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour;
@@ -219,8 +218,4 @@ public class SolverBlockEntity extends KineticBlockEntity implements IFuelableBl
         return 100;
     }
 
-    @Override
-    public FuelBoosterType getFuelBooster() {
-        return null;
-    }
 }

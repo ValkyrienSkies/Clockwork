@@ -10,7 +10,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.valkyrienskies.clockwork.content.contraptions.universal_joint.UniversalJointBlockEntity;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -24,29 +23,29 @@ public abstract class MixinRotationPropagator {
     @Shadow
     private static KineticBlockEntity findConnectedNeighbour(KineticBlockEntity currentTE, BlockPos neighbourPos) {return null;};
 
-    @Inject(method = "getConnectedNeighbours", at = @At("HEAD"), cancellable = true, remap = false)
-    private static void getConnectedNeighborsDistant(@NotNull KineticBlockEntity te, CallbackInfoReturnable<List<KineticBlockEntity>> cir) {
-        cir.cancel();
-        List<KineticBlockEntity> neighbours = new LinkedList<>();
-        if (te instanceof UniversalJointBlockEntity) {
-            final BlockPos jointNeighbourTEPos = ((UniversalJointBlockEntity) te).getConnectedPos();
-            if (te.getLevel() != null && jointNeighbourTEPos != null) {
-                if (te.getLevel().getBlockEntity(jointNeighbourTEPos) instanceof UniversalJointBlockEntity) {
-                    final KineticBlockEntity neighbourTE = (KineticBlockEntity) te.getLevel().getBlockEntity(jointNeighbourTEPos);
-                    neighbours.add(neighbourTE);
-                }
-            }
-        }
-
-
-        for (BlockPos neighbourPos : getPotentialNeighbourLocations(te)) {
-            final KineticBlockEntity neighbourTE = findConnectedNeighbour(te, neighbourPos);
-
-            if (neighbourTE == null)
-                continue;
-
-            neighbours.add(neighbourTE);
-        }
-        cir.setReturnValue(neighbours);
-    }
+//    @Inject(method = "getConnectedNeighbours", at = @At("HEAD"), cancellable = true, remap = false)
+//    private static void getConnectedNeighborsDistant(@NotNull KineticBlockEntity te, CallbackInfoReturnable<List<KineticBlockEntity>> cir) {
+//        cir.cancel();
+//        List<KineticBlockEntity> neighbours = new LinkedList<>();
+//        if (te instanceof UniversalJointBlockEntity) {
+//            final BlockPos jointNeighbourTEPos = ((UniversalJointBlockEntity) te).getConnectedPos();
+//            if (te.getLevel() != null && jointNeighbourTEPos != null) {
+//                if (te.getLevel().getBlockEntity(jointNeighbourTEPos) instanceof UniversalJointBlockEntity) {
+//                    final KineticBlockEntity neighbourTE = (KineticBlockEntity) te.getLevel().getBlockEntity(jointNeighbourTEPos);
+//                    neighbours.add(neighbourTE);
+//                }
+//            }
+//        }
+//
+//
+//        for (BlockPos neighbourPos : getPotentialNeighbourLocations(te)) {
+//            final KineticBlockEntity neighbourTE = findConnectedNeighbour(te, neighbourPos);
+//
+//            if (neighbourTE == null)
+//                continue;
+//
+//            neighbours.add(neighbourTE);
+//        }
+//        cir.setReturnValue(neighbours);
+//    }
 }

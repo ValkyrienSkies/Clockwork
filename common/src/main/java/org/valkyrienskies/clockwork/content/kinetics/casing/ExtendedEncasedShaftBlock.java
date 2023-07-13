@@ -9,24 +9,17 @@ import com.simibubi.create.content.schematics.requirement.ISpecialBlockItemRequi
 import com.simibubi.create.content.schematics.requirement.ItemRequirement;
 import com.simibubi.create.foundation.block.IBE;
 import com.tterrag.registrate.util.entry.BlockEntry;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
 import org.valkyrienskies.clockwork.ClockWorkBlockEntities;
 import org.valkyrienskies.clockwork.ClockWorkBlocks;
-
-import javax.annotation.Nullable;
 
 public class ExtendedEncasedShaftBlock extends AbstractEncasedShaftBlock
         implements IBE<KineticBlockEntity>, ISpecialBlockItemRequirement, EncasedBlock {
@@ -46,8 +39,8 @@ public class ExtendedEncasedShaftBlock extends AbstractEncasedShaftBlock
         this.casing = casing;
     }
 
-    public BlockEntry<CasingBlock> getCasing() {
-        return casing;
+    public Block getCasing() {
+        return this;
     }
 
     @Override

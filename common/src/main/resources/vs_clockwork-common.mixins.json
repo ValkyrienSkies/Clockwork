@@ -42,7 +42,6 @@
     "compat.packets.MixinTrainRelocationPacket",
     "compat.pr.MixinSeatBlock",
     "content.balloon.MixinLevelChunkBalloon",
-    "content.casing.MixinShaftBlock",
     "content.fan.MixinEncasedFanTileEntity",
     "content.universal_joint.MixinRotationPropagator"
   ],
