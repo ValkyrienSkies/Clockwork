@@ -1,4 +1,6 @@
 package org.valkyrienskies.clockwork.content.propulsion.afterblazer;
 
-public record AfterblazerUpdateData() {
+import org.joml.Vector2d;
+
+public record AfterblazerUpdateData(int heat, Vector2d gimbal) {
 }

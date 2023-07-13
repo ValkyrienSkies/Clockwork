@@ -1,20 +1,40 @@
 package org.valkyrienskies.clockwork.content.propulsion.afterblazer;
 
+import com.simibubi.create.content.schematics.SchematicWorld;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
+import com.simibubi.create.foundation.utility.Iterate;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
+import org.joml.Vector2d;
+import org.valkyrienskies.clockwork.ClockWorkPackets;
+import org.valkyrienskies.clockwork.data.ClockWorkTags;
+import org.valkyrienskies.clockwork.platform.SmartFluidTankBlockEntity;
 import org.valkyrienskies.clockwork.util.blocktype.IFuelableBlockEntity;
 import org.valkyrienskies.clockwork.util.blocktype.LiquidFuelType;
 import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour;
+import org.valkyrienskies.core.api.ships.LoadedServerShip;
+import org.valkyrienskies.core.api.ships.ServerShip;
+import org.valkyrienskies.mod.common.VSGameUtilsKt;
 
 import java.util.List;
 
-public class AfterblazerBlockEntity extends SmartBlockEntity implements IFuelableBlockEntity {
+public class AfterblazerBlockEntity extends SmartBlockEntity implements IFuelableBlockEntity, SmartFluidTankBlockEntity {
 
     public CWFluidTankBehaviour tank;
 
+    private int heat = 0;
+    private int prevHeat = 0;
+
+    private int redstoneLevel = 0;
+    private final Vector2d gimbal = new Vector2d();
 
     public AfterblazerBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -23,6 +43,67 @@ public class AfterblazerBlockEntity extends SmartBlockEntity implements IFuelabl
     @Override
     public void tick() {
         super.tick();
+        if (level == null)
+            return;
+
+        heat += heatUp();
+
+        if (heat > getMaxHeatCapacity()) {
+            int amount = 15 * (heat - getMaxHeatCapacity());
+            heat -= amount;
+        }
+
+        if (!level.isClientSide) {
+            if (prevHeat != heat) {
+                this.setChanged();
+            }
+        }
+
+        prevHeat = heat;
+
+        if (level.isClientSide) return;
+
+        LoadedServerShip ship = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, worldPosition);
+        if (ship != null) {
+
+        }
+    }
+
+    @Override
+    protected void write(CompoundTag tag, boolean clientPacket) {
+        tag.putInt("heat", heat);
+        tag.putInt("redstoneLevel", redstoneLevel);
+        tag.putDouble("gimbalX", gimbal.x);
+        tag.putDouble("gimbalY", gimbal.y);
+        super.write(tag, clientPacket);
+    }
+
+    @Override
+    protected void read(CompoundTag tag, boolean clientPacket) {
+        super.read(tag, clientPacket);
+        heat = tag.getInt("heat");
+        redstoneLevel = tag.getInt("redstoneLevel");
+        gimbal.x = tag.getDouble("gimbalX");
+        gimbal.y = tag.getDouble("gimbalY");
+    }
+
+    public int heatUp() {
+        int maxHeat = getMaxHeatCapacity();
+
+        if (heat >= maxHeat) {
+            return 0;
+        }
+        if (maxHeat == 0) {
+            return 0;
+        }
+
+        int falloff = (1 - (heat / maxHeat));
+
+        int amount = (5 * getFuelQuality().ordinal()) * falloff;
+
+        //todo booster stuff
+
+        return amount;
     }
 
     @Override
@@ -31,18 +112,92 @@ public class AfterblazerBlockEntity extends SmartBlockEntity implements IFuelabl
         behaviours.add(tank);
     }
 
+    public boolean hasValidFuelType() {
+        if (tank.isEmpty())
+            return false;
+
+        Fluid fuel = tank.getPrimaryHandler().getFluidType();
+        return ClockWorkTags.AllFluidTags.isValidFuel(fuel);
+    }
+
+    private float getThrottle() {
+        return ((float) redstoneLevel) / 15f;
+    }
+
     @Override
     public LiquidFuelType getFuelQuality() {
-        return null;
+        if (!hasValidFuelType()) {
+            return LiquidFuelType.NONE;
+        }
+
+        Fluid fuel = tank.getPrimaryHandler().getFluidType();
+        return LiquidFuelType.fromFluid(fuel);
     }
 
     @Override
     public int getRemainingFuel() {
-        return 0;
+        if (!hasValidFuelType()) {
+            return 0;
+        }
+
+        return tank.getPrimaryHandler().getCurrentAmount();
     }
 
     @Override
     public int getDrainRate() {
-        return 0;
+        return 4;
+    }
+
+    @Override
+    public CWFluidTankBehaviour getFluidTankBehaviour() {
+        return tank;
+    }
+
+    public int getHeat() {
+        return heat;
+    }
+
+    public void setHeat(int heat) {
+        this.heat = heat;
+    }
+
+    @Override
+    public void setChanged() {
+        super.setChanged();
+
+        if (getLevel() != null && !getLevel().isClientSide() && !(getLevel() instanceof SchematicWorld)) {
+            ClockWorkPackets.sendToNear(getLevel(), getBlockPos(), 64, new AfterblazerStatusPacket(this));
+        }
+    }
+
+    public int getMaxHeatCapacity() {
+        int cap = switch (getFuelQuality()) {
+            case NONE -> 0;
+            case STALE -> 1000;
+            case PLAIN -> 2000;
+            case SWEET -> 3000;
+            case GOURMET, EXTRA -> 5000;
+        };
+
+        cap = (int) (cap * (getThrottle()));
+        return cap;
+    }
+
+    public void getPower(Level worldIn, BlockPos pos) {
+        int power = 0;
+        for (Direction direction : Iterate.directions)
+            power = Math.max(worldIn.getSignal(pos.relative(direction), direction), power);
+        for (Direction direction : Iterate.directions)
+            power = Math.max(worldIn.getSignal(pos.relative(direction), Direction.UP), power);
+
+        redstoneLevel = power;
+    }
+
+    public int getRedstoneLevel() {
+        return redstoneLevel;
+    }
+
+    public void setRedstoneLevel(int redstoneLevel) {
+        this.redstoneLevel = redstoneLevel;
     }
 }

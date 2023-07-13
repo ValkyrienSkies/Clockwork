@@ -9,6 +9,7 @@ import net.minecraft.world.level.Level;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket;
 import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket;
+import org.valkyrienskies.clockwork.content.propulsion.afterblazer.AfterblazerStatusPacket;
 import org.valkyrienskies.clockwork.platform.SharedValues;
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket;
 import org.valkyrienskies.clockwork.platform.api.network.CWPacket;
@@ -24,7 +25,9 @@ public enum ClockWorkPackets {
 
     // Server to Client
 
-    COLORBLOCKENTITY(BlockEntityColorPacket.class, BlockEntityColorPacket::new)
+    COLORBLOCKENTITY(BlockEntityColorPacket.class, BlockEntityColorPacket::new),
+
+    AFTERBLAZERSTATUS(AfterblazerStatusPacket.class, AfterblazerStatusPacket::new)
     ;
 
     <T extends CWPacket> ClockWorkPackets(Class<T> type, Function<FriendlyByteBuf, T> factory) {
