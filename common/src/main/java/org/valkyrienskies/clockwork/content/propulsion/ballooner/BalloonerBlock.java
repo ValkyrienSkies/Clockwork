@@ -52,12 +52,6 @@ public class BalloonerBlock extends HorizontalKineticBlock implements IBE<Balloo
         return Direction.Axis.Y;
     }
 
-    @Nullable
-    @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return IBE.super.newBlockEntity(pos, state);
-    }
-
     @Override
     public SpeedLevel getMinimumRequiredSpeedLevel() {
         return SpeedLevel.of(1);

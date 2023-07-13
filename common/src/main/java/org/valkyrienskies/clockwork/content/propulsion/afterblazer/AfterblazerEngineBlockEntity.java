@@ -11,16 +11,22 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluid;
 import org.joml.Vector2d;
+import org.joml.Vector3d;
+import org.joml.Vector3dc;
 import org.valkyrienskies.clockwork.ClockWorkPackets;
+import org.valkyrienskies.clockwork.content.forces.AfterblazerController;
 import org.valkyrienskies.clockwork.data.ClockWorkTags;
 import org.valkyrienskies.clockwork.platform.SmartFluidTankBlockEntity;
 import org.valkyrienskies.clockwork.util.blocktype.IFuelableBlockEntity;
 import org.valkyrienskies.clockwork.util.blocktype.LiquidFuelType;
 import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
+import org.valkyrienskies.core.api.ships.ServerShip;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
+import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
 import java.util.List;
 
@@ -33,6 +39,8 @@ public class AfterblazerEngineBlockEntity extends SmartBlockEntity implements IF
 
     private int redstoneLevel = 0;
     private final Vector2d gimbal = new Vector2d();
+
+    private Integer afterblazerID = null;
 
     public AfterblazerEngineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -51,6 +59,10 @@ public class AfterblazerEngineBlockEntity extends SmartBlockEntity implements IF
             heat -= amount;
         }
 
+        if (hasValidFuelType()) {
+            tank.getPrimaryHandler().shrink(getDrainRate());
+        }
+
         if (!level.isClientSide) {
             if (prevHeat != heat) {
                 this.setChanged();
@@ -63,8 +75,30 @@ public class AfterblazerEngineBlockEntity extends SmartBlockEntity implements IF
 
         LoadedServerShip ship = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, worldPosition);
         if (ship != null) {
-
+            if (afterblazerID == null) {
+                Vector3dc pos = VectorConversionsMCKt.toJOMLD(worldPosition);
+                Vector3dc dir = VectorConversionsMCKt.toJOMLD(getBlockState().getValue(BlockStateProperties.FACING).getNormal());
+                AfterblazerCreateData data = new AfterblazerCreateData(pos, dir, heat, gimbal);
+                afterblazerID = AfterblazerController.getOrCreate(ship).addAfterblazer(data);
+            } else {
+                AfterblazerController.getOrCreate(ship).updateAfterblazer(afterblazerID, new AfterblazerUpdateData(heat, gimbal));
+            }
         }
+    }
+
+    @Override
+    public void remove() {
+        if (level != null) {
+            if (!level.isClientSide) {
+                ServerShip ship = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, worldPosition);
+                if (ship != null) {
+                    AfterblazerController controller = AfterblazerController.getOrCreate(ship);
+
+                    controller.removeAfterblazer(afterblazerID);
+                }
+            }
+        }
+        super.remove();
     }
 
     @Override
@@ -73,6 +107,9 @@ public class AfterblazerEngineBlockEntity extends SmartBlockEntity implements IF
         tag.putInt("redstoneLevel", redstoneLevel);
         tag.putDouble("gimbalX", gimbal.x);
         tag.putDouble("gimbalY", gimbal.y);
+        if (afterblazerID != null) {
+            tag.putInt("afterblazerID", afterblazerID);
+        }
         super.write(tag, clientPacket);
     }
 
@@ -83,6 +120,9 @@ public class AfterblazerEngineBlockEntity extends SmartBlockEntity implements IF
         redstoneLevel = tag.getInt("redstoneLevel");
         gimbal.x = tag.getDouble("gimbalX");
         gimbal.y = tag.getDouble("gimbalY");
+        if (tag.contains("afterblazerID")) {
+            afterblazerID = tag.getInt("afterblazerID");
+        }
     }
 
     public int heatUp() {
