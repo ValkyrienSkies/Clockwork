@@ -5,7 +5,7 @@ import com.simibubi.create.content.kinetics.base.ShaftInstance;
 import com.simibubi.create.content.kinetics.base.ShaftRenderer;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity;
-import org.valkyrienskies.clockwork.content.propulsion.afterblazer.AfterblazerBlockEntity;
+import org.valkyrienskies.clockwork.content.propulsion.afterblazer.AfterblazerEngineBlockEntity;
 import org.valkyrienskies.clockwork.content.propulsion.afterblazer.AfterblazerRenderer;
 import org.valkyrienskies.clockwork.content.propulsion.ballooner.BalloonerBlockEntity;
 import org.valkyrienskies.clockwork.content.propulsion.ballooner.BalloonerRenderer;
@@ -56,8 +56,8 @@ public class ClockWorkBlockEntities {
             .renderer(() -> SolverRenderer::new)
             .register();
 
-    public static final BlockEntityEntry<AfterblazerBlockEntity> AFTERBLAZER = REGISTRATE
-            .blockEntity("afterblazer", AfterblazerBlockEntity::new)
+    public static final BlockEntityEntry<AfterblazerEngineBlockEntity> AFTERBLAZER = REGISTRATE
+            .blockEntity("afterblazer", AfterblazerEngineBlockEntity::new)
             .validBlocks(ClockWorkBlocks.AFTERBLAZER)
             .renderer(() -> AfterblazerRenderer::new)
             .register();

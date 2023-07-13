@@ -8,7 +8,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -21,12 +20,11 @@ import org.valkyrienskies.clockwork.util.blocktype.IFuelableBlockEntity;
 import org.valkyrienskies.clockwork.util.blocktype.LiquidFuelType;
 import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
-import org.valkyrienskies.core.api.ships.ServerShip;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 
 import java.util.List;
 
-public class AfterblazerBlockEntity extends SmartBlockEntity implements IFuelableBlockEntity, SmartFluidTankBlockEntity {
+public class AfterblazerEngineBlockEntity extends SmartBlockEntity implements IFuelableBlockEntity, SmartFluidTankBlockEntity {
 
     public CWFluidTankBehaviour tank;
 
@@ -36,7 +34,7 @@ public class AfterblazerBlockEntity extends SmartBlockEntity implements IFuelabl
     private int redstoneLevel = 0;
     private final Vector2d gimbal = new Vector2d();
 
-    public AfterblazerBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+    public AfterblazerEngineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }
 

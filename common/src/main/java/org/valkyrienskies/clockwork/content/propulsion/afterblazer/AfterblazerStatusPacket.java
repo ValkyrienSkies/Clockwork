@@ -6,8 +6,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import org.valkyrienskies.clockwork.platform.api.network.ClientNetworkContext;
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket;
-import org.valkyrienskies.clockwork.util.blocktype.EngineHeatLevel;
-import org.valkyrienskies.clockwork.util.blocktype.LiquidFuelType;
 
 public class AfterblazerStatusPacket implements S2CCWPacket {
 
@@ -24,7 +22,7 @@ public class AfterblazerStatusPacket implements S2CCWPacket {
         power = nbt.getInt("Clockwork$power");
     }
 
-    public AfterblazerStatusPacket(AfterblazerBlockEntity be) {
+    public AfterblazerStatusPacket(AfterblazerEngineBlockEntity be) {
         pos = be.getBlockPos();
         heat = be.getHeat();
         power = be.getRedstoneLevel();
@@ -42,8 +40,8 @@ public class AfterblazerStatusPacket implements S2CCWPacket {
     @Override
     public void handle(ClientNetworkContext context) {
         context.enqueueWork(() -> {
-            if (Minecraft.getInstance().level != null && Minecraft.getInstance().level.getBlockEntity(pos) instanceof AfterblazerBlockEntity) {
-                AfterblazerBlockEntity ae = (AfterblazerBlockEntity) Minecraft.getInstance().level.getBlockEntity(pos);
+            if (Minecraft.getInstance().level != null && Minecraft.getInstance().level.getBlockEntity(pos) instanceof AfterblazerEngineBlockEntity) {
+                AfterblazerEngineBlockEntity ae = (AfterblazerEngineBlockEntity) Minecraft.getInstance().level.getBlockEntity(pos);
                 if (ae != null) {
                     ae.setHeat(heat);
                     ae.setRedstoneLevel(power);

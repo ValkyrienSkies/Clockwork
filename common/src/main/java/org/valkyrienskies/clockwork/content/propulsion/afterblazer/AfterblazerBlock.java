@@ -8,20 +8,19 @@ import net.minecraft.world.level.block.DirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.valkyrienskies.clockwork.ClockWorkBlockEntities;
-import org.valkyrienskies.clockwork.util.blocktype.IHeatableBlock;
 
-public class AfterblazerBlock extends DirectionalBlock implements IBE<AfterblazerBlockEntity> {
+public class AfterblazerBlock extends DirectionalBlock implements IBE<AfterblazerEngineBlockEntity> {
     public AfterblazerBlock(Properties properties) {
         super(properties);
     }
 
     @Override
-    public Class<AfterblazerBlockEntity> getBlockEntityClass() {
-        return AfterblazerBlockEntity.class;
+    public Class<AfterblazerEngineBlockEntity> getBlockEntityClass() {
+        return AfterblazerEngineBlockEntity.class;
     }
 
     @Override
-    public BlockEntityType<? extends AfterblazerBlockEntity> getBlockEntityType() {
+    public BlockEntityType<? extends AfterblazerEngineBlockEntity> getBlockEntityType() {
         return ClockWorkBlockEntities.AFTERBLAZER.get();
     }
 
