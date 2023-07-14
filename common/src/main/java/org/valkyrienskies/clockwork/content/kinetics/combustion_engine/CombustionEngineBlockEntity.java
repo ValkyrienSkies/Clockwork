@@ -263,4 +263,9 @@ public class CombustionEngineBlockEntity extends GeneratingKineticBlockEntity im
         return tank;
     }
 
+    @Override
+    public void setFluidTankBehaviour(CWFluidTankBehaviour tank) {
+        this.tank = tank;
+    }
+
 }

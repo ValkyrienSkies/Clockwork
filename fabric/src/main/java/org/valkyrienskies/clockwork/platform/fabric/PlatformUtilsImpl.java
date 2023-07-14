@@ -11,9 +11,13 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
+import org.valkyrienskies.clockwork.fabric.FabricClockworkFluids;
 import org.valkyrienskies.clockwork.fabric.FabricClockworkItems;
 import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
+import org.valkyrienskies.clockwork.platform.SharedValues;
+import org.valkyrienskies.clockwork.util.blocktype.LiquidFuelType;
 import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour;
 
 import java.util.Set;
@@ -130,5 +134,23 @@ public class PlatformUtilsImpl {
 
     public static boolean isModLoaded(String modId) {
         return FabricLoader.getInstance().isModLoaded(modId);
+    }
+
+    public static LiquidFuelType getLiquidFuelTypeFromItemStack(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return LiquidFuelType.NONE;
+        }
+        if (stack.getItem() instanceof BucketItem) {
+            if (stack.is(FabricClockworkFluids.VANILLA_FROSTING.get().getBucket())) {
+                return LiquidFuelType.STALE;
+            }
+            if (stack.is(FabricClockworkFluids.CHOCOLATE_FROSTING.get().getBucket())) {
+                return LiquidFuelType.PLAIN;
+            }
+            if (stack.is(FabricClockworkFluids.STRAWBERRY_FROSTING.get().getBucket())) {
+                return LiquidFuelType.SWEET;
+            }
+        }
+        return LiquidFuelType.NONE;
     }
 }

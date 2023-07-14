@@ -10,8 +10,17 @@ public class AfterblazerData {
     public final Vector3dc pos;
     public final Vector3dc direction;
 
-    public int heat;
+    public Integer heat;
     public Vector2d gimbal;
+
+    /**
+     * Default constructor for Jackson, should never be invoked manually
+     */
+    @Deprecated
+    public AfterblazerData() {
+        this.pos = null;
+        this.direction = null;
+    }
 
     public AfterblazerData(Vector3dc pos, Vector3dc direction, int heat, Vector2d gimbal) {
         this.pos = pos;

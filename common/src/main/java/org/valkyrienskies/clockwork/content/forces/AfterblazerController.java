@@ -76,9 +76,11 @@ public class AfterblazerController implements ShipForcesInducer {
     }
 
     private Pair<Vector3dc, Vector3dc> computeForce(ShipTransform physTransform, AfterblazerData physJet, Vector3dc vel, Vector3dc omega) {
-        Vector3dc jetVector = physJet.pos.add(0.5,0.5,0.5, new Vector3d()).sub(physTransform.getPositionInShip());
+        Vector3dc jetVector = physTransform.getShipToWorld().transformPosition(physJet.pos.add(0.5,0.5,0.5, new Vector3d()));
         double gimbalX = physJet.gimbal.x();
         double gimbalY = physJet.gimbal.y();
+
+        Vector3dc directionTransformed = physTransform.getShipToWorld().transformDirection(physJet.direction, new Vector3d());
 
         Vector3dc jetDirection = (physJet.direction).rotateX(gimbalX, new Vector3d()).rotateY(gimbalY);
 //        Vector3dc jetDirection = rotatedDir.rotate(jetRotation, new Vector3d());

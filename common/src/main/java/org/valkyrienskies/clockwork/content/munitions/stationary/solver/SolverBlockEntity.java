@@ -165,6 +165,11 @@ public class SolverBlockEntity extends KineticBlockEntity implements IFuelableBl
         return tank;
     }
 
+    @Override
+    public void setFluidTankBehaviour(CWFluidTankBehaviour tank) {
+        this.tank = tank;
+    }
+
     public boolean hasValidFuelType() {
         if (tank.isEmpty())
             return false;

@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.BlockHitResult;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.InputKey;
+import org.valkyrienskies.clockwork.util.blocktype.LiquidFuelType;
 import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour;
 
 import java.util.Set;
@@ -69,4 +70,7 @@ public class PlatformUtils {
 
     @ExpectPlatform
     public static void sequencedSeatKeysUpdated(ServerLevel level, BlockPos pos, Set<InputKey> keys) {throw new AssertionError();}
+
+    @ExpectPlatform
+    public static LiquidFuelType getLiquidFuelTypeFromItemStack(ItemStack stack) {throw new AssertionError();}
 }

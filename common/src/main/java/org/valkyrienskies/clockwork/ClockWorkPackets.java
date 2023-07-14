@@ -27,7 +27,8 @@ public enum ClockWorkPackets {
 
     COLORBLOCKENTITY(BlockEntityColorPacket.class, BlockEntityColorPacket::new),
 
-    AFTERBLAZERSTATUS(AfterblazerStatusPacket.class, AfterblazerStatusPacket::new)
+    AFTERBLAZERSTATUS(AfterblazerStatusPacket.class, AfterblazerStatusPacket::new),
+
     ;
 
     <T extends CWPacket> ClockWorkPackets(Class<T> type, Function<FriendlyByteBuf, T> factory) {

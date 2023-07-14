@@ -5,9 +5,12 @@ import com.tterrag.registrate.util.entry.EntityEntry;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatEntity;
 import org.valkyrienskies.clockwork.platform.api.network.PacketChannel;
 
+import java.util.ArrayList;
+import java.util.Set;
 import java.util.function.BiConsumer;
 
 public class SharedValues {
@@ -34,4 +37,9 @@ public class SharedValues {
         throw new AssertionError();
     }
     //endregion
+
+    @ExpectPlatform
+    public static ArrayList<Item> getFrostingBuckets() {
+        throw new AssertionError();
+    }
 }

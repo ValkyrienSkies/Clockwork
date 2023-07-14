@@ -14,7 +14,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import org.valkyrienskies.clockwork.ClockWorkMod;
-import org.valkyrienskies.clockwork.platform.entity.ForgeBluperGlueEntity;
 import org.valkyrienskies.clockwork.platform.entity.ForgeSequencedSeatEntity;
 
 public class ForgeClockworkEntities {

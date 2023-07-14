@@ -3,11 +3,13 @@ package org.valkyrienskies.clockwork.content.propulsion.afterblazer;
 import com.simibubi.create.content.schematics.SchematicWorld;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
+import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import com.simibubi.create.foundation.utility.Iterate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -57,6 +59,7 @@ public class AfterblazerEngineBlockEntity extends SmartBlockEntity implements IF
         if (heat > getMaxHeatCapacity()) {
             int amount = 15 * (heat - getMaxHeatCapacity());
             heat -= amount;
+            heat = Mth.clamp(heat, 0, heat);
         }
 
         if (hasValidFuelType()) {
@@ -191,6 +194,11 @@ public class AfterblazerEngineBlockEntity extends SmartBlockEntity implements IF
         return tank;
     }
 
+    @Override
+    public void setFluidTankBehaviour(CWFluidTankBehaviour tank) {
+        this.tank = tank;
+    }
+
     public int getHeat() {
         return heat;
     }
@@ -237,5 +245,13 @@ public class AfterblazerEngineBlockEntity extends SmartBlockEntity implements IF
 
     public void setRedstoneLevel(int redstoneLevel) {
         this.redstoneLevel = redstoneLevel;
+    }
+
+    public boolean tryAddBucket(LiquidFuelType fuelType) {
+        if (tank.getPrimaryHandler().getSpaceLeft() >= 1000 && (fuelType.equals(getFuelQuality()))) {
+            tank.getPrimaryHandler().grow(1000);
+            return true;
+        }
+        return false;
     }
 }

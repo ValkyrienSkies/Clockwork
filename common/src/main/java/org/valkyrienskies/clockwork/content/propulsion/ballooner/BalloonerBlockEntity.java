@@ -490,4 +490,9 @@ public class BalloonerBlockEntity extends KineticBlockEntity implements IHaveGog
     public CWFluidTankBehaviour getFluidTankBehaviour() {
         return tank;
     }
+
+    @Override
+    public void setFluidTankBehaviour(CWFluidTankBehaviour tank) {
+        this.tank = tank;
+    }
 }
