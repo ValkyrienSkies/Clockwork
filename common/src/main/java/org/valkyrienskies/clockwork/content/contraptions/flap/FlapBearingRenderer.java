@@ -2,11 +2,11 @@ package org.valkyrienskies.clockwork.content.contraptions.flap;
 
 import com.jozufozu.flywheel.core.PartialModel;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.simibubi.create.AllBlockPartials;
-import com.simibubi.create.content.contraptions.base.KineticTileEntity;
-import com.simibubi.create.content.contraptions.base.KineticTileEntityRenderer;
-import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingBlock;
-import com.simibubi.create.content.contraptions.components.structureMovement.bearing.IBearingTileEntity;
+import com.simibubi.create.AllPartialModels;
+import com.simibubi.create.content.contraptions.bearing.BearingBlock;
+import com.simibubi.create.content.contraptions.bearing.IBearingBlockEntity;
+import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
+import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 import com.simibubi.create.foundation.render.CachedBufferer;
 import com.simibubi.create.foundation.render.SuperByteBuffer;
 import com.simibubi.create.foundation.utility.AngleHelper;
@@ -18,21 +18,21 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.valkyrienskies.clockwork.ClockWorkPartials;
 
-public class FlapBearingRenderer extends KineticTileEntityRenderer {
+public class FlapBearingRenderer extends KineticBlockEntityRenderer<FlapBearingBlockEntity> {
 
     public FlapBearingRenderer(BlockEntityRendererProvider.Context context) {
         super(context);
     }
 
     @Override
-    protected void renderSafe(KineticTileEntity te, float partialTicks, PoseStack ms, MultiBufferSource buffer,
+    protected void renderSafe(FlapBearingBlockEntity te, float partialTicks, PoseStack ms, MultiBufferSource buffer,
                               int light, int overlay) {
 
 //        if (Backend.canUseInstancing(te.getLevel())) return;
 
         super.renderSafe(te, partialTicks, ms, buffer, light, overlay);
 
-        IBearingTileEntity bearingTe = (IBearingTileEntity) te;
+        IBearingBlockEntity bearingTe = (IBearingBlockEntity) te;
         final Direction facing = te.getBlockState()
                 .getValue(BlockStateProperties.FACING);
         PartialModel top = ClockWorkPartials.BEARING_TOP_FLAP;
@@ -50,8 +50,8 @@ public class FlapBearingRenderer extends KineticTileEntityRenderer {
     }
 
     @Override
-    protected SuperByteBuffer getRotatedModel(KineticTileEntity te, BlockState state) {
-        return CachedBufferer.partialFacing(AllBlockPartials.SHAFT_HALF, state, state
+    protected SuperByteBuffer getRotatedModel(FlapBearingBlockEntity te, BlockState state) {
+        return CachedBufferer.partialFacing(AllPartialModels.SHAFT_HALF, state, state
                 .getValue(BearingBlock.FACING)
                 .getOpposite());
     }

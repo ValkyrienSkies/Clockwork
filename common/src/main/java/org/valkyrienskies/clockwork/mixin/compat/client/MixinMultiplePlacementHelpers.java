@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.mixin.compat.client;
 
-import com.simibubi.create.foundation.utility.placement.PlacementOffset;
+import com.simibubi.create.foundation.placement.PlacementOffset;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -19,10 +19,10 @@ import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
 @Mixin(targets = {
-        "com.simibubi.create.content.contraptions.components.structureMovement.bearing.SailBlock$PlacementHelper",
-        "com.simibubi.create.foundation.utility.placement.util.PoleHelper",
-        "com.simibubi.create.content.curiosities.girder.GirderPlacementHelper",
-        "com.simibubi.create.content.logistics.trains.management.display.FlapDisplayBlock$PlacementHelper"
+        "com.simibubi.create.content.contraptions.bearing.SailBlock$PlacementHelper",
+        "com.simibubi.create.foundation.placement.PoleHelper",
+        "com.simibubi.create.content.decoration.girder.GirderPlacementHelper",
+        "com.simibubi.create.content.trains.display.FlapDisplayBlock$PlacementHelper"
 })
 public class MixinMultiplePlacementHelpers {
 

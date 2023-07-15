@@ -1,16 +1,19 @@
 package org.valkyrienskies.clockwork.platform.forge;
 
-import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
-import com.simibubi.create.foundation.tileEntity.behaviour.BehaviourType;
+import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
+import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.network.NetworkHooks;
+import org.valkyrienskies.clockwork.forge.ForgeClockworkFluids;
 import org.valkyrienskies.clockwork.forge.ForgeClockworkItems;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
+import org.valkyrienskies.clockwork.util.blocktype.LiquidFuelType;
 import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour;
 
 public class PlatformUtilsImpl {
@@ -125,15 +128,33 @@ public class PlatformUtilsImpl {
 //
 //    public static BlockEntityType<? extends CombustionEngineBlockEntity> getCombustionEngineTileEntityType() {throw new AssertionError();}
 
-    public static boolean isCannon(ItemStack stack) {
-        return ForgeClockworkItems.PASTRYMAKER.get().isCannon(stack);
-    }
+//    public static boolean isCannon(ItemStack stack) {
+//        return ForgeClockworkItems.PASTRYMAKER.get().isCannon(stack);
+//    }
 
-    public static CWFluidTankBehaviour cwFluidTank(BehaviourType<CWFluidTankBehaviour> type, SmartTileEntity te, int tanks, long tankCapacity, boolean enforceVariety) {
+    public static CWFluidTankBehaviour cwFluidTank(BehaviourType<CWFluidTankBehaviour> type, SmartBlockEntity te, int tanks, long tankCapacity, boolean enforceVariety) {
         return new ForgeCWFluidTankBehaviour(type, te, tanks, tankCapacity, enforceVariety);
     }
 
     public static boolean isModLoaded(String modId) {
         return ModList.get().isLoaded(modId);
+    }
+
+    public static LiquidFuelType getLiquidFuelTypeFromItemStack(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return LiquidFuelType.NONE;
+        }
+        if (stack.getItem() instanceof BucketItem) {
+            if (stack.is(ForgeClockworkFluids.VANILLA_FROSTING.get().getBucket())) {
+                return LiquidFuelType.STALE;
+            }
+            if (stack.is(ForgeClockworkFluids.CHOCOLATE_FROSTING.get().getBucket())) {
+                return LiquidFuelType.PLAIN;
+            }
+            if (stack.is(ForgeClockworkFluids.STRAWBERRY_FROSTING.get().getBucket())) {
+                return LiquidFuelType.SWEET;
+            }
+        }
+        return LiquidFuelType.NONE;
     }
 }

@@ -13,11 +13,11 @@ import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
 @Mixin(targets = {
-        "com.simibubi.create.content.contraptions.relays.elementary.CogwheelBlockItem$SmallCogHelper",
-        "com.simibubi.create.content.contraptions.relays.elementary.CogwheelBlockItem$LargeCogHelper",
-        "com.simibubi.create.content.contraptions.relays.elementary.CogwheelBlockItem$DiagonalCogHelper",
-        "com.simibubi.create.content.contraptions.relays.elementary.CogwheelBlockItem$IntegratedLargeCogHelper",
-        "com.simibubi.create.content.contraptions.relays.elementary.CogwheelBlockItem$IntegratedSmallCogHelper"
+        "com.simibubi.create.content.kinetics.simpleRelays.CogwheelBlockItem$SmallCogHelper",
+        "com.simibubi.create.content.kinetics.simpleRelays.CogwheelBlockItem$LargeCogHelper",
+        "com.simibubi.create.content.kinetics.simpleRelays.CogwheelBlockItem$DiagonalCogHelper",
+        "com.simibubi.create.content.kinetics.simpleRelays.CogwheelBlockItem$IntegratedLargeCogHelper",
+        "com.simibubi.create.content.kinetics.simpleRelays.CogwheelBlockItem$IntegratedSmallCogHelper"
 })
 public class MixinCogwheelBlockItem {
     @Redirect(method = "getOffset", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/phys/BlockHitResult;getLocation()Lnet/minecraft/world/phys/Vec3;"))

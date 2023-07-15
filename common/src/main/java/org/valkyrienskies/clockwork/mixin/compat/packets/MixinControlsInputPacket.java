@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.mixin.compat.packets;
 
-import com.simibubi.create.content.contraptions.components.structureMovement.interaction.controls.ControlsInputPacket;
+import com.simibubi.create.content.contraptions.actors.trainControls.ControlsInputPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Position;
 import net.minecraft.server.level.ServerPlayer;

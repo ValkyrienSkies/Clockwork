@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.fabric.config;
 
-import com.simibubi.create.foundation.block.BlockStressDefaults;
-import com.simibubi.create.foundation.block.BlockStressValues;
+import com.simibubi.create.content.kinetics.BlockStressDefaults;
+import com.simibubi.create.content.kinetics.BlockStressValues;
 import com.simibubi.create.foundation.config.ConfigBase;
 import com.simibubi.create.foundation.utility.Couple;
 import com.simibubi.create.foundation.utility.RegisteredObjects;
@@ -20,7 +20,7 @@ public class CWStress extends ConfigBase implements BlockStressValues.IStressVal
     private final Map<ResourceLocation, ForgeConfigSpec.ConfigValue<Double>> impacts = new HashMap<>();
 
     @Override
-    protected void registerAll(ForgeConfigSpec.Builder builder) {
+    public void registerAll(ForgeConfigSpec.Builder builder) {
         builder.comment(".", Comments.su, Comments.impact)
                 .push("impact");
         BlockStressDefaults.DEFAULT_IMPACTS.forEach((r, i) -> {

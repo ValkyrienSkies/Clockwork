@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork;
 
-import com.simibubi.create.content.contraptions.particle.ICustomParticleData;
+import com.simibubi.create.foundation.particle.ICustomParticleData;
 import com.simibubi.create.foundation.utility.Lang;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;

@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.mixin.compat.client;
 
-import com.simibubi.create.content.logistics.trains.track.TrackBlockOutline;
+import com.simibubi.create.content.trains.track.TrackBlockOutline;
 import com.simibubi.create.foundation.utility.RaycastHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;

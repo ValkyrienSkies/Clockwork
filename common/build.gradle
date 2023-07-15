@@ -29,6 +29,8 @@ dependencies {
     // Do NOT use other classes from fabric loader
     modImplementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
 
+    include(modApi("dev.architectury:architectury:${rootProject.architectury_version}"))
+
     // Compile against Create Fabric in common
     // beware of differences across platforms!
     // dependencies must also be pulled in to minimize problems, from remapping issues to compile errors.
@@ -38,7 +40,7 @@ dependencies {
             { exclude group: 'com.github.AlphaMode', module: 'fakeconfigtoml' }
 
     // VS2
-    modApi("org.valkyrienskies:valkyrienskies-118-common:${vs2_version}")
+    modApi("org.valkyrienskies:valkyrienskies-118-common:${rootProject.vs2_version}")
     implementation("org.valkyrienskies.core:api:1.1.0+2b2f93f793") { transitive = false }
 
     // Kotlin

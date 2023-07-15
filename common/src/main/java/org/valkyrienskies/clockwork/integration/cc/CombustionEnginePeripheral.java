@@ -4,7 +4,7 @@ import dan200.computercraft.api.lua.LuaFunction;
 import dan200.computercraft.api.peripheral.IPeripheral;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.valkyrienskies.clockwork.content.contraptions.combustion_engine.CombustionEngineBlockEntity;
+import org.valkyrienskies.clockwork.content.kinetics.combustion_engine.CombustionEngineBlockEntity;
 
 public class CombustionEnginePeripheral implements IPeripheral {
     private final CombustionEngineBlockEntity engine;
@@ -37,11 +37,6 @@ public class CombustionEnginePeripheral implements IPeripheral {
     @LuaFunction
     public final long getFuelCapacity() {
         return this.engine.tank.getPrimaryHandler().getTotalCapacity();
-    }
-
-    @LuaFunction
-    public final String getFuelBooster() {
-        return this.engine.getFuelBooster().name();
     }
 
     @LuaFunction

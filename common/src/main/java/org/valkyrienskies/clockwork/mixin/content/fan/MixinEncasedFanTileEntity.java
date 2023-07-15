@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.mixin.content.fan;
 
-import com.simibubi.create.content.contraptions.base.KineticTileEntity;
-import com.simibubi.create.content.contraptions.components.fan.EncasedFanTileEntity;
+import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
+import com.simibubi.create.content.kinetics.fan.EncasedFanBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -16,15 +16,15 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.valkyrienskies.clockwork.content.contraptions.fan.EncasedFanCreateData;
-import org.valkyrienskies.clockwork.content.contraptions.fan.EncasedFanUpdateData;
+import org.valkyrienskies.clockwork.content.propulsion.fan.EncasedFanCreateData;
+import org.valkyrienskies.clockwork.content.propulsion.fan.EncasedFanUpdateData;
 import org.valkyrienskies.clockwork.content.forces.EncasedFanController;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
-@Mixin(EncasedFanTileEntity.class)
-public abstract class MixinEncasedFanTileEntity extends KineticTileEntity {
+@Mixin(EncasedFanBlockEntity.class)
+public abstract class MixinEncasedFanTileEntity extends KineticBlockEntity {
 
 //    @Shadow(remap = false)
 //    LerpedFloat visualSpeed;

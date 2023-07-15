@@ -4,8 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Quaternion;
 import com.mojang.math.Vector3f;
-import com.simibubi.create.content.contraptions.base.KineticTileEntity;
-import com.simibubi.create.content.contraptions.base.KineticTileEntityRenderer;
+import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 import com.simibubi.create.foundation.render.CachedBufferer;
 import com.simibubi.create.foundation.render.SuperByteBuffer;
 import com.simibubi.create.foundation.utility.AngleHelper;
@@ -21,15 +20,15 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3d;
 import org.valkyrienskies.clockwork.ClockWorkPartials;
 
-public class PhysBearingRenderer extends KineticTileEntityRenderer {
+public class PhysBearingRenderer extends KineticBlockEntityRenderer<PhysBearingBlockEntity> {
     public PhysBearingRenderer(BlockEntityRendererProvider.Context context) {
         super(context);
     }
 
     @Override
-    protected void renderSafe(KineticTileEntity te, float partialTicks, PoseStack ms, MultiBufferSource buffer,
+    protected void renderSafe(PhysBearingBlockEntity te, float partialTicks, PoseStack ms, MultiBufferSource buffer,
                               int light, int overlay) {
-        if (!(te instanceof PhysBearingBlockEntity))
+        if (te == null)
             return;
 
 

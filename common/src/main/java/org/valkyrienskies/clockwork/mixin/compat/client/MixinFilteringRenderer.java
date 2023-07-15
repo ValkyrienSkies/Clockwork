@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.mixin.compat.client;
 
-import com.simibubi.create.foundation.tileEntity.behaviour.filtering.FilteringRenderer;
+import com.simibubi.create.foundation.blockEntity.behaviour.filtering.FilteringRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
@@ -21,7 +21,7 @@ public class MixinFilteringRenderer {
     }
 
     @Redirect(
-            method = "renderOnTileEntity",
+            method = "renderOnBlockEntity",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/phys/Vec3;distanceToSqr(Lnet/minecraft/world/phys/Vec3;)D")
     )
     private static double redirectDistanceToSqr(Vec3 instance, Vec3 vec) {

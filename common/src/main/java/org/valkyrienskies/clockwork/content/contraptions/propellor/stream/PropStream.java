@@ -1,9 +1,9 @@
 package org.valkyrienskies.clockwork.content.contraptions.propellor.stream;
 
 import com.simibubi.create.AllTags;
-import com.simibubi.create.content.contraptions.particle.AirFlowParticleData;
-import com.simibubi.create.foundation.config.AllConfigs;
+import com.simibubi.create.content.kinetics.fan.AirFlowParticleData;
 import com.simibubi.create.foundation.utility.VecHelper;
+import com.simibubi.create.infrastructure.config.AllConfigs;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -157,7 +157,7 @@ public class PropStream {
                 Vec3 pos = VecHelper.getCenterOf(source.getStreamPos())
                         .add(Vec3.atLowerCornerOf(facing.getNormal())
                                 .scale(offset));
-                if (world.random.nextFloat() < AllConfigs.CLIENT.fanParticleDensity.get())
+                if (world.random.nextFloat() < AllConfigs.client().fanParticleDensity.get())
                     world.addParticle(new AirFlowParticleData(source.getStreamPos()), pos.x, pos.y, pos.z, 0, 0, 0);
             }
 

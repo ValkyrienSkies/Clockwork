@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.mixin.compat;
 
-import com.simibubi.create.content.contraptions.components.fan.AirCurrent;
-import com.simibubi.create.content.contraptions.components.fan.IAirCurrentSource;
+import com.simibubi.create.content.kinetics.fan.AirCurrent;
+import com.simibubi.create.content.kinetics.fan.IAirCurrentSource;
 import com.simibubi.create.foundation.utility.VecHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

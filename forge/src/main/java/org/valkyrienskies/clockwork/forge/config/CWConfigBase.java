@@ -5,7 +5,7 @@ import net.minecraftforge.common.ForgeConfigSpec;
 
 public abstract class CWConfigBase extends ConfigBase {
     @Override
-    protected void registerAll(final ForgeConfigSpec.Builder builder) {
+    public void registerAll(final ForgeConfigSpec.Builder builder) {
         if (this.allValues != null) super.registerAll(builder);
     }
 }

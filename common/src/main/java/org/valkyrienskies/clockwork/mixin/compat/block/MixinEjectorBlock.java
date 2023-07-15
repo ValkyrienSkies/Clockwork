@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.mixin.compat.block;
 
-import com.simibubi.create.content.logistics.block.depot.EjectorBlock;
+import com.simibubi.create.content.logistics.depot.EjectorBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;

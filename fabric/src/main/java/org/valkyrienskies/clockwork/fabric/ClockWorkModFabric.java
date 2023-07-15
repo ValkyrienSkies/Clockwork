@@ -28,7 +28,6 @@ public class ClockWorkModFabric implements ModInitializer {
         ClockWorkParticles.init();
         AllClockworkConfigs.init();
 
-        FabricClockworkParticles.init();
         FabricClockworkSounds.init();
         FallbackFabricTransfer.init();
 
@@ -86,7 +85,6 @@ public class ClockWorkModFabric implements ModInitializer {
             FabricClockworkPartials.init();
 
             ClockWorkParticles.initClient();
-            FabricClockworkParticles.initClient();
 
             registerClientEvents();
             registerClientEvents();

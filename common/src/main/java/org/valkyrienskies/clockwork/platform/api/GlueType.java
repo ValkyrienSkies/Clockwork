@@ -1,13 +1,13 @@
 package org.valkyrienskies.clockwork.platform.api;
 
-import com.simibubi.create.content.contraptions.components.structureMovement.glue.SuperGlueEntity;
+import com.simibubi.create.content.contraptions.glue.SuperGlueEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
-import org.valkyrienskies.clockwork.content.curiosities.tools.bluperglue.BluperGlueEntity;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public interface GlueType {
@@ -36,12 +36,14 @@ public interface GlueType {
 
         @Override
         public boolean isBluGlued(LevelAccessor level, BlockPos pos, Direction dir, Set<Entity> cache) {
-            return BluperGlueEntity.isBluGlued(level, pos, dir, (Set) cache);
+            return false;
+//            return BluperGlueEntity.isBluGlued(level, pos, dir, (Set) cache);
         }
 
         @Override
         public Set<Entity> caughtEntities(Level level, BlockPos startPos, BlockPos endPos) {
-            return BluperGlueEntity.searchGlueGroupForEntities(level, startPos, endPos);
+            return new HashSet<>();
+//            return BluperGlueEntity.searchGlueGroupForEntities(level, startPos, endPos);
         }
     };
 

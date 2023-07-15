@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.util.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.simibubi.create.foundation.item.render.CustomRenderedItemModel;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer;
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer;
 import com.simibubi.create.foundation.render.CachedBufferer;
@@ -15,18 +16,13 @@ import net.minecraft.world.item.ItemStack;
 import org.valkyrienskies.clockwork.ClockWorkBlocks;
 import org.valkyrienskies.clockwork.ClockWorkPartials;
 
-public class WingBlockItemRenderer extends CustomRenderedItemModelRenderer<WingModel> {
+public class WingBlockItemRenderer extends CustomRenderedItemModelRenderer {
     @Override
-    protected void render(ItemStack stack, WingModel model, PartialItemModelRenderer renderer, ItemTransforms.TransformType transformType, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
+    protected void render(ItemStack stack, CustomRenderedItemModel model, PartialItemModelRenderer renderer, ItemTransforms.TransformType transformType, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
         if (transformType.firstPerson())
             renderFirstPerson(stack, buffer, ms, light);
         else
             renderInventory(stack, buffer, ms, light);
-    }
-
-    @Override
-    public WingModel createModel(BakedModel originalModel) {
-        return new WingModel(originalModel);
     }
 
     private void renderInventory(ItemStack stack, MultiBufferSource buffer, PoseStack ms, int light) {

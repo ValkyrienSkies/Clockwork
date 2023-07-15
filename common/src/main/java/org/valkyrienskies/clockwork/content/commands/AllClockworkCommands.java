@@ -20,7 +20,7 @@ public class AllClockworkCommands {
         LiteralCommandNode<CommandSourceStack> createRoot = dispatcher.register(Commands.literal("vs_clockwork")
                         .requires(cs -> cs.hasPermission(0))
                         // general purpose
-                        .then(BluperCommand.register())
+//                        .then(BluperCommand.register())
 
                 // utility
         );

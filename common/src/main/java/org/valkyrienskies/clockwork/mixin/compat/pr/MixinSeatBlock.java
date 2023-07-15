@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.mixin.compat.pr;
 
-import com.simibubi.create.content.contraptions.components.actors.SeatBlock;
-import com.simibubi.create.content.contraptions.components.actors.SeatEntity;
+import com.simibubi.create.content.contraptions.actors.seat.SeatBlock;
+import com.simibubi.create.content.contraptions.actors.seat.SeatEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.TamableAnimal;

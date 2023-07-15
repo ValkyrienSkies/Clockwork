@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.content.contraptions.propellor.stream;
 
-import com.simibubi.create.foundation.config.AllConfigs;
-import com.simibubi.create.foundation.config.CKinetics;
+import com.simibubi.create.infrastructure.config.AllConfigs;
+import com.simibubi.create.infrastructure.config.CKinetics;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -36,7 +36,7 @@ public interface IPropStreamSource {
 
     default float getMaxDistance() {
         float speed = Math.abs(this.getSpeed());
-        CKinetics config = AllConfigs.SERVER.kinetics;
+        CKinetics config = AllConfigs.server().kinetics;
         float distanceFactor = Math.min(speed / config.fanRotationArgmax.get(), 1);
         float pushDistance = Mth.lerp(distanceFactor, 3, config.fanPushDistance.get());
         float pullDistance = Mth.lerp(distanceFactor, 3f, config.fanPullDistance.get());

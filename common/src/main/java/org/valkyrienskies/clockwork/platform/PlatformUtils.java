@@ -1,9 +1,7 @@
 package org.valkyrienskies.clockwork.platform;
 
-import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
-import com.simibubi.create.foundation.tileEntity.behaviour.BehaviourType;
-import com.simibubi.create.foundation.tileEntity.behaviour.fluid.SmartFluidTankBehaviour;
-import dan200.computercraft.shared.computer.blocks.TileComputer;
+import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
+import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
@@ -19,8 +17,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.BlockHitResult;
-import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity;
-import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.InputKey;
+import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.InputKey;
+import org.valkyrienskies.clockwork.util.blocktype.LiquidFuelType;
 import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour;
 
 import java.util.Set;
@@ -65,11 +63,14 @@ public class PlatformUtils {
     public static boolean isCannon(ItemStack stack) {throw new AssertionError();}
 
     @ExpectPlatform
-    public static CWFluidTankBehaviour cwFluidTank(BehaviourType<CWFluidTankBehaviour> type, SmartTileEntity te, int tanks, long tankCapacity, boolean enforceVariety) {throw new AssertionError();}
+    public static CWFluidTankBehaviour cwFluidTank(BehaviourType<CWFluidTankBehaviour> type, SmartBlockEntity te, int tanks, long tankCapacity, boolean enforceVariety) {throw new AssertionError();}
 
     @ExpectPlatform
     public static boolean isModLoaded(String modId) {throw new AssertionError();}
 
     @ExpectPlatform
     public static void sequencedSeatKeysUpdated(ServerLevel level, BlockPos pos, Set<InputKey> keys) {throw new AssertionError();}
+
+    @ExpectPlatform
+    public static LiquidFuelType getLiquidFuelTypeFromItemStack(ItemStack stack) {throw new AssertionError();}
 }

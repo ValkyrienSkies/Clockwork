@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.mixin.compat;
 
-import com.simibubi.create.content.logistics.IRedstoneLinkable;
-import com.simibubi.create.content.logistics.RedstoneLinkNetworkHandler;
+import com.simibubi.create.content.redstone.link.IRedstoneLinkable;
+import com.simibubi.create.content.redstone.link.RedstoneLinkNetworkHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.level.Level;

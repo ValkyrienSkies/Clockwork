@@ -17,8 +17,8 @@ import net.minecraft.world.phys.Vec3;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
 import org.valkyrienskies.clockwork.ClockWorkShaders;
-import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserBlockEntity;
-import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserRenderer;
+import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity;
+import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer;
 import org.valkyrienskies.core.api.ships.ClientShip;
 
 @Environment(EnvType.CLIENT)

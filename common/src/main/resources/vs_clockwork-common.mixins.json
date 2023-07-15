@@ -42,8 +42,6 @@
     "compat.packets.MixinTrainRelocationPacket",
     "compat.pr.MixinSeatBlock",
     "content.balloon.MixinLevelChunkBalloon",
-    "content.casing.MixinShaftBlock",
-    "content.propellor.MixinBearingContraption",
     "content.fan.MixinEncasedFanTileEntity",
     "content.universal_joint.MixinRotationPropagator"
   ],
@@ -65,7 +63,6 @@
     "compat.client.MixinSoundScapes",
     "compat.client.MixinTileEntityRenderHelper",
     "compat.client.MixinTrackBlockOutline",
-    "compat.client.MixinTrackTargetingBehaviour",
     "compat.client.MixinTrainRelocator",
     "content.pulse.MixinLevelRenderer"
   ],

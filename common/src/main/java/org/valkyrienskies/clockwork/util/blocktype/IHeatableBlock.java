@@ -2,28 +2,18 @@ package org.valkyrienskies.clockwork.util.blocktype;
 
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlock;
 
 public interface IHeatableBlock {
 
-    public static final EnumProperty<EngineHeatLevel> HEAT_LEVEL = EnumProperty.create("blaze", EngineHeatLevel.class);
+    public float heat = 0.0f;
 
-    public static final EnumProperty<LiquidFuelType> FUEL_TYPE = EnumProperty.create("fuel", LiquidFuelType.class);
-
-    public static final EnumProperty<FuelBoosterType> BOOSTER = EnumProperty.create("booster", FuelBoosterType.class);
+    public static final EnumProperty<EngineHeatLevel> HEAT_LEVEL = EnumProperty.create("heat", EngineHeatLevel.class);
 
     static EngineHeatLevel getHeatLevelOf(BlockState blockState) {
         return blockState.hasProperty(HEAT_LEVEL) ? blockState.getValue(HEAT_LEVEL)
                 : EngineHeatLevel.SMOULDERING;
     }
 
-    static int getLight(BlockState state) {
-        EngineHeatLevel level = state.getValue(HEAT_LEVEL);
-        return switch (level) {
-            case SMOULDERING -> 8;
-            case INFURIATED -> 20;
-            default -> 15;
-        };
-    }
+
 
 }

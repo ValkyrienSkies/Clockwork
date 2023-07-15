@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.mixin.compat.client;
 
-import com.simibubi.create.content.logistics.trains.entity.TrainRelocator;
+import com.simibubi.create.content.trains.entity.TrainRelocator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Position;
 import net.minecraft.world.level.Level;

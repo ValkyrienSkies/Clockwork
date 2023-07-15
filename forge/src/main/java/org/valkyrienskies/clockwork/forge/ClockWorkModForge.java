@@ -60,7 +60,7 @@ public class ClockWorkModForge {
         ClockWorkEntities.register();
         ForgeClockworkEntities.register();
 
-        AllClockworkParticles.init(modEventBus);
+        ClockWorkParticles.init();
         AllClockworkConfigs.register(modLoadingContext);
 
         ClockWorkSounds.register();
@@ -70,9 +70,7 @@ public class ClockWorkModForge {
         ClockWorkPackets.init();
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-            FMLJavaModLoadingContext.get()
-                    .getModEventBus().addListener(AllClockworkParticles::register);
-
+            ClockWorkParticles.initClient();
             // In create itself they do it FMLClientSetupEvent this does not work (what a scam)
             // It prob gets staticly loaded earlier and well yhea...
             ClockWorkPartials.init();

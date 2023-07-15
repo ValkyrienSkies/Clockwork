@@ -8,9 +8,9 @@ import org.joml.Quaterniond;
 import org.joml.Quaterniondc;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
-import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerCreateData;
-import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerData;
-import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerUpdateData;
+import org.valkyrienskies.clockwork.content.propulsion.afterblazer.AfterblazerCreateData;
+import org.valkyrienskies.clockwork.content.propulsion.afterblazer.AfterblazerData;
+import org.valkyrienskies.clockwork.content.propulsion.afterblazer.AfterblazerUpdateData;
 import org.valkyrienskies.clockwork.util.blocktype.LiquidFuelType;
 import org.valkyrienskies.core.api.ships.PhysShip;
 import org.valkyrienskies.core.api.ships.ServerShip;
@@ -38,12 +38,10 @@ public class AfterblazerController implements ShipForcesInducer {
         while (!createdJets.isEmpty()) {
             final Pair<Integer, AfterblazerCreateData> createData = createdJets.remove();
             afterblazerData.put(createData.component1(), new AfterblazerData(
-                    createData.component2().jetDirection(),
-                    createData.component2().jetBurnTime(),
-                    createData.component2().heatLevel(),
-                    createData.component2().redstoneLevel(),
-                    createData.component2().jetPos(),
-                    createData.component2().jetGimbal()
+                    createData.component2().pos(),
+                    createData.component2().direction(),
+                    createData.component2().heat(),
+                    createData.component2().gimbal()
             ));
         }
         while (!removedJets.isEmpty()) {
@@ -55,11 +53,8 @@ public class AfterblazerController implements ShipForcesInducer {
             if (physData == null) {
                 return;
             }
-            physData.jetBurnTime = data.jetBurnTime();
-            physData.heatLevel = data.heatLevel();
-            physData.redstoneLevel = data.redstoneLevel();
-            physData.jetGimbal = data.jetGimbal();
-            physData.overYMax = data.overYMax();
+            physData.heat = data.heat();
+            physData.gimbal = data.gimbal();
         });
 
         afterblazerUpdateData.clear();
@@ -81,40 +76,21 @@ public class AfterblazerController implements ShipForcesInducer {
     }
 
     private Pair<Vector3dc, Vector3dc> computeForce(ShipTransform physTransform, AfterblazerData physJet, Vector3dc vel, Vector3dc omega) {
-        Vector3dc jetVector = physJet.jetPos.add(0.5,0.5,0.5, new Vector3d()).sub(physTransform.getPositionInShip());
-        double gimbalX = physJet.jetGimbal.x();
-        double gimbalY = physJet.jetGimbal.y();
-        double throttle = physJet.redstoneLevel/15f;
-        double multiplier = switch (physJet.heatLevel) {
-            case GOURMET, EXTRA -> 3;
-            case SWEET -> 1.5;
-            case PLAIN -> 1;
-            case STALE -> 0.5;
-            default -> 0;
-        };
+        Vector3dc jetVector = physTransform.getShipToWorld().transformPosition(physJet.pos.add(0.5,0.5,0.5, new Vector3d()));
+        double gimbalX = physJet.gimbal.x();
+        double gimbalY = physJet.gimbal.y();
 
-        if (physJet.overYMax) {
-            multiplier = 3;
-        }
+        Vector3dc directionTransformed = physTransform.getShipToWorld().transformDirection(physJet.direction, new Vector3d());
 
-        Quaterniondc jetRotation = switch (physJet.jetDirection) {
-            case DOWN -> new Quaterniond().rotateX(Math.toRadians(90));
-            case UP -> new Quaterniond().rotateX(Math.toRadians(270));
-            case NORTH -> new Quaterniond().rotateY(Math.toRadians(180));
-            case SOUTH -> new Quaterniond();
-            case WEST -> new Quaterniond().rotateY(Math.toRadians(270));
-            case EAST -> new Quaterniond().rotateY(Math.toRadians(90));
-        };
-
-        Vector3dc rotatedDir = (new Vector3d(0,0,1)).rotateX(gimbalX).rotateY(gimbalY);
-        Vector3dc jetDirection = rotatedDir.rotate(jetRotation, new Vector3d());
+        Vector3dc jetDirection = (physJet.direction).rotateX(gimbalX, new Vector3d()).rotateY(gimbalY);
+//        Vector3dc jetDirection = rotatedDir.rotate(jetRotation, new Vector3d());
 
         Vector3d force = new Vector3d();
 
-        double forceMod = 320000 * throttle * multiplier;
-        Vector3dc jetPosRelCenterMass = physTransform.getShipToWorld().transformPosition(physJet.jetPos.add(0.5,0.5,0.5, new Vector3d()), new Vector3d()).sub(physTransform.getPositionInWorld(), new Vector3d());
+        double forceMod = 820000d * ((double) physJet.heat / 5000d);
+        Vector3dc jetPosRelCenterMass = physTransform.getShipToWorld().transformPosition(physJet.pos.add(0.5,0.5,0.5, new Vector3d()), new Vector3d()).sub(physTransform.getPositionInWorld(), new Vector3d());
         Vector3dc worldVelAtJet = omega.cross(jetPosRelCenterMass, new Vector3d()).add(vel, new Vector3d());
-        double exhaustVel = exhaustVelocity(physJet.heatLevel, physJet.overYMax);
+        double exhaustVel = exhaustVelocity(physJet.heat, false);
         double factor = 1.0 - Mth.clamp(jetDirection.dot(worldVelAtJet) / exhaustVel, 0.0, 1.0);
         if (!Double.isFinite(factor)) {
             factor = 0;
@@ -125,14 +101,8 @@ public class AfterblazerController implements ShipForcesInducer {
         return new Pair<>(force,jetVector);
     }
 
-    private double exhaustVelocity(LiquidFuelType heatLevel, boolean overYMax) {
-        double exhaustVel = switch (heatLevel) {
-            case GOURMET -> 250;
-            case SWEET -> 125;
-            case PLAIN -> 75;
-            case STALE -> 25;
-            default -> 0;
-        };
+    private double exhaustVelocity(int heat, boolean overYMax) {
+        double exhaustVel = heat / 5d;
 
         if (overYMax) {
             exhaustVel = 2000;

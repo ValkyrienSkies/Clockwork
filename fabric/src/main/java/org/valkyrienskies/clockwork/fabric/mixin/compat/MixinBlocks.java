@@ -1,8 +1,8 @@
 package org.valkyrienskies.clockwork.fabric.mixin.compat;
 
-import com.simibubi.create.content.contraptions.components.millstone.MillstoneBlock;
-import com.simibubi.create.content.contraptions.processing.BasinBlock;
-import com.simibubi.create.content.logistics.block.chute.AbstractChuteBlock;
+import com.simibubi.create.content.kinetics.millstone.MillstoneBlock;
+import com.simibubi.create.content.logistics.chute.AbstractChuteBlock;
+import com.simibubi.create.content.processing.basin.BasinBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;

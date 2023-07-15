@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.fabric.mixin.compat.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.simibubi.create.foundation.tileEntity.behaviour.ValueBox;
+import com.simibubi.create.foundation.blockEntity.behaviour.ValueBox;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;

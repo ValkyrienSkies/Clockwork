@@ -1,13 +1,18 @@
 package org.valkyrienskies.clockwork.mixin.compat.entity;
 
 import com.simibubi.create.CreateClient;
-import com.simibubi.create.content.contraptions.components.actors.BlockBreakingMovementBehaviour;
-import com.simibubi.create.content.contraptions.components.actors.HarvesterMovementBehaviour;
-import com.simibubi.create.content.contraptions.components.actors.PloughMovementBehaviour;
-import com.simibubi.create.content.contraptions.components.actors.SeatEntity;
-import com.simibubi.create.content.contraptions.components.deployer.DeployerFakePlayer;
-import com.simibubi.create.content.contraptions.components.deployer.DeployerMovementBehaviour;
-import com.simibubi.create.content.contraptions.components.structureMovement.*;
+import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
+import com.simibubi.create.content.contraptions.Contraption;
+import com.simibubi.create.content.contraptions.OrientedContraptionEntity;
+import com.simibubi.create.content.contraptions.StructureTransform;
+import com.simibubi.create.content.contraptions.actors.harvester.HarvesterMovementBehaviour;
+import com.simibubi.create.content.contraptions.actors.plough.PloughMovementBehaviour;
+import com.simibubi.create.content.contraptions.actors.seat.SeatEntity;
+import com.simibubi.create.content.contraptions.behaviour.MovementBehaviour;
+import com.simibubi.create.content.contraptions.behaviour.MovementContext;
+import com.simibubi.create.content.kinetics.base.BlockBreakingMovementBehaviour;
+import com.simibubi.create.content.kinetics.deployer.DeployerFakePlayer;
+import com.simibubi.create.content.kinetics.deployer.DeployerMovementBehaviour;
 import com.simibubi.create.foundation.utility.VecHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -107,7 +112,7 @@ public abstract class MixinAbstractContraptionEntity extends Entity implements M
             return;
         if (!(passenger instanceof OrientedContraptionEntity)) {
             Ship ship = VSGameUtilsKt.getShipManagingPos(passenger.level, riderPos.x, riderPos.y, riderPos.z);
-            riderPos.add(0,SeatEntity.getCustomEntitySeatOffset(passenger) - 1 / 8f, 0);
+            riderPos.add(0, SeatEntity.getCustomEntitySeatOffset(passenger) - 1 / 8f, 0);
             if (ship != null) {
                 riderPos = toMinecraft(ship.getShipToWorld().transformPosition(toJOML(riderPos)));
             }
@@ -182,7 +187,7 @@ public abstract class MixinAbstractContraptionEntity extends Entity implements M
     @Unique
     private StructureTemplate.StructureBlockInfo structureBlockInfo;
 
-    @Inject(method = "tickActors", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/AllMovementBehaviours;getBehaviour(Lnet/minecraft/world/level/block/state/BlockState;)Lcom/simibubi/create/content/contraptions/components/structureMovement/MovementBehaviour;"), locals = LocalCapture.CAPTURE_FAILHARD)
+    @Inject(method = "tickActors", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/AllMovementBehaviours;getBehaviour(Lnet/minecraft/world/level/block/state/BlockState;)Lcom/simibubi/create/content/contraptions/behaviour/MovementBehaviour;"), locals = LocalCapture.CAPTURE_FAILHARD)
     private void injectTickActors(CallbackInfo ci, boolean stalledPreviously, Iterator<MutablePair<StructureTemplate.StructureBlockInfo, MovementContext>> var2, MutablePair<StructureTemplate.StructureBlockInfo, MovementContext> pair, MovementContext context, StructureTemplate.StructureBlockInfo blockInfo) {
         structureBlockInfo = blockInfo;
     }
@@ -227,7 +232,7 @@ public abstract class MixinAbstractContraptionEntity extends Entity implements M
         return pos;
     }
 
-    @Redirect(method = "tickActors", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/contraptions/components/structureMovement/MovementBehaviour;visitNewPosition(Lcom/simibubi/create/content/contraptions/components/structureMovement/MovementContext;Lnet/minecraft/core/BlockPos;)V"))
+    @Redirect(method = "tickActors", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/contraptions/behaviour/MovementBehaviour;visitNewPosition(Lcom/simibubi/create/content/contraptions/behaviour/MovementContext;Lnet/minecraft/core/BlockPos;)V"))
     private void redirectVisitNewPosition(MovementBehaviour instance, MovementContext context, BlockPos pos) {
         instance.visitNewPosition(context, getTargetPos(instance, context, pos, structureBlockInfo));
     }

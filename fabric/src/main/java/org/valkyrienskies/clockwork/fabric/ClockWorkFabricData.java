@@ -8,7 +8,7 @@ import org.valkyrienskies.clockwork.ClockWorkMod;
 public class ClockWorkFabricData implements DataGeneratorEntrypoint {
     @Override
     public void onInitializeDataGenerator(FabricDataGenerator generator) {
-        ExistingFileHelper helper = ExistingFileHelper.standard();
+        ExistingFileHelper helper = ExistingFileHelper.withResourcesFromArg();
         ClockWorkMod.REGISTRATE.setupDatagen(generator, helper);
         ClockWorkModFabric.gatherData(generator, helper);
     }

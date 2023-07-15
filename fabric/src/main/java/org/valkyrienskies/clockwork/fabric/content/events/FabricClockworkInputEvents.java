@@ -19,10 +19,6 @@ public class FabricClockworkInputEvents {
         boolean isUse = button == use;
         boolean isAttack = button == attack;
 
-        if (isUse || isAttack) {
-            if (ClockWorkHandlers.BLUPER_HANDLER.onMouseInput(isAttack))
-                return InteractionResult.SUCCESS;
-        }
         return InteractionResult.PASS;
     }
 

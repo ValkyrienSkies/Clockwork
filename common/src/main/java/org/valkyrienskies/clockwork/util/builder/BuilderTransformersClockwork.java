@@ -3,9 +3,9 @@ package org.valkyrienskies.clockwork.util.builder;
 
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.Create;
-import com.simibubi.create.content.contraptions.base.RotatedPillarKineticBlock;
-import com.simibubi.create.content.contraptions.relays.encased.EncasedCTBehaviour;
-import com.simibubi.create.foundation.block.BlockStressDefaults;
+import com.simibubi.create.content.decoration.encasing.EncasedCTBehaviour;
+import com.simibubi.create.content.kinetics.BlockStressDefaults;
+import com.simibubi.create.content.kinetics.base.RotatedPillarKineticBlock;
 import com.simibubi.create.foundation.block.connected.CTSpriteShiftEntry;
 import com.simibubi.create.foundation.data.AssetLookup;
 import com.simibubi.create.foundation.data.CreateRegistrate;
@@ -19,7 +19,7 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import org.valkyrienskies.clockwork.ClockWorkMod;
-import org.valkyrienskies.clockwork.content.contraptions.casing.ExtendedEncasedShaftBlock;
+import org.valkyrienskies.clockwork.content.kinetics.casing.ExtendedEncasedShaftBlock;
 
 import java.util.function.Supplier;
 

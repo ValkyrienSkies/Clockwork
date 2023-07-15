@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.mixin.compat;
 
-import com.simibubi.create.content.contraptions.components.deployer.DeployerHandler;
+import com.simibubi.create.content.kinetics.deployer.DeployerHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;

@@ -1,9 +1,9 @@
 package org.valkyrienskies.clockwork.fabric.mixin.compat;
 
-import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
-import com.simibubi.create.content.contraptions.components.structureMovement.ControlledContraptionEntity;
-import com.simibubi.create.content.contraptions.components.structureMovement.MovementContext;
-import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingContraption;
+import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
+import com.simibubi.create.content.contraptions.ControlledContraptionEntity;
+import com.simibubi.create.content.contraptions.bearing.BearingContraption;
+import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.entity.EntityType;
@@ -26,7 +26,7 @@ public abstract class MixinControlledContraptionEntity extends AbstractContrapti
     @Shadow
     protected float angleDelta;
 
-    @Redirect(method = "shouldActorTrigger", at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, target = "Lcom/simibubi/create/content/contraptions/components/structureMovement/MovementContext;motion:Lnet/minecraft/world/phys/Vec3;"))
+    @Redirect(method = "shouldActorTrigger", at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, target = "Lcom/simibubi/create/content/contraptions/behaviour/MovementContext;motion:Lnet/minecraft/world/phys/Vec3;"))
     private void redirectPutMotion(MovementContext instance, Vec3 value) {
         BearingContraption bc = (BearingContraption) contraption;
         Direction facing = bc.getFacing();

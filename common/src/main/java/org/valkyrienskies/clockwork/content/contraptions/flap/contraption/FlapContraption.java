@@ -1,10 +1,10 @@
 package org.valkyrienskies.clockwork.content.contraptions.flap.contraption;
 
-import com.simibubi.create.content.contraptions.components.structureMovement.AssemblyException;
-import com.simibubi.create.content.contraptions.components.structureMovement.Contraption;
-import com.simibubi.create.content.contraptions.components.structureMovement.ContraptionType;
-import com.simibubi.create.content.contraptions.components.structureMovement.bearing.AnchoredLighter;
-import com.simibubi.create.content.contraptions.components.structureMovement.render.ContraptionLighter;
+import com.simibubi.create.content.contraptions.AssemblyException;
+import com.simibubi.create.content.contraptions.Contraption;
+import com.simibubi.create.content.contraptions.ContraptionType;
+import com.simibubi.create.content.contraptions.bearing.AnchoredLighter;
+import com.simibubi.create.content.contraptions.render.ContraptionLighter;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.core.BlockPos;
@@ -73,7 +73,7 @@ public class FlapContraption extends Contraption {
     }
 
     @Override
-    protected ContraptionType getType() {
+    public ContraptionType getType() {
         return ClockWorkContraptions.FLAP;
     }
 

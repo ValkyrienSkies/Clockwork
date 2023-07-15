@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.content.contraptions.flap;
 
-import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingBlock;
-import com.simibubi.create.foundation.block.ITE;
+import com.simibubi.create.content.contraptions.bearing.BearingBlock;
+import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -15,7 +15,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.phys.BlockHitResult;
 import org.valkyrienskies.clockwork.ClockWorkBlockEntities;
 
-public class FlapBearingBlock extends BearingBlock implements ITE<FlapBearingBlockEntity> {
+public class FlapBearingBlock extends BearingBlock implements IBE<FlapBearingBlockEntity> {
     public FlapBearingBlock(Properties properties) {
         super(properties);
     }
@@ -26,7 +26,7 @@ public class FlapBearingBlock extends BearingBlock implements ITE<FlapBearingBlo
     }
 
     @Override
-    public Class<FlapBearingBlockEntity> getTileEntityClass() {
+    public Class<FlapBearingBlockEntity> getBlockEntityClass() {
         return FlapBearingBlockEntity.class;
     }
 
@@ -39,7 +39,7 @@ public class FlapBearingBlock extends BearingBlock implements ITE<FlapBearingBlo
             return InteractionResult.FAIL;
         if (player.getItemInHand(handIn).isEmpty()) {
             if (!worldIn.isClientSide) {
-                withTileEntityDo(worldIn, pos, te -> {
+                withBlockEntityDo(worldIn, pos, te -> {
                     if (te.running) {
                         te.disassemble();
                         return;
@@ -53,7 +53,7 @@ public class FlapBearingBlock extends BearingBlock implements ITE<FlapBearingBlo
     }
 
     @Override
-    public BlockEntityType<? extends FlapBearingBlockEntity> getTileEntityType() {
+    public BlockEntityType<? extends FlapBearingBlockEntity> getBlockEntityType() {
         return ClockWorkBlockEntities.FLAP_BEARING.get();
     }
 
@@ -61,7 +61,7 @@ public class FlapBearingBlock extends BearingBlock implements ITE<FlapBearingBlo
     public InteractionResult onWrenched(BlockState state, UseOnContext context) {
         InteractionResult resultType = super.onWrenched(state, context);
         if (!context.getLevel().isClientSide && resultType.consumesAction())
-            withTileEntityDo(context.getLevel(), context.getClickedPos(), FlapBearingBlockEntity::disassemble);
+            withBlockEntityDo(context.getLevel(), context.getClickedPos(), FlapBearingBlockEntity::disassemble);
         return resultType;
     }
 }

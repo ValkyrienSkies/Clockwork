@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.mixin.compat;
 
-import com.simibubi.create.content.logistics.block.depot.SharedDepotBlockMethods;
+import com.simibubi.create.content.logistics.depot.SharedDepotBlockMethods;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import org.joml.Vector3d;

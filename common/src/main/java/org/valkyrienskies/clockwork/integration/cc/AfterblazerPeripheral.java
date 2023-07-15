@@ -1,26 +1,20 @@
 package org.valkyrienskies.clockwork.integration.cc;
 
-import dan200.computercraft.api.lua.IArguments;
-import dan200.computercraft.api.lua.LuaException;
-import dan200.computercraft.api.lua.LuaFunction;
-import dan200.computercraft.api.lua.LuaValues;
 import dan200.computercraft.api.peripheral.IPeripheral;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlockEntity;
-
-import java.util.Map;
-import java.util.Optional;
+import org.valkyrienskies.clockwork.content.propulsion.afterblazer.AfterblazerEngineBlockEntity;
 
 public class AfterblazerPeripheral implements IPeripheral {
+
     private final Level level;
     private final BlockPos pos;
-    private final AfterblazerBlockEntity afterblazer;
+    private final AfterblazerEngineBlockEntity ballooner;
 
-    public AfterblazerPeripheral(AfterblazerBlockEntity be) {
-        this.afterblazer = be;
+    public AfterblazerPeripheral(AfterblazerEngineBlockEntity be) {
+        this.ballooner = be;
         this.level = be.getLevel();
         this.pos = be.getBlockPos();
     }
@@ -33,62 +27,6 @@ public class AfterblazerPeripheral implements IPeripheral {
 
     @Override
     public boolean equals(@Nullable IPeripheral iPeripheral) {
-        return level != null && level.getBlockEntity(pos) instanceof AfterblazerBlockEntity;
-    }
-
-    @LuaFunction
-    public final void setGimbal(IArguments arg) throws LuaException {
-        Optional<Double> pitch = arg.optDouble(0);
-        if (pitch.isEmpty()) throw LuaValues.badArgumentOf(0, "number", pitch);
-        if (arg.count() == 1) this.afterblazer.setGimbal(pitch.get(), this.afterblazer.getGimbalYaw());
-
-        Optional<Double> yaw = arg.optDouble(1);
-        if (yaw.isEmpty()) throw LuaValues.badArgumentOf(1, "number", yaw);
-        this.afterblazer.setGimbal(pitch.get(), yaw.get());
-    }
-
-    @LuaFunction
-    public final double getGimbalPitch() {
-        return this.afterblazer.getGimbalPitch();
-    }
-
-    @LuaFunction
-    public final double getGimbalYaw() {
-        return this.afterblazer.getGimbalYaw();
-    }
-
-    @LuaFunction
-    public final String getFuelQuality() {
-        return this.afterblazer.getFuelQuality().name();
-    }
-
-    @LuaFunction
-    public final Map<String, Double> getGimbal() {
-        return Map.of("pitch", this.afterblazer.getGimbalPitch(), "yaw", this.afterblazer.getGimbalYaw());
-    }
-
-    @LuaFunction
-    public final long getFuelAmount() {
-        return this.afterblazer.tank.getPrimaryHandler().getCurrentAmount();
-    }
-
-    @LuaFunction
-    public final long getFuelCapacity() {
-        return this.afterblazer.tank.getPrimaryHandler().getTotalCapacity();
-    }
-
-    @LuaFunction
-    public final double getFuelConsumptionRate() {
-        return this.afterblazer.getDrainRate() * (long) this.afterblazer.getThrustPercentage();
-    }
-
-    @LuaFunction
-    public final double getDrainRate() {
-        return this.afterblazer.getDrainRate();
-    }
-
-    @LuaFunction
-    public final double getThrustPercentage() {
-        return this.afterblazer.getThrustPercentage();
+        return level != null && level.getBlockEntity(pos) instanceof AfterblazerEngineBlockEntity;
     }
 }

@@ -4,7 +4,7 @@ import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import com.simibubi.create.content.contraptions.particle.ICustomParticleDataWithSprite;
+import com.simibubi.create.foundation.particle.ICustomParticleDataWithSprite;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.particle.ParticleEngine;

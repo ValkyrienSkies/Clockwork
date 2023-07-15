@@ -35,12 +35,8 @@ repositories {
                 includeGroup("com.simibubi.create")
             }
         }
-
+        maven { url = "https://jitpack.io/" }
         maven { url = "https://cursemaven.com" }
-    }
-
-    flatDir { // REMOVE IF CBC HAS BEEN UPDATED
-        dirs 'mods'
     }
 }
 
@@ -48,6 +44,8 @@ dependencies {
     forge("net.minecraftforge:forge:${minecraft_version}-${forge_version}")
     common(project(path: ":common", configuration: "namedElements")) { transitive = false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
+
+    include(modApi("dev.architectury:architectury:${rootProject.architectury_version}"))
 
     //VS2
     modApi("org.valkyrienskies:valkyrienskies-118-forge:${rootProject.vs2_version}") { transitive = false }

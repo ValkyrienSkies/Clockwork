@@ -1,10 +1,8 @@
 package org.valkyrienskies.clockwork.mixin.compat.entity;
 
-import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
-import com.simibubi.create.content.contraptions.components.structureMovement.ControlledContraptionEntity;
-import com.simibubi.create.content.contraptions.components.structureMovement.IControlContraption;
-import com.simibubi.create.content.contraptions.components.structureMovement.MovementContext;
-import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingContraption;
+import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
+import com.simibubi.create.content.contraptions.ControlledContraptionEntity;
+import com.simibubi.create.content.contraptions.IControlContraption;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.entity.EntityType;

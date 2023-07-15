@@ -6,7 +6,6 @@
     "compat.MixinBlockBreakingKineticTileEntity",
     "compat.MixinBlocks",
     "compat.MixinControlledContraptionEntity",
-    "compat.MixinFilteringHandler",
     "compat.MixinStickerTileEntity",
     "compat.client.MixinCullingBlockEntityIterator"
   ],

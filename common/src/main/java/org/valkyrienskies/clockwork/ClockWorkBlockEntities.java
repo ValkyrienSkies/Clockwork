@@ -1,38 +1,33 @@
 package org.valkyrienskies.clockwork;
 
-
-import com.simibubi.create.content.contraptions.base.KineticTileEntity;
-import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingInstance;
-import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingRenderer;
-import com.simibubi.create.content.contraptions.relays.encased.ShaftInstance;
-import com.simibubi.create.content.contraptions.relays.encased.ShaftRenderer;
+import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
+import com.simibubi.create.content.kinetics.base.ShaftInstance;
+import com.simibubi.create.content.kinetics.base.ShaftRenderer;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
-import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerBlockEntity;
-import org.valkyrienskies.clockwork.content.contraptions.afterblazer.AfterblazerRenderer;
-import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity;
-import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerRenderer;
-import org.valkyrienskies.clockwork.content.contraptions.combustion_engine.CombustionEngineBlockEntity;
-import org.valkyrienskies.clockwork.content.contraptions.combustion_engine.CombustionEngineRenderer;
+import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity;
+import org.valkyrienskies.clockwork.content.propulsion.afterblazer.AfterblazerEngineBlockEntity;
+import org.valkyrienskies.clockwork.content.propulsion.afterblazer.AfterblazerRenderer;
+import org.valkyrienskies.clockwork.content.propulsion.ballooner.BalloonerBlockEntity;
+import org.valkyrienskies.clockwork.content.propulsion.ballooner.BalloonerRenderer;
+import org.valkyrienskies.clockwork.content.kinetics.combustion_engine.CombustionEngineBlockEntity;
+import org.valkyrienskies.clockwork.content.kinetics.combustion_engine.CombustionEngineRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingRenderer;
-import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserBlockEntity;
-import org.valkyrienskies.clockwork.content.contraptions.infuser.PhysicsInfuserRenderer;
-import org.valkyrienskies.clockwork.content.contraptions.intake.IntakeBlockEntity;
-import org.valkyrienskies.clockwork.content.contraptions.intake.IntakeRenderer;
+import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer;
+import org.valkyrienskies.clockwork.content.physicalities.intake.IntakeBlockEntity;
+import org.valkyrienskies.clockwork.content.physicalities.intake.IntakeRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.propellor.PropellorBearingRenderer;
-import org.valkyrienskies.clockwork.content.contraptions.reaction_wheel.ReactionWheelBlockEntity;
-import org.valkyrienskies.clockwork.content.contraptions.reaction_wheel.ReactionWheelRenderer;
-import org.valkyrienskies.clockwork.content.contraptions.resistor.RedstoneResistorBlockEntity;
-import org.valkyrienskies.clockwork.content.contraptions.resistor.RedstoneResistorRenderer;
-import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatBlockEntity;
-import org.valkyrienskies.clockwork.content.contraptions.sequenced_seat.SequencedSeatRenderer;
-import org.valkyrienskies.clockwork.content.contraptions.solver.SolverBlockEntity;
-import org.valkyrienskies.clockwork.content.contraptions.solver.SolverRenderer;
-import org.valkyrienskies.clockwork.content.contraptions.universal_joint.UniversalJointBlockEntity;
-import org.valkyrienskies.clockwork.content.contraptions.universal_joint.UniversalJointRenderer;
+import org.valkyrienskies.clockwork.content.physicalities.reaction_wheel.ReactionWheelBlockEntity;
+import org.valkyrienskies.clockwork.content.physicalities.reaction_wheel.ReactionWheelRenderer;
+import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlockEntity;
+import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRenderer;
+import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlockEntity;
+import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRenderer;
+import org.valkyrienskies.clockwork.content.munitions.stationary.solver.SolverBlockEntity;
+import org.valkyrienskies.clockwork.content.munitions.stationary.solver.SolverRenderer;
 import org.valkyrienskies.clockwork.content.materials.solids.colorblock.ColorBlockEntity;
 import org.valkyrienskies.clockwork.util.render.WingBlockEntityRenderer;
 
@@ -42,53 +37,53 @@ public class ClockWorkBlockEntities {
 
     // Kinetics
     public static final BlockEntityEntry<PropellorBearingBlockEntity> PROPELLOR_BEARING = REGISTRATE
-            .tileEntity("propellor_bearing", PropellorBearingBlockEntity::new)
+            .blockEntity("propellor_bearing", PropellorBearingBlockEntity::new)
 //            .instance(() -> BearingInstance::new)
             .validBlocks(ClockWorkBlocks.PROPELLOR_BEARING)
             .renderer(() -> PropellorBearingRenderer::new)
             .register();
 
     public static final BlockEntityEntry<PhysBearingBlockEntity> PHYS_BEARING = REGISTRATE
-            .tileEntity("phys_bearing", PhysBearingBlockEntity::new)
+            .blockEntity("phys_bearing", PhysBearingBlockEntity::new)
 //            .instance(() -> BearingInstance::new)
             .validBlocks(ClockWorkBlocks.PHYS_BEARING)
             .renderer(() -> PhysBearingRenderer::new)
             .register();
 
     public static final BlockEntityEntry<SolverBlockEntity> SOLVER = REGISTRATE
-            .tileEntity("solver", SolverBlockEntity::new)
+            .blockEntity("solver", SolverBlockEntity::new)
             .validBlocks(ClockWorkBlocks.SOLVER)
             .renderer(() -> SolverRenderer::new)
             .register();
 
-    public static final BlockEntityEntry<AfterblazerBlockEntity> AFTERBLAZER = REGISTRATE
-            .tileEntity("afterblazer", AfterblazerBlockEntity::new)
+    public static final BlockEntityEntry<AfterblazerEngineBlockEntity> AFTERBLAZER = REGISTRATE
+            .blockEntity("afterblazer", AfterblazerEngineBlockEntity::new)
             .validBlocks(ClockWorkBlocks.AFTERBLAZER)
             .renderer(() -> AfterblazerRenderer::new)
             .register();
 
     public static final BlockEntityEntry<PhysicsInfuserBlockEntity> PHYSICS_INFUSER = REGISTRATE
-            .tileEntity("physics_infuser", PhysicsInfuserBlockEntity::new)
+            .blockEntity("physics_infuser", PhysicsInfuserBlockEntity::new)
             .validBlocks(ClockWorkBlocks.PHYSICS_INFUSER)
             .renderer(() -> PhysicsInfuserRenderer::new)
             .register();
 
     /////// Sequenced Seat ////////
     public static final BlockEntityEntry<SequencedSeatBlockEntity> COMMAND_SEAT = REGISTRATE
-            .tileEntity("sequenced_seat", SequencedSeatBlockEntity::new)
+            .blockEntity("sequenced_seat", SequencedSeatBlockEntity::new)
             .validBlocks(ClockWorkBlocks.COMMAND_SEAT)
             .renderer(() -> SequencedSeatRenderer::new)
             .register();
 
     // FALP
     public static final BlockEntityEntry<FlapBearingBlockEntity> FLAP_BEARING = REGISTRATE
-            .tileEntity("flap_bearing", FlapBearingBlockEntity::new)
+            .blockEntity("flap_bearing", FlapBearingBlockEntity::new)
             .validBlocks(ClockWorkBlocks.FLAP_BEARING)
             .renderer(() -> FlapBearingRenderer::new)
             .register();
     // Intake
     public static final BlockEntityEntry<IntakeBlockEntity> INTAKE = REGISTRATE
-            .tileEntity("intake", IntakeBlockEntity::new)
+            .blockEntity("intake", IntakeBlockEntity::new)
             .validBlocks(ClockWorkBlocks.INTAKE)
             .renderer(() -> IntakeRenderer::new)
             .register();
@@ -96,7 +91,7 @@ public class ClockWorkBlockEntities {
     //BALLOONER
 
     public static final BlockEntityEntry<BalloonerBlockEntity> BALLOONER = REGISTRATE
-            .tileEntity("ballooner", BalloonerBlockEntity::new)
+            .blockEntity("ballooner", BalloonerBlockEntity::new)
             .validBlocks(ClockWorkBlocks.BALLOONER)
             .renderer(() -> BalloonerRenderer::new)
             .register();
@@ -104,7 +99,7 @@ public class ClockWorkBlockEntities {
     //REDSTONE RESISTOR todo: add instance
 
     public static final BlockEntityEntry<RedstoneResistorBlockEntity> REDSTONE_RESISTOR = REGISTRATE
-            .tileEntity("redstone_resistor", RedstoneResistorBlockEntity::new)
+            .blockEntity("redstone_resistor", RedstoneResistorBlockEntity::new)
             .validBlocks(ClockWorkBlocks.REDSTONE_RESISTOR)
             .renderer(() -> RedstoneResistorRenderer::new)
             .register();
@@ -112,29 +107,29 @@ public class ClockWorkBlockEntities {
     //REACTION WHEEL
 
     public static final BlockEntityEntry<ReactionWheelBlockEntity> REACTIONWHEEL = REGISTRATE
-            .tileEntity("reaction_wheel", ReactionWheelBlockEntity::new)
+            .blockEntity("reaction_wheel", ReactionWheelBlockEntity::new)
             .validBlocks(ClockWorkBlocks.REACTIONWHEEL)
             .renderer(() -> ReactionWheelRenderer::new)
             .register();
 
-    public static final BlockEntityEntry<KineticTileEntity> EXTENDED_ENCASED_SHAFT = REGISTRATE
-            .tileEntity("extended_encased_shaft", KineticTileEntity::new)
+    public static final BlockEntityEntry<KineticBlockEntity> EXTENDED_ENCASED_SHAFT = REGISTRATE
+            .blockEntity("extended_encased_shaft", KineticBlockEntity::new)
             .instance(() -> ShaftInstance::new, false)
             .validBlocks(ClockWorkBlocks.BALLOON_ENCASED_SHAFT)
             .renderer(() -> ShaftRenderer::new)
             .register();
 
-    public static final BlockEntityEntry<UniversalJointBlockEntity> UNIVERSAL_JOINT = REGISTRATE
-            .tileEntity("universal_joint", UniversalJointBlockEntity::new)
-            .validBlocks(ClockWorkBlocks.UNIVERSAL_JOINT)
-            .renderer(() -> UniversalJointRenderer::new)
-            .register();
+//    public static final BlockEntityEntry<UniversalJointBlockEntity> UNIVERSAL_JOINT = REGISTRATE
+//            .blockEntity("universal_joint", UniversalJointBlockEntity::new)
+//            .validBlocks(ClockWorkBlocks.UNIVERSAL_JOINT)
+//            .renderer(() -> UniversalJointRenderer::new)
+//            .register();
 
 
     // COMBUSTION ENGINE
 
     public static final BlockEntityEntry<CombustionEngineBlockEntity> COMBUSTION_ENGINE = REGISTRATE
-            .tileEntity("combustion_engine", CombustionEngineBlockEntity::new)
+            .blockEntity("combustion_engine", CombustionEngineBlockEntity::new)
             .validBlocks(ClockWorkBlocks.COMBUSTION_ENGINE)
             .renderer(() -> CombustionEngineRenderer::new)
             .register();
@@ -142,7 +137,7 @@ public class ClockWorkBlockEntities {
     // WINX
 
     public static final BlockEntityEntry<ColorBlockEntity> COLOR_BLOCK_ENTITY = REGISTRATE
-            .tileEntity("color_block_entity", ColorBlockEntity::new)
+            .blockEntity("color_block_entity", ColorBlockEntity::new)
             .validBlocks(ClockWorkBlocks.WING, ClockWorkBlocks.FLAP)
             .renderer(() -> WingBlockEntityRenderer::new)
             .register();

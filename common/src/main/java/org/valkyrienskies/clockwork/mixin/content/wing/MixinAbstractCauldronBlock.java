@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.valkyrienskies.clockwork.ClockWorkBlocks;
-import org.valkyrienskies.clockwork.content.physicalities.motion.wing.DyedWingBlockItem;
+import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem;
 
 import java.util.Map;
 

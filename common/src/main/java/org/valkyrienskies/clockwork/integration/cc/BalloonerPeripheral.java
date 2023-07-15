@@ -6,7 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.valkyrienskies.clockwork.content.contraptions.ballooner.BalloonerBlockEntity;
+import org.valkyrienskies.clockwork.content.propulsion.ballooner.BalloonerBlockEntity;
 
 public class BalloonerPeripheral implements IPeripheral {
     private final Level level;

@@ -1,18 +1,18 @@
 package org.valkyrienskies.clockwork.content.materials.solids.colorblock;
 
 import com.simibubi.create.content.schematics.SchematicWorld;
-import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
-import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
+import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.valkyrienskies.clockwork.ClockWorkPackets;
-import org.valkyrienskies.clockwork.content.physicalities.motion.wing.BlockEntityColorPacket;
+import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket;
 
 import java.util.List;
 
-public class ColorBlockEntity extends SmartTileEntity {
+public class ColorBlockEntity extends SmartBlockEntity {
     private int color = -1;
 
     public ColorBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -20,7 +20,7 @@ public class ColorBlockEntity extends SmartTileEntity {
     }
 
     @Override
-    public void addBehaviours(List<TileEntityBehaviour> behaviours) {}
+    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {}
 
     @Override
     public void write(CompoundTag tag, boolean client) {

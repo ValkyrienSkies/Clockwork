@@ -2,8 +2,8 @@ package org.valkyrienskies.clockwork.content.curiosities.particles;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Quaternion;
-import com.simibubi.create.content.curiosities.bell.BasicParticleData;
-import com.simibubi.create.content.curiosities.bell.CustomRotationParticle;
+import com.simibubi.create.content.equipment.bell.BasicParticleData;
+import com.simibubi.create.content.equipment.bell.CustomRotationParticle;
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.SpriteSet;
