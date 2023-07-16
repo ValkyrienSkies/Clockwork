@@ -98,5 +98,60 @@
         }
         ],
         "subtitle": "vs_clockwork.subtitle.supersonic"
+    },
+    "designator_activate": {
+      "sounds": [
+        {
+          "name": "vs_clockwork:designatoractivate",
+          "type": "file",
+          "attenuation_distance": 16
+        }
+        ],
+        "subtitle": "vs_clockwork.subtitle.designator_activate"
+    },
+    "designator_idle": {
+      "sounds": [
+        {
+          "name": "vs_clockwork:designatoridleone",
+          "type": "file",
+          "attenuation_distance": 16
+        },
+        {
+          "name": "vs_clockwork:designatoridletwo",
+          "type": "file",
+          "attenuation_distance": 16
+        }
+        ],
+        "subtitle": "vs_clockwork.subtitle.designator_idle"
+    },
+    "designator_dump_cluster": {
+      "sounds": [
+        {
+          "name": "vs_clockwork:designatordumpcluster",
+          "type": "file",
+          "attenuation_distance": 16
+        }
+        ],
+      "subtitle": "vs_clockwork.subtitle.designator_dump_cluster"
+    },
+    "designator_select_start": {
+    "sounds": [
+        {
+          "name": "vs_clockwork:designatorselectstart",
+          "type": "file",
+          "attenuation_distance": 16
+        }
+        ],
+      "subtitle": "vs_clockwork.subtitle.designator_select_start"
+    },
+    "designator_select_end": {
+    "sounds": [
+        {
+          "name": "vs_clockwork:designatorselectend",
+          "type": "file",
+          "attenuation_distance": 16
+        }
+        ],
+      "subtitle": "vs_clockwork.subtitle.designator_select_end"
     }
 }
