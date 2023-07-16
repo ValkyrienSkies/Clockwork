@@ -16,6 +16,9 @@ import org.valkyrienskies.clockwork.ClockWorkMod;
 
 public class AreaDesignatorRenderer extends CustomRenderedItemModelRenderer {
     protected static final PartialModel CRYSTAL = new PartialModel(ClockWorkMod.asResource("item/auric_designator/crystal"));
+
+    protected static final PartialModel POLE = new PartialModel(ClockWorkMod.asResource("item/auric_designator/pole"));
+
     protected static final PartialModel WAVE = new PartialModel(ClockWorkMod.asResource("item/auric_designator/wave"));
 
     private float crystalAngle = 0;
@@ -41,20 +44,19 @@ public class AreaDesignatorRenderer extends CustomRenderedItemModelRenderer {
             renderer.renderSolid(model.getOriginalModel(), light);
             animateIdle(ms, stacker, buffer, light, overlay, renderer);
         }
-
-
-
+        
         ms.popPose();
     }
 
+    //todo : animations, for now they're all idle
     private void animateDraw(PoseStack ms, TransformStack stacker, MultiBufferSource buffer, int light, int overlay, float progress, PartialItemModelRenderer renderer) {
-
+        animateIdle(ms, stacker, buffer, light, overlay, renderer);
     }
     private void animateSuccess(PoseStack ms, TransformStack stacker, MultiBufferSource buffer, int light, int overlay, float progress, PartialItemModelRenderer renderer) {
-
+        animateIdle(ms, stacker, buffer, light, overlay, renderer);
     }
     private void animateDump(PoseStack ms, TransformStack stacker, MultiBufferSource buffer, int light, int overlay, float progress, PartialItemModelRenderer renderer) {
-
+        animateIdle(ms, stacker, buffer, light, overlay, renderer);
     }
     private void animateIdle(PoseStack ms, TransformStack stacker, MultiBufferSource buffer, int light, int overlay, PartialItemModelRenderer renderer) {
         ms.pushPose();
@@ -69,6 +71,11 @@ public class AreaDesignatorRenderer extends CustomRenderedItemModelRenderer {
         crystalAngle = nextCrystalAngle;
         renderer.renderSolidGlowing(CRYSTAL.get(), light);
         stacker.translateY(-heightAlt * 0.1F);
+        ms.popPose();
+        ms.pushPose();
+        stacker.translateY(heightAlt * 0.05F);
+        renderer.renderSolid(POLE.get(), light);
+        stacker.translateY(-heightAlt * 0.05F);
         ms.popPose();
     }
 }
