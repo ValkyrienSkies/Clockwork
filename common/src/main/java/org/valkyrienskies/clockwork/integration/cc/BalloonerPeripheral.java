@@ -41,16 +41,6 @@ public class BalloonerPeripheral implements IPeripheral {
     }
 
     @LuaFunction
-    public final long getFuelAmount() {
-        return this.ballooner.tank.getPrimaryHandler().getCurrentAmount();
-    }
-
-    @LuaFunction
-    public final long getFuelCapacity() {
-        return this.ballooner.tank.getPrimaryHandler().getTotalCapacity();
-    }
-
-    @LuaFunction
     public final boolean isLeaking() {
         return !this.ballooner.checkForRepair();
     }

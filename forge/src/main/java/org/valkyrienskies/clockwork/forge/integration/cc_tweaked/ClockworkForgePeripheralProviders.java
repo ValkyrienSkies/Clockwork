@@ -33,9 +33,9 @@ public class ClockworkForgePeripheralProviders {
         public LazyOptional<IPeripheral> getPeripheral(@NotNull Level level, @NotNull BlockPos blockPos, @NotNull Direction direction) {
             BlockEntity be = level.getBlockEntity(blockPos);
             if (be instanceof AfterblazerEngineBlockEntity afterblazer)
-                return LazyOptional.of(() -> new AfterblazerPeripheral(afterblazer));
+                return LazyOptional.of(() -> new ForgeAfterblazerPeripheral(afterblazer));
             else if (be instanceof BalloonerBlockEntity ballooner)
-                return LazyOptional.of(() -> new BalloonerPeripheral(ballooner));
+                return LazyOptional.of(() -> new ForgeBalloonerPeripheral(ballooner));
             else if (be instanceof FlapBearingBlockEntity flap)
                 return LazyOptional.of(() -> new FlapBearingPeripheral(flap));
             else if (be instanceof PropellorBearingBlockEntity propellor)
@@ -43,7 +43,7 @@ public class ClockworkForgePeripheralProviders {
             else if (be instanceof SequencedSeatBlockEntity seat)
                 return LazyOptional.of(() -> new CommandSeatPeripheral(seat));
             else if (be instanceof CombustionEngineBlockEntity engine)
-                return LazyOptional.of(() -> new CombustionEnginePeripheral(engine));
+                return LazyOptional.of(() -> new ForgeCombustionEnginePeripheral(engine));
             else if (be instanceof PhysBearingBlockEntity phys)
                 return LazyOptional.of(() -> new PhysBearingPeripheral(phys));
             else if (be instanceof ColorBlockEntity color)
