@@ -29,7 +29,7 @@ dependencies {
     // Do NOT use other classes from fabric loader
     modImplementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
 
-    include(modApi("dev.architectury:architectury:${rootProject.architectury_version}"))
+    modApi("dev.architectury:architectury:${rootProject.architectury_version}")
 
     // Compile against Create Fabric in common
     // beware of differences across platforms!
