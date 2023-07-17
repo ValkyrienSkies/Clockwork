@@ -20,6 +20,7 @@ public class ClockworkClientEvents {
         if (!isGameActive()) {
         }
 
+        ClockWorkMod.OUTLINER.tickOutlines();
 //        ClockWorkMod.Client.BLUPER_HANDLER.tick();
 //        ClockWorkMod.Client.GRAVITRON_HANDLER.tick();
     }

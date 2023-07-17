@@ -7,6 +7,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -21,11 +22,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 import org.joml.Vector3ic;
 import org.joml.primitives.AABBi;
 import org.joml.primitives.AABBic;
+import org.valkyrienskies.clockwork.ClockWorkPackets;
 import org.valkyrienskies.clockwork.ClockWorkSounds;
 import org.valkyrienskies.clockwork.platform.CWItem;
 import org.valkyrienskies.core.impl.datastructures.DenseBlockPosSet;
@@ -110,12 +113,16 @@ public class AreaDesignatorItem extends CWItem {
 
     @Override
     public boolean canAttackBlock(BlockState state, Level level, BlockPos pos, Player player) {
-        return false;
+        return super.canAttackBlock(state, level, pos, player);
     }
 
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected) {
         super.inventoryTick(stack, level, entity, slotId, isSelected);
+
+        if (level.isClientSide) {
+            return;
+        }
 
         if (isSelected && !wasSelected) {
             shouldRenderOutlines = true;
@@ -126,8 +133,8 @@ public class AreaDesignatorItem extends CWItem {
             shouldRenderOutlines = false;
         }
         wasSelected = isSelected;
-        idleProgress += 0.01f;
-        if (idleProgress > 1) {
+        idleProgress += (0.01f*Math.PI);
+        if (idleProgress >= 2f*Math.PI) {
             idleProgress = 0;
         }
         if (isSelected) {
@@ -182,7 +189,13 @@ public class AreaDesignatorItem extends CWItem {
     @Override
     public InteractionResult useOn(UseOnContext context) {
         Player player = context.getPlayer();
+        if (player == null) {
+            return InteractionResult.FAIL;
+        }
         Level world = context.getLevel();
+        if (world.isClientSide) {
+            return InteractionResult.PASS;
+        }
         InteractionHand hand = context.getHand();
         ItemStack stack = player.getItemInHand(hand);
         Vector3ic pos = VectorConversionsMCKt.toJOML(context.getClickedPos());
@@ -196,6 +209,8 @@ public class AreaDesignatorItem extends CWItem {
             firstPos = pos;
             player.displayClientMessage(new TextComponent("First Position Selected!").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE)), true);
             world.playSound(null, player, ClockWorkSounds.DESIGNATOR_SELECT_START.getMainEvent(), player.getSoundSource(), 1.0f, pitch);
+            player.getCooldowns().addCooldown(this, 10);
+            ClockWorkPackets.sendToClientsTrackingAndSelf(new AreaDesignatorSelectionPacket(this), (ServerPlayer) player);
             return InteractionResult.SUCCESS;
         } else if (secondPos == null && firstPos != null) {
             secondPos = pos;
@@ -206,6 +221,7 @@ public class AreaDesignatorItem extends CWItem {
                 player.displayClientMessage(new TextComponent("Area Already Exists.").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE)), true);
                 world.playSound(null, player, ClockWorkSounds.PHYSICS_INFUSER_LIGHTNING.getMainEvent(), player.getSoundSource(), 1.0f, pitch);
                 animationType = Animation.DUMP;
+                player.getCooldowns().addCooldown(this, 10);
                 return InteractionResult.SUCCESS;
             }
             selectedAreas.add(area);
@@ -214,6 +230,7 @@ public class AreaDesignatorItem extends CWItem {
             world.playSound(null, player, ClockWorkSounds.DESIGNATOR_SELECT_END.getMainEvent(), player.getSoundSource(), 1.0f, pitch);
             stack.setDamageValue(stack.getDamageValue() - 1);
             animationType = Animation.SUCCESS;
+            player.getCooldowns().addCooldown(this, 10);
             return InteractionResult.SUCCESS;
         }
         return super.useOn(context);
@@ -238,7 +255,7 @@ public class AreaDesignatorItem extends CWItem {
         }
         return returnCluster;
     }
-
+    @Nullable
     public Set<AABBic> getClusterContaining(Vector3ic pos) {
         for (Set<AABBic> cluster : selectionClusters) {
             for (AABBic area : cluster) {

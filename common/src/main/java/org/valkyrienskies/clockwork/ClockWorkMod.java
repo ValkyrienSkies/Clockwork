@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork;
 
 import com.mojang.logging.LogUtils;
 import com.simibubi.create.foundation.data.CreateRegistrate;
+import com.simibubi.create.foundation.outliner.Outliner;
 import dev.architectury.registry.CreativeTabRegistry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
@@ -25,6 +26,8 @@ public class ClockWorkMod {
     public static final CreativeModeTab BASE_CREATIVE_TAB = new ClockWorkTab();
     public static final Logger MIXIN_LOGGER = LoggerFactory.getLogger("ClockworkMixins");
     public static final Logger LOGGER = LogUtils.getLogger();
+
+    public static final Outliner OUTLINER = new Outliner();
 
     public static void init() {
         ClockWorkContraptions.init();

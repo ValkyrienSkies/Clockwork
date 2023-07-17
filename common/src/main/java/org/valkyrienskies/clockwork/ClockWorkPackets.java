@@ -6,6 +6,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
+import org.valkyrienskies.clockwork.content.curiosities.tools.auric_designator.AreaDesignatorItem;
+import org.valkyrienskies.clockwork.content.curiosities.tools.auric_designator.AreaDesignatorSelectionPacket;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket;
 import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket;
@@ -28,6 +30,12 @@ public enum ClockWorkPackets {
     COLORBLOCKENTITY(BlockEntityColorPacket.class, BlockEntityColorPacket::new),
 
     AFTERBLAZERSTATUS(AfterblazerStatusPacket.class, AfterblazerStatusPacket::new),
+
+    // auric designator
+
+    DESIGNATORSELECTION(AreaDesignatorSelectionPacket.class, AreaDesignatorSelectionPacket::new),
+
+    // INSERT CLUSTER HANDLING PACKET STUFF HERE
 
     ;
 
