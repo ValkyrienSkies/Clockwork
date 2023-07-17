@@ -22,10 +22,7 @@ public class ClockWorkMod {
 
 
     public static final CreateRegistrate REGISTRATE = CreateRegistrate.create(ClockWorkMod.MOD_ID);
-    public static final CreativeModeTab BASE_CREATIVE_TAB = CreativeTabRegistry.create(
-            new ResourceLocation(MOD_ID, "base"), // Tab ID
-            ClockWorkBlocks.PHYSICS_INFUSER::asStack // Icon
-    );
+    public static final CreativeModeTab BASE_CREATIVE_TAB = new ClockWorkTab();
     public static final Logger MIXIN_LOGGER = LoggerFactory.getLogger("ClockworkMixins");
     public static final Logger LOGGER = LogUtils.getLogger();
 

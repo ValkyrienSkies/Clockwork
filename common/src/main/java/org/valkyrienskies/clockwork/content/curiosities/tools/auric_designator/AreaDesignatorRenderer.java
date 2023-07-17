@@ -14,6 +14,8 @@ import net.minecraft.world.item.ItemStack;
 import org.valkyrienskies.clockwork.ClockWorkItems;
 import org.valkyrienskies.clockwork.ClockWorkMod;
 
+import static org.valkyrienskies.clockwork.util.animation.EaseHelper.easeInOutSine;
+
 public class AreaDesignatorRenderer extends CustomRenderedItemModelRenderer {
     protected static final PartialModel CRYSTAL = new PartialModel(ClockWorkMod.asResource("item/auric_designator/crystal"));
 
@@ -42,26 +44,26 @@ public class AreaDesignatorRenderer extends CustomRenderedItemModelRenderer {
             animateDump(ms, stacker, buffer, light, overlay, adi.dumpProgress, renderer);
         } else {
             renderer.renderSolid(model.getOriginalModel(), light);
-            animateIdle(ms, stacker, buffer, light, overlay, renderer);
+            animateIdle(ms, stacker, buffer, light, overlay, adi.idleProgress, renderer);
         }
-        
+
         ms.popPose();
     }
 
     //todo : animations, for now they're all idle
     private void animateDraw(PoseStack ms, TransformStack stacker, MultiBufferSource buffer, int light, int overlay, float progress, PartialItemModelRenderer renderer) {
-        animateIdle(ms, stacker, buffer, light, overlay, renderer);
+        animateIdle(ms, stacker, buffer, light, overlay, progress, renderer);
     }
     private void animateSuccess(PoseStack ms, TransformStack stacker, MultiBufferSource buffer, int light, int overlay, float progress, PartialItemModelRenderer renderer) {
-        animateIdle(ms, stacker, buffer, light, overlay, renderer);
+        animateIdle(ms, stacker, buffer, light, overlay, progress, renderer);
     }
     private void animateDump(PoseStack ms, TransformStack stacker, MultiBufferSource buffer, int light, int overlay, float progress, PartialItemModelRenderer renderer) {
-        animateIdle(ms, stacker, buffer, light, overlay, renderer);
+        animateIdle(ms, stacker, buffer, light, overlay, progress, renderer);
     }
-    private void animateIdle(PoseStack ms, TransformStack stacker, MultiBufferSource buffer, int light, int overlay, PartialItemModelRenderer renderer) {
+    private void animateIdle(PoseStack ms, TransformStack stacker, MultiBufferSource buffer, int light, int overlay, float progress, PartialItemModelRenderer renderer) {
         ms.pushPose();
-        float partialTicks = AnimationTickHolder.getPartialTicks();
-        float heightAlt = Mth.sin(partialTicks/2);
+        float partialTicks = AnimationTickHolder.getPartialTicks() - 1;
+        float heightAlt = 3f/16f + (float) Math.sin(easeInOutSine(progress))/16f;
         stacker.translateY(heightAlt * 0.1F);
         float nextCrystalAngle = Mth.clamp(crystalAngle + 1f, 0, 360);
         if (nextCrystalAngle == 360) {

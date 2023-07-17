@@ -3,7 +3,6 @@ package org.valkyrienskies.clockwork.mixin.content.pulse;
 import com.jamieswhiteshirt.reachentityattributes.ReachEntityAttributes;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Matrix4f;
-import com.mojang.math.Vector3f;
 import com.simibubi.create.AllSpecialTextures;
 import com.simibubi.create.foundation.outliner.*;
 import com.simibubi.create.foundation.render.SuperRenderTypeBuffer;
@@ -33,6 +32,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.valkyrienskies.clockwork.ClockWorkItems;
 import org.valkyrienskies.clockwork.client.render.scanner.ScannerRenderer;
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric_designator.AreaDesignatorItem;
+import org.valkyrienskies.core.impl.util.VectorConversionsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
 import java.util.HashMap;
@@ -45,10 +45,10 @@ public class MixinLevelRenderer {
     @Shadow @Nullable private ClientLevel level;
 
     @Unique
-    private Set<AABBic> hoveredCluster;
+    private Set<AABBic> hoveredCluster = new HashSet<>();
 
     @Unique
-    private HashMap<Set<AABBic>,BlockClusterOutline> clusterOutlines;
+    private HashMap<Set<AABBic>,BlockClusterOutline> clusterOutlines = new HashMap<>();
 
     @Unique
     private static Color HOVERPURPLE = new Color(238,130,238);
@@ -98,15 +98,21 @@ public class MixinLevelRenderer {
                         if (mc.hitResult != null && mc.hitResult.getType() == net.minecraft.world.phys.HitResult.Type.BLOCK) {
                             hovered = ((net.minecraft.world.phys.BlockHitResult) mc.hitResult).getBlockPos();
                         }
-                        Vector3ic hoveredBlockPos = VectorConversionsMCKt.toJOML(hovered);
+                        Vector3ic hoveredBlockPos = new Vector3i();
+                        if (hovered != null) {
+                            hoveredBlockPos = VectorConversionsMCKt.toJOML(hovered);
+                        }
+
 
                         // find existing hovered cluster if existing
                         boolean foundCluster = false;
 
                         for (Set<AABBic> cluster : clusters) {
                             double range = 10;
-                            Vector3fc traceOrigin = VectorConversionsMCKt.toJOMLF(RaycastHelper.getTraceOrigin(player));
-                            Vector3fc traceTarget = VectorConversionsMCKt.toJOMLF(RaycastHelper.getTraceTarget(player, range, RaycastHelper.getTraceOrigin(player)));
+                            Vector3dc tempOrigin = VectorConversionsMCKt.toJOML(RaycastHelper.getTraceOrigin(localPlayer));
+                            Vector3dc tempTarget = VectorConversionsMCKt.toJOML(RaycastHelper.getTraceTarget(localPlayer, range, RaycastHelper.getTraceOrigin(localPlayer)));
+                            Vector3fc traceOrigin = new Vector3f((float) tempOrigin.x(), (float) tempOrigin.y(), (float) tempOrigin.z());
+                            Vector3fc traceTarget = new Vector3f((float) tempTarget.x(), (float) tempTarget.y(), (float) tempTarget.z());
                             LineSegmentf cast = new LineSegmentf(traceOrigin, traceTarget);
                             for (AABBic box : cluster) {
                                 int intersection = Intersectionf.intersectLineSegmentAab(cast, new AABBi(box), new Vector2f());

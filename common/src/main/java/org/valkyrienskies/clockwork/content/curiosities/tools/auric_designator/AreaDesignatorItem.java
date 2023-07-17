@@ -61,6 +61,7 @@ public class AreaDesignatorItem extends CWItem {
     public float drawProgress = 0;
     public float successProgress = 0;
     public float dumpProgress = 0;
+    public float idleProgress = 0;
 
     public AreaDesignatorItem(Properties properties) {
         super(properties);
@@ -124,14 +125,18 @@ public class AreaDesignatorItem extends CWItem {
         } else if (!isSelected && wasSelected) {
             shouldRenderOutlines = false;
         }
-
+        wasSelected = isSelected;
+        idleProgress += 0.01f;
+        if (idleProgress > 1) {
+            idleProgress = 0;
+        }
         if (isSelected) {
             if (entity instanceof Player) {
                 Player player = (Player) entity;
                 if (player.swinging && !player.isUsingItem()) {
                     BlockHitResult hitResult = getPlayerPOVHitResult(level, player, ClipContext.Fluid.NONE);
                     Vector3ic pos = VectorConversionsMCKt.toJOML(hitResult.getBlockPos());
-                    Set<AABBic> hitCluster = getClosestCluster(pos);
+                    Set<AABBic> hitCluster = getClusterContaining(pos);
                     if (hitCluster != null) {
                         float pitch = Mth.randomBetween(soundRandom, 0.8f, 1.2f);
                         dumpCluster(hitCluster);
@@ -168,6 +173,9 @@ public class AreaDesignatorItem extends CWItem {
                     animationType = Animation.IDLE;
                 }
             }
+        } else {
+            firstPos = null;
+            secondPos = null;
         }
     }
 
@@ -189,7 +197,7 @@ public class AreaDesignatorItem extends CWItem {
             player.displayClientMessage(new TextComponent("First Position Selected!").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE)), true);
             world.playSound(null, player, ClockWorkSounds.DESIGNATOR_SELECT_START.getMainEvent(), player.getSoundSource(), 1.0f, pitch);
             return InteractionResult.SUCCESS;
-        } else if (secondPos == null) {
+        } else if (secondPos == null && firstPos != null) {
             secondPos = pos;
             AABBic area = new AABBi(firstPos, secondPos);
             firstPos = null;
@@ -229,6 +237,17 @@ public class AreaDesignatorItem extends CWItem {
             }
         }
         return returnCluster;
+    }
+
+    public Set<AABBic> getClusterContaining(Vector3ic pos) {
+        for (Set<AABBic> cluster : selectionClusters) {
+            for (AABBic area : cluster) {
+                if (area.containsPoint(pos)) {
+                    return cluster;
+                }
+            }
+        }
+        return null;
     }
 
     public DenseBlockPosSet denseBlocksFromCluster(Set<AABBic> cluster) {
