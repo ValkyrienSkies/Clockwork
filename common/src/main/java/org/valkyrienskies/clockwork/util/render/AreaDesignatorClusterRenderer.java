@@ -57,6 +57,7 @@ public class AreaDesignatorClusterRenderer {
 
                     Set<Set<AABBic>> clusters = adi.selectionClusters;
 
+                    //todo comodification exception
 //                    for (Set<AABBic> cluster : clusters) {
 //                        if (!storedClusters.containsKey(cluster)) {
 //                            storedClusters.put(cluster, adi.blocksFromCluster(cluster));
