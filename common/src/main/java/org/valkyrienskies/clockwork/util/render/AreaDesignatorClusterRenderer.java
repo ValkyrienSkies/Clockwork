@@ -37,19 +37,15 @@ public class AreaDesignatorClusterRenderer {
 
     private Object bbOutlineSlotAD = new Object();
 
+    private HashMap<Set<AABBic>, Set<BlockPos>> storedClusters = new HashMap<>();
+
     public static AreaDesignatorClusterRenderer INSTANCE = new AreaDesignatorClusterRenderer();
 
     private Set<AABBic> hoveredCluster = new HashSet<>();
 
-    private HashMap<Set<AABBic>,BlockClusterOutline> clusterOutlines = new HashMap<>();
+    private static final Color HOVERPURPLE = new Color(203,195,227);
 
-    private static Color HOVERPURPLE = new Color(238,130,238);
-
-    private static Color IDLEPURPLE = new Color(221,160,221);
-
-    private ChasingAABBOutline initialSelectionBox = new ChasingAABBOutline(new AABB(0,0,0,0,0,0));
-
-    private ChasingAABBOutline selectionBox = new ChasingAABBOutline(new AABB(0,0,0,0,0,0));
+    private static final Color IDLEPURPLE = new Color(221,160,221);
 
 
     public void renderDesignator(final ClientLevel level, final Minecraft minecraft, final PoseStack poseStack, final float tickDelta, final long nanos, final boolean shouldRenderBlockOutline, final Camera camera, final GameRenderer gameRenderer, final LightTexture lightTexture, final Matrix4f projectionMatrix) {
@@ -61,15 +57,18 @@ public class AreaDesignatorClusterRenderer {
 
                     Set<Set<AABBic>> clusters = adi.selectionClusters;
 
-                    for (Set<AABBic> cluster : clusters) {
-                        if (clusterOutlines.containsKey(cluster)) {
-                            continue;
-                        }
-                        BlockClusterOutline clusterOutline = new BlockClusterOutline(adi.blocksFromCluster(cluster));
-                        clusterOutline.getParams().withFaceTexture(AllSpecialTextures.SELECTION).colored(IDLEPURPLE);
-                        clusterOutlines.put(cluster, clusterOutline);
-                        ClockWorkMod.OUTLINER.showCluster(cluster, adi.blocksFromCluster(cluster));
-                    }
+//                    for (Set<AABBic> cluster : clusters) {
+//                        if (!storedClusters.containsKey(cluster)) {
+//                            storedClusters.put(cluster, adi.blocksFromCluster(cluster));
+//                        }
+//                    }
+//
+//                    for (Set<AABBic> clusterkey : storedClusters.keySet()) {
+//                        if (!clusters.contains(clusterkey)) {
+//                            ClockWorkMod.OUTLINER.remove(clusterkey);
+//                            storedClusters.remove(clusterkey);
+//                        }
+//                    }
 
                     if (minecraft.getCameraEntity() == null) {
                         return;
@@ -89,10 +88,8 @@ public class AreaDesignatorClusterRenderer {
                             hoveredFace = ((BlockHitResult) mc.hitResult).getBlockPos().relative(((BlockHitResult) mc.hitResult).getDirection());
                         }
                         Vector3ic hoveredBlockPos = new Vector3i();
-                        Vector3ic hoveredBlockFace = new Vector3i();
                         if (hovered != null) {
                             hoveredBlockPos = VectorConversionsMCKt.toJOML(hovered);
-                            hoveredBlockFace = VectorConversionsMCKt.toJOML(hoveredFace);
                         }
 
 
@@ -114,11 +111,11 @@ public class AreaDesignatorClusterRenderer {
                                     break;
                                 }
                             }
+                            if (foundCluster) break;
                         }
                         if (!foundCluster) {
                             hoveredCluster = null;
                         }
-                        foundCluster = false;
 
                         if (hoveredCluster == null) {
                             //render initial selection box
@@ -131,14 +128,11 @@ public class AreaDesignatorClusterRenderer {
                                     ClockWorkMod.OUTLINER.remove(adi);
                                 }
                             }
-                        } else {
-                            //edit hovered cluster color
-                            clusterOutlines.get(hoveredCluster).getParams().colored(HOVERPURPLE);
                         }
                         if (adi.firstPos != null) {
                             Vec3 vec = (VectorConversionsMCKt.toMinecraft(new Vector3d(hoveredBlockPos)));
                             if (!vec.equals(localPlayer.getEyePosition())) {
-                                ClockWorkMod.OUTLINER.chaseAABB(bbOutlineSlotAD, new AABB(VectorConversionsMCKt.toBlockPos(adi.firstPos), VectorConversionsMCKt.toBlockPos(hoveredBlockPos)));
+                                ClockWorkMod.OUTLINER.chaseAABB(bbOutlineSlotAD, new AABB(VectorConversionsMCKt.toBlockPos(adi.firstPos), VectorConversionsMCKt.toBlockPos(hoveredBlockPos)).expandTowards(1,1,1));
                                 ClockWorkMod.OUTLINER.edit(bbOutlineSlotAD).ifPresent(outline -> outline.colored(HOVERPURPLE).lightmap(15).withFaceTexture(AllSpecialTextures.SELECTION));
                             } else {
                                 ClockWorkMod.OUTLINER.chaseAABB(bbOutlineSlotAD, new AABB(VectorConversionsMCKt.toBlockPos(adi.firstPos)));
@@ -147,9 +141,9 @@ public class AreaDesignatorClusterRenderer {
                         } else {
                             ClockWorkMod.OUTLINER.remove(bbOutlineSlotAD);
                         }
-                        selectionBox.render(poseStack, SuperRenderTypeBuffer.getInstance(), camera.getPosition(), tickDelta);
                     }
-                    for (Set<AABBic> key : clusterOutlines.keySet()) {
+                    for (Set<AABBic> key : storedClusters.keySet()) {
+                        ClockWorkMod.OUTLINER.showCluster(key, storedClusters.get(key));
                         ClockWorkMod.OUTLINER.edit(key).ifPresent(outline -> outline.colored(IDLEPURPLE));
                         if (key.equals(hoveredCluster)) {
                             ClockWorkMod.OUTLINER.edit(key).ifPresent(outline -> outline.colored(HOVERPURPLE));

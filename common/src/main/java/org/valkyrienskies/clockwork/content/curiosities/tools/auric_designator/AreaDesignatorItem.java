@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import kotlin.jvm.internal.markers.KMutableSet;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerPlayer;
@@ -22,6 +23,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
@@ -38,6 +40,7 @@ import org.valkyrienskies.core.impl.util.VectorConversionsKt;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
@@ -46,6 +49,8 @@ public class AreaDesignatorItem extends CWItem {
 
     public Set<AABBic> selectedAreas = new HashSet<>();
     public Set<Set<AABBic>> selectionClusters = new HashSet<>();
+
+    private ArrayList<AABBic> toBeStored = new ArrayList<>();
 
     private boolean wasSelected = false;
 
@@ -66,12 +71,28 @@ public class AreaDesignatorItem extends CWItem {
     public float dumpProgress = 0;
     public float idleProgress = 0;
 
+    boolean hasBeenLoaded = false;
+
+    int loadCooldown = 100;
+
+    private static String pointDataSaveKey = "pointData_";
+    private Integer nextKey = 0;
+
     public AreaDesignatorItem(Properties properties) {
         super(properties);
     }
 
+    @Override
+    public void verifyTagAfterLoad(@NotNull CompoundTag compoundTag) {
+        reloadClusters(compoundTag);
+        nextKey = compoundTag.getInt("nextKey");
+        hasBeenLoaded = true;
+        super.verifyTagAfterLoad(compoundTag);
+    }
+
     private void clusterNewArea(AABBic initial) {
         Set<AABBic> newCluster = new HashSet<>();
+        newCluster.add(initial);
         boolean makeNewCluster = true;
         for (AABBic area : selectedAreas) {
             if (initial.containsAABB(area)) {
@@ -93,8 +114,35 @@ public class AreaDesignatorItem extends CWItem {
             }
         }
         if (makeNewCluster) {
+            toBeStored.add(initial);
+            selectedAreas.add(initial);
             selectionClusters.add(newCluster);
             mergeClusters();
+        }
+    }
+
+    private void reloadClusters(CompoundTag tag) {
+        String keyToCheck = pointDataSaveKey + "0";
+        int increment = 0;
+        int highestKey = 0;
+        CompoundTag refreshedTag = new CompoundTag();
+
+        while (increment <= nextKey) {
+            if (tag.contains(keyToCheck)) {
+                int[] pointData = tag.getIntArray(keyToCheck);
+
+                AABBic loaded = new AABBi(pointData[0], pointData[1], pointData[2], pointData[3], pointData[4], pointData[5]);
+                clusterNewArea(loaded);
+                highestKey++;
+                refreshedTag.putIntArray(pointDataSaveKey + highestKey, pointData);
+            }
+            increment++;
+            keyToCheck = pointDataSaveKey + increment;
+        }
+
+        if (highestKey < nextKey-1) {
+            nextKey = highestKey+1;
+            tag = refreshedTag;
         }
     }
 
@@ -119,6 +167,34 @@ public class AreaDesignatorItem extends CWItem {
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected) {
         super.inventoryTick(stack, level, entity, slotId, isSelected);
+
+        if (loadCooldown > 0) {
+            loadCooldown--;
+        } else {
+            if (!hasBeenLoaded) {
+                CompoundTag tag = stack.getOrCreateTag();
+                if (tag.contains("nextKey")) {
+                    nextKey = tag.getInt("nextKey");
+                }
+                reloadClusters(tag);
+                hasBeenLoaded = true;
+            } else {
+                while (!toBeStored.isEmpty()) {
+                    if (stack.hasTag()) {
+                        CompoundTag nbt = stack.getOrCreateTag();
+                        nextKey = nbt.getInt("nextKey");
+                        AABBic toStore = toBeStored.get(0);
+                        int[] pointData = {toStore.minX(), toStore.minY(), toStore.minZ(), toStore.maxX(), toStore.maxY(), toStore.maxZ()};
+                        nbt.putIntArray((pointDataSaveKey + nextKey), pointData);
+                        nextKey++;
+                        nbt.putInt("nextKey", nextKey);
+                        toBeStored.remove(0);
+                    }
+                }
+            }
+        }
+
+
 
         if (level.isClientSide) {
             return;
@@ -224,7 +300,6 @@ public class AreaDesignatorItem extends CWItem {
                 player.getCooldowns().addCooldown(this, 10);
                 return InteractionResult.SUCCESS;
             }
-            selectedAreas.add(area);
             clusterNewArea(area);
             player.displayClientMessage(new TextComponent("Area Designated!").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE)), true);
             world.playSound(null, player, ClockWorkSounds.DESIGNATOR_SELECT_END.getMainEvent(), player.getSoundSource(), 1.0f, pitch);
