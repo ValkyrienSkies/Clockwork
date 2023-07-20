@@ -40,17 +40,16 @@ import org.valkyrienskies.core.impl.util.VectorConversionsKt;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 public class AreaDesignatorItem extends CWItem {
 
-    public Set<AABBic> selectedAreas = new HashSet<>();
+    public HashMap<AABBic, String> selectedAreas = new HashMap();
     public Set<Set<AABBic>> selectionClusters = new HashSet<>();
 
     private ArrayList<AABBic> toBeStored = new ArrayList<>();
+    private ArrayList<Set<AABBic>> toBeRemoved = new ArrayList<>();
+    public ArrayList<Set<AABBic>> toStopRendering = new ArrayList<>();
 
     private boolean wasSelected = false;
 
@@ -75,7 +74,7 @@ public class AreaDesignatorItem extends CWItem {
 
     int loadCooldown = 100;
 
-    private static String pointDataSaveKey = "pointData_";
+    private static final String pointDataSaveKey = "pointData_";
     private Integer nextKey = 0;
 
     public AreaDesignatorItem(Properties properties) {
@@ -94,30 +93,29 @@ public class AreaDesignatorItem extends CWItem {
         Set<AABBic> newCluster = new HashSet<>();
         newCluster.add(initial);
         boolean makeNewCluster = true;
-        for (AABBic area : selectedAreas) {
-            if (initial.containsAABB(area)) {
-                boolean existingCluster = false;
-                Set<AABBic> foundCluster = new HashSet<>();
-                for (Set<AABBic> cluster : selectionClusters) {
-                    if (cluster.contains(area) && !existingCluster) {
-                        cluster.add(initial);
-                        foundCluster = new HashSet<>(cluster);
-                        existingCluster = true;
-                        makeNewCluster = false;
-                    } else if (cluster.contains(area)) {
-                        foundCluster.addAll(cluster);
-                        selectionClusters.remove(cluster);
-                        makeNewCluster = true;
-                        newCluster.addAll(foundCluster);
-                    }
-                }
-            }
-        }
+//        for (AABBic area : selectedAreas.keySet()) {
+//            if (initial.containsAABB(area)) {
+//                boolean existingCluster = false;
+//                Set<AABBic> foundCluster = new HashSet<>();
+//                for (Set<AABBic> cluster : selectionClusters) {
+//                    if (cluster.contains(area) && !existingCluster) {
+//                        cluster.add(initial);
+//                        foundCluster = new HashSet<>(cluster);
+//                        existingCluster = true;
+//                        makeNewCluster = false;
+//                    } else if (cluster.contains(area)) {
+//                        foundCluster.addAll(cluster);
+//                        selectionClusters.remove(cluster);
+//                        makeNewCluster = true;
+//                        newCluster.addAll(foundCluster);
+//                    }
+//                }
+//            }
+//        }
         if (makeNewCluster) {
             toBeStored.add(initial);
-            selectedAreas.add(initial);
             selectionClusters.add(newCluster);
-            mergeClusters();
+            mergeClusters(initial);
         }
     }
 
@@ -140,23 +138,61 @@ public class AreaDesignatorItem extends CWItem {
             keyToCheck = pointDataSaveKey + increment;
         }
 
-        if (highestKey < nextKey-1) {
-            nextKey = highestKey+1;
-            tag = refreshedTag;
-        }
+//        if (highestKey < nextKey-1) {
+//            nextKey = highestKey+1;
+//            tag = refreshedTag;
+//        }
     }
 
-    private void mergeClusters() {
-        for (Set<AABBic> cluster : selectionClusters) {
-            for (AABBic area : cluster) {
-                for (Set<AABBic> cluster2 : selectionClusters) {
-                    if (cluster2.contains(area) && cluster != cluster2) {
-                        cluster.addAll(cluster2);
-                        selectionClusters.remove(cluster2);
-                    }
-                }
+    private void mergeClusters(AABBic starter) {
+//        Set<Set<AABBic>> clustersTemp = new HashSet<>(selectionClusters);
+//        for (Set<AABBic> cluster : clustersTemp) {
+//            Set<AABBic> newCluster = new HashSet<>(cluster);
+//            for (AABBic area : cluster) {
+//                for (Set<AABBic> cluster2 : clustersTemp) {
+//                    for (AABBic area2 : cluster2) {
+//                        if (area.containsAABB(area2) && !area.equals(area2)) {
+//                            newCluster.addAll(cluster2);
+//                            dumpClusterDirty(cluster2);
+//                            break;
+//                        }
+//                    }
+//                }
+//            }
+//            selectionClusters.add(newCluster);
+//        }
+        Set<AABBic> newCluster = new HashSet<>();
+
+        //get direct neighbors
+        for (AABBic area : selectedAreas.keySet()) {
+            if (starter.intersectsAABB(area)) {
+                newCluster.add(area);
             }
         }
+        //spiral out of control
+        ArrayList<AABBic> toCheck = new ArrayList<>(newCluster);
+        while (!toCheck.isEmpty()) {
+            AABBic check = toCheck.get(0);
+            for (AABBic area : selectedAreas.keySet()) {
+                if (check.intersectsAABB(area) && !newCluster.contains(area) && !toCheck.contains(area)) {
+                    newCluster.add(area);
+                    toCheck.add(area);
+                }
+            }
+            toCheck.remove(0);
+        }
+        //finish off the insanity by adding back the initial
+        newCluster.add(starter);
+
+        //now check to dump all clusters that were merged
+        for (AABBic check : newCluster) {
+            Set<AABBic> oldCluster = getClusterContainingAABB(check);
+            if (oldCluster != null) {
+                dumpClusterDirty(oldCluster);
+            }
+        }
+
+        selectionClusters.add(newCluster);
     }
 
     @Override
@@ -186,9 +222,21 @@ public class AreaDesignatorItem extends CWItem {
                         AABBic toStore = toBeStored.get(0);
                         int[] pointData = {toStore.minX(), toStore.minY(), toStore.minZ(), toStore.maxX(), toStore.maxY(), toStore.maxZ()};
                         nbt.putIntArray((pointDataSaveKey + nextKey), pointData);
+                        selectedAreas.put(toStore, pointDataSaveKey + nextKey);
                         nextKey++;
                         nbt.putInt("nextKey", nextKey);
                         toBeStored.remove(0);
+                    }
+                }
+                while (!toBeRemoved.isEmpty()) {
+                    if (stack.hasTag()) {
+                        CompoundTag nbt = stack.getOrCreateTag();
+                        Set<AABBic> set = toBeRemoved.remove(0);
+                        for (AABBic box : set) {
+                            String key = selectedAreas.get(box);
+                            nbt.remove(key);
+                            selectedAreas.remove(box);
+                        }
                     }
                 }
             }
@@ -216,17 +264,17 @@ public class AreaDesignatorItem extends CWItem {
         if (isSelected) {
             if (entity instanceof Player) {
                 Player player = (Player) entity;
-                if (player.swinging && !player.isUsingItem()) {
-                    BlockHitResult hitResult = getPlayerPOVHitResult(level, player, ClipContext.Fluid.NONE);
-                    Vector3ic pos = VectorConversionsMCKt.toJOML(hitResult.getBlockPos());
-                    Set<AABBic> hitCluster = getClusterContaining(pos);
-                    if (hitCluster != null) {
-                        float pitch = Mth.randomBetween(soundRandom, 0.8f, 1.2f);
-                        dumpCluster(hitCluster);
-                        level.playSound(null, player, ClockWorkSounds.DESIGNATOR_DUMP_CLUSTER.getMainEvent(), player.getSoundSource(), 1.0f, pitch);
-                        animationType = Animation.DUMP;
-                    }
-                }
+//                if (player.swinging && !player.isUsingItem()) {
+//                    BlockHitResult hitResult = getPlayerPOVHitResult(level, player, ClipContext.Fluid.NONE);
+//                    Vector3ic pos = VectorConversionsMCKt.toJOML(hitResult.getBlockPos());
+//                    Set<AABBic> hitCluster = getClusterContaining(pos);
+//                    if (hitCluster != null) {
+//                        float pitch = Mth.randomBetween(soundRandom, 0.8f, 1.2f);
+//                        dumpCluster(hitCluster);
+//                        level.playSound(null, player, ClockWorkSounds.DESIGNATOR_DUMP_CLUSTER.getMainEvent(), player.getSoundSource(), 1.0f, pitch);
+//                        animationType = Animation.DUMP;
+//                    }
+//                }
             }
 
 
@@ -290,10 +338,10 @@ public class AreaDesignatorItem extends CWItem {
             return InteractionResult.SUCCESS;
         } else if (secondPos == null && firstPos != null) {
             secondPos = pos;
-            AABBic area = new AABBi(firstPos, secondPos);
+            AABBic area = new AABBi(Math.min(firstPos.x(), secondPos.x()), Math.min(firstPos.y(), secondPos.y()), Math.min(firstPos.z(), secondPos.z()), Math.max(firstPos.x(), secondPos.x()), Math.max(firstPos.y(), secondPos.y()), Math.max(firstPos.z(), secondPos.z()));
             firstPos = null;
             secondPos = null;
-            if (selectedAreas.contains(area)) {
+            if (selectedAreas.containsKey(area)) {
                 player.displayClientMessage(new TextComponent("Area Already Exists.").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE)), true);
                 world.playSound(null, player, ClockWorkSounds.PHYSICS_INFUSER_LIGHTNING.getMainEvent(), player.getSoundSource(), 1.0f, pitch);
                 animationType = Animation.DUMP;
@@ -342,6 +390,16 @@ public class AreaDesignatorItem extends CWItem {
         return null;
     }
 
+    @Nullable
+    public Set<AABBic> getClusterContainingAABB(AABBic box) {
+        for (Set<AABBic> cluster : selectionClusters) {
+            if (cluster.contains(box)) {
+                return cluster;
+            }
+        }
+        return null;
+    }
+
     public DenseBlockPosSet denseBlocksFromCluster(Set<AABBic> cluster) {
         DenseBlockPosSet set = new DenseBlockPosSet();
         for (AABBic area : cluster) {
@@ -371,7 +429,7 @@ public class AreaDesignatorItem extends CWItem {
     }
 
     public AABBic getAABBFromPos(Vector3ic pos) {
-        for (AABBic area : selectedAreas) {
+        for (AABBic area : selectedAreas.keySet()) {
             if (area.containsPoint(pos)) {
                 return area;
             }
@@ -381,7 +439,13 @@ public class AreaDesignatorItem extends CWItem {
 
     public void dumpCluster(Set<AABBic> cluster) {
         selectionClusters.remove(cluster);
-        selectedAreas.removeAll(cluster);
+        toBeRemoved.add(cluster);
+        toStopRendering.add(cluster);
+    }
+
+    public void dumpClusterDirty(Set<AABBic> cluster) {
+        selectionClusters.remove(cluster);
+        toStopRendering.add(cluster);
     }
 
     enum Animation {

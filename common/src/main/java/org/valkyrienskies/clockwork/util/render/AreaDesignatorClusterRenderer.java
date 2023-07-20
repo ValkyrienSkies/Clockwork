@@ -57,19 +57,16 @@ public class AreaDesignatorClusterRenderer {
 
                     Set<Set<AABBic>> clusters = adi.selectionClusters;
 
-                    //todo comodification exception
-//                    for (Set<AABBic> cluster : clusters) {
-//                        if (!storedClusters.containsKey(cluster)) {
-//                            storedClusters.put(cluster, adi.blocksFromCluster(cluster));
-//                        }
-//                    }
-//
-//                    for (Set<AABBic> clusterkey : storedClusters.keySet()) {
-//                        if (!clusters.contains(clusterkey)) {
-//                            ClockWorkMod.OUTLINER.remove(clusterkey);
-//                            storedClusters.remove(clusterkey);
-//                        }
-//                    }
+                    for (Set<AABBic> cluster : clusters) {
+                        if (!storedClusters.containsKey(cluster)) {
+                            storedClusters.put(cluster, adi.blocksFromCluster(cluster));
+                        }
+                    }
+
+                    while (!adi.toStopRendering.isEmpty()) {
+                        ClockWorkMod.OUTLINER.remove(adi.toStopRendering.get(0));
+                        storedClusters.remove(adi.toStopRendering.remove(0));
+                    }
 
                     if (minecraft.getCameraEntity() == null) {
                         return;
@@ -124,7 +121,7 @@ public class AreaDesignatorClusterRenderer {
                                 Vec3 vec = (VectorConversionsMCKt.toMinecraft(new Vector3d(hoveredBlockPos)));
                                 if (!vec.equals(localPlayer.getEyePosition())) {
                                     ClockWorkMod.OUTLINER.chaseAABB(adi, new AABB(VectorConversionsMCKt.toBlockPos(hoveredBlockPos)));
-                                    ClockWorkMod.OUTLINER.edit(adi).ifPresent(outline -> outline.colored(HOVERPURPLE).lightmap(15).withFaceTexture(AllSpecialTextures.SELECTION));
+                                    ClockWorkMod.OUTLINER.edit(adi).ifPresent(outline -> outline.colored(HOVERPURPLE).withFaceTexture(AllSpecialTextures.SELECTION));
                                 } else {
                                     ClockWorkMod.OUTLINER.remove(adi);
                                 }
@@ -134,9 +131,9 @@ public class AreaDesignatorClusterRenderer {
                             Vec3 vec = (VectorConversionsMCKt.toMinecraft(new Vector3d(hoveredBlockPos)));
                             if (!vec.equals(localPlayer.getEyePosition())) {
                                 ClockWorkMod.OUTLINER.chaseAABB(bbOutlineSlotAD, new AABB(VectorConversionsMCKt.toBlockPos(adi.firstPos), VectorConversionsMCKt.toBlockPos(hoveredBlockPos)).expandTowards(1,1,1));
-                                ClockWorkMod.OUTLINER.edit(bbOutlineSlotAD).ifPresent(outline -> outline.colored(HOVERPURPLE).lightmap(15).withFaceTexture(AllSpecialTextures.SELECTION));
+                                ClockWorkMod.OUTLINER.edit(bbOutlineSlotAD).ifPresent(outline -> outline.colored(HOVERPURPLE).withFaceTexture(AllSpecialTextures.SELECTION));
                             } else {
-                                ClockWorkMod.OUTLINER.chaseAABB(bbOutlineSlotAD, new AABB(VectorConversionsMCKt.toBlockPos(adi.firstPos)));
+                                ClockWorkMod.OUTLINER.chaseAABB(bbOutlineSlotAD, new AABB(VectorConversionsMCKt.toBlockPos(adi.firstPos), VectorConversionsMCKt.toBlockPos(adi.firstPos)));
                             }
                             //render selection box
                         } else {
