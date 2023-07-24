@@ -94,7 +94,7 @@ public class PhysicsInfuserBlock extends Block implements IBE<PhysicsInfuserBloc
                 if (worldIn.getBlockEntity(pos) instanceof PhysicsInfuserBlockEntity) {
                     PhysicsInfuserBlockEntity te = (PhysicsInfuserBlockEntity) worldIn.getBlockEntity(pos);
                     if (te.inventory.get(0).isEmpty()) {
-                        te.inventory.set(0, player.getItemInHand(handIn));
+                        te.inventory.set(0, player.getItemInHand(handIn).copy());
                         player.getItemInHand(handIn).shrink(1);
                         return InteractionResult.SUCCESS;
                     } else {

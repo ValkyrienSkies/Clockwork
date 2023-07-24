@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 import org.joml.primitives.AABBic;
+import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.clockwork.ClockWorkPackets;
 import org.valkyrienskies.clockwork.ClockWorkSounds;
 import org.valkyrienskies.clockwork.client.render.scanner.ScannerRenderer;
@@ -130,6 +131,7 @@ public class PhysicsInfuserBlockEntity extends SmartBlockEntity implements World
     @Override
     public void setChanged() {
         ClockWorkPackets.sendToNear(getLevel(), worldPosition, 64, new PhysicsInfuserSyncPacket(this));
+        super.setChanged();
     }
 
     @Override
@@ -196,8 +198,8 @@ public class PhysicsInfuserBlockEntity extends SmartBlockEntity implements World
                 AreaDesignatorItem adi = (AreaDesignatorItem) inventory.get(0).getItem();
                 adi.dumpCluster(cluster);
                 launchForce++;
-                toDump.remove(cluster);
             }
+            toDump.clear();
             ItemEntity ejected = new ItemEntity(level, getBlockPos().getX(), getBlockPos().getY()+1, getBlockPos().getZ(), inventory.get(0));
             inventory.set(0, ItemStack.EMPTY);
             ejected.setDeltaMovement(new Vec3(0, launchForce, 0));
@@ -233,6 +235,8 @@ public class PhysicsInfuserBlockEntity extends SmartBlockEntity implements World
         Random rand = level.getRandom();
         //client sounds
 
+        ClockWorkMod.LOGGER.info(inventory.get(0).toString());
+
         if (assembling) {
             if (assemblyProgress.getValue() == 0) {
                 playInitializeSound(level, thisposition);
@@ -251,6 +255,7 @@ public class PhysicsInfuserBlockEntity extends SmartBlockEntity implements World
                 if (level.isClientSide) {
                     for (Ship cship : createdShips) {
                         ScannerRenderer.INSTANCE.ping((ClientShip) cship, thisposition, this);
+                        createdShips.remove(cship);
                     }
                 }
             }
@@ -336,6 +341,10 @@ public class PhysicsInfuserBlockEntity extends SmartBlockEntity implements World
     }
 
     public void assemble() {
+        if (getLevel().isClientSide()) return;
+
+        if (!(inventory.get(0).getItem() instanceof AreaDesignatorItem)) return;
+
         AreaDesignatorItem item = (AreaDesignatorItem) inventory.get(0).getItem();
         item.selectionClusters.forEach((cluster) -> {
             DenseBlockPosSet selection;
@@ -353,7 +362,6 @@ public class PhysicsInfuserBlockEntity extends SmartBlockEntity implements World
                             Vector3dc newPos = ship.getTransform().getWorldToShip().transformPosition(VectorConversionsMCKt.toJOML(entity.position()));
                             entity.setPos(VectorConversionsMCKt.toMinecraft(newPos));
                         }
-                        caughtEntities.remove(entity);
                     });
                 }
 
