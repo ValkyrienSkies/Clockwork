@@ -26,6 +26,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
@@ -359,8 +360,23 @@ public class PhysicsInfuserBlockEntity extends SmartBlockEntity implements World
                 if (caughtEntities != null) {
                     caughtEntities.forEach(entity -> {
                         if (entity instanceof AbstractContraptionEntity || entity instanceof SuperGlueEntity || entity instanceof SeatEntity) {
-                            Vector3dc newPos = ship.getTransform().getWorldToShip().transformPosition(VectorConversionsMCKt.toJOML(entity.position()));
-                            entity.setPos(VectorConversionsMCKt.toMinecraft(newPos));
+                            if (!(entity instanceof SuperGlueEntity)) {
+                                Vector3dc oldPos = VectorConversionsMCKt.toJOML(entity.position());
+                                Vector3dc newPos = ship.getTransform().getWorldToShip().transformPosition(oldPos, new Vector3d());
+                                entity.moveTo(VectorConversionsMCKt.toMinecraft(newPos));
+                            } else {
+                                SuperGlueEntity glueEntity = (SuperGlueEntity) entity;
+                                AABB oldBounds = glueEntity.getBoundingBox();
+                                Vector3dc oldMax = new Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ);
+                                Vector3dc oldMin = new Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ);
+                                
+                                Vector3dc newMax = ship.getTransform().getWorldToShip().transformPosition(oldMax, new Vector3d());
+                                Vector3dc newMin = ship.getTransform().getWorldToShip().transformPosition(oldMin, new Vector3d());
+                                AABB newBounds = new AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z());
+
+                                glueEntity.setBoundingBox(newBounds);
+                                glueEntity.resetPositionToBB();
+                            }
                         }
                     });
                 }
