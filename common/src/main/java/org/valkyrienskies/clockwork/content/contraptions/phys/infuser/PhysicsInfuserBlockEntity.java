@@ -369,7 +369,7 @@ public class PhysicsInfuserBlockEntity extends SmartBlockEntity implements World
                                 AABB oldBounds = glueEntity.getBoundingBox();
                                 Vector3dc oldMax = new Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ);
                                 Vector3dc oldMin = new Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ);
-                                
+
                                 Vector3dc newMax = ship.getTransform().getWorldToShip().transformPosition(oldMax, new Vector3d());
                                 Vector3dc newMin = ship.getTransform().getWorldToShip().transformPosition(oldMin, new Vector3d());
                                 AABB newBounds = new AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z());
