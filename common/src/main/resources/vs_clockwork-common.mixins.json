@@ -4,13 +4,10 @@
   "compatibilityLevel": "JAVA_17",
   "plugin": "org.valkyrienskies.clockwork.mixin.CommonMixinConfigPlugin",
   "mixins": [
-    "content.wing.MixinAbstractCauldronBlock",
-    "accessors.IMixinClockworkContraption",
-    "accessors.IMixinPistonContraption",
-    "compat.blockentity.IMixinMechanicalBearingTileEntity",
-    "compat.block.MixinStickerBlock",
     "MixinPlayer",
     "accessors.FluidAccessor",
+    "accessors.IMixinClockworkContraption",
+    "accessors.IMixinPistonContraption",
     "compat.IMixinDeployerHandler",
     "compat.IMixinDeployerMovementBehaviour",
     "compat.MixinAirCurrent",
@@ -28,6 +25,8 @@
     "compat.block.MixinCrushingWheelBlock",
     "compat.block.MixinEjectorBlock",
     "compat.block.MixinRedstoneContactBlock",
+    "compat.block.MixinStickerBlock",
+    "compat.blockentity.IMixinMechanicalBearingTileEntity",
     "compat.blockentity.MixinCrushingWheelControllerTileEntity",
     "compat.blockentity.MixinEjectorTileEntity",
     "compat.blockentity.MixinEncasedFanTileEntity",
@@ -43,7 +42,10 @@
     "compat.pr.MixinSeatBlock",
     "content.balloon.MixinLevelChunkBalloon",
     "content.fan.MixinEncasedFanTileEntity",
-    "content.universal_joint.MixinRotationPropagator"
+    "content.pulse.MixinOutliner",
+    "content.pulse.OutlineParamsAccessor",
+    "content.universal_joint.MixinRotationPropagator",
+    "content.wing.MixinAbstractCauldronBlock"
   ],
   "client": [
     "compat.client.MixinCarriageContraptionInstance",
@@ -64,6 +66,7 @@
     "compat.client.MixinTileEntityRenderHelper",
     "compat.client.MixinTrackBlockOutline",
     "compat.client.MixinTrainRelocator",
+    "content.pulse.MixinEffectShader",
     "content.pulse.MixinLevelRenderer"
   ],
   "injectors": {

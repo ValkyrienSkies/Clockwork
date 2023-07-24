@@ -19,6 +19,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import org.apache.commons.lang3.tuple.Pair;
 import org.joml.*;
 import org.joml.primitives.AABBi;
 import org.joml.primitives.AABBic;
@@ -37,7 +38,7 @@ public class AreaDesignatorClusterRenderer {
 
     private Object bbOutlineSlotAD = new Object();
 
-    private HashMap<Set<AABBic>, Set<BlockPos>> storedClusters = new HashMap<>();
+    private HashMap<Set<AABBic>, Pair<Set<BlockPos>, String>> storedClusters = new HashMap<>();
 
     public static AreaDesignatorClusterRenderer INSTANCE = new AreaDesignatorClusterRenderer();
 
@@ -46,6 +47,10 @@ public class AreaDesignatorClusterRenderer {
     private static final Color HOVERPURPLE = new Color(203,195,227);
 
     private static final Color IDLEPURPLE = new Color(221,160,221);
+
+    private static final String clusterID = "clusterID_";
+
+    private static Integer clusterIncrement = 0;
 
 
     public void renderDesignator(final ClientLevel level, final Minecraft minecraft, final PoseStack poseStack, final float tickDelta, final long nanos, final boolean shouldRenderBlockOutline, final Camera camera, final GameRenderer gameRenderer, final LightTexture lightTexture, final Matrix4f projectionMatrix) {
@@ -59,7 +64,8 @@ public class AreaDesignatorClusterRenderer {
 
                     for (Set<AABBic> cluster : clusters) {
                         if (!storedClusters.containsKey(cluster)) {
-                            storedClusters.put(cluster, adi.blocksFromCluster(cluster));
+                            storedClusters.put(cluster, Pair.of(adi.blocksFromCluster(cluster), clusterID + clusterIncrement));
+                            clusterIncrement++;
                         }
                     }
 
@@ -141,10 +147,11 @@ public class AreaDesignatorClusterRenderer {
                         }
                     }
                     for (Set<AABBic> key : storedClusters.keySet()) {
-                        ClockWorkMod.OUTLINER.showCluster(key, storedClusters.get(key));
-                        ClockWorkMod.OUTLINER.edit(key).ifPresent(outline -> outline.colored(IDLEPURPLE));
+
+                        ClockWorkMod.OUTLINER.showCluster(storedClusters.get(key).getRight(), storedClusters.get(key).getLeft());
+                        ClockWorkMod.OUTLINER.edit(storedClusters.get(key).getRight()).ifPresent(outline -> outline.colored(IDLEPURPLE));
                         if (key.equals(hoveredCluster)) {
-                            ClockWorkMod.OUTLINER.edit(key).ifPresent(outline -> outline.colored(HOVERPURPLE));
+                            ClockWorkMod.OUTLINER.edit(storedClusters.get(key).getRight()).ifPresent(outline -> outline.colored(HOVERPURPLE));
                         }
                     }
 

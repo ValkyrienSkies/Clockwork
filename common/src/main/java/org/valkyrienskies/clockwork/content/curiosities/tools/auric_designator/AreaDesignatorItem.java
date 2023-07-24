@@ -8,6 +8,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -32,6 +33,7 @@ import org.joml.primitives.AABBi;
 import org.joml.primitives.AABBic;
 import org.valkyrienskies.clockwork.ClockWorkPackets;
 import org.valkyrienskies.clockwork.ClockWorkSounds;
+import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity;
 import org.valkyrienskies.clockwork.platform.CWItem;
 import org.valkyrienskies.core.impl.datastructures.DenseBlockPosSet;
 import org.valkyrienskies.core.impl.util.AABBdUtilKt;
@@ -119,18 +121,28 @@ public class AreaDesignatorItem extends CWItem {
         }
     }
 
+    private void massClusterAreas(Set<AABBic> areas) {
+        for (AABBic box : areas) {
+            mergeClusters(box);
+        }
+    }
+
     private void reloadClusters(CompoundTag tag) {
         String keyToCheck = pointDataSaveKey + "0";
         int increment = 0;
         int highestKey = 0;
         CompoundTag refreshedTag = new CompoundTag();
 
+        Set<AABBic> toReload = new HashSet<>();
+
         while (increment <= nextKey) {
             if (tag.contains(keyToCheck)) {
                 int[] pointData = tag.getIntArray(keyToCheck);
 
                 AABBic loaded = new AABBi(pointData[0], pointData[1], pointData[2], pointData[3], pointData[4], pointData[5]);
-                clusterNewArea(loaded);
+                //clusterNewArea(loaded);
+                toReload.add(loaded);
+                selectedAreas.put(loaded, keyToCheck);
                 highestKey++;
                 refreshedTag.putIntArray(pointDataSaveKey + highestKey, pointData);
             }
@@ -142,6 +154,8 @@ public class AreaDesignatorItem extends CWItem {
 //            nextKey = highestKey+1;
 //            tag = refreshedTag;
 //        }
+
+        massClusterAreas(toReload);
     }
 
     private void mergeClusters(AABBic starter) {
@@ -198,6 +212,18 @@ public class AreaDesignatorItem extends CWItem {
     @Override
     public boolean canAttackBlock(BlockState state, Level level, BlockPos pos, Player player) {
         return super.canAttackBlock(state, level, pos, player);
+    }
+
+    public void onAttack(Player player) {
+        BlockHitResult hitResult = getPlayerPOVHitResult(player.level, player, ClipContext.Fluid.NONE);
+        Vector3ic pos = VectorConversionsMCKt.toJOML(hitResult.getBlockPos());
+        Set<AABBic> hitCluster = getClusterContaining(pos);
+        if (hitCluster != null) {
+            float pitch = Mth.randomBetween(soundRandom, 0.8f, 1.2f);
+            dumpCluster(hitCluster);
+            player.level.playSound(null, player, ClockWorkSounds.DESIGNATOR_DUMP_CLUSTER.getMainEvent(), player.getSoundSource(), 1.0f, pitch);
+            animationType = Animation.DUMP;
+        }
     }
 
     @Override
@@ -264,17 +290,7 @@ public class AreaDesignatorItem extends CWItem {
         if (isSelected) {
             if (entity instanceof Player) {
                 Player player = (Player) entity;
-//                if (player.swinging && !player.isUsingItem()) {
-//                    BlockHitResult hitResult = getPlayerPOVHitResult(level, player, ClipContext.Fluid.NONE);
-//                    Vector3ic pos = VectorConversionsMCKt.toJOML(hitResult.getBlockPos());
-//                    Set<AABBic> hitCluster = getClusterContaining(pos);
-//                    if (hitCluster != null) {
-//                        float pitch = Mth.randomBetween(soundRandom, 0.8f, 1.2f);
-//                        dumpCluster(hitCluster);
-//                        level.playSound(null, player, ClockWorkSounds.DESIGNATOR_DUMP_CLUSTER.getMainEvent(), player.getSoundSource(), 1.0f, pitch);
-//                        animationType = Animation.DUMP;
-//                    }
-//                }
+
             }
 
 
@@ -318,6 +334,9 @@ public class AreaDesignatorItem extends CWItem {
         }
         Level world = context.getLevel();
         if (world.isClientSide) {
+            return InteractionResult.PASS;
+        }
+        if (world.getBlockEntity(context.getClickedPos()) instanceof PhysicsInfuserBlockEntity) {
             return InteractionResult.PASS;
         }
         InteractionHand hand = context.getHand();
@@ -424,6 +443,15 @@ public class AreaDesignatorItem extends CWItem {
                     }
                 }
             }
+        }
+        return set;
+    }
+
+    public Set<Entity> entitiesFromCluster(Set<AABBic> cluster, ServerLevel level) {
+        Set<Entity> set = new HashSet<>();
+        for (AABBic area : cluster) {
+            AABB box = new AABB(area.maxX(), area.maxY(), area.maxZ(), area.minX(), area.minY(), area.minZ());
+            set.addAll(level.getEntities(null, box));
         }
         return set;
     }

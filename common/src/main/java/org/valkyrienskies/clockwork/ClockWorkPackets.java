@@ -6,6 +6,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
+import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserSyncPacket;
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric_designator.AreaDesignatorItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric_designator.AreaDesignatorSelectionPacket;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket;
@@ -36,6 +37,8 @@ public enum ClockWorkPackets {
     DESIGNATORSELECTION(AreaDesignatorSelectionPacket.class, AreaDesignatorSelectionPacket::new),
 
     // INSERT CLUSTER HANDLING PACKET STUFF HERE
+
+    PHYSICSINFUSERUPDATE(PhysicsInfuserSyncPacket.class, PhysicsInfuserSyncPacket::new),
 
     ;
 

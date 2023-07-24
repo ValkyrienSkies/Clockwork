@@ -7,3 +7,5 @@ accessible method net/minecraft/client/renderer/entity/EntityRenderers register 
 accessible class  net/minecraft/client/resources/model/ModelBakery$ModelGroupKey
 accessible method net/minecraft/world/level/block/FireBlock setFlammable (Lnet/minecraft/world/level/block/Block;II)V
 accessible class net/minecraft/server/network/ServerGamePacketListenerImpl
+accessible field com/simibubi/create/foundation/outliner/ChasingAABBOutline targetBB Lnet/minecraft/world/phys/AABB;
+accessible field com/simibubi/create/foundation/outliner/Outline$OutlineParams alpha F
