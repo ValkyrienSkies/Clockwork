@@ -1,5 +1,5 @@
 ![Logo-Recovered](vs_clockwork_logo.png)
 
-# Eureka
+# Clockwork
 
-Basically Archimedes Ships, but with VS2 as the backend!
+Create and Valkyrien Skies, because we're more based when we work together than apart.
