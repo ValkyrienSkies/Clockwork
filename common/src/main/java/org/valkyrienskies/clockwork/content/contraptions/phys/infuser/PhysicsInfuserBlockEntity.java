@@ -356,7 +356,7 @@ public class PhysicsInfuserBlockEntity extends SmartBlockEntity implements World
                 if (selection == null) return;
 
                 ship = ShipAssemblyKt.createNewShipWithBlocks(worldPosition, selection, sLevel);
-                // TODO: relocate entities
+                // TODO: relocate entities properly cause it barely works
                 if (caughtEntities != null) {
                     caughtEntities.forEach(entity -> {
                         if (entity instanceof AbstractContraptionEntity || entity instanceof SuperGlueEntity || entity instanceof SeatEntity) {
