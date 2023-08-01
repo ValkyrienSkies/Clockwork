@@ -1,23 +1,42 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.infuser;
 
+import com.simibubi.create.AllEntityTypes;
+import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
 import com.simibubi.create.content.contraptions.AssemblyException;
+import com.simibubi.create.content.contraptions.actors.seat.SeatEntity;
+import com.simibubi.create.content.contraptions.glue.SuperGlueEntity;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.utility.animation.LerpedFloat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.WorldlyContainer;
+import net.minecraft.world.WorldlyContainerHolder;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
+import org.joml.Vector3dc;
 import org.joml.primitives.AABBic;
+import org.valkyrienskies.clockwork.ClockWorkMod;
+import org.valkyrienskies.clockwork.ClockWorkPackets;
 import org.valkyrienskies.clockwork.ClockWorkSounds;
 import org.valkyrienskies.clockwork.client.render.scanner.ScannerRenderer;
+import org.valkyrienskies.clockwork.content.curiosities.tools.auric_designator.AreaDesignatorItem;
 import org.valkyrienskies.clockwork.platform.api.GlueType;
 import org.valkyrienskies.clockwork.util.assemble.GlueAssembler;
 import org.valkyrienskies.core.api.ships.ClientShip;
@@ -27,6 +46,7 @@ import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.assembly.ShipAssemblyKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -34,7 +54,7 @@ import java.util.Set;
 import static org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer.ScanManager.SCAN_GROWTH_DURATION;
 import static org.valkyrienskies.clockwork.util.animation.EaseHelper.easeInBounce;
 
-public class PhysicsInfuserBlockEntity extends SmartBlockEntity {
+public class PhysicsInfuserBlockEntity extends SmartBlockEntity implements WorldlyContainer {
 
     public static final int ASSEMBLY_TIME = 500;
     public static final int DISASSEMBLY_TIME = 1000;
@@ -54,7 +74,76 @@ public class PhysicsInfuserBlockEntity extends SmartBlockEntity {
     boolean onCooldown = false;
     boolean initPlayed = false;
     private Ship ship = null;
+
+    private Set<Ship> createdShips = new HashSet<>();
     private boolean sendAnimationUpdate;
+
+    private Set<Set<AABBic>> toDump = new HashSet<>();
+
+
+    public boolean shouldEjectDesignator = false;
+    NonNullList<ItemStack> inventory = NonNullList.withSize(1, ItemStack.EMPTY);
+
+    @Override
+    public int[] getSlotsForFace(Direction side) {
+        return new int[0];
+    }
+
+    @Override
+    public boolean canPlaceItemThroughFace(int index, ItemStack itemStack, @Nullable Direction direction) {
+        return itemStack.getItem() instanceof AreaDesignatorItem;
+    }
+
+    @Override
+    public boolean canTakeItemThroughFace(int index, ItemStack stack, Direction direction) {
+        return true;
+    }
+
+    @Override
+    public int getContainerSize() {
+        return 1;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return inventory.get(0).isEmpty();
+    }
+
+    @Override
+    public ItemStack getItem(int slot) {
+        return inventory.get(0);
+    }
+
+    @Override
+    public ItemStack removeItem(int slot, int amount) {
+        return inventory.remove(0);
+    }
+
+    @Override
+    public ItemStack removeItemNoUpdate(int slot) {
+        return inventory.remove(0);
+    }
+
+    @Override
+    public void setItem(int slot, ItemStack stack) {
+        inventory.set(0, stack);
+    }
+
+    @Override
+    public void setChanged() {
+        ClockWorkPackets.sendToNear(getLevel(), worldPosition, 64, new PhysicsInfuserSyncPacket(this));
+        super.setChanged();
+    }
+
+    @Override
+    public boolean stillValid(Player player) {
+        return true;
+    }
+
+    @Override
+    public void clearContent() {
+        inventory.set(0, ItemStack.EMPTY);
+    }
 
     public PhysicsInfuserBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -100,12 +189,26 @@ public class PhysicsInfuserBlockEntity extends SmartBlockEntity {
     public void tick() {
         super.tick();
 
-        if (level instanceof ServerLevel s) {
-            ship = VSGameUtilsKt.getShipObjectManagingPos(s, worldPosition);
+        if (level == null) return;
+
+        if (shouldEjectDesignator) {
+            shouldEjectDesignator = false;
+            if (inventory.get(0).isEmpty()) return;
+            int launchForce = 0;
+            for (Set<AABBic> cluster : toDump) {
+                AreaDesignatorItem adi = (AreaDesignatorItem) inventory.get(0).getItem();
+                adi.dumpCluster(cluster);
+                launchForce++;
+            }
+            toDump.clear();
+            ItemEntity ejected = new ItemEntity(level, getBlockPos().getX(), getBlockPos().getY()+1, getBlockPos().getZ(), inventory.get(0));
+            inventory.set(0, ItemStack.EMPTY);
+            ejected.setDeltaMovement(new Vec3(0, launchForce, 0));
+            level.addFreshEntity(ejected);
         }
 
-        if (ship != null) {
-            isAssembled = true;
+        if (level instanceof ServerLevel s) {
+            ship = VSGameUtilsKt.getShipObjectManagingPos(s, worldPosition);
         }
 
         if (useCooldown > 0) {
@@ -126,15 +229,14 @@ public class PhysicsInfuserBlockEntity extends SmartBlockEntity {
 
         if (assembling) {
             assemblyProgress.setValue(assemblyProgress.getValue() + 1);
-            if (skippingAssembly) {
-                assembleInstantly();
-            }
         }
-        if (disassembling) {
-            disassemblyProgress.setValue(disassemblyProgress.getValue() + 1);
-        }
+//        if (disassembling) {
+//            disassemblyProgress.setValue(disassemblyProgress.getValue() + 1);
+//        }
         Random rand = level.getRandom();
         //client sounds
+
+        ClockWorkMod.LOGGER.info(inventory.get(0).toString());
 
         if (assembling) {
             if (assemblyProgress.getValue() == 0) {
@@ -152,7 +254,10 @@ public class PhysicsInfuserBlockEntity extends SmartBlockEntity {
             if (assemblyProgress.getValue() == 460) {
                 playFinishSound(level, thisposition);
                 if (level.isClientSide) {
-                    ScannerRenderer.INSTANCE.ping((ClientShip) ship, thisposition, this);
+                    for (Ship cship : createdShips) {
+                        ScannerRenderer.INSTANCE.ping((ClientShip) cship, thisposition, this);
+                        createdShips.remove(cship);
+                    }
                 }
             }
             if (assemblyProgress.getValue() == 500) {
@@ -161,17 +266,8 @@ public class PhysicsInfuserBlockEntity extends SmartBlockEntity {
         }
     }
 
-    private void assembleInstantly() {
-        resetAfterAssemble();
-        assemble();
-        playFinishSound(level, thisposition);
-        if (level.isClientSide) {
-            ScannerRenderer.INSTANCE.ping((ClientShip) ship, thisposition, this);
-        }
-    }
-
     private void resetAfterAssemble() {
-        isAssembled = true;
+//        isAssembled = true;
         assembling = false;
         skippingAssembly = false;
         initPlayed = false;
@@ -179,6 +275,8 @@ public class PhysicsInfuserBlockEntity extends SmartBlockEntity {
         startAnimation(Animation.IDLE);
         assemblyProgress.startWithValue(0);
         useCooldown = 400;
+
+        shouldEjectDesignator = true;
     }
 
     //Ship Assembly Handlers
@@ -244,30 +342,49 @@ public class PhysicsInfuserBlockEntity extends SmartBlockEntity {
     }
 
     public void assemble() {
-        //INSERT ASSEMBLY LOGIC TROL
-        DenseBlockPosSet selection;
-        Set<Entity> caughtEntities;
-        if (level instanceof ServerLevel sLevel) {
-            try {
-                selection = GlueAssembler.collectGlued(sLevel, worldPosition, GlueType.BLUPER);
-                caughtEntities = GlueAssembler.collectEntities(sLevel, worldPosition, GlueType.BLUPER);
-                this.lastException = null;
-            } catch (AssemblyException e) {
-                this.lastException = e;
-                this.sendData();
-                return;
-            }
-            if (selection == null) return;
+        if (getLevel().isClientSide()) return;
 
-            ship = ShipAssemblyKt.createNewShipWithBlocks(worldPosition, selection, sLevel);
-            // TODO: relocate entities
-//            if (caughtEntities != null) {
-//                caughtEntities.forEach(entity -> {
-//
-//                    ship.getTransform().getWorldToShip().transformPosition(VectorConversionsMCKt.toJOML(entity.position()));
-//                });
-//            }
-        }
+        if (!(inventory.get(0).getItem() instanceof AreaDesignatorItem)) return;
+
+        AreaDesignatorItem item = (AreaDesignatorItem) inventory.get(0).getItem();
+        item.selectionClusters.forEach((cluster) -> {
+            DenseBlockPosSet selection;
+            Set<Entity> caughtEntities;
+            if (level instanceof ServerLevel sLevel) {
+                selection = item.denseBlocksFromCluster(cluster);
+                caughtEntities = item.entitiesFromCluster(cluster, sLevel);
+                if (selection == null) return;
+
+                ship = ShipAssemblyKt.createNewShipWithBlocks(worldPosition, selection, sLevel);
+                // TODO: relocate entities properly cause it barely works
+                if (caughtEntities != null) {
+                    caughtEntities.forEach(entity -> {
+                        if (entity instanceof AbstractContraptionEntity || entity instanceof SuperGlueEntity || entity instanceof SeatEntity) {
+                            if (!(entity instanceof SuperGlueEntity)) {
+                                Vector3dc oldPos = VectorConversionsMCKt.toJOML(entity.position());
+                                Vector3dc newPos = ship.getTransform().getWorldToShip().transformPosition(oldPos, new Vector3d());
+                                entity.moveTo(VectorConversionsMCKt.toMinecraft(newPos));
+                            } else {
+                                SuperGlueEntity glueEntity = (SuperGlueEntity) entity;
+                                AABB oldBounds = glueEntity.getBoundingBox();
+                                Vector3dc oldMax = new Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ);
+                                Vector3dc oldMin = new Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ);
+
+                                Vector3dc newMax = ship.getTransform().getWorldToShip().transformPosition(oldMax, new Vector3d());
+                                Vector3dc newMin = ship.getTransform().getWorldToShip().transformPosition(oldMin, new Vector3d());
+                                AABB newBounds = new AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z());
+
+                                glueEntity.setBoundingBox(newBounds);
+                                glueEntity.resetPositionToBB();
+                            }
+                        }
+                    });
+                }
+
+                createdShips.add(ship);
+            }
+            toDump.add(cluster);
+        });
     }
 
     public void disassemble() {
@@ -332,6 +449,8 @@ public class PhysicsInfuserBlockEntity extends SmartBlockEntity {
         compound.putBoolean("isAssembled", isAssembled);
         compound.putBoolean("assembling", assembling);
         compound.putBoolean("disassembling", disassembling);
+
+        ContainerHelper.saveAllItems(compound, inventory);
         super.write(compound, clientPacket);
     }
 
@@ -346,6 +465,9 @@ public class PhysicsInfuserBlockEntity extends SmartBlockEntity {
         isAssembled = compound.getBoolean("isAssembled");
         assembling = compound.getBoolean("assembling");
         disassembling = compound.getBoolean("disassembling");
+
+        this.inventory = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
+        ContainerHelper.loadAllItems(compound, inventory);
         super.read(compound, clientPacket);
     }
 

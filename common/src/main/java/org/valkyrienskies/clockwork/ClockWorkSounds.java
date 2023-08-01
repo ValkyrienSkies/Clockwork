@@ -79,8 +79,32 @@ public class ClockWorkSounds {
     SUPERSONIC = create("supersonic").subtitle("Supersonic")
             .category(SoundSource.RECORDS)
             .attenuationDistance(32)
-            .build()
+            .build(),
 
+    DESIGNATOR_ACTIVATE = create("designator_activate").subtitle("Designator activates")
+            .category(SoundSource.PLAYERS)
+            .attenuationDistance(16)
+            .build(),
+
+    DESIGNATOR_DUMP_CLUSTER = create("designator_dump_cluster").subtitle("Designator discharges")
+            .category(SoundSource.PLAYERS)
+            .attenuationDistance(16)
+            .build(),
+
+    DESIGNATOR_SELECT_START = create("designator_select_start").subtitle("Designator starts up")
+            .category(SoundSource.PLAYERS)
+            .attenuationDistance(16)
+            .build(),
+
+    DESIGNATOR_SELECT_END = create("designator_select_end").subtitle("Designator selects")
+            .category(SoundSource.PLAYERS)
+            .attenuationDistance(16)
+            .build(),
+
+    DESIGNATOR_IDLE = create("designator_idle").subtitle("Designator fizzles")
+            .category(SoundSource.PLAYERS)
+            .attenuationDistance(16)
+            .build()
             ;
     private static final DeferredRegister<SoundEvent> sounds = DeferredRegister.create(Registry.SOUND_EVENT, ClockWorkMod.MOD_ID);
 

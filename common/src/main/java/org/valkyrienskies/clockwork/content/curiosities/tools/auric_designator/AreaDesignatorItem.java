@@ -1,0 +1,482 @@
+package org.valkyrienskies.clockwork.content.curiosities.tools.auric_designator;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import kotlin.jvm.internal.markers.KMutableSet;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3d;
+import org.joml.Vector3dc;
+import org.joml.Vector3ic;
+import org.joml.primitives.AABBi;
+import org.joml.primitives.AABBic;
+import org.valkyrienskies.clockwork.ClockWorkPackets;
+import org.valkyrienskies.clockwork.ClockWorkSounds;
+import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity;
+import org.valkyrienskies.clockwork.platform.CWItem;
+import org.valkyrienskies.core.impl.datastructures.DenseBlockPosSet;
+import org.valkyrienskies.core.impl.util.AABBdUtilKt;
+import org.valkyrienskies.core.impl.util.VSCoreUtilKt;
+import org.valkyrienskies.core.impl.util.VectorConversionsKt;
+import org.valkyrienskies.mod.common.VSGameUtilsKt;
+import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
+
+import java.util.*;
+
+public class AreaDesignatorItem extends CWItem {
+
+    public HashMap<AABBic, String> selectedAreas = new HashMap();
+    public Set<Set<AABBic>> selectionClusters = new HashSet<>();
+
+    private ArrayList<AABBic> toBeStored = new ArrayList<>();
+    private ArrayList<Set<AABBic>> toBeRemoved = new ArrayList<>();
+    public ArrayList<Set<AABBic>> toStopRendering = new ArrayList<>();
+
+    private boolean wasSelected = false;
+
+    public Vector3ic firstPos = null;
+    public Vector3ic secondPos = null;
+
+    public boolean shouldRenderOutlines = false;
+
+    private Random soundRandom = new Random();
+
+    private float soundTickCounter = 0;
+
+    //ANIMATION
+    public Animation animationType = Animation.IDLE;
+
+    public float drawProgress = 0;
+    public float successProgress = 0;
+    public float dumpProgress = 0;
+    public float idleProgress = 0;
+
+    boolean hasBeenLoaded = false;
+
+    int loadCooldown = 100;
+
+    private static final String pointDataSaveKey = "pointData_";
+    private Integer nextKey = 0;
+
+    public AreaDesignatorItem(Properties properties) {
+        super(properties);
+    }
+
+    @Override
+    public void verifyTagAfterLoad(@NotNull CompoundTag compoundTag) {
+        reloadClusters(compoundTag);
+        nextKey = compoundTag.getInt("nextKey");
+        hasBeenLoaded = true;
+        super.verifyTagAfterLoad(compoundTag);
+    }
+
+    private void clusterNewArea(AABBic initial) {
+        Set<AABBic> newCluster = new HashSet<>();
+        newCluster.add(initial);
+        boolean makeNewCluster = true;
+//        for (AABBic area : selectedAreas.keySet()) {
+//            if (initial.containsAABB(area)) {
+//                boolean existingCluster = false;
+//                Set<AABBic> foundCluster = new HashSet<>();
+//                for (Set<AABBic> cluster : selectionClusters) {
+//                    if (cluster.contains(area) && !existingCluster) {
+//                        cluster.add(initial);
+//                        foundCluster = new HashSet<>(cluster);
+//                        existingCluster = true;
+//                        makeNewCluster = false;
+//                    } else if (cluster.contains(area)) {
+//                        foundCluster.addAll(cluster);
+//                        selectionClusters.remove(cluster);
+//                        makeNewCluster = true;
+//                        newCluster.addAll(foundCluster);
+//                    }
+//                }
+//            }
+//        }
+        if (makeNewCluster) {
+            toBeStored.add(initial);
+            selectionClusters.add(newCluster);
+            mergeClusters(initial);
+        }
+    }
+
+    private void massClusterAreas(Set<AABBic> areas) {
+        for (AABBic box : areas) {
+            mergeClusters(box);
+        }
+    }
+
+    private void reloadClusters(CompoundTag tag) {
+        String keyToCheck = pointDataSaveKey + "0";
+        int increment = 0;
+        int highestKey = 0;
+        CompoundTag refreshedTag = new CompoundTag();
+
+        Set<AABBic> toReload = new HashSet<>();
+
+        while (increment <= nextKey) {
+            if (tag.contains(keyToCheck)) {
+                int[] pointData = tag.getIntArray(keyToCheck);
+
+                AABBic loaded = new AABBi(pointData[0], pointData[1], pointData[2], pointData[3], pointData[4], pointData[5]);
+                //clusterNewArea(loaded);
+                toReload.add(loaded);
+                selectedAreas.put(loaded, keyToCheck);
+                highestKey++;
+                refreshedTag.putIntArray(pointDataSaveKey + highestKey, pointData);
+            }
+            increment++;
+            keyToCheck = pointDataSaveKey + increment;
+        }
+
+//        if (highestKey < nextKey-1) {
+//            nextKey = highestKey+1;
+//            tag = refreshedTag;
+//        }
+
+        massClusterAreas(toReload);
+    }
+
+    private void mergeClusters(AABBic starter) {
+//        Set<Set<AABBic>> clustersTemp = new HashSet<>(selectionClusters);
+//        for (Set<AABBic> cluster : clustersTemp) {
+//            Set<AABBic> newCluster = new HashSet<>(cluster);
+//            for (AABBic area : cluster) {
+//                for (Set<AABBic> cluster2 : clustersTemp) {
+//                    for (AABBic area2 : cluster2) {
+//                        if (area.containsAABB(area2) && !area.equals(area2)) {
+//                            newCluster.addAll(cluster2);
+//                            dumpClusterDirty(cluster2);
+//                            break;
+//                        }
+//                    }
+//                }
+//            }
+//            selectionClusters.add(newCluster);
+//        }
+        Set<AABBic> newCluster = new HashSet<>();
+
+        //get direct neighbors
+        for (AABBic area : selectedAreas.keySet()) {
+            if (starter.intersectsAABB(area)) {
+                newCluster.add(area);
+            }
+        }
+        //spiral out of control
+        ArrayList<AABBic> toCheck = new ArrayList<>(newCluster);
+        while (!toCheck.isEmpty()) {
+            AABBic check = toCheck.get(0);
+            for (AABBic area : selectedAreas.keySet()) {
+                if (check.intersectsAABB(area) && !newCluster.contains(area) && !toCheck.contains(area)) {
+                    newCluster.add(area);
+                    toCheck.add(area);
+                }
+            }
+            toCheck.remove(0);
+        }
+        //finish off the insanity by adding back the initial
+        newCluster.add(starter);
+
+        //now check to dump all clusters that were merged
+        for (AABBic check : newCluster) {
+            Set<AABBic> oldCluster = getClusterContainingAABB(check);
+            if (oldCluster != null) {
+                dumpClusterDirty(oldCluster);
+            }
+        }
+
+        selectionClusters.add(newCluster);
+    }
+
+    @Override
+    public boolean canAttackBlock(BlockState state, Level level, BlockPos pos, Player player) {
+        return super.canAttackBlock(state, level, pos, player);
+    }
+
+    public void onAttack(Player player) {
+        BlockHitResult hitResult = getPlayerPOVHitResult(player.level, player, ClipContext.Fluid.NONE);
+        Vector3ic pos = VectorConversionsMCKt.toJOML(hitResult.getBlockPos());
+        Set<AABBic> hitCluster = getClusterContaining(pos);
+        if (hitCluster != null) {
+            float pitch = Mth.randomBetween(soundRandom, 0.8f, 1.2f);
+            dumpCluster(hitCluster);
+            player.level.playSound(null, player, ClockWorkSounds.DESIGNATOR_DUMP_CLUSTER.getMainEvent(), player.getSoundSource(), 1.0f, pitch);
+            animationType = Animation.DUMP;
+        }
+    }
+
+    @Override
+    public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected) {
+        super.inventoryTick(stack, level, entity, slotId, isSelected);
+
+        if (loadCooldown > 0) {
+            loadCooldown--;
+        } else {
+            if (!hasBeenLoaded) {
+                CompoundTag tag = stack.getOrCreateTag();
+                if (tag.contains("nextKey")) {
+                    nextKey = tag.getInt("nextKey");
+                }
+                reloadClusters(tag);
+                hasBeenLoaded = true;
+            } else {
+                while (!toBeStored.isEmpty()) {
+                    if (stack.hasTag()) {
+                        CompoundTag nbt = stack.getOrCreateTag();
+                        nextKey = nbt.getInt("nextKey");
+                        AABBic toStore = toBeStored.get(0);
+                        int[] pointData = {toStore.minX(), toStore.minY(), toStore.minZ(), toStore.maxX(), toStore.maxY(), toStore.maxZ()};
+                        nbt.putIntArray((pointDataSaveKey + nextKey), pointData);
+                        selectedAreas.put(toStore, pointDataSaveKey + nextKey);
+                        nextKey++;
+                        nbt.putInt("nextKey", nextKey);
+                        toBeStored.remove(0);
+                    }
+                }
+                while (!toBeRemoved.isEmpty()) {
+                    if (stack.hasTag()) {
+                        CompoundTag nbt = stack.getOrCreateTag();
+                        Set<AABBic> set = toBeRemoved.remove(0);
+                        for (AABBic box : set) {
+                            String key = selectedAreas.get(box);
+                            nbt.remove(key);
+                            selectedAreas.remove(box);
+                        }
+                    }
+                }
+            }
+        }
+
+
+
+        if (level.isClientSide) {
+            return;
+        }
+
+        if (isSelected && !wasSelected) {
+            shouldRenderOutlines = true;
+            animationType = Animation.DRAW;
+            float pitch = Mth.randomBetween(soundRandom, 0.8f, 1.3f);
+            level.playSound(null, entity, ClockWorkSounds.DESIGNATOR_ACTIVATE.getMainEvent(), entity.getSoundSource(), 1.0f, pitch);
+        } else if (!isSelected && wasSelected) {
+            shouldRenderOutlines = false;
+        }
+        wasSelected = isSelected;
+        idleProgress += (0.01f*Math.PI);
+        if (idleProgress >= 2f*Math.PI) {
+            idleProgress = 0;
+        }
+        if (isSelected) {
+            if (entity instanceof Player) {
+                Player player = (Player) entity;
+
+            }
+
+
+            if (animationType.equals(Animation.IDLE)) {
+                soundTickCounter += Mth.randomBetween(soundRandom, 0.1f, 0.3f);
+                if (soundTickCounter >= 10) {
+                    soundTickCounter = 0;
+                    float pitch = Mth.randomBetween(soundRandom, 0.8f, 1.2f);
+                    level.playSound(null, entity, ClockWorkSounds.DESIGNATOR_IDLE.getMainEvent(), entity.getSoundSource(), 1.0f, pitch);
+                }
+            } else if (animationType.equals(Animation.DRAW)) {
+                drawProgress++;
+                if (drawProgress >= 60) {
+                    drawProgress = 0;
+                    animationType = Animation.IDLE;
+                }
+            } else if (animationType.equals(Animation.SUCCESS)) {
+                successProgress++;
+                if (successProgress >= 40) {
+                    successProgress = 0;
+                    animationType = Animation.IDLE;
+                }
+            } else if (animationType.equals(Animation.DUMP)) {
+                dumpProgress++;
+                if (dumpProgress >= 40) {
+                    dumpProgress = 0;
+                    animationType = Animation.IDLE;
+                }
+            }
+        } else {
+            firstPos = null;
+            secondPos = null;
+        }
+    }
+
+    @Override
+    public InteractionResult useOn(UseOnContext context) {
+        Player player = context.getPlayer();
+        if (player == null) {
+            return InteractionResult.FAIL;
+        }
+        Level world = context.getLevel();
+        if (world.isClientSide) {
+            return InteractionResult.PASS;
+        }
+        if (world.getBlockEntity(context.getClickedPos()) instanceof PhysicsInfuserBlockEntity) {
+            return InteractionResult.PASS;
+        }
+        InteractionHand hand = context.getHand();
+        ItemStack stack = player.getItemInHand(hand);
+        Vector3ic pos = VectorConversionsMCKt.toJOML(context.getClickedPos());
+
+        if (!stack.is(this)) {
+            return super.useOn(context);
+        }
+        float pitch = Mth.randomBetween(soundRandom, 0.8f, 1.2f);
+
+        if (firstPos == null) {
+            firstPos = pos;
+            player.displayClientMessage(new TextComponent("First Position Selected!").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE)), true);
+            world.playSound(null, player, ClockWorkSounds.DESIGNATOR_SELECT_START.getMainEvent(), player.getSoundSource(), 1.0f, pitch);
+            player.getCooldowns().addCooldown(this, 10);
+            ClockWorkPackets.sendToClientsTrackingAndSelf(new AreaDesignatorSelectionPacket(this), (ServerPlayer) player);
+            return InteractionResult.SUCCESS;
+        } else if (secondPos == null && firstPos != null) {
+            secondPos = pos;
+            AABBic area = new AABBi(Math.min(firstPos.x(), secondPos.x()), Math.min(firstPos.y(), secondPos.y()), Math.min(firstPos.z(), secondPos.z()), Math.max(firstPos.x(), secondPos.x()), Math.max(firstPos.y(), secondPos.y()), Math.max(firstPos.z(), secondPos.z()));
+            firstPos = null;
+            secondPos = null;
+            if (selectedAreas.containsKey(area)) {
+                player.displayClientMessage(new TextComponent("Area Already Exists.").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE)), true);
+                world.playSound(null, player, ClockWorkSounds.PHYSICS_INFUSER_LIGHTNING.getMainEvent(), player.getSoundSource(), 1.0f, pitch);
+                animationType = Animation.DUMP;
+                player.getCooldowns().addCooldown(this, 10);
+                return InteractionResult.SUCCESS;
+            }
+            clusterNewArea(area);
+            player.displayClientMessage(new TextComponent("Area Designated!").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE)), true);
+            world.playSound(null, player, ClockWorkSounds.DESIGNATOR_SELECT_END.getMainEvent(), player.getSoundSource(), 1.0f, pitch);
+            stack.setDamageValue(stack.getDamageValue() - 1);
+            animationType = Animation.SUCCESS;
+            player.getCooldowns().addCooldown(this, 10);
+            return InteractionResult.SUCCESS;
+        }
+        return super.useOn(context);
+    }
+
+    public Set<AABBic> getClosestCluster(Vector3ic pos) {
+        Set<AABBic> returnCluster = new HashSet<>();
+        double closestDistance = Double.MAX_VALUE;
+        for (Set<AABBic> cluster : selectionClusters) {
+            for (AABBic area : cluster) {
+                if (area.containsPoint(pos)) {
+                    return cluster;
+                } else {
+                    Vector3dc center = area.center(new Vector3d());
+                    double distance = center.distance(pos.x(), pos.y(), pos.z());
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        returnCluster = cluster;
+                    }
+                }
+            }
+        }
+        return returnCluster;
+    }
+    @Nullable
+    public Set<AABBic> getClusterContaining(Vector3ic pos) {
+        for (Set<AABBic> cluster : selectionClusters) {
+            for (AABBic area : cluster) {
+                if (area.containsPoint(pos)) {
+                    return cluster;
+                }
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    public Set<AABBic> getClusterContainingAABB(AABBic box) {
+        for (Set<AABBic> cluster : selectionClusters) {
+            if (cluster.contains(box)) {
+                return cluster;
+            }
+        }
+        return null;
+    }
+
+    public DenseBlockPosSet denseBlocksFromCluster(Set<AABBic> cluster) {
+        DenseBlockPosSet set = new DenseBlockPosSet();
+        for (AABBic area : cluster) {
+            for (int x = area.minX(); x <= area.maxX(); x++) {
+                for (int y = area.minY(); y <= area.maxY(); y++) {
+                    for (int z = area.minZ(); z <= area.maxZ(); z++) {
+                        set.add(x, y, z);
+                    }
+                }
+            }
+        }
+        return set;
+    }
+
+    public Set<BlockPos> blocksFromCluster(Set<AABBic> cluster) {
+        Set<BlockPos> set = new HashSet<>();
+        for (AABBic area : cluster) {
+            for (int x = area.minX(); x <= area.maxX(); x++) {
+                for (int y = area.minY(); y <= area.maxY(); y++) {
+                    for (int z = area.minZ(); z <= area.maxZ(); z++) {
+                        set.add(new BlockPos(x, y, z));
+                    }
+                }
+            }
+        }
+        return set;
+    }
+
+    public Set<Entity> entitiesFromCluster(Set<AABBic> cluster, ServerLevel level) {
+        Set<Entity> set = new HashSet<>();
+        for (AABBic area : cluster) {
+            AABB box = new AABB(area.maxX(), area.maxY(), area.maxZ(), area.minX(), area.minY(), area.minZ());
+            set.addAll(level.getEntities(null, box));
+        }
+        return set;
+    }
+
+    public AABBic getAABBFromPos(Vector3ic pos) {
+        for (AABBic area : selectedAreas.keySet()) {
+            if (area.containsPoint(pos)) {
+                return area;
+            }
+        }
+        return null;
+    }
+
+    public void dumpCluster(Set<AABBic> cluster) {
+        selectionClusters.remove(cluster);
+        toBeRemoved.add(cluster);
+        toStopRendering.add(cluster);
+    }
+
+    public void dumpClusterDirty(Set<AABBic> cluster) {
+        selectionClusters.remove(cluster);
+        toStopRendering.add(cluster);
+    }
+
+    enum Animation {
+        DRAW, IDLE, SUCCESS, DUMP
+    }
+}

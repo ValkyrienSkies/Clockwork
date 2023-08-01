@@ -21,6 +21,8 @@ import org.valkyrienskies.clockwork.ClockWorkShaders;
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer;
 import org.valkyrienskies.core.api.ships.ClientShip;
+import org.valkyrienskies.mod.common.VSGameUtilsKt;
+import org.valkyrienskies.mod.common.hooks.VSGameEvents;
 
 @Environment(EnvType.CLIENT)
 public class ShipScannerRenderer implements ScannerRenderer {
@@ -42,6 +44,8 @@ public class ShipScannerRenderer implements ScannerRenderer {
     private Vec3 currentCenter;
     private PhysicsInfuserBlockEntity currentBlockEntity;
 
+    private ClientShip ship;
+
     // --------------------------------------------------------------------- //
 
     public void ping(final ClientShip ship, Vec3 pos, PhysicsInfuserBlockEntity te) {
@@ -50,6 +54,7 @@ public class ShipScannerRenderer implements ScannerRenderer {
         currentBlockEntity = te;
         if (ship == null) return;
         ClockWorkMod.LOGGER.info("Pinging ship: " + ship.getId()); // TODO implment it actualy using a ship
+        this.ship = ship;
     }
 
     public void doRender(final PoseStack poseStack) {
@@ -79,14 +84,48 @@ public class ShipScannerRenderer implements ScannerRenderer {
     private void render(final Matrix4f viewMatrix) {
         ShaderInstance scanEffect = ClockWorkShaders.SCAN_EFFECT.getShader();
 
-        if (scanEffect != null) {
-            final RenderTarget target = Minecraft.getInstance().getMainRenderTarget();
+        if (scanEffect != null && ship != null) {
+            final ShaderInstance oldShader = RenderSystem.getShader();
+            VSGameEvents.INSTANCE.getRenderShip().on((event, handler) -> {
+               if (event.getShip().equals(ship)) {
+                   final RenderTarget target = Minecraft.getInstance().getMainRenderTarget();
 
-            updateDepthTexture(target);
+                   updateDepthTexture(target);
 
-            updateShaderUniforms(scanEffect, viewMatrix);
+                   updateShaderUniforms(scanEffect, viewMatrix);
 
-            blit(target);
+                   final int width = target.width;
+                   final int height = target.height;
+
+                   RenderSystem.depthMask(false);
+                   RenderSystem.disableDepthTest();
+                   RenderSystem.enableBlend();
+
+                   RenderSystem.setShader(ClockWorkShaders.SCAN_EFFECT::getShader);
+
+                   RenderSystem.backupProjectionMatrix();
+                   RenderSystem.setProjectionMatrix(Matrix4f.orthographic(0, width, 0, height, 1, 100));
+
+                   final Tesselator tesselator = Tesselator.getInstance();
+                   final BufferBuilder buffer = tesselator.getBuilder();
+                   buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+                   buffer.vertex(0, height, -50).uv(0, 0).endVertex();
+                   buffer.vertex(width, height, -50).uv(1, 0).endVertex();
+                   buffer.vertex(width, 0, -50).uv(1, 1).endVertex();
+                   buffer.vertex(0, 0, -50).uv(0, 1).endVertex();
+                   tesselator.end();
+               }
+            });
+            VSGameEvents.INSTANCE.getPostRenderShip().on((event, handler) -> {
+                if (event.getShip().equals(ship)) {
+                    RenderSystem.restoreProjectionMatrix();
+                    RenderSystem.setShader(()-> oldShader);
+                    RenderSystem.depthMask(true);
+                    RenderSystem.enableDepthTest();
+                    RenderSystem.disableBlend();
+                }
+            });
+
         }
     }
 
@@ -127,35 +166,7 @@ public class ShipScannerRenderer implements ScannerRenderer {
     }
 
     private void blit(final RenderTarget target) {
-        final int width = target.width;
-        final int height = target.height;
 
-        RenderSystem.depthMask(false);
-        RenderSystem.disableDepthTest();
-        RenderSystem.enableBlend();
-
-        final ShaderInstance oldShader = RenderSystem.getShader();
-        RenderSystem.setShader(ClockWorkShaders.SCAN_EFFECT::getShader);
-
-        RenderSystem.backupProjectionMatrix();
-        RenderSystem.setProjectionMatrix(Matrix4f.orthographic(0, width, 0, height, 1, 100));
-
-        final Tesselator tesselator = Tesselator.getInstance();
-        final BufferBuilder buffer = tesselator.getBuilder();
-        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        buffer.vertex(0, height, -50).uv(0, 0).endVertex();
-        buffer.vertex(width, height, -50).uv(1, 0).endVertex();
-        buffer.vertex(width, 0, -50).uv(1, 1).endVertex();
-        buffer.vertex(0, 0, -50).uv(0, 1).endVertex();
-        tesselator.end();
-
-        RenderSystem.restoreProjectionMatrix();
-
-        RenderSystem.setShader(() -> oldShader);
-
-        RenderSystem.depthMask(true);
-        RenderSystem.enableDepthTest();
-        RenderSystem.disableBlend();
     }
 
     // --------------------------------------------------------------------- //

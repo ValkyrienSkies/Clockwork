@@ -16,6 +16,8 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.valkyrienskies.clockwork.ClockWorkBlockEntities;
+import org.valkyrienskies.clockwork.ClockWorkItems;
+import org.valkyrienskies.clockwork.content.curiosities.tools.auric_designator.AreaDesignatorItem;
 
 public class PhysicsInfuserBlock extends Block implements IBE<PhysicsInfuserBlockEntity> {
     private static final VoxelShape SHAPE = makeShape();
@@ -57,13 +59,17 @@ public class PhysicsInfuserBlock extends Block implements IBE<PhysicsInfuserBloc
     @Override
     public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn,
                                  BlockHitResult hit) {
+        if (worldIn.isClientSide) {
+            return InteractionResult.PASS;
+        }
+
         if (!player.mayBuild())
             return InteractionResult.FAIL;
         if (player.isShiftKeyDown())
             return InteractionResult.FAIL;
         if (player.getItemInHand(handIn)
                 .isEmpty()) {
-            if (worldIn.isClientSide) {
+            if (!worldIn.isClientSide) {
                 withBlockEntityDo(worldIn, pos, te -> {
                     if (te.isAssembled && !te.assembling && !te.disassembling) te.startDisassembly();
                 });
@@ -83,6 +89,19 @@ public class PhysicsInfuserBlock extends Block implements IBE<PhysicsInfuserBloc
                 }
             });
             return InteractionResult.SUCCESS;
+        } else if (player.getItemInHand(handIn).getItem() instanceof AreaDesignatorItem) {
+            if (worldIn.getBlockEntity(pos) != null) {
+                if (worldIn.getBlockEntity(pos) instanceof PhysicsInfuserBlockEntity) {
+                    PhysicsInfuserBlockEntity te = (PhysicsInfuserBlockEntity) worldIn.getBlockEntity(pos);
+                    if (te.inventory.get(0).isEmpty()) {
+                        te.inventory.set(0, player.getItemInHand(handIn).copy());
+                        player.getItemInHand(handIn).shrink(1);
+                        return InteractionResult.SUCCESS;
+                    } else {
+                        return InteractionResult.FAIL;
+                    }
+                }
+            }
         }
         return InteractionResult.PASS;
     }

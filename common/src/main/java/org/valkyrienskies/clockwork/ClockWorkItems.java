@@ -5,6 +5,8 @@ import com.simibubi.create.foundation.data.AssetLookup;
 import com.tterrag.registrate.util.entry.ItemEntry;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
+import org.valkyrienskies.clockwork.content.curiosities.tools.auric_designator.AreaDesignatorItem;
+import org.valkyrienskies.clockwork.content.curiosities.tools.auric_designator.AreaDesignatorRenderer;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem;
 import org.valkyrienskies.clockwork.content.materials.solids.stratodonut.StratodonutItem;
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate;
@@ -25,6 +27,17 @@ public class ClockWorkItems {
                     .properties(p -> p.stacksTo(4))
                     .tag(AllTags.AllItemTags.UPRIGHT_ON_BELT.tag)
                     .onRegister(i -> i.setBurnTime(Short.MAX_VALUE)) // fabric: furnaces are limited to Short values without Forge patches
+                    .register();
+
+    public static final ItemEntry<AreaDesignatorItem> AURIC_DESIGNATOR =
+            REGISTRATE.item("auric_designator", AreaDesignatorItem::new)
+                    .transform(ClockworkRegistrate.customRenderedItem(() -> AreaDesignatorRenderer::new))
+                    .properties(p -> p.rarity(Rarity.UNCOMMON))
+                    .properties(p -> p.stacksTo(1))
+                    .properties(p -> p.fireResistant())
+                    .properties(p -> p.durability(1000))
+                    .tag(AllTags.AllItemTags.UPRIGHT_ON_BELT.tag)
+                    .model(AssetLookup.itemModelWithPartials())
                     .register();
 
 //    public static final ItemEntry<SodaBottleItem> EMPTY_SODA =
