@@ -42,6 +42,7 @@
     "compat.pr.MixinSeatBlock",
     "content.balloon.MixinLevelChunkBalloon",
     "content.fan.MixinEncasedFanTileEntity",
+    "content.pulse.ChasingAABBOutlineAccessor",
     "content.pulse.MixinOutliner",
     "content.pulse.OutlineParamsAccessor",
     "content.universal_joint.MixinRotationPropagator",
