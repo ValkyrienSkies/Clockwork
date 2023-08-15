@@ -5,6 +5,8 @@ import com.simibubi.create.content.kinetics.base.ShaftInstance;
 import com.simibubi.create.content.kinetics.base.ShaftRenderer;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity;
+import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEntity;
+import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeRenderer;
 import org.valkyrienskies.clockwork.content.propulsion.afterblazer.AfterblazerEngineBlockEntity;
 import org.valkyrienskies.clockwork.content.propulsion.afterblazer.AfterblazerRenderer;
 import org.valkyrienskies.clockwork.content.propulsion.ballooner.BalloonerBlockEntity;
@@ -142,6 +144,11 @@ public class ClockWorkBlockEntities {
             .renderer(() -> WingBlockEntityRenderer::new)
             .register();
 
+    public static final BlockEntityEntry<HeatPipeBlockEntity> HEAT_PIPE = REGISTRATE
+            .blockEntity("heat_pipe", HeatPipeBlockEntity::new)
+            .validBlocks(ClockWorkBlocks.HEAT_PIPE)
+            .renderer(() -> HeatPipeRenderer::new)
+            .register();
     public static void register() {
     }
 }

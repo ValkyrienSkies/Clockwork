@@ -4,6 +4,7 @@ import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllTags;
 import com.simibubi.create.content.decoration.encasing.CasingBlock;
 import com.simibubi.create.content.decoration.encasing.EncasingRegistry;
+import com.simibubi.create.content.fluids.PipeAttachmentModel;
 import com.simibubi.create.content.kinetics.BlockStressDefaults;
 import com.simibubi.create.foundation.data.*;
 import com.simibubi.create.foundation.utility.Couple;
@@ -21,6 +22,7 @@ import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBl
 import org.valkyrienskies.clockwork.content.kinetics.universal_joint.UniversalJointBlock;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock;
 import org.valkyrienskies.clockwork.content.kinetics.combustion_engine.CombustionEngineBlock;
+import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlock;
 import org.valkyrienskies.clockwork.content.munitions.stationary.solver.SolverBlock;
 import org.valkyrienskies.clockwork.content.physicalities.intake.IntakeBlock;
 import org.valkyrienskies.clockwork.content.physicalities.reaction_wheel.ReactionWheelBlock;
@@ -29,6 +31,7 @@ import org.valkyrienskies.clockwork.content.physicalities.wing.WingBlock;
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock;
 import org.valkyrienskies.clockwork.content.propulsion.afterblazer.AfterblazerBlock;
 import org.valkyrienskies.clockwork.content.propulsion.ballooner.BalloonerBlock;
+import org.valkyrienskies.clockwork.data.CWBlockStateGen;
 import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork;
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate;
 import org.valkyrienskies.clockwork.util.render.WingBlockItemRenderer;
@@ -235,6 +238,14 @@ public class ClockWorkBlocks {
                     .blockstate((c, p) -> p.horizontalFaceBlock(c.get(), AssetLookup.partialBaseModel(c, p)))
                     .transform(BlockStressDefaults.setCapacity(128.0))
                     .transform(BlockStressDefaults.setGeneratorSpeed(() -> Couple.create(0, 128)))
+                    .item()
+                    .transform(customItemModel())
+                    .register();
+
+    public static final BlockEntry<HeatPipeBlock> HEAT_PIPE = REGISTRATE.block("heat_pipe", HeatPipeBlock::new)
+                    .initialProperties(SharedProperties::netheriteMetal)
+                    .blockstate(CWBlockStateGen.pipe())
+                    .onRegister(CreateRegistrate.blockModel(() -> PipeAttachmentModel::new))
                     .item()
                     .transform(customItemModel())
                     .register();
