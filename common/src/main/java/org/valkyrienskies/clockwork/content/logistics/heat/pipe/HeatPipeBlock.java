@@ -6,17 +6,24 @@ import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.PipeBlock;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.valkyrienskies.clockwork.ClockWorkBlockEntities;
 
 public class HeatPipeBlock extends PipeBlock implements SimpleWaterloggedBlock, IWrenchable, IBE<HeatPipeBlockEntity>, ITransformableBlock {
     public HeatPipeBlock(Properties properties) {
         super(6/16f, properties);
     }
-
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(NORTH, EAST, SOUTH, WEST, UP, DOWN, BlockStateProperties.WATERLOGGED);
+        super.createBlockStateDefinition(builder);
+    }
     @Override
     public BlockState transform(BlockState state, StructureTransform transform) {
         return null;
