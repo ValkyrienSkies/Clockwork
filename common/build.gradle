@@ -41,7 +41,7 @@ dependencies {
 
     // VS2
     modApi("org.valkyrienskies:valkyrienskies-118-common:${rootProject.vs2_version}")
-    implementation("org.valkyrienskies.core:api:1.1.0+2b2f93f793") { transitive = false }
+    implementation("org.valkyrienskies.core:api:1.1.0+2c0be2ddb5") { transitive = false }
 
     // Kotlin
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.21"

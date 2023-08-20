@@ -5,6 +5,7 @@ import com.simibubi.create.content.logistics.chute.AbstractChuteBlock;
 import com.simibubi.create.content.processing.basin.BasinBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3d;
 import org.spongepowered.asm.mixin.Mixin;
