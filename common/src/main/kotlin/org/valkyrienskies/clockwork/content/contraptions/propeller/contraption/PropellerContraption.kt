@@ -1,0 +1,122 @@
+package org.valkyrienskies.clockwork.content.contraptions.propeller
+
+import com.simibubi.create.AllTags
+import com.simibubi.create.content.contraptions.AssemblyException
+import com.simibubi.create.content.contraptions.Contraption
+import com.simibubi.create.content.contraptions.ContraptionType
+import com.simibubi.create.content.contraptions.bearing.AnchoredLighter
+import com.simibubi.create.content.contraptions.render.ContraptionLighter
+import net.fabricmc.api.EnvType
+import net.fabricmc.api.Environment
+import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.world.level.Level
+import net.minecraft.world.level.block.entity.BlockEntity
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate
+import org.apache.commons.lang3.tuple.Pair
+import org.valkyrienskies.clockwork.ClockworkContraptions
+import java.util.*
+
+class PropellerContraption : Contraption {
+    var offset = 0
+    var sailBlocks = 0
+        protected set
+    var facing: Direction? = null
+        protected set
+
+    constructor()
+    constructor(facing: Direction?) {
+        this.facing = facing
+    }
+
+    //    @Override
+    //    public boolean assemble(Level world, BlockPos pos) throws AssemblyException {
+    //        BlockPos offset = pos.relative(facing);
+    //        if (!searchMovedStructure(world, offset, null))
+    //            return false;
+    //        startMoving(world);
+    //        expandBoundsAroundAxis(facing.getAxis());
+    //        if (sailBlocks < 2)
+    //            throw AssemblyException.notEnoughSails(sailBlocks);
+    //        if (blocks.isEmpty())
+    //            return false;
+    //        return true;
+    //    }
+    @Throws(AssemblyException::class)
+    override fun assemble(world: Level, pos: BlockPos): Boolean {
+        return searchMovedStructure(world, pos, facing)
+    }
+
+    @Throws(AssemblyException::class)
+    override fun moveBlock(
+        world: Level, direction: Direction?, frontier: Queue<BlockPos>,
+        visited: Set<BlockPos>
+    ): Boolean {
+        return super.moveBlock(world, direction, frontier, visited)
+    }
+
+    @Throws(AssemblyException::class)
+    override fun searchMovedStructure(world: Level, pos: BlockPos, direction: Direction?): Boolean {
+        return super.searchMovedStructure(world, pos.relative(direction, offset + 1), null)
+    }
+
+    override fun getType(): ContraptionType {
+        return ClockworkContraptions.PROPELLOR
+    }
+
+    override fun isAnchoringBlockAt(pos: BlockPos): Boolean {
+        return pos == anchor.relative(facing!!.opposite, offset + 1)
+    }
+
+    public override fun addBlock(pos: BlockPos, capture: Pair<StructureTemplate.StructureBlockInfo, BlockEntity>) {
+        val localPos = pos.subtract(anchor)
+        if (!getBlocks().containsKey(localPos) && AllTags.AllBlockTags.WINDMILL_SAILS.matches(capture.key.state)) sailBlocks++
+        super.addBlock(pos, capture)
+    }
+
+    override fun writeNBT(spawnPacket: Boolean): CompoundTag {
+        val tag = super.writeNBT(spawnPacket)
+        tag.putInt("Sails", sailBlocks)
+        tag.putInt("Facing", facing!!.get3DDataValue())
+        tag.putInt("Offset", offset)
+        return tag
+    }
+
+    override fun readNBT(world: Level, tag: CompoundTag, spawnData: Boolean) {
+        sailBlocks = tag.getInt("Sails")
+        facing = Direction.from3DDataValue(tag.getInt("Facing"))
+        offset = tag.getInt("Offset")
+        super.readNBT(world, tag, spawnData)
+    }
+
+    override fun canBeStabilized(facing: Direction, localPos: BlockPos): Boolean {
+        return if (facing.opposite == this.facing && BlockPos.ZERO == localPos) false else facing.axis === this.facing!!.axis
+    }
+
+    @Environment(EnvType.CLIENT)
+    override fun makeLighter(): ContraptionLighter<*> {
+        return AnchoredLighter(this)
+    }
+
+    companion object {
+        @Throws(AssemblyException::class)
+        fun assembleProp(world: Level, pos: BlockPos, direction: Direction): PropellerContraption? {
+            val contraption = PropellerContraption()
+            val flapBlocks = 0
+            contraption.facing = direction
+            if (!contraption.assemble(world, pos)) {
+                return null
+            }
+            for (i in 0..15) {
+                val offsetPos = BlockPos.ZERO.relative(direction, i)
+                if (contraption.getBlocks()
+                        .containsKey(offsetPos)
+                ) continue
+            }
+            contraption.startMoving(world)
+            contraption.expandBoundsAroundAxis(direction.axis)
+            return contraption
+        }
+    }
+}

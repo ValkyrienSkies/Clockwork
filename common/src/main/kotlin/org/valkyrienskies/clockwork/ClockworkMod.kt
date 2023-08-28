@@ -30,6 +30,8 @@ object ClockworkMod {
 
     @JvmStatic
     fun init() {
+        ClockworkContraptions.init()
+        ClockworkPackets.init()
     }
 
     @JvmStatic

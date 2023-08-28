@@ -1,0 +1,568 @@
+package org.valkyrienskies.clockwork.content.contraptions.propeller
+
+import com.simibubi.create.AllSoundEvents
+import com.simibubi.create.AllTags
+import com.simibubi.create.content.contraptions.AbstractContraptionEntity
+import com.simibubi.create.content.contraptions.AssemblyException
+import com.simibubi.create.content.contraptions.ControlledContraptionEntity
+import com.simibubi.create.content.contraptions.bearing.BearingBlock
+import com.simibubi.create.content.contraptions.bearing.IBearingBlockEntity
+import com.simibubi.create.content.kinetics.base.KineticBlockEntity
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
+import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.INamedIconOptions
+import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour
+import com.simibubi.create.foundation.gui.AllIcons
+import com.simibubi.create.foundation.utility.AngleHelper
+import com.simibubi.create.foundation.utility.Lang
+import com.simibubi.create.foundation.utility.ServerSpeedProvider
+import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.util.Mth
+import net.minecraft.world.level.Level
+import net.minecraft.world.level.block.entity.BlockEntityType
+import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.properties.BlockStateProperties
+import org.joml.Vector3d
+import org.joml.Vector3dc
+import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropCreateData
+import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropUpdateData
+import org.valkyrienskies.clockwork.content.forces.PropellerController
+import org.valkyrienskies.mod.common.getShipObjectManagingPos
+import org.valkyrienskies.mod.common.util.toJOML
+import org.valkyrienskies.mod.common.util.toJOMLD
+import java.util.function.Consumer
+
+class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
+    KineticBlockEntity(type, pos, state), IBearingBlockEntity {
+
+    var sailPositions: MutableList<BlockPos>
+    protected var airCurrentUpdateCooldown = 0
+    protected var entitySearchCooldown = 0
+    var speedChanged = false
+    var rotspeed = 0f
+    var oldRotspeed = 0f
+    var assembleNextTick = false
+    var sails = 0
+    var moddingSpeed = 0
+    var slowingDown = false
+    var disassembling = 0f
+    var countDown = 200
+    var spinup = 0f
+    var spinningUp = false
+    protected var angle = 0f
+    var running = false
+    protected var clientAngleDiff = 0f
+    protected var lastException: AssemblyException? = null
+    protected var movedContraption: ControlledContraptionEntity? = null
+    private var prevAngle = 0f
+    private val prevSpeed = 0f
+    protected var movementDirection: ScrollOptionBehaviour<RotationDirection>? = null
+    var isInverted = false
+        private set
+    private var physPropId: Int? = null
+
+    init {
+        sailPositions = ArrayList()
+    }
+
+    override fun getInterpolatedAngle(partialTicks: Float): Float {
+        var partialTicks = partialTicks
+        if (isVirtual) return Mth.lerp(partialTicks + .5f, prevAngle, angle)
+        if (movedContraption == null || movedContraption!!.isStalled || !running) partialTicks = 0f
+        return Mth.lerp(partialTicks, angle, angle + angularSpeed)
+    }
+
+    val angularSpeed: Float
+        get() {
+            var angspeed = convertToAngular(rotspeed)
+            if (rotspeed == 0f) {
+                angspeed = 0f
+            }
+            if (level!!.isClientSide) {
+                angspeed *= ServerSpeedProvider.get()
+                angspeed += clientAngleDiff / 3f
+            }
+            return angspeed
+        }
+
+    override fun tick() {
+        super.tick()
+        val server = !level!!.isClientSide || isVirtual
+        if (rotSpeedChanged()) {
+            sendData()
+        }
+        oldRotspeed = rotspeed
+        if (spinningUp) {
+            modSpinupSpeed()
+        } else if (slowingDown) {
+            modSlowdownSpeed()
+        } else {
+            modSpeed()
+        }
+        if (overStressed) {
+            stressShutdown()
+        }
+        if (rotspeed < 0) {
+            setBlockDirection(PropellerBearingBlock.Direction.PULL)
+        } else {
+            setBlockDirection(PropellerBearingBlock.Direction.PUSH)
+        }
+        if (speedChanged) {
+            onSpeedChanged(prevSpeed)
+            onRotspeedChanged()
+            speedChanged = false
+        }
+        prevAngle = angle
+        if (level!!.isClientSide) clientAngleDiff /= 2f
+        if (!level!!.isClientSide && assembleNextTick) {
+            assembleNextTick = false
+            if (!running) {
+                assemble()
+            }
+        }
+        if (!running) return
+        if (!(movedContraption != null && movedContraption!!.isStalled)) {
+            val angularSpeed = angularSpeed
+            val newAngle = angle + angularSpeed
+            angle = (newAngle % 360)
+        }
+        applyRotation()
+        if (physPropId != null) {
+            if (server) {
+                val ship = (level as ServerLevel).getShipObjectManagingPos(
+                    blockPos
+                )
+                if (ship != null) {
+                    val data = PropUpdateData(
+                        angularSpeed.toDouble(), angle.toDouble(),
+                        isInverted
+                    )
+                    PropellerController.getOrCreate(ship).updatePropeller(physPropId, data)
+                }
+            }
+        }
+    }
+
+    private fun modSpeed() {
+        if (movedContraption == null) {
+            return
+        }
+        if (rotspeed == speed) {
+            return
+        }
+        
+        val diff = speed - rotspeed
+        rotspeed += Mth.clamp(diff / 10, -32f, 32f)
+    }
+
+    private fun modSlowdownSpeed() {
+        disassembling--
+        if (disassembling <= 0) {
+            if (!level!!.isClientSide) {
+                disassemble()
+            }
+            slowingDown = false
+            disassembling = 0f
+            return
+        }
+        val stoppingPoint = angle + rotspeed * disassembling * 0.5f
+        val optimalStoppingPoint = 90f * Math.round(stoppingPoint / 90f)
+        val Q = (optimalStoppingPoint - stoppingPoint) / disassembling
+        rotspeed = (rotspeed + 6f * Q / disassembling) * (1f - 1f / disassembling)
+    }
+
+    private fun modSpinupSpeed() {
+        if (level!!.isClientSide) {
+            return
+        }
+        spinup--
+        if (Math.abs(rotspeed) >= Math.abs(speed)) {
+            spinningUp = false
+            if (Math.abs(rotspeed) > Math.abs(speed)) {
+                rotspeed = speed
+            }
+            return
+        }
+
+//            float time = 1f - (spinup / 20f);
+//            float Q = (rotspeed + (targetSpeed - rotspeed)) * time;
+        val startingPoint = angle + speed * spinup * 0.5f
+        val Q = startingPoint / spinup
+        rotspeed = (rotspeed + 6f * Q / spinup) * (1f - 1f / spinup)
+    }
+    
+    override fun calculateStressApplied(): Float {
+        if (running && movedContraption != null) {
+            sails = sailPositions.size
+            return sails * 2f
+        }
+        return 0.0f
+    }
+
+    protected fun applyRotation() {
+        if (movedContraption == null) return
+        movedContraption!!.setAngle(angle)
+        val blockState = blockState
+        if (blockState.hasProperty(BlockStateProperties.FACING)) movedContraption!!.rotationAxis =
+            blockState.getValue(BlockStateProperties.FACING)
+                .axis
+    }
+
+    public override fun write(compound: CompoundTag, clientPacket: Boolean) {
+        compound.putFloat("Rotspeed", rotspeed)
+        compound.putBoolean("Running", running)
+        compound.putFloat("Angle", angle)
+        compound.putBoolean("Inverted", isInverted)
+        if (physPropId != null) {
+            compound.putInt("ID", physPropId!!)
+        }
+        AssemblyException.write(compound, lastException)
+        super.write(compound, clientPacket)
+    }
+
+    override fun read(compound: CompoundTag, clientPacket: Boolean) {
+        val angleBefore = angle
+        rotspeed = compound.getFloat("Rotspeed")
+        running = compound.getBoolean("Running")
+        angle = compound.getFloat("Angle")
+        isInverted = compound.getBoolean("Inverted")
+        lastException = AssemblyException.read(compound)
+        if (compound.contains("ID")) {
+            physPropId = compound.getInt("ID")
+        }
+        super.read(compound, clientPacket)
+        if (!clientPacket) return
+        if (running) {
+            clientAngleDiff = AngleHelper.getShortestAngleDiff(angleBefore.toDouble(), angle.toDouble())
+            angle = angleBefore
+        } else {
+            movedContraption = null
+        }
+    }
+
+    //    @Override
+    //    public void attach(ControlledContraptionEntity contraption) {
+    //        BlockState blockState = getBlockState();
+    //        if (!(contraption.getContraption() instanceof PropellerContraption))
+    //            return;
+    //        if (!blockState.hasProperty(BearingBlock.FACING))
+    //            return;
+    //
+    //        this.movedContraption = contraption;
+    //        setChanged();
+    //        BlockPos anchor = worldPosition.relative(blockState.getValue(BearingBlock.FACING));
+    //        movedContraption.setPos(anchor.getX(), anchor.getY(), anchor.getZ());
+    //        if (!level.isClientSide) {
+    //            this.running = true;
+    //            sendData();
+    //        }
+    //    }
+     override fun attach(contraption: ControlledContraptionEntity) {
+        val blockState = blockState
+        if (contraption.contraption !is PropellerContraption) return
+        if (!blockState.hasProperty(BearingBlock.FACING)) return
+        movedContraption = contraption
+        setChanged()
+        val anchor = worldPosition.relative(blockState.getValue(BearingBlock.FACING))
+        movedContraption!!.setPos(anchor.x.toDouble(), anchor.y.toDouble(), anchor.z.toDouble())
+        if (!level!!.isClientSide) {
+            running = true
+            sendData()
+        }
+    }
+
+    private fun onDirectionChanged() {
+        val state = blockState
+        val previouslyPowered: PropellerBearingBlock.Direction = state.getValue(PropellerBearingBlock.DIRECTION)
+        if (previouslyPowered === PropellerBearingBlock.Direction.PULL) level!!.setBlock(
+            blockPos,
+            state.cycle(PropellerBearingBlock.DIRECTION),
+            2
+        )
+        if (!running) return
+    }
+
+    override fun isWoodenTop(): Boolean {
+        return false
+    }
+
+    val directonFromBlock: PropellerBearingBlock.Direction
+        get() = PropellerBearingBlock.getDirectionof(blockState)
+
+    protected fun setBlockDirection(direction: PropellerBearingBlock.Direction) {
+        val inBlockState: PropellerBearingBlock.Direction = directonFromBlock
+        if (inBlockState === direction) return
+        level!!.setBlockAndUpdate(worldPosition, blockState.setValue(PropellerBearingBlock.DIRECTION, direction))
+        notifyUpdate()
+    }
+
+    fun getSails() {
+        sailPositions = ArrayList()
+        if (movedContraption != null) {
+            val Blocks = movedContraption!!.contraption.blocks
+            for ((key, value) in Blocks) {
+                if (AllTags.AllBlockTags.WINDMILL_SAILS.matches(value.state)) {
+                    sailPositions.add(key)
+                }
+            }
+        }
+    }
+
+    override fun setAngle(forcedAngle: Float) {
+        angle = forcedAngle
+    }
+
+    val sailCount: Int
+        get() = sailPositions.size
+    val streamWorld: Level
+        get() = level!!
+    val streamPos: BlockPos
+        get() = worldPosition.offset(blockState.getValue(BlockStateProperties.FACING).normal)
+    val streamOriginSide: Direction
+        get() = blockState.getValue(BlockStateProperties.FACING)
+    val streamDirection: Direction?
+        get() {
+            var speed = getSpeed()
+            if (speed == 0f) return null
+            val facing = blockState.getValue(BlockStateProperties.FACING)
+            speed = convertToDirection(speed, facing)
+            return if (speed > 0) facing else facing.opposite
+        }
+    val isSourceRemoved: Boolean
+        get() = remove
+    val streamScale: Vector3d
+        get() {
+            val distance = Vector3d(1.0, 1.0, 1.0)
+
+            //facing Z
+            if (blockState.getValue(BlockStateProperties.FACING) === Direction.NORTH || blockState.getValue(
+                    BlockStateProperties.FACING
+                ) === Direction.SOUTH
+            ) {
+                sailPositions.forEach(Consumer { pos: BlockPos ->
+                    if (Math.abs(pos.x) > Math.abs(worldPosition.x)) {
+                        if (Math.abs(pos.x) > distance.x) {
+                            distance.x = pos.x.toDouble()
+                        }
+                    }
+                    if (Math.abs(pos.y) > Math.abs(worldPosition.y)) {
+                        if (Math.abs(pos.y) > distance.y) {
+                            distance.y = pos.y.toDouble()
+                        }
+                    }
+                })
+            } else if (blockState.getValue(BlockStateProperties.FACING) === Direction.WEST || blockState.getValue(
+                    BlockStateProperties.FACING
+                ) === Direction.EAST
+            ) {
+                sailPositions.forEach(Consumer { pos: BlockPos ->
+                    if (Math.abs(pos.z) > Math.abs(worldPosition.z)) {
+                        if (Math.abs(pos.z) > distance.z) {
+                            distance.z = pos.z.toDouble()
+                        }
+                    }
+                    if (Math.abs(pos.y) > Math.abs(worldPosition.y)) {
+                        if (Math.abs(pos.y) > distance.y) {
+                            distance.y = pos.y.toDouble()
+                        }
+                    }
+                })
+            } else if (blockState.getValue(BlockStateProperties.FACING) === Direction.UP || blockState.getValue(
+                    BlockStateProperties.FACING
+                ) === Direction.DOWN
+            ) {
+                sailPositions.forEach(Consumer { pos: BlockPos ->
+                    if (Math.abs(pos.z) > Math.abs(worldPosition.z)) {
+                        if (Math.abs(pos.z) > distance.x) {
+                            distance.z = pos.z.toDouble()
+                        }
+                    }
+                    if (Math.abs(pos.x) > Math.abs(worldPosition.x)) {
+                        if (Math.abs(pos.x) > distance.x) {
+                            distance.x = pos.x.toDouble()
+                        }
+                    }
+                })
+            } else {
+                return distance
+            }
+            return distance
+        }
+
+    private fun stressShutdown() {
+        if (Math.abs(speed) < 3f) {
+            countDown--
+            if (countDown <= 0) {
+                if (!level!!.isClientSide) {
+                    disassemble()
+                    countDown = 200
+                }
+            }
+        }
+    }
+
+    override fun remove() {
+        if (!level!!.isClientSide) {
+            disassemble()
+        }
+        super.remove()
+    }
+
+    fun assemble() {
+        if (level!!.getBlockState(worldPosition)
+                .block !is PropellerBearingBlock
+        ) return
+        val direction = blockState.getValue<Direction>(BlockStateProperties.FACING)
+        val contraption: PropellerContraption
+        try {
+            contraption = PropellerContraption.assembleProp(level!!, worldPosition, direction)!!
+            lastException = null
+        } catch (e: AssemblyException) {
+            lastException = e
+            sendData()
+            return
+        }
+        speedChanged = rotSpeedChanged()
+        if (contraption == null) return
+        if (contraption.getBlocks()
+                .isEmpty()
+        ) return
+        val anchor = worldPosition.relative(direction)
+        contraption.removeBlocksFromWorld(level, BlockPos.ZERO)
+        movedContraption = ControlledContraptionEntity.create(level, this, contraption)
+        movedContraption!!.setPos(anchor.x.toDouble(), anchor.y.toDouble(), anchor.z.toDouble())
+        movedContraption!!.rotationAxis = direction.axis
+        movedContraption?.let { level!!.addFreshEntity(it) }
+        AllSoundEvents.CONTRAPTION_ASSEMBLE.playOnServer(level, worldPosition)
+        running = true
+        angle = 0f
+        rotspeed = 0f
+        spinningUp = true
+        spinup = Math.abs(speed).toInt().toFloat()
+        getSails()
+        val sailVecs = sailPositions.stream().map { v: BlockPos -> v.toJOML() }
+            .toList()
+        val axis: Vector3dc = blockState.getValue(BlockStateProperties.FACING).normal.toJOMLD()
+        val vecpos: Vector3dc = blockPos.toJOMLD()
+        val data = PropCreateData(
+            vecpos, axis, angle.toDouble(),
+            angularSpeed.toDouble(), sailVecs,
+            isInverted
+        )
+        if (!level!!.isClientSide) {
+            val ship = (level as ServerLevel).getShipObjectManagingPos(
+                blockPos
+            )
+            if (ship != null) {
+                physPropId = PropellerController.getOrCreate(ship).addPropeller(data)
+            }
+        }
+        sendData()
+    }
+
+    override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
+        super.addBehaviours(behaviours)
+        movementDirection = ScrollOptionBehaviour(
+            RotationDirection::class.java,
+            Lang.translateDirect("contraptions.Propeller.movement_direction"), this,
+            movementModeSlot
+        )
+        movementDirection!!.requiresWrench()
+        movementDirection!!.withCallback { `$`: Int? -> onOrientationChanged() }
+        behaviours.add(movementDirection!!)
+    }
+
+    private fun onOrientationChanged() {
+        isInverted = !isInverted
+    }
+
+    override fun lazyTick() {
+        super.lazyTick()
+        if (running && movedContraption != null) {
+            sendData()
+        }
+    }
+
+    fun shutDown() {
+        slowingDown = true
+        disassembling = Math.abs(rotspeed)
+        spinningUp = false
+        spinup = 0f
+    }
+
+    fun disassemble() {
+        if (!running && movedContraption == null) return
+        rotspeed = 0f
+        angle = 0f
+        slowingDown = false
+        disassembling = 0f
+        if (movedContraption != null) {
+            movedContraption!!.disassemble()
+            AllSoundEvents.CONTRAPTION_DISASSEMBLE.playOnServer(level, worldPosition)
+        }
+        movedContraption = null
+        running = false
+        if (physPropId != null) {
+            if (!level!!.isClientSide) {
+                val ship = (level as ServerLevel).getShipObjectManagingPos(
+                    blockPos
+                )
+                if (ship != null) {
+                    PropellerController.getOrCreate(ship).removePropeller(physPropId)
+                }
+            }
+        }
+        sendData()
+    }
+
+    fun rotSpeedChanged(): Boolean {
+        return if (rotspeed != oldRotspeed) {
+            true
+        } else false
+    }
+
+    fun onRotspeedChanged() {
+    }
+
+    override fun onSpeedChanged(prevSpeed: Float) {
+        super.onSpeedChanged(prevSpeed)
+        detachKinetics()
+    }
+
+    override fun isAttachedTo(contraption: AbstractContraptionEntity): Boolean {
+        return if (contraption.contraption !is PropellerContraption) false else movedContraption === contraption
+    }
+
+    override fun onStall() {
+        if (!level!!.isClientSide) sendData()
+    }
+
+    override fun isValid(): Boolean {
+        return !isRemoved
+    }
+
+    override fun getBlockPosition(): BlockPos {
+        return worldPosition
+    }
+
+    enum class RotationDirection(private val icon: AllIcons) : INamedIconOptions {
+        NORMAL(AllIcons.I_REFRESH),
+        INVERTED(AllIcons.I_ROTATE_CCW);
+
+        private val translationKey: String
+
+        init {
+            translationKey = "generic." + Lang.asId(name)
+        }
+
+        override fun getIcon(): AllIcons {
+            return icon
+        }
+
+        override fun getTranslationKey(): String {
+            return translationKey
+        }
+    }
+}
