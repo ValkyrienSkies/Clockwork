@@ -5,6 +5,10 @@ import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.level.Level
+import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserSyncPacket
+import org.valkyrienskies.clockwork.platform.SharedValues
+import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
+import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket
 
 
 enum class ClockworkPackets(type: Class<T>, factory: Function<FriendlyByteBuf, T>) {
@@ -29,26 +33,26 @@ enum class ClockworkPackets(type: Class<T>, factory: Function<FriendlyByteBuf, T
         Function<FriendlyByteBuf, T> { PhysicsInfuserSyncPacket() });
 
     init {
-        SharedValues.getPacketChannel().registerPacket(type, factory)
+        SharedValues.packetChannel.registerPacket(type, factory)
     }
 
     companion object {
         // Force the class to load
         fun init() {}
-        fun sendToNear(world: Level?, pos: BlockPos?, range: Int, message: S2CCWPacket?) {
-            SharedValues.getPacketChannel().sendToNear(world, pos, range, message)
+        fun sendToNear(world: Level, pos: BlockPos, range: Int, message: S2CCWPacket) {
+            SharedValues.packetChannel.sendToNear(world, pos, range, message)
         }
 
-        fun sendToServer(packet: C2SCWPacket?) {
-            SharedValues.getPacketChannel().sendToServer(packet)
+        fun sendToServer(packet: C2SCWPacket) {
+            SharedValues.packetChannel.sendToServer(packet)
         }
 
-        fun sendToClientsTracking(packet: S2CCWPacket?, entity: Entity?) {
-            SharedValues.getPacketChannel().sendToClientsTracking(packet, entity)
+        fun sendToClientsTracking(packet: S2CCWPacket, entity: Entity) {
+            SharedValues.packetChannel.sendToClientsTracking(packet, entity)
         }
 
-        fun sendToClientsTrackingAndSelf(packet: S2CCWPacket?, player: ServerPlayer?) {
-            SharedValues.getPacketChannel().sendToClientsTrackingAndSelf(packet, player)
+        fun sendToClientsTrackingAndSelf(packet: S2CCWPacket, player: ServerPlayer) {
+            SharedValues.packetChannel.sendToClientsTrackingAndSelf(packet, player)
         }
     }
 }

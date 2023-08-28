@@ -15,13 +15,12 @@ import net.minecraft.world.phys.shapes.BooleanOp
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
-import org.valkyrienskies.clockwork.ClockWorkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric_designator.AreaDesignatorItem
 import java.util.function.Consumer
 
-class PhysicsInfuserBlock(properties: Properties?) : Block(properties),
-    IBE<PhysicsInfuserBlockEntity?> {
+class PhysicsInfuserBlock(properties: Properties) : Block(properties),
+    IBE<PhysicsInfuserBlockEntity> {
     override fun onPlace(state: BlockState, world: Level, pos: BlockPos, oldState: BlockState, moved: Boolean) {
         if (oldState.block === state.block) {
             return
@@ -44,14 +43,14 @@ class PhysicsInfuserBlock(properties: Properties?) : Block(properties),
         ) {
             if (!worldIn.isClientSide) {
                 withBlockEntityDo(worldIn, pos,
-                    Consumer<PhysicsInfuserBlockEntity> { te: PhysicsInfuserBlockEntity -> if (te.isAssembled && !te.assembling && !te.disassembling) te.startDisassembly() })
+                    Consumer<PhysicsInfuserBlockEntity?> { te: PhysicsInfuserBlockEntity? -> if (te!!.isAssembled && !te.assembling && !te.disassembling) te.startDisassembly() })
                 withBlockEntityDo(worldIn, pos,
-                    Consumer<PhysicsInfuserBlockEntity> { te: PhysicsInfuserBlockEntity -> if (!te.isAssembled && !te.assembling && !te.disassembling) te.startAssembly() })
+                    Consumer<PhysicsInfuserBlockEntity?> { te: PhysicsInfuserBlockEntity? -> if (!te!!.isAssembled && !te.assembling && !te.disassembling) te.startAssembly() })
                 return InteractionResult.SUCCESS
             }
             withBlockEntityDo(worldIn, pos,
-                Consumer<PhysicsInfuserBlockEntity> { te: PhysicsInfuserBlockEntity ->
-                    if (te.isAssembled && !te.assembling && !te.disassembling && !te.onCooldown) {
+                Consumer<PhysicsInfuserBlockEntity?> { te: PhysicsInfuserBlockEntity? ->
+                    if (te!!.isAssembled && !te.assembling && !te.disassembling && !te.onCooldown) {
                         te.startDisassembly()
                     } else if (!te.isAssembled && te.assembling && !te.disassembling && !te.onCooldown) {
                         te.skipAssembly()
@@ -63,9 +62,9 @@ class PhysicsInfuserBlock(properties: Properties?) : Block(properties),
         } else if (player.getItemInHand(handIn).item is AreaDesignatorItem) {
             if (worldIn.getBlockEntity(pos) != null) {
                 if (worldIn.getBlockEntity(pos) is PhysicsInfuserBlockEntity) {
-                    val te: PhysicsInfuserBlockEntity? = worldIn.getBlockEntity(pos) as PhysicsInfuserBlockEntity?
-                    return if (te.inventory.get(0).isEmpty()) {
-                        te.inventory.set(0, player.getItemInHand(handIn).copy())
+                    val te: PhysicsInfuserBlockEntity = worldIn.getBlockEntity(pos) as PhysicsInfuserBlockEntity
+                    return if (te.inventory[0].isEmpty) {
+                        te.inventory[0] = player.getItemInHand(handIn).copy()
                         player.getItemInHand(handIn).shrink(1)
                         InteractionResult.SUCCESS
                     } else {
@@ -86,7 +85,7 @@ class PhysicsInfuserBlock(properties: Properties?) : Block(properties),
         return PhysicsInfuserBlockEntity::class.java
     }
 
-    override fun getBlockEntityType(): BlockEntityType<out PhysicsInfuserBlockEntity?> {
+    override fun getBlockEntityType(): BlockEntityType<out PhysicsInfuserBlockEntity> {
         return ClockworkBlockEntities.PHYSICS_INFUSER.get()
     }
 

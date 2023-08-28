@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork
 
 import com.jozufozu.flywheel.api.MaterialManager
+import com.simibubi.create.content.contraptions.bearing.BearingRenderer
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.content.kinetics.base.ShaftInstance
 import com.simibubi.create.content.kinetics.base.ShaftRenderer
@@ -11,6 +12,10 @@ import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
+import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity
+import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingRenderer
+import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
+import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingRenderer
 
@@ -42,10 +47,15 @@ object ClockworkBlockEntities {
         .validBlocks(ClockworkBlocks.AFTERBLAZER)
         .renderer { { AfterblazerRenderer() } }
         .register()
+
     val PHYSICS_INFUSER: BlockEntityEntry<PhysicsInfuserBlockEntity> = REGISTRATE
-        .blockEntity("physics_infuser") { PhysicsInfuserBlockEntity() }
+        .blockEntity(java.lang.String("physics_infuser"), ::PhysicsInfuserBlockEntity)
         .validBlocks(ClockworkBlocks.PHYSICS_INFUSER)
-        .renderer { { PhysicsInfuserRenderer() } }
+        .renderer {
+            return@renderer NonNullFunction { context: BlockEntityRendererProvider.Context ->
+                return@NonNullFunction PhysicsInfuserRenderer(context)
+            }
+        }
         .register()
 
     /////// Sequenced Seat ////////
@@ -57,9 +67,13 @@ object ClockworkBlockEntities {
 
     // FALP
     val FLAP_BEARING: BlockEntityEntry<FlapBearingBlockEntity> = REGISTRATE
-        .blockEntity("flap_bearing") { FlapBearingBlockEntity() }
+        .blockEntity(java.lang.String("flap_bearing"), ::FlapBearingBlockEntity)
         .validBlocks(ClockworkBlocks.FLAP_BEARING)
-        .renderer { { FlapBearingRenderer() } }
+        .renderer {
+            return@renderer NonNullFunction { context: BlockEntityRendererProvider.Context ->
+                return@NonNullFunction FlapBearingRenderer(context)
+            }
+        }
         .register()
 
     // Intake

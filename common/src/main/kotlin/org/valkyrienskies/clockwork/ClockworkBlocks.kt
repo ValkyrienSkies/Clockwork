@@ -18,6 +18,7 @@ import net.minecraft.world.level.material.MaterialColor
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
+import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork
 import org.valkyrienskies.mod.common.block.WingBlock
 import java.util.function.Supplier
 
@@ -34,6 +35,7 @@ object ClockworkBlocks {
             .transform(BuilderTransformers.bearing("propeller", "gearbox"))
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .register()
+
     val PHYS_BEARING: BlockEntry<PhysBearingBlock> = REGISTRATE.block(java.lang.String("phys_bearing"), ::PhysBearingBlock)
         .initialProperties { SharedProperties.stone() }
         .transform(TagGen.axeOrPickaxe())
@@ -51,7 +53,7 @@ object ClockworkBlocks {
         .model(AssetLookup.customBlockItemModel("phys_bearing"))
         .build()
         .register()
-    val FLAP_BEARING: BlockEntry<FlapBearingBlock> = REGISTRATE.block(java.lang.String("flap_bearing") ::FlapBearingBlock)
+    val FLAP_BEARING: BlockEntry<FlapBearingBlock> = REGISTRATE.block(java.lang.String("flap_bearing"), ::FlapBearingBlock)
         .transform(TagGen.axeOrPickaxe())
         .properties { p -> p.color(MaterialColor.PODZOL) }
         .transform(BuilderTransformersClockwork.flapbearing())
