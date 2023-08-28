@@ -1,8 +1,0 @@
-{
-  "parent": "vs_clockwork:block/flap_bearing/item",
-  "textures": {
-    "0": "vs_clockwork:block/flap_bearing",
-    "1": "create:block/mechanical_bearing_side",
-    "particle": "vs_clockwork:block/flap_bearing"
-  }
-}

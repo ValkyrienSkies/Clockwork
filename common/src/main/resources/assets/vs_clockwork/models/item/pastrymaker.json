@@ -1,7 +1,0 @@
-{
-  "parent": "vs_clockwork:item/pastrymaker/pastrymaker",
-  "textures": {
-    "1": "vs_clockwork:item/spudling",
-    "particle": "vs_clockwork:item/spudling"
-  }
-}

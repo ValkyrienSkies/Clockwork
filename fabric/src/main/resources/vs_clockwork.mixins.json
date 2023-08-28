@@ -2,19 +2,10 @@
   "required": true,
   "package": "org.valkyrienskies.clockwork.fabric.mixin",
   "compatibilityLevel": "JAVA_17",
+  "plugin": "org.clockwork.mixin.CommonMixinConfigPlugin",
   "mixins": [
-    "compat.MixinBlockBreakingKineticTileEntity",
-    "compat.MixinBlocks",
-    "compat.MixinControlledContraptionEntity",
-    "compat.MixinStickerTileEntity",
-    "compat.client.MixinCullingBlockEntityIterator"
   ],
   "client": [
-    "compat.client.MixinContraptionRenderInfo",
-    "compat.client.MixinFlwContraption",
-    "compat.client.MixinScrollValueBehaviour",
-    "compat.client.MixinSuperGlueSelectionHandler",
-    "compat.client.MixinValueBox"
   ],
   "injectors": {
     "defaultRequire": 1

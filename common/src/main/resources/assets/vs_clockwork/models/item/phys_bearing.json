@@ -1,6 +1,0 @@
-{
-  "parent": "vs_clockwork:block/phys_bearing/item",
-  "textures": {
-    "1": "vs_clockwork:block/phys_bearing"
-  }
-}
