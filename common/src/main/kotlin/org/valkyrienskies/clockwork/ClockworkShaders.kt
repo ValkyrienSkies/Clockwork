@@ -6,7 +6,7 @@ import net.minecraft.server.packs.resources.ResourceProvider
 import org.valkyrienskies.clockwork.client.render.ShaderReference
 import java.util.function.Consumer
 
-object ClockWorkShaders {
+object ClockworkShaders {
     private val SHADERS: MutableList<ShaderReference> = ArrayList<ShaderReference>()
     val SCAN_EFFECT: ShaderReference = shader("scan_effect", DefaultVertexFormat.POSITION_TEX)
     private fun shader(shader: String, format: VertexFormat): ShaderReference {
@@ -15,7 +15,7 @@ object ClockWorkShaders {
         return result
     }
 
-    fun reloadShaders(resources: ResourceProvider?) {
+    fun reloadShaders(resources: ResourceProvider) {
         SHADERS.forEach(Consumer<ShaderReference> { shaderReference: ShaderReference ->
             shaderReference.reload(
                 resources

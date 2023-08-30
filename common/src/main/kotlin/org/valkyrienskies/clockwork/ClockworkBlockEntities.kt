@@ -14,6 +14,8 @@ import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingRenderer
+import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity
+import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity
@@ -33,19 +35,13 @@ object ClockworkBlockEntities {
         .register()
 
     val PHYS_BEARING: BlockEntityEntry<PhysBearingBlockEntity> = REGISTRATE
-        .blockEntity("phys_bearing") { PhysBearingBlockEntity() } //            .instance(() -> BearingInstance::new)
+        .blockEntity(java.lang.String("phys_bearing"), ::PhysBearingBlockEntity)  //            .instance(() -> BearingInstance::new)
         .validBlocks(ClockworkBlocks.PHYS_BEARING)
-        .renderer { { PhysBearingRenderer() } }
-        .register()
-    val SOLVER: BlockEntityEntry<SolverBlockEntity> = REGISTRATE
-        .blockEntity("solver") { SolverBlockEntity() }
-        .validBlocks(ClockworkBlocks.SOLVER)
-        .renderer { { SolverRenderer() } }
-        .register()
-    val AFTERBLAZER: BlockEntityEntry<AfterblazerEngineBlockEntity> = REGISTRATE
-        .blockEntity("afterblazer") { AfterblazerEngineBlockEntity() }
-        .validBlocks(ClockworkBlocks.AFTERBLAZER)
-        .renderer { { AfterblazerRenderer() } }
+        .renderer {
+            return@renderer NonNullFunction { context: BlockEntityRendererProvider.Context ->
+                return@NonNullFunction PhysBearingRenderer(context)
+            }
+        }
         .register()
 
     val PHYSICS_INFUSER: BlockEntityEntry<PhysicsInfuserBlockEntity> = REGISTRATE
@@ -77,11 +73,11 @@ object ClockworkBlockEntities {
         .register()
 
     // Intake
-    val INTAKE: BlockEntityEntry<IntakeBlockEntity> = REGISTRATE
-        .blockEntity("intake") { IntakeBlockEntity() }
-        .validBlocks(ClockworkBlocks.INTAKE)
-        .renderer { { IntakeRenderer() } }
-        .register()
+//    val INTAKE: BlockEntityEntry<IntakeBlockEntity> = REGISTRATE
+//        .blockEntity("intake") { IntakeBlockEntity() }
+//        .validBlocks(ClockworkBlocks.INTAKE)
+//        .renderer { { IntakeRenderer() } }
+//        .register()
 
     //BALLOONER
     val BALLOONER: BlockEntityEntry<BalloonerBlockEntity> = REGISTRATE

@@ -20,7 +20,7 @@ import java.util.function.Supplier
 
 object ClockworkRegistrate {
     fun <T : CWItem, P> customRenderedItem(
-        supplier: Supplier<Supplier<CustomRenderedItemModelRenderer>>
+        supplier: () -> () -> CustomRenderedItemModelRenderer
     ): NonNullUnaryOperator<ItemBuilder<T, P>> {
         return NonNullUnaryOperator { b: ItemBuilder<T, P> ->
             onClient {
@@ -50,7 +50,7 @@ object ClockworkRegistrate {
     @Environment(EnvType.CLIENT)
     private fun <T : CWItem, P> customRenderedItem(
         b: ItemBuilder<T, P>,
-        supplier: Supplier<Supplier<CustomRenderedItemModelRenderer>>
+        supplier: () -> () -> CustomRenderedItemModelRenderer
     ) {
         b.onRegister(CustomRendererRegistrationHelper(supplier))
     }
@@ -82,10 +82,10 @@ object ClockworkRegistrate {
     }
 
     @Environment(EnvType.CLIENT)
-    private data class CustomRendererRegistrationHelper(val supplier: Supplier<Supplier<CustomRenderedItemModelRenderer>>) :
+    private data class CustomRendererRegistrationHelper(val supplier: () -> () -> CustomRenderedItemModelRenderer) :
         NonNullConsumer<CWItem> {
         override fun accept(entry: CWItem) {
-            val renderer = supplier.get().get()
+            val renderer = supplier.invoke().invoke()
             customRenderedRegisterer().accept(entry, renderer)
             CustomRenderedItems.register(entry)
         }

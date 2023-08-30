@@ -3,13 +3,17 @@ package org.valkyrienskies.clockwork
 import com.simibubi.create.AllTags
 import com.simibubi.create.foundation.data.AssetLookup
 import com.tterrag.registrate.util.entry.ItemEntry
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.Rarity
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
-import org.valkyrienskies.clockwork.content.curiosities.tools.auric_designator.AreaDesignatorItem
-import org.valkyrienskies.clockwork.content.curiosities.tools.auric_designator.AreaDesignatorRenderer
+import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingRenderer
+import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.AreaDesignatorItem
+import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.AreaDesignatorRenderer
 import org.valkyrienskies.clockwork.content.materials.solids.stratodonut.StratodonutItem
+import org.valkyrienskies.clockwork.renderer.AreaDesignatorRenderer
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
+import java.util.function.Supplier
 
 object ClockworkItems {
     init {
@@ -17,14 +21,9 @@ object ClockworkItems {
     }
 
     val BLUUGUU = ingredient("bluuguu")
-    val STRATODONUT: ItemEntry<StratodonutItem> = REGISTRATE.item("stratodonut") { StratodonutItem() }
-        .properties { p -> p.rarity(Rarity.EPIC) }
-        .properties { p -> p.stacksTo(4) }
-        .tag(AllTags.AllItemTags.UPRIGHT_ON_BELT.tag)
-        .onRegister { i -> i.setBurnTime(Short.MAX_VALUE) } // fabric: furnaces are limited to Short values without Forge patches
-        .register()
-    val AURIC_DESIGNATOR: ItemEntry<AreaDesignatorItem> = REGISTRATE.item("auric_designator") { AreaDesignatorItem() }
-        .transform(ClockworkRegistrate.customRenderedItem { { AreaDesignatorRenderer() } })
+
+    val AURIC_DESIGNATOR: ItemEntry<AreaDesignatorItem> = REGISTRATE.item(java.lang.String("auric_designator"), ::AreaDesignatorItem)
+        .transform(ClockworkRegistrate.customRenderedItem { {  AreaDesignatorRenderer() } })
         .properties { p -> p.rarity(Rarity.UNCOMMON) }
         .properties { p -> p.stacksTo(1) }
         .properties { p -> p.fireResistant() }
@@ -62,7 +61,7 @@ object ClockworkItems {
     //                    .register();
     //Shortcuts
     private fun ingredient(name: String): ItemEntry<Item> {
-        return REGISTRATE.item(name) { properties: Item.Properties -> Item(properties) }
+        return REGISTRATE.item(java.lang.String(name)) { properties: Item.Properties -> Item(properties) }
             .register()
     }
 

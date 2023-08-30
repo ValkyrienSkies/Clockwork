@@ -10,19 +10,18 @@ import net.minecraft.core.Registry
 import net.minecraft.core.particles.ParticleOptions
 import net.minecraft.core.particles.ParticleType
 import org.valkyrienskies.clockwork.content.curiosities.particles.PhysLightningParticle
-import org.valkyrienskies.clockwork.content.curiosities.particles.PropellorStreamParticleData
 import org.valkyrienskies.clockwork.platform.api.DeferredRegister
 import java.util.function.Supplier
 
-enum class ClockworkParticles(typeFactory: Supplier<out ICustomParticleData<D>>) {
-    PROP_STREAM(Supplier<ICustomParticleData<ParticleOptions>> { PropellorStreamParticleData() }),
-    PHYS_LIGHTNING(Supplier<ICustomParticleData<ParticleOptions>> { PhysLightningParticle.Data() });
+enum class ClockworkParticles(typeFactory: Supplier<out ICustomParticleData<ParticleOptions>>) {
+
+    PHYS_LIGHTNING({ PhysLightningParticle.Data() as ICustomParticleData<ParticleOptions> });
 
     private val entry: ParticleEntry<*>
 
     init {
         val name = Lang.asId(name)
-        entry = ParticleEntry<D>(name, typeFactory)
+        entry = ParticleEntry(name, typeFactory)
     }
 
     fun get(): ParticleType<*> {

@@ -2,4 +2,4 @@ package org.valkyrienskies.clockwork.platform
 
 import net.minecraft.world.item.Item
 
-class CWItem(properties: Properties) : Item(properties)
+open class CWItem(properties: Properties) : Item(properties)
