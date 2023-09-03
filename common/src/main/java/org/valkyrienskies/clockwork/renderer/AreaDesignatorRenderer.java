@@ -11,25 +11,27 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
-import org.valkyrienskies.clockwork.ClockWorkItems;
-import org.valkyrienskies.clockwork.ClockWorkMod;
 import org.valkyrienskies.clockwork.ClockworkItems;
 import org.valkyrienskies.clockwork.ClockworkMod;
+import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.AreaDesignatorItem;
+import org.valkyrienskies.clockwork.platform.PlatformUtils;
+import org.valkyrienskies.clockwork.util.EaseHelper;
 
-import static org.valkyrienskies.clockwork.util.animation.EaseHelper.easeInOutSine;
+import static org.valkyrienskies.clockwork.util.EaseHelper.*;
 
+@SuppressWarnings("CannotAccess")
 public class AreaDesignatorRenderer extends CustomRenderedItemModelRenderer {
-    protected static final PartialModel CRYSTAL = new PartialModel(ClockworkMod.asResource("item/auric_designator/crystal"));
+    protected static final PartialModel CRYSTAL = new PartialModel(ClockworkMod.INSTANCE.asResource("item/auric_designator/crystal"));
 
-    protected static final PartialModel POLE = new PartialModel(ClockWorkMod.asResource("item/auric_designator/pole"));
+    protected static final PartialModel POLE = new PartialModel(ClockworkMod.INSTANCE.asResource("item/auric_designator/pole"));
 
-    protected static final PartialModel WAVE = new PartialModel(ClockWorkMod.asResource("item/auric_designator/wave"));
+    protected static final PartialModel WAVE = new PartialModel(ClockworkMod.INSTANCE.asResource("item/auric_designator/wave"));
 
     private float crystalAngle = 0;
 
     @Override
     protected void render(ItemStack stack, CustomRenderedItemModel model, PartialItemModelRenderer renderer, ItemTransforms.TransformType transformType, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
-        if (!stack.is(ClockworkItems.AURIC_DESIGNATOR.get())) {
+        if (!stack.is(ClockworkItems.INSTANCE.getAURIC_DESIGNATOR().get())) {
             return;
         }
         AreaDesignatorItem adi = (AreaDesignatorItem) stack.getItem();
@@ -38,15 +40,16 @@ public class AreaDesignatorRenderer extends CustomRenderedItemModelRenderer {
 
         ms.pushPose();
 
-        if (adi.animationType.equals(AreaDesignatorItem.Animation.DRAW)) {
-            animateDraw(ms, stacker, buffer, light, overlay, adi.drawProgress, renderer);
-        } else if (adi.animationType.equals(AreaDesignatorItem.Animation.SUCCESS)) {
-            animateSuccess(ms, stacker, buffer, light, overlay, adi.successProgress, renderer);
-        } else if (adi.animationType.equals(AreaDesignatorItem.Animation.DUMP)) {
-            animateDump(ms, stacker, buffer, light, overlay, adi.dumpProgress, renderer);
+        renderer.renderSolid(PlatformUtils.INSTANCE.getBakedModel(model), light);
+
+        if (adi.getAnimationType().equals(AreaDesignatorItem.Animation.DRAW)) {
+            animateDraw(ms, stacker, buffer, light, overlay, adi.getDrawProgress(), renderer);
+        } else if (adi.getAnimationType().equals(AreaDesignatorItem.Animation.SUCCESS)) {
+            animateSuccess(ms, stacker, buffer, light, overlay, adi.getSuccessProgress(), renderer);
+        } else if (adi.getAnimationType().equals(AreaDesignatorItem.Animation.DUMP)) {
+            animateDump(ms, stacker, buffer, light, overlay, adi.getDumpProgress(), renderer);
         } else {
-            renderer.renderSolid(model.getOriginalModel(), light);
-            animateIdle(ms, stacker, buffer, light, overlay, adi.idleProgress, renderer);
+            animateIdle(ms, stacker, buffer, light, overlay, adi.getIdleProgress(), renderer);
         }
 
         ms.popPose();
@@ -65,7 +68,7 @@ public class AreaDesignatorRenderer extends CustomRenderedItemModelRenderer {
     private void animateIdle(PoseStack ms, TransformStack stacker, MultiBufferSource buffer, int light, int overlay, float progress, PartialItemModelRenderer renderer) {
         ms.pushPose();
         float partialTicks = AnimationTickHolder.getPartialTicks() - 1;
-        float heightAlt = 3f/16f + (float) Math.sin(easeInOutSine(progress))/16f;
+        float heightAlt = 3f/16f + (float) Math.sin(EaseHelper.INSTANCE.easeInOutSine(progress))/16f;
         stacker.translateY(heightAlt * 0.1F);
         float nextCrystalAngle = Mth.clamp(crystalAngle + 1f, 0, 360);
         if (nextCrystalAngle == 360) {

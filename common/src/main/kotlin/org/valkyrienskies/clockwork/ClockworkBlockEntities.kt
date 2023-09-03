@@ -20,6 +20,12 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInf
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingRenderer
+import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlockEntity
+import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRenderer
+import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlockEntity
+import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRenderer
+import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeRenderer
 
 
 object ClockworkBlockEntities {
@@ -27,49 +33,33 @@ object ClockworkBlockEntities {
     val PROPELLOR_BEARING: BlockEntityEntry<PropellerBearingBlockEntity> = REGISTRATE
         .blockEntity(java.lang.String("propellor_bearing"), ::PropellerBearingBlockEntity) //            .instance(() -> BearingInstance::new)
         .validBlocks(ClockworkBlocks.PROPELLOR_BEARING)
-        .renderer {
-            return@renderer NonNullFunction { context: BlockEntityRendererProvider.Context ->
-                return@NonNullFunction PropellerBearingRenderer(context)
-            }
-        }
+        .renderer{NonNullFunction(::PropellerBearingRenderer)}
         .register()
 
     val PHYS_BEARING: BlockEntityEntry<PhysBearingBlockEntity> = REGISTRATE
         .blockEntity(java.lang.String("phys_bearing"), ::PhysBearingBlockEntity)  //            .instance(() -> BearingInstance::new)
         .validBlocks(ClockworkBlocks.PHYS_BEARING)
-        .renderer {
-            return@renderer NonNullFunction { context: BlockEntityRendererProvider.Context ->
-                return@NonNullFunction PhysBearingRenderer(context)
-            }
-        }
+        .renderer{NonNullFunction(::PhysBearingRenderer)}
         .register()
 
     val PHYSICS_INFUSER: BlockEntityEntry<PhysicsInfuserBlockEntity> = REGISTRATE
         .blockEntity(java.lang.String("physics_infuser"), ::PhysicsInfuserBlockEntity)
         .validBlocks(ClockworkBlocks.PHYSICS_INFUSER)
-        .renderer {
-            return@renderer NonNullFunction { context: BlockEntityRendererProvider.Context ->
-                return@NonNullFunction PhysicsInfuserRenderer(context)
-            }
-        }
+        .renderer{NonNullFunction(::PhysicsInfuserRenderer)}
         .register()
 
     /////// Sequenced Seat ////////
     val COMMAND_SEAT: BlockEntityEntry<SequencedSeatBlockEntity> = REGISTRATE
-        .blockEntity("sequenced_seat") { SequencedSeatBlockEntity() }
+        .blockEntity(java.lang.String("sequenced_seat"), ::SequencedSeatBlockEntity)
         .validBlocks(ClockworkBlocks.COMMAND_SEAT)
-        .renderer { { SequencedSeatRenderer() } }
+        .renderer {NonNullFunction(::SequencedSeatRenderer)}
         .register()
 
     // FALP
     val FLAP_BEARING: BlockEntityEntry<FlapBearingBlockEntity> = REGISTRATE
         .blockEntity(java.lang.String("flap_bearing"), ::FlapBearingBlockEntity)
         .validBlocks(ClockworkBlocks.FLAP_BEARING)
-        .renderer {
-            return@renderer NonNullFunction { context: BlockEntityRendererProvider.Context ->
-                return@NonNullFunction FlapBearingRenderer(context)
-            }
-        }
+        .renderer{NonNullFunction(::FlapBearingRenderer)}
         .register()
 
     // Intake
@@ -80,49 +70,30 @@ object ClockworkBlockEntities {
 //        .register()
 
     //BALLOONER
-    val BALLOONER: BlockEntityEntry<BalloonerBlockEntity> = REGISTRATE
-        .blockEntity("ballooner") { BalloonerBlockEntity() }
-        .validBlocks(ClockworkBlocks.BALLOONER)
-        .renderer { { BalloonerRenderer() } }
-        .register()
+//    val BALLOONER: BlockEntityEntry<BalloonerBlockEntity> = REGISTRATE
+//        .blockEntity("ballooner") { BalloonerBlockEntity() }
+//        .validBlocks(ClockworkBlocks.BALLOONER)
+//        .renderer { { BalloonerRenderer() } }
+//        .register()
 
     //REDSTONE RESISTOR todo: add instance
     val REDSTONE_RESISTOR: BlockEntityEntry<RedstoneResistorBlockEntity> = REGISTRATE
-        .blockEntity("redstone_resistor") { RedstoneResistorBlockEntity() }
+        .blockEntity(java.lang.String("redstone_resistor"), ::RedstoneResistorBlockEntity)
         .validBlocks(ClockworkBlocks.REDSTONE_RESISTOR)
-        .renderer { { RedstoneResistorRenderer() } }
+        .renderer {NonNullFunction(::RedstoneResistorRenderer)}
         .register()
 
     //REACTION WHEEL
     val REACTIONWHEEL: BlockEntityEntry<ReactionWheelBlockEntity> = REGISTRATE
-        .blockEntity("reaction_wheel") { ReactionWheelBlockEntity() }
+        .blockEntity(java.lang.String("reaction_wheel"), ::ReactionWheelBlockEntity)
         .validBlocks(ClockworkBlocks.REACTIONWHEEL)
-        .renderer { { ReactionWheelRenderer() } }
+        .renderer {NonNullFunction(::ReactionWheelRenderer)}
         .register()
+
     val EXTENDED_ENCASED_SHAFT: BlockEntityEntry<KineticBlockEntity> = REGISTRATE
-        .blockEntity("extended_encased_shaft") { typeIn: BlockEntityType<*>?, pos: BlockPos?, state: BlockState? ->
-            KineticBlockEntity(
-                typeIn,
-                pos,
-                state
-            )
-        }
-        .instance({
-            { materialManager: MaterialManager?, blockEntity: T? ->
-                ShaftInstance(
-                    materialManager,
-                    blockEntity
-                )
-            }
-        }, false)
+        .blockEntity(java.lang.String("extended_encased_shaft"), ::KineticBlockEntity)
         .validBlocks(ClockworkBlocks.BALLOON_ENCASED_SHAFT)
-        .renderer {
-            { context: BlockEntityRendererProvider.Context? ->
-                ShaftRenderer(
-                    context
-                )
-            }
-        }
+        .renderer { NonNullFunction(::ShaftRenderer) }
         .register()
 
     //    public static final BlockEntityEntry<UniversalJointBlockEntity> UNIVERSAL_JOINT = REGISTRATE
@@ -131,22 +102,23 @@ object ClockworkBlockEntities {
     //            .renderer(() -> UniversalJointRenderer::new)
     //            .register();
     // COMBUSTION ENGINE
-    val COMBUSTION_ENGINE: BlockEntityEntry<CombustionEngineBlockEntity> = REGISTRATE
-        .blockEntity("combustion_engine") { CombustionEngineBlockEntity() }
-        .validBlocks(ClockworkBlocks.COMBUSTION_ENGINE)
-        .renderer { { CombustionEngineRenderer() } }
-        .register()
+//    val COMBUSTION_ENGINE: BlockEntityEntry<CombustionEngineBlockEntity> = REGISTRATE
+//        .blockEntity("combustion_engine") { CombustionEngineBlockEntity() }
+//        .validBlocks(ClockworkBlocks.COMBUSTION_ENGINE)
+//        .renderer { { CombustionEngineRenderer() } }
+//        .register()
 
     // WINX
     val COLOR_BLOCK_ENTITY: BlockEntityEntry<ColorBlockEntity> = REGISTRATE
-        .blockEntity("color_block_entity") { ColorBlockEntity() }
+        .blockEntity(java.lang.String("color_block_entity"), ::ColorBlockEntity)
         .validBlocks(ClockworkBlocks.WING, ClockworkBlocks.FLAP)
-        .renderer { { WingBlockEntityRenderer() } }
+        .renderer {NonNullFunction(::WingBlockEntityRenderer)}
         .register()
+
     val HEAT_PIPE: BlockEntityEntry<HeatPipeBlockEntity> = REGISTRATE
-        .blockEntity("heat_pipe") { HeatPipeBlockEntity() }
+        .blockEntity(java.lang.String("heat_pipe"), ::HeatPipeBlockEntity)
         .validBlocks(ClockworkBlocks.HEAT_PIPE)
-        .renderer { { HeatPipeRenderer() } }
+        .renderer {NonNullFunction(::HeatPipeRenderer)}
         .register()
 
     fun register() {}

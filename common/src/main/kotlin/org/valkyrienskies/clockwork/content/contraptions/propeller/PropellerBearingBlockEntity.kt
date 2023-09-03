@@ -139,7 +139,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
                         angularSpeed.toDouble(), angle.toDouble(),
                         isInverted
                     )
-                    PropellerController.getOrCreate(ship).updatePropeller(physPropId, data)
+                    PropellerController.getOrCreate(ship)!!.updatePropeller(physPropId!!, data)
                 }
             }
         }
@@ -456,7 +456,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
                 blockPos
             )
             if (ship != null) {
-                physPropId = PropellerController.getOrCreate(ship).addPropeller(data)
+                physPropId = PropellerController.getOrCreate(ship)!!.addPropeller(data)
             }
         }
         sendData()
@@ -510,7 +510,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
                     blockPos
                 )
                 if (ship != null) {
-                    PropellerController.getOrCreate(ship).removePropeller(physPropId)
+                    PropellerController.getOrCreate(ship)!!.removePropeller(physPropId!!)
                 }
             }
         }

@@ -13,12 +13,22 @@ import com.tterrag.registrate.util.entry.BlockEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.resources.model.BakedModel
+import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.block.state.BlockBehaviour
+import net.minecraft.world.level.material.Material
 import net.minecraft.world.level.material.MaterialColor
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock
+import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock
+import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
+import org.valkyrienskies.clockwork.content.kinetics.casing.ExtendedEncasedShaftBlock
+import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
+import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
+import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlock
+import org.valkyrienskies.clockwork.data.CWBlockStateGen
 import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork
+import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import org.valkyrienskies.mod.common.block.WingBlock
 import java.util.function.Supplier
 
@@ -41,7 +51,7 @@ object ClockworkBlocks {
         .transform(TagGen.axeOrPickaxe())
         .properties { p -> p.lightLevel(PhysBearingBlock::getLight) }
         .properties { p -> p.color(MaterialColor.PODZOL) }
-        .addLayer { RenderType::cutout }
+        .addLayer { Supplier(RenderType::cutout) }
         .blockstate { c, p ->
             p.directionalBlock(
                 c.getEntry(),
@@ -73,82 +83,82 @@ object ClockworkBlocks {
     //                    .model(AssetLookup.customBlockItemModel("universal_joint"))
     //                    .build()
     //                    .register();
-    val AFTERBLAZER: BlockEntry<AfterblazerBlock> = REGISTRATE.block("afterblazer") { AfterblazerBlock() }
-        .initialProperties { SharedProperties.softMetal() }
-        .properties { p -> p.color(MaterialColor.COLOR_GRAY) }
-        .transform(TagGen.pickaxeOnly())
-        .addLayer { RenderType::cutoutMipped }
-        .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
-        .blockstate { c, p ->
-            p.simpleBlock(
-                c.getEntry(),
-                AssetLookup.partialBaseModel(c, p)
-            )
-        }
-        .item()
-        .model(AssetLookup.customBlockItemModel("afterblazer"))
-        .build()
-        .register()
-    val INTAKE: BlockEntry<IntakeBlock> = REGISTRATE.block("intake") { IntakeBlock() }
-        .initialProperties { SharedProperties.softMetal() }
-        .properties { p -> p.color(MaterialColor.COLOR_GRAY) }
-        .transform(TagGen.pickaxeOnly())
-        .addLayer { RenderType::cutoutMipped }
-        .blockstate { c, p ->
-            p.directionalBlock(
-                c.getEntry(),
-                AssetLookup.partialBaseModel(c, p)
-            )
-        }
-        .item()
-        .transform(ModelGen.customItemModel("intake", "item"))
-        .register()
+//    val AFTERBLAZER: BlockEntry<AfterblazerBlock> = REGISTRATE.block("afterblazer") { AfterblazerBlock() }
+//        .initialProperties { SharedProperties.softMetal() }
+//        .properties { p -> p.color(MaterialColor.COLOR_GRAY) }
+//        .transform(TagGen.pickaxeOnly())
+//        .addLayer { RenderType::cutoutMipped }
+//        .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
+//        .blockstate { c, p ->
+//            p.simpleBlock(
+//                c.getEntry(),
+//                AssetLookup.partialBaseModel(c, p)
+//            )
+//        }
+//        .item()
+//        .model(AssetLookup.customBlockItemModel("afterblazer"))
+//        .build()
+//        .register()
+//    val INTAKE: BlockEntry<IntakeBlock> = REGISTRATE.block("intake") { IntakeBlock() }
+//        .initialProperties { SharedProperties.softMetal() }
+//        .properties { p -> p.color(MaterialColor.COLOR_GRAY) }
+//        .transform(TagGen.pickaxeOnly())
+//        .addLayer { RenderType::cutoutMipped }
+//        .blockstate { c, p ->
+//            p.directionalBlock(
+//                c.getEntry(),
+//                AssetLookup.partialBaseModel(c, p)
+//            )
+//        }
+//        .item()
+//        .transform(ModelGen.customItemModel("intake", "item"))
+//        .register()
 
     ////////  REACTION WHEEL ///////
-    val REACTIONWHEEL: BlockEntry<ReactionWheelBlock> = REGISTRATE.block("reactionwheel") { ReactionWheelBlock() }
+    val REACTIONWHEEL: BlockEntry<ReactionWheelBlock> = REGISTRATE.block(java.lang.String("reaction_wheel"), ::ReactionWheelBlock)
         .initialProperties { SharedProperties.softMetal() }
         .transform(TagGen.axeOrPickaxe())
         .properties { p -> p.color(MaterialColor.COLOR_ORANGE) }
-        .properties { BlockBehaviour.Properties.noOcclusion() }
+        .properties {BlockBehaviour.Properties.of(Material.HEAVY_METAL).noOcclusion() }
         .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
         .item()
         .transform(ModelGen.customItemModel())
         .register()
-    val SOLVER: BlockEntry<SolverBlock> = REGISTRATE.block("solver") { SolverBlock() }
-        .initialProperties { SharedProperties.softMetal() }
-        .transform(TagGen.axeOrPickaxe())
-        .properties { p -> p.color(MaterialColor.COLOR_PURPLE) }
-        .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
-        .transform(BlockStressDefaults.setImpact(4.0))
-        .item()
-        .transform(ModelGen.customItemModel())
-        .register()
+
+//    val SOLVER: BlockEntry<SolverBlock> = REGISTRATE.block("solver") { SolverBlock() }
+//        .initialProperties { SharedProperties.softMetal() }
+//        .transform(TagGen.axeOrPickaxe())
+//        .properties { p -> p.color(MaterialColor.COLOR_PURPLE) }
+//        .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+//        .transform(BlockStressDefaults.setImpact(4.0))
+//        .item()
+//        .transform(ModelGen.customItemModel())
+//        .register()
 
     /////// Ballooner ////////
-    val BALLOONER: BlockEntry<BalloonerBlock> = REGISTRATE.block("ballooner") { BalloonerBlock() }
-        .initialProperties { SharedProperties.softMetal() }
-        .properties { p -> p.color(MaterialColor.COLOR_GRAY) }
-        .transform(TagGen.pickaxeOnly())
-        .addLayer { RenderType::cutoutMipped }
-        .item()
-        .transform(ModelGen.customItemModel("ballooner", "item"))
-        .register()
+//    val BALLOONER: BlockEntry<BalloonerBlock> = REGISTRATE.block("ballooner") { BalloonerBlock() }
+//        .initialProperties { SharedProperties.softMetal() }
+//        .properties { p -> p.color(MaterialColor.COLOR_GRAY) }
+//        .transform(TagGen.pickaxeOnly())
+//        .addLayer { RenderType::cutoutMipped }
+//        .item()
+//        .transform(ModelGen.customItemModel("ballooner", "item"))
+//        .register()
 
     /////// REDSTONE RESISTOR ////////
-    val REDSTONE_RESISTOR: BlockEntry<RedstoneResistorBlock> =
-        REGISTRATE.block("redstone_resistor") { RedstoneResistorBlock() }
+    val REDSTONE_RESISTOR: BlockEntry<RedstoneResistorBlock> = REGISTRATE.block(java.lang.String("redstone_resistor"), ::RedstoneResistorBlock)
             .initialProperties { SharedProperties.stone() }
-            .properties { BlockBehaviour.Properties.noOcclusion() }
+            .properties { BlockBehaviour.Properties.of(Material.STONE).noOcclusion() }
             .properties { p -> p.color(MaterialColor.PODZOL) }
             .transform(BlockStressDefaults.setNoImpact())
             .transform(TagGen.axeOrPickaxe())
-            .addLayer { RenderType::cutoutMipped }
+            .addLayer { Supplier(RenderType::cutoutMipped) }
             .item()
             .transform(ModelGen.customItemModel("redstone_resistor", "item"))
             .register()
 
     /////// Sequenced Seat ////////
-    val COMMAND_SEAT: BlockEntry<SequencedSeatBlock> = REGISTRATE.block("command_seat") { SequencedSeatBlock() }
+    val COMMAND_SEAT: BlockEntry<SequencedSeatBlock> = REGISTRATE.block(java.lang.String("command_seat"), ::SequencedSeatBlock)
         .transform(TagGen.axeOrPickaxe())
         .properties { p -> p.color(MaterialColor.COLOR_LIGHT_GREEN) }
         .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
@@ -157,72 +167,73 @@ object ClockworkBlocks {
         .register()
 
     //////// Flap Bearing ////////
-    val PHYSICS_INFUSER: BlockEntry<PhysicsInfuserBlock> = REGISTRATE.block("physics_infuser") { PhysicsInfuserBlock() }
+    val PHYSICS_INFUSER: BlockEntry<PhysicsInfuserBlock> = REGISTRATE.block(java.lang.String("physics_infuser"), ::PhysicsInfuserBlock)
         .transform(TagGen.axeOrPickaxe())
         .properties { p -> p.color(MaterialColor.COLOR_PURPLE) }
-        .addLayer { RenderType::cutoutMipped }
+        .addLayer { Supplier(RenderType::cutoutMipped) }
         .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
         .item()
         .transform(ModelGen.customItemModel("physics_infuser", "item"))
         .register()
 
     /////// WINX CLUB //////
-    val WING: BlockEntry<WingBlock> = REGISTRATE.block("wing") { WingBlock() }
+    val WING: BlockEntry<WingBlock> = REGISTRATE.block(java.lang.String("wing"), ::WingBlock)
         .transform(TagGen.axeOrPickaxe())
         .properties { p -> p.color(MaterialColor.TERRACOTTA_WHITE) }
-        .addLayer { RenderType::cutoutMipped }
+        .addLayer { Supplier(RenderType::cutoutMipped) }
         .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
         .item { DyedWingBlockItem() }
         .transform(ClockworkRegistrate.customRenderedBlockItem { { WingBlockItemRenderer() } })
         .register()
-    val FLAP: BlockEntry<FlapBlock> = REGISTRATE.block("flap") { FlapBlock() }
+    val FLAP: BlockEntry<FlapBlock> = REGISTRATE.block(java.lang.String("flap"), ::FlapBlock)
         .transform(TagGen.axeOrPickaxe())
         .properties { p -> p.color(MaterialColor.TERRACOTTA_WHITE) }
-        .addLayer { RenderType::cutoutMipped }
+        .addLayer { Supplier(RenderType::cutoutMipped) }
         .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
         .item { DyedWingBlockItem() }
         .transform(ClockworkRegistrate.customRenderedBlockItem { { WingBlockItemRenderer() } })
         .register()
 
-    /////// Physics infuser ////////
-    val BALLOON_CASING: BlockEntry<CasingBlock> = REGISTRATE.block("balloon_casing") { CasingBlock() }
+    val BALLOON_CASING: BlockEntry<CasingBlock> = REGISTRATE.block(java.lang.String("balloon_casing"), ::CasingBlock)
         .properties { p -> p.color(MaterialColor.WOOL) }
         .properties { p -> p.sound(SoundType.BAMBOO) }
-        .transform(BuilderTransformers.casing(Supplier<CTSpriteShiftEntry> { ClockWorkSpriteShifts.BALLOON_CASING }))
+        .transform(NonNullFunction(BuilderTransformers.casing(Supplier<CTSpriteShiftEntry> { ClockworkSpriteShifts.BALLOON_CASING })))
         .transform(TagGen.axeOrPickaxe())
-        .register()
+        .register() as BlockEntry<CasingBlock>
+
     val BALLOON_ENCASED_SHAFT: BlockEntry<ExtendedEncasedShaftBlock> =
-        REGISTRATE.block("balloon_encased_shaft", ExtendedEncasedShaftBlock::balloon)
+        REGISTRATE.block(java.lang.String("balloon_encased_shaft"), ExtendedEncasedShaftBlock::balloon)
             .properties { p -> p.color(MaterialColor.WOOL) }
             .properties { p -> p.sound(SoundType.BAMBOO) }
-            .transform(BuilderTransformersClockwork.encasedShaft("balloon") { ClockWorkSpriteShifts.BALLOON_CASING })
+            .transform(BuilderTransformersClockwork.encasedShaft("balloon") { ClockworkSpriteShifts.BALLOON_CASING })
             .transform(EncasingRegistry.addVariantTo(AllBlocks.SHAFT))
             .transform(TagGen.axeOrPickaxe())
             .register()
 
     // COMBUSTION ENGINE //
-    val COMBUSTION_ENGINE: BlockEntry<CombustionEngineBlock> =
-        REGISTRATE.block("combustion_engine") { CombustionEngineBlock() }
-            .initialProperties { SharedProperties.copperMetal() }
-            .properties { BlockBehaviour.Properties.noOcclusion() }
-            .transform(TagGen.pickaxeOnly())
-            .blockstate { c, p ->
-                p.horizontalFaceBlock(
-                    c.get(),
-                    AssetLookup.partialBaseModel(c, p)
-                )
-            }
-            .transform(BlockStressDefaults.setCapacity(128.0))
-            .transform(BlockStressDefaults.setGeneratorSpeed(Supplier<Couple<Int>> {
-                Couple.create(
-                    0,
-                    128
-                )
-            }))
-            .item()
-            .transform(ModelGen.customItemModel())
-            .register()
-    val HEAT_PIPE: BlockEntry<HeatPipeBlock> = REGISTRATE.block("heat_pipe") { HeatPipeBlock() }
+//    val COMBUSTION_ENGINE: BlockEntry<CombustionEngineBlock> =
+//        REGISTRATE.block("combustion_engine") { CombustionEngineBlock() }
+//            .initialProperties { SharedProperties.copperMetal() }
+//            .properties { BlockBehaviour.Properties.noOcclusion() }
+//            .transform(TagGen.pickaxeOnly())
+//            .blockstate { c, p ->
+//                p.horizontalFaceBlock(
+//                    c.get(),
+//                    AssetLookup.partialBaseModel(c, p)
+//                )
+//            }
+//            .transform(BlockStressDefaults.setCapacity(128.0))
+//            .transform(BlockStressDefaults.setGeneratorSpeed(Supplier<Couple<Int>> {
+//                Couple.create(
+//                    0,
+//                    128
+//                )
+//            }))
+//            .item()
+//            .transform(ModelGen.customItemModel())
+//            .register()
+
+    val HEAT_PIPE: BlockEntry<HeatPipeBlock> = REGISTRATE.block(java.lang.String("heat_pipe"), ::HeatPipeBlock )
         .initialProperties { SharedProperties.netheriteMetal() }
         .blockstate(CWBlockStateGen.pipe())
         .onRegister(CreateRegistrate.blockModel(Supplier<NonNullFunction<BakedModel?, out BakedModel>> {

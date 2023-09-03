@@ -3,14 +3,10 @@ package org.valkyrienskies.clockwork
 import com.simibubi.create.AllTags
 import com.simibubi.create.foundation.data.AssetLookup
 import com.tterrag.registrate.util.entry.ItemEntry
-import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.Rarity
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
-import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingRenderer
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.AreaDesignatorItem
-import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.AreaDesignatorRenderer
-import org.valkyrienskies.clockwork.content.materials.solids.stratodonut.StratodonutItem
 import org.valkyrienskies.clockwork.renderer.AreaDesignatorRenderer
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import java.util.function.Supplier

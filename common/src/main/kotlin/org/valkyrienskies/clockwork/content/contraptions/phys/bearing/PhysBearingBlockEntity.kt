@@ -28,7 +28,7 @@ import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingCreateData
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingData
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingUpdateData
-import org.valkyrienskies.clockwork.content.forces.physContraption.PhysBearingController
+import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.platform.api.ContraptionController
 import org.valkyrienskies.clockwork.platform.api.ContraptionController.LockedMode
 import org.valkyrienskies.clockwork.util.EaseHelper.easeInOutSine
@@ -36,10 +36,7 @@ import org.valkyrienskies.clockwork.util.EaseHelper.easeOutBounce
 import org.valkyrienskies.clockwork.util.assemble.GlueAssembler.collectGlued
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.Ship
-import org.valkyrienskies.core.apigame.constraints.VSAttachmentConstraint
-import org.valkyrienskies.core.apigame.constraints.VSConstraintAndId
-import org.valkyrienskies.core.apigame.constraints.VSConstraintId
-import org.valkyrienskies.core.apigame.constraints.VSHingeOrientationConstraint
+import org.valkyrienskies.core.apigame.constraints.*
 import org.valkyrienskies.core.impl.datastructures.DenseBlockPosSet
 import org.valkyrienskies.core.impl.game.ships.ShipDataCommon
 import org.valkyrienskies.core.impl.game.ships.ShipTransformImpl.Companion.create
@@ -380,7 +377,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             null
         )
         if (!level!!.isClientSide) {
-            bearingID = PhysBearingController.getOrCreate(shiptraption).addPhysBearing(data)
+            bearingID = BearingController.getOrCreate(shiptraption)!!.addPhysBearing(data)
         }
         isRunning = true
         angle = 0f
@@ -389,21 +386,21 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     }
 
     override fun destroy() {
-        if (level != null) {
+        if (level != null && bearingID != null) {
             if (!level!!.isClientSide) {
                 val ship: ServerShip? =
                     (level as ServerLevel).shipObjectWorld.allShips.getById(shiptraptionID)
                 if (ship != null) {
-                    val controller: PhysBearingController = PhysBearingController.getOrCreate(ship)
-                    val attachID: Int = controller.bearingData.get(bearingID).attachID
+                    val controller: BearingController = BearingController.getOrCreate(ship)!!
+                    val attachID: Int = controller.bearingData[bearingID]!!.attachID ?: return
                     if (attachID != null) {
                         (level as ServerLevel).shipObjectWorld.removeConstraint(attachID)
                     }
-                    val hingeID: Int = controller.bearingData.get(bearingID).hingeID
+                    val hingeID: Int = controller.bearingData[bearingID]!!.hingeID ?: return
                     if (hingeID != null) {
                         (level as ServerLevel).shipObjectWorld.removeConstraint(hingeID)
                     }
-                    controller.removePhysBearing(bearingID)
+                    controller.removePhysBearing(bearingID!!)
                 }
             }
         }
@@ -417,7 +414,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 (level as ServerLevel).shipObjectWorld.allShips.getById(shiptraptionID)
             if (ship != null) {
 //
-//                PhysBearingController controller = PhysBearingController.getOrCreate(ship);
+//                BearingController controller = BearingController.getOrCreate(ship);
 //                Direction direction = getBlockState().getValue(BearingBlock.FACING);
 //                Vector3dc inWorld = VectorConversionsMCKt.toJOMLD(worldPosition.relative(direction, 1));
 //                if (!controller.canDisassemble()) {
@@ -449,7 +446,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             (level as ServerLevel).shipObjectWorld.allShips.getById(shiptraptionID)
                 ?: return
         if (bearingID != null) {
-            val controller: PhysBearingController = PhysBearingController.getOrCreate(ship)
+            val controller: BearingController = BearingController.getOrCreate(ship)!!
             val direction = blockState.getValue(BearingBlock.FACING)
             val inWorld: Vector3dc = worldPosition.relative(direction, 1).toJOMLD()
             if (!controller.canDisassemble()) {
@@ -476,8 +473,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 val ship: ServerShip? =
                     (level as ServerLevel).shipObjectWorld.allShips.getById(shiptraptionID)
                 if (ship != null && bearingID != null) {
-                    val bearingData: PhysBearingData =
-                        PhysBearingController.getOrCreate(ship).bearingData.get(bearingID)
+                    val bearingData: PhysBearingData? =
+                        BearingController.getOrCreate(ship)!!.bearingData[bearingID]
                     if (bearingData != null) {
                         val (shipId0, _, compliance, localPos0, localPos1, maxForce, fixedDistance) = bearingData.attachConstraint!!
                         val (shipId01, _, compliance1, localRot0, localRot1, maxTorque) = bearingData.hingeConstraint!!
@@ -513,9 +510,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                             val attachID: VSConstraintId? =
                                 (level as ServerLevel).shipObjectWorld.createNewConstraint(attachConstraint)
                             if (attachID != null) {
-                                PhysBearingController.getOrCreate(ship).bearingData.get(bearingID).attachConstraint =
+                                BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.attachConstraint =
                                     attachConstraint
-                                PhysBearingController.getOrCreate(ship).bearingData.get(bearingID).attachID = attachID
+                                BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.attachID = attachID
                                 createdAttachment = true
                             }
                         }
@@ -523,9 +520,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                             val hingeID: VSConstraintId? =
                                 (level as ServerLevel).shipObjectWorld.createNewConstraint(hingeConstraint)
                             if (hingeID != null) {
-                                PhysBearingController.getOrCreate(ship).bearingData.get(bearingID).hingeConstraint =
+                                BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.hingeConstraint =
                                     hingeConstraint
-                                PhysBearingController.getOrCreate(ship).bearingData.get(bearingID).hingeID = hingeID
+                                BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.hingeID = hingeID
                                 createdHinge = true
                             }
                         }
@@ -568,17 +565,12 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                     val ship: ServerShip? =
                         (level as ServerLevel).shipObjectWorld.allShips.getById(shiptraptionID)
                     if (ship != null) {
-                        //todo add locked mode
-                        if (PhysBearingController.getOrCreate(ship).bearingData.get(bearingID) == null) {
+                        if (BearingController.getOrCreate(ship)!!.bearingData[bearingID] == null) {
                             return
                         }
-                        val (shipId0, shipId1, compliance, localRot0, localRot1, maxTorque) = PhysBearingController.getOrCreate(
-                            ship
-                        ).bearingData.get(bearingID).hingeConstraint
-                        val (shipId01, shipId11, compliance1, localRot01, localRot11, maxTorque1) = PhysBearingController.getOrCreate(
-                            ship
-                        ).bearingData.get(bearingID).angleConstraint
-                        //                        if (PhysBearingController.getOrCreate(ship).bearingData.get(bearingID).hingeID == null) {
+//                        val hingeOrientationConstraint = BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.hingeConstraint
+//                        val hingeTargetConstraint = BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.angleConstraint
+                        //                        if (BearingController.getOrCreate(ship).bearingData.get(bearingID).hingeID == null) {
 //                            return;
 //                        }
 //                        if (movementMode.get() == LockedMode.LOCKED) {
@@ -586,17 +578,17 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 //                            Quaterniond localRot0 = new Quaterniond(hingeConstraint.getLocalRot0());
 //                            localRot0 = localRot0.premul(new Quaterniond(new AxisAngle4d(Math.toRadians(angle), facing))).normalize();
 //                            angleConstraint = new VSFixedOrientationConstraint(hingeConstraint.getShipId0(), hingeConstraint.getShipId1(), 1e-10, localRot0, hingeConstraint.getLocalRot1(), 1e8);
-//                            VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).updateConstraint(PhysBearingController.getOrCreate(ship).bearingData.get(bearingID).hingeID, angleConstraint);
+//                            VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).updateConstraint(BearingController.getOrCreate(ship).bearingData.get(bearingID).hingeID, angleConstraint);
 //                        } else if (movementMode.get() == LockedMode.UNLOCKED) {
-//                            hingeConstraint = PhysBearingController.getOrCreate(ship).bearingData.get(bearingID).hingeConstraint;
-//                            VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).updateConstraint(PhysBearingController.getOrCreate(ship).bearingData.get(bearingID).hingeID, hingeConstraint);
+//                            hingeConstraint = BearingController.getOrCreate(ship).bearingData.get(bearingID).hingeConstraint;
+//                            VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).updateConstraint(BearingController.getOrCreate(ship).bearingData.get(bearingID).hingeID, hingeConstraint);
 //
 //                        }
                         val data = PhysBearingUpdateData(
                             angle.toDouble(), getSpeed(),
                             movementMode!!.get() == LockedMode.LOCKED, null, null
                         )
-                        PhysBearingController.getOrCreate(ship).updatePhysBearing(bearingID, data)
+                        BearingController.getOrCreate(ship)!!.updatePhysBearing(bearingID!!, data)
                     }
                 }
             }
