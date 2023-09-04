@@ -54,9 +54,9 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
     var loadCooldown = 100
     private var nextKey = 0
     override fun verifyTagAfterLoad(compoundTag: CompoundTag) {
-        reloadClusters(compoundTag)
-        nextKey = compoundTag.getInt("nextKey")
-        hasBeenLoaded = true
+        this.reloadClusters(compoundTag)
+        this.nextKey = compoundTag.getInt("nextKey")
+        this.hasBeenLoaded = true
         super.verifyTagAfterLoad(compoundTag)
     }
 
@@ -84,15 +84,15 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
 //            }
 //        }
         if (makeNewCluster) {
-            toBeStored.add(initial)
-            selectionClusters.add(newCluster)
-            mergeClusters(initial)
+            this.toBeStored.add(initial)
+            this.selectionClusters.add(newCluster)
+            this.mergeClusters(initial)
         }
     }
 
     private fun massClusterAreas(areas: Set<AABBic>) {
         for (box in areas) {
-            mergeClusters(box)
+            this.mergeClusters(box)
         }
     }
 
@@ -102,7 +102,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
         var highestKey = 0
         val refreshedTag = CompoundTag()
         val toReload: MutableSet<AABBic> = HashSet()
-        while (increment <= nextKey) {
+        while (increment <= this.nextKey) {
             if (tag.contains(keyToCheck)) {
                 val pointData = tag.getIntArray(keyToCheck)
                 val loaded: AABBic = AABBi(
@@ -111,7 +111,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
                 )
                 //clusterNewArea(loaded);
                 toReload.add(loaded)
-                selectedAreas[loaded] = keyToCheck
+                this.selectedAreas[loaded] = keyToCheck
                 highestKey++
                 refreshedTag.putIntArray(pointDataSaveKey + highestKey, pointData)
             }
@@ -146,7 +146,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
         val newCluster: MutableSet<AABBic> = HashSet()
 
         //get direct neighbors
-        for (area in selectedAreas.keys) {
+        for (area in this.selectedAreas.keys) {
             if (starter.intersectsAABB(area)) {
                 newCluster.add(area)
             }
@@ -155,7 +155,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
         val toCheck = ArrayList(newCluster)
         while (!toCheck.isEmpty()) {
             val check = toCheck[0]
-            for (area in selectedAreas.keys) {
+            for (area in this.selectedAreas.keys) {
                 if (check!!.intersectsAABB(area) && !newCluster.contains(area) && !toCheck.contains(area)) {
                     newCluster.add(area)
                     toCheck.add(area)
@@ -171,7 +171,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
             val oldCluster = getClusterContainingAABB(check)
             oldCluster?.let { dumpClusterDirty(it) }
         }
-        selectionClusters.add(newCluster)
+        this.selectionClusters.add(newCluster)
     }
 
     override fun canAttackBlock(state: BlockState, level: Level, pos: BlockPos, player: Player): Boolean {
@@ -183,7 +183,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
         val pos: Vector3ic = hitResult.blockPos.toJOML()
         val hitCluster = getClusterContaining(pos)
         if (hitCluster != null) {
-            val pitch = Mth.randomBetween(soundRandom, 0.8f, 1.2f)
+            val pitch = Mth.randomBetween(this.soundRandom, 0.8f, 1.2f)
             dumpCluster(hitCluster)
             player.level.playSound(
                 null,
@@ -193,28 +193,28 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
                 0.5f,
                 pitch
             )
-            animationType = Animation.DUMP
+            this.animationType = Animation.DUMP
         }
     }
 
     override fun inventoryTick(stack: ItemStack, level: Level, entity: Entity, slotId: Int, isSelected: Boolean) {
         super.inventoryTick(stack, level, entity, slotId, isSelected)
-        if (loadCooldown > 0) {
-            loadCooldown--
+        if (this.loadCooldown > 0) {
+            this.loadCooldown--
         } else {
-            if (!hasBeenLoaded) {
+            if (!this.hasBeenLoaded) {
                 val tag = stack.getOrCreateTag()
                 if (tag.contains("nextKey")) {
                     nextKey = tag.getInt("nextKey")
                 }
-                reloadClusters(tag)
-                hasBeenLoaded = true
+                this.reloadClusters(tag)
+                this.hasBeenLoaded = true
             } else {
-                while (!toBeStored.isEmpty()) {
+                while (!this.toBeStored.isEmpty()) {
                     if (stack.hasTag()) {
                         val nbt = stack.getOrCreateTag()
-                        nextKey = nbt.getInt("nextKey")
-                        val toStore = toBeStored[0]
+                        this.nextKey = nbt.getInt("nextKey")
+                        val toStore = this.toBeStored[0]
                         val pointData = intArrayOf(
                             toStore.minX(),
                             toStore.minY(),
@@ -223,21 +223,21 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
                             toStore.maxY(),
                             toStore.maxZ()
                         )
-                        nbt.putIntArray(pointDataSaveKey + nextKey, pointData)
-                        selectedAreas[toStore] = pointDataSaveKey + nextKey
-                        nextKey++
+                        nbt.putIntArray(pointDataSaveKey + this.nextKey, pointData)
+                        this.selectedAreas[toStore] = pointDataSaveKey + this.nextKey
+                        this.nextKey++
                         nbt.putInt("nextKey", nextKey)
-                        toBeStored.removeAt(0)
+                        this.toBeStored.removeAt(0)
                     }
                 }
-                while (!toBeRemoved.isEmpty()) {
+                while (!this.toBeRemoved.isEmpty()) {
                     if (stack.hasTag()) {
                         val nbt = stack.getOrCreateTag()
-                        val set = toBeRemoved.removeAt(0)
+                        val set = this.toBeRemoved.removeAt(0)
                         for (box in set) {
-                            val key = selectedAreas[box]
+                            val key = this.selectedAreas[box]
                             nbt.remove(key)
-                            selectedAreas.remove(box)
+                            this.selectedAreas.remove(box)
                         }
                     }
                 }
@@ -246,9 +246,9 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
         if (level.isClientSide) {
             return
         }
-        if (isSelected && !wasSelected) {
-            shouldRenderOutlines = true
-            animationType = Animation.DRAW
+        if (isSelected && !this.wasSelected) {
+            this.shouldRenderOutlines = true
+            this.animationType = Animation.DRAW
             val pitch = Mth.randomBetween(soundRandom, 0.8f, 1.3f)
             level.playSound(
                 null,
@@ -258,22 +258,22 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
                 0.5f,
                 pitch
             )
-        } else if (!isSelected && wasSelected) {
-            shouldRenderOutlines = false
+        } else if (!isSelected && this.wasSelected) {
+            this.shouldRenderOutlines = false
         }
-        wasSelected = isSelected
-        idleProgress += (0.01f * Math.PI).toFloat()
-        if (idleProgress >= 2f * Math.PI) {
-            idleProgress = 0f
+        this.wasSelected = isSelected
+        this.idleProgress += (0.01f * Math.PI).toFloat()
+        if (this.idleProgress >= 2f * Math.PI) {
+            this.idleProgress = 0f
         }
         if (isSelected) {
             if (entity is Player) {
                 val player = entity
             }
-            if (animationType == Animation.IDLE) {
-                soundTickCounter += Mth.randomBetween(soundRandom, 0.1f, 0.3f)
-                if (soundTickCounter >= 10) {
-                    soundTickCounter = 0f
+            if (this.animationType == Animation.IDLE) {
+                this.soundTickCounter += Mth.randomBetween(soundRandom, 0.1f, 0.3f)
+                if (this.soundTickCounter >= 40) {
+                    this.soundTickCounter = 0f
                     val pitch = Mth.randomBetween(soundRandom, 0.8f, 1.2f)
                     level.playSound(
                         null,
@@ -284,28 +284,28 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
                         pitch
                     )
                 }
-            } else if (animationType == Animation.DRAW) {
-                drawProgress++
-                if (drawProgress >= 60) {
-                    drawProgress = 0f
-                    animationType = Animation.IDLE
+            } else if (this.animationType == Animation.DRAW) {
+                this.drawProgress++
+                if (this.drawProgress >= 60) {
+                    this.drawProgress = 0f
+                    this.animationType = Animation.IDLE
                 }
-            } else if (animationType == Animation.SUCCESS) {
-                successProgress++
-                if (successProgress >= 40) {
-                    successProgress = 0f
-                    animationType = Animation.IDLE
+            } else if (this.animationType == Animation.SUCCESS) {
+                this.successProgress++
+                if (this.successProgress >= 40) {
+                    this.successProgress = 0f
+                    this.animationType = Animation.IDLE
                 }
-            } else if (animationType == Animation.DUMP) {
-                dumpProgress++
-                if (dumpProgress >= 40) {
-                    dumpProgress = 0f
-                    animationType = Animation.IDLE
+            } else if (this.animationType == Animation.DUMP) {
+                this.dumpProgress++
+                if (this.dumpProgress >= 40) {
+                    this.dumpProgress = 0f
+                    this.animationType = Animation.IDLE
                 }
             }
         } else {
-            firstPos = null
-            secondPos = null
+            this.firstPos = null
+            this.secondPos = null
         }
     }
 
@@ -325,8 +325,8 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
             return super.useOn(context)
         }
         val pitch = Mth.randomBetween(soundRandom, 0.8f, 1.2f)
-        if (firstPos == null) {
-            firstPos = pos
+        if (this.firstPos == null) {
+            this.firstPos = pos
             player.displayClientMessage(
                 TextComponent("First Position Selected!").withStyle(
                     Style.EMPTY.withColor(
@@ -345,20 +345,20 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
             player.cooldowns.addCooldown(this, 10)
             ClockworkPackets.sendToClientsTrackingAndSelf(AreaDesignatorSelectionPacket(this), player as ServerPlayer)
             return InteractionResult.SUCCESS
-        } else if (secondPos == null && firstPos != null) {
-            secondPos = pos
+        } else if (this.secondPos == null && this.firstPos != null) {
+            this.secondPos = pos
             val area: AABBic = AABBi(
-                Math.min(firstPos!!.x(), secondPos!!.x()), Math.min(
-                    firstPos!!.y(), secondPos!!.y()
-                ), Math.min(firstPos!!.z(), secondPos!!.z()), Math.max(
-                    firstPos!!.x(), secondPos!!.x()
-                ), Math.max(firstPos!!.y(), secondPos!!.y()), Math.max(
-                    firstPos!!.z(), secondPos!!.z()
+                Math.min(this.firstPos!!.x(), this.secondPos!!.x()), Math.min(
+                    this.firstPos!!.y(), this.secondPos!!.y()
+                ), Math.min(this.firstPos!!.z(), this.secondPos!!.z()), Math.max(
+                    this.firstPos!!.x(), this.secondPos!!.x()
+                ), Math.max(this.firstPos!!.y(), this.secondPos!!.y()), Math.max(
+                    this.firstPos!!.z(), this.secondPos!!.z()
                 )
             )
-            firstPos = null
-            secondPos = null
-            if (selectedAreas.containsKey(area)) {
+            this.firstPos = null
+            this.secondPos = null
+            if (this.selectedAreas.containsKey(area)) {
                 player.displayClientMessage(
                     TextComponent("Area Already Exists.").withStyle(
                         Style.EMPTY.withColor(
@@ -374,11 +374,11 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
                     0.5f,
                     pitch
                 )
-                animationType = Animation.DUMP
+                this.animationType = Animation.DUMP
                 player.cooldowns.addCooldown(this, 10)
                 return InteractionResult.SUCCESS
             }
-            clusterNewArea(area)
+            this.clusterNewArea(area)
             player.displayClientMessage(
                 TextComponent("Area Designated!").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE)),
                 true
@@ -392,7 +392,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
                 pitch
             )
             stack.damageValue = stack.damageValue - 1
-            animationType = Animation.SUCCESS
+            this.animationType = Animation.SUCCESS
             player.cooldowns.addCooldown(this, 10)
             return InteractionResult.SUCCESS
         }
@@ -402,7 +402,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
     fun getClosestCluster(pos: Vector3ic): Set<AABBic?> {
         var returnCluster: Set<AABBic?> = HashSet()
         var closestDistance = Double.MAX_VALUE
-        for (cluster in selectionClusters) {
+        for (cluster in this.selectionClusters) {
             for (area in cluster) {
                 if (area!!.containsPoint(pos)) {
                     return cluster
@@ -420,7 +420,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
     }
 
     fun getClusterContaining(pos: Vector3ic?): Set<AABBic>? {
-        for (cluster in selectionClusters) {
+        for (cluster in this.selectionClusters) {
             for (area in cluster) {
                 if (area!!.containsPoint(pos)) {
                     return cluster
@@ -431,7 +431,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
     }
 
     fun getClusterContainingAABB(box: AABBic?): Set<AABBic>? {
-        for (cluster in selectionClusters) {
+        for (cluster in this.selectionClusters) {
             if (cluster.contains(box)) {
                 return cluster
             }
@@ -484,7 +484,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
     }
 
     fun getAABBFromPos(pos: Vector3ic): AABBic? {
-        for (area in selectedAreas.keys) {
+        for (area in this.selectedAreas.keys) {
             if (area!!.containsPoint(pos)) {
                 return area
             }
@@ -493,14 +493,14 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
     }
 
     fun dumpCluster(cluster: Set<AABBic>) {
-        selectionClusters.remove(cluster)
-        toBeRemoved.add(cluster)
-        toStopRendering.add(cluster)
+        this.selectionClusters.remove(cluster)
+        this.toBeRemoved.add(cluster)
+        this.toStopRendering.add(cluster)
     }
 
     fun dumpClusterDirty(cluster: Set<AABBic>) {
-        selectionClusters.remove(cluster)
-        toStopRendering.add(cluster)
+        this.selectionClusters.remove(cluster)
+        this.toStopRendering.add(cluster)
     }
 
     enum class Animation {
