@@ -32,6 +32,8 @@ object ClockworkMod {
     fun init() {
         ClockworkContraptions.init()
         ClockworkPackets.init()
+
+        ClockworkFluids.register()
     }
 
     @JvmStatic
