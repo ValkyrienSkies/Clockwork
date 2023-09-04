@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.valkyrienskies.clockwork.ClockWorkBlocks;
+import org.valkyrienskies.clockwork.ClockworkBlocks;
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem;
 
 import java.util.Map;
@@ -46,9 +46,9 @@ public class MixinAbstractCauldronBlock {
 
     @Inject(method = "use", at = @At("HEAD"))
     private void use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit, CallbackInfoReturnable<InteractionResult> cir) {
-        if (!this.interactions.containsKey(ClockWorkBlocks.WING.get().asItem()))
-            this.interactions.put(ClockWorkBlocks.WING.get().asItem(), DYED_WING);
-        if (!this.interactions.containsKey(ClockWorkBlocks.FLAP.get().asItem()))
-            this.interactions.put(ClockWorkBlocks.FLAP.get().asItem(), DYED_WING);
+        if (!this.interactions.containsKey(ClockworkBlocks.INSTANCE.getWING().get().asItem()))
+            this.interactions.put(ClockworkBlocks.INSTANCE.getWING().get().asItem(), DYED_WING);
+        if (!this.interactions.containsKey(ClockworkBlocks.INSTANCE.getFLAP().get().asItem()))
+            this.interactions.put(ClockworkBlocks.INSTANCE.getFLAP().get().asItem(), DYED_WING);
     }
 }

@@ -5,6 +5,6 @@ import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSea
 import org.valkyrienskies.clockwork.platform.SharedValues
 
 object ClockworkEntities {
-    val SEQUENCED_SEAT: EntityEntry<SequencedSeatEntity> = SharedValues.getSequencedSeat()
+    val SEQUENCED_SEAT: EntityEntry<SequencedSeatEntity> = SharedValues.sequencedSeat
     fun register() {}
 }

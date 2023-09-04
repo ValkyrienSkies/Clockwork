@@ -7,7 +7,7 @@ license = "Apache-2.0"
 modId = "vs_clockwork"
 version = "${version}"
 displayName = "Clockwork: Create x Valkyrien Skies"
-authors = ["fluffy", "potato", "ewoudje", "TechTastic"]
+authors = ["fluffy", "potato", "ewoudje"]
 description = '''
 
 '''

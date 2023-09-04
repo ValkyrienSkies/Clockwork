@@ -2,8 +2,16 @@
   "required": true,
   "package": "org.valkyrienskies.clockwork.forge.mixin",
   "compatibilityLevel": "JAVA_17",
-  "mixins": [],
-  "client": [],
+  "mixins": [
+    "compat.MixinAllBlocks",
+    "accessors.ItemAccessor",
+    "compat.MixinStickerTileEntity",
+    "compat.MixinControlledContraptionEntity",
+    "platform.MixinBlockEntity"
+  ],
+  "client": [
+    "compat.client.MixinSuperGlueSelectionHandler"
+  ],
   "injectors": {
     "defaultRequire": 1
   },

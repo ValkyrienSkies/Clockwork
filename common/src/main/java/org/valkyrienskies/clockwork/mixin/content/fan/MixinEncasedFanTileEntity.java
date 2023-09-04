@@ -8,16 +8,14 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import org.joml.Vector3d;
 import org.joml.Vector3dc;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.valkyrienskies.clockwork.content.propulsion.fan.EncasedFanCreateData;
-import org.valkyrienskies.clockwork.content.propulsion.fan.EncasedFanUpdateData;
+import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanCreateData;
+import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanUpdateData;
 import org.valkyrienskies.clockwork.content.forces.EncasedFanController;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
@@ -51,16 +49,16 @@ public abstract class MixinEncasedFanTileEntity extends KineticBlockEntity {
                 Vector3dc pos = VectorConversionsMCKt.toJOMLD(worldPosition);
                 Vector3dc axis = VectorConversionsMCKt.toJOMLD(getBlockState().getValue(BlockStateProperties.FACING).getNormal());
                 final EncasedFanCreateData data = new EncasedFanCreateData(pos, axis, speed);
-                fanID = EncasedFanController.getOrCreate(ship).addEncasedFan(data);
+                fanID = EncasedFanController.Companion.getOrCreate(ship).addEncasedFan(data);
                 alreadyAdded = true;
             }
             if (alreadyAdded && fanID != null) {
                 final EncasedFanUpdateData data = new EncasedFanUpdateData(speed);
-                EncasedFanController.getOrCreate(ship).updateEncasedFan(fanID, data);
+                EncasedFanController.Companion.getOrCreate(ship).updateEncasedFan(fanID, data);
             }
             if (this.isRemoved()) {
                 if (fanID != null) {
-                    EncasedFanController.getOrCreate(ship).removeEncasedFan(fanID);
+                    EncasedFanController.Companion.getOrCreate(ship).removeEncasedFan(fanID);
                     fanID = null;
                     alreadyAdded = false;
                 }

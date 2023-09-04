@@ -30,10 +30,10 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.valkyrienskies.clockwork.ClockWorkItems;
-import org.valkyrienskies.clockwork.ClockWorkMod;
+import org.valkyrienskies.clockwork.ClockworkItems;
+import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.client.render.scanner.ScannerRenderer;
-import org.valkyrienskies.clockwork.content.curiosities.tools.auric_designator.AreaDesignatorItem;
+import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.AreaDesignatorItem;
 import org.valkyrienskies.clockwork.util.render.AreaDesignatorClusterRenderer;
 import org.valkyrienskies.core.impl.util.VectorConversionsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
@@ -55,12 +55,12 @@ public class MixinLevelRenderer {
     @Deprecated
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/OutlineBufferSource;endOutlineBatch()V", shift = At.Shift.BEFORE))
     private void renderScanner(final PoseStack poseStack, final float tickDelta, final long nanos, final boolean shouldRenderBlockOutline, final Camera camera, final GameRenderer gameRenderer, final LightTexture lightTexture, final Matrix4f projectionMatrix, final CallbackInfo ci) {
-        ScannerRenderer.INSTANCE.doRender(poseStack);
+        ScannerRenderer.Companion.getINSTANCE().doRender(poseStack);
     }
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/OutlineBufferSource;endOutlineBatch()V", shift = At.Shift.BEFORE))
     private void renderAreaDesignator(final PoseStack poseStack, final float tickDelta, final long nanos, final boolean shouldRenderBlockOutline, final Camera camera, final GameRenderer gameRenderer, final LightTexture lightTexture, final Matrix4f projectionMatrix, final CallbackInfo ci) {
-        ClockWorkMod.OUTLINER.renderOutlines(poseStack, SuperRenderTypeBuffer.getInstance(), camera.getPosition(), tickDelta);
-        AreaDesignatorClusterRenderer.INSTANCE.renderDesignator(level, minecraft, poseStack, tickDelta, nanos, shouldRenderBlockOutline, camera, gameRenderer, lightTexture, projectionMatrix);
+        ClockworkMod.INSTANCE.getOUTLINER().renderOutlines(poseStack, SuperRenderTypeBuffer.getInstance(), camera.getPosition(), tickDelta);
+        AreaDesignatorClusterRenderer.Companion.getINSTANCE().renderDesignator(level, minecraft, poseStack, tickDelta, nanos, shouldRenderBlockOutline, camera, gameRenderer, lightTexture, projectionMatrix);
     }
 }

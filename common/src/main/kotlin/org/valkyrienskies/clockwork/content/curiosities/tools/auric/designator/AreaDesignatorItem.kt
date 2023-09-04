@@ -32,11 +32,11 @@ import java.util.*
 
 
 class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
-    var selectedAreas: HashMap<AABBic?, String?> = HashMap()
-    var selectionClusters: MutableSet<Set<AABBic?>> = HashSet()
+    var selectedAreas: HashMap<AABBic, String> = HashMap()
+    var selectionClusters: MutableSet<Set<AABBic>> = HashSet()
     private val toBeStored = ArrayList<AABBic>()
-    private val toBeRemoved = ArrayList<Set<AABBic?>>()
-    var toStopRendering = ArrayList<Set<AABBic?>>()
+    private val toBeRemoved = ArrayList<Set<AABBic>>()
+    var toStopRendering = ArrayList<Set<AABBic>>()
     private var wasSelected = false
     var firstPos: Vector3ic? = null
     var secondPos: Vector3ic? = null
@@ -61,7 +61,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
     }
 
     private fun clusterNewArea(initial: AABBic) {
-        val newCluster: MutableSet<AABBic?> = HashSet()
+        val newCluster: MutableSet<AABBic> = HashSet()
         newCluster.add(initial)
         val makeNewCluster = true
         //        for (AABBic area : selectedAreas.keySet()) {
@@ -143,7 +143,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
 //            }
 //            selectionClusters.add(newCluster);
 //        }
-        val newCluster: MutableSet<AABBic?> = HashSet()
+        val newCluster: MutableSet<AABBic> = HashSet()
 
         //get direct neighbors
         for (area in selectedAreas.keys) {
@@ -419,7 +419,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
         return returnCluster
     }
 
-    fun getClusterContaining(pos: Vector3ic?): Set<AABBic?>? {
+    fun getClusterContaining(pos: Vector3ic?): Set<AABBic>? {
         for (cluster in selectionClusters) {
             for (area in cluster) {
                 if (area!!.containsPoint(pos)) {
@@ -430,7 +430,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
         return null
     }
 
-    fun getClusterContainingAABB(box: AABBic?): Set<AABBic?>? {
+    fun getClusterContainingAABB(box: AABBic?): Set<AABBic>? {
         for (cluster in selectionClusters) {
             if (cluster.contains(box)) {
                 return cluster
@@ -483,7 +483,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
         return set
     }
 
-    fun getAABBFromPos(pos: Vector3ic?): AABBic? {
+    fun getAABBFromPos(pos: Vector3ic): AABBic? {
         for (area in selectedAreas.keys) {
             if (area!!.containsPoint(pos)) {
                 return area
@@ -492,13 +492,13 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
         return null
     }
 
-    fun dumpCluster(cluster: Set<AABBic?>) {
+    fun dumpCluster(cluster: Set<AABBic>) {
         selectionClusters.remove(cluster)
         toBeRemoved.add(cluster)
         toStopRendering.add(cluster)
     }
 
-    fun dumpClusterDirty(cluster: Set<AABBic?>) {
+    fun dumpClusterDirty(cluster: Set<AABBic>) {
         selectionClusters.remove(cluster)
         toStopRendering.add(cluster)
     }

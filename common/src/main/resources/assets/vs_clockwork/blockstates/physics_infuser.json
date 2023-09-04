@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "vs_clockwork:block/physics_infuser/block"
+    }
+  }
+}

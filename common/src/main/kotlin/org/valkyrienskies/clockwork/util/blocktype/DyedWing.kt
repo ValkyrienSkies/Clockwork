@@ -18,7 +18,7 @@ import net.minecraft.world.level.storage.loot.LootContext
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import org.valkyrienskies.clockwork.content.materials.solids.colorblock.ColorBlockEntity
+import org.valkyrienskies.clockwork.content.generic.ColorBlockEntity
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 
 abstract class DyedWing(properties: Properties?) :

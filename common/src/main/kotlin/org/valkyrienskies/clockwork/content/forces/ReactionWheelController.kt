@@ -4,9 +4,9 @@ import it.unimi.dsi.fastutil.Pair
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import org.joml.Vector3d
 import org.joml.Vector3dc
-import org.valkyrienskies.clockwork.content.physicalities.reaction_wheel.ReactionWheelCreateData
-import org.valkyrienskies.clockwork.content.physicalities.reaction_wheel.ReactionWheelData
-import org.valkyrienskies.clockwork.content.physicalities.reaction_wheel.ReactionWheelUpdateData
+import org.valkyrienskies.clockwork.content.physicalities.reaction_wheel.data.ReactionWheelCreateData
+import org.valkyrienskies.clockwork.content.physicalities.reaction_wheel.data.ReactionWheelData
+import org.valkyrienskies.clockwork.content.physicalities.reaction_wheel.data.ReactionWheelUpdateData
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.properties.ShipTransform
@@ -29,23 +29,23 @@ class ReactionWheelController : ShipForcesInducer {
             val createData: Pair<Int, ReactionWheelCreateData> = createdRWs.remove()
             reactionwheelData.put(
                 createData.left(), ReactionWheelData(
-                    createData.right().wheelPos(),
-                    createData.right().wheelAxis(),
-                    createData.right().wheelSpeed(),
-                    createData.right().spinup(),
-                    createData.right().spindown(),
-                    createData.right().active(),
-                    createData.right().sourceSpeed()
+                    createData.right().wheelPos,
+                    createData.right().wheelAxis,
+                    createData.right().wheelSpeed.toDouble(),
+                    createData.right().spinup,
+                    createData.right().spindown,
+                    createData.right().active,
+                    createData.right().sourceSpeed.toDouble()
                 )
             )
         }
         while (!removedRWs.isEmpty()) {
             reactionwheelData.remove(removedRWs.remove() as Int)
         }
-        reactionwheelUpdateData.forEach(BiConsumer<Int, ReactionWheelUpdateData> { id: Int?, data: ReactionWheelUpdateData ->
+        reactionwheelUpdateData.forEach(BiConsumer<Int, ReactionWheelUpdateData> forEach@{ id: Int?, data: ReactionWheelUpdateData ->
             val physData: ReactionWheelData = reactionwheelData[id] ?: return@forEach
-            physData.wheelSpeed = data.speed()
-            physData.sourceSpeed = data.sourceSpeed()
+            physData.wheelSpeed = data.speed.toDouble()
+            physData.sourceSpeed = data.sourceSpeed.toDouble()
         })
         reactionwheelUpdateData.clear()
         for (physData in reactionwheelData.values) {
@@ -58,7 +58,7 @@ class ReactionWheelController : ShipForcesInducer {
 //            }
             //FOR TESTING
             physData.active = true
-            if (physData.sourceSpeed !== 0) {
+            if (physData.sourceSpeed != 0.0) {
                 if (physData.active) {
                     val torque = computeTorque(
                         physShip.transform, physData, (physShip as PhysShipImpl).poseVel.omega,

@@ -1,0 +1,8 @@
+{
+  "parent": "vs_clockwork:item/gravitron/gravitronbase",
+  "textures": {
+    "0": "vs_clockwork:item/gravitron",
+    "1": "vs_clockwork:item/gravicog",
+    "particle": "vs_clockwork:item/gravicog"
+  }
+}

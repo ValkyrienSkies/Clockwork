@@ -39,11 +39,13 @@ dependencies {
     modCompileOnly("com.simibubi.create:create-fabric-${minecraft_version}:${create_fabric_version}")
             { exclude group: 'com.github.AlphaMode', module: 'fakeconfigtoml' }
 
+    modCompileOnly("net.fabricmc.fabric-api:fabric-api:${fabric_api_version}")
+
     // VS2
     modApi("org.valkyrienskies:valkyrienskies-118-common:${rootProject.vs2_version}")
-    implementation("org.valkyrienskies.core:api:1.1.0+2c0be2ddb5")
-    implementation("org.valkyrienskies.core:impl:1.1.0+2c0be2ddb5")
-    implementation("org.valkyrienskies.core:api-game:1.1.0+2c0be2ddb5")
+    implementation("org.valkyrienskies.core:api:1.1.0+2c0be2ddb5") { transitive = false }
+    implementation("org.valkyrienskies.core:impl:1.1.0+2c0be2ddb5") { transitive = false }
+    implementation("org.valkyrienskies.core:api-game:1.1.0+2c0be2ddb5") { transitive = false }
 
     // Kotlin
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.21"

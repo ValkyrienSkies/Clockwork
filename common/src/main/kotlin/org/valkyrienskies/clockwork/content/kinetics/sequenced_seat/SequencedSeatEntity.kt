@@ -10,7 +10,7 @@ import org.valkyrienskies.clockwork.ClockworkEntities
 import org.valkyrienskies.clockwork.ClockworkPackets
 import java.util.*
 
-class SequencedSeatEntity(type: EntityType<*>?, level: Level?) :
+open class SequencedSeatEntity(type: EntityType<*>?, level: Level?) :
     SeatEntity(type, level) {
     private var prevKeys = setOf<InputKey>()
     override fun tick() {

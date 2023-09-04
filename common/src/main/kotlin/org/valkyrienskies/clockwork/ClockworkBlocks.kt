@@ -26,10 +26,14 @@ import org.valkyrienskies.clockwork.content.kinetics.casing.ExtendedEncasedShaft
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlock
+import org.valkyrienskies.clockwork.content.physicalities.reaction_wheel.ReactionWheelBlock
+import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
+import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
+import org.valkyrienskies.clockwork.content.physicalities.wing.WingBlock
 import org.valkyrienskies.clockwork.data.CWBlockStateGen
+import org.valkyrienskies.clockwork.renderer.WingBlockItemRenderer
 import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
-import org.valkyrienskies.mod.common.block.WingBlock
 import java.util.function.Supplier
 
 
@@ -182,7 +186,7 @@ object ClockworkBlocks {
         .properties { p -> p.color(MaterialColor.TERRACOTTA_WHITE) }
         .addLayer { Supplier(RenderType::cutoutMipped) }
         .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
-        .item { DyedWingBlockItem() }
+        .item(::DyedWingBlockItem)
         .transform(ClockworkRegistrate.customRenderedBlockItem { { WingBlockItemRenderer() } })
         .register()
     val FLAP: BlockEntry<FlapBlock> = REGISTRATE.block(java.lang.String("flap"), ::FlapBlock)
@@ -190,16 +194,9 @@ object ClockworkBlocks {
         .properties { p -> p.color(MaterialColor.TERRACOTTA_WHITE) }
         .addLayer { Supplier(RenderType::cutoutMipped) }
         .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
-        .item { DyedWingBlockItem() }
+        .item(::DyedWingBlockItem)
         .transform(ClockworkRegistrate.customRenderedBlockItem { { WingBlockItemRenderer() } })
         .register()
-
-    val BALLOON_CASING: BlockEntry<CasingBlock> = REGISTRATE.block(java.lang.String("balloon_casing"), ::CasingBlock)
-        .properties { p -> p.color(MaterialColor.WOOL) }
-        .properties { p -> p.sound(SoundType.BAMBOO) }
-        .transform(NonNullFunction(BuilderTransformers.casing(Supplier<CTSpriteShiftEntry> { ClockworkSpriteShifts.BALLOON_CASING })))
-        .transform(TagGen.axeOrPickaxe())
-        .register() as BlockEntry<CasingBlock>
 
     val BALLOON_ENCASED_SHAFT: BlockEntry<ExtendedEncasedShaftBlock> =
         REGISTRATE.block(java.lang.String("balloon_encased_shaft"), ExtendedEncasedShaftBlock::balloon)

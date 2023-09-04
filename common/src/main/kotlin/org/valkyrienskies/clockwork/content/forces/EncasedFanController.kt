@@ -5,9 +5,9 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import net.minecraft.util.Mth
 import org.joml.Vector3d
 import org.joml.Vector3dc
-import org.valkyrienskies.clockwork.content.propulsion.fan.EncasedFanCreateData
-import org.valkyrienskies.clockwork.content.propulsion.fan.EncasedFanData
-import org.valkyrienskies.clockwork.content.propulsion.fan.EncasedFanUpdateData
+import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanCreateData
+import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanData
+import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanUpdateData
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.impl.api.ShipForcesInducer
@@ -29,18 +29,18 @@ class EncasedFanController : ShipForcesInducer {
             val createData: Pair<Int, EncasedFanCreateData> = createdFans.remove()
             fanData.put(
                 createData.left(), EncasedFanData(
-                    createData.right().fanPos(),
-                    createData.right().fanDir(),
-                    createData.right().fanSpeed()
+                    createData.right().fanPos,
+                    createData.right().fanDir,
+                    createData.right().fanSpeed
                 )
             )
         }
         while (!removedFans.isEmpty()) {
             fanData.remove(removedFans.remove() as Int)
         }
-        fanUpdateData.forEach(BiConsumer<Int, EncasedFanUpdateData> { id: Int?, data: EncasedFanUpdateData ->
+        fanUpdateData.forEach(BiConsumer<Int, EncasedFanUpdateData> forEach@{ id: Int?, data: EncasedFanUpdateData ->
             val physData: EncasedFanData = fanData[id] ?: return@forEach
-            physData.fanSpeed = data.fanSpeed()
+            physData.fanSpeed = data.fanSpeed
         })
         fanUpdateData.clear()
         for (physData in fanData.values) {

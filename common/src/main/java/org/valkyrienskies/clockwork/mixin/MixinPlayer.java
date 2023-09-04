@@ -3,7 +3,7 @@ package org.valkyrienskies.clockwork.mixin;
 import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem;
+import org.valkyrienskies.clockwork.content.curiosities.tools.auric.gravitron.GravitronItem;
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck;
 
 @Mixin(Player.class)

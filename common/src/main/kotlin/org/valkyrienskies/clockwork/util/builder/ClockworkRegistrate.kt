@@ -34,7 +34,7 @@ object ClockworkRegistrate {
     }
 
     fun <T : BlockItem, P> customRenderedBlockItem(
-        supplier: Supplier<Supplier<CustomRenderedItemModelRenderer>>
+        supplier: () -> () -> CustomRenderedItemModelRenderer
     ): NonNullFunction<ItemBuilder<T, P>, P> {
         return NonNullFunction { b: ItemBuilder<T, P> ->
             onClient {
@@ -58,7 +58,7 @@ object ClockworkRegistrate {
     @Environment(EnvType.CLIENT)
     private fun <T : BlockItem, P> customRenderedBlockItem(
         b: ItemBuilder<T, P>,
-        supplier: Supplier<Supplier<CustomRenderedItemModelRenderer>>
+        supplier: () -> () -> CustomRenderedItemModelRenderer
     ) {
         b.onRegister(CustomBlockItemRendererRegistrationHelper(supplier))
     }
@@ -92,10 +92,10 @@ object ClockworkRegistrate {
     }
 
     @Environment(EnvType.CLIENT)
-    private data class CustomBlockItemRendererRegistrationHelper(val supplier: Supplier<Supplier<CustomRenderedItemModelRenderer>>) :
+    private data class CustomBlockItemRendererRegistrationHelper(val supplier: () -> () -> CustomRenderedItemModelRenderer) :
         NonNullConsumer<BlockItem> {
         override fun accept(entry: BlockItem) {
-            val renderer = supplier.get().get()
+            val renderer = supplier.invoke().invoke()
             customBlockItemRenderedRegisterer().accept(entry, renderer)
             CustomRenderedItems.register(entry)
         }
