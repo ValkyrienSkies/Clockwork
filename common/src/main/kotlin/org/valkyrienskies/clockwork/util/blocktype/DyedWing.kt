@@ -34,7 +34,8 @@ abstract class DyedWing(properties: Properties?) :
         val stack = player.getItemInHand(hand)
         val be: ColorBlockEntity = (level.getBlockEntity(pos) as ColorBlockEntity)
         val color: Int = be.getColor()
-        if (stack.item is DyeItem && color != dye.getDyeColor().getTextColor()) {
+        if (stack.item is DyeItem && color != (stack.item as DyeItem).getDyeColor().getTextColor()) {
+            val dye = stack.item as DyeItem
             be.setColor(
                 if (color == -1) dye.getDyeColor().getTextColor() else Color.mixColors(
                     color,

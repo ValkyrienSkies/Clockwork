@@ -18,7 +18,7 @@ import net.minecraft.client.renderer.ShaderInstance
 import net.minecraft.world.phys.Vec3
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL30
-import org.valkyrienskies.clockwork.ClockWorkShaders
+import org.valkyrienskies.clockwork.ClockworkShaders
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer
 import org.valkyrienskies.core.api.ships.ClientShip
@@ -40,18 +40,17 @@ class WorldScannerRenderer : ScannerRenderer {
     private var currentBlockEntity: PhysicsInfuserBlockEntity? = null
 
     // --------------------------------------------------------------------- //
-    override fun ping(ship: ClientShip?, pos: Vec3?, te: PhysicsInfuserBlockEntity?) {
+    override fun ping(ship: ClientShip?, pos: Vec3?, te: PhysicsInfuserBlockEntity) {
         currentStart = System.currentTimeMillis()
         currentCenter = pos
         currentBlockEntity = te
     }
 
     override fun doRender(poseStack: PoseStack?) {
-        val adjustedDuration: Int
-        adjustedDuration = if (currentBlockEntity != null) {
-            currentBlockEntity.getScanGrowthDuration()
+        val adjustedDuration: Int = if (currentBlockEntity != null) {
+            currentBlockEntity!!.scanGrowthDuration
         } else {
-            PhysicsInfuserRenderer.ScanManager.SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance / 12
+            PhysicsInfuserRenderer.SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance / 12
         }
         val shouldRender = currentStart > 0 && adjustedDuration > (System.currentTimeMillis() - currentStart).toInt()
         if (shouldRender) {
@@ -70,7 +69,7 @@ class WorldScannerRenderer : ScannerRenderer {
     private fun render(viewMatrix: Matrix4f) {
         val target = Minecraft.getInstance().mainRenderTarget
         updateDepthTexture(target)
-        updateShaderUniforms(ClockWorkShaders.SCAN_EFFECT.shader, viewMatrix)
+        updateShaderUniforms(ClockworkShaders.SCAN_EFFECT.shader, viewMatrix)
         blit(target)
     }
 
@@ -95,11 +94,11 @@ class WorldScannerRenderer : ScannerRenderer {
         val adjustedDuration: Int
         val radius: Float
         if (currentBlockEntity != null) {
-            adjustedDuration = currentBlockEntity.getScanGrowthDuration()
-            radius = currentBlockEntity.computeRadius(currentStart, adjustedDuration.toFloat())
+            adjustedDuration = currentBlockEntity!!.scanGrowthDuration
+            radius = currentBlockEntity!!.computeRadius(currentStart, adjustedDuration.toFloat())
         } else {
             adjustedDuration =
-                PhysicsInfuserRenderer.ScanManager.SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance / 12
+                PhysicsInfuserRenderer.SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance / 12
             radius = 0f
         }
         shader!!.setSampler("depthTex", depthCopyDepthBuffer)
@@ -117,7 +116,7 @@ class WorldScannerRenderer : ScannerRenderer {
         RenderSystem.disableDepthTest()
         RenderSystem.enableBlend()
         val oldShader = RenderSystem.getShader()
-        RenderSystem.setShader(ClockWorkShaders.SCAN_EFFECT::shader)
+        RenderSystem.setShader(ClockworkShaders.SCAN_EFFECT::shader)
         RenderSystem.backupProjectionMatrix()
         RenderSystem.setProjectionMatrix(Matrix4f.orthographic(0f, width.toFloat(), 0f, height.toFloat(), 1f, 100f))
         val tesselator = Tesselator.getInstance()

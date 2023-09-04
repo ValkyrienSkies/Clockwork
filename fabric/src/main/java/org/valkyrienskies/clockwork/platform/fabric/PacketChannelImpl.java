@@ -82,7 +82,6 @@ public class PacketChannelImpl implements PacketChannel {
         return new ClientNetworkContext() {
             @Override
             public void handled() {
-                ClientNetworkContext.super.handled();
             }
 
             @Override
@@ -101,7 +100,7 @@ public class PacketChannelImpl implements PacketChannel {
         return new ServerNetworkContext() {
             @Override
             public void handled() {
-                ServerNetworkContext.super.handled();
+
             }
 
             @Override

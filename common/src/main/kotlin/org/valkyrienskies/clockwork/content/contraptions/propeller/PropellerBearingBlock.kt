@@ -59,7 +59,7 @@ class PropellerBearingBlock(properties: Properties) : BearingBlock(properties),
     }
 
     override fun getBlockEntityType(): BlockEntityType<out PropellerBearingBlockEntity?> {
-        return ClockworkBlockEntities.PROPELLOR_BEARING.get()
+        return ClockworkBlockEntities.PROPELLER_BEARING.get()
     }
 
     override fun hasShaftTowards(

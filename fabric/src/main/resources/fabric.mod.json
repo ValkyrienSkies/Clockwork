@@ -5,13 +5,14 @@
   "name": "Clockwork: Create x Valkyrien Skies",
   "description": "Create VS integration addon",
   "authors": [
-    "fluffy",
-    "potato"
+    "Potato"
   ],
   "contributors": [
-    "ewoudje",
-    "triode",
-    "rubydesic"
+    "Ewoudje",
+    "Triode",
+    "Rubydesic",
+    "Fluffy",
+    "TechTastic"
   ],
   "contact": {
     "homepage": "https://valkyrienskies.org/",
@@ -25,13 +26,13 @@
       "org.valkyrienskies.clockwork.fabric.ClockworkModFabric"
     ],
     "client": [
-      "org.valkyrienskies.clockwork.fabric.ClockworkModFabric"
+      "org.valkyrienskies.clockwork.fabric.ClockworkModFabric${'$'}Client"
     ],
     "preLaunch": [
       "org.valkyrienskies.clockwork.fabric.ValkyrienPreLaunch"
     ],
     "modmenu": [
-      "org.valkyrienskies.clockwork.fabric.ClockworkModFabric"
+      "org.valkyrienskies.clockwork.fabric.ClockworkModFabric${'$'}ModMenu"
     ]
   },
   "mixins": [

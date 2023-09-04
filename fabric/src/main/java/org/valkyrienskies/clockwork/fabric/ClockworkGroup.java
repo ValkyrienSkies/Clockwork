@@ -12,6 +12,6 @@ public class ClockworkGroup extends CreateCreativeModeTab {
 
     @Override
     public ItemStack makeIcon() {
-        return ClockworkBlocks.INSTANCE.getPHYSICS_INFUSER().asStack();
+        return ClockworkBlocks.PHYSICS_INFUSER.asStack();
     }
 }

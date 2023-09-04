@@ -82,7 +82,7 @@ public abstract class MixinAbstractContraptionEntity extends Entity implements M
     //Region start - fix being sent to the  ̶s̶h̶a̶d̶o̶w̶r̶e̶a̶l̶m̶ shipyard on ship contraption disassembly
     @Redirect(method = "moveCollidedEntitiesOnDisassembly", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;setPos(DDD)V"))
     private void redirectSetPos(Entity instance, double x, double y, double z) {
-        Vec3 result = CompatUtil.toSameSpaceAs(instance.getCommandSenderWorld(), x, y, z, instance.position());
+        Vec3 result = CompatUtil.INSTANCE.toSameSpaceAs(instance.getCommandSenderWorld(), x, y, z, instance.position());
         if (instance.position().distanceTo(result) < 20) {
             instance.setPos(result.x, result.y, result.z);
         } else LOGGER.warn("Warning distance too high ignoring setPos request");
@@ -90,7 +90,7 @@ public abstract class MixinAbstractContraptionEntity extends Entity implements M
 
     @Redirect(method = "moveCollidedEntitiesOnDisassembly", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;teleportTo(DDD)V"))
     private void redirectTeleportTo(Entity instance, double x, double y, double z) {
-        Vec3 result = CompatUtil.toSameSpaceAs(instance.getCommandSenderWorld(), x, y, z, instance.position());
+        Vec3 result = CompatUtil.INSTANCE.toSameSpaceAs(instance.getCommandSenderWorld(), x, y, z, instance.position());
         if (instance.position().distanceTo(result) < 20) {
             if (VSGameUtilsKt.isBlockInShipyard(instance.getCommandSenderWorld(), result.x, result.y, result.z) && instance instanceof AbstractMinecart) {
                 result.add(0, 0.5, 0);

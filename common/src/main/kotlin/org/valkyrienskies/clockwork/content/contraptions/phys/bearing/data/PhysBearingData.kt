@@ -16,7 +16,7 @@ class PhysBearingData {
     var bearingRPM = 0f
     var locked = false
     var shiptraptionID: Long
-    var aligning = false
+    private var aligning = false
     var attachConstraint: VSAttachmentConstraint? = null
 
     @JsonIgnore

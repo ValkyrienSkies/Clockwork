@@ -16,7 +16,7 @@ import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import org.valkyrienskies.clockwork.content.curiosities.tools.auric_designator.AreaDesignatorItem
+import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.AreaDesignatorItem
 import java.util.function.Consumer
 
 class PhysicsInfuserBlock(properties: Properties) : Block(properties),

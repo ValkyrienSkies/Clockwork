@@ -18,13 +18,14 @@ import net.minecraft.client.renderer.ShaderInstance
 import net.minecraft.world.phys.Vec3
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL30
-import org.valkyrienskies.clockwork.ClockWorkMod
-import org.valkyrienskies.clockwork.ClockWorkShaders
+import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.ClockworkShaders
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.core.impl.networking.RegisteredHandler
 import org.valkyrienskies.core.impl.util.events.EventConsumer
+import org.valkyrienskies.mod.common.hooks.VSGameEvents
 import org.valkyrienskies.mod.common.hooks.VSGameEvents.postRenderShip
 import org.valkyrienskies.mod.common.hooks.VSGameEvents.renderShip
 
@@ -46,21 +47,21 @@ class ShipScannerRenderer : ScannerRenderer {
     private var ship: ClientShip? = null
 
     // --------------------------------------------------------------------- //
-    override fun ping(ship: ClientShip?, pos: Vec3?, te: PhysicsInfuserBlockEntity?) {
+    override fun ping(ship: ClientShip?, pos: Vec3?, te: PhysicsInfuserBlockEntity) {
         currentStart = System.currentTimeMillis()
         currentCenter = pos
         currentBlockEntity = te
         if (ship == null) return
-        ClockWorkMod.LOGGER.info("Pinging ship: " + ship.id) // TODO implment it actualy using a ship
+        ClockworkMod.LOGGER.info("Pinging ship: " + ship.id) // TODO implment it actualy using a ship
         this.ship = ship
     }
 
     override fun doRender(poseStack: PoseStack?) {
         val adjustedDuration: Int
         adjustedDuration = if (currentBlockEntity != null) {
-            currentBlockEntity.getScanGrowthDuration()
+            currentBlockEntity!!.scanGrowthDuration
         } else {
-            PhysicsInfuserRenderer.ScanManager.SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance / 12
+            PhysicsInfuserRenderer.Companion.SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance / 12
         }
         val shouldRender = currentStart > 0 && adjustedDuration > (System.currentTimeMillis() - currentStart).toInt()
         if (shouldRender) {
@@ -77,10 +78,10 @@ class ShipScannerRenderer : ScannerRenderer {
     }
 
     private fun render(viewMatrix: Matrix4f) {
-        val scanEffect = ClockWorkShaders.SCAN_EFFECT.shader
+        val scanEffect = ClockworkShaders.SCAN_EFFECT.shader
         if (scanEffect != null && ship != null) {
             val oldShader = RenderSystem.getShader()
-            renderShip.on(EventConsumer<ShipRenderEvent> { event: ShipRenderEvent, handler: RegisteredHandler? ->
+            renderShip.on(EventConsumer<VSGameEvents.ShipRenderEvent> { event: VSGameEvents.ShipRenderEvent, handler: RegisteredHandler? ->
                 if (event.ship == ship) {
                     val target =
                         Minecraft.getInstance().mainRenderTarget
@@ -91,7 +92,7 @@ class ShipScannerRenderer : ScannerRenderer {
                     RenderSystem.depthMask(false)
                     RenderSystem.disableDepthTest()
                     RenderSystem.enableBlend()
-                    RenderSystem.setShader(ClockWorkShaders.SCAN_EFFECT::shader)
+                    RenderSystem.setShader(ClockworkShaders.SCAN_EFFECT::shader)
                     RenderSystem.backupProjectionMatrix()
                     RenderSystem.setProjectionMatrix(
                         Matrix4f.orthographic(
@@ -117,7 +118,7 @@ class ShipScannerRenderer : ScannerRenderer {
                     tesselator.end()
                 }
             })
-            postRenderShip.on(EventConsumer<ShipRenderEvent> { event: ShipRenderEvent, handler: RegisteredHandler? ->
+            postRenderShip.on(EventConsumer<VSGameEvents.ShipRenderEvent> { event: VSGameEvents.ShipRenderEvent, handler: RegisteredHandler? ->
                 if (event.ship == ship) {
                     RenderSystem.restoreProjectionMatrix()
                     RenderSystem.setShader { oldShader }
@@ -150,11 +151,11 @@ class ShipScannerRenderer : ScannerRenderer {
         val adjustedDuration: Int
         val radius: Float
         if (currentBlockEntity != null) {
-            adjustedDuration = currentBlockEntity.getScanGrowthDuration()
-            radius = currentBlockEntity.computeRadius(currentStart, adjustedDuration.toFloat())
+            adjustedDuration = currentBlockEntity!!.scanGrowthDuration
+            radius = currentBlockEntity!!.computeRadius(currentStart, adjustedDuration.toFloat())
         } else {
             adjustedDuration =
-                PhysicsInfuserRenderer.ScanManager.SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance / 12
+                PhysicsInfuserRenderer.Companion.SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance / 12
             radius = 0f
         }
         shader.setSampler("depthTex", depthCopyDepthBuffer)

@@ -22,16 +22,19 @@ import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour
 
 object PlatformUtils {
     @ExpectPlatform
+    @JvmStatic
     fun getReachDistance(player: Player): Double {
         throw AssertionError()
     }
 
     @ExpectPlatform
+    @JvmStatic
     fun createExtraDataSpawnPacket(entity: Entity): Packet<*> {
         throw AssertionError()
     }
 
     @ExpectPlatform
+    @JvmStatic
     fun setAboveGroundTicks(player: ServerPlayer, ticks: Int) {
         throw AssertionError()
     }
@@ -42,11 +45,13 @@ object PlatformUtils {
     //    @ExpectPlatform
     //    public static boolean tryUpdateFuel(ItemStack itemStack, boolean forceOverflow, boolean simulate, BalloonerBlockEntity blockEntity) {throw new AssertionError();}
     @ExpectPlatform
+    @JvmStatic
     fun maxBalloonRange(): Int {
         throw AssertionError()
     }
 
     @ExpectPlatform
+    @JvmStatic
     fun useBallooner(
         state: BlockState?, world: Level, pos: BlockPos, player: Player, hand: InteractionHand,
         blockRayTraceResult: BlockHitResult
@@ -60,11 +65,13 @@ object PlatformUtils {
     //    @ExpectPlatform
     //    public static BlockEntityType<? extends CombustionEngineBlockEntity> getCombustionEngineTileEntityType() {throw new AssertionError();}
     @ExpectPlatform
+    @JvmStatic
     fun isCannon(stack: ItemStack): Boolean {
         throw AssertionError()
     }
 
     @ExpectPlatform
+    @JvmStatic
     fun cwFluidTank(
         type: BehaviourType<CWFluidTankBehaviour>,
         te: SmartBlockEntity,
@@ -75,22 +82,26 @@ object PlatformUtils {
         throw AssertionError()
     }
 
-    @ExpectPlatform
-    fun getBakedModel(itemModel: CustomRenderedItemModel): BakedModel {
-        throw AssertionError()
-    }
+//    @ExpectPlatform
+//    @JvmStatic
+//    fun getBakedModel(itemModel: CustomRenderedItemModel): BakedModel {
+//        throw AssertionError()
+//    }
 
     @ExpectPlatform
+    @JvmStatic
     fun isModLoaded(modId: String): Boolean {
         throw AssertionError()
     }
 
     @ExpectPlatform
+    @JvmStatic
     fun sequencedSeatKeysUpdated(level: ServerLevel, pos: BlockPos, keys: Set<InputKey>) {
         throw AssertionError()
     }
 
     @ExpectPlatform
+    @JvmStatic
     fun getLiquidFuelTypeFromItemStack(stack: ItemStack): LiquidFuelType {
         throw AssertionError()
     }

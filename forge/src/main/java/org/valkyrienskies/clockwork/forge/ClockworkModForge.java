@@ -40,16 +40,16 @@ public class ClockworkModForge {
         modEventBus.addListener(this::onModelRegistry);
         ClockworkMod.INSTANCE.getREGISTRATE().registerEventListeners(modEventBus);
 
-        ClockworkBlocks.INSTANCE.register();
+        ClockworkBlocks.register();
         ForgeClockworkBlocks.register();
 
         ClockworkTags.INSTANCE.init();
         // ForgeClockworkTags.init();
 
-        ClockworkItems.INSTANCE.register();
+        ClockworkItems.register();
         ForgeClockworkItems.register();
 
-        ClockworkBlockEntities.INSTANCE.register();
+        ClockworkBlockEntities.register();
         ForgeClockworkBlockEntities.register();
 
         //ClockworkFluids.INSTANCE.register();

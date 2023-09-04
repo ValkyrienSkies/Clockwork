@@ -22,7 +22,7 @@ object ClockworkMod {
 
     val REGISTRATE: CreateRegistrate = CreateRegistrate.create(MOD_ID)
     val BASE_CREATIVE_TAB: CreativeModeTab = CreativeTabRegistry
-            .create(ResourceLocation(MOD_ID, "clockwork")) { ItemStack(Blocks.DIRT.asItem()) }
+            .create(ResourceLocation(MOD_ID, "clockwork")) { ClockworkBlocks.PHYSICS_INFUSER.asStack() }
     val MIXIN_LOGGER = LoggerFactory.getLogger("ClockworkMixins")
     val LOGGER = LogUtils.getLogger()
 

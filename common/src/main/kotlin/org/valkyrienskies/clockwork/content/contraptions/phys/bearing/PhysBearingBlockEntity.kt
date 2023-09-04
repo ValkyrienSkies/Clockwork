@@ -53,7 +53,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     IDisplayAssemblyExceptions, ContraptionController {
     var movementMode: ScrollOptionBehaviour<LockedMode>? = null
     var shouldRefresh = false
-    protected var angle = 0f
+    protected var bearingAngle = 0f
     var isRunning = false
         protected set
     var assembleNextTick = false
@@ -99,7 +99,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     public override fun write(compound: CompoundTag, clientPacket: Boolean) {
         compound.putBoolean("Running", isRunning)
-        compound.putFloat("Angle", angle)
+        compound.putFloat("Angle", bearingAngle)
         if (bearingID != null) {
             compound.putInt("BearingID", bearingID!!)
         }
@@ -116,10 +116,10 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             super.read(compound, clientPacket)
             return
         }
-        val angleBefore = angle
+        val angleBefore = bearingAngle
         open = compound.getBoolean("Open")
         isRunning = compound.getBoolean("Running")
-        angle = compound.getFloat("Angle")
+        bearingAngle = compound.getFloat("Angle")
         lastException = AssemblyException.read(compound)
         if (compound.contains("BearingID")) {
             bearingID = compound.getInt("BearingID")
@@ -129,8 +129,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         }
         if (isRunning) {
             if (shiptraptionID == NO_SHIPTRAPTION_ID) {
-                clientAngleDiff = AngleHelper.getShortestAngleDiff(angleBefore.toDouble(), angle.toDouble())
-                angle = angleBefore
+                clientAngleDiff = AngleHelper.getShortestAngleDiff(angleBefore.toDouble(), bearingAngle.toDouble())
+                bearingAngle = angleBefore
             }
         } else {
             shiptraptionID = NO_SHIPTRAPTION_ID
@@ -181,9 +181,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     override fun getInterpolatedAngle(partialTicks: Float): Float {
         var partialTicks = partialTicks
-        if (isVirtual) return Mth.lerp(partialTicks + .5f, prevAngle, angle)
+        if (isVirtual) return Mth.lerp(partialTicks + .5f, prevAngle, bearingAngle)
         if (shiptraptionID == NO_SHIPTRAPTION_ID || !isRunning) partialTicks = 0f
-        return Mth.lerp(partialTicks, angle, angle + angularSpeed)
+        return Mth.lerp(partialTicks, bearingAngle, bearingAngle + angularSpeed)
     }
 
     fun getInterpolatedCoreAngle(partialTicks: Float): Float {
@@ -219,8 +219,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             return speed
         }
 
-    override fun getLastAssemblyException(): AssemblyException {
-        return lastException!!
+    override fun getLastAssemblyException(): AssemblyException? {
+        return lastException
     }
 
     protected val isWindmill: Boolean
@@ -367,7 +367,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val data = PhysBearingCreateData(
             pos,
             axis,
-            angle.toDouble(),
+            bearingAngle.toDouble(),
             getSpeed(),
             movementMode!!.get() == LockedMode.LOCKED,
             shiptraptionID,
@@ -380,7 +380,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             bearingID = BearingController.getOrCreate(shiptraption)!!.addPhysBearing(data)
         }
         isRunning = true
-        angle = 0f
+        bearingAngle = 0f
         sendData()
         updateGeneratedRotation()
     }
@@ -408,7 +408,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     fun disassemble() {
         if (!isRunning && shiptraptionID == NO_SHIPTRAPTION_ID) return
-        angle = 0f
+        bearingAngle = 0f
         if (shiptraptionID != NO_SHIPTRAPTION_ID) {
             val ship: ServerShip? =
                 (level as ServerLevel).shipObjectWorld.allShips.getById(shiptraptionID)
@@ -457,7 +457,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     override fun tick() {
         super.tick()
-        prevAngle = angle
+        prevAngle = bearingAngle
         if (level!!.isClientSide) clientAngleDiff /= 2f
         if (!level!!.isClientSide && assembleNextTick) {
             assembleNextTick = false
@@ -556,8 +556,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (!isRunning) return
         if (shiptraptionID != NO_SHIPTRAPTION_ID) {
             val angularSpeed = angularSpeed
-            val newAngle = angle + angularSpeed
-            angle = (newAngle % 360)
+            val newAngle = bearingAngle + angularSpeed
+            bearingAngle = (newAngle % 360)
         }
         if (isRunning) {
             if (!level!!.isClientSide) {
@@ -585,7 +585,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 //
 //                        }
                         val data = PhysBearingUpdateData(
-                            angle.toDouble(), getSpeed(),
+                            bearingAngle.toDouble(), getSpeed(),
                             movementMode!!.get() == LockedMode.LOCKED, null, null
                         )
                         BearingController.getOrCreate(ship)!!.updatePhysBearing(bearingID!!, data)
@@ -600,7 +600,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     }
 
     val isNearInitialAngle: Boolean
-        get() = Math.abs(angle) < 45 || Math.abs(angle) > 7 * 45
+        get() = Math.abs(bearingAngle) < 45 || Math.abs(bearingAngle) > 7 * 45
 
     override fun lazyTick() {
         super.lazyTick()
@@ -637,7 +637,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     }
 
     override fun setAngle(forcedAngle: Float) {
-        angle = forcedAngle
+        bearingAngle = forcedAngle
     }
 
     override val isShipContraptionController: Boolean
@@ -646,7 +646,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         get() = null
 
     fun getAngle(): Float {
-        return angle
+        return bearingAngle
     }
 
     companion object {

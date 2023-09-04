@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.mixinduck;
 
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem;
+import org.valkyrienskies.clockwork.content.curiosities.tools.auric.gravitron.GravitronItem;
 
 public interface MixinPlayerDuck {
 

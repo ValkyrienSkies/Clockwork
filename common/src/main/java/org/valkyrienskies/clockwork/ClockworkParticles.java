@@ -43,7 +43,7 @@ public enum ClockworkParticles {
     }
 
     private static class ParticleEntry<D extends ParticleOptions> {
-        private static final DeferredRegister<ParticleType<?>> REGISTER = DeferredRegister.Companion.create(Registry.PARTICLE_TYPE, ClockworkMod.MOD_ID);
+        private static final DeferredRegister<ParticleType<?>> REGISTER = DeferredRegister.create(Registry.PARTICLE_TYPE, ClockworkMod.MOD_ID);
 
         private final String name;
         private final Supplier<? extends ICustomParticleData<D>> typeFactory;

@@ -27,8 +27,8 @@ public class WingBlockItemRenderer extends CustomRenderedItemModelRenderer {
 
     private void renderInventory(ItemStack stack, MultiBufferSource buffer, PoseStack ms, int light) {
         VertexConsumer vb = buffer.getBuffer(RenderType.cutout());
-        SuperByteBuffer frame = CachedBufferer.partial(ClockworkPartials.INSTANCE.getWING_FRAME_ITEM(), ClockworkBlocks.INSTANCE.getWING().getDefaultState()).light(light).translate(0, 0, -1);
-        SuperByteBuffer sail = CachedBufferer.partial(ClockworkPartials.INSTANCE.getWING_SAIL_ITEM(), ClockworkBlocks.INSTANCE.getWING().getDefaultState()).light(light).translate(0, 0, -1);
+        SuperByteBuffer frame = CachedBufferer.partial(ClockworkPartials.INSTANCE.getWING_FRAME_ITEM(), ClockworkBlocks.WING.getDefaultState()).light(light).translate(0, 0, -1);
+        SuperByteBuffer sail = CachedBufferer.partial(ClockworkPartials.INSTANCE.getWING_SAIL_ITEM(), ClockworkBlocks.WING.getDefaultState()).light(light).translate(0, 0, -1);
 
         if (stack.hasTag()) {
             CompoundTag tag = stack.getOrCreateTag();
@@ -42,9 +42,9 @@ public class WingBlockItemRenderer extends CustomRenderedItemModelRenderer {
 
     private void renderFirstPerson(ItemStack stack, MultiBufferSource buffer, PoseStack ms, int light) {
         VertexConsumer vb = buffer.getBuffer(RenderType.cutout());
-        SuperByteBuffer frame = CachedBufferer.partial(ClockworkPartials.INSTANCE.getWING_FRAME_ITEM(), ClockworkBlocks.INSTANCE.getWING().getDefaultState())
+        SuperByteBuffer frame = CachedBufferer.partial(ClockworkPartials.INSTANCE.getWING_FRAME_ITEM(), ClockworkBlocks.WING.getDefaultState())
                 .light(light).translate(-0.5, -0.5, -0.5);
-        SuperByteBuffer sail = CachedBufferer.partial(ClockworkPartials.INSTANCE.getWING_SAIL_ITEM(), ClockworkBlocks.INSTANCE.getWING().getDefaultState())
+        SuperByteBuffer sail = CachedBufferer.partial(ClockworkPartials.INSTANCE.getWING_SAIL_ITEM(), ClockworkBlocks.WING.getDefaultState())
                 .light(light).translate(-0.5, -0.5, -0.5);
 
         if (stack.hasTag()) {

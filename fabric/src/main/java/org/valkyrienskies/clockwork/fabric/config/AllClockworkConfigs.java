@@ -7,7 +7,7 @@ import net.minecraftforge.api.fml.event.config.ModConfigEvent;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.config.ModConfig;
 import org.apache.commons.lang3.tuple.Pair;
-import org.valkyrienskies.clockwork.ClockWorkMod;
+import org.valkyrienskies.clockwork.ClockworkMod;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -43,9 +43,9 @@ public class AllClockworkConfigs {
         SERVER = init(CWServer::new, ModConfig.Type.SERVER);
 
         for (Map.Entry<ModConfig.Type, ConfigBase> pair : CONFIGS.entrySet())
-            ModLoadingContext.registerConfig(ClockWorkMod.MOD_ID, pair.getKey(), pair.getValue().specification);
+            ModLoadingContext.registerConfig(ClockworkMod.MOD_ID, pair.getKey(), pair.getValue().specification);
 
-        BlockStressValues.registerProvider(ClockWorkMod.MOD_ID, SERVER.kinetics.stressValues);
+        BlockStressValues.registerProvider(ClockworkMod.MOD_ID, SERVER.kinetics.stressValues);
 
         ModConfigEvent.LOADING.register(AllClockworkConfigs::onLoad);
         ModConfigEvent.RELOADING.register(AllClockworkConfigs::onReload);

@@ -24,6 +24,7 @@ import net.minecraft.world.level.ItemLike
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.kinetics.casing.ExtendedEncasedShaftBlock
 import java.util.function.BiConsumer
@@ -114,7 +115,7 @@ object BuilderTransformersClockwork {
                     cc.make(block, casingShift.get(),
                         BiPredicate<BlockState, Direction> { s: BlockState, f: Direction ->
                             f.axis !== s.getValue(
-                                ExtendedEncasedShaftBlock.AXIS
+                                BlockStateProperties.AXIS
                             )
                         })
                 }))

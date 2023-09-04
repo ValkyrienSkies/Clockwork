@@ -31,7 +31,7 @@ public class AreaDesignatorRenderer extends CustomRenderedItemModelRenderer {
 
     @Override
     protected void render(ItemStack stack, CustomRenderedItemModel model, PartialItemModelRenderer renderer, ItemTransforms.TransformType transformType, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
-        if (!stack.is(ClockworkItems.INSTANCE.getAURIC_DESIGNATOR().get())) {
+        if (!stack.is(ClockworkItems.AURIC_DESIGNATOR.get())) {
             return;
         }
         AreaDesignatorItem adi = (AreaDesignatorItem) stack.getItem();
@@ -40,7 +40,7 @@ public class AreaDesignatorRenderer extends CustomRenderedItemModelRenderer {
 
         ms.pushPose();
 
-        renderer.renderSolid(PlatformUtils.INSTANCE.getBakedModel(model), light);
+        renderer.renderSolid(model.getOriginalModel(), light);
 
         if (adi.getAnimationType().equals(AreaDesignatorItem.Animation.DRAW)) {
             animateDraw(ms, stacker, buffer, light, overlay, adi.getDrawProgress(), renderer);

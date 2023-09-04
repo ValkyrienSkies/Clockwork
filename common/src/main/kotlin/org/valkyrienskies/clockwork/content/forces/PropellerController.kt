@@ -9,7 +9,7 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropUpda
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.properties.ShipTransform
-import org.valkyrienskies.core.impl.api.ShipForcesInducer
+import org.valkyrienskies.core.api.ships.ShipForcesInducer
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 import org.valkyrienskies.core.impl.game.ships.ShipInertiaDataImpl
 import java.lang.Math

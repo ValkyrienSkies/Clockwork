@@ -33,7 +33,7 @@ import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.client.render.scanner.ScannerRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer.Companion.SCAN_GROWTH_DURATION
-import org.valkyrienskies.clockwork.content.curiosities.tools.auric_designator.AreaDesignatorItem
+import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.AreaDesignatorItem
 import org.valkyrienskies.clockwork.util.EaseHelper.easeInBounce
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.core.api.ships.Ship
@@ -276,7 +276,7 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             val caughtEntities: Set<Entity>
             if (level is ServerLevel) {
                 selection = item.denseBlocksFromCluster(cluster)
-                caughtEntities = item.entitiesFromCluster(cluster, level)
+                caughtEntities = item.entitiesFromCluster(cluster, (level as ServerLevel))
                 if (selection == null) return@forEach
                 connectedShip = createNewShipWithBlocks(worldPosition, selection, level as ServerLevel)
                 // TODO: relocate entities properly cause it barely works

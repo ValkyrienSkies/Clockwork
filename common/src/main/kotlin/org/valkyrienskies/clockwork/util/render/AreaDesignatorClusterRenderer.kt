@@ -29,8 +29,8 @@ import org.valkyrienskies.mod.common.util.toMinecraft
 
 class AreaDesignatorClusterRenderer {
     private val bbOutlineSlotAD = Any()
-    private val storedClusters = HashMap<Set<AABBic?>, Pair<Set<BlockPos>, String>>()
-    private var hoveredCluster: Set<AABBic?>? = HashSet()
+    private val storedClusters = HashMap<Set<AABBic>, Pair<Set<BlockPos>, String>>()
+    private var hoveredCluster: Set<AABBic>? = HashSet()
     fun renderDesignator(
         level: ClientLevel?,
         minecraft: Minecraft,

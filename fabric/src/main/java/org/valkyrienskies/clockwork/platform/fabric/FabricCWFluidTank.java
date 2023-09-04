@@ -70,6 +70,6 @@ public class FabricCWFluidTank extends SmartFluidTank implements CWFluidTank {
     @Nullable
     @Override
     public SmartFluidTank asSmartFluidTank() {
-        return CWFluidTank.super.asSmartFluidTank();
+        return (SmartFluidTank) this;
     }
 }

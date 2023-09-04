@@ -11,22 +11,26 @@ import java.util.function.BiConsumer
 
 object SharedValues {
     @get:ExpectPlatform
+    @JvmStatic
     val packetChannel: PacketChannel
         get() {
             throw AssertionError()
         }
 
     @ExpectPlatform
+    @JvmStatic
     fun customRenderedRegisterer(): BiConsumer<CWItem, CustomRenderedItemModelRenderer> {
         throw AssertionError()
     }
 
     @ExpectPlatform
+    @JvmStatic
     fun customBlockItemRenderedRegisterer(): BiConsumer<BlockItem, CustomRenderedItemModelRenderer> {
         throw AssertionError()
     }
 
     @get:ExpectPlatform
+    @JvmStatic
     val sequencedSeat: EntityEntry<SequencedSeatEntity>
         //region Entities
         get() {
@@ -34,6 +38,7 @@ object SharedValues {
         }
 
     @get:ExpectPlatform
+    @JvmStatic
     val frostingBuckets: ArrayList<Item>
         //endregion
         get() {

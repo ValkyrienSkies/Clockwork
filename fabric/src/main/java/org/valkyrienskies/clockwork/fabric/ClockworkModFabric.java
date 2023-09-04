@@ -46,14 +46,14 @@ public class ClockworkModFabric implements ModInitializer {
 
         ClockworkTags.INSTANCE.init();
 
-        ClockworkBlocks.INSTANCE.register();
+        ClockworkBlocks.register();
         FabricClockworkBlocks.register();
 
         // TODO common items
-        ClockworkItems.INSTANCE.register();
+        ClockworkItems.register();
         FabricClockworkItems.register();
 
-        ClockworkBlockEntities.INSTANCE.register();
+        ClockworkBlockEntities.register();
         FabricClockworkBlockEntities.register();
 
         // TODO common entities

@@ -16,9 +16,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.valkyrienskies.clockwork.content.contraptions.cannons.CannonCreateData;
-import org.valkyrienskies.clockwork.content.contraptions.cannons.CannonUpdateData;
-import org.valkyrienskies.clockwork.content.forces.CannonController;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
@@ -55,8 +52,8 @@ public abstract class MixinCannonMount extends KineticBlockEntity implements Con
         if (ship != null) {
             if (!alreadyAdded && cannonID == null) {
                 Vector3dc pos = VectorConversionsMCKt.toJOMLD(worldPosition);
-                final CannonCreateData data = new CannonCreateData(pos);
-                cannonID = CannonController.getOrCreate(ship).addCannon(data);
+                //final CannonCreateData data = new CannonCreateData(pos);
+                //cannonID = CannonController.getOrCreate(ship).addCannon(data);
                 alreadyAdded = true;
             }
         }
@@ -71,7 +68,7 @@ public abstract class MixinCannonMount extends KineticBlockEntity implements Con
             }
         }
         if (cannonID != null) {
-            CannonController.getOrCreate(ship).removeCannon(cannonID);
+            //CannonController.getOrCreate(ship).removeCannon(cannonID);
             cannonID = null;
             alreadyAdded = false;
             recoilVec = null;
@@ -92,13 +89,13 @@ public abstract class MixinCannonMount extends KineticBlockEntity implements Con
         if (ship != null) {
             if (alreadyAdded && cannonID != null) {
                 if (recoilVec != null) {
-                    final CannonUpdateData data = new CannonUpdateData(recoilVec);
-                    CannonController.getOrCreate(ship).updateCannon(cannonID, data);
+                    //final CannonUpdateData data = new CannonUpdateData(recoilVec);
+                    //CannonController.getOrCreate(ship).updateCannon(cannonID, data);
                 }
             }
             if (this.isRemoved()) {
                 if (cannonID != null) {
-                    CannonController.getOrCreate(ship).removeCannon(cannonID);
+                    //CannonController.getOrCreate(ship).removeCannon(cannonID);
                     cannonID = null;
                     alreadyAdded = false;
                 }

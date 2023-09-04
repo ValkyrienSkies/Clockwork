@@ -51,7 +51,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
     var countDown = 200
     var spinup = 0f
     var spinningUp = false
-    protected var angle = 0f
+    protected var realAngle = 0f
     var running = false
     protected var clientAngleDiff = 0f
     protected var lastException: AssemblyException? = null
@@ -69,9 +69,9 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
 
     override fun getInterpolatedAngle(partialTicks: Float): Float {
         var partialTicks = partialTicks
-        if (isVirtual) return Mth.lerp(partialTicks + .5f, prevAngle, angle)
+        if (isVirtual) return Mth.lerp(partialTicks + .5f, prevAngle, realAngle)
         if (movedContraption == null || movedContraption!!.isStalled || !running) partialTicks = 0f
-        return Mth.lerp(partialTicks, angle, angle + angularSpeed)
+        return Mth.lerp(partialTicks, realAngle, realAngle + angularSpeed)
     }
 
     val angularSpeed: Float
@@ -114,7 +114,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
             onRotspeedChanged()
             speedChanged = false
         }
-        prevAngle = angle
+        prevAngle = realAngle
         if (level!!.isClientSide) clientAngleDiff /= 2f
         if (!level!!.isClientSide && assembleNextTick) {
             assembleNextTick = false
@@ -125,8 +125,8 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         if (!running) return
         if (!(movedContraption != null && movedContraption!!.isStalled)) {
             val angularSpeed = angularSpeed
-            val newAngle = angle + angularSpeed
-            angle = (newAngle % 360)
+            val newAngle = realAngle + angularSpeed
+            realAngle = (newAngle % 360)
         }
         applyRotation()
         if (physPropId != null) {
@@ -136,7 +136,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
                 )
                 if (ship != null) {
                     val data = PropUpdateData(
-                        angularSpeed.toDouble(), angle.toDouble(),
+                        angularSpeed.toDouble(), realAngle.toDouble(),
                         isInverted
                     )
                     PropellerController.getOrCreate(ship)!!.updatePropeller(physPropId!!, data)
@@ -167,7 +167,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
             disassembling = 0f
             return
         }
-        val stoppingPoint = angle + rotspeed * disassembling * 0.5f
+        val stoppingPoint = realAngle + rotspeed * disassembling * 0.5f
         val optimalStoppingPoint = 90f * Math.round(stoppingPoint / 90f)
         val Q = (optimalStoppingPoint - stoppingPoint) / disassembling
         rotspeed = (rotspeed + 6f * Q / disassembling) * (1f - 1f / disassembling)
@@ -188,7 +188,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
 
 //            float time = 1f - (spinup / 20f);
 //            float Q = (rotspeed + (targetSpeed - rotspeed)) * time;
-        val startingPoint = angle + speed * spinup * 0.5f
+        val startingPoint = realAngle + speed * spinup * 0.5f
         val Q = startingPoint / spinup
         rotspeed = (rotspeed + 6f * Q / spinup) * (1f - 1f / spinup)
     }
@@ -203,7 +203,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
 
     protected fun applyRotation() {
         if (movedContraption == null) return
-        movedContraption!!.setAngle(angle)
+        movedContraption!!.setAngle(realAngle)
         val blockState = blockState
         if (blockState.hasProperty(BlockStateProperties.FACING)) movedContraption!!.rotationAxis =
             blockState.getValue(BlockStateProperties.FACING)
@@ -213,7 +213,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
     public override fun write(compound: CompoundTag, clientPacket: Boolean) {
         compound.putFloat("Rotspeed", rotspeed)
         compound.putBoolean("Running", running)
-        compound.putFloat("Angle", angle)
+        compound.putFloat("Angle", realAngle)
         compound.putBoolean("Inverted", isInverted)
         if (physPropId != null) {
             compound.putInt("ID", physPropId!!)
@@ -223,10 +223,10 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
     }
 
     override fun read(compound: CompoundTag, clientPacket: Boolean) {
-        val angleBefore = angle
+        val angleBefore = realAngle
         rotspeed = compound.getFloat("Rotspeed")
         running = compound.getBoolean("Running")
-        angle = compound.getFloat("Angle")
+        realAngle = compound.getFloat("Angle")
         isInverted = compound.getBoolean("Inverted")
         lastException = AssemblyException.read(compound)
         if (compound.contains("ID")) {
@@ -235,8 +235,8 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         super.read(compound, clientPacket)
         if (!clientPacket) return
         if (running) {
-            clientAngleDiff = AngleHelper.getShortestAngleDiff(angleBefore.toDouble(), angle.toDouble())
-            angle = angleBefore
+            clientAngleDiff = AngleHelper.getShortestAngleDiff(angleBefore.toDouble(), realAngle.toDouble())
+            realAngle = angleBefore
         } else {
             movedContraption = null
         }
@@ -311,7 +311,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
     }
 
     override fun setAngle(forcedAngle: Float) {
-        angle = forcedAngle
+        realAngle = forcedAngle
     }
 
     val sailCount: Int
@@ -437,7 +437,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         movedContraption?.let { level!!.addFreshEntity(it) }
         AllSoundEvents.CONTRAPTION_ASSEMBLE.playOnServer(level, worldPosition)
         running = true
-        angle = 0f
+        realAngle = 0f
         rotspeed = 0f
         spinningUp = true
         spinup = Math.abs(speed).toInt().toFloat()
@@ -447,7 +447,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         val axis: Vector3dc = blockState.getValue(BlockStateProperties.FACING).normal.toJOMLD()
         val vecpos: Vector3dc = blockPos.toJOMLD()
         val data = PropCreateData(
-            vecpos, axis, angle.toDouble(),
+            vecpos, axis, realAngle.toDouble(),
             angularSpeed.toDouble(), sailVecs,
             isInverted
         )
@@ -495,7 +495,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
     fun disassemble() {
         if (!running && movedContraption == null) return
         rotspeed = 0f
-        angle = 0f
+        realAngle = 0f
         slowingDown = false
         disassembling = 0f
         if (movedContraption != null) {

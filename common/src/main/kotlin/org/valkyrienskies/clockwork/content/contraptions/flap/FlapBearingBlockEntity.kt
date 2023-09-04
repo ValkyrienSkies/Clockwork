@@ -19,13 +19,12 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.content.contraptions.flap.contraption.FlapContraption
-import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerContraption
 
 class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) :
     KineticBlockEntity(type, pos, state), IBearingBlockEntity {
     var redstoneSideOne = false
     var redstoneSideTwo = false
-    protected var angle = 0f
+    protected var bearingAngle = 0f
     protected var clientAngleDiff = 0f
     var isRunning = false
         protected set
@@ -64,7 +63,7 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             flap!!.tick()
         }
         if (level!!.isClientSide) {
-            prevForcedAngle = angle
+            prevForcedAngle = bearingAngle
             clientAngleDiff /= 2f
         }
         redstoneLevel = getPower(level!!, worldPosition)
@@ -107,8 +106,8 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         }
         if (!(flap != null && flap!!.isStalled)) {
             val testSpeed = angularSpeed / 2f
-            val newAngle = angle + flapSpeed
-            angle = newAngle % 360
+            val newAngle = bearingAngle + flapSpeed
+            bearingAngle = newAngle % 360
         }
         if (!isRunning) return
         applyRotations()
@@ -116,21 +115,21 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     public override fun write(compound: CompoundTag, clientPacket: Boolean) {
         compound.putBoolean("Running", isRunning)
-        compound.putFloat("Angle", angle)
+        compound.putFloat("Angle", bearingAngle)
         AssemblyException.write(compound, lastException)
         super.write(compound, clientPacket)
     }
 
     override fun read(compound: CompoundTag, clientPacket: Boolean) {
-        val angleBefore = angle
+        val angleBefore = bearingAngle
         isRunning = compound.getBoolean("Running")
-        angle = compound.getFloat("Angle")
+        bearingAngle = compound.getFloat("Angle")
         lastException = AssemblyException.read(compound)
         super.read(compound, clientPacket)
         if (!clientPacket) return
         if (isRunning) {
-            clientAngleDiff = AngleHelper.getShortestAngleDiff(angleBefore.toDouble(), angle.toDouble())
-            angle = angleBefore
+            clientAngleDiff = AngleHelper.getShortestAngleDiff(angleBefore.toDouble(), bearingAngle.toDouble())
+            bearingAngle = angleBefore
         } else {
             flap = null
         }
@@ -163,7 +162,7 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         //Run
         isRunning = true
-        angle = 0f
+        bearingAngle = 0f
         sendData()
     }
 
@@ -174,7 +173,7 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     fun disassemble() {
         if (!isRunning && flap == null) return
-        angle = 0f
+        bearingAngle = 0f
         applyRotations()
         if (flap != null) {
             flap!!.disassemble()
@@ -191,7 +190,7 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             blockState.getValue<Direction>(BlockStateProperties.FACING)
                 .axis
         if (flap != null) {
-            flap!!.setAngle(angle)
+            flap!!.setAngle(bearingAngle)
             flap!!.rotationAxis = axis
         }
     }
@@ -220,7 +219,7 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             var speed = angularSpeed / 2f
             if (speed != 0f) {
                 val flapTarget = getFlapTarget(redstoneSideOne, redstoneSideTwo)
-                val shortestAngleDiff = AngleHelper.getShortestAngleDiff(angle.toDouble(), flapTarget.toDouble())
+                val shortestAngleDiff = AngleHelper.getShortestAngleDiff(bearingAngle.toDouble(), flapTarget.toDouble())
                 speed = if (shortestAngleDiff < 0) {
                     Math.max(speed, shortestAngleDiff)
                 } else {
@@ -243,7 +242,7 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     }
 
     override fun setAngle(forcedAngle: Float) {
-        angle = forcedAngle
+        bearingAngle = forcedAngle
     }
 
     val angularSpeed: Float
@@ -255,9 +254,9 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     override fun getInterpolatedAngle(partialTicks: Float): Float {
         var partialTicks = partialTicks
-        if (isVirtual) return Mth.lerp(partialTicks, prevForcedAngle, angle)
+        if (isVirtual) return Mth.lerp(partialTicks, prevForcedAngle, bearingAngle)
         if (flap == null || flap!!.isStalled) partialTicks = 0f
-        return Mth.lerp(partialTicks, angle, angle + flapSpeed)
+        return Mth.lerp(partialTicks, bearingAngle, bearingAngle + flapSpeed)
     }
 
     override fun isWoodenTop(): Boolean {

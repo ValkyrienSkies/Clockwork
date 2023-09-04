@@ -10,7 +10,7 @@ import org.valkyrienskies.clockwork.content.physicalities.reaction_wheel.data.Re
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.properties.ShipTransform
-import org.valkyrienskies.core.impl.api.ShipForcesInducer
+import org.valkyrienskies.core.api.ships.ShipForcesInducer
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
