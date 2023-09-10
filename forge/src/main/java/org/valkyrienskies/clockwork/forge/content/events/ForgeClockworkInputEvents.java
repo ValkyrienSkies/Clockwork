@@ -8,7 +8,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import org.valkyrienskies.clockwork.ClockWorkHandlers;
 
 @Mod.EventBusSubscriber(Dist.CLIENT)
 public class ForgeClockworkInputEvents {

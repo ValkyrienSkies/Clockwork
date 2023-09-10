@@ -14,12 +14,23 @@ import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.Direction
+import net.minecraft.core.Direction.Plane
 import net.minecraft.world.phys.Vec3
+import org.joml.Vector3d
+import org.joml.Vector3dc
+import org.joml.Vector4i
+import org.joml.primitives.AABBi
+import org.joml.primitives.Planed
+import org.joml.primitives.Rectanglei
 import org.valkyrienskies.clockwork.ClockworkPartials
+import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.AreaDesignatorItem
+import org.valkyrienskies.clockwork.util.render.Bolt
+import org.valkyrienskies.clockwork.util.render.BoltUtil
+import org.valkyrienskies.mod.common.util.toJOMLD
 
 class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
     SmartBlockEntityRenderer<PhysicsInfuserBlockEntity>(context) {
-    private var te: PhysicsInfuserBlockEntity? = null
+    private var teForScanner: PhysicsInfuserBlockEntity? = null
     protected override fun renderSafe(
         te: PhysicsInfuserBlockEntity,
         partialTicks: Float,
@@ -30,7 +41,7 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
     ) {
         super.renderSafe(te, partialTicks, ms, buffer, light, overlay)
         if (te !is PhysicsInfuserBlockEntity) return
-        this.te = te
+        this.teForScanner = te
         val infuser = te
         val blockState = te.blockState
         val vb = buffer.getBuffer(RenderType.translucent())
@@ -38,21 +49,47 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
         // Render Mysterious Liquid
         val mysteriousLiquid = CachedBufferer.partial(ClockworkPartials.STRANGE_FLUID, blockState)
         mysteriousLiquid.light(light).renderInto(ms, buffer.getBuffer(RenderType.translucent()))
-        // Zappin'
-        var zap1: SuperByteBuffer? = null
-        var zap2: SuperByteBuffer? = null
-        var zap3: SuperByteBuffer? = null
-        if (infuser.animationType === PhysicsInfuserBlockEntity.Animation.ASSEMBLY) {
-            zap1 = CachedBufferer.partial(ClockworkPartials.ZAP, blockState)
-            zap2 = CachedBufferer.partial(ClockworkPartials.ZAP, blockState)
-            zap3 = CachedBufferer.partial(ClockworkPartials.ZAP, blockState)
+
+        val designator: AreaDesignatorItem? = if (infuser.getItem(0).item is AreaDesignatorItem)  {
+            infuser.getItem(0).item as AreaDesignatorItem
         } else {
-            zap1 = null
-            zap2 = null
-            zap3 = null
+            null
         }
 
+        val amountOfSelections: Int = designator?.selectionClusters?.size ?: 0
+
+        val selectionNearestPoints: ArrayList<Vector3dc> = ArrayList()
+
+        designator?.selectionClusters?.forEach { selection ->
+            var maxX: Int = 0
+            var maxY: Int = 0
+            var maxZ: Int = 0
+            var minX: Int = 0
+            var minY: Int = 0
+            var minZ: Int = 0
+            selection.forEach {
+                maxX += it.maxX()
+                maxY += it.maxY()
+                maxZ += it.maxZ()
+                minX += it.minX()
+                minY += it.minY()
+                minZ += it.minZ()
+            }
+            maxX /= selection.size
+            maxY /= selection.size
+            maxZ /= selection.size
+            minX /= selection.size
+            minY /= selection.size
+            minZ /= selection.size
+            val selectionCenter: Vector3dc = AABBi(minX, minY, minZ, maxX, maxY, maxZ).center(Vector3d())
+            selectionNearestPoints.add(selectionCenter)
+        }
+        val bolts: HashMap<Vector3dc, Bolt> = HashMap()
+
         // Core
+
+
+
         val core = CachedBufferer.partial(ClockworkPartials.PHYSICS_CORE, blockState)
         val angle = 0f
         val offset = 0f
@@ -61,26 +98,33 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
                 val value = infuser.assemblyProgress.value
                 val coreOffset = te.getCoreOffset(partialTicks - 1)
                 animateAssembly(core, angle, coreOffset, value, infuser).light(light).renderInto(ms, vb)
-                if (value >= 160 && value <= 200 || value >= 300 && value <= 340 || value >= 420 && value <= 440) {
-                    animateZapping(zap1, 0f, coreOffset, 1f, infuser)!!.light(light).renderInto(
-                        ms, buffer.getBuffer(
-                            RenderType.translucentNoCrumbling()
-                        )
-                    )
-                }
-                if (value >= 220 && value <= 260 || value >= 360 && value <= 400 || value >= 400 && value <= 420) {
-                    animateZapping(zap2, 120f, coreOffset, 2f, infuser)!!.light(light).renderInto(
-                        ms, buffer.getBuffer(
-                            RenderType.translucentNoCrumbling()
-                        )
-                    )
-                }
-                if (value >= 240 && value <= 280 || value >= 320 && value <= 360 || value >= 410 && value <= 430) {
-                    animateZapping(zap3, 240f, coreOffset, 3f, infuser)!!.light(light).renderInto(
-                        ms, buffer.getBuffer(
-                            RenderType.translucentNoCrumbling()
-                        )
-                    )
+                val coreRealPos: Vector3dc = infuser.blockPos.toJOMLD().add(0.0, infuser.getCoreOffset(partialTicks - 1).toDouble(), 0.0)
+                // Render Bolts
+                if (amountOfSelections > 0) {
+                    if (value >= 160) {
+                        val stepAmount = 200 / amountOfSelections
+                        if (value.toInt() == 160) {
+                            val bolt = BoltUtil.addBolt(selectionNearestPoints[0], coreRealPos, Vector4i(238, 130, 238, 125), 0.4f)
+                            bolts[selectionNearestPoints[0]] = bolt
+                        }
+                        if (amountOfSelections > 1) {
+                            if ((value.toInt() - 160) % stepAmount == 0) {
+                                val bolt = BoltUtil.addBolt(selectionNearestPoints[(value.toInt() - 160) / stepAmount], coreRealPos, Vector4i(238, 130, 238, 125), 0.4f)
+                                bolts[selectionNearestPoints[(value.toInt() - 160) / stepAmount]] = bolt
+                            }
+                        }
+
+                        for (bolt in bolts.values) {
+                            BoltUtil.retargetBolt(bolt, end = coreRealPos)
+                        }
+
+                        if (value > 360) {
+                            for (bolt in bolts.values) {
+                                BoltUtil.delBolt(bolt)
+                            }
+                            bolts.clear()
+                        }
+                    }
                 }
             }
             if (infuser.animationType === PhysicsInfuserBlockEntity.Animation.DISASSEMBLY) {
@@ -110,35 +154,35 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
         return buffer
     }
 
-    private fun animateZapping(
-        buffer: SuperByteBuffer?,
-        angle: Float,
-        coreOffset: Float,
-        value: Float,
-        infuser: PhysicsInfuserBlockEntity
-    ): SuperByteBuffer? {
-        val pivotX = 8f / 16f
-        val pivotY = 0f
-        val pivotZ = 8f / 16f
-        val transX: Float
-        val transZ: Float
-        if (value == 1f) {
-            transX = 0f
-            transZ = -0.25f
-        } else if (value == 2f) {
-            transX = 0.25f
-            transZ = 0.25f
-        } else {
-            transX = -0.25f
-            transZ = 0.25f
-        }
-        buffer!!.translateY((coreOffset * 2 - 0.15f).toDouble())
-        buffer.translate(pivotX.toDouble(), pivotY.toDouble(), pivotZ.toDouble())
-        buffer.rotate(Direction.UP, (angle / 180 * Math.PI).toFloat())
-        buffer.translate(transX.toDouble(), 0.0, transZ.toDouble())
-        buffer.translate(-pivotX.toDouble(), -pivotY.toDouble(), -pivotZ.toDouble())
-        return buffer
-    }
+//    private fun animateZapping(
+//        buffer: SuperByteBuffer?,
+//        angle: Float,
+//        coreOffset: Float,
+//        value: Float,
+//        infuser: PhysicsInfuserBlockEntity
+//    ): SuperByteBuffer? {
+//        val pivotX = 8f / 16f
+//        val pivotY = 0f
+//        val pivotZ = 8f / 16f
+//        val transX: Float
+//        val transZ: Float
+//        if (value == 1f) {
+//            transX = 0f
+//            transZ = -0.25f
+//        } else if (value == 2f) {
+//            transX = 0.25f
+//            transZ = 0.25f
+//        } else {
+//            transX = -0.25f
+//            transZ = 0.25f
+//        }
+//        buffer!!.translateY((coreOffset * 2 - 0.15f).toDouble())
+//        buffer.translate(pivotX.toDouble(), pivotY.toDouble(), pivotZ.toDouble())
+//        buffer.rotate(Direction.UP, (angle / 180 * Math.PI).toFloat())
+//        buffer.translate(transX.toDouble(), 0.0, transZ.toDouble())
+//        buffer.translate(-pivotX.toDouble(), -pivotY.toDouble(), -pivotZ.toDouble())
+//        return buffer
+//    }
 
     private fun animateAssembly(
         buffer: SuperByteBuffer,
@@ -157,7 +201,7 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
     inner class ScanManager {
         // --------------------------------------------------------------------- //
         fun computeScanGrowthDuration(): Int {
-            return te!!.scanGrowthDuration
+            return teForScanner!!.scanGrowthDuration
         }
 
 

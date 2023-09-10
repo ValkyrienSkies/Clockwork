@@ -33,7 +33,7 @@ import java.util.*
 
 class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
     var selectedAreas: HashMap<AABBic, String> = HashMap()
-    var selectionClusters: MutableSet<Set<AABBic>> = HashSet()
+    public var selectionClusters: MutableSet<Set<AABBic>> = HashSet()
     private val toBeStored = ArrayList<AABBic>()
     private val toBeRemoved = ArrayList<Set<AABBic>>()
     var toStopRendering = ArrayList<Set<AABBic>>()

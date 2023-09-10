@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.fabric;
 
 import com.terraformersmc.modmenu.api.ModMenuApi;
 import io.github.fabricators_of_create.porting_lib.event.client.MouseButtonCallback;
+import io.github.fabricators_of_create.porting_lib.event.client.RenderTickStartCallback;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -96,6 +97,7 @@ public class ClockworkModFabric implements ModInitializer {
         public static void registerClientEvents() {
             ClientTickEvents.END_CLIENT_TICK.register(ClockworkClientEvents.INSTANCE::onTick);
             ClientTickEvents.START_CLIENT_TICK.register(ClockworkClientEvents.INSTANCE::onTickStart);
+            RenderTickStartCallback.EVENT.register(ClockworkClientEvents.INSTANCE::onRenderTick);
         }
 
         public static void registerInputEvents() {

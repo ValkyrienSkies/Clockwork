@@ -6,6 +6,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -14,6 +15,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLLoader;
 import org.valkyrienskies.clockwork.*;
+import org.valkyrienskies.clockwork.content.events.ClockworkClientEvents;
 import org.valkyrienskies.clockwork.data.ClockworkTags;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.forge.integration.cc_tweaked.ClockworkForgePeripheralProviders;
@@ -89,6 +91,8 @@ public class ClockworkModForge {
     void clientSetup(final FMLClientSetupEvent event) {
         if (happendClientSetup) return;
         happendClientSetup = true;
+
+
     }
 
     void entityRenderers(final EntityRenderersEvent.RegisterRenderers event) {
