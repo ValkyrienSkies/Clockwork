@@ -22,6 +22,9 @@ import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBl
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock;
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlock;
 
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlock;
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity;
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlock;
 import org.valkyrienskies.clockwork.content.physicalities.reaction_wheel.ReactionWheelBlock;
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem;
 import org.valkyrienskies.clockwork.content.physicalities.wing.WingBlock;
@@ -67,6 +70,24 @@ public class ClockworkBlocks {
                     .transform(axeOrPickaxe())
                     .properties(p -> p.color(MaterialColor.PODZOL))
                     .transform(BuilderTransformersClockwork.INSTANCE.flapbearing())
+                    .transform(BlockStressDefaults.setImpact(4.0))
+                    .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+                    .register();
+
+    public static final BlockEntry<DeliveryCannonBlock> DELIVERY_CANNON =
+            ClockworkMod.INSTANCE.getREGISTRATE().block("delivery_cannon", DeliveryCannonBlock::new)
+                    .initialProperties(SharedProperties::netheriteMetal)
+                    .properties(p -> p.sound(SoundType.METAL))
+                    .properties(p -> p.color(MaterialColor.PODZOL))
+                    .transform(BlockStressDefaults.setImpact(4.0))
+                    .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+                    .register();
+
+    public static final BlockEntry<DeliveryChuteBlock> DELIVERY_CHUTE =
+            ClockworkMod.INSTANCE.getREGISTRATE().block("delivery_chute", DeliveryChuteBlock::new)
+                    .initialProperties(SharedProperties::netheriteMetal)
+                    .properties(p -> p.sound(SoundType.METAL))
+                    .properties(p -> p.color(MaterialColor.PODZOL))
                     .transform(BlockStressDefaults.setImpact(4.0))
                     .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
                     .register();

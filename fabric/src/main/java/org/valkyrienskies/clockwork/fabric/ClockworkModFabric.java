@@ -9,10 +9,12 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.content.events.ClockworkClientEvents;
+import org.valkyrienskies.clockwork.content.events.ClockworkCommonEvents;
 import org.valkyrienskies.clockwork.content.events.ClockworkInputEvents;
 import org.valkyrienskies.clockwork.data.ClockworkTags;
 import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
@@ -72,8 +74,14 @@ public class ClockworkModFabric implements ModInitializer {
         ClockworkMod.init();
         ClockworkModFabric.init();
 
+        registerServerEvents();
+
         if (FabricLoader.getInstance().isModLoaded("computercraft"))
             ClockworkFabricPeripheralProviders.register();
+    }
+
+    public static void registerServerEvents() {
+        ServerTickEvents.START_WORLD_TICK.register(ClockworkCommonEvents.INSTANCE::onWorldTick);
     }
 
     @Environment(EnvType.CLIENT)

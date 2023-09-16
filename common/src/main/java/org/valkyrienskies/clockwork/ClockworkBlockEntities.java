@@ -15,6 +15,9 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearin
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingRenderer;
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity;
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer;
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity;
 import org.valkyrienskies.clockwork.content.physicalities.reaction_wheel.ReactionWheelBlockEntity;
 import org.valkyrienskies.clockwork.content.physicalities.reaction_wheel.ReactionWheelRenderer;
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlockEntity;
@@ -58,6 +61,16 @@ public class ClockworkBlockEntities {
             .blockEntity("flap_bearing", FlapBearingBlockEntity::new)
             .validBlocks(ClockworkBlocks.FLAP_BEARING)
             .renderer(() -> FlapBearingRenderer::new)
+            .register();
+
+    public static final BlockEntityEntry<DeliveryCannonBlockEntity> DELIVERY_CANNON = ClockworkMod.INSTANCE.getREGISTRATE()
+            .blockEntity("delivery_cannon", DeliveryCannonBlockEntity::new)
+            .validBlocks(ClockworkBlocks.DELIVERY_CANNON)
+            .register();
+
+    public static final BlockEntityEntry<DeliveryChuteBlockEntity> DELIVERY_CHUTE = ClockworkMod.INSTANCE.getREGISTRATE()
+            .blockEntity("delivery_chute", DeliveryChuteBlockEntity::new)
+            .validBlocks(ClockworkBlocks.DELIVERY_CHUTE)
             .register();
 
     //REDSTONE RESISTOR todo: add instance

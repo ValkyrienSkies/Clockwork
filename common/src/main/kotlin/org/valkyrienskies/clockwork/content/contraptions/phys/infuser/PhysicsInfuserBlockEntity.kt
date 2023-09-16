@@ -165,7 +165,6 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 //        }
         val rand = level!!.getRandom()
         //client sounds
-        ClockworkMod.LOGGER.info(inventory[0].toString())
         if (assembling) {
             if (assemblyProgress.value == 0f) {
                 playInitializeSound(level!!, thisposition)

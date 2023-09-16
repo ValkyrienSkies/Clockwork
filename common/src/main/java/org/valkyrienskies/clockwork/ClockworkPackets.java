@@ -16,6 +16,7 @@ import org.valkyrienskies.clockwork.platform.SharedValues;
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket;
 import org.valkyrienskies.clockwork.platform.api.network.CWPacket;
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket;
+import org.valkyrienskies.clockwork.util.blocktype.SyncableStoragePacket;
 
 import java.util.function.Function;
 
@@ -28,6 +29,7 @@ public enum ClockworkPackets {
     // Server to Client
 
     COLORBLOCKENTITY(BlockEntityColorPacket.class, BlockEntityColorPacket::new),
+    SYNCABLESTORAGE(SyncableStoragePacket.class, SyncableStoragePacket::new),
 
     // auric designator
 

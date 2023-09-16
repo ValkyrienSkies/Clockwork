@@ -20,7 +20,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.content.contraptions.flap.contraption.FlapContraption
 
-class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) :
+class FlapBearingBlockEntity(type: BlockEntityType<FlapBearingBlockEntity>, pos: BlockPos, state: BlockState) :
     KineticBlockEntity(type, pos, state), IBearingBlockEntity {
     var redstoneSideOne = false
     var redstoneSideTwo = false
