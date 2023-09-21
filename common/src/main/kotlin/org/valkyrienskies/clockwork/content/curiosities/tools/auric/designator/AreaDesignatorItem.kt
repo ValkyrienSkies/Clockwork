@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
@@ -27,16 +29,14 @@ import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.core.impl.datastructures.DenseBlockPosSet
+import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
 import org.valkyrienskies.mod.common.util.toJOML
 import java.util.*
 
 
 class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
-    var selectedAreas: HashMap<AABBic, String> = HashMap()
-    public var selectionClusters: MutableSet<Set<AABBic>> = HashSet()
-    private val toBeStored = ArrayList<AABBic>()
-    private val toBeRemoved = ArrayList<Set<AABBic>>()
-    var toStopRendering = ArrayList<Set<AABBic>>()
+
+    val selectedArea: SelectedAreaToolkit = SelectedAreaToolkit()
     private var wasSelected = false
     var firstPos: Vector3ic? = null
     var secondPos: Vector3ic? = null
@@ -50,202 +50,25 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
     var successProgress = 0f
     var dumpProgress = 0f
     var idleProgress = 0f
-    var hasBeenLoaded = false
-    var loadCooldown = 100
-    private var nextKey = 0
+
     override fun verifyTagAfterLoad(compoundTag: CompoundTag) {
-        this.reloadClusters(compoundTag)
-        this.nextKey = compoundTag.getInt("nextKey")
-        this.hasBeenLoaded = true
+        if (compoundTag.contains("selectedData")) {
+            this.selectedArea.overwriteFrom(getMapper().readValue<SelectedAreaToolkit>(compoundTag.getByteArray("selectedData")))
+        }
         super.verifyTagAfterLoad(compoundTag)
-    }
-
-    private fun clusterNewArea(initial: AABBic) {
-        val newCluster: MutableSet<AABBic> = HashSet()
-        newCluster.add(initial)
-        val makeNewCluster = true
-        //        for (AABBic area : selectedAreas.keySet()) {
-//            if (initial.containsAABB(area)) {
-//                boolean existingCluster = false;
-//                Set<AABBic> foundCluster = new HashSet<>();
-//                for (Set<AABBic> cluster : selectionClusters) {
-//                    if (cluster.contains(area) && !existingCluster) {
-//                        cluster.add(initial);
-//                        foundCluster = new HashSet<>(cluster);
-//                        existingCluster = true;
-//                        makeNewCluster = false;
-//                    } else if (cluster.contains(area)) {
-//                        foundCluster.addAll(cluster);
-//                        selectionClusters.remove(cluster);
-//                        makeNewCluster = true;
-//                        newCluster.addAll(foundCluster);
-//                    }
-//                }
-//            }
-//        }
-        if (makeNewCluster) {
-            this.toBeStored.add(initial)
-            this.selectionClusters.add(newCluster)
-            this.mergeClusters(initial)
-        }
-    }
-
-    private fun massClusterAreas(areas: Set<AABBic>) {
-        for (box in areas) {
-            this.mergeClusters(box)
-        }
-    }
-
-    private fun reloadClusters(tag: CompoundTag) {
-        var keyToCheck = pointDataSaveKey + "0"
-        var increment = 0
-        var highestKey = 0
-        val refreshedTag = CompoundTag()
-        val toReload: MutableSet<AABBic> = HashSet()
-        while (increment <= this.nextKey) {
-            if (tag.contains(keyToCheck)) {
-                val pointData = tag.getIntArray(keyToCheck)
-                val loaded: AABBic = AABBi(
-                    pointData[0],
-                    pointData[1], pointData[2], pointData[3], pointData[4], pointData[5]
-                )
-                //clusterNewArea(loaded);
-                toReload.add(loaded)
-                this.selectedAreas[loaded] = keyToCheck
-                highestKey++
-                refreshedTag.putIntArray(pointDataSaveKey + highestKey, pointData)
-            }
-            increment++
-            keyToCheck = pointDataSaveKey + increment
-        }
-
-//        if (highestKey < nextKey-1) {
-//            nextKey = highestKey+1;
-//            tag = refreshedTag;
-//        }
-        massClusterAreas(toReload)
-    }
-
-    private fun mergeClusters(starter: AABBic) {
-//        Set<Set<AABBic>> clustersTemp = new HashSet<>(selectionClusters);
-//        for (Set<AABBic> cluster : clustersTemp) {
-//            Set<AABBic> newCluster = new HashSet<>(cluster);
-//            for (AABBic area : cluster) {
-//                for (Set<AABBic> cluster2 : clustersTemp) {
-//                    for (AABBic area2 : cluster2) {
-//                        if (area.containsAABB(area2) && !area.equals(area2)) {
-//                            newCluster.addAll(cluster2);
-//                            dumpClusterDirty(cluster2);
-//                            break;
-//                        }
-//                    }
-//                }
-//            }
-//            selectionClusters.add(newCluster);
-//        }
-        val newCluster: MutableSet<AABBic> = HashSet()
-
-        //get direct neighbors
-        for (area in this.selectedAreas.keys) {
-            if (starter.intersectsAABB(area)) {
-                newCluster.add(area)
-            }
-        }
-        //spiral out of control
-        val toCheck = ArrayList(newCluster)
-        while (!toCheck.isEmpty()) {
-            val check = toCheck[0]
-            for (area in this.selectedAreas.keys) {
-                if (check!!.intersectsAABB(area) && !newCluster.contains(area) && !toCheck.contains(area)) {
-                    newCluster.add(area)
-                    toCheck.add(area)
-                }
-            }
-            toCheck.removeAt(0)
-        }
-        //finish off the insanity by adding back the initial
-        newCluster.add(starter)
-
-        //now check to dump all clusters that were merged
-        for (check in newCluster) {
-            val oldCluster = getClusterContainingAABB(check)
-            oldCluster?.let { dumpClusterDirty(it) }
-        }
-        this.selectionClusters.add(newCluster)
     }
 
     override fun canAttackBlock(state: BlockState, level: Level, pos: BlockPos, player: Player): Boolean {
         return super.canAttackBlock(state, level, pos, player)
     }
 
-    fun onAttack(player: Player) {
-        val hitResult = getPlayerPOVHitResult(player.level, player, ClipContext.Fluid.NONE)
-        val pos: Vector3ic = hitResult.blockPos.toJOML()
-        val hitCluster = getClusterContaining(pos)
-        if (hitCluster != null) {
-            val pitch = Mth.randomBetween(this.soundRandom, 0.8f, 1.2f)
-            dumpCluster(hitCluster)
-            player.level.playSound(
-                null,
-                player,
-                ClockworkSounds.DESIGNATOR_DUMP_CLUSTER.mainEvent!!,
-                player.soundSource,
-                0.5f,
-                pitch
-            )
-            this.animationType = Animation.DUMP
-        }
-    }
-
     override fun inventoryTick(stack: ItemStack, level: Level, entity: Entity, slotId: Int, isSelected: Boolean) {
         super.inventoryTick(stack, level, entity, slotId, isSelected)
-        if (this.loadCooldown > 0) {
-            this.loadCooldown--
-        } else {
-            if (!this.hasBeenLoaded) {
-                val tag = stack.getOrCreateTag()
-                if (tag.contains("nextKey")) {
-                    nextKey = tag.getInt("nextKey")
-                }
-                this.reloadClusters(tag)
-                this.hasBeenLoaded = true
-            } else {
-                while (!this.toBeStored.isEmpty()) {
-                    if (stack.hasTag()) {
-                        val nbt = stack.getOrCreateTag()
-                        this.nextKey = nbt.getInt("nextKey")
-                        val toStore = this.toBeStored[0]
-                        val pointData = intArrayOf(
-                            toStore.minX(),
-                            toStore.minY(),
-                            toStore.minZ(),
-                            toStore.maxX(),
-                            toStore.maxY(),
-                            toStore.maxZ()
-                        )
-                        nbt.putIntArray(pointDataSaveKey + this.nextKey, pointData)
-                        this.selectedAreas[toStore] = pointDataSaveKey + this.nextKey
-                        this.nextKey++
-                        nbt.putInt("nextKey", nextKey)
-                        this.toBeStored.removeAt(0)
-                    }
-                }
-                while (!this.toBeRemoved.isEmpty()) {
-                    if (stack.hasTag()) {
-                        val nbt = stack.getOrCreateTag()
-                        val set = this.toBeRemoved.removeAt(0)
-                        for (box in set) {
-                            val key = this.selectedAreas[box]
-                            nbt.remove(key)
-                            this.selectedAreas.remove(box)
-                        }
-                    }
-                }
-            }
-        }
+
         if (level.isClientSide) {
             return
         }
+
         if (isSelected && !this.wasSelected) {
             this.shouldRenderOutlines = true
             this.animationType = Animation.DRAW
@@ -307,6 +130,10 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
             this.firstPos = null
             this.secondPos = null
         }
+
+        val compoundTag = stack.orCreateTag
+        compoundTag.putByteArray("selectedData", getMapper().writeValueAsBytes(this.selectedArea))
+        stack.tag = compoundTag
     }
 
     override fun useOn(context: UseOnContext): InteractionResult {
@@ -358,7 +185,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
             )
             this.firstPos = null
             this.secondPos = null
-            if (this.selectedAreas.containsKey(area)) {
+            if (this.selectedArea.containsAABB(area)) {
                 player.displayClientMessage(
                     TextComponent("Area Already Exists.").withStyle(
                         Style.EMPTY.withColor(
@@ -378,7 +205,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
                 player.cooldowns.addCooldown(this, 10)
                 return InteractionResult.SUCCESS
             }
-            this.clusterNewArea(area)
+            this.selectedArea.clusterNewArea(area)
             player.displayClientMessage(
                 TextComponent("Area Designated!").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE)),
                 true
@@ -399,110 +226,6 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
         return super.useOn(context)
     }
 
-    fun getClosestCluster(pos: Vector3ic): Set<AABBic?> {
-        var returnCluster: Set<AABBic?> = HashSet()
-        var closestDistance = Double.MAX_VALUE
-        for (cluster in this.selectionClusters) {
-            for (area in cluster) {
-                if (area!!.containsPoint(pos)) {
-                    return cluster
-                } else {
-                    val center: Vector3dc = area.center(Vector3d())
-                    val distance = center.distance(pos.x().toDouble(), pos.y().toDouble(), pos.z().toDouble())
-                    if (distance < closestDistance) {
-                        closestDistance = distance
-                        returnCluster = cluster
-                    }
-                }
-            }
-        }
-        return returnCluster
-    }
-
-    fun getClusterContaining(pos: Vector3ic?): Set<AABBic>? {
-        for (cluster in this.selectionClusters) {
-            for (area in cluster) {
-                if (area!!.containsPoint(pos)) {
-                    return cluster
-                }
-            }
-        }
-        return null
-    }
-
-    fun getClusterContainingAABB(box: AABBic?): Set<AABBic>? {
-        for (cluster in this.selectionClusters) {
-            if (cluster.contains(box)) {
-                return cluster
-            }
-        }
-        return null
-    }
-
-    fun denseBlocksFromCluster(cluster: Set<AABBic>): DenseBlockPosSet {
-        val set = DenseBlockPosSet()
-        for (area in cluster) {
-            for (x in area.minX()..area.maxX()) {
-                for (y in area.minY()..area.maxY()) {
-                    for (z in area.minZ()..area.maxZ()) {
-                        set.add(x, y, z)
-                    }
-                }
-            }
-        }
-        return set
-    }
-
-    fun blocksFromCluster(cluster: Set<AABBic>): Set<BlockPos> {
-        val set: MutableSet<BlockPos> = HashSet()
-        for (area in cluster) {
-            for (x in area.minX()..area.maxX()) {
-                for (y in area.minY()..area.maxY()) {
-                    for (z in area.minZ()..area.maxZ()) {
-                        set.add(BlockPos(x, y, z))
-                    }
-                }
-            }
-        }
-        return set
-    }
-
-    fun entitiesFromCluster(cluster: Set<AABBic>, level: ServerLevel): Set<Entity> {
-        val set: MutableSet<Entity> = HashSet()
-        for (area in cluster) {
-            val box = AABB(
-                area.maxX().toDouble(),
-                area.maxY().toDouble(),
-                area.maxZ().toDouble(),
-                area.minX().toDouble(),
-                area.minY().toDouble(),
-                area.minZ().toDouble()
-            )
-            set.addAll(level.getEntities(null, box))
-        }
-        return set
-    }
-
-    fun getAABBFromPos(pos: Vector3ic): AABBic? {
-        for (area in this.selectedAreas.keys) {
-            if (area!!.containsPoint(pos)) {
-                return area
-            }
-        }
-        return null
-    }
-
-    fun dumpCluster(cluster: Set<AABBic>) {
-        this.selectionClusters.remove(cluster)
-        this.toBeRemoved.add(cluster)
-        this.toStopRendering.add(cluster)
-    }
-
-    fun dumpClusterDirty(cluster: Set<AABBic>) {
-        this.selectionClusters.remove(cluster)
-        this.toStopRendering.add(cluster)
-    }
-
     enum class Animation {
         DRAW,
         IDLE,
@@ -511,6 +234,8 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
     }
 
     companion object {
-        private const val pointDataSaveKey = "pointData_"
+        private fun getMapper(): ObjectMapper {
+            return VSJacksonUtil.defaultMapper
+        }
     }
 }

@@ -34,6 +34,7 @@ import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.client.render.scanner.ScannerRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer.Companion.SCAN_GROWTH_DURATION
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.AreaDesignatorItem
+import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit
 import org.valkyrienskies.clockwork.util.EaseHelper.easeInBounce
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.core.api.ships.Ship
@@ -70,6 +71,9 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     private val toDump: MutableSet<Set<AABBic>> = HashSet()
     var shouldEjectDesignator = false
     var inventory = NonNullList.withSize(1, ItemStack.EMPTY)
+
+    var storedClusters: SelectedAreaToolkit = SelectedAreaToolkit()
+
     override fun getSlotsForFace(side: Direction): IntArray {
         return IntArray(0)
     }
@@ -129,7 +133,7 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             var launchForce = 0
             for (cluster in toDump) {
                 val adi: AreaDesignatorItem = inventory[0].item as AreaDesignatorItem
-                adi.dumpCluster(cluster)
+                adi.selectedArea.dumpCluster(cluster)
                 launchForce++
             }
             toDump.clear()
@@ -270,12 +274,12 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         if (getLevel()!!.isClientSide()) return
         if (inventory[0].item !is AreaDesignatorItem) return
         val item: AreaDesignatorItem = inventory[0].item as AreaDesignatorItem
-        item.selectionClusters.forEach { cluster ->
+        item.selectedArea.selectionClusters.forEach { cluster ->
             val selection: DenseBlockPosSet
             val caughtEntities: Set<Entity>
             if (level is ServerLevel) {
-                selection = item.denseBlocksFromCluster(cluster)
-                caughtEntities = item.entitiesFromCluster(cluster, (level as ServerLevel))
+                selection = SelectedAreaToolkit.denseBlocksFromCluster(cluster)
+                caughtEntities = SelectedAreaToolkit.entitiesFromCluster(cluster, (level as ServerLevel))
                 if (selection == null) return@forEach
                 connectedShip = createNewShipWithBlocks(worldPosition, selection, level as ServerLevel)
                 // TODO: relocate entities properly cause it barely works

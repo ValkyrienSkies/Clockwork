@@ -56,11 +56,11 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
             null
         }
 
-        val amountOfSelections: Int = designator?.selectionClusters?.size ?: 0
+        val amountOfSelections: Int = designator?.selectedArea?.selectionClusters?.size ?: 0
 
         val selectionNearestPoints: ArrayList<Vector3dc> = ArrayList()
 
-        designator?.selectionClusters?.forEach { selection ->
+        designator?.selectedArea?.selectionClusters?.forEach { selection ->
             var maxX: Int = 0
             var maxY: Int = 0
             var maxZ: Int = 0
