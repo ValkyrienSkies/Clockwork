@@ -6,8 +6,8 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import org.jetbrains.annotations.NotNull;
-import org.valkyrienskies.clockwork.ClockWorkMod;
-import org.valkyrienskies.clockwork.ClockWorkShaders;
+import org.valkyrienskies.clockwork.ClockworkMod;
+import org.valkyrienskies.clockwork.ClockworkShaders;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -28,14 +28,14 @@ public class ShaderLoader {
                     @NotNull ProfilerFiller reloadProfiler,
                     @NotNull Executor backgroundExecutor,
                     @NotNull Executor gameExecutor) {
-                ClockWorkShaders.reloadShaders(resourceManager); // TODO load shaders async?
+                ClockworkShaders.INSTANCE.reloadShaders(resourceManager); // TODO load shaders async?
                 return CompletableFuture.completedFuture(null).thenCompose(preparationBarrier::wait).thenAccept((i -> {
                 }));
             }
 
             @Override
             public @NotNull String getName() {
-                return ClockWorkMod.asResource("shaders").toString();
+                return ClockworkMod.INSTANCE.asResource("shaders").toString();
             }
         });
     }

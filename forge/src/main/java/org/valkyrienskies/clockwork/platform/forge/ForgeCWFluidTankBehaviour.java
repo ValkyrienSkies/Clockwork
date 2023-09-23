@@ -22,7 +22,7 @@ public class ForgeCWFluidTankBehaviour extends CWFluidTankBehaviour {
         IFluidHandler[] handlers = new IFluidHandler[tanks];
 
         for(int i = 0; i < tanks; ++i) {
-            handlers[i] = (ForgeCWFluidTank) this.tanks[i].getTank();
+            handlers[i] = (ForgeCWFluidTank) this.getTanks()[i].getTank();
         }
 
         this.capability = LazyOptional.of(() -> new InternalFluidHandler(handlers, enforceVariety));
@@ -47,7 +47,7 @@ public class ForgeCWFluidTankBehaviour extends CWFluidTankBehaviour {
         }
 
         public int fill(FluidStack resource, IFluidHandler.FluidAction action) {
-            return !insertionAllowed ? 0 : super.fill(resource, action);
+            return !getInsertionAllowed() ? 0 : super.fill(resource, action);
         }
 
         public int forceFill(FluidStack resource, IFluidHandler.FluidAction action) {
@@ -55,11 +55,11 @@ public class ForgeCWFluidTankBehaviour extends CWFluidTankBehaviour {
         }
 
         public FluidStack drain(FluidStack resource, IFluidHandler.FluidAction action) {
-            return !extractionAllowed ? FluidStack.EMPTY : super.drain(resource, action);
+            return !getExtractionAllowed() ? FluidStack.EMPTY : super.drain(resource, action);
         }
 
         public FluidStack drain(int maxDrain, IFluidHandler.FluidAction action) {
-            return !extractionAllowed ? FluidStack.EMPTY : super.drain(maxDrain, action);
+            return !getExtractionAllowed() ? FluidStack.EMPTY : super.drain(maxDrain, action);
         }
     }
 }

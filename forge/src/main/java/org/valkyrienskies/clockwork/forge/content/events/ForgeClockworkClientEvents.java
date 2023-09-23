@@ -5,26 +5,24 @@ import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.TickEvent.ClientTickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
-import org.valkyrienskies.clockwork.ClockWorkHandlers;
-import org.valkyrienskies.clockwork.ClockWorkMod;
-import org.valkyrienskies.clockwork.content.contraptions.propellor.stream.PropStream;
+import org.valkyrienskies.clockwork.ClockworkMod;
+import org.valkyrienskies.clockwork.util.render.BoltUtil;
 
 import static com.jozufozu.flywheel.backend.Backend.isGameActive;
 
 @Mod.EventBusSubscriber(Dist.CLIENT)
 public class ForgeClockworkClientEvents {
-    private static final String ITEM_PREFIX = "item." + ClockWorkMod.MOD_ID;
-    private static final String BLOCK_PREFIX = "block." + ClockWorkMod.MOD_ID;
+    private static final String ITEM_PREFIX = "item." + ClockworkMod.MOD_ID;
+    private static final String BLOCK_PREFIX = "block." + ClockworkMod.MOD_ID;
 
     public static void onTickStart(Minecraft client) {
-
-        PropStream.tickClientPlayerSounds();
 
     }
 
@@ -32,8 +30,14 @@ public class ForgeClockworkClientEvents {
     public static void onTick(ClientTickEvent event) {
         if (!isGameActive())
             return;
+    }
 
-        ClockWorkHandlers.tick();
+    @SubscribeEvent
+    public static void onRenderTick(TickEvent.RenderTickEvent event) {
+        if (!isGameActive())
+            return;
+
+        BoltUtil.INSTANCE.tick();
     }
 
     @Mod.EventBusSubscriber(value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -53,7 +57,7 @@ public class ForgeClockworkClientEvents {
         @SubscribeEvent
         public static void onLoadComplete(FMLLoadCompleteEvent event) {
             ModContainer createContainer = ModList.get()
-                    .getModContainerById(ClockWorkMod.MOD_ID)
+                    .getModContainerById(ClockworkMod.MOD_ID)
                     .orElseThrow(() -> new IllegalStateException("Create mod container missing on LoadComplete"));
         }
 

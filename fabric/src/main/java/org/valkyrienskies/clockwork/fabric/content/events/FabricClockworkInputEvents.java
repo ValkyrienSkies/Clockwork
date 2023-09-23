@@ -1,11 +1,9 @@
 package org.valkyrienskies.clockwork.fabric.content.events;
 
-
 import io.github.fabricators_of_create.porting_lib.event.client.MouseButtonCallback;
 import io.github.fabricators_of_create.porting_lib.util.KeyBindingHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionResult;
-import org.valkyrienskies.clockwork.ClockWorkHandlers;
 
 public class FabricClockworkInputEvents {
 

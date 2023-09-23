@@ -12,11 +12,9 @@ import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidAttributes;
 import net.minecraftforge.fluids.ForgeFlowingFluid;
-import org.valkyrienskies.clockwork.ClockWorkItems;
-import org.valkyrienskies.clockwork.ClockWorkMod;
-import org.valkyrienskies.clockwork.ClockWorkSounds;
-
-import static org.valkyrienskies.clockwork.ClockWorkMod.REGISTRATE;
+import org.valkyrienskies.clockwork.ClockworkItems;
+import org.valkyrienskies.clockwork.ClockworkMod;
+import org.valkyrienskies.clockwork.ClockworkSounds;
 
 public class ForgeClockworkFluids {
 
@@ -26,7 +24,7 @@ public class ForgeClockworkFluids {
                     .attributes(b -> b.viscosity(1250)
                             .density(7040)
                             .temperature(20)
-                            .sound(ClockWorkSounds.THICK_FLUID_FILL.getMainEvent(), ClockWorkSounds.THICK_FLUID_EMPTY.getMainEvent()))
+                            .sound(ClockworkSounds.INSTANCE.getTHICK_FLUID_FILL().getMainEvent(), ClockworkSounds.INSTANCE.getTHICK_FLUID_EMPTY().getMainEvent()))
                     .properties(p -> p.levelDecreasePerBlock(2)
                             .tickRate(25)
                             .slopeFindDistance(3)
@@ -41,7 +39,7 @@ public class ForgeClockworkFluids {
                     .attributes(b -> b.viscosity(1250)
                             .density(7040)
                             .temperature(20)
-                            .sound(ClockWorkSounds.THICK_FLUID_FILL.getMainEvent(), ClockWorkSounds.THICK_FLUID_EMPTY.getMainEvent()))
+                            .sound(ClockworkSounds.INSTANCE.getTHICK_FLUID_FILL().getMainEvent(), ClockworkSounds.INSTANCE.getTHICK_FLUID_EMPTY().getMainEvent()))
                     .properties(p -> p.levelDecreasePerBlock(2)
                             .tickRate(25)
                             .slopeFindDistance(3)
@@ -56,7 +54,7 @@ public class ForgeClockworkFluids {
                     .attributes(b -> b.viscosity(1250)
                             .density(7040)
                             .temperature(20)
-                            .sound(ClockWorkSounds.THICK_FLUID_FILL.getMainEvent(), ClockWorkSounds.THICK_FLUID_EMPTY.getMainEvent()))
+                            .sound(ClockworkSounds.INSTANCE.getTHICK_FLUID_FILL().getMainEvent(), ClockworkSounds.INSTANCE.getTHICK_FLUID_EMPTY().getMainEvent()))
                     .properties(p -> p.levelDecreasePerBlock(2)
                             .tickRate(25)
                             .slopeFindDistance(3)
@@ -67,14 +65,14 @@ public class ForgeClockworkFluids {
                     .register();
 
     private static FluidBuilder<ForgeFlowingFluid.Flowing, CreateRegistrate> standardFluid(String name, NonNullBiFunction<FluidAttributes.Builder, Fluid, FluidAttributes> factory) {
-        return ClockWorkMod.REGISTRATE
-                .fluid(name, ClockWorkMod.asResource("fluid/" + name + "_still"), ClockWorkMod.asResource("fluid/" + name + "_flow"), factory)
+        return ClockworkMod.INSTANCE.getREGISTRATE()
+                .fluid(name, ClockworkMod.INSTANCE.asResource("fluid/" + name + "_still"), ClockworkMod.INSTANCE.asResource("fluid/" + name + "_flow"), factory)
                 .removeTag(FluidTags.WATER);
     }
 
     private static FluidBuilder<ForgeFlowingFluid.Flowing, CreateRegistrate> frostingFluid(String name, NonNullBiFunction<FluidAttributes.Builder, Fluid, FluidAttributes> factory) {
-        return ClockWorkMod.REGISTRATE
-                .fluid(name, ClockWorkMod.asResource("fluid/frosting_still"), ClockWorkMod.asResource("fluid/frosting_flow"), factory)
+        return ClockworkMod.INSTANCE.getREGISTRATE()
+                .fluid(name, ClockworkMod.INSTANCE.asResource("fluid/frosting_still"), ClockworkMod.INSTANCE.asResource("fluid/frosting_flow"), factory)
                 .removeTag(FluidTags.WATER);
     }
 

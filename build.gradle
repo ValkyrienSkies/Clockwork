@@ -1,9 +1,18 @@
 plugins {
+    // Needed for Forge+Fabric
     id "architectury-plugin" version "3.4-SNAPSHOT"
-    id "dev.architectury.loom" version "1.0-SNAPSHOT" apply false
+    id "dev.architectury.loom" version "1.1-SNAPSHOT" apply false
+    // Kotlin
+    id "org.jetbrains.kotlin.jvm" version "1.7.21" apply false
+    // Kotlin linter
+    id "org.jlleitschuh.gradle.ktlint" version "10.3.0"
+    // Java linter
+    id "checkstyle"
     id "io.github.juuxel.loom-vineflower" version "1.+" apply false // Quiltflower, a better decompiler
     id "io.github.p03w.machete" version "1.+" // automatic jar compressing on build
-    id "org.jetbrains.kotlin.jvm" version "1.7.21" apply false
+
+    id 'com.matthewprenger.cursegradle' version '1.4.0' apply false
+    id "com.modrinth.minotaur" version "2.4.5" apply false
 }
 
 // Determine the version
@@ -22,7 +31,9 @@ architectury {
 
 subprojects {
     apply plugin: "dev.architectury.loom"
-    apply plugin: "io.github.juuxel.loom-vineflower"
+    // Apply checkstyle and ktlint to check the code style of every sub project
+    apply plugin: "org.jlleitschuh.gradle.ktlint"
+    apply plugin: "checkstyle"
     apply plugin: "org.jetbrains.kotlin.jvm"
 
     loom {
@@ -72,6 +83,35 @@ subprojects {
 
         // see each subproject for dependencies.
     }
+
+    checkstyle {
+        // configure to use checkstyle v8.41
+        toolVersion "8.41"
+        // Gradle shouldn't fail builds on checkstyle errors
+        ignoreFailures = true
+        // Checkstyle config file is in .checkstyle/checkstyle.xml
+        configFile = file("${rootDir}/.checkstyle/checkstyle.xml")
+    }
+
+    // configure checkstyle, but different
+    // https://docs.gradle.org/current/userguide/checkstyle_plugin.html
+    tasks.withType(Checkstyle) {
+        reports {
+            // Do not output html reports
+            html.enabled = false
+            // Output xml reports
+            xml.enabled = true
+        }
+    }
+
+    // configure ktlint
+    ktlint {
+        ignoreFailures = true
+        reporters {
+            // configure to output in checkstyle XML format
+            reporter "checkstyle"
+        }
+    }
 }
 
 allprojects {
@@ -99,6 +139,8 @@ allprojects {
 
     tasks.withType(JavaCompile) {
         options.encoding = "UTF-8"
+
+        options.release = 17
     }
 
     java {
@@ -106,7 +148,7 @@ allprojects {
     }
 
     String buildNumber = System.getenv("GITHUB_RUN_NUMBER")
-    
+
     machete {
         // disable machete locally for faster builds
         enabled = buildNumber != null

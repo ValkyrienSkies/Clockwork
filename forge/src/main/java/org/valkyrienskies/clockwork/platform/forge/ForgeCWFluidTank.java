@@ -4,6 +4,7 @@ import com.simibubi.create.foundation.fluid.SmartFluidTank;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
+import org.jetbrains.annotations.Nullable;
 import org.valkyrienskies.clockwork.util.fluid.CWFluidTank;
 
 import java.util.function.Consumer;
@@ -51,5 +52,11 @@ public class ForgeCWFluidTank extends SmartFluidTank implements CWFluidTank {
     @Override
     public void grow(int fillAmount) {
         this.getFluid().grow(fillAmount);
+    }
+
+    @Nullable
+    @Override
+    public SmartFluidTank asSmartFluidTank() {
+        return (SmartFluidTank) this;
     }
 }

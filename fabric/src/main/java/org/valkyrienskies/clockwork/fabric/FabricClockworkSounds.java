@@ -16,7 +16,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import org.valkyrienskies.clockwork.ClockWorkMod;
+import org.valkyrienskies.clockwork.ClockworkMod;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -32,7 +32,7 @@ public class FabricClockworkSounds {
     // platform specific sounds
 
     private static SoundEntryBuilder create(String name) {
-        return create(ClockWorkMod.asResource(name));
+        return create(ClockworkMod.INSTANCE.asResource(name));
     }
 
     public static SoundEntryBuilder create(ResourceLocation id) {
@@ -143,7 +143,7 @@ public class FabricClockworkSounds {
         }
 
         public SoundEntryBuilder addVariant(String name) {
-            return addVariant(ClockWorkMod.asResource(name));
+            return addVariant(ClockworkMod.INSTANCE.asResource(name));
         }
 
         public SoundEntryBuilder addVariant(ResourceLocation id) {

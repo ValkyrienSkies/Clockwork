@@ -16,7 +16,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import org.valkyrienskies.clockwork.platform.entity.FabricSequencedSeatEntity;
 
-import static org.valkyrienskies.clockwork.ClockWorkMod.REGISTRATE;
+import org.valkyrienskies.clockwork.ClockworkMod;
 
 public class FabricClockworkEntities {
 
@@ -45,7 +45,7 @@ public class FabricClockworkEntities {
                                                                          MobCategory group, int range, int updateFrequency, boolean sendVelocity, boolean immuneToFire,
                                                                          NonNullConsumer<FabricEntityTypeBuilder<T>> propertyBuilder) {
         String id = Lang.asId(name);
-        return (CreateEntityBuilder<T, ?>) REGISTRATE
+        return (CreateEntityBuilder<T, ?>) ClockworkMod.INSTANCE.getREGISTRATE()
                 .entity(id, factory, group)
                 .properties(b -> b.trackRangeChunks(range)
                         .trackedUpdateRate(updateFrequency)

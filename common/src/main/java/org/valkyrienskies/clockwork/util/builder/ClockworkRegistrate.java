@@ -49,7 +49,7 @@ public class ClockworkRegistrate {
 
     @Environment(EnvType.CLIENT)
     private static <T extends BlockItem, P> void customRenderedBlockItem(ItemBuilder<T, P> b,
-                                                                 Supplier<Supplier<CustomRenderedItemModelRenderer>> supplier) {
+                                                                         Supplier<Supplier<CustomRenderedItemModelRenderer>> supplier) {
         b.onRegister(new CustomBlockItemRendererRegistrationHelper(supplier));
     }
 

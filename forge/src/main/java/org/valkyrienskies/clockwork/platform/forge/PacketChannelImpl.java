@@ -11,17 +11,17 @@ import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
-import org.valkyrienskies.clockwork.ClockWorkMod;
+import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.platform.api.network.*;
 
 import java.util.function.Function;
 
 public class PacketChannelImpl implements PacketChannel {
     private final SimpleChannel channel = NetworkRegistry.newSimpleChannel(
-            ClockWorkMod.NETWORK_CHANNEL,
-            () -> ClockWorkMod.NETWORK_VERSION_STR,
-            ClockWorkMod.NETWORK_VERSION_STR::equals,
-            ClockWorkMod.NETWORK_VERSION_STR::equals
+            ClockworkMod.INSTANCE.getNETWORK_CHANNEL(),
+            () -> ClockworkMod.NETWORK_VERSION_STR,
+            ClockworkMod.NETWORK_VERSION_STR::equals,
+            ClockworkMod.NETWORK_VERSION_STR::equals
     );
 
     private int id = 0;
@@ -40,6 +40,10 @@ public class PacketChannelImpl implements PacketChannel {
     private ClientNetworkContext clientContext(NetworkEvent.Context ctx) {
         return new ClientNetworkContext() {
             @Override
+            public void handled() {
+            }
+
+            @Override
             public void enqueueWork(Runnable runnable) {
                 ctx.enqueueWork(runnable);
             }
@@ -53,6 +57,10 @@ public class PacketChannelImpl implements PacketChannel {
 
     private ServerNetworkContext serverContext(NetworkEvent.Context ctx) {
         return new ServerNetworkContext() {
+            @Override
+            public void handled() {
+            }
+
             @Override
             public ServerPlayer getSender() {
                 return ctx.getSender();

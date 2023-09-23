@@ -13,7 +13,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import org.valkyrienskies.clockwork.ClockWorkMod;
+import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.platform.entity.ForgeSequencedSeatEntity;
 
 public class ForgeClockworkEntities {
@@ -43,7 +43,7 @@ public class ForgeClockworkEntities {
                                                                          MobCategory group, int range, int updateFrequency, boolean sendVelocity, boolean immuneToFire,
                                                                          NonNullConsumer<EntityType.Builder<T>> propertyBuilder) {
         String id = Lang.asId(name);
-        return (CreateEntityBuilder<T, ?>) ClockWorkMod.REGISTRATE
+        return (CreateEntityBuilder<T, ?>) ClockworkMod.INSTANCE.getREGISTRATE()
                 .entity(id, factory, group)
                 .properties(b -> b.setTrackingRange(range)
                         .setUpdateInterval(updateFrequency)

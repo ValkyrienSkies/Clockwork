@@ -15,7 +15,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import org.valkyrienskies.clockwork.ClockWorkMod;
+import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.platform.api.network.*;
 
 import java.util.HashMap;
@@ -34,7 +34,7 @@ public class PacketChannelImpl implements PacketChannel {
 
     public PacketChannelImpl() {
 
-        if (!ServerPlayNetworking.registerGlobalReceiver(ClockWorkMod.NETWORK_CHANNEL,
+        if (!ServerPlayNetworking.registerGlobalReceiver(ClockworkMod.INSTANCE.getNETWORK_CHANNEL(),
                 (server, player, handler, buf, responseSender) -> {
                     int id = buf.readVarInt();
 
@@ -48,7 +48,7 @@ public class PacketChannelImpl implements PacketChannel {
                 })) throw new RuntimeException("Failed to register server packet handler");
 
         EnvExecutor.runWhenOn(EnvType.CLIENT, () -> () -> {
-            if (!ClientPlayNetworking.registerGlobalReceiver(ClockWorkMod.NETWORK_CHANNEL,
+            if (!ClientPlayNetworking.registerGlobalReceiver(ClockworkMod.INSTANCE.getNETWORK_CHANNEL(),
                     (client, handler, buf, responseSender) -> {
                         int id = buf.readVarInt();
 
@@ -81,6 +81,10 @@ public class PacketChannelImpl implements PacketChannel {
     private ClientNetworkContext clientContext(Executor executor) {
         return new ClientNetworkContext() {
             @Override
+            public void handled() {
+            }
+
+            @Override
             public void enqueueWork(Runnable runnable) {
                 executor.execute(runnable);
             }
@@ -94,6 +98,11 @@ public class PacketChannelImpl implements PacketChannel {
 
     private ServerNetworkContext serverContext(Executor executor, ServerPlayer player) {
         return new ServerNetworkContext() {
+            @Override
+            public void handled() {
+
+            }
+
             @Override
             public ServerPlayer getSender() {
                 return player;
@@ -121,7 +130,7 @@ public class PacketChannelImpl implements PacketChannel {
         FriendlyByteBuf buf = new FriendlyByteBuf(bufAllocator.buffer());
         buf.writeVarInt(c2sIdMap.get(packet.getClass()));
         packet.write(buf);
-        ClientPlayNetworking.send(ClockWorkMod.NETWORK_CHANNEL, buf);
+        ClientPlayNetworking.send(ClockworkMod.INSTANCE.getNETWORK_CHANNEL(), buf);
     }
 
     @Override
@@ -139,6 +148,6 @@ public class PacketChannelImpl implements PacketChannel {
         FriendlyByteBuf buf = new FriendlyByteBuf(bufAllocator.buffer());
         buf.writeVarInt(s2cIdMap.get(packet.getClass()));
         packet.write(buf);
-        ServerPlayNetworking.send(player, ClockWorkMod.NETWORK_CHANNEL, buf);
+        ServerPlayNetworking.send(player, ClockworkMod.INSTANCE.getNETWORK_CHANNEL(), buf);
     }
 }

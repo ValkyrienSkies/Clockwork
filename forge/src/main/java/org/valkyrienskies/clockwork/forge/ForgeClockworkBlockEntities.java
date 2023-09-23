@@ -7,8 +7,6 @@ package org.valkyrienskies.clockwork.forge;
 //import org.valkyrienskies.clockwork.content.contraptions.combustion_engine.CombustionEngineRenderer;
 //import org.valkyrienskies.clockwork.forge.content.contraptions.combustion_engine.ForgeCombustionEngineBlockEntity;
 
-import static org.valkyrienskies.clockwork.ClockWorkMod.REGISTRATE;
-
 public class ForgeClockworkBlockEntities {
 
     // Kinetics

@@ -20,7 +20,7 @@ public class FabricCWFluidTankBehaviour extends CWFluidTankBehaviour {
         super(type, te, tanks, tankCapacity, enforceVariety);
         Storage<FluidVariant>[] handlers = new Storage[tanks];
         for (int i = 0; i < tanks; i++) {
-            handlers[i] = (FabricCWFluidTank) this.tanks[i].getTank();
+            handlers[i] = (FabricCWFluidTank) this.getTanks()[i].getTank();
         }
 
         capability = new InternalFluidHandler(handlers, enforceVariety);
@@ -45,7 +45,7 @@ public class FabricCWFluidTankBehaviour extends CWFluidTankBehaviour {
 
         @Override
         public long insert(FluidVariant resource, long maxAmount, TransactionContext transaction) {
-            if (!insertionAllowed)
+            if (!getInsertionAllowed())
                 return 0;
             return super.insert(resource, maxAmount, transaction);
         }
@@ -56,7 +56,7 @@ public class FabricCWFluidTankBehaviour extends CWFluidTankBehaviour {
 
         @Override
         public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
-            if (!extractionAllowed)
+            if (!getExtractionAllowed())
                 return 0;
             return super.extract(resource, maxAmount, transaction);
         }

@@ -13,11 +13,10 @@ import net.fabricmc.fabric.api.transfer.v1.fluid.base.FullItemFluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.material.Fluid;
-import org.valkyrienskies.clockwork.ClockWorkMod;
+import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate;
 
 import static net.minecraft.world.item.Items.BUCKET;
-import static org.valkyrienskies.clockwork.ClockWorkMod.REGISTRATE;
 
 public class FabricClockworkFluids {
 
@@ -88,7 +87,7 @@ public class FabricClockworkFluids {
                     .register();
 
     public static FluidBuilder<SimpleFlowableFluid.Flowing, CreateRegistrate> frostingFluid(String name) {
-        return ClockWorkMod.REGISTRATE.fluid(name, ClockWorkMod.asResource("fluid/" + name + "_still"), ClockWorkMod.asResource("fluid/" + name + "_flow"));
+        return ClockworkMod.INSTANCE.getREGISTRATE().fluid(name, ClockworkMod.INSTANCE.asResource("fluid/" + name + "_still"), ClockworkMod.INSTANCE.asResource("fluid/" + name + "_flow"));
     }
     public static void register() {}
 

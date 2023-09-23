@@ -4,17 +4,16 @@ import com.simibubi.create.foundation.data.AssetLookup;
 import com.simibubi.create.foundation.data.SharedProperties;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import net.minecraft.world.level.material.MaterialColor;
-import org.valkyrienskies.clockwork.ClockWorkMod;
+import org.valkyrienskies.clockwork.ClockworkMod;
 //import org.valkyrienskies.clockwork.forge.content.contraptions.combustion_engine.ForgeCombustionEngineBlock;
 
 import static com.simibubi.create.foundation.data.ModelGen.customItemModel;
 import static com.simibubi.create.foundation.data.TagGen.pickaxeOnly;
-import static org.valkyrienskies.clockwork.ClockWorkMod.REGISTRATE;
 
 public class ForgeClockworkBlocks {
 
     static {
-        REGISTRATE.creativeModeTab(() -> ClockWorkMod.BASE_CREATIVE_TAB);
+        ClockworkMod.INSTANCE.getREGISTRATE().creativeModeTab(() -> ClockworkMod.INSTANCE.getBASE_CREATIVE_TAB());
     }
 
     //////// Propellor Bearing ////////

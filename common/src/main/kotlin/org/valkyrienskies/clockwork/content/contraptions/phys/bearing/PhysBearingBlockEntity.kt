@@ -1,0 +1,655 @@
+package org.valkyrienskies.clockwork.content.contraptions.phys.bearing
+
+import com.simibubi.create.AllSoundEvents
+import com.simibubi.create.content.contraptions.AbstractContraptionEntity
+import com.simibubi.create.content.contraptions.AssemblyException
+import com.simibubi.create.content.contraptions.ControlledContraptionEntity
+import com.simibubi.create.content.contraptions.IDisplayAssemblyExceptions
+import com.simibubi.create.content.contraptions.bearing.BearingBlock
+import com.simibubi.create.content.contraptions.bearing.IBearingBlockEntity
+import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
+import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour
+import com.simibubi.create.foundation.item.TooltipHelper
+import com.simibubi.create.foundation.utility.AngleHelper
+import com.simibubi.create.foundation.utility.ServerSpeedProvider
+import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.TextComponent
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.util.Mth
+import net.minecraft.world.level.block.entity.BlockEntityType
+import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.properties.BlockStateProperties
+import org.joml.*
+import org.valkyrienskies.clockwork.ClockworkSounds
+import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingCreateData
+import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingData
+import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingUpdateData
+import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
+import org.valkyrienskies.clockwork.platform.api.ContraptionController
+import org.valkyrienskies.clockwork.platform.api.ContraptionController.LockedMode
+import org.valkyrienskies.clockwork.util.EaseHelper.easeInOutSine
+import org.valkyrienskies.clockwork.util.EaseHelper.easeOutBounce
+import org.valkyrienskies.clockwork.util.assemble.GlueAssembler.collectGlued
+import org.valkyrienskies.core.api.ships.ServerShip
+import org.valkyrienskies.core.api.ships.Ship
+import org.valkyrienskies.core.apigame.constraints.*
+import org.valkyrienskies.core.impl.datastructures.DenseBlockPosSet
+import org.valkyrienskies.core.impl.game.ships.ShipDataCommon
+import org.valkyrienskies.core.impl.game.ships.ShipTransformImpl.Companion.create
+import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
+import org.valkyrienskies.mod.common.dimensionId
+import org.valkyrienskies.mod.common.getShipObjectManagingPos
+import org.valkyrienskies.mod.common.isBlockInShipyard
+import org.valkyrienskies.mod.common.shipObjectWorld
+import org.valkyrienskies.mod.common.util.toJOMLD
+import java.lang.Math
+
+class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) :
+    GeneratingKineticBlockEntity(type, pos, state), IBearingBlockEntity,
+    IDisplayAssemblyExceptions, ContraptionController {
+    var movementMode: ScrollOptionBehaviour<LockedMode>? = null
+    var shouldRefresh = false
+    protected var bearingAngle = 0f
+    var isRunning = false
+        protected set
+    var assembleNextTick = false
+    protected var clientAngleDiff = 0f
+    protected var lastException: AssemblyException? = null
+    protected var disassembleWhenPossible = false
+    private var prevAngle = 0f
+    private var shiptraptionID = NO_SHIPTRAPTION_ID
+    private var bearingID: Int? = null
+    var coreAngle = 0f
+    var previousCoreAngle = 0f
+    var opening = false
+    var open = false
+    var closing = false
+    private var openProgress = 0f
+    private val closeProgress = 0f
+    private var inOutCorner = 0f
+    private var cornerShrinking = false
+
+    init {
+        setLazyTickRate(3)
+    }
+
+    override fun isWoodenTop(): Boolean {
+        return false
+    }
+
+    override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
+        super.addBehaviours(behaviours)
+        movementMode = ScrollOptionBehaviour(
+            LockedMode::class.java, TextComponent("Locked or Unlocked"),
+            this, movementModeSlot
+        )
+        movementMode!!.requiresWrench()
+        behaviours.add(movementMode!!)
+    }
+
+    override fun remove() {
+//        if (!level.isClientSide)
+//            disassemble();
+        super.remove()
+    }
+
+    public override fun write(compound: CompoundTag, clientPacket: Boolean) {
+        compound.putBoolean("Running", isRunning)
+        compound.putFloat("Angle", bearingAngle)
+        if (bearingID != null) {
+            compound.putInt("BearingID", bearingID!!)
+        }
+        if (shiptraptionID != NO_SHIPTRAPTION_ID) {
+            compound.putLong("ShiptraptionID", shiptraptionID)
+        }
+        AssemblyException.write(compound, lastException)
+        compound.putBoolean("Open", open)
+        super.write(compound, clientPacket)
+    }
+
+    override fun read(compound: CompoundTag, clientPacket: Boolean) {
+        if (wasMoved) {
+            super.read(compound, clientPacket)
+            return
+        }
+        val angleBefore = bearingAngle
+        open = compound.getBoolean("Open")
+        isRunning = compound.getBoolean("Running")
+        bearingAngle = compound.getFloat("Angle")
+        lastException = AssemblyException.read(compound)
+        if (compound.contains("BearingID")) {
+            bearingID = compound.getInt("BearingID")
+        }
+        if (compound.contains("ShiptraptionID")) {
+            shiptraptionID = compound.getLong("ShiptraptionID")
+        }
+        if (isRunning) {
+            if (shiptraptionID == NO_SHIPTRAPTION_ID) {
+                clientAngleDiff = AngleHelper.getShortestAngleDiff(angleBefore.toDouble(), bearingAngle.toDouble())
+                bearingAngle = angleBefore
+            }
+        } else {
+            shiptraptionID = NO_SHIPTRAPTION_ID
+        }
+        shouldRefresh = true
+        super.read(compound, clientPacket)
+        if (!clientPacket) return
+    }
+
+    fun getCoreOffset(partialTicks: Float): Float {
+        return if (!isRunning) {
+            0f
+        } else Math.sin(easeInOutSine(inOutCorner).toDouble()).toFloat() / 5f
+    }
+
+    fun getFlapRotOffset(partialTicks: Float): Float {
+        if (!isRunning) {
+            return 0f
+        } else if (opening) {
+            return Mth.lerp(easeOutBounce(openProgress).toDouble(), 0.0, 70.0).toFloat()
+        }
+        return 70f + Math.sin(inOutCorner.toDouble()).toFloat()
+    }
+
+    fun getCornerHorizontalOffset(partialTicks: Float): Float {
+        if (!isRunning) {
+            return 0f
+        } else if (opening) {
+            return Mth.lerp(
+                easeInOutSine(openProgress).toDouble(), 0.0,
+                (3f / 16f + Math.sin(easeInOutSine(inOutCorner).toDouble()).toFloat() / 16f).toDouble()
+            ).toFloat()
+        }
+        return 3f / 16f + Math.sin(easeInOutSine(inOutCorner).toDouble()).toFloat() / 16f
+    }
+
+    fun getCornerVerticalOffset(partialTicks: Float): Float {
+        if (!isRunning) {
+            return 0f
+        } else if (opening) {
+            return Mth.lerp(
+                easeInOutSine(openProgress).toDouble(), 0.0,
+                (1f / 16f + Math.sin(easeInOutSine(inOutCorner).toDouble()).toFloat() / 16f).toDouble()
+            ).toFloat()
+        }
+        return 1f / 16f + Math.sin(easeInOutSine(inOutCorner).toDouble()).toFloat() / 16f
+    }
+
+    override fun getInterpolatedAngle(partialTicks: Float): Float {
+        var partialTicks = partialTicks
+        if (isVirtual) return Mth.lerp(partialTicks + .5f, prevAngle, bearingAngle)
+        if (shiptraptionID == NO_SHIPTRAPTION_ID || !isRunning) partialTicks = 0f
+        return Mth.lerp(partialTicks, bearingAngle, bearingAngle + angularSpeed)
+    }
+
+    fun getInterpolatedCoreAngle(partialTicks: Float): Float {
+        previousCoreAngle = coreAngle
+        coreAngle++
+        if (coreAngle == 360f) {
+            coreAngle = 0f
+        }
+        return if (isVirtual) Mth.lerp(partialTicks + .5f, previousCoreAngle, coreAngle) else Mth.lerp(
+            partialTicks,
+            coreAngle,
+            coreAngle + 4f
+        )
+    }
+
+    override fun onSpeedChanged(prevSpeed: Float) {
+        super.onSpeedChanged(prevSpeed)
+        if (shiptraptionID != NO_SHIPTRAPTION_ID && Math.signum(prevSpeed) != Math.signum(getSpeed()) && prevSpeed != 0f) {
+//            movedContraption.getContraption()
+//                    .stop(level);
+        }
+        //todo : stop shiptraption
+    }
+
+    val angularSpeed: Float
+        get() {
+            var speed = convertToAngular(if (isWindmill) generatedSpeed else getSpeed())
+            if (getSpeed() == 0f) speed = 0f
+            if (level!!.isClientSide) {
+                speed *= ServerSpeedProvider.get()
+                speed += clientAngleDiff / 3f
+            }
+            return speed
+        }
+
+    override fun getLastAssemblyException(): AssemblyException? {
+        return lastException
+    }
+
+    protected val isWindmill: Boolean
+        protected get() = false
+
+    override fun getBlockPosition(): BlockPos {
+        return worldPosition
+    }
+
+    fun assemble() {
+        if (level!!.getBlockState(worldPosition)
+                .block !is BearingBlock
+        ) return
+        val direction = blockState.getValue(BearingBlock.FACING)
+        val center = worldPosition.relative(direction)
+        val selection: DenseBlockPosSet?
+        try {
+            selection = collectGlued(level!!, center)
+            lastException = null
+        } catch (e: AssemblyException) {
+            lastException = e
+            sendData()
+            return
+        }
+        if (selection == null) return
+        val shiptraption = createNewShipWithBlocks(
+            center, selection,
+            (level as ServerLevel?)!!
+        )
+
+//        AllSoundEvents.CONTRAPTION_ASSEMBLE.playOnServer(level, worldPosition);
+        ClockworkSounds.PHYSICS_INFUSER_LIGHTNING.playOnServer(level, worldPosition)
+        shiptraptionID = shiptraption.id
+        if (level!!.isClientSide) {
+            return
+        }
+        //bearing data
+        val pos: Vector3dc = worldPosition.toJOMLD()
+        val axis: Vector3dc = direction.normal.toJOMLD()
+        val shipOn: Ship? = level.getShipObjectManagingPos(worldPosition)
+        var otherShipID: Long =
+            (level as ServerLevel).shipObjectWorld.dimensionToGroundBodyIdImmutable[level!!.dimensionId]!!.toLong()
+        if (shipOn != null) {
+            otherShipID = shipOn.id
+        }
+        val rotationQuaternion: Quaterniond = when (direction) {
+            Direction.DOWN -> {
+                Quaterniond(AxisAngle4d(Math.PI, Vector3d(1.0, 0.0, 0.0)))
+            }
+
+            Direction.NORTH -> {
+                Quaterniond(AxisAngle4d(Math.PI, Vector3d(0.0, 1.0, 0.0))).mul(
+                    Quaterniond(
+                        AxisAngle4d(
+                            Math.PI / 2.0, Vector3d(1.0, 0.0, 0.0)
+                        )
+                    )
+                ).normalize()
+            }
+
+            Direction.EAST -> {
+                Quaterniond(AxisAngle4d(0.5 * Math.PI, Vector3d(0.0, 1.0, 0.0))).mul(
+                    Quaterniond(
+                        AxisAngle4d(
+                            Math.PI / 2.0, Vector3d(1.0, 0.0, 0.0)
+                        )
+                    )
+                ).normalize()
+            }
+
+            Direction.SOUTH -> {
+                Quaterniond(AxisAngle4d(Math.PI / 2.0, Vector3d(1.0, 0.0, 0.0))).normalize()
+            }
+
+            Direction.WEST -> {
+                Quaterniond(AxisAngle4d(1.5 * Math.PI, Vector3d(0.0, 1.0, 0.0))).mul(
+                    Quaterniond(
+                        AxisAngle4d(
+                            Math.PI / 2.0, Vector3d(1.0, 0.0, 0.0)
+                        )
+                    )
+                ).normalize()
+            }
+
+            else -> {
+
+                // UP or null
+                Quaterniond()
+            }
+        }
+        val posInOwnerShip: Vector3dc =
+            worldPosition.relative(blockState.getValue(BlockStateProperties.FACING), 1).toJOMLD().add(0.5, 0.5, 0.5)
+        var posInWorld: Vector3dc? = shiptraption.transform.positionInWorld // posInOwnerShip;
+        var rotInWorld: Quaterniondc = Quaterniond()
+        var scaling: Vector3dc = Vector3d(1.0, 1.0, 1.0)
+        val shipChunkX = shiptraption.chunkClaim.xMiddle
+        val shipChunkZ = shiptraption.chunkClaim.zMiddle
+        val centerInShip: Vector3dc = Vector3d(
+            (
+                    (shipChunkX shl 4) + (center.x and 15)).toDouble(),
+            center.y.toDouble(),
+            (
+                    (shipChunkZ shl 4) + (center.z and 15)
+                    ).toDouble()
+        )
+        if (shipOn != null) {
+            scaling = shipOn.transform.shipToWorldScaling
+            val offset: Vector3dc = shiptraption.inertiaData.centerOfMassInShip.sub(centerInShip, Vector3d())
+            posInWorld =
+                shipOn.transform.shipToWorld.transformPosition(posInOwnerShip.add(offset, Vector3d()), Vector3d())
+            rotInWorld = shipOn.transform.shipToWorldRotation
+        }
+        (shiptraption as ShipDataCommon).transform = create(
+            posInWorld!!, shiptraption.inertiaData.centerOfMassInShip, rotInWorld, scaling
+        )
+        val bearingPos: Vector3dc = centerInShip.add(0.5, 0.5, 0.5, Vector3d())
+        val constraint =
+            VSAttachmentConstraint(shiptraptionID, otherShipID, 1e-10, bearingPos, posInOwnerShip, 1e10, 0.0)
+        val hingeOrientation: Quaterniondc = rotationQuaternion.mul(
+            Quaterniond(
+                AxisAngle4d(
+                    Math.toRadians(90.0), 0.0, 0.0, 1.0
+                )
+            ), Quaterniond()
+        ).normalize()
+        val hingeConstraint =
+            VSHingeOrientationConstraint(shiptraptionID, otherShipID, 1e-8, hingeOrientation, hingeOrientation, 1e10)
+
+        // Add position damping to make the hinge more stable
+        // VSPosDampingConstraint posDampingConstraint = new VSPosDampingConstraint(shiptraptionID, otherShipID, 1e-10, posInBearingContraption, posInOwnerShip, 1e10, 1e-2);
+
+        // Add rotation damping to make the hinge more stable
+        // VSRotDampingConstraint perpendicularRotDampingConstraint = new VSRotDampingConstraint(shiptraptionID, otherShipID, 1e-10, hingeOrientation, hingeOrientation, 1e10, 1e-2, VSRotDampingAxes.ALL_AXES);
+        val constraintID: VSConstraintId =
+            (level as ServerLevel).shipObjectWorld.createNewConstraint(constraint) ?: return
+        val hingeID: VSConstraintId =
+            (level as ServerLevel).shipObjectWorld.createNewConstraint(hingeConstraint) ?: return
+        // Integer posDamperID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).createNewConstraint(posDampingConstraint);
+        // Integer rotDamperID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).createNewConstraint(perpendicularRotDampingConstraint);
+        val contraptionConstraint = VSConstraintAndId(constraintID, constraint)
+        val hingeContraptionConstraint = VSConstraintAndId(hingeID, hingeConstraint)
+        // VSConstraintAndId posDampingContraptionConstraint = new VSConstraintAndId(posDamperID, posDampingConstraint);
+        // VSConstraintAndId rotDampingContraptionConstraint = new VSConstraintAndId(rotDamperID, perpendicularRotDampingConstraint);
+        val data = PhysBearingCreateData(
+            pos,
+            axis,
+            bearingAngle.toDouble(),
+            getSpeed(),
+            movementMode!!.get() == LockedMode.LOCKED,
+            shiptraptionID,
+            contraptionConstraint,
+            hingeContraptionConstraint,
+            null,
+            null
+        )
+        if (!level!!.isClientSide) {
+            bearingID = BearingController.getOrCreate(shiptraption)!!.addPhysBearing(data)
+        }
+        isRunning = true
+        bearingAngle = 0f
+        sendData()
+        updateGeneratedRotation()
+    }
+
+    override fun destroy() {
+        if (level != null && bearingID != null) {
+            if (!level!!.isClientSide) {
+                val ship: ServerShip? =
+                    (level as ServerLevel).shipObjectWorld.allShips.getById(shiptraptionID)
+                if (ship != null) {
+                    val controller: BearingController = BearingController.getOrCreate(ship)!!
+                    val attachID: Int = controller.bearingData[bearingID]!!.attachID ?: return
+                    if (attachID != null) {
+                        (level as ServerLevel).shipObjectWorld.removeConstraint(attachID)
+                    }
+                    val hingeID: Int = controller.bearingData[bearingID]!!.hingeID ?: return
+                    if (hingeID != null) {
+                        (level as ServerLevel).shipObjectWorld.removeConstraint(hingeID)
+                    }
+                    controller.removePhysBearing(bearingID!!)
+                }
+            }
+        }
+    }
+
+    fun disassemble() {
+        if (!isRunning && shiptraptionID == NO_SHIPTRAPTION_ID) return
+        bearingAngle = 0f
+        if (shiptraptionID != NO_SHIPTRAPTION_ID) {
+            val ship: ServerShip? =
+                (level as ServerLevel).shipObjectWorld.allShips.getById(shiptraptionID)
+            if (ship != null) {
+//
+//                BearingController controller = BearingController.getOrCreate(ship);
+//                Direction direction = getBlockState().getValue(BearingBlock.FACING);
+//                Vector3dc inWorld = VectorConversionsMCKt.toJOMLD(worldPosition.relative(direction, 1));
+//                if (!controller.canDisassemble()) {
+//                    disassembleWhenPossible = true;
+//                    controller.setAligning(true, shiptraptionID);
+//                } else {
+//                    shipDisassemble();
+//                }
+
+//                controller.removePhysBearing(bearingID);
+            }
+            AllSoundEvents.CONTRAPTION_DISASSEMBLE.playOnServer(level, worldPosition)
+            //todo finish disassembly
+            return
+        }
+        shiptraptionID = NO_SHIPTRAPTION_ID
+        isRunning = false
+        updateGeneratedRotation()
+        assembleNextTick = false
+        sendData()
+    }
+
+    private fun shipDisassemble() {
+        if (shiptraptionID == NO_SHIPTRAPTION_ID) {
+            return
+        }
+        if (level!!.isClientSide) return
+        val ship: ServerShip =
+            (level as ServerLevel).shipObjectWorld.allShips.getById(shiptraptionID)
+                ?: return
+        if (bearingID != null) {
+            val controller: BearingController = BearingController.getOrCreate(ship)!!
+            val direction = blockState.getValue(BearingBlock.FACING)
+            val inWorld: Vector3dc = worldPosition.relative(direction, 1).toJOMLD()
+            if (!controller.canDisassemble()) {
+                return
+            }
+        }
+    }
+
+    override fun tick() {
+        super.tick()
+        prevAngle = bearingAngle
+        if (level!!.isClientSide) clientAngleDiff /= 2f
+        if (!level!!.isClientSide && assembleNextTick) {
+            assembleNextTick = false
+            if (isRunning) {
+//                disassemble();
+//                return;
+            } else {
+                assemble()
+            }
+        }
+        if (shouldRefresh) {
+            if (!level!!.isClientSide) {
+                val ship: ServerShip? =
+                    (level as ServerLevel).shipObjectWorld.allShips.getById(shiptraptionID)
+                if (ship != null && bearingID != null) {
+                    val bearingData: PhysBearingData? =
+                        BearingController.getOrCreate(ship)!!.bearingData[bearingID]
+                    if (bearingData != null) {
+                        val (shipId0, _, compliance, localPos0, localPos1, maxForce, fixedDistance) = bearingData.attachConstraint!!
+                        val (shipId01, _, compliance1, localRot0, localRot1, maxTorque) = bearingData.hingeConstraint!!
+
+                        //todo TEMP, REPLACE ONCE TRIODE FIXES
+                        val shipOn: Ship? = (level as ServerLevel).getShipObjectManagingPos(worldPosition)
+                        var shipOnID: Long =
+                            (level as ServerLevel).shipObjectWorld.dimensionToGroundBodyIdImmutable[level!!.dimensionId]!!
+                        if (shipOn != null) {
+                            shipOnID = shipOn.id
+                        } else {
+                            // The ship was deleted, delete this bearing
+                            if (level!!.isBlockInShipyard(worldPosition)) {
+                                isRunning = false
+                                assembleNextTick = false
+                                shouldRefresh = false
+                                return
+                            }
+                        }
+                        val attachConstraint = VSAttachmentConstraint(
+                            shipId0, shipOnID,
+                            compliance,
+                            localPos0, localPos1, maxForce, fixedDistance
+                        )
+                        val hingeConstraint = VSHingeOrientationConstraint(
+                            shipId01, shipOnID,
+                            compliance1, localRot0, localRot1, maxTorque
+                        )
+                        //todo
+                        var createdAttachment = false
+                        var createdHinge = false
+                        if (attachConstraint != null) {
+                            val attachID: VSConstraintId? =
+                                (level as ServerLevel).shipObjectWorld.createNewConstraint(attachConstraint)
+                            if (attachID != null) {
+                                BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.attachConstraint =
+                                    attachConstraint
+                                BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.attachID = attachID
+                                createdAttachment = true
+                            }
+                        }
+                        if (hingeConstraint != null) {
+                            val hingeID: VSConstraintId? =
+                                (level as ServerLevel).shipObjectWorld.createNewConstraint(hingeConstraint)
+                            if (hingeID != null) {
+                                BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.hingeConstraint =
+                                    hingeConstraint
+                                BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.hingeID = hingeID
+                                createdHinge = true
+                            }
+                        }
+                        if (createdHinge && createdAttachment) {
+                            shouldRefresh = false
+                        }
+                    }
+                }
+            }
+        }
+        if (inOutCorner < 1 && !cornerShrinking) {
+            inOutCorner += 0.0075f
+        } else if (inOutCorner >= 1) {
+            cornerShrinking = true
+        }
+        if (inOutCorner > 0 && cornerShrinking) {
+            inOutCorner -= 0.0075f
+        } else if (inOutCorner <= 0) {
+            cornerShrinking = false
+        }
+        if (isRunning && !open && !opening) {
+            opening = true
+        }
+        if (opening && isRunning && openProgress < 1) {
+            openProgress += 0.05f
+        } else if (openProgress >= 1) {
+            opening = false
+            open = true
+            openProgress = 1f
+        }
+        if (!isRunning) return
+        if (shiptraptionID != NO_SHIPTRAPTION_ID) {
+            val angularSpeed = angularSpeed
+            val newAngle = bearingAngle + angularSpeed
+            bearingAngle = (newAngle % 360)
+        }
+        if (isRunning) {
+            if (!level!!.isClientSide) {
+                if (shiptraptionID != NO_SHIPTRAPTION_ID) {
+                    val ship: ServerShip? =
+                        (level as ServerLevel).shipObjectWorld.allShips.getById(shiptraptionID)
+                    if (ship != null) {
+                        if (BearingController.getOrCreate(ship)!!.bearingData[bearingID] == null) {
+                            return
+                        }
+//                        val hingeOrientationConstraint = BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.hingeConstraint
+//                        val hingeTargetConstraint = BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.angleConstraint
+                        //                        if (BearingController.getOrCreate(ship).bearingData.get(bearingID).hingeID == null) {
+//                            return;
+//                        }
+//                        if (movementMode.get() == LockedMode.LOCKED) {
+//                            Vector3dc facing = VectorConversionsMCKt.toJOMLD(getBlockState().getValue(BlockStateProperties.FACING).getNormal());
+//                            Quaterniond localRot0 = new Quaterniond(hingeConstraint.getLocalRot0());
+//                            localRot0 = localRot0.premul(new Quaterniond(new AxisAngle4d(Math.toRadians(angle), facing))).normalize();
+//                            angleConstraint = new VSFixedOrientationConstraint(hingeConstraint.getShipId0(), hingeConstraint.getShipId1(), 1e-10, localRot0, hingeConstraint.getLocalRot1(), 1e8);
+//                            VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).updateConstraint(BearingController.getOrCreate(ship).bearingData.get(bearingID).hingeID, angleConstraint);
+//                        } else if (movementMode.get() == LockedMode.UNLOCKED) {
+//                            hingeConstraint = BearingController.getOrCreate(ship).bearingData.get(bearingID).hingeConstraint;
+//                            VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).updateConstraint(BearingController.getOrCreate(ship).bearingData.get(bearingID).hingeID, hingeConstraint);
+//
+//                        }
+                        val data = PhysBearingUpdateData(
+                            bearingAngle.toDouble(), getSpeed(),
+                            movementMode!!.get() == LockedMode.LOCKED, null, null
+                        )
+                        BearingController.getOrCreate(ship)!!.updatePhysBearing(bearingID!!, data)
+                    }
+                }
+            }
+        }
+        if (disassembleWhenPossible) {
+            shipDisassemble()
+        }
+        applyRotation()
+    }
+
+    val isNearInitialAngle: Boolean
+        get() = Math.abs(bearingAngle) < 45 || Math.abs(bearingAngle) > 7 * 45
+
+    override fun lazyTick() {
+        super.lazyTick()
+        if (shiptraptionID != NO_SHIPTRAPTION_ID && !level!!.isClientSide) sendData()
+    }
+
+    protected fun applyRotation() {}
+    override fun attach(contraption: ControlledContraptionEntity) {}
+    override fun onStall() {
+        if (!level!!.isClientSide) sendData()
+    }
+
+    override fun isValid(): Boolean {
+        return !isRemoved
+    }
+
+    override fun isAttachedTo(contraption: AbstractContraptionEntity): Boolean {
+        return false
+    }
+
+    override fun addToTooltip(tooltip: List<Component>, isPlayerSneaking: Boolean): Boolean {
+        if (super.addToTooltip(tooltip, isPlayerSneaking)) return true
+        if (isPlayerSneaking) return false
+        if (!isWindmill && getSpeed() == 0f) return false
+        if (isRunning) return false
+        val state = blockState
+        if (state.block !is BearingBlock) return false
+        val attachedState = level!!.getBlockState(worldPosition.relative(state.getValue(BearingBlock.FACING)))
+        if (attachedState.material
+                .isReplaceable
+        ) return false
+        TooltipHelper.addHint(tooltip, "hint.empty_bearing")
+        return true
+    }
+
+    override fun setAngle(forcedAngle: Float) {
+        bearingAngle = forcedAngle
+    }
+
+    override val isShipContraptionController: Boolean
+        get() = true
+    override val connectedShip: Ship?
+        get() = null
+
+    fun getAngle(): Float {
+        return bearingAngle
+    }
+
+    companion object {
+        const val NO_SHIPTRAPTION_ID: Long = -1
+    }
+}

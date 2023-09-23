@@ -8,7 +8,7 @@ import com.simibubi.create.foundation.utility.RegisteredObjects;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.ForgeConfigSpec;
-import org.valkyrienskies.clockwork.ClockWorkMod;
+import org.valkyrienskies.clockwork.ClockworkMod;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +25,7 @@ public class CWStress extends ConfigBase implements BlockStressValues.IStressVal
                 .push("impact");
         BlockStressDefaults.DEFAULT_IMPACTS.forEach((r, i) -> {
             if (r.getNamespace()
-                    .equals(ClockWorkMod.MOD_ID))
+                    .equals(ClockworkMod.MOD_ID))
                 getImpacts().put(r, builder.define(r.getPath(), i));
         });
         builder.pop();
@@ -34,7 +34,7 @@ public class CWStress extends ConfigBase implements BlockStressValues.IStressVal
                 .push("capacity");
         BlockStressDefaults.DEFAULT_CAPACITIES.forEach((r, i) -> {
             if (r.getNamespace()
-                    .equals(ClockWorkMod.MOD_ID))
+                    .equals(ClockworkMod.MOD_ID))
                 getCapacities().put(r, builder.define(r.getPath(), i));
         });
         builder.pop();

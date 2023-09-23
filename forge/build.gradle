@@ -1,27 +1,34 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        // Make sure this version matches the one included in Kotlin for Forge
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10'
+        // OPTIONAL Gradle plugin for Kotlin Serialization
+        classpath 'org.jetbrains.kotlin:kotlin-serialization:1.6.10'
+    }
+}
+
 plugins {
     id "com.github.johnrengelman.shadow" version "7.1.2"
+    id "com.matthewprenger.cursegradle"
+    id "com.modrinth.minotaur"
 }
+
+apply from: '../gradle-scripts/publish-curseforge.gradle'
 
 architectury {
     platformSetupLoomIde()
     forge()
 }
 
-loom {
-    accessWidenerPath = project(":common").loom.accessWidenerPath
-
-    forge {
-        convertAccessWideners = true
-        extraAccessWideners.add loom.accessWidenerPath.get().asFile.name
-    }
-}
-
 configurations {
     common
     shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
     compileClasspath.extendsFrom common
-    runtimeClasspath.extendsFrom common
-    developmentForge.extendsFrom common
+            runtimeClasspath.extendsFrom common
+            developmentForge.extendsFrom common
 }
 
 repositories {
@@ -45,22 +52,16 @@ dependencies {
     common(project(path: ":common", configuration: "namedElements")) { transitive = false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 
-    include(modApi("dev.architectury:architectury:${rootProject.architectury_version}"))
+    include(modApi("dev.architectury:architectury-forge:${rootProject.architectury_version}"))
 
     //VS2
     modApi("org.valkyrienskies:valkyrienskies-118-forge:${rootProject.vs2_version}") { transitive = false }
-    implementation("org.valkyrienskies.core:api:1.1.0+2c0be2ddb5") { transitive = false }
+    implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") { transitive = false }
 
     // Create and its dependencies
     modImplementation("com.simibubi.create:create-${minecraft_version}:${create_forge_version}:slim") { transitive = false }
     modImplementation("com.tterrag.registrate:Registrate:${registrate_forge_version}")
     modImplementation("com.jozufozu.flywheel:flywheel-forge-${flywheel_forge_minecraft_version}:${flywheel_forge_version}")
-
-    // Development QOL
-    //modLocalRuntime("mezz.jei:jei-${minecraft_version}:${jei_forge_version}")
-
-    //Create big cannons
-    // modLocalRuntime('curse.maven:create-big-cannons-646668:4033862') is create .5.0.e not g
 
     // JOML
     compileOnly("org.joml:joml:1.10.4")
@@ -68,10 +69,6 @@ dependencies {
 
     // Add Kotlin for Forge.
     implementation(forgeRuntimeLibrary('curse.maven:kotlinforforge-351264:3925887'))
-
-
-    // if you would like to add integration with JEI, uncomment this line.
-//    modCompileOnly("mezz.jei:jei-${minecraft_version}:${jei_forge_version}:api")
 
     // CC Tweaked
     modCompileOnly("curse.maven:cctweaked-282001:4061947")
@@ -102,6 +99,11 @@ loom {
     }
 }
 
+tasks.withType(JavaCompile).configureEach {
+    // Minecraft 1.18 (1.18-pre2) upwards uses Java 17.
+    it.options.release = 17
+}
+
 shadowJar {
     exclude "fabric.mod.json"
     exclude "architectury.common.json"
@@ -112,8 +114,8 @@ shadowJar {
 
 remapJar {
     input.set shadowJar.archiveFile
-    dependsOn shadowJar
-    classifier null
+            dependsOn shadowJar
+            classifier null
 }
 
 jar {
@@ -123,7 +125,7 @@ jar {
 sourcesJar {
     def commonSources = project(":common").sourcesJar
     dependsOn commonSources
-    from commonSources.archiveFile.map { zipTree(it) }
+            from commonSources.archiveFile.map { zipTree(it) }
 }
 
 components.java {

@@ -1,6 +1,10 @@
 plugins {
     id "com.github.johnrengelman.shadow" version "7.1.2"
+    id "com.matthewprenger.cursegradle"
+    id "com.modrinth.minotaur"
 }
+
+apply from: '../gradle-scripts/publish-curseforge.gradle'
 
 architectury {
     platformSetupLoomIde()
@@ -15,8 +19,8 @@ configurations {
     common
     shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
     compileClasspath.extendsFrom common
-    runtimeClasspath.extendsFrom common
-    developmentFabric.extendsFrom common
+            runtimeClasspath.extendsFrom common
+            developmentFabric.extendsFrom common
 }
 
 repositories {
@@ -41,11 +45,11 @@ dependencies {
     // dependencies
     modImplementation("net.fabricmc.fabric-api:fabric-api:${fabric_api_version}")
 
-    include(modApi("dev.architectury:architectury:${rootProject.architectury_version}"))
+    include(modApi("dev.architectury:architectury-fabric:${rootProject.architectury_version}"))
 
     //VS2
     modApi("org.valkyrienskies:valkyrienskies-118-fabric:${rootProject.vs2_version}") { transitive = false }
-    implementation("org.valkyrienskies.core:api:1.1.0+2c0be2ddb5") { transitive = false }
+    implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") { transitive = false }
 
     // Kotlin
     modImplementation("net.fabricmc:fabric-language-kotlin:1.8.5+kotlin.1.7.20")
@@ -72,22 +76,6 @@ dependencies {
     modLocalRuntime("curse.maven:smooth-boot-415758:3692365")
     modLocalRuntime("maven.modrinth:sodium:mc1.18.2-0.4.1")
     modLocalRuntime("com.moandjiezana.toml:toml4j:0.7.2")
-
-    // Recipe Viewers - Create Fabric supports JEI, REI, and EMI.
-    // See root gradle.properties to choose which to use at runtime.
-//    switch (fabric_recipe_viewer.toLowerCase(Locale.ROOT)) {
-//        case "jei": modLocalRuntime("mezz.jei:jei-${minecraft_version}-fabric:${jei_fabric_version}"); break
-//        case "rei": modLocalRuntime("me.shedaniel:RoughlyEnoughItems-fabric:${rei_version}"); break
-//        case "emi": modLocalRuntime("dev.emi:emi:${emi_version}"); break
-//        case "disabled": break
-//        default: println("Unknown recipe viewer specified: ${fabric_recipe_viewer}. Must be JEI, REI, EMI, or disabled.")
-//    }
-    // if you would like to add integration with them, uncomment them here.
-//    modCompileOnly("mezz.jei:jei-${minecraft_version}-fabric:${jei_fabric_version}")
-//    modCompileOnly("mezz.jei:jei-${minecraft_version}-common:${jei_fabric_version}")
-//    modCompileOnly("me.shedaniel:RoughlyEnoughItems-api-fabric:${rei_version}")
-//    modCompileOnly("me.shedaniel:RoughlyEnoughItems-default-plugin-fabric:${rei_version}")
-//    modCompileOnly("dev.emi:emi:${emi_version}")
 
     // CC Restitched
     modCompileOnly("curse.maven:cc-restitched-462672:3622561")
@@ -120,8 +108,8 @@ shadowJar {
 remapJar {
     injectAccessWidener = true
     input.set shadowJar.archiveFile
-    dependsOn shadowJar
-    classifier null
+            dependsOn shadowJar
+            classifier null
 }
 
 jar {
@@ -131,7 +119,7 @@ jar {
 sourcesJar {
     def commonSources = project(":common").sourcesJar
     dependsOn commonSources
-    from commonSources.archiveFile.map { zipTree(it) }
+            from commonSources.archiveFile.map { zipTree(it) }
 }
 
 components.java {

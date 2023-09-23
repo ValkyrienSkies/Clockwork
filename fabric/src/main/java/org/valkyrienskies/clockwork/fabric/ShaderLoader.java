@@ -5,8 +5,8 @@ import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
-import org.valkyrienskies.clockwork.ClockWorkMod;
-import org.valkyrienskies.clockwork.ClockWorkShaders;
+import org.valkyrienskies.clockwork.ClockworkShaders;
+import org.valkyrienskies.clockwork.ClockworkMod;
 
 public class ShaderLoader {
 
@@ -15,12 +15,12 @@ public class ShaderLoader {
         manager.registerReloadListener(new SimpleSynchronousResourceReloadListener() {
             @Override
             public ResourceLocation getFabricId() {
-                return ClockWorkMod.asResource("shaders");
+                return ClockworkMod.INSTANCE.asResource("shaders");
             }
 
             @Override
             public void onResourceManagerReload(ResourceManager resourceManager) {
-                ClockWorkShaders.reloadShaders(resourceManager);
+                ClockworkShaders.INSTANCE.reloadShaders(resourceManager);
             }
         });
     }
