@@ -20,7 +20,7 @@ object ClockworkInputEvents {
                 val player: Player? = Minecraft.getInstance().player
                 if (player!!.getItemInHand(InteractionHand.MAIN_HAND).item is AreaDesignatorItem) {
                     val item = player.getItemInHand(InteractionHand.MAIN_HAND).item as AreaDesignatorItem
-                    item.onAttack(player)
+                    // item.onAttack(player)
                     return InteractionResult.SUCCESS
                 }
             }
