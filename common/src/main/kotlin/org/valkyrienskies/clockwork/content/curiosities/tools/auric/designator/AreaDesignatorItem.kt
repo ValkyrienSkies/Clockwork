@@ -7,7 +7,6 @@ import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Style
 import net.minecraft.network.chat.TextComponent
-import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.util.Mth
 import net.minecraft.world.InteractionResult
@@ -15,12 +14,8 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.context.UseOnContext
-import net.minecraft.world.level.ClipContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.phys.AABB
-import org.joml.Vector3d
-import org.joml.Vector3dc
 import org.joml.Vector3ic
 import org.joml.primitives.AABBi
 import org.joml.primitives.AABBic
@@ -28,7 +23,6 @@ import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
 import org.valkyrienskies.clockwork.platform.CWItem
-import org.valkyrienskies.core.impl.datastructures.DenseBlockPosSet
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
 import org.valkyrienskies.mod.common.util.toJOML
 import java.util.*
