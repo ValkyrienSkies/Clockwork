@@ -11,10 +11,13 @@ import org.valkyrienskies.mod.common.getShipManagingPos
 
 class AltMeterBlockEntity(typeIn: BlockEntityType<AltMeterBlockEntity>, pos: BlockPos, state: BlockState) :
     SmartBlockEntity(typeIn, pos, state) {
-    private var triggerHeight: Double? = null
+    internal var triggerHeight: Double? = null
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {}
 
     override fun tick() {
+        super.tick()
+        if (level!!.isClientSide) return
+
         // Copy so nullable checks are automated in if statements
         val triggerHeightCopy = triggerHeight
 
