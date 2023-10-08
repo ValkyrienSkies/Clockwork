@@ -14,6 +14,10 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 
 class AltMeterBlock(properties: Properties): Block(properties), IBE<AltMeterBlockEntity> {
+    init {
+        registerDefaultState(stateDefinition.any().setValue(POWERED, false))
+    }
+
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
         for (direction in Direction.entries) {
             level.updateNeighborsAt(pos.relative(direction), this)
