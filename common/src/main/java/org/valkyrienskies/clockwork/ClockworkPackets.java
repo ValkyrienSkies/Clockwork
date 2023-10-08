@@ -2,12 +2,11 @@ package org.valkyrienskies.clockwork;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
+import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.UpdateAltMeterPacket;
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserSyncPacket;
-import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.AreaDesignatorItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.AreaDesignatorSelectionPacket;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket;
@@ -38,6 +37,8 @@ public enum ClockworkPackets {
     // INSERT CLUSTER HANDLING PACKET STUFF HERE
 
     PHYSICSINFUSERUPDATE(PhysicsInfuserSyncPacket.class, PhysicsInfuserSyncPacket::new),
+
+    UPDATE_ALT_METER(UpdateAltMeterPacket.class, UpdateAltMeterPacket::new),
 
     ;
 
