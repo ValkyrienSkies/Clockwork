@@ -1,0 +1,11 @@
+  {
+  "variants": {
+    "powered=true": {
+      "model": "vs_clockwork:block/ballooner/block"
+    },
+    "powered=false": {
+      "model": "vs_clockwork:block/ballooner/block",
+      "y": 180
+    }
+  }
+}

@@ -4,6 +4,7 @@ import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.base.ShaftInstance;
 import com.simibubi.create.content.kinetics.base.ShaftRenderer;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
+import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity;
 import org.valkyrienskies.clockwork.content.generic.ColorBlockEntity;
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEntity;
@@ -71,6 +72,11 @@ public class ClockworkBlockEntities {
     public static final BlockEntityEntry<DeliveryChuteBlockEntity> DELIVERY_CHUTE = ClockworkMod.INSTANCE.getREGISTRATE()
             .blockEntity("delivery_chute", DeliveryChuteBlockEntity::new)
             .validBlocks(ClockworkBlocks.DELIVERY_CHUTE)
+            .register();
+
+    public static final BlockEntityEntry<AltMeterBlockEntity> ALT_METER = ClockworkMod.INSTANCE.getREGISTRATE()
+            .blockEntity("alt_meter", AltMeterBlockEntity::new)
+            .validBlocks(ClockworkBlocks.ALT_METER)
             .register();
 
     //REDSTONE RESISTOR todo: add instance
