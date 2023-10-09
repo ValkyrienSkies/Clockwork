@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.forge.integration.cc_tweaked;
 
+// TODO: Fix this
+/*
 import dan200.computercraft.api.detail.DetailRegistries;
 import dan200.computercraft.api.lua.LuaException;
 import dan200.computercraft.api.lua.LuaFunction;
@@ -174,3 +176,5 @@ public class ForgeCombustionEnginePeripheral extends CombustionEnginePeripheral 
         }
     }
 }
+
+ */

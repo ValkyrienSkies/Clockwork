@@ -26,7 +26,7 @@ public abstract class MixinControlledContraptionEntity extends AbstractContrapti
     @Shadow
     protected float angleDelta;
 
-    @Redirect(method = "shouldActorTrigger", at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, target = "Lcom/simibubi/create/content/contraptions/components/structureMovement/MovementContext;motion:Lnet/minecraft/world/phys/Vec3;"),
+    @Redirect(method = "shouldActorTrigger", at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, target = "Lcom/simibubi/create/content/contraptions/behaviour/MovementContext;motion:Lnet/minecraft/world/phys/Vec3;"),
     remap = false)
     private void redirectPutMotion(MovementContext instance, Vec3 value) {
         BearingContraption bc = (BearingContraption) contraption;
