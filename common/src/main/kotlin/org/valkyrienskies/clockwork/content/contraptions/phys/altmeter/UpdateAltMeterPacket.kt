@@ -6,19 +6,15 @@ import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
 import org.valkyrienskies.clockwork.platform.api.network.ServerNetworkContext
 
 class UpdateAltMeterPacket : C2SCWPacket {
-    private val triggerHeight: Double?
+    private val triggerHeight: Double
     private val pos: BlockPos
 
     constructor(buffer: FriendlyByteBuf) {
-        if (buffer.readBoolean()) {
-            triggerHeight = buffer.readDouble()
-        } else {
-            triggerHeight = null
-        }
+        triggerHeight = buffer.readDouble()
         pos = buffer.readBlockPos()
     }
 
-    constructor(newHeight: Double?, newPos: BlockPos) {
+    constructor(newHeight: Double, newPos: BlockPos) {
         triggerHeight = newHeight
         pos = newPos
     }
@@ -34,10 +30,7 @@ class UpdateAltMeterPacket : C2SCWPacket {
     }
 
     override fun write(buffer: FriendlyByteBuf) {
-        buffer.writeBoolean(triggerHeight != null)
-        if (triggerHeight != null) {
-            buffer.writeDouble(triggerHeight)
-        }
+        buffer.writeDouble(triggerHeight)
         buffer.writeBlockPos(pos)
     }
 }
