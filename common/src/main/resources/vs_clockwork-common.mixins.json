@@ -30,6 +30,7 @@
     "compat.blockentity.MixinCrushingWheelControllerTileEntity",
     "compat.blockentity.MixinEjectorTileEntity",
     "compat.blockentity.MixinEncasedFanTileEntity",
+    "compat.behaviour.MixinScrollValueBehaviour",
     "compat.entity.MixinAbstractContraptionEntity",
     "compat.entity.MixinCarriageContraptionEntity",
     "compat.entity.MixinControlledContraptionEntity",

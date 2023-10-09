@@ -23,6 +23,7 @@ import org.joml.primitives.LineSegmentf
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.AreaDesignatorItem
+import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit
 import org.valkyrienskies.mod.common.util.toBlockPos
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft
@@ -48,17 +49,17 @@ class AreaDesignatorClusterRenderer {
                 if (player.mainHandItem.`is`(ClockworkItems.AURIC_DESIGNATOR.get())) {
                     //other players
                     val adi = player.mainHandItem.item as AreaDesignatorItem
-                    val clusters: Set<Set<AABBic>> = adi.selectionClusters
+                    val clusters: Set<Set<AABBic>> = adi.selectedArea.selectionClusters
                     for (cluster in clusters) {
                         if (!storedClusters.containsKey(cluster)) {
                             storedClusters[cluster] =
-                                Pair.of(adi.blocksFromCluster(cluster), clusterID + clusterIncrement)
+                                Pair.of(SelectedAreaToolkit.blocksFromCluster(cluster), clusterID + clusterIncrement)
                             clusterIncrement++
                         }
                     }
-                    while (!adi.toStopRendering.isEmpty()) {
-                        ClockworkMod.OUTLINER.remove(adi.toStopRendering[0])
-                        storedClusters.remove(adi.toStopRendering.removeAt(0))
+                    while (adi.selectedArea.toStopRendering.isNotEmpty()) {
+                        ClockworkMod.OUTLINER.remove(adi.selectedArea.toStopRendering[0])
+                        storedClusters.remove(adi.selectedArea.toStopRendering.removeAt(0))
                     }
                     if (minecraft.getCameraEntity() == null) {
                         return

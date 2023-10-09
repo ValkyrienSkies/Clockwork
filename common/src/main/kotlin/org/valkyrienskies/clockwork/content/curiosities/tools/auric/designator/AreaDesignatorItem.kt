@@ -174,6 +174,18 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
             return InteractionResult.SUCCESS
         } else if (this.secondPos == null && this.firstPos != null) {
             this.secondPos = pos
+            if (this.firstPos!!.distance(secondPos) > 500) {
+                player.displayClientMessage(
+                    TextComponent("Area Too Large!").withStyle(
+                        Style.EMPTY.withColor(
+                            ChatFormatting.DARK_PURPLE
+                        )
+                    ), true
+                )
+                this.firstPos = null
+                this.secondPos = null
+                return InteractionResult.FAIL
+            }
             val area: AABBic = AABBi(
                 Math.min(this.firstPos!!.x(), this.secondPos!!.x()), Math.min(
                     this.firstPos!!.y(), this.secondPos!!.y()
@@ -205,6 +217,49 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
                 player.cooldowns.addCooldown(this, 10)
                 return InteractionResult.SUCCESS
             }
+
+            if (this.selectedArea.selectedAreas.size >= 150) {
+                player.displayClientMessage(
+                    TextComponent("This Designator is at selection capacity.").withStyle(
+                        Style.EMPTY.withColor(
+                            ChatFormatting.DARK_PURPLE
+                        )
+                    ), true
+                )
+                world.playSound(
+                    null,
+                    player,
+                    ClockworkSounds.PHYSICS_INFUSER_LIGHTNING.mainEvent!!,
+                    player.soundSource,
+                    0.5f,
+                    pitch
+                )
+                this.animationType = Animation.DUMP
+                player.cooldowns.addCooldown(this, 10)
+                return InteractionResult.SUCCESS
+            }
+
+            if (this.selectedArea.selectionClusters.size >= 20) {
+                player.displayClientMessage(
+                    TextComponent("This Designator is at cluster capacity.").withStyle(
+                        Style.EMPTY.withColor(
+                            ChatFormatting.DARK_PURPLE
+                        )
+                    ), true
+                )
+                world.playSound(
+                    null,
+                    player,
+                    ClockworkSounds.PHYSICS_INFUSER_LIGHTNING.mainEvent!!,
+                    player.soundSource,
+                    0.5f,
+                    pitch
+                )
+                this.animationType = Animation.DUMP
+                player.cooldowns.addCooldown(this, 10)
+                return InteractionResult.SUCCESS
+            }
+
             this.selectedArea.clusterNewArea(area)
             player.displayClientMessage(
                 TextComponent("Area Designated!").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE)),
