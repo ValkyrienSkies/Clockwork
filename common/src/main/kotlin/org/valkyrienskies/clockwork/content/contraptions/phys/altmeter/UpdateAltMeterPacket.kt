@@ -24,6 +24,7 @@ class UpdateAltMeterPacket : C2SCWPacket {
             val be = context.sender.level.getBlockEntity(pos) as AltMeterBlockEntity?
             if (be != null && be.canPlayerUse(context.sender)) {
                 be.triggerHeight = triggerHeight
+                be.notifyUpdate()
             }
         }
         context.setPacketHandled(true)
