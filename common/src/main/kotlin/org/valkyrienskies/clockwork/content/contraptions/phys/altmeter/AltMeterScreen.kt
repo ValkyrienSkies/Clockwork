@@ -6,15 +6,22 @@ import com.simibubi.create.foundation.gui.AllIcons
 import com.simibubi.create.foundation.gui.element.GuiGameElement
 import com.simibubi.create.foundation.gui.widget.AbstractSimiWidget
 import com.simibubi.create.foundation.gui.widget.IconButton
+import com.simibubi.create.foundation.gui.widget.ScrollInput
+import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.TextComponent
+import net.minecraft.network.chat.TranslatableComponent
 import net.minecraft.world.item.ItemStack
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
 import org.valkyrienskies.clockwork.ClockworkPackets
+import kotlin.math.roundToInt
 
 class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen() {
     private val renderedItem: ItemStack = ClockworkBlocks.COMMAND_SEAT.asStack()
     private val background: ClockworkGuiTextures = ClockworkGuiTextures.COMMAND_SEAT
+    private var altitudeInput: ScrollInput? = null
     private var confirmButton: IconButton? = null
+    private var triggerHeight: Int = be.triggerHeight.roundToInt()
 
     override fun init() {
         setWindowSize(background.width, background.height)
@@ -22,6 +29,21 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
         super.init()
         val x = guiLeft
         val y = guiTop
+        run {
+            val ruleX = x + 100
+            val ruleY = y + 18
+            altitudeInput = ScrollInput(
+                ruleX + 2,
+                ruleY + 2,
+                INPUT_VALUE_WIDTH - 4,
+                INPUT_FIELDS_HEIGHT - 4
+            )
+            altitudeInput!!.setState(triggerHeight)
+            altitudeInput!!.titled(TranslatableComponent("sequenced_seat.value.distance"))
+            altitudeInput!!.withRange(-1024, 1024)
+            altitudeInput!!.calling { v: Int -> triggerHeight = v }
+            addRenderableWidget(altitudeInput!!)
+        }
         confirmButton = IconButton(x + background.width - 33, y + background.height - 24, AllIcons.I_CONFIRM)
         confirmButton!!.withCallback<AbstractSimiWidget>(Runnable { onClose() })
         addRenderableWidget(confirmButton!!)
@@ -29,7 +51,7 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
 
     override fun onClose() {
         super.onClose()
-        ClockworkPackets.sendToServer(UpdateAltMeterPacket(be.triggerHeight, be.blockPos))
+        ClockworkPackets.sendToServer(UpdateAltMeterPacket(triggerHeight.toDouble(), be.blockPos))
     }
 
     override fun renderWindow(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
@@ -37,11 +59,63 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
         val y = guiTop
         background.render(ms, x, y, this)
         drawCenteredString(ms, font, title, x + (background.width - 8) / 2, y + 3, 0xFFFFFF)
-        // drawRuleList(ms, x, y, partialTicks)
+        drawRuleList(ms, x, y, partialTicks)
         GuiGameElement.of(renderedItem)
             .at<GuiGameElement.GuiRenderBuilder>((x + background.width + 6).toFloat(),
                 (y + background.height - 56).toFloat(), -200f)
             .scale(5.0)
             .render(ms)
+    }
+
+    private fun drawRuleList(ms: PoseStack, x: Int, y: Int, partialTicks: Float) {
+        val ruleX = x + 38
+        val ruleY = y + 18
+
+        val icon = AllIcons.I_PRIORITY_VERY_HIGH
+
+        drawInputField(ruleX, ruleY, ms, partialTicks, 0)
+
+        val heightStr = triggerHeight.toString()
+        val valueComponent: Component = TextComponent("$heightStr m")
+
+        drawCenteredString(
+            ms,
+            font,
+            valueComponent,
+            ruleX + 62 + INPUT_VALUE_WIDTH / 2,
+            ruleY + (INPUT_FIELDS_HEIGHT - font.lineHeight) / 2 + 1,
+            0xFFFFFF
+        )
+        icon.render(ms, ruleX + 1, ruleY + 1)
+
+        val nameComponent: Component = TranslatableComponent("alt_meter.trigger_height")
+        drawString(
+            ms,
+            font,
+            nameComponent,
+            ruleX + 16,
+            ruleY + (INPUT_FIELDS_HEIGHT - font.lineHeight) / 2 + 1,
+            0xFFFFFF
+        )
+    }
+
+    private fun drawInputField(x: Int, y: Int, ms: PoseStack, partialTicks: Float, i: Int) {
+        background.bind()
+        blit(
+            ms, x - 2, y,
+            INPUT_FIELDS_X,
+            INPUT_FIELDS_Y + i * (INPUT_FIELDS_HEIGHT + INPUT_FIELDS_MARGIN),
+            INPUT_FIELDS_WIDTH,
+            INPUT_FIELDS_HEIGHT
+        )
+    }
+
+    companion object {
+        private const val INPUT_FIELDS_X = 36
+        private const val INPUT_FIELDS_Y = 62
+        private const val INPUT_FIELDS_WIDTH = 110
+        private const val INPUT_FIELDS_HEIGHT = 18
+        private const val INPUT_FIELDS_MARGIN = 4
+        private const val INPUT_VALUE_WIDTH = 46
     }
 }
