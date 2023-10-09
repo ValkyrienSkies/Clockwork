@@ -11,6 +11,7 @@ import com.tterrag.registrate.fabric.SimpleFlowableFluid;
 import com.tterrag.registrate.util.nullness.NonNullConsumer;
 import com.tterrag.registrate.util.nullness.NonNullFunction;
 import com.tterrag.registrate.util.nullness.NonNullUnaryOperator;
+import dev.architectury.utils.EnvExecutor;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.resources.model.BakedModel;
@@ -28,7 +29,7 @@ public class ClockworkRegistrate {
     public static <T extends CWItem, P> NonNullUnaryOperator<ItemBuilder<T, P>> customRenderedItem(
             Supplier<Supplier<CustomRenderedItemModelRenderer>> supplier) {
         return b -> {
-            Dist.onClient(() -> customRenderedItem(b, supplier));
+            EnvExecutor.runInEnv(EnvType.CLIENT, () -> () -> customRenderedItem(b, supplier));
             return b;
         };
     }
@@ -36,7 +37,7 @@ public class ClockworkRegistrate {
     public static <T extends BlockItem, P> NonNullFunction<ItemBuilder<T, P>, P> customRenderedBlockItem(
             Supplier<Supplier<CustomRenderedItemModelRenderer>> supplier) {
         return b -> {
-            Dist.onClient(() -> customRenderedBlockItem(b, supplier));
+            EnvExecutor.runInEnv(EnvType.CLIENT, () -> () -> customRenderedBlockItem(b, supplier));
             return b.build();
         };
     }

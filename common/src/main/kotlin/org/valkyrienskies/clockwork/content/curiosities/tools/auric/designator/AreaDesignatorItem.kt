@@ -7,7 +7,6 @@ import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Style
 import net.minecraft.network.chat.TextComponent
-import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.util.Mth
 import net.minecraft.world.InteractionResult
@@ -18,9 +17,6 @@ import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.ClipContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.phys.AABB
-import org.joml.Vector3d
-import org.joml.Vector3dc
 import org.joml.Vector3ic
 import org.joml.primitives.AABBi
 import org.joml.primitives.AABBic
@@ -28,7 +24,6 @@ import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
 import org.valkyrienskies.clockwork.platform.CWItem
-import org.valkyrienskies.core.impl.datastructures.DenseBlockPosSet
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
 import org.valkyrienskies.mod.common.util.toJOML
 import java.util.*
@@ -134,6 +129,26 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
         val compoundTag = stack.orCreateTag
         compoundTag.putByteArray("selectedData", getMapper().writeValueAsBytes(this.selectedArea))
         stack.tag = compoundTag
+    }
+
+
+    fun onAttack(player: Player) {
+        val hitResult = getPlayerPOVHitResult(player.level, player, ClipContext.Fluid.NONE)
+        val pos: Vector3ic = hitResult.blockPos.toJOML()
+        val hitCluster: Set<AABBic> = this.selectedArea.getClusterContaining(pos) ?: return
+        if (hitCluster != null) {
+            val pitch = Mth.randomBetween(soundRandom, 0.8f, 1.2f)
+            this.selectedArea.dumpCluster(hitCluster)
+            player.level.playSound(
+                null,
+                player,
+                ClockworkSounds.DESIGNATOR_DUMP_CLUSTER.mainEvent!!,
+                player.soundSource,
+                1.0f,
+                pitch
+            )
+            animationType = Animation.DUMP
+        }
     }
 
     override fun useOn(context: UseOnContext): InteractionResult {

@@ -100,6 +100,8 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
                 animateAssembly(core, angle, coreOffset, value, infuser).light(light).renderInto(ms, vb)
                 val coreRealPos: Vector3dc = infuser.blockPos.toJOMLD().add(0.0, infuser.getCoreOffset(partialTicks - 1).toDouble(), 0.0)
                 // Render Bolts
+                //todo fix
+                /**
                 if (amountOfSelections > 0) {
                     if (value >= 160) {
                         val stepAmount = 200 / amountOfSelections
@@ -126,6 +128,7 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
                         }
                     }
                 }
+                 */
             }
             if (infuser.animationType === PhysicsInfuserBlockEntity.Animation.DISASSEMBLY) {
                 val value = infuser.disassemblyProgress.value

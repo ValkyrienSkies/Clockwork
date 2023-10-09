@@ -76,13 +76,13 @@ public abstract class MixinOutline {
     private void redirectBufferCuboid(Outline instance, PoseStack.Pose pose, VertexConsumer consumer, Vector3f minPos, Vector3f maxPos, Vector4f color, int lightmap, boolean disableNormals) {
         Vector3f realMin = minPos.copy();
         Vector3f realMax = maxPos.copy();
+        Vector3d realMinD = new Vector3d(realMin.x(), realMin.y(), realMin.z());
+        Vector3d realMaxD = new Vector3d(realMax.x(), realMax.y(), realMax.z());
         final Level level = Minecraft.getInstance().level;
         if (level != null) {
-            final ClientShip ship = (ClientShip) VSGameUtilsKt.getShipManagingPos(level, realMin);
+            final ClientShip ship = (ClientShip) VSGameUtilsKt.getShipManagingPos(level, realMinD);
             if (ship != null) {
                 final ShipTransform transform = ship.getRenderTransform();
-                Vector3d realMinD = new Vector3d(realMin.x(), realMin.y(), realMin.z());
-                Vector3d realMaxD = new Vector3d(realMax.x(), realMax.y(), realMax.z());
                 transform.getShipToWorld().transformPosition(realMinD);
                 transform.getShipToWorld().transformPosition(realMaxD);
                 realMin.set((float) realMinD.x, (float) realMinD.y, (float) realMinD.z);
@@ -101,15 +101,17 @@ public abstract class MixinOutline {
         Vector3f real1 = pos1.copy();
         Vector3f real2 = pos2.copy();
         Vector3f real3 = pos3.copy();
+
+        Vector3d real0D = new Vector3d(real0.x(), real0.y(), real0.z());
+        Vector3d real1D = new Vector3d(real1.x(), real1.y(), real1.z());
+        Vector3d real2D = new Vector3d(real2.x(), real2.y(), real2.z());
+        Vector3d real3D = new Vector3d(real3.x(), real3.y(), real3.z());
+
         final Level level = Minecraft.getInstance().level;
         if (level != null) {
-            final ClientShip ship = (ClientShip) VSGameUtilsKt.getShipManagingPos(level, real0);
+            final ClientShip ship = (ClientShip) VSGameUtilsKt.getShipManagingPos(level, real0D);
             if (ship != null) {
                 final ShipTransform transform = ship.getRenderTransform();
-                Vector3d real0D = new Vector3d(real0.x(), real0.y(), real0.z());
-                Vector3d real1D = new Vector3d(real1.x(), real1.y(), real1.z());
-                Vector3d real2D = new Vector3d(real2.x(), real2.y(), real2.z());
-                Vector3d real3D = new Vector3d(real3.x(), real3.y(), real3.z());
 
                 transform.getShipToWorld().transformPosition(real0D);
                 transform.getShipToWorld().transformPosition(real1D);
