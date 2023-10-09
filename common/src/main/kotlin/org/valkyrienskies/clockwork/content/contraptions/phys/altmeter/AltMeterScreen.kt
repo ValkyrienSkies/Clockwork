@@ -29,21 +29,22 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
         super.init()
         val x = guiLeft
         val y = guiTop
-        run {
-            val ruleX = x + 100
-            val ruleY = y + 18
-            altitudeInput = ScrollInput(
-                ruleX + 2,
-                ruleY + 2,
-                INPUT_VALUE_WIDTH - 4,
-                INPUT_FIELDS_HEIGHT - 4
-            )
-            altitudeInput!!.setState(triggerHeight)
-            altitudeInput!!.titled(TranslatableComponent("sequenced_seat.value.distance"))
-            altitudeInput!!.withRange(-1024, 1024)
-            altitudeInput!!.calling { v: Int -> triggerHeight = v }
-            addRenderableWidget(altitudeInput!!)
-        }
+
+        val ruleX = x + 100
+        val ruleY = y + 18
+        altitudeInput = ScrollInput(
+            ruleX + 2,
+            ruleY + 2,
+            INPUT_VALUE_WIDTH - 4,
+            INPUT_FIELDS_HEIGHT - 4
+        )
+
+        altitudeInput!!.titled(TRIGGER_HEIGHT_COMPONENT)
+        altitudeInput!!.withRange(MIN_HEIGHT, MAX_HEIGHT)
+        altitudeInput!!.calling { v: Int -> triggerHeight = v }
+        altitudeInput!!.setState(triggerHeight)
+        addRenderableWidget(altitudeInput!!)
+
         confirmButton = IconButton(x + background.width - 33, y + background.height - 24, AllIcons.I_CONFIRM)
         confirmButton!!.withCallback<AbstractSimiWidget>(Runnable { onClose() })
         addRenderableWidget(confirmButton!!)
@@ -88,7 +89,7 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
         )
         icon.render(ms, ruleX + 1, ruleY + 1)
 
-        val nameComponent: Component = TranslatableComponent("alt_meter.trigger_height")
+        val nameComponent: Component = TRIGGER_HEIGHT_COMPONENT
         drawString(
             ms,
             font,
@@ -117,5 +118,8 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
         private const val INPUT_FIELDS_HEIGHT = 18
         private const val INPUT_FIELDS_MARGIN = 4
         private const val INPUT_VALUE_WIDTH = 46
+        private const val MAX_HEIGHT = 1024
+        private const val MIN_HEIGHT = -1024
+        private val TRIGGER_HEIGHT_COMPONENT = TranslatableComponent("alt_meter.trigger_height")
     }
 }
