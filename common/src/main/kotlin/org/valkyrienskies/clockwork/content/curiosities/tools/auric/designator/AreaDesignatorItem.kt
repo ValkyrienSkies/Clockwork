@@ -199,7 +199,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
                 )
                 this.firstPos = null
                 this.secondPos = null
-                return InteractionResult.FAIL
+                return InteractionResult.SUCCESS
             }
             val area: AABBic = AABBi(
                 Math.min(this.firstPos!!.x(), this.secondPos!!.x()), Math.min(
