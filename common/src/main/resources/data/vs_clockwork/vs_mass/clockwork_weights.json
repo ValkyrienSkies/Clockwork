@@ -1,4 +1,4 @@
-{
+[
   {
     "block": "create:shaft",
     "mass": 175.0,
@@ -639,5 +639,5 @@
     "block": "vs_clockwork:physics_infuser",
     "mass": 1550,
     "friction": 0.4
-  },
-}
+  }
+]
