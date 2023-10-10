@@ -102,6 +102,7 @@ class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) : K
         pistonBotL.renderInto(ms, buffer.getBuffer(RenderType.cutoutMipped()))
         pistonBotR.renderInto(ms, buffer.getBuffer(RenderType.cutoutMipped()))
         superBuffer.renderInto(ms, buffer.getBuffer(RenderType.solid()))
+        ms.popPose()
     }
 
     override fun getRotatedModel(te: PropellerBearingBlockEntity, state: BlockState): SuperByteBuffer {
