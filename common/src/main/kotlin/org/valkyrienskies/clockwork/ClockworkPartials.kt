@@ -33,6 +33,12 @@ object ClockworkPartials {
     val WING_SIDE_VERTICAL = block("wing/wing_side_vertical")
     val WING_SAIL_ITEM = item("wing/wing_sail")
     val WING_FRAME_ITEM = item("wing")
+    val PROPELLER_PISTON_TOP_LEFT = block("propeller_bearing/pistontopl")
+    val PROPELLER_PISTON_TOP_RIGHT = block("propeller_bearing/pistontopr")
+    val PROPELLER_PISTON_BOTTOM_LEFT = block("propeller_bearing/pistonbotl")
+    val PROPELLER_PISTON_BOTTOM_RIGHT = block("propeller_bearing/pistonbotr")
+    val PROPELLER_TOP = block("propeller_bearing/top")
+
     private fun block(path: String): PartialModel {
         return PartialModel(ClockworkMod.asResource("block/$path"))
     }

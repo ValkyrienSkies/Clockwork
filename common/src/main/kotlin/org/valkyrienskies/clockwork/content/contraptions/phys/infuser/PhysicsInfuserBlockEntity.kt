@@ -37,7 +37,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.S
 import org.valkyrienskies.clockwork.util.EaseHelper.easeInBounce
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.core.api.ships.Ship
-import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
+import org.valkyrienskies.core.impl.datastructures.DenseBlockPosSet
 import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOML

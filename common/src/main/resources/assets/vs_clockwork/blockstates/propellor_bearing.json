@@ -1,54 +1,54 @@
 {
   "variants": {
     "direction=push,facing=down": {
-      "model": "vs_clockwork:block/propellor_bearing/blockpush",
+      "model": "vs_clockwork:block/propellor_bearing/block",
       "x": 180
     },
     "direction=push,facing=up": {
-      "model": "vs_clockwork:block/propellor_bearing/blockpush"
+      "model": "vs_clockwork:block/propellor_bearing/block"
     },
     "direction=push,facing=north": {
-      "model": "vs_clockwork:block/propellor_bearing/blockpush",
+      "model": "vs_clockwork:block/propellor_bearing/block",
       "x": 90
     },
     "direction=push,facing=south": {
-      "model": "vs_clockwork:block/propellor_bearing/blockpush",
+      "model": "vs_clockwork:block/propellor_bearing/block",
       "x": 90,
       "y": 180
     },
     "direction=push,facing=west": {
-      "model": "vs_clockwork:block/propellor_bearing/blockpush",
+      "model": "vs_clockwork:block/propellor_bearing/block",
       "x": 90,
       "y": 270
     },
     "direction=push,facing=east": {
-      "model": "vs_clockwork:block/propellor_bearing/blockpush",
+      "model": "vs_clockwork:block/propellor_bearing/block",
       "x": 90,
       "y": 90
     },
     "direction=pull,facing=down": {
-      "model": "vs_clockwork:block/propellor_bearing/blockpull",
+      "model": "vs_clockwork:block/propellor_bearing/block",
       "x": 180
     },
     "direction=pull,facing=up": {
-      "model": "vs_clockwork:block/propellor_bearing/blockpull"
+      "model": "vs_clockwork:block/propellor_bearing/block"
     },
     "direction=pull,facing=north": {
-      "model": "vs_clockwork:block/propellor_bearing/blockpull",
+      "model": "vs_clockwork:block/propellor_bearing/block",
       "x": 90
     },
     "direction=pull,facing=south": {
-      "model": "vs_clockwork:block/propellor_bearing/blockpull",
+      "model": "vs_clockwork:block/propellor_bearing/block",
       "x": 90,
       "y": 180
     },
     "direction=pull,facing=west": {
-      "model": "vs_clockwork:block/propellor_bearing/blockpull",
+      "model": "vs_clockwork:block/propellor_bearing/block",
       "x": 90,
       "y": 270
     },
     "direction=pull,facing=east": {
-      "model": "vs_clockwork:block/propellor_bearing/blockpull",
+      "model": "vs_clockwork:block/propellor_bearing/block",
       "x": 90,
       "y": 90
     }

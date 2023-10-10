@@ -40,9 +40,9 @@ import org.valkyrienskies.core.apigame.constraints.VSAttachmentConstraint
 import org.valkyrienskies.core.apigame.constraints.VSConstraintAndId
 import org.valkyrienskies.core.apigame.constraints.VSConstraintId
 import org.valkyrienskies.core.apigame.constraints.VSHingeOrientationConstraint
+import org.valkyrienskies.core.impl.datastructures.DenseBlockPosSet
 import org.valkyrienskies.core.impl.game.ships.ShipDataCommon
 import org.valkyrienskies.core.impl.game.ships.ShipTransformImpl.Companion.create
-import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.getShipObjectManagingPos

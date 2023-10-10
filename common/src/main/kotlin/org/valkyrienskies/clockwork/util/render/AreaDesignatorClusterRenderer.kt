@@ -44,7 +44,6 @@ class AreaDesignatorClusterRenderer {
         lightTexture: LightTexture?,
         projectionMatrix: Matrix4f?
     ) {
-        /*
         if (level != null) {
             for (player in level.players()) {
                 if (player.mainHandItem.`is`(ClockworkItems.AURIC_DESIGNATOR.get())) {
@@ -180,8 +179,6 @@ class AreaDesignatorClusterRenderer {
                 }
             }
         }
-
-         */
     }
 
     companion object {

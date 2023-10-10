@@ -10,7 +10,7 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.state.BlockState
-import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
+import org.valkyrienskies.core.impl.datastructures.DenseBlockPosSet
 import java.util.*
 import java.util.function.Consumer
 
