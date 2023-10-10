@@ -5,8 +5,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
+import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -14,8 +14,15 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLLoader;
-import org.valkyrienskies.clockwork.*;
-import org.valkyrienskies.clockwork.content.events.ClockworkClientEvents;
+import org.valkyrienskies.clockwork.ClockworkBlockEntities;
+import org.valkyrienskies.clockwork.ClockworkBlocks;
+import org.valkyrienskies.clockwork.ClockworkEntities;
+import org.valkyrienskies.clockwork.ClockworkItems;
+import org.valkyrienskies.clockwork.ClockworkMod;
+import org.valkyrienskies.clockwork.ClockworkPackets;
+import org.valkyrienskies.clockwork.ClockworkPartials;
+import org.valkyrienskies.clockwork.ClockworkParticles;
+import org.valkyrienskies.clockwork.ClockworkSounds;
 import org.valkyrienskies.clockwork.data.ClockworkTags;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.forge.integration.cc_tweaked.ClockworkForgePeripheralProviders;
@@ -39,6 +46,7 @@ public class ClockworkModForge {
         IEventBus forgeEventBus = MinecraftForge.EVENT_BUS;
 
         modEventBus.addListener(this::clientSetup);
+        modEventBus.addListener(this::onParticleRegistry);
         modEventBus.addListener(this::onModelRegistry);
         ClockworkMod.INSTANCE.getREGISTRATE().registerEventListeners(modEventBus);
 
@@ -70,7 +78,6 @@ public class ClockworkModForge {
         ClockworkPackets.init();
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-            ClockworkParticles.initClient();
             // In create itself they do it FMLClientSetupEvent this does not work (what a scam)
             // It prob gets staticly loaded earlier and well yhea...
             ClockworkPartials.INSTANCE.init();
@@ -91,12 +98,14 @@ public class ClockworkModForge {
     void clientSetup(final FMLClientSetupEvent event) {
         if (happendClientSetup) return;
         happendClientSetup = true;
-
-
     }
 
     void entityRenderers(final EntityRenderersEvent.RegisterRenderers event) {
 
+    }
+
+    void onParticleRegistry(final ParticleFactoryRegisterEvent event) {
+        ClockworkParticles.initClient();
     }
 
     void onModelRegistry(final ModelRegistryEvent event) {
