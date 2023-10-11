@@ -23,13 +23,6 @@ architectury {
     forge()
 }
 
-repositories {
-    maven {
-        name = 'Kotlin for Forge'
-        url = 'https://thedarkcolour.github.io/KotlinForForge/'
-    }
-}
-
 configurations {
     common
     shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
@@ -75,7 +68,7 @@ dependencies {
     compileOnly("org.joml:joml-primitives:1.10.0")
 
     // Add Kotlin for Forge.
-    implementation 'thedarkcolour:kotlinforforge:3.11.0'
+    implementation 'thedarkcolour:kotlinforforge:3.12.0'
 
     // CC Tweaked
     modCompileOnly("curse.maven:cctweaked-282001:4061947")
