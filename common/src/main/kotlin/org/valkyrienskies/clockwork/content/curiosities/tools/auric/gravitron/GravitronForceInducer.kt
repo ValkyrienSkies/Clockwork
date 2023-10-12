@@ -33,8 +33,7 @@ class GravitronForceInducer : ShipForcesInducer {
             physShip.applyInvariantForce(force)
         }
 
-        // Disable rotation for now
-        if (false && idealRotCopy != null) {
+        if (idealRotCopy != null) {
             val pConst = 160.0
             val dConst = 20.0
             val rotDif = idealRotCopy.mul(physShip.transform.shipToWorldRotation.invert(Quaterniond()), Quaterniond()).normalize().invert()
@@ -42,11 +41,12 @@ class GravitronForceInducer : ShipForcesInducer {
             if (rotDif.w() < 0) {
                 rotDifVector.mul(-1.0)
             }
+            rotDifVector.mul(-1.0)
 
             // Integrate
             rotDifVector.sub(physShip.poseVel.omega.mul(dConst, Vector3d()))
 
-            val torque = physShip.inertia.momentOfInertiaTensor.transform(rotDifVector)
+            val torque = physShip.poseVel.rot.transform(physShip.inertia.momentOfInertiaTensor.transform(physShip.poseVel.rot.transformInverse(rotDifVector, Vector3d())))
             physShip.applyInvariantTorque(torque)
         }
     }
