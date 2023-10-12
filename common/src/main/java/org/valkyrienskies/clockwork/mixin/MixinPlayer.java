@@ -9,16 +9,16 @@ import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck;
 @Mixin(Player.class)
 public class MixinPlayer implements MixinPlayerDuck {
 
-//    @Unique
-//    private GravitronItem.GravitronState state;
-//
-//    @Override
-//    public void cw_setGravitronState(GravitronItem.GravitronState s) {
-//        this.state = s;
-//    }
-//
-//    @Override
-//    public GravitronItem.GravitronState cw_getGravitronState() {
-//        return state;
-//    }
+    @Unique
+    private GravitronItem.Companion.GravitronState vs_clockwork_mod$_state;
+
+    @Override
+    public void cw_setGravitronState(GravitronItem.Companion.GravitronState s) {
+        this.vs_clockwork_mod$_state = s;
+    }
+
+    @Override
+    public GravitronItem.Companion.GravitronState cw_getGravitronState() {
+        return vs_clockwork_mod$_state;
+    }
 }

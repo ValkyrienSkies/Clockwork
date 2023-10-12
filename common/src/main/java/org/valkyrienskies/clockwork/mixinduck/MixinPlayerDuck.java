@@ -3,9 +3,7 @@ package org.valkyrienskies.clockwork.mixinduck;
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.gravitron.GravitronItem;
 
 public interface MixinPlayerDuck {
+    void cw_setGravitronState(GravitronItem.Companion.GravitronState state);
 
-//    void cw_setGravitronState(GravitronItem.GravitronState state);
-//
-//    GravitronItem.GravitronState cw_getGravitronState();
-
+    GravitronItem.Companion.GravitronState cw_getGravitronState();
 }
