@@ -7,6 +7,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.AreaDesignatorItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.gravitron.GravitronItem;
+import org.valkyrienskies.clockwork.content.curiosities.tools.auric.gravitron.GravitronItemRenderer;
 import org.valkyrienskies.clockwork.renderer.AreaDesignatorRenderer;
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate;
 
@@ -40,12 +41,12 @@ public class ClockworkItems {
 //            .register();
 
 
-//    public static final ItemEntry<GravitronItem> GRAVITRON = REGISTRATE.item("gravitron", GravitronItem::new)
-//            .properties(p -> p.stacksTo(1)).properties(p -> p.rarity(Rarity.UNCOMMON))
-//            .transform(ClockworkRegistrate.customRenderedItem(() -> GravitronItemRenderer::new))
-//            .tag(AllTags.AllItemTags.WRENCH.tag)
-//            .model(AssetLookup.itemModelWithPartials())
-//            .register();
+    public static final ItemEntry<GravitronItem> GRAVITRON = ClockworkMod.INSTANCE.getREGISTRATE().item("gravitron", GravitronItem::new)
+            .properties(p -> p.stacksTo(1)).properties(p -> p.rarity(Rarity.UNCOMMON))
+            .transform(ClockworkRegistrate.customRenderedItem(() -> GravitronItemRenderer::new))
+            .tag(AllTags.AllItemTags.WRENCH.tag)
+            .model(AssetLookup.itemModelWithPartials())
+            .register();
 
 //    public static final ItemEntry<WelderItem> WELDER = REGISTRATE.item("welder", WelderItem::new)
 //            .properties(p -> p.stacksTo(1)).properties(p -> p.rarity(Rarity.RARE))
