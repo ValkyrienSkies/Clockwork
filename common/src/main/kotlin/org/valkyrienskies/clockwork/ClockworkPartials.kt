@@ -39,6 +39,19 @@ object ClockworkPartials {
     val PROPELLER_PISTON_BOTTOM_RIGHT = block("propeller_bearing/pistonbotr")
     val PROPELLER_TOP = block("propeller_bearing/top")
 
+    // region Gravitron
+    val GRAV_DIAL_HAND = item("gravitron/dialhand")
+    val GRAV_PRONG_LEFT_ONE = item("gravitron/prongleftone")
+    val GRAV_PRONG_LEFT_TWO = item("gravitron/pronglefttwo")
+    val GRAV_PRONG_RIGHT_ONE = item("gravitron/prongrightone")
+    val GRAV_PRONG_RIGHT_TWO = item("gravitron/prongrighttwo")
+    val GRAV_PRONG_TOP_ONE = item("gravitron/prongtopone")
+    val GRAV_PRONG_TOP_TWO = item("gravitron/prongtoptwo")
+    val GRAV_PRONG_LEFT_THREE = item("gravitron/prongleftthree")
+    val GRAV_PRONG_RIGHT_THREE = item("gravitron/prongrightthree")
+    val GRAV_PRONG_TOP_THREE = item("gravitron/prongtopthree")
+    // endregion
+
     private fun block(path: String): PartialModel {
         return PartialModel(ClockworkMod.asResource("block/$path"))
     }
