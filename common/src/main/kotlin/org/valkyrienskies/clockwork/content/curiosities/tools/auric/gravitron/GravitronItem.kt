@@ -26,12 +26,7 @@ import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.Ship
 import org.valkyrienskies.core.api.ships.properties.ShipId
-import org.valkyrienskies.core.apigame.constraints.VSAttachmentOrientationConstraint
-import org.valkyrienskies.core.apigame.constraints.VSPosDampingConstraint
-import org.valkyrienskies.core.apigame.constraints.VSRotDampingAxes
-import org.valkyrienskies.core.apigame.constraints.VSRotDampingConstraint
 import org.valkyrienskies.mod.common.dimensionId
-import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.isBlockInShipyard
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOML
@@ -101,9 +96,11 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         context: UseOnContext
     ) {
         val player = context.player ?: return
-        val ship: Ship? = level.getShipManagingPos(context.clickedPos)
+        val chunkX = context.clickedPos.x shr 4
+        val chunkZ = context.clickedPos.z shr 4
+        val ship: LoadedServerShip? = level.shipObjectWorld.loadedShips.getByChunkPos(chunkX, chunkZ, level.dimensionId)
         val grabPosInShip: Vector3dc = context.clickLocation.toJOML()
-        val grabPosInWorld: Vector3d = Vector3d(grabPosInShip)
+        val grabPosInWorld = Vector3d(grabPosInShip)
         if (level.isBlockInShipyard(context.clickedPos) && ship == null) {
             return
         }
@@ -123,7 +120,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
     private fun grabShip(
         s: GravitronState,
         p: Player,
-        ship: Ship,
+        ship: LoadedServerShip,
         grabPosInShip: Vector3dc
     ) {
         s.shipID = ship.id
@@ -134,23 +131,24 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
     }
 
     // sets down the ship
-    private fun dropShip(
-        s: GravitronState,
-        level: ServerLevel?
-    ) {
-        s.grabbing = false
-        if (level != null && !level.isClientSide) {
-            delConstraint(level, s.positionConstraintID)
-            delConstraint(level, s.positionDampeningConstraintID)
-            delConstraint(level, s.rotationConstraintID)
-            delConstraint(level, s.rotationDampeningConstraintID)
-            s.shipID = null
-            s.positionConstraintID = null
-            s.rotationConstraintID = null
-            s.positionDampeningConstraintID = null
-            s.rotationDampeningConstraintID = null
-            s.shouldDrop = false
+    private fun dropShip(s: GravitronState, level: ServerLevel) {
+        val grabbedShipId = s.shipID
+        if (grabbedShipId != null) {
+            val loadedShip = level.shipObjectWorld.loadedShips.getById(grabbedShipId)
+            if (loadedShip != null) {
+                val gravitronForceInducer = GravitronForceInducer.getOrCreate(loadedShip)
+                gravitronForceInducer.idealPos = null
+                gravitronForceInducer.idealRot = null
+            }
         }
+
+        s.grabbing = false
+        s.shipID = null
+        s.positionConstraintID = null
+        s.rotationConstraintID = null
+        s.positionDampeningConstraintID = null
+        s.rotationDampeningConstraintID = null
+        s.shouldDrop = false
     }
 
     // ONLY IN DEBUG SHOULD THIS BE USED
@@ -175,8 +173,6 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                 val worldShipID: ShipId =
                     level.shipObjectWorld.dimensionToGroundBodyIdImmutable[level.dimensionId]!!
                 if (ship != null) {
-                    val mass: Double = ship.inertiaData.mass
-
                     // Update Rot Values
                     val playerCurrentRotation: Vector2dc = Vector2d(entity.xRot.toDouble(), entity.yRot.toDouble())
                     val origPlayerRot: Quaterniondc = playerRotToQuaternion(s.playerGrabbedRotation!!.x(), s.playerGrabbedRotation!!.y()).normalize()
@@ -188,56 +184,14 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                     s.heldBlockPos = entity.position().toJOML().add(0.0, entity.eyeHeight.toDouble(), 0.0).add(entity.lookAngle.toJOML().normalize().mul(getShipSize(ship)))
                     val location: Vector3dc = Vector3d(s.shipGrabbedPos)
                     val position: Vector3dc = Vector3d(s.heldBlockPos)
-                    val attachmentCompliance: Double = 1e-6 / mass
-                    val attachmentMaxForce = 1e10
-                    val rotationMaxForce = 1e10
-                    val constraint = VSAttachmentOrientationConstraint(
-                        shipId, worldShipID, attachmentCompliance, location, position,
-                        attachmentMaxForce, rotation, Quaterniond(), rotationMaxForce
-                    )
-                    val posDampingCompliance = 0.0
-                    val posDampingMaxForce = 0.0
-                    val posDampingEff = 100.0
-                    var posDampingConstraint = VSPosDampingConstraint(
-                        shipId, worldShipID, posDampingCompliance, location, position,
-                        posDampingMaxForce, posDampingEff
-                    )
-                    val rotDampingCompliance = 0.0
-                    val rotDampingMaxForce = 0.0
-                    val rotDampingEff = 100.0
-                    var rotDampingConstraint = VSRotDampingConstraint(
-                        shipId,
-                        worldShipID,
-                        rotDampingCompliance,
-                        rotation,
-                        Quaterniond(),
-                        rotDampingMaxForce,
-                        rotDampingEff,
-                        VSRotDampingAxes.ALL_AXES
-                    )
 
-                    // Drop and re grab the Constraints
-                    // System.out.println(location);
-                    // System.out.println(position);
-                    // System.out.println();
-                    delConstraint(level, s.positionConstraintID)
-                    // delConstraint(level, s.positionDampeningConstraintID);
-                    // delConstraint(level, s.rotationConstraintID);
-                    // delConstraint(level, s.rotationDampeningConstraintID);
-                    s.positionConstraintID = level.shipObjectWorld.createNewConstraint(constraint)
-                    // s.rotationConstraintID = VSGameUtilsKt.getShipObjectWorld(level).createNewConstraint(RotationConstraint);
-                    // s.positionDampeningConstraintID = VSGameUtilsKt.getShipObjectWorld(level).createNewConstraint(PosDampingConstraint);
-                    // s.rotationDampeningConstraintID = VSGameUtilsKt.getShipObjectWorld(level).createNewConstraint(RotDampingConstraint);
+                    val gravitronForceInducer = GravitronForceInducer.getOrCreate(ship)
+                    gravitronForceInducer.idealPos = position // TODO: This isnt quite correct, but whatever, use location to fix this
+                    gravitronForceInducer.idealRot = rotation
                 } else if (shipUnloaded == null) {
                     dropShip(s, level)
                 }
             }
-        }
-    }
-
-    private fun delConstraint(level: ServerLevel, id: Int?) {
-        if (id != null) {
-            level.shipObjectWorld.removeConstraint(id)
         }
     }
 
