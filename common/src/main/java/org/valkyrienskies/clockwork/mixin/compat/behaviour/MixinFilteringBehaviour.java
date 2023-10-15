@@ -29,9 +29,13 @@ public class MixinFilteringBehaviour {
             Ship ship1 = VSGameUtilsKt.getShipManagingPos(level, pos1.x, pos1.y, pos1.z);
             Ship ship2 = VSGameUtilsKt.getShipManagingPos(level, pos2.x, pos2.y, pos2.z);
             if (ship1 != null && ship2 == null) {
-                pos2 = VectorConversionsMCKt.toMinecraft(ship1.getWorldToShip().transformPosition(VectorConversionsMCKt.toJOML(pos2)));
+                pos2 = VectorConversionsMCKt.toMinecraft(
+                        ship1.getWorldToShip().transformPosition(VectorConversionsMCKt.toJOML(pos2))
+                );
             } else if (ship1 == null && ship2 != null) {
-                pos1 = VectorConversionsMCKt.toMinecraft(ship2.getWorldToShip().transformPosition(VectorConversionsMCKt.toJOML(pos1)));
+                pos1 = VectorConversionsMCKt.toMinecraft(
+                        ship2.getWorldToShip().transformPosition(VectorConversionsMCKt.toJOML(pos1))
+                );
             }
         }
         return pos1.subtract(pos2);

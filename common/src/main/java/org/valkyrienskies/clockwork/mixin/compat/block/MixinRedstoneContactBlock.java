@@ -28,13 +28,12 @@ import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
-import static org.valkyrienskies.mod.common.util.VectorConversionsMCKt.toJOML;
-
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 
+import static org.valkyrienskies.mod.common.util.VectorConversionsMCKt.toJOML;
 
 @Mixin(RedstoneContactBlock.class)
 public abstract class MixinRedstoneContactBlock extends WrenchableDirectionalBlock {
