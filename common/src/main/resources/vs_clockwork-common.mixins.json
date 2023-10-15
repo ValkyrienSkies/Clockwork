@@ -21,6 +21,7 @@
     "compat.behaviour.MixinBlockBreakingMovementBehaviour",
     "compat.behaviour.MixinFilteringBehaviour",
     "compat.behaviour.MixinLinkBehaviour",
+    "compat.behaviour.MixinScrollValueBehaviour",
     "compat.behaviour.MixinSidedFilteringBehaviour",
     "compat.block.MixinCrushingWheelBlock",
     "compat.block.MixinEjectorBlock",
@@ -30,7 +31,6 @@
     "compat.blockentity.MixinCrushingWheelControllerTileEntity",
     "compat.blockentity.MixinEjectorTileEntity",
     "compat.blockentity.MixinEncasedFanTileEntity",
-    "compat.behaviour.MixinScrollValueBehaviour",
     "compat.entity.MixinAbstractContraptionEntity",
     "compat.entity.MixinCarriageContraptionEntity",
     "compat.entity.MixinControlledContraptionEntity",
@@ -43,6 +43,8 @@
     "compat.pr.MixinSeatBlock",
     "content.balloon.MixinLevelChunkBalloon",
     "content.fan.MixinEncasedFanTileEntity",
+    "content.gravitron.MixinServerPlayer",
+    "content.gravitron.MixinServerPlayerGameMode",
     "content.pulse.ChasingAABBOutlineAccessor",
     "content.pulse.OutlineParamsAccessor",
     "content.universal_joint.MixinRotationPropagator",
@@ -67,6 +69,8 @@
     "compat.client.MixinTileEntityRenderHelper",
     "compat.client.MixinTrackBlockOutline",
     "compat.client.MixinTrainRelocator",
+    "content.gravitron.MinecraftAccessor",
+    "content.gravitron.MixinLocalPlayer",
     "content.pulse.MixinLevelRenderer"
   ],
   "injectors": {

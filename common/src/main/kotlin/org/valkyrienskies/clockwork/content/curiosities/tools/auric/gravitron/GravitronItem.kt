@@ -43,6 +43,26 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         return s
     }
 
+    // Freeze the ship when player clicks
+    fun leftClickItem(player: Player): Boolean {
+        val s: GravitronState = getState(player)
+        val level = player.level
+        if (s.grabbing && level is ServerLevel) {
+            val shipId = s.shipID
+            if (shipId != null) {
+                val ship: LoadedServerShip? = level.shipObjectWorld.loadedShips.getById(shipId)
+                if (ship != null) {
+                    ship.isStatic = !ship.isStatic
+                    if (ship.isStatic) {
+                        dropShip(s, level)
+                    }
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
     override fun useOn(context: UseOnContext): InteractionResult {
         val player = context.player
         val level = context.level
@@ -130,6 +150,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         s.shipGrabbedPos = Vector3d(grabPosInShip)
         s.shipGrabbedRot = ship.transform.shipToWorldRotation
         s.shipGrabbedDistance = p.eyePosition.toJOML().distance(heldPosInWorld)
+        ship.isStatic = false
     }
 
     // sets down the ship
