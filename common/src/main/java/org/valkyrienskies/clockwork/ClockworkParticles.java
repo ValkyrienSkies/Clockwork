@@ -30,7 +30,7 @@ public enum ClockworkParticles {
     @Environment(EnvType.CLIENT)
     public static void initClient() {
         ParticleEngine particles = Minecraft.getInstance().particleEngine;
-        for (ClockworkParticles particle : values())
+        for (final ClockworkParticles particle : values())
             particle.entry.registerFactory(particles);
     }
 
@@ -43,13 +43,14 @@ public enum ClockworkParticles {
     }
 
     private static class ParticleEntry<D extends ParticleOptions> {
-        private static final DeferredRegister<ParticleType<?>> REGISTER = DeferredRegister.create(Registry.PARTICLE_TYPE, ClockworkMod.MOD_ID);
+        private static final DeferredRegister<ParticleType<?>> REGISTER =
+                DeferredRegister.create(Registry.PARTICLE_TYPE, ClockworkMod.MOD_ID);
 
         private final String name;
         private final Supplier<? extends ICustomParticleData<D>> typeFactory;
         private final ParticleType<D> object;
 
-        public ParticleEntry(String name, Supplier<? extends ICustomParticleData<D>> typeFactory) {
+        public ParticleEntry(final String name, final Supplier<? extends ICustomParticleData<D>> typeFactory) {
             this.name = name;
             this.typeFactory = typeFactory;
 
@@ -58,11 +59,8 @@ public enum ClockworkParticles {
         }
 
         @Environment(EnvType.CLIENT)
-        public void registerFactory(ParticleEngine particles) {
-            typeFactory.get()
-                    .register(object, particles);
+        public void registerFactory(final ParticleEngine particles) {
+            typeFactory.get().register(object, particles);
         }
-
     }
-
 }

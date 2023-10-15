@@ -42,7 +42,7 @@ public enum ClockworkPackets {
 
     ;
 
-    <T extends CWPacket> ClockworkPackets(Class<T> type, Function<FriendlyByteBuf, T> factory) {
+    <T extends CWPacket> ClockworkPackets(final Class<T> type, final Function<FriendlyByteBuf, T> factory) {
         SharedValues.INSTANCE.getPacketChannel().registerPacket(type, factory);
     }
 
@@ -50,19 +50,19 @@ public enum ClockworkPackets {
     public static void init() {
     }
 
-    public static void sendToNear(Level world, BlockPos pos, int range, S2CCWPacket message) {
+    public static void sendToNear(final Level world, final BlockPos pos, final int range, final S2CCWPacket message) {
         SharedValues.INSTANCE.getPacketChannel().sendToNear(world, pos, range, message);
     }
 
-    public static void sendToServer(C2SCWPacket packet) {
+    public static void sendToServer(final C2SCWPacket packet) {
         SharedValues.INSTANCE.getPacketChannel().sendToServer(packet);
     }
 
-    public static void sendToClientsTracking(S2CCWPacket packet, Entity entity) {
+    public static void sendToClientsTracking(final S2CCWPacket packet, final Entity entity) {
         SharedValues.INSTANCE.getPacketChannel().sendToClientsTracking(packet, entity);
     }
 
-    public static void sendToClientsTrackingAndSelf(S2CCWPacket packet, ServerPlayer player) {
+    public static void sendToClientsTrackingAndSelf(final S2CCWPacket packet, final ServerPlayer player) {
         SharedValues.INSTANCE.getPacketChannel().sendToClientsTrackingAndSelf(packet, player);
     }
 }
