@@ -1,21 +1,23 @@
 package org.valkyrienskies.clockwork.util.render
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.math.Matrix4f
 import com.simibubi.create.AllSpecialTextures
 import com.simibubi.create.foundation.utility.Color
 import com.simibubi.create.foundation.utility.RaycastHelper
-import net.minecraft.client.Camera
 import net.minecraft.client.Minecraft
 import net.minecraft.client.multiplayer.ClientLevel
-import net.minecraft.client.renderer.GameRenderer
-import net.minecraft.client.renderer.LightTexture
 import net.minecraft.core.BlockPos
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.HitResult
 import org.apache.commons.lang3.tuple.Pair
-import org.joml.*
+import org.joml.Vector2f
+import org.joml.Vector3d
+import org.joml.Vector3dc
+import org.joml.Vector3f
+import org.joml.Vector3fc
+import org.joml.Vector3i
+import org.joml.Vector3ic
 import org.joml.primitives.AABBi
 import org.joml.primitives.AABBic
 import org.joml.primitives.Intersectionf
@@ -36,18 +38,11 @@ class AreaDesignatorClusterRenderer {
         level: ClientLevel?,
         minecraft: Minecraft,
         poseStack: PoseStack,
-        tickDelta: Float,
-        nanos: Long,
-        shouldRenderBlockOutline: Boolean,
-        camera: Camera?,
-        gameRenderer: GameRenderer?,
-        lightTexture: LightTexture?,
-        projectionMatrix: Matrix4f?
     ) {
         if (level != null) {
             for (player in level.players()) {
                 if (player.mainHandItem.`is`(ClockworkItems.AURIC_DESIGNATOR.get())) {
-                    //other players
+                    // other players
                     val adi = player.mainHandItem.item as AreaDesignatorItem
                     val clusters: Set<Set<AABBic>> = adi.selectedArea.selectionClusters
                     for (cluster in clusters) {
@@ -65,7 +60,7 @@ class AreaDesignatorClusterRenderer {
                         return
                     }
                     poseStack.pushPose()
-                    //local player
+                    // local player
                     if (player.isLocalPlayer) {
                         val mc = Minecraft.getInstance()
                         val localPlayer = mc.player ?: return
@@ -82,8 +77,7 @@ class AreaDesignatorClusterRenderer {
                             hoveredBlockPos = hovered.toJOML()
                         }
 
-
-                        // find existing hovered cluster if existing
+                        //  find existing hovered cluster if existing
                         var foundCluster = false
                         for (cluster in clusters) {
                             val range = 10.0
@@ -112,7 +106,7 @@ class AreaDesignatorClusterRenderer {
                             hoveredCluster = null
                         }
                         if (hoveredCluster == null) {
-                            //render initial selection box
+                            // render initial selection box
                             if (adi.firstPos == null) {
                                 val vec = Vector3d(hoveredBlockPos).toMinecraft()
                                 if (vec != localPlayer.eyePosition) {
@@ -149,15 +143,14 @@ class AreaDesignatorClusterRenderer {
                                     AABB(adi.firstPos!!.toBlockPos(), adi.firstPos!!.toBlockPos())
                                 )
                             }
-                            //render selection box
+                            // render selection box
                         } else {
                             ClockworkMod.OUTLINER.remove(bbOutlineSlotAD)
                         }
                     }
                     for (key in storedClusters.keys) {
                         ClockworkMod.OUTLINER.showCluster(
-                            storedClusters[key]!!.right, storedClusters[key]!!
-                                .left
+                            storedClusters[key]!!.right, storedClusters[key]!!.left
                         )
                         ClockworkMod.OUTLINER.edit(storedClusters[key]!!.right).ifPresent { outline ->
                             outline.colored(
@@ -173,8 +166,8 @@ class AreaDesignatorClusterRenderer {
                         }
                     }
 
-//                    initialSelectionBox.tick();
-//                    selectionBox.tick();
+                    // initialSelectionBox.tick();
+                    // selectionBox.tick();
                     poseStack.popPose()
                 }
             }

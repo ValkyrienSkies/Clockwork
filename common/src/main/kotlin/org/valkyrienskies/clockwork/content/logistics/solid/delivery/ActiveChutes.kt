@@ -2,15 +2,13 @@ package org.valkyrienskies.clockwork.content.logistics.solid.delivery
 
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
-import org.joml.Vector3d
 import org.joml.Vector3dc
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlock
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import org.valkyrienskies.mod.common.util.toJOMLD
 
 object ActiveChutes {
-    val actives: HashMap<BlockPos, DeliveryChuteBlockEntity> = HashMap()
-    val unloaded: HashMap<BlockPos, DeliveryChuteBlockEntity> = HashMap()
+    private val actives: HashMap<BlockPos, DeliveryChuteBlockEntity> = HashMap()
+    private val unloaded: HashMap<BlockPos, DeliveryChuteBlockEntity> = HashMap()
 
     fun addChute(pos: BlockPos, chute: DeliveryChuteBlockEntity) {
         actives[pos] = chute

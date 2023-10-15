@@ -1,5 +1,5 @@
 package org.valkyrienskies.clockwork.client.render.scanner
-//Thanks to Scannable for this code! (https://github.com/MightyPirates/Scannable)
+// Thanks to Scannable for this code! (https://github.com/MightyPirates/Scannable)
 import com.mojang.blaze3d.pipeline.RenderTarget
 import com.mojang.blaze3d.platform.GlConst
 import com.mojang.blaze3d.platform.GlStateManager
@@ -24,7 +24,6 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInf
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.core.impl.networking.RegisteredHandler
-import org.valkyrienskies.core.impl.util.events.EventConsumer
 import org.valkyrienskies.mod.common.hooks.VSGameEvents
 import org.valkyrienskies.mod.common.hooks.VSGameEvents.postRenderShip
 import org.valkyrienskies.mod.common.hooks.VSGameEvents.renderShip
@@ -81,7 +80,7 @@ class ShipScannerRenderer : ScannerRenderer {
         val scanEffect = ClockworkShaders.SCAN_EFFECT.shader
         if (scanEffect != null && ship != null) {
             val oldShader = RenderSystem.getShader()
-            renderShip.on(EventConsumer<VSGameEvents.ShipRenderEvent> { event: VSGameEvents.ShipRenderEvent, handler: RegisteredHandler? ->
+            renderShip.on { event: VSGameEvents.ShipRenderEvent, _: RegisteredHandler? ->
                 if (event.ship == ship) {
                     val target =
                         Minecraft.getInstance().mainRenderTarget
@@ -117,8 +116,8 @@ class ShipScannerRenderer : ScannerRenderer {
                     buffer.vertex(0.0, 0.0, -50.0).uv(0f, 1f).endVertex()
                     tesselator.end()
                 }
-            })
-            postRenderShip.on(EventConsumer<VSGameEvents.ShipRenderEvent> { event: VSGameEvents.ShipRenderEvent, handler: RegisteredHandler? ->
+            }
+            postRenderShip.on { event: VSGameEvents.ShipRenderEvent, _: RegisteredHandler? ->
                 if (event.ship == ship) {
                     RenderSystem.restoreProjectionMatrix()
                     RenderSystem.setShader { oldShader }
@@ -126,7 +125,7 @@ class ShipScannerRenderer : ScannerRenderer {
                     RenderSystem.enableDepthTest()
                     RenderSystem.disableBlend()
                 }
-            })
+            }
         }
     }
 
@@ -155,7 +154,7 @@ class ShipScannerRenderer : ScannerRenderer {
             radius = currentBlockEntity!!.computeRadius(currentStart, adjustedDuration.toFloat())
         } else {
             adjustedDuration =
-                PhysicsInfuserRenderer.Companion.SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance / 12
+                PhysicsInfuserRenderer.SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance / 12
             radius = 0f
         }
         shader.setSampler("depthTex", depthCopyDepthBuffer)

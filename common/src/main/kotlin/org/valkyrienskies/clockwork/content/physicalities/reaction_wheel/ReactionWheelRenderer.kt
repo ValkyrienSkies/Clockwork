@@ -15,15 +15,19 @@ import org.valkyrienskies.clockwork.ClockworkPartials
 
 class ReactionWheelRenderer(context: BlockEntityRendererProvider.Context?) :
     KineticBlockEntityRenderer<ReactionWheelBlockEntity>(context) {
-    protected override fun renderSafe(
-        te: ReactionWheelBlockEntity, partialTicks: Float, ms: PoseStack, buffer: MultiBufferSource,
-        light: Int, overlay: Int
+    override fun renderSafe(
+        te: ReactionWheelBlockEntity,
+        partialTicks: Float,
+        ms: PoseStack,
+        buffer: MultiBufferSource,
+        light: Int,
+        overlay: Int
     ) {
         super.renderSafe(te, partialTicks, ms, buffer, light, overlay)
 
-//        if (Backend.canUseInstancing(te.getLevel()))
-//            return;
-        val blockState: BlockState = te.getBlockState()
+        // if (Backend.canUseInstancing(te.getLevel()))
+        //     return;
+        val blockState: BlockState = te.blockState
         val wte = te
         val speed: Float = wte.rotspeed * 3 / 10f
         val angle: Float = wte.angle + speed * partialTicks
@@ -66,7 +70,7 @@ class ReactionWheelRenderer(context: BlockEntityRendererProvider.Context?) :
         wheelBottom.renderInto(ms, vb)
     }
 
-    protected override fun getRenderedBlockState(te: ReactionWheelBlockEntity): BlockState {
+    override fun getRenderedBlockState(te: ReactionWheelBlockEntity): BlockState {
         return shaft(getRotationAxisOf(te))
     }
 }

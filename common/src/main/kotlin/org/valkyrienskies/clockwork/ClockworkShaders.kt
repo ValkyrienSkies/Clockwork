@@ -16,10 +16,12 @@ object ClockworkShaders {
     }
 
     fun reloadShaders(resources: ResourceProvider) {
-        SHADERS.forEach(Consumer<ShaderReference> { shaderReference: ShaderReference ->
-            shaderReference.reload(
-                resources
-            )
-        })
+        SHADERS.forEach(
+            Consumer { shaderReference: ShaderReference ->
+                shaderReference.reload(
+                    resources
+                )
+            }
+        )
     }
 }

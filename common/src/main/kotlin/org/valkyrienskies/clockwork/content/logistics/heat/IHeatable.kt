@@ -8,7 +8,6 @@ interface IHeatable {
     var flowDir: MutableSet<Direction>
     val flowRate: Int
 
-
     fun canTransferHeat(direction: Direction): Boolean
 
     fun getAttachedNeighbors(): List<IHeatable>

@@ -39,6 +39,6 @@ public class MixinLevelRenderer {
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/OutlineBufferSource;endOutlineBatch()V", shift = At.Shift.BEFORE))
     private void renderAreaDesignator(final PoseStack poseStack, final float tickDelta, final long nanos, final boolean shouldRenderBlockOutline, final Camera camera, final GameRenderer gameRenderer, final LightTexture lightTexture, final Matrix4f projectionMatrix, final CallbackInfo ci) {
         ClockworkMod.INSTANCE.getOUTLINER().renderOutlines(poseStack, SuperRenderTypeBuffer.getInstance(), camera.getPosition(), tickDelta);
-        AreaDesignatorClusterRenderer.Companion.getINSTANCE().renderDesignator(level, minecraft, poseStack, tickDelta, nanos, shouldRenderBlockOutline, camera, gameRenderer, lightTexture, projectionMatrix);
+        AreaDesignatorClusterRenderer.Companion.getINSTANCE().renderDesignator(level, minecraft, poseStack);
     }
 }

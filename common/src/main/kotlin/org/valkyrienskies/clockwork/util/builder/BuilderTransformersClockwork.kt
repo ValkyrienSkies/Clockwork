@@ -6,7 +6,6 @@ import com.simibubi.create.content.decoration.encasing.EncasedCTBehaviour
 import com.simibubi.create.content.kinetics.BlockStressDefaults
 import com.simibubi.create.content.kinetics.base.RotatedPillarKineticBlock
 import com.simibubi.create.foundation.block.connected.CTSpriteShiftEntry
-import com.simibubi.create.foundation.block.connected.ConnectedTextureBehaviour
 import com.simibubi.create.foundation.data.AssetLookup
 import com.simibubi.create.foundation.data.BlockStateGen
 import com.simibubi.create.foundation.data.CreateRegistrate
@@ -27,9 +26,6 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.kinetics.casing.ExtendedEncasedShaftBlock
-import java.util.function.BiConsumer
-import java.util.function.BiPredicate
-import java.util.function.Function
 import java.util.function.Supplier
 
 object BuilderTransformersClockwork {
@@ -53,7 +49,8 @@ object BuilderTransformersClockwork {
                 .properties { p: BlockBehaviour.Properties -> p.noOcclusion() }
                 .blockstate { c: DataGenContext<Block?, B>, p: RegistrateBlockstateProvider ->
                     p.directionalBlock(
-                        c.get(), p.models()
+                        c.get(),
+                        p.models()
                             .withExistingParent(c.name, baseBlockModelLocation)
                             .texture("0", baseBlockModelLocation)
                             .texture("1", coreTextureLocation)
@@ -104,25 +101,28 @@ object BuilderTransformersClockwork {
         casingShift: Supplier<CTSpriteShiftEntry?>
     ): NonNullUnaryOperator<BlockBuilder<B, P>> {
         return NonNullUnaryOperator<BlockBuilder<B, P>> { builder: BlockBuilder<B, P> ->
-            encasedBase(builder,
-                Supplier<ItemLike> { AllBlocks.SHAFT.get() })
-                .onRegister(CreateRegistrate.connectedTextures(Supplier<ConnectedTextureBehaviour> {
+            encasedBase(
+                builder
+            ) { AllBlocks.SHAFT.get() }
+                .onRegister(CreateRegistrate.connectedTextures {
                     EncasedCTBehaviour(
                         casingShift.get()
                     )
-                }))
-                .onRegister(CreateRegistrate.casingConnectivity(BiConsumer<B, CasingConnectivity> { block: B, cc: CasingConnectivity ->
-                    cc.make(block, casingShift.get(),
-                        BiPredicate<BlockState, Direction> { s: BlockState, f: Direction ->
-                            f.axis !== s.getValue(
-                                BlockStateProperties.AXIS
-                            )
-                        })
-                }))
+                })
+                .onRegister(CreateRegistrate.casingConnectivity { block: B, cc: CasingConnectivity ->
+                    cc.make(
+                        block, casingShift.get()
+                    ) { s: BlockState, f: Direction ->
+                        f.axis !== s.getValue(
+                            BlockStateProperties.AXIS
+                        )
+                    }
+                })
                 .blockstate { c: DataGenContext<Block?, B>?, p: RegistrateBlockstateProvider ->
                     BlockStateGen.axisBlock(
-                        c, p,
-                        Function { blockState: BlockState? ->
+                        c,
+                        p,
+                        {
                             p.models()
                                 .getExistingFile(p.modLoc("block/encased_shaft/block_$casing"))
                         }, true
@@ -130,7 +130,7 @@ object BuilderTransformersClockwork {
                 }
                 .item()
                 .model(
-                    AssetLookup.customBlockItemModel<BlockItem>(
+                    AssetLookup.customBlockItemModel(
                         "encased_shaft",
                         "item_$casing"
                     )

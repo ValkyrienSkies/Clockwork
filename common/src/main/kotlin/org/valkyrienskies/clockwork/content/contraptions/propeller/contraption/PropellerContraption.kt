@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content.contraptions.propeller
+package org.valkyrienskies.clockwork.content.contraptions.propeller.contraption
 
 import com.simibubi.create.AllTags
 import com.simibubi.create.content.contraptions.AssemblyException
@@ -16,7 +16,7 @@ import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate
 import org.apache.commons.lang3.tuple.Pair
 import org.valkyrienskies.clockwork.ClockworkContraptions
-import java.util.*
+import java.util.Queue
 
 class PropellerContraption : Contraption {
     var offset = 0
@@ -50,7 +50,9 @@ class PropellerContraption : Contraption {
 
     @Throws(AssemblyException::class)
     override fun moveBlock(
-        world: Level, direction: Direction?, frontier: Queue<BlockPos>,
+        world: Level,
+        direction: Direction?,
+        frontier: Queue<BlockPos>,
         visited: Set<BlockPos>
     ): Boolean {
         return super.moveBlock(world, direction, frontier, visited)

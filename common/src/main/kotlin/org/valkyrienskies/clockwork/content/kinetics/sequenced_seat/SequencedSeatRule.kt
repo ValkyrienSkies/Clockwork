@@ -85,9 +85,9 @@ class SequencedSeatRule(
 
         fun deserializeNBT(tag: CompoundTag): SequencedSeatRule {
             val keys = InputKey.fromInt(tag.getInt("keys"))
-            val operation = SequencedSeatOperation.values()[tag.getInt("operation")]
+            val operation = SequencedSeatOperation.entries[tag.getInt("operation")]
             val value = operation.defaultValue()
-            if (value != null) value.deserializeNBT(tag["value"]!!)
+            value?.deserializeNBT(tag["value"]!!)
             return SequencedSeatRule(keys, operation, value)
         }
     }

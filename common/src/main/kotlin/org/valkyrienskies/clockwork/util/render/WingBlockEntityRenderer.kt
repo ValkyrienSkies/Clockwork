@@ -25,12 +25,12 @@ class WingBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
     ) {
         super.renderSafe(be, partialTicks, ms, buffer, light, overlay)
         val vb = buffer.getBuffer(RenderType.cutout())
-        val state: BlockState = be.getBlockState()
+        val state: BlockState = be.blockState
         val color: Int = be.getColor()
         val facing = state.getValue(BlockStateProperties.FACING)
         val middle = applyColor(color, CachedBufferer.partial(ClockworkPartials.WING_MIDDLE, state))
         val side = CachedBufferer.partial(ClockworkPartials.WING_SIDE, state)
-        val side_vertical = CachedBufferer.partial(ClockworkPartials.WING_SIDE_VERTICAL, state)
+        val sideVertical = CachedBufferer.partial(ClockworkPartials.WING_SIDE_VERTICAL, state)
         when (facing) {
             Direction.NORTH, Direction.SOUTH -> middle.rotateCentered(Direction.EAST, Math.toRadians(90.0).toFloat())
                 .light(light).renderInto(ms, vb)
@@ -40,9 +40,9 @@ class WingBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
 
             else -> middle.light(light).renderInto(ms, vb)
         }
-        if (state.getValue<Boolean>(BlockStateProperties.NORTH)) {
+        if (state.getValue(BlockStateProperties.NORTH)) {
             when (facing) {
-                Direction.EAST, Direction.WEST -> applyColor(color, side_vertical)
+                Direction.EAST, Direction.WEST -> applyColor(color, sideVertical)
                     .light(light).renderInto(ms, vb)
 
                 Direction.UP, Direction.DOWN -> applyColor(color, side)
@@ -51,9 +51,9 @@ class WingBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
                 else -> {}
             }
         }
-        if (state.getValue<Boolean>(BlockStateProperties.SOUTH)) {
+        if (state.getValue(BlockStateProperties.SOUTH)) {
             when (facing) {
-                Direction.EAST, Direction.WEST -> applyColor(color, side_vertical)
+                Direction.EAST, Direction.WEST -> applyColor(color, sideVertical)
                     .rotateCentered(Direction.UP, Math.toRadians(180.0).toFloat())
                     .light(light).renderInto(ms, vb)
 
@@ -64,9 +64,9 @@ class WingBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
                 else -> {}
             }
         }
-        if (state.getValue<Boolean>(BlockStateProperties.EAST)) {
+        if (state.getValue(BlockStateProperties.EAST)) {
             when (facing) {
-                Direction.NORTH, Direction.SOUTH -> applyColor(color, side_vertical)
+                Direction.NORTH, Direction.SOUTH -> applyColor(color, sideVertical)
                     .rotateCentered(Direction.UP, Math.toRadians(270.0).toFloat())
                     .light(light).renderInto(ms, vb)
 
@@ -77,9 +77,9 @@ class WingBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
                 else -> {}
             }
         }
-        if (state.getValue<Boolean>(BlockStateProperties.WEST)) {
+        if (state.getValue(BlockStateProperties.WEST)) {
             when (facing) {
-                Direction.NORTH, Direction.SOUTH -> applyColor(color, side_vertical)
+                Direction.NORTH, Direction.SOUTH -> applyColor(color, sideVertical)
                     .rotateCentered(Direction.UP, Math.toRadians(90.0).toFloat())
                     .light(light).renderInto(ms, vb)
 
@@ -90,7 +90,7 @@ class WingBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
                 else -> {}
             }
         }
-        if (state.getValue<Boolean>(BlockStateProperties.UP)) {
+        if (state.getValue(BlockStateProperties.UP)) {
             when (facing) {
                 Direction.NORTH, Direction.SOUTH -> applyColor(color, side)
                     .rotateCentered(Direction.EAST, Math.toRadians(90.0).toFloat())
@@ -104,7 +104,7 @@ class WingBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
                 else -> {}
             }
         }
-        if (state.getValue<Boolean>(BlockStateProperties.DOWN)) {
+        if (state.getValue(BlockStateProperties.DOWN)) {
             when (facing) {
                 Direction.NORTH, Direction.SOUTH -> applyColor(color, side)
                     .rotateCentered(Direction.EAST, Math.toRadians(270.0).toFloat())

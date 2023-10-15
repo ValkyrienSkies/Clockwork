@@ -20,30 +20,32 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.util.EaseHelper
+import kotlin.math.sin
 
-
-class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) : KineticBlockEntityRenderer<PropellerBearingBlockEntity>(context) {
+class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
+    KineticBlockEntityRenderer<PropellerBearingBlockEntity>(context) {
 
     private val pistonsA: Float = 0.0f
     private val pistonsB: Float = 0.1875f
 
     override fun renderSafe(
-        te: PropellerBearingBlockEntity, partialTicks: Float, ms: PoseStack, buffer: MultiBufferSource,
-        light: Int, overlay: Int
+        te: PropellerBearingBlockEntity,
+        partialTicks: Float,
+        ms: PoseStack,
+        buffer: MultiBufferSource,
+        light: Int,
+        overlay: Int
     ) {
-
-//        if (Backend.canUseInstancing(te.getLevel())) return;
+        // if (Backend.canUseInstancing(te.getLevel())) return;
         super.renderSafe(te, partialTicks, ms, buffer, light, overlay)
         val bearingTe: PropellerBearingBlockEntity = te as PropellerBearingBlockEntity
-        val facing: Direction = te.blockState
-            .getValue(BlockStateProperties.FACING)
+        val facing: Direction = te.blockState.getValue(BlockStateProperties.FACING)
         val top = ClockworkPartials.PROPELLER_TOP
         val superBuffer = CachedBufferer.partial(top, te.getBlockState())
         ms.pushPose()
         ms.translate(0.5, 0.5, 0.5)
         ms.mulPose(Quaternion.fromXYZ(0.0f, Math.toRadians(-180.0).toFloat(), 0.0f))
-        val ogfacing = te.blockState
-            .getValue(BlockStateProperties.FACING)
+        val ogfacing = te.blockState.getValue(BlockStateProperties.FACING)
         when (ogfacing) {
             Direction.SOUTH -> ms.mulPose(Vector3f.XP.rotationDegrees(270f))
             Direction.WEST -> ms.mulPose(Vector3f.ZP.rotationDegrees(270f))
@@ -64,32 +66,23 @@ class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) : K
         shakeEngine(pistonBotL, te.speed, partialTicks, facing, te, 3)
         shakeEngine(pistonBotR, te.speed, partialTicks, facing, te, 4)
 
-
-        if (facing.axis
-                .isHorizontal
-        ) superBuffer.rotateCentered(
-            Direction.UP,
-            AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
+        if (facing.axis.isHorizontal) superBuffer.rotateCentered(
+            Direction.UP, AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
         )
         superBuffer.rotateCentered(
-            Direction.EAST,
-            AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble())
+            Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble())
         )
         pistonTopL.rotateCentered(
-            Direction.UP,
-            AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
+            Direction.UP, AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
         )
         pistonTopR.rotateCentered(
-            Direction.UP,
-            AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
+            Direction.UP, AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
         )
         pistonBotL.rotateCentered(
-            Direction.UP,
-            AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
+            Direction.UP, AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
         )
         pistonBotR.rotateCentered(
-                Direction.UP,
-        AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
+            Direction.UP, AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
         )
 
         pistonTopL.rotateCentered(Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()))
@@ -107,9 +100,7 @@ class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) : K
 
     override fun getRotatedModel(te: PropellerBearingBlockEntity, state: BlockState): SuperByteBuffer {
         return CachedBufferer.partialFacing(
-            AllPartialModels.SHAFT_HALF, state, state
-                .getValue(BearingBlock.FACING)
-                .opposite
+            AllPartialModels.SHAFT_HALF, state, state.getValue(BearingBlock.FACING).opposite
         )
     }
 
@@ -140,7 +131,8 @@ class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) : K
             else -> 1
         }
 
-        val interpolatedHorizontalOffset = getCornerHorizontalOffset(AnimationTickHolder.getPartialTicks() - 1, te, ordinal)
+        val interpolatedHorizontalOffset =
+            getCornerHorizontalOffset(AnimationTickHolder.getPartialTicks() - 1, te, ordinal)
         val translate = when (facing) {
             Direction.UP -> Vec3(
                 0.0,
@@ -182,15 +174,14 @@ class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) : K
         return buffer
     }
 
-    fun getCornerHorizontalOffset(partialTicks: Float, te: PropellerBearingBlockEntity, ordinal: Int): Float {
+    private fun getCornerHorizontalOffset(partialTicks: Float, te: PropellerBearingBlockEntity, ordinal: Int): Float {
         if (!te.running) {
             return 0f
         }
         if (ordinal == 1 || ordinal == 4) {
-            return 3f / 16f + Math.sin(EaseHelper.easeInOutSine(pistonsA).toDouble()).toFloat() * te.speed / 16f
+            return 3f / 16f + sin(EaseHelper.easeInOutSine(pistonsA).toDouble()).toFloat() * te.speed / 16f
         } else {
-            return 3f / 16f + Math.sin(EaseHelper.easeInOutSine(pistonsB).toDouble()).toFloat() * te.speed / 16f
+            return 3f / 16f + sin(EaseHelper.easeInOutSine(pistonsB).toDouble()).toFloat() * te.speed / 16f
         }
-
     }
 }

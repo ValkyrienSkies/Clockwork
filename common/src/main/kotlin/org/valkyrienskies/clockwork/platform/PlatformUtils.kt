@@ -2,9 +2,7 @@ package org.valkyrienskies.clockwork.platform
 
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType
-import com.simibubi.create.foundation.item.render.CustomRenderedItemModel
 import dev.architectury.injectables.annotations.ExpectPlatform
-import net.minecraft.client.resources.model.BakedModel
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.Packet
 import net.minecraft.server.level.ServerLevel
@@ -53,7 +51,11 @@ object PlatformUtils {
     @ExpectPlatform
     @JvmStatic
     fun useBallooner(
-        state: BlockState?, world: Level, pos: BlockPos, player: Player, hand: InteractionHand,
+        state: BlockState?,
+        world: Level,
+        pos: BlockPos,
+        player: Player,
+        hand: InteractionHand,
         blockRayTraceResult: BlockHitResult
     ) {
         throw AssertionError()

@@ -5,7 +5,6 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllBlocks
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.content.logistics.depot.EjectorBlock
-import com.simibubi.create.content.logistics.depot.EjectorBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour
@@ -31,11 +30,11 @@ import org.valkyrienskies.mod.common.util.toJOMLD
 
 class DeliveryChuteBlockEntity(typeIn: BlockEntityType<DeliveryChuteBlockEntity>, pos: BlockPos, state: BlockState) : KineticBlockEntity(typeIn, pos, state), ISyncableStorage {
 
-    var inventory: NonNullList<ItemStack> = NonNullList.withSize(1, ItemStack.EMPTY)
-    var previousInventory: NonNullList<ItemStack> = inventory
+    private var inventory: NonNullList<ItemStack> = NonNullList.withSize(1, ItemStack.EMPTY)
+    private var previousInventory: NonNullList<ItemStack> = inventory
     var id = 0
 
-    lateinit var idBehavior: ScrollValueBehaviour
+    private lateinit var idBehavior: ScrollValueBehaviour
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
 
@@ -91,7 +90,7 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<DeliveryChuteBlockEntity>
         return 1
     }
 
-    fun isOnShip(): Boolean {
+    private fun isOnShip(): Boolean {
         if (this.level!!.isClientSide) return false
         return (this.level!! as ServerLevel).getShipObjectManagingPos(this.worldPosition) != null
     }
@@ -189,14 +188,12 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<DeliveryChuteBlockEntity>
                 .rotateX(90.0)
         }
 
-        protected fun angle(state: BlockState): Float {
+        private fun angle(state: BlockState): Float {
             return if (AllBlocks.WEIGHTED_EJECTOR.has(state)) AngleHelper.horizontalAngle(state.getValue(EjectorBlock.HORIZONTAL_FACING)) else 0f
         }
 
         override fun isSideActive(state: BlockState, direction: Direction): Boolean {
-            return (direction.axis === state.getValue<Direction>(EjectorBlock.HORIZONTAL_FACING)
-                .axis
-                    || direction == Direction.UP)
+            return (direction.axis === state.getValue(EjectorBlock.HORIZONTAL_FACING).axis || direction == Direction.UP)
         }
 
         override fun getSouthLocation(): Vec3 {

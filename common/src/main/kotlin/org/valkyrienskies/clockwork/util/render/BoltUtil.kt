@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.util.render
 
-import com.simibubi.create.foundation.outliner.LineOutline
 import com.simibubi.create.foundation.utility.Color
 import org.joml.Vector3d
 import org.joml.Vector3dc
@@ -27,12 +26,12 @@ object BoltUtil {
         val bolt: Bolt = Bolt(segList)
         bolts.add(bolt)
 
-        for (b in 0 until bolt.segments.size-1) {
+        for (b in 0 until bolt.segments.size - 1) {
             val segment: Vector3dc = bolt.segments[b]
-            val nextSegment: Vector3dc = bolt.segments[b+1]
+            val nextSegment: Vector3dc = bolt.segments[b + 1]
             ClockworkMod.OUTLINER.showLine(segment, segment.toMinecraft(), nextSegment.toMinecraft())
             ClockworkMod.OUTLINER.edit(segment).ifPresent {
-                it.colored(Color(color.x(),color.y(),color.z(), color.w()))
+                it.colored(Color(color.x(), color.y(), color.z(), color.w()))
                 it.lineWidth(width)
             }
         }
@@ -54,7 +53,7 @@ object BoltUtil {
                 bolt.segments[0] = start
             }
             if (end != null) {
-                bolt.segments[bolt.segments.size-1] = end
+                bolt.segments[bolt.segments.size - 1] = end
             }
             bolts.add(bolt)
         }
@@ -65,10 +64,14 @@ object BoltUtil {
         val boltsCopied = ArrayList(bolts)
         for (bolt in boltsCopied) {
             var prevSegmentEnd: Vector3dc = bolt.segments[1]
-            ClockworkMod.OUTLINER.showLine(bolt.segments[0], bolt.segments[0].toMinecraft(), prevSegmentEnd.toMinecraft())
-            for (i in 1 until bolt.segments.size-1) {
+            ClockworkMod.OUTLINER.showLine(
+                bolt.segments[0],
+                bolt.segments[0].toMinecraft(),
+                prevSegmentEnd.toMinecraft()
+            )
+            for (i in 1 until bolt.segments.size - 1) {
                 val segment: Vector3d = bolt.segments[i] as Vector3d
-                val nextSegment: Vector3d = bolt.segments[i+1] as Vector3d
+                val nextSegment: Vector3d = bolt.segments[i + 1] as Vector3d
                 val xOffset: Double = rand.nextDouble(-0.5, 0.5)
                 val yOffset: Double = rand.nextDouble(-0.5, 0.5)
                 val zOffset: Double = rand.nextDouble(-0.5, 0.5)
@@ -76,7 +79,11 @@ object BoltUtil {
                 ClockworkMod.OUTLINER.showLine(segment, prevSegmentEnd.toMinecraft(), nextSegment.toMinecraft())
                 prevSegmentEnd = nextSegment
             }
-            ClockworkMod.OUTLINER.showLine(prevSegmentEnd, prevSegmentEnd.toMinecraft(), bolt.segments[bolt.segments.size-1].toMinecraft())
+            ClockworkMod.OUTLINER.showLine(
+                prevSegmentEnd,
+                prevSegmentEnd.toMinecraft(),
+                bolt.segments[bolt.segments.size - 1].toMinecraft()
+            )
         }
     }
 }

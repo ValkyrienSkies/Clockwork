@@ -19,10 +19,15 @@ import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import java.util.function.Consumer
 
-class PhysBearingBlock(properties: Properties) : BearingBlock(properties),
+class PhysBearingBlock(properties: Properties) :
+    BearingBlock(properties),
     IBE<PhysBearingBlockEntity> {
     override fun use(
-        state: BlockState, worldIn: Level, pos: BlockPos, player: Player, handIn: InteractionHand,
+        state: BlockState,
+        worldIn: Level,
+        pos: BlockPos,
+        player: Player,
+        handIn: InteractionHand,
         hit: BlockHitResult
     ): InteractionResult {
         if (!player.mayBuild()) return InteractionResult.FAIL
@@ -31,9 +36,9 @@ class PhysBearingBlock(properties: Properties) : BearingBlock(properties),
                 .isEmpty
         ) {
             if (worldIn.isClientSide) return InteractionResult.SUCCESS
-            withBlockEntityDo(worldIn, pos, Consumer<PhysBearingBlockEntity> withBlockEntityDo@{ te: PhysBearingBlockEntity ->
+            withBlockEntityDo(worldIn, pos, Consumer withBlockEntityDo@{ te: PhysBearingBlockEntity ->
                 if (te.isRunning) {
-        //                    te.disassemble();
+                    // te.disassemble();
                     return@withBlockEntityDo
                 }
                 te.assembleNextTick = true

@@ -18,19 +18,23 @@ class ShaderReference(private val name: String, private val format: VertexFormat
             shader = null
         }
         try {
-            shader = ShaderInstance(ResourceProvider { location: ResourceLocation ->
-                try {
-                    return@ResourceProvider provider.getResource(
-                        ResourceLocation(
-                            ClockworkMod.MOD_ID,
-                            location.path
+            shader = ShaderInstance(
+                ResourceProvider { location: ResourceLocation ->
+                    try {
+                        return@ResourceProvider provider.getResource(
+                            ResourceLocation(
+                                ClockworkMod.MOD_ID,
+                                location.path
+                            )
                         )
-                    )
-                } catch (e: IOException) {
-                    ClockworkMod.LOGGER.warn("Shader is failing to load?", e)
-                    return@ResourceProvider provider.getResource(location)
-                }
-            }, name, format)
+                    } catch (e: IOException) {
+                        ClockworkMod.LOGGER.warn("Shader is failing to load?", e)
+                        return@ResourceProvider provider.getResource(location)
+                    }
+                },
+                name,
+                format
+            )
         } catch (e: Exception) {
             LOGGER.error(e)
         }

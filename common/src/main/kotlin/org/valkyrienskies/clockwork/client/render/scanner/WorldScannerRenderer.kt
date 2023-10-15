@@ -1,5 +1,5 @@
 package org.valkyrienskies.clockwork.client.render.scanner
-//Thanks to Scannable for this code! (https://github.com/MightyPirates/Scannable)
+// Thanks to Scannable for this code! (https://github.com/MightyPirates/Scannable)
 import com.mojang.blaze3d.pipeline.RenderTarget
 import com.mojang.blaze3d.platform.GlConst
 import com.mojang.blaze3d.platform.GlStateManager

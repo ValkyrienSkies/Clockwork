@@ -19,12 +19,15 @@ import org.valkyrienskies.clockwork.ClockworkPartials
 
 class FlapBearingRenderer(context: BlockEntityRendererProvider.Context) :
     KineticBlockEntityRenderer<FlapBearingBlockEntity>(context) {
-    protected override fun renderSafe(
-        te: FlapBearingBlockEntity, partialTicks: Float, ms: PoseStack, buffer: MultiBufferSource,
-        light: Int, overlay: Int
+    override fun renderSafe(
+        te: FlapBearingBlockEntity,
+        partialTicks: Float,
+        ms: PoseStack,
+        buffer: MultiBufferSource,
+        light: Int,
+        overlay: Int
     ) {
-
-//        if (Backend.canUseInstancing(te.getLevel())) return;
+        // if (Backend.canUseInstancing(te.getLevel())) return;
         super.renderSafe(te, partialTicks, ms, buffer, light, overlay)
         val bearingTe = te as IBearingBlockEntity
         val facing = te.blockState
@@ -33,12 +36,11 @@ class FlapBearingRenderer(context: BlockEntityRendererProvider.Context) :
         val superBuffer = CachedBufferer.partial(top, te.blockState)
         val interpolatedAngle = bearingTe.getInterpolatedAngle(partialTicks - 1)
         kineticRotationTransform(superBuffer, te, facing.axis, (interpolatedAngle / 180 * Math.PI).toFloat(), light)
-        if (facing.axis
-                .isHorizontal
-        ) superBuffer.rotateCentered(
-            Direction.UP,
-            AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
-        )
+        if (facing.axis.isHorizontal)
+            superBuffer.rotateCentered(
+                Direction.UP,
+                AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
+            )
         superBuffer.rotateCentered(
             Direction.EAST,
             AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble())
@@ -46,11 +48,9 @@ class FlapBearingRenderer(context: BlockEntityRendererProvider.Context) :
         superBuffer.renderInto(ms, buffer.getBuffer(RenderType.solid()))
     }
 
-    protected override fun getRotatedModel(te: FlapBearingBlockEntity, state: BlockState): SuperByteBuffer {
+    override fun getRotatedModel(te: FlapBearingBlockEntity, state: BlockState): SuperByteBuffer {
         return CachedBufferer.partialFacing(
-            AllPartialModels.SHAFT_HALF, state, state
-                .getValue(BearingBlock.FACING)
-                .opposite
+            AllPartialModels.SHAFT_HALF, state, state.getValue(BearingBlock.FACING).opposite
         )
     }
 }

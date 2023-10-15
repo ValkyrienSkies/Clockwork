@@ -2,18 +2,21 @@ package org.valkyrienskies.clockwork.content.forces
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import net.minecraft.util.Mth
-import org.joml.*
+import org.joml.AxisAngle4d
+import org.joml.Quaterniond
+import org.joml.Quaterniondc
+import org.joml.Vector3d
+import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropCreateData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropUpdateData
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
-import org.valkyrienskies.core.api.ships.properties.ShipTransform
 import org.valkyrienskies.core.api.ships.ShipForcesInducer
+import org.valkyrienskies.core.api.ships.properties.ShipTransform
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 import org.valkyrienskies.core.impl.game.ships.ShipInertiaDataImpl
-import java.lang.Math
-import java.util.*
+import java.util.Queue
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.function.BiConsumer
@@ -46,12 +49,14 @@ class PropellerController : ShipForcesInducer {
         while (!removedProps.isEmpty()) {
             propellorPhysData.remove(removedProps.remove() as Int)
         }
-        propellorUpdatePhysData.forEach(BiConsumer<Int, PropUpdateData> forEach@{ id: Int, data: PropUpdateData ->
-            val physData: PropData = propellorPhysData[id] ?: return@forEach
-            physData.bearingAngle = data.rotationAngle
-            physData.bearingSpeed = data.rotationSpeed
-            physData.inverted = data.inverted
-        })
+        propellorUpdatePhysData.forEach(
+            BiConsumer<Int, PropUpdateData> forEach@{ id: Int, data: PropUpdateData ->
+                val physData: PropData = propellorPhysData[id] ?: return@forEach
+                physData.bearingAngle = data.rotationAngle
+                physData.bearingSpeed = data.rotationSpeed
+                physData.inverted = data.inverted
+            }
+        )
         propellorUpdatePhysData.clear()
 
         // Propeller Thrust
@@ -69,8 +74,6 @@ class PropellerController : ShipForcesInducer {
             physShip.applyInvariantForce(netForce)
             physShip.applyInvariantTorque(netTorque)
         }
-
-
         // Propeller Pushing
     }
 
@@ -142,7 +145,7 @@ class PropellerController : ShipForcesInducer {
 
         // 1/2 * Mass * (Outer Wheel Radius^2 + Total Wheel Radius^2)
 
-        //negative to fix dir
+        // negative to fix dir
         val rotVel = propSpeed * (2 * Math.PI / 60) * -1
         val angularVelocityPropeller: Vector3dc = Vector3d(propAxis).mul(rotVel)
         val angularMomentumRelProp: Vector3dc =
@@ -197,10 +200,10 @@ class PropellerController : ShipForcesInducer {
         } else if (other !is PropellerController) {
             false
         } else {
-            (propellorPhysData == other.propellorPhysData && propellorUpdatePhysData == other.propellorUpdatePhysData
-                    && areQueuesEqual<Pair<Int, PropCreateData>>(createdProps, other.createdProps)
-                    && areQueuesEqual<Int>(removedProps, other.removedProps)
-                    && nextPropID == other.nextPropID)
+            (propellorPhysData == other.propellorPhysData && propellorUpdatePhysData == other.propellorUpdatePhysData && areQueuesEqual<Pair<Int, PropCreateData>>(
+                createdProps,
+                other.createdProps
+            ) && areQueuesEqual<Int>(removedProps, other.removedProps) && nextPropID == other.nextPropID)
         }
     }
 

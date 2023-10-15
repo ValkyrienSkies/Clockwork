@@ -12,7 +12,7 @@ import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.ClockworkContraptions
-import java.util.*
+import java.util.Queue
 
 class FlapContraption : Contraption() {
     var offset = 0
@@ -30,8 +30,7 @@ class FlapContraption : Contraption() {
 
     @Throws(AssemblyException::class)
     override fun moveBlock(
-        world: Level, direction: Direction?, frontier: Queue<BlockPos>,
-        visited: Set<BlockPos>
+        world: Level, direction: Direction?, frontier: Queue<BlockPos>, visited: Set<BlockPos>
     ): Boolean {
         return super.moveBlock(world, direction, frontier, visited)
     }
@@ -77,9 +76,7 @@ class FlapContraption : Contraption() {
             }
             for (i in 0..15) {
                 val offsetPos = BlockPos.ZERO.relative(direction, i)
-                if (contraption.getBlocks()
-                        .containsKey(offsetPos)
-                ) continue
+                if (contraption.getBlocks().containsKey(offsetPos)) continue
             }
             contraption.startMoving(world)
             contraption.expandBoundsAroundAxis(direction.axis)

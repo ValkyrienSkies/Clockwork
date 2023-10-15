@@ -13,8 +13,15 @@ import net.minecraft.core.particles.ParticleType
 import org.valkyrienskies.clockwork.ClockworkParticles
 
 class PhysLightningParticle(
-    worldIn: ClientLevel?, x: Double, y: Double, z: Double, vx: Double, vy: Double, vz: Double,
-    private val animatedSprite: SpriteSet, data: ParticleOptions
+    worldIn: ClientLevel?,
+    x: Double,
+    y: Double,
+    z: Double,
+    vx: Double,
+    vy: Double,
+    vz: Double,
+    private val animatedSprite: SpriteSet,
+    data: ParticleOptions
 ) :
     CustomRotationParticle(worldIn, x, y, z, animatedSprite, 0f) {
     protected var startTicks: Int

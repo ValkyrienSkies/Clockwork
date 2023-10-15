@@ -92,12 +92,8 @@ class FlapBearingBlockEntity(type: BlockEntityType<FlapBearingBlockEntity>, pos:
             assembleNextTick = false
             if (isRunning) {
                 val canDisassemble = true
-                if (speed == 0f && (canDisassemble || flap == null || flap!!.contraption
-                        .blocks
-                        .isEmpty())
-                ) {
-                    if (flap != null) flap!!.contraption
-                        .stop(level)
+                if (speed == 0f && (canDisassemble || flap == null || flap!!.contraption.blocks.isEmpty())) {
+                    if (flap != null) flap!!.contraption.stop(level)
                     disassemble()
                 }
                 return
@@ -137,7 +133,7 @@ class FlapBearingBlockEntity(type: BlockEntityType<FlapBearingBlockEntity>, pos:
 
     fun assemble() {
         if (level!!.getBlockState(worldPosition)
-                .block !is FlapBearingBlock
+            .block !is FlapBearingBlock
         ) return
         val direction = blockState.getValue<Direction>(BlockStateProperties.FACING)
         val contraption: FlapContraption?
@@ -150,17 +146,15 @@ class FlapBearingBlockEntity(type: BlockEntityType<FlapBearingBlockEntity>, pos:
             return
         }
         if (contraption == null) return
-        if (contraption.getBlocks()
-                .isEmpty()
-        ) return
+        if (contraption.blocks.isEmpty()) return
         val anchor = worldPosition.relative(direction)
         contraption.removeBlocksFromWorld(level, BlockPos.ZERO)
         flap = ControlledContraptionEntity.create(level, this, contraption)
         flap!!.setPos(anchor.x.toDouble(), anchor.y.toDouble(), anchor.z.toDouble())
-        flap!!.setRotationAxis(direction.axis)
-        level!!.addFreshEntity(flap)
+        flap!!.rotationAxis = direction.axis
+        level!!.addFreshEntity(flap!!)
 
-        //Run
+        // Run
         isRunning = true
         bearingAngle = 0f
         sendData()

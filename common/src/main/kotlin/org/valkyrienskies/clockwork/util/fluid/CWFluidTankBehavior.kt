@@ -15,8 +15,11 @@ import org.valkyrienskies.clockwork.platform.PlatformUtils.cwFluidTank
 import java.util.function.Consumer
 
 abstract class CWFluidTankBehaviour protected constructor(
-    private val behaviourType: BehaviourType<CWFluidTankBehaviour>, te: SmartBlockEntity?, tanks: Int,
-    tankCapacity: Long, enforceVariety: Boolean
+    private val behaviourType: BehaviourType<CWFluidTankBehaviour>,
+    te: SmartBlockEntity?,
+    tanks: Int,
+    tankCapacity: Long,
+    enforceVariety: Boolean
 ) : BlockEntityBehaviour(te) {
     protected var syncCooldown = 0
     protected var queuedSync = false

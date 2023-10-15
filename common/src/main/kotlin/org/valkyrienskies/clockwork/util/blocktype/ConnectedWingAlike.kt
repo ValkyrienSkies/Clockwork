@@ -37,26 +37,25 @@ abstract class ConnectedWingAlike(properties: Properties?) : Block(properties) {
 
     override fun getStateForPlacement(context: BlockPlaceContext): BlockState? {
         val preferredFacing = getPreferredDirection(context)
-        return if (preferredFacing != null && (context.player == null || !context.player!!
-                .isShiftKeyDown)
-        ) getNewState(
-            defaultBlockState()
-                .setValue(FACING, preferredFacing), context.level, context.clickedPos
-        ) else getNewState(
-            defaultBlockState()
-                .setValue(
-                    FACING, if (preferredFacing != null && context.player!!
-                            .isShiftKeyDown
-                    ) context.clickedFace.opposite else context.nearestLookingDirection
-                ), context.level, context.clickedPos
-        )
+        return if (preferredFacing != null && (context.player == null || !context.player!!.isShiftKeyDown)) {
+            getNewState(
+                defaultBlockState().setValue(FACING, preferredFacing), context.level, context.clickedPos
+            )
+        } else {
+            getNewState(
+                defaultBlockState().setValue(
+                    FACING,
+                    if (preferredFacing != null && context.player!!.isShiftKeyDown) context.clickedFace.opposite else context.nearestLookingDirection
+                ),
+                context.level,
+                context.clickedPos
+            )
+        }
     }
 
     override fun rotate(state: BlockState, rot: Rotation): BlockState {
         return when (rot) {
-            Rotation.COUNTERCLOCKWISE_90, Rotation.CLOCKWISE_90 -> when (state.getValue(
-                FACING
-            )) {
+            Rotation.COUNTERCLOCKWISE_90, Rotation.CLOCKWISE_90 -> when (state.getValue(FACING)) {
                 Direction.NORTH -> state.setValue(FACING, Direction.EAST)
                 Direction.EAST -> state.setValue(FACING, Direction.UP)
                 Direction.UP -> state.setValue(FACING, Direction.NORTH)
@@ -113,8 +112,10 @@ abstract class ConnectedWingAlike(properties: Properties?) : Block(properties) {
                     )
                 if (blockState.block is IRotate) {
                     if ((blockState.block as IRotate).hasShaftTowards(
-                            context.level, context.clickedPos
-                                .relative(side), blockState, side.opposite
+                            context.level,
+                            context.clickedPos.relative(side),
+                            blockState,
+                            side.opposite
                         )
                     ) if (preferredAxis != null && preferredAxis !== side.axis) {
                         preferredAxis = null

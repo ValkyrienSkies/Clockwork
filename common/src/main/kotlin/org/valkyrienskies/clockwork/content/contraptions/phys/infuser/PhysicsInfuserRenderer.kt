@@ -14,18 +14,13 @@ import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.Direction
-import net.minecraft.core.Direction.Plane
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
 import org.joml.Vector3dc
-import org.joml.Vector4i
 import org.joml.primitives.AABBi
-import org.joml.primitives.Planed
-import org.joml.primitives.Rectanglei
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.AreaDesignatorItem
 import org.valkyrienskies.clockwork.util.render.Bolt
-import org.valkyrienskies.clockwork.util.render.BoltUtil
 import org.valkyrienskies.mod.common.util.toJOMLD
 
 class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :

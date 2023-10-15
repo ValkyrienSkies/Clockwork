@@ -9,7 +9,6 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket
-import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket
 
 class ColorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) :
     SmartBlockEntity(type, pos, state) {

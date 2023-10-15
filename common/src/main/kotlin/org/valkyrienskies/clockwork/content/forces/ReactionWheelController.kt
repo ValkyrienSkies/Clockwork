@@ -42,11 +42,13 @@ class ReactionWheelController : ShipForcesInducer {
         while (!removedRWs.isEmpty()) {
             reactionwheelData.remove(removedRWs.remove() as Int)
         }
-        reactionwheelUpdateData.forEach(BiConsumer<Int, ReactionWheelUpdateData> forEach@{ id: Int?, data: ReactionWheelUpdateData ->
-            val physData: ReactionWheelData = reactionwheelData[id] ?: return@forEach
-            physData.wheelSpeed = data.speed.toDouble()
-            physData.sourceSpeed = data.sourceSpeed.toDouble()
-        })
+        reactionwheelUpdateData.forEach(
+            BiConsumer<Int, ReactionWheelUpdateData> forEach@{ id: Int?, data: ReactionWheelUpdateData ->
+                val physData: ReactionWheelData = reactionwheelData[id] ?: return@forEach
+                physData.wheelSpeed = data.speed.toDouble()
+                physData.sourceSpeed = data.sourceSpeed.toDouble()
+            }
+        )
         reactionwheelUpdateData.clear()
         for (physData in reactionwheelData.values) {
 //            if (physData.wheelAxis.x() == 1) {

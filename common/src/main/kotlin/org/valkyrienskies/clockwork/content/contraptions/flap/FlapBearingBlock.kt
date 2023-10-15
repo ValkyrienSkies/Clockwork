@@ -16,7 +16,8 @@ import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import java.util.function.Consumer
 
-class FlapBearingBlock(properties: Properties?) : BearingBlock(properties),
+class FlapBearingBlock(properties: Properties?) :
+    BearingBlock(properties),
     IBE<FlapBearingBlockEntity> {
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
         super.createBlockStateDefinition(builder)
@@ -27,20 +28,28 @@ class FlapBearingBlock(properties: Properties?) : BearingBlock(properties),
     }
 
     override fun use(
-        state: BlockState, worldIn: Level, pos: BlockPos,
-        player: Player, handIn: InteractionHand, hit: BlockHitResult
+        state: BlockState,
+        worldIn: Level,
+        pos: BlockPos,
+        player: Player,
+        handIn: InteractionHand,
+        hit: BlockHitResult
     ): InteractionResult {
         if (!player.mayBuild()) return InteractionResult.FAIL
         if (player.isShiftKeyDown) return InteractionResult.FAIL
         if (player.getItemInHand(handIn).isEmpty) {
             if (!worldIn.isClientSide) {
-                withBlockEntityDo(worldIn, pos, Consumer<FlapBearingBlockEntity> withBlockEntityDo@{ te: FlapBearingBlockEntity ->
-                    if (te.isRunning) {
-                        te.disassemble()
-                        return@withBlockEntityDo
+                withBlockEntityDo(
+                    worldIn,
+                    pos,
+                    Consumer withBlockEntityDo@{ te: FlapBearingBlockEntity ->
+                        if (te.isRunning) {
+                            te.disassemble()
+                            return@withBlockEntityDo
+                        }
+                        te.assembleNextTick = true
                     }
-                    te.assembleNextTick = true
-                })
+                )
             }
             return InteractionResult.SUCCESS
         }

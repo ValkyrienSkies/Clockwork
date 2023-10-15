@@ -54,13 +54,12 @@ class SequencedSeatBlock(properties: Properties) : HorizontalKineticBlock(proper
             ) return InteractionResult.PASS
         }
         if (player.isShiftKeyDown) {
-            if (level.isClientSide) withBlockEntityDo(level, pos,
-                Consumer { te: SequencedSeatBlockEntity ->
-                    displayScreen(
-                        te,
-                        player
-                    )
-                })
+            if (level.isClientSide) withBlockEntityDo(level, pos) { te: SequencedSeatBlockEntity ->
+                displayScreen(
+                    te,
+                    player
+                )
+            }
         } else {
             sitDown(level, pos, player)
         }

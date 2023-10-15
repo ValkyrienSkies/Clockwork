@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.util.assemble
+package org.valkyrienskies.clockwork.util
 
 import com.simibubi.create.content.contraptions.AssemblyException
 import com.simibubi.create.content.contraptions.glue.SuperGlueEntity
@@ -11,7 +11,7 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
-import java.util.*
+import java.util.Queue
 import java.util.function.Consumer
 
 object GlueAssembler {

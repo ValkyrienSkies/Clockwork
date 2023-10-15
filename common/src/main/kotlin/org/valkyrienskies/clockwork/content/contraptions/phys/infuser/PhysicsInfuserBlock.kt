@@ -17,7 +17,6 @@ import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.AreaDesignatorItem
-import java.util.function.Consumer
 
 class PhysicsInfuserBlock(properties: Properties) : Block(properties),
     IBE<PhysicsInfuserBlockEntity> {
@@ -30,7 +29,11 @@ class PhysicsInfuserBlock(properties: Properties) : Block(properties),
     }
 
     override fun use(
-        state: BlockState, worldIn: Level, pos: BlockPos, player: Player, handIn: InteractionHand,
+        state: BlockState,
+        worldIn: Level,
+        pos: BlockPos,
+        player: Player,
+        handIn: InteractionHand,
         hit: BlockHitResult
     ): InteractionResult {
         if (worldIn.isClientSide) {
@@ -38,26 +41,27 @@ class PhysicsInfuserBlock(properties: Properties) : Block(properties),
         }
         if (!player.mayBuild()) return InteractionResult.FAIL
         if (player.isShiftKeyDown) return InteractionResult.FAIL
-        if (player.getItemInHand(handIn)
-                .isEmpty
-        ) {
+        if (player.getItemInHand(handIn).isEmpty) {
             if (!worldIn.isClientSide) {
-                withBlockEntityDo(worldIn, pos,
-                    Consumer<PhysicsInfuserBlockEntity?> { te: PhysicsInfuserBlockEntity? -> if (te!!.isAssembled && !te.assembling && !te.disassembling) te.startDisassembly() })
-                withBlockEntityDo(worldIn, pos,
-                    Consumer<PhysicsInfuserBlockEntity?> { te: PhysicsInfuserBlockEntity? -> if (!te!!.isAssembled && !te.assembling && !te.disassembling) te.startAssembly() })
+                withBlockEntityDo(
+                    worldIn, pos
+                ) { te: PhysicsInfuserBlockEntity? -> if (te!!.isAssembled && !te.assembling && !te.disassembling) te.startDisassembly() }
+                withBlockEntityDo(
+                    worldIn, pos
+                ) { te: PhysicsInfuserBlockEntity? -> if (!te!!.isAssembled && !te.assembling && !te.disassembling) te.startAssembly() }
                 return InteractionResult.SUCCESS
             }
-            withBlockEntityDo(worldIn, pos,
-                Consumer<PhysicsInfuserBlockEntity?> { te: PhysicsInfuserBlockEntity? ->
-                    if (te!!.isAssembled && !te.assembling && !te.disassembling && !te.onCooldown) {
-                        te.startDisassembly()
-                    } else if (!te.isAssembled && te.assembling && !te.disassembling && !te.onCooldown) {
-                        te.skipAssembly()
-                    } else if (!te.isAssembled && !te.assembling && !te.disassembling && !te.onCooldown) {
-                        te.startAssembly()
-                    }
-                })
+            withBlockEntityDo(
+                worldIn, pos
+            ) { te: PhysicsInfuserBlockEntity? ->
+                if (te!!.isAssembled && !te.assembling && !te.disassembling && !te.onCooldown) {
+                    te.startDisassembly()
+                } else if (!te.isAssembled && te.assembling && !te.disassembling && !te.onCooldown) {
+                    te.skipAssembly()
+                } else if (!te.isAssembled && !te.assembling && !te.disassembling && !te.onCooldown) {
+                    te.startAssembly()
+                }
+            }
             return InteractionResult.SUCCESS
         } else if (player.getItemInHand(handIn).item is AreaDesignatorItem) {
             if (worldIn.getBlockEntity(pos) != null) {
@@ -76,7 +80,7 @@ class PhysicsInfuserBlock(properties: Properties) : Block(properties),
         return InteractionResult.PASS
     }
 
-    //Voxelshape Hell
+    // Voxelshape Hell
     override fun getShape(state: BlockState, level: BlockGetter, pos: BlockPos, ctx: CollisionContext): VoxelShape {
         return SHAPE
     }
@@ -95,7 +99,7 @@ class PhysicsInfuserBlock(properties: Properties) : Block(properties),
             return state.block is PhysicsInfuserBlock
         }
 
-        fun makeShape(): VoxelShape {
+        private fun makeShape(): VoxelShape {
             var shape = Shapes.empty()
             shape = Shapes.join(shape, box(0.0, 11.0, 0.0, 5.0, 16.0, 5.0), BooleanOp.OR)
             shape = Shapes.join(shape, box(0.5, 0.5, 0.5, 15.5, 15.5, 15.5), BooleanOp.OR)

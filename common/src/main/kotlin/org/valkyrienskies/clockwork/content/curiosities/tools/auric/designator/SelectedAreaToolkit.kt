@@ -53,13 +53,13 @@ class SelectedAreaToolkit {
     private fun mergeClusters(starter: AABBic) {
         val newCluster: MutableSet<AABBic> = HashSet()
 
-        //get direct neighbors
+        // get direct neighbors
         for (area in this.selectedAreas) {
             if (starter.intersectsAABB(area)) {
                 newCluster.add(area)
             }
         }
-        //spiral out of control
+        // spiral out of control
         val toCheck = ArrayList(newCluster)
         while (!toCheck.isEmpty()) {
             val check = toCheck[0]
@@ -71,17 +71,16 @@ class SelectedAreaToolkit {
             }
             toCheck.removeAt(0)
         }
-        //finish off the insanity by adding back the initial
+        // finish off the insanity by adding back the initial
         newCluster.add(starter)
 
-        //now check to dump all clusters that were merged
+        // now check to dump all clusters that were merged
         for (check in newCluster) {
             val oldCluster = getClusterContainingAABB(check)
             oldCluster?.let { dumpClusterDirty(it) }
         }
         this.selectionClusters.add(newCluster)
     }
-
 
     // AREA : REMOVE
 

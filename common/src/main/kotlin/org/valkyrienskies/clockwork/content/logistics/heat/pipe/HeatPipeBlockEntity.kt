@@ -51,7 +51,7 @@ class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
                 return it.flowDir
             }
         }
-        return  mutableSetOf()
+        return mutableSetOf()
     }
 
     override fun isNeighborPipe(direction: Direction): Boolean {

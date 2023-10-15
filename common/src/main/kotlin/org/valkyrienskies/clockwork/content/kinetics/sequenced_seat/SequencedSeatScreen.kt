@@ -14,7 +14,7 @@ import net.minecraft.world.level.block.Rotation
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
 import org.valkyrienskies.clockwork.ClockworkPackets
-import java.util.*
+import java.util.Arrays
 import java.util.function.Consumer
 
 class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSimiScreen() {
@@ -314,13 +314,15 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
         init {
             blitX = x + 205
             blitY = y + 17
-            withCallback<AbstractSimiWidget>(Runnable {
-                if (isKeySelected(
-                        key,
-                        index
-                    )
-                ) deselectKey(key, index) else selectKey(key, index)
-            })
+            withCallback<AbstractSimiWidget>(
+                Runnable {
+                    if (isKeySelected(
+                            key,
+                            index
+                        )
+                    ) deselectKey(key, index) else selectKey(key, index)
+                }
+            )
         }
 
         override fun renderButton(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) {

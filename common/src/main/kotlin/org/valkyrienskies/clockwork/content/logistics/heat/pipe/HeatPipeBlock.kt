@@ -15,10 +15,12 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 
-class HeatPipeBlock(properties: Properties?) :
-    PipeBlock(6 / 16f, properties), SimpleWaterloggedBlock,
+class HeatPipeBlock(properties: Properties) :
+    PipeBlock(6 / 16f, properties),
+    SimpleWaterloggedBlock,
     IWrenchable,
-    IBE<HeatPipeBlockEntity>, ITransformableBlock {
+    IBE<HeatPipeBlockEntity>,
+    ITransformableBlock {
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
         builder.add(NORTH, EAST, SOUTH, WEST, UP, DOWN, BlockStateProperties.WATERLOGGED)
         super.createBlockStateDefinition(builder)
@@ -37,6 +39,6 @@ class HeatPipeBlock(properties: Properties?) :
     }
 
     override fun onWrenched(state: BlockState, context: UseOnContext): InteractionResult {
-        return super<IWrenchable>.onWrenched(state, context)
+        return super.onWrenched(state, context)
     }
 }

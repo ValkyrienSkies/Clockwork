@@ -26,8 +26,9 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInf
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
 import org.valkyrienskies.mod.common.util.toJOML
-import java.util.*
-
+import java.util.Random
+import kotlin.math.max
+import kotlin.math.min
 
 class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
 
@@ -202,13 +203,12 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
                 return InteractionResult.SUCCESS
             }
             val area: AABBic = AABBi(
-                Math.min(this.firstPos!!.x(), this.secondPos!!.x()), Math.min(
-                    this.firstPos!!.y(), this.secondPos!!.y()
-                ), Math.min(this.firstPos!!.z(), this.secondPos!!.z()), Math.max(
-                    this.firstPos!!.x(), this.secondPos!!.x()
-                ), Math.max(this.firstPos!!.y(), this.secondPos!!.y()), Math.max(
-                    this.firstPos!!.z(), this.secondPos!!.z()
-                )
+                min(this.firstPos!!.x(), this.secondPos!!.x()),
+                min(this.firstPos!!.y(), this.secondPos!!.y()),
+                min(this.firstPos!!.z(), this.secondPos!!.z()),
+                max(this.firstPos!!.x(), this.secondPos!!.x()),
+                max(this.firstPos!!.y(), this.secondPos!!.y()),
+                max(this.firstPos!!.z(), this.secondPos!!.z())
             )
             this.firstPos = null
             this.secondPos = null

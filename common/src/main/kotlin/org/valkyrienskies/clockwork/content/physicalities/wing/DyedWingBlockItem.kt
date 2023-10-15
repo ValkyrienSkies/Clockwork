@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.content.generic.ColorBlockEntity
-import java.util.*
+import java.util.Locale
 
 class DyedWingBlockItem(block: Block?, properties: Properties?) :
     BlockItem(block, properties) {

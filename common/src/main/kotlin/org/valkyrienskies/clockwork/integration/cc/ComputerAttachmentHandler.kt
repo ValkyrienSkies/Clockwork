@@ -14,10 +14,12 @@ class ComputerAttachmentHandler {
     }
 
     fun sendEvent(name: String?, obj: Any?) {
-        accessList.forEach(Consumer { access: IComputerAccess ->
-            access.queueEvent(
-                name!!, obj
-            )
-        })
+        accessList.forEach(
+            Consumer { access: IComputerAccess ->
+                access.queueEvent(
+                    name!!, obj
+                )
+            }
+        )
     }
 }

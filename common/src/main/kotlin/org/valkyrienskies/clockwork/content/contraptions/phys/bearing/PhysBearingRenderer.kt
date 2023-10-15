@@ -19,11 +19,14 @@ import org.valkyrienskies.clockwork.ClockworkPartials
 
 class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) :
     KineticBlockEntityRenderer<PhysBearingBlockEntity>(context) {
-    protected override fun renderSafe(
-        te: PhysBearingBlockEntity, partialTicks: Float, ms: PoseStack, buffer: MultiBufferSource,
-        light: Int, overlay: Int
+    override fun renderSafe(
+        te: PhysBearingBlockEntity,
+        partialTicks: Float,
+        ms: PoseStack,
+        buffer: MultiBufferSource,
+        light: Int,
+        overlay: Int
     ) {
-        if (te == null) return
         val vb = buffer.getBuffer(RenderType.translucent())
         val pte = te
         val ogfacing = te.blockState

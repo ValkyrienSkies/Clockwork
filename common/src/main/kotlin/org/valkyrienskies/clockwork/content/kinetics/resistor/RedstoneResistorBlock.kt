@@ -16,9 +16,10 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.ticks.TickPriority
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import java.util.*
+import java.util.Random
 
-class RedstoneResistorBlock(properties: Properties) : AbstractEncasedShaftBlock(properties),
+class RedstoneResistorBlock(properties: Properties) :
+    AbstractEncasedShaftBlock(properties),
     IBE<SplitShaftBlockEntity> {
     init {
         registerDefaultState(defaultBlockState().setValue(POWERED, false))
@@ -37,7 +38,11 @@ class RedstoneResistorBlock(properties: Properties) : AbstractEncasedShaftBlock(
     }
 
     override fun neighborChanged(
-        state: BlockState, worldIn: Level, pos: BlockPos, blockIn: Block, fromPos: BlockPos,
+        state: BlockState,
+        worldIn: Level,
+        pos: BlockPos,
+        blockIn: Block,
+        fromPos: BlockPos,
         isMoving: Boolean
     ) {
         if (worldIn.isClientSide) return

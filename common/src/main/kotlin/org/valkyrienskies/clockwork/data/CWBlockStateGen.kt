@@ -20,8 +20,7 @@ import net.minecraftforge.client.model.generators.ModelFile
 import net.minecraftforge.client.model.generators.MultiPartBlockStateBuilder
 import org.apache.commons.lang3.tuple.Pair
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlock
-import java.util.*
-import java.util.function.BiConsumer
+import java.util.IdentityHashMap
 import java.util.function.Function
 
 object CWBlockStateGen {
@@ -87,7 +86,7 @@ object CWBlockStateGen {
                             )
                         )
                         .end()
-                        .faces(BiConsumer { d: Direction, builder: ModelBuilder<BlockModelBuilder>.ElementBuilder.FaceBuilder ->
+                        .faces { d: Direction, builder: ModelBuilder<BlockModelBuilder>.ElementBuilder.FaceBuilder ->
                             val (key1, value) = uvs[s]!!
                             val u = key1.toFloat()
                             val v = value.toFloat()
@@ -98,7 +97,7 @@ object CWBlockStateGen {
                             if (d == Direction.EAST) builder.uvs(u, v, u + 4, v + 4)
                             if (d == Direction.WEST) builder.uvs(u + 4, v, u, v + 4)
                             builder.texture("#0")
-                        })
+                        }
                         .end()
                 }
             }
@@ -120,8 +119,14 @@ object CWBlockStateGen {
     }
 
     private fun putPart(
-        coreModels: Map<Pair<String, Direction.Axis>, ModelFile>, builder: MultiPartBlockStateBuilder,
-        axis: Direction.Axis, s: String, up: Boolean, down: Boolean, left: Boolean, right: Boolean
+        coreModels: Map<Pair<String, Direction.Axis>, ModelFile>,
+        builder: MultiPartBlockStateBuilder,
+        axis: Direction.Axis,
+        s: String,
+        up: Boolean,
+        down: Boolean,
+        left: Boolean,
+        right: Boolean
     ) {
         val positiveAxis = Direction.get(Direction.AxisDirection.POSITIVE, axis)
         val propertyMap = FluidPipeBlock.PROPERTY_BY_DIRECTION
