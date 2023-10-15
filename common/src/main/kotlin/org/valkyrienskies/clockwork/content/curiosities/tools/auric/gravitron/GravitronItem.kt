@@ -5,6 +5,7 @@ import net.minecraft.client.model.HumanoidModel
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.InteractionResultHolder
@@ -21,6 +22,7 @@ import org.joml.Vector2d
 import org.joml.Vector2dc
 import org.joml.Vector3d
 import org.joml.Vector3dc
+import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.core.api.ships.LoadedServerShip
@@ -56,6 +58,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                     if (ship.isStatic) {
                         dropShip(s, level)
                     }
+                    level.playSound(player, player.blockPosition(), ClockworkSounds.DESIGNATOR_ACTIVATE.mainEvent!!, SoundSource.PLAYERS, 1f, 1f)
                     return true
                 }
             }

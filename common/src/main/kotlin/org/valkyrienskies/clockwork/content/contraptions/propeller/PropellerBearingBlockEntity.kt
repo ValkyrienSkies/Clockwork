@@ -30,11 +30,13 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.contraption.P
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropCreateData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropUpdateData
 import org.valkyrienskies.clockwork.content.forces.PropellerController
+import org.valkyrienskies.clockwork.util.EaseHelper
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toJOMLD
 import java.util.function.Consumer
 import kotlin.math.abs
+import kotlin.math.sin
 
 class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
     KineticBlockEntity(type, pos, state), IBearingBlockEntity {
@@ -65,10 +67,29 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         private set
     private var physPropId: Int? = null
 
+    private val pistonsA: Float = 0.0f
+    private val pistonsB: Float = 0.09375f
+    private val pistonsC: Float = 0.1875f
+    private val pistonsD: Float = 0.28125f
+
     init {
         sailPositions = ArrayList()
     }
 
+    fun getCornerHorizontalOffset(partialTicks: Float, te: PropellerBearingBlockEntity, ordinal: Int): Float {
+        if (!this.running) {
+            return 0f
+        }
+        if (ordinal == 1) {
+            return 3f / 16f + sin(EaseHelper.easeInOutSine(this.pistonsA).toDouble()).toFloat() / 16f
+        } else if (ordinal == 2) {
+            return 3f / 16f + sin(EaseHelper.easeInOutSine(this.pistonsB).toDouble()).toFloat() / 16f
+        } else if (ordinal == 3) {
+            return 3f / 16f + sin(EaseHelper.easeInOutSine(this.pistonsC).toDouble()).toFloat() / 16f
+        } else {
+            return 3f / 16f + sin(EaseHelper.easeInOutSine(this.pistonsD).toDouble()).toFloat() / 16f
+        }
+    }
     override fun getInterpolatedAngle(partialTicks: Float): Float {
         var partialTicks = partialTicks
         if (isVirtual) return Mth.lerp(partialTicks + .5f, prevAngle, realAngle)

@@ -25,9 +25,6 @@ import kotlin.math.sin
 class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
     KineticBlockEntityRenderer<PropellerBearingBlockEntity>(context) {
 
-    private val pistonsA: Float = 0.0f
-    private val pistonsB: Float = 0.1875f
-
     override fun renderSafe(
         te: PropellerBearingBlockEntity,
         partialTicks: Float,
@@ -60,17 +57,18 @@ class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
         val pistonBotL = CachedBufferer.partial(ClockworkPartials.PROPELLER_PISTON_BOTTOM_LEFT, te.blockState)
         val pistonBotR = CachedBufferer.partial(ClockworkPartials.PROPELLER_PISTON_BOTTOM_RIGHT, te.blockState)
         val interpolatedAngle: Float = bearingTe.getInterpolatedAngle(partialTicks - 1)
-        kineticRotationTransform(superBuffer, te, facing.axis, (interpolatedAngle / 180 * Math.PI).toFloat(), light)
-        shakeEngine(pistonTopL, te.speed, partialTicks, facing, te, 1)
-        shakeEngine(pistonTopR, te.speed, partialTicks, facing, te, 2)
-        shakeEngine(pistonBotL, te.speed, partialTicks, facing, te, 3)
-        shakeEngine(pistonBotR, te.speed, partialTicks, facing, te, 4)
+        kineticRotationTransform(superBuffer, te, Direction.UP.axis, (interpolatedAngle / 180 * Math.PI).toFloat(), light)
+        shakeEngine(pistonTopL, te.rotspeed, partialTicks, facing, te, 1)
+        shakeEngine(pistonTopR, te.rotspeed, partialTicks, facing, te, 2)
+        shakeEngine(pistonBotL, te.rotspeed, partialTicks, facing, te, 3)
+        shakeEngine(pistonBotR, te.rotspeed, partialTicks, facing, te, 4)
 
         if (facing.axis.isHorizontal) superBuffer.rotateCentered(
             Direction.UP, AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
         )
         superBuffer.rotateCentered(
-            Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble())
+            Direction.UP,
+            AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
         )
         pistonTopL.rotateCentered(
             Direction.UP, AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
@@ -116,72 +114,68 @@ class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
         var speed = speed
         speed = Mth.clamp(speed, -48.0f, 48.0f)
 
-        val zSwitch = when (ordinal) {
+        val xSwitch = when (ordinal) {
             1 -> 1
             2 -> -1
             3 -> 1
             4 -> -1
             else -> 1
         }
-        val ySwitch = when (ordinal) {
-            1 -> -1
-            2 -> -1
-            3 -> 1
-            4 -> 1
+        val zSwitch = when (ordinal) {
+            1 -> 1
+            2 -> 1
+            3 -> -1
+            4 -> -1
             else -> 1
         }
 
         val interpolatedHorizontalOffset =
-            getCornerHorizontalOffset(AnimationTickHolder.getPartialTicks() - 1, te, ordinal)
+            te.getCornerHorizontalOffset(AnimationTickHolder.getPartialTicks() - 1, te, ordinal)
+        val verticalOffset = when (ordinal) {
+            1 -> 1.5/16.0
+            2 -> 1.5/16.0
+            3 -> 0.0
+            4 -> 0.0
+            else -> 0.0
+        }
         val translate = when (facing) {
             Direction.UP -> Vec3(
-                0.0,
-                (interpolatedHorizontalOffset * ySwitch).toDouble(),
+                (interpolatedHorizontalOffset * xSwitch).toDouble(),
+                verticalOffset,
                 (interpolatedHorizontalOffset * zSwitch).toDouble()
             )
 
             Direction.NORTH -> Vec3(
-                0.0,
+                (interpolatedHorizontalOffset * xSwitch).toDouble(),
                 (interpolatedHorizontalOffset * zSwitch).toDouble(),
-                -(interpolatedHorizontalOffset * ySwitch).toDouble(),
+                verticalOffset
             )
 
             Direction.SOUTH -> Vec3(
                 (interpolatedHorizontalOffset * zSwitch).toDouble(),
-                0.0,
-                (interpolatedHorizontalOffset * ySwitch).toDouble(),
+                (interpolatedHorizontalOffset * xSwitch).toDouble(),
+                verticalOffset
             )
 
             Direction.EAST -> Vec3(
-                -(interpolatedHorizontalOffset * ySwitch).toDouble(),
-                0.0,
+                verticalOffset,
+                (interpolatedHorizontalOffset * xSwitch).toDouble(),
                 (interpolatedHorizontalOffset * zSwitch).toDouble()
             )
 
             Direction.WEST -> Vec3(
-                (interpolatedHorizontalOffset * ySwitch).toDouble(),
+                verticalOffset,
                 (interpolatedHorizontalOffset * zSwitch).toDouble(),
-                0.0
+                (interpolatedHorizontalOffset * xSwitch).toDouble()
             )
 
             Direction.DOWN -> Vec3(
-                0.0,
-                -(interpolatedHorizontalOffset * ySwitch).toDouble(),
+                (interpolatedHorizontalOffset * xSwitch).toDouble(),
+                verticalOffset,
                 (interpolatedHorizontalOffset * zSwitch).toDouble()
             )
         }
         buffer.translate(translate)
         return buffer
-    }
-
-    private fun getCornerHorizontalOffset(partialTicks: Float, te: PropellerBearingBlockEntity, ordinal: Int): Float {
-        if (!te.running) {
-            return 0f
-        }
-        if (ordinal == 1 || ordinal == 4) {
-            return 3f / 16f + sin(EaseHelper.easeInOutSine(pistonsA).toDouble()).toFloat() * te.speed / 16f
-        } else {
-            return 3f / 16f + sin(EaseHelper.easeInOutSine(pistonsB).toDouble()).toFloat() * te.speed / 16f
-        }
     }
 }

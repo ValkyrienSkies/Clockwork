@@ -70,12 +70,12 @@ public class AreaDesignatorRenderer extends CustomRenderedItemModelRenderer {
         float partialTicks = AnimationTickHolder.getPartialTicks() - 1;
         float heightAlt = 3f/16f + (float) Math.sin(EaseHelper.INSTANCE.easeInOutSine(progress))/16f;
         stacker.translateY(heightAlt * 0.1F);
-        float nextCrystalAngle = Mth.clamp(crystalAngle + 1f, 0, 360);
+        float nextCrystalAngle = Mth.clamp(this.crystalAngle + 1f, 0, 360);
         if (nextCrystalAngle == 360) {
-            crystalAngle = 0;
+            this.crystalAngle = 0;
         }
-        stacker.rotateY(Mth.lerp(partialTicks, crystalAngle, nextCrystalAngle));
-        crystalAngle = nextCrystalAngle;
+        stacker.rotateY(Mth.lerp(partialTicks, this.crystalAngle, nextCrystalAngle));
+        this.crystalAngle = nextCrystalAngle;
         renderer.renderSolidGlowing(CRYSTAL.get(), light);
         stacker.translateY(-heightAlt * 0.1F);
         ms.popPose();

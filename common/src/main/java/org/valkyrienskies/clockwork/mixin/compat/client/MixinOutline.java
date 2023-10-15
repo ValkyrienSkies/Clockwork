@@ -72,7 +72,7 @@ public abstract class MixinOutline {
                 double x0 = temp.x();
                 double y0 = temp.y();
                 double z0 = temp.z();
-                System.out.println("temp is " + temp);
+                //System.out.println("temp is " + temp);
 
                 temp.set(minX, minY, minZ);
                 newPosMatrix.transformPosition(temp);

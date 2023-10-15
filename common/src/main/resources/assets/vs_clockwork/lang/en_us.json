@@ -1,7 +1,7 @@
 {
-  "itemGroup.vs_clockwork.base": "VS: Clockwork",
-  "block.vs_clockwork.propellor_bearing": "Propellor Bearing",
-  "item.vs_clockwork.propellor_bearing": "Propellor Bearing",
+  "itemGroup.vs_clockwork.clockwork": "VS: Clockwork",
+  "block.vs_clockwork.propeller_bearing": "Propeller Bearing",
+  "item.vs_clockwork.propeller_bearing": "Propeller Bearing",
   "item.vs_clockwork.bluuguu": "Bluu Guu",
   "item.vs_clockwork.bluperglue": "Bluperglue",
   "item.vs_clockwork.gravitron": "Gravitron",
