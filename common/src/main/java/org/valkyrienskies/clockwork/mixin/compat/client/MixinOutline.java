@@ -1,131 +1,421 @@
 package org.valkyrienskies.clockwork.mixin.compat.client;
 
-import com.jozufozu.flywheel.util.transform.TransformStack;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Vector3f;
 import com.mojang.math.Vector4f;
 import com.simibubi.create.foundation.outliner.Outline;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.Direction;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Matrix4dc;
 import org.joml.Vector3d;
+import org.joml.Vector3dc;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.*;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.valkyrienskies.core.api.ships.ClientShip;
 import org.valkyrienskies.core.api.ships.properties.ShipTransform;
-import org.valkyrienskies.mod.common.VSClientGameUtils;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
+import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
 @Mixin(Outline.class)
 public abstract class MixinOutline {
+    @Shadow
+    public abstract void bufferCuboidLine(PoseStack poseStack, VertexConsumer consumer, Vec3 camera, com.mojang.math.Vector3d start, com.mojang.math.Vector3d end, float width, Vector4f color, int lightmap, boolean disableNormals);
 
-    //todo: fix this >:(
-//    @Shadow
-//    protected void putVertex(final PoseStack.Pose pose, final VertexConsumer builder, final float x, final float y,
-//                             final float z, final float u, final float v,
-//                             final Direction normal) {
-//    }
-//
-//    @Inject(
-//            method = "putVertex(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;Lnet/minecraft/world/phys/Vec3;FFLnet/minecraft/core/Direction;)V",
-//            at = @At(value = "HEAD"), cancellable = true
-//    )
-//    public void injectPutVertex(final PoseStack ms, final VertexConsumer builder, final Vec3 pos, final float u,
-//                                final float v,
-//                                final Direction normal,
-//                                final CallbackInfo ci) {
-//        final Vector3d vec3d = new Vector3d(pos.x, pos.y, pos.z);
-//
-//        final Level level = Minecraft.getInstance().level;
-//        if (level != null) {
-//            final ClientShip ship = (ClientShip) VSGameUtilsKt.getShipManagingPos(level, vec3d);
-//            if (ship != null) {
-//                final ShipTransform transform = ship.getRenderTransform();
-//                final Vector3d transformedPos = transform.getShipToWorld().transformPosition(vec3d);
-//                putVertex(ms.last(), builder, (float) transformedPos.x, (float) transformedPos.y,
-//                        (float) transformedPos.z, u, v, normal);
-//                ci.cancel();
-//            }
-//        }
-//    }
+    @Shadow
+    public abstract void bufferQuad(PoseStack.Pose pose, VertexConsumer consumer, Vector3f pos0, Vector3f pos1, Vector3f pos2, Vector3f pos3, Vector4f color, float minU, float minV, float maxU, float maxV, int lightmap, Vector3f normal);
 
-    @Shadow public abstract void bufferCuboid(PoseStack.Pose pose, VertexConsumer consumer, Vector3f minPos, Vector3f maxPos, Vector4f color, int lightmap, boolean disableNormals);
-
-    @Shadow public abstract void bufferQuad(PoseStack.Pose pose, VertexConsumer consumer, Vector3f pos0, Vector3f pos1, Vector3f pos2, Vector3f pos3, Vector4f color, float minU, float minV, float maxU, float maxV, int lightmap, Vector3f normal);
-
-    @Redirect(
-            method = "bufferCuboidLine(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;Lnet/minecraft/world/phys/Vec3;Lcom/mojang/math/Vector3d;Lcom/mojang/math/Vector3d;FLcom/mojang/math/Vector4f;IZ)V",
-            at = @At(value = "INVOKE",
-                    target = "Lcom/jozufozu/flywheel/util/transform/TransformStack;translate(DDD)Ljava/lang/Object;")
-    )
-    private Object redirectTranslate(final TransformStack instance, final double x, final double y, final double z) {
-        VSClientGameUtils.transformRenderIfInShipyard((PoseStack) instance, x, y, z);
-        return instance;
-    }
-
-    @Redirect(
-            method = "bufferCuboidLine(Lcom/mojang/blaze3d/vertex/PoseStack$Pose;Lcom/mojang/blaze3d/vertex/VertexConsumer;Lcom/mojang/math/Vector3f;Lnet/minecraft/core/Direction;FFLcom/mojang/math/Vector4f;IZ)V",
-            at = @At(value = "INVOKE",
-                    target = "Lcom/simibubi/create/foundation/outliner/Outline;bufferCuboid(Lcom/mojang/blaze3d/vertex/PoseStack$Pose;Lcom/mojang/blaze3d/vertex/VertexConsumer;Lcom/mojang/math/Vector3f;Lcom/mojang/math/Vector3f;Lcom/mojang/math/Vector4f;IZ)V")
-    )
-    private void redirectBufferCuboid(Outline instance, PoseStack.Pose pose, VertexConsumer consumer, Vector3f minPos, Vector3f maxPos, Vector4f color, int lightmap, boolean disableNormals) {
-        Vector3f realMin = minPos.copy();
-        Vector3f realMax = maxPos.copy();
-        Vector3d realMinD = new Vector3d(realMin.x(), realMin.y(), realMin.z());
-        Vector3d realMaxD = new Vector3d(realMax.x(), realMax.y(), realMax.z());
+    @Inject(method = "bufferCuboidLine(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;Lnet/minecraft/world/phys/Vec3;Lcom/mojang/math/Vector3d;Lcom/mojang/math/Vector3d;FLcom/mojang/math/Vector4f;IZ)V", at = @At("HEAD"), cancellable = true)
+    private void preBufferCuboidLine0(PoseStack poseStack, VertexConsumer consumer, Vec3 camera, com.mojang.math.Vector3d start, com.mojang.math.Vector3d end, float width, Vector4f color, int lightmap, boolean disableNormals, CallbackInfo ci) {
         final Level level = Minecraft.getInstance().level;
         if (level != null) {
-            final ClientShip ship = (ClientShip) VSGameUtilsKt.getShipManagingPos(level, realMinD);
+            final Vector3dc average = new Vector3d((start.x + end.x) / 2.0, (start.y + end.y) / 2.0, (start.z + end.z) / 2.0);
+            final ClientShip ship = (ClientShip) VSGameUtilsKt.getShipManagingPos(level, average);
             if (ship != null) {
                 final ShipTransform transform = ship.getRenderTransform();
-                transform.getShipToWorld().transformPosition(realMinD);
-                transform.getShipToWorld().transformPosition(realMaxD);
-                realMin.set((float) realMinD.x, (float) realMinD.y, (float) realMinD.z);
-                realMax.set((float) realMaxD.x, (float) realMaxD.y, (float) realMaxD.z);
+                final Vector3dc startTransformed = transform.getShipToWorld().transformPosition(new Vector3d(start.x, start.y, start.z));
+                final Vector3dc endTransformed = transform.getShipToWorld().transformPosition(new Vector3d(end.x, end.y, end.z));
+                float scaledWidth = (float) (width * transform.getShipToWorldScaling().x());
+                bufferCuboidLine(poseStack, consumer, camera, new com.mojang.math.Vector3d(startTransformed.x(), startTransformed.y(), startTransformed.z()), new com.mojang.math.Vector3d(endTransformed.x(), endTransformed.y(), endTransformed.z()), scaledWidth, color, lightmap, disableNormals);
+                ci.cancel();
             }
         }
-
-        this.bufferCuboid(pose, consumer, realMin, realMax, color, lightmap, disableNormals);
     }
 
-    @Redirect(
-            method = "bufferQuad(Lcom/mojang/blaze3d/vertex/PoseStack$Pose;Lcom/mojang/blaze3d/vertex/VertexConsumer;Lcom/mojang/math/Vector3f;Lcom/mojang/math/Vector3f;Lcom/mojang/math/Vector3f;Lcom/mojang/math/Vector3f;Lcom/mojang/math/Vector4f;ILcom/mojang/math/Vector3f;)V", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/foundation/outliner/Outline;bufferQuad(Lcom/mojang/blaze3d/vertex/PoseStack$Pose;Lcom/mojang/blaze3d/vertex/VertexConsumer;Lcom/mojang/math/Vector3f;Lcom/mojang/math/Vector3f;Lcom/mojang/math/Vector3f;Lcom/mojang/math/Vector3f;Lcom/mojang/math/Vector4f;FFFFILcom/mojang/math/Vector3f;)V")
-    )
-    private void redirectBufferQuad(Outline instance, PoseStack.Pose pose, VertexConsumer consumer, Vector3f pos0, Vector3f pos1, Vector3f pos2, Vector3f pos3, Vector4f color, float minU, float minV, float maxU, float maxV, int lightmap, Vector3f normal) {
-        Vector3f real0 = pos0.copy();
-        Vector3f real1 = pos1.copy();
-        Vector3f real2 = pos2.copy();
-        Vector3f real3 = pos3.copy();
-
-        Vector3d real0D = new Vector3d(real0.x(), real0.y(), real0.z());
-        Vector3d real1D = new Vector3d(real1.x(), real1.y(), real1.z());
-        Vector3d real2D = new Vector3d(real2.x(), real2.y(), real2.z());
-        Vector3d real3D = new Vector3d(real3.x(), real3.y(), real3.z());
-
+    @Inject(method = "bufferCuboid", at = @At("HEAD"), cancellable = true)
+    private void preBufferCuboid(PoseStack.Pose pose, VertexConsumer consumer, Vector3f minPos, Vector3f maxPos, Vector4f color, int lightmap, boolean disableNormals, CallbackInfo ci) {
         final Level level = Minecraft.getInstance().level;
         if (level != null) {
-            final ClientShip ship = (ClientShip) VSGameUtilsKt.getShipManagingPos(level, real0D);
+            final Vector3dc average = new Vector3d((minPos.x() + maxPos.x()) / 2.0, (minPos.y() + maxPos.y()) / 2.0, (minPos.z() + maxPos.z()) / 2.0);
+            final ClientShip ship = (ClientShip) VSGameUtilsKt.getShipManagingPos(level, average);
             if (ship != null) {
                 final ShipTransform transform = ship.getRenderTransform();
 
-                transform.getShipToWorld().transformPosition(real0D);
-                transform.getShipToWorld().transformPosition(real1D);
-                transform.getShipToWorld().transformPosition(real2D);
-                transform.getShipToWorld().transformPosition(real3D);
+                final Vector3d temp = new Vector3d();
 
-                real0.set((float) real0D.x, (float) real0D.y, (float) real0D.z);
-                real1.set((float) real1D.x, (float) real1D.y, (float) real1D.z);
-                real2.set((float) real2D.x, (float) real2D.y, (float) real2D.z);
-                real3.set((float) real3D.x, (float) real3D.y, (float) real3D.z);
+                float minX = minPos.x();
+                float minY = minPos.y();
+                float minZ = minPos.z();
+                float maxX = maxPos.x();
+                float maxY = maxPos.y();
+                float maxZ = maxPos.z();
+
+                final Matrix4dc newPosMatrix = VectorConversionsMCKt.toJOML(pose.pose()).mul(transform.getShipToWorld());
+
+                temp.set(minX, minY, maxZ);
+                newPosMatrix.transformPosition(temp);
+                double x0 = temp.x();
+                double y0 = temp.y();
+                double z0 = temp.z();
+                System.out.println("temp is " + temp);
+
+                temp.set(minX, minY, minZ);
+                newPosMatrix.transformPosition(temp);
+                double x1 = temp.x();
+                double y1 = temp.y();
+                double z1 = temp.z();
+
+                temp.set(maxX, minY, minZ);
+                newPosMatrix.transformPosition(temp);
+                double x2 = temp.x();
+                double y2 = temp.y();
+                double z2 = temp.z();
+
+                temp.set(maxX, minY, maxZ);
+                newPosMatrix.transformPosition(temp);
+                double x3 = temp.x();
+                double y3 = temp.y();
+                double z3 = temp.z();
+
+                temp.set(minX, maxY, minZ);
+                newPosMatrix.transformPosition(temp);
+                double x4 = temp.x();
+                double y4 = temp.y();
+                double z4 = temp.z();
+
+                temp.set(minX, maxY, maxZ);
+                newPosMatrix.transformPosition(temp);
+                double x5 = temp.x();
+                double y5 = temp.y();
+                double z5 = temp.z();
+
+                temp.set(maxX, maxY, maxZ);
+                newPosMatrix.transformPosition(temp);
+                double x6 = temp.x();
+                double y6 = temp.y();
+                double z6 = temp.z();
+
+                temp.set(maxX, maxY, minZ);
+                newPosMatrix.transformPosition(temp);
+                double x7 = temp.x();
+                double y7 = temp.y();
+                double z7 = temp.z();
+
+                float r = color.x();
+                float g = color.y();
+                float b = color.z();
+                float a = color.w();
+
+                // down
+
+                if (disableNormals) {
+                    temp.set(0, 1, 0);
+                } else {
+                    temp.set(0, -1, 0);
+                }
+                newPosMatrix.transformDirection(temp).normalize();
+                float nx0 = (float) temp.x();
+                float ny0 = (float) temp.y();
+                float nz0 = (float) temp.z();
+
+                consumer.vertex(x0, y0, z0)
+                        .color(r, g, b, a)
+                        .uv(0, 0)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(lightmap)
+                        .normal(nx0, ny0, nz0)
+                        .endVertex();
+
+                consumer.vertex(x1, y1, z1)
+                        .color(r, g, b, a)
+                        .uv(0, 1)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(lightmap)
+                        .normal(nx0, ny0, nz0)
+                        .endVertex();
+
+                consumer.vertex(x2, y2, z2)
+                        .color(r, g, b, a)
+                        .uv(1, 1)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(lightmap)
+                        .normal(nx0, ny0, nz0)
+                        .endVertex();
+
+                consumer.vertex(x3, y3, z3)
+                        .color(r, g, b, a)
+                        .uv(1, 0)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(lightmap)
+                        .normal(nx0, ny0, nz0)
+                        .endVertex();
+
+                // up
+
+                temp.set(0, 1, 0);
+                newPosMatrix.transformDirection(temp).normalize();
+                float nx1 = (float) temp.x();
+                float ny1 = (float) temp.y();
+                float nz1 = (float) temp.z();
+
+                consumer.vertex(x4, y4, z4)
+                        .color(r, g, b, a)
+                        .uv(0, 0)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(lightmap)
+                        .normal(nx1, ny1, nz1)
+                        .endVertex();
+
+                consumer.vertex(x5, y5, z5)
+                        .color(r, g, b, a)
+                        .uv(0, 1)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(lightmap)
+                        .normal(nx1, ny1, nz1)
+                        .endVertex();
+
+                consumer.vertex(x6, y6, z6)
+                        .color(r, g, b, a)
+                        .uv(1, 1)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(lightmap)
+                        .normal(nx1, ny1, nz1)
+                        .endVertex();
+
+                consumer.vertex(x7, y7, z7)
+                        .color(r, g, b, a)
+                        .uv(1, 0)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(lightmap)
+                        .normal(nx1, ny1, nz1)
+                        .endVertex();
+
+                // north
+
+                if (disableNormals) {
+                    temp.set(0, 1, 0);
+                } else {
+                    temp.set(0, 0, -1);
+                }
+                newPosMatrix.transformDirection(temp).normalize();
+                float nx2 = (float) temp.x();
+                float ny2 = (float) temp.y();
+                float nz2 = (float) temp.z();
+
+                consumer.vertex(x7, y7, z7)
+                        .color(r, g, b, a)
+                        .uv(0, 0)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(lightmap)
+                        .normal(nx2, ny2, nz2)
+                        .endVertex();
+
+                consumer.vertex(x2, y2, z2)
+                        .color(r, g, b, a)
+                        .uv(0, 1)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(lightmap)
+                        .normal(nx2, ny2, nz2)
+                        .endVertex();
+
+                consumer.vertex(x1, y1, z1)
+                        .color(r, g, b, a)
+                        .uv(1, 1)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(lightmap)
+                        .normal(nx2, ny2, nz2)
+                        .endVertex();
+
+                consumer.vertex(x4, y4, z4)
+                        .color(r, g, b, a)
+                        .uv(1, 0)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(lightmap)
+                        .normal(nx2, ny2, nz2)
+                        .endVertex();
+
+                // south
+
+                if (disableNormals) {
+                    temp.set(0, 1, 0);
+                } else {
+                    temp.set(0, 0, 1);
+                }
+                newPosMatrix.transformDirection(temp).normalize();
+                float nx3 = (float) temp.x();
+                float ny3 = (float) temp.y();
+                float nz3 = (float) temp.z();
+
+                consumer.vertex(x5, y5, z5)
+                        .color(r, g, b, a)
+                        .uv(0, 0)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(lightmap)
+                        .normal(nx3, ny3, nz3)
+                        .endVertex();
+
+                consumer.vertex(x0, y0, z0)
+                        .color(r, g, b, a)
+                        .uv(0, 1)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(lightmap)
+                        .normal(nx3, ny3, nz3)
+                        .endVertex();
+
+                consumer.vertex(x3, y3, z3)
+                        .color(r, g, b, a)
+                        .uv(1, 1)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(lightmap)
+                        .normal(nx3, ny3, nz3)
+                        .endVertex();
+
+                consumer.vertex(x6, y6, z6)
+                        .color(r, g, b, a)
+                        .uv(1, 0)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(lightmap)
+                        .normal(nx3, ny3, nz3)
+                        .endVertex();
+
+                // west
+
+                if (disableNormals) {
+                    temp.set(0, 1, 0);
+                } else {
+                    temp.set(-1, 0, 0);
+                }
+                newPosMatrix.transformDirection(temp).normalize();
+                float nx4 = (float) temp.x();
+                float ny4 = (float) temp.y();
+                float nz4 = (float) temp.z();
+
+                consumer.vertex(x4, y4, z4)
+                        .color(r, g, b, a)
+                        .uv(0, 0)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(lightmap)
+                        .normal(nx4, ny4, nz4)
+                        .endVertex();
+
+                consumer.vertex(x1, y1, z1)
+                        .color(r, g, b, a)
+                        .uv(0, 1)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(lightmap)
+                        .normal(nx4, ny4, nz4)
+                        .endVertex();
+
+                consumer.vertex(x0, y0, z0)
+                        .color(r, g, b, a)
+                        .uv(1, 1)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(lightmap)
+                        .normal(nx4, ny4, nz4)
+                        .endVertex();
+
+                consumer.vertex(x5, y5, z5)
+                        .color(r, g, b, a)
+                        .uv(1, 0)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(lightmap)
+                        .normal(nx4, ny4, nz4)
+                        .endVertex();
+
+                // east
+
+                if (disableNormals) {
+                    temp.set(0, 1, 0);
+                } else {
+                    temp.set(1, 0, 0);
+                }
+                newPosMatrix.transformDirection(temp).normalize();
+                float nx5 = (float) temp.x();
+                float ny5 = (float) temp.y();
+                float nz5 = (float) temp.z();
+
+                consumer.vertex(x6, y6, z6)
+                        .color(r, g, b, a)
+                        .uv(0, 0)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(lightmap)
+                        .normal(nx5, ny5, nz5)
+                        .endVertex();
+
+                consumer.vertex(x3, y3, z3)
+                        .color(r, g, b, a)
+                        .uv(0, 1)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(lightmap)
+                        .normal(nx5, ny5, nz5)
+                        .endVertex();
+
+                consumer.vertex(x2, y2, z2)
+                        .color(r, g, b, a)
+                        .uv(1, 1)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(lightmap)
+                        .normal(nx5, ny5, nz5)
+                        .endVertex();
+
+                consumer.vertex(x7, y7, z7)
+                        .color(r, g, b, a)
+                        .uv(1, 0)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(lightmap)
+                        .normal(nx5, ny5, nz5)
+                        .endVertex();
+
+                ci.cancel();
             }
         }
-
-        bufferQuad(pose, consumer, real0, real1, real2, real3, color, 0, 0, 1, 1, lightmap, normal);
     }
 
+    @Inject(method = "bufferQuad(Lcom/mojang/blaze3d/vertex/PoseStack$Pose;Lcom/mojang/blaze3d/vertex/VertexConsumer;Lcom/mojang/math/Vector3f;Lcom/mojang/math/Vector3f;Lcom/mojang/math/Vector3f;Lcom/mojang/math/Vector3f;Lcom/mojang/math/Vector4f;FFFFILcom/mojang/math/Vector3f;)V", at = @At("HEAD"), cancellable = true)
+    private void preBufferQuad(PoseStack.Pose pose, VertexConsumer consumer, Vector3f pos0, Vector3f pos1, Vector3f pos2, Vector3f pos3, Vector4f color, float minU, float minV, float maxU, float maxV, int lightmap, Vector3f normal, CallbackInfo ci) {
+        final Level level = Minecraft.getInstance().level;
+        if (level != null) {
+            final Vector3dc average = new Vector3d((pos0.x() + pos1.x() + pos2.x() + pos3.x()) / 4.0, (pos0.y() + pos1.y() + pos2.y() + pos3.y()) / 4.0, (pos0.z() + pos1.z() + pos2.z() + pos3.z()) / 4.0);
+            final ClientShip ship = (ClientShip) VSGameUtilsKt.getShipManagingPos(level, average);
+            if (ship != null) {
+                final ShipTransform transform = ship.getRenderTransform();
+                final Vector3dc pos0Transformed = transform.getShipToWorld().transformPosition(new Vector3d(pos0.x(), pos0.y(), pos0.z()));
+                final Vector3dc pos1Transformed = transform.getShipToWorld().transformPosition(new Vector3d(pos1.x(), pos1.y(), pos1.z()));
+                final Vector3dc pos2Transformed = transform.getShipToWorld().transformPosition(new Vector3d(pos2.x(), pos2.y(), pos2.z()));
+                final Vector3dc pos3Transformed = transform.getShipToWorld().transformPosition(new Vector3d(pos3.x(), pos3.y(), pos3.z()));
+                final Vector3dc normalTransformed = transform.getShipToWorld().transformDirection(new Vector3d(normal.x(), normal.y(), normal.z()));
+                bufferQuad(
+                        pose,
+                        consumer,
+                        new Vector3f((float) pos0Transformed.x(), (float) pos0Transformed.y(), (float) pos0Transformed.z()),
+                        new Vector3f((float) pos1Transformed.x(), (float) pos1Transformed.y(), (float) pos1Transformed.z()),
+                        new Vector3f((float) pos2Transformed.x(), (float) pos2Transformed.y(), (float) pos2Transformed.z()),
+                        new Vector3f((float) pos3Transformed.x(), (float) pos3Transformed.y(), (float) pos3Transformed.z()),
+                        color,
+                        minU,
+                        minV,
+                        maxU,
+                        maxV,
+                        lightmap,
+                        new Vector3f((float) normalTransformed.x(), (float) normalTransformed.y(), (float) normalTransformed.z())
+                );
+                ci.cancel();
+            }
+        }
+    }
 }

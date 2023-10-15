@@ -10,4 +10,7 @@ public interface OutlineParamsAccessor {
 
     @Accessor("alpha")
     void setAlpha(float alpha);
+
+    @Accessor
+    boolean getDisableCull();
 }
