@@ -145,10 +145,6 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
 
         s.grabbing = false
         s.shipID = null
-        s.positionConstraintID = null
-        s.rotationConstraintID = null
-        s.positionDampeningConstraintID = null
-        s.rotationDampeningConstraintID = null
         s.shouldDrop = false
     }
 
@@ -222,10 +218,6 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             var shipGrabbedPos: Vector3dc? = null
             var shipGrabbedRot: Quaterniondc? = null
             var shipID: ShipId? = null
-            var positionConstraintID: Int? = null
-            var rotationConstraintID: Int? = null
-            var positionDampeningConstraintID: Int? = null
-            var rotationDampeningConstraintID: Int? = null
             var grabCD: Int? = 0
             var shipGrabbedDistance: Double? = null
         }
