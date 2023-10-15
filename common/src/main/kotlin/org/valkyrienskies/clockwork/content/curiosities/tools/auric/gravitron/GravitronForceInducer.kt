@@ -11,19 +11,20 @@ import org.valkyrienskies.core.api.ships.getAttachment
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 
 class GravitronForceInducer : ShipForcesInducer {
-    var idealPos: Vector3dc? = null
-    var idealRot: Quaterniondc? = null
+    var data: GravitronForceInducerData? = null
 
     override fun applyForces(physShip: PhysShip) {
-        val idealPosCopy = idealPos
-        val idealRotCopy = idealRot
+        val dataCopy = data ?: return
         physShip as PhysShipImpl
 
-        if (idealPosCopy != null) {
+        run {
             val pConst = 160.0
             val dConst = 20.0
 
-            val posDif = idealPosCopy.sub(physShip.transform.positionInWorld, Vector3d()).mul(pConst)
+            val localGrabPos: Vector3dc = physShip.transform.shipToWorld.transformPosition(dataCopy.grabbedPos, Vector3d())
+            val idealPosDif: Vector3dc = dataCopy.idealPos.sub(localGrabPos, Vector3d())
+
+            val posDif: Vector3d = idealPosDif.mul(pConst, Vector3d())
             val mass = physShip.inertia.shipMass
 
             // Integrate
@@ -33,10 +34,10 @@ class GravitronForceInducer : ShipForcesInducer {
             physShip.applyInvariantForce(force)
         }
 
-        if (idealRotCopy != null) {
+        run {
             val pConst = 160.0
             val dConst = 20.0
-            val rotDif = idealRotCopy.mul(physShip.transform.shipToWorldRotation.invert(Quaterniond()), Quaterniond()).normalize().invert()
+            val rotDif = dataCopy.idealRot.mul(physShip.transform.shipToWorldRotation.invert(Quaterniond()), Quaterniond()).normalize().invert()
             val rotDifVector = Vector3d(rotDif.x() * 2.0, rotDif.y() * 2.0, rotDif.z() * 2.0).mul(pConst)
             if (rotDif.w() < 0) {
                 rotDifVector.mul(-1.0)
@@ -56,5 +57,11 @@ class GravitronForceInducer : ShipForcesInducer {
             return ship.getAttachment<GravitronForceInducer>()
                 ?: GravitronForceInducer().also { ship.setAttachment(GravitronForceInducer::class.java, it) }
         }
+
+        data class GravitronForceInducerData(
+            val idealPos: Vector3dc,
+            val idealRot: Quaterniondc,
+            val grabbedPos: Vector3dc,
+        )
     }
 }

@@ -121,13 +121,15 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         s: GravitronState,
         p: Player,
         ship: LoadedServerShip,
-        grabPosInShip: Vector3dc
+        grabPosInShip: Vector3dc,
     ) {
+        val heldPosInWorld: Vector3dc = ship.transform.shipToWorld.transformPosition(Vector3d(grabPosInShip))
         s.shipID = ship.id
-        s.heldBlockPos = ship.transform.shipToWorld.transformPosition(Vector3d(grabPosInShip))
+        s.heldBlockPos = heldPosInWorld
         s.playerGrabbedRotation = Vector2d(p.xRot.toDouble(), p.yRot.toDouble())
         s.shipGrabbedPos = Vector3d(grabPosInShip)
         s.shipGrabbedRot = ship.transform.shipToWorldRotation
+        s.shipGrabbedDistance = p.eyePosition.toJOML().distance(heldPosInWorld)
     }
 
     // sets down the ship
@@ -137,8 +139,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             val loadedShip = level.shipObjectWorld.loadedShips.getById(grabbedShipId)
             if (loadedShip != null) {
                 val gravitronForceInducer = GravitronForceInducer.getOrCreate(loadedShip)
-                gravitronForceInducer.idealPos = null
-                gravitronForceInducer.idealRot = null
+                gravitronForceInducer.data = null
             }
         }
 
@@ -151,15 +152,6 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         s.shouldDrop = false
     }
 
-    // ONLY IN DEBUG SHOULD THIS BE USED
-    fun printRemovedConstraints(vararg constraints: Int?) {
-        for (constraint: Int? in constraints) {
-            if (constraint != null) {
-//                System.out.println("Removed " + constraint);
-            }
-        }
-    }
-
     private fun updateShip(
         s: GravitronState,
         level: ServerLevel,
@@ -170,47 +162,32 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             if (shipId != null) {
                 val shipUnloaded: Ship? = level.shipObjectWorld.allShips.getById(shipId)
                 val ship: LoadedServerShip? = level.shipObjectWorld.loadedShips.getById(shipId)
-                val worldShipID: ShipId =
-                    level.shipObjectWorld.dimensionToGroundBodyIdImmutable[level.dimensionId]!!
                 if (ship != null) {
                     // Update Rot Values
                     val playerCurrentRotation: Vector2dc = Vector2d(entity.xRot.toDouble(), entity.yRot.toDouble())
-                    val origPlayerRot: Quaterniondc = playerRotToQuaternion(s.playerGrabbedRotation!!.x(), s.playerGrabbedRotation!!.y()).normalize()
-                    val newPlayerRot: Quaterniondc = playerRotToQuaternion(playerCurrentRotation.x(), playerCurrentRotation.y()).normalize()
-                    val deltaPlayerRot: Quaterniondc = newPlayerRot.mul(origPlayerRot.conjugate(Quaterniond()), Quaterniond())
+                    val origPlayerRot: Quaterniondc =
+                        playerRotToQuaternion(s.playerGrabbedRotation!!.x(), s.playerGrabbedRotation!!.y()).normalize()
+                    val newPlayerRot: Quaterniondc =
+                        playerRotToQuaternion(playerCurrentRotation.x(), playerCurrentRotation.y()).normalize()
+                    val deltaPlayerRot: Quaterniondc =
+                        newPlayerRot.mul(origPlayerRot.conjugate(Quaterniond()), Quaterniond())
                     val rotation: Quaterniondc = deltaPlayerRot.mul(s.shipGrabbedRot, Quaterniond()).normalize()
 
                     // Update Pos Values
-                    s.heldBlockPos = entity.position().toJOML().add(0.0, entity.eyeHeight.toDouble(), 0.0).add(entity.lookAngle.toJOML().normalize().mul(getShipSize(ship)))
+                    val lookDif = entity.lookAngle.toJOML().normalize().mul(s.shipGrabbedDistance!!)
+                    s.heldBlockPos = entity.eyePosition.toJOML().add(lookDif)
                     val location: Vector3dc = Vector3d(s.shipGrabbedPos)
                     val position: Vector3dc = Vector3d(s.heldBlockPos)
 
                     val gravitronForceInducer = GravitronForceInducer.getOrCreate(ship)
-                    gravitronForceInducer.idealPos = position // TODO: This isnt quite correct, but whatever, use location to fix this
-                    gravitronForceInducer.idealRot = rotation
+                    val newData =
+                        GravitronForceInducer.Companion.GravitronForceInducerData(position, rotation, location)
+                    gravitronForceInducer.data = newData
                 } else if (shipUnloaded == null) {
                     dropShip(s, level)
                 }
             }
         }
-    }
-
-    // || MATH FUNCTIONS || //
-    private fun getShipSize(ship: Ship?): Double {
-        val aabb = ship?.shipAABB
-        return if (aabb != null) {
-            val minVector = Vector3d(
-                aabb.minX().toDouble(),
-                aabb.minY().toDouble(),
-                aabb.minZ().toDouble()
-            )
-            val maxVector = Vector3d(
-                aabb.maxX().toDouble(),
-                aabb.maxY().toDouble(),
-                aabb.maxZ().toDouble()
-            )
-            minVector.sub(maxVector).length() + 0.75
-        } else 0.0
     }
 
     private fun playerRotToQuaternion(pitch: Double, yaw: Double): Quaterniond {
@@ -250,6 +227,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             var positionDampeningConstraintID: Int? = null
             var rotationDampeningConstraintID: Int? = null
             var grabCD: Int? = 0
+            var shipGrabbedDistance: Double? = null
         }
     }
 }
