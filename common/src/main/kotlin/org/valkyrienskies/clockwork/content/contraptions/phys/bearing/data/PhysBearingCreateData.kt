@@ -13,5 +13,6 @@ data class PhysBearingCreateData(
     val constraint: VSConstraintAndId,
     val hingeConstraint: VSConstraintAndId,
     val posDampConstraint: VSConstraintAndId?,
-    val rotDampConstraint: VSConstraintAndId?
+    val rotDampConstraint: VSConstraintAndId?,
+    val secondAttachment: VSConstraintAndId? = null,
 )

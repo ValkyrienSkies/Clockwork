@@ -49,7 +49,8 @@ class BearingController : ShipForcesInducer {
                 createData.component2().constraint,
                 createData.component2().hingeConstraint,
                 createData.component2().posDampConstraint,
-                createData.component2().rotDampConstraint
+                createData.component2().rotDampConstraint,
+                createData.component2().secondAttachment,
             )
         }
         while (!removedBearings.isEmpty()) {

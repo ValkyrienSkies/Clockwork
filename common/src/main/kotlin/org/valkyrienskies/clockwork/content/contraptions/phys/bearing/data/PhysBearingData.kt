@@ -27,6 +27,10 @@ class PhysBearingData {
     @JsonIgnore
     var hingeID: Int? = null
 
+    var secondAttachConstraint: VSAttachmentConstraint? = null
+    @JsonIgnore
+    var secondAttachId: Int? = null
+
     // Default constructor for Jackson, should never be invoked manually
     @Deprecated("")
     constructor() {
@@ -45,7 +49,8 @@ class PhysBearingData {
         constraintAndId: VSConstraintAndId,
         hingeConstraintAndId: VSConstraintAndId,
         posDampConstraintAndId: VSConstraintAndId?,
-        rotDampConstraintAndId: VSConstraintAndId?
+        rotDampConstraintAndId: VSConstraintAndId?,
+        secondAttachment: VSConstraintAndId?,
     ) {
         this.bearingPosition = bearingPosition
         this.bearingAxis = bearingAxis
@@ -57,6 +62,9 @@ class PhysBearingData {
         attachID = constraintAndId.constraintId
         hingeConstraint = hingeConstraintAndId.vsConstraint as VSHingeOrientationConstraint
         hingeID = hingeConstraintAndId.constraintId
+
+        secondAttachConstraint = secondAttachment?.vsConstraint as VSAttachmentConstraint?
+        secondAttachId = secondAttachment?.constraintId
     }
 
     fun setAligning(yn: Boolean) {
