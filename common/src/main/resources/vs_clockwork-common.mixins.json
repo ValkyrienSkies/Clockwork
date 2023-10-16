@@ -52,6 +52,7 @@
   ],
   "client": [
     "compat.client.MixinAABBOutline",
+    "compat.client.MixinBlockClusterOutline",
     "compat.client.MixinCarriageContraptionInstance",
     "compat.client.MixinCogwheelBlockItem",
     "compat.client.MixinCogwheelBlockItemHitOnShaft",

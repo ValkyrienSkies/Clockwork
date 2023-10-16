@@ -57,6 +57,7 @@ public abstract class MixinAABBOutline extends Outline {
 
                 ms.pushPose();
                 ms.translate(renderTransform.getPositionInWorld().x() - camera.x, renderTransform.getPositionInWorld().y() - camera.y, renderTransform.getPositionInWorld().z() - camera.z);
+                ms.scale((float) renderTransform.getShipToWorldScaling().x(), (float) renderTransform.getShipToWorldScaling().y(), (float) renderTransform.getShipToWorldScaling().z());
                 ms.mulPose(VectorConversionsMCKt.toMinecraft(renderTransform.getShipToWorldRotation()));
                 renderBoxFaces(ms, buffer, cull, params.getHighlightedFace(), minPos, maxPos, color, lightmap);
 
