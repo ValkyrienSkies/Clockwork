@@ -6,12 +6,9 @@
     "compat.MixinAllBlocks",
     "accessors.ItemAccessor",
     "compat.MixinStickerTileEntity",
-    "compat.MixinControlledContraptionEntity",
     "platform.MixinBlockEntity"
   ],
-  "client": [
-    "compat.client.MixinSuperGlueSelectionHandler"
-  ],
+  "client": [],
   "injectors": {
     "defaultRequire": 1
   },
