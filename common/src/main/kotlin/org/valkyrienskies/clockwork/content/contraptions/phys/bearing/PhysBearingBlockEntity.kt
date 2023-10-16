@@ -349,7 +349,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             Quaterniond()
         ).normalize()
         val hingeConstraint =
-            VSHingeOrientationConstraint(shiptraptionID, otherShipID, 1e-8, hingeOrientation, hingeOrientation, 1e10)
+            VSHingeOrientationConstraint(shiptraptionID, otherShipID, 1e-10, hingeOrientation, hingeOrientation, 1e10)
 
         // Add position damping to make the hinge more stable
         // VSPosDampingConstraint posDampingConstraint = new VSPosDampingConstraint(shiptraptionID, otherShipID, 1e-10, posInBearingContraption, posInOwnerShip, 1e10, 1e-2);
