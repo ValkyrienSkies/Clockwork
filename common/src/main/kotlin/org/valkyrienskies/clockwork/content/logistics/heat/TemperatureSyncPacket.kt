@@ -8,25 +8,30 @@ import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket
 class TemperatureSyncPacket: S2CCWPacket {
     val pos: BlockPos
     val temperature: Double
-    val id: int
+    val id: Int
 
-    constructor(shipId: Long, pocketId: Int) {
-        this.ship = shipId
-        this.id = pocketId
+    constructor(pos: BlockPos, temperature: Double, id: Int) {
+        this.pos = pos
+        this.temperature = temperature
+        this.id = id
     }
 
     constructor(buffer: FriendlyByteBuf) {
-        this.ship = buffer.readLong()
+        this.pos = buffer.readBlockPos()
+        this.temperature = buffer.readDouble()
         this.id = buffer.readInt()
     }
+
     override fun handle(context: ClientNetworkContext) {
         context.enqueueWork {
-            ClientAirPocketStorage.deleteAirPocket(ship, id)
+            println("TODO: Handle a TemperatureSyncPacket")
         }
     }
 
     override fun write(buffer: FriendlyByteBuf) {
-        buffer.writeLong(ship)
+        buffer.writeBlockPos(pos)
+        buffer.writeDouble(temperature)
         buffer.writeInt(id)
     }
 }
+
