@@ -1,6 +1,8 @@
 package org.valkyrienskies.clockwork.fabric.content.events;
 
+import com.simibubi.create.foundation.events.InputEvents;
 import io.github.fabricators_of_create.porting_lib.event.client.MouseButtonCallback;
+import io.github.fabricators_of_create.porting_lib.event.client.MouseScrolledCallback;
 import io.github.fabricators_of_create.porting_lib.util.KeyBindingHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionResult;
@@ -18,6 +20,7 @@ public class FabricClockworkInputEvents {
     }
 
     public static void register() {
+        MouseScrolledCallback.EVENT.register(ClockworkInputEvents.INSTANCE::onMouseScrolled);
         MouseButtonCallback.EVENT.register(FabricClockworkInputEvents::onClickInputCW);
     }
 }

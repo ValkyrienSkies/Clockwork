@@ -28,4 +28,19 @@ object ClockworkInputEvents {
         }
         return InteractionResult.PASS
     }
+
+    fun onMouseScrolled(delta: Double): Boolean {
+        if (Minecraft.getInstance().screen != null) return false
+
+        val player = Minecraft.getInstance().player
+        if (player != null) {
+            // TODO: Only cancel if player is grabbing a ship
+            if (player.getItemInHand(InteractionHand.MAIN_HAND).item == ClockworkItems.GRAVITRON.get()) {
+                ClockworkPackets.sendToServer(GravitronInputPacket(delta))
+                return true
+            }
+        }
+
+        return false
+    }
 }

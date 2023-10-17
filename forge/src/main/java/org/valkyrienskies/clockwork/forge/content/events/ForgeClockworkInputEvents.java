@@ -1,5 +1,8 @@
 package org.valkyrienskies.clockwork.forge.content.events;
 
+import com.simibubi.create.CreateClient;
+import com.simibubi.create.content.contraptions.elevator.ElevatorControlsHandler;
+import com.simibubi.create.content.trains.TrainHUD;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionResult;
 import net.minecraftforge.api.distmarker.Dist;
@@ -13,14 +16,23 @@ import org.valkyrienskies.clockwork.content.events.ClockworkInputEvents;
 public class ForgeClockworkInputEvents {
 
     @SubscribeEvent
-    public static void onClickInput(InputEvent.ClickInputEvent event) {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.screen != null)
+    public static void onClickInput(final InputEvent.ClickInputEvent event) {
+        if (Minecraft.getInstance().screen != null)
             return;
 
         final InteractionResult result = ClockworkInputEvents.INSTANCE.onClickInputCW(event.isUseItem(), event.isAttack());
         if (result == InteractionResult.SUCCESS) {
             event.setCanceled(true);
         }
+    }
+
+    @SubscribeEvent
+    public static void onMouseScrolled(final InputEvent.MouseScrollEvent event) {
+        if (Minecraft.getInstance().screen != null)
+            return;
+
+        final double delta = event.getScrollDelta();
+        final boolean cancelled = ClockworkInputEvents.INSTANCE.onMouseScrolled(delta);
+        event.setCanceled(cancelled);
     }
 }

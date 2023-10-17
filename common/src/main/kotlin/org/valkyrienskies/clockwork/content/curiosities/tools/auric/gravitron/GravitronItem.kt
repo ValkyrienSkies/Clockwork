@@ -33,6 +33,7 @@ import org.valkyrienskies.mod.common.isBlockInShipyard
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOML
 import java.lang.Math.toRadians
+import kotlin.math.max
 
 class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseItem {
     private fun getState(player: Player): GravitronState {
@@ -47,6 +48,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
 
     // Freeze the ship when player clicks
     fun leftClickItemServer(player: Player): Boolean {
+        if (player.level.isClientSide) throw IllegalStateException("Function not meant for client")
         val s: GravitronState = getState(player)
         val level = player.level
         if (s.grabbing && level is ServerLevel) {
@@ -62,6 +64,16 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                     return true
                 }
             }
+        }
+        return false
+    }
+
+    fun mouseScrollServer(player: Player, scrollDelta: Double): Boolean {
+        if (player.level.isClientSide) throw IllegalStateException("Function not meant for client")
+        val s: GravitronState = getState(player)
+        val level = player.level
+        if (s.grabbing && level is ServerLevel) {
+            s.shipGrabbedDistance = max(s.shipGrabbedDistance!! + scrollDelta, 0.0)
         }
         return false
     }
@@ -234,16 +246,16 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
     }
 
     companion object {
-        class GravitronState {
-            var grabbing: Boolean = false
-            var shouldDrop: Boolean = false
-            var heldBlockPos: Vector3dc? = null
-            var playerGrabbedRotation: Vector2dc? = null // Pitch , Yaw
-            var shipGrabbedPos: Vector3dc? = null
-            var shipGrabbedRot: Quaterniondc? = null
-            var shipID: ShipId? = null
-            var grabCD: Int? = 0
-            var shipGrabbedDistance: Double? = null
-        }
+        data class GravitronState(
+            var grabbing: Boolean = false,
+            var shouldDrop: Boolean = false,
+            var heldBlockPos: Vector3dc? = null,
+            var playerGrabbedRotation: Vector2dc? = null, // Pitch , Yaw
+            var shipGrabbedPos: Vector3dc? = null,
+            var shipGrabbedRot: Quaterniondc? = null,
+            var shipID: ShipId? = null,
+            var grabCD: Int? = 0,
+            var shipGrabbedDistance: Double? = null,
+        )
     }
 }
