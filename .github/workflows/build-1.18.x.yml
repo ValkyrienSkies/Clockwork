@@ -21,7 +21,7 @@ jobs:
       matrix:
         serverType: [ 'fabric', 'forge' ]
     runs-on: ubuntu-latest
-    timeout-minutes: 20 # Fail after 20 minutes
+    timeout-minutes: 30 # Fail after 30 minutes
     steps:
       - name: Shallow Clone (--recurse-submodules)
         uses: actions/checkout@v2
