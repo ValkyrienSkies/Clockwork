@@ -96,7 +96,6 @@ public class ClockworkModFabric implements ModInitializer {
             ClockworkParticles.initClient();
 
             registerClientEvents();
-            registerClientEvents();
             FabricClockworkClientEvents.register();
             FabricClockworkInputEvents.register();
             ShaderLoader.init();
@@ -106,10 +105,6 @@ public class ClockworkModFabric implements ModInitializer {
             ClientTickEvents.END_CLIENT_TICK.register(ClockworkClientEvents.INSTANCE::onTick);
             ClientTickEvents.START_CLIENT_TICK.register(ClockworkClientEvents.INSTANCE::onTickStart);
             RenderTickStartCallback.EVENT.register(ClockworkClientEvents.INSTANCE::onRenderTick);
-        }
-
-        public static void registerInputEvents() {
-            MouseButtonCallback.EVENT.register(ClockworkInputEvents.INSTANCE::onClickInputCW);
         }
     }
 

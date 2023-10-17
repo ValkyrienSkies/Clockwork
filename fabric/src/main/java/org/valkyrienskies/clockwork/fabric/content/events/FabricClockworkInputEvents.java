@@ -4,20 +4,17 @@ import io.github.fabricators_of_create.porting_lib.event.client.MouseButtonCallb
 import io.github.fabricators_of_create.porting_lib.util.KeyBindingHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionResult;
+import org.valkyrienskies.clockwork.content.events.ClockworkInputEvents;
 
 public class FabricClockworkInputEvents {
-
-    public static InteractionResult onClickInputCW(int button, int action, int mods) {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.screen != null)
-            return InteractionResult.PASS;
-
-        int use = KeyBindingHelper.getKeyCode(mc.options.keyUse).getValue();
-        int attack = KeyBindingHelper.getKeyCode(mc.options.keyAttack).getValue();
-        boolean isUse = button == use;
-        boolean isAttack = button == attack;
-
-        return InteractionResult.PASS;
+    private static InteractionResult onClickInputCW(int button, int action, int mods) {
+        final Minecraft mc = Minecraft.getInstance();
+        if (mc.screen != null) return InteractionResult.PASS;
+        final int use = KeyBindingHelper.getKeyCode(mc.options.keyUse).getValue();
+        final int attack = KeyBindingHelper.getKeyCode(mc.options.keyAttack).getValue();
+        final boolean isUse = button == use;
+        final boolean isAttack = button == attack;
+        return ClockworkInputEvents.INSTANCE.onClickInputCW(isUse, isAttack);
     }
 
     public static void register() {

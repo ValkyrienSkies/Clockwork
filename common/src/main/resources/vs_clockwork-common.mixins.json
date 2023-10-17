@@ -10,8 +10,6 @@
     "accessors.IMixinPistonContraption",
     "content.balloon.MixinLevelChunkBalloon",
     "content.fan.MixinEncasedFanTileEntity",
-    "content.gravitron.MixinServerPlayer",
-    "content.gravitron.MixinServerPlayerGameMode",
     "content.pulse.ChasingAABBOutlineAccessor",
     "content.pulse.OutlineParamsAccessor",
     "content.universal_joint.MixinRotationPropagator",
@@ -19,7 +17,6 @@
   ],
   "client": [
     "content.gravitron.MinecraftAccessor",
-    "content.gravitron.MixinLocalPlayer",
     "content.pulse.MixinLevelRenderer"
   ],
   "injectors": {

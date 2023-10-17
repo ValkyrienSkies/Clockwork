@@ -8,6 +8,7 @@ import net.minecraft.world.level.Level;
 import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.UpdateAltMeterPacket;
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserSyncPacket;
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.AreaDesignatorSelectionPacket;
+import org.valkyrienskies.clockwork.content.curiosities.tools.auric.gravitron.GravitronInputPacket;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket;
 import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket;
@@ -24,6 +25,7 @@ public enum ClockworkPackets {
     // Client to Server
     UPDATE_SEAT_RULES(UpdateSeatRulesPacket.class, UpdateSeatRulesPacket::new),
     SEQUENCER_SEAT_DRIVING(SequencedSeatDrivingPacket.class, SequencedSeatDrivingPacket::new),
+    GRAVITRON_INPUT(GravitronInputPacket.class, GravitronInputPacket::new),
 
     // Server to Client
 
