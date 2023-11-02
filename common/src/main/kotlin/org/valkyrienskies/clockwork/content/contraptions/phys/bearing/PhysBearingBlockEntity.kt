@@ -348,7 +348,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             Quaterniond()
         ).normalize()
         val hingeConstraint =
-            VSHingeOrientationConstraint(shiptraptionID, otherShipID, 1e-10, hingeOrientation, hingeOrientation, 1e10)
+            VSHingeOrientationConstraint(shiptraptionID, otherShipID, 1e-10, hingeOrientation, hingeOrientation, 1e18)
 
         // TODO: Maybe change this based on ship size?
         val extraDist = 1.0
