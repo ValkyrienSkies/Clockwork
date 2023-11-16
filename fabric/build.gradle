@@ -24,7 +24,7 @@ configurations {
 }
 
 repositories {
-    if (!block_external_repositories) {
+
         // mavens for Fabric-exclusives
         maven { url = "https://api.modrinth.com/maven" } // LazyDFU
         maven { url = "https://maven.terraformersmc.com/releases/" } // Mod Menu
@@ -33,8 +33,8 @@ repositories {
         maven { url = "https://cursemaven.com" } // Forge Config API Port
         maven { url = "https://maven.cafeteria.dev/releases" } // Fake Player API
         //maven { url = "https://maven.jamieswhiteshirt.com/libs-release" } // Reach Entity Attributes
-        maven { url = "https://jitpack.io/" } // Mixin Extras, Fabric ASM
-    }
+
+
 }
 
 dependencies {
@@ -48,11 +48,11 @@ dependencies {
     include(modApi("dev.architectury:architectury-fabric:${rootProject.architectury_version}"))
 
     //VS2
-    modApi("org.valkyrienskies:valkyrienskies-118-fabric:${rootProject.vs2_version}") { transitive = false }
+    modApi("org.valkyrienskies:valkyrienskies-119-fabric:${rootProject.vs2_version}") { transitive = false }
     implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") { transitive = false }
 
     // Kotlin
-    modImplementation("net.fabricmc:fabric-language-kotlin:1.10.10+kotlin.1.9.10")
+    modImplementation("net.fabricmc:fabric-language-kotlin:${rootProject.fabric_language_kotlin_version}")
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10"
     api "org.jetbrains.kotlin:kotlin-reflect:1.9.10"
 
@@ -61,24 +61,24 @@ dependencies {
         exclude group: 'com.github.AlphaMode', module: 'fakeconfigtoml'
     }
 
-    modImplementation("curse.maven:indium-459496:3911811")
+    modImplementation("maven.modrinth:sodium:${sodium_version}")
+    modRuntimeOnly("maven.modrinth:indium:${indium_version}")
 
     modImplementation("com.terraformersmc:modmenu:${modmenu_version}")
 
-    modImplementation("net.minecraftforge:forgeconfigapiport-fabric:3.2.4") // TODO do we still need this?
+    //modImplementation("net.minecraftforge:forgeconfigapiport-fabric:4.2.9") // TODO do we still need this?
+    modImplementation("net.minecraftforge:forgeconfigapiport-fabric:${forge_config_api_port_version}")
 
     // Development QOL
     modLocalRuntime("maven.modrinth:lazydfu:${lazydfu_version}")
 
-    modLocalRuntime("org.valkyrienskies.eureka:eureka-fabric:${eureka_version}") { transitive = false }
-    modLocalRuntime("curse.maven:lithium-360438:4143613")
-    modLocalRuntime("curse.maven:dynamic-fps-335493:3606973")
-    modLocalRuntime("curse.maven:smooth-boot-415758:3692365")
-    modLocalRuntime("maven.modrinth:sodium:mc1.18.2-0.4.1")
+    //modLocalRuntime("maven.modrinth.eureka:${eureka_fabric_version}") { transitive = false }
+    //modLocalRuntime("curse.maven:dynamic-fps-335493:3606973")
+    //modLocalRuntime("curse.maven:smooth-boot-415758:3692365")
     modLocalRuntime("com.moandjiezana.toml:toml4j:0.7.2")
 
     // CC Restitched
-    modCompileOnly("curse.maven:cc-restitched-462672:3622561")
+    //modCompileOnly("curse.maven:cc-restitched-462672:3622561")
 }
 
 processResources {

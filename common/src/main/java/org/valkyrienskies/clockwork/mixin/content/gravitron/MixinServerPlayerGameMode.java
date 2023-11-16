@@ -21,7 +21,7 @@ public class MixinServerPlayerGameMode {
     protected ServerPlayer player;
 
     @Inject(method = "handleBlockBreakAction", at = @At("HEAD"), cancellable = true)
-    private void preHandleBlockBreakAction(BlockPos pos, ServerboundPlayerActionPacket.Action action, Direction direction, int worldHeight, CallbackInfo ci) {
+    private void preHandleBlockBreakAction(BlockPos pos, ServerboundPlayerActionPacket.Action action, Direction face, int maxBuildHeight, int sequence, CallbackInfo ci) {
         final Item playerItem = player.getMainHandItem().getItem();
         if (playerItem == ClockworkItems.GRAVITRON.get()) {
             if (ClockworkItems.GRAVITRON.get().leftClickItem(player)) {

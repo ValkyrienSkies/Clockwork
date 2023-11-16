@@ -41,7 +41,7 @@ subprojects {
     }
 
     repositories {
-        if (!block_external_repositories) {
+
             mavenCentral()
             maven { url = "https://maven.shedaniel.me/" } // Cloth Config, REI
             //maven { url = "https://dvs1.progwml6.com/files/maven/" } // JEI
@@ -60,6 +60,12 @@ subprojects {
                     includeGroup "com.rbasamoyai"
                 }
             }
+        maven { url = "https://api.modrinth.com/maven" }
+
+        maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" }
+
+        flatDir {
+            dir 'lib'
         }
     }
 
@@ -76,7 +82,7 @@ subprojects {
         minecraft "com.mojang:minecraft:${minecraft_version}"
         // layered mappings - Mojmap names, parchment and QM docs and parameters
         mappings(loom.layered {
-            it.mappings("org.quiltmc:quilt-mappings:${minecraft_version}+build.${qm_version}:intermediary-v2")
+            //it.mappings("org.quiltmc:quilt-mappings:${minecraft_version}+build.${qm_version}:intermediary-v2")
             it.parchment("org.parchmentmc.data:parchment-${minecraft_version}:${parchment_version}@zip")
             it.officialMojangMappings { nameSyntheticMembers = false }
         })

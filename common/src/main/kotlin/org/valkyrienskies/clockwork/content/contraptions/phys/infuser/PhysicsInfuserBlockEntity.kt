@@ -14,6 +14,7 @@ import net.minecraft.core.NonNullList
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
+import net.minecraft.util.RandomSource
 import net.minecraft.world.ContainerHelper
 import net.minecraft.world.WorldlyContainer
 import net.minecraft.world.entity.Entity
@@ -249,7 +250,7 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
                 val range = pulseRange
                 return SCAN_GROWTH_DURATION * range.toInt() / 12
             }
-            return SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance / 12
+            return SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance().get() / 12
         }
 
     fun computeRadius(start: Long, duration: Float): Float {
@@ -412,7 +413,7 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             ClockworkSounds.PHYSICS_INFUSER_WINDUP.playAt(world, location, 1f, 1f, false)
         }
 
-        fun playZapSound(world: Level, location: Vec3, rand: Random) {
+        fun playZapSound(world: Level, location: Vec3, rand: RandomSource) {
             val pitch = 0.6f + rand.nextFloat() * 0.4f
             ClockworkSounds.PHYSICS_INFUSER_LIGHTNING.playAt(world, location, 1f, 1f, false)
         }
@@ -421,7 +422,7 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             ClockworkSounds.PHYSICS_INFUSER_FINISH.playAt(world, location, 1f, 1f, false)
         }
 
-        fun spawnParticlesAssembly(world: Level, pos: Vec3, rand: Random) {
+        fun spawnParticlesAssembly(world: Level, pos: Vec3, rand: RandomSource) {
             val degrees = rand.nextDouble() * 360
             val angle = Math.toRadians(degrees)
             val radius = 2.0

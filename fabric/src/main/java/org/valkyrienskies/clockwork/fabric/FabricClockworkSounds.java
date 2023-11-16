@@ -6,6 +6,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.minecraft.core.Registry;
 import net.minecraft.core.Vec3i;
+import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.HashCache;
@@ -71,8 +72,8 @@ public class FabricClockworkSounds {
         }
 
         @Override
-        public void run(HashCache cache) throws IOException {
-            generate(generator.getOutputFolder(), cache);
+        public void run(CachedOutput output) throws IOException {
+            generate(generator.getOutputFolder(), output);
         }
 
         @Override
@@ -80,7 +81,7 @@ public class FabricClockworkSounds {
             return "Clockwork's Custom Sounds";
         }
 
-        public void generate(Path path, HashCache cache) {
+        public void generate(Path path, CachedOutput cache) {
             Gson GSON = (new GsonBuilder()).setPrettyPrinting()
                     .disableHtmlEscaping()
                     .create();
@@ -95,7 +96,7 @@ public class FabricClockworkSounds {
                             entry.getValue()
                                     .write(json);
                         });
-                DataProvider.save(GSON, cache, json, path.resolve("sounds.json"));
+                DataProvider.saveStable(cache, json, path.resolve("sounds.json"));
 
             } catch (IOException e) {
                 e.printStackTrace();

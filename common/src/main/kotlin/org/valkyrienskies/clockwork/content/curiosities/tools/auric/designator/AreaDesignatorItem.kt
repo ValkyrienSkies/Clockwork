@@ -5,10 +5,11 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Style
-import net.minecraft.network.chat.TextComponent
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.util.Mth
+import net.minecraft.util.RandomSource
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
@@ -37,7 +38,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
     var firstPos: Vector3ic? = null
     var secondPos: Vector3ic? = null
     var shouldRenderOutlines = false
-    private val soundRandom = Random()
+    private val soundRandom = RandomSource.create()
     private var soundTickCounter = 0f
 
     //ANIMATION
@@ -171,7 +172,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
         if (this.firstPos == null) {
             this.firstPos = pos
             player.displayClientMessage(
-                TextComponent("First Position Selected!").withStyle(
+                Component.literal("First Position Selected!").withStyle(
                     Style.EMPTY.withColor(
                         ChatFormatting.DARK_PURPLE
                     )
@@ -192,7 +193,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
             this.secondPos = pos
             if (this.firstPos!!.distance(secondPos) > 500) {
                 player.displayClientMessage(
-                    TextComponent("Area Too Large!").withStyle(
+                    Component.literal("Area Too Large!").withStyle(
                         Style.EMPTY.withColor(
                             ChatFormatting.DARK_PURPLE
                         )
@@ -214,7 +215,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
             this.secondPos = null
             if (this.selectedArea.containsAABB(area)) {
                 player.displayClientMessage(
-                    TextComponent("Area Already Exists.").withStyle(
+                    Component.literal("Area Already Exists.").withStyle(
                         Style.EMPTY.withColor(
                             ChatFormatting.DARK_PURPLE
                         )
@@ -235,7 +236,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
 
             if (this.selectedArea.selectedAreas.size >= 150) {
                 player.displayClientMessage(
-                    TextComponent("This Designator is at selection capacity.").withStyle(
+                    Component.literal("This Designator is at selection capacity.").withStyle(
                         Style.EMPTY.withColor(
                             ChatFormatting.DARK_PURPLE
                         )
@@ -256,7 +257,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
 
             if (this.selectedArea.selectionClusters.size >= 20) {
                 player.displayClientMessage(
-                    TextComponent("This Designator is at cluster capacity.").withStyle(
+                    Component.literal("This Designator is at cluster capacity.").withStyle(
                         Style.EMPTY.withColor(
                             ChatFormatting.DARK_PURPLE
                         )
@@ -277,7 +278,7 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
 
             this.selectedArea.clusterNewArea(area)
             player.displayClientMessage(
-                TextComponent("Area Designated!").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE)),
+                Component.literal("Area Designated!").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE)),
                 true
             )
             world.playSound(

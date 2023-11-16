@@ -4,9 +4,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityProvider;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
-import net.minecraftforge.items.CapabilityItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -25,7 +24,7 @@ public class MixinBlockEntity extends CapabilityProvider<BlockEntity> {
     @Override
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
 
-        if (cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY && this instanceof SmartFluidTankBlockEntity te) {
+        if (cap == ForgeCapabilities.FLUID_HANDLER && this instanceof SmartFluidTankBlockEntity te) {
             return ((ForgeCWFluidTankBehaviour) te.getFluidTankBehaviour()).getCapability().cast();
         }
 

@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork.content.kinetics.sequenced_seat
 
 import com.simibubi.create.foundation.gui.AllIcons
 import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.TranslatableComponent
 
 enum class SequencedSeatOperation(name: String, val icon: AllIcons) {
     NOTHING("nothing", AllIcons.I_NONE),
@@ -13,7 +12,7 @@ enum class SequencedSeatOperation(name: String, val icon: AllIcons) {
     private val component: Component
 
     init {
-        component = TranslatableComponent("sequenced_seat.operation.$name")
+        component = Component.translatable("sequenced_seat.operation.$name")
     }
 
     fun asComponent(): Component {

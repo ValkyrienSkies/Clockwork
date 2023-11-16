@@ -11,7 +11,7 @@ test {
 }
 
 repositories {
-    if (!block_external_repositories) {
+
         // mavens for Create Fabric and dependencies
         maven { url = "https://api.modrinth.com/maven" } // LazyDFU
         maven { url = "https://maven.terraformersmc.com/releases/" } // Mod Menu
@@ -20,8 +20,8 @@ repositories {
         maven { url = "https://cursemaven.com" } // Forge Config API Port
         maven { url = "https://maven.cafeteria.dev/releases" } // Fake Player API
         //maven { url = "https://maven.jamieswhiteshirt.com/libs-release" } // Reach Entity Attributes
-        maven { url = "https://jitpack.io/" } // Mixin Extras, Fabric ASM
-    }
+        //maven { url = "https://jitpack.io/" } // Mixin Extras, Fabric ASM
+
 }
 
 dependencies {
@@ -42,7 +42,7 @@ dependencies {
     modCompileOnly("net.fabricmc.fabric-api:fabric-api:${fabric_api_version}")
 
     // VS2
-    modApi("org.valkyrienskies:valkyrienskies-118-common:${rootProject.vs2_version}")
+    modApi("org.valkyrienskies:valkyrienskies-119-common:${rootProject.vs2_version}")
     implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}")
     implementation("org.valkyrienskies.core:impl:${rootProject.vscore_version}")
     implementation("org.valkyrienskies.core:api-game:${rootProject.vscore_version}")
@@ -52,10 +52,10 @@ dependencies {
     api "org.jetbrains.kotlin:kotlin-reflect:1.9.10"
 
     // CC Restitched
-    modCompileOnly("curse.maven:cc-restitched-462672:3622561")
+    //modCompileOnly("curse.maven:cc-restitched-462672:3622561")
 
 
-    modCompileOnly("com.rbasamoyai:createbigcannons-fabric-${minecraft_version}:${createbigcannons_version}")
+    modCompileOnly("maven.modrinth:create-big-cannons:${createbigcannons_version}")
 
     // JUnit
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'

@@ -21,7 +21,6 @@ import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkClientEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkCommonEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkInputEvents;
-import org.valkyrienskies.clockwork.fabric.integration.cc_restiched.ClockworkFabricPeripheralProviders;
 import org.valkyrienskies.clockwork.platform.fabric.FallbackFabricTransfer;
 import org.valkyrienskies.mod.fabric.common.ValkyrienSkiesModFabric;
 
@@ -76,8 +75,10 @@ public class ClockworkModFabric implements ModInitializer {
 
         registerServerEvents();
 
-        if (FabricLoader.getInstance().isModLoaded("computercraft"))
-            ClockworkFabricPeripheralProviders.register();
+        if (FabricLoader.getInstance().isModLoaded("computercraft")){
+            // ClockworkFabricPeripheralProviders.register();
+        }
+
     }
 
     public static void registerServerEvents() {

@@ -13,7 +13,7 @@ import net.minecraftforge.fml.common.Mod;
 public class ForgeClockworkInputEvents {
 
     @SubscribeEvent
-    public static InteractionResult onClickInput(InputEvent.ClickInputEvent event) {
+    public static InteractionResult onClickInput(InputEvent.InteractionKeyMappingTriggered event) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.screen != null)
             return InteractionResult.PASS;

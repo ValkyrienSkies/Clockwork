@@ -7,6 +7,7 @@ import com.simibubi.create.content.kinetics.transmission.SplitShaftBlockEntity
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.util.RandomSource
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
@@ -70,10 +71,10 @@ class RedstoneResistorBlock(properties: Properties) :
         if (reAttachNextTick) worldIn.scheduleTick(pos, this, 0, TickPriority.EXTREMELY_HIGH)
     }
 
-    override fun tick(state: BlockState, worldIn: ServerLevel, pos: BlockPos, random: Random) {
-        val te = worldIn.getBlockEntity(pos)
+    override fun tick(state: BlockState, level: ServerLevel, pos: BlockPos, random: RandomSource) {
+        val te = level.getBlockEntity(pos)
         if (te == null || te !is KineticBlockEntity) return
-        RotationPropagator.handleAdded(worldIn, pos, te)
+        RotationPropagator.handleAdded(level, pos, te)
     }
 
     companion object {

@@ -5,8 +5,6 @@ import net.minecraft.nbt.FloatTag
 import net.minecraft.nbt.IntTag
 import net.minecraft.nbt.Tag
 import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.TextComponent
-import net.minecraft.network.chat.TranslatableComponent
 
 interface SequencedSeatValue {
     fun asComponent(): Component
@@ -15,7 +13,7 @@ interface SequencedSeatValue {
     fun deserializeNBT(tag: Tag)
     class DistanceValue constructor(var meters: Int) : SequencedSeatValue {
         override fun asComponent(): Component {
-            return TextComponent(meters.toString() + "m")
+            return Component.literal(meters.toString() + "m")
         }
 
         override fun configureInput(input: ScrollInput) {
@@ -34,13 +32,13 @@ interface SequencedSeatValue {
         }
 
         companion object {
-            private val KEY = TranslatableComponent("sequenced_seat.value.distance")
+            private val KEY = Component.translatable("sequenced_seat.value.distance")
         }
     }
 
     class AngleValue constructor(var degrees: Int) : SequencedSeatValue {
         override fun asComponent(): Component {
-            return TextComponent("$degrees°")
+            return Component.literal("$degrees°")
         }
 
         override fun configureInput(input: ScrollInput) {
@@ -59,13 +57,13 @@ interface SequencedSeatValue {
         }
 
         companion object {
-            private val KEY = TranslatableComponent("sequenced_seat.value.angle")
+            private val KEY = Component.translatable("sequenced_seat.value.angle")
         }
     }
 
     class MultiplyValue constructor(var multiplier: Float) : SequencedSeatValue {
         override fun asComponent(): Component {
-            return TextComponent(multiplier.toString() + "x")
+            return Component.literal(multiplier.toString() + "x")
         }
 
         override fun configureInput(input: ScrollInput) {
@@ -84,7 +82,7 @@ interface SequencedSeatValue {
         }
 
         companion object {
-            private val KEY = TranslatableComponent("sequenced_seat.value.multiply")
+            private val KEY = Component.translatable("sequenced_seat.value.multiply")
         }
     }
 

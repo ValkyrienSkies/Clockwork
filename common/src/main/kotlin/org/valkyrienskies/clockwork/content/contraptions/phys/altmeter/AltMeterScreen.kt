@@ -8,8 +8,6 @@ import com.simibubi.create.foundation.gui.widget.AbstractSimiWidget
 import com.simibubi.create.foundation.gui.widget.IconButton
 import com.simibubi.create.foundation.gui.widget.ScrollInput
 import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.TextComponent
-import net.minecraft.network.chat.TranslatableComponent
 import net.minecraft.world.item.ItemStack
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
@@ -77,7 +75,7 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
         drawInputField(ruleX, ruleY, ms, partialTicks, 0)
 
         val heightStr = triggerHeight.toString()
-        val valueComponent: Component = TextComponent("$heightStr m")
+        val valueComponent: Component = Component.literal("$heightStr m")
 
         drawCenteredString(
             ms,
@@ -120,6 +118,6 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
         private const val INPUT_VALUE_WIDTH = 46
         private const val MAX_HEIGHT = 1024
         private const val MIN_HEIGHT = -1024
-        private val TRIGGER_HEIGHT_COMPONENT = TranslatableComponent("alt_meter.trigger_height")
+        private val TRIGGER_HEIGHT_COMPONENT = Component.translatable("alt_meter.trigger_height")
     }
 }

@@ -5,7 +5,7 @@ import com.simibubi.create.content.contraptions.glue.SuperGlueEntity
 import com.simibubi.create.foundation.utility.UniqueLinkedList
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.network.chat.TextComponent
+import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
@@ -27,7 +27,7 @@ object GlueAssembler {
         frontier.add(pos)
         for (limit in 100000 downTo 1) {
             if (frontier.isEmpty()) {
-                if (result.isEmpty()) throw AssemblyException(TextComponent("No blocks found!"))
+                if (result.isEmpty()) throw AssemblyException(Component.literal("No blocks found!"))
                 return result
             }
             visitBlock(level, frontier, result, toRemove)

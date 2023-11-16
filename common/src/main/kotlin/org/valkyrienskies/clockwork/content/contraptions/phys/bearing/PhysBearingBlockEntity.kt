@@ -17,7 +17,6 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.TextComponent
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
 import net.minecraft.world.level.block.entity.BlockEntityType
@@ -94,7 +93,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
         super.addBehaviours(behaviours)
         movementMode = ScrollOptionBehaviour(
-            LockedMode::class.java, TextComponent("Locked or Unlocked"),
+            LockedMode::class.java, Component.literal("Locked or Unlocked"),
             this, movementModeSlot
         )
         movementMode!!.requiresWrench()

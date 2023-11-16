@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.forge;
 
+import com.simibubi.create.AllFluids;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.tterrag.registrate.builders.FluidBuilder;
 import com.tterrag.registrate.util.entry.FluidEntry;
@@ -10,7 +11,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.fluids.FluidAttributes;
+import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.ForgeFlowingFluid;
 import org.valkyrienskies.clockwork.ClockworkItems;
 import org.valkyrienskies.clockwork.ClockworkMod;
@@ -21,11 +22,11 @@ public class ForgeClockworkFluids {
     public static final FluidEntry<ForgeFlowingFluid.Flowing> VANILLA_FROSTING =
             standardFluid("vanilla_frosting", NoColorFluidAttributes::new)
                     .lang(f -> "fluid.ClockWorkMod.vanilla_frosting", "Vanilla Frosting")
-                    .attributes(b -> b.viscosity(1250)
+                    .properties(b -> b.viscosity(1250)
                             .density(7040)
                             .temperature(20)
                             .sound(ClockworkSounds.INSTANCE.getTHICK_FLUID_FILL().getMainEvent(), ClockworkSounds.INSTANCE.getTHICK_FLUID_EMPTY().getMainEvent()))
-                    .properties(p -> p.levelDecreasePerBlock(2)
+                    .fluidProperties(p -> p.levelDecreasePerBlock(2)
                             .tickRate(25)
                             .slopeFindDistance(3)
                             .explosionResistance(5f))
@@ -36,11 +37,11 @@ public class ForgeClockworkFluids {
 
     public static final FluidEntry<ForgeFlowingFluid.Flowing> CHOCOLATE_FROSTING = standardFluid("chocolate_frosting", NoColorFluidAttributes::new)
                     .lang(f -> "fluid.ClockWorkMod.chocolate_frosting", "Chocolate Frosting")
-                    .attributes(b -> b.viscosity(1250)
+                    .properties(b -> b.viscosity(1250)
                             .density(7040)
                             .temperature(20)
                             .sound(ClockworkSounds.INSTANCE.getTHICK_FLUID_FILL().getMainEvent(), ClockworkSounds.INSTANCE.getTHICK_FLUID_EMPTY().getMainEvent()))
-                    .properties(p -> p.levelDecreasePerBlock(2)
+                    .fluidProperties(p -> p.levelDecreasePerBlock(2)
                             .tickRate(25)
                             .slopeFindDistance(3)
                             .explosionResistance(5f))
@@ -51,11 +52,11 @@ public class ForgeClockworkFluids {
 
     public static final FluidEntry<ForgeFlowingFluid.Flowing> STRAWBERRY_FROSTING = standardFluid("strawberry_frosting", NoColorFluidAttributes::new)
                     .lang(f -> "fluid.ClockWorkMod.strawberry_frosting", "Strawberry Frosting")
-                    .attributes(b -> b.viscosity(1250)
+                    .properties(b -> b.viscosity(1250)
                             .density(7040)
                             .temperature(20)
                             .sound(ClockworkSounds.INSTANCE.getTHICK_FLUID_FILL().getMainEvent(), ClockworkSounds.INSTANCE.getTHICK_FLUID_EMPTY().getMainEvent()))
-                    .properties(p -> p.levelDecreasePerBlock(2)
+                    .fluidProperties(p -> p.levelDecreasePerBlock(2)
                             .tickRate(25)
                             .slopeFindDistance(3)
                             .explosionResistance(5f))
@@ -78,7 +79,7 @@ public class ForgeClockworkFluids {
 
     public static void register() {}
 
-    private static class NoColorFluidAttributes extends FluidAttributes {
+    private static class NoColorFluidAttributes extends FluidType {
 
         protected NoColorFluidAttributes(Builder builder, Fluid fluid) {
             super(builder, fluid);

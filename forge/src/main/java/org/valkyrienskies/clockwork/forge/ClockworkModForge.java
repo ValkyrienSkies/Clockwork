@@ -4,8 +4,6 @@ import com.simibubi.create.AllParticleTypes;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
-import net.minecraftforge.client.event.ModelRegistryEvent;
-import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
@@ -25,7 +23,6 @@ import org.valkyrienskies.clockwork.ClockworkParticles;
 import org.valkyrienskies.clockwork.ClockworkSounds;
 import org.valkyrienskies.clockwork.data.ClockworkTags;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
-import org.valkyrienskies.clockwork.forge.integration.cc_tweaked.ClockworkForgePeripheralProviders;
 
 @Mod(ClockworkMod.MOD_ID)
 public class ClockworkModForge {
@@ -87,8 +84,10 @@ public class ClockworkModForge {
             ShaderLoader.init(modEventBus);
         });
 
-        if (FMLLoader.getLoadingModList().getModFileById("computercraft") != null)
-            ClockworkForgePeripheralProviders.register();
+        if (FMLLoader.getLoadingModList().getModFileById("computercraft") != null){
+            //ClockworkForgePeripheralProviders.register();
+        }
+
     }
 
     public static ResourceLocation asResource(String path) {

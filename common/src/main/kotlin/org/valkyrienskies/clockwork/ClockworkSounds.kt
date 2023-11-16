@@ -5,6 +5,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import net.minecraft.core.Registry
 import net.minecraft.core.Vec3i
+import net.minecraft.data.CachedOutput
 import net.minecraft.data.DataGenerator
 import net.minecraft.data.DataProvider
 import net.minecraft.data.HashCache
@@ -113,15 +114,15 @@ object ClockworkSounds {
 
     class SoundEntryProvider(private val generator: DataGenerator) : DataProvider {
         @Throws(IOException::class)
-        override fun run(cache: HashCache) {
-            generate(generator.outputFolder, cache)
+        override fun run(output: CachedOutput) {
+            generate(generator.outputFolder, output)
         }
 
         override fun getName(): String {
             return "Clockwork's Custom Sounds"
         }
 
-        fun generate(path: Path, cache: HashCache?) {
+        fun generate(path: Path, cache: CachedOutput?) {
             var path = path
             val GSON = GsonBuilder().setPrettyPrinting()
                 .disableHtmlEscaping()
@@ -136,7 +137,7 @@ object ClockworkSounds {
                         value
                             .write(json)
                     }
-                DataProvider.save(GSON, cache, json, path.resolve("sounds.json"))
+                DataProvider.saveStable(cache, json, path.resolve("sounds.json"))
             } catch (e: IOException) {
                 e.printStackTrace()
             }

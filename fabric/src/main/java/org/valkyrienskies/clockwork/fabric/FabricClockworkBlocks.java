@@ -13,7 +13,7 @@ import static com.simibubi.create.foundation.data.TagGen.pickaxeOnly;
 public class FabricClockworkBlocks {
 
     static {
-        ClockworkMod.INSTANCE.getREGISTRATE().creativeModeTab(() -> ClockworkMod.INSTANCE.getBASE_CREATIVE_TAB());
+        ClockworkMod.INSTANCE.getREGISTRATE().creativeModeTab(ClockworkMod.INSTANCE::getBASE_CREATIVE_TAB);
     }
 
     public static void register() {
