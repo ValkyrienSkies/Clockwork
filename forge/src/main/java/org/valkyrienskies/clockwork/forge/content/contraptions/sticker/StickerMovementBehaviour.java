@@ -242,7 +242,7 @@ public class StickerMovementBehaviour implements MovementBehaviour {
                 if (compoundTag.contains("ShipStickerShip1Quat")) {
                     ship1Rot = new Quaterniond(readQuatd(compoundTag.getCompound("ShipStickerShip1Quat")));
                     AbstractContraptionEntity.ContraptionRotationState rotState = context.contraption.entity.getRotationState();
-                    ship1Rot = new Quaterniond().setFromNormalized(toJOML(rotState.asMatrix().getAsMatrix4f())).mul(ship1Rot); //toJOML(new Vec3(1, 1, 1)).rotationTo(toJOML(rotatedDir), new Quaterniond());
+                    ship1Rot = new Quaterniond().setFromNormalized((rotState.asMatrix().getAsMatrix4f())).mul(ship1Rot); //toJOML(new Vec3(1, 1, 1)).rotationTo(toJOML(rotatedDir), new Quaterniond());
                 }
             }
 
@@ -352,7 +352,7 @@ public class StickerMovementBehaviour implements MovementBehaviour {
         if (ship != null)
             ship.getShipToWorld().transformPosition(searchPos, searchPos);
 
-        BlockPos searchBlockPos = new BlockPos(toMinecraft(searchPos));
+        BlockPos searchBlockPos = BlockPos.containing(toMinecraft(searchPos));
         BlockState worldBlockState = level.getBlockState(searchBlockPos);
         double distance = 0;
         if (!worldBlockState.isAir()) {
@@ -371,12 +371,12 @@ public class StickerMovementBehaviour implements MovementBehaviour {
                     shipItr = ships.next();
                     if (shipItr == ship) continue;
                     shipItr.getWorldToShip().transformPosition(transformedSearchPos);
-                    BlockPos blockPos = new BlockPos(toMinecraft(transformedSearchPos));
+                    BlockPos blockPos = BlockPos.containing(toMinecraft(transformedSearchPos));
                     if (VSGameUtilsKt.isBlockInShipyard(level, blockPos)) {
                         BlockState blockState = level.getBlockState(blockPos);
                         if (!blockState.isAir() && blockState.isFaceSturdy(level, blockPos, Direction.UP, SupportType.RIGID)) {
 
-                            searchBlockPos = new BlockPos(toMinecraft(shipItr.getShipToWorld().transformPosition(blockPos.getX(), blockPos.getY(), blockPos.getZ(), new Vector3d())));
+                            searchBlockPos = BlockPos.containing(toMinecraft(shipItr.getShipToWorld().transformPosition(blockPos.getX(), blockPos.getY(), blockPos.getZ(), new Vector3d())));
                             distance = Vector3d.distance(myPosCentered.x, myPosCentered.y, myPosCentered.z, searchBlockPos.getX(), searchBlockPos.getY(), searchBlockPos.getZ());
                             result = true;
                             ship2 = shipItr;
@@ -449,7 +449,7 @@ public class StickerMovementBehaviour implements MovementBehaviour {
             Integer constraintID = VSGameUtilsKt.getShipObjectWorld(level).createNewConstraint(constraint);
             compoundTag.putInt("ShipStickerConstraint", constraintID.intValue());
 
-            new StickerParticleUtil().doBluperParticle(level, new BlockPos(toMinecraft(myPos)), Direction.fromNormal((int) adjustedDirNormal.x, (int) adjustedDirNormal.y, (int) adjustedDirNormal.z));
+            new StickerParticleUtil().doBluperParticle(level, BlockPos.containing(toMinecraft(myPos)), Direction.from((int) adjustedDirNormal.x, (int) adjustedDirNormal.y, (int) adjustedDirNormal.z));
         }
     }
 

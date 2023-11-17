@@ -21,6 +21,7 @@ import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.util.EaseHelper
+import org.valkyrienskies.clockwork.util.SternerCopiumUtils
 import kotlin.math.sin
 
 class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
@@ -42,7 +43,7 @@ class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
         val superBuffer = CachedBufferer.partial(top, te.getBlockState())
         ms.pushPose()
         ms.translate(0.5, 0.5, 0.5)
-        ms.mulPose(Quaternionf().set(0.0f, Math.toRadians(-180.0).toFloat(), 0.0f, 1f))//TODO w scalar??
+        ms.mulPose(SternerCopiumUtils.oldQuaternionf(0.0f, Math.toRadians(-180.0).toFloat(), 0.0f))
         val ogfacing = te.blockState.getValue(BlockStateProperties.FACING)
         when (ogfacing) {
             Direction.SOUTH -> ms.mulPose(Axis.XP.rotationDegrees(270f))

@@ -18,7 +18,7 @@ import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour;
 
 public class PlatformUtilsImpl {
     public static double getReachDistance(Player player) {
-        return player.getReachDistance();
+        return player.getBlockReach();
     }
 
     public static Packet<?> createExtraDataSpawnPacket(Entity entity) {

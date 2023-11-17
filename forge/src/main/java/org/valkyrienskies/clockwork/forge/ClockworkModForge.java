@@ -1,9 +1,12 @@
 package org.valkyrienskies.clockwork.forge;
 
 import com.simibubi.create.AllParticleTypes;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
@@ -12,6 +15,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLLoader;
+import net.minecraftforge.registries.DeferredRegister;
 import org.valkyrienskies.clockwork.ClockworkBlockEntities;
 import org.valkyrienskies.clockwork.ClockworkBlocks;
 import org.valkyrienskies.clockwork.ClockworkEntities;
@@ -24,7 +28,9 @@ import org.valkyrienskies.clockwork.ClockworkSounds;
 import org.valkyrienskies.clockwork.data.ClockworkTags;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
 
-@Mod(ClockworkMod.MOD_ID)
+import static org.valkyrienskies.clockwork.ClockworkMod.MOD_ID;
+
+@Mod(MOD_ID)
 public class ClockworkModForge {
     boolean happendClientSetup = false;
 
@@ -44,7 +50,6 @@ public class ClockworkModForge {
 
         modEventBus.addListener(this::clientSetup);
         modEventBus.addListener(this::onParticleRegistry);
-        modEventBus.addListener(this::onModelRegistry);
         ClockworkMod.INSTANCE.getREGISTRATE().registerEventListeners(modEventBus);
 
         ClockworkBlocks.register();
@@ -84,14 +89,19 @@ public class ClockworkModForge {
             ShaderLoader.init(modEventBus);
         });
 
+        DeferredRegister<CreativeModeTab> deferredRegister = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MOD_ID);
+        deferredRegister.register("general",
+                ClockworkMod.INSTANCE::createCreativeTab
+        );
+        deferredRegister.register(modEventBus);
+
         if (FMLLoader.getLoadingModList().getModFileById("computercraft") != null){
             //ClockworkForgePeripheralProviders.register();
         }
-
     }
 
     public static ResourceLocation asResource(String path) {
-        return new ResourceLocation(ClockworkMod.MOD_ID, path);
+        return new ResourceLocation(MOD_ID, path);
     }
 
     void clientSetup(final FMLClientSetupEvent event) {
@@ -103,11 +113,8 @@ public class ClockworkModForge {
 
     }
 
-    void onParticleRegistry(final ParticleFactoryRegisterEvent event) {
+    void onParticleRegistry(RegisterParticleProvidersEvent event) {
         ClockworkParticles.initClient();
     }
 
-    void onModelRegistry(final ModelRegistryEvent event) {
-
-    }
 }

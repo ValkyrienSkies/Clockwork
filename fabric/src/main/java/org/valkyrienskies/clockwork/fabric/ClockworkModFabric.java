@@ -10,6 +10,8 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.content.events.ClockworkClientEvents;
 import org.valkyrienskies.clockwork.content.events.ClockworkCommonEvents;
@@ -72,6 +74,13 @@ public class ClockworkModFabric implements ModInitializer {
         ClockworkModFabric.init();
 
         registerServerEvents();
+
+        //ClockworkMod.INSTANCE.createCreativeTab();
+        Registry.register(
+                BuiltInRegistries.CREATIVE_MODE_TAB,
+                ClockworkMod.C_CREATIVE_TAB,
+                ClockworkMod.INSTANCE.createCreativeTab()
+        );
 
         if (FabricLoader.getInstance().isModLoaded("computercraft")){
             // ClockworkFabricPeripheralProviders.register();

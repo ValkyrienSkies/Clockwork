@@ -1,21 +1,20 @@
 package org.valkyrienskies.clockwork.forge;
 
-import com.simibubi.create.AllFluids;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.tterrag.registrate.builders.FluidBuilder;
 import com.tterrag.registrate.util.entry.FluidEntry;
 import com.tterrag.registrate.util.nullness.NonNullBiFunction;
-import net.minecraft.core.BlockPos;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.FluidTags;
-import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.minecraftforge.common.SoundActions;
 import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.ForgeFlowingFluid;
-import org.valkyrienskies.clockwork.ClockworkItems;
 import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.ClockworkSounds;
+
+import java.util.function.Consumer;
 
 public class ForgeClockworkFluids {
 
@@ -25,7 +24,8 @@ public class ForgeClockworkFluids {
                     .properties(b -> b.viscosity(1250)
                             .density(7040)
                             .temperature(20)
-                            .sound(ClockworkSounds.INSTANCE.getTHICK_FLUID_FILL().getMainEvent(), ClockworkSounds.INSTANCE.getTHICK_FLUID_EMPTY().getMainEvent()))
+                            .sound(SoundActions.BUCKET_EMPTY, ClockworkSounds.INSTANCE.getTHICK_FLUID_EMPTY().getMainEvent())
+                            .sound(SoundActions.BUCKET_FILL, ClockworkSounds.INSTANCE.getTHICK_FLUID_FILL().getMainEvent()))
                     .fluidProperties(p -> p.levelDecreasePerBlock(2)
                             .tickRate(25)
                             .slopeFindDistance(3)
@@ -40,7 +40,8 @@ public class ForgeClockworkFluids {
                     .properties(b -> b.viscosity(1250)
                             .density(7040)
                             .temperature(20)
-                            .sound(ClockworkSounds.INSTANCE.getTHICK_FLUID_FILL().getMainEvent(), ClockworkSounds.INSTANCE.getTHICK_FLUID_EMPTY().getMainEvent()))
+                            .sound(SoundActions.BUCKET_EMPTY, ClockworkSounds.INSTANCE.getTHICK_FLUID_EMPTY().getMainEvent())
+                            .sound(SoundActions.BUCKET_FILL, ClockworkSounds.INSTANCE.getTHICK_FLUID_FILL().getMainEvent()))
                     .fluidProperties(p -> p.levelDecreasePerBlock(2)
                             .tickRate(25)
                             .slopeFindDistance(3)
@@ -55,7 +56,8 @@ public class ForgeClockworkFluids {
                     .properties(b -> b.viscosity(1250)
                             .density(7040)
                             .temperature(20)
-                            .sound(ClockworkSounds.INSTANCE.getTHICK_FLUID_FILL().getMainEvent(), ClockworkSounds.INSTANCE.getTHICK_FLUID_EMPTY().getMainEvent()))
+                            .sound(SoundActions.BUCKET_EMPTY, ClockworkSounds.INSTANCE.getTHICK_FLUID_EMPTY().getMainEvent())
+                            .sound(SoundActions.BUCKET_FILL, ClockworkSounds.INSTANCE.getTHICK_FLUID_FILL().getMainEvent()))
                     .fluidProperties(p -> p.levelDecreasePerBlock(2)
                             .tickRate(25)
                             .slopeFindDistance(3)
@@ -65,13 +67,14 @@ public class ForgeClockworkFluids {
                     .build()
                     .register();
 
-    private static FluidBuilder<ForgeFlowingFluid.Flowing, CreateRegistrate> standardFluid(String name, NonNullBiFunction<FluidAttributes.Builder, Fluid, FluidAttributes> factory) {
+
+    private static FluidBuilder<ForgeFlowingFluid.Flowing, CreateRegistrate> standardFluid(String name, FluidBuilder.FluidTypeFactory factory) {
         return ClockworkMod.INSTANCE.getREGISTRATE()
                 .fluid(name, ClockworkMod.INSTANCE.asResource("fluid/" + name + "_still"), ClockworkMod.INSTANCE.asResource("fluid/" + name + "_flow"), factory)
                 .removeTag(FluidTags.WATER);
     }
 
-    private static FluidBuilder<ForgeFlowingFluid.Flowing, CreateRegistrate> frostingFluid(String name, NonNullBiFunction<FluidAttributes.Builder, Fluid, FluidAttributes> factory) {
+    private static FluidBuilder<ForgeFlowingFluid.Flowing, CreateRegistrate> frostingFluid(String name, FluidBuilder.FluidTypeFactory factory) {
         return ClockworkMod.INSTANCE.getREGISTRATE()
                 .fluid(name, ClockworkMod.INSTANCE.asResource("fluid/frosting_still"), ClockworkMod.INSTANCE.asResource("fluid/frosting_flow"), factory)
                 .removeTag(FluidTags.WATER);
@@ -80,14 +83,29 @@ public class ForgeClockworkFluids {
     public static void register() {}
 
     private static class NoColorFluidAttributes extends FluidType {
+        private ResourceLocation stillTexture;
+        private ResourceLocation flowingTexture;
 
-        protected NoColorFluidAttributes(Builder builder, Fluid fluid) {
-            super(builder, fluid);
+        public NoColorFluidAttributes(Properties properties, ResourceLocation stillTexture, ResourceLocation flowingTexture) {
+            super(properties);
+            this.stillTexture = stillTexture;
+            this.flowingTexture = flowingTexture;
         }
 
         @Override
-        public int getColor(BlockAndTintGetter level, BlockPos pos) {
-            return 0x00ffffff;
+        public void initializeClient(Consumer<IClientFluidTypeExtensions> consumer) {
+            consumer.accept(new IClientFluidTypeExtensions() {
+
+                @Override
+                public ResourceLocation getStillTexture() {
+                    return stillTexture;
+                }
+
+                @Override
+                public ResourceLocation getFlowingTexture() {
+                    return flowingTexture;
+                }
+            });
         }
     }
 }
