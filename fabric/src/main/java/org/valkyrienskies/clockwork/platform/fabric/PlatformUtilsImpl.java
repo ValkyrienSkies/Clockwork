@@ -5,7 +5,6 @@ import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import io.github.fabricators_of_create.porting_lib.entity.ExtraSpawnDataEntity;
-import io.github.fabricators_of_create.porting_lib.mixin.common.accessor.ServerGamePacketListenerImplAccessor;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerPlayer;
@@ -27,13 +26,7 @@ public class PlatformUtilsImpl {
         return ReachEntityAttributes.getReachDistance(player, player.isCreative() ? 5.0 : 4.5);
     }
 
-    public static Packet<?> createExtraDataSpawnPacket(Entity entity) {
-        return ExtraSpawnDataEntity.createExtraDataSpawnPacket(entity);
-    }
 
-    public static void setAboveGroundTicks(ServerPlayer player, int ticks) {
-        ((ServerGamePacketListenerImplAccessor) player.connection).port_lib$setAboveGroundTickCount(0);
-    }
 
 //    public static InteractionResultHolder<ItemStack> tryInsert(BlockState state, Level world, BlockPos pos,
 //                                                               ItemStack stack, boolean doNotConsume, boolean forceOverflow, boolean simulate) {

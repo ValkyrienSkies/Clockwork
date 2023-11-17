@@ -14,7 +14,6 @@ import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate;
 public class ClockworkItems {
 
     static {
-        ClockworkMod.INSTANCE.getREGISTRATE().creativeModeTab(ClockworkMod.INSTANCE::getBASE_CREATIVE_TAB);
     }
     public static final ItemEntry<Item> BLUUGUU = ingredient("bluuguu");
     public static final ItemEntry<AreaDesignatorItem> AURIC_DESIGNATOR =

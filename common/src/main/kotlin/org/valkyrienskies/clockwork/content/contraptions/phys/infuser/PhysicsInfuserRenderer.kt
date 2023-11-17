@@ -1,8 +1,6 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.infuser
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.math.Matrix4f
-import com.mojang.math.Quaternion
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
@@ -15,6 +13,8 @@ import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.Direction
 import net.minecraft.world.phys.Vec3
+import org.joml.Matrix4f
+import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.primitives.AABBi
@@ -146,7 +146,7 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
         val pivotZ = 8f
         val speen = LerpedFloat.linear()
         val interpolatedAngle = infuser.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1)
-        val q = Quaternion(0f, 1f, 0f, angle)
+        val q = Quaternionf(0f, 1f, 0f, angle)
         buffer.rotateCentered(Direction.UP, (interpolatedAngle / 180 * Math.PI).toFloat())
             .translate(0.0, offset.toDouble(), 0.0)
         return buffer

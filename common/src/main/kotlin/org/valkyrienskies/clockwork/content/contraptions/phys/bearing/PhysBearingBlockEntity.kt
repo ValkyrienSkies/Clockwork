@@ -661,7 +661,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val state = blockState
         if (state.block !is BearingBlock) return false
         val attachedState = level!!.getBlockState(worldPosition.relative(state.getValue(BearingBlock.FACING)))
-        if (attachedState.material.isReplaceable) return false
+        if (attachedState.canBeReplaced()) return false
         TooltipHelper.addHint(tooltip, "hint.empty_bearing")
         return true
     }

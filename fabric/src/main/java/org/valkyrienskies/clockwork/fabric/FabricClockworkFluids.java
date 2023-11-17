@@ -12,6 +12,7 @@ import net.fabricmc.fabric.api.transfer.v1.fluid.base.EmptyItemFluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.fluid.base.FullItemFluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.material.Fluid;
 import org.valkyrienskies.clockwork.ClockworkMod;
@@ -33,7 +34,7 @@ public class FabricClockworkFluids {
                     .bucket()
                     .tag(AllTags.forgeItemTag("buckets/vanilla_frosting"))
                     .build()
-                    .onRegisterAfter(Registry.ITEM_REGISTRY, vanilla_frosting -> {
+                    .onRegisterAfter(Registries.ITEM, vanilla_frosting -> {
                         Fluid source = vanilla_frosting.getSource();
                         FluidStorage.combinedItemApiProvider(source.getBucket()).register(context ->
                                 new FullItemFluidStorage(context, bucket -> ItemVariant.of(BUCKET), FluidVariant.of(source), FluidConstants.BUCKET));
@@ -54,7 +55,7 @@ public class FabricClockworkFluids {
                     .bucket()
                     .tag(AllTags.forgeItemTag("buckets/chocolate_frosting"))
                     .build()
-                    .onRegisterAfter(Registry.ITEM_REGISTRY, chocolate_frosting -> {
+                    .onRegisterAfter(Registries.ITEM, chocolate_frosting -> {
                         Fluid source = chocolate_frosting.getSource();
                         FluidStorage.combinedItemApiProvider(source.getBucket()).register(context ->
                                 new FullItemFluidStorage(context, bucket -> ItemVariant.of(BUCKET), FluidVariant.of(source), FluidConstants.BUCKET));
@@ -75,7 +76,7 @@ public class FabricClockworkFluids {
                     .bucket()
                     .tag(AllTags.forgeItemTag("buckets/strawberry_frosting"))
                     .build()
-                    .onRegisterAfter(Registry.ITEM_REGISTRY, chocolate_frosting -> {
+                    .onRegisterAfter(Registries.ITEM, chocolate_frosting -> {
                         Fluid source = chocolate_frosting.getSource();
                         FluidStorage.combinedItemApiProvider(source.getBucket()).register(context ->
                                 new FullItemFluidStorage(context, bucket -> ItemVariant.of(BUCKET), FluidVariant.of(source), FluidConstants.BUCKET));

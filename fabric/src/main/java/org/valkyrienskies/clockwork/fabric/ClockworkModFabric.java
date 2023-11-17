@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.fabric;
 
 import com.terraformersmc.modmenu.api.ModMenuApi;
-import io.github.fabricators_of_create.porting_lib.event.client.MouseButtonCallback;
 import io.github.fabricators_of_create.porting_lib.event.client.RenderTickStartCallback;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
@@ -11,7 +10,6 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraftforge.common.data.ExistingFileHelper;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.content.events.ClockworkClientEvents;
 import org.valkyrienskies.clockwork.content.events.ClockworkCommonEvents;
@@ -37,9 +35,9 @@ public class ClockworkModFabric implements ModInitializer {
         FabricClockworkCommonEvents.register();
     }
 
-    public static void gatherData(FabricDataGenerator gen, ExistingFileHelper helper) {
-        gen.addProvider(FabricClockworkSounds.provider(gen));
-    }
+    //public static void gatherData(FabricDataGenerator gen, ExistingFileHelper helper) {
+    //    gen.addProvider(FabricClockworkSounds.provider(gen));
+    //}
 
     @Override
     public void onInitialize() {
@@ -110,7 +108,7 @@ public class ClockworkModFabric implements ModInitializer {
         }
 
         public static void registerInputEvents() {
-            MouseButtonCallback.EVENT.register(ClockworkInputEvents.INSTANCE::onClickInputCW);
+            //TODO MouseButtonCallback.EVENT.register(ClockworkInputEvents.INSTANCE::onClickInputCW);
         }
     }
 

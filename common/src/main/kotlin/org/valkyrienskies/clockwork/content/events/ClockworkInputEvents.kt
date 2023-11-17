@@ -9,6 +9,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.A
 
 object ClockworkInputEvents {
     fun onClickInputCW(button: Int, action: Int, mods: Int): InteractionResult {
+        /*TODO big
         val mc = Minecraft.getInstance()
         if (mc.screen != null) return InteractionResult.PASS
         val use = KeyBindingHelper.getKeyCode(mc.options.keyUse).value
@@ -25,6 +26,8 @@ object ClockworkInputEvents {
                 }
             }
         }
+
+         */
         return InteractionResult.PASS
     }
 }

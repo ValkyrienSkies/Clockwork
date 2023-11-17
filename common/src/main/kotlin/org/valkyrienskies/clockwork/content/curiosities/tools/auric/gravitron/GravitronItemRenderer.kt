@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.auric.gravitron
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.math.Vector3f
+import com.mojang.math.Axis
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer
@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.block.model.ItemTransforms
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.HumanoidArm
+import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkPartials
@@ -21,7 +22,7 @@ class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
         stack: ItemStack,
         model: CustomRenderedItemModel,
         renderer: PartialItemModelRenderer,
-        transformType: ItemTransforms.TransformType,
+        transformType: ItemDisplayContext,
         ms: PoseStack,
         buffer: MultiBufferSource,
         light: Int,
@@ -45,10 +46,10 @@ class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
         renderer.render(ClockworkPartials.GRAV_PRONG_RIGHT_TWO.get(), light)
         renderer.render(ClockworkPartials.GRAV_PRONG_LEFT_THREE.get(), light)
         renderer.render(ClockworkPartials.GRAV_PRONG_RIGHT_THREE.get(), light)
-        ms.mulPose(Vector3f.XP.rotationDegrees(45f))
+        ms.mulPose(Axis.XP.rotationDegrees(45f))
         ms.translate(0.0, -0.300, 0.125)
         renderer.render(ClockworkPartials.GRAV_PRONG_TOP_ONE.get(), light)
-        ms.mulPose(Vector3f.XP.rotationDegrees(-15f))
+        ms.mulPose(Axis.XP.rotationDegrees(-15f))
         ms.translate(0.0, 0.125, 0.025)
         renderer.render(ClockworkPartials.GRAV_PRONG_TOP_TWO.get(), light)
         renderer.render(ClockworkPartials.GRAV_PRONG_TOP_THREE.get(), light)

@@ -12,13 +12,14 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.valkyrienskies.clockwork.ClockworkBlocks;
 import org.valkyrienskies.clockwork.ClockworkPartials;
 
 public class WingBlockItemRenderer extends CustomRenderedItemModelRenderer {
     @Override
-    protected void render(ItemStack stack, CustomRenderedItemModel model, PartialItemModelRenderer renderer, ItemTransforms.TransformType transformType, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
+    protected void render(ItemStack stack, CustomRenderedItemModel model, PartialItemModelRenderer renderer, ItemDisplayContext transformType, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
         if (transformType.firstPerson())
             renderFirstPerson(stack, buffer, ms, light);
         else

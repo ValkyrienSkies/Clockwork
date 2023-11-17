@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.data
 
 import com.simibubi.create.foundation.utility.Lang
 import net.minecraft.core.Registry
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.tags.TagKey
 import net.minecraft.world.item.Item
@@ -24,15 +25,15 @@ object ClockworkTags {
     }
 
     fun forgeBlockTag(path: String?): TagKey<Block> {
-        return forgeTag(Registry.BLOCK, path)
+        return forgeTag(BuiltInRegistries.BLOCK, path)
     }
 
     fun forgeItemTag(path: String?): TagKey<Item> {
-        return forgeTag(Registry.ITEM, path)
+        return forgeTag(BuiltInRegistries.ITEM, path)
     }
 
     fun forgeFluidTag(path: String?): TagKey<Fluid> {
-        return forgeTag(Registry.FLUID, path)
+        return forgeTag(BuiltInRegistries.FLUID, path)
     }
 
     //    public static class BlockCW {
@@ -113,7 +114,7 @@ object ClockworkTags {
                 namespace.id,
                 path ?: Lang.asId(name)
             )
-            tag = optionalTag(Registry.FLUID, id)
+            tag = optionalTag(BuiltInRegistries.FLUID, id)
             this.alwaysDatagen = alwaysDatagen
         }
 
@@ -161,7 +162,7 @@ object ClockworkTags {
                 namespace.id,
                 path ?: Lang.asId(name)
             )
-            tag = optionalTag(Registry.BLOCK, id)
+            tag = optionalTag(BuiltInRegistries.BLOCK, id)
             this.alwaysDatagen = alwaysDatagen
         }
 

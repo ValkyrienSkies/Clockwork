@@ -135,13 +135,13 @@ class AreaDesignatorItem(properties: Properties) : CWItem(properties) {
 
 
     fun onAttack(player: Player) {
-        val hitResult = getPlayerPOVHitResult(player.level, player, ClipContext.Fluid.NONE)
+        val hitResult = getPlayerPOVHitResult(player.level(), player, ClipContext.Fluid.NONE)
         val pos: Vector3ic = hitResult.blockPos.toJOML()
         val hitCluster: Set<AABBic> = this.selectedArea.getClusterContaining(pos) ?: return
         if (hitCluster != null) {
             val pitch = Mth.randomBetween(soundRandom, 0.8f, 1.2f)
             this.selectedArea.dumpCluster(hitCluster)
-            player.level.playSound(
+            player.level().playSound(
                 null,
                 player,
                 ClockworkSounds.DESIGNATOR_DUMP_CLUSTER.mainEvent!!,

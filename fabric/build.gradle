@@ -48,7 +48,7 @@ dependencies {
     include(modApi("dev.architectury:architectury-fabric:${rootProject.architectury_version}"))
 
     //VS2
-    modApi("org.valkyrienskies:valkyrienskies-119-fabric:${rootProject.vs2_version}") { transitive = false }
+    modApi("org.valkyrienskies:valkyrienskies-120-fabric:${rootProject.vs2_version}") { transitive = false }
     implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") { transitive = false }
 
     // Kotlin

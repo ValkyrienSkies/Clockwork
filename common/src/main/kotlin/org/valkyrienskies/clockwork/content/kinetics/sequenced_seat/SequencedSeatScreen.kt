@@ -8,6 +8,7 @@ import com.simibubi.create.foundation.gui.widget.AbstractSimiWidget
 import com.simibubi.create.foundation.gui.widget.IconButton
 import com.simibubi.create.foundation.gui.widget.ScrollInput
 import com.simibubi.create.foundation.gui.widget.SelectionScrollInput
+import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.network.chat.Component
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.Rotation
@@ -45,19 +46,20 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
         ClockworkPackets.sendToServer(UpdateSeatRulesPacket(be))
     }
 
-    override fun renderWindow(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
+    override fun renderWindow(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
         val x = guiLeft
         val y = guiTop
-        background.render(ms, x, y, this)
-        drawCenteredString(ms, font, title, x + (background.width - 8) / 2, y + 3, 0xFFFFFF)
-        drawRuleList(ms, x, y, partialTicks)
-        GuiGameElement.of(renderedItem)
-            .at<GuiGameElement.GuiRenderBuilder>((x + background.width + 6).toFloat(),
-                (y + background.height - 56).toFloat(), -200f)
-            .scale(5.0)
-            .render(ms)
+        //TODO
+        //background.render(ms, x, y, this)
+        //drawCenteredString(ms, font, title, x + (background.width - 8) / 2, y + 3, 0xFFFFFF)
+        //drawRuleList(ms, x, y, partialTicks)
+        //GuiGameElement.of(renderedItem)
+        //    .at<GuiGameElement.GuiRenderBuilder>((x + background.width + 6).toFloat(),
+        //        (y + background.height - 56).toFloat(), -200f)
+        //    .scale(5.0)
+        //    .render(ms)
     }
-
+/*
     private fun drawRuleList(ms: PoseStack, x: Int, y: Int, partialTicks: Float) {
         val list = currentList()
         for (i in 0 until SequencedSeatRuleList.MAX_RULES) {
@@ -99,6 +101,9 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
         }
     }
 
+ */
+
+    /*
     private fun drawInputField(x: Int, y: Int, ms: PoseStack, partialTicks: Float, i: Int) {
         background.bind()
         blit(
@@ -110,6 +115,8 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
         )
     }
 
+
+     */
     private fun makeOperationInputs() {
         val x = guiLeft
         val y = guiTop
@@ -284,13 +291,15 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
                 )
             })
         }
-
+        /*TODO
         override fun renderButton(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
             isHovered =
                 rotation == currentShaft || mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height
             background.bind()
             blit(ms, x, y, if (isHovered) 17 + blitX else blitX, blitY, width, height)
         }
+
+         */
     }
 
     inner class KeyButton(
@@ -324,13 +333,15 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
                 }
             )
         }
-
+        /*TODO
         override fun renderButton(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
             isHovered =
                 isKeySelected(key, index) || mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height
             background.bind()
             blit(ms, x, y, if (isHovered) 17 + blitX else blitX, blitY, width, height)
         }
+
+         */
     }
 
     companion object {

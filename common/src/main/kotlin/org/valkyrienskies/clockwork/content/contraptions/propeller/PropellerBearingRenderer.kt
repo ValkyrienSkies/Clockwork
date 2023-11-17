@@ -1,8 +1,7 @@
 package org.valkyrienskies.clockwork.content.contraptions.propeller
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.math.Quaternion
-import com.mojang.math.Vector3f
+import com.mojang.math.Axis
 import com.simibubi.create.AllPartialModels
 import com.simibubi.create.content.contraptions.bearing.BearingBlock
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
@@ -18,6 +17,8 @@ import net.minecraft.util.Mth
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
+import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.util.EaseHelper
 import kotlin.math.sin
@@ -41,15 +42,15 @@ class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
         val superBuffer = CachedBufferer.partial(top, te.getBlockState())
         ms.pushPose()
         ms.translate(0.5, 0.5, 0.5)
-        ms.mulPose(Quaternion.fromXYZ(0.0f, Math.toRadians(-180.0).toFloat(), 0.0f))
+        ms.mulPose(Quaternionf().set(0.0f, Math.toRadians(-180.0).toFloat(), 0.0f, 1f))//TODO w scalar??
         val ogfacing = te.blockState.getValue(BlockStateProperties.FACING)
         when (ogfacing) {
-            Direction.SOUTH -> ms.mulPose(Vector3f.XP.rotationDegrees(270f))
-            Direction.WEST -> ms.mulPose(Vector3f.ZP.rotationDegrees(270f))
-            Direction.NORTH -> ms.mulPose(Vector3f.XP.rotationDegrees(90f))
-            Direction.EAST -> ms.mulPose(Vector3f.ZP.rotationDegrees(90f))
-            Direction.UP -> ms.mulPose(Vector3f.XP.rotationDegrees(0f))
-            Direction.DOWN -> ms.mulPose(Vector3f.XN.rotationDegrees(180f))
+            Direction.SOUTH -> ms.mulPose(Axis.XP.rotationDegrees(270f))
+            Direction.WEST -> ms.mulPose(Axis.ZP.rotationDegrees(270f))
+            Direction.NORTH -> ms.mulPose(Axis.XP.rotationDegrees(90f))
+            Direction.EAST -> ms.mulPose(Axis.ZP.rotationDegrees(90f))
+            Direction.UP -> ms.mulPose(Axis.XP.rotationDegrees(0f))
+            Direction.DOWN -> ms.mulPose(Axis.XN.rotationDegrees(180f))
         }
         ms.translate(-0.5, -0.5, -0.5)
         val pistonTopL = CachedBufferer.partial(ClockworkPartials.PROPELLER_PISTON_TOP_LEFT, te.blockState)

@@ -5,17 +5,14 @@ import com.mojang.blaze3d.platform.GlConst
 import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.platform.TextureUtil
 import com.mojang.blaze3d.systems.RenderSystem
-import com.mojang.blaze3d.vertex.DefaultVertexFormat
-import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.blaze3d.vertex.Tesselator
-import com.mojang.blaze3d.vertex.VertexFormat
-import com.mojang.math.Matrix4f
-import com.mojang.math.Vector3f
+import com.mojang.blaze3d.vertex.*
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.ShaderInstance
 import net.minecraft.world.phys.Vec3
+import org.joml.Matrix4f
+import org.joml.Vector3f
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL30
 import org.valkyrienskies.clockwork.ClockworkShaders
@@ -102,10 +99,10 @@ class WorldScannerRenderer : ScannerRenderer {
             radius = 0f
         }
         shader!!.setSampler("depthTex", depthCopyDepthBuffer)
-        shader.safeGetUniform("center").set(Vector3f(currentCenter))
+        shader.safeGetUniform("center").set(Vector3f(currentCenter!!.toVector3f()))
         shader.safeGetUniform("invViewMat").set(invertedViewMatrix)
         shader.safeGetUniform("invProjMat").set(invertedProjectionMatrix)
-        shader.safeGetUniform("pos").set(Vector3f(cameraPosition))
+        shader.safeGetUniform("pos").set(Vector3f(cameraPosition.toVector3f()))
         shader.safeGetUniform("radius").set(radius)
     }
 
@@ -118,7 +115,7 @@ class WorldScannerRenderer : ScannerRenderer {
         val oldShader = RenderSystem.getShader()
         RenderSystem.setShader(ClockworkShaders.SCAN_EFFECT::shader)
         RenderSystem.backupProjectionMatrix()
-        RenderSystem.setProjectionMatrix(Matrix4f.orthographic(0f, width.toFloat(), 0f, height.toFloat(), 1f, 100f))
+        RenderSystem.setProjectionMatrix(Matrix4f().ortho(0f, width.toFloat(), 0f, height.toFloat(), 1f, 100f), VertexSorting.DISTANCE_TO_ORIGIN)
         val tesselator = Tesselator.getInstance()
         val buffer = tesselator.builder
         buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX)

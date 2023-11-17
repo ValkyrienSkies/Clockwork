@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.storage.loot.LootContext
+import net.minecraft.world.level.storage.loot.LootParams
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
@@ -62,11 +63,11 @@ abstract class DyedWing(properties: Properties?) :
         return ClockworkBlockEntities.COLOR_BLOCK_ENTITY.get()
     }
 
-    override fun getDrops(state: BlockState, builder: LootContext.Builder): List<ItemStack> {
-        val drops = super.getDrops(state, builder)
+    override fun getDrops(state: BlockState, params: LootParams.Builder): MutableList<ItemStack> {
+        val drops = super.getDrops(state, params)
         drops.replaceAll { stack: ItemStack ->
             val be: ColorBlockEntity =
-                builder.getParameter<BlockEntity>(LootContextParams.BLOCK_ENTITY) as ColorBlockEntity
+                params.getParameter<BlockEntity>(LootContextParams.BLOCK_ENTITY) as ColorBlockEntity
             val color: Int = be.getColor()
             if (stack.item is DyedWingBlockItem && color != -1) stack.getOrCreateTag()
                 .putInt("Clockwork\$color", color)

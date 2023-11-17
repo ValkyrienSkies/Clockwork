@@ -48,7 +48,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
     // Freeze the ship when player clicks
     fun leftClickItem(player: Player): Boolean {
         val s: GravitronState = getState(player)
-        val level = player.level
+        val level = player.level()
         if (s.grabbing && level is ServerLevel) {
             val shipId = s.shipID
             if (shipId != null) {

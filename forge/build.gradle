@@ -55,7 +55,7 @@ dependencies {
     include(modApi("dev.architectury:architectury-forge:${rootProject.architectury_version}"))
 
     //VS2
-    modApi("org.valkyrienskies:valkyrienskies-119-forge:${rootProject.vs2_version}") { transitive = false }
+    modApi("org.valkyrienskies:valkyrienskies-120-forge:${rootProject.vs2_version}") { transitive = false }
     implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") { transitive = false }
 
     // Create and its dependencies
@@ -70,6 +70,7 @@ dependencies {
     // Add Kotlin for Forge.
     implementation 'thedarkcolour:kotlinforforge:3.12.0'
 
+    modCompileOnly("maven.modrinth:embeddium:${embeddium_version}")
     // CC Tweaked
     //modCompileOnly("curse.maven:cctweaked-282001:4061947")
 }

@@ -10,6 +10,7 @@ import com.simibubi.create.foundation.item.render.PartialItemModelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.valkyrienskies.clockwork.ClockworkItems;
 import org.valkyrienskies.clockwork.ClockworkMod;
@@ -30,7 +31,7 @@ public class AreaDesignatorRenderer extends CustomRenderedItemModelRenderer {
     private float crystalAngle = 0;
 
     @Override
-    protected void render(ItemStack stack, CustomRenderedItemModel model, PartialItemModelRenderer renderer, ItemTransforms.TransformType transformType, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
+    protected void render(ItemStack stack, CustomRenderedItemModel model, PartialItemModelRenderer renderer, ItemDisplayContext transformType, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
         if (!stack.is(ClockworkItems.AURIC_DESIGNATOR.get())) {
             return;
         }

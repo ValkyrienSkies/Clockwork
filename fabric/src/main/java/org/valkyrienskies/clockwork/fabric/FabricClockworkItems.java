@@ -7,7 +7,7 @@ import org.valkyrienskies.clockwork.ClockworkMod;
 public class FabricClockworkItems {
 
     static {
-        ClockworkMod.INSTANCE.getREGISTRATE().creativeModeTab(ClockworkMod.INSTANCE::getBASE_CREATIVE_TAB);
+        //ClockworkMod.INSTANCE.getREGISTRATE().creativeModeTab(ClockworkMod.INSTANCE::getBASE_CREATIVE_TAB);
     }
     //Shortcuts
 

@@ -7,6 +7,7 @@ import com.simibubi.create.foundation.gui.element.GuiGameElement
 import com.simibubi.create.foundation.gui.widget.AbstractSimiWidget
 import com.simibubi.create.foundation.gui.widget.IconButton
 import com.simibubi.create.foundation.gui.widget.ScrollInput
+import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.network.chat.Component
 import net.minecraft.world.item.ItemStack
 import org.valkyrienskies.clockwork.ClockworkBlocks
@@ -48,14 +49,17 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
         addRenderableWidget(confirmButton!!)
     }
 
+
+
     override fun onClose() {
         super.onClose()
         ClockworkPackets.sendToServer(UpdateAltMeterPacket(triggerHeight.toDouble(), be.blockPos))
     }
 
-    override fun renderWindow(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
+    override fun renderWindow(graphics: GuiGraphics?, mouseX: Int, mouseY: Int, partialTicks: Float) {
         val x = guiLeft
         val y = guiTop
+        /* TODO
         background.render(ms, x, y, this)
         drawCenteredString(ms, font, title, x + (background.width - 8) / 2, y + 3, 0xFFFFFF)
         drawRuleList(ms, x, y, partialTicks)
@@ -64,7 +68,10 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
                 (y + background.height - 56).toFloat(), -200f)
             .scale(5.0)
             .render(ms)
+
+         */
     }
+    /*
 
     private fun drawRuleList(ms: PoseStack, x: Int, y: Int, partialTicks: Float) {
         val ruleX = x + 38
@@ -98,7 +105,7 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
         )
     }
 
-    private fun drawInputField(x: Int, y: Int, ms: PoseStack, partialTicks: Float, i: Int) {
+    private fun drawInputField(x: Int, y: Int, guiGraphics: GuiGraphics, partialTicks: Float, i: Int) {
         background.bind()
         blit(
             ms, x - 2, y,
@@ -108,6 +115,8 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
             INPUT_FIELDS_HEIGHT
         )
     }
+
+ */
 
     companion object {
         private const val INPUT_FIELDS_X = 36

@@ -19,8 +19,9 @@ import org.valkyrienskies.clockwork.ClockworkItems;
 @Mixin(ServerPlayer.class)
 public abstract class MixinServerPlayer extends Player {
 
-    public MixinServerPlayer(Level level, BlockPos pos, float yRot, GameProfile gameProfile, @Nullable ProfilePublicKey profilePublicKey) {
-        super(level, pos, yRot, gameProfile, profilePublicKey);
+
+    public MixinServerPlayer(Level level, BlockPos pos, float yRot, GameProfile gameProfile) {
+        super(level, pos, yRot, gameProfile);
     }
 
     @Inject(method = "swing", at = @At("HEAD"), cancellable = true)

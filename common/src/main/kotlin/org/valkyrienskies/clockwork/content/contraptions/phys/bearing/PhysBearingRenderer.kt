@@ -1,8 +1,7 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.bearing
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.math.Quaternion
-import com.mojang.math.Vector3f
+import com.mojang.math.Axis
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
@@ -15,6 +14,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.Direction
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
+import org.joml.Quaternionf
 import org.valkyrienskies.clockwork.ClockworkPartials
 
 class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) :
@@ -34,14 +34,14 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) :
         val facing = Direction.UP
         ms.pushPose()
         ms.translate(0.5, 0.5, 0.5)
-        ms.mulPose(Quaternion.fromXYZ(0.0f, Math.toRadians(-180.0).toFloat(), 0.0f))
+        ms.mulPose(Quaternionf().set(0.0f, Math.toRadians(-180.0).toFloat(), 0.0f, 1f))//TODO w is scalar??
         when (ogfacing) {
-            Direction.SOUTH -> ms.mulPose(Vector3f.XP.rotationDegrees(270f))
-            Direction.WEST -> ms.mulPose(Vector3f.ZP.rotationDegrees(270f))
-            Direction.NORTH -> ms.mulPose(Vector3f.XP.rotationDegrees(90f))
-            Direction.EAST -> ms.mulPose(Vector3f.ZP.rotationDegrees(90f))
-            Direction.UP -> ms.mulPose(Vector3f.XP.rotationDegrees(0f))
-            Direction.DOWN -> ms.mulPose(Vector3f.XN.rotationDegrees(180f))
+            Direction.SOUTH -> ms.mulPose(Axis.XP.rotationDegrees(270f))
+            Direction.WEST -> ms.mulPose(Axis.ZP.rotationDegrees(270f))
+            Direction.NORTH -> ms.mulPose(Axis.XP.rotationDegrees(90f))
+            Direction.EAST -> ms.mulPose(Axis.ZP.rotationDegrees(90f))
+            Direction.UP -> ms.mulPose(Axis.XP.rotationDegrees(0f))
+            Direction.DOWN -> ms.mulPose(Axis.XN.rotationDegrees(180f))
         }
         ms.translate(-0.5, -0.5, -0.5)
         val blockState = te.blockState

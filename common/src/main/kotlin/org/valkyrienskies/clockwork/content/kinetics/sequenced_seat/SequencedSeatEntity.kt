@@ -14,16 +14,16 @@ open class SequencedSeatEntity(type: EntityType<*>?, level: Level?) :
     SeatEntity(type, level) {
     private var prevKeys = setOf<InputKey>()
     override fun tick() {
-        if (level.isClientSide) {
+        if (level().isClientSide) {
             if (this.firstPassenger is LocalPlayer) {
                 checkKeybinds()
             }
         } else {
-            val blockPresent = level.getBlockState(blockPosition())
+            val blockPresent = level().getBlockState(blockPosition())
                 .block is SequencedSeatBlock
             if (isVehicle && blockPresent) return
             discard()
-            val be = level.getBlockEntity(blockPosition())
+            val be = level().getBlockEntity(blockPosition())
             (be as? SequencedSeatBlockEntity)?.updateInput(emptySet())
         }
     }
