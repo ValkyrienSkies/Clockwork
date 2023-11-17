@@ -31,6 +31,7 @@ import org.joml.Quaterniondc;
 import org.joml.Vector3d;
 import org.spongepowered.asm.mixin.Unique;
 import org.valkyrienskies.clockwork.mixin.accessors.IMixinPistonContraption;
+import org.valkyrienskies.clockwork.util.SternerCopiumUtils;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.core.apigame.constraints.VSAttachmentOrientationConstraint;
 import org.valkyrienskies.core.apigame.world.ServerShipWorldCore;
@@ -449,7 +450,7 @@ public class StickerMovementBehaviour implements MovementBehaviour {
             Integer constraintID = VSGameUtilsKt.getShipObjectWorld(level).createNewConstraint(constraint);
             compoundTag.putInt("ShipStickerConstraint", constraintID.intValue());
 
-            new StickerParticleUtil().doBluperParticle(level, BlockPos.containing(toMinecraft(myPos)), /*TODO Direction.fromNormal???*/Direction.fromDelta((int) adjustedDirNormal.x, (int) adjustedDirNormal.y, (int) adjustedDirNormal.z));
+            new StickerParticleUtil().doBluperParticle(level, BlockPos.containing(toMinecraft(myPos)), SternerCopiumUtils.INSTANCE.fromNormal((int) adjustedDirNormal.x, (int) adjustedDirNormal.y, (int) adjustedDirNormal.z));
         }
     }
 

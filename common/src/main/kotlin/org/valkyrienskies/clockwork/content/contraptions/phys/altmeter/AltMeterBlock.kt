@@ -47,12 +47,14 @@ class AltMeterBlock(properties: Properties) : Block(properties), IBE<AltMeterBlo
         if (player is LocalPlayer) ScreenOpener.open(AltMeterScreen(te))
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
         for (direction in Direction.entries) {
             level.updateNeighborsAt(pos.relative(direction), this)
         }
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
         if (isMoving) {
             return

@@ -1,10 +1,31 @@
 package org.valkyrienskies.clockwork.util
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
+import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.util.Mth
 import org.joml.Quaternionf
+import java.util.*
+import java.util.stream.Collectors
 
 
 object SternerCopiumUtils {
+
+    fun fromNormal(x: Int, y: Int, z: Int): Direction {
+        return BY_NORMAL[BlockPos.asLong(x, y, z)] as Direction
+    }
+
+    private val BY_NORMAL: Long2ObjectMap<Direction> =
+        Arrays.stream(Direction.values())
+            .collect(
+                Collectors.toMap(
+                    { direction -> BlockPos(direction.getNormal()).asLong() },
+                    { direction -> direction },
+                    { _, _ -> throw IllegalArgumentException("Duplicate keys") },
+                    { Long2ObjectOpenHashMap() }
+                )
+            )
 
     fun oldQuaternionf(pX: Float, pY: Float, pZ: Float): Quaternionf {
         val f = Mth.sin(0.5f * pX)

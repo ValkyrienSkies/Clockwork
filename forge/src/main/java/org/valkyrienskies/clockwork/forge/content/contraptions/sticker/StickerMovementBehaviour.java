@@ -31,6 +31,7 @@ import org.joml.Quaterniondc;
 import org.joml.Vector3d;
 import org.spongepowered.asm.mixin.Unique;
 import org.valkyrienskies.clockwork.mixin.accessors.IMixinPistonContraption;
+import org.valkyrienskies.clockwork.util.SternerCopiumUtils;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.core.apigame.constraints.VSAttachmentOrientationConstraint;
 import org.valkyrienskies.core.apigame.world.ServerShipWorldCore;
@@ -145,7 +146,7 @@ public class StickerMovementBehaviour implements MovementBehaviour {
 
 
         Direction myDir = context.state.getValue(DirectionalBlock.FACING);
-        Vec3 myDirNormal = toMinecraft(toJOML(Vec3.atLowerCornerOf(myDir.getNormal())).mul(.5));
+        Vec3 myDirNormal = Vec3.atLowerCornerOf(myDir.getNormal()).scale(.5);//toMinecraft(toJOML(Vec3.atLowerCornerOf(myDir.getNormal())).mul(.5));
 
         if (!getAssembleNextTick(context)) {
             if (context.state.getValue(BlockStateProperties.POWERED))
@@ -155,7 +156,7 @@ public class StickerMovementBehaviour implements MovementBehaviour {
             position = toJOML(Vec3.atCenterOf(structureTransform.apply(context.localPos)).add(structureTransform.applyWithoutOffsetUncentered(myDirNormal)));
 
             if (distance < DISTANCE_BUFFER) {
-                position.add(toJOML(structureTransform.applyWithoutOffsetUncentered(toMinecraft(toJOML(Vec3.atLowerCornerOf(myDir.getNormal())).mul(distance / -1 + DISTANCE_BUFFER)))));
+                position.add(toJOML(structureTransform.applyWithoutOffsetUncentered(Vec3.atLowerCornerOf(myDir.getNormal()).scale(distance / -1 + DISTANCE_BUFFER))));
             }
 
             extraData.put("ShipStickerShip1Vec", writeVector3D(position));
@@ -214,9 +215,9 @@ public class StickerMovementBehaviour implements MovementBehaviour {
             Direction myDir = context.state.getValue(DirectionalBlock.FACING);
             Vec3 myDirNormal;
             if (ship1 != null && ship2 != null)
-                myDirNormal = toMinecraft(toJOML(Vec3.atLowerCornerOf(myDir.getNormal())).mul(.5));
+                myDirNormal = Vec3.atLowerCornerOf(myDir.getNormal()).scale(.5);
             else
-                myDirNormal = toMinecraft(toJOML(Vec3.atLowerCornerOf(myDir.getNormal())).mul(.5));
+                myDirNormal = Vec3.atLowerCornerOf(myDir.getNormal()).scale(.5);
 
 
             if (ship1Pos == null) {
@@ -352,7 +353,7 @@ public class StickerMovementBehaviour implements MovementBehaviour {
         if (ship != null)
             ship.getShipToWorld().transformPosition(searchPos, searchPos);
 
-        BlockPos searchBlockPos = BlockPos.containing(toMinecraft(searchPos));
+        BlockPos searchBlockPos = BlockPos.containing(searchPos.x, searchPos.y, searchPos.z);
         BlockState worldBlockState = level.getBlockState(searchBlockPos);
         double distance = 0;
         if (!worldBlockState.isAir()) {
@@ -449,7 +450,7 @@ public class StickerMovementBehaviour implements MovementBehaviour {
             Integer constraintID = VSGameUtilsKt.getShipObjectWorld(level).createNewConstraint(constraint);
             compoundTag.putInt("ShipStickerConstraint", constraintID.intValue());
 
-            new StickerParticleUtil().doBluperParticle(level, BlockPos.containing(toMinecraft(myPos)), Direction.from((int) adjustedDirNormal.x, (int) adjustedDirNormal.y, (int) adjustedDirNormal.z));
+            new StickerParticleUtil().doBluperParticle(level, BlockPos.containing(toMinecraft(myPos)), SternerCopiumUtils.INSTANCE.fromNormal((int) adjustedDirNormal.x, (int) adjustedDirNormal.y, (int) adjustedDirNormal.z));
         }
     }
 

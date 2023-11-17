@@ -52,25 +52,48 @@ dependencies {
     common(project(path: ":common", configuration: "namedElements")) { transitive = false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 
-    include(modApi("dev.architectury:architectury-forge:${rootProject.architectury_version}"))
+    include(modApi("dev.architectury:architectury-forge:${rootProject.architectury_version}")) {
+        exclude group: 'org.joml', module: ''
+        transitive = false
+    }
 
     //VS2
-    modApi("org.valkyrienskies:valkyrienskies-120-forge:${rootProject.vs2_version}") { transitive = false }
-    implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") { transitive = false }
+    modApi("org.valkyrienskies:valkyrienskies-120-forge:${rootProject.vs2_version}") {
+        exclude group: 'org.joml', module: ''
+        transitive = false
+    }
+    implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") {
+        exclude group: 'org.joml', module: ''
+        transitive = false
+    }
 
     // Create and its dependencies
-    modImplementation("com.simibubi.create:create-${minecraft_version}:${create_forge_version}:slim") { transitive = false }
-    modImplementation("com.tterrag.registrate:Registrate:${registrate_forge_version}")
-    modImplementation("com.jozufozu.flywheel:flywheel-forge-${flywheel_forge_minecraft_version}:${flywheel_forge_version}")
+    modImplementation("com.simibubi.create:create-${minecraft_version}:${create_forge_version}:slim") {
+
+        exclude group: 'org.joml', module: ''
+
+        transitive = false
+    }
+    modImplementation("com.tterrag.registrate:Registrate:${registrate_forge_version}") {
+        exclude group: 'org.joml', module: ''
+    }
+    modImplementation("com.jozufozu.flywheel:flywheel-forge-${flywheel_forge_minecraft_version}:${flywheel_forge_version}"){
+        exclude group: 'org.joml', module: ''
+    }
 
     // JOML
-    compileOnly("org.joml:joml:1.10.4")
-    compileOnly("org.joml:joml-primitives:1.10.0")
+    //compileOnly("org.joml:joml:1.10.4")
+
+    compileOnly("org.joml:joml-primitives:1.10.0"){
+        exclude group: 'org.joml', module: 'joml'
+    }
 
     // Add Kotlin for Forge.
-    implementation 'thedarkcolour:kotlinforforge:3.12.0'
+    implementation "thedarkcolour:kotlinforforge:$kotlin_version"
 
-    modCompileOnly("maven.modrinth:embeddium:${embeddium_version}")
+    modCompileOnly("maven.modrinth:embeddium:${embeddium_version}"){
+        exclude group: 'org.joml', module: ''
+    }
     // CC Tweaked
     //modCompileOnly("curse.maven:cctweaked-282001:4061947")
 }

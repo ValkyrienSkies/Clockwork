@@ -43,6 +43,7 @@ public class ClockworkModForge {
 //        MOD_BUS.addListener(this::clientSetup);
 //        MOD_BUS.addListener(this::entityRenderers);
         ModLoadingContext modLoadingContext = ModLoadingContext.get();
+        AllClockworkConfigs.register(modLoadingContext);
 
         IEventBus modEventBus = FMLJavaModLoadingContext.get()
                 .getModEventBus();
@@ -71,7 +72,7 @@ public class ClockworkModForge {
         ForgeClockworkEntities.register();
 
         ClockworkParticles.init();
-        AllClockworkConfigs.register(modLoadingContext);
+
 
         ClockworkSounds.INSTANCE.register();
         // TODO forge sounds
@@ -114,7 +115,7 @@ public class ClockworkModForge {
     }
 
     void onParticleRegistry(RegisterParticleProvidersEvent event) {
-        ClockworkParticles.initClient();
+        //TODO ClockworkParticles.initClient();
     }
 
 }

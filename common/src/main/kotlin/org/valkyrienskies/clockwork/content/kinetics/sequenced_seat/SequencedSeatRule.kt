@@ -83,6 +83,7 @@ class SequencedSeatRule(
             return SequencedSeatRule(HashSet(), SequencedSeatOperation.NOTHING, null)
         }
 
+        @OptIn(ExperimentalStdlibApi::class)
         fun deserializeNBT(tag: CompoundTag): SequencedSeatRule {
             val keys = InputKey.fromInt(tag.getInt("keys"))
             val operation = SequencedSeatOperation.entries[tag.getInt("operation")]

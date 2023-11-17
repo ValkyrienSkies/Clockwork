@@ -29,7 +29,9 @@ dependencies {
     // Do NOT use other classes from fabric loader
     modImplementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
 
-    modApi("dev.architectury:architectury:${rootProject.architectury_version}")
+    modApi("dev.architectury:architectury:${rootProject.architectury_version}") {
+        exclude group: 'org.joml', module: ''
+    }
 
     // Compile against Create Fabric in common
     // beware of differences across platforms!
@@ -43,19 +45,30 @@ dependencies {
 
     // VS2
     modApi("org.valkyrienskies:valkyrienskies-120-common:${rootProject.vs2_version}")
-    implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}")
-    implementation("org.valkyrienskies.core:impl:${rootProject.vscore_version}")
-    implementation("org.valkyrienskies.core:api-game:${rootProject.vscore_version}")
+    implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") {
+        exclude group: 'org.joml', module: ''
+    }
+    implementation("org.valkyrienskies.core:impl:${rootProject.vscore_version}") {
+        exclude group: 'org.joml', module: ''
+    }
+    implementation("org.valkyrienskies.core:api-game:${rootProject.vscore_version}") {
+        exclude group: 'org.joml', module: ''
+    }
 
     // Kotlin
-    api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10"
-    api "org.jetbrains.kotlin:kotlin-reflect:1.9.10"
+    //api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10"
+    //api "org.jetbrains.kotlin:kotlin-reflect:1.9.10"
 
     // CC Restitched
     //modCompileOnly("curse.maven:cc-restitched-462672:3622561")
 
+    compileOnly("org.joml:joml-primitives:1.10.0"){
+        exclude group: 'org.joml', module: 'joml'
+    }
 
-    modCompileOnly("maven.modrinth:create-big-cannons:${createbigcannons_version}")
+    modCompileOnly("maven.modrinth:create-big-cannons:${createbigcannons_version}"){
+        exclude group: 'org.joml', module: ''
+    }
 
     // JUnit
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'

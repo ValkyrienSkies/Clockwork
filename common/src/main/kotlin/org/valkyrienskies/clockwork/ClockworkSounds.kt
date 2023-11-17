@@ -356,7 +356,7 @@ object ClockworkSounds {
         override fun register() {
             sounds.register(
                 id.path,
-                Supplier<SoundEvent> {
+                Supplier {
                     mainEvent = SoundEvent.createVariableRangeEvent(id)
                     return@Supplier mainEvent
                 })
