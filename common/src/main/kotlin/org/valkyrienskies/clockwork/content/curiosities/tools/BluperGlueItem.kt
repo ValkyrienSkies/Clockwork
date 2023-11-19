@@ -21,6 +21,7 @@ import org.joml.primitives.AABBic
 import org.valkyrienskies.clockwork.AreaData
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
+import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.AreaDesignatorItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
@@ -34,17 +35,6 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
     var firstPos: Vector3ic? = null
     var secondPos: Vector3ic? = null
     var shouldRenderOutlines = false
-
-    override fun verifyTagAfterLoad(compoundTag: CompoundTag) {
-        if (compoundTag.contains("selectedData")) {
-            this.selectedArea.overwriteFrom(getMapper().readValue<SelectedAreaToolkit>(compoundTag.getByteArray("selectedData")))
-        }
-        super.verifyTagAfterLoad(compoundTag)
-    }
-
-    override fun canAttackBlock(state: BlockState, level: Level, pos: BlockPos, player: Player): Boolean {
-        return super.canAttackBlock(state, level, pos, player)
-    }
 
     override fun inventoryTick(stack: ItemStack, level: Level, entity: Entity, slotId: Int, isSelected: Boolean) {
         super.inventoryTick(stack, level, entity, slotId, isSelected)
@@ -60,9 +50,7 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
         }
         this.wasSelected = isSelected
 
-        if (isSelected) {
-
-        } else {
+        if (!isSelected) {
             this.firstPos = null
             this.secondPos = null
         }
