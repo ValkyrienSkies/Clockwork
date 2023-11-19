@@ -31,7 +31,7 @@ import org.joml.Quaterniondc;
 import org.joml.Vector3d;
 import org.spongepowered.asm.mixin.Unique;
 import org.valkyrienskies.clockwork.mixin.accessors.IMixinPistonContraption;
-import org.valkyrienskies.clockwork.util.SternerCopiumUtils;
+import org.valkyrienskies.clockwork.util.sterner.SternerCopiumUtils;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.core.apigame.constraints.VSAttachmentOrientationConstraint;
 import org.valkyrienskies.core.apigame.world.ServerShipWorldCore;

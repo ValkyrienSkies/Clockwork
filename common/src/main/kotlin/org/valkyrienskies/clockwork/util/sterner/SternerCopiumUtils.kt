@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.util
+package org.valkyrienskies.clockwork.util.sterner
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap

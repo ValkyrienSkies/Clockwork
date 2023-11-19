@@ -17,12 +17,8 @@ import net.minecraft.util.Mth
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
-import org.joml.Quaterniond
-import org.joml.Quaternionf
 import org.valkyrienskies.clockwork.ClockworkPartials
-import org.valkyrienskies.clockwork.util.EaseHelper
-import org.valkyrienskies.clockwork.util.SternerCopiumUtils
-import kotlin.math.sin
+import org.valkyrienskies.clockwork.util.sterner.SternerCopiumUtils
 
 class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
     KineticBlockEntityRenderer<PropellerBearingBlockEntity>(context) {
