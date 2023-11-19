@@ -10,6 +10,7 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
 import org.joml.Quaternionf
 import org.slf4j.LoggerFactory
+import org.valkyrienskies.clockwork.util.CWEntityDataSerializers
 
 object ClockworkMod {
     const val MOD_ID = "vs_clockwork"
@@ -52,6 +53,7 @@ object ClockworkMod {
             .displayItems { _, output ->
                 output.accept(ClockworkItems.AURIC_DESIGNATOR)
                 output.accept(ClockworkItems.BLUUGUU)
+                output.accept(ClockworkItems.BLUPERGLUE)
                 output.accept(ClockworkItems.GRAVITRON)
 
                 output.accept(ClockworkBlocks.PHYSICS_INFUSER.asStack())

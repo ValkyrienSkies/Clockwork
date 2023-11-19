@@ -2,9 +2,9 @@
   "required": true,
   "package": "org.valkyrienskies.clockwork.mixin",
   "compatibilityLevel": "JAVA_17",
-  "plugin": "org.valkyrienskies.clockwork.mixin.CommonMixinConfigPlugin",
   "mixins": [
     "MixinPlayer",
+    "MixinPlayerData",
     "accessors.FluidAccessor",
     "accessors.IMixinClockworkContraption",
     "accessors.IMixinPistonContraption",

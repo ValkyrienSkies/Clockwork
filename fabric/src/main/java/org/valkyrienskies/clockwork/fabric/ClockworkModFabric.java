@@ -22,6 +22,7 @@ import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkClientE
 import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkCommonEvents;
 import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkInputEvents;
 import org.valkyrienskies.clockwork.platform.fabric.FallbackFabricTransfer;
+import org.valkyrienskies.clockwork.util.CWEntityDataSerializers;
 import org.valkyrienskies.mod.fabric.common.ValkyrienSkiesModFabric;
 
 public class ClockworkModFabric implements ModInitializer {
@@ -35,6 +36,7 @@ public class ClockworkModFabric implements ModInitializer {
 
         //ClockworkCommonEvents.register();
         FabricClockworkCommonEvents.register();
+        CWEntityDataSerializers.init();
     }
 
     //public static void gatherData(FabricDataGenerator gen, ExistingFileHelper helper) {
@@ -50,6 +52,7 @@ public class ClockworkModFabric implements ModInitializer {
 
         ClockworkBlocks.register();
         FabricClockworkBlocks.register();
+        CWEntityDataSerializers.init();
 
         // TODO common items
         ClockworkItems.register();

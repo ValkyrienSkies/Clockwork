@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.forge;
 
 import com.simibubi.create.AllParticleTypes;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraftforge.api.distmarker.Dist;
@@ -16,6 +17,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.valkyrienskies.clockwork.ClockworkBlockEntities;
 import org.valkyrienskies.clockwork.ClockworkBlocks;
 import org.valkyrienskies.clockwork.ClockworkEntities;
@@ -26,13 +28,15 @@ import org.valkyrienskies.clockwork.ClockworkPartials;
 import org.valkyrienskies.clockwork.ClockworkParticles;
 import org.valkyrienskies.clockwork.ClockworkSounds;
 import org.valkyrienskies.clockwork.data.ClockworkTags;
-import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
+import org.valkyrienskies.clockwork.util.CWEntityDataSerializers;
 
 import static org.valkyrienskies.clockwork.ClockworkMod.MOD_ID;
 
 @Mod(MOD_ID)
 public class ClockworkModForge {
     boolean happendClientSetup = false;
+
+    //public static final RegistryObject<EntityDataSerializer<NonNullList<ItemStack>>> ITEM_LIST_SERIALIZER = DATA_SERIALIZER_REGISTER.register("item_list", () -> DataSerializerItemList.create());
 
     public ClockworkModForge() {
         // Submit our event bus to let architectury register our content on the right time
@@ -43,8 +47,8 @@ public class ClockworkModForge {
 //        MOD_BUS.addListener(this::clientSetup);
 //        MOD_BUS.addListener(this::entityRenderers);
         ModLoadingContext modLoadingContext = ModLoadingContext.get();
-        AllClockworkConfigs.register(modLoadingContext);
-
+        //AllClockworkConfigs.register(modLoadingContext);
+        //CWEntityDataSerializers.init();
         IEventBus modEventBus = FMLJavaModLoadingContext.get()
                 .getModEventBus();
         IEventBus forgeEventBus = MinecraftForge.EVENT_BUS;
@@ -72,7 +76,7 @@ public class ClockworkModForge {
         ForgeClockworkEntities.register();
 
         ClockworkParticles.init();
-
+        //AllClockworkConfigs.register(modLoadingContext);
 
         ClockworkSounds.INSTANCE.register();
         // TODO forge sounds
@@ -90,11 +94,17 @@ public class ClockworkModForge {
             ShaderLoader.init(modEventBus);
         });
 
-        DeferredRegister<CreativeModeTab> deferredRegister = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MOD_ID);
-        deferredRegister.register("general",
+        DeferredRegister<CreativeModeTab> tab = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MOD_ID);
+        tab.register("general",
                 ClockworkMod.INSTANCE::createCreativeTab
         );
-        deferredRegister.register(modEventBus);
+        DeferredRegister<EntityDataSerializer<?>> entityDataSerializer = DeferredRegister.create(ForgeRegistries.Keys.ENTITY_DATA_SERIALIZERS, MOD_ID);
+        entityDataSerializer.register("area", () -> CWEntityDataSerializers.AREA_TOOLKIT_SERIALIZER);
+
+        entityDataSerializer.register(modEventBus);
+        tab.register(modEventBus);
+
+
 
         if (FMLLoader.getLoadingModList().getModFileById("computercraft") != null){
             //ClockworkForgePeripheralProviders.register();

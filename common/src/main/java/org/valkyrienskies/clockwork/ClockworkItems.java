@@ -5,6 +5,7 @@ import com.simibubi.create.foundation.data.AssetLookup;
 import com.tterrag.registrate.util.entry.ItemEntry;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
+import org.valkyrienskies.clockwork.content.curiosities.tools.BluperGlueItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.AreaDesignatorItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.gravitron.GravitronItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.gravitron.GravitronItemRenderer;
@@ -25,6 +26,14 @@ public class ClockworkItems {
                     .properties(p -> p.durability(1000))
                     .tag(AllTags.AllItemTags.UPRIGHT_ON_BELT.tag)
                     .model(AssetLookup.itemModelWithPartials())
+                    .register();
+
+    public static final ItemEntry<BluperGlueItem> BLUPERGLUE =
+            ClockworkMod.INSTANCE.getREGISTRATE().item("bluperglue", BluperGlueItem::new)
+                    .properties(p -> p.rarity(Rarity.UNCOMMON))
+                    .properties(p -> p.stacksTo(1))
+                    .properties(p -> p.durability(1000))
+                    .tag(AllTags.AllItemTags.UPRIGHT_ON_BELT.tag)
                     .register();
 
 //    public static final ItemEntry<SodaBottleItem> EMPTY_SODA =

@@ -1,10 +1,14 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.auric.gravitron
 
+import com.simibubi.create.content.contraptions.AbstractContraptionEntity
+import com.simibubi.create.content.contraptions.actors.seat.SeatEntity
+import com.simibubi.create.content.contraptions.glue.SuperGlueEntity
 import com.simibubi.create.foundation.item.CustomArmPoseItem
 import net.minecraft.client.model.HumanoidModel
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.sounds.SoundEvents
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
@@ -16,6 +20,7 @@ import net.minecraft.world.item.UseAnim
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.phys.AABB
 import org.joml.Quaterniond
 import org.joml.Quaterniondc
 import org.joml.Vector2d
@@ -23,16 +28,24 @@ import org.joml.Vector2dc
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkSounds
+import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit
+import org.valkyrienskies.clockwork.AreaData
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.core.api.ships.LoadedServerShip
+import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.Ship
 import org.valkyrienskies.core.api.ships.properties.ShipId
+import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
+import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.isBlockInShipyard
+import org.valkyrienskies.mod.common.item.ShipAssemblerItem
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOML
+import org.valkyrienskies.mod.common.util.toMinecraft
 import java.lang.Math.toRadians
+import java.util.function.Consumer
 
 class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseItem {
     private fun getState(player: Player): GravitronState {
@@ -81,6 +94,52 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         return super.useOn(context)
     }
 
+    //Sterner test code
+    fun assemble(serverLevel : ServerLevel, player: Player, blockPos: BlockPos): LoadedServerShip? {
+        val data = AreaData.of(player).get()
+        val list = data.area
+        var ship: LoadedServerShip? = null
+        list.selectionClusters.forEach{cluster ->
+            val selection: DenseBlockPosSet = SelectedAreaToolkit.denseBlocksFromCluster(cluster)
+            val connectedShip = createNewShipWithBlocks(blockPos, selection, serverLevel)
+            val caughtEntities: Set<Entity> = SelectedAreaToolkit.entitiesFromCluster(cluster, serverLevel)
+            caughtEntities.forEach(Consumer { entity: Entity ->
+                if (entity is AbstractContraptionEntity || entity is SuperGlueEntity || entity is SeatEntity) {
+                    if (entity !is SuperGlueEntity) {
+                        val oldPos: Vector3dc = entity.position().toJOML()
+                        val newPos: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldPos, Vector3d())
+                        entity.moveTo(newPos.toMinecraft())
+                    } else {
+                        val glueEntity = entity
+                        val oldBounds = glueEntity.boundingBox
+                        val oldMax: Vector3dc = Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
+                        val oldMin: Vector3dc = Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
+                        val newMax: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldMax, Vector3d())
+                        val newMin: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldMin, Vector3d())
+                        val newBounds = AABB(
+                            newMin.x(),
+                            newMin.y(),
+                            newMin.z(),
+                            newMax.x(),
+                            newMax.y(),
+                            newMax.z()
+                        )
+                        glueEntity.boundingBox = newBounds
+                        glueEntity.resetPositionToBB()
+                    }
+                }
+            })
+            if (connectedShip is LoadedServerShip) {
+                ship = connectedShip
+            }
+
+            serverLevel.playLocalSound(blockPos, SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 0.5f, 1f, false)
+        }
+        data.removeArea(list)
+
+        return ship;
+    }
+
     // || ITEM FUNCTIONS || //
     override fun use(level: Level, player: Player, usedHand: InteractionHand): InteractionResultHolder<ItemStack> {
         val s: GravitronState = getState(player)
@@ -121,22 +180,22 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         val player = context.player ?: return
         val chunkX = context.clickedPos.x shr 4
         val chunkZ = context.clickedPos.z shr 4
-        val ship: LoadedServerShip? = level.shipObjectWorld.loadedShips.getByChunkPos(chunkX, chunkZ, level.dimensionId)
+        var ship: LoadedServerShip? = level.shipObjectWorld.loadedShips.getByChunkPos(chunkX, chunkZ, level.dimensionId)
         val grabPosInShip: Vector3dc = context.clickLocation.toJOML()
         val grabPosInWorld = Vector3d(grabPosInShip)
         if (level.isBlockInShipyard(context.clickedPos) && ship == null) {
             return
         }
         if (ship == null) {
-            return  // todo: try to assemble a ship when grabbing
-            //            DenseBlockPosSet toAssemble = new DenseBlockPosSet();
-//            toAssemble.add(context.getClickedPos().getX(), context.getClickedPos().getY(), context.getClickedPos().getZ());
-//            ship = ShipAssemblyKt.createNewShipWithBlocks(context.getClickedPos(), toAssemble, level);
-//            ship.getWorldToShip().transformPosition(grabPosInShip);
+            ship = assemble(level, player, context.clickedPos)
         } else {
             ship.shipToWorld.transformPosition(grabPosInWorld)
+            grabShip(s, player, ship, grabPosInShip)
         }
-        grabShip(s, player, ship, grabPosInShip)
+
+        if (ship == null) {
+            s.grabbing = false;
+        }
     }
 
     // || SHIP FUNCTIONS || //

@@ -19,6 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.client.render.scanner.ScannerRenderer;
 import org.valkyrienskies.clockwork.util.render.AreaDesignatorClusterRenderer;
+import org.valkyrienskies.clockwork.util.render.BluperClusterRenderer;
 
 @Mixin(LevelRenderer.class)
 public class MixinLevelRenderer {
@@ -40,5 +41,6 @@ public class MixinLevelRenderer {
     private void renderAreaDesignator(final PoseStack poseStack, final float tickDelta, final long nanos, final boolean shouldRenderBlockOutline, final Camera camera, final GameRenderer gameRenderer, final LightTexture lightTexture, final Matrix4f projectionMatrix, final CallbackInfo ci) {
         ClockworkMod.INSTANCE.getOUTLINER().renderOutlines(poseStack, SuperRenderTypeBuffer.getInstance(), camera.getPosition(), tickDelta);
         AreaDesignatorClusterRenderer.Companion.getINSTANCE().renderDesignator(level, minecraft, poseStack);
+        BluperClusterRenderer.Companion.getINSTANCE().renderDesignator(level, minecraft, poseStack);
     }
 }

@@ -11,8 +11,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.network.NetworkHooks;
 import org.valkyrienskies.clockwork.forge.ForgeClockworkFluids;
-import org.valkyrienskies.clockwork.forge.ForgeClockworkItems;
-import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.util.blocktype.LiquidFuelType;
 import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour;
 
@@ -117,9 +115,9 @@ public class PlatformUtilsImpl {
 //
 //        return true;
 //    }
-    public static int maxBalloonRange() {
-        return AllClockworkConfigs.SERVER.kinetics.balloonRange.get();
-    }
+   // public static int maxBalloonRange() {
+   //     return AllClockworkConfigs.SERVER.kinetics.balloonRange.get();
+   // }
 
 
 //    public static Class<?> getCombustionEngineTileEntityClass() {
