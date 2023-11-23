@@ -7,6 +7,7 @@ import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.*
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.server.level.ServerPlayer
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
@@ -21,6 +22,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
 import org.joml.*
 import org.valkyrienskies.clockwork.AreaData
+import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
@@ -94,6 +96,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             if (selection == null) return@forEach
 
             val connectedShip = createNewShipWithBlocks(blockPos, selection, serverLevel)
+            if (connectedShip == null) return@forEach
 
             val grabPosInShip: Vec3 = clickLocation
             val tag = player.mainHandItem.orCreateTag
@@ -102,10 +105,11 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             tag.put("BlockPos", NbtUtils.writeBlockPos(blockPos))
             tag.put("GrabbedPosInShip", writeVec3(grabPosInShip))
             bl = true
-            System.out.println("Buff: " + tag)
+            data.area.dumpCluster(cluster)
         }
-
+        list.selectionClusters.clear()
         data.removeArea(list)
+
 
         return bl
     }
@@ -114,7 +118,6 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
     override fun use(level: Level, player: Player, usedHand: InteractionHand): InteractionResultHolder<ItemStack> {
         val s: GravitronState = getState(player)
         if ((s.shipID != null) && (s.grabCD == 0) && s.grabbing) {
-            System.out.println("Drop")
             s.shouldDrop = true
         }
         return super.use(level, player, usedHand)
@@ -133,8 +136,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         if (s.grabCD!! > 0) {
             s.grabCD = s.grabCD!! - 1
         }
-
-        if (stack.hasTag() && stack.tag!!.contains("GrabbedPosInShip")) {
+        if (stack.hasTag() && stack.tag!!.contains("GrabbedPosInShip") && false) {
             val tag = stack.tag!!
 
             val clickLocation = readVec3(tag.getList("GrabbedPosInShip", Tag.TAG_DOUBLE.toInt()))
@@ -151,9 +153,9 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                 stack.removeTagKey("GrabbedPosInShip")
                 stack.removeTagKey("BlockPos")
             }
-
-
         }
+
+
         super.inventoryTick(stack, level, entity, slotId, isSelected)
     }
 

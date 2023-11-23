@@ -30,10 +30,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 class BluperGlueItem(properties: Properties) : CWItem(properties) {
-    val selectedArea: SelectedAreaToolkit = SelectedAreaToolkit()
     private var wasSelected = false
-    var firstPos: Vector3ic? = null
-    var secondPos: Vector3ic? = null
     var shouldRenderOutlines = false
 
     override fun inventoryTick(stack: ItemStack, level: Level, entity: Entity, slotId: Int, isSelected: Boolean) {
@@ -51,8 +48,11 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
         this.wasSelected = isSelected
 
         if (!isSelected) {
-            this.firstPos = null
-            this.secondPos = null
+            if (entity is Player) {
+                val areaData = AreaData.of(entity).get()
+                areaData.firstPos = null
+                areaData.secondPos = null
+            }
         }
     }
 
@@ -71,8 +71,9 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
         if (!stack.`is`(this)) {
             return super.useOn(context)
         }
-        if (this.firstPos == null) {
-            this.firstPos = pos
+        val areaData = AreaData.of(player).get()
+        if (areaData.firstPos == null) {
+            areaData.firstPos = pos
             player.displayClientMessage(
                 Component.literal("First Position Selected!").withStyle(
                     Style.EMPTY.withColor(
@@ -81,11 +82,11 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
                 ), true
             )
             player.cooldowns.addCooldown(this, 10)
-            ClockworkPackets.sendToClientsTrackingAndSelf(BluperGluePacket(this), player as ServerPlayer)
+            ClockworkPackets.sendToClientsTrackingAndSelf(BluperGluePacket(areaData.firstPos), player as ServerPlayer)
             return InteractionResult.SUCCESS
-        } else if (this.secondPos == null && this.firstPos != null) {
-            this.secondPos = pos
-            if (this.firstPos!!.distance(secondPos) > 500) {
+        } else if (areaData.secondPos == null && areaData.firstPos != null) {
+            areaData.secondPos = pos
+            if (areaData.firstPos!!.distance(areaData.secondPos) > 500) {
                 player.displayClientMessage(
                     Component.literal("Area Too Large!").withStyle(
                         Style.EMPTY.withColor(
@@ -93,21 +94,22 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
                         )
                     ), true
                 )
-                this.firstPos = null
-                this.secondPos = null
+                areaData.firstPos = null
+                areaData.secondPos = null
                 return InteractionResult.SUCCESS
             }
             val area: AABBic = AABBi(
-                min(this.firstPos!!.x(), this.secondPos!!.x()),
-                min(this.firstPos!!.y(), this.secondPos!!.y()),
-                min(this.firstPos!!.z(), this.secondPos!!.z()),
-                max(this.firstPos!!.x(), this.secondPos!!.x()),
-                max(this.firstPos!!.y(), this.secondPos!!.y()),
-                max(this.firstPos!!.z(), this.secondPos!!.z())
+                min(areaData.firstPos!!.x(), areaData.secondPos!!.x()),
+                min(areaData.firstPos!!.y(), areaData.secondPos!!.y()),
+                min(areaData.firstPos!!.z(), areaData.secondPos!!.z()),
+                max(areaData.firstPos!!.x(), areaData.secondPos!!.x()),
+                max(areaData.firstPos!!.y(), areaData.secondPos!!.y()),
+                max(areaData.firstPos!!.z(), areaData.secondPos!!.z())
             )
-            this.firstPos = null
-            this.secondPos = null
-            if (this.selectedArea.containsAABB(area)) {
+            areaData.firstPos = null
+            areaData.secondPos = null
+            val selectedArea = AreaData.of(player).get().area
+            if (selectedArea.containsAABB(area)) {
                 player.displayClientMessage(
                     Component.literal("Area Already Exists.").withStyle(
                         Style.EMPTY.withColor(
@@ -119,7 +121,7 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
                 return InteractionResult.SUCCESS
             }
 
-            if (this.selectedArea.selectedAreas.size >= 150) {
+            if (selectedArea.selectedAreas.size >= 150) {
                 player.displayClientMessage(
                     Component.literal("This Designator is at selection capacity.").withStyle(
                         Style.EMPTY.withColor(
@@ -131,7 +133,7 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
                 return InteractionResult.SUCCESS
             }
 
-            if (this.selectedArea.selectionClusters.size >= 20) {
+            if (selectedArea.selectionClusters.size >= 20) {
                 player.displayClientMessage(
                     Component.literal("This Designator is at cluster capacity.").withStyle(
                         Style.EMPTY.withColor(
@@ -143,10 +145,10 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
                 return InteractionResult.SUCCESS
             }
 
-            this.selectedArea.clusterNewArea(area)
+            selectedArea.clusterNewArea(area)
 
             val data = AreaData.of(player).get()
-            data.area = this.selectedArea
+            data.area = selectedArea
 
             player.displayClientMessage(
                 Component.literal("Area Designated!").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE)),
@@ -157,11 +159,5 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
             return InteractionResult.SUCCESS
         }
         return super.useOn(context)
-    }
-
-    companion object {
-        fun getMapper(): ObjectMapper {
-            return VSJacksonUtil.defaultMapper
-        }
     }
 }

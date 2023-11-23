@@ -5,7 +5,10 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import org.joml.Vector3i;
+import org.joml.Vector3ic;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -21,8 +24,34 @@ import static org.valkyrienskies.clockwork.util.AreaDataSerializer.AREA_TOOLKIT;
 @Mixin(Player.class)
 public abstract class MixinPlayerData extends LivingEntity implements AreaData {
 
+    @Unique
+    public Vector3ic firstPos = null;
+
+    @Unique
+    public Vector3ic secondPos = null;
+
     protected MixinPlayerData(EntityType<? extends LivingEntity> entityType, Level level) {
         super(entityType, level);
+    }
+
+    @Override
+    public Vector3ic getFirstPos() {
+        return firstPos;
+    }
+
+    @Override
+    public Vector3ic getSecondPos() {
+        return secondPos;
+    }
+
+    @Override
+    public void setFirstPos(Vector3ic pos) {
+        this.firstPos = pos;
+    }
+
+    @Override
+    public void setSecondPos(Vector3ic pos) {
+        this.secondPos = pos;
     }
 
     @Inject(method = "defineSynchedData", at = @At("TAIL"))
@@ -34,6 +63,19 @@ public abstract class MixinPlayerData extends LivingEntity implements AreaData {
     private void writeCWData(CompoundTag compoundTag, CallbackInfo info) {
         CompoundTag tag = new CompoundTag();
         CWAreaDataHelper.Companion.save(tag, getArea());
+
+        if (getFirstPos() != null) {
+            tag.putInt("XF", getFirstPos().x());
+            tag.putInt("YF", getFirstPos().y());
+            tag.putInt("ZF", getFirstPos().z());
+        }
+
+        if (getSecondPos() != null) {
+            tag.putInt("XS", getSecondPos().x());
+            tag.putInt("YS", getSecondPos().y());
+            tag.putInt("ZS", getSecondPos().z());
+        }
+
         compoundTag.put("AreaData", tag);
     }
 
@@ -42,6 +84,9 @@ public abstract class MixinPlayerData extends LivingEntity implements AreaData {
         CompoundTag tag = (CompoundTag) compoundTag.get("AreaData");
         if (tag != null) {
             setArea(CWAreaDataHelper.Companion.load(tag));
+
+            setFirstPos(new Vector3i(tag.getInt("XF"), tag.getInt("YF"), tag.getInt("ZF")));
+            setSecondPos(new Vector3i(tag.getInt("XS"), tag.getInt("YS"), tag.getInt("ZS")));
         }
     }
 

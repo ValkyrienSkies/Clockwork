@@ -16,6 +16,7 @@ import org.joml.primitives.AABBi
 import org.joml.primitives.AABBic
 import org.joml.primitives.Intersectionf
 import org.joml.primitives.LineSegmentf
+import org.valkyrienskies.clockwork.AreaData
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.curiosities.tools.BluperGlueItem
@@ -39,8 +40,8 @@ class BluperClusterRenderer {
             for (player in level.players()) {
                 if (player.mainHandItem.`is`(ClockworkItems.BLUPERGLUE.get())) {
                     // other players
-                    val adi = player.mainHandItem.item as BluperGlueItem
-                    val clusters: Set<Set<AABBic>> = adi.selectedArea.selectionClusters
+                    val area = AreaData.of(player).get()
+                    val clusters: Set<Set<AABBic>> = area.area.selectionClusters
                     for (cluster in clusters) {
                         if (!storedClusters.containsKey(cluster)) {
                             storedClusters[cluster] =
@@ -48,9 +49,9 @@ class BluperClusterRenderer {
                             clusterIncrement++
                         }
                     }
-                    while (adi.selectedArea.toStopRendering.isNotEmpty()) {
-                        ClockworkMod.OUTLINER.remove(adi.selectedArea.toStopRendering[0])
-                        storedClusters.remove(adi.selectedArea.toStopRendering.removeAt(0))
+                    while (area.area.toStopRendering.isNotEmpty()) {
+                        ClockworkMod.OUTLINER.remove(area.area.toStopRendering[0])
+                        storedClusters.remove(area.area.toStopRendering.removeAt(0))
                     }
                     if (minecraft.getCameraEntity() == null) {
                         return
@@ -83,10 +84,8 @@ class BluperClusterRenderer {
                                 range,
                                 RaycastHelper.getTraceOrigin(localPlayer)
                             ).toJOML()
-                            val traceOrigin: Vector3fc =
-                                Vector3f(tempOrigin.x().toFloat(), tempOrigin.y().toFloat(), tempOrigin.z().toFloat())
-                            val traceTarget: Vector3fc =
-                                Vector3f(tempTarget.x().toFloat(), tempTarget.y().toFloat(), tempTarget.z().toFloat())
+                            val traceOrigin: Vector3fc = Vector3f(tempOrigin.x().toFloat(), tempOrigin.y().toFloat(), tempOrigin.z().toFloat())
+                            val traceTarget: Vector3fc = Vector3f(tempTarget.x().toFloat(), tempTarget.y().toFloat(), tempTarget.z().toFloat())
                             val cast = LineSegmentf(traceOrigin, traceTarget)
                             for (box in cluster) {
                                 val intersection = Intersectionf.intersectLineSegmentAab(cast, AABBi(box), Vector2f())
@@ -103,24 +102,24 @@ class BluperClusterRenderer {
                         }
                         if (hoveredCluster == null) {
                             // render initial selection box
-                            if (adi.firstPos == null) {
+                            if (area.firstPos == null) {
                                 val vec = Vector3d(hoveredBlockPos).toMinecraft()
                                 if (vec != localPlayer.eyePosition) {
-                                    ClockworkMod.OUTLINER.chaseAABB(adi, AABB(hoveredBlockPos.toBlockPos()))
-                                    ClockworkMod.OUTLINER.edit(adi).ifPresent { outline ->
+                                    ClockworkMod.OUTLINER.chaseAABB(area, AABB(hoveredBlockPos.toBlockPos()))
+                                    ClockworkMod.OUTLINER.edit(area).ifPresent { outline ->
                                         outline.colored(HOVERPURPLE).withFaceTexture(AllSpecialTextures.SELECTION)
                                     }
                                 } else {
-                                    ClockworkMod.OUTLINER.remove(adi)
+                                    ClockworkMod.OUTLINER.remove(area)
                                 }
                             }
                         }
-                        if (adi.firstPos != null) {
+                        if (area.firstPos != null) {
                             val vec = Vector3d(hoveredBlockPos).toMinecraft()
                             if (vec != localPlayer.eyePosition) {
                                 ClockworkMod.OUTLINER.chaseAABB(
                                     bbOutlineSlotAD,
-                                    AABB(adi.firstPos!!.toBlockPos(), hoveredBlockPos.toBlockPos()).expandTowards(
+                                    AABB(area.firstPos!!.toBlockPos(), hoveredBlockPos.toBlockPos()).expandTowards(
                                         1.0,
                                         1.0,
                                         1.0
@@ -132,7 +131,7 @@ class BluperClusterRenderer {
                             } else {
                                 ClockworkMod.OUTLINER.chaseAABB(
                                     bbOutlineSlotAD,
-                                    AABB(adi.firstPos!!.toBlockPos(), adi.firstPos!!.toBlockPos())
+                                    AABB(area.firstPos!!.toBlockPos(), area.firstPos!!.toBlockPos())
                                 )
                             }
                             // render selection box

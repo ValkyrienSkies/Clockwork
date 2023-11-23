@@ -11,6 +11,7 @@ import net.minecraft.world.item.CreativeModeTab
 import org.joml.Quaternionf
 import org.slf4j.LoggerFactory
 import org.valkyrienskies.clockwork.util.CWEntityDataSerializers
+import org.valkyrienskies.core.impl.hooks.VSEvents
 
 object ClockworkMod {
     const val MOD_ID = "vs_clockwork"
@@ -37,6 +38,10 @@ object ClockworkMod {
     fun init() {
         ClockworkContraptions.init()
         ClockworkPackets.init()
+
+        VSEvents.ShipLoadEvent.on { event ->
+            event.ship
+        }
     }
 
     @JvmStatic

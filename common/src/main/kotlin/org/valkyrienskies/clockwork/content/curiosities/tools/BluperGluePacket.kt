@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.curiosities.tools
 import net.minecraft.client.Minecraft
 import net.minecraft.network.FriendlyByteBuf
 import org.joml.Vector3ic
+import org.valkyrienskies.clockwork.AreaData
 import org.valkyrienskies.clockwork.platform.api.network.ClientNetworkContext
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket
 import org.valkyrienskies.mod.common.util.toBlockPos
@@ -15,8 +16,8 @@ class BluperGluePacket : S2CCWPacket {
         firstPos = buffer.readBlockPos().toJOML()
     }
 
-    constructor(adi: BluperGlueItem) {
-        firstPos = adi.firstPos
+    constructor(vec: Vector3ic) {
+        firstPos = vec
     }
 
     override fun write(buffer: FriendlyByteBuf) {
@@ -26,17 +27,12 @@ class BluperGluePacket : S2CCWPacket {
     override fun handle(context: ClientNetworkContext) {
         context.enqueueWork {
             if (Minecraft.getInstance().level != null && Minecraft.getInstance().player != null) {
-                if (Minecraft.getInstance().player!!.mainHandItem
-                        .item !is BluperGlueItem
-                ) {
+                if (Minecraft.getInstance().player!!.mainHandItem.item !is BluperGlueItem) {
                     context.setPacketHandled(true)
                     return@enqueueWork
                 }
-                val adi = Minecraft.getInstance().player!!.mainHandItem
-                    .item as BluperGlueItem
-                if (adi != null) {
-                    adi.firstPos = firstPos
-                }
+                val areaData = AreaData.of(Minecraft.getInstance().player).get()
+                areaData.firstPos = firstPos;
             }
         }
         context.setPacketHandled(true)
