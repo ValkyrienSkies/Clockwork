@@ -15,10 +15,7 @@ object ClockworkClientEvents {
     }
 
     fun onTick(client: Minecraft?) {
-        if (!Backend.isGameActive()) {
-        }
         ClockworkMod.OUTLINER.tickOutlines()
-        //        ClockWorkMod.Client.BLUPER_HANDLER.tick();
         GRAVITRON_HANDLER.tick();
     }
 

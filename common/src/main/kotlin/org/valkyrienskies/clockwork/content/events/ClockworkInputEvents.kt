@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.events
 
 import com.mojang.blaze3d.platform.InputConstants
+import io.github.fabricators_of_create.porting_lib.event.client.MouseInputEvents
 import io.github.fabricators_of_create.porting_lib.util.KeyBindingHelper
 import net.minecraft.client.Minecraft
 import net.minecraft.world.InteractionHand

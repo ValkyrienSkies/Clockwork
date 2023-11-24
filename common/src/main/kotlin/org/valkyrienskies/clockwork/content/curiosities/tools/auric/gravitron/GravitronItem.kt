@@ -1,5 +1,8 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.auric.gravitron
 
+import com.simibubi.create.content.contraptions.AbstractContraptionEntity
+import com.simibubi.create.content.contraptions.actors.seat.SeatEntity
+import com.simibubi.create.content.contraptions.glue.SuperGlueEntity
 import com.simibubi.create.foundation.item.CustomArmPoseItem
 import com.simibubi.create.foundation.utility.NBTHelper
 import net.minecraft.client.model.HumanoidModel
@@ -19,6 +22,7 @@ import net.minecraft.world.item.UseAnim
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.joml.*
 import org.valkyrienskies.clockwork.AreaData
@@ -36,7 +40,9 @@ import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.isBlockInShipyard
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOML
+import org.valkyrienskies.mod.common.util.toMinecraft
 import java.lang.Math.toRadians
+import java.util.function.Consumer
 
 class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseItem {
 
@@ -96,9 +102,47 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             data.setArea(SelectedAreaToolkit())
             if (selection == null) return@forEach
 
+
             selection.forEach{x, y, z ->
                 if (!serverLevel.getBlockState(BlockPos(x, y, z)).isAir){
                     val connectedShip = createNewShipWithBlocks(blockPos, selection, serverLevel)
+
+                    val caughtEntities = SelectedAreaToolkit.entitiesFromCluster(cluster, serverLevel)
+                    if (caughtEntities != null) {
+                        caughtEntities.forEach(Consumer { entity: Entity ->
+                            if (entity is AbstractContraptionEntity || entity is SuperGlueEntity || entity is SeatEntity) {
+                                if (entity !is SuperGlueEntity) {
+                                    val oldPos: Vector3dc = entity.position().toJOML()
+                                    val newPos: Vector3dc =
+                                        connectedShip.transform.worldToShip.transformPosition(oldPos, Vector3d())
+                                    entity.moveTo(newPos.toMinecraft())
+                                } else {
+                                    val glueEntity =
+                                        entity
+                                    val oldBounds = glueEntity.boundingBox
+                                    val oldMax: Vector3dc =
+                                        Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
+                                    val oldMin: Vector3dc =
+                                        Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
+                                    val newMax: Vector3dc =
+                                        connectedShip.transform.worldToShip.transformPosition(oldMax, Vector3d())
+                                    val newMin: Vector3dc =
+                                        connectedShip.transform.worldToShip.transformPosition(oldMin, Vector3d())
+                                    val newBounds = AABB(
+                                        newMin.x(),
+                                        newMin.y(),
+                                        newMin.z(),
+                                        newMax.x(),
+                                        newMax.y(),
+                                        newMax.z()
+                                    )
+                                    glueEntity.boundingBox = newBounds
+                                    glueEntity.resetPositionToBB()
+                                }
+                            }
+                        })
+                    }
+
                     val grabPosInShip: Vec3 = clickLocation
                     val tag = player.mainHandItem.orCreateTag
                     tag.putLong("ShipId", connectedShip.id)

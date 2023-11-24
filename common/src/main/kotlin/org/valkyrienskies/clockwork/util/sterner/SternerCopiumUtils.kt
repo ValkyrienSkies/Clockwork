@@ -28,6 +28,19 @@ object SternerCopiumUtils {
             )
 
     fun oldQuaternionf(pX: Float, pY: Float, pZ: Float): Quaternionf {
+        return oldQuaternionf(pX, pY, pZ, false)
+    }
+
+    fun oldQuaternionf(pX: Float, pY: Float, pZ: Float, degrees: Boolean): Quaternionf {
+        var pX = pX
+        var pY = pY
+        var pZ = pZ
+        if (degrees) {
+            pX *= 0.017453292f
+            pY *= 0.017453292f
+            pZ *= 0.017453292f
+        }
+
         val f = Mth.sin(0.5f * pX)
         val f1 = Mth.cos(0.5f * pX)
         val f2 = Mth.sin(0.5f * pY)

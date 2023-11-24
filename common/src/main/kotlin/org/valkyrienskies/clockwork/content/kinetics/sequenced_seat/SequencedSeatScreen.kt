@@ -286,15 +286,11 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
                 )
             })
         }
-        /*TODO
-        override fun renderButton(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
-            isHovered =
-                rotation == currentShaft || mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height
-            background.bind()
-            blit(ms, x, y, if (isHovered) 17 + blitX else blitX, blitY, width, height)
-        }
 
-         */
+        override fun renderButton(graphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
+            isHovered = rotation == currentShaft || mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height
+            graphics.blit(background.location, x, y, if (isHovered) 17 + blitX else blitX, blitY, width, height)
+        }
     }
 
     inner class KeyButton(
@@ -328,15 +324,13 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
                 }
             )
         }
-        /*TODO
-        override fun renderButton(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
-            isHovered =
-                isKeySelected(key, index) || mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height
-            background.bind()
-            blit(ms, x, y, if (isHovered) 17 + blitX else blitX, blitY, width, height)
+
+        override fun renderButton(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
+            isHovered = isKeySelected(key, index) || mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height
+            guiGraphics.blit(background.location, x, y, if (isHovered) 17 + blitX else blitX, blitY, width, height)
         }
 
-         */
+
     }
 
     companion object {

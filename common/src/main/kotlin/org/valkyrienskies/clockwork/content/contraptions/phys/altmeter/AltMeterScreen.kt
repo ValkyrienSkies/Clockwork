@@ -59,44 +59,42 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
     override fun renderWindow(graphics: GuiGraphics?, mouseX: Int, mouseY: Int, partialTicks: Float) {
         val x = guiLeft
         val y = guiTop
-        /* TODO
-        background.render(ms, x, y, this)
-        drawCenteredString(ms, font, title, x + (background.width - 8) / 2, y + 3, 0xFFFFFF)
-        drawRuleList(ms, x, y, partialTicks)
+
+        background.render(graphics!!, x, y)
+        graphics.drawCenteredString(font, title, x + (background.width - 8) / 2, y + 3, 0xFFFFFF)
+        drawRuleList(graphics, x, y, partialTicks)
         GuiGameElement.of(renderedItem)
             .at<GuiGameElement.GuiRenderBuilder>((x + background.width + 6).toFloat(),
                 (y + background.height - 56).toFloat(), -200f)
             .scale(5.0)
-            .render(ms)
+            .render(graphics)
 
-         */
+
     }
-    /*
 
-    private fun drawRuleList(ms: PoseStack, x: Int, y: Int, partialTicks: Float) {
+
+    private fun drawRuleList(guiGraphics: GuiGraphics, x: Int, y: Int, partialTicks: Float) {
         val ruleX = x + 38
         val ruleY = y + 18
 
         val icon = AllIcons.I_PRIORITY_VERY_HIGH
 
-        drawInputField(ruleX, ruleY, ms, partialTicks, 0)
+        drawInputField(ruleX, ruleY, guiGraphics, partialTicks, 0)
 
         val heightStr = triggerHeight.toString()
         val valueComponent: Component = Component.literal("$heightStr m")
 
-        drawCenteredString(
-            ms,
+        guiGraphics.drawCenteredString(
             font,
             valueComponent,
             ruleX + 62 + INPUT_VALUE_WIDTH / 2,
             ruleY + (INPUT_FIELDS_HEIGHT - font.lineHeight) / 2 + 1,
             0xFFFFFF
         )
-        icon.render(ms, ruleX + 1, ruleY + 1)
+        icon.render(guiGraphics, ruleX + 1, ruleY + 1)
 
         val nameComponent: Component = TRIGGER_HEIGHT_COMPONENT
-        drawString(
-            ms,
+        guiGraphics.drawString(
             font,
             nameComponent,
             ruleX + 16,
@@ -106,9 +104,8 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
     }
 
     private fun drawInputField(x: Int, y: Int, guiGraphics: GuiGraphics, partialTicks: Float, i: Int) {
-        background.bind()
-        blit(
-            ms, x - 2, y,
+        guiGraphics.blit(
+            background.location, x - 2, y,
             INPUT_FIELDS_X,
             INPUT_FIELDS_Y + i * (INPUT_FIELDS_HEIGHT + INPUT_FIELDS_MARGIN),
             INPUT_FIELDS_WIDTH,
@@ -116,7 +113,7 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
         )
     }
 
- */
+
 
     companion object {
         private const val INPUT_FIELDS_X = 36

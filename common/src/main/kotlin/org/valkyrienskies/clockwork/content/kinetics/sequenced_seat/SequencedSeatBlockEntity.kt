@@ -30,7 +30,7 @@ class SequencedSeatBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, stat
         super.tick()
         if (level!!.isClientSide) return
         for (i in 0..3) {
-            val dir = Direction.values()[i + 2]
+            val dir = Direction.entries[i + 2]
             val modifier = getRotationSpeedModifier(dir)
             degreesAwayFromBase[i] += convertToAngular(modifier * speed)
             if (modifier != lastModifier[i]) {

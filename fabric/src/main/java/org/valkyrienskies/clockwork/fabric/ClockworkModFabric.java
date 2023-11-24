@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.fabric;
 
 import com.terraformersmc.modmenu.api.ModMenuApi;
+import io.github.fabricators_of_create.porting_lib.event.client.MouseInputEvents;
 import io.github.fabricators_of_create.porting_lib.event.client.RenderTickStartCallback;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
@@ -12,6 +13,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.protocol.game.ServerboundContainerButtonClickPacket;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.content.events.ClockworkClientEvents;
 import org.valkyrienskies.clockwork.content.events.ClockworkCommonEvents;
@@ -120,6 +122,7 @@ public class ClockworkModFabric implements ModInitializer {
         }
 
         public static void registerInputEvents() {
+            //MouseInputEvents.AFTER_BUTTON.register((button, action, mods) -> ClockworkInputEvents.onClickInputCW(button, action, mods));
             //TODO MouseButtonCallback.EVENT.register(ClockworkInputEvents.INSTANCE::onClickInputCW);
         }
     }
