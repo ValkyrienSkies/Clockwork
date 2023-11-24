@@ -3,12 +3,13 @@
   "package": "org.valkyrienskies.clockwork.forge.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "compat.MixinAllBlocks",
     "accessors.ItemAccessor",
+    "compat.MixinAllBlocks",
     "compat.MixinStickerTileEntity",
     "platform.MixinBlockEntity"
   ],
-  "client": [],
+  "client": [
+  ],
   "injectors": {
     "defaultRequire": 1
   },

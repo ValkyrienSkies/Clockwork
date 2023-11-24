@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.util.render;
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllSpecialTextures
+import com.simibubi.create.foundation.outliner.Outliner
 import com.simibubi.create.foundation.utility.Color
 import com.simibubi.create.foundation.utility.RaycastHelper
 import net.minecraft.client.Minecraft
@@ -62,12 +63,9 @@ class BluperClusterRenderer {
                         val mc = Minecraft.getInstance()
                         val localPlayer = mc.player ?: return
                         var hovered: BlockPos? = null
-                        var hoveredFace: BlockPos? = null
                         if (mc.hitResult != null && mc.hitResult!!.type == HitResult.Type.BLOCK) {
                             hovered = (mc.hitResult as BlockHitResult?)!!.blockPos
-                            hoveredFace = (mc.hitResult as BlockHitResult?)!!.blockPos.relative(
-                                (mc.hitResult as BlockHitResult?)!!.direction
-                            )
+                            (mc.hitResult as BlockHitResult?)!!.blockPos.relative((mc.hitResult as BlockHitResult?)!!.direction)
                         }
                         var hoveredBlockPos: Vector3ic = Vector3i()
                         if (hovered != null) {
@@ -106,8 +104,8 @@ class BluperClusterRenderer {
                                 val vec = Vector3d(hoveredBlockPos).toMinecraft()
                                 if (vec != localPlayer.eyePosition) {
                                     ClockworkMod.OUTLINER.chaseAABB(area, AABB(hoveredBlockPos.toBlockPos()))
-                                    ClockworkMod.OUTLINER.edit(area).ifPresent { outline ->
-                                        outline.colored(HOVERPURPLE).withFaceTexture(AllSpecialTextures.SELECTION)
+                                    ClockworkMod.OUTLINER.edit(area).ifPresent {
+                                        outline -> outline.colored(HOVERPURPLE).withFaceTexture(AllSpecialTextures.SELECTION)
                                     }
                                 } else {
                                     ClockworkMod.OUTLINER.remove(area)

@@ -26,6 +26,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.S
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
 import org.valkyrienskies.mod.common.util.toJOML
+import java.util.HashSet
 import kotlin.math.max
 import kotlin.math.min
 
@@ -108,7 +109,7 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
             )
             areaData.firstPos = null
             areaData.secondPos = null
-            val selectedArea = AreaData.of(player).get().area
+            var selectedArea = AreaData.of(player).get().area
             if (selectedArea.containsAABB(area)) {
                 player.displayClientMessage(
                     Component.literal("Area Already Exists.").withStyle(
@@ -144,7 +145,7 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
                 player.cooldowns.addCooldown(this, 10)
                 return InteractionResult.SUCCESS
             }
-
+            selectedArea = SelectedAreaToolkit()
             selectedArea.clusterNewArea(area)
 
             val data = AreaData.of(player).get()

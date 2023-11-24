@@ -13,7 +13,6 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.A
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket;
 import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket;
-import org.valkyrienskies.clockwork.content.sterner_silly_stuff.AreaResetPacket;
 import org.valkyrienskies.clockwork.platform.SharedValues;
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket;
 import org.valkyrienskies.clockwork.platform.api.network.CWPacket;
@@ -37,7 +36,6 @@ public enum ClockworkPackets {
 
     DESIGNATORSELECTION(AreaDesignatorSelectionPacket.class, AreaDesignatorSelectionPacket::new),
     BLURPLESELECTOR(BluperGluePacket.class, BluperGluePacket::new),
-    AREARESET(AreaResetPacket.class, AreaResetPacket::new),
 
     // INSERT CLUSTER HANDLING PACKET STUFF HERE
 

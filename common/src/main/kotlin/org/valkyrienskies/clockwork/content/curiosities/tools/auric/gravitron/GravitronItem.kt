@@ -90,28 +90,27 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
     fun assemble(serverLevel: ServerLevel, player: Player, blockPos: BlockPos, clickLocation: Vec3): Boolean {
         val data = AreaData.of(player).get()
         val list = data.area
-        var bl = false;
+
         list.selectionClusters.forEach{cluster ->
             val selection: DenseBlockPosSet = SelectedAreaToolkit.denseBlocksFromCluster(cluster)
+            data.setArea(SelectedAreaToolkit())
             if (selection == null) return@forEach
 
-            val connectedShip = createNewShipWithBlocks(blockPos, selection, serverLevel)
-            if (connectedShip == null) return@forEach
-
-            val grabPosInShip: Vec3 = clickLocation
-            val tag = player.mainHandItem.orCreateTag
-
-            tag.putLong("ShipId", connectedShip.id)
-            tag.put("BlockPos", NbtUtils.writeBlockPos(blockPos))
-            tag.put("GrabbedPosInShip", writeVec3(grabPosInShip))
-            bl = true
-            data.area.dumpCluster(cluster)
+            selection.forEach{x, y, z ->
+                if (!serverLevel.getBlockState(BlockPos(x, y, z)).isAir){
+                    val connectedShip = createNewShipWithBlocks(blockPos, selection, serverLevel)
+                    val grabPosInShip: Vec3 = clickLocation
+                    val tag = player.mainHandItem.orCreateTag
+                    tag.putLong("ShipId", connectedShip.id)
+                    tag.put("BlockPos", NbtUtils.writeBlockPos(blockPos))
+                    tag.put("GrabbedPosInShip", writeVec3(grabPosInShip))
+                    return true
+                }
+            }
         }
-        list.selectionClusters.clear()
-        data.removeArea(list)
+        //data.removeArea(list)
 
-
-        return bl
+        return false
     }
 
     // || ITEM FUNCTIONS || //
@@ -197,7 +196,8 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             tryGrabShip(level, player, clickedPos, clickLocation)
         } else {
             val s = getState(player)
-            //s.grabbing = false
+            val p: MixinPlayerDuck = player as MixinPlayerDuck
+            p.cw_setGravitronState(GravitronState())
         }
     }
 
