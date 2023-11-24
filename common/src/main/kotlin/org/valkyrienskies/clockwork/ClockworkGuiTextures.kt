@@ -45,13 +45,6 @@ enum class ClockworkGuiTextures(
             height, 256, 256
         )
     }
-/*
-    @Environment(EnvType.CLIENT)
-    fun render(gui: GuiGraphics?, x: Int, y: Int, component: GuiComponent) {
-        component.blit(location, x, y, startX, startY, width, height)
-    }
-
- */
 
     @Environment(EnvType.CLIENT)
     fun render(guiGraphics: GuiGraphics?, x: Int, y: Int, c: Color?) {

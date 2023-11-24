@@ -17,6 +17,7 @@ public class ClockworkItems {
     static {
     }
     public static final ItemEntry<Item> BLUUGUU = ingredient("bluuguu");
+
     public static final ItemEntry<AreaDesignatorItem> AURIC_DESIGNATOR =
             ClockworkMod.INSTANCE.getREGISTRATE().item("auric_designator", AreaDesignatorItem::new)
                     .transform(ClockworkRegistrate.customRenderedItem(() -> AreaDesignatorRenderer::new))
@@ -27,6 +28,8 @@ public class ClockworkItems {
                     .tag(AllTags.AllItemTags.UPRIGHT_ON_BELT.tag)
                     .model(AssetLookup.itemModelWithPartials())
                     .register();
+
+
 
     public static final ItemEntry<BluperGlueItem> BLUPERGLUE =
             ClockworkMod.INSTANCE.getREGISTRATE().item("bluperglue", BluperGlueItem::new)

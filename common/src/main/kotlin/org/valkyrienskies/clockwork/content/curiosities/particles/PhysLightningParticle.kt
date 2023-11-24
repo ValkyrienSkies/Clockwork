@@ -11,6 +11,7 @@ import net.minecraft.core.particles.ParticleOptions
 import net.minecraft.core.particles.ParticleType
 import org.joml.Quaternionf
 import org.valkyrienskies.clockwork.ClockworkParticles
+import org.valkyrienskies.clockwork.util.sterner.SternerCopiumUtils
 
 class PhysLightningParticle(
     worldIn: ClientLevel?,
@@ -64,7 +65,7 @@ class PhysLightningParticle(
     }
 
     override fun getCustomRotation(camera: Camera, partialTicks: Float): Quaternionf {
-        return Quaternionf(0f, 0f, 0f, 1f)//TODO w was true
+        return SternerCopiumUtils.oldQuaternionf(0f, 0f, 0f, true)//TODO w was true
     }
 
     class Data : BasicParticleData<PhysLightningParticle>() {

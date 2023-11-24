@@ -49,18 +49,18 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
     override fun renderWindow(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
         val x = guiLeft
         val y = guiTop
-        //TODO
-        //background.render(ms, x, y, this)
-        //drawCenteredString(ms, font, title, x + (background.width - 8) / 2, y + 3, 0xFFFFFF)
-        //drawRuleList(ms, x, y, partialTicks)
-        //GuiGameElement.of(renderedItem)
-        //    .at<GuiGameElement.GuiRenderBuilder>((x + background.width + 6).toFloat(),
-        //        (y + background.height - 56).toFloat(), -200f)
-        //    .scale(5.0)
-        //    .render(ms)
+
+        background.render(guiGraphics, x, y)
+        guiGraphics.drawCenteredString(font, title, x + (background.width - 8) / 2, y + 3, 0xFFFFFF)
+        drawRuleList(guiGraphics, x, y, partialTicks)
+        GuiGameElement.of(renderedItem)
+            .at<GuiGameElement.GuiRenderBuilder>((x + background.width + 6).toFloat(),
+                (y + background.height - 56).toFloat(), -200f)
+            .scale(5.0)
+            .render(guiGraphics)
     }
-/*
-    private fun drawRuleList(ms: PoseStack, x: Int, y: Int, partialTicks: Float) {
+
+    private fun drawRuleList(guiGraphics: GuiGraphics, x: Int, y: Int, partialTicks: Float) {
         val list = currentList()
         for (i in 0 until SequencedSeatRuleList.MAX_RULES) {
             val rule = list.getRule(i)
@@ -71,9 +71,8 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
                 val operation = rule.operation
                 if (operation !== SequencedSeatOperation.NOTHING) {
                     valueInputs[i]!!.visible = true
-                    drawInputField(ruleX, ruleY, ms, partialTicks, 0)
-                    drawCenteredString(
-                        ms,
+                    drawInputField(ruleX, ruleY, guiGraphics, partialTicks, 0)
+                    guiGraphics.drawCenteredString(
                         font,
                         rule.value!!.asComponent(),
                         ruleX + 62 + INPUT_VALUE_WIDTH / 2,
@@ -82,11 +81,10 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
                     )
                 } else {
                     valueInputs[i]!!.visible = false
-                    drawInputField(ruleX, ruleY, ms, partialTicks, 1)
+                    drawInputField(ruleX, ruleY, guiGraphics, partialTicks, 1)
                 }
-                operation.icon.render(ms, ruleX + 1, ruleY + 1)
-                drawString(
-                    ms,
+                operation.icon.render(guiGraphics, ruleX + 1, ruleY + 1)
+                guiGraphics.drawString(
                     font,
                     operation.asComponent(),
                     ruleX + 16,
@@ -96,27 +94,24 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
             } else {
                 operationInputs[i]!!.visible = false
                 valueInputs[i]!!.visible = false
-                drawInputField(ruleX, ruleY, ms, partialTicks, 2)
+                drawInputField(ruleX, ruleY, guiGraphics, partialTicks, 2)
             }
         }
     }
 
- */
 
-    /*
-    private fun drawInputField(x: Int, y: Int, ms: PoseStack, partialTicks: Float, i: Int) {
-        background.bind()
-        blit(
-            ms, x - 2, y,
+
+
+    private fun drawInputField(x: Int, y: Int, guiGraphics: GuiGraphics, partialTicks: Float, i: Int) {
+        guiGraphics.blit(background.location, x - 2, y,
             INPUT_FIELDS_X,
             INPUT_FIELDS_Y + i * (INPUT_FIELDS_HEIGHT + INPUT_FIELDS_MARGIN),
             INPUT_FIELDS_WIDTH,
-            INPUT_FIELDS_HEIGHT
-        )
+            INPUT_FIELDS_HEIGHT)
     }
 
 
-     */
+
     private fun makeOperationInputs() {
         val x = guiLeft
         val y = guiTop
