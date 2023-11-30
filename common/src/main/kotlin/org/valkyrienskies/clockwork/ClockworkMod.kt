@@ -1,16 +1,20 @@
 package org.valkyrienskies.clockwork
 
 import com.mojang.logging.LogUtils
+import com.simibubi.create.AllBlocks
 import com.simibubi.create.foundation.data.CreateRegistrate
 import com.simibubi.create.foundation.outliner.Outliner
+import com.simibubi.create.foundation.ponder.SceneBuilder
+import com.simibubi.create.foundation.ponder.SceneBuildingUtil
+import com.simibubi.create.infrastructure.ponder.AllPonderTags
+import com.simibubi.create.infrastructure.ponder.PonderIndex
+import com.simibubi.create.infrastructure.ponder.scenes.BearingScenes
 import net.minecraft.core.registries.Registries
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
-import org.joml.Quaternionf
 import org.slf4j.LoggerFactory
-import org.valkyrienskies.clockwork.util.CWEntityDataSerializers
 import org.valkyrienskies.core.impl.hooks.VSEvents
 
 object ClockworkMod {
@@ -38,6 +42,7 @@ object ClockworkMod {
     fun init() {
         ClockworkContraptions.init()
         ClockworkPackets.init()
+        //ClockworkPonderScenes.init()
 
         VSEvents.ShipLoadEvent.on { event ->
             event.ship
@@ -64,7 +69,7 @@ object ClockworkMod {
                 //output.accept(ClockworkBlocks.PHYSICS_INFUSER.asStack())
                 output.accept(ClockworkBlocks.ALT_METER.asStack())
                 output.accept(ClockworkBlocks.BALLOON_CASING.asStack())
-                output.accept(ClockworkBlocks.COMMAND_SEAT.asStack())
+                //output.accept(ClockworkBlocks.COMMAND_SEAT.asStack())
                 output.accept(ClockworkBlocks.BALLOON_ENCASED_SHAFT.asStack())
                 output.accept(ClockworkBlocks.FLAP.asStack())
                 output.accept(ClockworkBlocks.FLAP_BEARING.asStack())

@@ -31,6 +31,7 @@ import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 import org.valkyrienskies.clockwork.platform.CWItem
+import org.valkyrienskies.clockwork.util.sterner.SternerCopiumUtils
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.Ship
 import org.valkyrienskies.core.api.ships.properties.ShipId
@@ -148,8 +149,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                     val grabPosInShip: Vec3 = clickLocation
                     val tag = player.mainHandItem.orCreateTag
                     tag.putLong("ShipId", connectedShip.id)
-                    tag.put("BlockPos", NbtUtils.writeBlockPos(blockPos))
-                    tag.put("GrabbedPosInShip", writeVec3(grabPosInShip))
+                    tag.put("GrabbedPosInShip", SternerCopiumUtils.writeVec3(grabPosInShip))
 
                     return true
                 }
@@ -181,11 +181,11 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         if (s.grabCD!! > 0) {
             s.grabCD = s.grabCD!! - 1
         }
-        if (stack.hasTag() && stack.tag!!.contains("GrabbedPosInShip") && s.grabCD!! <= cooldown / 2) {
+        if (stack.hasTag() && stack.tag!!.contains("GrabbedPosInShip") && !entity.cooldowns.isOnCooldown(stack.item)) {
             s.grabbing = true
             val tag = stack.tag!!
 
-            val clickLocation = readVec3(tag.getList("GrabbedPosInShip", Tag.TAG_DOUBLE.toInt()))
+            val clickLocation = SternerCopiumUtils.readVec3(tag.getList("GrabbedPosInShip", Tag.TAG_DOUBLE.toInt()))
             val id = tag.getLong("ShipId")
 
             val ship: LoadedServerShip? = level.shipObjectWorld.loadedShips.getById(id)
@@ -194,24 +194,13 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                 grabShip(s, entity, ship, transformedPos)
                 stack.removeTagKey("ShipId")
                 stack.removeTagKey("GrabbedPosInShip")
-                stack.removeTagKey("BlockPos")
             }
         }
 
         super.inventoryTick(stack, level, entity, slotId, isSelected)
     }
 
-    fun writeVec3(vec: Vec3): ListTag {
-        val tag = ListTag()
-        tag.add(DoubleTag.valueOf(vec.x))
-        tag.add(DoubleTag.valueOf(vec.y))
-        tag.add(DoubleTag.valueOf(vec.z))
-        return tag
-    }
 
-    fun readVec3(tag: ListTag): Vec3 {
-        return Vec3(tag.getDouble(0), tag.getDouble(1), tag.getDouble(2))
-    }
 
     // called first to put the ship into the players grasp
     private fun tryGrabShip(level: ServerLevel, player: Player, clickedPos: BlockPos, clickLocation: Vec3) {
