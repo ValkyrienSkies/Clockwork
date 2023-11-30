@@ -18,6 +18,7 @@
     "content.wing.MixinAbstractCauldronBlock"
   ],
   "client": [
+    "client.MixinItemInHandRenderer",
     "content.gravitron.MinecraftAccessor",
     "content.gravitron.MixinLocalPlayer",
     "content.pulse.MixinLevelRenderer"

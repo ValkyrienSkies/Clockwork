@@ -4,13 +4,11 @@ import com.simibubi.create.content.contraptions.AbstractContraptionEntity
 import com.simibubi.create.content.contraptions.actors.seat.SeatEntity
 import com.simibubi.create.content.contraptions.glue.SuperGlueEntity
 import com.simibubi.create.foundation.item.CustomArmPoseItem
-import com.simibubi.create.foundation.utility.NBTHelper
 import net.minecraft.client.model.HumanoidModel
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.core.BlockPos
-import net.minecraft.nbt.*
+import net.minecraft.nbt.Tag
 import net.minecraft.server.level.ServerLevel
-import net.minecraft.server.level.ServerPlayer
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
@@ -26,7 +24,6 @@ import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.joml.*
 import org.valkyrienskies.clockwork.AreaData
-import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
@@ -85,6 +82,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         val level = context.level
         if (level is ServerLevel && player != null) {
             val s: GravitronState = getState(player)
+            System.out.println("Stats: " + s.shipID + " : " + s.grabbing + " : " + s.shouldDrop)
             if ((s.shipID == null) && !player.cooldowns.isOnCooldown(this) && !s.grabbing) {
                 s.grabbing = true
                 player.cooldowns.addCooldown(this, cooldown)
@@ -102,16 +100,17 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
 
         list.selectionClusters.forEach{cluster ->
             val selection: DenseBlockPosSet = SelectedAreaToolkit.denseBlocksFromCluster(cluster)
+
+            if (selection.isEmpty() || !selection.contains(blockPos.x, blockPos.y, blockPos.z)) return@forEach
+
             data.setArea(SelectedAreaToolkit())
-            if (selection == null) return@forEach
-
-
             selection.forEach{x, y, z ->
+
                 if (!serverLevel.getBlockState(BlockPos(x, y, z)).isAir){
                     val connectedShip = createNewShipWithBlocks(blockPos, selection, serverLevel)
 
                     val caughtEntities = SelectedAreaToolkit.entitiesFromCluster(cluster, serverLevel)
-                    if (caughtEntities != null) {
+                    if (caughtEntities.isNotEmpty()) {
                         caughtEntities.forEach(Consumer { entity: Entity ->
                             if (entity is AbstractContraptionEntity || entity is SuperGlueEntity || entity is SeatEntity) {
                                 if (entity !is SuperGlueEntity) {
@@ -120,27 +119,14 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                                         connectedShip.transform.worldToShip.transformPosition(oldPos, Vector3d())
                                     entity.moveTo(newPos.toMinecraft())
                                 } else {
-                                    val glueEntity =
-                                        entity
-                                    val oldBounds = glueEntity.boundingBox
-                                    val oldMax: Vector3dc =
-                                        Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
-                                    val oldMin: Vector3dc =
-                                        Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
-                                    val newMax: Vector3dc =
-                                        connectedShip.transform.worldToShip.transformPosition(oldMax, Vector3d())
-                                    val newMin: Vector3dc =
-                                        connectedShip.transform.worldToShip.transformPosition(oldMin, Vector3d())
-                                    val newBounds = AABB(
-                                        newMin.x(),
-                                        newMin.y(),
-                                        newMin.z(),
-                                        newMax.x(),
-                                        newMax.y(),
-                                        newMax.z()
-                                    )
-                                    glueEntity.boundingBox = newBounds
-                                    glueEntity.resetPositionToBB()
+                                    val oldBounds = entity.boundingBox
+                                    val oldMax: Vector3dc = Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
+                                    val oldMin: Vector3dc = Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
+                                    val newMax: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldMax, Vector3d())
+                                    val newMin: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldMin, Vector3d())
+                                    val newBounds = AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z())
+                                    entity.boundingBox = newBounds
+                                    entity.resetPositionToBB()
                                 }
                             }
                         })
@@ -200,10 +186,8 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         super.inventoryTick(stack, level, entity, slotId, isSelected)
     }
 
-
-
     // called first to put the ship into the players grasp
-    private fun tryGrabShip(level: ServerLevel, player: Player, clickedPos: BlockPos, clickLocation: Vec3) {
+    private fun tryGrabShip(level: ServerLevel, player: Player, clickedPos: BlockPos, clickLocation: Vec3): Boolean {
         val chunkX = clickedPos.x shr 4
         val chunkZ = clickedPos.z shr 4
         val ship: LoadedServerShip? = level.shipObjectWorld.loadedShips.getByChunkPos(chunkX, chunkZ, level.dimensionId)
@@ -211,20 +195,25 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         val grabPosInWorld = Vector3d(grabPosInShip)
         val s = getState(player)
         if (level.isBlockInShipyard(clickedPos) && ship == null) {
-            return
+            return false
         }
         if (ship == null) {
-            return
+            return false
         } else {
             ship.shipToWorld.transformPosition(grabPosInWorld)
         }
         grabShip(s, player, ship, grabPosInShip)
+        return true
     }
 
     private fun tryAssembleAndGrabShip(level: ServerLevel, player: Player, clickedPos: BlockPos, clickLocation: Vec3) {
         val bl = assemble(level, player, clickedPos, clickLocation)
         if (!bl) {
-            tryGrabShip(level, player, clickedPos, clickLocation)
+            val bl2 = tryGrabShip(level, player, clickedPos, clickLocation)
+            if (!bl2) {
+                getState(player).grabbing = false
+                getState(player).shipID = null
+            }
         } else {
             val p: MixinPlayerDuck = player as MixinPlayerDuck
             p.cw_setGravitronState(GravitronState())
