@@ -46,6 +46,8 @@ import java.util.function.Consumer
 
 class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseItem {
 
+    private var cooldown = 20
+
     private fun getState(player: Player): GravitronState {
         val p: MixinPlayerDuck = player as MixinPlayerDuck
         var s = p.cw_getGravitronState()
@@ -84,8 +86,8 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             val s: GravitronState = getState(player)
             if ((s.shipID == null) && !player.cooldowns.isOnCooldown(this) && !s.grabbing) {
                 s.grabbing = true
-                player.cooldowns.addCooldown(this, 20)
-                s.grabCD = 20
+                player.cooldowns.addCooldown(this, cooldown)
+                s.grabCD = cooldown
                 tryAssembleAndGrabShip(level, player, context.clickedPos, context.clickLocation)
             }
         }
@@ -148,11 +150,11 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                     tag.putLong("ShipId", connectedShip.id)
                     tag.put("BlockPos", NbtUtils.writeBlockPos(blockPos))
                     tag.put("GrabbedPosInShip", writeVec3(grabPosInShip))
+
                     return true
                 }
             }
         }
-        //data.removeArea(list)
 
         return false
     }
@@ -179,17 +181,15 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         if (s.grabCD!! > 0) {
             s.grabCD = s.grabCD!! - 1
         }
-        if (stack.hasTag() && stack.tag!!.contains("GrabbedPosInShip") && false) {
+        if (stack.hasTag() && stack.tag!!.contains("GrabbedPosInShip") && s.grabCD!! <= cooldown / 2) {
+            s.grabbing = true
             val tag = stack.tag!!
 
             val clickLocation = readVec3(tag.getList("GrabbedPosInShip", Tag.TAG_DOUBLE.toInt()))
             val id = tag.getLong("ShipId")
-            val clickedPos = NbtUtils.readBlockPos(tag.getCompound("BlockPos"))
 
             val ship: LoadedServerShip? = level.shipObjectWorld.loadedShips.getById(id)
-            System.out.println(ship)
             if (ship != null) {
-                System.out.println("Grabbing: " + s.grabbing + " : ShipId: " + s.shipID + " : " + ship.id)
                 val transformedPos = ship.worldToShip.transformPosition(clickLocation.toJOML(), Vector3d())
                 grabShip(s, entity, ship, transformedPos)
                 stack.removeTagKey("ShipId")
@@ -198,10 +198,8 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             }
         }
 
-
         super.inventoryTick(stack, level, entity, slotId, isSelected)
     }
-
 
     fun writeVec3(vec: Vec3): ListTag {
         val tag = ListTag()
@@ -239,7 +237,6 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         if (!bl) {
             tryGrabShip(level, player, clickedPos, clickLocation)
         } else {
-            val s = getState(player)
             val p: MixinPlayerDuck = player as MixinPlayerDuck
             p.cw_setGravitronState(GravitronState())
         }
