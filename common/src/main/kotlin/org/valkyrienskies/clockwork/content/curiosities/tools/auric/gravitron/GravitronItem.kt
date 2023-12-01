@@ -101,9 +101,12 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         list.selectionClusters.forEach{cluster ->
             val selection: DenseBlockPosSet = SelectedAreaToolkit.denseBlocksFromCluster(cluster)
 
-            if (selection.isEmpty() || !selection.contains(blockPos.x, blockPos.y, blockPos.z)) return@forEach
+            if (selection.isEmpty() || !selection.contains(blockPos.x, blockPos.y, blockPos.z)) {
+                return@forEach
+            }
 
             data.setArea(SelectedAreaToolkit())
+
             selection.forEach{x, y, z ->
 
                 if (!serverLevel.getBlockState(BlockPos(x, y, z)).isAir){
