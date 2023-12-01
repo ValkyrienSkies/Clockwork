@@ -10,6 +10,7 @@ import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingRendere
 import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingRenderer;
+import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity;
@@ -121,5 +122,12 @@ public class ClockworkBlockEntities {
             .validBlocks(ClockworkBlocks.HEAT_PIPE)
             .renderer(() -> HeatPipeRenderer::new)
             .register();
+
+    public static final BlockEntityEntry<GyroBlockEntity> GYRO = REGISTRATE
+            .blockEntity("gyro", GyroBlockEntity::new)
+            .validBlocks(ClockworkBlocks.GYRO)
+            .register();
+
+
     public static void register() {}
 }

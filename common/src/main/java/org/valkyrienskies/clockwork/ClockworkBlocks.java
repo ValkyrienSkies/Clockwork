@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock;
 import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlock;
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock;
+import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlock;
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlock;
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock;
 import org.valkyrienskies.clockwork.content.kinetics.casing.ExtendedEncasedShaftBlock;
@@ -92,6 +93,17 @@ public class ClockworkBlocks {
                     .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
                     .item()
                     .model(AssetLookup.customBlockItemModel("alt_meter"))
+                    .build()
+                    .register();
+
+    public static final BlockEntry<GyroBlock> GYRO =
+            ClockworkMod.INSTANCE.getREGISTRATE().block("gyro", GyroBlock::new)
+                    .initialProperties(SharedProperties::stone)
+                    .transform(axeOrPickaxe())
+                    .addLayer(() -> RenderType::cutout)
+                    .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+                    .item()
+                    .model(AssetLookup.customBlockItemModel("gyro"))
                     .build()
                     .register();
 
