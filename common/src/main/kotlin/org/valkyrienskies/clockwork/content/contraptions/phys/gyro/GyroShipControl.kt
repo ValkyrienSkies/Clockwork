@@ -1,0 +1,81 @@
+package org.valkyrienskies.clockwork.content.contraptions.phys.gyro
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import org.joml.AxisAngle4d
+import org.joml.Quaterniond
+import org.joml.Vector3d
+import org.joml.Vector3dc
+import org.valkyrienskies.core.api.VSBeta
+import org.valkyrienskies.core.api.ships.*
+import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
+import kotlin.math.PI
+import kotlin.math.floor
+
+@JsonAutoDetect(
+    fieldVisibility = JsonAutoDetect.Visibility.ANY,
+    getterVisibility = JsonAutoDetect.Visibility.NONE,
+    isGetterVisibility = JsonAutoDetect.Visibility.NONE,
+    setterVisibility = JsonAutoDetect.Visibility.NONE
+)
+@JsonIgnoreProperties(ignoreUnknown = true)
+class GyroShipControl : ShipForcesInducer, ServerTickListener {
+
+    private var physConsumption = 0f
+    private var extraForceLinear = 0.0
+    private var extraForceAngular = 0.0
+
+    @JsonIgnore
+    internal var ship: ServerShip? = null
+
+    override fun applyForces(physShip: PhysShip) {
+        if (gyros < 1) {
+            return
+        }
+
+        physShip as PhysShipImpl
+
+        val omega: Vector3dc = physShip.poseVel.omega
+        val vel: Vector3dc = physShip.poseVel.vel
+
+        ship ?: return
+
+        gyroStabilizer(physShip, omega, vel, physShip)
+    }
+
+    private fun deleteIfEmpty() {
+        if (gyros <= 0) {
+            ship?.saveAttachment<GyroShipControl>(null)
+        }
+    }
+
+    override fun onServerTick() {
+        extraForceLinear = powerLinear
+        powerLinear = 0.0
+
+        extraForceAngular = powerAngular
+        powerAngular = 0.0;
+
+        consumed = physConsumption * /* should be physics ticks based*/ 0.1f
+        physConsumption = 0.0f
+    }
+
+    var powerLinear = 0.0
+    var powerAngular = 0.0
+    var gyros = 0 // Amount of helms
+        set(v) {
+            field = v; deleteIfEmpty()
+        }
+    var consumed = 0f
+        private set
+
+    companion object {
+        fun getOrCreate(ship: ServerShip): GyroShipControl {
+            return ship.getAttachment<GyroShipControl>()
+                ?: GyroShipControl().also { ship.saveAttachment(it)
+                }
+        }
+    }
+
+}

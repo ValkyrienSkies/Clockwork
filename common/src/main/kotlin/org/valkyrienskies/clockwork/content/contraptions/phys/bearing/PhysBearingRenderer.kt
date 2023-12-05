@@ -15,7 +15,7 @@ import net.minecraft.core.Direction
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkPartials
-import org.valkyrienskies.clockwork.util.sterner.SternerCopiumUtils
+import org.valkyrienskies.clockwork.util.ClockworkUtils
 
 class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) :
     KineticBlockEntityRenderer<PhysBearingBlockEntity>(context) {
@@ -34,7 +34,7 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) :
         val facing = Direction.UP
         ms.pushPose()
         ms.translate(0.5, 0.5, 0.5)
-        ms.mulPose(SternerCopiumUtils.oldQuaternionf(0.0f, Math.toRadians(-180.0).toFloat(), 0.0f))
+        ms.mulPose(ClockworkUtils.oldQuaternionf(0.0f, Math.toRadians(-180.0).toFloat(), 0.0f))
         when (ogfacing) {
             Direction.SOUTH -> ms.mulPose(Axis.XP.rotationDegrees(270f))
             Direction.WEST -> ms.mulPose(Axis.ZP.rotationDegrees(270f))

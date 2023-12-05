@@ -14,10 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit;
 import org.valkyrienskies.clockwork.AreaData;
-import org.valkyrienskies.clockwork.content.sterner_silly_stuff.CWAreaDataHelper;
-import org.valkyrienskies.clockwork.util.CWEntityDataSerializers;
-
-import java.util.HashSet;
+import org.valkyrienskies.clockwork.util.ClockworkUtils;
 
 import static org.valkyrienskies.clockwork.util.AreaDataSerializer.AREA_TOOLKIT;
 
@@ -62,7 +59,7 @@ public abstract class MixinPlayerData extends LivingEntity implements AreaData {
     @Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
     private void writeCWData(CompoundTag compoundTag, CallbackInfo info) {
         CompoundTag tag = new CompoundTag();
-        CWAreaDataHelper.Companion.save(tag, getArea());
+        ClockworkUtils.INSTANCE.save(tag, getArea());
 
         if (getFirstPos() != null) {
             tag.putInt("XF", getFirstPos().x());
@@ -83,7 +80,7 @@ public abstract class MixinPlayerData extends LivingEntity implements AreaData {
     public void readCWData(CompoundTag compoundTag, CallbackInfo info) {
         CompoundTag tag = (CompoundTag) compoundTag.get("AreaData");
         if (tag != null) {
-            setArea(CWAreaDataHelper.Companion.load(tag));
+            setArea(ClockworkUtils.INSTANCE.load(tag));
 
             setFirstPos(new Vector3i(tag.getInt("XF"), tag.getInt("YF"), tag.getInt("ZF")));
             setSecondPos(new Vector3i(tag.getInt("XS"), tag.getInt("YS"), tag.getInt("ZS")));

@@ -28,7 +28,7 @@ import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 import org.valkyrienskies.clockwork.platform.CWItem
-import org.valkyrienskies.clockwork.util.sterner.SternerCopiumUtils
+import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.Ship
 import org.valkyrienskies.core.api.ships.properties.ShipId
@@ -138,7 +138,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                     val grabPosInShip: Vec3 = clickLocation
                     val tag = player.mainHandItem.orCreateTag
                     tag.putLong("ShipId", connectedShip.id)
-                    tag.put("GrabbedPosInShip", SternerCopiumUtils.writeVec3(grabPosInShip))
+                    tag.put("GrabbedPosInShip", ClockworkUtils.writeVec3(grabPosInShip))
 
                     return true
                 }
@@ -174,7 +174,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             s.grabbing = true
             val tag = stack.tag!!
 
-            val clickLocation = SternerCopiumUtils.readVec3(tag.getList("GrabbedPosInShip", Tag.TAG_DOUBLE.toInt()))
+            val clickLocation = ClockworkUtils.readVec3(tag.getList("GrabbedPosInShip", Tag.TAG_DOUBLE.toInt()))
             val id = tag.getLong("ShipId")
 
             val ship: LoadedServerShip? = level.shipObjectWorld.loadedShips.getById(id)

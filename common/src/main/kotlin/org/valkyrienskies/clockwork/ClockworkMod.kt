@@ -28,8 +28,6 @@ object ClockworkMod {
     val NETWORK_CHANNEL: ResourceLocation = asResource("main")
 
     val REGISTRATE: CreateRegistrate = CreateRegistrate.create(MOD_ID)
-    //val BASE_CREATIVE_TAB: CreativeModeTab = CreativeTabRegistry
-    //        .create(ResourceLocation(MOD_ID, "clockwork")) { ClockworkBlocks.PHYSICS_INFUSER.asStack() }
     val MIXIN_LOGGER = LoggerFactory.getLogger("ClockworkMixins")
     val LOGGER = LogUtils.getLogger()
 
@@ -62,6 +60,7 @@ object ClockworkMod {
             .icon { ClockworkBlocks.PHYSICS_INFUSER.asStack() }
             .displayItems { _, output ->
                 //output.accept(ClockworkItems.AURIC_DESIGNATOR)
+                output.accept(ClockworkBlocks.GYRO.asStack())
                 output.accept(ClockworkItems.BLUUGUU)
                 output.accept(ClockworkItems.BLUPERGLUE)
                 output.accept(ClockworkItems.GRAVITRON)
