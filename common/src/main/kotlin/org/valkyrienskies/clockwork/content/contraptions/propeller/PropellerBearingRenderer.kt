@@ -17,6 +17,7 @@ import net.minecraft.util.Mth
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
+import org.joml.Quaternionf
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.util.ClockworkUtils
 
@@ -39,7 +40,7 @@ class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
         val superBuffer = CachedBufferer.partial(top, te.getBlockState())
         ms.pushPose()
         ms.translate(0.5, 0.5, 0.5)
-        ms.mulPose(ClockworkUtils.oldQuaternionf(0.0f, Math.toRadians(-180.0).toFloat(), 0.0f))
+        ms.mulPose(Quaternionf().rotationXYZ(0.0f, Math.toRadians(-180.0).toFloat(), 0.0f))
         val ogfacing = te.blockState.getValue(BlockStateProperties.FACING)
         when (ogfacing) {
             Direction.SOUTH -> ms.mulPose(Axis.XP.rotationDegrees(270f))

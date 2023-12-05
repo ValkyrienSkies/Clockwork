@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.mixin;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -15,6 +16,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit;
 import org.valkyrienskies.clockwork.AreaData;
 import org.valkyrienskies.clockwork.util.ClockworkUtils;
+import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil;
+
+import java.io.IOException;
 
 import static org.valkyrienskies.clockwork.util.AreaDataSerializer.AREA_TOOLKIT;
 
@@ -59,7 +63,7 @@ public abstract class MixinPlayerData extends LivingEntity implements AreaData {
     @Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
     private void writeCWData(CompoundTag compoundTag, CallbackInfo info) {
         CompoundTag tag = new CompoundTag();
-        ClockworkUtils.INSTANCE.save(tag, getArea());
+        saveArea(tag, getArea());
 
         if (getFirstPos() != null) {
             tag.putInt("XF", getFirstPos().x());
@@ -80,7 +84,7 @@ public abstract class MixinPlayerData extends LivingEntity implements AreaData {
     public void readCWData(CompoundTag compoundTag, CallbackInfo info) {
         CompoundTag tag = (CompoundTag) compoundTag.get("AreaData");
         if (tag != null) {
-            setArea(ClockworkUtils.INSTANCE.load(tag));
+            setArea(loadArea(tag));
 
             setFirstPos(new Vector3i(tag.getInt("XF"), tag.getInt("YF"), tag.getInt("ZF")));
             setSecondPos(new Vector3i(tag.getInt("XS"), tag.getInt("YS"), tag.getInt("ZS")));
@@ -100,5 +104,26 @@ public abstract class MixinPlayerData extends LivingEntity implements AreaData {
     @Override
     public SelectedAreaToolkit getArea() {
         return entityData.get(AREA_TOOLKIT);
+    }
+
+    public SelectedAreaToolkit loadArea(CompoundTag nbt){
+        var toolKit = new SelectedAreaToolkit();
+        if (nbt != null) {
+            var nb = nbt.getByteArray("SelectedData");
+            try {
+                toolKit.overwriteFrom(VSJacksonUtil.INSTANCE.getDefaultMapper().readValue(nb, SelectedAreaToolkit.class));
+            } catch (IOException ignored) {
+            }
+        }
+        return toolKit;
+    }
+
+    public CompoundTag saveArea(CompoundTag nbt, SelectedAreaToolkit area){
+        try {
+            nbt.putByteArray("SelectedData", VSJacksonUtil.INSTANCE.getDefaultMapper().writeValueAsBytes(area));
+        } catch (JsonProcessingException ignored) {
+
+        }
+        return nbt;
     }
 }

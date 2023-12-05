@@ -1,8 +1,14 @@
 package org.valkyrienskies.clockwork.content.kinetics.sequenced_seat
 
+import com.simibubi.create.AllBlockEntityTypes
 import com.simibubi.create.AllItems
+import com.simibubi.create.content.kinetics.RotationPropagator
 import com.simibubi.create.content.kinetics.base.HorizontalKineticBlock
 import com.simibubi.create.content.kinetics.base.KineticBlock
+import com.simibubi.create.content.kinetics.base.KineticBlockEntity
+import com.simibubi.create.content.kinetics.simpleRelays.ShaftBlock
+import com.simibubi.create.content.kinetics.transmission.GearshiftBlock
+import com.simibubi.create.content.kinetics.transmission.SplitShaftBlockEntity
 import com.simibubi.create.foundation.block.IBE
 import com.simibubi.create.foundation.gui.ScreenOpener
 import net.fabricmc.api.EnvType
@@ -10,6 +16,8 @@ import net.fabricmc.api.Environment
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.util.RandomSource
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.Entity
@@ -19,11 +27,12 @@ import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelReader
+import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.ticks.TickPriority
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import java.util.function.Consumer
 
 class SequencedSeatBlock(properties: Properties) : HorizontalKineticBlock(properties),
     IBE<SequencedSeatBlockEntity> {

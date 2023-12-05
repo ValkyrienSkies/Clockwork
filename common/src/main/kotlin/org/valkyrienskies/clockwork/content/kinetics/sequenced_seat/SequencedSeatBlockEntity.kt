@@ -34,6 +34,7 @@ class SequencedSeatBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, stat
             val modifier = getRotationSpeedModifier(dir)
             degreesAwayFromBase[i] += convertToAngular(modifier * speed)
             if (modifier != lastModifier[i]) {
+                System.out.println("Refresh")
                 detachKinetics()
                 attachKinetics()
             }

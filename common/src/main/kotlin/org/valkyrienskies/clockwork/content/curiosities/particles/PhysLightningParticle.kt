@@ -65,7 +65,7 @@ class PhysLightningParticle(
     }
 
     override fun getCustomRotation(camera: Camera, partialTicks: Float): Quaternionf {
-        return ClockworkUtils.oldQuaternionf(0f, 0f, 0f, true)
+        return Quaternionf()
     }
 
     class Data : BasicParticleData<PhysLightningParticle>() {
