@@ -40,7 +40,6 @@ object ClockworkMod {
     fun init() {
         ClockworkContraptions.init()
         ClockworkPackets.init()
-        //ClockworkPonderScenes.init()
 
         VSEvents.ShipLoadEvent.on { event ->
             event.ship
@@ -48,7 +47,9 @@ object ClockworkMod {
     }
 
     @JvmStatic
-    fun initClient() {}
+    fun initClient() {
+        ClockworkPonderScenes.init()
+    }
 
     fun asResource(path: String): ResourceLocation {
         return ResourceLocation(MOD_ID, path)
@@ -56,7 +57,7 @@ object ClockworkMod {
 
     fun createCreativeTab(): CreativeModeTab {
         return CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)
-            .title(Component.translatable("itemGroup.valkyrienSkies"))
+            .title(Component.translatable("itemGroup.clockwork"))
             .icon { ClockworkBlocks.PHYSICS_INFUSER.asStack() }
             .displayItems { _, output ->
                 //output.accept(ClockworkItems.AURIC_DESIGNATOR)

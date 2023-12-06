@@ -1,19 +1,12 @@
 package org.valkyrienskies.clockwork.util
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.DoubleTag
 import net.minecraft.nbt.ListTag
-import net.minecraft.util.Mth
 import net.minecraft.world.phys.Vec3
-import org.joml.Quaternionf
-import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit
-import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
 import java.util.*
 import java.util.stream.Collectors
 
@@ -40,7 +33,7 @@ object ClockworkUtils {
         Arrays.stream(Direction.values())
             .collect(
                 Collectors.toMap(
-                    { direction -> BlockPos(direction.getNormal()).asLong() },
+                    { direction -> BlockPos(direction.normal).asLong() },
                     { direction -> direction },
                     { _, _ -> throw IllegalArgumentException("Duplicate keys") },
                     { Long2ObjectOpenHashMap() }

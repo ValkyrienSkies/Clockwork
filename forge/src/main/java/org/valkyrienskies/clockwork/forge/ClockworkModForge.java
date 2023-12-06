@@ -85,6 +85,7 @@ public class ClockworkModForge {
             // In create itself they do it FMLClientSetupEvent this does not work (what a scam)
             // It prob gets staticly loaded earlier and well yhea...
             ClockworkPartials.INSTANCE.init();
+            ClockworkMod.initClient();
             modEventBus.addListener(AllParticleTypes::registerFactories);
             // TODO forge partials
 
