@@ -6,7 +6,9 @@
     "compat.MixinAllBlocks",
     "compat.MixinStickerTileEntity"
   ],
-  "client": [],
+  "client": [
+    "MixinLevelRenderer"
+  ],
   "injectors": {
     "defaultRequire": 1
   },

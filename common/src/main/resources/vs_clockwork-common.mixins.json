@@ -20,8 +20,7 @@
   "client": [
     "client.MixinItemInHandRenderer",
     "content.gravitron.MinecraftAccessor",
-    "content.gravitron.MixinLocalPlayer",
-    "content.pulse.MixinLevelRenderer"
+    "content.gravitron.MixinLocalPlayer"
   ],
   "injectors": {
     "defaultRequire": 1

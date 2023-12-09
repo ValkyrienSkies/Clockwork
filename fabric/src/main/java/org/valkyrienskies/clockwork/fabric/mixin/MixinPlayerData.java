@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.mixin;
+package org.valkyrienskies.clockwork.fabric.mixin;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.EntityType;

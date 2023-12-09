@@ -44,6 +44,7 @@ class BluperClusterRenderer {
                     // other players
                     val area = AreaData.of(player).get()
                     val clusters: Set<Set<AABBic>> = area.area.selectionClusters
+
                     for (cluster in clusters) {
                         if (!storedClusters.containsKey(cluster)) {
                             storedClusters[cluster] =
@@ -58,6 +59,7 @@ class BluperClusterRenderer {
                     if (minecraft.getCameraEntity() == null) {
                         return
                     }
+
                     poseStack.pushPose()
                     // local player
                     if (player.isLocalPlayer) {
@@ -116,6 +118,7 @@ class BluperClusterRenderer {
                             }
                         }
                         if (area.firstPos.isPresent && hoveredBlockPos.isPresent) {
+
                             val vec = Vector3d(hoveredBlockPos.get()).toMinecraft()
                             if (vec != localPlayer.eyePosition) {
 

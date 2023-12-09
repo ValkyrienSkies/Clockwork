@@ -19,8 +19,6 @@ public interface AreaData {
 
     void setArea(SelectedAreaToolkit load);
 
-    void removeArea();
-
     SelectedAreaToolkit getArea();
 
     Optional<Vector3ic> getFirstPos();
