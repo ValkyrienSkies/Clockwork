@@ -8,20 +8,21 @@ import org.valkyrienskies.clockwork.platform.api.network.ClientNetworkContext
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket
 import org.valkyrienskies.mod.common.util.toBlockPos
 import org.valkyrienskies.mod.common.util.toJOML
+import java.util.*
 
 class BluperGluePacket : S2CCWPacket {
-    private val firstPos: Vector3ic?
+    private val firstPos: Optional<Vector3ic>
 
     constructor(buffer: FriendlyByteBuf) {
-        firstPos = buffer.readBlockPos().toJOML()
+        firstPos = Optional.of(buffer.readBlockPos().toJOML())
     }
 
-    constructor(vec: Vector3ic) {
+    constructor(vec: Optional<Vector3ic>) {
         firstPos = vec
     }
 
     override fun write(buffer: FriendlyByteBuf) {
-        buffer.writeBlockPos(firstPos!!.toBlockPos())
+        buffer.writeBlockPos(firstPos.get().toBlockPos())
     }
 
     override fun handle(context: ClientNetworkContext) {
@@ -32,7 +33,7 @@ class BluperGluePacket : S2CCWPacket {
                     return@enqueueWork
                 }
                 val areaData = AreaData.of(Minecraft.getInstance().player).get()
-                areaData.firstPos = firstPos;
+                areaData.firstPos = (firstPos);
             }
         }
         context.setPacketHandled(true)

@@ -1,13 +1,16 @@
 package org.valkyrienskies.clockwork.mixin;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import org.joml.Vector3f;
 import org.joml.Vector3i;
 import org.joml.Vector3ic;
+import org.joml.primitives.AABBic;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -15,65 +18,89 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.valkyrienskies.clockwork.AreaData;
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit;
+import org.valkyrienskies.clockwork.util.ClockworkUtils;
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 
-import static org.valkyrienskies.clockwork.util.AreaDataSerializer.AREA_TOOLKIT;
+import static org.valkyrienskies.clockwork.util.AreaDataSerializer.*;
 
 @Mixin(Player.class)
 public abstract class MixinPlayerData extends LivingEntity implements AreaData {
-
-    @Unique
-    public Vector3ic firstPos = null;
-
-    @Unique
-    public Vector3ic secondPos = null;
 
     protected MixinPlayerData(EntityType<? extends LivingEntity> entityType, Level level) {
         super(entityType, level);
     }
 
+    @Unique public boolean shouldReset = false;
+    @Unique public int resetTimer = 20;
+
     @Override
-    public Vector3ic getFirstPos() {
-        return firstPos;
+    public void shouldReset(boolean reset) {
+        this.shouldReset = reset;
     }
 
     @Override
-    public Vector3ic getSecondPos() {
-        return secondPos;
+    public Optional<Vector3ic> getFirstPos() {
+        return entityData.get(FIRST_POS);
     }
 
     @Override
-    public void setFirstPos(Vector3ic pos) {
-        this.firstPos = pos;
+    public Optional<Vector3ic> getSecondPos() {
+        return entityData.get(SECOND_POS);
     }
 
     @Override
-    public void setSecondPos(Vector3ic pos) {
-        this.secondPos = pos;
+    public void setFirstPos(Optional<Vector3ic> pos) {
+        entityData.set(FIRST_POS, pos);
+    }
+
+    @Override
+    public void setSecondPos(Optional<Vector3ic> pos) {
+        entityData.set(SECOND_POS, pos);
+    }
+
+    @Inject(method = "tick", at = @At("TAIL"))
+    private void clockwork$tickPlayer(CallbackInfo ci){
+        if (shouldReset) {
+            resetTimer--;
+            if (resetTimer <= 0) {
+                resetTimer = 20;
+                shouldReset(false);
+                HashSet<Set<AABBic>> clone = new HashSet<>(getArea().getSelectionClusters());
+
+                for (Set<AABBic> aabBic : clone) {
+                    getArea().dumpCluster(aabBic);
+                }
+            }
+        }
     }
 
     @Inject(method = "defineSynchedData", at = @At("TAIL"))
     private void addData(CallbackInfo info) {
         entityData.define(AREA_TOOLKIT, new SelectedAreaToolkit());
+        entityData.define(FIRST_POS, Optional.empty());
+        entityData.define(SECOND_POS, Optional.empty());
     }
 
     @Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
     private void writeCWData(CompoundTag compoundTag, CallbackInfo info) {
         CompoundTag tag = new CompoundTag();
-        saveArea(tag, getArea());
+        ClockworkUtils.INSTANCE.saveArea(tag, getArea());
 
-        if (getFirstPos() != null) {
-            tag.putInt("XF", getFirstPos().x());
-            tag.putInt("YF", getFirstPos().y());
-            tag.putInt("ZF", getFirstPos().z());
+        if (getFirstPos().isPresent()) {
+            tag.putInt("XF", getFirstPos().get().x());
+            tag.putInt("YF", getFirstPos().get().y());
+            tag.putInt("ZF", getFirstPos().get().z());
         }
 
-        if (getSecondPos() != null) {
-            tag.putInt("XS", getSecondPos().x());
-            tag.putInt("YS", getSecondPos().y());
-            tag.putInt("ZS", getSecondPos().z());
+        if (getSecondPos().isPresent()) {
+            tag.putInt("XS", getSecondPos().get().x());
+            tag.putInt("YS", getSecondPos().get().y());
+            tag.putInt("ZS", getSecondPos().get().z());
         }
 
         compoundTag.put("AreaData", tag);
@@ -83,15 +110,15 @@ public abstract class MixinPlayerData extends LivingEntity implements AreaData {
     public void readCWData(CompoundTag compoundTag, CallbackInfo info) {
         CompoundTag tag = (CompoundTag) compoundTag.get("AreaData");
         if (tag != null) {
-            setArea(loadArea(tag));
+            setArea(ClockworkUtils.INSTANCE.loadArea(tag));
 
-            setFirstPos(new Vector3i(tag.getInt("XF"), tag.getInt("YF"), tag.getInt("ZF")));
-            setSecondPos(new Vector3i(tag.getInt("XS"), tag.getInt("YS"), tag.getInt("ZS")));
+            setFirstPos(Optional.of(new Vector3i(tag.getInt("XF"), tag.getInt("YF"), tag.getInt("ZF"))));
+            setSecondPos(Optional.of(new Vector3i(tag.getInt("XS"), tag.getInt("YS"), tag.getInt("ZS"))));
         }
     }
 
     @Override
-    public void removeArea(SelectedAreaToolkit kit) {
+    public void removeArea() {
         setArea(new SelectedAreaToolkit());
     }
 
@@ -103,26 +130,5 @@ public abstract class MixinPlayerData extends LivingEntity implements AreaData {
     @Override
     public SelectedAreaToolkit getArea() {
         return entityData.get(AREA_TOOLKIT);
-    }
-
-    public SelectedAreaToolkit loadArea(CompoundTag nbt) {
-        var toolKit = new SelectedAreaToolkit();
-        if (nbt != null) {
-            var nb = nbt.getByteArray("SelectedData");
-            try {
-                toolKit.overwriteFrom(VSJacksonUtil.INSTANCE.getDefaultMapper().readValue(nb, SelectedAreaToolkit.class));
-            } catch (IOException ignored) {
-            }
-        }
-        return toolKit;
-    }
-
-    public CompoundTag saveArea(CompoundTag nbt, SelectedAreaToolkit area) {
-        try {
-            nbt.putByteArray("SelectedData", VSJacksonUtil.INSTANCE.getDefaultMapper().writeValueAsBytes(area));
-        } catch (JsonProcessingException ignored) {
-
-        }
-        return nbt;
     }
 }

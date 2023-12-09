@@ -19,6 +19,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInf
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.mod.common.util.toJOML
+import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 
@@ -43,8 +44,8 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
         if (!isSelected) {
             if (entity is Player) {
                 val areaData = AreaData.of(entity).get()
-                areaData.firstPos = null
-                areaData.secondPos = null
+                areaData.firstPos = Optional.empty()
+                areaData.secondPos = Optional.empty()
             }
         }
     }
@@ -65,8 +66,8 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
             return super.useOn(context)
         }
         val areaData = AreaData.of(player).get()
-        if (areaData.firstPos == null) {
-            areaData.firstPos = pos
+        if (areaData.firstPos.isEmpty) {
+            areaData.firstPos = Optional.of(pos)
             player.displayClientMessage(
                 Component.literal("First Position Selected!").withStyle(
                     Style.EMPTY.withColor(
@@ -77,9 +78,9 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
             player.cooldowns.addCooldown(this, 10)
             ClockworkPackets.sendToClientsTrackingAndSelf(BluperGluePacket(areaData.firstPos), player as ServerPlayer)
             return InteractionResult.SUCCESS
-        } else if (areaData.secondPos == null && areaData.firstPos != null) {
-            areaData.secondPos = pos
-            if (areaData.firstPos!!.distance(areaData.secondPos) > 500) {
+        } else if (areaData.secondPos.isEmpty && areaData.firstPos.isPresent) {
+            areaData.secondPos = Optional.of(pos)
+            if (areaData.firstPos.get().distance(areaData.secondPos.get()) > 500) {
                 player.displayClientMessage(
                     Component.literal("Area Too Large!").withStyle(
                         Style.EMPTY.withColor(
@@ -87,20 +88,20 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
                         )
                     ), true
                 )
-                areaData.firstPos = null
-                areaData.secondPos = null
+                areaData.firstPos = Optional.empty()
+                areaData.secondPos = Optional.empty()
                 return InteractionResult.SUCCESS
             }
             val area: AABBic = AABBi(
-                min(areaData.firstPos!!.x(), areaData.secondPos!!.x()),
-                min(areaData.firstPos!!.y(), areaData.secondPos!!.y()),
-                min(areaData.firstPos!!.z(), areaData.secondPos!!.z()),
-                max(areaData.firstPos!!.x(), areaData.secondPos!!.x()),
-                max(areaData.firstPos!!.y(), areaData.secondPos!!.y()),
-                max(areaData.firstPos!!.z(), areaData.secondPos!!.z())
+                min(areaData.firstPos.get().x(), areaData.secondPos.get().x()),
+                min(areaData.firstPos.get().y(), areaData.secondPos.get().y()),
+                min(areaData.firstPos.get().z(), areaData.secondPos.get().z()),
+                max(areaData.firstPos.get().x(), areaData.secondPos.get().x()),
+                max(areaData.firstPos.get().y(), areaData.secondPos.get().y()),
+                max(areaData.firstPos.get().z(), areaData.secondPos.get().z())
             )
-            areaData.firstPos = null
-            areaData.secondPos = null
+            areaData.firstPos = Optional.empty()
+            areaData.secondPos = Optional.empty()
             var selectedArea = AreaData.of(player).get().area
             if (selectedArea.containsAABB(area)) {
                 player.displayClientMessage(
@@ -137,7 +138,7 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
                 player.cooldowns.addCooldown(this, 10)
                 return InteractionResult.SUCCESS
             }
-            selectedArea = SelectedAreaToolkit()
+            //selectedArea = SelectedAreaToolkit()
             selectedArea.clusterNewArea(area)
 
             val data = AreaData.of(player).get()

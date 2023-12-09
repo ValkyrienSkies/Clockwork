@@ -1,9 +1,12 @@
 package org.valkyrienskies.clockwork;
 
 import org.joml.Vector3ic;
+import org.joml.primitives.AABBic;
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 public interface AreaData {
 
@@ -16,15 +19,17 @@ public interface AreaData {
 
     void setArea(SelectedAreaToolkit load);
 
-    void removeArea(SelectedAreaToolkit list);
+    void removeArea();
 
     SelectedAreaToolkit getArea();
 
-    Vector3ic getFirstPos();
+    Optional<Vector3ic> getFirstPos();
 
-    void setFirstPos(Vector3ic pos);
+    void setFirstPos(Optional<Vector3ic> pos);
 
-    Vector3ic getSecondPos();
+    Optional<Vector3ic> getSecondPos();
 
-    void setSecondPos(Vector3ic pos);
+    void setSecondPos(Optional<Vector3ic> pos);
+
+    void shouldReset(boolean reset);
 }

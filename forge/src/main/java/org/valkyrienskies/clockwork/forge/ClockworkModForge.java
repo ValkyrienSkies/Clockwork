@@ -94,6 +94,7 @@ public class ClockworkModForge {
 
         TAB_REGISTER.register("general", ClockworkMod.INSTANCE::createCreativeTab);
         DATA_SERIALIZER_REGISTER.register("area", () -> CWEntityDataSerializers.AREA_TOOLKIT_SERIALIZER);
+        DATA_SERIALIZER_REGISTER.register("vec3i", () -> CWEntityDataSerializers.VEC3I);
 
         DATA_SERIALIZER_REGISTER.register(modEventBus);
         TAB_REGISTER.register(modEventBus);

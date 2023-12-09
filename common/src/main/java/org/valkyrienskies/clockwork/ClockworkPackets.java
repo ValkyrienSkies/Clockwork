@@ -8,6 +8,7 @@ import net.minecraft.world.level.Level;
 import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.UpdateAltMeterPacket;
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserSyncPacket;
 import org.valkyrienskies.clockwork.content.curiosities.tools.BluperGluePacket;
+import org.valkyrienskies.clockwork.content.curiosities.tools.BluperHelperPacket;
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.AreaDesignatorSelectionPacket;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket;
@@ -34,7 +35,10 @@ public enum ClockworkPackets {
     // auric designator
 
     DESIGNATORSELECTION(AreaDesignatorSelectionPacket.class, AreaDesignatorSelectionPacket::new),
+
+    //Bluper
     BLURPLESELECTOR(BluperGluePacket.class, BluperGluePacket::new),
+    BLUPER_HELPER(BluperHelperPacket.class, BluperHelperPacket::new),
 
     // INSERT CLUSTER HANDLING PACKET STUFF HERE
 

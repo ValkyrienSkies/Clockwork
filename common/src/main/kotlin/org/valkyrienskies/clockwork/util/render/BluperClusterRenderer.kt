@@ -23,6 +23,9 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.S
 import org.valkyrienskies.mod.common.util.toBlockPos
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft
+import java.util.*
+import kotlin.collections.HashMap
+import kotlin.collections.HashSet
 
 class BluperClusterRenderer {
 
@@ -65,9 +68,9 @@ class BluperClusterRenderer {
                             hovered = (mc.hitResult as BlockHitResult?)!!.blockPos
                             (mc.hitResult as BlockHitResult?)!!.blockPos.relative((mc.hitResult as BlockHitResult?)!!.direction)
                         }
-                        var hoveredBlockPos: Vector3ic = Vector3i()
+                        var hoveredBlockPos: Optional<Vector3ic> = Optional.empty()
                         if (hovered != null) {
-                            hoveredBlockPos = hovered.toJOML()
+                            hoveredBlockPos = Optional.of(hovered.toJOML())
                         }
 
                         //  find existing hovered cluster if existing
@@ -100,10 +103,10 @@ class BluperClusterRenderer {
                         }
                         if (hoveredCluster == null) {
                             // render initial selection box
-                            if (area.firstPos == null) {
-                                val vec = Vector3d(hoveredBlockPos).toMinecraft()
+                            if (area.firstPos.isEmpty && hoveredBlockPos.isPresent) {
+                                val vec = Vector3d(hoveredBlockPos.get()).toMinecraft()
                                 if (vec != localPlayer.eyePosition) {
-                                    ClockworkMod.OUTLINER.chaseAABB(area, AABB(hoveredBlockPos.toBlockPos()))
+                                    ClockworkMod.OUTLINER.chaseAABB(area, AABB(hoveredBlockPos.get().toBlockPos()))
                                     ClockworkMod.OUTLINER.edit(area).ifPresent { outline ->
                                         outline.colored(HOVERPURPLE).withFaceTexture(AllSpecialTextures.SELECTION)
                                     }
@@ -112,12 +115,13 @@ class BluperClusterRenderer {
                                 }
                             }
                         }
-                        if (area.firstPos != null) {
-                            val vec = Vector3d(hoveredBlockPos).toMinecraft()
+                        if (area.firstPos.isPresent && hoveredBlockPos.isPresent) {
+                            val vec = Vector3d(hoveredBlockPos.get()).toMinecraft()
                             if (vec != localPlayer.eyePosition) {
+
                                 ClockworkMod.OUTLINER.chaseAABB(
                                     bbOutlineSlotAD,
-                                    AABB(area.firstPos!!.toBlockPos(), hoveredBlockPos.toBlockPos()).expandTowards(
+                                    AABB(area.firstPos.get().toBlockPos(), hoveredBlockPos.get().toBlockPos()).expandTowards(
                                         1.0,
                                         1.0,
                                         1.0
@@ -126,11 +130,13 @@ class BluperClusterRenderer {
                                 ClockworkMod.OUTLINER.edit(bbOutlineSlotAD).ifPresent { outline ->
                                     outline.colored(HOVERPURPLE).withFaceTexture(AllSpecialTextures.SELECTION)
                                 }
-                            } else {
+                            } else if (area.firstPos.isPresent) {
                                 ClockworkMod.OUTLINER.chaseAABB(
                                     bbOutlineSlotAD,
-                                    AABB(area.firstPos!!.toBlockPos(), area.firstPos!!.toBlockPos())
+                                    AABB(area.firstPos.get().toBlockPos(), area.firstPos.get().toBlockPos())
                                 )
+                            } else {
+                                ClockworkMod.OUTLINER.remove(bbOutlineSlotAD)
                             }
                             // render selection box
                         } else {
