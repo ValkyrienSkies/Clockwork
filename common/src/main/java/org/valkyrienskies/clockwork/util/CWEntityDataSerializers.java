@@ -1,22 +1,11 @@
 package org.valkyrienskies.clockwork.util;
 
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import org.joml.primitives.AABBi;
 import org.joml.primitives.AABBic;
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 
 public class CWEntityDataSerializers {
 

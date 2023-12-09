@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork.util.render;
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllSpecialTextures
-import com.simibubi.create.foundation.outliner.Outliner
 import com.simibubi.create.foundation.utility.Color
 import com.simibubi.create.foundation.utility.RaycastHelper
 import net.minecraft.client.Minecraft
@@ -20,7 +19,6 @@ import org.joml.primitives.LineSegmentf
 import org.valkyrienskies.clockwork.AreaData
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.content.curiosities.tools.BluperGlueItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit
 import org.valkyrienskies.mod.common.util.toBlockPos
 import org.valkyrienskies.mod.common.util.toJOML
@@ -82,8 +80,10 @@ class BluperClusterRenderer {
                                 range,
                                 RaycastHelper.getTraceOrigin(localPlayer)
                             ).toJOML()
-                            val traceOrigin: Vector3fc = Vector3f(tempOrigin.x().toFloat(), tempOrigin.y().toFloat(), tempOrigin.z().toFloat())
-                            val traceTarget: Vector3fc = Vector3f(tempTarget.x().toFloat(), tempTarget.y().toFloat(), tempTarget.z().toFloat())
+                            val traceOrigin: Vector3fc =
+                                Vector3f(tempOrigin.x().toFloat(), tempOrigin.y().toFloat(), tempOrigin.z().toFloat())
+                            val traceTarget: Vector3fc =
+                                Vector3f(tempTarget.x().toFloat(), tempTarget.y().toFloat(), tempTarget.z().toFloat())
                             val cast = LineSegmentf(traceOrigin, traceTarget)
                             for (box in cluster) {
                                 val intersection = Intersectionf.intersectLineSegmentAab(cast, AABBi(box), Vector2f())
@@ -104,8 +104,8 @@ class BluperClusterRenderer {
                                 val vec = Vector3d(hoveredBlockPos).toMinecraft()
                                 if (vec != localPlayer.eyePosition) {
                                     ClockworkMod.OUTLINER.chaseAABB(area, AABB(hoveredBlockPos.toBlockPos()))
-                                    ClockworkMod.OUTLINER.edit(area).ifPresent {
-                                        outline -> outline.colored(HOVERPURPLE).withFaceTexture(AllSpecialTextures.SELECTION)
+                                    ClockworkMod.OUTLINER.edit(area).ifPresent { outline ->
+                                        outline.colored(HOVERPURPLE).withFaceTexture(AllSpecialTextures.SELECTION)
                                     }
                                 } else {
                                     ClockworkMod.OUTLINER.remove(area)

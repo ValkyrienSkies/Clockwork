@@ -3,13 +3,11 @@ package org.valkyrienskies.clockwork
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
-import net.minecraft.core.Registry
 import net.minecraft.core.Vec3i
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.data.CachedOutput
 import net.minecraft.data.DataGenerator
 import net.minecraft.data.DataProvider
-import net.minecraft.data.HashCache
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundSource
@@ -324,7 +322,15 @@ object ClockworkSounds {
             }
         }
 
-        override fun play(world: Level?, entity: Player?, x: Double, y: Double, z: Double, volume: Float, pitch: Float) {
+        override fun play(
+            world: Level?,
+            entity: Player?,
+            x: Double,
+            y: Double,
+            z: Double,
+            volume: Float,
+            pitch: Float
+        ) {
             for ((event1, volume1, pitch1) in compiledEvents) {
                 world!!.playSound(
                     entity, x, y, z, event1, category, volume1 * volume,
@@ -333,7 +339,15 @@ object ClockworkSounds {
             }
         }
 
-        override fun playAt(world: Level?, x: Double, y: Double, z: Double, volume: Float, pitch: Float, fade: Boolean) {
+        override fun playAt(
+            world: Level?,
+            x: Double,
+            y: Double,
+            z: Double,
+            volume: Float,
+            pitch: Float,
+            fade: Boolean
+        ) {
             for ((event1, volume1, pitch1) in compiledEvents) {
                 world!!.playLocalSound(
                     x, y, z, event1, category, volume1 * volume,
@@ -382,11 +396,27 @@ object ClockworkSounds {
             json!!.add(id.path, entry)
         }
 
-        override fun play(world: Level?, entity: Player?, x: Double, y: Double, z: Double, volume: Float, pitch: Float) {
+        override fun play(
+            world: Level?,
+            entity: Player?,
+            x: Double,
+            y: Double,
+            z: Double,
+            volume: Float,
+            pitch: Float
+        ) {
             world!!.playSound(entity, x, y, z, mainEvent, category, volume, pitch)
         }
 
-        override fun playAt(world: Level?, x: Double, y: Double, z: Double, volume: Float, pitch: Float, fade: Boolean) {
+        override fun playAt(
+            world: Level?,
+            x: Double,
+            y: Double,
+            z: Double,
+            volume: Float,
+            pitch: Float,
+            fade: Boolean
+        ) {
             world!!.playLocalSound(x, y, z, mainEvent, category, volume, pitch, fade)
         }
     }

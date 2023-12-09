@@ -42,7 +42,9 @@ public class MixinAbstractCauldronBlock {
         }
     };
 
-    @Shadow @Final private Map<Item, CauldronInteraction> interactions;
+    @Shadow
+    @Final
+    private Map<Item, CauldronInteraction> interactions;
 
     @Inject(method = "use", at = @At("HEAD"))
     private void use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit, CallbackInfoReturnable<InteractionResult> cir) {

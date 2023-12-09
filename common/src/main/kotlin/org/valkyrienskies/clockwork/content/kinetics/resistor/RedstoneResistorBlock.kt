@@ -17,7 +17,6 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.ticks.TickPriority
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import java.util.Random
 
 class RedstoneResistorBlock(properties: Properties) :
     AbstractEncasedShaftBlock(properties),

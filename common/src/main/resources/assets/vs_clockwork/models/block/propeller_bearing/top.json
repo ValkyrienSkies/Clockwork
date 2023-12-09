@@ -1,31 +1,108 @@
 {
-	"credit": "Made with Blockbench",
-	"texture_size": [32, 32],
-	"textures": {
-		"1": "vs_clockwork:block/propbearingtop",
-		"particle": "vs_clockwork:block/propbearingtop"
-	},
-	"elements": [
-		{
-			"from": [0, 12, 0],
-			"to": [16, 16, 16],
-			"rotation": {"angle": 0, "axis": "y", "origin": [8, 8, 2]},
-			"faces": {
-				"north": {"uv": [9, 1, 5, 2], "rotation": 180, "texture": "#1"},
-				"east": {"uv": [4, 0, 5, 4], "rotation": 270, "texture": "#1"},
-				"south": {"uv": [9, 1, 5, 0], "texture": "#1"},
-				"west": {"uv": [4, 4, 5, 8], "rotation": 90, "texture": "#1"},
-				"up": {"uv": [0, 0, 4, 4], "rotation": 180, "texture": "#1"},
-				"down": {"uv": [0, 4, 4, 8], "texture": "#1"}
-			}
-		}
-	],
-	"groups": [
-		{
-			"name": "head",
-			"origin": [0, 0, 0],
-			"color": 0,
-			"children": [0]
-		}
-	]
+  "credit": "Made with Blockbench",
+  "texture_size": [
+    32,
+    32
+  ],
+  "textures": {
+    "1": "vs_clockwork:block/propbearingtop",
+    "particle": "vs_clockwork:block/propbearingtop"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        12,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          8,
+          8,
+          2
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            9,
+            1,
+            5,
+            2
+          ],
+          "rotation": 180,
+          "texture": "#1"
+        },
+        "east": {
+          "uv": [
+            4,
+            0,
+            5,
+            4
+          ],
+          "rotation": 270,
+          "texture": "#1"
+        },
+        "south": {
+          "uv": [
+            9,
+            1,
+            5,
+            0
+          ],
+          "texture": "#1"
+        },
+        "west": {
+          "uv": [
+            4,
+            4,
+            5,
+            8
+          ],
+          "rotation": 90,
+          "texture": "#1"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ],
+          "rotation": 180,
+          "texture": "#1"
+        },
+        "down": {
+          "uv": [
+            0,
+            4,
+            4,
+            8
+          ],
+          "texture": "#1"
+        }
+      }
+    }
+  ],
+  "groups": [
+    {
+      "name": "head",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "color": 0,
+      "children": [
+        0
+      ]
+    }
+  ]
 }

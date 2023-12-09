@@ -45,7 +45,7 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
         val mysteriousLiquid = CachedBufferer.partial(ClockworkPartials.STRANGE_FLUID, blockState)
         mysteriousLiquid.light(light).renderInto(ms, buffer.getBuffer(RenderType.translucent()))
 
-        val designator: AreaDesignatorItem? = if (infuser.getItem(0).item is AreaDesignatorItem)  {
+        val designator: AreaDesignatorItem? = if (infuser.getItem(0).item is AreaDesignatorItem) {
             infuser.getItem(0).item as AreaDesignatorItem
         } else {
             null
@@ -84,7 +84,6 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
         // Core
 
 
-
         val core = CachedBufferer.partial(ClockworkPartials.PHYSICS_CORE, blockState)
         val angle = 0f
         val offset = 0f
@@ -93,35 +92,36 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
                 val value = infuser.assemblyProgress.value
                 val coreOffset = te.getCoreOffset(partialTicks - 1)
                 animateAssembly(core, angle, coreOffset, value, infuser).light(light).renderInto(ms, vb)
-                val coreRealPos: Vector3dc = infuser.blockPos.toJOMLD().add(0.0, infuser.getCoreOffset(partialTicks - 1).toDouble(), 0.0)
+                val coreRealPos: Vector3dc =
+                    infuser.blockPos.toJOMLD().add(0.0, infuser.getCoreOffset(partialTicks - 1).toDouble(), 0.0)
                 // Render Bolts
                 //todo fix
                 /**
                 if (amountOfSelections > 0) {
-                    if (value >= 160) {
-                        val stepAmount = 200 / amountOfSelections
-                        if (value.toInt() == 160) {
-                            val bolt = BoltUtil.addBolt(selectionNearestPoints[0], coreRealPos, Vector4i(238, 130, 238, 125), 0.4f)
-                            bolts[selectionNearestPoints[0]] = bolt
-                        }
-                        if (amountOfSelections > 1) {
-                            if ((value.toInt() - 160) % stepAmount == 0) {
-                                val bolt = BoltUtil.addBolt(selectionNearestPoints[(value.toInt() - 160) / stepAmount], coreRealPos, Vector4i(238, 130, 238, 125), 0.4f)
-                                bolts[selectionNearestPoints[(value.toInt() - 160) / stepAmount]] = bolt
-                            }
-                        }
+                if (value >= 160) {
+                val stepAmount = 200 / amountOfSelections
+                if (value.toInt() == 160) {
+                val bolt = BoltUtil.addBolt(selectionNearestPoints[0], coreRealPos, Vector4i(238, 130, 238, 125), 0.4f)
+                bolts[selectionNearestPoints[0]] = bolt
+                }
+                if (amountOfSelections > 1) {
+                if ((value.toInt() - 160) % stepAmount == 0) {
+                val bolt = BoltUtil.addBolt(selectionNearestPoints[(value.toInt() - 160) / stepAmount], coreRealPos, Vector4i(238, 130, 238, 125), 0.4f)
+                bolts[selectionNearestPoints[(value.toInt() - 160) / stepAmount]] = bolt
+                }
+                }
 
-                        for (bolt in bolts.values) {
-                            BoltUtil.retargetBolt(bolt, end = coreRealPos)
-                        }
+                for (bolt in bolts.values) {
+                BoltUtil.retargetBolt(bolt, end = coreRealPos)
+                }
 
-                        if (value > 360) {
-                            for (bolt in bolts.values) {
-                                BoltUtil.delBolt(bolt)
-                            }
-                            bolts.clear()
-                        }
-                    }
+                if (value > 360) {
+                for (bolt in bolts.values) {
+                BoltUtil.delBolt(bolt)
+                }
+                bolts.clear()
+                }
+                }
                 }
                  */
             }
@@ -204,6 +204,7 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
 
 
     }
+
     companion object {
         // The number of ticks over which to compute scan results. Which is at the
         // same time the use time of the scanner item.

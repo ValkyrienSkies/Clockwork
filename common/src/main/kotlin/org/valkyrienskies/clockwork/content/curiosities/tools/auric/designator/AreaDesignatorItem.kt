@@ -27,7 +27,6 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInf
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
 import org.valkyrienskies.mod.common.util.toJOML
-import java.util.Random
 import kotlin.math.max
 import kotlin.math.min
 

@@ -133,7 +133,7 @@ class FlapBearingBlockEntity(type: BlockEntityType<FlapBearingBlockEntity>, pos:
 
     fun assemble() {
         if (level!!.getBlockState(worldPosition)
-            .block !is FlapBearingBlock
+                .block !is FlapBearingBlock
         ) return
         val direction = blockState.getValue<Direction>(BlockStateProperties.FACING)
         val contraption: FlapContraption?

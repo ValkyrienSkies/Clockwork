@@ -21,7 +21,8 @@ class GravitronForceInducer : ShipForcesInducer {
             val pConst = 160.0
             val dConst = 20.0
 
-            val localGrabPos: Vector3dc = physShip.transform.shipToWorld.transformPosition(dataCopy.grabbedPos, Vector3d())
+            val localGrabPos: Vector3dc =
+                physShip.transform.shipToWorld.transformPosition(dataCopy.grabbedPos, Vector3d())
             val idealPosDif: Vector3dc = dataCopy.idealPos.sub(localGrabPos, Vector3d())
 
             val posDif: Vector3d = idealPosDif.mul(pConst, Vector3d())
@@ -37,7 +38,9 @@ class GravitronForceInducer : ShipForcesInducer {
         run {
             val pConst = 160.0
             val dConst = 20.0
-            val rotDif = dataCopy.idealRot.mul(physShip.transform.shipToWorldRotation.invert(Quaterniond()), Quaterniond()).normalize().invert()
+            val rotDif =
+                dataCopy.idealRot.mul(physShip.transform.shipToWorldRotation.invert(Quaterniond()), Quaterniond())
+                    .normalize().invert()
             val rotDifVector = Vector3d(rotDif.x() * 2.0, rotDif.y() * 2.0, rotDif.z() * 2.0).mul(pConst)
             if (rotDif.w() < 0) {
                 rotDifVector.mul(-1.0)
@@ -47,7 +50,14 @@ class GravitronForceInducer : ShipForcesInducer {
             // Integrate
             rotDifVector.sub(physShip.poseVel.omega.mul(dConst, Vector3d()))
 
-            val torque = physShip.poseVel.rot.transform(physShip.inertia.momentOfInertiaTensor.transform(physShip.poseVel.rot.transformInverse(rotDifVector, Vector3d())))
+            val torque = physShip.poseVel.rot.transform(
+                physShip.inertia.momentOfInertiaTensor.transform(
+                    physShip.poseVel.rot.transformInverse(
+                        rotDifVector,
+                        Vector3d()
+                    )
+                )
+            )
             physShip.applyInvariantTorque(torque)
         }
     }

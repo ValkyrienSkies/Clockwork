@@ -25,6 +25,7 @@ class SequencedSeatBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, stat
     private var pressedKeys = setOf<InputKey>()
     private val degreesAwayFromBase = FloatArray(4)
     private val lastModifier = FloatArray(4)
+
     //TODO val computerHandler: ComputerAttachmentHandler = ComputerAttachmentHandler()
     override fun tick() {
         super.tick()

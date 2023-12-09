@@ -44,7 +44,6 @@ import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
-import java.util.Random
 import java.util.function.Consumer
 
 class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) :

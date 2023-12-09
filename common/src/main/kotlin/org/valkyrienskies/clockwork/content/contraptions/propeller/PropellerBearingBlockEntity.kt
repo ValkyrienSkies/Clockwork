@@ -90,6 +90,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
             return 3f / 16f + sin(EaseHelper.easeInOutSine(this.pistonsD).toDouble()).toFloat() / 16f
         }
     }
+
     override fun getInterpolatedAngle(partialTicks: Float): Float {
         var partialTicks = partialTicks
         if (isVirtual) return Mth.lerp(partialTicks + .5f, prevAngle, realAngle)
@@ -175,7 +176,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         if (rotspeed == speed) {
             return
         }
-        
+
         val diff = speed - rotspeed
         rotspeed += Mth.clamp(diff / 10, -32f, 32f)
     }
@@ -215,7 +216,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         val Q = startingPoint / spinup
         rotspeed = (rotspeed + 6f * Q / spinup) * (1f - 1f / spinup)
     }
-    
+
     override fun calculateStressApplied(): Float {
         if (running && movedContraption != null) {
             sails = sailPositions.size
@@ -282,7 +283,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
     //            sendData();
     //        }
     //    }
-     override fun attach(contraption: ControlledContraptionEntity) {
+    override fun attach(contraption: ControlledContraptionEntity) {
         val blockState = blockState
         if (contraption.contraption !is PropellerContraption) return
         if (!blockState.hasProperty(BearingBlock.FACING)) return

@@ -16,7 +16,6 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
 import org.joml.Quaternionf
 import org.valkyrienskies.clockwork.ClockworkPartials
-import org.valkyrienskies.clockwork.util.ClockworkUtils
 
 class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) :
     KineticBlockEntityRenderer<PhysBearingBlockEntity>(context) {

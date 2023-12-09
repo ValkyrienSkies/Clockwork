@@ -9,8 +9,6 @@ import org.joml.Vector3dc
 import org.joml.Vector3ic
 import org.joml.primitives.AABBic
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
-import java.util.ArrayList
-import java.util.HashSet
 
 /**
  * A storage class for things (mostly the auric designator) that need to keep track of clustered selections.

@@ -1,4 +1,4 @@
-  {
+{
   "variants": {
     "powered=true": {
       "model": "vs_clockwork:block/ballooner/block"

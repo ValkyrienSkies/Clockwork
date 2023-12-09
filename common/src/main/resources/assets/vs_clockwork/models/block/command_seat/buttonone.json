@@ -1,21 +1,77 @@
 {
-	"credit": "Made with Blockbench",
-	"textures": {
-		"0": "vs_clockwork:block/commandseat",
-		"particle": "minecraft:block/dark_oak_planks"
-	},
-	"elements": [
-		{
-			"from": [15.25, 18, 1.75],
-			"to": [16.25, 19, 2.75],
-			"faces": {
-				"north": {"uv": [2.6875, 4.8125, 3.375, 5.5], "texture": "#0"},
-				"east": {"uv": [2.6875, 4.8125, 3.375, 5.5], "texture": "#0"},
-				"south": {"uv": [2.6875, 4.8125, 3.375, 5.5], "texture": "#0"},
-				"west": {"uv": [2.6875, 4.8125, 3.375, 5.5], "texture": "#0"},
-				"up": {"uv": [2.6875, 4.8125, 2, 4.125], "texture": "#0"},
-				"down": {"uv": [2.6875, 4.8125, 2, 5.5], "texture": "#0"}
-			}
-		}
-	]
+  "credit": "Made with Blockbench",
+  "textures": {
+    "0": "vs_clockwork:block/commandseat",
+    "particle": "minecraft:block/dark_oak_planks"
+  },
+  "elements": [
+    {
+      "from": [
+        15.25,
+        18,
+        1.75
+      ],
+      "to": [
+        16.25,
+        19,
+        2.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2.6875,
+            4.8125,
+            3.375,
+            5.5
+          ],
+          "texture": "#0"
+        },
+        "east": {
+          "uv": [
+            2.6875,
+            4.8125,
+            3.375,
+            5.5
+          ],
+          "texture": "#0"
+        },
+        "south": {
+          "uv": [
+            2.6875,
+            4.8125,
+            3.375,
+            5.5
+          ],
+          "texture": "#0"
+        },
+        "west": {
+          "uv": [
+            2.6875,
+            4.8125,
+            3.375,
+            5.5
+          ],
+          "texture": "#0"
+        },
+        "up": {
+          "uv": [
+            2.6875,
+            4.8125,
+            2,
+            4.125
+          ],
+          "texture": "#0"
+        },
+        "down": {
+          "uv": [
+            2.6875,
+            4.8125,
+            2,
+            5.5
+          ],
+          "texture": "#0"
+        }
+      }
+    }
+  ]
 }

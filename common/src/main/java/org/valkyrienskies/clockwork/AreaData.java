@@ -3,7 +3,6 @@ package org.valkyrienskies.clockwork;
 import org.joml.Vector3ic;
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit;
 
-import java.util.HashSet;
 import java.util.Optional;
 
 public interface AreaData {

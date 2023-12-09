@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.mixin.content.balloon;
+
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -12,14 +12,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.valkyrienskies.clockwork.content.forces.BalloonController;
-import org.valkyrienskies.core.api.ships.LoadedServerShip;
-import org.valkyrienskies.mod.common.BlockStateInfo;
-import org.valkyrienskies.mod.common.VSGameUtilsKt;
-import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
-
-import java.util.HashSet;
-import java.util.Set;
 
 @Mixin(LevelChunk.class)
 public abstract class MixinLevelChunkBalloon {
@@ -27,9 +19,12 @@ public abstract class MixinLevelChunkBalloon {
     @Final
     Level level;
 
-    @Shadow @Nullable public abstract BlockEntity getBlockEntity(BlockPos pos);
+    @Shadow
+    @Nullable
+    public abstract BlockEntity getBlockEntity(BlockPos pos);
 
-    @Shadow public abstract BlockState getBlockState(BlockPos pos);
+    @Shadow
+    public abstract BlockState getBlockState(BlockPos pos);
 
     @Inject(method = "setBlockState", at = @At("TAIL"))
     public void postSetBlockState(final BlockPos pos, final BlockState state, final boolean moved,

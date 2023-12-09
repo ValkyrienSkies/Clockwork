@@ -16,7 +16,7 @@ import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate
 import org.apache.commons.lang3.tuple.Pair
 import org.valkyrienskies.clockwork.ClockworkContraptions
-import java.util.Queue
+import java.util.*
 
 class PropellerContraption : Contraption {
     var offset = 0

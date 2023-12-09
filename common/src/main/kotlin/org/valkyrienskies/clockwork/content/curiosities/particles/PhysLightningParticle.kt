@@ -11,7 +11,6 @@ import net.minecraft.core.particles.ParticleOptions
 import net.minecraft.core.particles.ParticleType
 import org.joml.Quaternionf
 import org.valkyrienskies.clockwork.ClockworkParticles
-import org.valkyrienskies.clockwork.util.ClockworkUtils
 
 class PhysLightningParticle(
     worldIn: ClientLevel?,

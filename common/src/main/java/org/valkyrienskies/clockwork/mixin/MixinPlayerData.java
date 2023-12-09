@@ -13,9 +13,8 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit;
 import org.valkyrienskies.clockwork.AreaData;
-import org.valkyrienskies.clockwork.util.ClockworkUtils;
+import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit;
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil;
 
 import java.io.IOException;
@@ -106,7 +105,7 @@ public abstract class MixinPlayerData extends LivingEntity implements AreaData {
         return entityData.get(AREA_TOOLKIT);
     }
 
-    public SelectedAreaToolkit loadArea(CompoundTag nbt){
+    public SelectedAreaToolkit loadArea(CompoundTag nbt) {
         var toolKit = new SelectedAreaToolkit();
         if (nbt != null) {
             var nb = nbt.getByteArray("SelectedData");
@@ -118,7 +117,7 @@ public abstract class MixinPlayerData extends LivingEntity implements AreaData {
         return toolKit;
     }
 
-    public CompoundTag saveArea(CompoundTag nbt, SelectedAreaToolkit area){
+    public CompoundTag saveArea(CompoundTag nbt, SelectedAreaToolkit area) {
         try {
             nbt.putByteArray("SelectedData", VSJacksonUtil.INSTANCE.getDefaultMapper().writeValueAsBytes(area));
         } catch (JsonProcessingException ignored) {

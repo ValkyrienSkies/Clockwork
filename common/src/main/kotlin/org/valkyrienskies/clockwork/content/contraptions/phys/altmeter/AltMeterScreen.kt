@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.altmeter
 
-import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.gui.AbstractSimiScreen
 import com.simibubi.create.foundation.gui.AllIcons
 import com.simibubi.create.foundation.gui.element.GuiGameElement
@@ -50,7 +49,6 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
     }
 
 
-
     override fun onClose() {
         super.onClose()
         ClockworkPackets.sendToServer(UpdateAltMeterPacket(triggerHeight.toDouble(), be.blockPos))
@@ -64,8 +62,10 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
         graphics.drawCenteredString(font, title, x + (background.width - 8) / 2, y + 3, 0xFFFFFF)
         drawRuleList(graphics, x, y, partialTicks)
         GuiGameElement.of(renderedItem)
-            .at<GuiGameElement.GuiRenderBuilder>((x + background.width + 6).toFloat(),
-                (y + background.height - 56).toFloat(), -200f)
+            .at<GuiGameElement.GuiRenderBuilder>(
+                (x + background.width + 6).toFloat(),
+                (y + background.height - 56).toFloat(), -200f
+            )
             .scale(5.0)
             .render(graphics)
 
@@ -112,7 +112,6 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
             INPUT_FIELDS_HEIGHT
         )
     }
-
 
 
     companion object {

@@ -8,7 +8,7 @@ import net.minecraft.world.entity.EntityType
 import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.ClockworkEntities
 import org.valkyrienskies.clockwork.ClockworkPackets
-import java.util.Objects
+import java.util.*
 
 open class SequencedSeatEntity(type: EntityType<*>?, level: Level?) :
     SeatEntity(type, level) {

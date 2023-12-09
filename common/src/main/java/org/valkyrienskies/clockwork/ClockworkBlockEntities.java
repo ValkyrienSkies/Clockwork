@@ -105,10 +105,10 @@ public class ClockworkBlockEntities {
             .register();
 
     // public static final BlockEntityEntry<UniversalJointBlockEntity> UNIVERSAL_JOINT = REGISTRATE
-            // .blockEntity("universal_joint", UniversalJointBlockEntity::new)
-            // .validBlocks(ClockworkBlocks.UNIVERSAL_JOINT)
-            // .renderer(() -> UniversalJointRenderer::new)
-            // .register();
+    // .blockEntity("universal_joint", UniversalJointBlockEntity::new)
+    // .validBlocks(ClockworkBlocks.UNIVERSAL_JOINT)
+    // .renderer(() -> UniversalJointRenderer::new)
+    // .register();
 
 
     public static final BlockEntityEntry<ColorBlockEntity> COLOR_BLOCK_ENTITY = REGISTRATE
@@ -129,5 +129,6 @@ public class ClockworkBlockEntities {
             .register();
 
 
-    public static void register() {}
+    public static void register() {
+    }
 }

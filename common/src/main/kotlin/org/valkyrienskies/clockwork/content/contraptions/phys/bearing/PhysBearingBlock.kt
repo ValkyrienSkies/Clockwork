@@ -19,17 +19,9 @@ import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import java.util.function.Consumer
 
-class PhysBearingBlock(properties: Properties) :
-    BearingBlock(properties),
-    IBE<PhysBearingBlockEntity> {
-    override fun use(
-        state: BlockState,
-        worldIn: Level,
-        pos: BlockPos,
-        player: Player,
-        handIn: InteractionHand,
-        hit: BlockHitResult
-    ): InteractionResult {
+class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<PhysBearingBlockEntity> {
+
+    override fun use(state: BlockState, worldIn: Level, pos: BlockPos, player: Player, handIn: InteractionHand, hit: BlockHitResult): InteractionResult {
         if (!player.mayBuild()) return InteractionResult.FAIL
         if (player.isShiftKeyDown) return InteractionResult.FAIL
         if (player.getItemInHand(handIn)
@@ -60,12 +52,7 @@ class PhysBearingBlock(properties: Properties) :
         return state.getValue(FACING).axis
     }
 
-    override fun getShape(
-        state: BlockState,
-        worldIn: BlockGetter,
-        pos: BlockPos,
-        context: CollisionContext
-    ): VoxelShape {
+    override fun getShape(state: BlockState, worldIn: BlockGetter, pos: BlockPos, context: CollisionContext): VoxelShape {
         return AllShapes.MECHANICAL_PISTON[state.getValue(FACING)]
     }
 

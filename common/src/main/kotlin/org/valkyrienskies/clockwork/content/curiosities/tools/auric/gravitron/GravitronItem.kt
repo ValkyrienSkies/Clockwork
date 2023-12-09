@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.joml.*
+import org.joml.primitives.AABBic
 import org.valkyrienskies.clockwork.AreaData
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit
@@ -82,7 +83,6 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         val level = context.level
         if (level is ServerLevel && player != null) {
             val s: GravitronState = getState(player)
-            System.out.println("Stats: " + s.shipID + " : " + s.grabbing + " : " + s.shouldDrop)
             if ((s.shipID == null) && !player.cooldowns.isOnCooldown(this) && !s.grabbing) {
                 s.grabbing = true
                 player.cooldowns.addCooldown(this, cooldown)
@@ -98,7 +98,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         val data = AreaData.of(player).get()
         val list = data.area
 
-        list.selectionClusters.forEach{cluster ->
+        list.selectionClusters.forEach { cluster ->
             val selection: DenseBlockPosSet = SelectedAreaToolkit.denseBlocksFromCluster(cluster)
 
             if (selection.isEmpty() || !selection.contains(blockPos.x, blockPos.y, blockPos.z)) {
@@ -107,9 +107,9 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
 
             data.setArea(SelectedAreaToolkit())
 
-            selection.forEach{x, y, z ->
+            selection.forEach { x, y, z ->
 
-                if (!serverLevel.getBlockState(BlockPos(x, y, z)).isAir){
+                if (!serverLevel.getBlockState(BlockPos(x, y, z)).isAir) {
                     val connectedShip = createNewShipWithBlocks(blockPos, selection, serverLevel)
 
                     val caughtEntities = SelectedAreaToolkit.entitiesFromCluster(cluster, serverLevel)
@@ -125,9 +125,12 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                                     val oldBounds = entity.boundingBox
                                     val oldMax: Vector3dc = Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
                                     val oldMin: Vector3dc = Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
-                                    val newMax: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldMax, Vector3d())
-                                    val newMin: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldMin, Vector3d())
-                                    val newBounds = AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z())
+                                    val newMax: Vector3dc =
+                                        connectedShip.transform.worldToShip.transformPosition(oldMax, Vector3d())
+                                    val newMin: Vector3dc =
+                                        connectedShip.transform.worldToShip.transformPosition(oldMin, Vector3d())
+                                    val newBounds =
+                                        AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z())
                                     entity.boundingBox = newBounds
                                     entity.resetPositionToBB()
                                 }
@@ -284,7 +287,8 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                     val position: Vector3dc = Vector3d(s.heldBlockPos)
 
                     val gravitronForceInducer = GravitronForceInducer.getOrCreate(ship)
-                    val newData = GravitronForceInducer.Companion.GravitronForceInducerData(position, rotation, location)
+                    val newData =
+                        GravitronForceInducer.Companion.GravitronForceInducerData(position, rotation, location)
                     gravitronForceInducer.data = newData
                 } else if (shipUnloaded == null) {
                     dropShip(s, level)

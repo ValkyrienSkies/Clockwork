@@ -8,17 +8,13 @@ import com.simibubi.create.foundation.item.render.CustomRenderedItemModel;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer;
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.valkyrienskies.clockwork.ClockworkItems;
 import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.AreaDesignatorItem;
-import org.valkyrienskies.clockwork.platform.PlatformUtils;
 import org.valkyrienskies.clockwork.util.EaseHelper;
-
-import static org.valkyrienskies.clockwork.util.EaseHelper.*;
 
 @SuppressWarnings("CannotAccess")
 public class AreaDesignatorRenderer extends CustomRenderedItemModelRenderer {
@@ -60,16 +56,19 @@ public class AreaDesignatorRenderer extends CustomRenderedItemModelRenderer {
     private void animateDraw(PoseStack ms, TransformStack stacker, MultiBufferSource buffer, int light, int overlay, float progress, PartialItemModelRenderer renderer) {
         animateIdle(ms, stacker, buffer, light, overlay, progress, renderer);
     }
+
     private void animateSuccess(PoseStack ms, TransformStack stacker, MultiBufferSource buffer, int light, int overlay, float progress, PartialItemModelRenderer renderer) {
         animateIdle(ms, stacker, buffer, light, overlay, progress, renderer);
     }
+
     private void animateDump(PoseStack ms, TransformStack stacker, MultiBufferSource buffer, int light, int overlay, float progress, PartialItemModelRenderer renderer) {
         animateIdle(ms, stacker, buffer, light, overlay, progress, renderer);
     }
+
     private void animateIdle(PoseStack ms, TransformStack stacker, MultiBufferSource buffer, int light, int overlay, float progress, PartialItemModelRenderer renderer) {
         ms.pushPose();
         float partialTicks = AnimationTickHolder.getPartialTicks() - 1;
-        float heightAlt = 3f/16f + (float) Math.sin(EaseHelper.INSTANCE.easeInOutSine(progress))/16f;
+        float heightAlt = 3f / 16f + (float) Math.sin(EaseHelper.INSTANCE.easeInOutSine(progress)) / 16f;
         stacker.translateY(heightAlt * 0.1F);
         float nextCrystalAngle = Mth.clamp(this.crystalAngle + 1f, 0, 360);
         if (nextCrystalAngle == 360) {

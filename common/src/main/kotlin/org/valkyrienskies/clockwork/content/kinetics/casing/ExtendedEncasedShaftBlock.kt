@@ -9,10 +9,7 @@ import com.simibubi.create.content.schematics.requirement.ISpecialBlockItemRequi
 import com.simibubi.create.content.schematics.requirement.ItemRequirement
 import com.simibubi.create.foundation.block.IBE
 import com.tterrag.registrate.util.entry.BlockEntry
-import net.minecraft.core.NonNullList
 import net.minecraft.world.InteractionResult
-import net.minecraft.world.item.CreativeModeTab
-import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntity

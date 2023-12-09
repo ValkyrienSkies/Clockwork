@@ -24,9 +24,13 @@ import org.valkyrienskies.clockwork.util.render.BluperClusterRenderer;
 @Mixin(LevelRenderer.class)
 public class MixinLevelRenderer {
 
-    @Shadow @Nullable private ClientLevel level;
+    @Shadow
+    @Nullable
+    private ClientLevel level;
 
-    @Shadow @Final private Minecraft minecraft;
+    @Shadow
+    @Final
+    private Minecraft minecraft;
 
     /**
      * @deprecated Will be replaced with different shader soon, only here for temporary reference.

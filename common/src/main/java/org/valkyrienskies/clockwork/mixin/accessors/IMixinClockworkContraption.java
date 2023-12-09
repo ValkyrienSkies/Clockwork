@@ -7,5 +7,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(ClockworkContraption.class)
 public interface IMixinClockworkContraption {
-    @Accessor Direction getFacing();
+    @Accessor
+    Direction getFacing();
 }

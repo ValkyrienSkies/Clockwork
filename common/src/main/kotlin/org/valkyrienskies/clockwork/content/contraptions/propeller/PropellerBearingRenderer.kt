@@ -19,7 +19,6 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
 import org.joml.Quaternionf
 import org.valkyrienskies.clockwork.ClockworkPartials
-import org.valkyrienskies.clockwork.util.ClockworkUtils
 
 class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
     KineticBlockEntityRenderer<PropellerBearingBlockEntity>(context) {
@@ -56,7 +55,13 @@ class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
         val pistonBotL = CachedBufferer.partial(ClockworkPartials.PROPELLER_PISTON_BOTTOM_LEFT, te.blockState)
         val pistonBotR = CachedBufferer.partial(ClockworkPartials.PROPELLER_PISTON_BOTTOM_RIGHT, te.blockState)
         val interpolatedAngle: Float = bearingTe.getInterpolatedAngle(partialTicks - 1)
-        kineticRotationTransform(superBuffer, te, Direction.UP.axis, (interpolatedAngle / 180 * Math.PI).toFloat(), light)
+        kineticRotationTransform(
+            superBuffer,
+            te,
+            Direction.UP.axis,
+            (interpolatedAngle / 180 * Math.PI).toFloat(),
+            light
+        )
         shakeEngine(pistonTopL, te.rotspeed, partialTicks, facing, te, 1)
         shakeEngine(pistonTopR, te.rotspeed, partialTicks, facing, te, 2)
         shakeEngine(pistonBotL, te.rotspeed, partialTicks, facing, te, 3)
@@ -131,8 +136,8 @@ class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
         val interpolatedHorizontalOffset =
             te.getCornerHorizontalOffset(AnimationTickHolder.getPartialTicks() - 1, te, ordinal)
         val verticalOffset = when (ordinal) {
-            1 -> 1.5/16.0
-            2 -> 1.5/16.0
+            1 -> 1.5 / 16.0
+            2 -> 1.5 / 16.0
             3 -> 0.0
             4 -> 0.0
             else -> 0.0

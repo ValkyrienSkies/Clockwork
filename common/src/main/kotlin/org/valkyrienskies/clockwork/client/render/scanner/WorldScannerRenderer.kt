@@ -95,7 +95,8 @@ class WorldScannerRenderer : ScannerRenderer {
             radius = currentBlockEntity!!.computeRadius(currentStart, adjustedDuration.toFloat())
         } else {
             adjustedDuration =
-                PhysicsInfuserRenderer.SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance().get() / 12
+                PhysicsInfuserRenderer.SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance()
+                    .get() / 12
             radius = 0f
         }
         shader!!.setSampler("depthTex", depthCopyDepthBuffer)
@@ -115,7 +116,10 @@ class WorldScannerRenderer : ScannerRenderer {
         val oldShader = RenderSystem.getShader()
         RenderSystem.setShader(ClockworkShaders.SCAN_EFFECT::shader)
         RenderSystem.backupProjectionMatrix()
-        RenderSystem.setProjectionMatrix(Matrix4f().ortho(0f, width.toFloat(), 0f, height.toFloat(), 1f, 100f), VertexSorting.DISTANCE_TO_ORIGIN)
+        RenderSystem.setProjectionMatrix(
+            Matrix4f().ortho(0f, width.toFloat(), 0f, height.toFloat(), 1f, 100f),
+            VertexSorting.DISTANCE_TO_ORIGIN
+        )
         val tesselator = Tesselator.getInstance()
         val buffer = tesselator.builder
         buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX)

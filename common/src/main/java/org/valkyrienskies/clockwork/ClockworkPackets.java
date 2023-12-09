@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork;
 
-import dev.architectury.networking.NetworkManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;

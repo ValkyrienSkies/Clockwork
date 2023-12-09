@@ -1,14 +1,8 @@
 package org.valkyrienskies.clockwork
 
 import com.mojang.logging.LogUtils
-import com.simibubi.create.AllBlocks
 import com.simibubi.create.foundation.data.CreateRegistrate
 import com.simibubi.create.foundation.outliner.Outliner
-import com.simibubi.create.foundation.ponder.SceneBuilder
-import com.simibubi.create.foundation.ponder.SceneBuildingUtil
-import com.simibubi.create.infrastructure.ponder.AllPonderTags
-import com.simibubi.create.infrastructure.ponder.PonderIndex
-import com.simibubi.create.infrastructure.ponder.scenes.BearingScenes
 import net.minecraft.core.registries.Registries
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceKey
@@ -65,6 +59,7 @@ object ClockworkMod {
                 output.accept(ClockworkItems.BLUUGUU)
                 output.accept(ClockworkItems.BLUPERGLUE)
                 output.accept(ClockworkItems.GRAVITRON)
+                output.accept(ClockworkItems.SHIP_DESTROYER)
 
                 //output.accept(ClockworkBlocks.PHYSICS_INFUSER.asStack())
                 output.accept(ClockworkBlocks.ALT_METER.asStack())

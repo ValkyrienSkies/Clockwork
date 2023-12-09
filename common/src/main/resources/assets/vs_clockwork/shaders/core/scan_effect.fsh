@@ -15,7 +15,7 @@ const float width = 10;
 const float sharpness = 10;
 const vec4 outerColor = vec4(0.855, 0.8, 1.0, 1.0);
 const vec4 midColor = vec4(0.49, 0.4, 0.698, 1.0);
-const vec4 innerColor = vec4(0.404,0.098,0.898, 1.0);
+const vec4 innerColor = vec4(0.404, 0.098, 0.898, 1.0);
 const vec4 scanlineColor = vec4(0.78, 0.659, 1.0, 1.0);
 
 float scanlines() {

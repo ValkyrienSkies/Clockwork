@@ -12,7 +12,7 @@ import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.ClockworkContraptions
-import java.util.Queue
+import java.util.*
 
 class FlapContraption : Contraption() {
     var offset = 0

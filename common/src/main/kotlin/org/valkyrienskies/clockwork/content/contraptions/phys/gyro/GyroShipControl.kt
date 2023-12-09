@@ -3,15 +3,9 @@ package org.valkyrienskies.clockwork.content.contraptions.phys.gyro
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import org.joml.AxisAngle4d
-import org.joml.Quaterniond
-import org.joml.Vector3d
 import org.joml.Vector3dc
-import org.valkyrienskies.core.api.VSBeta
 import org.valkyrienskies.core.api.ships.*
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
-import kotlin.math.PI
-import kotlin.math.floor
 
 @JsonAutoDetect(
     fieldVisibility = JsonAutoDetect.Visibility.ANY,
@@ -73,7 +67,8 @@ class GyroShipControl : ShipForcesInducer, ServerTickListener {
     companion object {
         fun getOrCreate(ship: ServerShip): GyroShipControl {
             return ship.getAttachment<GyroShipControl>()
-                ?: GyroShipControl().also { ship.saveAttachment(it)
+                ?: GyroShipControl().also {
+                    ship.saveAttachment(it)
                 }
         }
     }

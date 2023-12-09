@@ -12,15 +12,15 @@ test {
 
 repositories {
 
-        // mavens for Create Fabric and dependencies
-        maven { url = "https://api.modrinth.com/maven" } // LazyDFU
-        maven { url = "https://maven.terraformersmc.com/releases/" } // Mod Menu
-        maven { url = "https://mvn.devos.one/snapshots/" }
-        // Create Fabric, Porting Lib, Forge Tags, Milk Lib, Registrate Fabric
-        maven { url = "https://cursemaven.com" } // Forge Config API Port
-        maven { url = "https://maven.cafeteria.dev/releases" } // Fake Player API
-        //maven { url = "https://maven.jamieswhiteshirt.com/libs-release" } // Reach Entity Attributes
-        //maven { url = "https://jitpack.io/" } // Mixin Extras, Fabric ASM
+    // mavens for Create Fabric and dependencies
+    maven { url = "https://api.modrinth.com/maven" } // LazyDFU
+    maven { url = "https://maven.terraformersmc.com/releases/" } // Mod Menu
+    maven { url = "https://mvn.devos.one/snapshots/" }
+    // Create Fabric, Porting Lib, Forge Tags, Milk Lib, Registrate Fabric
+    maven { url = "https://cursemaven.com" } // Forge Config API Port
+    maven { url = "https://maven.cafeteria.dev/releases" } // Fake Player API
+    //maven { url = "https://maven.jamieswhiteshirt.com/libs-release" } // Reach Entity Attributes
+    //maven { url = "https://jitpack.io/" } // Mixin Extras, Fabric ASM
 
 }
 
@@ -65,11 +65,11 @@ dependencies {
     // CC Restitched
     //modCompileOnly("curse.maven:cc-restitched-462672:3622561")
 
-    compileOnly("org.joml:joml-primitives:1.10.0"){
+    compileOnly("org.joml:joml-primitives:1.10.0") {
         exclude group: 'org.joml', module: 'joml'
     }
 
-    modCompileOnly("maven.modrinth:create-big-cannons:${createbigcannons_version}"){
+    modCompileOnly("maven.modrinth:create-big-cannons:${createbigcannons_version}") {
         exclude group: 'org.joml', module: ''
     }
 

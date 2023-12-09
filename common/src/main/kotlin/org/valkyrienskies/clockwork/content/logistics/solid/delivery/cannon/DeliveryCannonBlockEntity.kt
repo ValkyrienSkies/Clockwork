@@ -16,7 +16,8 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.Deliv
 import org.valkyrienskies.clockwork.util.blocktype.ISyncableStorage
 import org.valkyrienskies.clockwork.util.blocktype.SyncableStoragePacket
 
-class DeliveryCannonBlockEntity(typeIn: BlockEntityType<DeliveryCannonBlockEntity>, pos: BlockPos, state: BlockState) : KineticBlockEntity(typeIn, pos, state), ISyncableStorage {
+class DeliveryCannonBlockEntity(typeIn: BlockEntityType<DeliveryCannonBlockEntity>, pos: BlockPos, state: BlockState) :
+    KineticBlockEntity(typeIn, pos, state), ISyncableStorage {
 
     var fireRate: Float = 0f
     var currentTarget: BlockPos? = null
@@ -45,7 +46,8 @@ class DeliveryCannonBlockEntity(typeIn: BlockEntityType<DeliveryCannonBlockEntit
                 this.level!! as ServerLevel,
                 this.worldPosition,
                 64,
-                SyncableStoragePacket(this))
+                SyncableStoragePacket(this)
+            )
         }
         previousInventory = inventory
 

@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.content.generic.ColorBlockEntity
-import java.util.Locale
+import java.util.*
 
 class DyedWingBlockItem(block: Block?, properties: Properties?) :
     BlockItem(block, properties) {
@@ -25,7 +25,8 @@ class DyedWingBlockItem(block: Block?, properties: Properties?) :
         if (stack.hasTag()) {
             val tag = stack.getOrCreateTag()
             val color = tag.getInt("Clockwork\$color")
-            val comp: MutableComponent = Component.literal("#" + Integer.toHexString(color).uppercase(Locale.getDefault()))
+            val comp: MutableComponent =
+                Component.literal("#" + Integer.toHexString(color).uppercase(Locale.getDefault()))
             tooltipComponents.add(comp.setStyle(Style.EMPTY.withColor(color)))
         }
         super.appendHoverText(stack, level, tooltipComponents, isAdvanced)

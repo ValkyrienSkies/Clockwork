@@ -11,13 +11,11 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlock
-import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlockEntity
 import org.valkyrienskies.core.api.ships.getAttachment
 import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 
-class GyroBlock (properties: Properties) : Block(properties), IBE<GyroBlockEntity> {
+class GyroBlock(properties: Properties) : Block(properties), IBE<GyroBlockEntity> {
     init {
         registerDefaultState(stateDefinition.any())
     }

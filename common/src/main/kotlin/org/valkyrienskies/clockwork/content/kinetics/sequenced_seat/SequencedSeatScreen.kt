@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.kinetics.sequenced_seat
 
-import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.gui.AbstractSimiScreen
 import com.simibubi.create.foundation.gui.AllIcons
 import com.simibubi.create.foundation.gui.element.GuiGameElement
@@ -15,7 +14,7 @@ import net.minecraft.world.level.block.Rotation
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
 import org.valkyrienskies.clockwork.ClockworkPackets
-import java.util.Arrays
+import java.util.*
 import java.util.function.Consumer
 
 class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSimiScreen() {
@@ -54,8 +53,10 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
         guiGraphics.drawCenteredString(font, title, x + (background.width - 8) / 2, y + 3, 0xFFFFFF)
         drawRuleList(guiGraphics, x, y, partialTicks)
         GuiGameElement.of(renderedItem)
-            .at<GuiGameElement.GuiRenderBuilder>((x + background.width + 6).toFloat(),
-                (y + background.height - 56).toFloat(), -200f)
+            .at<GuiGameElement.GuiRenderBuilder>(
+                (x + background.width + 6).toFloat(),
+                (y + background.height - 56).toFloat(), -200f
+            )
             .scale(5.0)
             .render(guiGraphics)
     }
@@ -100,16 +101,15 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
     }
 
 
-
-
     private fun drawInputField(x: Int, y: Int, guiGraphics: GuiGraphics, partialTicks: Float, i: Int) {
-        guiGraphics.blit(background.location, x - 2, y,
+        guiGraphics.blit(
+            background.location, x - 2, y,
             INPUT_FIELDS_X,
             INPUT_FIELDS_Y + i * (INPUT_FIELDS_HEIGHT + INPUT_FIELDS_MARGIN),
             INPUT_FIELDS_WIDTH,
-            INPUT_FIELDS_HEIGHT)
+            INPUT_FIELDS_HEIGHT
+        )
     }
-
 
 
     private fun makeOperationInputs() {
@@ -288,7 +288,8 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
         }
 
         override fun renderButton(graphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
-            isHovered = rotation == currentShaft || mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height
+            isHovered =
+                rotation == currentShaft || mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height
             graphics.blit(background.location, x, y, if (isHovered) 17 + blitX else blitX, blitY, width, height)
         }
     }
@@ -326,7 +327,8 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
         }
 
         override fun renderButton(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
-            isHovered = isKeySelected(key, index) || mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height
+            isHovered =
+                isKeySelected(key, index) || mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height
             guiGraphics.blit(background.location, x, y, if (isHovered) 17 + blitX else blitX, blitY, width, height)
         }
 

@@ -6,6 +6,7 @@ import com.tterrag.registrate.util.entry.ItemEntry;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
 import org.valkyrienskies.clockwork.content.curiosities.tools.BluperGlueItem;
+import org.valkyrienskies.clockwork.content.curiosities.tools.ShipDestroyerItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.AreaDesignatorItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.gravitron.GravitronItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.gravitron.GravitronItemRenderer;
@@ -16,6 +17,7 @@ public class ClockworkItems {
 
     static {
     }
+
     public static final ItemEntry<Item> BLUUGUU = ingredient("bluuguu");
 
     public static final ItemEntry<AreaDesignatorItem> AURIC_DESIGNATOR =
@@ -30,12 +32,18 @@ public class ClockworkItems {
                     .register();
 
 
-
     public static final ItemEntry<BluperGlueItem> BLUPERGLUE =
             ClockworkMod.INSTANCE.getREGISTRATE().item("bluperglue", BluperGlueItem::new)
                     .properties(p -> p.rarity(Rarity.UNCOMMON))
                     .properties(p -> p.stacksTo(1))
                     .properties(p -> p.durability(1000))
+                    .tag(AllTags.AllItemTags.UPRIGHT_ON_BELT.tag)
+                    .register();
+
+    public static final ItemEntry<ShipDestroyerItem> SHIP_DESTROYER =
+            ClockworkMod.INSTANCE.getREGISTRATE().item("ship_destroyer", ShipDestroyerItem::new)
+                    .properties(p -> p.rarity(Rarity.UNCOMMON))
+                    .properties(p -> p.stacksTo(1))
                     .tag(AllTags.AllItemTags.UPRIGHT_ON_BELT.tag)
                     .register();
 

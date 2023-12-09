@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.events
 
-import com.jozufozu.flywheel.backend.Backend
 import net.minecraft.client.Minecraft
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.gravitron.GravitronRenderHandler
