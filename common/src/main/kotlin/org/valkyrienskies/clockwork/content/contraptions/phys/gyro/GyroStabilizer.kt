@@ -7,8 +7,8 @@ import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 fun gyroStabilizer(
     physShip: PhysShipImpl,
     omega: Vector3dc,
-    vel: Vector3dc,
-    forces: PhysShipImpl
+    forces: PhysShipImpl,
+    strength: Double
 ) {
     val shipUp = Vector3d(0.0, 1.0, 0.0)
     val worldUp = Vector3d(0.0, 1.0, 0.0)
@@ -18,11 +18,7 @@ fun gyroStabilizer(
     val idealAngularAcceleration = Vector3d()
     if (angleBetween > .01) {
         val stabilizationRotationAxisNormalized = shipUp.cross(worldUp, Vector3d()).normalize()
-        idealAngularAcceleration.add(
-            stabilizationRotationAxisNormalized.mul(
-                angleBetween,
-                stabilizationRotationAxisNormalized
-            )
+        idealAngularAcceleration.add(stabilizationRotationAxisNormalized.mul(angleBetween, stabilizationRotationAxisNormalized)
         )
     }
 
@@ -38,6 +34,6 @@ fun gyroStabilizer(
         )
     )
 
-    stabilizationTorque.mul(15.0)
+    stabilizationTorque.mul(strength)
     forces.applyInvariantTorque(stabilizationTorque)
 }

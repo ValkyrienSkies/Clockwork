@@ -21,8 +21,7 @@ import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import java.util.function.Consumer
 
-class PropellerBearingBlock(properties: Properties) : BearingBlock(properties),
-    IBE<PropellerBearingBlockEntity> {
+class PropellerBearingBlock(properties: Properties) : BearingBlock(properties), IBE<PropellerBearingBlockEntity> {
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
         builder.add(DIRECTION)
         super.createBlockStateDefinition(builder)

@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.joml.Vector3dc
 import org.valkyrienskies.core.api.ships.*
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
+import kotlin.math.log
+import kotlin.math.pow
 
 @JsonAutoDetect(
     fieldVisibility = JsonAutoDetect.Visibility.ANY,
@@ -16,12 +18,15 @@ import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 @JsonIgnoreProperties(ignoreUnknown = true)
 class GyroShipControl : ShipForcesInducer, ServerTickListener {
 
+
     private var physConsumption = 0f
     private var extraForceLinear = 0.0
     private var extraForceAngular = 0.0
 
     @JsonIgnore
     internal var ship: ServerShip? = null
+
+    internal var speed: Float = 0f
 
     override fun applyForces(physShip: PhysShip) {
         if (gyros < 1) {
@@ -31,11 +36,16 @@ class GyroShipControl : ShipForcesInducer, ServerTickListener {
         physShip as PhysShipImpl
 
         val omega: Vector3dc = physShip.poseVel.omega
-        val vel: Vector3dc = physShip.poseVel.vel
 
         ship ?: return
 
-        gyroStabilizer(physShip, omega, vel, physShip)
+        val strength = calculateStrength(speed)
+        gyroStabilizer(physShip, omega, physShip, strength)
+    }
+
+    private fun calculateStrength(speed: Float): Double {
+        val y = 50 * log((speed + 5) * 0.2, 10.0)
+        return y.coerceIn(0.0, 100.0)//Strength over 100 can result in weird behaviour
     }
 
     private fun deleteIfEmpty() {

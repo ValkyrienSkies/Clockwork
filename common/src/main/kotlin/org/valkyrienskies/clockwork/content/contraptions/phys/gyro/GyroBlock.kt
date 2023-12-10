@@ -1,13 +1,13 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.gyro
 
+import com.simibubi.create.content.kinetics.base.KineticBlock
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
-import net.minecraft.world.level.block.Block
-import net.minecraft.world.level.block.entity.BlockEntity
-import net.minecraft.world.level.block.entity.BlockEntityTicker
+import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
@@ -15,7 +15,7 @@ import org.valkyrienskies.core.api.ships.getAttachment
 import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 
-class GyroBlock(properties: Properties) : Block(properties), IBE<GyroBlockEntity> {
+class GyroBlock(properties: Properties) : KineticBlock(properties), IBE<GyroBlockEntity> {
     init {
         registerDefaultState(stateDefinition.any())
     }
@@ -49,14 +49,11 @@ class GyroBlock(properties: Properties) : Block(properties), IBE<GyroBlockEntity
         }
     }
 
-    override fun <T : BlockEntity?> getTicker(
-        level: Level,
-        state: BlockState,
-        type: BlockEntityType<T>
-    ): BlockEntityTicker<T> = BlockEntityTicker { level, pos, state, blockEntity ->
-        if (level.isClientSide) return@BlockEntityTicker
-        if (blockEntity is GyroBlockEntity) {
-            blockEntity.tick()
-        }
+    override fun hasShaftTowards(world: LevelReader?, pos: BlockPos?, state: BlockState?, face: Direction): Boolean {
+        return face == Direction.DOWN
+    }
+
+    override fun getRotationAxis(state: BlockState?): Direction.Axis {
+        return Direction.Axis.Y
     }
 }
