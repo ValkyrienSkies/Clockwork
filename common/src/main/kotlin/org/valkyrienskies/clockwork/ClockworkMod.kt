@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork
 
 import com.mojang.logging.LogUtils
+import com.simibubi.create.content.schematics.client.SchematicHandler
 import com.simibubi.create.foundation.data.CreateRegistrate
 import com.simibubi.create.foundation.outliner.Outliner
 import net.minecraft.core.registries.Registries
@@ -9,6 +10,7 @@ import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
 import org.slf4j.LoggerFactory
+import org.valkyrienskies.clockwork.content.curiosities.tools.auric.gravitron.GravitronHandler
 import org.valkyrienskies.core.impl.hooks.VSEvents
 
 object ClockworkMod {
@@ -26,6 +28,8 @@ object ClockworkMod {
     val LOGGER = LogUtils.getLogger()
 
     val OUTLINER: Outliner = Outliner()
+    @kotlin.jvm.JvmField
+    val GRAVITRON_HANDLER: GravitronHandler = GravitronHandler()
 
     @JvmField
     val C_CREATIVE_TAB = ResourceKey.create(Registries.CREATIVE_MODE_TAB, ResourceLocation("clockwork"))

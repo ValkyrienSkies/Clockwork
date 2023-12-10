@@ -27,6 +27,7 @@ import org.valkyrienskies.clockwork.ClockworkPackets;
 import org.valkyrienskies.clockwork.ClockworkPartials;
 import org.valkyrienskies.clockwork.ClockworkParticles;
 import org.valkyrienskies.clockwork.ClockworkSounds;
+import org.valkyrienskies.clockwork.content.curiosities.tools.auric.gravitron.GravitronHandler;
 import org.valkyrienskies.clockwork.data.ClockworkTags;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.util.CWEntityDataSerializers;
@@ -39,6 +40,8 @@ public class ClockworkModForge {
 
     final DeferredRegister<CreativeModeTab> TAB_REGISTER = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MOD_ID);
     final DeferredRegister<EntityDataSerializer<?>> DATA_SERIALIZER_REGISTER = DeferredRegister.create(ForgeRegistries.Keys.ENTITY_DATA_SERIALIZERS, MOD_ID);
+
+    static final GravitronHandlerForge GRAVITRON_HANDLER = new GravitronHandlerForge();
 
     public ClockworkModForge() {
         // Submit our event bus to let architectury register our content on the right time

@@ -46,7 +46,7 @@ class GyroShipControl : ShipForcesInducer, ServerTickListener {
 
     private fun calculateStrength(speed: Float): Double {
         val y = 64 * log((abs(speed) + 10) * 0.1, 20.0)
-        return y.coerceIn(0.0, 128.0)//Strength over 100 can result in weird behaviour
+        return y.coerceIn(0.0, 128.0)
     }
 
     private fun deleteIfEmpty() {

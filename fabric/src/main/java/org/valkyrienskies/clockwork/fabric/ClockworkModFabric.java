@@ -1,6 +1,16 @@
 package org.valkyrienskies.clockwork.fabric;
 
+import com.mojang.blaze3d.platform.Window;
+import com.simibubi.create.content.equipment.armor.RemainingAirOverlay;
+import com.simibubi.create.content.equipment.blueprint.BlueprintOverlayRenderer;
+import com.simibubi.create.content.equipment.goggles.GoggleOverlayRenderer;
+import com.simibubi.create.content.equipment.toolbox.ToolboxHandlerClient;
+import com.simibubi.create.content.redstone.link.controller.LinkedControllerClientHandler;
+import com.simibubi.create.content.trains.TrainHUD;
+import com.simibubi.create.content.trains.track.TrackPlacementOverlay;
+import com.simibubi.create.foundation.placement.PlacementHelpers;
 import com.terraformersmc.modmenu.api.ModMenuApi;
+import io.github.fabricators_of_create.porting_lib.event.client.KeyInputCallback;
 import io.github.fabricators_of_create.porting_lib.event.client.MouseInputEvents;
 import io.github.fabricators_of_create.porting_lib.event.client.RenderTickStartCallback;
 import net.fabricmc.api.ClientModInitializer;
@@ -8,16 +18,15 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.protocol.game.ServerboundContainerButtonClickPacket;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.content.events.ClockworkClientEvents;
 import org.valkyrienskies.clockwork.content.events.ClockworkCommonEvents;
-import org.valkyrienskies.clockwork.content.events.ClockworkInputEvents;
 import org.valkyrienskies.clockwork.data.ClockworkTags;
 import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkClientEvents;
@@ -26,6 +35,8 @@ import org.valkyrienskies.clockwork.fabric.content.events.FabricClockworkInputEv
 import org.valkyrienskies.clockwork.platform.fabric.FallbackFabricTransfer;
 import org.valkyrienskies.clockwork.util.CWEntityDataSerializers;
 import org.valkyrienskies.mod.fabric.common.ValkyrienSkiesModFabric;
+
+import static org.valkyrienskies.clockwork.ClockworkMod.GRAVITRON_HANDLER;
 
 public class ClockworkModFabric implements ModInitializer {
 
@@ -91,6 +102,7 @@ public class ClockworkModFabric implements ModInitializer {
             // ClockworkFabricPeripheralProviders.register();
         }
 
+
     }
 
     public static void registerServerEvents() {
@@ -113,6 +125,15 @@ public class ClockworkModFabric implements ModInitializer {
             FabricClockworkClientEvents.register();
             FabricClockworkInputEvents.register();
             ShaderLoader.init();
+
+            KeyInputCallback.EVENT.register(ClockworkInputEvents::onKeyInput);
+            MouseInputEvents.BEFORE_SCROLL.register(ClockworkInputEvents::onMouseScrolled);
+            MouseInputEvents.BEFORE_BUTTON.register(ClockworkInputEvents::onMouseInput);
+
+            HudRenderCallback.EVENT.register((graphics, partialTicks) -> {
+                Window window = Minecraft.getInstance().getWindow();
+                GRAVITRON_HANDLER.renderOverlay(graphics, partialTicks, window);
+            });
         }
 
         public static void registerClientEvents() {
