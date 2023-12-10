@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.joml.Vector3dc
 import org.valkyrienskies.core.api.ships.*
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
+import kotlin.math.abs
 import kotlin.math.log
 import kotlin.math.pow
 
@@ -44,8 +45,8 @@ class GyroShipControl : ShipForcesInducer, ServerTickListener {
     }
 
     private fun calculateStrength(speed: Float): Double {
-        val y = 50 * log((speed + 5) * 0.2, 10.0)
-        return y.coerceIn(0.0, 100.0)//Strength over 100 can result in weird behaviour
+        val y = 64 * log((abs(speed) + 10) * 0.1, 20.0)
+        return y.coerceIn(0.0, 128.0)//Strength over 100 can result in weird behaviour
     }
 
     private fun deleteIfEmpty() {

@@ -21,9 +21,6 @@ class GyroBlockEntity(typeIn: BlockEntityType<GyroBlockEntity>, pos: BlockPos, s
             control?.ship = ship
             control?.speed = getSpeed()
         }
-
-
-        println("Speed: ${getSpeed()}")
     }
 
 
