@@ -18,7 +18,7 @@ class GravitronSelectionScreen(tools: List<ToolType>, callback: Consumer<ToolTyp
     val holdToFocus: String = "gui.toolmenu.focusKey"
     protected var tools: List<ToolType>? = null
     protected var callback: Consumer<ToolType>? = null
-    var focused: Boolean = false
+    var focus: Boolean = false
     private var yOffset = 0f
     protected var selection: Int = 0
     private var initialized = false
@@ -30,7 +30,7 @@ class GravitronSelectionScreen(tools: List<ToolType>, callback: Consumer<ToolTyp
         this.minecraft = Minecraft.getInstance()
         this.tools = tools
         this.callback = callback
-        focused = false
+        focus = false
         yOffset = 0f
         selection = 0
         initialized = false
@@ -39,10 +39,6 @@ class GravitronSelectionScreen(tools: List<ToolType>, callback: Consumer<ToolTyp
 
         w = max((tools.size * 50 + 30).toDouble(), 220.0).toInt()
         h = 30
-    }
-
-    fun GravitronSelectionScreen(tools: List<ToolType>, callback: Consumer<ToolType>) {
-
     }
 
     fun setSelectedElement(tool: ToolType?) {
@@ -64,11 +60,11 @@ class GravitronSelectionScreen(tools: List<ToolType>, callback: Consumer<ToolTyp
         val y = mainWindow.guiScaledHeight - h - 75
 
         matrixStack.pushPose()
-        matrixStack.translate(0f, -yOffset, (if (focused) 100 else 0).toFloat())
+        matrixStack.translate(0f, -yOffset, (if (focus) 100 else 0).toFloat())
 
         val gray = AllGuiTextures.HUD_BACKGROUND
         RenderSystem.enableBlend()
-        RenderSystem.setShaderColor(1f, 1f, 1f, if (focused) 7 / 8f else 1 / 2f)
+        RenderSystem.setShaderColor(1f, 1f, 1f, if (focus) 7 / 8f else 1 / 2f)
 
         graphics.blit(
             gray.location,
@@ -125,7 +121,7 @@ class GravitronSelectionScreen(tools: List<ToolType>, callback: Consumer<ToolTyp
             val keyName = AllKeys.TOOL_MENU.boundKey
             val width = minecraft!!.window
                 .guiScaledWidth
-            if (!focused) graphics.drawCenteredString(
+            if (!focus) graphics.drawCenteredString(
                 minecraft!!.font, Lang.translateDirect(holdToFocus, keyName), width / 2,
                 y - 10, 0xCCDDFF
             )
@@ -139,7 +135,7 @@ class GravitronSelectionScreen(tools: List<ToolType>, callback: Consumer<ToolTyp
             RenderSystem.enableBlend()
             matrixStack.pushPose()
 
-            var alpha = if (focused) 1f else .2f
+            var alpha = if (focus) 1f else .2f
             if (i == selection) {
                 matrixStack.translate(0f, -10f, 0f)
                 RenderSystem.setShaderColor(1f, 1f, 1f, 1f)
@@ -167,7 +163,7 @@ class GravitronSelectionScreen(tools: List<ToolType>, callback: Consumer<ToolTyp
     }
 
     fun update() {
-        if (focused) yOffset += (10 - yOffset) * .1f
+        if (focus) yOffset += (10 - yOffset) * .1f
         else yOffset *= .9f
     }
 

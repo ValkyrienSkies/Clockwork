@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.forge;
 
+import com.simibubi.create.content.schematics.SchematicItem;
+import com.simibubi.create.content.schematics.client.SchematicHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
@@ -14,10 +16,11 @@ public class GravitronHandlerForge extends GravitronHandler implements @NotNull 
     public void render(ForgeGui gui, GuiGraphics graphics, float partialTicks, int width, int height) {
         if (Minecraft.getInstance().options.hideGui || !active)
             return;
+
         if (activeSchematicItem != null)
             this.overlay.renderOn(graphics, activeHotbarSlot);
         currentTool.getTool()
-                .renderOverlay(gui, graphics, partialTicks, width, height);
+                .renderOverlay(graphics, partialTicks, width, height);
         selectionScreen.renderPassive(graphics, partialTicks);
     }
 }

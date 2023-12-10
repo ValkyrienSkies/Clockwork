@@ -3,6 +3,8 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.auric.gravitron
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity
 import com.simibubi.create.content.contraptions.actors.seat.SeatEntity
 import com.simibubi.create.content.contraptions.glue.SuperGlueEntity
+import com.simibubi.create.content.schematics.SchematicItem
+import com.simibubi.create.content.schematics.client.SchematicHandler
 import com.simibubi.create.foundation.item.CustomArmPoseItem
 import net.minecraft.client.model.HumanoidModel
 import net.minecraft.client.multiplayer.ClientLevel
@@ -56,6 +58,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             s = GravitronState()
             p.cw_setGravitronState(s)
         }
+
         return s
     }
 

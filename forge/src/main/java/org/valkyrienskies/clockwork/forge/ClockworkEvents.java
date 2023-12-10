@@ -28,7 +28,7 @@ public class ClockworkEvents {
         int key = event.getKey();
         boolean pressed = !(event.getAction() == 0);
 
-        ClockworkMod.GRAVITRON_HANDLER.onKeyInput(key, pressed);
+        ClockworkModForge.GRAVITRON_HANDLER.onKeyInput(key, pressed);
     }
 
     @SubscribeEvent
@@ -37,7 +37,7 @@ public class ClockworkEvents {
             return;
 
         double delta = event.getScrollDelta();
-        boolean cancelled = ClockworkMod.GRAVITRON_HANDLER.mouseScrolled(delta);
+        boolean cancelled = ClockworkModForge.GRAVITRON_HANDLER.mouseScrolled(delta);
         event.setCanceled(cancelled);
     }
 
@@ -49,7 +49,7 @@ public class ClockworkEvents {
         int button = event.getButton();
         boolean pressed = !(event.getAction() == 0);
 
-        if (ClockworkMod.GRAVITRON_HANDLER.onMouseInput(button, pressed))
+        if (ClockworkModForge.GRAVITRON_HANDLER.onMouseInput(button, pressed))
             event.setCanceled(true);
     }
 

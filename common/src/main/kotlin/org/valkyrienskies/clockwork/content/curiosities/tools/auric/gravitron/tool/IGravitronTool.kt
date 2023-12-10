@@ -8,7 +8,6 @@ import net.minecraft.world.phys.Vec3
 interface IGravitronTool {
 
     fun init()
-    fun updateSelection()
 
     fun handleRightClick(): Boolean
     fun handleMouseWheel(delta: Double): Boolean

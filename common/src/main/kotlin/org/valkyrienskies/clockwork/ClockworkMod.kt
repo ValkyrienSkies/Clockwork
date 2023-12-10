@@ -38,6 +38,7 @@ object ClockworkMod {
     fun init() {
         ClockworkContraptions.init()
         ClockworkPackets.init()
+        //ClockworkPonderScenes.init()
 
         VSEvents.ShipLoadEvent.on { event ->
             event.ship
@@ -67,9 +68,9 @@ object ClockworkMod {
 
                 //output.accept(ClockworkBlocks.PHYSICS_INFUSER.asStack())
                 output.accept(ClockworkBlocks.ALT_METER.asStack())
-                output.accept(ClockworkBlocks.BALLOON_CASING.asStack())
+                //output.accept(ClockworkBlocks.BALLOON_CASING.asStack())
                 //output.accept(ClockworkBlocks.COMMAND_SEAT.asStack())
-                output.accept(ClockworkBlocks.BALLOON_ENCASED_SHAFT.asStack())
+                //output.accept(ClockworkBlocks.BALLOON_ENCASED_SHAFT.asStack())
                 output.accept(ClockworkBlocks.FLAP.asStack())
                 output.accept(ClockworkBlocks.FLAP_BEARING.asStack())
                 //output.accept(ClockworkBlocks.HEAT_PIPE.asStack())

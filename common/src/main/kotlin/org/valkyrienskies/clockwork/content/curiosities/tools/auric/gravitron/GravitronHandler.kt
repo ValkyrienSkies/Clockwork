@@ -2,24 +2,52 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.auric.gravitron
 
 import com.google.common.collect.ImmutableList
 import com.mojang.blaze3d.platform.Window
-import com.simibubi.create.AllBlocks
 import com.simibubi.create.AllKeys
-import com.simibubi.create.content.schematics.client.SchematicHandler
+import com.simibubi.create.content.schematics.SchematicItem
+import com.simibubi.create.content.schematics.client.SchematicHotbarSlotOverlay
+import com.simibubi.create.content.schematics.client.ToolSelectionScreen
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
-import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.client.player.LocalPlayer
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.GameType
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.gravitron.screen.GravitronSelectionScreen
-import java.util.*
 
 open class GravitronHandler {
 
+    @kotlin.jvm.JvmField
     var selectionScreen: GravitronSelectionScreen? = null
+    @kotlin.jvm.JvmField
     var currentTool: ToolType? = null
-    val active = false
+    @kotlin.jvm.JvmField
+    public var active = false
+    @kotlin.jvm.JvmField
+    var activeHotbarSlot = 0
+    @kotlin.jvm.JvmField
+    var activeSchematicItem: ItemStack? = null
+    @kotlin.jvm.JvmField
+    var overlay: SchematicHotbarSlotOverlay?
 
-    fun GravitronHandler() {
+    init {
         currentTool = ToolType.GRAB
         selectionScreen = GravitronSelectionScreen(ImmutableList.of(ToolType.GRAB), this::equip)
+        overlay = SchematicHotbarSlotOverlay()
+    }
+
+    fun tick() {
+        val mc = Minecraft.getInstance()
+        if (mc.gameMode!!.playerMode == GameType.SPECTATOR) {
+            if (active) {
+                active = false
+                activeHotbarSlot = 0
+                activeSchematicItem = null
+            }
+            return
+        }
+
+        if (!active) return
+
+        selectionScreen!!.update()
     }
 
     fun renderOverlay(graphics: GuiGraphics?, partialTicks: Float, window: Window) {
@@ -41,23 +69,17 @@ open class GravitronHandler {
         if (!pressed || button != 1) return false
         val mc = Minecraft.getInstance()
         if (mc.player!!.isShiftKeyDown) return false
-        if (mc.hitResult is BlockHitResult) {
-            val blockRayTraceResult = mc.hitResult as BlockHitResult?
-            val clickedBlock = mc.level!!.getBlockState(blockRayTraceResult!!.blockPos)
-            if (AllBlocks.SCHEMATICANNON.has(clickedBlock)) return false
-            if (AllBlocks.DEPLOYER.has(clickedBlock)) return false
-        }
-        return currentTool!!.tool
-            .handleRightClick()
+
+        return currentTool!!.tool.handleRightClick()
     }
 
     fun onKeyInput(key: Int, pressed: Boolean) {
         if (!active) return
         if (key != AllKeys.TOOL_MENU.boundCode) return
 
-        if (pressed && !selectionScreen!!.focused) selectionScreen!!.focused = true
-        if (!pressed && selectionScreen!!.focused) {
-            selectionScreen!!.focused = false
+        if (pressed && !selectionScreen!!.focus) selectionScreen!!.focus = true
+        if (!pressed && selectionScreen!!.focus) {
+            selectionScreen!!.focus = false
             selectionScreen!!.onClose()
         }
     }
@@ -65,7 +87,7 @@ open class GravitronHandler {
     fun mouseScrolled(delta: Double): Boolean {
         if (!active) return false
 
-        if (selectionScreen!!.focused) {
+        if (selectionScreen!!.focus) {
             selectionScreen!!.cycle(delta.toInt())
             return true
         }
