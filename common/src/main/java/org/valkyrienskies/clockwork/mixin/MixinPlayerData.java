@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.mixin;
 
+import com.simibubi.create.foundation.outliner.Outliner;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -14,12 +15,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.valkyrienskies.clockwork.AreaData;
+import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit;
 import org.valkyrienskies.clockwork.util.ClockworkUtils;
 
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static org.valkyrienskies.clockwork.util.AreaDataSerializer.*;
 
@@ -66,6 +66,11 @@ public abstract class MixinPlayerData extends LivingEntity implements AreaData {
                 resetTimer = 20;
                 shouldReset(false);
                 HashSet<Set<AABBic>> clone = new HashSet<>(getArea().getSelectionClusters());
+
+                Map<Object, Outliner.OutlineEntry> copy = new HashMap<>(ClockworkMod.INSTANCE.getOUTLINER().getOutlines());
+                for (Map.Entry<Object, Outliner.OutlineEntry> entry : copy.entrySet()) {
+                    ClockworkMod.INSTANCE.getOUTLINER().remove(entry.getKey());
+                }
 
                 for (Set<AABBic> aabBic : clone) {
                     getArea().dumpCluster(aabBic);

@@ -6,7 +6,6 @@ import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import org.valkyrienskies.clockwork.forge.capability.PlayerDataCapability;
 
 @Mod.EventBusSubscriber
 public class ClockworkRuntimeEvents {
@@ -19,6 +18,7 @@ public class ClockworkRuntimeEvents {
     @SubscribeEvent
     public static void onTick(LivingEvent.LivingTickEvent event) {
         //PlayerDataCapability.tick(event);
+
     }
 
 
