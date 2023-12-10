@@ -3,24 +3,24 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.auric.gravitron
 import com.google.common.collect.ImmutableList
 import com.mojang.blaze3d.platform.Window
 import com.simibubi.create.AllKeys
-import com.simibubi.create.content.schematics.SchematicItem
 import com.simibubi.create.content.schematics.client.SchematicHotbarSlotOverlay
-import com.simibubi.create.content.schematics.client.ToolSelectionScreen
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
-import net.minecraft.client.player.LocalPlayer
+import net.minecraft.world.entity.player.Inventory
+import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.GameType
+import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.content.curiosities.tools.auric.gravitron.screen.GravitronSelectionScreen
 
 open class GravitronHandler {
 
     @kotlin.jvm.JvmField
-    var selectionScreen: GravitronSelectionScreen? = null
+    var selectionScreen: GravitronSelectionScreen?
     @kotlin.jvm.JvmField
     var currentTool: ToolType? = null
     @kotlin.jvm.JvmField
-    public var active = false
+    public var active = true
     @kotlin.jvm.JvmField
     var activeHotbarSlot = 0
     @kotlin.jvm.JvmField
@@ -44,15 +44,39 @@ open class GravitronHandler {
             }
             return
         }
+println(selectionScreen)
+        val player = mc.player
+        val stack = findBlueprintInHand(player!!)
+        if (stack == null) {
+            active = false
+            if (activeSchematicItem != null && itemLost(player)) {
+                activeHotbarSlot = 0
+                activeSchematicItem = null
+            }
+            return
+        }
 
         if (!active) return
 
         selectionScreen!!.update()
     }
 
-    fun renderOverlay(graphics: GuiGraphics?, partialTicks: Float, window: Window) {
-        if (Minecraft.getInstance().options.hideGui || !active) return
+    private fun itemLost(player: Player): Boolean {
+        for (i in 0 until Inventory.getSelectionSize()) {
+            if (!ItemStack.matches(
+                    player.inventory
+                        .getItem(i), activeSchematicItem
+                )
+            ) continue
+            return false
+        }
+        return true
+    }
 
+    fun renderOverlay(graphics: GuiGraphics?, partialTicks: Float, window: Window) {
+        println("In")
+        if (Minecraft.getInstance().options.hideGui || !active) return
+        println("O")
         currentTool?.tool?.renderOverlay(graphics, partialTicks, window.guiScaledWidth, window.guiScaledHeight)
         selectionScreen?.renderPassive(graphics!!, partialTicks)
     }
@@ -61,6 +85,14 @@ open class GravitronHandler {
         this.currentTool = tool
         currentTool?.tool
             ?.init()
+    }
+
+    private fun findBlueprintInHand(player: Player): ItemStack? {
+        val stack = player.mainHandItem
+        if (!ClockworkItems.GRAVITRON.isIn(stack)) return null
+        activeSchematicItem = stack
+        activeHotbarSlot = player.inventory.selected
+        return stack
     }
 
     fun onMouseInput(button: Int, pressed: Boolean): Boolean {
@@ -94,5 +126,9 @@ open class GravitronHandler {
         if (AllKeys.ctrlDown()) return currentTool!!.tool
             .handleMouseWheel(delta)
         return false
+    }
+
+    fun init() {
+
     }
 }

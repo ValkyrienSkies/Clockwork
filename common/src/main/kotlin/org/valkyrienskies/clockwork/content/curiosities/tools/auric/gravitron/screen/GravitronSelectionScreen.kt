@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.auric.gravitron.s
 
 import com.mojang.blaze3d.systems.RenderSystem
 import com.simibubi.create.AllKeys
+import com.simibubi.create.content.schematics.client.ToolSelectionScreen
 import com.simibubi.create.foundation.gui.AllGuiTextures
 import com.simibubi.create.foundation.utility.Components
 import com.simibubi.create.foundation.utility.Lang
@@ -52,6 +53,7 @@ class GravitronSelectionScreen(tools: List<ToolType>, callback: Consumer<ToolTyp
     }
 
     private fun draw(graphics: GuiGraphics, partialTicks: Float) {
+        println("Hej$initialized")
         val matrixStack = graphics.pose()
         val mainWindow = minecraft!!.window
         if (!initialized) init(minecraft, mainWindow.guiScaledWidth, mainWindow.guiScaledHeight)

@@ -38,7 +38,7 @@ import org.valkyrienskies.mod.fabric.common.ValkyrienSkiesModFabric;
 
 import static org.valkyrienskies.clockwork.ClockworkMod.GRAVITRON_HANDLER;
 
-public class ClockworkModFabric implements ModInitializer {
+public class ClockworkModFabric implements ModInitializer, ClientModInitializer {
 
     public static void init() {
         ClockworkParticles.init();
@@ -109,43 +109,36 @@ public class ClockworkModFabric implements ModInitializer {
         ServerTickEvents.START_WORLD_TICK.register(ClockworkCommonEvents.INSTANCE::onWorldTick);
     }
 
-    @Environment(EnvType.CLIENT)
-    public static class Client implements ClientModInitializer {
-        @Override
-        public void onInitializeClient() {
-            ClockworkMod.initClient();
+    @Override
+    public void onInitializeClient() {
+        ClockworkMod.initClient();
 
-            ClockworkPartials.INSTANCE.init();
-            FabricClockworkPartials.init();
+        ClockworkPartials.INSTANCE.init();
+        FabricClockworkPartials.init();
 
-            ClockworkParticles.initClient();
+        ClockworkParticles.initClient();
 
-            registerClientEvents();
-            registerClientEvents();
-            FabricClockworkClientEvents.register();
-            FabricClockworkInputEvents.register();
-            ShaderLoader.init();
+        registerClientEvents();
+        //registerClientEvents();
+        FabricClockworkClientEvents.register();
+        FabricClockworkInputEvents.register();
+        ShaderLoader.init();
 
-            KeyInputCallback.EVENT.register(ClockworkInputEvents::onKeyInput);
-            MouseInputEvents.BEFORE_SCROLL.register(ClockworkInputEvents::onMouseScrolled);
-            MouseInputEvents.BEFORE_BUTTON.register(ClockworkInputEvents::onMouseInput);
+        KeyInputCallback.EVENT.register(ClockworkInputEvents::onKeyInput);
+        MouseInputEvents.BEFORE_SCROLL.register(ClockworkInputEvents::onMouseScrolled);
+        MouseInputEvents.BEFORE_BUTTON.register(ClockworkInputEvents::onMouseInput);
+    }
 
-            HudRenderCallback.EVENT.register((graphics, partialTicks) -> {
-                Window window = Minecraft.getInstance().getWindow();
-                GRAVITRON_HANDLER.renderOverlay(graphics, partialTicks, window);
-            });
-        }
-
-        public static void registerClientEvents() {
-            ClientTickEvents.END_CLIENT_TICK.register(ClockworkClientEvents.INSTANCE::onTick);
-            ClientTickEvents.START_CLIENT_TICK.register(ClockworkClientEvents.INSTANCE::onTickStart);
-            RenderTickStartCallback.EVENT.register(ClockworkClientEvents.INSTANCE::onRenderTick);
-        }
-
-        public static void registerInputEvents() {
-            //MouseInputEvents.AFTER_BUTTON.register((button, action, mods) -> ClockworkInputEvents.onClickInputCW(button, action, mods));
-            //TODO MouseButtonCallback.EVENT.register(ClockworkInputEvents.INSTANCE::onClickInputCW);
-        }
+    public static void registerClientEvents() {
+        ClockworkMod.INSTANCE.getLOGGER().debug("INIT_CLIENT");
+        System.out.println("INIT_CLIENT");
+        ClientTickEvents.END_CLIENT_TICK.register(ClockworkClientEvents.INSTANCE::onTick);
+        ClientTickEvents.START_CLIENT_TICK.register(ClockworkClientEvents.INSTANCE::onTickStart);
+        RenderTickStartCallback.EVENT.register(ClockworkClientEvents.INSTANCE::onRenderTick);
+        HudRenderCallback.EVENT.register((graphics, partialTicks) -> {
+            Window window = Minecraft.getInstance().getWindow();
+            GRAVITRON_HANDLER.renderOverlay(graphics, partialTicks, window);
+        });
     }
 
     public static class ModMenu implements ModMenuApi {

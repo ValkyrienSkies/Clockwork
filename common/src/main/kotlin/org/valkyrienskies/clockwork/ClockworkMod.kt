@@ -48,6 +48,7 @@ object ClockworkMod {
     @JvmStatic
     fun initClient() {
         ClockworkPonderScenes.init()
+        GRAVITRON_HANDLER.init()
     }
 
     fun asResource(path: String): ResourceLocation {
