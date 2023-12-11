@@ -1,14 +1,12 @@
 package org.valkyrienskies.clockwork.util;
 
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.network.syncher.EntityDataSerializers;
-import org.joml.Vector3i;
 import org.joml.Vector3ic;
 import org.joml.primitives.AABBi;
 import org.joml.primitives.AABBic;
-import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit;
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.SelectedAreaToolkit;
 
 import java.util.HashSet;
 import java.util.Optional;

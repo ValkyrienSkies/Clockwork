@@ -1,12 +1,9 @@
 package org.valkyrienskies.clockwork;
 
 import org.joml.Vector3ic;
-import org.joml.primitives.AABBic;
-import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit;
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.SelectedAreaToolkit;
 
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 
 public interface AreaData {
 

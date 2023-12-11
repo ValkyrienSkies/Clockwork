@@ -11,8 +11,6 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterB
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlockEntity;
-import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity;
-import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingRenderer;
 import org.valkyrienskies.clockwork.content.generic.ColorBlockEntity;
@@ -20,12 +18,8 @@ import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBl
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRenderer;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlockEntity;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRenderer;
-import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEntity;
-import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeRenderer;
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity;
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity;
-import org.valkyrienskies.clockwork.content.physicalities.reaction_wheel.ReactionWheelBlockEntity;
-import org.valkyrienskies.clockwork.content.physicalities.reaction_wheel.ReactionWheelRenderer;
 import org.valkyrienskies.clockwork.util.render.WingBlockEntityRenderer;
 
 public class ClockworkBlockEntities {
@@ -46,11 +40,6 @@ public class ClockworkBlockEntities {
             .renderer(() -> PhysBearingRenderer::new)
             .register();
 
-    public static final BlockEntityEntry<PhysicsInfuserBlockEntity> PHYSICS_INFUSER = REGISTRATE
-            .blockEntity("physics_infuser", PhysicsInfuserBlockEntity::new)
-            .validBlocks(ClockworkBlocks.PHYSICS_INFUSER)
-            .renderer(() -> PhysicsInfuserRenderer::new)
-            .register();
 
     /////// Sequenced Seat ////////
     public static final BlockEntityEntry<SequencedSeatBlockEntity> COMMAND_SEAT = REGISTRATE
@@ -89,38 +78,11 @@ public class ClockworkBlockEntities {
             .renderer(() -> RedstoneResistorRenderer::new)
             .register();
 
-    // REACTION WHEEL
-
-    public static final BlockEntityEntry<ReactionWheelBlockEntity> REACTIONWHEEL = REGISTRATE
-            .blockEntity("reaction_wheel", ReactionWheelBlockEntity::new)
-            .validBlocks(ClockworkBlocks.REACTIONWHEEL)
-            .renderer(() -> ReactionWheelRenderer::new)
-            .register();
-
-    public static final BlockEntityEntry<KineticBlockEntity> EXTENDED_ENCASED_SHAFT = REGISTRATE
-            .blockEntity("extended_encased_shaft", KineticBlockEntity::new)
-            .instance(() -> ShaftInstance::new, false)
-            .validBlocks(ClockworkBlocks.BALLOON_ENCASED_SHAFT)
-            .renderer(() -> ShaftRenderer::new)
-            .register();
-
-    // public static final BlockEntityEntry<UniversalJointBlockEntity> UNIVERSAL_JOINT = REGISTRATE
-    // .blockEntity("universal_joint", UniversalJointBlockEntity::new)
-    // .validBlocks(ClockworkBlocks.UNIVERSAL_JOINT)
-    // .renderer(() -> UniversalJointRenderer::new)
-    // .register();
-
 
     public static final BlockEntityEntry<ColorBlockEntity> COLOR_BLOCK_ENTITY = REGISTRATE
             .blockEntity("color_block_entity", ColorBlockEntity::new)
             .validBlocks(ClockworkBlocks.WING, ClockworkBlocks.FLAP)
             .renderer(() -> WingBlockEntityRenderer::new)
-            .register();
-
-    public static final BlockEntityEntry<HeatPipeBlockEntity> HEAT_PIPE = REGISTRATE
-            .blockEntity("heat_pipe", HeatPipeBlockEntity::new)
-            .validBlocks(ClockworkBlocks.HEAT_PIPE)
-            .renderer(() -> HeatPipeRenderer::new)
             .register();
 
     public static final BlockEntityEntry<GyroBlockEntity> GYRO = REGISTRATE

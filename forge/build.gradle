@@ -16,8 +16,6 @@ plugins {
     id "com.modrinth.minotaur"
 }
 
-apply from: '../gradle-scripts/publish-curseforge.gradle'
-
 architectury {
     platformSetupLoomIde()
     forge()
@@ -27,8 +25,8 @@ configurations {
     common
     shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
     compileClasspath.extendsFrom common
-            runtimeClasspath.extendsFrom common
-            developmentForge.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentForge.extendsFrom common
 }
 
 repositories {
@@ -65,9 +63,19 @@ dependencies {
         exclude group: 'org.joml', module: ''
         transitive = false
     }
+
+    modApi("org.valkyrienskies:valkyrienskies-120-common:${rootProject.vs2_version}") {
+        exclude group: 'org.joml', module: ''
+        transitive = false
+    }
+
     implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") {
         exclude group: 'org.joml', module: ''
         transitive = false
+    }
+
+    implementation("org.valkyrienskies.core:util:${rootProject.vscore_version}") {
+        exclude group: 'org.joml', module: ''
     }
 
     // Create and its dependencies

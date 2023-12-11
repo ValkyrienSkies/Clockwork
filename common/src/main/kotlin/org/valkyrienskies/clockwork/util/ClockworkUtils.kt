@@ -12,7 +12,7 @@ import org.joml.Vector3i
 import org.joml.Vector3ic
 import org.joml.primitives.AABBi
 import org.joml.primitives.AABBic
-import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.SelectedAreaToolkit
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil.defaultMapper
 import java.io.IOException
 import java.util.*
@@ -21,6 +21,7 @@ import java.util.stream.Collectors
 
 object ClockworkUtils {
 
+    @JvmStatic
     fun writeVec3(vec: Vec3): ListTag {
         val tag = ListTag()
         tag.add(DoubleTag.valueOf(vec.x))
@@ -28,7 +29,7 @@ object ClockworkUtils {
         tag.add(DoubleTag.valueOf(vec.z))
         return tag
     }
-
+    @JvmStatic
     fun readVec3(tag: ListTag): Vec3 {
         return Vec3(tag.getDouble(0), tag.getDouble(1), tag.getDouble(2))
     }

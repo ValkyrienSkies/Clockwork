@@ -27,9 +27,8 @@ import org.valkyrienskies.clockwork.ClockworkPackets;
 import org.valkyrienskies.clockwork.ClockworkPartials;
 import org.valkyrienskies.clockwork.ClockworkParticles;
 import org.valkyrienskies.clockwork.ClockworkSounds;
-import org.valkyrienskies.clockwork.content.curiosities.tools.auric.gravitron.GravitronHandler;
-import org.valkyrienskies.clockwork.data.ClockworkTags;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
+import org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.GravitronHandler;
 import org.valkyrienskies.clockwork.util.CWEntityDataSerializers;
 
 import static org.valkyrienskies.clockwork.ClockworkMod.MOD_ID;
@@ -41,16 +40,9 @@ public class ClockworkModForge {
     final DeferredRegister<CreativeModeTab> TAB_REGISTER = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MOD_ID);
     final DeferredRegister<EntityDataSerializer<?>> DATA_SERIALIZER_REGISTER = DeferredRegister.create(ForgeRegistries.Keys.ENTITY_DATA_SERIALIZERS, MOD_ID);
 
-    static final GravitronHandlerForge GRAVITRON_HANDLER = new GravitronHandlerForge();
+    public static final GravitronHandler GRAVITRON_HANDLER = new GravitronHandler();
 
     public ClockworkModForge() {
-        // Submit our event bus to let architectury register our content on the right time
-//        MOD_BUS = FMLJavaModLoadingContext.get().getModEventBus();
-//        MOD_BUS.addListener(this::clientSetup);
-//        REGISTRATE.registerEventListeners(MOD_BUS);
-//        MOD_BUS.addListener(this::onModelRegistry);
-//        MOD_BUS.addListener(this::clientSetup);
-//        MOD_BUS.addListener(this::entityRenderers);
         ModLoadingContext modLoadingContext = ModLoadingContext.get();
         AllClockworkConfigs.register(modLoadingContext);
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -62,8 +54,6 @@ public class ClockworkModForge {
 
         ClockworkBlocks.register();
         ForgeClockworkBlocks.register();
-
-        ClockworkTags.INSTANCE.init();
 
         ClockworkItems.register();
         ForgeClockworkItems.register();
@@ -92,7 +82,6 @@ public class ClockworkModForge {
             modEventBus.addListener(AllParticleTypes::registerFactories);
             // TODO forge partials
 
-            ShaderLoader.init(modEventBus);
         });
 
         TAB_REGISTER.register("general", ClockworkMod.INSTANCE::createCreativeTab);
@@ -102,10 +91,7 @@ public class ClockworkModForge {
         DATA_SERIALIZER_REGISTER.register(modEventBus);
         TAB_REGISTER.register(modEventBus);
 
-
-        if (FMLLoader.getLoadingModList().getModFileById("computercraft") != null){
-            //ClockworkForgePeripheralProviders.register();
-        }
+        GRAVITRON_HANDLER.init();
     }
 
     public static ResourceLocation asResource(String path) {

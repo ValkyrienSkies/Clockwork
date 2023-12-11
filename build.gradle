@@ -4,10 +4,6 @@ plugins {
     id "dev.architectury.loom" version "1.3.355" apply false
     // Kotlin
     id "org.jetbrains.kotlin.jvm" version "1.9.10" apply false
-    // Kotlin linter
-    // id "org.jlleitschuh.gradle.ktlint" version "10.3.0"
-    // Java linter
-    // id "checkstyle"
     id "io.github.juuxel.loom-vineflower" version "1.+" apply false // Quiltflower, a better decompiler
     id "io.github.p03w.machete" version "1.+" // automatic jar compressing on build
 
@@ -31,9 +27,6 @@ architectury {
 
 subprojects {
     apply plugin: "dev.architectury.loom"
-    // Apply checkstyle and ktlint to check the code style of every sub project
-    // apply plugin: "org.jlleitschuh.gradle.ktlint"
-    // apply plugin: "checkstyle"
     apply plugin: "org.jetbrains.kotlin.jvm"
 
     loom {
@@ -42,24 +35,23 @@ subprojects {
 
     repositories {
 
-            mavenCentral()
-            maven { url = "https://maven.shedaniel.me/" } // Cloth Config, REI
-            //maven { url = "https://dvs1.progwml6.com/files/maven/" } // JEI
-            maven { url = "https://maven.parchmentmc.org" } // Parchment mappings
-            maven { url = "https://maven.quiltmc.org/repository/release" } // Quilt Mappings
-            maven { // Flywheel
-                url = "https://maven.tterrag.com/"
-                content {
-                    // need to be specific here due to version overlaps
-                    includeGroup("com.jozufozu.flywheel")
-                }
+        mavenCentral()
+        maven { url = "https://maven.shedaniel.me/" } // Cloth Config, REI
+        maven { url = "https://maven.parchmentmc.org" } // Parchment mappings
+        maven { url = "https://maven.quiltmc.org/repository/release" } // Quilt Mappings
+        maven { // Flywheel
+            url = "https://maven.tterrag.com/"
+            content {
+                // need to be specific here due to version overlaps
+                includeGroup("com.jozufozu.flywheel")
             }
-            maven {
-                url = "https://maven.realrobotix.me/createbigcannons/" // Create Big Cannons
-                content {
-                    includeGroup "com.rbasamoyai"
-                }
+        }
+        maven {
+            url = "https://maven.realrobotix.me/createbigcannons/" // Create Big Cannons
+            content {
+                includeGroup "com.rbasamoyai"
             }
+        }
         maven { url = "https://api.modrinth.com/maven" }
 
         maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" }
@@ -73,48 +65,15 @@ subprojects {
         minecraft "com.mojang:minecraft:${minecraft_version}"
         // layered mappings - Mojmap names, parchment and QM docs and parameters
         mappings(loom.layered {
-            //it.mappings("org.quiltmc:quilt-mappings:${minecraft_version}+build.${qm_version}:intermediary-v2")
             it.parchment("org.parchmentmc.data:parchment-${minecraft_version}:${parchment_version}@zip")
             it.officialMojangMappings { nameSyntheticMembers = false }
         })
-
-        // see each subproject for dependencies.
     }
-
-    /*
-    checkstyle {
-        // configure to use checkstyle v8.41
-        toolVersion "8.41"
-        // Gradle shouldn't fail builds on checkstyle errors
-        ignoreFailures = true
-        // Checkstyle config file is in .checkstyle/checkstyle.xml
-        configFile = file("${rootDir}/.checkstyle/checkstyle.xml")
-    }
-
-    // configure checkstyle, but different
-    // https://docs.gradle.org/current/userguide/checkstyle_plugin.html
-    tasks.withType(Checkstyle) {
-        reports {
-            // Do not output html reports
-            html.required = false
-            // Output xml reports
-            xml.required = true
-        }
-    }
-
-    // configure ktlint
-    ktlint {
-        ignoreFailures = true
-        reporters {
-            // configure to output in checkstyle XML format
-            reporter "checkstyle"
-        }
-    }
-     */
 }
 
 allprojects {
     apply plugin: "java"
+    apply plugin: "kotlin"
     apply plugin: "architectury-plugin"
     apply plugin: "maven-publish"
 

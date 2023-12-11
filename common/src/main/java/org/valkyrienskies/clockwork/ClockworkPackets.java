@@ -6,10 +6,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.UpdateAltMeterPacket;
-import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserSyncPacket;
-import org.valkyrienskies.clockwork.content.curiosities.tools.BluperGluePacket;
-import org.valkyrienskies.clockwork.content.curiosities.tools.BluperHelperPacket;
-import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.AreaDesignatorSelectionPacket;
+import org.valkyrienskies.clockwork.content.curiosities.tools.bluper.BluperGluePacket;
+import org.valkyrienskies.clockwork.content.curiosities.tools.bluper.BluperHelperPacket;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket;
 import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket;
@@ -32,17 +30,11 @@ public enum ClockworkPackets {
     COLORBLOCKENTITY(BlockEntityColorPacket.class, BlockEntityColorPacket::new),
     SYNCABLESTORAGE(SyncableStoragePacket.class, SyncableStoragePacket::new),
 
-    // auric designator
-
-    DESIGNATORSELECTION(AreaDesignatorSelectionPacket.class, AreaDesignatorSelectionPacket::new),
 
     //Bluper
     BLURPLESELECTOR(BluperGluePacket.class, BluperGluePacket::new),
     BLUPER_HELPER(BluperHelperPacket.class, BluperHelperPacket::new),
 
-    // INSERT CLUSTER HANDLING PACKET STUFF HERE
-
-    PHYSICSINFUSERUPDATE(PhysicsInfuserSyncPacket.class, PhysicsInfuserSyncPacket::new),
 
     UPDATE_ALT_METER(UpdateAltMeterPacket.class, UpdateAltMeterPacket::new),
 

@@ -1,13 +1,10 @@
 package org.valkyrienskies.clockwork.util;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.player.Player;
-import org.joml.Vector3f;
 import org.joml.Vector3ic;
-import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit;
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.SelectedAreaToolkit;
 
 import java.util.Optional;
 

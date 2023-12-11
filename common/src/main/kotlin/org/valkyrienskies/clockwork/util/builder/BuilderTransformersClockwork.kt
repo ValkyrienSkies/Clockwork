@@ -25,7 +25,6 @@ import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.content.kinetics.casing.ExtendedEncasedShaftBlock
 import java.util.function.Supplier
 
 object BuilderTransformersClockwork {
@@ -92,49 +91,6 @@ object BuilderTransformersClockwork {
                         .texture("1", topTextureLocation)
                         .texture("2", baseTextureLocation)
                 }
-                .build()
-        }
-    }
-
-    fun <B : ExtendedEncasedShaftBlock, P> encasedShaft(
-        casing: String,
-        casingShift: Supplier<CTSpriteShiftEntry?>
-    ): NonNullUnaryOperator<BlockBuilder<B, P>> {
-        return NonNullUnaryOperator<BlockBuilder<B, P>> { builder: BlockBuilder<B, P> ->
-            encasedBase(
-                builder
-            ) { AllBlocks.SHAFT.get() }
-                .onRegister(CreateRegistrate.connectedTextures {
-                    EncasedCTBehaviour(
-                        casingShift.get()
-                    )
-                })
-                .onRegister(CreateRegistrate.casingConnectivity { block: B, cc: CasingConnectivity ->
-                    cc.make(
-                        block, casingShift.get()
-                    ) { s: BlockState, f: Direction ->
-                        f.axis !== s.getValue(
-                            BlockStateProperties.AXIS
-                        )
-                    }
-                })
-                .blockstate { c: DataGenContext<Block?, B>?, p: RegistrateBlockstateProvider ->
-                    BlockStateGen.axisBlock(
-                        c,
-                        p,
-                        {
-                            p.models()
-                                .getExistingFile(p.modLoc("block/encased_shaft/block_$casing"))
-                        }, true
-                    )
-                }
-                .item()
-                .model(
-                    AssetLookup.customBlockItemModel(
-                        "encased_shaft",
-                        "item_$casing"
-                    )
-                )
                 .build()
         }
     }
