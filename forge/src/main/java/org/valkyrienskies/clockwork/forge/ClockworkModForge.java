@@ -73,6 +73,7 @@ public class ClockworkModForge {
 
         ClockworkMod.init();
         ClockworkPackets.init();
+        ForgeClockworkPackets.init();
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
             // In create itself they do it FMLClientSetupEvent this does not work (what a scam)
@@ -92,10 +93,6 @@ public class ClockworkModForge {
         TAB_REGISTER.register(modEventBus);
 
         GRAVITRON_HANDLER.init();
-    }
-
-    public static ResourceLocation asResource(String path) {
-        return new ResourceLocation(MOD_ID, path);
     }
 
     void clientSetup(final FMLClientSetupEvent event) {

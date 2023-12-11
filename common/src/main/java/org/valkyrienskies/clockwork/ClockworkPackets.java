@@ -25,6 +25,7 @@ public enum ClockworkPackets {
     UPDATE_SEAT_RULES(UpdateSeatRulesPacket.class, UpdateSeatRulesPacket::new),
     SEQUENCER_SEAT_DRIVING(SequencedSeatDrivingPacket.class, SequencedSeatDrivingPacket::new),
 
+
     // Server to Client
 
     COLORBLOCKENTITY(BlockEntityColorPacket.class, BlockEntityColorPacket::new),

@@ -27,9 +27,9 @@ public abstract class MixinServerPlayer extends Player {
         final ItemStack itemStack = getItemInHand(hand);
         final Item item = itemStack.getItem();
         if (item == ClockworkItems.GRAVITRON.get()) {
-            if (ClockworkItems.GRAVITRON.get().leftClickItem(this)) {
-                ci.cancel();
-            }
+            //if (ClockworkItems.GRAVITRON.get().leftClickItem(this)) {
+            //    ci.cancel();
+            //}
         }
     }
 }

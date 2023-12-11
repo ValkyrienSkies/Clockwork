@@ -1,6 +1,9 @@
 package org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.tool;
 
 
+import com.simibubi.create.AllPackets;
+import com.simibubi.create.content.schematics.client.tools.ToolType;
+import com.simibubi.create.content.schematics.packet.SchematicPlacePacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
@@ -14,9 +17,11 @@ import org.joml.Vector2d;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 import org.valkyrienskies.clockwork.ClockworkItems;
+import org.valkyrienskies.clockwork.ClockworkPackets;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronForceInducer;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronForceInducerData;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem;
+import org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.GravitronGrabPacket;
 import org.valkyrienskies.clockwork.util.ClockworkUtils;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
@@ -31,8 +36,9 @@ public class GrabTool extends GravitronToolBase {
         if (entity instanceof Player player && player.level() instanceof ServerLevel serverLevel) {
             var s = getState(player);
             var graviton = player.getMainHandItem();
-            if (graviton.is(ClockworkItems.GRAVITRON.asItem())) {
-                if (!s.getShouldDrop()) {
+            //System.out.println(s.getShipID() + " : " + s.getGrabbing());
+            if (true) {
+                if (!s.getShouldDrop() && graviton.is(ClockworkItems.GRAVITRON.asItem())) {
                     updateShip(s, serverLevel, entity);
                 } else {
                     dropShip(s, serverLevel);
@@ -51,12 +57,15 @@ public class GrabTool extends GravitronToolBase {
 
                     var ship = VSGameUtilsKt.getShipObjectWorld(serverLevel).getLoadedShips().getById(id);
                     if (ship != null) {
+                        System.out.println(ship);
                         var transformedPos = ship.getWorldToShip().transformPosition(VectorConversionsMCKt.toJOML(clickLocation), new Vector3d());
                         grabShip(s, player, ship, transformedPos);
                         graviton.removeTagKey("ShipId");
                         graviton.removeTagKey("GrabbedPosInShip");
                     }
                 }
+            } else {
+
             }
         }
 
@@ -113,6 +122,10 @@ public class GrabTool extends GravitronToolBase {
 
     @Override
     public boolean handleRightClick() {
+        updateTargetPos();
+
+        ClockworkPackets.sendToServer(new GravitronGrabPacket(clickedPos, clickedLocation));
+
         return false;
     }
 
@@ -128,7 +141,7 @@ public class GrabTool extends GravitronToolBase {
         Vector3dc grabPosInShip = VectorConversionsMCKt.toJOML(clickLocation);
         Vector3d grabPosInWorld = new Vector3d(grabPosInShip);
         var s = getState(player);
-
+        System.out.println("PreGrab: " + grabPosInShip + " : " + grabPosInWorld);
         if (VSGameUtilsKt.isBlockInShipyard(level, clickedPos) && ship == null) {
             return false;
         }
@@ -138,7 +151,7 @@ public class GrabTool extends GravitronToolBase {
         } else {
             ship.getShipToWorld().transformPosition(grabPosInWorld);
         }
-
+        System.out.println("Grab");
         grabShip(s, player, ship, grabPosInShip);
         return true;
     }

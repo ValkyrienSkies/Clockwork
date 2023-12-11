@@ -13,7 +13,7 @@ public class GrabssembleTool extends GravitronToolBase {
 
     @Override
     public boolean handleRightClick() {
-        return false;
+        return true;
     }
 
     @Override
@@ -21,10 +21,11 @@ public class GrabssembleTool extends GravitronToolBase {
         return false;
     }
 
-    private void tryAssembleAndGrabShip(Level level, Player player, BlockPos clickedPos, Vec3 clickLocation) {
+    public static void tryAssembleAndGrabShip(Level level, Player player, BlockPos clickedPos, Vec3 clickLocation) {
         var bl = AssembleTool.assemble(level, player, clickedPos, clickLocation);
         if (level instanceof ServerLevel serverLevel) {
             if (!bl) {
+                System.out.println("TryGrab: " + clickedPos);
                 var bl2 = GrabTool.tryGrabShip(serverLevel, player, clickedPos, clickLocation);
                 if (!bl2) {
                     getState(player).setGrabbing(false);

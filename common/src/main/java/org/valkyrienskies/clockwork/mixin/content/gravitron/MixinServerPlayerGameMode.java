@@ -24,9 +24,9 @@ public class MixinServerPlayerGameMode {
     private void preHandleBlockBreakAction(BlockPos pos, ServerboundPlayerActionPacket.Action action, Direction face, int maxBuildHeight, int sequence, CallbackInfo ci) {
         final Item playerItem = player.getMainHandItem().getItem();
         if (playerItem == ClockworkItems.GRAVITRON.get()) {
-            if (ClockworkItems.GRAVITRON.get().leftClickItem(player)) {
-                ci.cancel();
-            }
+            //if (ClockworkItems.GRAVITRON.get().leftClickItem(player)) {
+            //    ci.cancel();
+            //}
         }
     }
 }

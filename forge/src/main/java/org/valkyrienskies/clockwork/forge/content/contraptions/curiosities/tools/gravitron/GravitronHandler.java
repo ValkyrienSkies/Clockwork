@@ -23,12 +23,12 @@ import java.util.Vector;
 
 public class GravitronHandler implements IGuiOverlay {
 
-    GravitronSelectionScreen selectionScreen;
-    private boolean active;
-    private ToolType currentTool;
-    int activeHotbarSlot = 0;
-    ItemStack activeSchematicItem = null;
-    SchematicHotbarSlotOverlay overlay;
+    public GravitronSelectionScreen selectionScreen;
+    public boolean active = false;
+    public ToolType currentTool;
+    public int activeHotbarSlot = 0;
+    public ItemStack activeSchematicItem = null;
+    public SchematicHotbarSlotOverlay overlay;
 
     public GravitronHandler() {
         overlay = new SchematicHotbarSlotOverlay();
@@ -36,12 +36,9 @@ public class GravitronHandler implements IGuiOverlay {
         selectionScreen = new GravitronSelectionScreen(ToolType.getTools(), this::equip);
     }
 
-
-
     @Override
     public void render(ForgeGui gui, GuiGraphics graphics, float partialTicks, int width, int height) {
         render(graphics, partialTicks, width, height);
-
     }
 
     public void tick() {
@@ -104,8 +101,6 @@ public class GravitronHandler implements IGuiOverlay {
     private ItemStack findBlueprintInHand(Player player) {
         ItemStack stack = player.getMainHandItem();
         if (!ClockworkItems.GRAVITRON.isIn(stack))
-            return null;
-        if (!stack.hasTag())
             return null;
 
         activeSchematicItem = stack;

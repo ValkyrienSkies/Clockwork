@@ -47,6 +47,7 @@ public class AssembleTool extends GravitronToolBase {
         HashSet<Set<AABBic>> list = data.getArea().getSelectionClusters();
         boolean bl = false;
         for (Set<AABBic> cluster : list) {
+            System.out.println("List: " + cluster);
             DenseBlockPosSet selection = SelectedAreaToolkit.Companion.denseBlocksFromCluster(cluster);
 
             if (selection.isEmpty() || !selection.contains(blockPos.getX(), blockPos.getY(), blockPos.getZ())) {

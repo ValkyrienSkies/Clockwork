@@ -41,7 +41,7 @@ class BluperClusterRenderer {
         if (level == null) return
 
         for (player in level.players()) {
-            if (player.mainHandItem.`is`(ClockworkItems.BLUPERGLUE.get())) {
+            if (player.mainHandItem.`is`(ClockworkItems.BLUPERGLUE.asItem())) {
                 renderForPlayer(player, minecraft, poseStack)
             }
         }
