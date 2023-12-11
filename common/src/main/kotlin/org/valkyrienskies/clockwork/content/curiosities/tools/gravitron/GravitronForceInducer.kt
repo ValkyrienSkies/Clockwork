@@ -67,11 +67,5 @@ class GravitronForceInducer : ShipForcesInducer {
             return ship.getAttachment<GravitronForceInducer>()
                 ?: GravitronForceInducer().also { ship.setAttachment(GravitronForceInducer::class.java, it) }
         }
-
-        data class GravitronForceInducerData(
-            val idealPos: Vector3dc,
-            val idealRot: Quaterniondc,
-            val grabbedPos: Vector3dc,
-        )
     }
 }

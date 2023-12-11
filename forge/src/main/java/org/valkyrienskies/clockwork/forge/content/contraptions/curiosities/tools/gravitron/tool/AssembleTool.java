@@ -14,6 +14,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3d;
+import org.joml.Vector3ic;
 import org.joml.primitives.AABBic;
 import org.valkyrienskies.clockwork.AreaData;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.SelectedAreaToolkit;
@@ -41,20 +42,22 @@ public class AssembleTool extends GravitronToolBase {
         return false;
     }
 
-    public boolean assemble(Level level, Player player, BlockPos blockPos, Vec3 clickLocation) {
+    public static boolean assemble(Level level, Player player, BlockPos blockPos, Vec3 clickLocation) {
         AreaData data = AreaData.of(player).get();
         HashSet<Set<AABBic>> list = data.getArea().getSelectionClusters();
-
+        boolean bl = false;
         for (Set<AABBic> cluster : list) {
             DenseBlockPosSet selection = SelectedAreaToolkit.Companion.denseBlocksFromCluster(cluster);
 
             if (selection.isEmpty() || !selection.contains(blockPos.getX(), blockPos.getY(), blockPos.getZ())) {
                 continue;
             }
-            selection.forEach((vector3ic) -> {
+
+            for (Vector3ic vector3ic : selection) {
                 int x = vector3ic.x();
                 int y = vector3ic.y();
                 int z = vector3ic.z();
+
                 if (level instanceof ServerLevel) {
                     ServerLevel serverLevel = (ServerLevel) level;
                     if (!serverLevel.getBlockState(BlockPos.containing(x, y, z)).isAir()) {
@@ -86,14 +89,15 @@ public class AssembleTool extends GravitronToolBase {
                         CompoundTag tag = player.getMainHandItem().getOrCreateTag();
                         tag.putLong("ShipId", connectedShip.getId());
                         tag.put("GrabbedPosInShip", ClockworkUtils.writeVec3(grabPosInShip));
+                        bl = true;
                     }
                 }
-            });
+            }
 
             data.getArea().getToStopRendering().add(cluster);
             data.shouldReset(true);
         }
 
-        return false;
+        return bl;
     }
 }
