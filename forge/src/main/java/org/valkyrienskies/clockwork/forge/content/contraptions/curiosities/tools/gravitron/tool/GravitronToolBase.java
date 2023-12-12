@@ -45,7 +45,7 @@ public abstract class GravitronToolBase implements IGravitronTool {
 
         System.out.println(clickedPos);
         clickedPos = trace.getBlockPos().immutable();
-        clickedLocation = trace.getLocation();
+        clickedLocation = clickedPos.getCenter();
     }
 
     @Override

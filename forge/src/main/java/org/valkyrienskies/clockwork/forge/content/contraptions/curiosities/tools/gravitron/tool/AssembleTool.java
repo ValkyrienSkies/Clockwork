@@ -34,7 +34,7 @@ public class AssembleTool extends GravitronToolBase {
     public boolean handleRightClick() {
 
 
-        return false;
+        return true;
     }
 
     @Override
@@ -59,8 +59,7 @@ public class AssembleTool extends GravitronToolBase {
                 int y = vector3ic.y();
                 int z = vector3ic.z();
 
-                if (level instanceof ServerLevel) {
-                    ServerLevel serverLevel = (ServerLevel) level;
+                if (level instanceof ServerLevel serverLevel) {
                     if (!serverLevel.getBlockState(BlockPos.containing(x, y, z)).isAir()) {
                         var connectedShip = createNewShipWithBlocks(blockPos, selection, serverLevel);
 

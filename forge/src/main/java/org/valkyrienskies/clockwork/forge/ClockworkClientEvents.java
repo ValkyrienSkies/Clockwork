@@ -95,8 +95,7 @@ public class ClockworkClientEvents {
         int button = event.getButton();
         boolean pressed = !(event.getAction() == 0);
 
-        if (ClockworkModForge.GRAVITRON_HANDLER.onMouseInput(button, pressed))
-            event.setCanceled(true);
+        if (ClockworkModForge.GRAVITRON_HANDLER.onMouseInput(button, pressed)) event.setCanceled(true);
     }
 
     //BUS EVENTS

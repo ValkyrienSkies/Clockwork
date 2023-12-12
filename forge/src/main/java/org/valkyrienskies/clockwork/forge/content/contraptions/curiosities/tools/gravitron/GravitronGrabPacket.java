@@ -36,14 +36,14 @@ public class GravitronGrabPacket implements C2SCWPacket {
                 var s = getState(serverPlayer);
                 var stack = serverPlayer.getMainHandItem();
                 if (stack.is(ClockworkItems.GRAVITRON.asItem())) {
-                    System.out.println("ID: " + s.getShipID() + " : " + s.getGrabbing());
+                    //System.out.println("ID: " + s.getShipID() + " : " + s.getGrabbing());
                     if ((s.getShipID() == null) && !serverPlayer.getCooldowns().isOnCooldown(stack.getItem()) && !s.getGrabbing()) {
 
                         s.setGrabbing(true);
                         serverPlayer.getCooldowns().addCooldown(stack.getItem(), 20);
                         s.setGrabCD(20);
 
-                        //GrabTool.tryGrabShip(serverLevel, serverPlayer, clickedPos, clickLocation);
+                        GrabTool.tryGrabShip(serverLevel, serverPlayer, clickedPos.mutable(), clickLocation);
                         //GrabssembleTool.tryAssembleAndGrabShip(serverLevel, serverPlayer, clickedPos, clickLocation);
                     }
                 }

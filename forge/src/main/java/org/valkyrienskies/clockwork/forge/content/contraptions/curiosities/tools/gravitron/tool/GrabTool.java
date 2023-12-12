@@ -137,6 +137,7 @@ public class GrabTool extends GravitronToolBase {
     public static boolean tryGrabShip(ServerLevel level, Player player, BlockPos clickedPos, Vec3 clickLocation) {
         int chunkX = clickedPos.getX() >> 4;
         int chunkZ = clickedPos.getZ() >> 4;
+        System.out.println("PreGrab0: " + clickedPos + " : " + clickLocation);
         LoadedServerShip ship = VSGameUtilsKt.getShipObjectWorld(level).getLoadedShips().getByChunkPos(chunkX, chunkZ, VSGameUtilsKt.getDimensionId(level));
         Vector3dc grabPosInShip = VectorConversionsMCKt.toJOML(clickLocation);
         Vector3d grabPosInWorld = new Vector3d(grabPosInShip);
