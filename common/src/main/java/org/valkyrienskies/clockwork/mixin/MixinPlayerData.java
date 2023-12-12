@@ -1,7 +1,10 @@
 package org.valkyrienskies.clockwork.mixin;
 
 import com.simibubi.create.foundation.outliner.Outliner;
+import com.simibubi.create.foundation.utility.NBTHelper;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -41,22 +44,22 @@ public abstract class MixinPlayerData extends LivingEntity implements AreaData {
     }
 
     @Override
-    public Optional<Vector3ic> getFirstPos() {
+    public Optional<BlockPos> getFirstPos() {
         return entityData.get(FIRST_POS);
     }
 
     @Override
-    public Optional<Vector3ic> getSecondPos() {
+    public Optional<BlockPos> getSecondPos() {
         return entityData.get(SECOND_POS);
     }
 
     @Override
-    public void setFirstPos(Optional<Vector3ic> pos) {
+    public void setFirstPos(Optional<BlockPos> pos) {
         entityData.set(FIRST_POS, pos);
     }
 
     @Override
-    public void setSecondPos(Optional<Vector3ic> pos) {
+    public void setSecondPos(Optional<BlockPos> pos) {
         entityData.set(SECOND_POS, pos);
     }
 
@@ -66,12 +69,12 @@ public abstract class MixinPlayerData extends LivingEntity implements AreaData {
             resetTimer--;
             if (resetTimer <= 0) {
                 resetTimer = 20;
+                System.out.println("RESET");
                 shouldReset(false);
                 HashSet<Set<AABBic>> clone = new HashSet<>(getArea().getSelectionClusters());
-
-                Map<Object, Outliner.OutlineEntry> copy = new HashMap<>(ClockworkMod.INSTANCE.getOUTLINER().getOutlines());
+                Map<Object, Outliner.OutlineEntry> copy = new HashMap<>(ClockworkMod.getOUTLINER().getOutlines());
                 for (Map.Entry<Object, Outliner.OutlineEntry> entry : copy.entrySet()) {
-                    ClockworkMod.INSTANCE.getOUTLINER().remove(entry.getKey());
+                    ClockworkMod.getOUTLINER().remove(entry.getKey());
                 }
 
                 for (Set<AABBic> aabBic : clone) {
@@ -94,15 +97,11 @@ public abstract class MixinPlayerData extends LivingEntity implements AreaData {
         ClockworkUtils.INSTANCE.saveArea(tag, getArea());
 
         if (getFirstPos().isPresent()) {
-            tag.putInt("XF", getFirstPos().get().x());
-            tag.putInt("YF", getFirstPos().get().y());
-            tag.putInt("ZF", getFirstPos().get().z());
+            tag.put("FirstPos", NbtUtils.writeBlockPos(getFirstPos().get()));
         }
 
         if (getSecondPos().isPresent()) {
-            tag.putInt("XS", getSecondPos().get().x());
-            tag.putInt("YS", getSecondPos().get().y());
-            tag.putInt("ZS", getSecondPos().get().z());
+            tag.put("SecondPos", NbtUtils.writeBlockPos(getSecondPos().get()));
         }
 
         compoundTag.put("AreaData", tag);
@@ -115,8 +114,8 @@ public abstract class MixinPlayerData extends LivingEntity implements AreaData {
         if (tag != null) {
             setArea(ClockworkUtils.INSTANCE.loadArea(tag));
 
-            setFirstPos(Optional.of(new Vector3i(tag.getInt("XF"), tag.getInt("YF"), tag.getInt("ZF"))));
-            setSecondPos(Optional.of(new Vector3i(tag.getInt("XS"), tag.getInt("YS"), tag.getInt("ZS"))));
+            setFirstPos(Optional.of(NbtUtils.readBlockPos(tag.getCompound("FirstPos"))));
+            setSecondPos(Optional.of(NbtUtils.readBlockPos(tag.getCompound("SecondPos"))));
         }
 
         if (compoundTag.contains("Reset")) {

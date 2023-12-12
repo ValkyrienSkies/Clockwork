@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.forge;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.simibubi.create.CreateClient;
 import com.simibubi.create.foundation.render.SuperRenderTypeBuffer;
 import com.simibubi.create.foundation.utility.AnimationTickHolder;
 import net.minecraft.client.Minecraft;
@@ -15,7 +16,6 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.valkyrienskies.clockwork.ClockworkMod;
-import org.valkyrienskies.clockwork.util.render.BluperClusterRenderer;
 
 import static com.jozufozu.flywheel.backend.Backend.isGameActive;
 
@@ -39,7 +39,7 @@ public class ClockworkClientEvents {
 
         //CreateClient.OUTLINER.renderOutlines(ms, buffer, camera, partialTicks);
         ClockworkMod.INSTANCE.getOUTLINER().renderOutlines(ms, SuperRenderTypeBuffer.getInstance(), camera, partialTicks);
-        BluperClusterRenderer.Companion.getINSTANCE().renderDesignator(Minecraft.getInstance().level, Minecraft.getInstance(), ms);
+        //TODO? BluperClusterRenderer.Companion.getINSTANCE().renderDesignator(Minecraft.getInstance().level, Minecraft.getInstance(), ms);
 
         buffer.draw();
         RenderSystem.enableCull();
@@ -57,6 +57,9 @@ public class ClockworkClientEvents {
         }
 
         ClockworkModForge.GRAVITRON_HANDLER.tick();
+        ClockworkModForge.BLUPER_CLUSTER_HANDLER.tick();
+
+        ClockworkMod.getOUTLINER().tickOutlines();
     }
 
     @SubscribeEvent

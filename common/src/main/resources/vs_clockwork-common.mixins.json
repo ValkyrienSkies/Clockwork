@@ -13,7 +13,6 @@
     "content.gravitron.MixinServerPlayer",
     "content.gravitron.MixinServerPlayerGameMode",
     "content.pulse.ChasingAABBOutlineAccessor",
-    "content.pulse.OutlineParamsAccessor",
     "content.universal_joint.MixinRotationPropagator",
     "content.wing.MixinAbstractCauldronBlock"
   ],

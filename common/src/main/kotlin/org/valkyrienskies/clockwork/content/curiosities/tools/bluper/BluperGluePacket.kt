@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.bluper
 
 import net.minecraft.client.Minecraft
+import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
 import org.joml.Vector3ic
 import org.valkyrienskies.clockwork.AreaData
@@ -11,18 +12,18 @@ import org.valkyrienskies.mod.common.util.toJOML
 import java.util.*
 
 class BluperGluePacket : S2CCWPacket {
-    private val firstPos: Optional<Vector3ic>
+    private val firstPos: Optional<BlockPos>
 
     constructor(buffer: FriendlyByteBuf) {
-        firstPos = Optional.of(buffer.readBlockPos().toJOML())
+        firstPos = Optional.of(buffer.readBlockPos())
     }
 
-    constructor(vec: Optional<Vector3ic>) {
+    constructor(vec: Optional<BlockPos>) {
         firstPos = vec
     }
 
     override fun write(buffer: FriendlyByteBuf) {
-        buffer.writeBlockPos(firstPos.get().toBlockPos())
+        buffer.writeBlockPos(firstPos.get())
     }
 
     override fun handle(context: ClientNetworkContext) {

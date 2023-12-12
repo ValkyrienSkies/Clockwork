@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork;
 
+import net.minecraft.core.BlockPos;
 import org.joml.Vector3ic;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.SelectedAreaToolkit;
 
@@ -18,13 +19,13 @@ public interface AreaData {
 
     SelectedAreaToolkit getArea();
 
-    Optional<Vector3ic> getFirstPos();
+    Optional<BlockPos> getFirstPos();
 
-    void setFirstPos(Optional<Vector3ic> pos);
+    void setFirstPos(Optional<BlockPos> pos);
 
-    Optional<Vector3ic> getSecondPos();
+    Optional<BlockPos> getSecondPos();
 
-    void setSecondPos(Optional<Vector3ic> pos);
+    void setSecondPos(Optional<BlockPos> pos);
 
     void shouldReset(boolean reset);
 }

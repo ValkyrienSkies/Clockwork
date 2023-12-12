@@ -1,6 +1,8 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.bluper
 
+import com.simibubi.create.foundation.outliner.Outliner
 import net.minecraft.ChatFormatting
+import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Style
 import net.minecraft.server.level.ServerPlayer
@@ -10,13 +12,13 @@ import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.Level
-import org.joml.Vector3ic
 import org.joml.primitives.AABBi
 import org.joml.primitives.AABBic
 import org.valkyrienskies.clockwork.AreaData
+import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.ClockworkMod.OUTLINER
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.platform.CWItem
-import org.valkyrienskies.mod.common.util.toJOML
 import java.util.*
 import kotlin.math.max
 import kotlin.math.min
@@ -57,11 +59,12 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
 
         val hand = context.hand
         val stack = player.getItemInHand(hand)
-        val pos: Vector3ic = context.clickedPos.toJOML()
+        val pos: BlockPos = context.clickedPos
         if (!stack.`is`(this)) {
             return super.useOn(context)
         }
         val areaData = AreaData.of(player).get()
+
         if (areaData.firstPos.isEmpty) {
             areaData.firstPos = Optional.of(pos)
             player.displayClientMessage(
@@ -76,7 +79,7 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
             return InteractionResult.SUCCESS
         } else if (areaData.secondPos.isEmpty && areaData.firstPos.isPresent) {
             areaData.secondPos = Optional.of(pos)
-            if (areaData.firstPos.get().distance(areaData.secondPos.get()) > 500) {
+            if (areaData.firstPos.get().distSqr(areaData.secondPos.get()) > 500) {
                 player.displayClientMessage(
                     Component.literal("Area Too Large!").withStyle(
                         Style.EMPTY.withColor(
@@ -89,12 +92,12 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
                 return InteractionResult.SUCCESS
             }
             val area: AABBic = AABBi(
-                min(areaData.firstPos.get().x(), areaData.secondPos.get().x()),
-                min(areaData.firstPos.get().y(), areaData.secondPos.get().y()),
-                min(areaData.firstPos.get().z(), areaData.secondPos.get().z()),
-                max(areaData.firstPos.get().x(), areaData.secondPos.get().x()),
-                max(areaData.firstPos.get().y(), areaData.secondPos.get().y()),
-                max(areaData.firstPos.get().z(), areaData.secondPos.get().z())
+                min(areaData.firstPos.get().x, areaData.secondPos.get().x),
+                min(areaData.firstPos.get().y, areaData.secondPos.get().y),
+                min(areaData.firstPos.get().z, areaData.secondPos.get().z),
+                max(areaData.firstPos.get().x, areaData.secondPos.get().x),
+                max(areaData.firstPos.get().y, areaData.secondPos.get().y),
+                max(areaData.firstPos.get().z, areaData.secondPos.get().z)
             )
             areaData.firstPos = Optional.empty()
             areaData.secondPos = Optional.empty()
@@ -123,14 +126,8 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
                 return InteractionResult.SUCCESS
             }
 
-            if (selectedArea.selectionClusters.size >= 20) {
-                player.displayClientMessage(
-                    Component.literal("This Designator is at cluster capacity.").withStyle(
-                        Style.EMPTY.withColor(
-                            ChatFormatting.DARK_PURPLE
-                        )
-                    ), true
-                )
+            if (selectedArea.selectionClusters.size > 1) {
+                areaData.shouldReset(true)
                 player.cooldowns.addCooldown(this, 10)
                 return InteractionResult.SUCCESS
             }

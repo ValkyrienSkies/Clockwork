@@ -23,13 +23,13 @@ object ClockworkMod {
     val MIXIN_LOGGER = LoggerFactory.getLogger("ClockworkMixins")
     val LOGGER = LogUtils.getLogger()
 
+    @JvmStatic
     val OUTLINER: Outliner = Outliner()
 
     @JvmStatic
     fun init() {
         ClockworkContraptions.init()
         ClockworkPackets.init()
-        //ClockworkPonderScenes.init()
 
         VSEvents.ShipLoadEvent.on { event ->
             event.ship

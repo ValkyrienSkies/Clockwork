@@ -7,7 +7,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.UpdateAltMeterPacket;
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluper.BluperGluePacket;
-import org.valkyrienskies.clockwork.content.curiosities.tools.bluper.BluperHelperPacket;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket;
 import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket;
@@ -34,8 +33,6 @@ public enum ClockworkPackets {
 
     //Bluper
     BLURPLESELECTOR(BluperGluePacket.class, BluperGluePacket::new),
-    BLUPER_HELPER(BluperHelperPacket.class, BluperHelperPacket::new),
-
 
     UPDATE_ALT_METER(UpdateAltMeterPacket.class, UpdateAltMeterPacket::new),
 
