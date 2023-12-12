@@ -18,7 +18,7 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
-import org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.GravitronHandler;
+import org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.GravitronHandler;
 import org.valkyrienskies.clockwork.util.CWEntityDataSerializers;
 
 import static org.valkyrienskies.clockwork.ClockworkMod.MOD_ID;

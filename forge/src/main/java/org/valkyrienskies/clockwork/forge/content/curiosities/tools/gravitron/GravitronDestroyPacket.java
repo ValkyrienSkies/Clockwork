@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron;
+package org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

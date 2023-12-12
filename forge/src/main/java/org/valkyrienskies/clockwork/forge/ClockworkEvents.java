@@ -6,11 +6,10 @@ import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import org.spongepowered.asm.mixin.Mixin;
 import org.valkyrienskies.clockwork.AreaData;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.SelectedAreaToolkit;
-import org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.tool.GrabTool;
+import org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.tool.GrabTool;
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck;
 
 import java.util.Optional;

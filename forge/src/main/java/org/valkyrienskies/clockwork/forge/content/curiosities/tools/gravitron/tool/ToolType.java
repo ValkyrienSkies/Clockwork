@@ -1,5 +1,6 @@
-package org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.tool;
+package org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.tool;
 
+import com.simibubi.create.AllKeys;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import org.valkyrienskies.clockwork.ClockworkIcons;
@@ -8,6 +9,8 @@ import org.valkyrienskies.clockwork.ClockworkLang;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static org.valkyrienskies.clockwork.ClockworkLang.translate;
 
 public enum ToolType {
     GRAB(new GrabTool(), ClockworkIcons.GRAB),
@@ -27,8 +30,18 @@ public enum ToolType {
         return ClockworkLang.translateDirect("gravitron.tool." + ClockworkLang.asId(name()));
     }
 
-    public List<Component> getDescription() {
-        return ClockworkLang.translatedOptions("gravitron.tool." + ClockworkLang.asId(name()) + ".description", "0", "1", "2", "3");
+    public List<Component> getDescription() {//ClockworkLang.translateDirect(holdToFocus, keyName)
+        return translatedOptions("gravitron.tool." + ClockworkLang.asId(name()) + ".description", "0", "1", "2", "3");
+    }
+
+    public static List<Component> translatedOptions(String prefix, String... keys) {
+        List<Component> result = new ArrayList<>(keys.length);
+        result.add(translate((prefix + ".") + "0").component());
+        result.add(translate((prefix + ".") + "1", AllKeys.ACTIVATE_TOOL.getBoundKey()).component());
+        result.add(translate((prefix + ".") + "2").component());
+        result.add(translate((prefix + ".") + "3").component());
+
+        return result;
     }
 
     public static List<ToolType> getTools() {

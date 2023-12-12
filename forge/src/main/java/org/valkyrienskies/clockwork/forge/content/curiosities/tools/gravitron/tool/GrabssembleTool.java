@@ -1,15 +1,8 @@
-package org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.tool;
+package org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.tool;
 
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
 import org.valkyrienskies.clockwork.ClockworkPackets;
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem;
-import org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.GravitronGrabPacket;
-import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck;
+import org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.GravitronGrabPacket;
 
 public class GrabssembleTool extends GravitronToolBase {
 

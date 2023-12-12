@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.tool;
+package org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.tool;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.foundation.render.SuperRenderTypeBuffer;

@@ -1,7 +1,9 @@
-package org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.tool;
+package org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.tool;
 
 
+import com.simibubi.create.AllKeys;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
@@ -17,7 +19,7 @@ import org.valkyrienskies.clockwork.ClockworkPackets;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronForceInducer;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronForceInducerData;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem;
-import org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.GravitronGrabPacket;
+import org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.GravitronGrabPacket;
 import org.valkyrienskies.clockwork.util.ClockworkUtils;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
@@ -34,7 +36,12 @@ public class GrabTool extends GravitronToolBase {
             var graviton = player.getMainHandItem();
 
             if (!s.getShouldDrop() && graviton.is(ClockworkItems.GRAVITRON.asItem())) {
-                updateShip(s, serverLevel, entity);
+                if (AllKeys.ACTIVATE_TOOL.isPressed()) {
+                    updateShipDirection(s, serverLevel, entity, player.getDirection());
+                } else {
+                    updateShip(s, serverLevel, entity);
+                }
+
             } else {
                 dropShip(s, serverLevel);
             }
@@ -87,6 +94,36 @@ public class GrabTool extends GravitronToolBase {
                     var playerCurrentRotation = new Vector2d(entity.getXRot(), entity.getYRot());
                     var origPlayerRot = playerRotToQuaternion(s.getPlayerGrabbedRotation().x(), s.getPlayerGrabbedRotation().y()).normalize();
                     var newPlayerRot = playerRotToQuaternion(playerCurrentRotation.x(), playerCurrentRotation.y()).normalize();
+                    var deltaPlayerRot = newPlayerRot.mul(origPlayerRot.conjugate(new Quaterniond()), new Quaterniond());
+                    var rotation = deltaPlayerRot.mul(s.getShipGrabbedRot(), new Quaterniond()).normalize();
+
+                    // Update Pos Values
+                    var lookDif = VectorConversionsMCKt.toJOML(entity.getLookAngle()).normalize().mul(s.getShipGrabbedDistance());
+                    s.setHeldBlockPos(VectorConversionsMCKt.toJOML(entity.getEyePosition()).add(lookDif));
+                    var location = new Vector3d(s.getShipGrabbedPos());
+                    var position = new Vector3d(s.getHeldBlockPos());
+
+                    var gravitronForceInducer = GravitronForceInducer.Companion.getOrCreate(ship);
+                    var newData = new GravitronForceInducerData(position, rotation, location);
+                    gravitronForceInducer.setData(newData);
+                } else if (shipUnloaded == null) {
+                    dropShip(s, level);
+                }
+            }
+        }
+    }
+
+    private static void updateShipDirection(GravitronItem.Companion.GravitronState s, ServerLevel level, Entity entity, Direction dir) {
+        if (s.getGrabbing()) {
+            var shipId = s.getShipID();
+            if (shipId != null) {
+                var shipUnloaded = VSGameUtilsKt.getShipObjectWorld(level).getAllShips().getById(shipId);
+                var ship = VSGameUtilsKt.getShipObjectWorld(level).getLoadedShips().getById(shipId);
+                if (ship != null && s.getPlayerGrabbedRotation() != null && s.getShipGrabbedDistance() != null && s.getShipGrabbedPos() != null && s.getHeldBlockPos() != null) {
+                    // Update Rot Values
+                    var lockedCurrentRotation = new Vector2d(0, dir.get2DDataValue() * 90);
+                    var origPlayerRot = playerRotToQuaternion(s.getPlayerGrabbedRotation().x(), s.getPlayerGrabbedRotation().y()).normalize();
+                    var newPlayerRot = playerRotToQuaternion(lockedCurrentRotation.x(), lockedCurrentRotation.y()).normalize();
                     var deltaPlayerRot = newPlayerRot.mul(origPlayerRot.conjugate(new Quaterniond()), new Quaterniond());
                     var rotation = deltaPlayerRot.mul(s.getShipGrabbedRot(), new Quaterniond()).normalize();
 

@@ -1,7 +1,7 @@
-package org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.tool;
+package org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.tool;
 
 import org.valkyrienskies.clockwork.ClockworkPackets;
-import org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.GravitronDestroyPacket;
+import org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.GravitronDestroyPacket;
 
 public class DestroyTool extends GravitronToolBase{
 

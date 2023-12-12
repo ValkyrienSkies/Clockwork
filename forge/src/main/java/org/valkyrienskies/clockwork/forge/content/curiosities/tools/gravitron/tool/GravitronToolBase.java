@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.tool;
+package org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.tool;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.foundation.render.SuperRenderTypeBuffer;
@@ -13,7 +13,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem;
 import org.valkyrienskies.clockwork.forge.ClockworkModForge;
-import org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.GravitronHandler;
+import org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.GravitronHandler;
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck;
 
 public abstract class GravitronToolBase implements IGravitronTool {
