@@ -1,15 +1,11 @@
 package org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.tool;
 
 
-import com.simibubi.create.AllPackets;
-import com.simibubi.create.content.schematics.client.tools.ToolType;
-import com.simibubi.create.content.schematics.packet.SchematicPlacePacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import org.joml.Quaterniond;

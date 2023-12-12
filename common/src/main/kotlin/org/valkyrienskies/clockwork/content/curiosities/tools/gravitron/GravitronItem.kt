@@ -136,57 +136,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             var shipGrabbedDistance: Double? = null
         }
 
-        fun assemble(level: Level, player: Player, blockPos: BlockPos): Boolean {
-            val data = AreaData.of(player).get()
-            val list = data.area
-
-            list.selectionClusters.forEach { cluster ->
-                val selection: DenseBlockPosSet = SelectedAreaToolkit.denseBlocksFromCluster(cluster)
-
-                if (selection.isEmpty() || !selection.contains(blockPos.x, blockPos.y, blockPos.z)) {
-                    return@forEach
-                }
-
-                selection.forEach { x, y, z ->
-                    if (level is ServerLevel) {
-                        val serverLevel = level
-                        if (!serverLevel.getBlockState(BlockPos(x, y, z)).isAir) {
-                            val connectedShip = createNewShipWithBlocks(blockPos, selection, serverLevel)
-
-                            val caughtEntities = SelectedAreaToolkit.entitiesFromCluster(cluster, serverLevel)
-                            if (caughtEntities.isNotEmpty()) {
-                                caughtEntities.forEach(Consumer { entity: Entity ->
-                                    if (entity is AbstractContraptionEntity || entity is SuperGlueEntity || entity is SeatEntity) {
-                                        if (entity !is SuperGlueEntity) {
-                                            val oldPos: Vector3dc = entity.position().toJOML()
-                                            val newPos: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldPos, Vector3d())
-                                            entity.moveTo(newPos.toMinecraft())
-                                        } else {
-                                            val oldBounds = entity.boundingBox
-                                            val oldMax: Vector3dc = Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
-                                            val oldMin: Vector3dc = Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
-                                            val newMax: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldMax, Vector3d())
-                                            val newMin: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldMin, Vector3d())
-                                            val newBounds = AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z())
-                                            entity.boundingBox = newBounds
-                                            entity.resetPositionToBB()
-                                        }
-                                    }
-                                })
-                            }
-
-                            return true
-                        }
-                    }
-                }
-                data.area.toStopRendering.add(cluster)
-                data.shouldReset(true)
-            }
-
-            return false
-        }
-
-        fun grabssemble(level: Level, player: Player, blockPos: BlockPos, clickLocation: Vec3): Boolean {
+        fun grabssemble(level: Level, player: Player, blockPos: BlockPos, clickLocation: Vec3, grab: Boolean): Boolean {
             val data = AreaData.of(player).get()
             val list = data.area
 
@@ -231,21 +181,20 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                                     }
                                 })
                             }
-
-                            val grabPosInShip: Vec3 = clickLocation
-                            val tag = player.mainHandItem.orCreateTag
-                            tag.putLong("ShipId", connectedShip.id)
-                            tag.put("GrabbedPosInShip", ClockworkUtils.writeVec3(grabPosInShip))
+                            if (grab) {
+                                val grabPosInShip: Vec3 = clickLocation
+                                val tag = player.mainHandItem.orCreateTag
+                                tag.putLong("ShipId", connectedShip.id)
+                                tag.put("GrabbedPosInShip", ClockworkUtils.writeVec3(grabPosInShip))
+                            }
 
                             return true
                         }
                     }
-                    //AreaData.of(player).get().shouldReset(list.selectionClusters)
                 }
                 data.area.toStopRendering.add(cluster)
                 data.shouldReset(true)
             }
-            //data.shouldReset(list.selectionClusters)
 
             return false
         }

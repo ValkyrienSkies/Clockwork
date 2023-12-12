@@ -49,14 +49,11 @@ public class GravitronGrabPacket implements C2SCWPacket {
                         s.setGrabCD(20);
                         if (mode == GravitronToolBase.GRAB) {
                             s.setGrabbing(true);
-                            System.out.println("Grab");
                             GrabTool.tryGrabShip(serverLevel, serverPlayer, clickedPos.mutable(), clickLocation);
                         } else if (mode == GravitronToolBase.ASSEMBLE) {
-                            System.out.println("Ass");
-                            GravitronItem.Companion.assemble(serverLevel, serverPlayer, clickedPos.mutable());
+                            GravitronItem.Companion.grabssemble(serverLevel, serverPlayer, clickedPos.mutable(), clickLocation, false);
                         } else if(mode == GravitronToolBase.GRABSSEMBLE){
                             s.setGrabbing(true);
-                            System.out.println("Grabssembl");
                             GrabssembleTool.tryAssembleAndGrabShip(serverLevel, serverPlayer, clickedPos.mutable(), clickLocation);
                         }
                     }

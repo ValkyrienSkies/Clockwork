@@ -91,6 +91,7 @@ public class GravitronSelectionScreen extends Screen {
 
         RenderSystem.setShaderColor(1, 1, 1, 1);
         if (tools.size() > 1) {
+            x += 25;
             String keyName = AllKeys.TOOL_MENU.getBoundKey();
             int width = minecraft.getWindow()
                     .getGuiScaledWidth();
