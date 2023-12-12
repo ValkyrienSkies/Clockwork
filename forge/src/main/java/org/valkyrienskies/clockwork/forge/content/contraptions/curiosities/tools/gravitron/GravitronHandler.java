@@ -1,6 +1,8 @@
 package org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron;
 
 import com.simibubi.create.AllKeys;
+import com.simibubi.create.CreateClient;
+import com.simibubi.create.content.equipment.toolbox.ToolboxHandlerClient;
 import com.simibubi.create.content.schematics.client.SchematicHotbarSlotOverlay;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -12,6 +14,7 @@ import net.minecraft.world.level.GameType;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import org.valkyrienskies.clockwork.ClockworkItems;
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHotbarSlotOverlay;
 import org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.tool.ToolType;
 
 public class GravitronHandler implements IGuiOverlay {
@@ -21,10 +24,10 @@ public class GravitronHandler implements IGuiOverlay {
     public ToolType currentTool;
     public int activeHotbarSlot = 0;
     public ItemStack activeSchematicItem = null;
-    public SchematicHotbarSlotOverlay overlay;
+    public GravitronHotbarSlotOverlay overlay;
 
     public GravitronHandler() {
-        overlay = new SchematicHotbarSlotOverlay();
+        overlay = new GravitronHotbarSlotOverlay();
         currentTool = ToolType.GRAB;
         selectionScreen = new GravitronSelectionScreen(ToolType.getTools(), this::equip);
     }
@@ -45,7 +48,7 @@ public class GravitronHandler implements IGuiOverlay {
             return;
         }
         var player = mc.player;
-        var stack = findBlueprintInHand(player);
+        var stack = findGravitronInHand(player);
         if (stack == null) {
             active = false;
             if (activeSchematicItem != null && itemLost(player)) {
@@ -94,7 +97,7 @@ public class GravitronHandler implements IGuiOverlay {
         currentTool.tool.init();
     }
 
-    private ItemStack findBlueprintInHand(Player player) {
+    private ItemStack findGravitronInHand(Player player) {
         ItemStack stack = player.getMainHandItem();
         if (!ClockworkItems.GRAVITRON.isIn(stack)) {
             return null;

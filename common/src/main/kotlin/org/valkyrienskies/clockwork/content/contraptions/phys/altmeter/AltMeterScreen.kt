@@ -10,13 +10,13 @@ import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.network.chat.Component
 import net.minecraft.world.item.ItemStack
 import org.valkyrienskies.clockwork.ClockworkBlocks
-import org.valkyrienskies.clockwork.ClockworkGuiTextures
+import org.valkyrienskies.clockwork.ClockworkIconTextures
 import org.valkyrienskies.clockwork.ClockworkPackets
 import kotlin.math.roundToInt
 
 class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen() {
     private val renderedItem: ItemStack = ClockworkBlocks.COMMAND_SEAT.asStack()
-    private val background: ClockworkGuiTextures = ClockworkGuiTextures.COMMAND_SEAT
+    private val background: ClockworkIconTextures = ClockworkIconTextures.COMMAND_SEAT
     private var altitudeInput: ScrollInput? = null
     private var confirmButton: IconButton? = null
     private var triggerHeight: Int = be.triggerHeight.roundToInt()

@@ -12,14 +12,14 @@ import net.minecraft.network.chat.Component
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.Rotation
 import org.valkyrienskies.clockwork.ClockworkBlocks
-import org.valkyrienskies.clockwork.ClockworkGuiTextures
+import org.valkyrienskies.clockwork.ClockworkIconTextures
 import org.valkyrienskies.clockwork.ClockworkPackets
 import java.util.*
 import java.util.function.Consumer
 
 class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSimiScreen() {
     private val renderedItem: ItemStack = ClockworkBlocks.COMMAND_SEAT.asStack()
-    private val background: ClockworkGuiTextures = ClockworkGuiTextures.COMMAND_SEAT
+    private val background: ClockworkIconTextures = ClockworkIconTextures.COMMAND_SEAT
     private val operationInputs = arrayOfNulls<SelectionScrollInput>(SequencedSeatRuleList.MAX_RULES)
     private val valueInputs = arrayOfNulls<ScrollInput>(SequencedSeatRuleList.MAX_RULES)
     private var confirmButton: IconButton? = null

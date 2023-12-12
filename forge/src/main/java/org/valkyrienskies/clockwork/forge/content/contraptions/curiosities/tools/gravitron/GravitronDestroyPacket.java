@@ -9,9 +9,9 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.joml.AxisAngle4d;
 import org.joml.Quaterniond;
-import org.valkyrienskies.clockwork.content.curiosities.tools.ShipDestroyerItem;
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket;
 import org.valkyrienskies.clockwork.platform.api.network.ServerNetworkContext;
+import org.valkyrienskies.clockwork.util.ShipDestroyer;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 
@@ -43,7 +43,7 @@ public class GravitronDestroyPacket implements C2SCWPacket {
                 var invRotationAxisAngle = new AxisAngle4d(invRotation);
                 var alignTarget = Direction.from2DDataValue((int)floor((invRotationAxisAngle.angle / (PI * 0.5)) + 4.5) % 4);
 
-                ShipDestroyerItem.Companion.unfillShip(serverLevel, ship, alignTarget);
+                ShipDestroyer.INSTANCE.unfillShip(serverLevel, ship, alignTarget);
             }
 
         });

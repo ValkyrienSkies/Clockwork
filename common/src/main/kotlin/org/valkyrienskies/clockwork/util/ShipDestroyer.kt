@@ -1,21 +1,15 @@
-package org.valkyrienskies.clockwork.content.curiosities.tools
+package org.valkyrienskies.clockwork.util
 
 import com.google.common.collect.Sets
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerLevel
-import net.minecraft.world.InteractionResult
-import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.ChunkPos
 import net.minecraft.world.level.block.Rotation
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.AxisAngle4d
 import org.joml.Matrix4d
-import org.joml.Quaterniond
 import org.joml.Vector3d
-import org.valkyrienskies.clockwork.platform.CWItem
-import org.valkyrienskies.clockwork.util.ClockworkUtils
-import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.impl.networking.simple.sendToClient
 import org.valkyrienskies.mod.common.*
@@ -26,37 +20,7 @@ import org.valkyrienskies.mod.util.relocateBlock
 import org.valkyrienskies.mod.util.updateBlock
 import kotlin.math.*
 
-class ShipDestroyerItem(properties: Properties) : CWItem(properties) {
-
-    override fun useOn(context: UseOnContext): InteractionResult {
-        context.player ?: return InteractionResult.FAIL
-        val world = context.level
-        if (world.isClientSide) {
-            return InteractionResult.PASS
-        }
-
-        val blockPos = context.clickedPos
-
-        val chunkX = blockPos.x shr 4
-        val chunkZ = blockPos.z shr 4
-        val ship: LoadedServerShip? = world.shipObjectWorld.loadedShips.getByChunkPos(chunkX, chunkZ, world.dimensionId) as LoadedServerShip?
-
-        val invRotation = ship!!.transform.shipToWorldRotation.invert(Quaterniond())
-        val invRotationAxisAngle = AxisAngle4d(invRotation)
-        val alignTarget = ClockworkUtils.from2DDataValue(floor((invRotationAxisAngle.angle / (PI * 0.5)) + 4.5).toInt() % 4)
-
-        unfillShip(
-            world as ServerLevel,
-            ship,
-            alignTarget
-        )
-
-        return super.useOn(context)
-    }
-
-
-companion object {
-
+object ShipDestroyer {
     private fun roundToNearestMultipleOf(number: Double, multiple: Double) = multiple * round(number / multiple)
 
 
@@ -164,6 +128,4 @@ companion object {
             }
         }
     }
-}
-
 }

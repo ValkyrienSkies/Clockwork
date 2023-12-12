@@ -9,7 +9,7 @@ import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.resources.ResourceLocation
 
 
-enum class ClockworkGuiTextures(
+enum class ClockworkIconTextures(
     namespace: String,
     location: String,
     var startX: Int,
