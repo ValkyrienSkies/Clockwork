@@ -23,11 +23,11 @@ import org.joml.Quaterniondc
 import org.joml.Vector2dc
 import org.joml.Vector3d
 import org.joml.Vector3dc
-import org.valkyrienskies.clockwork.AreaData
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 import org.valkyrienskies.clockwork.platform.CWItem
+import org.valkyrienskies.clockwork.util.AreaData
 import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.properties.ShipId
@@ -159,7 +159,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
 
         fun grabssemble(level: Level, player: Player, blockPos: BlockPos, clickLocation: Vec3, grab: Boolean): Boolean {
             val data = AreaData.of(player).get()
-            val list = data.area
+            val list = data.getArea()
             var bl = false
             list.selectionClusters.forEach { cluster ->
                 val selection: DenseBlockPosSet = SelectedAreaToolkit.denseBlocksFromCluster(cluster)

@@ -28,7 +28,7 @@ import org.valkyrienskies.clockwork.util.blocktype.SyncableStoragePacket
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOMLD
 
-class DeliveryChuteBlockEntity(typeIn: BlockEntityType<DeliveryChuteBlockEntity>, pos: BlockPos, state: BlockState) :
+class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
     KineticBlockEntity(typeIn, pos, state), ISyncableStorage {
 
     private var inventory: NonNullList<ItemStack> = NonNullList.withSize(1, ItemStack.EMPTY)

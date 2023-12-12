@@ -22,7 +22,7 @@ class GyroScreen(private val be: GyroBlockEntity) : AbstractSimiScreen() {
 
         confirmButton = IconButton(x + background.width - 33, y + background.height - 24, AllIcons.I_CONFIRM)
         confirmButton!!.withCallback<AbstractSimiWidget>(Runnable { this.onClose() })
-        addRenderableWidget<IconButton>(confirmButton)
+        addRenderableWidget(confirmButton!!)
     }
 
     override fun onClose() {

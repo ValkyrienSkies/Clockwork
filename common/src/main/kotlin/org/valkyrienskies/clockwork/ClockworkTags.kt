@@ -21,7 +21,7 @@ object ClockworkTags {
         AllBlockTags.init()
     }
 
-    enum class NameSpace @JvmOverloads constructor(
+    enum class NameSpace constructor(
         val id: String,
         val optionalDefault: Boolean = true,
         val alwaysDatagenDefault: Boolean = false
@@ -30,7 +30,7 @@ object ClockworkTags {
         FORGE("c")
     }
 
-    enum class AllBlockTags @JvmOverloads constructor(
+    enum class AllBlockTags constructor(
         namespace: NameSpace,
         path: String?,
         optional: Boolean = namespace.optionalDefault,
@@ -41,7 +41,6 @@ object ClockworkTags {
         val tag: TagKey<Block>
         val alwaysDatagen: Boolean
 
-        @JvmOverloads
         constructor(
             namespace: NameSpace = NameSpace.MOD,
             optional: Boolean = namespace.optionalDefault,

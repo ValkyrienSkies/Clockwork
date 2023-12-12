@@ -13,9 +13,9 @@ import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.Level
 import org.joml.primitives.AABBi
 import org.joml.primitives.AABBic
-import org.valkyrienskies.clockwork.AreaData
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.platform.CWItem
+import org.valkyrienskies.clockwork.util.AreaData
 import org.valkyrienskies.mod.common.isBlockInShipyard
 import java.util.*
 import kotlin.math.max
@@ -42,8 +42,8 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
         if (!isSelected) {
             if (entity is Player) {
                 val areaData = AreaData.of(entity).get()
-                areaData.firstPos = Optional.empty()
-                areaData.secondPos = Optional.empty()
+                areaData.setFirstPos(Optional.empty())
+                areaData.setSecondPos(Optional.empty())
             }
         }
     }
@@ -63,8 +63,8 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
         }
         val areaData = AreaData.of(player).get()
 
-        if (areaData.firstPos.isEmpty) {
-            areaData.firstPos = Optional.of(pos)
+        if (areaData.getFirstPos().isEmpty) {
+            areaData.setFirstPos(Optional.of(pos))
             player.displayClientMessage(
                 Component.literal("First Position Selected!").withStyle(
                     Style.EMPTY.withColor(
@@ -73,11 +73,11 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
                 ), true
             )
             player.cooldowns.addCooldown(this, 10)
-            ClockworkPackets.sendToClientsTrackingAndSelf(BluperGluePacket(areaData.firstPos), player as ServerPlayer)
+            ClockworkPackets.sendToClientsTrackingAndSelf(BluperGluePacket(areaData.getFirstPos()), player as ServerPlayer)
             return InteractionResult.SUCCESS
-        } else if (areaData.secondPos.isEmpty && areaData.firstPos.isPresent) {
-            areaData.secondPos = Optional.of(pos)
-            if (areaData.firstPos.get().distSqr(areaData.secondPos.get()) > 500) {
+        } else if (areaData.getSecondPos().isEmpty && areaData.getFirstPos().isPresent) {
+            areaData.setSecondPos(Optional.of(pos))
+            if (areaData.getFirstPos().get().distSqr(areaData.getSecondPos().get()) > 500) {
                 player.displayClientMessage(
                     Component.literal("Area Too Large!").withStyle(
                         Style.EMPTY.withColor(
@@ -85,21 +85,21 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
                         )
                     ), true
                 )
-                areaData.firstPos = Optional.empty()
-                areaData.secondPos = Optional.empty()
+                areaData.setFirstPos(Optional.empty())
+                areaData.setSecondPos(Optional.empty())
                 return InteractionResult.SUCCESS
             }
             val area: AABBic = AABBi(
-                min(areaData.firstPos.get().x, areaData.secondPos.get().x),
-                min(areaData.firstPos.get().y, areaData.secondPos.get().y),
-                min(areaData.firstPos.get().z, areaData.secondPos.get().z),
-                max(areaData.firstPos.get().x, areaData.secondPos.get().x),
-                max(areaData.firstPos.get().y, areaData.secondPos.get().y),
-                max(areaData.firstPos.get().z, areaData.secondPos.get().z)
+                min(areaData.getFirstPos().get().x, areaData.getSecondPos().get().x),
+                min(areaData.getFirstPos().get().y, areaData.getSecondPos().get().y),
+                min(areaData.getFirstPos().get().z, areaData.getSecondPos().get().z),
+                max(areaData.getFirstPos().get().x, areaData.getSecondPos().get().x),
+                max(areaData.getFirstPos().get().y, areaData.getSecondPos().get().y),
+                max(areaData.getFirstPos().get().z, areaData.getSecondPos().get().z)
             )
-            areaData.firstPos = Optional.empty()
-            areaData.secondPos = Optional.empty()
-            val selectedArea = AreaData.of(player).get().area
+            areaData.setFirstPos(Optional.empty())
+            areaData.setSecondPos(Optional.empty())
+            val selectedArea = AreaData.of(player).get().getArea()
             if (selectedArea.containsAABB(area)) {
                 player.displayClientMessage(
                     Component.literal("Area Already Exists.").withStyle(
@@ -132,7 +132,7 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
             selectedArea.clusterNewArea(area)
 
             val data = AreaData.of(player).get()
-            data.area = selectedArea
+            data.setArea(selectedArea)
 
             player.displayClientMessage(
                 Component.literal("Area Created!").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE)),

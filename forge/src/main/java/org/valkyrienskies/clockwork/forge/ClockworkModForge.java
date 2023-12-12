@@ -19,7 +19,6 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.GravitronHandler;
-import org.valkyrienskies.clockwork.util.CWEntityDataSerializers;
 
 import static org.valkyrienskies.clockwork.ClockworkMod.MOD_ID;
 
@@ -78,8 +77,7 @@ public class ClockworkModForge {
         });
 
         TAB_REGISTER.register("general", ClockworkMod.INSTANCE::createCreativeTab);
-        DATA_SERIALIZER_REGISTER.register("area", () -> CWEntityDataSerializers.AREA_TOOLKIT_SERIALIZER);
-        DATA_SERIALIZER_REGISTER.register("vec3i", () -> CWEntityDataSerializers.VEC3I);
+        DATA_SERIALIZER_REGISTER.register("area", () -> ClockworkEntityDataSerializers.AREA_TOOLKIT_SERIALIZER);
 
         DATA_SERIALIZER_REGISTER.register(modEventBus);
         TAB_REGISTER.register(modEventBus);

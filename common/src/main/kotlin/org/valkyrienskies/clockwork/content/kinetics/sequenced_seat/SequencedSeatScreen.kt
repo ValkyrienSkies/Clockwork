@@ -36,7 +36,7 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
         makeKeyButtons()
         makeOperationInputs()
         makeValueInputs()
-        addRenderableWidget(confirmButton)
+        addRenderableWidget(confirmButton!!)
         updateTab(Rotation.NONE)
     }
 

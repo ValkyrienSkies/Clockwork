@@ -372,7 +372,7 @@ object ClockworkSounds {
                 id.path,
                 Supplier {
                     mainEvent = SoundEvent.createVariableRangeEvent(id)
-                    return@Supplier mainEvent
+                    return@Supplier mainEvent!!
                 })
         }
 

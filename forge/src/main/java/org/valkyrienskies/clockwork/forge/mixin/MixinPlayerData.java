@@ -14,15 +14,16 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.valkyrienskies.clockwork.AreaData;
 import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.SelectedAreaToolkit;
 import org.valkyrienskies.clockwork.forge.ClockworkModForge;
+import org.valkyrienskies.clockwork.util.AreaData;
 import org.valkyrienskies.clockwork.util.ClockworkUtils;
 
 import java.util.*;
 
-import static org.valkyrienskies.clockwork.util.AreaDataSerializer.*;
+import static org.valkyrienskies.clockwork.ClockworkEntityDataSerializers.*;
+
 
 @Mixin(Player.class)
 public abstract class MixinPlayerData extends LivingEntity implements AreaData {

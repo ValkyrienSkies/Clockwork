@@ -16,7 +16,7 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.Deliv
 import org.valkyrienskies.clockwork.util.blocktype.ISyncableStorage
 import org.valkyrienskies.clockwork.util.blocktype.SyncableStoragePacket
 
-class DeliveryCannonBlockEntity(typeIn: BlockEntityType<DeliveryCannonBlockEntity>, pos: BlockPos, state: BlockState) :
+class DeliveryCannonBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
     KineticBlockEntity(typeIn, pos, state), ISyncableStorage {
 
     var fireRate: Float = 0f
@@ -69,7 +69,9 @@ class DeliveryCannonBlockEntity(typeIn: BlockEntityType<DeliveryCannonBlockEntit
 
     private fun searchTargets() {
         currentTarget = ActiveChutes.getNearestChuteWithId(this.worldPosition, range, id)
-        currentTargetWorldPos = ActiveChutes.getChuteRealPos(currentTarget!!)
+        if (currentTarget != null) {
+            currentTargetWorldPos = ActiveChutes.getChuteRealPos(currentTarget!!)
+        }
     }
 
     private fun fireItemToTarget(): Boolean {

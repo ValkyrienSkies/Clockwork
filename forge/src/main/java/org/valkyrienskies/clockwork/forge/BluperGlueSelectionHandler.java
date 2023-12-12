@@ -16,10 +16,10 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.joml.primitives.AABBic;
-import org.valkyrienskies.clockwork.AreaData;
 import org.valkyrienskies.clockwork.ClockworkItems;
 import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.SelectedAreaToolkit;
+import org.valkyrienskies.clockwork.util.AreaData;
 
 import java.util.HashMap;
 import java.util.HashSet;

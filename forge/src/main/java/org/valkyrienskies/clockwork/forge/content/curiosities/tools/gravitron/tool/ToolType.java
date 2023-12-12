@@ -3,14 +3,15 @@ package org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.t
 import com.simibubi.create.AllKeys;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import org.valkyrienskies.clockwork.ClockworkIcons;
+import org.valkyrienskies.ClockworkIcons;
 import org.valkyrienskies.clockwork.ClockworkLang;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.valkyrienskies.clockwork.ClockworkLang.translate;
+import static com.simibubi.create.foundation.utility.Lang.translate;
+
 
 public enum ToolType {
     GRAB(new GrabTool(), ClockworkIcons.GRAB),

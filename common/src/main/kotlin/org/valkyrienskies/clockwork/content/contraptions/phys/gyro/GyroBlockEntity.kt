@@ -19,7 +19,7 @@ import org.valkyrienskies.mod.util.getVector3d
 import org.valkyrienskies.mod.util.putVector3d
 
 
-class GyroBlockEntity(typeIn: BlockEntityType<GyroBlockEntity>, pos: BlockPos, state: BlockState) :
+class GyroBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
     KineticBlockEntity(typeIn, pos, state) {
 
     var visualSpeed: LerpedFloat = LerpedFloat.linear()
