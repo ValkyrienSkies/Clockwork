@@ -9,6 +9,8 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
+import org.joml.Vector3d
+import org.joml.Vector3dc
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOML
@@ -23,7 +25,7 @@ class GyroBlockEntity(typeIn: BlockEntityType<GyroBlockEntity>, pos: BlockPos, s
     var visualSpeed: LerpedFloat = LerpedFloat.linear()
     var angle: Float = 0f
 
-    var targetVec3: Vec3 = Vec3(0.0,1.0,0.0)
+    var targetVec3: Vector3dc = Vector3d(0.0,1.0,0.0)
     private val ship: ServerShip? get() = (level as ServerLevel).getShipObjectManagingPos(this.blockPos)
     private val control: GyroShipControl? get() = ship?.getAttachment(GyroShipControl::class.java)
 
@@ -46,13 +48,13 @@ class GyroBlockEntity(typeIn: BlockEntityType<GyroBlockEntity>, pos: BlockPos, s
     public override fun write(compound: CompoundTag, clientPacket: Boolean) {
         super.write(compound, clientPacket)
         val targetVec3 = targetVec3
-        compound.putVector3d("TargetVector", targetVec3.toJOML())
+        compound.putVector3d("TargetVector", targetVec3)
     }
 
     public override fun read(compound: CompoundTag, clientPacket: Boolean) {
         super.read(compound, clientPacket)
         if (compound.contains("TargetVector")) {
-            targetVec3 = compound.getVector3d("TargetVector")!!.toMinecraft()
+            targetVec3 = compound.getVector3d("TargetVector")!!
         }
 
         if (clientPacket) {

@@ -53,7 +53,7 @@ public class GravitronGrabPacket implements C2SCWPacket {
                             GravitronItem.Companion.grabssemble(serverLevel, serverPlayer, clickedPos.mutable(), clickLocation, false);
                         } else if (mode == GravitronToolBase.GRABSSEMBLE) {
                             s.setGrabbing(true);
-                            GrabssembleTool.tryAssembleAndGrabShip(serverLevel, serverPlayer, clickedPos.mutable(), clickLocation);
+                            GravitronItem.Companion.grabssemble(serverLevel, serverPlayer, clickedPos.mutable(), clickLocation, true);
                         }
                     }
                 }

@@ -6,6 +6,7 @@ import com.simibubi.create.foundation.gui.widget.AbstractSimiWidget
 import com.simibubi.create.foundation.gui.widget.IconButton
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.world.phys.Vec3
+import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
 import org.valkyrienskies.clockwork.ClockworkPackets
 
@@ -26,7 +27,7 @@ class GyroScreen(private val be: GyroBlockEntity) : AbstractSimiScreen() {
 
     override fun onClose() {
         super.onClose()
-        ClockworkPackets.sendToServer(UpdateGyroPacket(be.blockPos, Vec3(0.0,0.0,0.0)))//TODO fix target vector
+        ClockworkPackets.sendToServer(UpdateGyroPacket(be.blockPos, Vector3d(0.0,0.0,0.0)))//TODO fix target vector
     }
 
     override fun renderWindow(graphics: GuiGraphics?, mouseX: Int, mouseY: Int, partialTicks: Float) {

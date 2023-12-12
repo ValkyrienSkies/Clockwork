@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.contraptions.phys.gyro
 import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.world.phys.Vec3
+import org.joml.Vector3d
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
 import org.valkyrienskies.clockwork.platform.api.network.ServerNetworkContext
 import org.valkyrienskies.core.util.readVec3d
@@ -12,14 +13,14 @@ import org.valkyrienskies.mod.common.util.toMinecraft
 
 class UpdateGyroPacket : C2SCWPacket {
     private val pos: BlockPos
-    private val targetVec3: Vec3
+    private val targetVec3: Vector3d
 
     constructor(buffer: FriendlyByteBuf) {
         this.pos = buffer.readBlockPos()
-        this.targetVec3 = buffer.readVec3d().toMinecraft()
+        this.targetVec3 = buffer.readVec3d()
     }
 
-    constructor(newPos: BlockPos, targetVec3: Vec3) {
+    constructor(newPos: BlockPos, targetVec3: Vector3d) {
         this.pos = newPos
         this.targetVec3 = targetVec3;
     }
@@ -37,6 +38,6 @@ class UpdateGyroPacket : C2SCWPacket {
 
     override fun write(buffer: FriendlyByteBuf) {
         buffer.writeBlockPos(pos)
-        buffer.writeVec3d(targetVec3.toJOML())
+        buffer.writeVec3d(targetVec3)
     }
 }

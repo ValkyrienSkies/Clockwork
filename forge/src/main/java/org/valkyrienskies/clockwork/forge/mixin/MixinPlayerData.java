@@ -67,7 +67,6 @@ public abstract class MixinPlayerData extends LivingEntity implements AreaData {
             resetTimer--;
             if (resetTimer <= 0) {
                 resetTimer = 20;
-                System.out.println("RESET");
                 shouldReset(false);
                 ClockworkModForge.BLUPER_CLUSTER_HANDLER.discard();
                 HashSet<Set<AABBic>> clone = new HashSet<>(getArea().getSelectionClusters());

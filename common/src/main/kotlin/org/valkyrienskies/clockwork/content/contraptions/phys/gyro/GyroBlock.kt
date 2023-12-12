@@ -20,6 +20,8 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
+import org.joml.Vector3d
+import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.core.api.ships.getAttachment
 import org.valkyrienskies.mod.common.getShipManagingPos
@@ -49,10 +51,10 @@ class GyroBlock(properties: Properties) : KineticBlock(properties), IBE<GyroBloc
         } else {
             withBlockEntityDo(level, pos) { te: GyroBlockEntity ->
                 //TODO test code
-                if (te.targetVec3 == Vec3(0.0,1.0,0.0)) {
-                    te.targetVec3 = Vec3(0.0,0.0,1.0)
+                if (te.targetVec3 == Vector3d(0.0,1.0,0.0)) {
+                    te.targetVec3 = Vector3d(0.0,0.0,1.0)
                 } else {
-                    te.targetVec3 = Vec3(0.0,1.0,0.0)
+                    te.targetVec3 = Vector3d(0.0,1.0,0.0)
                 }
                 te.notifyUpdate()
             }

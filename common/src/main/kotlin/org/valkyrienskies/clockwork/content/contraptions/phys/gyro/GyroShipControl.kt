@@ -4,10 +4,12 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import net.minecraft.world.phys.Vec3
+import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.core.api.ships.*
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 import kotlin.math.abs
+import kotlin.math.exp
 import kotlin.math.log
 
 @JsonAutoDetect(
@@ -20,7 +22,7 @@ import kotlin.math.log
 class GyroShipControl : ShipForcesInducer, ServerTickListener {
 
 
-    internal var targetVector: Vec3 = Vec3(0.0,1.0,0.0)
+    internal var targetVector: Vector3dc = Vector3d(0.0,1.0,0.0)
     private var physConsumption = 0f
     private var extraForceLinear = 0.0
     private var extraForceAngular = 0.0
@@ -46,7 +48,7 @@ class GyroShipControl : ShipForcesInducer, ServerTickListener {
     }
 
     private fun calculateStrength(speed: Float): Double {
-        val y = 64 * log((abs(speed) + 10) * 0.1, 20.0)
+        val y = 128.0 / (1 + exp(6 - (speed * 0.05)))
         return y.coerceIn(0.0, 128.0)
     }
 

@@ -17,6 +17,8 @@
   "item.vs_clockwork.wing": "Wing",
   "block.vs_clockwork.reactionwheel": "Reaction Wheel",
   "item.vs_clockwork.reactionwheel": "Reaction Wheel",
+  "block.vs_clockwork.gyro": "Gyro",
+  "item.vs_clockwork.gyro": "Gyro",
   "block.vs_clockwork.redstone_resistor": "Redstone Resistor",
   "item.vs_clockwork.redstone_resistor": "Redstone Resistor",
   "block.vs_clockwork.balloon_casing": "Balloon Casing",

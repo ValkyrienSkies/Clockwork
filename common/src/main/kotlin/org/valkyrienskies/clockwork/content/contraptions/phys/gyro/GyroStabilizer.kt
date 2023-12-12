@@ -11,10 +11,10 @@ fun gyroStabilizer(
     omega: Vector3dc,
     forces: PhysShipImpl,
     strength: Double,
-    targetVector: Vec3
+    targetVector: Vector3dc
 ) {
     val shipUp = Vector3d(0.0, 1.0, 0.0)
-    val worldUp = targetVector.toJOML()
+    val worldUp = targetVector
 
     physShip.poseVel.rot.transform(shipUp)
     val angleBetween = shipUp.angle(worldUp)

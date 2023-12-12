@@ -16,6 +16,7 @@ import org.joml.primitives.AABBic
 import org.valkyrienskies.clockwork.AreaData
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.platform.CWItem
+import org.valkyrienskies.mod.common.isBlockInShipyard
 import java.util.*
 import kotlin.math.max
 import kotlin.math.min
@@ -57,7 +58,7 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
         val hand = context.hand
         val stack = player.getItemInHand(hand)
         val pos: BlockPos = context.clickedPos
-        if (!stack.`is`(this)) {
+        if (!stack.`is`(this) || world.isBlockInShipyard(pos)) {
             return super.useOn(context)
         }
         val areaData = AreaData.of(player).get()

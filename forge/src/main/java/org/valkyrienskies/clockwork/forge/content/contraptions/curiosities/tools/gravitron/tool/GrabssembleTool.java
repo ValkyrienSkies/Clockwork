@@ -24,7 +24,7 @@ public class GrabssembleTool extends GravitronToolBase {
     public boolean handleMouseWheel(double delta) {
         return false;
     }
-
+/*
     public static void tryAssembleAndGrabShip(Level level, Player player, BlockPos clickedPos, Vec3 clickLocation) {
         var bl = GravitronItem.Companion.grabssemble(level, player, clickedPos, clickLocation, true);
         if (level instanceof ServerLevel serverLevel) {
@@ -41,4 +41,6 @@ public class GrabssembleTool extends GravitronToolBase {
             }
         }
     }
+
+ */
 }
