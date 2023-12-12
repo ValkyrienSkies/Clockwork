@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.contraptions.phys.gyro
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import net.minecraft.world.phys.Vec3
 import org.joml.Vector3dc
 import org.valkyrienskies.core.api.ships.*
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
@@ -19,6 +20,7 @@ import kotlin.math.log
 class GyroShipControl : ShipForcesInducer, ServerTickListener {
 
 
+    internal var targetVector: Vec3 = Vec3(0.0,1.0,0.0)
     private var physConsumption = 0f
     private var extraForceLinear = 0.0
     private var extraForceAngular = 0.0
@@ -40,7 +42,7 @@ class GyroShipControl : ShipForcesInducer, ServerTickListener {
         ship ?: return
 
         val strength = calculateStrength(speed)
-        gyroStabilizer(physShip, omega, physShip, strength)
+        gyroStabilizer(physShip, omega, physShip, strength, targetVector)
     }
 
     private fun calculateStrength(speed: Float): Double {

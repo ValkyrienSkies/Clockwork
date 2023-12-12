@@ -6,6 +6,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.UpdateAltMeterPacket;
+import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.UpdateGyroPacket;
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluper.BluperGluePacket;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket;
@@ -23,7 +24,8 @@ public enum ClockworkPackets {
     // Client to Server
     UPDATE_SEAT_RULES(UpdateSeatRulesPacket.class, UpdateSeatRulesPacket::new),
     SEQUENCER_SEAT_DRIVING(SequencedSeatDrivingPacket.class, SequencedSeatDrivingPacket::new),
-
+    UPDATE_ALT_METER(UpdateAltMeterPacket.class, UpdateAltMeterPacket::new),
+    UPDATE_GYRO(UpdateGyroPacket.class, UpdateGyroPacket::new),
 
     // Server to Client
 
@@ -32,11 +34,7 @@ public enum ClockworkPackets {
 
 
     //Bluper
-    BLURPLESELECTOR(BluperGluePacket.class, BluperGluePacket::new),
-
-    UPDATE_ALT_METER(UpdateAltMeterPacket.class, UpdateAltMeterPacket::new),
-
-    ;
+    BLURPLESELECTOR(BluperGluePacket.class, BluperGluePacket::new);
 
     <T extends CWPacket> ClockworkPackets(final Class<T> type, final Function<FriendlyByteBuf, T> factory) {
         SharedValues.INSTANCE.getPacketChannel().registerPacket(type, factory);

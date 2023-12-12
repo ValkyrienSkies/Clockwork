@@ -1,13 +1,15 @@
 package org.valkyrienskies.clockwork;
 
 import com.simibubi.create.Create;
+import com.simibubi.create.foundation.gui.AllGuiTextures;
 import com.simibubi.create.foundation.gui.element.ScreenElement;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 
 public enum ClockworkGuiTextures implements ScreenElement {
 
-    GRAVITRON_SELECTED("widgets", 0, 0, 22, 22);
+    GRAVITRON_SELECTED("widgets", 0, 0, 22, 22),
+    GYRO("gyro", 200, 212);
 
     public final ResourceLocation location;
     public int width, height;

@@ -1,17 +1,20 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.gyro
 
+import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
+import org.valkyrienskies.mod.common.util.toJOML
 
 fun gyroStabilizer(
     physShip: PhysShipImpl,
     omega: Vector3dc,
     forces: PhysShipImpl,
-    strength: Double
+    strength: Double,
+    targetVector: Vec3
 ) {
     val shipUp = Vector3d(0.0, 1.0, 0.0)
-    val worldUp = Vector3d(0.0, 1.0, 0.0)
+    val worldUp = targetVector.toJOML()
 
     physShip.poseVel.rot.transform(shipUp)
     val angleBetween = shipUp.angle(worldUp)

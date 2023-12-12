@@ -35,8 +35,10 @@ class AltMeterBlock(properties: Properties) : Block(properties), IBE<AltMeterBlo
         hit: BlockHitResult
     ): InteractionResult {
         if (!player.isShiftKeyDown) {
-            if (level.isClientSide) withBlockEntityDo(level, pos) { te: AltMeterBlockEntity ->
-                displayScreen(te, player)
+            if (level.isClientSide) {
+                withBlockEntityDo(level, pos) { te: AltMeterBlockEntity ->
+                    displayScreen(te, player)
+                }
             }
         }
         return InteractionResult.SUCCESS
