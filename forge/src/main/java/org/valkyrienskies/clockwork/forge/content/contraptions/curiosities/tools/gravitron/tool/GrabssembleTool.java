@@ -26,7 +26,7 @@ public class GrabssembleTool extends GravitronToolBase {
     }
 
     public static void tryAssembleAndGrabShip(Level level, Player player, BlockPos clickedPos, Vec3 clickLocation) {
-        var bl = AssembleTool.assemble(level, player, clickedPos, clickLocation);
+        var bl = GravitronItem.Companion.grabssemble(level, player, clickedPos, clickLocation);
         if (level instanceof ServerLevel serverLevel) {
             if (!bl) {
                 var bl2 = GrabTool.tryGrabShip(serverLevel, player, clickedPos, clickLocation);

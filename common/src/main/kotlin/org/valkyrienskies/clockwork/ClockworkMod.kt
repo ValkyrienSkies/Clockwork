@@ -29,9 +29,6 @@ object ClockworkMod {
 
     val OUTLINER: Outliner = Outliner()
 
-    @JvmField
-    val C_CREATIVE_TAB = ResourceKey.create(Registries.CREATIVE_MODE_TAB, ResourceLocation(MOD_ID))
-
     @JvmStatic
     fun init() {
         ClockworkContraptions.init()

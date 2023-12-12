@@ -47,7 +47,7 @@ public class ClockworkClientEvents {
 
         //CreateClient.OUTLINER.renderOutlines(ms, buffer, camera, partialTicks);
         ClockworkMod.INSTANCE.getOUTLINER().renderOutlines(ms, SuperRenderTypeBuffer.getInstance(), camera, partialTicks);
-        //BluperClusterRenderer.Companion.getINSTANCE().renderDesignator(Minecraft.getInstance().level, Minecraft.getInstance(), ms);
+        BluperClusterRenderer.Companion.getINSTANCE().renderDesignator(Minecraft.getInstance().level, Minecraft.getInstance(), ms);
 
         buffer.draw();
         RenderSystem.enableCull();

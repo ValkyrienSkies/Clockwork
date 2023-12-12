@@ -7,6 +7,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.valkyrienskies.clockwork.ClockworkItems;
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem;
 import org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.tool.AssembleTool;
 import org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.tool.GrabTool;
 import org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.tool.GrabssembleTool;
@@ -52,7 +53,7 @@ public class GravitronGrabPacket implements C2SCWPacket {
                             GrabTool.tryGrabShip(serverLevel, serverPlayer, clickedPos.mutable(), clickLocation);
                         } else if (mode == GravitronToolBase.ASSEMBLE) {
                             System.out.println("Ass");
-                            AssembleTool.assemble(serverLevel, serverPlayer, clickedPos.mutable(), clickLocation);
+                            GravitronItem.Companion.assemble(serverLevel, serverPlayer, clickedPos.mutable());
                         } else if(mode == GravitronToolBase.GRABSSEMBLE){
                             s.setGrabbing(true);
                             System.out.println("Grabssembl");
