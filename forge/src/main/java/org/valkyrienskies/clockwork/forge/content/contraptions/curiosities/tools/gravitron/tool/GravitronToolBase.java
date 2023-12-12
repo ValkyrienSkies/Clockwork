@@ -38,7 +38,7 @@ public abstract class GravitronToolBase implements IGravitronTool {
         return s;
     }
 
-    public void updateTargetPos(){
+    public void updateTargetPos() {
         LocalPlayer player = Minecraft.getInstance().player;
 
         BlockHitResult trace = RaycastHelper.rayTraceRange(player.level(), player, player.getBlockReach() + 2);
@@ -61,7 +61,7 @@ public abstract class GravitronToolBase implements IGravitronTool {
     }
 
     @Override
-    public void renderTool(PoseStack ms, SuperRenderTypeBuffer buffer,Vec3 camera) {
+    public void renderTool(PoseStack ms, SuperRenderTypeBuffer buffer, Vec3 camera) {
 
     }
 

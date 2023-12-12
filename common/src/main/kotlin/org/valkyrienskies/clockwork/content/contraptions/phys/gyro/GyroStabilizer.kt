@@ -18,7 +18,8 @@ fun gyroStabilizer(
     val idealAngularAcceleration = Vector3d()
     if (angleBetween > .01) {
         val stabilizationRotationAxisNormalized = shipUp.cross(worldUp, Vector3d()).normalize()
-        idealAngularAcceleration.add(stabilizationRotationAxisNormalized.mul(angleBetween, stabilizationRotationAxisNormalized)
+        idealAngularAcceleration.add(
+            stabilizationRotationAxisNormalized.mul(angleBetween, stabilizationRotationAxisNormalized)
         )
     }
 

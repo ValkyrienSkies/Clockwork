@@ -29,6 +29,7 @@ object ClockworkUtils {
         tag.add(DoubleTag.valueOf(vec.z))
         return tag
     }
+
     @JvmStatic
     fun readVec3(tag: ListTag): Vec3 {
         return Vec3(tag.getDouble(0), tag.getDouble(1), tag.getDouble(2))

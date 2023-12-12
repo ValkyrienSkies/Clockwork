@@ -8,7 +8,6 @@ import org.valkyrienskies.core.api.ships.*
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 import kotlin.math.abs
 import kotlin.math.log
-import kotlin.math.pow
 
 @JsonAutoDetect(
     fieldVisibility = JsonAutoDetect.Visibility.ANY,

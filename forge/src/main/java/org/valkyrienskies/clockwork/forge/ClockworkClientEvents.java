@@ -2,15 +2,6 @@ package org.valkyrienskies.clockwork.forge;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.simibubi.create.CreateClient;
-import com.simibubi.create.content.contraptions.glue.SuperGlueItem;
-import com.simibubi.create.content.contraptions.glue.SuperGlueRenderer;
-import com.simibubi.create.content.contraptions.glue.SuperGlueSelectionPacket;
-import com.simibubi.create.content.contraptions.minecart.CouplingRenderer;
-import com.simibubi.create.content.schematics.client.SchematicHandler;
-import com.simibubi.create.content.trains.entity.CarriageCouplingRenderer;
-import com.simibubi.create.content.trains.track.TrackBlockOutline;
-import com.simibubi.create.content.trains.track.TrackTargetingClient;
 import com.simibubi.create.foundation.render.SuperRenderTypeBuffer;
 import com.simibubi.create.foundation.utility.AnimationTickHolder;
 import net.minecraft.client.Minecraft;

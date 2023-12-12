@@ -1,8 +1,5 @@
 package org.valkyrienskies.clockwork;
 
-import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
-import com.simibubi.create.content.kinetics.base.ShaftInstance;
-import com.simibubi.create.content.kinetics.base.ShaftRenderer;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity;

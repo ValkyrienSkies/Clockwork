@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron
 
 import org.joml.Quaterniond
-import org.joml.Quaterniondc
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.core.api.ships.LoadedServerShip

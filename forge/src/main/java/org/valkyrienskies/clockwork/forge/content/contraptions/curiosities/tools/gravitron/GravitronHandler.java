@@ -1,10 +1,7 @@
 package org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron;
 
-import com.google.common.collect.ImmutableList;
-import com.simibubi.create.AllBlocks;
-import com.simibubi.create.AllItems;
 import com.simibubi.create.AllKeys;
-import com.simibubi.create.content.schematics.client.*;
+import com.simibubi.create.content.schematics.client.SchematicHotbarSlotOverlay;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
@@ -12,14 +9,10 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import org.valkyrienskies.clockwork.ClockworkItems;
 import org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.tool.ToolType;
-
-import java.util.Vector;
 
 public class GravitronHandler implements IGuiOverlay {
 
@@ -67,7 +60,7 @@ public class GravitronHandler implements IGuiOverlay {
         selectionScreen.update();
     }
 
-    public void render(GuiGraphics graphics, float partialTicks,int width, int height) {
+    public void render(GuiGraphics graphics, float partialTicks, int width, int height) {
         if (Minecraft.getInstance().options.hideGui || !active) {
             return;
         }

@@ -38,7 +38,8 @@ class ShipDestroyerItem(properties: Properties) : CWItem(properties) {
 
         val chunkX = blockPos.x shr 4
         val chunkZ = blockPos.z shr 4
-        val ship: LoadedServerShip? = world.shipObjectWorld.loadedShips.getByChunkPos(chunkX, chunkZ, world.dimensionId) as LoadedServerShip?
+        val ship: LoadedServerShip? =
+            world.shipObjectWorld.loadedShips.getByChunkPos(chunkX, chunkZ, world.dimensionId) as LoadedServerShip?
 
         val invRotation = ship!!.transform.shipToWorldRotation.invert(Quaterniond())
         val invRotationAxisAngle = AxisAngle4d(invRotation)
@@ -129,9 +130,11 @@ class ShipDestroyerItem(properties: Properties) : CWItem(properties) {
                             val realY = chunk.minBuildHeight + y
                             val realZ = (chunkZ shl 4) + z
 
-                            val inWorldPos = shipToWorld.transformPosition(alloc0.set(realX + 0.5, realY + 0.5, realZ + 0.5)).floor()
+                            val inWorldPos =
+                                shipToWorld.transformPosition(alloc0.set(realX + 0.5, realY + 0.5, realZ + 0.5)).floor()
 
-                            val inWorldBlockPos = BlockPos(inWorldPos.x.toInt(), inWorldPos.y.toInt(), inWorldPos.z.toInt())
+                            val inWorldBlockPos =
+                                BlockPos(inWorldPos.x.toInt(), inWorldPos.y.toInt(), inWorldPos.z.toInt())
                             val inShipPos = BlockPos(realX, realY, realZ)
 
                             toUpdate.add(Triple(inShipPos, inWorldBlockPos, state))

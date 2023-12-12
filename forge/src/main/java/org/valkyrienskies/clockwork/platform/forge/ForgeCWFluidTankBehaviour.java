@@ -3,7 +3,6 @@ package org.valkyrienskies.clockwork.platform.forge;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
 import com.simibubi.create.foundation.fluid.CombinedTankWrapper;
-import com.simibubi.create.foundation.fluid.SmartFluidTank;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
@@ -21,7 +20,7 @@ public class ForgeCWFluidTankBehaviour extends CWFluidTankBehaviour {
 
         IFluidHandler[] handlers = new IFluidHandler[tanks];
 
-        for(int i = 0; i < tanks; ++i) {
+        for (int i = 0; i < tanks; ++i) {
             handlers[i] = (ForgeCWFluidTank) this.getTanks()[i].getTank();
         }
 

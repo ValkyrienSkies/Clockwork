@@ -30,8 +30,10 @@ public abstract class MixinPlayerData extends LivingEntity implements AreaData {
         super(entityType, level);
     }
 
-    @Unique public boolean shouldReset = false;
-    @Unique public int resetTimer = 20;
+    @Unique
+    public boolean shouldReset = false;
+    @Unique
+    public int resetTimer = 20;
 
     @Override
     public void shouldReset(boolean reset) {
@@ -59,7 +61,7 @@ public abstract class MixinPlayerData extends LivingEntity implements AreaData {
     }
 
     @Inject(method = "tick", at = @At("TAIL"))
-    private void clockwork$tickPlayer(CallbackInfo ci){
+    private void clockwork$tickPlayer(CallbackInfo ci) {
         if (shouldReset) {
             resetTimer--;
             if (resetTimer <= 0) {

@@ -31,17 +31,17 @@ configurations {
 
 repositories {
 
-        // mavens for Forge-exclusives
-        maven { url = "https://maven.theillusivec4.top/" } // Curios
-        maven { // Create Forge and Registrate Forge
-            url = "https://maven.tterrag.com/"
-            content {
-                includeGroup("com.tterrag.registrate")
-                includeGroup("com.simibubi.create")
-            }
+    // mavens for Forge-exclusives
+    maven { url = "https://maven.theillusivec4.top/" } // Curios
+    maven { // Create Forge and Registrate Forge
+        url = "https://maven.tterrag.com/"
+        content {
+            includeGroup("com.tterrag.registrate")
+            includeGroup("com.simibubi.create")
         }
+    }
 
-        maven { url = "https://cursemaven.com" }
+    maven { url = "https://cursemaven.com" }
 
 }
 
@@ -88,21 +88,21 @@ dependencies {
     modImplementation("com.tterrag.registrate:Registrate:${registrate_forge_version}") {
         exclude group: 'org.joml', module: ''
     }
-    modImplementation("com.jozufozu.flywheel:flywheel-forge-${flywheel_forge_minecraft_version}:${flywheel_forge_version}"){
+    modImplementation("com.jozufozu.flywheel:flywheel-forge-${flywheel_forge_minecraft_version}:${flywheel_forge_version}") {
         exclude group: 'org.joml', module: ''
     }
 
     // JOML
     //compileOnly("org.joml:joml:1.10.4")
 
-    compileOnly("org.joml:joml-primitives:1.10.0"){
+    compileOnly("org.joml:joml-primitives:1.10.0") {
         exclude group: 'org.joml', module: 'joml'
     }
 
     // Add Kotlin for Forge.
     implementation "thedarkcolour:kotlinforforge:$kotlin_version"
 
-    modCompileOnly("maven.modrinth:embeddium:${embeddium_version}"){
+    modCompileOnly("maven.modrinth:embeddium:${embeddium_version}") {
         exclude group: 'org.joml', module: ''
     }
     // CC Tweaked
@@ -149,7 +149,7 @@ shadowJar {
 
 remapJar {
     input.set shadowJar.archiveFile
-            dependsOn shadowJar
+    dependsOn shadowJar
     archiveClassifier.set null
 }
 
@@ -160,7 +160,7 @@ jar {
 sourcesJar {
     def commonSources = project(":common").sourcesJar
     dependsOn commonSources
-            from commonSources.archiveFile.map { zipTree(it) }
+    from commonSources.archiveFile.map { zipTree(it) }
 }
 
 components.java {

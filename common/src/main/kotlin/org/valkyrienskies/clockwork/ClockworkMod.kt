@@ -1,13 +1,9 @@
 package org.valkyrienskies.clockwork
 
 import com.mojang.logging.LogUtils
-import com.simibubi.create.Create
 import com.simibubi.create.foundation.data.CreateRegistrate
 import com.simibubi.create.foundation.outliner.Outliner
-import net.minecraft.core.registries.Registries
 import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.MutableComponent
-import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
 import org.slf4j.LoggerFactory

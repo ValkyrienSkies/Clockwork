@@ -5,7 +5,6 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.tool.GrabTool;
-import org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.tool.GravitronToolBase;
 
 
 @Mod.EventBusSubscriber

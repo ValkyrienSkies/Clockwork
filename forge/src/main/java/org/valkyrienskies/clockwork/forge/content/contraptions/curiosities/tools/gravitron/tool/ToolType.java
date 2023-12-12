@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.tool;
 
-import com.simibubi.create.content.schematics.client.tools.ISchematicTool;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import org.valkyrienskies.clockwork.ClockworkIcons;

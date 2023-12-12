@@ -10,7 +10,10 @@ public interface IGravitronTool {
     void init();
 
     boolean handleRightClick();
+
     boolean handleMouseWheel(double delta);
-    void renderTool(PoseStack ms, SuperRenderTypeBuffer buffer,Vec3 camera);
+
+    void renderTool(PoseStack ms, SuperRenderTypeBuffer buffer, Vec3 camera);
+
     void renderOverlay(GuiGraphics graphics, float partialTicks, int width, int height);
 }

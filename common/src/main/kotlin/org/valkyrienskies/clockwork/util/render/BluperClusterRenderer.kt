@@ -25,8 +25,6 @@ import org.valkyrienskies.mod.common.util.toBlockPos
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft
 import java.util.*
-import kotlin.collections.HashMap
-import kotlin.collections.HashSet
 
 class BluperClusterRenderer {
 
@@ -91,9 +89,12 @@ class BluperClusterRenderer {
         for (cluster in clusters) {
             val range = 10.0
             val tempOrigin: Vector3dc = RaycastHelper.getTraceOrigin(localPlayer).toJOML()
-            val tempTarget: Vector3dc = RaycastHelper.getTraceTarget(localPlayer, range, RaycastHelper.getTraceOrigin(localPlayer)).toJOML()
-            val traceOrigin: Vector3fc = Vector3f(tempOrigin.x().toFloat(), tempOrigin.y().toFloat(), tempOrigin.z().toFloat())
-            val traceTarget: Vector3fc = Vector3f(tempTarget.x().toFloat(), tempTarget.y().toFloat(), tempTarget.z().toFloat())
+            val tempTarget: Vector3dc =
+                RaycastHelper.getTraceTarget(localPlayer, range, RaycastHelper.getTraceOrigin(localPlayer)).toJOML()
+            val traceOrigin: Vector3fc =
+                Vector3f(tempOrigin.x().toFloat(), tempOrigin.y().toFloat(), tempOrigin.z().toFloat())
+            val traceTarget: Vector3fc =
+                Vector3f(tempTarget.x().toFloat(), tempTarget.y().toFloat(), tempTarget.z().toFloat())
             val cast = LineSegmentf(traceOrigin, traceTarget)
 
             for (box in cluster) {
@@ -169,10 +170,13 @@ class BluperClusterRenderer {
         }
     }
 
-    private fun getCurrentSelectionBox(firstPos : Optional<Vector3ic>, secondPos : Optional<Vector3ic>): AABB? {
+    private fun getCurrentSelectionBox(firstPos: Optional<Vector3ic>, secondPos: Optional<Vector3ic>): AABB? {
         if (secondPos.isEmpty) {
             if (firstPos.isEmpty) return if (selectedPos.isEmpty) null else AABB(selectedPos.get().toBlockPos())
-            return if (selectedPos.isEmpty) AABB(firstPos.get().toBlockPos()) else AABB(firstPos.get().toBlockPos(), selectedPos.get().toBlockPos()).expandTowards(1.0, 1.0, 1.0)
+            return if (selectedPos.isEmpty) AABB(firstPos.get().toBlockPos()) else AABB(
+                firstPos.get().toBlockPos(),
+                selectedPos.get().toBlockPos()
+            ).expandTowards(1.0, 1.0, 1.0)
         }
         return AABB(firstPos.get().toBlockPos(), secondPos.get().toBlockPos()).expandTowards(1.0, 1.0, 1.0)
     }

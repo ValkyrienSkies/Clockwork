@@ -29,7 +29,7 @@ class BluperHelperPacket : S2CCWPacket {
     }
 
 
-    constructor(cluster: Set<AABBic>){
+    constructor(cluster: Set<AABBic>) {
         this.boxSet = cluster
     }
 

@@ -7,38 +7,34 @@ import com.simibubi.create.foundation.item.CustomArmPoseItem
 import net.minecraft.client.model.HumanoidModel
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.core.BlockPos
-import net.minecraft.nbt.Tag
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionHand
-import net.minecraft.world.InteractionResult
 import net.minecraft.world.InteractionResultHolder
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.UseAnim
-import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
-import org.joml.*
+import org.joml.Quaterniondc
+import org.joml.Vector2dc
+import org.joml.Vector3d
+import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.AreaData
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.core.api.ships.LoadedServerShip
-import org.valkyrienskies.core.api.ships.Ship
 import org.valkyrienskies.core.api.ships.properties.ShipId
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
-import org.valkyrienskies.mod.common.dimensionId
-import org.valkyrienskies.mod.common.isBlockInShipyard
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft
-import java.lang.Math.toRadians
 import java.util.function.Consumer
 
 class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseItem {
@@ -68,15 +64,20 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                     if (ship.isStatic) {
                         dropShip(s, level)
                     }
-                    level.playSound(player, player.blockPosition(), ClockworkSounds.DESIGNATOR_ACTIVATE.mainEvent!!, SoundSource.PLAYERS, 1f, 1f)
+                    level.playSound(
+                        player,
+                        player.blockPosition(),
+                        ClockworkSounds.DESIGNATOR_ACTIVATE.mainEvent!!,
+                        SoundSource.PLAYERS,
+                        1f,
+                        1f
+                    )
                     return true
                 }
             }
         }
         return false
     }
-
-
 
 
     // || ITEM FUNCTIONS || //
@@ -163,18 +164,36 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                                         if (entity !is SuperGlueEntity) {
                                             val oldPos: Vector3dc = entity.position().toJOML()
                                             val newPos: Vector3dc =
-                                                connectedShip.transform.worldToShip.transformPosition(oldPos, Vector3d())
+                                                connectedShip.transform.worldToShip.transformPosition(
+                                                    oldPos,
+                                                    Vector3d()
+                                                )
                                             entity.moveTo(newPos.toMinecraft())
                                         } else {
                                             val oldBounds = entity.boundingBox
-                                            val oldMax: Vector3dc = Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
-                                            val oldMin: Vector3dc = Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
+                                            val oldMax: Vector3dc =
+                                                Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
+                                            val oldMin: Vector3dc =
+                                                Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
                                             val newMax: Vector3dc =
-                                                connectedShip.transform.worldToShip.transformPosition(oldMax, Vector3d())
+                                                connectedShip.transform.worldToShip.transformPosition(
+                                                    oldMax,
+                                                    Vector3d()
+                                                )
                                             val newMin: Vector3dc =
-                                                connectedShip.transform.worldToShip.transformPosition(oldMin, Vector3d())
+                                                connectedShip.transform.worldToShip.transformPosition(
+                                                    oldMin,
+                                                    Vector3d()
+                                                )
                                             val newBounds =
-                                                AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z())
+                                                AABB(
+                                                    newMin.x(),
+                                                    newMin.y(),
+                                                    newMin.z(),
+                                                    newMax.x(),
+                                                    newMax.y(),
+                                                    newMax.z()
+                                                )
                                             entity.boundingBox = newBounds
                                             entity.resetPositionToBB()
                                         }

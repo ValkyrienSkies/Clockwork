@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork.util.blocktype
 
 import com.simibubi.create.foundation.utility.Lang
 import net.minecraft.util.StringRepresentable
-import net.minecraft.world.level.material.Fluid
 
 enum class LiquidFuelType : StringRepresentable {
     NONE,

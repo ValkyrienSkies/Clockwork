@@ -48,7 +48,7 @@ public class CWEntityDataSerializers {
             SelectedAreaToolkit toolkit = new SelectedAreaToolkit();
 
             int sizeSelectedAreas = buf.readVarInt();
-            int sizeSelectionClusters =  buf.readVarInt();
+            int sizeSelectionClusters = buf.readVarInt();
             int sizeToStopRendering = buf.readVarInt();
             Set<AABBic> aabBicSet = new HashSet<>();
             Set<AABBic> aabBicSet2 = new HashSet<>();

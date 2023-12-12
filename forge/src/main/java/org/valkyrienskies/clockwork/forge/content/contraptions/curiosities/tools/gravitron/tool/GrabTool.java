@@ -76,7 +76,7 @@ public class GrabTool extends GravitronToolBase {
         s.setShouldDrop(false);
     }
 
-    private static void updateShip(GravitronItem.Companion.GravitronState s , ServerLevel level, Entity entity) {
+    private static void updateShip(GravitronItem.Companion.GravitronState s, ServerLevel level, Entity entity) {
         if (s.getGrabbing()) {
             var shipId = s.getShipID();
             if (shipId != null) {

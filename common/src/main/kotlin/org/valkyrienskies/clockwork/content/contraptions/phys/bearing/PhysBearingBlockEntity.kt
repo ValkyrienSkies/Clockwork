@@ -56,7 +56,9 @@ import java.lang.Math
 import kotlin.math.sign
 import kotlin.math.sin
 
-class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : GeneratingKineticBlockEntity(type, pos, state), IBearingBlockEntity, IDisplayAssemblyExceptions, ContraptionController {
+class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) :
+    GeneratingKineticBlockEntity(type, pos, state), IBearingBlockEntity, IDisplayAssemblyExceptions,
+    ContraptionController {
 
     var movementMode: ScrollOptionBehaviour<LockedMode>? = null
     var shouldRefresh = false

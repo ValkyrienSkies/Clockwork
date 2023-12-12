@@ -60,23 +60,19 @@
   "fluid.vs_clockwork.strawberry_frosting_bucket": "Strawberry Frosting",
   "block.vs_clockwork.phys_bearing": "Phys Bearing",
   "item.vs_clockwork.phys_bearing": "Phys Bearing",
-
   "vs_clockwork.gravitron.tool.grab": "Grab",
   "vs_clockwork.gravitron.tool.assemble": "Assemble",
   "vs_clockwork.gravitron.tool.grab_and_assemble": "Grabssemble",
   "vs_clockwork.gui.toolmenu.focusKey": "Hold [%1$s] to Focus",
   "vs_clockwork.gui.toolmenu.cycle": "[SCROLL] to Cycle",
-
   "vs_clockwork.gravitron.tool.grab.description.0": "Grabs Ships.",
   "vs_clockwork.gravitron.tool.grab.description.1": "",
   "vs_clockwork.gravitron.tool.grab.description.2": "",
   "vs_clockwork.gravitron.tool.grab.description.3": "",
-
   "vs_clockwork.gravitron.tool.assemble.description.0": "Assembles Ships.",
   "vs_clockwork.gravitron.tool.assemble.description.1": "Area needs to be selected",
   "vs_clockwork.gravitron.tool.assemble.description.2": "with Bluper Glue",
   "vs_clockwork.gravitron.tool.assemble.description.3": "",
-
   "vs_clockwork.gravitron.tool.grab_and_assemble.description.0": "Grabs and Assembles Ships.",
   "vs_clockwork.gravitron.tool.grab_and_assemble.description.1": "",
   "vs_clockwork.gravitron.tool.grab_and_assemble.description.2": "",
