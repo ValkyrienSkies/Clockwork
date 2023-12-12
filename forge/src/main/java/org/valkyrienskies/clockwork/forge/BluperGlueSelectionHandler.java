@@ -54,6 +54,11 @@ public class BluperGlueSelectionHandler {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;
 
+        renderStoredClusters();
+        if (ClockworkItems.GRAVITRON.isIn(Minecraft.getInstance().player.getMainHandItem())) {
+            return;
+        }
+
         var data = AreaData.of(player).get();
         if (AllKeys.ACTIVATE_TOOL.isPressed()) {
             float pt = AnimationTickHolder.getPartialTicks();
@@ -93,7 +98,7 @@ public class BluperGlueSelectionHandler {
                     .lineWidth(1 / 16f)
                     .highlightFace(selectedFace);
 
-        renderStoredClusters();
+
     }
 
     private AABB getCurrentSelectionBox(AreaData data) {

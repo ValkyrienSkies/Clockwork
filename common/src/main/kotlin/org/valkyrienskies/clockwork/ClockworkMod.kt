@@ -30,6 +30,7 @@ object ClockworkMod {
     fun init() {
         ClockworkContraptions.init()
         ClockworkPackets.init()
+        ClockworkTags.init()
 
         VSEvents.ShipLoadEvent.on { event ->
             event.ship

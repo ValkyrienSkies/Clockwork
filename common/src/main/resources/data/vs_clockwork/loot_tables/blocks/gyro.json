@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "vs_clockwork:ballooner"
+          "name": "vs_clockwork:gyro"
         }
       ],
       "conditions": [
