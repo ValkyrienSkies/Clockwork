@@ -44,6 +44,7 @@ public class BluperGlueSelectionHandler {
         var data = AreaData.of(player).get();
         data.setFirstPos(Optional.empty());
         data.setSecondPos(Optional.empty());
+        storedClusters = new HashMap<>();
         Lang.translate("schematicAndQuill.abort")
                 .sendStatus(player);
     }
