@@ -15,13 +15,12 @@ import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.LevelReader
+import net.minecraft.world.level.block.RenderShape
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlockEntity
-import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterScreen
 import org.valkyrienskies.core.api.ships.getAttachment
 import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
@@ -88,6 +87,10 @@ class GyroBlock(properties: Properties) : KineticBlock(properties), IBE<GyroBloc
 
     override fun getRotationAxis(state: BlockState?): Direction.Axis {
         return Direction.Axis.Y
+    }
+
+    override fun getRenderShape(pState: BlockState?): RenderShape {
+        return RenderShape.ENTITYBLOCK_ANIMATED
     }
 
     @Environment(value = EnvType.CLIENT)

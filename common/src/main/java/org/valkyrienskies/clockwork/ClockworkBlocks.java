@@ -9,6 +9,7 @@ import com.tterrag.registrate.util.entry.BlockEntry;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.MapColor;
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock;
 import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlock;
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock;
@@ -90,6 +91,7 @@ public class ClockworkBlocks {
     public static final BlockEntry<GyroBlock> GYRO =
             ClockworkMod.INSTANCE.getREGISTRATE().block("gyro", GyroBlock::new)
                     .initialProperties(SharedProperties::stone)
+                    .properties(p -> p.noOcclusion().mapColor(MapColor.TERRACOTTA_YELLOW))
                     .transform(axeOrPickaxe())
                     .addLayer(() -> RenderType::cutout)
                     .tag(AllTags.AllBlockTags.SAFE_NBT.tag)

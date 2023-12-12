@@ -8,6 +8,8 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterB
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingRenderer;
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlockEntity;
+import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlockEntityRenderer;
+import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroInstance;
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity;
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingRenderer;
 import org.valkyrienskies.clockwork.content.generic.ColorBlockEntity;
@@ -84,7 +86,9 @@ public class ClockworkBlockEntities {
 
     public static final BlockEntityEntry<GyroBlockEntity> GYRO = REGISTRATE
             .blockEntity("gyro", GyroBlockEntity::new)
+            .instance(() -> GyroInstance::new, false)
             .validBlocks(ClockworkBlocks.GYRO)
+            .renderer(() -> GyroBlockEntityRenderer::new)
             .register();
 
 
