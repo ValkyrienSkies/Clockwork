@@ -14,21 +14,24 @@ import java.util.function.Supplier
 
 object ClockworkItems {
     @JvmField
-    val BLUPERGLUE: ItemEntry<BluperGlueItem> = REGISTRATE.item<BluperGlueItem>("bluperglue") { properties: Item.Properties? ->
-        BluperGlueItem(properties!!)
-    }
-        .properties {
-            it.rarity(Rarity.UNCOMMON)
-            it.stacksTo(1)
-            it.durability(1000)
+    val BLUPERGLUE: ItemEntry<BluperGlueItem> =
+        REGISTRATE.item<BluperGlueItem>("bluperglue") { properties: Item.Properties? ->
+            BluperGlueItem(properties!!)
         }
-        .tag(AllTags.AllItemTags.UPRIGHT_ON_BELT.tag)
-        .register()
+            .properties {
+                it.rarity(Rarity.UNCOMMON)
+                it.stacksTo(1)
+                it.durability(1000)
+            }
+            .tag(AllTags.AllItemTags.UPRIGHT_ON_BELT.tag)
+            .register()
+
     @JvmField
-    val GRAVITRON: ItemEntry<GravitronItem> = REGISTRATE.item<GravitronItem>("gravitron") { properties: Item.Properties? ->
+    val GRAVITRON: ItemEntry<GravitronItem> =
+        REGISTRATE.item<GravitronItem>("gravitron") { properties: Item.Properties? ->
             GravitronItem(properties!!)
         }
-            .properties{
+            .properties {
                 it.stacksTo(1)
                 it.rarity(Rarity.UNCOMMON)
             }
@@ -36,6 +39,7 @@ object ClockworkItems {
             .tag(AllTags.AllItemTags.WRENCH.tag)
             .model(AssetLookup.itemModelWithPartials())
             .register()
+
     @JvmField
     val BLUUGUU: ItemEntry<Item> = ingredient("bluuguu")
 

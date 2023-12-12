@@ -12,9 +12,9 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import org.valkyrienskies.clockwork.ClockworkLang;
 import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.platform.entity.ForgeSequencedSeatEntity;
+import org.valkyrienskies.clockwork.util.ClockworkLang;
 
 public class ForgeClockworkEntities {
 

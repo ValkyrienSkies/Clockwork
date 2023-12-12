@@ -73,7 +73,10 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
                 ), true
             )
             player.cooldowns.addCooldown(this, 10)
-            ClockworkPackets.sendToClientsTrackingAndSelf(BluperGluePacket(areaData.getFirstPos()), player as ServerPlayer)
+            ClockworkPackets.sendToClientsTrackingAndSelf(
+                BluperGluePacket(areaData.getFirstPos()),
+                player as ServerPlayer
+            )
             return InteractionResult.SUCCESS
         } else if (areaData.getSecondPos().isEmpty && areaData.getFirstPos().isPresent) {
             areaData.setSecondPos(Optional.of(pos))

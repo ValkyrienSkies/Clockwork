@@ -13,7 +13,7 @@ import org.valkyrienskies.clockwork.ClockworkItems;
 public class MixinToolboxHandler {
 
     @WrapOperation(method = "getNearest", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/equipment/toolbox/ToolboxHandler;getMaxRange(Lnet/minecraft/world/entity/player/Player;)D"))
-    private static double clockwork$cancelToolbox(Player player, Operation<Double> original){
+    private static double clockwork$cancelToolbox(Player player, Operation<Double> original) {
         if (player.getMainHandItem().is(ClockworkItems.GRAVITRON.asItem())) {
             return 0.0;
         }

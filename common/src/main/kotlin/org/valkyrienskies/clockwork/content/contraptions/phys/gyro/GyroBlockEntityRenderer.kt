@@ -12,7 +12,8 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.world.level.block.state.BlockState
 
 
-class GyroBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) : KineticBlockEntityRenderer<GyroBlockEntity>(context) {
+class GyroBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
+    KineticBlockEntityRenderer<GyroBlockEntity>(context) {
 
     override fun renderSafe(
         be: GyroBlockEntity?,
@@ -36,7 +37,14 @@ class GyroBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) : K
         renderGyro(be, ms, light, blockState, angle, vb)
     }
 
-    private fun renderGyro(be: GyroBlockEntity, ms: PoseStack?, light: Int, blockState: BlockState, angle: Float, vb: VertexConsumer) {
+    private fun renderGyro(
+        be: GyroBlockEntity,
+        ms: PoseStack?,
+        light: Int,
+        blockState: BlockState,
+        angle: Float,
+        vb: VertexConsumer
+    ) {
         val wheel = CachedBufferer.block(blockState)
         kineticRotationTransform(wheel, be, getRotationAxisOf(be), AngleHelper.rad(angle.toDouble()), light)
         wheel.renderInto(ms, vb)

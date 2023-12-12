@@ -6,8 +6,8 @@ import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import org.valkyrienskies.clockwork.content.curiosities.tools.bluper.SelectedAreaToolkit;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem;
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.SelectedAreaToolkit;
 import org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.tool.GrabTool;
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck;
 import org.valkyrienskies.clockwork.util.AreaData;
@@ -30,13 +30,13 @@ public class ClockworkEvents {
 
     @SubscribeEvent
     public static void playerJoin(EntityJoinLevelEvent event) {
-       if (event.getEntity() instanceof Player player) {
-           MixinPlayerDuck p = ((MixinPlayerDuck) player);
-           p.cw_setGravitronState(new GravitronItem.Companion.GravitronState());
+        if (event.getEntity() instanceof Player player) {
+            MixinPlayerDuck p = ((MixinPlayerDuck) player);
+            p.cw_setGravitronState(new GravitronItem.Companion.GravitronState());
 
-           AreaData.of(player).get().setArea(new SelectedAreaToolkit());
-           AreaData.of(player).get().setFirstPos(Optional.empty());
-           AreaData.of(player).get().setSecondPos(Optional.empty());
-       }
+            AreaData.of(player).get().setArea(new SelectedAreaToolkit());
+            AreaData.of(player).get().setFirstPos(Optional.empty());
+            AreaData.of(player).get().setSecondPos(Optional.empty());
+        }
     }
 }

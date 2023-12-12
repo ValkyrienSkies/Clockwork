@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron
+package org.valkyrienskies.clockwork.content.curiosities.tools.bluper
 
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel

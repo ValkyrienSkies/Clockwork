@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork
+package org.valkyrienskies.clockwork.util
 
 import com.simibubi.create.foundation.utility.Components
 import com.simibubi.create.foundation.utility.LangBuilder
@@ -8,6 +8,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.state.BlockState
+import org.valkyrienskies.clockwork.ClockworkMod
 import java.util.*
 
 object ClockworkLang {

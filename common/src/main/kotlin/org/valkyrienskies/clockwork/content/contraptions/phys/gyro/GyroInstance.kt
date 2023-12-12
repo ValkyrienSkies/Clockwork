@@ -1,17 +1,16 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.gyro;
 
 
-import com.jozufozu.flywheel.api.MaterialManager;
-import com.jozufozu.flywheel.api.instance.DynamicInstance;
-import com.jozufozu.flywheel.core.materials.model.ModelData;
-import com.jozufozu.flywheel.util.transform.TransformStack;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.simibubi.create.content.kinetics.base.KineticBlockEntityInstance;
-import com.simibubi.create.content.kinetics.base.flwdata.RotatingData;
-import com.simibubi.create.content.kinetics.flywheel.FlywheelBlockEntity;
-import com.simibubi.create.foundation.utility.AngleHelper;
-import com.simibubi.create.foundation.utility.AnimationTickHolder;
-import net.minecraft.core.Direction;
+import com.jozufozu.flywheel.api.MaterialManager
+import com.jozufozu.flywheel.api.instance.DynamicInstance
+import com.jozufozu.flywheel.core.materials.model.ModelData
+import com.jozufozu.flywheel.util.transform.TransformStack
+import com.mojang.blaze3d.vertex.PoseStack
+import com.simibubi.create.content.kinetics.base.KineticBlockEntityInstance
+import com.simibubi.create.content.kinetics.base.flwdata.RotatingData
+import com.simibubi.create.foundation.utility.AngleHelper
+import com.simibubi.create.foundation.utility.AnimationTickHolder
+import net.minecraft.core.Direction
 
 class GyroInstance(materialManager: MaterialManager, blockEntity: GyroBlockEntity) :
     KineticBlockEntityInstance<GyroBlockEntity>(materialManager, blockEntity), DynamicInstance {
@@ -44,7 +43,8 @@ class GyroInstance(materialManager: MaterialManager, blockEntity: GyroBlockEntit
         val msr = TransformStack.cast(ms)
 
         msr.translate(instancePosition)
-        msr.centre().rotate(Direction.get(Direction.AxisDirection.POSITIVE, axis), AngleHelper.rad(angle.toDouble())).unCentre()
+        msr.centre().rotate(Direction.get(Direction.AxisDirection.POSITIVE, axis), AngleHelper.rad(angle.toDouble()))
+            .unCentre()
 
         wheel.setTransform(ms)
     }

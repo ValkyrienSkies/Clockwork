@@ -12,7 +12,6 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.bluper.BluperGlueP
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket
 import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket
-import org.valkyrienskies.clockwork.platform.SharedValues
 import org.valkyrienskies.clockwork.platform.SharedValues.packetChannel
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
 import org.valkyrienskies.clockwork.platform.api.network.CWPacket
@@ -41,7 +40,6 @@ enum class ClockworkPackets(
     init {
         packetChannel.registerPacket(type as Class<CWPacket>, factory as Function<FriendlyByteBuf, CWPacket>)
     }
-
 
 
     companion object {

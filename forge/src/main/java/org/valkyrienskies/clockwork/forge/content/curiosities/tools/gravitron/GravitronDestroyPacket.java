@@ -5,7 +5,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.joml.AxisAngle4d;
 import org.joml.Quaterniond;
@@ -41,7 +40,7 @@ public class GravitronDestroyPacket implements C2SCWPacket {
             if (ship != null) {
                 var invRotation = ship.getTransform().getShipToWorldRotation().invert(new Quaterniond());
                 var invRotationAxisAngle = new AxisAngle4d(invRotation);
-                var alignTarget = Direction.from2DDataValue((int)floor((invRotationAxisAngle.angle / (PI * 0.5)) + 4.5) % 4);
+                var alignTarget = Direction.from2DDataValue((int) floor((invRotationAxisAngle.angle / (PI * 0.5)) + 4.5) % 4);
 
                 ShipDestroyer.INSTANCE.unfillShip(serverLevel, ship, alignTarget);
             }

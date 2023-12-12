@@ -1,10 +1,8 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.gyro
 
-import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
-import org.valkyrienskies.mod.common.util.toJOML
 
 fun gyroStabilizer(
     physShip: PhysShipImpl,

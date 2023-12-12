@@ -12,13 +12,18 @@ import org.joml.Matrix4d
 import org.joml.Vector3d
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.impl.networking.simple.sendToClient
-import org.valkyrienskies.mod.common.*
+import org.valkyrienskies.mod.common.executeIf
+import org.valkyrienskies.mod.common.isTickingChunk
 import org.valkyrienskies.mod.common.networking.PacketRestartChunkUpdates
 import org.valkyrienskies.mod.common.networking.PacketStopChunkUpdates
+import org.valkyrienskies.mod.common.playerWrapper
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.util.relocateBlock
 import org.valkyrienskies.mod.util.updateBlock
-import kotlin.math.*
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.round
+import kotlin.math.sign
 
 object ShipDestroyer {
     private fun roundToNearestMultipleOf(number: Double, multiple: Double) = multiple * round(number / multiple)

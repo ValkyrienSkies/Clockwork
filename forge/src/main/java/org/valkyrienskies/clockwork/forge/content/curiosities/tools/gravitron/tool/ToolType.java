@@ -3,8 +3,8 @@ package org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.t
 import com.simibubi.create.AllKeys;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import org.valkyrienskies.ClockworkIcons;
-import org.valkyrienskies.clockwork.ClockworkLang;
+import org.valkyrienskies.clockwork.ClockworkIcons;
+import org.valkyrienskies.clockwork.util.ClockworkLang;
 
 import java.util.ArrayList;
 import java.util.Collections;

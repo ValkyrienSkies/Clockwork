@@ -3,7 +3,7 @@ package org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.t
 import org.valkyrienskies.clockwork.ClockworkPackets;
 import org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.GravitronDestroyPacket;
 
-public class DestroyTool extends GravitronToolBase{
+public class DestroyTool extends GravitronToolBase {
 
     @Override
     public boolean handleRightClick() {

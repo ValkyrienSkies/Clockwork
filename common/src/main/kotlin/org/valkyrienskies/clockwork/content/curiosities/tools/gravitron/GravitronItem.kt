@@ -25,6 +25,7 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkSounds
+import org.valkyrienskies.clockwork.content.curiosities.tools.bluper.SelectedAreaToolkit
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.clockwork.util.AreaData
@@ -85,7 +86,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             return
         }
 
-        if (stack.`is`(ClockworkItems.GRAVITRON.asItem()) && !isSelected){
+        if (stack.`is`(ClockworkItems.GRAVITRON.asItem()) && !isSelected) {
             if (stack.tag != null) {
                 if (stack.tag!!.contains("ShipId")) {
                     stack.tag!!.remove("ShipId")
@@ -180,15 +181,36 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                                     if (entity is AbstractContraptionEntity || entity is SuperGlueEntity || entity is SeatEntity) {
                                         if (entity !is SuperGlueEntity) {
                                             val oldPos: Vector3dc = entity.position().toJOML()
-                                            val newPos: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldPos, Vector3d())
+                                            val newPos: Vector3dc =
+                                                connectedShip.transform.worldToShip.transformPosition(
+                                                    oldPos,
+                                                    Vector3d()
+                                                )
                                             entity.moveTo(newPos.toMinecraft())
                                         } else {
                                             val oldBounds = entity.boundingBox
-                                            val oldMax: Vector3dc = Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
-                                            val oldMin: Vector3dc = Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
-                                            val newMax: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldMax, Vector3d())
-                                            val newMin: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldMin, Vector3d())
-                                            val newBounds = AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z())
+                                            val oldMax: Vector3dc =
+                                                Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
+                                            val oldMin: Vector3dc =
+                                                Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
+                                            val newMax: Vector3dc =
+                                                connectedShip.transform.worldToShip.transformPosition(
+                                                    oldMax,
+                                                    Vector3d()
+                                                )
+                                            val newMin: Vector3dc =
+                                                connectedShip.transform.worldToShip.transformPosition(
+                                                    oldMin,
+                                                    Vector3d()
+                                                )
+                                            val newBounds = AABB(
+                                                newMin.x(),
+                                                newMin.y(),
+                                                newMin.z(),
+                                                newMax.x(),
+                                                newMax.y(),
+                                                newMax.z()
+                                            )
                                             entity.boundingBox = newBounds
                                             entity.resetPositionToBB()
                                         }

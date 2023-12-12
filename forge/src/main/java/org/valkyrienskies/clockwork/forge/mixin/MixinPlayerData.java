@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.valkyrienskies.clockwork.ClockworkMod;
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.SelectedAreaToolkit;
+import org.valkyrienskies.clockwork.content.curiosities.tools.bluper.SelectedAreaToolkit;
 import org.valkyrienskies.clockwork.forge.ClockworkModForge;
 import org.valkyrienskies.clockwork.util.AreaData;
 import org.valkyrienskies.clockwork.util.ClockworkUtils;

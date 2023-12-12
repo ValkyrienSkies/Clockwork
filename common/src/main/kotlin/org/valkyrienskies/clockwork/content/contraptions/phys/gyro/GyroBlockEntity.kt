@@ -1,20 +1,16 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.gyro
 
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
-import com.simibubi.create.content.kinetics.flywheel.FlywheelBlock
 import com.simibubi.create.foundation.utility.animation.LerpedFloat
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
-import org.valkyrienskies.mod.common.util.toJOML
-import org.valkyrienskies.mod.common.util.toMinecraft
 import org.valkyrienskies.mod.util.getVector3d
 import org.valkyrienskies.mod.util.putVector3d
 
@@ -25,7 +21,7 @@ class GyroBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockSt
     var visualSpeed: LerpedFloat = LerpedFloat.linear()
     var angle: Float = 0f
 
-    var targetVec3: Vector3dc = Vector3d(0.0,1.0,0.0)
+    var targetVec3: Vector3dc = Vector3d(0.0, 1.0, 0.0)
     private val ship: ServerShip? get() = (level as ServerLevel).getShipObjectManagingPos(this.blockPos)
     private val control: GyroShipControl? get() = ship?.getAttachment(GyroShipControl::class.java)
 

@@ -10,8 +10,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import org.valkyrienskies.clockwork.ClockworkLang;
 import org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.tool.ToolType;
+import org.valkyrienskies.clockwork.util.ClockworkLang;
 
 import java.util.List;
 import java.util.function.Consumer;

@@ -2,10 +2,8 @@ package org.valkyrienskies.clockwork
 
 import com.jozufozu.flywheel.api.MaterialManager
 import com.jozufozu.flywheel.backend.instancing.blockentity.BlockEntityInstance
-import com.tterrag.registrate.builders.BlockEntityBuilder
 import com.tterrag.registrate.util.entry.BlockEntityEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
-import com.tterrag.registrate.util.nullness.NonNullSupplier
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.BlockPos
@@ -35,7 +33,8 @@ object ClockworkBlockEntities {
 
     @JvmField
     val PROPELLER_BEARING: BlockEntityEntry<PropellerBearingBlockEntity> = ClockworkMod.REGISTRATE
-        .blockEntity<PropellerBearingBlockEntity>("propeller_bearing"
+        .blockEntity<PropellerBearingBlockEntity>(
+            "propeller_bearing"
         ) { type: BlockEntityType<PropellerBearingBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
             PropellerBearingBlockEntity(
                 type!!, pos!!, state!!
@@ -53,7 +52,8 @@ object ClockworkBlockEntities {
 
     @JvmField
     val PHYS_BEARING: BlockEntityEntry<PhysBearingBlockEntity> = ClockworkMod.REGISTRATE
-        .blockEntity<PhysBearingBlockEntity>("phys_bearing"
+        .blockEntity<PhysBearingBlockEntity>(
+            "phys_bearing"
         ) { type: BlockEntityType<PhysBearingBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
             PhysBearingBlockEntity(
                 type,
@@ -74,7 +74,8 @@ object ClockworkBlockEntities {
 
     @JvmField
     val COMMAND_SEAT: BlockEntityEntry<SequencedSeatBlockEntity> = ClockworkMod.REGISTRATE
-        .blockEntity<SequencedSeatBlockEntity>("sequenced_seat"
+        .blockEntity<SequencedSeatBlockEntity>(
+            "sequenced_seat"
         ) { typeIn: BlockEntityType<SequencedSeatBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
             SequencedSeatBlockEntity(
                 typeIn,
@@ -94,7 +95,8 @@ object ClockworkBlockEntities {
 
     @JvmField
     val FLAP_BEARING: BlockEntityEntry<FlapBearingBlockEntity> = ClockworkMod.REGISTRATE
-        .blockEntity<FlapBearingBlockEntity>("flap_bearing"
+        .blockEntity<FlapBearingBlockEntity>(
+            "flap_bearing"
         ) { type: BlockEntityType<FlapBearingBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
             FlapBearingBlockEntity(
                 type,
@@ -113,7 +115,8 @@ object ClockworkBlockEntities {
 
     @JvmField
     val DELIVERY_CANNON: BlockEntityEntry<DeliveryCannonBlockEntity> = ClockworkMod.REGISTRATE
-        .blockEntity<DeliveryCannonBlockEntity>("delivery_cannon"
+        .blockEntity<DeliveryCannonBlockEntity>(
+            "delivery_cannon"
         ) { typeIn: BlockEntityType<DeliveryCannonBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
             DeliveryCannonBlockEntity(
                 typeIn,
@@ -125,7 +128,8 @@ object ClockworkBlockEntities {
 
     @JvmField
     val DELIVERY_CHUTE: BlockEntityEntry<DeliveryChuteBlockEntity> = ClockworkMod.REGISTRATE
-        .blockEntity<DeliveryChuteBlockEntity>("delivery_chute"
+        .blockEntity<DeliveryChuteBlockEntity>(
+            "delivery_chute"
         ) { typeIn: BlockEntityType<DeliveryChuteBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
             DeliveryChuteBlockEntity(
                 typeIn,
@@ -137,7 +141,8 @@ object ClockworkBlockEntities {
 
     @JvmField
     val ALT_METER: BlockEntityEntry<AltMeterBlockEntity> = ClockworkMod.REGISTRATE
-        .blockEntity<AltMeterBlockEntity>("alt_meter"
+        .blockEntity<AltMeterBlockEntity>(
+            "alt_meter"
         ) { typeIn: BlockEntityType<AltMeterBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
             AltMeterBlockEntity(
                 typeIn,
@@ -149,7 +154,8 @@ object ClockworkBlockEntities {
 
     @JvmField
     val REDSTONE_RESISTOR: BlockEntityEntry<RedstoneResistorBlockEntity> = ClockworkMod.REGISTRATE
-        .blockEntity<RedstoneResistorBlockEntity>("redstone_resistor"
+        .blockEntity<RedstoneResistorBlockEntity>(
+            "redstone_resistor"
         ) { type: BlockEntityType<RedstoneResistorBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
             RedstoneResistorBlockEntity(
                 type, pos!!, state!!
@@ -167,7 +173,8 @@ object ClockworkBlockEntities {
 
     @JvmField
     val COLOR_BLOCK_ENTITY: BlockEntityEntry<ColorBlockEntity> = ClockworkMod.REGISTRATE
-        .blockEntity<ColorBlockEntity>("color_block_entity"
+        .blockEntity<ColorBlockEntity>(
+            "color_block_entity"
         ) { type: BlockEntityType<ColorBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
             ColorBlockEntity(
                 type,
@@ -187,14 +194,15 @@ object ClockworkBlockEntities {
 
     @JvmField
     val GYRO: BlockEntityEntry<GyroBlockEntity> = ClockworkMod.REGISTRATE
-        .blockEntity<GyroBlockEntity>("gyro"
+        .blockEntity<GyroBlockEntity>(
+            "gyro"
         ) { typeIn: BlockEntityType<GyroBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
             GyroBlockEntity(
                 typeIn,
                 pos!!, state!!
             )
         }
-        .instance( {
+        .instance({
             BiFunction<MaterialManager?, GyroBlockEntity?, BlockEntityInstance<in GyroBlockEntity?>> { materialManager: MaterialManager?, blockEntity: GyroBlockEntity? ->
                 GyroInstance(
                     materialManager!!,

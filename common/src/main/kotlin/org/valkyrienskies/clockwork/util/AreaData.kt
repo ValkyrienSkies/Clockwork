@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.util
 
 import net.minecraft.core.BlockPos
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.SelectedAreaToolkit
+import org.valkyrienskies.clockwork.content.curiosities.tools.bluper.SelectedAreaToolkit
 import java.util.*
 
 interface AreaData {

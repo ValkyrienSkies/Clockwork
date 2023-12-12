@@ -1,9 +1,8 @@
-package org.valkyrienskies
+package org.valkyrienskies.clockwork
 
 import com.simibubi.create.foundation.gui.element.ScreenElement
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.resources.ResourceLocation
-import org.valkyrienskies.clockwork.ClockworkMod
 
 class ClockworkIcons(x: Int, y: Int) : ScreenElement {
 
@@ -16,10 +15,13 @@ class ClockworkIcons(x: Int, y: Int) : ScreenElement {
 
         @JvmField
         val GRAB: ClockworkIcons = newRow()
+
         @JvmField
         val ASSEMBLE: ClockworkIcons = next()
+
         @JvmField
         val GRABSSEMBLE: ClockworkIcons = next()
+
         @JvmField
         val DESTROY: ClockworkIcons = next()
 
