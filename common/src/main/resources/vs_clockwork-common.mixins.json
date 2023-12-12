@@ -8,10 +8,7 @@
     "accessors.FluidAccessor",
     "accessors.IMixinClockworkContraption",
     "accessors.IMixinPistonContraption",
-    "content.balloon.MixinLevelChunkBalloon",
     "content.fan.MixinEncasedFanTileEntity",
-    "content.gravitron.MixinServerPlayer",
-    "content.gravitron.MixinServerPlayerGameMode",
     "content.pulse.ChasingAABBOutlineAccessor",
     "content.universal_joint.MixinRotationPropagator",
     "content.wing.MixinAbstractCauldronBlock"

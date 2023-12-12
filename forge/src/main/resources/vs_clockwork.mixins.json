@@ -6,8 +6,7 @@
     "MixinPlayerData",
     "accessors.ItemAccessor",
     "compat.MixinAllBlocks",
-    "compat.MixinStickerTileEntity",
-    "platform.MixinBlockEntity"
+    "compat.MixinStickerTileEntity"
   ],
   "client": [
   ],

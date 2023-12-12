@@ -34,11 +34,4 @@ public class SharedValuesImpl {
         return (EntityEntry) ForgeClockworkEntities.SEQUENCED_SEAT;
     }
 
-    public static ArrayList<Item> getFrostingBuckets() {
-        ArrayList<Item> frostingBuckets = new ArrayList<>();
-        frostingBuckets.add(ForgeClockworkFluids.VANILLA_FROSTING.get().getBucket());
-        frostingBuckets.add(ForgeClockworkFluids.CHOCOLATE_FROSTING.get().getBucket());
-        frostingBuckets.add(ForgeClockworkFluids.STRAWBERRY_FROSTING.get().getBucket());
-        return frostingBuckets;
-    }
 }
