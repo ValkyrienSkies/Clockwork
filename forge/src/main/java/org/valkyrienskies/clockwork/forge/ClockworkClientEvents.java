@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork.forge;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.simibubi.create.CreateClient;
 import com.simibubi.create.foundation.render.SuperRenderTypeBuffer;
 import com.simibubi.create.foundation.utility.AnimationTickHolder;
 import net.minecraft.client.Minecraft;
@@ -36,10 +35,7 @@ public class ClockworkClientEvents {
         Vec3 camera = Minecraft.getInstance().gameRenderer.getMainCamera()
                 .getPosition();
 
-
-        //CreateClient.OUTLINER.renderOutlines(ms, buffer, camera, partialTicks);
-        ClockworkMod.INSTANCE.getOUTLINER().renderOutlines(ms, SuperRenderTypeBuffer.getInstance(), camera, partialTicks);
-        //TODO? BluperClusterRenderer.Companion.getINSTANCE().renderDesignator(Minecraft.getInstance().level, Minecraft.getInstance(), ms);
+        ClockworkMod.getOUTLINER().renderOutlines(ms, SuperRenderTypeBuffer.getInstance(), camera, partialTicks);
 
         buffer.draw();
         RenderSystem.enableCull();
@@ -105,8 +101,6 @@ public class ClockworkClientEvents {
     public static class ModBusEvents {
         @SubscribeEvent
         public static void registerGuiOverlays(RegisterGuiOverlaysEvent event) {
-            // Register overlays in reverse order
-
             event.registerAbove(VanillaGuiOverlay.HOTBAR.id(), "gravitron", ClockworkModForge.GRAVITRON_HANDLER);
         }
     }

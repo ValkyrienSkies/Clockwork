@@ -1,17 +1,16 @@
 package org.valkyrienskies.clockwork.forge;
 
-import com.simibubi.create.*;
-import com.simibubi.create.content.contraptions.glue.SuperGlueSelectionHandler;
-import com.simibubi.create.content.schematics.client.SchematicAndQuillHandler;
+import com.simibubi.create.AllKeys;
+import com.simibubi.create.AllSpecialTextures;
 import com.simibubi.create.foundation.outliner.Outliner;
-import com.simibubi.create.foundation.utility.*;
+import com.simibubi.create.foundation.utility.AnimationTickHolder;
+import com.simibubi.create.foundation.utility.Pair;
+import com.simibubi.create.foundation.utility.RaycastHelper;
+import com.simibubi.create.foundation.utility.VecHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -23,6 +22,7 @@ import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.SelectedAreaToolkit;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -37,7 +37,7 @@ public class BluperGlueSelectionHandler {
 
     private String clusterID = "clusterID_";
     private int clusterIncrement = 0;
-    private Color IDLEPURPLE = new Color(221, 160, 221);
+    private int BLUE = 0x6886c5;
 
     public void discard() {
         LocalPlayer player = Minecraft.getInstance().player;
@@ -45,8 +45,6 @@ public class BluperGlueSelectionHandler {
         data.setFirstPos(Optional.empty());
         data.setSecondPos(Optional.empty());
         storedClusters = new HashMap<>();
-        Lang.translate("schematicAndQuill.abort")
-                .sendStatus(player);
     }
 
     public void tick() {
@@ -54,6 +52,8 @@ public class BluperGlueSelectionHandler {
             return;
 
         LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) return;
+
         var data = AreaData.of(player).get();
         if (AllKeys.ACTIVATE_TOOL.isPressed()) {
             float pt = AnimationTickHolder.getPartialTicks();
@@ -61,14 +61,14 @@ public class BluperGlueSelectionHandler {
             selectedPos = BlockPos.containing(targetVec);
 
         } else {
-            BlockHitResult trace = RaycastHelper.rayTraceRange(player.level(), player, 75);
+            BlockHitResult trace = RaycastHelper.rayTraceRange(player.level(), player, 25);
             if (trace != null && trace.getType() == HitResult.Type.BLOCK) {
                 selectedPos = trace.getBlockPos();
             } else
                 selectedPos = null;
         }
 
-        Set<Set<AABBic>> clusters = data.getArea().getSelectionClusters();
+        Set<Set<AABBic>> clusters = new HashSet<>(data.getArea().getSelectionClusters());
 
         for (Set<AABBic> cluster : clusters) {
             if (!storedClusters.containsKey(cluster)) {
@@ -88,7 +88,7 @@ public class BluperGlueSelectionHandler {
         AABB currentSelectionBox = getCurrentSelectionBox(data);
         if (currentSelectionBox != null)
             outliner().chaseAABB(outlineSlot, currentSelectionBox)
-                    .colored(0x6886c5)
+                    .colored(BLUE)
                     .withFaceTextures(AllSpecialTextures.CHECKERED, AllSpecialTextures.HIGHLIGHT_CHECKERED)
                     .lineWidth(1 / 16f)
                     .highlightFace(selectedFace);
@@ -108,14 +108,7 @@ public class BluperGlueSelectionHandler {
     private void renderStoredClusters() {
         for (Set<AABBic> key : storedClusters.keySet()) {
             var storedCluster = storedClusters.get(key);
-
-            ClockworkMod.getOUTLINER().showCluster(
-                    storedCluster.getSecond(), storedCluster.getFirst()
-            );
-
-            ClockworkMod.getOUTLINER().edit(storedCluster.getSecond()).ifPresent(outline ->
-                    outline.colored(IDLEPURPLE)
-            );
+            outliner().showCluster(storedCluster.getSecond(), storedCluster.getFirst()).colored(BLUE);
         }
     }
 

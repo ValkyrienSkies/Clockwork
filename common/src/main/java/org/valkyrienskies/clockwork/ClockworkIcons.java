@@ -16,7 +16,8 @@ public class ClockworkIcons implements ScreenElement {
     public static final ClockworkIcons
             GRAB = newRow(),
             ASSEMBLE = next(),
-            GRABSSEMBLE = next();
+            GRABSSEMBLE = next(),
+            DESTROY = next();
 
     public ClockworkIcons(int x, int y) {
         iconX = x * 16;

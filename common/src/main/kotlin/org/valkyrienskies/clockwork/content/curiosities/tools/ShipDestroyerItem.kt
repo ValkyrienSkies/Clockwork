@@ -14,6 +14,7 @@ import org.joml.Matrix4d
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.platform.CWItem
+import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.impl.networking.simple.sendToClient
@@ -38,12 +39,11 @@ class ShipDestroyerItem(properties: Properties) : CWItem(properties) {
 
         val chunkX = blockPos.x shr 4
         val chunkZ = blockPos.z shr 4
-        val ship: LoadedServerShip? =
-            world.shipObjectWorld.loadedShips.getByChunkPos(chunkX, chunkZ, world.dimensionId) as LoadedServerShip?
+        val ship: LoadedServerShip? = world.shipObjectWorld.loadedShips.getByChunkPos(chunkX, chunkZ, world.dimensionId) as LoadedServerShip?
 
         val invRotation = ship!!.transform.shipToWorldRotation.invert(Quaterniond())
         val invRotationAxisAngle = AxisAngle4d(invRotation)
-        val alignTarget = Direction.from2DDataValue(floor((invRotationAxisAngle.angle / (PI * 0.5)) + 4.5).toInt() % 4)
+        val alignTarget = ClockworkUtils.from2DDataValue(floor((invRotationAxisAngle.angle / (PI * 0.5)) + 4.5).toInt() % 4)
 
         unfillShip(
             world as ServerLevel,
@@ -54,7 +54,11 @@ class ShipDestroyerItem(properties: Properties) : CWItem(properties) {
         return super.useOn(context)
     }
 
+
+companion object {
+
     private fun roundToNearestMultipleOf(number: Double, multiple: Double) = multiple * round(number / multiple)
+
 
     private fun snapRotation(direction: AxisAngle4d): AxisAngle4d {
         val x = abs(direction.x)
@@ -88,10 +92,10 @@ class ShipDestroyerItem(properties: Properties) : CWItem(properties) {
         // Direction comes from direction ship is aligning to
         // We can assume that the ship in shipspace is always facing north, because it has to be
         val rotation: Rotation = when (direction) {
-            Direction.SOUTH -> Rotation.NONE // Bug in Direction.from2DDataValue() can return south/north as opposite
-            Direction.NORTH -> Rotation.CLOCKWISE_180
-            Direction.EAST -> Rotation.CLOCKWISE_90
-            Direction.WEST -> Rotation.COUNTERCLOCKWISE_90
+            Direction.SOUTH -> Rotation.CLOCKWISE_180 // Bug in Direction.from2DDataValue() can return south/north as opposite
+            Direction.NORTH -> Rotation.NONE
+            Direction.EAST -> Rotation.COUNTERCLOCKWISE_90
+            Direction.WEST -> Rotation.CLOCKWISE_90
             else -> {
                 Rotation.NONE
             }
@@ -160,4 +164,6 @@ class ShipDestroyerItem(properties: Properties) : CWItem(properties) {
             }
         }
     }
+}
+
 }

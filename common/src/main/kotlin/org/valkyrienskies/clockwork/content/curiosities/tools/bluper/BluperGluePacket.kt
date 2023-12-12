@@ -3,12 +3,9 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.bluper
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
-import org.joml.Vector3ic
 import org.valkyrienskies.clockwork.AreaData
 import org.valkyrienskies.clockwork.platform.api.network.ClientNetworkContext
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket
-import org.valkyrienskies.mod.common.util.toBlockPos
-import org.valkyrienskies.mod.common.util.toJOML
 import java.util.*
 
 class BluperGluePacket : S2CCWPacket {

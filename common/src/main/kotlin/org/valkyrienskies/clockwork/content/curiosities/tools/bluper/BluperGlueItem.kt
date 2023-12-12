@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.bluper
 
-import com.simibubi.create.foundation.outliner.Outliner
 import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
@@ -15,8 +14,6 @@ import net.minecraft.world.level.Level
 import org.joml.primitives.AABBi
 import org.joml.primitives.AABBic
 import org.valkyrienskies.clockwork.AreaData
-import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.ClockworkMod.OUTLINER
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.platform.CWItem
 import java.util.*
@@ -25,7 +22,7 @@ import kotlin.math.min
 
 class BluperGlueItem(properties: Properties) : CWItem(properties) {
     private var wasSelected = false
-    var shouldRenderOutlines = false
+    private var shouldRenderOutlines = false
 
     override fun inventoryTick(stack: ItemStack, level: Level, entity: Entity, slotId: Int, isSelected: Boolean) {
         super.inventoryTick(stack, level, entity, slotId, isSelected)
@@ -101,7 +98,7 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
             )
             areaData.firstPos = Optional.empty()
             areaData.secondPos = Optional.empty()
-            var selectedArea = AreaData.of(player).get().area
+            val selectedArea = AreaData.of(player).get().area
             if (selectedArea.containsAABB(area)) {
                 player.displayClientMessage(
                     Component.literal("Area Already Exists.").withStyle(
@@ -116,7 +113,7 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
 
             if (selectedArea.selectedAreas.size >= 150) {
                 player.displayClientMessage(
-                    Component.literal("This Designator is at selection capacity.").withStyle(
+                    Component.literal("At selection capacity.").withStyle(
                         Style.EMPTY.withColor(
                             ChatFormatting.DARK_PURPLE
                         )
@@ -131,14 +128,13 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
                 player.cooldowns.addCooldown(this, 10)
                 return InteractionResult.SUCCESS
             }
-            //selectedArea = SelectedAreaToolkit()
             selectedArea.clusterNewArea(area)
 
             val data = AreaData.of(player).get()
             data.area = selectedArea
 
             player.displayClientMessage(
-                Component.literal("Area Designated!").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE)),
+                Component.literal("Area Created!").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE)),
                 true
             )
             stack.damageValue = stack.damageValue - 1

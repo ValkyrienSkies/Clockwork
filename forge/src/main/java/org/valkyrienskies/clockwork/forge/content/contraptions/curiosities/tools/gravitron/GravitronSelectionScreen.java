@@ -94,19 +94,14 @@ public class GravitronSelectionScreen extends Screen {
         }
 
         RenderSystem.setShaderColor(1, 1, 1, 1);
-        if (tools.size() > 1) {
-            x += 25;
-            String keyName = AllKeys.TOOL_MENU.getBoundKey();
-            int width = minecraft.getWindow().getGuiScaledWidth();
-            if (!focused) {
-                graphics.drawCenteredString(minecraft.font, ClockworkLang.translateDirect(holdToFocus, keyName), width / 2, y - 10, 0xCCDDFF);
-            } else {
-                graphics.drawCenteredString(minecraft.font, scrollToCycle, width / 2, y - 10, 0xCCDDFF);
-            }
-        } else {
-            x += 65;
-        }
 
+        String keyName = AllKeys.TOOL_MENU.getBoundKey();
+        int width = minecraft.getWindow().getGuiScaledWidth();
+        if (!focused) {
+            graphics.drawCenteredString(minecraft.font, ClockworkLang.translateDirect(holdToFocus, keyName), width / 2, y - 10, 0xCCDDFF);
+        } else {
+            graphics.drawCenteredString(minecraft.font, scrollToCycle, width / 2, y - 10, 0xCCDDFF);
+        }
 
         for (int i = 0; i < tools.size(); i++) {
             RenderSystem.enableBlend();

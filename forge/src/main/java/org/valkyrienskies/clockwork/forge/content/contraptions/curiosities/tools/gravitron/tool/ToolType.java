@@ -12,7 +12,8 @@ import java.util.List;
 public enum ToolType {
     GRAB(new GrabTool(), ClockworkIcons.GRAB),
     ASSEMBLE(new AssembleTool(), ClockworkIcons.ASSEMBLE),
-    GRAB_AND_ASSEMBLE(new GrabssembleTool(), ClockworkIcons.GRABSSEMBLE);
+    GRAB_AND_ASSEMBLE(new GrabssembleTool(), ClockworkIcons.GRABSSEMBLE),
+    DESTROY(new DestroyTool(), ClockworkIcons.DESTROY);
 
     public final IGravitronTool tool;
     public final ClockworkIcons icon;
@@ -32,7 +33,7 @@ public enum ToolType {
 
     public static List<ToolType> getTools() {
         List<ToolType> tools = new ArrayList<>();
-        Collections.addAll(tools, GRAB, ASSEMBLE, GRAB_AND_ASSEMBLE);
+        Collections.addAll(tools, GRAB, ASSEMBLE, GRAB_AND_ASSEMBLE, DESTROY);
         return tools;
     }
 }

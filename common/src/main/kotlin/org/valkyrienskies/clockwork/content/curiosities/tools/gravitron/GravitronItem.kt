@@ -4,7 +4,6 @@ import com.simibubi.create.content.contraptions.AbstractContraptionEntity
 import com.simibubi.create.content.contraptions.actors.seat.SeatEntity
 import com.simibubi.create.content.contraptions.glue.SuperGlueEntity
 import com.simibubi.create.foundation.item.CustomArmPoseItem
-import com.simibubi.create.foundation.outliner.Outliner
 import net.minecraft.client.model.HumanoidModel
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.core.BlockPos
@@ -24,9 +23,7 @@ import org.joml.Quaterniondc
 import org.joml.Vector2dc
 import org.joml.Vector3d
 import org.joml.Vector3dc
-import org.joml.primitives.AABBic
 import org.valkyrienskies.clockwork.AreaData
-import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 import org.valkyrienskies.clockwork.platform.CWItem
@@ -38,8 +35,6 @@ import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft
-import java.util.HashMap
-import java.util.HashSet
 import java.util.function.Consumer
 
 class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseItem {
@@ -213,18 +208,18 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                         }
                     }
                 }
-/*
-                val copy: Map<Any, Outliner.OutlineEntry> = HashMap(ClockworkMod.OUTLINER.outlines)
-                val clone: HashSet<Set<AABBic>> = HashSet(data.getArea().selectionClusters)
-                for ((key) in copy) {
-                    ClockworkMod.OUTLINER.remove(key)
-                }
+                /*
+                                val copy: Map<Any, Outliner.OutlineEntry> = HashMap(ClockworkMod.OUTLINER.outlines)
+                                val clone: HashSet<Set<AABBic>> = HashSet(data.getArea().selectionClusters)
+                                for ((key) in copy) {
+                                    ClockworkMod.OUTLINER.remove(key)
+                                }
 
-                for (aabBic in clone) {
-                    data.getArea().dumpCluster(aabBic)
-                }
+                                for (aabBic in clone) {
+                                    data.getArea().dumpCluster(aabBic)
+                                }
 
- */
+                 */
                 data.shouldReset(true)
                 //data.setArea(SelectedAreaToolkit())
             }

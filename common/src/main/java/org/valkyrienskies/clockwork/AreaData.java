@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork;
 
 import net.minecraft.core.BlockPos;
-import org.joml.Vector3ic;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.SelectedAreaToolkit;
 
 import java.util.Optional;

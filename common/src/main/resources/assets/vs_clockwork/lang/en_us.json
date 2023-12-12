@@ -63,6 +63,7 @@
   "vs_clockwork.gravitron.tool.grab": "Grab",
   "vs_clockwork.gravitron.tool.assemble": "Assemble",
   "vs_clockwork.gravitron.tool.grab_and_assemble": "Grabssemble",
+  "vs_clockwork.gravitron.tool.destroy": "Disassemble",
   "vs_clockwork.gui.toolmenu.focusKey": "Hold [%1$s] to Focus",
   "vs_clockwork.gui.toolmenu.cycle": "[SCROLL] to Cycle",
   "vs_clockwork.gravitron.tool.grab.description.0": "Grabs Ships.",
@@ -76,5 +77,9 @@
   "vs_clockwork.gravitron.tool.grab_and_assemble.description.0": "Grabs and Assembles Ships.",
   "vs_clockwork.gravitron.tool.grab_and_assemble.description.1": "",
   "vs_clockwork.gravitron.tool.grab_and_assemble.description.2": "",
-  "vs_clockwork.gravitron.tool.grab_and_assemble.description.3": ""
+  "vs_clockwork.gravitron.tool.grab_and_assemble.description.3": "",
+  "vs_clockwork.gravitron.tool.destroy.description.0": "Disassembles a Ship",
+  "vs_clockwork.gravitron.tool.destroy.description.1": "Be careful of your surroundings",
+  "vs_clockwork.gravitron.tool.destroy.description.2": "Ship will snap into place",
+  "vs_clockwork.gravitron.tool.destroy.description.3": ""
 }
