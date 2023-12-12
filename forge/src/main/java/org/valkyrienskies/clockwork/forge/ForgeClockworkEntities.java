@@ -50,8 +50,9 @@ public class ForgeClockworkEntities {
                         .setShouldReceiveVelocityUpdates(sendVelocity))
                 .properties(propertyBuilder)
                 .properties(b -> {
-                    if (immuneToFire)
+                    if (immuneToFire) {
                         b.fireImmune();
+                    }
                 })
                 .renderer(renderer);
     }

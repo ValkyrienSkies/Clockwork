@@ -25,8 +25,9 @@ public class ClockworkClientEvents {
 
     @SubscribeEvent
     public static void onRenderWorld(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES)
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
             return;
+        }
 
         PoseStack ms = event.getPoseStack();
         ms.pushPose();
@@ -47,8 +48,9 @@ public class ClockworkClientEvents {
 
     @SubscribeEvent
     public static void onTick(TickEvent.ClientTickEvent event) {
-        if (!isGameActive())
+        if (!isGameActive()) {
             return;
+        }
 
         if (event.phase == TickEvent.Phase.START) {
             return;
@@ -59,8 +61,9 @@ public class ClockworkClientEvents {
 
     @SubscribeEvent
     public static void onKeyInput(InputEvent.Key event) {
-        if (Minecraft.getInstance().screen != null)
+        if (Minecraft.getInstance().screen != null) {
             return;
+        }
 
         int key = event.getKey();
         boolean pressed = !(event.getAction() == 0);
@@ -70,8 +73,9 @@ public class ClockworkClientEvents {
 
     @SubscribeEvent
     public static void onMouseScrolled(InputEvent.MouseScrollingEvent event) {
-        if (Minecraft.getInstance().screen != null)
+        if (Minecraft.getInstance().screen != null) {
             return;
+        }
 
         double delta = event.getScrollDelta();
         boolean cancelled = ClockworkModForge.GRAVITRON_HANDLER.mouseScrolled(delta);
@@ -80,13 +84,16 @@ public class ClockworkClientEvents {
 
     @SubscribeEvent
     public static void onMouseInput(InputEvent.MouseButton.Pre event) {
-        if (Minecraft.getInstance().screen != null)
+        if (Minecraft.getInstance().screen != null) {
             return;
+        }
 
         int button = event.getButton();
         boolean pressed = !(event.getAction() == 0);
 
-        if (ClockworkModForge.GRAVITRON_HANDLER.onMouseInput(button, pressed)) event.setCanceled(true);
+        if (ClockworkModForge.GRAVITRON_HANDLER.onMouseInput(button, pressed)) {
+            event.setCanceled(true);
+        }
     }
 
     //BUS EVENTS

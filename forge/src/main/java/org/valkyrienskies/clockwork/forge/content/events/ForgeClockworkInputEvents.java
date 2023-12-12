@@ -15,8 +15,9 @@ public class ForgeClockworkInputEvents {
     @SubscribeEvent
     public static InteractionResult onClickInput(InputEvent.InteractionKeyMappingTriggered event) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.screen != null)
+        if (mc.screen != null) {
             return InteractionResult.PASS;
+        }
 
         KeyMapping key = event.getKeyMapping();
 

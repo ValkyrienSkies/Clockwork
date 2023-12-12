@@ -29,8 +29,9 @@ public class ClockworkLang {
 
     public static List<Component> translatedOptions(String prefix, String... keys) {
         List<Component> result = new ArrayList<>(keys.length);
-        for (String key : keys)
+        for (String key : keys) {
             result.add(translate((prefix != null ? prefix + "." : "") + key).component());
+        }
         return result;
     }
 
@@ -76,9 +77,11 @@ public class ClockworkLang {
     //
 
     public static Object[] resolveBuilders(Object[] args) {
-        for (int i = 0; i < args.length; i++)
-            if (args[i] instanceof LangBuilder cb)
+        for (int i = 0; i < args.length; i++) {
+            if (args[i] instanceof LangBuilder cb) {
                 args[i] = cb.component();
+            }
+        }
         return args;
     }
 }

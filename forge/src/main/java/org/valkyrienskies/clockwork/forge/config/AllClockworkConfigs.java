@@ -40,24 +40,29 @@ public class AllClockworkConfigs {
         COMMON = register(CWCommon::new, ModConfig.Type.COMMON);
         SERVER = register(CWServer::new, ModConfig.Type.SERVER);
 
-        for (Map.Entry<ModConfig.Type, ConfigBase> pair : CONFIGS.entrySet())
+        for (Map.Entry<ModConfig.Type, ConfigBase> pair : CONFIGS.entrySet()) {
             context.registerConfig(pair.getKey(), pair.getValue().specification);
+        }
 
         BlockStressValues.registerProvider(context.getActiveNamespace(), SERVER.kinetics.stressValues);
     }
 
     public static void onLoad(ModConfig modConfig) {
-        for (ConfigBase config : CONFIGS.values())
+        for (ConfigBase config : CONFIGS.values()) {
             if (config.specification == modConfig
-                    .getSpec())
+                    .getSpec()) {
                 config.onLoad();
+            }
+        }
     }
 
     public static void onReload(ModConfig modConfig) {
-        for (ConfigBase config : CONFIGS.values())
+        for (ConfigBase config : CONFIGS.values()) {
             if (config.specification == modConfig
-                    .getSpec())
+                    .getSpec()) {
                 config.onReload();
+            }
+        }
     }
 
 }

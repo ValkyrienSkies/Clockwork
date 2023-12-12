@@ -55,7 +55,9 @@ public class GravitronHandler implements IGuiOverlay {
             return;
         }
         init(player);
-        if (!active) return;
+        if (!active) {
+            return;
+        }
 
         selectionScreen.update();
     }
@@ -79,8 +81,9 @@ public class GravitronHandler implements IGuiOverlay {
     private boolean itemLost(Player player) {
         for (int i = 0; i < Inventory.getSelectionSize(); i++) {
             if (!ItemStack.matches(player.getInventory()
-                    .getItem(i), activeSchematicItem))
+                    .getItem(i), activeSchematicItem)) {
                 continue;
+            }
             return false;
         }
         return true;
@@ -93,8 +96,9 @@ public class GravitronHandler implements IGuiOverlay {
 
     private ItemStack findBlueprintInHand(Player player) {
         ItemStack stack = player.getMainHandItem();
-        if (!ClockworkItems.GRAVITRON.isIn(stack))
+        if (!ClockworkItems.GRAVITRON.isIn(stack)) {
             return null;
+        }
 
         activeSchematicItem = stack;
         activeHotbarSlot = player.getInventory().selected;
@@ -102,24 +106,30 @@ public class GravitronHandler implements IGuiOverlay {
     }
 
     public boolean onMouseInput(int button, boolean pressed) {
-        if (!active)
+        if (!active) {
             return false;
-        if (!pressed || button != 1)
+        }
+        if (!pressed || button != 1) {
             return false;
+        }
         Minecraft mc = Minecraft.getInstance();
-        if (mc.player.isShiftKeyDown())
+        if (mc.player.isShiftKeyDown()) {
             return false;
+        }
         return currentTool.tool.handleRightClick();
     }
 
     public void onKeyInput(int key, boolean pressed) {
-        if (!active)
+        if (!active) {
             return;
-        if (key != AllKeys.TOOL_MENU.getBoundCode())
+        }
+        if (key != AllKeys.TOOL_MENU.getBoundCode()) {
             return;
+        }
 
-        if (pressed && !selectionScreen.focused)
+        if (pressed && !selectionScreen.focused) {
             selectionScreen.focused = true;
+        }
         if (!pressed && selectionScreen.focused) {
             selectionScreen.focused = false;
             selectionScreen.onClose();
@@ -127,16 +137,18 @@ public class GravitronHandler implements IGuiOverlay {
     }
 
     public boolean mouseScrolled(double delta) {
-        if (!active)
+        if (!active) {
             return false;
+        }
 
         if (selectionScreen.focused) {
             selectionScreen.cycle((int) delta);
             return true;
         }
-        if (AllKeys.ctrlDown())
+        if (AllKeys.ctrlDown()) {
             return currentTool.tool
                     .handleMouseWheel(delta);
+        }
         return false;
     }
 

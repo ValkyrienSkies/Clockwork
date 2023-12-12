@@ -18,10 +18,11 @@ import org.valkyrienskies.clockwork.ClockworkPartials;
 public class WingBlockItemRenderer extends CustomRenderedItemModelRenderer {
     @Override
     protected void render(ItemStack stack, CustomRenderedItemModel model, PartialItemModelRenderer renderer, ItemDisplayContext transformType, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
-        if (transformType.firstPerson())
+        if (transformType.firstPerson()) {
             renderFirstPerson(stack, buffer, ms, light);
-        else
+        } else {
             renderInventory(stack, buffer, ms, light);
+        }
     }
 
     private void renderInventory(ItemStack stack, MultiBufferSource buffer, PoseStack ms, int light) {

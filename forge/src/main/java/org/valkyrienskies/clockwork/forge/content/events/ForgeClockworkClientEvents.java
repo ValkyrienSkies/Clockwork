@@ -28,14 +28,16 @@ public class ForgeClockworkClientEvents {
 
     @SubscribeEvent
     public static void onTick(ClientTickEvent event) {
-        if (!isGameActive())
+        if (!isGameActive()) {
             return;
+        }
     }
 
     @SubscribeEvent
     public static void onRenderTick(TickEvent.RenderTickEvent event) {
-        if (!isGameActive())
+        if (!isGameActive()) {
             return;
+        }
 
         BoltUtil.INSTANCE.tick();
     }

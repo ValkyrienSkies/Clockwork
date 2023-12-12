@@ -25,8 +25,9 @@ public class CWStress extends ConfigBase implements BlockStressValues.IStressVal
                 .push("impact");
         BlockStressDefaults.DEFAULT_IMPACTS.forEach((r, i) -> {
             if (r.getNamespace()
-                    .equals(ClockworkMod.MOD_ID))
+                    .equals(ClockworkMod.MOD_ID)) {
                 getImpacts().put(r, builder.define(r.getPath(), i));
+            }
         });
         builder.pop();
 
@@ -34,8 +35,9 @@ public class CWStress extends ConfigBase implements BlockStressValues.IStressVal
                 .push("capacity");
         BlockStressDefaults.DEFAULT_CAPACITIES.forEach((r, i) -> {
             if (r.getNamespace()
-                    .equals(ClockworkMod.MOD_ID))
+                    .equals(ClockworkMod.MOD_ID)) {
                 getCapacities().put(r, builder.define(r.getPath(), i));
+            }
         });
         builder.pop();
     }
@@ -45,8 +47,9 @@ public class CWStress extends ConfigBase implements BlockStressValues.IStressVal
         block = redirectValues(block);
         ResourceLocation key = RegisteredObjects.getKeyOrThrow(block);
         ForgeConfigSpec.ConfigValue<Double> value = getImpacts().get(key);
-        if (value != null)
+        if (value != null) {
             return value.get();
+        }
         return 0;
     }
 
@@ -55,8 +58,9 @@ public class CWStress extends ConfigBase implements BlockStressValues.IStressVal
         block = redirectValues(block);
         ResourceLocation key = RegisteredObjects.getKeyOrThrow(block);
         ForgeConfigSpec.ConfigValue<Double> value = getCapacities().get(key);
-        if (value != null)
+        if (value != null) {
             return value.get();
+        }
         return 0;
     }
 
@@ -65,8 +69,9 @@ public class CWStress extends ConfigBase implements BlockStressValues.IStressVal
         block = redirectValues(block);
         ResourceLocation key = RegisteredObjects.getKeyOrThrow(block);
         Supplier<Couple<Integer>> supplier = BlockStressDefaults.GENERATOR_SPEEDS.get(key);
-        if (supplier == null)
+        if (supplier == null) {
             return null;
+        }
         return supplier.get();
     }
 

@@ -48,8 +48,9 @@ public abstract class MixinStickerTileEntity extends SmartBlockEntity implements
     @Unique
     private void removeConstraint(@Nullable ServerLevel level, boolean removeTags) {
         if (getPersistentData().contains("ShipStickerConstraint")) {
-            if (level != null)
+            if (level != null) {
                 VSGameUtilsKt.getShipObjectWorld(level).removeConstraint(getPersistentData().getInt("ShipStickerConstraint"));
+            }
             if (removeTags) {
                 getPersistentData().remove("ShipStickerConstraint");
                 getPersistentData().remove("ShipStickerShip1Id");
@@ -70,8 +71,9 @@ public abstract class MixinStickerTileEntity extends SmartBlockEntity implements
     }
 
     private void doTick() {
-        if (level == null)
+        if (level == null) {
             return;
+        }
 
         Direction myDir = this.getBlockState().getValue(DirectionalBlock.FACING);
         Vector3d myDirNormal = toJOML(Vec3.atLowerCornerOf(myDir.getNormal()));

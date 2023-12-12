@@ -86,7 +86,9 @@ public class ClockworkModForge {
     }
 
     void clientSetup(final FMLClientSetupEvent event) {
-        if (happendClientSetup) return;
+        if (happendClientSetup) {
+            return;
+        }
         happendClientSetup = true;
     }
 

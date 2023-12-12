@@ -54,8 +54,9 @@ public class GravitronSelectionScreen extends Screen {
     private void draw(GuiGraphics graphics, float partialTicks) {
         PoseStack matrixStack = graphics.pose();
         Window mainWindow = minecraft.getWindow();
-        if (!initialized)
+        if (!initialized) {
             init(minecraft, mainWindow.getGuiScaledWidth(), mainWindow.getGuiScaledHeight());
+        }
 
         int x = (mainWindow.getGuiScaledWidth() - w) / 2 + 15;
         int y = mainWindow.getGuiScaledHeight() - h - 75;
@@ -70,8 +71,7 @@ public class GravitronSelectionScreen extends Screen {
         graphics.blit(gray.location, x - 15, y, gray.startX, gray.startY, w, h, gray.width, gray.height);
 
         float toolTipAlpha = yOffset / 40;
-        List<Component> toolTip = tools.get(selection)
-                .getDescription();
+        List<Component> toolTip = tools.get(selection).getDescription();
         int stringAlphaComponent = ((int) (toolTipAlpha * 0xFF)) << 24;
 
         if (toolTipAlpha > 0.25f) {
@@ -79,27 +79,30 @@ public class GravitronSelectionScreen extends Screen {
             graphics.blit(gray.location, x - 15, y + 33, gray.startX, gray.startY, w, h + 22, gray.width, gray.height);
             RenderSystem.setShaderColor(1, 1, 1, 1);
 
-            if (toolTip.size() > 0)
+            if (toolTip.size() > 0) {
                 graphics.drawString(font, toolTip.get(0), x - 10, y + 38, 0xEEEEEE + stringAlphaComponent, false);
-            if (toolTip.size() > 1)
+            }
+            if (toolTip.size() > 1) {
                 graphics.drawString(font, toolTip.get(1), x - 10, y + 50, 0xCCDDFF + stringAlphaComponent, false);
-            if (toolTip.size() > 2)
+            }
+            if (toolTip.size() > 2) {
                 graphics.drawString(font, toolTip.get(2), x - 10, y + 60, 0xCCDDFF + stringAlphaComponent, false);
-            if (toolTip.size() > 3)
+            }
+            if (toolTip.size() > 3) {
                 graphics.drawString(font, toolTip.get(3), x - 10, y + 72, 0xCCCCDD + stringAlphaComponent, false);
+            }
         }
 
         RenderSystem.setShaderColor(1, 1, 1, 1);
         if (tools.size() > 1) {
             x += 25;
             String keyName = AllKeys.TOOL_MENU.getBoundKey();
-            int width = minecraft.getWindow()
-                    .getGuiScaledWidth();
-            if (!focused)
-                graphics.drawCenteredString(minecraft.font, ClockworkLang.translateDirect(holdToFocus, keyName), width / 2,
-                        y - 10, 0xCCDDFF);
-            else
+            int width = minecraft.getWindow().getGuiScaledWidth();
+            if (!focused) {
+                graphics.drawCenteredString(minecraft.font, ClockworkLang.translateDirect(holdToFocus, keyName), width / 2, y - 10, 0xCCDDFF);
+            } else {
                 graphics.drawCenteredString(minecraft.font, scrollToCycle, width / 2, y - 10, 0xCCDDFF);
+            }
         } else {
             x += 65;
         }
@@ -113,19 +116,13 @@ public class GravitronSelectionScreen extends Screen {
             if (i == selection) {
                 matrixStack.translate(0, -10, 0);
                 RenderSystem.setShaderColor(1, 1, 1, 1);
-                graphics.drawCenteredString(minecraft.font, tools.get(i)
-                        .getDisplayName()
-                        .getString(), x + i * 50 + 24, y + 28, 0xCCDDFF);
+                graphics.drawCenteredString(minecraft.font, tools.get(i).getDisplayName().getString(), x + i * 50 + 24, y + 28, 0xCCDDFF);
                 alpha = 1;
             }
             RenderSystem.setShaderColor(0, 0, 0, alpha);
-            tools.get(i)
-                    .icon
-                    .render(graphics, x + i * 50 + 16, y + 12);
+            tools.get(i).icon.render(graphics, x + i * 50 + 16, y + 12);
             RenderSystem.setShaderColor(1, 1, 1, alpha);
-            tools.get(i)
-                    .icon
-                    .render(graphics, x + i * 50 + 16, y + 11);
+            tools.get(i).icon.render(graphics, x + i * 50 + 16, y + 11);
 
             matrixStack.popPose();
         }
@@ -135,10 +132,11 @@ public class GravitronSelectionScreen extends Screen {
     }
 
     public void update() {
-        if (focused)
+        if (focused) {
             yOffset += (40 - yOffset) * .1f;
-        else
+        } else {
             yOffset *= .9f;
+        }
     }
 
     public void renderPassive(GuiGraphics graphics, float partialTicks) {
