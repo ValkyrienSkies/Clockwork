@@ -18,6 +18,10 @@ public class ClockworkLang {
         return Components.translatable(ClockworkMod.MOD_ID + "." + key, resolveBuilders(args));
     }
 
+    public static MutableComponent translateDirect(String key) {
+        return Components.translatable(ClockworkMod.MOD_ID + "." + key);
+    }
+
     public static String asId(String name) {
         return name.toLowerCase(Locale.ROOT);
     }

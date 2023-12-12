@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class GravitronSelectionScreen extends Screen {
-    public final String scrollToCycle = ClockworkLang.translateDirect("gui.toolmenu.cycle").getString();
     public final String holdToFocus = "gui.toolmenu.focusKey";
 
     protected List<ToolType> tools;
@@ -100,7 +99,7 @@ public class GravitronSelectionScreen extends Screen {
         if (!focused) {
             graphics.drawCenteredString(minecraft.font, ClockworkLang.translateDirect(holdToFocus, keyName), width / 2, y - 10, 0xCCDDFF);
         } else {
-            graphics.drawCenteredString(minecraft.font, scrollToCycle, width / 2, y - 10, 0xCCDDFF);
+            graphics.drawCenteredString(minecraft.font, ClockworkLang.translateDirect("gui.toolmenu.cycle"), width / 2, y - 10, 0xCCDDFF);
         }
 
         for (int i = 0; i < tools.size(); i++) {
