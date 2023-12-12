@@ -61,7 +61,7 @@ public class GravitronSelectionScreen extends Screen {
         int y = mainWindow.getGuiScaledHeight() - h - 75;
 
         matrixStack.pushPose();
-        matrixStack.translate(0, -yOffset, focused ? 100 : 0);
+        matrixStack.translate(0, 20 - yOffset, focused ? 100 : 0);
 
         AllGuiTextures gray = AllGuiTextures.HUD_BACKGROUND;
         RenderSystem.enableBlend();

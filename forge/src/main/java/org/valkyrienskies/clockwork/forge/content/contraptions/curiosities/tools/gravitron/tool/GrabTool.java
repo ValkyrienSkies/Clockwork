@@ -36,36 +36,30 @@ public class GrabTool extends GravitronToolBase {
         if (entity instanceof Player player && player.level() instanceof ServerLevel serverLevel) {
             var s = getState(player);
             var graviton = player.getMainHandItem();
-            //System.out.println(s.getShipID() + " : " + s.getGrabbing());
-            if (true) {
-                if (!s.getShouldDrop() && graviton.is(ClockworkItems.GRAVITRON.asItem())) {
-                    updateShip(s, serverLevel, entity);
-                } else {
-                    dropShip(s, serverLevel);
-                }
-                //MAIN LEVEL
 
-                if (s.getGrabCD() != null && s.getGrabCD() > 0) {
-                    s.setGrabCD(s.getGrabCD() - 1);
-                }
-                if (graviton.hasTag() && graviton.getTag().contains("GrabbedPosInShip") && !player.getCooldowns().isOnCooldown(graviton.getItem())) {
-                    s.setGrabbing(true);
-                    var tag = graviton.getTag();
-
-                    var clickLocation = ClockworkUtils.readVec3(tag.getList("GrabbedPosInShip", Tag.TAG_DOUBLE));
-                    var id = tag.getLong("ShipId");
-
-                    var ship = VSGameUtilsKt.getShipObjectWorld(serverLevel).getLoadedShips().getById(id);
-                    if (ship != null) {
-                        System.out.println(ship);
-                        var transformedPos = ship.getWorldToShip().transformPosition(VectorConversionsMCKt.toJOML(clickLocation), new Vector3d());
-                        grabShip(s, player, ship, transformedPos);
-                        graviton.removeTagKey("ShipId");
-                        graviton.removeTagKey("GrabbedPosInShip");
-                    }
-                }
+            if (!s.getShouldDrop() && graviton.is(ClockworkItems.GRAVITRON.asItem())) {
+                updateShip(s, serverLevel, entity);
             } else {
+                dropShip(s, serverLevel);
+            }
 
+            if (s.getGrabCD() != null && s.getGrabCD() > 0) {
+                s.setGrabCD(s.getGrabCD() - 1);
+            }
+            if (graviton.hasTag() && graviton.getTag().contains("GrabbedPosInShip") && !player.getCooldowns().isOnCooldown(graviton.getItem())) {
+                s.setGrabbing(true);
+                var tag = graviton.getTag();
+
+                var clickLocation = ClockworkUtils.readVec3(tag.getList("GrabbedPosInShip", Tag.TAG_DOUBLE));
+                var id = tag.getLong("ShipId");
+
+                var ship = VSGameUtilsKt.getShipObjectWorld(serverLevel).getLoadedShips().getById(id);
+                if (ship != null) {
+                    var transformedPos = ship.getWorldToShip().transformPosition(VectorConversionsMCKt.toJOML(clickLocation), new Vector3d());
+                    grabShip(s, player, ship, transformedPos);
+                    graviton.removeTagKey("ShipId");
+                    graviton.removeTagKey("GrabbedPosInShip");
+                }
             }
         }
 
@@ -123,10 +117,8 @@ public class GrabTool extends GravitronToolBase {
     @Override
     public boolean handleRightClick() {
         updateTargetPos();
-
-        ClockworkPackets.sendToServer(new GravitronGrabPacket(clickedPos, clickedLocation));
-
-        return false;
+        ClockworkPackets.sendToServer(new GravitronGrabPacket(clickedPos, clickedLocation, GRAB));
+        return true;
     }
 
     @Override
@@ -137,12 +129,10 @@ public class GrabTool extends GravitronToolBase {
     public static boolean tryGrabShip(ServerLevel level, Player player, BlockPos clickedPos, Vec3 clickLocation) {
         int chunkX = clickedPos.getX() >> 4;
         int chunkZ = clickedPos.getZ() >> 4;
-        System.out.println("PreGrab0: " + clickedPos + " : " + clickLocation);
         LoadedServerShip ship = VSGameUtilsKt.getShipObjectWorld(level).getLoadedShips().getByChunkPos(chunkX, chunkZ, VSGameUtilsKt.getDimensionId(level));
         Vector3dc grabPosInShip = VectorConversionsMCKt.toJOML(clickLocation);
         Vector3d grabPosInWorld = new Vector3d(grabPosInShip);
         var s = getState(player);
-        System.out.println("PreGrab: " + grabPosInShip + " : " + grabPosInWorld);
         if (VSGameUtilsKt.isBlockInShipyard(level, clickedPos) && ship == null) {
             return false;
         }
@@ -152,7 +142,6 @@ public class GrabTool extends GravitronToolBase {
         } else {
             ship.getShipToWorld().transformPosition(grabPosInWorld);
         }
-        System.out.println("Grab");
         grabShip(s, player, ship, grabPosInShip);
         return true;
     }

@@ -6,13 +6,17 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.valkyrienskies.clockwork.ClockworkPackets;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem;
+import org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.GravitronGrabPacket;
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck;
 
 public class GrabssembleTool extends GravitronToolBase {
 
     @Override
     public boolean handleRightClick() {
+        updateTargetPos();
+        ClockworkPackets.sendToServer(new GravitronGrabPacket(clickedPos, clickedLocation, GRABSSEMBLE));
         return true;
     }
 
@@ -25,7 +29,6 @@ public class GrabssembleTool extends GravitronToolBase {
         var bl = AssembleTool.assemble(level, player, clickedPos, clickLocation);
         if (level instanceof ServerLevel serverLevel) {
             if (!bl) {
-                System.out.println("TryGrab: " + clickedPos);
                 var bl2 = GrabTool.tryGrabShip(serverLevel, player, clickedPos, clickLocation);
                 if (!bl2) {
                     getState(player).setGrabbing(false);

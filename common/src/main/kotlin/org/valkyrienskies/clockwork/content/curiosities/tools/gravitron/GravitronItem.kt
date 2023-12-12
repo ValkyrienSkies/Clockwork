@@ -43,8 +43,6 @@ import java.util.function.Consumer
 
 class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseItem {
 
-    private var cooldown = 20
-
     private fun getState(player: Player): GravitronState {
         val p: MixinPlayerDuck = player as MixinPlayerDuck
         var s = p.cw_getGravitronState()
@@ -77,8 +75,6 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         }
         return false
     }
-
-
 
     // || ITEM FUNCTIONS || //
     override fun use(level: Level, player: Player, usedHand: InteractionHand): InteractionResultHolder<ItemStack> {

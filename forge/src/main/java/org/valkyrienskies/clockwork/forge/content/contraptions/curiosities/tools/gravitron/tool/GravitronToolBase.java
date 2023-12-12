@@ -21,6 +21,9 @@ public abstract class GravitronToolBase implements IGravitronTool {
     protected GravitronHandler gravitronHandler = null;
     public BlockPos clickedPos;
     public Vec3 clickedLocation;
+    public static byte GRAB = 1;
+    public static byte ASSEMBLE = 2;
+    public static byte GRABSSEMBLE = 3;
 
 
     public static GravitronItem.Companion.GravitronState getState(Player player) {
@@ -38,14 +41,18 @@ public abstract class GravitronToolBase implements IGravitronTool {
     public void updateTargetPos(){
         LocalPlayer player = Minecraft.getInstance().player;
 
-        BlockHitResult trace = RaycastHelper.rayTraceRange(player.level(), player, 75);
+        BlockHitResult trace = RaycastHelper.rayTraceRange(player.level(), player, player.getBlockReach() + 2);
         if (trace == null || trace.getType() != HitResult.Type.BLOCK) {
             return;
         }
 
-        System.out.println(clickedPos);
         clickedPos = trace.getBlockPos().immutable();
         clickedLocation = clickedPos.getCenter();
+    }
+
+    @Override
+    public boolean handleRightClick() {
+        return false;
     }
 
     @Override

@@ -17,13 +17,17 @@ import org.joml.Vector3d;
 import org.joml.Vector3ic;
 import org.joml.primitives.AABBic;
 import org.valkyrienskies.clockwork.AreaData;
+import org.valkyrienskies.clockwork.ClockworkPackets;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.SelectedAreaToolkit;
+import org.valkyrienskies.clockwork.forge.content.contraptions.curiosities.tools.gravitron.GravitronGrabPacket;
 import org.valkyrienskies.clockwork.util.ClockworkUtils;
+import org.valkyrienskies.core.api.util.functions.IntTernaryConsumer;
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.valkyrienskies.mod.common.assembly.ShipAssemblyKt.createNewShipWithBlocks;
@@ -32,8 +36,8 @@ public class AssembleTool extends GravitronToolBase {
 
     @Override
     public boolean handleRightClick() {
-
-
+        updateTargetPos();
+        ClockworkPackets.sendToServer(new GravitronGrabPacket(clickedPos, clickedLocation, ASSEMBLE));
         return true;
     }
 
@@ -46,23 +50,31 @@ public class AssembleTool extends GravitronToolBase {
         AreaData data = AreaData.of(player).get();
         HashSet<Set<AABBic>> list = data.getArea().getSelectionClusters();
         boolean bl = false;
+        System.out.println("List");
         for (Set<AABBic> cluster : list) {
-            System.out.println("List: " + cluster);
+            System.out.println("Dense");
             DenseBlockPosSet selection = SelectedAreaToolkit.Companion.denseBlocksFromCluster(cluster);
 
             if (selection.isEmpty() || !selection.contains(blockPos.getX(), blockPos.getY(), blockPos.getZ())) {
                 continue;
             }
+            System.out.println("Selection: " + selection.stream().findFirst());
+            System.out.println("Selection not empty?" + selection.isEmpty() + " : " + selection.contains(blockPos.getX(), blockPos.getY(), blockPos.getZ()));
 
-            for (Vector3ic vector3ic : selection) {
-                int x = vector3ic.x();
-                int y = vector3ic.y();
-                int z = vector3ic.z();
+            Optional<Vector3ic> optional = selection.stream().findFirst();
+            if (optional.isPresent()) {
+                var vector3ic = optional.get();
+                int x =  vector3ic.x();
+                int y =  vector3ic.y();
+                int z =  vector3ic.z();
+
+                System.out.println("[" + x + " " + y + " " + z + "]");
 
                 if (level instanceof ServerLevel serverLevel) {
+
                     if (!serverLevel.getBlockState(BlockPos.containing(x, y, z)).isAir()) {
                         var connectedShip = createNewShipWithBlocks(blockPos, selection, serverLevel);
-
+                        System.out.println("Ship Created");
                         Set<Entity> caughtEntities = SelectedAreaToolkit.Companion.entitiesFromCluster(cluster, serverLevel);
                         if (!caughtEntities.isEmpty()) {
                             caughtEntities.forEach(entity -> {
@@ -89,15 +101,17 @@ public class AssembleTool extends GravitronToolBase {
                         CompoundTag tag = player.getMainHandItem().getOrCreateTag();
                         tag.putLong("ShipId", connectedShip.getId());
                         tag.put("GrabbedPosInShip", ClockworkUtils.writeVec3(grabPosInShip));
-                        bl = true;
+
+                        return true;
                     }
                 }
+            } else {
+                return false;
             }
 
             data.getArea().getToStopRendering().add(cluster);
             data.shouldReset(true);
         }
-
-        return bl;
+        return false;
     }
 }
