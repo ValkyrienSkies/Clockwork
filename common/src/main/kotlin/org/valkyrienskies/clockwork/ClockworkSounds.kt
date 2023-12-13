@@ -94,6 +94,7 @@ object ClockworkSounds {
         return SoundEntryBuilder(id)
     }
 
+    @JvmStatic
     fun register() {
         for (entry in ALL.values) entry.register()
         sounds.registerAll()

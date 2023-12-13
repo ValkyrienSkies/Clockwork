@@ -24,11 +24,9 @@ import static org.valkyrienskies.clockwork.ClockworkMod.MOD_ID;
 
 @Mod(MOD_ID)
 public class ClockworkModForge {
-    boolean happendClientSetup = false;
 
     final DeferredRegister<CreativeModeTab> TAB_REGISTER = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MOD_ID);
     final DeferredRegister<EntityDataSerializer<?>> DATA_SERIALIZER_REGISTER = DeferredRegister.create(ForgeRegistries.Keys.ENTITY_DATA_SERIALIZERS, MOD_ID);
-
 
     public static final GravitronHandler GRAVITRON_HANDLER = new GravitronHandler();
     public static final BluperGlueSelectionHandler BLUPER_CLUSTER_HANDLER = new BluperGlueSelectionHandler();
@@ -37,42 +35,30 @@ public class ClockworkModForge {
         ModLoadingContext modLoadingContext = ModLoadingContext.get();
         AllClockworkConfigs.register(modLoadingContext);
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-        IEventBus forgeEventBus = MinecraftForge.EVENT_BUS;
 
-        modEventBus.addListener(this::clientSetup);
-        modEventBus.addListener(this::onParticleRegistry);
         ClockworkMod.INSTANCE.getREGISTRATE().registerEventListeners(modEventBus);
 
         ClockworkBlocks.register();
-        ForgeClockworkBlocks.register();
-
         ClockworkItems.register();
-        ForgeClockworkItems.register();
-
         ClockworkBlockEntities.register();
-        ForgeClockworkBlockEntities.register();
 
         ForgeClockworkFluids.register();
 
-        ClockworkEntities.INSTANCE.register();
+        ClockworkEntities.register();
         ForgeClockworkEntities.register();
 
         ClockworkParticles.init();
 
-        ClockworkSounds.INSTANCE.register();
-        // TODO forge sounds
+        ClockworkSounds.register();
 
         ClockworkMod.init();
         ClockworkPackets.init();
         ForgeClockworkPackets.init();
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-            // In create itself they do it FMLClientSetupEvent this does not work (what a scam)
-            // It prob gets staticly loaded earlier and well yhea...
             ClockworkPartials.INSTANCE.init();
             ClockworkMod.initClient();
             modEventBus.addListener(AllParticleTypes::registerFactories);
-            // TODO forge partials
 
         });
 
@@ -81,23 +67,5 @@ public class ClockworkModForge {
 
         DATA_SERIALIZER_REGISTER.register(modEventBus);
         TAB_REGISTER.register(modEventBus);
-
-        GRAVITRON_HANDLER.init();
     }
-
-    void clientSetup(final FMLClientSetupEvent event) {
-        if (happendClientSetup) {
-            return;
-        }
-        happendClientSetup = true;
-    }
-
-    void entityRenderers(final EntityRenderersEvent.RegisterRenderers event) {
-
-    }
-
-    void onParticleRegistry(RegisterParticleProvidersEvent event) {
-        //TODO ClockworkParticles.initClient();
-    }
-
 }

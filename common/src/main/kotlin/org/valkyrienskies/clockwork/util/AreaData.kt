@@ -28,4 +28,6 @@ interface AreaData {
     fun setSecondPos(pos: Optional<BlockPos>)
 
     fun shouldReset(reset: Boolean)
+
+    fun clearAll()
 }

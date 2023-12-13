@@ -25,19 +25,6 @@ public abstract class GravitronToolBase implements IGravitronTool {
     public static byte ASSEMBLE = 2;
     public static byte GRABSSEMBLE = 3;
 
-
-    public static GravitronItem.Companion.GravitronState getState(Player player) {
-        MixinPlayerDuck p = (MixinPlayerDuck) player;
-        GravitronItem.Companion.GravitronState s = p.cw_getGravitronState();
-
-        if (s == null) {
-            s = new GravitronItem.Companion.GravitronState();
-            p.cw_setGravitronState(s);
-        }
-
-        return s;
-    }
-
     public void updateTargetPos() {
         LocalPlayer player = Minecraft.getInstance().player;
 

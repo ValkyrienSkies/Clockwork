@@ -4,13 +4,11 @@ import com.simibubi.create.AllKeys;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import org.valkyrienskies.clockwork.ClockworkIcons;
-import org.valkyrienskies.clockwork.util.ClockworkLang;
+import org.valkyrienskies.clockwork.ClockworkLang;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import static com.simibubi.create.foundation.utility.Lang.translate;
 
 
 public enum ToolType {
@@ -31,16 +29,16 @@ public enum ToolType {
         return ClockworkLang.translateDirect("gravitron.tool." + ClockworkLang.asId(name()));
     }
 
-    public List<Component> getDescription() {//ClockworkLang.translateDirect(holdToFocus, keyName)
-        return translatedOptions("gravitron.tool." + ClockworkLang.asId(name()) + ".description", "0", "1", "2", "3");
+    public List<Component> getDescription() {
+        return translatedOptions("gravitron.tool." + ClockworkLang.asId(name()) + ".description");
     }
 
-    public static List<Component> translatedOptions(String prefix, String... keys) {
-        List<Component> result = new ArrayList<>(keys.length);
-        result.add(translate((prefix + ".") + "0").component());
-        result.add(translate((prefix + ".") + "1", AllKeys.ACTIVATE_TOOL.getBoundKey()).component());
-        result.add(translate((prefix + ".") + "2").component());
-        result.add(translate((prefix + ".") + "3").component());
+    public static List<Component> translatedOptions(String prefix) {
+        List<Component> result = new ArrayList<>();
+        result.add(ClockworkLang.translate((prefix + ".") + "0").component());
+        result.add(ClockworkLang.translate((prefix + ".") + "1", AllKeys.ACTIVATE_TOOL.getBoundKey()).component());
+        result.add(ClockworkLang.translate((prefix + ".") + "2").component());
+        result.add(ClockworkLang.translate((prefix + ".") + "3").component());
 
         return result;
     }

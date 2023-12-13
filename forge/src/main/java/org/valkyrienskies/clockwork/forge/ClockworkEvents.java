@@ -9,6 +9,7 @@ import net.minecraftforge.fml.common.Mod;
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluper.SelectedAreaToolkit;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem;
 import org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.tool.GrabTool;
+import org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.tool.GravitronToolBase;
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck;
 import org.valkyrienskies.clockwork.util.AreaData;
 
@@ -25,7 +26,7 @@ public class ClockworkEvents {
 
     @SubscribeEvent
     public static void playerLeftClick(PlayerInteractEvent.LeftClickBlock event) {
-
+        GravitronItem.leftClickItem(event.getEntity(), GravitronItem.getState(event.getEntity()));
     }
 
     @SubscribeEvent
@@ -33,10 +34,7 @@ public class ClockworkEvents {
         if (event.getEntity() instanceof Player player) {
             MixinPlayerDuck p = ((MixinPlayerDuck) player);
             p.cw_setGravitronState(new GravitronItem.Companion.GravitronState());
-
-            AreaData.of(player).get().setArea(new SelectedAreaToolkit());
-            AreaData.of(player).get().setFirstPos(Optional.empty());
-            AreaData.of(player).get().setSecondPos(Optional.empty());
+            AreaData.of(player).get().clearAll();
         }
     }
 }

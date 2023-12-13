@@ -35,7 +35,7 @@ public class GravitronGrabPacket implements C2SCWPacket {
         context.enqueueWork(() -> {
             ServerPlayer serverPlayer = context.getSender();
             if (serverPlayer.level() instanceof ServerLevel serverLevel) {
-                var s = GravitronToolBase.getState(serverPlayer);
+                var s = GravitronItem.getState(serverPlayer);
                 var stack = serverPlayer.getMainHandItem();
                 if (stack.is(ClockworkItems.GRAVITRON.asItem())) {
                     if ((s.getShipID() == null) && !serverPlayer.getCooldowns().isOnCooldown(stack.getItem()) && !s.getGrabbing()) {

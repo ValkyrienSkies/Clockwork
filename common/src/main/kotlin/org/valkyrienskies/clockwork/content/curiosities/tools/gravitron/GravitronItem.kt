@@ -41,46 +41,6 @@ import java.util.function.Consumer
 
 class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseItem {
 
-    private fun getState(player: Player): GravitronState {
-        val p: MixinPlayerDuck = player as MixinPlayerDuck
-        var s = p.cw_getGravitronState()
-        if (s == null) {
-            s = GravitronState()
-            p.cw_setGravitronState(s)
-        }
-
-        return s
-    }
-
-    //TODO implement this with new system
-    // Freeze the ship when player clicks
-    fun leftClickItem(player: Player): Boolean {
-        val s: GravitronState = getState(player)
-        val level = player.level()
-        if (s.grabbing && level is ServerLevel) {
-            val shipId = s.shipID
-            if (shipId != null) {
-                val ship: LoadedServerShip? = level.shipObjectWorld.loadedShips.getById(shipId)
-                if (ship != null) {
-                    ship.isStatic = !ship.isStatic
-                    if (ship.isStatic) {
-                        dropShip(s, level)
-                    }
-                    level.playSound(
-                        player,
-                        player.blockPosition(),
-                        ClockworkSounds.DESIGNATOR_ACTIVATE.mainEvent!!,
-                        SoundSource.PLAYERS,
-                        1f,
-                        1f
-                    )
-                    return true
-                }
-            }
-        }
-        return false
-    }
-
     override fun inventoryTick(stack: ItemStack, level: Level, entity: Entity, slotId: Int, isSelected: Boolean) {
         if (entity !is Player || level !is ServerLevel) {
             return
@@ -101,6 +61,8 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
 
     }
 
+
+
     // || ITEM FUNCTIONS || //
     override fun use(level: Level, player: Player, usedHand: InteractionHand): InteractionResultHolder<ItemStack> {
         val s: GravitronState = getState(player)
@@ -110,21 +72,6 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         return super.use(level, player, usedHand)
     }
 
-    // sets down the ship
-    private fun dropShip(s: GravitronState, level: ServerLevel) {
-        val grabbedShipId = s.shipID
-        if (grabbedShipId != null) {
-            val loadedShip = level.shipObjectWorld.loadedShips.getById(grabbedShipId)
-            if (loadedShip != null) {
-                val gravitronForceInducer = GravitronForceInducer.getOrCreate(loadedShip)
-                gravitronForceInducer.data = null
-            }
-        }
-
-        s.grabbing = false
-        s.shipID = null
-        s.shouldDrop = false
-    }
 
     override fun getUseAnimation(stack: ItemStack): UseAnim {
         return UseAnim.NONE
@@ -233,6 +180,63 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             }
 
             return bl
+        }
+
+        @JvmStatic
+        fun leftClickItem(player: Player, state: GravitronState): Boolean {
+            val level = player.level()
+            if (state.grabbing && level is ServerLevel) {
+                val shipId = state.shipID
+                if (shipId != null) {
+                    val ship: LoadedServerShip? = level.shipObjectWorld.loadedShips.getById(shipId)
+                    if (ship != null) {
+                        ship.isStatic = !ship.isStatic
+                        if (ship.isStatic) {
+                            dropShip(state, level)
+                        }
+                        level.playSound(
+                            player,
+                            player.blockPosition(),
+                            ClockworkSounds.DESIGNATOR_ACTIVATE.mainEvent!!,
+                            SoundSource.PLAYERS,
+                            1f,
+                            1f
+                        )
+                        return true
+                    }
+                }
+            }
+            return false
+        }
+
+
+        // sets down the ship
+        private fun dropShip(s: GravitronState, level: ServerLevel) {
+            val grabbedShipId = s.shipID
+            if (grabbedShipId != null) {
+                val loadedShip = level.shipObjectWorld.loadedShips.getById(grabbedShipId)
+                if (loadedShip != null) {
+                    val gravitronForceInducer = GravitronForceInducer.getOrCreate(loadedShip)
+                    gravitronForceInducer.data = null
+                }
+            }
+
+            s.grabbing = false
+            s.shipID = null
+            s.shouldDrop = false
+        }
+
+        @JvmStatic
+        fun getState(player: Player): GravitronState {
+            val p = player as MixinPlayerDuck
+            var s = p.cw_getGravitronState()
+
+            if (s == null) {
+                s = GravitronState()
+                p.cw_setGravitronState(s)
+            }
+
+            return s
         }
     }
 }

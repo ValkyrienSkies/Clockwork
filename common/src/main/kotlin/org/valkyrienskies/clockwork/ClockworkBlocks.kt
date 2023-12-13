@@ -28,9 +28,9 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.Deliv
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.WingBlock
-import org.valkyrienskies.clockwork.renderer.WingBlockItemRenderer
 import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork.flapbearing
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
+import org.valkyrienskies.clockwork.util.render.WingBlockItemRenderer
 import java.util.function.Supplier
 
 object ClockworkBlocks {

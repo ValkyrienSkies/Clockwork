@@ -131,4 +131,11 @@ public abstract class MixinPlayerData extends LivingEntity implements AreaData {
     public SelectedAreaToolkit getArea() {
         return entityData.get(AREA_TOOLKIT);
     }
+
+    @Override
+    public void clearAll() {
+        setArea(new SelectedAreaToolkit());
+        setFirstPos(Optional.empty());
+        setSecondPos(Optional.empty());
+    }
 }

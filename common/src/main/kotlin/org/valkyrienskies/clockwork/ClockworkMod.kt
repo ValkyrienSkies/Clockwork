@@ -52,10 +52,11 @@ object ClockworkMod {
             .title(Component.translatable("itemGroup.clockwork"))
             .icon { ClockworkItems.GRAVITRON.asStack() }
             .displayItems { _, output ->
-                output.accept(ClockworkBlocks.GYRO.asStack())
+                output.accept(ClockworkItems.BLUUGUU)
                 output.accept(ClockworkItems.BLUPERGLUE)
                 output.accept(ClockworkItems.GRAVITRON)
 
+                output.accept(ClockworkBlocks.GYRO.asStack())
                 output.accept(ClockworkBlocks.ALT_METER.asStack())
                 output.accept(ClockworkBlocks.FLAP.asStack())
                 output.accept(ClockworkBlocks.FLAP_BEARING.asStack())

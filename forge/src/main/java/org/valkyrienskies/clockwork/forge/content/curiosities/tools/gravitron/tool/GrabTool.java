@@ -32,7 +32,7 @@ public class GrabTool extends GravitronToolBase {
     public static void tick(LivingEvent.LivingTickEvent event) {
         var entity = event.getEntity();
         if (entity instanceof Player player && player.level() instanceof ServerLevel serverLevel) {
-            var s = getState(player);
+            var s = GravitronItem.getState(player);
             var graviton = player.getMainHandItem();
 
             if (!s.getShouldDrop() && graviton.is(ClockworkItems.GRAVITRON.asItem())) {
@@ -165,7 +165,7 @@ public class GrabTool extends GravitronToolBase {
         LoadedServerShip ship = VSGameUtilsKt.getShipObjectWorld(level).getLoadedShips().getByChunkPos(chunkX, chunkZ, VSGameUtilsKt.getDimensionId(level));
         Vector3dc grabPosInShip = VectorConversionsMCKt.toJOML(clickLocation);
         Vector3d grabPosInWorld = new Vector3d(grabPosInShip);
-        var s = getState(player);
+        var s = GravitronItem.getState(player);
         if (VSGameUtilsKt.isBlockInShipyard(level, clickedPos) && ship == null) {
             return false;
         }
