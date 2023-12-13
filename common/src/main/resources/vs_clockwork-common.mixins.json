@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "MixinPlayer",
+    "MixinPlayerData",
     "MixinToolboxHandler",
     "accessors.FluidAccessor",
     "accessors.IMixinClockworkContraption",

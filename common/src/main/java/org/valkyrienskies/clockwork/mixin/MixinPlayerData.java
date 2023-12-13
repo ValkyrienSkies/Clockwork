@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.forge.mixin;
+package org.valkyrienskies.clockwork.mixin;
 
 import com.simibubi.create.foundation.outliner.Outliner;
 import net.minecraft.core.BlockPos;
@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluper.SelectedAreaToolkit;
-import org.valkyrienskies.clockwork.forge.ClockworkModForge;
+import org.valkyrienskies.clockwork.platform.SharedValues;
 import org.valkyrienskies.clockwork.util.AreaData;
 import org.valkyrienskies.clockwork.util.ClockworkUtils;
 
@@ -69,7 +69,7 @@ public abstract class MixinPlayerData extends LivingEntity implements AreaData {
             if (resetTimer <= 0) {
                 resetTimer = 20;
                 shouldReset(false);
-                ClockworkModForge.BLUPER_CLUSTER_HANDLER.discard();
+                SharedValues.getBluperGlueHandler().discard();
                 HashSet<Set<AABBic>> clone = new HashSet<>(getArea().getSelectionClusters());
                 Map<Object, Outliner.OutlineEntry> copy = new HashMap<>(ClockworkMod.getOUTLINER().getOutlines());
                 for (Map.Entry<Object, Outliner.OutlineEntry> entry : copy.entrySet()) {

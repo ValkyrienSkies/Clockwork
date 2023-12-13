@@ -9,6 +9,8 @@ import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.UpdateAltMeterPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.UpdateGyroPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluper.BluperGluePacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDestroyPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronGrabPacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket
 import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket
@@ -29,6 +31,9 @@ enum class ClockworkPackets(
     SEQUENCER_SEAT_DRIVING(SequencedSeatDrivingPacket::class.java, ::SequencedSeatDrivingPacket),
     UPDATE_ALT_METER(UpdateAltMeterPacket::class.java, ::UpdateAltMeterPacket),
     UPDATE_GYRO(UpdateGyroPacket::class.java, ::UpdateGyroPacket),
+
+    GRAVITRON_GRAB_PACKET(GravitronGrabPacket::class.java, ::GravitronGrabPacket),
+    GRAVITRON_DESTROY_PACKET(GravitronDestroyPacket::class.java, ::GravitronDestroyPacket),
 
     // Server to Client
     COLORBLOCKENTITY(BlockEntityColorPacket::class.java, ::BlockEntityColorPacket),
