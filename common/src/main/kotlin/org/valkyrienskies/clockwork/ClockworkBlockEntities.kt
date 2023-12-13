@@ -21,10 +21,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroInstance
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingRenderer
 import org.valkyrienskies.clockwork.content.generic.ColorBlockEntity
-import org.valkyrienskies.clockwork.content.kinetics.resistor.BrassRedstoneResistorBlockEntity
-import org.valkyrienskies.clockwork.content.kinetics.resistor.BrassRedstoneResistorRenderer
-import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlockEntity
-import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRenderer
+import org.valkyrienskies.clockwork.content.kinetics.resistor.*
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRenderer
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
@@ -166,7 +163,7 @@ object ClockworkBlockEntities {
         }
             .instance({
             BiFunction<MaterialManager?, RedstoneResistorBlockEntity?, BlockEntityInstance<in RedstoneResistorBlockEntity?>> { materialManager: MaterialManager?, blockEntity: RedstoneResistorBlockEntity? ->
-                SplitShaftInstance(
+                ResistorInstance(
                     materialManager!!,
                     blockEntity!!
                 )
@@ -193,7 +190,7 @@ object ClockworkBlockEntities {
         }
         .instance({
             BiFunction<MaterialManager?, BrassRedstoneResistorBlockEntity?, BlockEntityInstance<in BrassRedstoneResistorBlockEntity?>> { materialManager: MaterialManager?, blockEntity: BrassRedstoneResistorBlockEntity? ->
-                SplitShaftInstance(
+                ResistorInstance(
                     materialManager!!,
                     blockEntity!!
                 )
