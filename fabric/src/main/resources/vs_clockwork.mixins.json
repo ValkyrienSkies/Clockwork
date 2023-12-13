@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "package": "org.valkyrienskies.clockwork.fabric.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "MixinAllBlocks",
+    "MixinStickerTileEntity"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
+}

@@ -27,5 +27,6 @@ pluginManagement {
 
 include("common")
 include("forge")
+include("fabric")
 
 rootProject.name = "vs-clockwork-mod"
