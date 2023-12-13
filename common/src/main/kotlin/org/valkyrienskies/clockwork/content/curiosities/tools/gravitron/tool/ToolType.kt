@@ -26,9 +26,12 @@ enum class ToolType(val tool: IGravitronTool, val icon: ClockworkIcons) {
         fun translatedOptions(prefix: String): List<Component> {
             val result: MutableList<Component> = ArrayList()
             result.add(ClockworkLang.translate("${prefix}.0").component())
-            result.add(
-                ClockworkLang.translate("${prefix}.1", AllKeys.ACTIVATE_TOOL.getBoundKey()).component()
-            )
+            if (AllKeys.ACTIVATE_TOOL.keybind != null) {
+                result.add(
+                    ClockworkLang.translate("${prefix}.1", AllKeys.ACTIVATE_TOOL.boundKey).component()
+                )
+            }
+
             result.add(ClockworkLang.translate("${prefix}.2").component())
             result.add(ClockworkLang.translate("${prefix}.3").component())
 

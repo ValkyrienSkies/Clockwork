@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.fabric;
 
 import com.mojang.blaze3d.platform.Window;
+import com.simibubi.create.foundation.events.ClientEvents;
 import io.github.fabricators_of_create.porting_lib.event.client.KeyInputCallback;
 import io.github.fabricators_of_create.porting_lib.event.client.MouseInputEvents;
 import io.github.fabricators_of_create.porting_lib.event.client.RenderTickStartCallback;
@@ -8,6 +9,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Registry;
@@ -40,11 +42,9 @@ public class ClockworkModFabric implements ModInitializer, ClientModInitializer 
 
         ClockworkBlockEntities.register();
 
-        // TODO common entities
         ClockworkEntities.register();
         FabricClockworkEntities.register();
         ClockworkEntityDataSerializers.init();
-        //ClockworkFluids.INSTANCE.register();
         FabricClockworkFluids.register();
 
         ClockworkSounds.register();
@@ -79,7 +79,6 @@ public class ClockworkModFabric implements ModInitializer, ClientModInitializer 
         ClockworkParticles.initClient();
 
         registerClientEvents();
-        //registerClientEvents();
         FabricClockworkClientEvents.register();
 
         KeyInputCallback.EVENT.register(FabricClockworkInputEvents::onKeyInput);
@@ -90,10 +89,10 @@ public class ClockworkModFabric implements ModInitializer, ClientModInitializer 
     public static void registerClientEvents() {
         ClientTickEvents.END_CLIENT_TICK.register(FabricClockworkClientEvents::onTick);
         ClientTickEvents.START_CLIENT_TICK.register(FabricClockworkClientEvents::onTickStart);
-        RenderTickStartCallback.EVENT.register(FabricClockworkClientEvents::onRenderTick);
+        WorldRenderEvents.AFTER_TRANSLUCENT.register(FabricClockworkClientEvents::onRenderWorld);
         HudRenderCallback.EVENT.register((graphics, partialTicks) -> {
             Window window = Minecraft.getInstance().getWindow();
-            SharedValuesImpl.getGravitronHandler().render(graphics, partialTicks, window.getWidth(), window.getHeight());
+            GRAVITRON_HANDLER.render(graphics, partialTicks, window.getWidth(), window.getHeight());
         });
     }
 }

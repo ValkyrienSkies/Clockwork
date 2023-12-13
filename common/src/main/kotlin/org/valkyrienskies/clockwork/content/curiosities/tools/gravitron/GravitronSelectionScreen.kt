@@ -40,14 +40,14 @@ class GravitronSelectionScreen(private val tools: List<ToolType>, private val ca
 
     fun cycle(direction: Int) {
         selection += if ((direction < 0)) 1 else -1
-        selection = (selection + tools!!.size) % tools!!.size
+        selection = (selection + tools.size) % tools.size
     }
 
     private fun draw(graphics: GuiGraphics, partialTicks: Float) {
         val matrixStack = graphics.pose()
         val mainWindow = minecraft!!.window
         if (!initialized) {
-            init(minecraft, mainWindow.guiScaledWidth, mainWindow.guiScaledHeight)
+            init(minecraft!!, mainWindow.guiScaledWidth, mainWindow.guiScaledHeight)
         }
 
         val x = (mainWindow.guiScaledWidth - w) / 2 + 15
@@ -73,7 +73,7 @@ class GravitronSelectionScreen(private val tools: List<ToolType>, private val ca
         )
 
         val toolTipAlpha = yOffset / 40
-        val toolTip: List<Component> = tools!![selection].getDescription()
+        val toolTip: List<Component> = tools[selection].getDescription()
         val stringAlphaComponent = ((toolTipAlpha * 0xFF).toInt()) shl 24
 
         if (toolTipAlpha > 0.25f) {
@@ -127,7 +127,7 @@ class GravitronSelectionScreen(private val tools: List<ToolType>, private val ca
             )
         }
 
-        for (i in tools!!.indices) {
+        for (i in tools.indices) {
             RenderSystem.enableBlend()
             matrixStack.pushPose()
 
@@ -137,7 +137,7 @@ class GravitronSelectionScreen(private val tools: List<ToolType>, private val ca
                 RenderSystem.setShaderColor(1f, 1f, 1f, 1f)
                 graphics.drawCenteredString(
                     minecraft!!.font,
-                    tools!![i].getDisplayName().getString(),
+                    tools[i].getDisplayName().getString(),
                     x + i * 50 + 24,
                     y + 28,
                     0xCCDDFF
@@ -145,9 +145,9 @@ class GravitronSelectionScreen(private val tools: List<ToolType>, private val ca
                 alpha = 1f
             }
             RenderSystem.setShaderColor(0f, 0f, 0f, alpha)
-            tools!![i].icon.render(graphics, x + i * 50 + 16, y + 12)
+            tools[i].icon.render(graphics, x + i * 50 + 16, y + 12)
             RenderSystem.setShaderColor(1f, 1f, 1f, alpha)
-            tools!![i].icon.render(graphics, x + i * 50 + 16, y + 11)
+            tools[i].icon.render(graphics, x + i * 50 + 16, y + 11)
 
             matrixStack.popPose()
         }
@@ -169,7 +169,7 @@ class GravitronSelectionScreen(private val tools: List<ToolType>, private val ca
     }
 
     override fun onClose() {
-        callback!!.accept(tools!![selection])
+        callback.accept(tools[selection])
     }
 
     override fun init() {
