@@ -2,6 +2,9 @@ package org.valkyrienskies.clockwork.fabric;
 
 import com.mojang.blaze3d.platform.Window;
 import com.simibubi.create.foundation.events.ClientEvents;
+import dev.architectury.event.events.common.PlayerEvent;
+import io.github.fabricators_of_create.porting_lib.entity.events.living.LivingEntityEvents;
+import io.github.fabricators_of_create.porting_lib.entity.events.player.PlayerEvents;
 import io.github.fabricators_of_create.porting_lib.event.client.KeyInputCallback;
 import io.github.fabricators_of_create.porting_lib.event.client.MouseInputEvents;
 import io.github.fabricators_of_create.porting_lib.event.client.RenderTickStartCallback;
@@ -10,7 +13,11 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
+import net.fabricmc.fabric.api.event.player.UseBlockCallback;
+import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -67,6 +74,9 @@ public class ClockworkModFabric implements ModInitializer, ClientModInitializer 
 
     public static void registerServerEvents() {
         ServerTickEvents.START_WORLD_TICK.register(ClockworkCommonEvents.INSTANCE::onWorldTick);
+        PlayerEvent.PLAYER_JOIN.register(FabricClockworkCommonEvents::playerJoin);
+        LivingEntityEvents.TICK.register(FabricClockworkCommonEvents::onLivingTick);
+        AttackBlockCallback.EVENT.register(FabricClockworkCommonEvents::playerLeftClick);
     }
 
     @Override
