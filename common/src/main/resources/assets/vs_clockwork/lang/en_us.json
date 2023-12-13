@@ -21,6 +21,8 @@
   "item.vs_clockwork.gyro": "Gyro",
   "block.vs_clockwork.redstone_resistor": "Redstone Resistor",
   "item.vs_clockwork.redstone_resistor": "Redstone Resistor",
+  "block.vs_clockwork.brass_redstone_resistor": "Brass Redstone Resistor",
+  "item.vs_clockwork.brass_redstone_resistor": "Brass Redstone Resistor",
   "block.vs_clockwork.balloon_casing": "Balloon Casing",
   "item.vs_clockwork.balloon_casing": "Balloon Casing",
   "block.vs_clockwork.balloon_encased_shaft": "Balloon Encased Shaft",
