@@ -27,6 +27,9 @@ class AltMeterBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: Blo
         val shouldBePowered = posInWorld.y() >= triggerHeightCopy
 
         val isCurrentlyPowered = blockState.getValue(AltMeterBlock.POWERED)
+
+        println(triggerHeight)
+
         if (shouldBePowered != isCurrentlyPowered) {
             if (shouldBePowered) {
                 // Same flags as a redstone torch update

@@ -10,20 +10,19 @@ import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.network.chat.Component
 import net.minecraft.world.item.ItemStack
 import org.valkyrienskies.clockwork.ClockworkBlocks
+import org.valkyrienskies.clockwork.ClockworkGuiTextures
 import org.valkyrienskies.clockwork.ClockworkIconTextures
 import org.valkyrienskies.clockwork.ClockworkPackets
 import kotlin.math.roundToInt
 
 class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen() {
-    private val renderedItem: ItemStack = ClockworkBlocks.COMMAND_SEAT.asStack()
-    private val background: ClockworkIconTextures = ClockworkIconTextures.COMMAND_SEAT
+    private val background: ClockworkGuiTextures = ClockworkGuiTextures.ALT_METER;
     private var altitudeInput: ScrollInput? = null
     private var confirmButton: IconButton? = null
     private var triggerHeight: Int = be.triggerHeight.roundToInt()
 
     override fun init() {
         setWindowSize(background.width, background.height)
-        setWindowOffset(-20, 0)
         super.init()
         val x = guiLeft
         val y = guiTop
@@ -61,25 +60,14 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
         background.render(graphics!!, x, y)
         graphics.drawCenteredString(font, title, x + (background.width - 8) / 2, y + 3, 0xFFFFFF)
         drawRuleList(graphics, x, y, partialTicks)
-        GuiGameElement.of(renderedItem)
-            .at<GuiGameElement.GuiRenderBuilder>(
-                (x + background.width + 6).toFloat(),
-                (y + background.height - 56).toFloat(), -200f
-            )
-            .scale(5.0)
-            .render(graphics)
-
-
     }
 
 
     private fun drawRuleList(guiGraphics: GuiGraphics, x: Int, y: Int, partialTicks: Float) {
-        val ruleX = x + 38
-        val ruleY = y + 18
+        val ruleX = x + 38 - 7
+        val ruleY = y + 18 + 2
 
         val icon = AllIcons.I_PRIORITY_VERY_HIGH
-
-        drawInputField(ruleX, ruleY, guiGraphics, partialTicks, 0)
 
         val heightStr = triggerHeight.toString()
         val valueComponent: Component = Component.literal("$heightStr m")
@@ -87,7 +75,7 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
         guiGraphics.drawCenteredString(
             font,
             valueComponent,
-            ruleX + 62 + INPUT_VALUE_WIDTH / 2,
+            ruleX + 62 - 12 + INPUT_VALUE_WIDTH / 2,
             ruleY + (INPUT_FIELDS_HEIGHT - font.lineHeight) / 2 + 1,
             0xFFFFFF
         )
@@ -103,23 +91,8 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
         )
     }
 
-    private fun drawInputField(x: Int, y: Int, guiGraphics: GuiGraphics, partialTicks: Float, i: Int) {
-        guiGraphics.blit(
-            background.location, x - 2, y,
-            INPUT_FIELDS_X,
-            INPUT_FIELDS_Y + i * (INPUT_FIELDS_HEIGHT + INPUT_FIELDS_MARGIN),
-            INPUT_FIELDS_WIDTH,
-            INPUT_FIELDS_HEIGHT
-        )
-    }
-
-
     companion object {
-        private const val INPUT_FIELDS_X = 36
-        private const val INPUT_FIELDS_Y = 62
-        private const val INPUT_FIELDS_WIDTH = 110
         private const val INPUT_FIELDS_HEIGHT = 18
-        private const val INPUT_FIELDS_MARGIN = 4
         private const val INPUT_VALUE_WIDTH = 46
         private const val MAX_HEIGHT = 1024
         private const val MIN_HEIGHT = -1024
