@@ -63,7 +63,6 @@ object ClockworkMod {
                 output.accept(ClockworkBlocks.PHYS_BEARING.asStack())
                 output.accept(ClockworkBlocks.PROPELLER_BEARING.asStack())
                 output.accept(ClockworkBlocks.REDSTONE_RESISTOR.asStack())
-                output.accept(ClockworkBlocks.BRASS_REDSTONE_RESISTOR.asStack())
                 output.accept(ClockworkBlocks.WING.asStack())
             }
             .build()

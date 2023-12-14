@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork
 
 import com.jozufozu.flywheel.api.MaterialManager
 import com.jozufozu.flywheel.backend.instancing.blockentity.BlockEntityInstance
-import com.simibubi.create.content.kinetics.transmission.SplitShaftInstance
 import com.tterrag.registrate.util.entry.BlockEntityEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer
@@ -161,45 +160,10 @@ object ClockworkBlockEntities {
                 type, pos!!, state!!
             )
         }
-            .instance({
-            BiFunction<MaterialManager?, RedstoneResistorBlockEntity?, BlockEntityInstance<in RedstoneResistorBlockEntity?>> { materialManager: MaterialManager?, blockEntity: RedstoneResistorBlockEntity? ->
-                ResistorInstance(
-                    materialManager!!,
-                    blockEntity!!
-                )
-            }
-        }, false)
         .validBlocks(ClockworkBlocks.REDSTONE_RESISTOR)
         .renderer {
             NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in RedstoneResistorBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
                 RedstoneResistorRenderer(
-                    context
-                )
-            }
-        }
-        .register()
-
-    @JvmField
-    val BRASS_REDSTONE_RESISTOR: BlockEntityEntry<BrassRedstoneResistorBlockEntity> = ClockworkMod.REGISTRATE
-        .blockEntity<BrassRedstoneResistorBlockEntity>(
-            "brass_redstone_resistor"
-        ) { type: BlockEntityType<BrassRedstoneResistorBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
-            BrassRedstoneResistorBlockEntity(
-                type, pos!!, state!!
-            )
-        }
-        .instance({
-            BiFunction<MaterialManager?, BrassRedstoneResistorBlockEntity?, BlockEntityInstance<in BrassRedstoneResistorBlockEntity?>> { materialManager: MaterialManager?, blockEntity: BrassRedstoneResistorBlockEntity? ->
-                ResistorInstance(
-                    materialManager!!,
-                    blockEntity!!
-                )
-            }
-        }, false)
-        .validBlocks(ClockworkBlocks.BRASS_REDSTONE_RESISTOR)
-        .renderer {
-            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in BrassRedstoneResistorBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
-                BrassRedstoneResistorRenderer(
                     context
                 )
             }

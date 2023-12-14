@@ -21,7 +21,6 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterB
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
-import org.valkyrienskies.clockwork.content.kinetics.resistor.BrassRedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlock
@@ -153,31 +152,6 @@ object ClockworkBlocks {
             .transform(
                 ModelGen.customItemModel<BlockItem, BlockBuilder<RedstoneResistorBlock, CreateRegistrate>>(
                     "redstone_resistor",
-                    "item"
-                )
-            )
-            .register()
-
-    @JvmField
-    val BRASS_REDSTONE_RESISTOR: BlockEntry<BrassRedstoneResistorBlock> =
-        REGISTRATE.block<BrassRedstoneResistorBlock>("brass_redstone_resistor") { properties: BlockBehaviour.Properties? ->
-            BrassRedstoneResistorBlock(properties!!)
-        }
-            .initialProperties { SharedProperties.stone() }
-            .properties {
-                it.noOcclusion()
-            }
-            .transform<Block, BrassRedstoneResistorBlock, CreateRegistrate, BlockBuilder<BrassRedstoneResistorBlock, CreateRegistrate>>(
-                BlockStressDefaults.setNoImpact()
-            )
-            .transform<Block, BrassRedstoneResistorBlock, CreateRegistrate, BlockBuilder<BrassRedstoneResistorBlock, CreateRegistrate>>(
-                TagGen.axeOrPickaxe()
-            )
-            .addLayer { Supplier { RenderType.cutoutMipped() } }
-            .item()
-            .transform(
-                ModelGen.customItemModel<BlockItem, BlockBuilder<BrassRedstoneResistorBlock, CreateRegistrate>>(
-                    "brass_redstone_resistor",
                     "item"
                 )
             )

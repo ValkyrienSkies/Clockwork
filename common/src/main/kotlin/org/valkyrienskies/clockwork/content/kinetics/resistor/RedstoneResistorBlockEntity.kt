@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.content.kinetics.resistor
 
 import com.simibubi.create.content.equipment.goggles.IHaveGoggleInformation
 import com.simibubi.create.content.kinetics.RotationPropagator
+import com.simibubi.create.content.kinetics.gauge.SpeedGaugeBlockEntity
 import com.simibubi.create.content.kinetics.transmission.SplitShaftBlockEntity
 import com.simibubi.create.foundation.utility.Iterate
 import com.simibubi.create.foundation.utility.Lang
@@ -13,6 +14,8 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.ticks.TickPriority
+import kotlin.math.abs
+import kotlin.math.floor
 
 open class RedstoneResistorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
     SplitShaftBlockEntity(type, pos, state), IHaveGoggleInformation {
@@ -58,7 +61,8 @@ open class RedstoneResistorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos,
     override fun getRotationSpeedModifier(face: Direction): Float {
         if (hasSource()) {
             if (face != sourceFacing) {
-                return Math.abs(state - 15) / 15f
+                val i = abs(state - 15) / 15f;
+                return i
             }
         }
         return 1f
