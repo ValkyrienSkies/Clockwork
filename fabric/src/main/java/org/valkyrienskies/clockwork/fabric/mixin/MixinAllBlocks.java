@@ -13,7 +13,9 @@ import static com.simibubi.create.AllMovementBehaviours.movementBehaviour;
 
 @Mixin(AllBlocks.class)
 public class MixinAllBlocks {
-    @Redirect(method = "<clinit>", at = @At(value = "INVOKE", target = "Lcom/tterrag/registrate/builders/BlockBuilder;item()Lcom/tterrag/registrate/builders/ItemBuilder;"),
+    @Redirect(method = "<clinit>",
+            at = @At(value = "INVOKE", target = "Lcom/tterrag/registrate/builders/BlockBuilder;item()Lcom/tterrag/registrate/builders/ItemBuilder;"),
+
             slice = @Slice(
                     from = @At(value = "FIELD", target = "Lcom/simibubi/create/AllBlocks;RADIAL_CHASSIS:Lcom/tterrag/registrate/util/entry/BlockEntry;"),
                     to = @At(value = "FIELD", target = "Lcom/simibubi/create/AllBlocks;STICKER:Lcom/tterrag/registrate/util/entry/BlockEntry;")

@@ -111,6 +111,7 @@ public abstract class MixinStickerTileEntity extends SmartBlockEntity implements
         }
     }
 
+    //TODO, kinda sus to Override
     @Override
     public void destroy() {
         if (level != null) {

@@ -71,37 +71,19 @@ public abstract class MixinEncasedFanTileEntity extends KineticBlockEntity {
         handleController();
     }
 
-    @Unique
-    private CompoundTag writeToCompound(CompoundTag compound, boolean clientPacket) {
-        //write here
+    @Inject(method = "write", at = @At("TAIL"), remap = false)
+    private void injectWrite(CompoundTag compound, boolean clientPacket, CallbackInfo ci) {
         compound.putBoolean("alreadyAdded", alreadyAdded);
         if (fanID != null) {
             compound.putInt("fanID", fanID);
         }
-        return compound;
     }
 
-    @Inject(method = "write", at = @At("HEAD"), cancellable = true, remap = false)
-    private void injectWrite(CompoundTag compound, boolean clientPacket, CallbackInfo ci) {
-        compound = writeToCompound(compound, clientPacket);
-        super.write(compound, clientPacket);
-        ci.cancel();
-    }
-
-    @Unique
-    private CompoundTag readFromCompound(CompoundTag compound, boolean clientPacket) {
-        //read (and remove before it passes up?) here
+    @Inject(method = "read", at = @At("TAIL"), remap = false)
+    private void injectRead(CompoundTag compound, boolean clientPacket, CallbackInfo ci) {
         alreadyAdded = compound.getBoolean("alreadyAdded");
         if (compound.contains("fanID")) {
             fanID = compound.getInt("fanID");
         }
-        return compound;
-    }
-
-    @Inject(method = "read", at = @At("HEAD"), cancellable = true, remap = false)
-    private void injectRead(CompoundTag compound, boolean clientPacket, CallbackInfo ci) {
-        compound = readFromCompound(compound, clientPacket);
-        super.read(compound, clientPacket);
-        ci.cancel();
     }
 }

@@ -10,7 +10,6 @@
     "accessors.IMixinClockworkContraption",
     "accessors.IMixinPistonContraption",
     "content.fan.MixinEncasedFanTileEntity",
-    "content.pulse.ChasingAABBOutlineAccessor",
     "content.universal_joint.MixinRotationPropagator",
     "content.wing.MixinAbstractCauldronBlock"
   ],
