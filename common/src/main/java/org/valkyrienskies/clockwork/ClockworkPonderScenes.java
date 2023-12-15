@@ -4,6 +4,7 @@ import com.simibubi.create.content.kinetics.simpleRelays.ShaftBlock;
 import com.simibubi.create.content.redstone.analogLever.AnalogLeverBlockEntity;
 import com.simibubi.create.foundation.ponder.*;
 import com.simibubi.create.foundation.ponder.element.InputWindowElement;
+import com.simibubi.create.foundation.ponder.element.WorldSectionElement;
 import com.simibubi.create.foundation.utility.Pointing;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -30,10 +31,11 @@ public class ClockworkPonderScenes {
         scene.idle(15);
 
         Selection lever = util.select.position(0, 0, 0);
+        Selection ship = util.select.fromTo(0 , 1, 0, 4, 3, 3);
 
-        scene.world.showSection(util.select.fromTo(0, 1, 0, 4, 1, 3), Direction.DOWN);
-        scene.world.showSection(util.select.fromTo(0, 2, 0, 4, 2, 3), Direction.DOWN);
-        scene.world.showSection(util.select.fromTo(0, 3, 0, 4, 3, 3), Direction.DOWN);
+        ElementLink<WorldSectionElement> contraption =
+                scene.world.showIndependentSection(ship, Direction.DOWN);
+        scene.world.moveSection(contraption, util.vector.of(0, 0, 0), 0);
 
         scene.overlay.showControls(
                 new InputWindowElement(util.vector.topOf(0, 2, 1), Pointing.UP)
@@ -46,7 +48,7 @@ public class ClockworkPonderScenes {
 
         scene.idle(45);
         scene.overlay.showControls(
-                new InputWindowElement(util.vector.blockSurface(util.grid.at(3, 3, 3), Direction.DOWN), Pointing.DOWN)
+                new InputWindowElement(util.vector.blockSurface(util.grid.at(4, 3, 4), Direction.DOWN), Pointing.DOWN)
                         .withItem(ClockworkItems.BLUPERGLUE.asStack())
                         .rightClick(),
                 40);
@@ -54,11 +56,37 @@ public class ClockworkPonderScenes {
 
         AABB bb = new AABB(util.grid.at(0, 2, 1));
         scene.overlay.chaseBoundingBoxOutline(PonderPalette.BLUE, lever, bb, 1);
-        scene.overlay.chaseBoundingBoxOutline(PonderPalette.BLUE, lever, bb.expandTowards(4, 1, 2), 285);
+        scene.overlay.chaseBoundingBoxOutline(PonderPalette.BLUE, lever, bb.expandTowards(4, 1, 2), 70);
 
-        //TODO add gravitron click element
-        //TODO And maybe crate a ship world element??
+        scene.idle(70);
+        scene.overlay.showControls(
+                new InputWindowElement(util.vector.blockSurface(util.grid.at(2, 2, 2), Direction.DOWN), Pointing.DOWN)
+                        .withItem(ClockworkItems.GRAVITRON.asStack())
+                        .rightClick(),
+                40);
+        scene.idle(50);
 
+        scene.world.moveSection(contraption, util.vector.of(0, -0.1, 0), 4);
+        scene.idle(4);
+        scene.world.moveSection(contraption, util.vector.of(0, -0.1, 0), 3);
+        scene.idle(3);
+        scene.world.moveSection(contraption, util.vector.of(0, -0.1, 0), 2);
+        scene.idle(2);
+        scene.world.moveSection(contraption, util.vector.of(0, -0.7, 0), 10);
+        scene.idle(14);
+        scene.world.moveSection(contraption, util.vector.of(0, 0.025, 0), 3);
+        scene.idle(3);
+        scene.world.moveSection(contraption, util.vector.of(0, -0.015, 0), 2);
+        scene.idle(2);
+        scene.world.moveSection(contraption, util.vector.of(0, -0.010, 0), 1);
+
+
+        scene.idle(20);
+        scene.overlay.showText(40)
+                .attachKeyFrame()
+                .text("This Ship is now affected by physics!")
+                .placeNearTarget()
+                .pointAt(util.vector.blockSurface(util.grid.at(2,0,3), Direction.WEST));
         scene.idle(37 * 4);
     }
 
