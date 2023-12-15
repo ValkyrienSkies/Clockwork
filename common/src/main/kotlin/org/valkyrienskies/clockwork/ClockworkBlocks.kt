@@ -109,6 +109,7 @@ object ClockworkBlocks {
         }
             .initialProperties { SharedProperties.stone() }
             .transform(TagGen.axeOrPickaxe())
+            .properties{it.noOcclusion()}
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()

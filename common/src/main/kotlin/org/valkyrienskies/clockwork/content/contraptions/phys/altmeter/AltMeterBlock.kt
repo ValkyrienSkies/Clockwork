@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.altmeter
 
+import com.simibubi.create.AllShapes
 import com.simibubi.create.foundation.block.IBE
 import com.simibubi.create.foundation.gui.ScreenOpener
 import net.fabricmc.api.EnvType
@@ -19,7 +20,10 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.level.block.state.properties.BooleanProperty
 import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.shapes.CollisionContext
+import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.ClockworkShapes
 
 class AltMeterBlock(properties: Properties) : Block(properties), IBE<AltMeterBlockEntity> {
     init {
@@ -42,6 +46,16 @@ class AltMeterBlock(properties: Properties) : Block(properties), IBE<AltMeterBlo
             }
         }
         return InteractionResult.SUCCESS
+    }
+
+    override fun getShape(
+        pState: BlockState,
+        pLevel: BlockGetter?,
+        pPos: BlockPos?,
+        pContext: CollisionContext?
+    ): VoxelShape {
+        return ClockworkShapes.ALT_METER
+
     }
 
     @Environment(value = EnvType.CLIENT)

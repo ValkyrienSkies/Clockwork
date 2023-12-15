@@ -11,6 +11,7 @@ import java.util.function.BiFunction
 object ClockworkShapes {
     val WING = shape(0.0, 4.0, 0.0, 16.0, 12.0, 16.0).forAxis()
     val AFTERBLAZER = shape(1.0, 0.0, 1.0, 15.0, 14.0, 15.0).forDirectional()
+    val ALT_METER = shape(1.0, 0.0, 1.0, 15.0, 5.0, 15.0).add(4.0, 8.0, 4.0, 12.0, 16.0, 12.0).build()
     private fun shape(shape: VoxelShape): Builder {
         return Builder(shape)
     }

@@ -1,0 +1,8 @@
+{
+	"credit": "Made with Blockbench",
+	"parent": "vs_clockwork:block/alt_meter/block",
+	"texture_size": [32, 32],
+	"textures": {
+		"7": "vs_clockwork:block/alt_meter_on"
+	}
+}
