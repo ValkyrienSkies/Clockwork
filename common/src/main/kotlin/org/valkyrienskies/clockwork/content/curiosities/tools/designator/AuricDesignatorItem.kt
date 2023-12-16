@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.designator
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.simibubi.create.foundation.outliner.Outliner
 import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
@@ -10,6 +11,7 @@ import net.minecraft.network.chat.Style
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.util.Mth
 import net.minecraft.util.RandomSource
+import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
@@ -21,11 +23,13 @@ import net.minecraft.world.level.block.state.BlockState
 import org.joml.Vector3ic
 import org.joml.primitives.AABBi
 import org.joml.primitives.AABBic
+import org.valkyrienskies.clockwork.ClockworkMod.AURIC_OUTLINER
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluper.SelectedAreaToolkit
 import org.valkyrienskies.clockwork.platform.CWItem
+import org.valkyrienskies.clockwork.platform.SharedValues
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
 import org.valkyrienskies.mod.common.isBlockInShipyard
 import org.valkyrienskies.mod.common.util.toJOML
@@ -69,15 +73,6 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
         if (isSelected && !this.wasSelected) {
             this.shouldRenderOutlines = true
             this.animationType = Animation.DRAW
-            val pitch = Mth.randomBetween(soundRandom, 0.8f, 1.3f)
-            level.playSound(
-                null,
-                entity,
-                ClockworkSounds.DESIGNATOR_ACTIVATE.mainEvent!!,
-                entity.soundSource,
-                0.5f,
-                pitch
-            )
         } else if (!isSelected && this.wasSelected) {
             this.shouldRenderOutlines = false
         }
@@ -125,29 +120,10 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
             this.secondPos = null
         }
 
-
         //println("TAG: ${stack.tag}")
     }
 
 
-    fun onAttack(player: Player) {
-        val hitResult = getPlayerPOVHitResult(player.level(), player, ClipContext.Fluid.NONE)
-        val pos: Vector3ic = hitResult.blockPos.toJOML()
-        val hitCluster: Set<AABBic> = this.selectedArea.getClusterContaining(pos) ?: return
-        if (hitCluster != null) {
-            val pitch = Mth.randomBetween(soundRandom, 0.8f, 1.2f)
-            this.selectedArea.dumpCluster(hitCluster)
-            player.level().playSound(
-                null,
-                player,
-                ClockworkSounds.DESIGNATOR_DUMP_CLUSTER.mainEvent!!,
-                player.soundSource,
-                1.0f,
-                pitch
-            )
-            animationType = Animation.DUMP
-        }
-    }
 
     override fun useOn(context: UseOnContext): InteractionResult {
         val player = context.player ?: return InteractionResult.FAIL
@@ -212,6 +188,22 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
             )
             this.firstPos = null
             this.secondPos = null
+
+            for (setAabb in this.selectedArea.selectionClusters) {
+                for (aabb in setAabb) {
+                    if (intersectsAABBi(aabb, area)) {
+                        player.displayClientMessage(
+                            Component.literal("Area Already Exists.").withStyle(
+                                Style.EMPTY.withColor(
+                                    ChatFormatting.DARK_PURPLE
+                                )
+                            ), true
+                        )
+                        return InteractionResult.SUCCESS
+                    }
+                }
+            }
+
             if (this.selectedArea.containsAABB(area)) {
                 player.displayClientMessage(
                     Component.literal("Area Already Exists.").withStyle(
@@ -279,7 +271,6 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
             val compoundTag = stack.orCreateTag
             compoundTag.putByteArray("selectedData", getMapper().writeValueAsBytes(this.selectedArea))
             stack.tag = compoundTag
-            println("NewClusterAdded")
             player.displayClientMessage(
                 Component.literal("Area Designated!").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE)),
                 true
@@ -300,6 +291,12 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
         return super.useOn(context)
     }
 
+    fun intersectsAABBi(box: AABBic, other: AABBic): Boolean {
+        return box.maxX() >= other.minX() && (box.maxY() >= other.minY()) && (box.maxZ() >= other.minZ()) && (
+                box.minX() <= other.maxX()) && (box.minY() <= other.maxY()) && (box.minZ() <= other.maxZ())
+    }
+
+
     enum class Animation {
         DRAW,
         IDLE,
@@ -310,6 +307,41 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
     companion object {
         private fun getMapper(): ObjectMapper {
             return VSJacksonUtil.defaultMapper
+        }
+
+        @JvmStatic
+        fun onAttack(player: Player) {
+            val hitResult = getPlayerPOVHitResult(player.level(), player, ClipContext.Fluid.NONE)
+            val pos: Vector3ic = hitResult.blockPos.toJOML()
+
+            if (player.getItemInHand(InteractionHand.MAIN_HAND).item is AuricDesignatorItem) {
+                val item = player.getItemInHand(InteractionHand.MAIN_HAND).item as AuricDesignatorItem
+
+                val clone: HashSet<Set<AABBic>> = HashSet(item.selectedArea.selectionClusters)
+                val copy: Map<Any, Outliner.OutlineEntry> = HashMap(AURIC_OUTLINER.outlines)
+                for ((key) in copy) {
+                    AURIC_OUTLINER.remove(key)
+                }
+
+                for (aabBic in clone) {
+                    item.selectedArea.dumpCluster(aabBic)
+                }
+                SharedValues.auricHandler.discard()
+
+                val hitCluster: Set<AABBic> = item.selectedArea.getClusterContaining(pos) ?: return
+                val pitch = Mth.randomBetween(item.soundRandom, 0.8f, 1.2f)
+                item.selectedArea.dumpCluster(hitCluster)
+                player.level().playSound(
+                    null,
+                    player,
+                    ClockworkSounds.DESIGNATOR_DUMP_CLUSTER.mainEvent!!,
+                    player.soundSource,
+                    1.0f,
+                    pitch
+                )
+                item.animationType = Animation.DUMP
+            }
+
         }
     }
 }

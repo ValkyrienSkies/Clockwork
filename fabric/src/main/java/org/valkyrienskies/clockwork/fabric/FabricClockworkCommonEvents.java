@@ -9,6 +9,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
+import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.GrabTool;
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck;
@@ -30,6 +31,7 @@ public class FabricClockworkCommonEvents {
 
     public static InteractionResult playerLeftClick(Player player, Level level, InteractionHand interactionHand, BlockPos blockPos, Direction direction) {
         GravitronItem.leftClickItem(player, GravitronItem.getState(player));
+        AuricDesignatorItem.onAttack(player);
         return InteractionResult.PASS;
     }
 }

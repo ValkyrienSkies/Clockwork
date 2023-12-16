@@ -6,6 +6,7 @@ import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.GrabTool;
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck;
@@ -27,6 +28,7 @@ public class ClockworkEvents {
     @SubscribeEvent
     public static void playerLeftClick(PlayerInteractEvent.LeftClickBlock event) {
         GravitronItem.leftClickItem(event.getEntity(), GravitronItem.getState(event.getEntity()));
+        AuricDesignatorItem.onAttack(event.getEntity());
     }
 
     @SubscribeEvent

@@ -65,7 +65,7 @@ object SharedValues {
 
     @get:ExpectPlatform
     @JvmStatic
-    val designatorHandler: AuricDesignatorClusterRenderer
+    val auricHandler: AuricDesignatorClusterRenderer
         get() {
             throw AssertionError()
         }

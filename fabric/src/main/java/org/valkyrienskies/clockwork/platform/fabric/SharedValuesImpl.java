@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluper.BluperGlueSelectionHandler;
+import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorClusterRenderer;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatEntity;
 import org.valkyrienskies.clockwork.fabric.ClockworkModFabric;
@@ -51,6 +52,10 @@ public class SharedValuesImpl {
 
     public static BluperGlueSelectionHandler getBluperGlueHandler() {
         return ClockworkModFabric.BLUPER_CLUSTER_HANDLER;
+    }
+
+    public static AuricDesignatorClusterRenderer getAuricHandler() {
+        return ClockworkModFabric.AURIC_HANDLER;
     }
 
 }

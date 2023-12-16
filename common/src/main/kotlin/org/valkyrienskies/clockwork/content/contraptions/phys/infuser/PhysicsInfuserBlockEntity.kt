@@ -30,6 +30,7 @@ import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.primitives.AABBic
+import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.client.render.scanner.ScannerRenderer
@@ -139,7 +140,7 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             toDump.clear()
             val ejected = ItemEntity(
                 level, blockPos.x.toDouble(), (blockPos.y + 1).toDouble(), blockPos.z.toDouble(),
-                inventory[0]
+                ClockworkItems.AURIC_DESIGNATOR.asStack()//New item so the nbt gets cleared
             )
             inventory[0] = ItemStack.EMPTY
             ejected.deltaMovement = Vec3(0.0, launchForce.toDouble(), 0.0)
@@ -180,7 +181,6 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
                 playZapSound(level!!, thisposition, rand)
             }
             if (assemblyProgress.value == 455f) {
-                println("AssembleCall")
                 assemble()
             }
             if (assemblyProgress.value == 460f) {
@@ -275,9 +275,8 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         if (getLevel()!!.isClientSide()) return
         if (inventory[0].item !is AuricDesignatorItem) return
         val item: AuricDesignatorItem = inventory[0].item as AuricDesignatorItem
-        println("Item: $item")
+
         item.selectedArea.selectionClusters.forEach { cluster ->
-            println(cluster)
             val selection: DenseBlockPosSet
             val caughtEntities: Set<Entity>
             if (level is ServerLevel) {

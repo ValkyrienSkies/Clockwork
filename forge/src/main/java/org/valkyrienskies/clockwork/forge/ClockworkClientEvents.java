@@ -36,6 +36,7 @@ public class ClockworkClientEvents {
                 .getPosition();
 
         ClockworkMod.getOUTLINER().renderOutlines(ms, SuperRenderTypeBuffer.getInstance(), camera, partialTicks);
+        ClockworkMod.getAURIC_OUTLINER().renderOutlines(ms, SuperRenderTypeBuffer.getInstance(), camera, partialTicks);
 
         buffer.draw();
         RenderSystem.enableCull();
@@ -56,6 +57,7 @@ public class ClockworkClientEvents {
         ClockworkModForge.BLUPER_CLUSTER_HANDLER.tick();
 
         ClockworkMod.getOUTLINER().tickOutlines();
+        ClockworkMod.getAURIC_OUTLINER().tickOutlines();
     }
 
     @SubscribeEvent
