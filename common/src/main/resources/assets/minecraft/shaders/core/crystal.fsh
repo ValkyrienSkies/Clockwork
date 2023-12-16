@@ -55,5 +55,5 @@ void main() {
     if(length(colour.rgb) < 0.1 * 3){
         discard;
     }
-    fragColor = vec4(colour, vec3(max(colour.r*0.1, max(colour.g*0.1, colour.b))));
+    fragColor = vec4(colour, vec3(max(colour.r*0.1, max(colour.g*0.1, colour.b))) * 0.5);
 }
