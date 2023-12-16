@@ -5,7 +5,7 @@
     "dstrgb": "1-srcalpha"
   },
   "vertex": "rendertype_entity_translucent",
-  "fragment": "clockwork__crystal",
+  "fragment": "crystal",
   "attributes": [
     "Position",
     "Color",

@@ -55,7 +55,7 @@ public class ClockworkModForge {
             ClockworkPartials.INSTANCE.init();
             ClockworkMod.initClient();
             modEventBus.addListener(AllParticleTypes::registerFactories);
-            ForgeClockworkShaderLoader.init(modEventBus);
+            ClockworkShaders.INSTANCE.init();
         });
 
         TAB_REGISTER.register("general", ClockworkMod.INSTANCE::createCreativeTab);

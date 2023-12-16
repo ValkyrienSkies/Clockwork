@@ -5,7 +5,7 @@ import com.mojang.blaze3d.vertex.VertexFormat
 import net.minecraft.Util
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.resources.ResourceLocation
-import org.valkyrienskies.clockwork.ClockworkShaders.CRYSTAL_EFFECT
+import org.valkyrienskies.clockwork.ClockworkShaders.crystal
 
 class ClockworkRenderTypes(name : String, format: VertexFormat, mode: VertexFormat.Mode , bufferSize: Int , affectsCrumbling: Boolean , sortOnUpload : Boolean , setupState : Runnable , clearState: Runnable )
     : RenderType(name, format, mode, bufferSize, affectsCrumbling, sortOnUpload, setupState, clearState) {
@@ -16,7 +16,7 @@ class ClockworkRenderTypes(name : String, format: VertexFormat, mode: VertexForm
         val CRYSTAL = Util.memoize { resourceLocation: ResourceLocation? ->
             val compositeState: CompositeState? =
                 CompositeState.builder()
-                    .setShaderState(ShaderStateShard(CRYSTAL_EFFECT::shader))
+                    .setShaderState(ShaderStateShard(::crystal))
                     .setTextureState(TextureStateShard(resourceLocation!!, false, false))
                     .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
                     .setCullState(NO_CULL)
