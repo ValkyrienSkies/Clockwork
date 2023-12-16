@@ -91,6 +91,8 @@ public class ClockworkModFabric implements ModInitializer, ClientModInitializer 
         registerClientEvents();
         FabricClockworkClientEvents.register();
 
+        FabricClockworkShaderLoader.init();
+
         KeyInputCallback.EVENT.register(FabricClockworkInputEvents::onKeyInput);
         MouseInputEvents.BEFORE_SCROLL.register(FabricClockworkInputEvents::onMouseScrolled);
         MouseInputEvents.BEFORE_BUTTON.register(FabricClockworkInputEvents::onMouseInput);

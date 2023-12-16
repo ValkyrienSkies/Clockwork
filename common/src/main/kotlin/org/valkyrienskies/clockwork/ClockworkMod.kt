@@ -56,6 +56,8 @@ object ClockworkMod {
                 output.accept(ClockworkItems.BLUPERGLUE)
                 output.accept(ClockworkItems.GRAVITRON)
 
+                output.accept(ClockworkItems.DESIGNATOR)
+
                 output.accept(ClockworkBlocks.GYRO.asStack())
                 output.accept(ClockworkBlocks.ALT_METER.asStack())
                 output.accept(ClockworkBlocks.FLAP.asStack())
