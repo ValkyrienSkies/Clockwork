@@ -204,27 +204,6 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
                 }
             }
 
-            if (this.selectedArea.containsAABB(area)) {
-                player.displayClientMessage(
-                    Component.literal("Area Already Exists.").withStyle(
-                        Style.EMPTY.withColor(
-                            ChatFormatting.DARK_PURPLE
-                        )
-                    ), true
-                )
-                world.playSound(
-                    null,
-                    player,
-                    ClockworkSounds.PHYSICS_INFUSER_LIGHTNING.mainEvent!!,
-                    player.soundSource,
-                    0.5f,
-                    pitch
-                )
-                this.animationType = Animation.DUMP
-                player.cooldowns.addCooldown(this, 10)
-                return InteractionResult.SUCCESS
-            }
-
             if (this.selectedArea.selectedAreas.size >= 150) {
                 player.displayClientMessage(
                     Component.literal("This Designator is at selection capacity.").withStyle(
