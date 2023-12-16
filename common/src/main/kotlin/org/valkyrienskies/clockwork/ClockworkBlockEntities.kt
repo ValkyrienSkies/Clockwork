@@ -17,6 +17,8 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearin
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroInstance
+import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
+import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingRenderer
 import org.valkyrienskies.clockwork.content.generic.ColorBlockEntity
@@ -213,6 +215,28 @@ object ClockworkBlockEntities {
         .renderer {
             NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in GyroBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
                 GyroBlockEntityRenderer(
+                    context
+                )
+            }
+        }
+        .register()
+
+
+
+    @JvmField
+    val PHYSICS_INFUSER: BlockEntityEntry<PhysicsInfuserBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<PhysicsInfuserBlockEntity>(
+            "physics_infuser"
+        ) { typeIn: BlockEntityType<PhysicsInfuserBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
+            PhysicsInfuserBlockEntity(
+                typeIn,
+                pos!!, state!!
+            )
+        }
+        .validBlocks(ClockworkBlocks.PHYSICS_INFUSER)
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in PhysicsInfuserBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                PhysicsInfuserRenderer(
                     context
                 )
             }

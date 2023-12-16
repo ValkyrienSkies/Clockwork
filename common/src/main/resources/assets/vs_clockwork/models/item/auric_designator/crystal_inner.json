@@ -6,12 +6,12 @@
   },
   "elements": [
     {
-      "from": [7.15, -0.84, 7.15],
-      "to": [8.85, 0.84, 8.85],
+      "from": [7.15, 11.66, 7.15],
+      "to": [8.85, 13.34, 8.85],
       "rotation": {
         "angle": -45,
         "axis": "y",
-        "origin": [8, 0, 8]
+        "origin": [8, 12.5, 8]
       },
       "faces": {
         "north": {
@@ -74,11 +74,7 @@
   "groups": [
     {
       "name": "crystal",
-      "origin": [
-        8,
-        0,
-        8
-      ],
+      "origin": [8, 12.5, 8],
       "color": 0,
       "children": [
         0

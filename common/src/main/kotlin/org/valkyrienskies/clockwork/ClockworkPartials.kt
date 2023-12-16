@@ -52,6 +52,10 @@ object ClockworkPartials {
     val GRAV_PRONG_TOP_THREE = item("gravitron/prongtopthree")
     // endregion
 
+    val CRYSTAL: PartialModel = PartialModel(ClockworkMod.asResource("item/auric_designator/crystal"))
+    val CRYSTAL_OUTER: PartialModel = PartialModel(ClockworkMod.asResource("item/auric_designator/crystal_outer"))
+    val CRYSTAL_INNER: PartialModel = PartialModel(ClockworkMod.asResource("item/auric_designator/crystal_inner"))
+
     private fun block(path: String): PartialModel {
         return PartialModel(ClockworkMod.asResource("block/$path"))
     }

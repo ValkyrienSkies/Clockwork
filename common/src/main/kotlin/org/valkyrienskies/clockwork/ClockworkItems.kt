@@ -8,7 +8,7 @@ import net.minecraft.world.item.Rarity
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.client.renderer.item.AuricDesignatorItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluper.BluperGlueItem
-import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AreaDesignatorItem
+import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItemRenderer
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
@@ -43,9 +43,9 @@ object ClockworkItems {
             .register()
 
     @JvmField
-    val DESIGNATOR: ItemEntry<AreaDesignatorItem> =
-        REGISTRATE.item<AreaDesignatorItem>("auric_designator") { properties: Item.Properties? ->
-            AreaDesignatorItem(properties!!)
+    val AURIC_DESIGNATOR: ItemEntry<AuricDesignatorItem> =
+        REGISTRATE.item<AuricDesignatorItem>("auric_designator") { properties: Item.Properties? ->
+            AuricDesignatorItem(properties!!)
         }
             .properties {
                 it.stacksTo(1)

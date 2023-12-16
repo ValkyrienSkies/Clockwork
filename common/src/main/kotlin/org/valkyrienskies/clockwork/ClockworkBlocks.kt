@@ -3,10 +3,13 @@ package org.valkyrienskies.clockwork
 import com.simibubi.create.AllTags
 import com.simibubi.create.content.kinetics.BlockStressDefaults
 import com.simibubi.create.foundation.data.*
+import com.simibubi.create.foundation.data.ModelGen.customItemModel
+import com.simibubi.create.foundation.data.TagGen.axeOrPickaxe
 import com.tterrag.registrate.builders.BlockBuilder
 import com.tterrag.registrate.providers.DataGenContext
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider
 import com.tterrag.registrate.util.entry.BlockEntry
+import com.tterrag.registrate.util.nullness.NonNullUnaryOperator
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
@@ -20,6 +23,7 @@ import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlock
+import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
@@ -32,6 +36,7 @@ import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork.fl
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import org.valkyrienskies.clockwork.util.render.WingBlockItemRenderer
 import java.util.function.Supplier
+
 
 object ClockworkBlocks {
 
@@ -198,6 +203,19 @@ object ClockworkBlocks {
         .transform(ClockworkRegistrate.customRenderedBlockItem { Supplier { WingBlockItemRenderer() } })
         .register()
 
+    @JvmField
+    val PHYSICS_INFUSER: BlockEntry<PhysicsInfuserBlock> = REGISTRATE.block<PhysicsInfuserBlock>("physics_infuser") { properties: BlockBehaviour.Properties? ->
+        PhysicsInfuserBlock(properties!!)
+    }
+        .transform<Block, PhysicsInfuserBlock, CreateRegistrate, BlockBuilder<PhysicsInfuserBlock, CreateRegistrate>>(
+            axeOrPickaxe()
+        )
+
+        .addLayer { Supplier { RenderType.cutoutMipped() } }
+        .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+        .item()
+        .transform(customItemModel("physics_infuser", "item"))
+        .register()
 
     @JvmStatic
     fun register() {
