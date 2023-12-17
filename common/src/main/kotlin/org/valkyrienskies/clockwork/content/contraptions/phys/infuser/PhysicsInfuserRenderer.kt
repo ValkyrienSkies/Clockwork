@@ -18,7 +18,9 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.primitives.AABBi
 import org.valkyrienskies.clockwork.ClockworkPartials
+import org.valkyrienskies.clockwork.ClockworkRenderTypes
 import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorItem
+import org.valkyrienskies.clockwork.util.render.RenderUtil
 
 class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
     SmartBlockEntityRenderer<PhysicsInfuserBlockEntity>(context) {
@@ -36,63 +38,40 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
         this.teForScanner = te
         val infuser = te
         val blockState = te.blockState
-        val vb = buffer.getBuffer(RenderType.cutoutMipped())
 
-        // Render Mysterious Liquid
-        val mysteriousLiquid = CachedBufferer.partial(ClockworkPartials.STRANGE_FLUID, blockState)
-        mysteriousLiquid.light(light).renderInto(ms, buffer.getBuffer(RenderType.translucent()))
-
-        val designator: AuricDesignatorItem? = if (infuser.getItem(0).item is AuricDesignatorItem) {
-            infuser.getItem(0).item as AuricDesignatorItem
-        } else {
-            null
-        }
-
-        val selectionNearestPoints: ArrayList<Vector3dc> = ArrayList()
-
-        designator?.selectedArea?.selectionClusters?.forEach { selection ->
-            var maxX: Int = 0
-            var maxY: Int = 0
-            var maxZ: Int = 0
-            var minX: Int = 0
-            var minY: Int = 0
-            var minZ: Int = 0
-            selection.forEach {
-                maxX += it.maxX()
-                maxY += it.maxY()
-                maxZ += it.maxZ()
-                minX += it.minX()
-                minY += it.minY()
-                minZ += it.minZ()
-            }
-            maxX /= selection.size
-            maxY /= selection.size
-            maxZ /= selection.size
-            minX /= selection.size
-            minY /= selection.size
-            minZ /= selection.size
-            val selectionCenter: Vector3dc = AABBi(minX, minY, minZ, maxX, maxY, maxZ).center(Vector3d())
-            selectionNearestPoints.add(selectionCenter)
-        }
         // Core
-
-        val core = CachedBufferer.partial(ClockworkPartials.PHYSICS_CORE, blockState)
         val angle = 0f
         val offset = 0f
         if (infuser.animationType != null) {
             if (infuser.animationType === PhysicsInfuserBlockEntity.Animation.ASSEMBLY) {
                 val value = infuser.assemblyProgress.value
                 val coreOffset = te.getCoreOffset(partialTicks - 1)
-                animateAssembly(core, angle, coreOffset, value, infuser).light(light).renderInto(ms, vb)
 
+                val crystal_inner_buffer = buffer.getBuffer(RenderType.endPortal())
+                val crystal_inner = CachedBufferer.partial(ClockworkPartials.CRYSTAL_INNER, blockState)
 
+                animateAssembly(crystal_inner, angle, coreOffset, value, infuser).light(light).color(255,255,255, 255).overlay().disableDiffuse().renderInto(ms, crystal_inner_buffer)
+                val crystal_buffer = buffer.getBuffer(ClockworkRenderTypes.CRYSTAL.apply(RenderUtil.CRYSTAL_MATRIX))
+                val crystal = CachedBufferer.partial(ClockworkPartials.CRYSTAL, blockState)
+                animateAssembly(crystal, angle, coreOffset, value, infuser).light(light).color(255,255,255, 255).overlay().disableDiffuse().renderInto(ms, crystal_buffer)
+
+                val crystal_outer_buffer = buffer.getBuffer(RenderType.entityTranslucent(RenderUtil.PURPLE_HUE))
+                val crystal_outer = CachedBufferer.partial(ClockworkPartials.CRYSTAL_OUTER, blockState)
+                animateAssembly(crystal_outer, angle, coreOffset, value, infuser).light(light).color(255,255,255, 255).overlay().renderInto(ms, crystal_outer_buffer)
             }
-            if (infuser.animationType === PhysicsInfuserBlockEntity.Animation.DISASSEMBLY) {
-                val value = infuser.disassemblyProgress.value
-                //animateDisassembly(core, angle, offset, value).light(light).renderInto(ms, vb);
-            }
+
             if (infuser.animationType === PhysicsInfuserBlockEntity.Animation.IDLE) {
-                idleRotateCore(core, angle, offset, infuser).light(light).renderInto(ms, vb)
+                val crystal_inner_buffer = buffer.getBuffer(RenderType.endPortal())
+                val crystal_inner = CachedBufferer.partial(ClockworkPartials.CRYSTAL_INNER, blockState)
+
+                idleRotateCore(crystal_inner, angle, offset, infuser).light(light).color(255,255,255, 255).overlay().disableDiffuse().renderInto(ms, crystal_inner_buffer)
+                val crystal_buffer = buffer.getBuffer(ClockworkRenderTypes.CRYSTAL.apply(RenderUtil.CRYSTAL_MATRIX))
+                val crystal = CachedBufferer.partial(ClockworkPartials.CRYSTAL, blockState)
+                idleRotateCore(crystal, angle, offset, infuser).light(light).color(255,255,255, 255).overlay().disableDiffuse().renderInto(ms, crystal_buffer)
+
+                val crystal_outer_buffer = buffer.getBuffer(RenderType.entityTranslucent(RenderUtil.PURPLE_HUE))
+                val crystal_outer = CachedBufferer.partial(ClockworkPartials.CRYSTAL_OUTER, blockState)
+                idleRotateCore(crystal_outer, angle, offset, infuser).light(light).color(255,255,255, 255).overlay().renderInto(ms, crystal_outer_buffer)
             }
         }
     }
@@ -104,8 +83,12 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
         infuser: PhysicsInfuserBlockEntity
     ): SuperByteBuffer {
         val interpolatedAngle = infuser.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1)
-        buffer.rotateCentered(Direction.UP, (interpolatedAngle / 180 * Math.PI).toFloat())
-            .translate(0.0, offset.toDouble(), 0.0)
+        val scale = 1.5f
+        buffer.scale(scale)
+        buffer.translate(-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)))
+        buffer.rotateCentered(Direction.UP, (interpolatedAngle / 180 * Math.PI).toFloat()).translate(0.0, offset.toDouble(), 0.0)
+        buffer.translateY(-(4.5 / 16.0))
+
         return buffer
     }
 
@@ -118,8 +101,9 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
         infuser: PhysicsInfuserBlockEntity
     ): SuperByteBuffer {
         val interpolatedAngle = infuser.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1)
-        buffer.translateY((coreOffset * 2).toDouble())
-            .rotateCentered(Direction.UP, (interpolatedAngle / 180 * Math.PI).toFloat())
+        buffer.translateY((coreOffset * 2).toDouble()).rotateCentered(Direction.UP, (interpolatedAngle / 180 * Math.PI).toFloat())
+        buffer.translateY(-(4.5 / 16.0))
+        buffer.scale(1.5f)
         return buffer
     }
 

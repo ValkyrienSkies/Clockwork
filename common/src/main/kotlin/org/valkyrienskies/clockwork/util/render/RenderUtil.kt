@@ -13,7 +13,7 @@ import org.valkyrienskies.clockwork.ClockworkRenderTypes
 object RenderUtil {
 
     val CRYSTAL_MATRIX = ClockworkMod.asResource("textures/block/empty.png");
-    private val PURPLE_HUE = ClockworkMod.asResource("textures/block/purple_hue.png")
+    val PURPLE_HUE = ClockworkMod.asResource("textures/block/purple_hue.png")
 
     fun renderCubeMatrix(
         matrices: PoseStack,
