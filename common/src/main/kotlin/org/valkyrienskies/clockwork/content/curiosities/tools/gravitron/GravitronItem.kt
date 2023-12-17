@@ -106,66 +106,8 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             var shipGrabbedDistance: Double? = null
         }
 
-        fun grabssemble(level: Level, player: Player, blockPos: BlockPos, clickLocation: Vec3, grab: Boolean): Boolean {
-            for (item in player.inventory.items) {
-                if (item.`is`(ClockworkItems.AURIC_DESIGNATOR.asItem())) {
-                    val auricItem: AuricDesignatorItem = item.item as AuricDesignatorItem
-
-                    auricItem.selectedArea.selectionClusters.forEach { cluster ->
-                        val selection: DenseBlockPosSet = SelectedAreaToolkit.denseBlocksFromCluster(cluster)
-
-                        if (selection.isEmpty() || !selection.contains(blockPos.x, blockPos.y, blockPos.z)) {
-                            return@forEach
-                        }
-
-                        selection.forEach { x, y, z ->
-                            if (level is ServerLevel) {
-                                val serverLevel = level
-                                if (!serverLevel.getBlockState(BlockPos(x, y, z)).isAir) {
-                                    val connectedShip = createNewShipWithBlocks(blockPos, selection, serverLevel)
-
-                                    val caughtEntities = SelectedAreaToolkit.entitiesFromCluster(cluster, serverLevel)
-                                    auricItem.selectedArea.dumpCluster(cluster)
-                                    if (caughtEntities.isNotEmpty()) {
-                                        caughtEntities.forEach(Consumer { entity: Entity ->
-                                            if (entity is AbstractContraptionEntity || entity is SuperGlueEntity || entity is SeatEntity) {
-                                                if (entity !is SuperGlueEntity) {
-                                                    val oldPos: Vector3dc = entity.position().toJOML()
-                                                    val newPos: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldPos, Vector3d())
-                                                    entity.moveTo(newPos.toMinecraft())
-                                                } else {
-                                                    val oldBounds = entity.boundingBox
-                                                    val oldMax: Vector3dc = Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
-                                                    val oldMin: Vector3dc = Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
-                                                    val newMax: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldMax, Vector3d())
-                                                    val newMin: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldMin, Vector3d())
-                                                    val newBounds = AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z())
-                                                    entity.boundingBox = newBounds
-                                                    entity.resetPositionToBB()
-                                                }
-                                            }
-                                        })
-                                    }
-                                    if (grab) {
-                                        val grabPosInShip: Vec3 = clickLocation
-                                        val tag = player.mainHandItem.orCreateTag
-                                        tag.putLong("ShipId", connectedShip.id)
-                                        tag.put("GrabbedPosInShip", ClockworkUtils.writeVec3(grabPosInShip))
-                                    }
-
-                                    return true
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-
-            val data = AreaData.of(player).get()
-            val list = data.getArea()
-            var bl = false
-            list.selectionClusters.forEach { cluster ->
+        fun abstractAssemble(level: Level, player: Player, toolkit: SelectedAreaToolkit, blockPos: BlockPos, clickLocation: Vec3, grab: Boolean) : Boolean{
+            toolkit.selectionClusters.forEach { cluster ->
                 val selection: DenseBlockPosSet = SelectedAreaToolkit.denseBlocksFromCluster(cluster)
 
                 if (selection.isEmpty() || !selection.contains(blockPos.x, blockPos.y, blockPos.z)) {
@@ -179,6 +121,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                             val connectedShip = createNewShipWithBlocks(blockPos, selection, serverLevel)
 
                             val caughtEntities = SelectedAreaToolkit.entitiesFromCluster(cluster, serverLevel)
+                            toolkit.dumpCluster(cluster)
                             if (caughtEntities.isNotEmpty()) {
                                 caughtEntities.forEach(Consumer { entity: Entity ->
                                     if (entity is AbstractContraptionEntity || entity is SuperGlueEntity || entity is SeatEntity) {
@@ -206,15 +149,35 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                                 tag.put("GrabbedPosInShip", ClockworkUtils.writeVec3(grabPosInShip))
                             }
 
-                            bl = true
+                            return true
                         }
                     }
                 }
+            }
+            return false
+        }
 
-                data.shouldReset(true)
+        fun grabssemble(level: Level, player: Player, blockPos: BlockPos, clickLocation: Vec3, grab: Boolean): Boolean {
+            for (item in player.inventory.items) {
+                if (item.`is`(ClockworkItems.AURIC_DESIGNATOR.asItem())) {
+                    val auricItem: AuricDesignatorItem = item.item as AuricDesignatorItem
+
+                    if (abstractAssemble(level, player, auricItem.selectedArea, blockPos, clickLocation, grab)) {
+                        return true;
+                    }
+                    break
+                }
             }
 
-            return bl
+            val data = AreaData.of(player).get()
+            val list = data.getArea()
+
+            if (abstractAssemble(level, player, list, blockPos, clickLocation, grab)) {
+                data.shouldReset(true)
+                return true
+            }
+
+            return false
         }
 
         @JvmStatic

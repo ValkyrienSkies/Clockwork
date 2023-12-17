@@ -306,6 +306,10 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
                     item.selectedArea.dumpCluster(aabBic)
                 }
                 SharedValues.auricHandler.discard()
+                val compoundTag = player.getItemInHand(InteractionHand.MAIN_HAND).tag
+                if (compoundTag != null && compoundTag.contains("selectedData")) {
+                    compoundTag.remove("selectedData")
+                }
 
                 val hitCluster: Set<AABBic> = item.selectedArea.getClusterContaining(pos) ?: return
                 val pitch = Mth.randomBetween(item.soundRandom, 0.8f, 1.2f)
