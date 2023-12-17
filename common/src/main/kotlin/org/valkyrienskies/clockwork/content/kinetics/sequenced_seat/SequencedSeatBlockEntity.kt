@@ -8,6 +8,7 @@ import net.minecraft.world.level.block.Rotation
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
+import org.valkyrienskies.clockwork.integration.cc.ComputerAttachmentHandler
 import org.valkyrienskies.clockwork.platform.PlatformUtils.isModLoaded
 import org.valkyrienskies.clockwork.util.MinecraftUtil.between
 import java.util.function.Consumer
@@ -26,7 +27,7 @@ class SequencedSeatBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, stat
     private val degreesAwayFromBase = FloatArray(4)
     private val lastModifier = FloatArray(4)
 
-    //TODO val computerHandler: ComputerAttachmentHandler = ComputerAttachmentHandler()
+    val computerHandler: ComputerAttachmentHandler = ComputerAttachmentHandler()
     override fun tick() {
         super.tick()
         if (level!!.isClientSide) return
@@ -106,7 +107,7 @@ class SequencedSeatBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, stat
         if (!level!!.isClientSide) if (isModLoaded("computercraft")) {
             val event: MutableList<String> = ArrayList()
             this.pressedKeys.forEach(Consumer { key: InputKey -> event.add(key.name) })
-            //TODO computerHandler.sendEvent("command_seat_keys", event)
+            computerHandler.sendEvent("command_seat_keys", event)
         }
         this.pressedKeys = pressedKeys
     }

@@ -59,6 +59,8 @@ dependencies {
         exclude group: 'com.github.AlphaMode', module: 'fakeconfigtoml'
     }
 
+    modImplementation("maven.modrinth:cc-tweaked:${cc_version}")
+
     modImplementation("maven.modrinth:sodium:${sodium_version}")
     modRuntimeOnly("maven.modrinth:indium:${indium_version}")
 

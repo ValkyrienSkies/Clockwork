@@ -106,6 +106,7 @@ dependencies {
         exclude group: 'org.joml', module: ''
     }
     // CC Tweaked
+    modImplementation("maven.modrinth:cc-tweaked:${cc_version}")
     //modCompileOnly("curse.maven:cctweaked-282001:4061947")
 }
 
