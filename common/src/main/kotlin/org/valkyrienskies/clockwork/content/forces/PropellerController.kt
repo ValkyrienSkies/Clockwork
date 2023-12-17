@@ -86,7 +86,7 @@ class PropellerController : ShipForcesInducer {
         omega: Vector3dc,
         physShip: PhysShipImpl
     ): Pair<Vector3dc, Vector3dc> {
-        val modifiedSpeed: Double = physProp.bearingSpeed * 1.25 //* 1.25, A little bit easier to generate force
+        val modifiedSpeed: Double = physProp.bearingSpeed * 1.25 //* 1.25, A little bit easier to generate force //TODO config?
         val bearingVector: Vector3dc = Vector3d(physProp.bearingPos).add(0.5, 0.5, 0.5)
         val axis: Vector3dc = physProp.bearingAxis!!.mul(sign(modifiedSpeed), Vector3d())
         val rotation: Quaterniondc = Quaterniond(AxisAngle4d(Math.toRadians(physProp.bearingAngle), axis))

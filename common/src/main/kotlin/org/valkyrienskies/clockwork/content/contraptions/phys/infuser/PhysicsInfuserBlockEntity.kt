@@ -280,9 +280,26 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             val selection: DenseBlockPosSet
             val caughtEntities: Set<Entity>
             if (level is ServerLevel) {
+                val serverLevel = level as ServerLevel
                 selection = SelectedAreaToolkit.denseBlocksFromCluster(cluster)
                 caughtEntities = SelectedAreaToolkit.entitiesFromCluster(cluster, (level as ServerLevel))
                 if (selection == null) return@forEach
+
+                var bl = false
+
+                selection.run loop@{
+                    selection.forEach { x, y, z ->
+                        if (!serverLevel.getBlockState(BlockPos(x, y, z)).isAir) {
+                            bl = true
+                            return@loop
+                        }
+                    }
+                }
+
+                if (!bl) {
+                    return@forEach
+                }
+
                 connectedShip = createNewShipWithBlocks(worldPosition, selection, level as ServerLevel)
                 // TODO: relocate entities properly cause it barely works
                 if (caughtEntities != null) {

@@ -108,7 +108,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
 
     val angularSpeed: Float
         get() {
-            var angspeed = convertToAngular(rotspeed) * 1.25f //* 1.25 to make it a bit easier to fly
+            var angspeed = convertToAngular(rotspeed) * 1.25f //* 1.25 to make it a bit easier to fly //TODO config?
             if (rotspeed == 0f) {
                 angspeed = 0f
             }
