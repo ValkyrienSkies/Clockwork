@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "121",
+    "232",
+    "121"
+  ],
+  "key": {
+    "1": {
+      "tag": "forge:ingots/brass"
+    },
+    "2": {
+      "tag": "forge:plates/obsidian"
+    },
+    "3": {
+      "item": "vs_clockwork:bluuguu"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:physics_infuser"
+  }
+}

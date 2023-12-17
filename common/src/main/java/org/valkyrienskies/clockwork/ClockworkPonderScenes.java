@@ -18,13 +18,13 @@ public class ClockworkPonderScenes {
 
     public static void init() {
         HELPER.forComponents(ClockworkItems.AURIC_DESIGNATOR)
-                .addStoryBoard("bluper_glue", ClockworkPonderScenes::createShip);
+                .addStoryBoard("auric_designator", ClockworkPonderScenes::createShip);
         HELPER.forComponents(ClockworkBlocks.REDSTONE_RESISTOR)
                 .addStoryBoard("resistor", ClockworkPonderScenes::redstoneResistor);
     }
 
     private static void createShip(SceneBuilder scene, SceneBuildingUtil util) {
-        scene.title("bluper_glue", "Creating ships using Bluper Glue");
+        scene.title("auric_designator", "Creating ships using Auric Designator");
         scene.configureBasePlate(0, 0, 5);
         scene.showBasePlate();
         scene.setSceneOffsetY(-1);

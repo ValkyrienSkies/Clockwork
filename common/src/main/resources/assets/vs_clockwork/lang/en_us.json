@@ -40,6 +40,7 @@
   "item.vs_clockwork.intake": "Intake",
   "item.vs_clockwork.stratodonut": "Stratodonut",
   "item.vs_clockwork.physics_infuser": "Physics Infuser",
+  "item.vs_clockwork.auric_designator": "Auric Designator",
   "vs_clockwork.subtitle.physinitialize": "Physics Infuser Initialized",
   "vs_clockwork.subtitle.physfinish": "Physics Infused",
   "vs_clockwork.subtitle.zap": "Zap!",
@@ -87,8 +88,8 @@
   "vs_clockwork.gravitron.tool.destroy.description.2": "Ship will snap into place",
   "vs_clockwork.gravitron.tool.destroy.description.3": "",
 
-  "vs_clockwork.ponder.bluper_glue.header" : "Auric Designator",
-  "vs_clockwork.ponder.bluper_glue.text_1" : "This Ship is now affected by physics!",
+  "vs_clockwork.ponder.auric_designator.header" : "Auric Designator",
+  "vs_clockwork.ponder.auric_designator.text_1" : "This Ship is now affected by physics!",
 
   "vs_clockwork.ponder.resistor.header" : "Redstone Resistor",
   "vs_clockwork.ponder.resistor.text_1" : "16 RPM",

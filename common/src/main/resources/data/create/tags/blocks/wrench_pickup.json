@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "vs_clockwork:physics_infuser",
+    "vs_clockwork:flap",
+    "vs_clockwork:wing"
+  ]
+}

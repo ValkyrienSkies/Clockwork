@@ -26,10 +26,8 @@ import kotlin.math.sign
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class PropellerController : ShipForcesInducer {
     private val propellorPhysData: HashMap<Int, PropData> = HashMap<Int, PropData>()
-    private val propellorUpdatePhysData: ConcurrentHashMap<Int, PropUpdateData> =
-        ConcurrentHashMap<Int, PropUpdateData>()
-    private val createdProps: ConcurrentLinkedQueue<Pair<Int, PropCreateData>> =
-        ConcurrentLinkedQueue<Pair<Int, PropCreateData>>()
+    private val propellorUpdatePhysData: ConcurrentHashMap<Int, PropUpdateData> = ConcurrentHashMap<Int, PropUpdateData>()
+    private val createdProps: ConcurrentLinkedQueue<Pair<Int, PropCreateData>> = ConcurrentLinkedQueue<Pair<Int, PropCreateData>>()
     private val removedProps = ConcurrentLinkedQueue<Int>()
     private var nextPropID = 0
     override fun applyForces(physShip: PhysShip) {
@@ -86,7 +84,7 @@ class PropellerController : ShipForcesInducer {
         omega: Vector3dc,
         physShip: PhysShipImpl
     ): Pair<Vector3dc, Vector3dc> {
-        val modifiedSpeed: Double = physProp.bearingSpeed
+        val modifiedSpeed: Double = physProp.bearingSpeed * 1.25 //* 1.25, A little bit easier to generate force
         val bearingVector: Vector3dc = Vector3d(physProp.bearingPos).add(0.5, 0.5, 0.5)
         val axis: Vector3dc = physProp.bearingAxis!!.mul(sign(modifiedSpeed), Vector3d())
         val rotation: Quaterniondc = Quaterniond(AxisAngle4d(Math.toRadians(physProp.bearingAngle), axis))

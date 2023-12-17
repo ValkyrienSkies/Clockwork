@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "1",
+    "2",
+    "3"
+  ],
+  "key": {
+    "1": {
+      "tag": "minecraft:wooden_slabs"
+    },
+    "2": {
+      "item": "create:andesite_casing"
+    },
+    "3": {
+      "item": "create:electron_tube"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:propellor_bearing"
+  }
+}

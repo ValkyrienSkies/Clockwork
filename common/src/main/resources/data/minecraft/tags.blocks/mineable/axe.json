@@ -4,6 +4,8 @@
     "vs_clockwork:balloon_casing",
     "vs_clockwork:redstone_resistor",
     "vs_clockwork:flap_bearing",
-    "vs_clockwork:propellor_bearing"
+    "vs_clockwork:propellor_bearing",
+    "vs_clockwork:phys_bearing",
+    "vs_clockwork:alt_meter"
   ]
 }

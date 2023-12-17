@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "31",
+    "23"
+  ],
+  "key": {
+    "1": {
+      "tag": "forge:plates/brass"
+    },
+    "2": {
+      "tag": "forge:nuggets/brass"
+    },
+    "3": {
+      "item": "vs_clockwork:bluuguu"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:bluperglue"
+  }
+}
