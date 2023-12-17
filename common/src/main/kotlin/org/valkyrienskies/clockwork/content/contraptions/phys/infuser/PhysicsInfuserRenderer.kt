@@ -12,15 +12,18 @@ import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.Direction
+import net.minecraft.util.Mth
 import net.minecraft.world.phys.Vec3
 import org.joml.Matrix4f
 import org.joml.Vector3d
 import org.joml.Vector3dc
+import org.joml.Vector3f
 import org.joml.primitives.AABBi
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
 import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorItem
 import org.valkyrienskies.clockwork.util.render.RenderUtil
+import org.valkyrienskies.clockwork.util.render.TransformData
 
 class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
     SmartBlockEntityRenderer<PhysicsInfuserBlockEntity>(context) {
@@ -50,7 +53,7 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
                 val crystal_inner_buffer = buffer.getBuffer(RenderType.endPortal())
                 val crystal_inner = CachedBufferer.partial(ClockworkPartials.CRYSTAL_INNER, blockState)
 
-                animateAssembly(crystal_inner, angle, coreOffset, value, infuser).light(light).color(255,255,255, 255).overlay().disableDiffuse().renderInto(ms, crystal_inner_buffer)
+                animateAssembly2(crystal_inner, angle, coreOffset, value, infuser).light(light).color(255,255,255, 255).overlay().disableDiffuse().renderInto(ms, crystal_inner_buffer)
                 val crystal_buffer = buffer.getBuffer(ClockworkRenderTypes.CRYSTAL.apply(RenderUtil.CRYSTAL_MATRIX))
                 val crystal = CachedBufferer.partial(ClockworkPartials.CRYSTAL, blockState)
                 animateAssembly(crystal, angle, coreOffset, value, infuser).light(light).color(255,255,255, 255).overlay().disableDiffuse().renderInto(ms, crystal_buffer)
@@ -101,9 +104,31 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
         infuser: PhysicsInfuserBlockEntity
     ): SuperByteBuffer {
         val interpolatedAngle = infuser.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1)
+        val scale = 1.5f
+        buffer.scale(scale)
+        buffer.translate(-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)))
+
         buffer.translateY((coreOffset * 2).toDouble()).rotateCentered(Direction.UP, (interpolatedAngle / 180 * Math.PI).toFloat())
+        buffer.rotateCentered(Direction.NORTH, (interpolatedAngle / 180 * Math.PI).toFloat())
         buffer.translateY(-(4.5 / 16.0))
-        buffer.scale(1.5f)
+        return buffer
+    }
+
+    private fun animateAssembly2(
+        buffer: SuperByteBuffer,
+        angle: Float,
+        coreOffset: Float,
+        value: Float,
+        infuser: PhysicsInfuserBlockEntity
+    ): SuperByteBuffer {
+        val interpolatedAngle = infuser.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1)
+        val scale = 1.5f
+        buffer.scale(scale)
+        buffer.translate(-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)))
+
+        buffer.translateY((coreOffset * 2).toDouble()).rotateCentered(Direction.UP, (interpolatedAngle / 180 * Math.PI).toFloat())
+        buffer.rotateCentered(Direction.NORTH, (interpolatedAngle / 180 * Math.PI).toFloat())
+        buffer.translateY(-(4.5 / 16.0))
         return buffer
     }
 

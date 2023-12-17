@@ -370,7 +370,9 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             val ticks = Mth.lerp(partialTicks, prevRunningTicks.toFloat(), runningTicks.toFloat())
             return if (runningTicks < ASSEMBLY_TIME * 3 / 4) {
                 Mth.clamp(Math.pow((ticks / ASSEMBLY_TIME * 3).toDouble(), 4.0), 0.0, 1.0).toFloat()
-            } else easeInBounce(Mth.clamp((ASSEMBLY_TIME - ticks) / ASSEMBLY_TIME * 8, 0f, 1f))
+            } else {
+                Mth.clamp(easeInBounce(Mth.clamp((ASSEMBLY_TIME - ticks) / ASSEMBLY_TIME * 8, 0f, 1f)), 0.0f, 1.0f)
+            }
         } else if (animationType == Animation.DISASSEMBLY) {
             return disassemblyProgress.getValue(partialTicks)
         }
