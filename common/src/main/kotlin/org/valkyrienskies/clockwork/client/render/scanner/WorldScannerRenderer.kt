@@ -95,7 +95,8 @@ class WorldScannerRenderer : ScannerRenderer {
             radius = currentBlockEntity!!.computeRadius(currentStart, adjustedDuration.toFloat())
         } else {
             adjustedDuration =
-                PhysicsInfuserRenderer.SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance().get() / 12
+                PhysicsInfuserRenderer.SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance()
+                    .get() / 12
             radius = 0f
         }
         shader!!.setSampler("depthTex", depthCopyDepthBuffer)

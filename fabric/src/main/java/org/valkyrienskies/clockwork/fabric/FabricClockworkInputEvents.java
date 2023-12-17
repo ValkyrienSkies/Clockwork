@@ -2,8 +2,6 @@ package org.valkyrienskies.clockwork.fabric;
 
 import io.github.fabricators_of_create.porting_lib.event.client.MouseInputEvents;
 import net.minecraft.client.Minecraft;
-import org.valkyrienskies.clockwork.ClockworkMod;
-import org.valkyrienskies.clockwork.platform.fabric.SharedValuesImpl;
 
 public class FabricClockworkInputEvents {
     public static void onKeyInput(int key, int scancode, int action, int mods) {

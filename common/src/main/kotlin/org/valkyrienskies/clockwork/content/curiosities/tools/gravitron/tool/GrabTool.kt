@@ -6,7 +6,6 @@ import net.minecraft.core.Direction
 import net.minecraft.nbt.Tag
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.Vec3
 import org.joml.Quaterniond
@@ -70,7 +69,10 @@ class GrabTool : GravitronToolBase() {
                         // Update Rot Values
                         val playerCurrentRotation = Vector2d(entity.xRot.toDouble(), entity.yRot.toDouble())
                         val origPlayerRot =
-                            playerRotToQuaternion(s.playerGrabbedRotation!!.x(), s.playerGrabbedRotation!!.y()).normalize()
+                            playerRotToQuaternion(
+                                s.playerGrabbedRotation!!.x(),
+                                s.playerGrabbedRotation!!.y()
+                            ).normalize()
                         val newPlayerRot =
                             playerRotToQuaternion(playerCurrentRotation.x(), playerCurrentRotation.y()).normalize()
                         val deltaPlayerRot = newPlayerRot.mul(origPlayerRot.conjugate(Quaterniond()), Quaterniond())
@@ -102,7 +104,10 @@ class GrabTool : GravitronToolBase() {
                         // Update Rot Values
                         val lockedCurrentRotation = Vector2d(0.0, (dir.get2DDataValue() * 90).toDouble())
                         val origPlayerRot =
-                            playerRotToQuaternion(s.playerGrabbedRotation!!.x(), s.playerGrabbedRotation!!.y()).normalize()
+                            playerRotToQuaternion(
+                                s.playerGrabbedRotation!!.x(),
+                                s.playerGrabbedRotation!!.y()
+                            ).normalize()
                         val newPlayerRot =
                             playerRotToQuaternion(lockedCurrentRotation.x(), lockedCurrentRotation.y()).normalize()
                         val deltaPlayerRot = newPlayerRot.mul(origPlayerRot.conjugate(Quaterniond()), Quaterniond())
@@ -199,7 +204,6 @@ class GrabTool : GravitronToolBase() {
             ship.isStatic = false
         }
     }
-
 
 
 }

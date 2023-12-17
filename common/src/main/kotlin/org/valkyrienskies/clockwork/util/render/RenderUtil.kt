@@ -15,13 +15,51 @@ object RenderUtil {
     val CRYSTAL_MATRIX = ClockworkMod.asResource("textures/block/empty.png");
     private val PURPLE_HUE = ClockworkMod.asResource("textures/block/purple_hue.png")
 
-    fun renderCubeMatrix(matrices: PoseStack, renderer: PartialItemModelRenderer, innerData: TransformData, data: TransformData, light: Int){
-        renderAndTransform(matrices, ClockworkPartials.CRYSTAL_INNER, RenderType.endPortal(), renderer, innerData.offset.add(Vector3f(0f,-4.5f / 16.0f,0f)), innerData.rotation, light)
-        renderAndTransform(matrices, ClockworkPartials.CRYSTAL, ClockworkRenderTypes.CRYSTAL.apply(CRYSTAL_MATRIX), renderer, data.offset.add(Vector3f(0f,-4.5f / 16.0f,0f)), data.rotation, light)
-        renderAndTransform(matrices, ClockworkPartials.CRYSTAL_OUTER, RenderType.entityTranslucent(PURPLE_HUE), renderer, data.offset.add(Vector3f(0f,-4.5f / 16.0f,0f)), data.rotation, light)
+    fun renderCubeMatrix(
+        matrices: PoseStack,
+        renderer: PartialItemModelRenderer,
+        innerData: TransformData,
+        data: TransformData,
+        light: Int
+    ) {
+        renderAndTransform(
+            matrices,
+            ClockworkPartials.CRYSTAL_INNER,
+            RenderType.endPortal(),
+            renderer,
+            innerData.offset.add(Vector3f(0f, -4.5f / 16.0f, 0f)),
+            innerData.rotation,
+            light
+        )
+        renderAndTransform(
+            matrices,
+            ClockworkPartials.CRYSTAL,
+            ClockworkRenderTypes.CRYSTAL.apply(CRYSTAL_MATRIX),
+            renderer,
+            data.offset.add(Vector3f(0f, -4.5f / 16.0f, 0f)),
+            data.rotation,
+            light
+        )
+        renderAndTransform(
+            matrices,
+            ClockworkPartials.CRYSTAL_OUTER,
+            RenderType.entityTranslucent(PURPLE_HUE),
+            renderer,
+            data.offset.add(Vector3f(0f, -4.5f / 16.0f, 0f)),
+            data.rotation,
+            light
+        )
     }
 
-    fun renderAndTransform(matrices: PoseStack, model: PartialModel, renderType: RenderType, renderer: PartialItemModelRenderer, offset: Vector3f, rotationVec: Vector3f, light: Int){
+    fun renderAndTransform(
+        matrices: PoseStack,
+        model: PartialModel,
+        renderType: RenderType,
+        renderer: PartialItemModelRenderer,
+        offset: Vector3f,
+        rotationVec: Vector3f,
+        light: Int
+    ) {
         matrices.pushPose()
         matrices.translate(-offset.x, -offset.y, -offset.z)
         matrices.mulPose(Axis.YP.rotationDegrees(rotationVec.y))

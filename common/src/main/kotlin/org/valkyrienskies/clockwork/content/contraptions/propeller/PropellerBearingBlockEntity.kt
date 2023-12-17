@@ -352,6 +352,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         get() = worldPosition.offset(blockState.getValue(BlockStateProperties.FACING).normal)
     val streamOriginSide: Direction
         get() = blockState.getValue(BlockStateProperties.FACING)
+
     /*
     val streamDirection: Direction?
         get() {

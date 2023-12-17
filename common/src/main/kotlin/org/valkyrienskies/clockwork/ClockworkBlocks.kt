@@ -9,7 +9,6 @@ import com.tterrag.registrate.builders.BlockBuilder
 import com.tterrag.registrate.providers.DataGenContext
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider
 import com.tterrag.registrate.util.entry.BlockEntry
-import com.tterrag.registrate.util.nullness.NonNullUnaryOperator
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
@@ -114,7 +113,7 @@ object ClockworkBlocks {
         }
             .initialProperties { SharedProperties.stone() }
             .transform(TagGen.axeOrPickaxe())
-            .properties{it.noOcclusion()}
+            .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
@@ -204,18 +203,19 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val PHYSICS_INFUSER: BlockEntry<PhysicsInfuserBlock> = REGISTRATE.block<PhysicsInfuserBlock>("physics_infuser") { properties: BlockBehaviour.Properties? ->
-        PhysicsInfuserBlock(properties!!)
-    }
-        .transform<Block, PhysicsInfuserBlock, CreateRegistrate, BlockBuilder<PhysicsInfuserBlock, CreateRegistrate>>(
-            axeOrPickaxe()
-        )
+    val PHYSICS_INFUSER: BlockEntry<PhysicsInfuserBlock> =
+        REGISTRATE.block<PhysicsInfuserBlock>("physics_infuser") { properties: BlockBehaviour.Properties? ->
+            PhysicsInfuserBlock(properties!!)
+        }
+            .transform<Block, PhysicsInfuserBlock, CreateRegistrate, BlockBuilder<PhysicsInfuserBlock, CreateRegistrate>>(
+                axeOrPickaxe()
+            )
 
-        .addLayer { Supplier { RenderType.cutoutMipped() } }
-        .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
-        .item()
-        .transform(customItemModel("physics_infuser", "item"))
-        .register()
+            .addLayer { Supplier { RenderType.cutoutMipped() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .transform(customItemModel("physics_infuser", "item"))
+            .register()
 
     @JvmStatic
     fun register() {

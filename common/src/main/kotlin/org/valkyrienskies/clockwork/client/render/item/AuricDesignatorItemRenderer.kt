@@ -21,13 +21,22 @@ import org.valkyrienskies.clockwork.util.render.TransformData
 import kotlin.math.sin
 
 
-class AuricDesignatorItemRenderer() : CustomRenderedItemModelRenderer(){
+class AuricDesignatorItemRenderer() : CustomRenderedItemModelRenderer() {
     protected val POLE: PartialModel = PartialModel(asResource("item/auric_designator/pole"))
     protected val WAVE: PartialModel = PartialModel(asResource("item/auric_designator/wave"))
 
     private var crystalAngle = 0f
 
-    override fun render(stack: ItemStack, model: CustomRenderedItemModel?, renderer: PartialItemModelRenderer?, transformType: ItemDisplayContext?, ms: PoseStack, buffer: MultiBufferSource, light: Int, overlay: Int) {
+    override fun render(
+        stack: ItemStack,
+        model: CustomRenderedItemModel?,
+        renderer: PartialItemModelRenderer?,
+        transformType: ItemDisplayContext?,
+        ms: PoseStack,
+        buffer: MultiBufferSource,
+        light: Int,
+        overlay: Int
+    ) {
         if (!stack.`is`(ClockworkItems.AURIC_DESIGNATOR.get())) {
             return
         }
@@ -40,14 +49,20 @@ class AuricDesignatorItemRenderer() : CustomRenderedItemModelRenderer(){
         ms.popPose()
     }
 
-    private fun animateIdle(ms: PoseStack, stacker: TransformStack, light: Int, progress: Float, renderer: PartialItemModelRenderer) {
+    private fun animateIdle(
+        ms: PoseStack,
+        stacker: TransformStack,
+        light: Int,
+        progress: Float,
+        renderer: PartialItemModelRenderer
+    ) {
         val partialTicks: Float = AnimationTickHolder.getPartialTicks() - 1
         val nextCrystalAngle = this.crystalAngle + 0.1f % 360
         val i = Mth.lerp(partialTicks, this.crystalAngle, nextCrystalAngle);
 
 
-        val innerData = TransformData(Vector3f(0f,0f,0f), Vector3f(i, i,0f))
-        val data = TransformData(Vector3f(0f,0f,0f), Vector3f(0f, i,0f))
+        val innerData = TransformData(Vector3f(0f, 0f, 0f), Vector3f(i, i, 0f))
+        val data = TransformData(Vector3f(0f, 0f, 0f), Vector3f(0f, i, 0f))
 
         ms.pushPose()
         RenderUtil.renderCubeMatrix(ms, renderer, innerData, data, light)

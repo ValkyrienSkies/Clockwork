@@ -12,13 +12,7 @@ import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.HitResult
 import org.apache.commons.lang3.tuple.Pair
-import org.joml.Vector2f
-import org.joml.Vector3d
-import org.joml.Vector3dc
-import org.joml.Vector3f
-import org.joml.Vector3fc
-import org.joml.Vector3i
-import org.joml.Vector3ic
+import org.joml.*
 import org.joml.primitives.AABBi
 import org.joml.primitives.AABBic
 import org.joml.primitives.Intersectionf
@@ -35,7 +29,7 @@ class AuricDesignatorClusterRenderer {
     private var storedClusters = HashMap<Set<AABBic>, Pair<Set<BlockPos>, String>>()
     private var hoveredCluster: Set<AABBic>? = HashSet()
 
-    fun discard(){
+    fun discard() {
         storedClusters = HashMap()
     }
 
@@ -47,7 +41,7 @@ class AuricDesignatorClusterRenderer {
         if (level != null) {
             for (player in level.players()) {
                 if (player.mainHandItem.`is`(ClockworkItems.AURIC_DESIGNATOR.get())) {
-                    
+
                     // other players
                     val adi = player.mainHandItem.item as AuricDesignatorItem
                     val clusters: Set<Set<AABBic>> = adi.selectedArea.selectionClusters
@@ -172,7 +166,7 @@ class AuricDesignatorClusterRenderer {
                             }
                         }
                     }
-                    
+
 
                     // initialSelectionBox.tick();
                     // selectionBox.tick();

@@ -18,8 +18,8 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.valkyrienskies.clockwork.fabric.content.contraptions.sticker.StickerParticleUtil;
 import org.valkyrienskies.clockwork.fabric.content.contraptions.sticker.StickerMovementBehaviour;
+import org.valkyrienskies.clockwork.fabric.content.contraptions.sticker.StickerParticleUtil;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.mixinducks.mod_compat.create.IMixinStickerTileEntity;
 

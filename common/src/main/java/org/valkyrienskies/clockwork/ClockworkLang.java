@@ -1,8 +1,6 @@
 package org.valkyrienskies.clockwork;
 
-import com.simibubi.create.Create;
 import com.simibubi.create.foundation.utility.Components;
-import com.simibubi.create.foundation.utility.Lang;
 import com.simibubi.create.foundation.utility.LangBuilder;
 import com.simibubi.create.foundation.utility.LangNumberFormat;
 import io.github.fabricators_of_create.porting_lib.util.FluidStack;
@@ -86,7 +84,7 @@ public class ClockworkLang {
 
     public static Object[] resolveBuilders(Object[] args) {
         for (int i = 0; i < args.length; i++)
-            if (args[i]instanceof LangBuilder cb)
+            if (args[i] instanceof LangBuilder cb)
                 args[i] = cb.component();
         return args;
     }

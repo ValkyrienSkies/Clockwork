@@ -5,7 +5,6 @@ import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
 import org.valkyrienskies.clockwork.ClockworkIcons
 import org.valkyrienskies.clockwork.ClockworkLang
-import java.util.*
 
 enum class ToolType(val tool: IGravitronTool, val icon: ClockworkIcons) {
     GRAB(GrabTool(), ClockworkIcons.GRAB),

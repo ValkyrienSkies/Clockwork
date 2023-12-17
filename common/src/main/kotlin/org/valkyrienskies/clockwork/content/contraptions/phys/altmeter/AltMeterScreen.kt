@@ -2,16 +2,12 @@ package org.valkyrienskies.clockwork.content.contraptions.phys.altmeter
 
 import com.simibubi.create.foundation.gui.AbstractSimiScreen
 import com.simibubi.create.foundation.gui.AllIcons
-import com.simibubi.create.foundation.gui.element.GuiGameElement
 import com.simibubi.create.foundation.gui.widget.AbstractSimiWidget
 import com.simibubi.create.foundation.gui.widget.IconButton
 import com.simibubi.create.foundation.gui.widget.ScrollInput
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.network.chat.Component
-import net.minecraft.world.item.ItemStack
-import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
-import org.valkyrienskies.clockwork.ClockworkIconTextures
 import org.valkyrienskies.clockwork.ClockworkPackets
 import kotlin.math.roundToInt
 

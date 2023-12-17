@@ -124,7 +124,6 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
     }
 
 
-
     override fun useOn(context: UseOnContext): InteractionResult {
         val player = context.player ?: return InteractionResult.FAIL
         val world = context.level

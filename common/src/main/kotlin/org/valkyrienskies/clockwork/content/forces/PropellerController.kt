@@ -26,8 +26,10 @@ import kotlin.math.sign
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class PropellerController : ShipForcesInducer {
     private val propellorPhysData: HashMap<Int, PropData> = HashMap<Int, PropData>()
-    private val propellorUpdatePhysData: ConcurrentHashMap<Int, PropUpdateData> = ConcurrentHashMap<Int, PropUpdateData>()
-    private val createdProps: ConcurrentLinkedQueue<Pair<Int, PropCreateData>> = ConcurrentLinkedQueue<Pair<Int, PropCreateData>>()
+    private val propellorUpdatePhysData: ConcurrentHashMap<Int, PropUpdateData> =
+        ConcurrentHashMap<Int, PropUpdateData>()
+    private val createdProps: ConcurrentLinkedQueue<Pair<Int, PropCreateData>> =
+        ConcurrentLinkedQueue<Pair<Int, PropCreateData>>()
     private val removedProps = ConcurrentLinkedQueue<Int>()
     private var nextPropID = 0
     override fun applyForces(physShip: PhysShip) {

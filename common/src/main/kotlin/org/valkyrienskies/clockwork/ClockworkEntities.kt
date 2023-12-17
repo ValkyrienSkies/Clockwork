@@ -8,5 +8,6 @@ object ClockworkEntities {
     val SEQUENCED_SEAT: EntityEntry<SequencedSeatEntity> = SharedValues.sequencedSeat
 
     @JvmStatic
-    fun register() {}
+    fun register() {
+    }
 }

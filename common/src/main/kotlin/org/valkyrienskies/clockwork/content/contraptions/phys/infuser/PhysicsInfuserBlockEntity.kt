@@ -298,9 +298,12 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
                                 val oldBounds = glueEntity.boundingBox
                                 val oldMax: Vector3dc = Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
                                 val oldMin: Vector3dc = Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
-                                val newMax: Vector3dc = connectedShip!!.transform.worldToShip.transformPosition(oldMax, Vector3d())
-                                val newMin: Vector3dc = connectedShip!!.transform.worldToShip.transformPosition(oldMin, Vector3d())
-                                val newBounds = AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z())
+                                val newMax: Vector3dc =
+                                    connectedShip!!.transform.worldToShip.transformPosition(oldMax, Vector3d())
+                                val newMin: Vector3dc =
+                                    connectedShip!!.transform.worldToShip.transformPosition(oldMin, Vector3d())
+                                val newBounds =
+                                    AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z())
                                 glueEntity.boundingBox = newBounds
                                 glueEntity.resetPositionToBB()
                             }

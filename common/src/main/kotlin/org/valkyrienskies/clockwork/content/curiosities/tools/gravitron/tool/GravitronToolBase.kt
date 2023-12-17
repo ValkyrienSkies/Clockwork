@@ -52,8 +52,10 @@ abstract class GravitronToolBase : IGravitronTool {
     companion object {
         @JvmField
         var GRAB: Byte = 1
+
         @JvmField
         var ASSEMBLE: Byte = 2
+
         @JvmField
         var GRABSSEMBLE: Byte = 3
     }

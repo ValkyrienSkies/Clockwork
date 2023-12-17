@@ -12,8 +12,6 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.Gra
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck;
 import org.valkyrienskies.clockwork.util.AreaData;
 
-import java.util.Optional;
-
 
 @Mod.EventBusSubscriber
 public class ClockworkEvents {

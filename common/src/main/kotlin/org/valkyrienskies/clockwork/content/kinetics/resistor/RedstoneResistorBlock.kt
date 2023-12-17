@@ -13,7 +13,8 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.ticks.TickPriority
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 
-open class RedstoneResistorBlock(properties: Properties) : AbstractEncasedShaftBlock(properties), IBE<RedstoneResistorBlockEntity> {
+open class RedstoneResistorBlock(properties: Properties) : AbstractEncasedShaftBlock(properties),
+    IBE<RedstoneResistorBlockEntity> {
 
 
     fun detachKinetics(worldIn: Level, pos: BlockPos?, reAttachNextTick: Boolean) {

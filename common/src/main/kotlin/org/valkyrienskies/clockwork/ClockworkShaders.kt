@@ -1,12 +1,10 @@
 package org.valkyrienskies.clockwork
 
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
-import com.mojang.datafixers.util.Pair
 import dev.architectury.event.events.client.ClientReloadShadersEvent
 import net.minecraft.client.renderer.ShaderInstance
 import net.minecraft.server.packs.resources.ResourceProvider
 import java.io.IOException
-import java.util.function.Consumer
 
 
 object ClockworkShaders {
@@ -22,8 +20,8 @@ object ClockworkShaders {
         return scan_effect!!
     }
 
-    fun init(){
-        ClientReloadShadersEvent.EVENT.register{ resourceProvider: ResourceProvider, shadersSink: ClientReloadShadersEvent.ShadersSink ->
+    fun init() {
+        ClientReloadShadersEvent.EVENT.register { resourceProvider: ResourceProvider, shadersSink: ClientReloadShadersEvent.ShadersSink ->
             try {
                 shadersSink.registerShader(
                     ShaderInstance(

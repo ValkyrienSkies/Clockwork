@@ -22,7 +22,8 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInf
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingRenderer
 import org.valkyrienskies.clockwork.content.generic.ColorBlockEntity
-import org.valkyrienskies.clockwork.content.kinetics.resistor.*
+import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlockEntity
+import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRenderer
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRenderer
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
@@ -220,7 +221,6 @@ object ClockworkBlockEntities {
             }
         }
         .register()
-
 
 
     @JvmField

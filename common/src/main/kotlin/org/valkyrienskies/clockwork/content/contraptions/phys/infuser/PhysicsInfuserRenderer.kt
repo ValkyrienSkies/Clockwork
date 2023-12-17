@@ -6,7 +6,6 @@ import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRende
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
 import com.simibubi.create.foundation.utility.AnimationTickHolder
-import com.simibubi.create.foundation.utility.animation.LerpedFloat
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.renderer.MultiBufferSource
@@ -15,16 +14,11 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.Direction
 import net.minecraft.world.phys.Vec3
 import org.joml.Matrix4f
-import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.primitives.AABBi
 import org.valkyrienskies.clockwork.ClockworkPartials
-import org.valkyrienskies.clockwork.ClockworkRenderTypes
 import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorItem
-import org.valkyrienskies.clockwork.util.render.Bolt
-import org.valkyrienskies.clockwork.util.render.RenderUtil
-import org.valkyrienskies.mod.common.util.toJOMLD
 
 class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
     SmartBlockEntityRenderer<PhysicsInfuserBlockEntity>(context) {
@@ -48,7 +42,7 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
         val mysteriousLiquid = CachedBufferer.partial(ClockworkPartials.STRANGE_FLUID, blockState)
         mysteriousLiquid.light(light).renderInto(ms, buffer.getBuffer(RenderType.translucent()))
 
-        val designator: AuricDesignatorItem? = if (infuser.getItem(0).item is AuricDesignatorItem)  {
+        val designator: AuricDesignatorItem? = if (infuser.getItem(0).item is AuricDesignatorItem) {
             infuser.getItem(0).item as AuricDesignatorItem
         } else {
             null
@@ -103,16 +97,29 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
         }
     }
 
-    private fun idleRotateCore(buffer: SuperByteBuffer, angle: Float, offset: Float, infuser: PhysicsInfuserBlockEntity): SuperByteBuffer {
+    private fun idleRotateCore(
+        buffer: SuperByteBuffer,
+        angle: Float,
+        offset: Float,
+        infuser: PhysicsInfuserBlockEntity
+    ): SuperByteBuffer {
         val interpolatedAngle = infuser.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1)
-        buffer.rotateCentered(Direction.UP, (interpolatedAngle / 180 * Math.PI).toFloat()).translate(0.0, offset.toDouble(), 0.0)
+        buffer.rotateCentered(Direction.UP, (interpolatedAngle / 180 * Math.PI).toFloat())
+            .translate(0.0, offset.toDouble(), 0.0)
         return buffer
     }
 
 
-    private fun animateAssembly(buffer: SuperByteBuffer, angle: Float, coreOffset: Float, value: Float, infuser: PhysicsInfuserBlockEntity): SuperByteBuffer {
+    private fun animateAssembly(
+        buffer: SuperByteBuffer,
+        angle: Float,
+        coreOffset: Float,
+        value: Float,
+        infuser: PhysicsInfuserBlockEntity
+    ): SuperByteBuffer {
         val interpolatedAngle = infuser.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1)
-        buffer.translateY((coreOffset * 2).toDouble()).rotateCentered(Direction.UP, (interpolatedAngle / 180 * Math.PI).toFloat())
+        buffer.translateY((coreOffset * 2).toDouble())
+            .rotateCentered(Direction.UP, (interpolatedAngle / 180 * Math.PI).toFloat())
         return buffer
     }
 
@@ -125,6 +132,7 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
 
 
     }
+
     companion object {
         // The number of ticks over which to compute scan results. Which is at the
         // same time the use time of the scanner item.

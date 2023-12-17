@@ -13,7 +13,8 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.Too
 import java.util.function.Consumer
 import kotlin.math.max
 
-class GravitronSelectionScreen(private val tools: List<ToolType>, private val callback: Consumer<ToolType>) : Screen(Components.literal("Tool Selection")) {
+class GravitronSelectionScreen(private val tools: List<ToolType>, private val callback: Consumer<ToolType>) :
+    Screen(Components.literal("Tool Selection")) {
     val holdToFocus: String = "gui.toolmenu.focusKey"
 
     var focus: Boolean = false

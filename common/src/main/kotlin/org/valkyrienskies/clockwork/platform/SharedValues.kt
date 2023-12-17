@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.platform
 
-import com.ibm.icu.impl.Assert
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer
 import com.tterrag.registrate.util.entry.EntityEntry
 import dev.architectury.injectables.annotations.ExpectPlatform

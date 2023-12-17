@@ -7,8 +7,16 @@ import net.minecraft.client.renderer.RenderType
 import net.minecraft.resources.ResourceLocation
 import org.valkyrienskies.clockwork.ClockworkShaders.crystal
 
-class ClockworkRenderTypes(name : String, format: VertexFormat, mode: VertexFormat.Mode , bufferSize: Int , affectsCrumbling: Boolean , sortOnUpload : Boolean , setupState : Runnable , clearState: Runnable )
-    : RenderType(name, format, mode, bufferSize, affectsCrumbling, sortOnUpload, setupState, clearState) {
+class ClockworkRenderTypes(
+    name: String,
+    format: VertexFormat,
+    mode: VertexFormat.Mode,
+    bufferSize: Int,
+    affectsCrumbling: Boolean,
+    sortOnUpload: Boolean,
+    setupState: Runnable,
+    clearState: Runnable
+) : RenderType(name, format, mode, bufferSize, affectsCrumbling, sortOnUpload, setupState, clearState) {
 
 
     companion object {

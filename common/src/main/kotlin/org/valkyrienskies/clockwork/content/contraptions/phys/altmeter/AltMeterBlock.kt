@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.altmeter
 
-import com.simibubi.create.AllShapes
 import com.simibubi.create.foundation.block.IBE
 import com.simibubi.create.foundation.gui.ScreenOpener
 import net.fabricmc.api.EnvType

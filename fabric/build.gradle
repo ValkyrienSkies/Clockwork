@@ -78,7 +78,7 @@ dependencies {
     // CC Restitched
     //modCompileOnly("curse.maven:cc-restitched-462672:3622561")
 
-    compileOnly("org.joml:joml-primitives:1.10.0"){
+    compileOnly("org.joml:joml-primitives:1.10.0") {
         exclude group: 'org.joml', module: ''
     }
 }

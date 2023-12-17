@@ -30,7 +30,7 @@ void main() {
     float aspectRatio = 24 / 9;
     texCopy.y /= aspectRatio;
 
-    float pixelationFactor = 8000.0; // Adjust this value for different levels of pixelation
+    float pixelationFactor = 8000.0;// Adjust this value for different levels of pixelation
     texCopy = floor(texCopy * pixelationFactor) / pixelationFactor;
 
 
@@ -45,14 +45,14 @@ void main() {
     for (int n = 0; n < 5; n++) {
         float t = time * (1.0 - (3.5 / float(n + 1)));
         i = p + vec2(cos(t - i.x) + sin(t + i.y), sin(t - i.y) + cos(t + i.x));
-        c += 1.0 / length(vec2(p.x / (sin(i.x + t) / inten),p.y / (cos(i.y + t) / inten)));
+        c += 1.0 / length(vec2(p.x / (sin(i.x + t) / inten), p.y / (cos(i.y + t) / inten)));
     }
     c /= float(5);
     c = 1.17 - pow(c, 1.4);
     vec3 colour = vec3(pow(abs(c), 8.0));
     colour = clamp(colour + vec3(0.75, 0.35, 0.8), 0.0, 1.0);
 
-    if(length(colour.rgb) < 0.1 * 3){
+    if (length(colour.rgb) < 0.1 * 3){
         discard;
     }
     fragColor = vec4(colour, vec3(max(colour.r*0.1, max(colour.g*0.1, colour.b))) * 0.5);
