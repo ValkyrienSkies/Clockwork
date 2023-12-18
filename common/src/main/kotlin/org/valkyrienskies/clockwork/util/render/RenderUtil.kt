@@ -42,13 +42,24 @@ object RenderUtil {
      */
     fun renderAndTransform(matrices: PoseStack, model: PartialModel, renderType: RenderType, renderer: PartialItemModelRenderer, offset: Vector3f, rotationVec: Vector3f, light: Int) {
         matrices.pushPose()
+        matrices.translate(0.25,0.25,0.25)
+        matrices.pushPose()
+        //Scale
+        val scale = 1.5f
+        matrices.scale(scale, scale, scale)
+        matrices.translate(-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)))
+
         matrices.translate(-offset.x, -offset.y, -offset.z)
         matrices.mulPose(Axis.YP.rotationDegrees(rotationVec.y))
         matrices.mulPose(Axis.XP.rotationDegrees(rotationVec.x))
         matrices.mulPose(Axis.ZP.rotationDegrees(rotationVec.z))
         matrices.translate(offset.x, offset.y, offset.z)
         renderer.render(model.get(), renderType, light)
+
+
         matrices.popPose()
+        matrices.popPose()
+
     }
 
     /**

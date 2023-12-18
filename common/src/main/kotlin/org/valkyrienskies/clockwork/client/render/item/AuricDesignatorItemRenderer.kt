@@ -63,16 +63,18 @@ class AuricDesignatorItemRenderer() : CustomRenderedItemModelRenderer() {
 
         val innerData = TransformData(Vector3f(0f, 0f, 0f), Vector3f(i, i, 0f))
         val data = TransformData(Vector3f(0f, 0f, 0f), Vector3f(0f, i, 0f))
-
+        val heightAlt = 3f / 16f + sin(easeInOutSine(progress).toDouble()).toFloat() / 16f
+        stacker.translateY((heightAlt * 0.05f).toDouble())
+        ms.translate(0f,heightAlt + 0.5f,0f)
         ms.pushPose()
         RenderUtil.renderCubeMatrix(ms, renderer, innerData, data, light)
 
-        val heightAlt = 3f / 16f + sin(easeInOutSine(progress).toDouble()).toFloat() / 16f
+
 
         ms.popPose()
         ms.pushPose()
-        stacker.translateY((heightAlt * 0.05f).toDouble())
-        renderer.renderSolid(POLE.get(), light)
+
+        //renderer.renderSolid(POLE.get(), light)
         stacker.translateY((-heightAlt * 0.05f).toDouble())
         this.crystalAngle = nextCrystalAngle
         ms.popPose()
