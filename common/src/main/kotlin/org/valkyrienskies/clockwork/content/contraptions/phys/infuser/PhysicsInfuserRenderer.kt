@@ -44,92 +44,29 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
 
         // Core
         val angle = 0f
-        val offset = 0f
         if (infuser.animationType != null) {
             if (infuser.animationType === PhysicsInfuserBlockEntity.Animation.ASSEMBLY) {
-                val value = infuser.assemblyProgress.value
+                val interpolatedAngle = infuser.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1)
                 val coreOffset = te.getCoreOffset(partialTicks - 1)
 
-                val crystal_inner_buffer = buffer.getBuffer(RenderType.endPortal())
-                val crystal_inner = CachedBufferer.partial(ClockworkPartials.CRYSTAL_INNER, blockState)
+                val innerData = TransformData(Vector3f(0f, coreOffset, 0f), Vector3f(interpolatedAngle, interpolatedAngle, 0f))
+                val data = TransformData(Vector3f(0f, coreOffset, 0f), Vector3f(0f, interpolatedAngle, 0f))
+                val outerData = TransformData(Vector3f(0f, coreOffset, 0f), Vector3f(0f, interpolatedAngle, 0f))
 
-                animateAssembly2(crystal_inner, angle, coreOffset, value, infuser).light(light).color(255,255,255, 255).overlay().disableDiffuse().renderInto(ms, crystal_inner_buffer)
-                val crystal_buffer = buffer.getBuffer(ClockworkRenderTypes.CRYSTAL.apply(RenderUtil.CRYSTAL_MATRIX))
-                val crystal = CachedBufferer.partial(ClockworkPartials.CRYSTAL, blockState)
-                animateAssembly(crystal, angle, coreOffset, value, infuser).light(light).color(255,255,255, 255).overlay().disableDiffuse().renderInto(ms, crystal_buffer)
-
-                val crystal_outer_buffer = buffer.getBuffer(RenderType.entityTranslucent(RenderUtil.PURPLE_HUE))
-                val crystal_outer = CachedBufferer.partial(ClockworkPartials.CRYSTAL_OUTER, blockState)
-                animateAssembly(crystal_outer, angle, coreOffset, value, infuser).light(light).color(255,255,255, 255).overlay().renderInto(ms, crystal_outer_buffer)
+                RenderUtil.renderCubeMatrix(ms, buffer, blockState, innerData, data, outerData, light)
             }
 
             if (infuser.animationType === PhysicsInfuserBlockEntity.Animation.IDLE) {
-                val crystal_inner_buffer = buffer.getBuffer(RenderType.endPortal())
-                val crystal_inner = CachedBufferer.partial(ClockworkPartials.CRYSTAL_INNER, blockState)
 
-                idleRotateCore(crystal_inner, angle, offset, infuser).light(light).color(255,255,255, 255).overlay().disableDiffuse().renderInto(ms, crystal_inner_buffer)
-                val crystal_buffer = buffer.getBuffer(ClockworkRenderTypes.CRYSTAL.apply(RenderUtil.CRYSTAL_MATRIX))
-                val crystal = CachedBufferer.partial(ClockworkPartials.CRYSTAL, blockState)
-                idleRotateCore(crystal, angle, offset, infuser).light(light).color(255,255,255, 255).overlay().disableDiffuse().renderInto(ms, crystal_buffer)
+                val interpolatedAngle = infuser.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1)
 
-                val crystal_outer_buffer = buffer.getBuffer(RenderType.entityTranslucent(RenderUtil.PURPLE_HUE))
-                val crystal_outer = CachedBufferer.partial(ClockworkPartials.CRYSTAL_OUTER, blockState)
-                idleRotateCore(crystal_outer, angle, offset, infuser).light(light).color(255,255,255, 255).overlay().renderInto(ms, crystal_outer_buffer)
+                val innerData = TransformData(Vector3f(0f, 0f, 0f), Vector3f(interpolatedAngle, interpolatedAngle, 0f))
+                val data = TransformData(Vector3f(0f, 0f, 0f), Vector3f(0f, interpolatedAngle, 0f))
+                val outerData = TransformData(Vector3f(0f, 0f, 0f), Vector3f(0f, interpolatedAngle, 0f))
+
+                RenderUtil.renderCubeMatrix(ms, buffer, blockState, innerData, data, outerData, light)
             }
         }
-    }
-
-    private fun idleRotateCore(
-        buffer: SuperByteBuffer,
-        angle: Float,
-        offset: Float,
-        infuser: PhysicsInfuserBlockEntity
-    ): SuperByteBuffer {
-        val interpolatedAngle = infuser.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1)
-        val scale = 1.5f
-        buffer.scale(scale)
-        buffer.translate(-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)))
-        buffer.rotateCentered(Direction.UP, (interpolatedAngle / 180 * Math.PI).toFloat()).translate(0.0, offset.toDouble(), 0.0)
-        buffer.translateY(-(4.5 / 16.0))
-
-        return buffer
-    }
-
-
-    private fun animateAssembly(
-        buffer: SuperByteBuffer,
-        angle: Float,
-        coreOffset: Float,
-        value: Float,
-        infuser: PhysicsInfuserBlockEntity
-    ): SuperByteBuffer {
-        val interpolatedAngle = infuser.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1)
-        val scale = 1.5f
-        buffer.scale(scale)
-        buffer.translate(-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)))
-
-        buffer.translateY((coreOffset * 2).toDouble()).rotateCentered(Direction.UP, (interpolatedAngle / 180 * Math.PI).toFloat())
-        buffer.rotateCentered(Direction.NORTH, (interpolatedAngle / 180 * Math.PI).toFloat())
-        buffer.translateY(-(4.5 / 16.0))
-        return buffer
-    }
-
-    private fun animateAssembly2(
-        buffer: SuperByteBuffer,
-        angle: Float,
-        coreOffset: Float,
-        value: Float,
-        infuser: PhysicsInfuserBlockEntity
-    ): SuperByteBuffer {
-        val interpolatedAngle = infuser.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1)
-        val scale = 1.5f
-        buffer.scale(scale)
-        buffer.translate(-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)))
-
-        buffer.translateY((coreOffset * 2).toDouble()).rotateCentered(Direction.UP, (interpolatedAngle / 180 * Math.PI).toFloat())
-        buffer.rotateCentered(Direction.NORTH, (interpolatedAngle / 180 * Math.PI).toFloat())
-        buffer.translateY(-(4.5 / 16.0))
-        return buffer
     }
 
     @Environment(EnvType.CLIENT)

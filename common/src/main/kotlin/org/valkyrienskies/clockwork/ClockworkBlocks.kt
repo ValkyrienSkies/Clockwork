@@ -33,7 +33,7 @@ import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.WingBlock
 import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork.flapbearing
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
-import org.valkyrienskies.clockwork.util.render.WingBlockItemRenderer
+import org.valkyrienskies.clockwork.client.render.WingBlockItemRenderer
 import java.util.function.Supplier
 
 

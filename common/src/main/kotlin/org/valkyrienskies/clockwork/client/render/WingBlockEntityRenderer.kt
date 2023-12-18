@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.util.render
+package org.valkyrienskies.clockwork.client.render
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer

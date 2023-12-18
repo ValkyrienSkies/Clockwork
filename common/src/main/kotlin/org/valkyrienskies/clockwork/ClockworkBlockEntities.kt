@@ -28,7 +28,7 @@ import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSea
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRenderer
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
-import org.valkyrienskies.clockwork.util.render.WingBlockEntityRenderer
+import org.valkyrienskies.clockwork.client.render.WingBlockEntityRenderer
 import java.util.function.BiFunction
 
 object ClockworkBlockEntities {

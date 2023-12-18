@@ -22,26 +22,6 @@ import java.util.stream.Collectors
 
 object ClockworkUtils {
 
-    private val BY_2D_DATA = Arrays.stream(Direction.values()).filter { direction: Direction ->
-        direction.axis.isHorizontal
-    }.sorted(Comparator.comparingInt { direction: Direction -> direction.get2DDataValue() }).toArray { i: Int ->
-        arrayOfNulls<Direction>(
-            i
-        )
-    } as Array<Direction>
-
-    fun from2DDataValue(horizontalIndex: Int): Direction {
-        val index: Int = Mth.abs(horizontalIndex % BY_2D_DATA.size)
-        val direction = BY_2D_DATA[index]
-        return if (direction.axis.isVertical) {
-            // For vertical directions (up/down), return the original direction
-            direction
-        } else {
-            // For horizontal directions, return the opposite direction
-            BY_2D_DATA[(index + 2) % BY_2D_DATA.size]
-        }
-    }
-
     @JvmStatic
     fun writeVec3(vec: Vec3): ListTag {
         val tag = ListTag()
