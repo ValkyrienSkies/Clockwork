@@ -34,7 +34,7 @@ dependencies {
     modCompileOnly("net.fabricmc.fabric-api:fabric-api:${fabric_api_version}")
 
     // VS2
-    modApi("org.valkyrienskies:valkyrienskies-120-common:${rootProject.vs2_version}")
+    modApi("org.valkyrienskies:valkyrienskies-1201-${rootProject.vs2_version}")
     implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") {
         exclude group: 'org.joml', module: ''
     }
@@ -52,7 +52,7 @@ dependencies {
     modCompileOnly("maven.modrinth:create-big-cannons:${createbigcannons_version}") {
         exclude group: 'org.joml', module: ''
     }
-    modImplementation("maven.modrinth:cc-tweaked:${cc_version}")
+    //modImplementation("maven.modrinth:cc-tweaked:${cc_version}")
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'

@@ -59,12 +59,7 @@ dependencies {
     }
 
     //VS2
-    modApi("org.valkyrienskies:valkyrienskies-120-forge:${rootProject.vs2_version}") {
-        exclude group: 'org.joml', module: ''
-        transitive = false
-    }
-
-    modApi("org.valkyrienskies:valkyrienskies-120-common:${rootProject.vs2_version}") {
+    modApi("org.valkyrienskies:valkyrienskies-1201-${rootProject.vs2_version}") {
         exclude group: 'org.joml', module: ''
         transitive = false
     }
@@ -106,7 +101,6 @@ dependencies {
         exclude group: 'org.joml', module: ''
     }
     // CC Tweaked
-    modImplementation("maven.modrinth:cc-tweaked:${cc_version}")
     //modCompileOnly("curse.maven:cctweaked-282001:4061947")
 }
 
