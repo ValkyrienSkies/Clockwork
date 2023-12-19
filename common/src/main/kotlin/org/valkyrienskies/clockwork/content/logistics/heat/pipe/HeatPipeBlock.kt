@@ -5,9 +5,8 @@ import com.simibubi.create.content.contraptions.ITransformableBlock
 import com.simibubi.create.content.contraptions.StructureTransform
 import com.simibubi.create.content.decoration.bracket.BracketedBlockEntityBehaviour
 import com.simibubi.create.content.equipment.wrench.IWrenchable
-import com.simibubi.create.content.fluids.FluidPropagator
-import com.simibubi.create.content.fluids.FluidTransportBehaviour
 import com.simibubi.create.content.fluids.pipes.FluidPipeBlock
+import com.simibubi.create.content.fluids.pipes.FluidPipeBlockRotation
 import com.simibubi.create.content.fluids.pipes.VanillaFluidTargets
 import com.simibubi.create.foundation.block.IBE
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
@@ -33,18 +32,23 @@ import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import java.util.*
 
 class HeatPipeBlock(properties: Properties) :
-    PipeBlock(6 / 16f, properties),
+    PipeBlock(4 / 16f, properties),
     SimpleWaterloggedBlock,
     IWrenchable,
     IBE<HeatPipeBlockEntity>,
     ITransformableBlock {
+
+    init {
+        registerDefaultState(super.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, false))
+    }
+
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
         builder.add(NORTH, EAST, SOUTH, WEST, UP, DOWN, BlockStateProperties.WATERLOGGED)
         super.createBlockStateDefinition(builder)
     }
 
-    override fun transform(state: BlockState, transform: StructureTransform): BlockState? {
-        return null
+    override fun transform(state: BlockState?, transform: StructureTransform?): BlockState {
+        return FluidPipeBlockRotation.transform(state, transform)
     }
 
     override fun getBlockEntityClass(): Class<HeatPipeBlockEntity> {
@@ -132,16 +136,15 @@ class HeatPipeBlock(properties: Properties) :
         return state.getValue(PROPERTY_BY_DIRECTION[direction])
     }
 
-    fun canConnectTo(
-        world: BlockAndTintGetter?, neighbourPos: BlockPos?, neighbour: BlockState?,
-        direction: Direction
-    ): Boolean {
-        if (FluidPropagator.hasFluidCapability(world, neighbourPos, direction.opposite)) return true
+    fun canConnectTo(world: BlockAndTintGetter?, neighbourPos: BlockPos?, neighbour: BlockState?, direction: Direction): Boolean {
         if (VanillaFluidTargets.shouldPipesConnectTo(neighbour)) return true
-        val transport = BlockEntityBehaviour.get(world, neighbourPos, FluidTransportBehaviour.TYPE)
         val bracket = BlockEntityBehaviour.get(world, neighbourPos, BracketedBlockEntityBehaviour.TYPE)
-        return if (FluidPipeBlock.isPipe(neighbour)) bracket == null || !bracket.isBracketPresent || FluidPropagator.getStraightPipeAxis(
-            neighbour
-        ) === direction.axis else transport?.canHaveFlowToward(neighbour, direction.opposite) ?: false
+        return if (isPipe(neighbour)) bracket == null else false
     }
+
+    fun isPipe(neighbour: BlockState?): Boolean {
+        return neighbour!!.getBlock() is HeatPipeBlock
+    }
+
+
 }
