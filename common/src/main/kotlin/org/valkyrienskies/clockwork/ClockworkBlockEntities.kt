@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import org.valkyrienskies.clockwork.client.render.WingBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlockEntity
@@ -26,10 +27,11 @@ import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBl
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRenderer
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRenderer
+import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
-import org.valkyrienskies.clockwork.client.render.WingBlockEntityRenderer
 import java.util.function.BiFunction
+
 
 object ClockworkBlockEntities {
 
@@ -241,6 +243,17 @@ object ClockworkBlockEntities {
                 )
             }
         }
+        .register()
+
+    val HEAT_PIPE: BlockEntityEntry<HeatPipeBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<HeatPipeBlockEntity>("heat_pipe") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            HeatPipeBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .validBlocks(ClockworkBlocks.HEAT_PIPE)
         .register()
 
     @JvmStatic

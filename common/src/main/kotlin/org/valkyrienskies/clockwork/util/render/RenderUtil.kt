@@ -6,18 +6,14 @@ import com.mojang.math.Axis
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
-import com.simibubi.create.foundation.utility.AnimationTickHolder
-import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.core.Direction
-import net.minecraft.world.entity.Pose
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Vector3f
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
-import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
 
 object RenderUtil {
 
@@ -87,7 +83,7 @@ object RenderUtil {
      * @see RenderUtil.renderCubeMatrix
      * Transforms and renders a model
      */
-    private fun renderAndTransform(buffer: SuperByteBuffer, scale: Float, coreOffset: Vector3f, coreRotation: Vector3f, ): SuperByteBuffer {
+    private fun renderAndTransform(buffer: SuperByteBuffer, scale: Float, coreOffset: Vector3f, coreRotation: Vector3f): SuperByteBuffer {
         //Scale
         buffer.scale(scale)
         buffer.translate(-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)))
@@ -100,5 +96,9 @@ object RenderUtil {
 
         buffer.translateY(-(4.5 / 16.0))
         return buffer
+    }
+
+    fun registerBlockRenderLayer(layer: RenderType) {
+        BlockRenderTypeRegistry.registerRenderLayer(layer)
     }
 }

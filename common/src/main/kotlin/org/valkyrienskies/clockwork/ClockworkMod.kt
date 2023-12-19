@@ -3,10 +3,13 @@ package org.valkyrienskies.clockwork
 import com.mojang.logging.LogUtils
 import com.simibubi.create.foundation.data.CreateRegistrate
 import com.simibubi.create.foundation.outliner.Outliner
+import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap
+import net.minecraft.client.renderer.RenderType
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
 import org.slf4j.LoggerFactory
+import org.valkyrienskies.clockwork.util.render.RenderUtil
 import org.valkyrienskies.core.impl.hooks.VSEvents
 
 object ClockworkMod {
@@ -43,6 +46,10 @@ object ClockworkMod {
     @JvmStatic
     fun initClient() {
         ClockworkPonderScenes.init()
+
+        val blockRenderLayer: RenderType = RenderType.endPortal()
+        //RenderUtil.registerBlockRenderLayer(blockRenderLayer)
+        //BlockRenderLayerMap.INSTANCE.putBlock(ClockworkBlocks.ALT_METER.get(), blockRenderLayer);
     }
 
     @JvmStatic
@@ -61,6 +68,7 @@ object ClockworkMod {
 
                 output.accept(ClockworkItems.AURIC_DESIGNATOR)
 
+                output.accept(ClockworkBlocks.HEAT_PIPE.asStack())
                 output.accept(ClockworkBlocks.PHYSICS_INFUSER.asStack())
                 output.accept(ClockworkBlocks.GYRO.asStack())
                 output.accept(ClockworkBlocks.ALT_METER.asStack())

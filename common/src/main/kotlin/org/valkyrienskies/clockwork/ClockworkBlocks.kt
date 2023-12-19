@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork
 
 import com.simibubi.create.AllTags
+import com.simibubi.create.content.fluids.PipeAttachmentModel
 import com.simibubi.create.content.kinetics.BlockStressDefaults
 import com.simibubi.create.foundation.data.*
 import com.simibubi.create.foundation.data.ModelGen.customItemModel
@@ -9,7 +10,9 @@ import com.tterrag.registrate.builders.BlockBuilder
 import com.tterrag.registrate.providers.DataGenContext
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider
 import com.tterrag.registrate.util.entry.BlockEntry
+import com.tterrag.registrate.util.nullness.NonNullFunction
 import net.minecraft.client.renderer.RenderType
+import net.minecraft.client.resources.model.BakedModel
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
@@ -18,6 +21,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.material.MapColor
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
+import org.valkyrienskies.clockwork.client.render.WingBlockItemRenderer
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock
@@ -26,14 +30,15 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInf
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
+import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlock
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlock
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.WingBlock
+import org.valkyrienskies.clockwork.data.CWBlockStateGen
 import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork.flapbearing
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
-import org.valkyrienskies.clockwork.client.render.WingBlockItemRenderer
 import java.util.function.Supplier
 
 
@@ -217,7 +222,28 @@ object ClockworkBlocks {
             .transform(customItemModel("physics_infuser", "item"))
             .register()
 
+    val HEAT_PIPE = REGISTRATE.block<HeatPipeBlock>(
+        "heat_pipe"
+    ) { properties: BlockBehaviour.Properties? ->
+        HeatPipeBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .blockstate(CWBlockStateGen.pipe())
+        .onRegister(CreateRegistrate.blockModel<HeatPipeBlock> {
+            NonNullFunction<BakedModel?, BakedModel> { template: BakedModel? ->
+                PipeAttachmentModel(
+                    template
+                )
+            }
+        })
+        .item()
+        .transform(customItemModel())
+        .register()
+
     @JvmStatic
     fun register() {
+
     }
 }

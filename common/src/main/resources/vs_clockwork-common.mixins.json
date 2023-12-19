@@ -16,6 +16,8 @@
   "client": [
     "MixinLevelRenderer",
     "client.MixinItemInHandRenderer",
+    "client.MixinLevelRenderer",
+    "client.MixinRenderType",
     "content.gravitron.MinecraftAccessor",
     "content.gravitron.MixinLocalPlayer"
   ],
