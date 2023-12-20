@@ -23,7 +23,9 @@ class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         val bracketBehaviour = getBehaviour(BracketedBlockEntityBehaviour.TYPE)
         bracketBehaviour?.transformBracket(transform)
     }
-    override fun addBehaviours(behaviours: List<BlockEntityBehaviour>) {}
+    override fun addBehaviours(behaviours: List<BlockEntityBehaviour>) {
+        //TODO Add a heat behaviour to render the ends of the pipe
+    }
 
     override fun canTransferHeat(direction: Direction): Boolean {
         return (level!!.getBlockEntity(worldPosition.relative(direction)) is IHeatable)

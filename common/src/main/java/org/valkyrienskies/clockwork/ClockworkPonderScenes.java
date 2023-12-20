@@ -36,7 +36,7 @@ public class ClockworkPonderScenes {
         ElementLink<WorldSectionElement> contraption =
                 scene.world.showIndependentSection(ship, Direction.DOWN);
         scene.world.moveSection(contraption, util.vector.of(0, 0, 0), 0);
-
+        scene.idle(15);
         scene.overlay.showControls(
                 new InputWindowElement(util.vector.topOf(0, 2, 1), Pointing.UP)
                         .withItem(ClockworkItems.AURIC_DESIGNATOR.asStack())
@@ -62,6 +62,7 @@ public class ClockworkPonderScenes {
 
 
         scene.world.setBlock(util.grid.at(0, 1, 0), ClockworkBlocks.PHYSICS_INFUSER.getDefaultState(), false);
+        scene.world.showSection(util.select.position(0,1,0), Direction.NORTH);
         scene.idle(20);
         scene.overlay.showText(40)
                 .attachKeyFrame()
@@ -95,11 +96,11 @@ public class ClockworkPonderScenes {
         scene.idle(2);
         scene.world.moveSection(contraption, util.vector.of(0, -0.7, 0), 10);
         scene.idle(14);
-        scene.world.moveSection(contraption, util.vector.of(0, 0.025, 0), 3);
+        scene.world.moveSection(contraption, util.vector.of(0, 0.015, 0), 3);
         scene.idle(3);
-        scene.world.moveSection(contraption, util.vector.of(0, -0.015, 0), 2);
+        scene.world.moveSection(contraption, util.vector.of(0, -0.010, 0), 2);
         scene.idle(2);
-        scene.world.moveSection(contraption, util.vector.of(0, -0.010, 0), 1);
+        scene.world.moveSection(contraption, util.vector.of(0, -0.005, 0), 1);
 
 
         scene.idle(20);
