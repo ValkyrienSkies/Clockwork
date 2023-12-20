@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork;
 
+import com.simibubi.create.AllBlocks;
 import com.simibubi.create.content.redstone.analogLever.AnalogLeverBlockEntity;
 import com.simibubi.create.foundation.ponder.*;
 import com.simibubi.create.foundation.ponder.element.InputWindowElement;
@@ -30,7 +31,7 @@ public class ClockworkPonderScenes {
         scene.idle(15);
 
         Selection lever = util.select.position(0, 0, 0);
-        Selection ship = util.select.fromTo(0, 1, 0, 4, 3, 3);
+        Selection ship = util.select.fromTo(0, 1, 1, 4, 3, 3);
 
         ElementLink<WorldSectionElement> contraption =
                 scene.world.showIndependentSection(ship, Direction.DOWN);
@@ -58,6 +59,27 @@ public class ClockworkPonderScenes {
         scene.overlay.chaseBoundingBoxOutline(PonderPalette.BLUE, lever, bb.expandTowards(4, 1, 2), 70);
 
         scene.idle(70);
+
+
+        scene.world.setBlock(util.grid.at(0, 1, 0), ClockworkBlocks.PHYSICS_INFUSER.getDefaultState(), false);
+        scene.idle(20);
+        scene.overlay.showText(40)
+                .attachKeyFrame()
+                .text("Place the Auric Designator in the Physics Infuser")
+                .placeNearTarget()
+                .pointAt(util.vector.blockSurface(util.grid.at(0, 2, 0), Direction.WEST));
+        scene.overlay.showControls(
+                new InputWindowElement(util.vector.blockSurface(util.grid.at(0, 2, 0), Direction.DOWN), Pointing.DOWN)
+                        .withItem(ClockworkItems.AURIC_DESIGNATOR.asStack())
+                        .rightClick(),
+                40);
+
+        scene.idle(50);
+        scene.overlay.showText(40)
+                .attachKeyFrame()
+                .text("Or use the Gravitron")
+                .placeNearTarget()
+                .pointAt(util.vector.blockSurface(util.grid.at(2, 2, 2), Direction.WEST));
         scene.overlay.showControls(
                 new InputWindowElement(util.vector.blockSurface(util.grid.at(2, 2, 2), Direction.DOWN), Pointing.DOWN)
                         .withItem(ClockworkItems.GRAVITRON.asStack())
