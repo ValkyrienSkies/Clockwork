@@ -206,14 +206,6 @@ object ClockworkBlockEntities {
                 pos!!, state!!
             )
         }
-        .instance({
-            BiFunction<MaterialManager?, GyroBlockEntity?, BlockEntityInstance<in GyroBlockEntity?>> { materialManager: MaterialManager?, blockEntity: GyroBlockEntity? ->
-                GyroInstance(
-                    materialManager!!,
-                    blockEntity!!
-                )
-            }
-        }, false)
         .validBlocks(ClockworkBlocks.GYRO)
         .renderer {
             NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in GyroBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
