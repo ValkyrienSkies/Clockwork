@@ -53,16 +53,6 @@ class GyroBlock(properties: Properties) : KineticBlock(properties), IBE<GyroBloc
                 }
             }
 
-        } else {
-            withBlockEntityDo(level, pos) { te: GyroBlockEntity ->
-                //TODO test code
-                if (te.targetVec3 == Vector3d(0.0, 1.0, 0.0)) {
-                    te.targetVec3 = Vector3d(0.0, 0.0, 1.0)
-                } else {
-                    te.targetVec3 = Vector3d(0.0, 1.0, 0.0)
-                }
-                te.notifyUpdate()
-            }
         }
         return InteractionResult.SUCCESS
     }

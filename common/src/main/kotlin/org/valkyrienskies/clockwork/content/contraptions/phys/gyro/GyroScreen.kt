@@ -12,6 +12,7 @@ import org.valkyrienskies.clockwork.ClockworkPackets
 class GyroScreen(private val be: GyroBlockEntity) : AbstractSimiScreen() {
     private val background: ClockworkGuiTextures = ClockworkGuiTextures.GYRO
     private var confirmButton: IconButton? = null
+    private var targetVec = Vector3d(0.0,1.0,0.0)
 
     override fun init() {
         setWindowSize(background.width, background.height)
@@ -26,7 +27,7 @@ class GyroScreen(private val be: GyroBlockEntity) : AbstractSimiScreen() {
 
     override fun onClose() {
         super.onClose()
-        ClockworkPackets.sendToServer(UpdateGyroPacket(be.blockPos, Vector3d(0.0, 0.0, 0.0)))//TODO fix target vector
+        ClockworkPackets.sendToServer(UpdateGyroPacket(be.blockPos, targetVec))//TODO fix target vector
     }
 
     override fun renderWindow(graphics: GuiGraphics?, mouseX: Int, mouseY: Int, partialTicks: Float) {
