@@ -4,6 +4,7 @@ import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Style
+import net.minecraft.network.chat.TextComponent
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.Entity
@@ -66,7 +67,7 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
         if (areaData.getFirstPos().isEmpty) {
             areaData.setFirstPos(Optional.of(pos))
             player.displayClientMessage(
-                Component.literal("First Position Selected!").withStyle(
+                TextComponent("First Position Selected!").withStyle(
                     Style.EMPTY.withColor(
                         ChatFormatting.DARK_PURPLE
                     )
@@ -82,7 +83,7 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
             areaData.setSecondPos(Optional.of(pos))
             if (areaData.getFirstPos().get().distSqr(areaData.getSecondPos().get()) > 500) {
                 player.displayClientMessage(
-                    Component.literal("Area Too Large!").withStyle(
+                    TextComponent("Area Too Large!").withStyle(
                         Style.EMPTY.withColor(
                             ChatFormatting.DARK_PURPLE
                         )
@@ -105,7 +106,7 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
             val selectedArea = AreaData.of(player).get().getArea()
             if (selectedArea.containsAABB(area)) {
                 player.displayClientMessage(
-                    Component.literal("Area Already Exists.").withStyle(
+                    TextComponent("Area Already Exists.").withStyle(
                         Style.EMPTY.withColor(
                             ChatFormatting.DARK_PURPLE
                         )
@@ -117,7 +118,7 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
 
             if (selectedArea.selectedAreas.size >= 150) {
                 player.displayClientMessage(
-                    Component.literal("At selection capacity.").withStyle(
+                    TextComponent("At selection capacity.").withStyle(
                         Style.EMPTY.withColor(
                             ChatFormatting.DARK_PURPLE
                         )
@@ -138,7 +139,7 @@ class BluperGlueItem(properties: Properties) : CWItem(properties) {
             data.setArea(selectedArea)
 
             player.displayClientMessage(
-                Component.literal("Area Created!").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE)),
+                TextComponent("Area Created!").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE)),
                 true
             )
             stack.damageValue = stack.damageValue - 1

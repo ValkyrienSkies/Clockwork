@@ -12,17 +12,5 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(Dist.CLIENT)
 public class ForgeClockworkInputEvents {
 
-    @SubscribeEvent
-    public static InteractionResult onClickInput(InputEvent.InteractionKeyMappingTriggered event) {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.screen != null) {
-            return InteractionResult.PASS;
-        }
 
-        KeyMapping key = event.getKeyMapping();
-
-        if (key == mc.options.keyUse || key == mc.options.keyAttack) {
-        }
-        return InteractionResult.PASS;
-    }
 }

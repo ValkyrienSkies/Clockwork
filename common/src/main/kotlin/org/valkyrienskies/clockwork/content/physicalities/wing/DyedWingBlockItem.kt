@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.physicalities.wing
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
 import net.minecraft.network.chat.Style
+import net.minecraft.network.chat.TextComponent
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.TooltipFlag
@@ -26,7 +27,7 @@ class DyedWingBlockItem(block: Block?, properties: Properties?) :
             val tag = stack.getOrCreateTag()
             val color = tag.getInt("Clockwork\$color")
             val comp: MutableComponent =
-                Component.literal("#" + Integer.toHexString(color).uppercase(Locale.getDefault()))
+                TextComponent("#" + Integer.toHexString(color).uppercase(Locale.getDefault()))
             tooltipComponents.add(comp.setStyle(Style.EMPTY.withColor(color)))
         }
         super.appendHoverText(stack, level, tooltipComponents, isAdvanced)

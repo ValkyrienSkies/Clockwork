@@ -2,9 +2,10 @@ package org.valkyrienskies.clockwork.fabric;
 
 import com.mojang.blaze3d.platform.Window;
 import dev.architectury.event.events.common.PlayerEvent;
-import io.github.fabricators_of_create.porting_lib.entity.events.living.LivingEntityEvents;
 import io.github.fabricators_of_create.porting_lib.event.client.KeyInputCallback;
-import io.github.fabricators_of_create.porting_lib.event.client.MouseInputEvents;
+import io.github.fabricators_of_create.porting_lib.event.client.MouseButtonCallback;
+import io.github.fabricators_of_create.porting_lib.event.client.MouseScrolledCallback;
+import io.github.fabricators_of_create.porting_lib.event.common.LivingEntityEvents;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -14,8 +15,6 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
@@ -32,7 +31,6 @@ public class ClockworkModFabric implements ModInitializer, ClientModInitializer 
     public static final BluperGlueSelectionHandler BLUPER_CLUSTER_HANDLER = new BluperGlueSelectionHandler();
     public static final AuricDesignatorClusterRenderer AURIC_HANDLER = new AuricDesignatorClusterRenderer();
 
-    ResourceKey<CreativeModeTab> C_CREATIVE_TAB = ResourceKey.create(Registries.CREATIVE_MODE_TAB, new ResourceLocation(ClockworkMod.MOD_ID));
 
     @Override
     public void onInitialize() {
@@ -59,12 +57,7 @@ public class ClockworkModFabric implements ModInitializer, ClientModInitializer 
         FabricClockworkSounds.init();
         registerServerEvents();
 
-        ClockworkMod.INSTANCE.createCreativeTab();
-        Registry.register(
-                BuiltInRegistries.CREATIVE_MODE_TAB,
-                C_CREATIVE_TAB,
-                ClockworkMod.INSTANCE.createCreativeTab()
-        );
+
     }
 
     public static void registerServerEvents() {
@@ -88,8 +81,9 @@ public class ClockworkModFabric implements ModInitializer, ClientModInitializer 
         ClockworkShaders.INSTANCE.init();
 
         KeyInputCallback.EVENT.register(FabricClockworkInputEvents::onKeyInput);
-        MouseInputEvents.BEFORE_SCROLL.register(FabricClockworkInputEvents::onMouseScrolled);
-        MouseInputEvents.BEFORE_BUTTON.register(FabricClockworkInputEvents::onMouseInput);
+
+        MouseScrolledCallback.EVENT.register(FabricClockworkInputEvents::onMouseScrolled);
+        MouseButtonCallback.EVENT.register(FabricClockworkInputEvents::onMouseInput);
     }
 
     public static void registerClientEvents() {

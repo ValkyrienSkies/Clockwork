@@ -48,7 +48,7 @@ class WorldScannerRenderer : ScannerRenderer {
         val adjustedDuration: Int = if (currentBlockEntity != null) {
             currentBlockEntity!!.scanGrowthDuration
         } else {
-            PhysicsInfuserRenderer.SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance().get() / 12
+            PhysicsInfuserRenderer.SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance / 12
         }
         val shouldRender = currentStart > 0 && adjustedDuration > (System.currentTimeMillis() - currentStart).toInt()
         if (shouldRender) {
@@ -96,8 +96,7 @@ class WorldScannerRenderer : ScannerRenderer {
             radius = currentBlockEntity!!.computeRadius(currentStart, adjustedDuration.toFloat())
         } else {
             adjustedDuration =
-                PhysicsInfuserRenderer.SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance()
-                    .get() / 12
+                PhysicsInfuserRenderer.SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance/ 12
             radius = 0f
         }
         shader!!.setSampler("depthTex", depthCopyDepthBuffer)

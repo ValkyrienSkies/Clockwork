@@ -7,6 +7,8 @@ import com.simibubi.create.foundation.gui.widget.AbstractSimiWidget
 import com.simibubi.create.foundation.gui.widget.IconButton
 import com.simibubi.create.foundation.gui.widget.ScrollInput
 import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.TextComponent
+import net.minecraft.network.chat.TranslatableComponent
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
 import org.valkyrienskies.clockwork.ClockworkPackets
 import kotlin.math.roundToInt
@@ -66,7 +68,7 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
         val icon = AllIcons.I_PRIORITY_VERY_HIGH
 
         val heightStr = triggerHeight.toString()
-        val valueComponent: Component = Component.literal("$heightStr m")
+        val valueComponent: Component = TextComponent("$heightStr m")
 
         drawCenteredString(poseStack,
             font,
@@ -92,6 +94,6 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
         private const val INPUT_VALUE_WIDTH = 46
         private const val MAX_HEIGHT = 1024
         private const val MIN_HEIGHT = -1024
-        private val TRIGGER_HEIGHT_COMPONENT = Component.translatable("alt_meter.trigger_height")
+        private val TRIGGER_HEIGHT_COMPONENT = TranslatableComponent("alt_meter.trigger_height")
     }
 }

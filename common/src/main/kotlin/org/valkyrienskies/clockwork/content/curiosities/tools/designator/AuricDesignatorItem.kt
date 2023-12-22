@@ -8,9 +8,9 @@ import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Style
+import net.minecraft.network.chat.TextComponent
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.util.Mth
-import net.minecraft.util.RandomSource
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.Entity
@@ -33,6 +33,9 @@ import org.valkyrienskies.clockwork.platform.SharedValues
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
 import org.valkyrienskies.mod.common.isBlockInShipyard
 import org.valkyrienskies.mod.common.util.toJOML
+import java.util.*
+import kotlin.collections.HashMap
+import kotlin.collections.HashSet
 import kotlin.math.max
 import kotlin.math.min
 
@@ -42,7 +45,7 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
     var firstPos: Vector3ic? = null
     var secondPos: Vector3ic? = null
     var shouldRenderOutlines = false
-    private val soundRandom = RandomSource.create()
+    private val soundRandom = Random()
     private var soundTickCounter = 0f
 
     //ANIMATION
@@ -146,7 +149,7 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
         if (this.firstPos == null) {
             this.firstPos = pos
             player.displayClientMessage(
-                Component.literal("First Position Selected!").withStyle(
+                TextComponent("First Position Selected!").withStyle(
                     Style.EMPTY.withColor(
                         ChatFormatting.DARK_PURPLE
                     )
@@ -167,7 +170,7 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
             this.secondPos = pos
             if (this.firstPos!!.distance(secondPos) > 500) {
                 player.displayClientMessage(
-                    Component.literal("Area Too Large!").withStyle(
+                    TextComponent("Area Too Large!").withStyle(
                         Style.EMPTY.withColor(
                             ChatFormatting.DARK_PURPLE
                         )
@@ -192,7 +195,7 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
                 for (aabb in setAabb) {
                     if (intersectsAABBi(aabb, area)) {
                         player.displayClientMessage(
-                            Component.literal("Area Already Exists.").withStyle(
+                            TextComponent("Area Already Exists.").withStyle(
                                 Style.EMPTY.withColor(
                                     ChatFormatting.DARK_PURPLE
                                 )
@@ -205,7 +208,7 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
 
             if (this.selectedArea.selectedAreas.size >= 150) {
                 player.displayClientMessage(
-                    Component.literal("This Designator is at selection capacity.").withStyle(
+                    TextComponent("This Designator is at selection capacity.").withStyle(
                         Style.EMPTY.withColor(
                             ChatFormatting.DARK_PURPLE
                         )
@@ -226,7 +229,7 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
 
             if (this.selectedArea.selectionClusters.size >= 20) {
                 player.displayClientMessage(
-                    Component.literal("This Designator is at cluster capacity.").withStyle(
+                    TextComponent("This Designator is at cluster capacity.").withStyle(
                         Style.EMPTY.withColor(
                             ChatFormatting.DARK_PURPLE
                         )
@@ -250,7 +253,7 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
             compoundTag.putByteArray("selectedData", getMapper().writeValueAsBytes(this.selectedArea))
             stack.tag = compoundTag
             player.displayClientMessage(
-                Component.literal("Area Designated!").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE)),
+                TextComponent("Area Designated!").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE)),
                 true
             )
             world.playSound(

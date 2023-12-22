@@ -2,15 +2,17 @@ package org.valkyrienskies.clockwork.forge;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.simibubi.create.Create;
+import com.simibubi.create.CreateClient;
 import com.simibubi.create.foundation.render.SuperRenderTypeBuffer;
 import com.simibubi.create.foundation.utility.AnimationTickHolder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
+import net.minecraftforge.client.gui.ForgeIngameGui;
+import net.minecraftforge.client.gui.OverlayRegistry;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -61,7 +63,7 @@ public class ClockworkClientEvents {
     }
 
     @SubscribeEvent
-    public static void onKeyInput(InputEvent.Key event) {
+    public static void onKeyInput(InputEvent.KeyInputEvent event) {
         if (Minecraft.getInstance().screen != null) {
             return;
         }
@@ -73,7 +75,7 @@ public class ClockworkClientEvents {
     }
 
     @SubscribeEvent
-    public static void onMouseScrolled(InputEvent.MouseScrollingEvent event) {
+    public static void onMouseScrolled(InputEvent.MouseScrollEvent event) {
         if (Minecraft.getInstance().screen != null) {
             return;
         }
@@ -84,7 +86,7 @@ public class ClockworkClientEvents {
     }
 
     @SubscribeEvent
-    public static void onMouseInput(InputEvent.MouseButton.Pre event) {
+    public static void onMouseInput(InputEvent.RawMouseEvent event) {
         if (Minecraft.getInstance().screen != null) {
             return;
         }
@@ -97,13 +99,4 @@ public class ClockworkClientEvents {
         }
     }
 
-    //BUS EVENTS
-
-    @Mod.EventBusSubscriber(value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
-    public static class ModBusEvents {
-        @SubscribeEvent
-        public static void registerGuiOverlays(RegisterGuiOverlaysEvent event) {
-            event.registerAbove(VanillaGuiOverlay.HOTBAR.id(), "gravitron", ClockworkModForge.GRAVITRON_HANDLER);
-        }
-    }
 }

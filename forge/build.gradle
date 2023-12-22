@@ -16,6 +16,7 @@ plugins {
     id "com.modrinth.minotaur"
 }
 
+
 architectury {
     platformSetupLoomIde()
     forge()
@@ -30,19 +31,19 @@ configurations {
 }
 
 repositories {
-
-    // mavens for Forge-exclusives
-    maven { url = "https://maven.theillusivec4.top/" } // Curios
-    maven { // Create Forge and Registrate Forge
-        url = "https://maven.tterrag.com/"
-        content {
-            includeGroup("com.tterrag.registrate")
-            includeGroup("com.simibubi.create")
+    if (!block_external_repositories) {
+        // mavens for Forge-exclusives
+        maven { url = "https://maven.theillusivec4.top/" } // Curios
+        maven { // Create Forge and Registrate Forge
+            url = "https://maven.tterrag.com/"
+            content {
+                includeGroup("com.tterrag.registrate")
+                includeGroup("com.simibubi.create")
+            }
         }
+        maven { url = "https://jitpack.io/" }
+        maven { url = "https://cursemaven.com" }
     }
-
-    maven { url = "https://cursemaven.com" }
-
 }
 
 dependencies {
@@ -50,57 +51,26 @@ dependencies {
     common(project(path: ":common", configuration: "namedElements")) { transitive = false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 
-    implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:0.2.1"))
-    implementation(include("io.github.llamalad7:mixinextras-forge:0.2.1"))
-
-    include(modApi("dev.architectury:architectury-forge:${rootProject.architectury_version}")) {
-        exclude group: 'org.joml', module: ''
-        transitive = false
-    }
+    include(modApi("dev.architectury:architectury-forge:${rootProject.architectury_version}"))
 
     //VS2
-    modApi("org.valkyrienskies:valkyrienskies-119-${rootProject.vs2_version}") {
-        exclude group: 'org.joml', module: ''
-        transitive = false
-    }
-
-    implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") {
-        exclude group: 'org.joml', module: ''
-        transitive = false
-    }
-
-    implementation("org.valkyrienskies.core:util:${rootProject.vscore_version}") {
-        exclude group: 'org.joml', module: ''
-    }
+    modApi("org.valkyrienskies:valkyrienskies-118-forge:${rootProject.vs2_version}") { transitive = false }
+    implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") { transitive = false }
 
     // Create and its dependencies
-    modImplementation("com.simibubi.create:create-${minecraft_version}:${create_forge_version}:slim") {
-
-        exclude group: 'org.joml', module: ''
-
-        transitive = false
-    }
-    modImplementation("com.tterrag.registrate:Registrate:${registrate_forge_version}") {
-        exclude group: 'org.joml', module: ''
-    }
-    modImplementation("com.jozufozu.flywheel:flywheel-forge-${flywheel_forge_minecraft_version}:${flywheel_forge_version}") {
-        exclude group: 'org.joml', module: ''
-    }
+    modImplementation("com.simibubi.create:create-${minecraft_version}:${create_forge_version}:slim") { transitive = false }
+    modImplementation("com.tterrag.registrate:Registrate:${registrate_forge_version}")
+    modImplementation("com.jozufozu.flywheel:flywheel-forge-${flywheel_forge_minecraft_version}:${flywheel_forge_version}")
 
     // JOML
-    //compileOnly("org.joml:joml:1.10.4")
-
-    implementation("org.joml:joml-primitives:1.10.0")
-    implementation("org.joml:joml:1.10.4")
+    compileOnly("org.joml:joml:1.10.4")
+    compileOnly("org.joml:joml-primitives:1.10.0")
 
     // Add Kotlin for Forge.
-    implementation "thedarkcolour:kotlinforforge:$kotlin_version"
+    implementation 'thedarkcolour:kotlinforforge:3.12.0'
 
-    modCompileOnly("maven.modrinth:embeddium:${embeddium_version}") {
-        exclude group: 'org.joml', module: ''
-    }
     // CC Tweaked
-    //modCompileOnly("curse.maven:cctweaked-282001:4061947")
+    modCompileOnly("curse.maven:cctweaked-282001:4061947")
 }
 
 processResources {

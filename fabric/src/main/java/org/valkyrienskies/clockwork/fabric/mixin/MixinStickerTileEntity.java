@@ -18,8 +18,8 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.valkyrienskies.clockwork.fabric.content.contraptions.sticker.StickerMovementBehaviour;
 import org.valkyrienskies.clockwork.fabric.content.contraptions.sticker.StickerParticleUtil;
+import org.valkyrienskies.clockwork.fabric.content.contraptions.sticker.StickerMovementBehaviour;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.mixinducks.mod_compat.create.IMixinStickerTileEntity;
 
@@ -48,17 +48,17 @@ public abstract class MixinStickerTileEntity extends SmartBlockEntity implements
 
     @Unique
     private void removeConstraint(@Nullable ServerLevel level, boolean removeTags) {
-        if (getCustomData().contains("ShipStickerConstraint")) {
+        if (getExtraCustomData().contains("ShipStickerConstraint")) {
             if (level != null)
-                VSGameUtilsKt.getShipObjectWorld(level).removeConstraint(getCustomData().getInt("ShipStickerConstraint"));
+                VSGameUtilsKt.getShipObjectWorld(level).removeConstraint(getExtraCustomData().getInt("ShipStickerConstraint"));
             if (removeTags) {
-                getCustomData().remove("ShipStickerConstraint");
-                getCustomData().remove("ShipStickerShip1Id");
-                getCustomData().remove("ShipStickerShip1Vec");
-                getCustomData().remove("ShipStickerShip1Quat");
-                getCustomData().remove("ShipStickerShip2Id");
-                getCustomData().remove("ShipStickerShip2Vec");
-                getCustomData().remove("ShipStickerShip2Quat");
+                getExtraCustomData().remove("ShipStickerConstraint");
+                getExtraCustomData().remove("ShipStickerShip1Id");
+                getExtraCustomData().remove("ShipStickerShip1Vec");
+                getExtraCustomData().remove("ShipStickerShip1Quat");
+                getExtraCustomData().remove("ShipStickerShip2Id");
+                getExtraCustomData().remove("ShipStickerShip2Vec");
+                getExtraCustomData().remove("ShipStickerShip2Quat");
             }
         }
     }
@@ -78,7 +78,7 @@ public abstract class MixinStickerTileEntity extends SmartBlockEntity implements
         Vector3d myDirNormal = toJOML(Vec3.atLowerCornerOf(myDir.getNormal()));
 
         boolean blockAttached = isAttachedToBlock();
-        boolean shipAttached = StickerMovementBehaviour.isAttachedToShipOrWorld(false, level, toJOML(Vec3.atCenterOf(getBlockPos())), myDirNormal, getCustomData());//isAttachedToShipOrWorld(false);
+        boolean shipAttached = StickerMovementBehaviour.isAttachedToShipOrWorld(false, level, toJOML(Vec3.atCenterOf(getBlockPos())), myDirNormal, getExtraCustomData());//isAttachedToShipOrWorld(false);
         if (!blockAttached && piston.getValue(0) != piston.getValue() && piston.getValue() == 1 && shipAttached) {
             new StickerParticleUtil().doBluperParticle(level, worldPosition, myDir);
         }
@@ -87,7 +87,7 @@ public abstract class MixinStickerTileEntity extends SmartBlockEntity implements
             waitForNoPower = false;
             if (!blockAttached && shipAttached) {
                 //no sameworld block attached but there is a ship related thing near enough
-                if (StickerMovementBehaviour.isAttachedToShipOrWorld(true, level, toJOML(Vec3.atCenterOf(getBlockPos())), myDirNormal, getCustomData())) {
+                if (StickerMovementBehaviour.isAttachedToShipOrWorld(true, level, toJOML(Vec3.atCenterOf(getBlockPos())), myDirNormal, getExtraCustomData())) {
                     shipStuck = true;
                 }
             }
@@ -97,10 +97,10 @@ public abstract class MixinStickerTileEntity extends SmartBlockEntity implements
                 removeConstraint((ServerLevel) level, true);
             }
             waitForNoPower = true;
-        } else if (isBlockStateExtended() && !getCustomData().contains("ShipStickerConstraint") && !shipStuck && !blockAttached && shipAttached && getBlockState().getValue(POWERED)) {
+        } else if (isBlockStateExtended() && !getExtraCustomData().contains("ShipStickerConstraint") && !shipStuck && !blockAttached && shipAttached && getBlockState().getValue(POWERED)) {
             //Sticker extended with nothing attached and is powered but there is a ship thing in range
             waitForNoPower = false;
-            if (StickerMovementBehaviour.isAttachedToShipOrWorld(true, level, toJOML(Vec3.atCenterOf(getBlockPos())), myDirNormal, getCustomData())) {
+            if (StickerMovementBehaviour.isAttachedToShipOrWorld(true, level, toJOML(Vec3.atCenterOf(getBlockPos())), myDirNormal, getExtraCustomData())) {
                 new StickerParticleUtil().doBluperParticle(level, worldPosition, myDir);
                 shipStuck = true;
             }
@@ -111,7 +111,6 @@ public abstract class MixinStickerTileEntity extends SmartBlockEntity implements
         }
     }
 
-    //TODO, kinda sus to Override
     @Override
     public void destroy() {
         if (level != null) {
@@ -124,9 +123,9 @@ public abstract class MixinStickerTileEntity extends SmartBlockEntity implements
     }
 
     public boolean isAlreadyPowered(boolean reset) {
-        boolean result = getCustomData().contains("ShipStickerAlreadyPowered");
+        boolean result = getExtraCustomData().contains("ShipStickerAlreadyPowered");
         if (reset) {
-            getCustomData().remove("ShipStickerAlreadyPowered");
+            getExtraCustomData().remove("ShipStickerAlreadyPowered");
         }
         return result;
     }

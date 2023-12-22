@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.fabric;
 
-import io.github.fabricators_of_create.porting_lib.event.client.MouseInputEvents;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.InteractionResult;
 
 public class FabricClockworkInputEvents {
     public static void onKeyInput(int key, int scancode, int action, int mods) {
@@ -12,19 +12,19 @@ public class FabricClockworkInputEvents {
         ClockworkModFabric.GRAVITRON_HANDLER.onKeyInput(key, pressed);
     }
 
-    public static boolean onMouseScrolled(double deltaX, double delta) {
+    public static boolean onMouseScrolled(double delta) {
         if (Minecraft.getInstance().screen != null) return false;
 
-        var cancelled = (ClockworkModFabric.GRAVITRON_HANDLER.mouseScrolled(delta));
+        boolean cancelled = (ClockworkModFabric.GRAVITRON_HANDLER.mouseScrolled(delta));
         return cancelled;
     }
 
-    public static boolean onMouseInput(int button, int modifiers, MouseInputEvents.Action action) {
-        if (Minecraft.getInstance().screen != null) return false;
+    public static InteractionResult onMouseInput(int button, int action, int mods) {
+        if (Minecraft.getInstance().screen != null) return InteractionResult.PASS;
 
-        var pressed = action == MouseInputEvents.Action.PRESS;
+        boolean pressed = action == 0;
 
-        if (ClockworkModFabric.GRAVITRON_HANDLER.onMouseInput(button, pressed)) return true;
-        return false;
+        if (ClockworkModFabric.GRAVITRON_HANDLER.onMouseInput(button, pressed)) return InteractionResult.CONSUME;
+        return InteractionResult.PASS;
     }
 }

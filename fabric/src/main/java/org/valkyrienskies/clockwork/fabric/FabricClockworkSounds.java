@@ -1,16 +1,14 @@
 package org.valkyrienskies.clockwork.fabric;
 
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.minecraft.core.Registry;
 import net.minecraft.core.Vec3i;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
+import net.minecraft.data.HashCache;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
@@ -20,12 +18,12 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.valkyrienskies.clockwork.ClockworkMod;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 public class FabricClockworkSounds {
@@ -72,15 +70,9 @@ public class FabricClockworkSounds {
             this.generator = generator;
         }
 
-
-        //@Override
-        //public void run(CachedOutput output) throws IOException {
-        //    generate(generator.getOutputFolder(), output);
-        //}
-
         @Override
-        public CompletableFuture<?> run(CachedOutput output) {
-            return null;
+        public void run(HashCache cache) throws IOException {
+            generate(generator.getOutputFolder(), cache);
         }
 
         @Override
@@ -88,7 +80,7 @@ public class FabricClockworkSounds {
             return "Clockwork's Custom Sounds";
         }
 
-        public void generate(Path path, CachedOutput cache) {
+        public void generate(Path path, HashCache cache) {
             Gson GSON = (new GsonBuilder()).setPrettyPrinting()
                     .disableHtmlEscaping()
                     .create();
@@ -103,9 +95,9 @@ public class FabricClockworkSounds {
                             entry.getValue()
                                     .write(json);
                         });
-                DataProvider.saveStable(cache, json, path.resolve("sounds.json"));
+                DataProvider.save(GSON, cache, json, path.resolve("sounds.json"));
 
-            } catch (Exception e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -238,7 +230,7 @@ public class FabricClockworkSounds {
 
         public void playFrom(Entity entity, float volume, float pitch) {
             if (!entity.isSilent())
-                play(entity.level(), null, entity.blockPosition(), volume, pitch);
+                play(entity.level, null, entity.blockPosition(), volume, pitch);
         }
 
         public void play(Level world, Player entity, Vec3i pos, float volume, float pitch) {
@@ -280,7 +272,7 @@ public class FabricClockworkSounds {
             for (int i = 0; i < wrappedEvents.size(); i++) {
                 ConfiguredSoundEvent wrapped = wrappedEvents.get(i);
                 ResourceLocation location = getIdOf(i);
-                SoundEvent event = SoundEvent.createVariableRangeEvent(location);
+                SoundEvent event = new SoundEvent(location);
                 compiledEvents.add(new CompiledSoundEvent(event, wrapped.volume(), wrapped.pitch()));
             }
         }
@@ -288,7 +280,7 @@ public class FabricClockworkSounds {
         @Override
         public void register() {
             for (CompiledSoundEvent event : compiledEvents) {
-                Registry.register(BuiltInRegistries.SOUND_EVENT, event.event.getLocation(), event.event);
+                Registry.register(Registry.SOUND_EVENT, event.event.getLocation(), event.event);
             }
         }
 
@@ -358,12 +350,12 @@ public class FabricClockworkSounds {
 
         @Override
         public void prepare() {
-            event = SoundEvent.createVariableRangeEvent(id);
+            event = new SoundEvent(id);
         }
 
         @Override
         public void register() {
-            Registry.register(BuiltInRegistries.SOUND_EVENT, event.getLocation(), event);
+            Registry.register(Registry.SOUND_EVENT, event.getLocation(), event);
         }
 
         @Override

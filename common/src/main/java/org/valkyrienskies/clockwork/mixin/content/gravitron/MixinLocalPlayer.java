@@ -6,7 +6,6 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.player.ProfilePublicKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -20,8 +19,8 @@ import org.valkyrienskies.clockwork.ClockworkItems;
 public class MixinLocalPlayer extends AbstractClientPlayer {
 
 
-    public MixinLocalPlayer(ClientLevel clientLevel, GameProfile gameProfile, @Nullable ProfilePublicKey profilePublicKey) {
-        super(clientLevel, gameProfile, profilePublicKey);
+    public MixinLocalPlayer(ClientLevel clientLevel, GameProfile gameProfile) {
+        super(clientLevel, gameProfile);
     }
 
     @Inject(method = "swing", at = @At("HEAD"))
