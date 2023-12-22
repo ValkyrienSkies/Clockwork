@@ -7,7 +7,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.minecraft.core.Registry;
 import net.minecraft.core.Vec3i;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
@@ -20,6 +19,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.valkyrienskies.clockwork.ClockworkMod;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -78,9 +78,10 @@ public class FabricClockworkSounds {
         //    generate(generator.getOutputFolder(), output);
         //}
 
+
         @Override
-        public CompletableFuture<?> run(CachedOutput output) {
-            return null;
+        public void run(CachedOutput output) throws IOException {
+            generate(generator.getOutputFolder(), output);
         }
 
         @Override
@@ -238,7 +239,7 @@ public class FabricClockworkSounds {
 
         public void playFrom(Entity entity, float volume, float pitch) {
             if (!entity.isSilent())
-                play(entity.level(), null, entity.blockPosition(), volume, pitch);
+                play(entity.level, null, entity.blockPosition(), volume, pitch);
         }
 
         public void play(Level world, Player entity, Vec3i pos, float volume, float pitch) {
@@ -280,7 +281,7 @@ public class FabricClockworkSounds {
             for (int i = 0; i < wrappedEvents.size(); i++) {
                 ConfiguredSoundEvent wrapped = wrappedEvents.get(i);
                 ResourceLocation location = getIdOf(i);
-                SoundEvent event = SoundEvent.createVariableRangeEvent(location);
+                SoundEvent event = new SoundEvent(location);
                 compiledEvents.add(new CompiledSoundEvent(event, wrapped.volume(), wrapped.pitch()));
             }
         }
@@ -288,7 +289,7 @@ public class FabricClockworkSounds {
         @Override
         public void register() {
             for (CompiledSoundEvent event : compiledEvents) {
-                Registry.register(BuiltInRegistries.SOUND_EVENT, event.event.getLocation(), event.event);
+                Registry.register(Registry.SOUND_EVENT, event.event.getLocation(), event.event);
             }
         }
 
@@ -358,12 +359,12 @@ public class FabricClockworkSounds {
 
         @Override
         public void prepare() {
-            event = SoundEvent.createVariableRangeEvent(id);
+            event = new SoundEvent(id);
         }
 
         @Override
         public void register() {
-            Registry.register(BuiltInRegistries.SOUND_EVENT, event.getLocation(), event);
+            Registry.register(Registry.SOUND_EVENT, event.getLocation(), event);
         }
 
         @Override

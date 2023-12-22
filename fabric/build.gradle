@@ -73,7 +73,6 @@ dependencies {
     modImplementation("maven.modrinth:sodium:${sodium_version}")
     modRuntimeOnly("maven.modrinth:indium:${indium_version}")
 
-    modImplementation("com.terraformersmc:modmenu:${modmenu_version}")
 
     //modImplementation("net.minecraftforge:forgeconfigapiport-fabric:4.2.9") // TODO do we still need this?
     modImplementation("net.minecraftforge:forgeconfigapiport-fabric:${forge_config_api_port_version}")
