@@ -28,7 +28,7 @@ public class ClockworkPonderScenes {
     }
 
     private static void flap(SceneBuilder scene, SceneBuildingUtil util) {
-        scene.title("alt_meter", "Measure height");
+        scene.title("flap_bearing", "Steering planes");
         scene.configureBasePlate(0, 0, 5);
         scene.showBasePlate();
         scene.setSceneOffsetY(-1);
