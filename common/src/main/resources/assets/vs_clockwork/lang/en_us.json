@@ -98,5 +98,10 @@
   "vs_clockwork.ponder.resistor.text_2": "Speed will go down depending on redstone level",
   "vs_clockwork.ponder.resistor.text_3": "10.67 RPM",
   "vs_clockwork.ponder.resistor.text_4": "5.33 RPM",
-  "vs_clockwork.ponder.resistor.text_5": "0 RPM"
+  "vs_clockwork.ponder.resistor.text_5": "0 RPM",
+
+  "vs_clockwork.ponder.alt_meter.header": "Altitude Meter",
+  "vs_clockwork.ponder.alt_meter.text_1": "Configure Altitude Meter to desired height",
+  "vs_clockwork.ponder.alt_meter.text_2": "Redstone output will trigger at configured height",
+  "vs_clockwork.ponder.flap_bearing.header": "Flap Bearing"
 }

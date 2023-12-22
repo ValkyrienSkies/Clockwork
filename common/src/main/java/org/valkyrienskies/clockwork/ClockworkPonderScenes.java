@@ -17,10 +17,77 @@ public class ClockworkPonderScenes {
     static final PonderRegistrationHelper HELPER = new PonderRegistrationHelper(ClockworkMod.MOD_ID);
 
     public static void init() {
-        HELPER.forComponents(ClockworkItems.AURIC_DESIGNATOR)
+        HELPER.forComponents(ClockworkItems.AURIC_DESIGNATOR, ClockworkBlocks.PHYSICS_INFUSER)
                 .addStoryBoard("auric_designator", ClockworkPonderScenes::createShip);
         HELPER.forComponents(ClockworkBlocks.REDSTONE_RESISTOR)
                 .addStoryBoard("resistor", ClockworkPonderScenes::redstoneResistor);
+        HELPER.forComponents(ClockworkBlocks.ALT_METER)
+                .addStoryBoard("alt_meter", ClockworkPonderScenes::altMeter);
+        HELPER.forComponents(ClockworkBlocks.FLAP_BEARING, ClockworkBlocks.FLAP)
+                .addStoryBoard("flap_bearing", ClockworkPonderScenes::flap);
+    }
+
+    private static void flap(SceneBuilder scene, SceneBuildingUtil util) {
+        scene.title("alt_meter", "Measure height");
+        scene.configureBasePlate(0, 0, 5);
+        scene.showBasePlate();
+        scene.setSceneOffsetY(-1);
+        scene.idle(15);
+
+        Selection bearing = util.select.fromTo(2, 1, 2, 2, 1, 4);
+        Selection flap_ship = util.select.position(2, 1, 1);
+        ElementLink<WorldSectionElement> contraption =
+                scene.world.showIndependentSection(flap_ship, Direction.DOWN);
+        scene.world.moveSection(contraption, util.vector.of(0, 0, 0), 0);
+        Selection red1 = util.select.fromTo(0,1,2, 1,1,2);
+        Selection red2 = util.select.fromTo(4, 1, 2, 3, 1, 2);
+        scene.world.showSection(bearing, Direction.DOWN);
+        scene.idle(15);
+        //scene.world.showSection(flap_ship, Direction.DOWN);
+        scene.idle(45);
+        scene.world.showSection(red1, Direction.DOWN);
+        scene.world.showSection(red2, Direction.DOWN);
+        scene.idle(25);
+        scene.world.toggleRedstonePower(red1);
+        scene.world.rotateSection(contraption, 0.0,0.0,25, 17);
+        scene.idle(35);
+        scene.world.toggleRedstonePower(red1);
+        scene.world.toggleRedstonePower(red2);
+        scene.world.rotateSection(contraption, 0.0,0.0,-50, 17);
+        scene.idle(35);
+        scene.idle(37 * 4);
+    }
+
+    private static void altMeter(SceneBuilder scene, SceneBuildingUtil util) {
+        scene.title("alt_meter", "Measure height");
+        scene.configureBasePlate(0, 0, 5);
+        scene.showBasePlate();
+        scene.setSceneOffsetY(-1);
+        scene.idle(15);
+
+        Selection ship = util.select.fromTo(0, 1, 0, 4, 3, 4);
+
+        ElementLink<WorldSectionElement> contraption =
+                scene.world.showIndependentSection(ship, Direction.DOWN);
+        scene.world.moveSection(contraption, util.vector.of(0, 0, 0), 0);
+        scene.idle(15);
+        scene.overlay.showText(40)
+                .attachKeyFrame()
+                .text("Configure Altitude Meter to desired height")
+                .placeNearTarget()
+                .pointAt(util.vector.blockSurface(util.grid.at(0, 2, 0), Direction.WEST));
+        scene.idle(40);
+        scene.world.moveSection(contraption, util.vector.of(0, 2, 0), 20);
+        scene.idle(15);
+        scene.overlay.showText(40)
+                .attachKeyFrame()
+                .text("Redstone output will trigger at configured height")
+                .placeNearTarget()
+                .pointAt(util.vector.blockSurface(util.grid.at(0, 4, 0), Direction.WEST));
+        scene.world.toggleRedstonePower(ship);
+        scene.idle(40);
+
+        scene.idle(37 * 4);
     }
 
     private static void createShip(SceneBuilder scene, SceneBuildingUtil util) {
