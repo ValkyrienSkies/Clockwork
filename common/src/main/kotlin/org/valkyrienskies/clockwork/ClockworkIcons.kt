@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork
 
+import com.simibubi.create.foundation.gui.AllIcons
 import com.simibubi.create.foundation.gui.element.ScreenElement
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.resources.ResourceLocation
@@ -25,12 +26,18 @@ class ClockworkIcons(x: Int, y: Int) : ScreenElement {
         @JvmField
         val DESTROY: ClockworkIcons = next()
 
+        @JvmField
+        val NINETY: ClockworkIcons = next()
+
+        @JvmField
+        val FORTY_FIVE: ClockworkIcons = next()
+
         private fun next(): ClockworkIcons {
             return ClockworkIcons(++x, y)
         }
 
         private fun newRow(): ClockworkIcons {
-            return ClockworkIcons(x = 0, y = ++y)
+            return ClockworkIcons(x = 0, ++y)
         }
     }
 

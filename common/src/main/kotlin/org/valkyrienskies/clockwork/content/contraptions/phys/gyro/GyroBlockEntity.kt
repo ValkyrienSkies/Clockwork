@@ -5,6 +5,7 @@ import com.simibubi.create.foundation.utility.animation.LerpedFloat
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.util.Mth
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Vector3d
@@ -20,10 +21,21 @@ class GyroBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockSt
 
     var visualSpeed: LerpedFloat = LerpedFloat.linear()
     var angle: Float = 0f
+    var coreAngle = 0f
+    var previousCoreAngle = 0f
 
-    var targetVec3: Vector3dc = Vector3d(0.0, 1.0, 0.0)
+    var targetVec3: Vector3d = Vector3d(0.0, 1.0, 0.0)
     private val ship: ServerShip? get() = (level as ServerLevel).getShipObjectManagingPos(this.blockPos)
     private val control: GyroShipControl? get() = ship?.getAttachment(GyroShipControl::class.java)
+
+    fun getInterpolatedCoreAngle(partialTicks: Float): Float {
+        previousCoreAngle = coreAngle
+        coreAngle++
+        if (coreAngle == 360f) {
+            coreAngle = 0f
+        }
+        return Mth.lerp(partialTicks, coreAngle, coreAngle + 4f)
+    }
 
     override fun tick() {
         super.tick()
@@ -43,15 +55,17 @@ class GyroBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockSt
 
     public override fun write(compound: CompoundTag, clientPacket: Boolean) {
         super.write(compound, clientPacket)
-        val targetVec3 = targetVec3
-        compound.putVector3d("TargetVector", targetVec3)
+        compound.putDouble("X", targetVec3.x)
+        compound.putDouble("Y", targetVec3.y)
+        compound.putDouble("Z", targetVec3.z)
     }
 
     public override fun read(compound: CompoundTag, clientPacket: Boolean) {
-        super.read(compound, clientPacket)
-        if (compound.contains("TargetVector")) {
-            targetVec3 = compound.getVector3d("TargetVector")!!
+        if (compound.contains("X")) {
+            println("READ")
+            targetVec3 = Vector3d(compound.getDouble("X"), compound.getDouble("Y"), compound.getDouble("Z"))
         }
+        super.read(compound, clientPacket)
 
         if (clientPacket) {
             visualSpeed.chase(generatedSpeed.toDouble(), (1 / 64f).toDouble(), LerpedFloat.Chaser.EXP)

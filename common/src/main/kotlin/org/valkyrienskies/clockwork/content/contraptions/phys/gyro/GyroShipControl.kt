@@ -19,7 +19,7 @@ import kotlin.math.exp
 class GyroShipControl : ShipForcesInducer, ServerTickListener {
 
 
-    internal var targetVector: Vector3dc = Vector3d(0.0, 1.0, 0.0)
+    var targetVector: Vector3dc = Vector3d(0.0, 1.0, 0.0)
     private var physConsumption = 0f
     private var extraForceLinear = 0.0
     private var extraForceAngular = 0.0

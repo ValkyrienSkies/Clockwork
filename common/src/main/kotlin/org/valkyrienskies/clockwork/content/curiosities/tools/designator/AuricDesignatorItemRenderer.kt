@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.client.renderer.item
+package org.valkyrienskies.clockwork.content.curiosities.tools.designator
 
 import com.jozufozu.flywheel.core.PartialModel
 import com.jozufozu.flywheel.util.AnimationTickHolder

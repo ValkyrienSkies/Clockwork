@@ -6,7 +6,7 @@ import com.tterrag.registrate.util.entry.ItemEntry
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.Rarity
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
-import org.valkyrienskies.clockwork.client.renderer.item.AuricDesignatorItemRenderer
+import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.tools.bluper.BluperGlueItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem
