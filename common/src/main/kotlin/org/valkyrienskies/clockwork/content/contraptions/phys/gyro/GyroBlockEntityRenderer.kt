@@ -66,7 +66,7 @@ class GyroBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
         //wheel.translate(-0.45,0.0,-0.45)
 
         kineticRotationTransform(wheel, be, getRotationAxisOf(be), AngleHelper.rad(angle.toDouble()), light)
-        wheel.translate(0.0,0.6,0.0)
+        wheel.translate(0.0,1.0,0.0)
 
         wheel.renderInto(ms, vb)
     }

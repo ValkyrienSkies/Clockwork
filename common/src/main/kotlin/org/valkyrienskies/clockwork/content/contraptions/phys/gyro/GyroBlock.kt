@@ -67,7 +67,7 @@ class GyroBlock(properties: Properties) : KineticBlock(properties), IBE<GyroBloc
         pPos: BlockPos?,
         pContext: CollisionContext?
     ): VoxelShape {
-        return ClockworkShapes.ALT_METER
+        return ClockworkShapes.GYRO
     }
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {

@@ -62,7 +62,6 @@ class GyroBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockSt
 
     public override fun read(compound: CompoundTag, clientPacket: Boolean) {
         if (compound.contains("X")) {
-            println("READ")
             targetVec3 = Vector3d(compound.getDouble("X"), compound.getDouble("Y"), compound.getDouble("Z"))
         }
         super.read(compound, clientPacket)
