@@ -3,7 +3,6 @@ package org.valkyrienskies.clockwork
 import com.mojang.logging.LogUtils
 import com.simibubi.create.foundation.data.CreateRegistrate
 import com.simibubi.create.foundation.outliner.Outliner
-import dev.architectury.registry.CreativeTabRegistry
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.network.chat.Component
@@ -24,8 +23,6 @@ object ClockworkMod {
     val NETWORK_CHANNEL: ResourceLocation = asResource("main")
 
     val REGISTRATE: CreateRegistrate = CreateRegistrate.create(MOD_ID)
-    val BASE_CREATIVE_TAB: CreativeModeTab = CreativeTabRegistry
-        .create(ResourceLocation(MOD_ID, "clockwork")) { ClockworkItems.GRAVITRON.get().defaultInstance }
     val MIXIN_LOGGER = LoggerFactory.getLogger("ClockworkMixins")
     val LOGGER = LogUtils.getLogger()
 
