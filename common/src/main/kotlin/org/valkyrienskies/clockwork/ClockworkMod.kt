@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork
 import com.mojang.logging.LogUtils
 import com.simibubi.create.foundation.data.CreateRegistrate
 import com.simibubi.create.foundation.outliner.Outliner
+import dev.architectury.registry.CreativeTabRegistry
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.network.chat.Component
@@ -23,6 +24,8 @@ object ClockworkMod {
     val NETWORK_CHANNEL: ResourceLocation = asResource("main")
 
     val REGISTRATE: CreateRegistrate = CreateRegistrate.create(MOD_ID)
+    val BASE_CREATIVE_TAB: CreativeModeTab = CreativeTabRegistry
+        .create(ResourceLocation(MOD_ID, "clockwork")) { ClockworkItems.GRAVITRON.get().defaultInstance }
     val MIXIN_LOGGER = LoggerFactory.getLogger("ClockworkMixins")
     val LOGGER = LogUtils.getLogger()
 
@@ -57,28 +60,5 @@ object ClockworkMod {
         return ResourceLocation(MOD_ID, path)
     }
 
-    fun createCreativeTab(): CreativeModeTab {
-        return CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)
-            .title(Component.translatable("itemGroup.clockwork"))
-            .icon { ClockworkItems.GRAVITRON.asStack() }
-            .displayItems { _, output ->
-                output.accept(ClockworkItems.BLUUGUU)
-                output.accept(ClockworkItems.BLUPERGLUE)
-                output.accept(ClockworkItems.GRAVITRON)
 
-                output.accept(ClockworkItems.AURIC_DESIGNATOR)
-
-                output.accept(ClockworkBlocks.HEAT_PIPE.asStack())
-                output.accept(ClockworkBlocks.PHYSICS_INFUSER.asStack())
-                output.accept(ClockworkBlocks.GYRO.asStack())
-                output.accept(ClockworkBlocks.ALT_METER.asStack())
-                output.accept(ClockworkBlocks.FLAP.asStack())
-                output.accept(ClockworkBlocks.FLAP_BEARING.asStack())
-                output.accept(ClockworkBlocks.PHYS_BEARING.asStack())
-                output.accept(ClockworkBlocks.PROPELLER_BEARING.asStack())
-                output.accept(ClockworkBlocks.REDSTONE_RESISTOR.asStack())
-                output.accept(ClockworkBlocks.WING.asStack())
-            }
-            .build()
-    }
 }

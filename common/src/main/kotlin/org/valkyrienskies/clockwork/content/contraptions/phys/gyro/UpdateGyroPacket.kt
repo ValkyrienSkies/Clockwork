@@ -24,7 +24,7 @@ class UpdateGyroPacket : C2SCWPacket {
 
     override fun handle(context: ServerNetworkContext) {
         context.enqueueWork {
-            val be = context.sender.level().getBlockEntity(pos) as GyroBlockEntity?
+            val be = context.sender.level.getBlockEntity(pos) as GyroBlockEntity?
             if (be != null && be.canPlayerUse(context.sender)) {
                 be.targetVec3 = targetVec3
                 be.notifyUpdate()

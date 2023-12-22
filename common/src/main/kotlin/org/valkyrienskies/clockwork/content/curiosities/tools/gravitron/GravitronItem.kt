@@ -47,7 +47,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             return
         }
 
-        if (stack.`is`(ClockworkItems.GRAVITRON.asItem()) && !isSelected) {
+        if (stack.`is`(ClockworkItems.GRAVITRON.get().asItem()) && !isSelected) {
             if (stack.tag != null) {
                 if (stack.tag!!.contains("ShipId")) {
                     stack.tag!!.remove("ShipId")
@@ -186,7 +186,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
 
         fun grabssemble(level: Level, player: Player, blockPos: BlockPos, clickLocation: Vec3, grab: Boolean): Boolean {
             for (item in player.inventory.items) {
-                if (item.`is`(ClockworkItems.AURIC_DESIGNATOR.asItem())) {
+                if (item.`is`(ClockworkItems.AURIC_DESIGNATOR.get().asItem())) {
                     val auricItem: AuricDesignatorItem = item.item as AuricDesignatorItem
 
                     if (abstractAssemble(level, player, auricItem.selectedArea, blockPos, clickLocation, grab)) {
@@ -209,7 +209,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
 
         @JvmStatic
         fun leftClickItem(player: Player, state: GravitronState): Boolean {
-            val level = player.level()
+            val level = player.level
             if (state.grabbing && level is ServerLevel) {
                 val shipId = state.shipID
                 if (shipId != null) {

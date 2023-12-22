@@ -54,9 +54,9 @@ class BluperGlueSelectionHandler {
         if (AllKeys.ACTIVATE_TOOL.isPressed) {
             val pt = AnimationTickHolder.getPartialTicks()
             val targetVec = player.getEyePosition(pt).add(player.lookAngle.scale(range.toDouble()))
-            selectedPos = BlockPos.containing(targetVec)
+            selectedPos = BlockPos(targetVec)
         } else {
-            val trace = RaycastHelper.rayTraceRange(player.level(), player, 25.0)
+            val trace = RaycastHelper.rayTraceRange(player.level, player, 25.0)
             selectedPos = if (trace != null && trace.type == HitResult.Type.BLOCK) {
                 trace.blockPos
             } else null

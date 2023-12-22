@@ -3,11 +3,12 @@ package org.valkyrienskies.clockwork
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import net.minecraft.core.Registry
 import net.minecraft.core.Vec3i
-import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.data.CachedOutput
 import net.minecraft.data.DataGenerator
 import net.minecraft.data.DataProvider
+import net.minecraft.data.HashCache
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundSource
@@ -84,7 +85,7 @@ object ClockworkSounds {
         .attenuationDistance(16)
         .build()
     private val sounds: DeferredRegister<SoundEvent> =
-        DeferredRegister.create(BuiltInRegistries.SOUND_EVENT, ClockworkMod.MOD_ID)
+        DeferredRegister.create(Registry.SOUND_EVENT, ClockworkMod.MOD_ID)
 
     private fun create(name: String): SoundEntryBuilder {
         return create(ClockworkMod.asResource(name))
@@ -114,8 +115,10 @@ object ClockworkSounds {
     }
 
     class SoundEntryProvider(private val generator: DataGenerator) : DataProvider {
-        override fun run(output: CachedOutput): CompletableFuture<*> {
-            TODO("Not yet implemented")
+        @Throws(IOException::class)
+
+        override fun run(output: CachedOutput) {
+            generate(generator.outputFolder, output)
         }
 
 
@@ -240,7 +243,7 @@ object ClockworkSounds {
 
         @JvmOverloads
         fun playFrom(entity: Entity, volume: Float = 1f, pitch: Float = 1f) {
-            if (!entity.isSilent) play(entity.level(), null, entity.blockPosition(), volume, pitch)
+            if (!entity.isSilent) play(entity.level, null, entity.blockPosition(), volume, pitch)
         }
 
         @JvmOverloads
@@ -279,7 +282,7 @@ object ClockworkSounds {
             for (i in wrappedEvents.indices) {
                 val (_, volume, pitch) = wrappedEvents[i]
                 val location = getIdOf(i)
-                val event = SoundEvent.createVariableRangeEvent(location)
+                val event = SoundEvent(location)
                 compiledEvents.add(
                     CompiledSoundEvent(
                         event,
@@ -372,7 +375,7 @@ object ClockworkSounds {
             sounds.register(
                 id.path,
                 Supplier {
-                    mainEvent = SoundEvent.createVariableRangeEvent(id)
+                    mainEvent = SoundEvent(id)
                     return@Supplier mainEvent!!
                 })
         }

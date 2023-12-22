@@ -19,7 +19,6 @@ import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.level.material.MapColor
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.client.render.WingBlockItemRenderer
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock
@@ -52,6 +51,9 @@ object ClockworkBlocks {
             .transform(TagGen.axeOrPickaxe())
             .transform(BuilderTransformers.bearing("propeller", "gearbox"))
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
             .register()
 
     @JvmField
@@ -70,6 +72,7 @@ object ClockworkBlocks {
             }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .model(AssetLookup.customBlockItemModel("phys_bearing"))
             .build()
             .register()
@@ -83,6 +86,9 @@ object ClockworkBlocks {
             .transform(flapbearing())
             .transform(BlockStressDefaults.setImpact(4.0))
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
             .register()
 
     @JvmField
@@ -122,6 +128,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .model(AssetLookup.customBlockItemModel("alt_meter"))
             .build()
             .register()
@@ -132,12 +139,13 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.stone() }
         .properties {
-            it.noOcclusion().mapColor(MapColor.TERRACOTTA_YELLOW)
+            it.noOcclusion()
         }
         .transform(TagGen.axeOrPickaxe())
         .addLayer { Supplier { RenderType.cutout() } }
         .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
         .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .model(AssetLookup.customBlockItemModel("gyro"))
         .build()
         .register()
@@ -159,6 +167,7 @@ object ClockworkBlocks {
             )
             .addLayer { Supplier { RenderType.cutoutMipped() } }
             .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .transform(
                 ModelGen.customItemModel<BlockItem, BlockBuilder<RedstoneResistorBlock, CreateRegistrate>>(
                     "redstone_resistor",
@@ -175,6 +184,7 @@ object ClockworkBlocks {
             .transform(TagGen.axeOrPickaxe())
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .transform(ModelGen.customItemModel("command_seat", "item"))
             .register()
 
@@ -188,6 +198,7 @@ object ClockworkBlocks {
         .item { block: WingBlock?, properties: Item.Properties? ->
             DyedWingBlockItem(block, properties)
         }
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .transform(ClockworkRegistrate.customRenderedBlockItem<DyedWingBlockItem, BlockBuilder<WingBlock, CreateRegistrate>> { Supplier { WingBlockItemRenderer() } })
         .register()
 
@@ -204,6 +215,7 @@ object ClockworkBlocks {
                 properties
             )
         }
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .transform(ClockworkRegistrate.customRenderedBlockItem { Supplier { WingBlockItemRenderer() } })
         .register()
 
@@ -219,6 +231,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutoutMipped() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .transform(customItemModel("physics_infuser", "item"))
             .register()
 
@@ -239,6 +252,7 @@ object ClockworkBlocks {
             }
         })
         .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .transform(customItemModel())
         .register()
 

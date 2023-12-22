@@ -289,7 +289,7 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
 
         @JvmStatic
         fun onAttack(player: Player) {
-            val hitResult = getPlayerPOVHitResult(player.level(), player, ClipContext.Fluid.NONE)
+            val hitResult = getPlayerPOVHitResult(player.level, player, ClipContext.Fluid.NONE)
             val pos: Vector3ic = hitResult.blockPos.toJOML()
 
             if (player.getItemInHand(InteractionHand.MAIN_HAND).item is AuricDesignatorItem) {
@@ -313,7 +313,7 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
                 val hitCluster: Set<AABBic> = item.selectedArea.getClusterContaining(pos) ?: return
                 val pitch = Mth.randomBetween(item.soundRandom, 0.8f, 1.2f)
                 item.selectedArea.dumpCluster(hitCluster)
-                player.level().playSound(
+                player.level.playSound(
                     null,
                     player,
                     ClockworkSounds.DESIGNATOR_DUMP_CLUSTER.mainEvent!!,

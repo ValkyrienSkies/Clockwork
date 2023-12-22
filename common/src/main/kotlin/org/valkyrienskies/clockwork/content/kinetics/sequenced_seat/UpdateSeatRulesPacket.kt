@@ -36,7 +36,7 @@ class UpdateSeatRulesPacket : C2SCWPacket {
 
     override fun handle(context: ServerNetworkContext) {
         context.enqueueWork {
-            val be = context.sender.level().getBlockEntity(pos) as SequencedSeatBlockEntity?
+            val be = context.sender.level.getBlockEntity(pos) as SequencedSeatBlockEntity?
             if (be != null && be.canPlayerUse(context.sender)) {
                 be.updateRules(rulesForward, rulesBackward, rulesLeft, rulesRight)
             }

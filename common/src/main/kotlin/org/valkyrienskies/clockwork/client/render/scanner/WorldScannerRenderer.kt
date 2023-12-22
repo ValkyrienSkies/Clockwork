@@ -7,12 +7,13 @@ import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.platform.TextureUtil
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.*
+import com.mojang.math.Matrix4f
+import com.mojang.math.Vector3f
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.ShaderInstance
 import net.minecraft.world.phys.Vec3
-import org.joml.Matrix4f
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL30
 import org.valkyrienskies.clockwork.ClockworkShaders
@@ -100,10 +101,10 @@ class WorldScannerRenderer : ScannerRenderer {
             radius = 0f
         }
         shader!!.setSampler("depthTex", depthCopyDepthBuffer)
-        shader.safeGetUniform("center").set((currentCenter!!.toVector3f()))
+        shader.safeGetUniform("center").set((Vector3f( currentCenter!!)))
         shader.safeGetUniform("invViewMat").set(invertedViewMatrix)
         shader.safeGetUniform("invProjMat").set(invertedProjectionMatrix)
-        shader.safeGetUniform("pos").set((cameraPosition.toVector3f()))
+        shader.safeGetUniform("pos").set((Vector3f(cameraPosition)))
         shader.safeGetUniform("radius").set(radius)
     }
 
@@ -117,10 +118,14 @@ class WorldScannerRenderer : ScannerRenderer {
         RenderSystem.setShader(ClockworkShaders::scan_effect)
         RenderSystem.backupProjectionMatrix()
         RenderSystem.setProjectionMatrix(
-            Matrix4f().setOrtho(
+            Matrix4f.orthographic(
                 0f,
-                width.toFloat(), 0f, height.toFloat(), 1f, 100f
-            ), VertexSorting.ORTHOGRAPHIC_Z
+                width.toFloat(),
+                0f,
+                height.toFloat(),
+                1f,
+                100f
+            )
         )
         val tesselator = Tesselator.getInstance()
         val buffer = tesselator.builder

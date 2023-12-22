@@ -3,7 +3,6 @@ package org.valkyrienskies.clockwork.content.contraptions.phys.gyro
 import com.jozufozu.flywheel.util.AnimationTickHolder
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
-import com.mojang.math.Axis
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
 import com.simibubi.create.content.kinetics.flywheel.FlywheelRenderer
 import com.simibubi.create.foundation.render.CachedBufferer

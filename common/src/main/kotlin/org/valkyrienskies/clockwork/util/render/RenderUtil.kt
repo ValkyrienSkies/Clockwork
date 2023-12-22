@@ -2,7 +2,7 @@ package org.valkyrienskies.clockwork.util.render
 
 import com.jozufozu.flywheel.core.PartialModel
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.math.Axis
+import com.mojang.math.Vector3f
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
@@ -10,7 +10,6 @@ import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.core.Direction
 import net.minecraft.world.level.block.state.BlockState
-import org.joml.Vector3f
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
@@ -26,9 +25,9 @@ object RenderUtil {
      * @param data Data for middle and outer cube's offset and rotation
      */
     fun renderCubeMatrix(matrices: PoseStack, renderer: PartialItemModelRenderer, innerData: TransformData, data: TransformData, light: Int) {
-        renderAndTransform(matrices, ClockworkPartials.CRYSTAL_INNER, RenderType.endPortal(), renderer, innerData.offset.add(Vector3f(0f, -4.5f / 16.0f, 0f)), innerData.rotation, light)
-        renderAndTransform(matrices, ClockworkPartials.CRYSTAL, ClockworkRenderTypes.CRYSTAL.apply(CRYSTAL_MATRIX), renderer, data.offset.add(Vector3f(0f, -4.5f / 16.0f, 0f)), data.rotation, light)
-        renderAndTransform(matrices, ClockworkPartials.CRYSTAL_OUTER, RenderType.entityTranslucent(PURPLE_HUE), renderer, data.offset.add(Vector3f(0f, -4.5f / 16.0f, 0f)), data.rotation, light)
+        renderAndTransform(matrices, ClockworkPartials.CRYSTAL_INNER, RenderType.endPortal(), renderer, innerData.offset.add(org.joml.Vector3f(0f, -4.5f / 16.0f, 0f)), innerData.rotation, light)
+        renderAndTransform(matrices, ClockworkPartials.CRYSTAL, ClockworkRenderTypes.CRYSTAL.apply(CRYSTAL_MATRIX), renderer, data.offset.add(org.joml.Vector3f(0f, -4.5f / 16.0f, 0f)), data.rotation, light)
+        renderAndTransform(matrices, ClockworkPartials.CRYSTAL_OUTER, RenderType.entityTranslucent(PURPLE_HUE), renderer, data.offset.add(org.joml.Vector3f(0f, -4.5f / 16.0f, 0f)), data.rotation, light)
     }
 
     /**
@@ -36,7 +35,7 @@ object RenderUtil {
      * @see RenderUtil.renderCubeMatrix
      * Transforms and renders a model
      */
-    fun renderAndTransform(matrices: PoseStack, model: PartialModel, renderType: RenderType, renderer: PartialItemModelRenderer, offset: Vector3f, rotationVec: Vector3f, light: Int) {
+    fun renderAndTransform(matrices: PoseStack, model: PartialModel, renderType: RenderType, renderer: PartialItemModelRenderer, offset: org.joml.Vector3f, rotationVec: org.joml.Vector3f, light: Int) {
         matrices.pushPose()
         matrices.translate(0.25,0.25,0.25)
         matrices.pushPose()
@@ -45,11 +44,11 @@ object RenderUtil {
         matrices.scale(scale, scale, scale)
         matrices.translate(-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)))
 
-        matrices.translate(-offset.x, -offset.y, -offset.z)
-        matrices.mulPose(Axis.YP.rotationDegrees(rotationVec.y))
-        matrices.mulPose(Axis.XP.rotationDegrees(rotationVec.x))
-        matrices.mulPose(Axis.ZP.rotationDegrees(rotationVec.z))
-        matrices.translate(offset.x, offset.y, offset.z)
+        matrices.translate(-offset.x().toDouble(), -offset.y().toDouble(), -offset.z().toDouble())
+        matrices.mulPose(Vector3f.YP.rotationDegrees(rotationVec.y()))
+        matrices.mulPose(Vector3f.XP.rotationDegrees(rotationVec.x()))
+        matrices.mulPose(Vector3f.ZP.rotationDegrees(rotationVec.z()))
+        matrices.translate(offset.x().toDouble(), offset.y().toDouble(), offset.z().toDouble())
         renderer.render(model.get(), renderType, light)
 
 
@@ -83,7 +82,7 @@ object RenderUtil {
      * @see RenderUtil.renderCubeMatrix
      * Transforms and renders a model
      */
-    private fun renderAndTransform(buffer: SuperByteBuffer, scale: Float, coreOffset: Vector3f, coreRotation: Vector3f): SuperByteBuffer {
+    private fun renderAndTransform(buffer: SuperByteBuffer, scale: Float, coreOffset: org.joml.Vector3f, coreRotation: org.joml.Vector3f): SuperByteBuffer {
         //Scale
         buffer.scale(scale)
         buffer.translate(-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)))

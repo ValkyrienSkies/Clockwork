@@ -7,7 +7,7 @@ import com.simibubi.create.foundation.item.render.PartialItemModelRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
-import net.minecraft.world.item.ItemDisplayContext
+import net.minecraft.client.renderer.block.model.ItemTransforms
 import net.minecraft.world.item.ItemStack
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkPartials.WING_FRAME_ITEM
@@ -19,7 +19,7 @@ class WingBlockItemRenderer : CustomRenderedItemModelRenderer() {
         stack: ItemStack,
         model: CustomRenderedItemModel?,
         renderer: PartialItemModelRenderer?,
-        transformType: ItemDisplayContext,
+        transformType: ItemTransforms.TransformType,
         ms: PoseStack,
         buffer: MultiBufferSource,
         light: Int,

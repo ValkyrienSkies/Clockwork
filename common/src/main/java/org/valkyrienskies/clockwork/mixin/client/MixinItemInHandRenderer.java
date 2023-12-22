@@ -28,7 +28,7 @@ public class MixinItemInHandRenderer {
     private void clockwork$gravitonCancelNbtUpdateAnim(CallbackInfo ci) {
         ItemStack newMainStack = minecraft.player.getMainHandItem();
         if (mainHandItem.getItem() == newMainStack.getItem()) {
-            if (newMainStack.is(ClockworkItems.GRAVITRON.asItem())) {
+            if (newMainStack.is(ClockworkItems.GRAVITRON.get().asItem())) {
                 mainHandItem = newMainStack;
             }
         }
@@ -36,7 +36,7 @@ public class MixinItemInHandRenderer {
         ItemStack newOffStack = minecraft.player.getOffhandItem();
 
         if (offHandItem.getItem() == newOffStack.getItem()) {
-            if (newOffStack.is(ClockworkItems.GRAVITRON.asItem())) {
+            if (newOffStack.is(ClockworkItems.GRAVITRON.get().asItem())) {
                 offHandItem = newOffStack;
             }
         }

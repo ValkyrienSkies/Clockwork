@@ -9,15 +9,11 @@ import com.tterrag.registrate.providers.DataGenContext
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider
 import com.tterrag.registrate.util.nullness.NonNullBiConsumer
 import com.tterrag.registrate.util.nullness.NonnullType
-import io.github.fabricators_of_create.porting_lib.models.generators.ConfiguredModel
-import io.github.fabricators_of_create.porting_lib.models.generators.ModelBuilder
-import io.github.fabricators_of_create.porting_lib.models.generators.ModelFile
-import io.github.fabricators_of_create.porting_lib.models.generators.block.BlockModelBuilder
-import io.github.fabricators_of_create.porting_lib.models.generators.block.MultiPartBlockStateBuilder
 import net.minecraft.core.Direction
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraftforge.client.model.generators.*
 import org.apache.commons.lang3.tuple.Pair
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlock
 import java.util.*

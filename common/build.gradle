@@ -34,7 +34,7 @@ dependencies {
     modCompileOnly("net.fabricmc.fabric-api:fabric-api:${fabric_api_version}")
 
     // VS2
-    modApi("org.valkyrienskies:valkyrienskies-1201-${rootProject.vs2_version}")
+    modApi("org.valkyrienskies:valkyrienskies-119-${rootProject.vs2_version}")
     implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") {
         exclude group: 'org.joml', module: ''
     }
@@ -45,9 +45,8 @@ dependencies {
         exclude group: 'org.joml', module: ''
     }
 
-    compileOnly("org.joml:joml-primitives:1.10.0") {
-        exclude group: 'org.joml', module: 'joml'
-    }
+    implementation("org.joml:joml-primitives:1.10.0")
+    implementation("org.joml:joml:1.10.4")
 
     modCompileOnly("maven.modrinth:create-big-cannons:${createbigcannons_version}") {
         exclude group: 'org.joml', module: ''

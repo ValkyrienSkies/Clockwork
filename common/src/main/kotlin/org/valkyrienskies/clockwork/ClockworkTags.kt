@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork
 
 import net.minecraft.core.Registry
-import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.tags.TagKey
 import net.minecraft.world.level.block.Block
@@ -51,7 +50,7 @@ object ClockworkTags {
                 namespace.id,
                 path ?: ClockworkLang.asId(name)
             )
-            tag = optionalTag(BuiltInRegistries.BLOCK, id)
+            tag = optionalTag(Registry.BLOCK, id)
             this.alwaysDatagen = alwaysDatagen
         }
 

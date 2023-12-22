@@ -1,20 +1,14 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.gyro
 
+import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.content.redstone.thresholdSwitch.ThresholdSwitchScreen
 import com.simibubi.create.foundation.gui.AbstractSimiScreen
 import com.simibubi.create.foundation.gui.AllIcons
 import com.simibubi.create.foundation.gui.widget.AbstractSimiWidget
 import com.simibubi.create.foundation.gui.widget.IconButton
-import com.simibubi.create.foundation.gui.widget.Indicator
-import com.simibubi.create.foundation.utility.Components
-import com.simibubi.create.foundation.utility.Lang
-import net.minecraft.ChatFormatting
-import net.minecraft.client.gui.GuiGraphics
-import net.minecraft.network.chat.Component
 import net.minecraft.util.Mth
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
-import org.valkyrienskies.clockwork.ClockworkIconTextures
 import org.valkyrienskies.clockwork.ClockworkIcons
 import org.valkyrienskies.clockwork.ClockworkPackets
 
@@ -92,12 +86,12 @@ class GyroScreen(private val be: GyroBlockEntity) : AbstractSimiScreen() {
         be.notifyUpdate()
     }
 
-    override fun renderWindow(graphics: GuiGraphics?, mouseX: Int, mouseY: Int, partialTicks: Float) {
+    override fun renderWindow(poseStack: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
         val x = guiLeft
         val y = guiTop
 
-        background.render(graphics!!, x, y)
-        graphics.drawCenteredString(font, title, x + (background.width - 8) / 2, y + 3, 0xFFFFFF)
+        background.render(poseStack, x, y)
+        drawCenteredString(poseStack, font, title, x + (background.width - 8) / 2, y + 3, 0xFFFFFF)
 
     }
 }

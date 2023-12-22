@@ -12,8 +12,6 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
-import org.valkyrienskies.mod.util.getVector3d
-import org.valkyrienskies.mod.util.putVector3d
 
 
 class GyroBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
@@ -24,7 +22,7 @@ class GyroBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockSt
     var coreAngle = 0f
     var previousCoreAngle = 0f
 
-    var targetVec3: Vector3d = Vector3d(0.0, 1.0, 0.0)
+    var targetVec3: Vector3dc = Vector3d(0.0, 1.0, 0.0)
     private val ship: ServerShip? get() = (level as ServerLevel).getShipObjectManagingPos(this.blockPos)
     private val control: GyroShipControl? get() = ship?.getAttachment(GyroShipControl::class.java)
 
@@ -55,9 +53,9 @@ class GyroBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockSt
 
     public override fun write(compound: CompoundTag, clientPacket: Boolean) {
         super.write(compound, clientPacket)
-        compound.putDouble("X", targetVec3.x)
-        compound.putDouble("Y", targetVec3.y)
-        compound.putDouble("Z", targetVec3.z)
+        compound.putDouble("X", targetVec3.x())
+        compound.putDouble("Y", targetVec3.y())
+        compound.putDouble("Z", targetVec3.z())
     }
 
     public override fun read(compound: CompoundTag, clientPacket: Boolean) {

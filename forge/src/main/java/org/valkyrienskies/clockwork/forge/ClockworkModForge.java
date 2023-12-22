@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.forge;
 
 import com.simibubi.create.AllParticleTypes;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraftforge.api.distmarker.Dist;
@@ -23,7 +22,6 @@ import static org.valkyrienskies.clockwork.ClockworkMod.MOD_ID;
 @Mod(MOD_ID)
 public class ClockworkModForge {
 
-    final DeferredRegister<CreativeModeTab> TAB_REGISTER = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MOD_ID);
     final DeferredRegister<EntityDataSerializer<?>> DATA_SERIALIZER_REGISTER = DeferredRegister.create(ForgeRegistries.Keys.ENTITY_DATA_SERIALIZERS, MOD_ID);
 
     public static final ForgeGravitronHandler GRAVITRON_HANDLER = new ForgeGravitronHandler();
@@ -60,10 +58,8 @@ public class ClockworkModForge {
             ClockworkShaders.INSTANCE.init();
         });
 
-        TAB_REGISTER.register("general", ClockworkMod.INSTANCE::createCreativeTab);
         DATA_SERIALIZER_REGISTER.register("area", () -> ClockworkEntityDataSerializers.AREA_TOOLKIT_SERIALIZER);
 
         DATA_SERIALIZER_REGISTER.register(modEventBus);
-        TAB_REGISTER.register(modEventBus);
     }
 }

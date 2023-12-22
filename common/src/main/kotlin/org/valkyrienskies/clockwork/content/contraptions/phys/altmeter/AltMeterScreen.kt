@@ -1,11 +1,11 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.altmeter
 
+import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.gui.AbstractSimiScreen
 import com.simibubi.create.foundation.gui.AllIcons
 import com.simibubi.create.foundation.gui.widget.AbstractSimiWidget
 import com.simibubi.create.foundation.gui.widget.IconButton
 import com.simibubi.create.foundation.gui.widget.ScrollInput
-import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.network.chat.Component
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
 import org.valkyrienskies.clockwork.ClockworkPackets
@@ -49,17 +49,17 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
         ClockworkPackets.sendToServer(UpdateAltMeterPacket(triggerHeight.toDouble(), be.blockPos))
     }
 
-    override fun renderWindow(graphics: GuiGraphics?, mouseX: Int, mouseY: Int, partialTicks: Float) {
+    override fun renderWindow(poseStack: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
         val x = guiLeft
         val y = guiTop
 
-        background.render(graphics!!, x, y)
-        graphics.drawCenteredString(font, title, x + (background.width - 8) / 2, y + 3, 0xFFFFFF)
-        drawRuleList(graphics, x, y, partialTicks)
+        background.render(poseStack, x, y)
+        drawCenteredString(poseStack, font, title, x + (background.width - 8) / 2, y + 3, 0xFFFFFF)
+        drawRuleList(poseStack, x, y, partialTicks)
     }
 
 
-    private fun drawRuleList(guiGraphics: GuiGraphics, x: Int, y: Int, partialTicks: Float) {
+    private fun drawRuleList(poseStack: PoseStack, x: Int, y: Int, partialTicks: Float) {
         val ruleX = x + 38 - 7
         val ruleY = y + 18 + 2
 
@@ -68,17 +68,17 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
         val heightStr = triggerHeight.toString()
         val valueComponent: Component = Component.literal("$heightStr m")
 
-        guiGraphics.drawCenteredString(
+        drawCenteredString(poseStack,
             font,
             valueComponent,
             ruleX + 62 - 12 + INPUT_VALUE_WIDTH / 2,
             ruleY + (INPUT_FIELDS_HEIGHT - font.lineHeight) / 2 + 1,
             0xFFFFFF
         )
-        icon.render(guiGraphics, ruleX + 1, ruleY + 1)
+        icon.render(poseStack, ruleX + 1, ruleY + 1)
 
         val nameComponent: Component = TRIGGER_HEIGHT_COMPONENT
-        guiGraphics.drawString(
+        drawString(poseStack,
             font,
             nameComponent,
             ruleX + 16,

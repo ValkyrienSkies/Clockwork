@@ -1,5 +1,4 @@
 package org.valkyrienskies.clockwork.forge.content.contraptions.sticker;
-
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
 import com.simibubi.create.content.contraptions.ControlledContraptionEntity;
 import com.simibubi.create.content.contraptions.StructureTransform;
@@ -31,7 +30,6 @@ import org.joml.Quaterniondc;
 import org.joml.Vector3d;
 import org.spongepowered.asm.mixin.Unique;
 import org.valkyrienskies.clockwork.mixin.accessors.IMixinPistonContraption;
-import org.valkyrienskies.clockwork.util.ClockworkUtils;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.core.apigame.constraints.VSAttachmentOrientationConstraint;
 import org.valkyrienskies.core.apigame.world.ServerShipWorldCore;
@@ -60,16 +58,14 @@ public class StickerMovementBehaviour implements MovementBehaviour {
 
     @Override
     public void tick(MovementContext context) {
-        if (context.world == null || context.world.isClientSide) {
+        if (context.world == null || context.world.isClientSide)
             return;
-        }
 
         //BlockEntity tileEntity = context.contraption.presentTileEntities.get(context.localPos);
         CompoundTag extraData = context.blockEntityData.getCompound("ForgeData");
         if (!extraData.isEmpty() && extraData.contains("ShipStickerConstraint")) {
-            if (!isStopped) {
+            if (!isStopped)
                 doUpdateConstraint(context, null, null);
-            }
         } else {
             if (context.state.getValue(BlockStateProperties.EXTENDED)) {
                 context.blockEntityData.put("ForgeData", new CompoundTag());
@@ -84,17 +80,14 @@ public class StickerMovementBehaviour implements MovementBehaviour {
     Direction.Axis getFacingAxis(MovementContext context) {
         Direction.Axis axis = null;
 
-        if (context.contraption instanceof PistonContraption pistonContraption) {
+        if (context.contraption instanceof PistonContraption pistonContraption)
             axis = ((IMixinPistonContraption) pistonContraption).getOrientation().getAxis();
-        }
 
-        if (context.contraption instanceof PulleyContraption pulleyContraption) {
+        if (context.contraption instanceof PulleyContraption pulleyContraption)
             axis = Direction.Axis.Y;
-        }
 
-        if (context.contraption instanceof GantryContraption gantryContraption) {
+        if (context.contraption instanceof GantryContraption gantryContraption)
             axis = gantryContraption.getFacing().getAxis();
-        }
 
         /*
         if(context.contraption instanceof BearingContraption bearingContraption)
@@ -146,24 +139,22 @@ public class StickerMovementBehaviour implements MovementBehaviour {
         CompoundTag extraData = context.blockEntityData.getCompound("ForgeData");
 
         double distance = DISTANCE_BUFFER;
-        if (extraData.contains("ShipStickerDistance")) {
+        if (extraData.contains("ShipStickerDistance"))
             distance = extraData.getDouble("ShipStickerDistance");
-        }
 
 
         Direction myDir = context.state.getValue(DirectionalBlock.FACING);
-        Vec3 myDirNormal = Vec3.atLowerCornerOf(myDir.getNormal()).scale(.5);//toMinecraft(toJOML(Vec3.atLowerCornerOf(myDir.getNormal())).mul(.5));
+        Vec3 myDirNormal = toMinecraft(toJOML(Vec3.atLowerCornerOf(myDir.getNormal())).mul(.5));
 
         if (!getAssembleNextTick(context)) {
-            if (context.state.getValue(BlockStateProperties.POWERED)) {
+            if (context.state.getValue(BlockStateProperties.POWERED))
                 extraData.putBoolean("ShipStickerAlreadyPowered", true);
-            }
             StructureTransform structureTransform = ((MixinAbstractContraptionEntityDuck) context.contraption.entity).getStructureTransform();
 
             position = toJOML(Vec3.atCenterOf(structureTransform.apply(context.localPos)).add(structureTransform.applyWithoutOffsetUncentered(myDirNormal)));
 
             if (distance < DISTANCE_BUFFER) {
-                position.add(toJOML(structureTransform.applyWithoutOffsetUncentered(Vec3.atLowerCornerOf(myDir.getNormal()).scale(distance / -1 + DISTANCE_BUFFER))));
+                position.add(toJOML(structureTransform.applyWithoutOffsetUncentered(toMinecraft(toJOML(Vec3.atLowerCornerOf(myDir.getNormal())).mul(distance / -1 + DISTANCE_BUFFER)))));
             }
 
             extraData.put("ShipStickerShip1Vec", writeVector3D(position));
@@ -187,9 +178,8 @@ public class StickerMovementBehaviour implements MovementBehaviour {
 
     static void doUpdateConstraint(MovementContext context, @Nullable Vector3d ship1Pos, @Nullable Quaterniond ship1Rot) {
 
-        if (context.world.isClientSide) {
+        if (context.world.isClientSide)
             return;
-        }
 
         Ship ship1 = null;
         Ship ship2 = null;
@@ -202,17 +192,14 @@ public class StickerMovementBehaviour implements MovementBehaviour {
             Vector3d ship2Pos = null;
             Quaterniond ship2Rot = null;
 
-            if (compoundTag.contains("ShipStickerDistance")) {
+            if (compoundTag.contains("ShipStickerDistance"))
                 distance = compoundTag.getDouble("ShipStickerDistance");
-            }
 
-            if (compoundTag.contains("ShipStickerShip1Id")) {
+            if (compoundTag.contains("ShipStickerShip1Id"))
                 ship1 = VSGameUtilsKt.getShipObjectWorld(context.world).getAllShips().getById(compoundTag.getLong("ShipStickerShip1Id"));
-            }
 
-            if (compoundTag.contains("ShipStickerShip2Id")) {
+            if (compoundTag.contains("ShipStickerShip2Id"))
                 ship2 = VSGameUtilsKt.getShipObjectWorld(context.world).getAllShips().getById(compoundTag.getLong("ShipStickerShip2Id"));
-            }
             if (compoundTag.contains("ShipStickerShip2Vec")) {
                 ship2Pos = new Vector3d(readVector3D(compoundTag.getCompound("ShipStickerShip2Vec")));
             }
@@ -220,17 +207,15 @@ public class StickerMovementBehaviour implements MovementBehaviour {
                 ship2Rot = new Quaterniond(readQuatd(compoundTag.getCompound("ShipStickerShip2Quat")));
             }
 
-            if (ship1 == null && ship2 == null) {
+            if (ship1 == null && ship2 == null)
                 return;
-            }
 
             Direction myDir = context.state.getValue(DirectionalBlock.FACING);
             Vec3 myDirNormal;
-            if (ship1 != null && ship2 != null) {
-                myDirNormal = Vec3.atLowerCornerOf(myDir.getNormal()).scale(.5);
-            } else {
-                myDirNormal = Vec3.atLowerCornerOf(myDir.getNormal()).scale(.5);
-            }
+            if (ship1 != null && ship2 != null)
+                myDirNormal = toMinecraft(toJOML(Vec3.atLowerCornerOf(myDir.getNormal())).mul(.5));
+            else
+                myDirNormal = toMinecraft(toJOML(Vec3.atLowerCornerOf(myDir.getNormal())).mul(.5));
 
 
             if (ship1Pos == null) {
@@ -256,7 +241,7 @@ public class StickerMovementBehaviour implements MovementBehaviour {
                 if (compoundTag.contains("ShipStickerShip1Quat")) {
                     ship1Rot = new Quaterniond(readQuatd(compoundTag.getCompound("ShipStickerShip1Quat")));
                     AbstractContraptionEntity.ContraptionRotationState rotState = context.contraption.entity.getRotationState();
-                    ship1Rot = new Quaterniond().setFromNormalized((rotState.asMatrix().getAsMatrix4f())).mul(ship1Rot); //toJOML(new Vec3(1, 1, 1)).rotationTo(toJOML(rotatedDir), new Quaterniond());
+                    ship1Rot = new Quaterniond().setFromNormalized(toJOML(rotState.asMatrix().getAsMatrix4f())).mul(ship1Rot); //toJOML(new Vec3(1, 1, 1)).rotationTo(toJOML(rotatedDir), new Quaterniond());
                 }
             }
 
@@ -272,50 +257,42 @@ public class StickerMovementBehaviour implements MovementBehaviour {
     @Unique
     private static VSAttachmentOrientationConstraint makeConstraint(Vector3d ship1ConstraintPos, Vector3d ship2ConstraintPos, Ship ship1, Ship ship2, ServerLevel level, @Nullable Quaterniond ship1Rot, @Nullable Quaterniond ship2Rot, @Nullable Vector3d ship2Pos) {
 
-        if (ship1 == null && ship2 == null) {
+        if (ship1 == null && ship2 == null)
             return null;
-        }
 
 
         long ship1Id;
         long ship2Id;
         long groundId = VSGameUtilsKt.getShipObjectWorld(level).getDimensionToGroundBodyIdImmutable().get(VSGameUtilsKt.getDimensionId(level));
 
-        if (ship1Rot == null && ship1 == null) {
+        if (ship1Rot == null && ship1 == null)
             ship1Rot = new Quaterniond();
-        }
-        if (ship2Rot == null && ship2 == null) {
+        if (ship2Rot == null && ship2 == null)
             ship2Rot = new Quaterniond();
-        }
 
         double mass = 100;
 
         if (ship1 != null) {
             ship1.getShipToWorld().transformPosition(ship2ConstraintPos);
             ship1Id = ship1.getId();
-            if (ship1Rot == null) {
+            if (ship1Rot == null)
                 ship1Rot = (Quaterniond) ship1.getTransform().getShipToWorldRotation();
-            }
             mass = VSGameUtilsKt.getShipObjectWorld(level).getAllShips().getById(ship1Id).getInertiaData().getMass();
-        } else {
+        } else
             ship1Id = groundId;
-        }
 
         if (ship2 != null) {
             ship2.getWorldToShip().transformPosition(ship2ConstraintPos);
             ship2Id = ship2.getId();
-            if (ship2Rot == null) {
+            if (ship2Rot == null)
                 ship2Rot = (Quaterniond) ship2.getTransform().getShipToWorldRotation();
-            }
             //ship2Rot.add(ship2.getTransform().getShipToWorldRotation());
             mass = VSGameUtilsKt.getShipObjectWorld(level).getAllShips().getById(ship2Id).getInertiaData().getMass();
-        } else {
+        } else
             ship2Id = groundId;
-        }
 
-        if (ship2Pos != null) {
+        if (ship2Pos != null)
             ship2ConstraintPos = ship2Pos;
-        }
 
         Quaterniondc ship1Rotation = ship1Rot;
         Quaterniondc ship2Rotation = ship2Rot;
@@ -364,19 +341,17 @@ public class StickerMovementBehaviour implements MovementBehaviour {
     public static boolean isAttachedToShipOrWorld(boolean attach, Level level, Vector3d myPosCentered, Vector3d myDirNormal, CompoundTag compoundTag) {
         boolean result = false;
 
-        if (level == null) {
+        if (level == null)
             return false;
-        }
         Ship ship = VSGameUtilsKt.getShipManagingPos(level, myPosCentered);
         Ship ship2 = null;
 
         Vector3d tempDirNormal = new Vector3d(myDirNormal).mul(.75);
         Vector3d searchPos = new Vector3d(myPosCentered).add(tempDirNormal);
-        if (ship != null) {
+        if (ship != null)
             ship.getShipToWorld().transformPosition(searchPos, searchPos);
-        }
 
-        BlockPos searchBlockPos = BlockPos.containing(searchPos.x, searchPos.y, searchPos.z);
+        BlockPos searchBlockPos = new BlockPos(toMinecraft(searchPos));
         BlockState worldBlockState = level.getBlockState(searchBlockPos);
         double distance = 0;
         if (!worldBlockState.isAir()) {
@@ -393,16 +368,14 @@ public class StickerMovementBehaviour implements MovementBehaviour {
             if (ships.hasNext()) {
                 do {
                     shipItr = ships.next();
-                    if (shipItr == ship) {
-                        continue;
-                    }
+                    if (shipItr == ship) continue;
                     shipItr.getWorldToShip().transformPosition(transformedSearchPos);
-                    BlockPos blockPos = BlockPos.containing(toMinecraft(transformedSearchPos));
+                    BlockPos blockPos = new BlockPos(toMinecraft(transformedSearchPos));
                     if (VSGameUtilsKt.isBlockInShipyard(level, blockPos)) {
                         BlockState blockState = level.getBlockState(blockPos);
                         if (!blockState.isAir() && blockState.isFaceSturdy(level, blockPos, Direction.UP, SupportType.RIGID)) {
 
-                            searchBlockPos = BlockPos.containing(toMinecraft(shipItr.getShipToWorld().transformPosition(blockPos.getX(), blockPos.getY(), blockPos.getZ(), new Vector3d())));
+                            searchBlockPos = new BlockPos(toMinecraft(shipItr.getShipToWorld().transformPosition(blockPos.getX(), blockPos.getY(), blockPos.getZ(), new Vector3d())));
                             distance = Vector3d.distance(myPosCentered.x, myPosCentered.y, myPosCentered.z, searchBlockPos.getX(), searchBlockPos.getY(), searchBlockPos.getZ());
                             result = true;
                             ship2 = shipItr;
@@ -411,17 +384,15 @@ public class StickerMovementBehaviour implements MovementBehaviour {
                 } while (ships.hasNext() && !result);
             }
         }
-        if (result && !level.isClientSide && attach) {
+        if (result && !level.isClientSide && attach)
             doAttach((ServerLevel) level, ship, ship2, myPosCentered, myDirNormal, compoundTag, distance);
-        }
 
         return result;
     }
 
     public static void doAttach(ServerLevel level, Ship ship1, Ship ship2, Vector3d myPos, Vector3d myDirNormal, CompoundTag compoundTag, double distance) {
-        if (ship1 == null && ship2 == null) {
+        if (ship1 == null && ship2 == null)
             return;
-        }
         removeConstraint(level, false, compoundTag);
 
         Vector3d adjustedDirNormal = new Vector3d(myDirNormal).mul(0.5);
@@ -437,13 +408,11 @@ public class StickerMovementBehaviour implements MovementBehaviour {
 
         if (compoundTag.contains("ShipStickerConstraint")) {
 
-            if (compoundTag.contains("ShipStickerDistance")) {
+            if (compoundTag.contains("ShipStickerDistance"))
                 distance = compoundTag.getDouble("ShipStickerDistance");
-            }
 
-            if (compoundTag.contains("ShipStickerShip1Id")) {
+            if (compoundTag.contains("ShipStickerShip1Id"))
                 ship1 = VSGameUtilsKt.getShipObjectWorld(level).getAllShips().getById(compoundTag.getLong("ShipStickerShip1Id"));
-            }
 
             if (compoundTag.contains("ShipStickerShip1Vec")) {
                 ship1Pos = new Vector3d(readVector3D(compoundTag.getCompound("ShipStickerShip1Vec")));
@@ -451,9 +420,8 @@ public class StickerMovementBehaviour implements MovementBehaviour {
             if (compoundTag.contains("ShipStickerShip1Quat")) {
                 ship1Rot = new Quaterniond(readQuatd(compoundTag.getCompound("ShipStickerShip1Quat")));
             }
-            if (compoundTag.contains("ShipStickerShip2Id")) {
+            if (compoundTag.contains("ShipStickerShip2Id"))
                 ship2 = VSGameUtilsKt.getShipObjectWorld(level).getAllShips().getById(compoundTag.getLong("ShipStickerShip2Id"));
-            }
             if (compoundTag.contains("ShipStickerShip2Vec")) {
                 ship2Pos = new Vector3d(readVector3D(compoundTag.getCompound("ShipStickerShip2Vec")));
             }
@@ -467,12 +435,10 @@ public class StickerMovementBehaviour implements MovementBehaviour {
         if (constraint != null) {
 
             long groundId = VSGameUtilsKt.getShipObjectWorld(level).getDimensionToGroundBodyIdImmutable().get(VSGameUtilsKt.getDimensionId(level));
-            if (constraint.getShipId0() != groundId) {
+            if (constraint.getShipId0() != groundId)
                 compoundTag.putLong("ShipStickerShip1Id", constraint.getShipId0());
-            }
-            if (constraint.getShipId1() != groundId) {
+            if (constraint.getShipId1() != groundId)
                 compoundTag.putLong("ShipStickerShip2Id", constraint.getShipId1());
-            }
             compoundTag.put("ShipStickerShip1Vec", writeVector3D((Vector3d) constraint.getLocalPos0()));
             compoundTag.put("ShipStickerShip1Quat", writeQuatd((Quaterniond) constraint.getLocalRot0()));
             compoundTag.put("ShipStickerShip2Vec", writeVector3D((Vector3d) constraint.getLocalPos1()));
@@ -482,15 +448,14 @@ public class StickerMovementBehaviour implements MovementBehaviour {
             Integer constraintID = VSGameUtilsKt.getShipObjectWorld(level).createNewConstraint(constraint);
             compoundTag.putInt("ShipStickerConstraint", constraintID.intValue());
 
-            new StickerParticleUtil().doBluperParticle(level, BlockPos.containing(toMinecraft(myPos)), ClockworkUtils.INSTANCE.fromNormal((int) adjustedDirNormal.x, (int) adjustedDirNormal.y, (int) adjustedDirNormal.z));
+            new StickerParticleUtil().doBluperParticle(level, new BlockPos(toMinecraft(myPos)), Direction.fromNormal((int) adjustedDirNormal.x, (int) adjustedDirNormal.y, (int) adjustedDirNormal.z));
         }
     }
 
     public static void removeConstraint(@Nullable ServerLevel level, boolean removeTags, CompoundTag compoundTag) {
         if (compoundTag.contains("ShipStickerConstraint")) {
-            if (level != null) {
+            if (level != null)
                 VSGameUtilsKt.getShipObjectWorld(level).removeConstraint(compoundTag.getInt("ShipStickerConstraint"));
-            }
             if (removeTags) {
                 compoundTag.remove("ShipStickerConstraint");
                 compoundTag.remove("ShipStickerShip1Id");

@@ -7,12 +7,13 @@ import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.platform.TextureUtil
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.*
+import com.mojang.math.Matrix4f
+import com.mojang.math.Vector3f
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.ShaderInstance
 import net.minecraft.world.phys.Vec3
-import org.joml.Matrix4f
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL30
 import org.valkyrienskies.clockwork.ClockworkMod
@@ -24,6 +25,7 @@ import org.valkyrienskies.core.impl.networking.RegisteredHandler
 import org.valkyrienskies.mod.common.hooks.VSGameEvents
 import org.valkyrienskies.mod.common.hooks.VSGameEvents.postRenderShip
 import org.valkyrienskies.mod.common.hooks.VSGameEvents.renderShip
+import org.valkyrienskies.mod.common.util.toJOML
 
 
 @Environment(EnvType.CLIENT)
@@ -94,10 +96,14 @@ class ShipScannerRenderer : ScannerRenderer {
                     RenderSystem.backupProjectionMatrix()
 
                     RenderSystem.setProjectionMatrix(
-                        Matrix4f().setOrtho(
+                        Matrix4f.orthographic(
                             0f,
-                            width.toFloat(), 0f, height.toFloat(), 1f, 100f
-                        ), VertexSorting.ORTHOGRAPHIC_Z
+                            width.toFloat(),
+                            0f,
+                            height.toFloat(),
+                            1f,
+                            100f
+                        )
                     )
 
                     val tesselator =
@@ -141,7 +147,7 @@ class ShipScannerRenderer : ScannerRenderer {
     private fun updateShaderUniforms(shader: ShaderInstance, viewMatrix: Matrix4f) {
         val invertedViewMatrix = Matrix4f(viewMatrix)
         invertedViewMatrix.invert()
-        val invertedProjectionMatrix = Matrix4f(RenderSystem.getProjectionMatrix())
+        val invertedProjectionMatrix = com.mojang.math.Matrix4f(RenderSystem.getProjectionMatrix())
         invertedProjectionMatrix.invert()
         val cameraPosition = Minecraft.getInstance().gameRenderer.mainCamera.position
         val adjustedDuration: Int
@@ -156,10 +162,10 @@ class ShipScannerRenderer : ScannerRenderer {
             radius = 0f
         }
         shader.setSampler("depthTex", depthCopyDepthBuffer)
-        shader.safeGetUniform("center").set(currentCenter!!.toVector3f())
+        shader.safeGetUniform("center").set(Vector3f(currentCenter!!))
         shader.safeGetUniform("invViewMat").set(invertedViewMatrix)
         shader.safeGetUniform("invProjMat").set(invertedProjectionMatrix)
-        shader.safeGetUniform("pos").set(cameraPosition.toVector3f())
+        shader.safeGetUniform("pos").set(Vector3f(cameraPosition))
         shader.safeGetUniform("radius").set(radius)
     }
 

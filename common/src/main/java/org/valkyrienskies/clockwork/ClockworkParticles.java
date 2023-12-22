@@ -6,9 +6,9 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.ParticleEngine;
+import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
-import net.minecraft.core.registries.BuiltInRegistries;
 import org.valkyrienskies.clockwork.content.curiosities.particles.PhysLightningParticle;
 import org.valkyrienskies.clockwork.platform.api.DeferredRegister;
 
@@ -45,7 +45,7 @@ public enum ClockworkParticles {
 
     private static class ParticleEntry<D extends ParticleOptions> {
         private static final DeferredRegister<ParticleType<?>> REGISTER =
-                DeferredRegister.create(BuiltInRegistries.PARTICLE_TYPE, ClockworkMod.MOD_ID);
+                DeferredRegister.create(Registry.PARTICLE_TYPE, ClockworkMod.MOD_ID);
 
         private final String name;
         private final Supplier<? extends ICustomParticleData<D>> typeFactory;

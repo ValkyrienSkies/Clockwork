@@ -131,12 +131,12 @@ class GrabTool : GravitronToolBase() {
 
         @JvmStatic
         fun tick(player: Player) {
-            if (player.level() is ServerLevel) {
+            if (player.level is ServerLevel) {
                 val s = getState(player)
                 val graviton = player.getMainHandItem()
-                val serverLevel = player.level() as ServerLevel
+                val serverLevel = player.level as ServerLevel
 
-                if (!s.shouldDrop && graviton.`is`(ClockworkItems.GRAVITRON.asItem())) {
+                if (!s.shouldDrop && graviton.`is`(ClockworkItems.GRAVITRON.get().asItem())) {
                     if (AllKeys.ACTIVATE_TOOL.isPressed) {
                         updateShipDirection(s, serverLevel, player, player.getDirection())
                     } else {

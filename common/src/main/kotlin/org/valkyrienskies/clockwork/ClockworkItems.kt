@@ -15,6 +15,7 @@ import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import java.util.function.Supplier
 
 object ClockworkItems {
+
     @JvmField
     val BLUPERGLUE: ItemEntry<BluperGlueItem> =
         REGISTRATE.item<BluperGlueItem>("bluperglue") { properties: Item.Properties? ->
@@ -37,6 +38,7 @@ object ClockworkItems {
                 it.stacksTo(1)
                 it.rarity(Rarity.UNCOMMON)
             }
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .transform(ClockworkRegistrate.customRenderedItem { Supplier { GravitronItemRenderer() } })
             .tag(AllTags.AllItemTags.WRENCH.tag)
             .model(AssetLookup.itemModelWithPartials())
@@ -51,6 +53,7 @@ object ClockworkItems {
                 it.stacksTo(1)
                 it.rarity(Rarity.UNCOMMON)
             }
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .transform(ClockworkRegistrate.customRenderedItem { Supplier { AuricDesignatorItemRenderer() } })
             .tag(AllTags.AllItemTags.WRENCH.tag)
             .model(AssetLookup.itemModelWithPartials())

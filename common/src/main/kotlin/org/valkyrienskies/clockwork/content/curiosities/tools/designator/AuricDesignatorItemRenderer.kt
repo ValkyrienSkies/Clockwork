@@ -8,8 +8,8 @@ import com.simibubi.create.foundation.item.render.CustomRenderedItemModel
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer
 import net.minecraft.client.renderer.MultiBufferSource
+import net.minecraft.client.renderer.block.model.ItemTransforms
 import net.minecraft.util.Mth
-import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import org.joml.Vector3f
 import org.valkyrienskies.clockwork.ClockworkItems
@@ -31,7 +31,7 @@ class AuricDesignatorItemRenderer() : CustomRenderedItemModelRenderer() {
         stack: ItemStack,
         model: CustomRenderedItemModel?,
         renderer: PartialItemModelRenderer?,
-        transformType: ItemDisplayContext?,
+        transformType: ItemTransforms.TransformType?,
         ms: PoseStack,
         buffer: MultiBufferSource,
         light: Int,
@@ -65,7 +65,7 @@ class AuricDesignatorItemRenderer() : CustomRenderedItemModelRenderer() {
         val data = TransformData(Vector3f(0f, 0f, 0f), Vector3f(0f, i, 0f))
         val heightAlt = 3f / 16f + sin(easeInOutSine(progress).toDouble()).toFloat() / 16f
         stacker.translateY((heightAlt * 0.05f).toDouble())
-        ms.translate(0f,heightAlt + 0.5f,0f)
+        ms.translate(0.0,heightAlt + 0.5,0.0)
         ms.pushPose()
         RenderUtil.renderCubeMatrix(ms, renderer, innerData, data, light)
 
