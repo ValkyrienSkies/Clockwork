@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "3",
+    "2",
+    "2"
+  ],
+  "key": {
+    "2": {
+      "tag": "forge:ingots/brass"
+    },
+    "3": {
+      "item": "vs_clockwork:bluuguu"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:auric_designator"
+  }
+}
