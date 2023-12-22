@@ -62,8 +62,8 @@ object ClockworkMod {
             .title(Component.translatable("itemGroup.clockwork"))
             .icon { ClockworkItems.GRAVITRON.asStack() }
             .displayItems { _, output ->
-                output.accept(ClockworkItems.BLUUGUU)
-                output.accept(ClockworkItems.BLUPERGLUE)
+                //output.accept(ClockworkItems.BLUUGUU)
+                //output.accept(ClockworkItems.BLUPERGLUE)
                 output.accept(ClockworkItems.GRAVITRON)
 
                 output.accept(ClockworkItems.AURIC_DESIGNATOR)
