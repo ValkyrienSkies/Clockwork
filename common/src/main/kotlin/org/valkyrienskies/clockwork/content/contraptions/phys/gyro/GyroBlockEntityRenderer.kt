@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
 import com.mojang.math.Axis
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
+import com.simibubi.create.content.kinetics.flywheel.FlywheelRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.utility.AngleHelper
 import net.minecraft.client.Minecraft
@@ -35,6 +36,12 @@ class GyroBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
         renderGyro(be, ms, light, blockState, angle, vb)
 
         renderCore(be, ms, light, blockState, buffer)
+
+        val indicator = CachedBufferer.partial(ClockworkPartials.GYRO_BASE, blockState)
+        indicator
+            .light(light)
+            .color(255,255,255,255)
+            .renderInto(ms, buffer.getBuffer(RenderType.solid()))
     }
 
     private fun renderCore(be: GyroBlockEntity, ms: PoseStack?, light: Int, blockState: BlockState, buffer: MultiBufferSource) {
@@ -59,7 +66,7 @@ class GyroBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
         //wheel.translate(-0.45,0.0,-0.45)
 
         kineticRotationTransform(wheel, be, getRotationAxisOf(be), AngleHelper.rad(angle.toDouble()), light)
-        wheel.translate(0.0,0.5,0.0)
+        wheel.translate(0.0,0.6,0.0)
 
         wheel.renderInto(ms, vb)
     }
