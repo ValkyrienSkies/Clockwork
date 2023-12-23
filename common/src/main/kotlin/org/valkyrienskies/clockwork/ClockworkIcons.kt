@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork
 
-import com.simibubi.create.foundation.gui.AllIcons
 import com.simibubi.create.foundation.gui.element.ScreenElement
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.resources.ResourceLocation

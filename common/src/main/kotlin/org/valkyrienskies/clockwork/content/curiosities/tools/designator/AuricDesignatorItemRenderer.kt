@@ -14,7 +14,6 @@ import net.minecraft.world.item.ItemStack
 import org.joml.Vector3f
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkMod.asResource
-import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorItem
 import org.valkyrienskies.clockwork.util.EaseHelper.easeInOutSine
 import org.valkyrienskies.clockwork.util.render.RenderUtil
 import org.valkyrienskies.clockwork.util.render.TransformData
@@ -65,7 +64,7 @@ class AuricDesignatorItemRenderer() : CustomRenderedItemModelRenderer() {
         val data = TransformData(Vector3f(0f, 0f, 0f), Vector3f(0f, i, 0f))
         val heightAlt = 3f / 16f + sin(easeInOutSine(progress).toDouble()).toFloat() / 16f
         stacker.translateY((heightAlt * 0.05f).toDouble())
-        ms.translate(0f,heightAlt + 0.5f,0f)
+        ms.translate(0f, heightAlt + 0.5f, 0f)
         ms.pushPose()
         RenderUtil.renderCubeMatrix(ms, renderer, innerData, data, light)
 

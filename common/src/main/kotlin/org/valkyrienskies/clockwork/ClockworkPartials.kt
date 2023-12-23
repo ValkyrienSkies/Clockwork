@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork
 
 import com.jozufozu.flywheel.core.PartialModel
-import com.simibubi.create.AllPartialModels
 
 object ClockworkPartials {
     val BEARING_TOP_VSIFIED = block("vstop")

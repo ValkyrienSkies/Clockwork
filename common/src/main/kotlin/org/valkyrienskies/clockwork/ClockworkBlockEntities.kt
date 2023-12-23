@@ -1,7 +1,5 @@
 package org.valkyrienskies.clockwork
 
-import com.jozufozu.flywheel.api.MaterialManager
-import com.jozufozu.flywheel.backend.instancing.blockentity.BlockEntityInstance
 import com.tterrag.registrate.util.entry.BlockEntityEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer
@@ -17,7 +15,6 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearin
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlockEntityRenderer
-import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroInstance
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity
@@ -30,7 +27,6 @@ import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSea
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
-import java.util.function.BiFunction
 
 
 object ClockworkBlockEntities {

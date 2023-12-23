@@ -1,27 +1,20 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.gyro
 
-import com.simibubi.create.content.redstone.thresholdSwitch.ThresholdSwitchScreen
 import com.simibubi.create.foundation.gui.AbstractSimiScreen
 import com.simibubi.create.foundation.gui.AllIcons
 import com.simibubi.create.foundation.gui.widget.AbstractSimiWidget
 import com.simibubi.create.foundation.gui.widget.IconButton
-import com.simibubi.create.foundation.gui.widget.Indicator
-import com.simibubi.create.foundation.utility.Components
-import com.simibubi.create.foundation.utility.Lang
-import net.minecraft.ChatFormatting
 import net.minecraft.client.gui.GuiGraphics
-import net.minecraft.network.chat.Component
 import net.minecraft.util.Mth
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
-import org.valkyrienskies.clockwork.ClockworkIconTextures
 import org.valkyrienskies.clockwork.ClockworkIcons
 import org.valkyrienskies.clockwork.ClockworkPackets
 
 class GyroScreen(private val be: GyroBlockEntity) : AbstractSimiScreen() {
     private val background: ClockworkGuiTextures = ClockworkGuiTextures.GYRO
     private var confirmButton: IconButton? = null
-    private var targetVec = Vector3d(0.0,1.0,0.0)
+    private var targetVec = Vector3d(0.0, 1.0, 0.0)
     var buttonStateArray = BooleanArray(9)
 
     override fun init() {
@@ -41,7 +34,8 @@ class GyroScreen(private val be: GyroBlockEntity) : AbstractSimiScreen() {
         //Horizontal 5 buttons: -90, -45, 0, 45, 90
 
         for (i in 0 until 5) {
-            var button = IconButton(x + background.width - 149 + (i * 18), y + background.height - 121,
+            var button = IconButton(
+                x + background.width - 149 + (i * 18), y + background.height - 121,
                 if (i == 0 || i == 4) ClockworkIcons.NINETY else if (i == 2) AllIcons.I_TARGET else ClockworkIcons.FORTY_FIVE
             )
             button.withCallback<AbstractSimiWidget>(Runnable {
@@ -56,7 +50,8 @@ class GyroScreen(private val be: GyroBlockEntity) : AbstractSimiScreen() {
             if (i > 6) {
                 e = 18
             }
-            var button = IconButton(x + background.width - 113, y + background.height - 175 + ((i - 4) * 18) + e,
+            var button = IconButton(
+                x + background.width - 113, y + background.height - 175 + ((i - 4) * 18) + e,
                 if (i == 5 || i == 8) ClockworkIcons.NINETY else ClockworkIcons.FORTY_FIVE
             )
             button.withCallback<AbstractSimiWidget>(Runnable {
@@ -80,9 +75,11 @@ class GyroScreen(private val be: GyroBlockEntity) : AbstractSimiScreen() {
         var ym45 = buttonStateArray.get(7)
         var ym90 = buttonStateArray.get(8)
 
-        var x = (if (x90) 1.0 else 0.0) + (if (xm90) -1.0 else 0.0) + (if (x45) 0.5 else 0.0) + (if (xm45) -0.5 else 0.0)
+        var x =
+            (if (x90) 1.0 else 0.0) + (if (xm90) -1.0 else 0.0) + (if (x45) 0.5 else 0.0) + (if (xm45) -0.5 else 0.0)
         var y = if (x0) 1.0 else 0.0
-        var z = (if (y90) 1.0 else 0.0) + (if (ym90) -1.0 else 0.0) + (if (y45) 0.5 else 0.0) + (if (ym45) -0.5 else 0.0)
+        var z =
+            (if (y90) 1.0 else 0.0) + (if (ym90) -1.0 else 0.0) + (if (y45) 0.5 else 0.0) + (if (ym45) -0.5 else 0.0)
 
 
         targetVec = Vector3d(Mth.clamp(x, -1.0, 1.0), Mth.clamp(y, -1.0, 1.0), Mth.clamp(z, -1.0, 1.0))

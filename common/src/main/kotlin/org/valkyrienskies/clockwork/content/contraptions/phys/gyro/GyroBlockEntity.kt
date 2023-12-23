@@ -9,11 +9,8 @@ import net.minecraft.util.Mth
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Vector3d
-import org.joml.Vector3dc
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
-import org.valkyrienskies.mod.util.getVector3d
-import org.valkyrienskies.mod.util.putVector3d
 
 
 class GyroBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :

@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork;
 
-import com.simibubi.create.AllBlocks;
 import com.simibubi.create.content.redstone.analogLever.AnalogLeverBlockEntity;
 import com.simibubi.create.foundation.ponder.*;
 import com.simibubi.create.foundation.ponder.element.InputWindowElement;
@@ -27,6 +26,84 @@ public class ClockworkPonderScenes {
                 .addStoryBoard("flap_bearing", ClockworkPonderScenes::flap);
     }
 
+    //TODO remove this, is for interactive
+    private static void propagator(SceneBuilder scene, SceneBuildingUtil util) {
+        scene.title("propagator_1", "Propegate your torque");
+        scene.configureBasePlate(0, 0, 5);
+        scene.showBasePlate();
+        scene.setSceneOffsetY(-1);
+        scene.idle(15);
+
+        Selection mech_bearing = util.select.position(2, 3, 2);
+        BlockPos mech_bearing_pos = util.grid.at(2, 3, 2);
+        Selection mech_bearing_contrap = util.select.position(2, 4, 2);
+        Selection prop_shaft = util.select.fromTo(3, 3, 2, 3, 4, 2);
+
+        //Transform these together //start
+        Selection prop_part1 = util.select.position(3, 2, 2);
+        Selection prop_part2 = util.select.position(3, 5, 2);
+        //end
+        Selection cog = util.select.position(2, 2, 2);
+        Selection boxes = util.select.fromTo(2, 1, 2, 3, 1, 2);
+        //start misc
+
+        //end
+
+        //show start
+        scene.world.showSection(cog, Direction.DOWN);
+        scene.world.showSection(boxes, Direction.DOWN);
+        //end
+        scene.idle(15);
+        scene.world.showSection(mech_bearing, Direction.DOWN);
+        scene.world.rotateBearing(mech_bearing_pos, -360, 180);
+        ElementLink<WorldSectionElement> contraption_mech = scene.world.showIndependentSection(mech_bearing_contrap, Direction.DOWN);
+        scene.world.moveSection(contraption_mech, util.vector.of(0, 0, 0), 0);
+        scene.world.rotateSection(contraption_mech, 0, -360, 0, 180);
+
+        scene.idle(15);
+
+        scene.world.showSection(prop_part1, Direction.DOWN);
+        scene.world.showSection(prop_shaft, Direction.DOWN);
+        scene.world.setKineticSpeed(prop_shaft, 64);
+
+        ElementLink<WorldSectionElement> contraption_prop = scene.world.showIndependentSection(prop_part2, Direction.DOWN);
+        scene.world.moveSection(contraption_prop, util.vector.of(0, 0, 0), 0);
+        scene.world.rotateSection(contraption_prop, 0, 360, 0, 180);
+        scene.idle(15);
+
+
+        scene.idle(37 * 4);
+    }
+
+    //TODO remove this, is for interactive
+    private static void propagator2(SceneBuilder scene, SceneBuildingUtil util) {
+        scene.title("propagator_2", "Propegate your torque");
+        scene.configureBasePlate(0, 0, 5);
+        scene.showBasePlate();
+        scene.setSceneOffsetY(-1);
+        scene.idle(15);
+
+        Selection propulsor = util.select.position(2, 1, 2);
+        Selection center_shaft = util.select.position(2, 2, 2);
+        Selection box = util.select.fromTo(2, 3, 0, 2, 3, 4);
+
+        Selection shaft_ex_1 = util.select.fromTo(2, 3, 0, 2, 3, 1);
+        Selection shaft_ex_2 = util.select.fromTo(2, 3, 3, 2, 3, 4);
+
+        scene.world.showSection(propulsor, Direction.DOWN);
+        scene.world.showSection(center_shaft, Direction.DOWN);
+        scene.world.setKineticSpeed(center_shaft, 16);
+        scene.world.setKineticSpeed(shaft_ex_1, 16);
+        scene.world.setKineticSpeed(shaft_ex_2, -16);
+
+        ElementLink<WorldSectionElement> contraption_ex = scene.world.showIndependentSection(box, Direction.DOWN);
+        scene.world.moveSection(contraption_ex, util.vector.of(0, 0, 0), 0);
+        scene.world.rotateSection(contraption_ex, 0, 180, 0, 360);
+
+
+        scene.idle(37 * 4);
+    }
+
     private static void flap(SceneBuilder scene, SceneBuildingUtil util) {
         scene.title("flap_bearing", "Steering planes");
         scene.configureBasePlate(0, 0, 5);
@@ -39,7 +116,7 @@ public class ClockworkPonderScenes {
         ElementLink<WorldSectionElement> contraption =
                 scene.world.showIndependentSection(flap_ship, Direction.DOWN);
         scene.world.moveSection(contraption, util.vector.of(0, 0, 0), 0);
-        Selection red1 = util.select.fromTo(0,1,2, 1,1,2);
+        Selection red1 = util.select.fromTo(0, 1, 2, 1, 1, 2);
         Selection red2 = util.select.fromTo(4, 1, 2, 3, 1, 2);
         scene.world.showSection(bearing, Direction.DOWN);
         scene.idle(15);
@@ -49,11 +126,11 @@ public class ClockworkPonderScenes {
         scene.world.showSection(red2, Direction.DOWN);
         scene.idle(25);
         scene.world.toggleRedstonePower(red1);
-        scene.world.rotateSection(contraption, 0.0,0.0,25, 17);
+        scene.world.rotateSection(contraption, 0.0, 0.0, 25, 17);
         scene.idle(35);
         scene.world.toggleRedstonePower(red1);
         scene.world.toggleRedstonePower(red2);
-        scene.world.rotateSection(contraption, 0.0,0.0,-50, 17);
+        scene.world.rotateSection(contraption, 0.0, 0.0, -50, 17);
         scene.idle(35);
         scene.idle(37 * 4);
     }
@@ -129,7 +206,7 @@ public class ClockworkPonderScenes {
 
 
         scene.world.setBlock(util.grid.at(0, 1, 0), ClockworkBlocks.PHYSICS_INFUSER.getDefaultState(), false);
-        scene.world.showSection(util.select.position(0,1,0), Direction.NORTH);
+        scene.world.showSection(util.select.position(0, 1, 0), Direction.NORTH);
         scene.idle(20);
         scene.overlay.showText(40)
                 .attachKeyFrame()

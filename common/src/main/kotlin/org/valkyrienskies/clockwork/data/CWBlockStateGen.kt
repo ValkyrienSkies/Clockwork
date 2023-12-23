@@ -22,7 +22,6 @@ import org.apache.commons.lang3.tuple.Pair
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlock
 import java.util.*
 import java.util.function.Function
-import kotlin.collections.HashMap
 
 object CWBlockStateGen {
 

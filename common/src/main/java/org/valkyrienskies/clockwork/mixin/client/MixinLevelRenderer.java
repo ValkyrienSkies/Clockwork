@@ -18,7 +18,8 @@ import org.valkyrienskies.clockwork.util.render.BlockRenderTypeRegistry;
 
 @Mixin(LevelRenderer.class)
 public abstract class MixinLevelRenderer {
-    @Shadow protected abstract void renderChunkLayer(RenderType layer, PoseStack matrix, double x, double y, double z, Matrix4f frustumMatrix);
+    @Shadow
+    protected abstract void renderChunkLayer(RenderType layer, PoseStack matrix, double x, double y, double z, Matrix4f frustumMatrix);
 
     @Inject(
             method = "renderLevel",
@@ -43,7 +44,7 @@ public abstract class MixinLevelRenderer {
     )
     private void renderCustom(PoseStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightmapTextureManager, Matrix4f projectionMatrix, CallbackInfo ci) {
         // Render all the custom ones
-        for(RenderType layer : BlockRenderTypeRegistry.INSTANCE.getLayers()) {
+        for (RenderType layer : BlockRenderTypeRegistry.INSTANCE.getLayers()) {
 
             renderChunkLayer(layer, matrices, camera.getPosition().x, camera.getPosition().y, camera.getPosition().z, projectionMatrix);
         }

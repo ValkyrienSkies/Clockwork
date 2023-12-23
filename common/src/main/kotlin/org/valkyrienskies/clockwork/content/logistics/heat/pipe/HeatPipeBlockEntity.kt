@@ -12,7 +12,8 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.content.logistics.heat.IHeatable
 
-class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : SmartBlockEntity(type, pos, state), ITransformableBlockEntity, IHeatable {
+class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
+    SmartBlockEntity(type, pos, state), ITransformableBlockEntity, IHeatable {
 
     override var heat: Int = 0
     override val maxHeat: Int = 1000
@@ -23,6 +24,7 @@ class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         val bracketBehaviour = getBehaviour(BracketedBlockEntityBehaviour.TYPE)
         bracketBehaviour?.transformBracket(transform)
     }
+
     override fun addBehaviours(behaviours: List<BlockEntityBehaviour>) {
         //TODO Add a heat behaviour to render the ends of the pipe
     }

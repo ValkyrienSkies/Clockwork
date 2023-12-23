@@ -5,7 +5,6 @@ import com.simibubi.create.content.contraptions.ITransformableBlock
 import com.simibubi.create.content.contraptions.StructureTransform
 import com.simibubi.create.content.decoration.bracket.BracketedBlockEntityBehaviour
 import com.simibubi.create.content.equipment.wrench.IWrenchable
-import com.simibubi.create.content.fluids.pipes.FluidPipeBlock
 import com.simibubi.create.content.fluids.pipes.FluidPipeBlockRotation
 import com.simibubi.create.content.fluids.pipes.VanillaFluidTargets
 import com.simibubi.create.foundation.block.IBE
@@ -136,7 +135,12 @@ class HeatPipeBlock(properties: Properties) :
         return state.getValue(PROPERTY_BY_DIRECTION[direction])
     }
 
-    fun canConnectTo(world: BlockAndTintGetter?, neighbourPos: BlockPos?, neighbour: BlockState?, direction: Direction): Boolean {
+    fun canConnectTo(
+        world: BlockAndTintGetter?,
+        neighbourPos: BlockPos?,
+        neighbour: BlockState?,
+        direction: Direction
+    ): Boolean {
         if (VanillaFluidTargets.shouldPipesConnectTo(neighbour)) return true
         val bracket = BlockEntityBehaviour.get(world, neighbourPos, BracketedBlockEntityBehaviour.TYPE)
         return if (isPipe(neighbour)) bracket == null else false

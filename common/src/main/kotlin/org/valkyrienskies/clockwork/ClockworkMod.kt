@@ -3,13 +3,11 @@ package org.valkyrienskies.clockwork
 import com.mojang.logging.LogUtils
 import com.simibubi.create.foundation.data.CreateRegistrate
 import com.simibubi.create.foundation.outliner.Outliner
-import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
 import org.slf4j.LoggerFactory
-import org.valkyrienskies.clockwork.util.render.RenderUtil
 import org.valkyrienskies.core.impl.hooks.VSEvents
 
 object ClockworkMod {
@@ -78,6 +76,7 @@ object ClockworkMod {
                 output.accept(ClockworkBlocks.PROPELLER_BEARING.asStack())
                 output.accept(ClockworkBlocks.REDSTONE_RESISTOR.asStack())
                 output.accept(ClockworkBlocks.WING.asStack())
+                output.accept(ClockworkBlocks.COMMAND_SEAT.asStack())
             }
             .build()
     }
