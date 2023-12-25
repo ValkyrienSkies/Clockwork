@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllKeys
+import com.simibubi.create.content.schematics.client.ToolSelectionScreen
 import net.minecraft.client.Minecraft
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.world.entity.player.Inventory

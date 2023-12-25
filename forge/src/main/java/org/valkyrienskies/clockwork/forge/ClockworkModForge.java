@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.forge;
 
 import com.simibubi.create.AllParticleTypes;
+import com.simibubi.create.CreateClient;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.gui.ForgeIngameGui;
@@ -22,7 +23,6 @@ public class ClockworkModForge {
 
     //final DeferredRegister<EntityDataSerializer<?>> DATA_SERIALIZER_REGISTER = DeferredRegister.create(ForgeRegistries.Keys.DATA_SERIALIZERS, MOD_ID);
 
-    public static final ForgeGravitronHandler GRAVITRON_HANDLER = new ForgeGravitronHandler();
     public static final AuricDesignatorClusterRenderer AURIC_HANDLER = new AuricDesignatorClusterRenderer();
 
     public ClockworkModForge() {
@@ -48,13 +48,9 @@ public class ClockworkModForge {
         ClockworkMod.init();
         ClockworkPackets.init();
 
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClockworkModForgeClient.onCtorClient(modEventBus));
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-            ClockworkPartials.INSTANCE.init();
-            ClockworkMod.initClient();
-            modEventBus.addListener(AllParticleTypes::registerFactories);
-            ClockworkShaders.INSTANCE.init();
-            OverlayRegistry.registerOverlayAbove(ForgeIngameGui.HOTBAR_ELEMENT, "Gravitron",
-                    ClockworkModForge.GRAVITRON_HANDLER.getOverlayRenderer());
+
         });
     }
 }

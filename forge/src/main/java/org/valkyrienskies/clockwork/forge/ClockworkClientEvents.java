@@ -55,7 +55,7 @@ public class ClockworkClientEvents {
             return;
         }
 
-        ClockworkModForge.GRAVITRON_HANDLER.tick();
+        ClockworkModForgeClient.GRAVITRON_HANDLER.tick();
 
         ClockworkMod.getOUTLINER().tickOutlines();
         ClockworkMod.getAURIC_OUTLINER().tickOutlines();
@@ -70,7 +70,7 @@ public class ClockworkClientEvents {
         int key = event.getKey();
         boolean pressed = !(event.getAction() == 0);
 
-        ClockworkModForge.GRAVITRON_HANDLER.onKeyInput(key, pressed);
+        ClockworkModForgeClient.GRAVITRON_HANDLER.onKeyInput(key, pressed);
     }
 
     @SubscribeEvent
@@ -80,7 +80,7 @@ public class ClockworkClientEvents {
         }
 
         double delta = event.getScrollDelta();
-        boolean cancelled = ClockworkModForge.GRAVITRON_HANDLER.mouseScrolled(delta);
+        boolean cancelled = ClockworkModForgeClient.GRAVITRON_HANDLER.mouseScrolled(delta);
         event.setCanceled(cancelled);
     }
 
@@ -93,7 +93,7 @@ public class ClockworkClientEvents {
         int button = event.getButton();
         boolean pressed = !(event.getAction() == 0);
 
-        if (ClockworkModForge.GRAVITRON_HANDLER.onMouseInput(button, pressed)) {
+        if (ClockworkModForgeClient.GRAVITRON_HANDLER.onMouseInput(button, pressed)) {
             event.setCanceled(true);
         }
     }
