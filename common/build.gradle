@@ -34,7 +34,7 @@ dependencies {
     modCompileOnly("net.fabricmc.fabric-api:fabric-api:${fabric_api_version}")
 
     // VS2
-    modApi("org.valkyrienskies:valkyrienskies-119-${rootProject.vs2_version}")
+    modApi("org.valkyrienskies:valkyrienskies-119-common:$vs2_version")
     implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") {
         exclude group: 'org.joml', module: ''
     }

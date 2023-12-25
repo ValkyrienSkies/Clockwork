@@ -49,10 +49,6 @@ object ClockworkMod {
     @JvmStatic
     fun initClient() {
         ClockworkPonderScenes.init()
-
-        val blockRenderLayer: RenderType = RenderType.endPortal()
-        //RenderUtil.registerBlockRenderLayer(blockRenderLayer)
-        //BlockRenderLayerMap.INSTANCE.putBlock(ClockworkBlocks.ALT_METER.get(), blockRenderLayer);
     }
 
     @JvmStatic

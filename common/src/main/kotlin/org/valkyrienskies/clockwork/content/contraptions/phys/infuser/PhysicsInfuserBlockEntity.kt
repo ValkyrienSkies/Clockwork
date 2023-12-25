@@ -35,7 +35,7 @@ import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.client.render.scanner.ScannerRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer.Companion.SCAN_GROWTH_DURATION
-import org.valkyrienskies.clockwork.content.curiosities.tools.bluper.SelectedAreaToolkit
+import org.valkyrienskies.clockwork.content.curiosities.tools.designator.SelectedAreaToolkit
 import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorItem
 import org.valkyrienskies.clockwork.util.EaseHelper.easeInBounce
 import org.valkyrienskies.core.api.ships.ClientShip

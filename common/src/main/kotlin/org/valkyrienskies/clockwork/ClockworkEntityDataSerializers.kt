@@ -9,7 +9,7 @@ import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.world.entity.player.Player
 import org.joml.primitives.AABBi
 import org.joml.primitives.AABBic
-import org.valkyrienskies.clockwork.content.curiosities.tools.bluper.SelectedAreaToolkit
+import org.valkyrienskies.clockwork.content.curiosities.tools.designator.SelectedAreaToolkit
 import java.util.*
 
 object ClockworkEntityDataSerializers {
