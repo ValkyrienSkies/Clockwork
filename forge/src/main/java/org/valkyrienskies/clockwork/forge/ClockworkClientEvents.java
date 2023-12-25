@@ -15,6 +15,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.valkyrienskies.clockwork.ClockworkMod;
+import org.valkyrienskies.clockwork.ClockworkModClient;
 
 import static com.jozufozu.flywheel.backend.Backend.isGameActive;
 
@@ -35,8 +36,8 @@ public class ClockworkClientEvents {
         Vec3 camera = Minecraft.getInstance().gameRenderer.getMainCamera()
                 .getPosition();
 
-        ClockworkMod.getOUTLINER().renderOutlines(ms, SuperRenderTypeBuffer.getInstance(), camera, partialTicks);
-        ClockworkMod.getAURIC_OUTLINER().renderOutlines(ms, SuperRenderTypeBuffer.getInstance(), camera, partialTicks);
+        ClockworkModClient.getOUTLINER().renderOutlines(ms, SuperRenderTypeBuffer.getInstance(), camera, partialTicks);
+        ClockworkModClient.getAURIC_OUTLINER().renderOutlines(ms, SuperRenderTypeBuffer.getInstance(), camera, partialTicks);
 
         buffer.draw();
         RenderSystem.enableCull();
@@ -53,11 +54,10 @@ public class ClockworkClientEvents {
             return;
         }
 
-        ClockworkModForge.GRAVITRON_HANDLER.tick();
-        ClockworkModForge.BLUPER_CLUSTER_HANDLER.tick();
+        ClockworkModForgeClient.GRAVITRON_HANDLER.tick();
 
-        ClockworkMod.getOUTLINER().tickOutlines();
-        ClockworkMod.getAURIC_OUTLINER().tickOutlines();
+        ClockworkModClient.getOUTLINER().tickOutlines();
+        ClockworkModClient.getAURIC_OUTLINER().tickOutlines();
     }
 
     @SubscribeEvent
@@ -69,7 +69,7 @@ public class ClockworkClientEvents {
         int key = event.getKey();
         boolean pressed = !(event.getAction() == 0);
 
-        ClockworkModForge.GRAVITRON_HANDLER.onKeyInput(key, pressed);
+        ClockworkModForgeClient.GRAVITRON_HANDLER.onKeyInput(key, pressed);
     }
 
     @SubscribeEvent
@@ -79,7 +79,7 @@ public class ClockworkClientEvents {
         }
 
         double delta = event.getScrollDelta();
-        boolean cancelled = ClockworkModForge.GRAVITRON_HANDLER.mouseScrolled(delta);
+        boolean cancelled = ClockworkModForgeClient.GRAVITRON_HANDLER.mouseScrolled(delta);
         event.setCanceled(cancelled);
     }
 
@@ -92,7 +92,7 @@ public class ClockworkClientEvents {
         int button = event.getButton();
         boolean pressed = !(event.getAction() == 0);
 
-        if (ClockworkModForge.GRAVITRON_HANDLER.onMouseInput(button, pressed)) {
+        if (ClockworkModForgeClient.GRAVITRON_HANDLER.onMouseInput(button, pressed)) {
             event.setCanceled(true);
         }
     }
@@ -103,7 +103,7 @@ public class ClockworkClientEvents {
     public static class ModBusEvents {
         @SubscribeEvent
         public static void registerGuiOverlays(RegisterGuiOverlaysEvent event) {
-            event.registerAbove(VanillaGuiOverlay.HOTBAR.id(), "gravitron", ClockworkModForge.GRAVITRON_HANDLER);
+            event.registerAbove(VanillaGuiOverlay.HOTBAR.id(), "gravitron", ClockworkModForgeClient.GRAVITRON_HANDLER);
         }
     }
 }

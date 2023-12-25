@@ -9,13 +9,13 @@ public class FabricClockworkInputEvents {
 
         boolean pressed = action != 0;
 
-        ClockworkModFabric.GRAVITRON_HANDLER.onKeyInput(key, pressed);
+        ClockworkModFabricClient.GRAVITRON_HANDLER.onKeyInput(key, pressed);
     }
 
     public static boolean onMouseScrolled(double deltaX, double delta) {
         if (Minecraft.getInstance().screen != null) return false;
 
-        var cancelled = (ClockworkModFabric.GRAVITRON_HANDLER.mouseScrolled(delta));
+        var cancelled = (ClockworkModFabricClient.GRAVITRON_HANDLER.mouseScrolled(delta));
         return cancelled;
     }
 
@@ -24,7 +24,7 @@ public class FabricClockworkInputEvents {
 
         var pressed = action == MouseInputEvents.Action.PRESS;
 
-        if (ClockworkModFabric.GRAVITRON_HANDLER.onMouseInput(button, pressed)) return true;
+        if (ClockworkModFabricClient.GRAVITRON_HANDLER.onMouseInput(button, pressed)) return true;
         return false;
     }
 }

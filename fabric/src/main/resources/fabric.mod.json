@@ -27,7 +27,7 @@
       "org.valkyrienskies.clockwork.fabric.ClockworkModFabric"
     ],
     "client": [
-      "org.valkyrienskies.clockwork.fabric.ClockworkModFabric"
+      "org.valkyrienskies.clockwork.fabric.ClockworkModFabricClient"
     ]
   },
   "mixins": [
