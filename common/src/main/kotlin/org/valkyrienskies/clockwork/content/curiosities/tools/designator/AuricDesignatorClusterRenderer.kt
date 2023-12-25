@@ -19,7 +19,6 @@ import org.joml.primitives.Intersectionf
 import org.joml.primitives.LineSegmentf
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.content.curiosities.tools.bluper.SelectedAreaToolkit
 import org.valkyrienskies.mod.common.util.toBlockPos
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft

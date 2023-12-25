@@ -6,7 +6,6 @@ import com.simibubi.create.foundation.outliner.Outliner
 import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Style
 import net.minecraft.network.chat.TextComponent
 import net.minecraft.server.level.ServerPlayer
@@ -27,7 +26,6 @@ import org.valkyrienskies.clockwork.ClockworkMod.AURIC_OUTLINER
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
-import org.valkyrienskies.clockwork.content.curiosities.tools.bluper.SelectedAreaToolkit
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.clockwork.platform.SharedValues
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil

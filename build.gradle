@@ -59,9 +59,6 @@ subprojects {
             name = 'Kotlin for Forge'
             url = 'https://thedarkcolour.github.io/KotlinForForge/'
         }
-        flatDir {
-            dir 'lib'
-        }
     }
 
     dependencies {

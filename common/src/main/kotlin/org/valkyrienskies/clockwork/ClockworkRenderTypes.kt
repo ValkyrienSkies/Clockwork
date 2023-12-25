@@ -42,19 +42,5 @@ class ClockworkRenderTypes(
                 compositeState!!
             )
         }
-
-        private fun makeLayer(
-            name: String, format: VertexFormat, mode: VertexFormat.Mode,
-            bufSize: Int, hasCrumbling: Boolean, sortOnUpload: Boolean, glState: CompositeState
-        ): RenderType {
-            return create(name, format, mode, bufSize, hasCrumbling, sortOnUpload, glState)
-        }
-
-        private fun makeLayer(
-            name: String, format: VertexFormat, mode: VertexFormat.Mode,
-            bufSize: Int, glState: CompositeState
-        ): RenderType {
-            return makeLayer(name, format, mode, bufSize, false, false, glState)
-        }
     }
 }

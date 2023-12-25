@@ -23,7 +23,6 @@ public class FabricClockworkClientEvents {
             return;
 
         ClockworkModFabric.GRAVITRON_HANDLER.tick();
-        ClockworkModFabric.BLUPER_CLUSTER_HANDLER.tick();
 
         ClockworkMod.getOUTLINER().tickOutlines();
         ClockworkMod.getAURIC_OUTLINER().tickOutlines();

@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork
 import com.mojang.logging.LogUtils
 import com.simibubi.create.foundation.data.CreateRegistrate
 import com.simibubi.create.foundation.outliner.Outliner
+import dev.architectury.registry.CreativeTabRegistry
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.network.chat.Component
@@ -25,6 +26,8 @@ object ClockworkMod {
     val REGISTRATE: CreateRegistrate = CreateRegistrate.create(MOD_ID)
     val MIXIN_LOGGER = LoggerFactory.getLogger("ClockworkMixins")
     val LOGGER = LogUtils.getLogger()
+    val BASE_CREATIVE_TAB: CreativeModeTab = CreativeTabRegistry
+        .create(ResourceLocation(MOD_ID, "clockwork")) { ClockworkItems.GRAVITRON.get().defaultInstance }
 
     @JvmStatic
     val OUTLINER: Outliner = Outliner()
@@ -46,16 +49,10 @@ object ClockworkMod {
     @JvmStatic
     fun initClient() {
         ClockworkPonderScenes.init()
-
-        val blockRenderLayer: RenderType = RenderType.endPortal()
-        //RenderUtil.registerBlockRenderLayer(blockRenderLayer)
-        //BlockRenderLayerMap.INSTANCE.putBlock(ClockworkBlocks.ALT_METER.get(), blockRenderLayer);
     }
 
     @JvmStatic
     fun asResource(path: String): ResourceLocation {
         return ResourceLocation(MOD_ID, path)
     }
-
-
 }
