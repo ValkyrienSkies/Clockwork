@@ -23,10 +23,6 @@ import static org.valkyrienskies.clockwork.ClockworkMod.MOD_ID;
 public class ClockworkModForge {
 
     final DeferredRegister<CreativeModeTab> TAB_REGISTER = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MOD_ID);
-    final DeferredRegister<EntityDataSerializer<?>> DATA_SERIALIZER_REGISTER = DeferredRegister.create(ForgeRegistries.Keys.ENTITY_DATA_SERIALIZERS, MOD_ID);
-
-    public static final ForgeGravitronHandler GRAVITRON_HANDLER = new ForgeGravitronHandler();
-    public static final AuricDesignatorClusterRenderer AURIC_HANDLER = new AuricDesignatorClusterRenderer();
 
     public ClockworkModForge() {
         ModLoadingContext modLoadingContext = ModLoadingContext.get();
@@ -51,17 +47,9 @@ public class ClockworkModForge {
         ClockworkMod.init();
         ClockworkPackets.init();
 
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-            ClockworkPartials.INSTANCE.init();
-            ClockworkMod.initClient();
-            modEventBus.addListener(AllParticleTypes::registerFactories);
-            ClockworkShaders.INSTANCE.init();
-        });
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClockworkModForgeClient.onCtorClient(modEventBus));
 
         TAB_REGISTER.register("general", ClockworkMod.INSTANCE::createCreativeTab);
-        DATA_SERIALIZER_REGISTER.register("area", () -> ClockworkEntityDataSerializers.AREA_TOOLKIT_SERIALIZER);
-
-        DATA_SERIALIZER_REGISTER.register(modEventBus);
         TAB_REGISTER.register(modEventBus);
     }
 }

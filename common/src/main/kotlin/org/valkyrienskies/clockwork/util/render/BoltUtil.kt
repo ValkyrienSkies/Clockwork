@@ -5,6 +5,7 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.Vector4ic
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.mod.common.util.toMinecraft
 import kotlin.random.Random
 
@@ -29,8 +30,8 @@ object BoltUtil {
         for (b in 0 until bolt.segments.size - 1) {
             val segment: Vector3dc = bolt.segments[b]
             val nextSegment: Vector3dc = bolt.segments[b + 1]
-            ClockworkMod.OUTLINER.showLine(segment, segment.toMinecraft(), nextSegment.toMinecraft())
-            ClockworkMod.OUTLINER.edit(segment).ifPresent {
+            ClockworkModClient.OUTLINER.showLine(segment, segment.toMinecraft(), nextSegment.toMinecraft())
+            ClockworkModClient.OUTLINER.edit(segment).ifPresent {
                 it.colored(Color(color.x(), color.y(), color.z(), color.w()))
                 it.lineWidth(width)
             }
@@ -42,7 +43,7 @@ object BoltUtil {
     fun delBolt(bolt: Bolt) {
         bolts.remove(bolt)
         for (segment in bolt.segments) {
-            ClockworkMod.OUTLINER.remove(segment)
+            ClockworkModClient.OUTLINER.remove(segment)
         }
     }
 
@@ -64,7 +65,7 @@ object BoltUtil {
         val boltsCopied = ArrayList(bolts)
         for (bolt in boltsCopied) {
             var prevSegmentEnd: Vector3dc = bolt.segments[1]
-            ClockworkMod.OUTLINER.showLine(
+            ClockworkModClient.OUTLINER.showLine(
                 bolt.segments[0],
                 bolt.segments[0].toMinecraft(),
                 prevSegmentEnd.toMinecraft()
@@ -76,10 +77,10 @@ object BoltUtil {
                 val yOffset: Double = rand.nextDouble(-0.5, 0.5)
                 val zOffset: Double = rand.nextDouble(-0.5, 0.5)
                 nextSegment.add(xOffset, yOffset, zOffset)
-                ClockworkMod.OUTLINER.showLine(segment, prevSegmentEnd.toMinecraft(), nextSegment.toMinecraft())
+                ClockworkModClient.OUTLINER.showLine(segment, prevSegmentEnd.toMinecraft(), nextSegment.toMinecraft())
                 prevSegmentEnd = nextSegment
             }
-            ClockworkMod.OUTLINER.showLine(
+            ClockworkModClient.OUTLINER.showLine(
                 prevSegmentEnd,
                 prevSegmentEnd.toMinecraft(),
                 bolt.segments[bolt.segments.size - 1].toMinecraft()

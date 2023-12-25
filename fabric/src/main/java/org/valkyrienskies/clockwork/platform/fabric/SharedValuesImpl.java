@@ -10,6 +10,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDe
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatEntity;
 import org.valkyrienskies.clockwork.fabric.ClockworkModFabric;
+import org.valkyrienskies.clockwork.fabric.ClockworkModFabricClient;
 import org.valkyrienskies.clockwork.fabric.FabricClockworkEntities;
 import org.valkyrienskies.clockwork.fabric.FabricClockworkFluids;
 import org.valkyrienskies.clockwork.platform.CWItem;
@@ -46,11 +47,11 @@ public class SharedValuesImpl {
     }
 
     public static GravitronHandler getGravitronHandler() {
-        return ClockworkModFabric.GRAVITRON_HANDLER;
+        return ClockworkModFabricClient.GRAVITRON_HANDLER;
     }
 
     public static AuricDesignatorClusterRenderer getAuricHandler() {
-        return ClockworkModFabric.AURIC_HANDLER;
+        return ClockworkModFabricClient.AURIC_HANDLER;
     }
 
 }

@@ -24,11 +24,7 @@ object ClockworkMod {
     val MIXIN_LOGGER = LoggerFactory.getLogger("ClockworkMixins")
     val LOGGER = LogUtils.getLogger()
 
-    @JvmStatic
-    val OUTLINER: Outliner = Outliner()
 
-    @JvmStatic
-    val AURIC_OUTLINER: Outliner = Outliner()
 
     @JvmStatic
     fun init() {
@@ -41,10 +37,6 @@ object ClockworkMod {
         }
     }
 
-    @JvmStatic
-    fun initClient() {
-        ClockworkPonderScenes.init()
-    }
 
     @JvmStatic
     fun asResource(path: String): ResourceLocation {
