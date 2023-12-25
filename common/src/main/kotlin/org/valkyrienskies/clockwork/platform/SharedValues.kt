@@ -5,7 +5,6 @@ import com.tterrag.registrate.util.entry.EntityEntry
 import dev.architectury.injectables.annotations.ExpectPlatform
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
-import org.valkyrienskies.clockwork.content.curiosities.tools.bluper.BluperGlueSelectionHandler
 import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorClusterRenderer
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatEntity
@@ -55,12 +54,7 @@ object SharedValues {
             throw AssertionError()
         }
 
-    @get:ExpectPlatform
-    @JvmStatic
-    val bluperGlueHandler: BluperGlueSelectionHandler
-        get() {
-            throw AssertionError()
-        }
+
 
     @get:ExpectPlatform
     @JvmStatic

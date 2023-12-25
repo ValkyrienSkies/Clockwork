@@ -27,7 +27,6 @@ import org.valkyrienskies.clockwork.ClockworkMod.AURIC_OUTLINER
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
-import org.valkyrienskies.clockwork.content.curiosities.tools.bluper.SelectedAreaToolkit
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.clockwork.platform.SharedValues
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil

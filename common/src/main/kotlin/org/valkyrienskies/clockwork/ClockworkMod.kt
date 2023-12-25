@@ -44,10 +44,6 @@ object ClockworkMod {
     @JvmStatic
     fun initClient() {
         ClockworkPonderScenes.init()
-
-        val blockRenderLayer: RenderType = RenderType.endPortal()
-        //RenderUtil.registerBlockRenderLayer(blockRenderLayer)
-        //BlockRenderLayerMap.INSTANCE.putBlock(ClockworkBlocks.ALT_METER.get(), blockRenderLayer);
     }
 
     @JvmStatic
@@ -60,8 +56,6 @@ object ClockworkMod {
             .title(Component.translatable("itemGroup.clockwork"))
             .icon { ClockworkItems.GRAVITRON.asStack() }
             .displayItems { _, output ->
-                //output.accept(ClockworkItems.BLUUGUU)
-                //output.accept(ClockworkItems.BLUPERGLUE)
                 output.accept(ClockworkItems.GRAVITRON)
 
                 output.accept(ClockworkItems.AURIC_DESIGNATOR)

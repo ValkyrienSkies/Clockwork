@@ -59,7 +59,7 @@ dependencies {
     }
 
     //VS2
-    modApi("org.valkyrienskies:valkyrienskies-1201-${rootProject.vs2_version}") {
+    modApi("org.valkyrienskies:valkyrienskies-120-forge:${rootProject.vs2_version}") {
         exclude group: 'org.joml', module: ''
         transitive = false
     }

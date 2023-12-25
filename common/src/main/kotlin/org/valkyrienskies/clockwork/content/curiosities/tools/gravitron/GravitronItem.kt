@@ -25,11 +25,10 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkSounds
-import org.valkyrienskies.clockwork.content.curiosities.tools.bluper.SelectedAreaToolkit
+import org.valkyrienskies.clockwork.content.curiosities.tools.designator.SelectedAreaToolkit
 import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorItem
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 import org.valkyrienskies.clockwork.platform.CWItem
-import org.valkyrienskies.clockwork.util.AreaData
 import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.properties.ShipId
@@ -106,12 +105,12 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         }
 
         fun abstractAssemble(
-            level: Level,
-            player: Player,
-            toolkit: SelectedAreaToolkit,
-            blockPos: BlockPos,
-            clickLocation: Vec3,
-            grab: Boolean
+                level: Level,
+                player: Player,
+                toolkit: SelectedAreaToolkit,
+                blockPos: BlockPos,
+                clickLocation: Vec3,
+                grab: Boolean
         ): Boolean {
             toolkit.selectionClusters.forEach { cluster ->
                 val selection: DenseBlockPosSet = SelectedAreaToolkit.denseBlocksFromCluster(cluster)
@@ -194,14 +193,6 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                     }
                     break
                 }
-            }
-
-            val data = AreaData.of(player).get()
-            val list = data.getArea()
-
-            if (abstractAssemble(level, player, list, blockPos, clickLocation, grab)) {
-                data.shouldReset(true)
-                return true
             }
 
             return false

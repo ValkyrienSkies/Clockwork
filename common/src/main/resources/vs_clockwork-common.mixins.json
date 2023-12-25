@@ -4,7 +4,6 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "MixinPlayer",
-    "MixinPlayerData",
     "MixinToolboxHandler",
     "accessors.FluidAccessor",
     "accessors.IMixinClockworkContraption",
@@ -16,8 +15,6 @@
   "client": [
     "MixinLevelRenderer",
     "client.MixinItemInHandRenderer",
-    "client.MixinLevelRenderer",
-    "client.MixinRenderType",
     "content.gravitron.MinecraftAccessor",
     "content.gravitron.MixinLocalPlayer"
   ],

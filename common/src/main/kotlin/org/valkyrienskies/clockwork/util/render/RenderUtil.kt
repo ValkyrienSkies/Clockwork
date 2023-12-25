@@ -154,8 +154,4 @@ object RenderUtil {
         buffer.translateY(-(4.5 / 16.0))
         return buffer
     }
-
-    fun registerBlockRenderLayer(layer: RenderType) {
-        BlockRenderTypeRegistry.registerRenderLayer(layer)
-    }
 }

@@ -54,7 +54,6 @@ public class ClockworkClientEvents {
         }
 
         ClockworkModForge.GRAVITRON_HANDLER.tick();
-        ClockworkModForge.BLUPER_CLUSTER_HANDLER.tick();
 
         ClockworkMod.getOUTLINER().tickOutlines();
         ClockworkMod.getAURIC_OUTLINER().tickOutlines();

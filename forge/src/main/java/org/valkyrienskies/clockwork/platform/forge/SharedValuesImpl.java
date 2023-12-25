@@ -4,7 +4,6 @@ import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRendere
 import com.simibubi.create.foundation.item.render.SimpleCustomRenderer;
 import com.tterrag.registrate.util.entry.EntityEntry;
 import net.minecraft.world.item.BlockItem;
-import org.valkyrienskies.clockwork.content.curiosities.tools.bluper.BluperGlueSelectionHandler;
 import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorClusterRenderer;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatEntity;
@@ -37,10 +36,6 @@ public class SharedValuesImpl {
 
     public static GravitronHandler getGravitronHandler() {
         return ClockworkModForge.GRAVITRON_HANDLER;
-    }
-
-    public static BluperGlueSelectionHandler getBluperGlueHandler() {
-        return ClockworkModForge.BLUPER_CLUSTER_HANDLER;
     }
 
     public static AuricDesignatorClusterRenderer getAuricHandler() {
