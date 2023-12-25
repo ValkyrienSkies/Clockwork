@@ -20,9 +20,9 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.Gravitro
 import org.valkyrienskies.clockwork.content.events.ClockworkCommonEvents;
 import org.valkyrienskies.mod.fabric.common.ValkyrienSkiesModFabric;
 
-public class ClockworkModFabric implements ModInitializer, ClientModInitializer {
+public class ClockworkModFabric implements ModInitializer {
 
-    public static final GravitronHandler GRAVITRON_HANDLER = new GravitronHandler();
+
     public static final AuricDesignatorClusterRenderer AURIC_HANDLER = new AuricDesignatorClusterRenderer();
 
 
@@ -55,34 +55,5 @@ public class ClockworkModFabric implements ModInitializer, ClientModInitializer 
         ServerTickEvents.START_WORLD_TICK.register(ClockworkCommonEvents.INSTANCE::onWorldTick);
         LivingEntityEvents.TICK.register(FabricClockworkCommonEvents::onLivingTick);
         AttackBlockCallback.EVENT.register(FabricClockworkCommonEvents::playerLeftClick);
-    }
-
-    @Override
-    public void onInitializeClient() {
-        ClockworkMod.initClient();
-
-        ClockworkPartials.INSTANCE.init();
-        FabricClockworkPartials.init();
-
-        ClockworkParticles.initClient();
-
-        registerClientEvents();
-        FabricClockworkClientEvents.register();
-        ClockworkShaders.INSTANCE.init();
-
-        KeyInputCallback.EVENT.register(FabricClockworkInputEvents::onKeyInput);
-
-        MouseScrolledCallback.EVENT.register(FabricClockworkInputEvents::onMouseScrolled);
-        MouseButtonCallback.EVENT.register(FabricClockworkInputEvents::onMouseInput);
-    }
-
-    public static void registerClientEvents() {
-        ClientTickEvents.END_CLIENT_TICK.register(FabricClockworkClientEvents::onTick);
-        ClientTickEvents.START_CLIENT_TICK.register(FabricClockworkClientEvents::onTickStart);
-        WorldRenderEvents.AFTER_TRANSLUCENT.register(FabricClockworkClientEvents::onRenderWorld);
-        HudRenderCallback.EVENT.register((graphics, partialTicks) -> {
-            Window window = Minecraft.getInstance().getWindow();
-            GRAVITRON_HANDLER.render(graphics, partialTicks, window.getWidth(), window.getHeight());
-        });
     }
 }

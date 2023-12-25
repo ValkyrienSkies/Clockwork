@@ -22,7 +22,7 @@ public class FabricClockworkClientEvents {
         if (!isGameActive())
             return;
 
-        ClockworkModFabric.GRAVITRON_HANDLER.tick();
+        ClockworkModFabricClient.GRAVITRON_HANDLER.tick();
 
         ClockworkMod.getOUTLINER().tickOutlines();
         ClockworkMod.getAURIC_OUTLINER().tickOutlines();
