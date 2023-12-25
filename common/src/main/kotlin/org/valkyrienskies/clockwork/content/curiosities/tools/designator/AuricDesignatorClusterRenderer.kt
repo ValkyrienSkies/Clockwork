@@ -19,6 +19,7 @@ import org.joml.primitives.Intersectionf
 import org.joml.primitives.LineSegmentf
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.mod.common.util.toBlockPos
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft
@@ -52,7 +53,7 @@ class AuricDesignatorClusterRenderer {
                         }
                     }
                     while (adi.selectedArea.toStopRendering.isNotEmpty()) {
-                        ClockworkMod.AURIC_OUTLINER.remove(adi.selectedArea.toStopRendering[0])
+                        ClockworkModClient.AURIC_OUTLINER.remove(adi.selectedArea.toStopRendering[0])
                         storedClusters.remove(adi.selectedArea.toStopRendering.removeAt(0))
                     }
                     if (minecraft.getCameraEntity() == null) {
@@ -109,21 +110,21 @@ class AuricDesignatorClusterRenderer {
                             if (adi.firstPos == null) {
                                 val vec = Vector3d(hoveredBlockPos).toMinecraft()
                                 if (vec != localPlayer.eyePosition) {
-                                    ClockworkMod.AURIC_OUTLINER.chaseAABB(adi, AABB(hoveredBlockPos.toBlockPos()))
-                                    ClockworkMod.AURIC_OUTLINER.edit(adi).ifPresent { outline ->
+                                    ClockworkModClient.AURIC_OUTLINER.chaseAABB(adi, AABB(hoveredBlockPos.toBlockPos()))
+                                    ClockworkModClient.AURIC_OUTLINER.edit(adi).ifPresent { outline ->
                                         outline.colored(
                                             HOVERPURPLE
                                         ).withFaceTexture(AllSpecialTextures.SELECTION)
                                     }
                                 } else {
-                                    ClockworkMod.AURIC_OUTLINER.remove(adi)
+                                    ClockworkModClient.AURIC_OUTLINER.remove(adi)
                                 }
                             }
                         }
                         if (adi.firstPos != null) {
                             val vec = Vector3d(hoveredBlockPos).toMinecraft()
                             if (vec != localPlayer.eyePosition) {
-                                ClockworkMod.AURIC_OUTLINER.chaseAABB(
+                                ClockworkModClient.AURIC_OUTLINER.chaseAABB(
                                     bbOutlineSlotAD,
                                     AABB(adi.firstPos!!.toBlockPos(), hoveredBlockPos.toBlockPos()).expandTowards(
                                         1.0,
@@ -131,34 +132,34 @@ class AuricDesignatorClusterRenderer {
                                         1.0
                                     )
                                 )
-                                ClockworkMod.AURIC_OUTLINER.edit(bbOutlineSlotAD).ifPresent { outline ->
+                                ClockworkModClient.AURIC_OUTLINER.edit(bbOutlineSlotAD).ifPresent { outline ->
                                     outline.colored(
                                         HOVERPURPLE
                                     ).withFaceTexture(AllSpecialTextures.SELECTION)
                                 }
                             } else {
-                                ClockworkMod.AURIC_OUTLINER.chaseAABB(
+                                ClockworkModClient.AURIC_OUTLINER.chaseAABB(
                                     bbOutlineSlotAD,
                                     AABB(adi.firstPos!!.toBlockPos(), adi.firstPos!!.toBlockPos())
                                 )
                             }
                             // render selection box
                         } else {
-                            ClockworkMod.AURIC_OUTLINER.remove(bbOutlineSlotAD)
+                            ClockworkModClient.AURIC_OUTLINER.remove(bbOutlineSlotAD)
                         }
                     }
 
                     for (key in storedClusters.keys) {
-                        ClockworkMod.AURIC_OUTLINER.showCluster(
+                        ClockworkModClient.AURIC_OUTLINER.showCluster(
                             storedClusters[key]!!.right, storedClusters[key]!!.left
                         )
-                        ClockworkMod.AURIC_OUTLINER.edit(storedClusters[key]!!.right).ifPresent { outline ->
+                        ClockworkModClient.AURIC_OUTLINER.edit(storedClusters[key]!!.right).ifPresent { outline ->
                             outline.colored(
                                 IDLEPURPLE
                             )
                         }
                         if (key == hoveredCluster) {
-                            ClockworkMod.AURIC_OUTLINER.edit(storedClusters[key]!!.right).ifPresent { outline ->
+                            ClockworkModClient.AURIC_OUTLINER.edit(storedClusters[key]!!.right).ifPresent { outline ->
                                 outline.colored(
                                     HOVERPURPLE
                                 )

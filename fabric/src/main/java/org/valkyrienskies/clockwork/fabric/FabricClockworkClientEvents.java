@@ -9,6 +9,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.phys.Vec3;
 import org.valkyrienskies.clockwork.ClockworkMod;
+import org.valkyrienskies.clockwork.ClockworkModClient;
 
 import static com.jozufozu.flywheel.backend.Backend.isGameActive;
 
@@ -24,8 +25,8 @@ public class FabricClockworkClientEvents {
 
         ClockworkModFabricClient.GRAVITRON_HANDLER.tick();
 
-        ClockworkMod.getOUTLINER().tickOutlines();
-        ClockworkMod.getAURIC_OUTLINER().tickOutlines();
+        ClockworkModClient.getOUTLINER().tickOutlines();
+        ClockworkModClient.getAURIC_OUTLINER().tickOutlines();
     }
 
     public static void register() {
@@ -40,8 +41,8 @@ public class FabricClockworkClientEvents {
         float partialTicks = AnimationTickHolder.getPartialTicks();
         Vec3 camera = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
 
-        ClockworkMod.getOUTLINER().renderOutlines(ms, SuperRenderTypeBuffer.getInstance(), camera, partialTicks);
-        ClockworkMod.getAURIC_OUTLINER().renderOutlines(ms, SuperRenderTypeBuffer.getInstance(), camera, partialTicks);
+        ClockworkModClient.getOUTLINER().renderOutlines(ms, SuperRenderTypeBuffer.getInstance(), camera, partialTicks);
+        ClockworkModClient.getAURIC_OUTLINER().renderOutlines(ms, SuperRenderTypeBuffer.getInstance(), camera, partialTicks);
 
         buffer.draw();
         RenderSystem.enableCull();

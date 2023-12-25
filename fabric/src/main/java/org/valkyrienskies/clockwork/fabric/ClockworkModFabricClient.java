@@ -9,10 +9,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.Minecraft;
-import org.valkyrienskies.clockwork.ClockworkMod;
-import org.valkyrienskies.clockwork.ClockworkPartials;
-import org.valkyrienskies.clockwork.ClockworkParticles;
-import org.valkyrienskies.clockwork.ClockworkShaders;
+import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler;
 
 public class ClockworkModFabricClient implements ClientModInitializer {
@@ -20,7 +17,7 @@ public class ClockworkModFabricClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        ClockworkMod.initClient();
+        ClockworkModClient.initClient();
 
         ClockworkPartials.INSTANCE.init();
         FabricClockworkPartials.init();

@@ -22,7 +22,7 @@ import net.minecraft.world.level.block.state.BlockState
 import org.joml.Vector3ic
 import org.joml.primitives.AABBi
 import org.joml.primitives.AABBic
-import org.valkyrienskies.clockwork.ClockworkMod.AURIC_OUTLINER
+import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
@@ -297,9 +297,9 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
                 val item = player.getItemInHand(InteractionHand.MAIN_HAND).item as AuricDesignatorItem
 
                 val clone: HashSet<Set<AABBic>> = HashSet(item.selectedArea.selectionClusters)
-                val copy: Map<Any, Outliner.OutlineEntry> = HashMap(AURIC_OUTLINER.outlines)
+                val copy: Map<Any, Outliner.OutlineEntry> = HashMap(ClockworkModClient.AURIC_OUTLINER.outlines)
                 for ((key) in copy) {
-                    AURIC_OUTLINER.remove(key)
+                    ClockworkModClient.AURIC_OUTLINER.remove(key)
                 }
 
                 for (aabBic in clone) {
