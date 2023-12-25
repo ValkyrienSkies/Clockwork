@@ -9,4 +9,10 @@ object ClockworkModClient {
 
     @JvmStatic
     val AURIC_OUTLINER: Outliner = Outliner()
+
+    @JvmStatic
+    fun initClient() {
+        ClockworkPonderScenes.init()
+    }
+
 }

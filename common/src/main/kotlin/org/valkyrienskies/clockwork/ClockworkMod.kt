@@ -30,8 +30,6 @@ object ClockworkMod {
     val LOGGER = LogUtils.getLogger()
 
 
-
-
     @JvmStatic
     fun init() {
         ClockworkContraptions.init()
@@ -44,14 +42,7 @@ object ClockworkMod {
     }
 
     @JvmStatic
-    fun initClient() {
-        ClockworkPonderScenes.init()
-    }
-
-    @JvmStatic
     fun asResource(path: String): ResourceLocation {
         return ResourceLocation(MOD_ID, path)
     }
-
-
 }
