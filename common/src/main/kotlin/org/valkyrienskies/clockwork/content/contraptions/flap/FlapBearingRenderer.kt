@@ -6,6 +6,7 @@ import com.simibubi.create.AllPartialModels
 import com.simibubi.create.content.contraptions.bearing.BearingBlock
 import com.simibubi.create.content.contraptions.bearing.IBearingBlockEntity
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
+import com.simibubi.create.content.kinetics.saw.SawRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
 import com.simibubi.create.foundation.utility.AngleHelper
@@ -46,6 +47,9 @@ class FlapBearingRenderer(context: BlockEntityRendererProvider.Context) :
             AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble())
         )
         superBuffer.renderInto(ms, buffer.getBuffer(RenderType.solid()))
+
+        renderRotatingBuffer(te, getRotatedModel(te, te.blockState), ms,
+            buffer.getBuffer(RenderType.solid()), light)
     }
 
     override fun getRotatedModel(te: FlapBearingBlockEntity, state: BlockState): SuperByteBuffer {
