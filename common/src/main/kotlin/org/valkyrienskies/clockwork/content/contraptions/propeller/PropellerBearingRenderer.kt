@@ -34,6 +34,8 @@ class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
         // if (Backend.canUseInstancing(te.getLevel())) return;
         super.renderSafe(te, partialTicks, ms, buffer, light, overlay)
         val bearingTe: PropellerBearingBlockEntity = te as PropellerBearingBlockEntity
+        renderRotatingBuffer(te, getRotatedModel(te, te.blockState), ms,
+            buffer.getBuffer(RenderType.solid()), light)
         val facing: Direction = te.blockState.getValue(BlockStateProperties.FACING)
         val top = ClockworkPartials.PROPELLER_TOP
         val superBuffer = CachedBufferer.partial(top, te.getBlockState())
@@ -97,6 +99,8 @@ class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
         pistonBotL.renderInto(ms, buffer.getBuffer(RenderType.cutoutMipped()))
         pistonBotR.renderInto(ms, buffer.getBuffer(RenderType.cutoutMipped()))
         superBuffer.renderInto(ms, buffer.getBuffer(RenderType.solid()))
+
+
         ms.popPose()
     }
 

@@ -2,6 +2,8 @@ package org.valkyrienskies.clockwork.content.contraptions.phys.bearing
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.Axis
+import com.simibubi.create.AllPartialModels
+import com.simibubi.create.content.contraptions.bearing.BearingBlock
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
@@ -12,10 +14,12 @@ import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.Direction
+import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
 import org.joml.Quaternionf
 import org.valkyrienskies.clockwork.ClockworkPartials
+import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlockEntity
 
 class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) :
     KineticBlockEntityRenderer<PhysBearingBlockEntity>(context) {
@@ -31,6 +35,8 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) :
         val pte = te
         val ogfacing = te.blockState
             .getValue(BlockStateProperties.FACING)
+        renderRotatingBuffer(te, getRotatedModel(te, te.blockState), ms,
+            buffer.getBuffer(RenderType.solid()), light)
         val facing = Direction.UP
         ms.pushPose()
         ms.translate(0.5, 0.5, 0.5)
@@ -120,6 +126,12 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) :
         cornerSE.renderInto(ms, vb)
         cornerSW.renderInto(ms, vb)
         ms.popPose()
+    }
+
+    override fun getRotatedModel(te: PhysBearingBlockEntity, state: BlockState): SuperByteBuffer {
+        return CachedBufferer.partialFacing(
+            AllPartialModels.SHAFT_HALF, state, state.getValue(BearingBlock.FACING).opposite
+        )
     }
 
     private fun idleRotateCore(

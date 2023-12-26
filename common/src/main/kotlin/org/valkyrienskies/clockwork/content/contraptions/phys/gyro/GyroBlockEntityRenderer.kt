@@ -1,16 +1,25 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.gyro
 
+import com.jozufozu.flywheel.util.AnimationTickHolder
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
+import com.simibubi.create.AllPartialModels
+import com.simibubi.create.content.contraptions.bearing.BearingBlock
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
+import com.simibubi.create.content.kinetics.flywheel.FlywheelRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
+import com.simibubi.create.foundation.render.SuperByteBuffer
 import com.simibubi.create.foundation.utility.AngleHelper
+import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
+import net.minecraft.core.Direction
+import net.minecraft.util.Mth
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Vector3f
 import org.valkyrienskies.clockwork.ClockworkPartials
+import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity
 import org.valkyrienskies.clockwork.util.render.RenderUtil
 import org.valkyrienskies.clockwork.util.render.TransformData
 
@@ -44,6 +53,9 @@ class GyroBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
             .light(light)
             .color(255, 255, 255, 255)
             .renderInto(ms, buffer.getBuffer(RenderType.solid()))
+
+        renderRotatingBuffer(be, getRotatedModel(be, be.blockState), ms,
+            buffer.getBuffer(RenderType.solid()), light)
     }
 
     private fun renderCore(
@@ -85,5 +97,11 @@ class GyroBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
         wheel.translate(0.0, 1.0, 0.0)
 
         wheel.renderInto(ms, vb)
+    }
+
+    override fun getRotatedModel(te: GyroBlockEntity, state: BlockState): SuperByteBuffer {
+        return CachedBufferer.partialFacing(
+            AllPartialModels.SHAFT_HALF, state, Direction.DOWN
+        )
     }
 }
