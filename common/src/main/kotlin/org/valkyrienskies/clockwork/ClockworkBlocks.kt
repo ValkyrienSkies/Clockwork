@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork
 
+import com.simibubi.create.AllBlocks
 import com.simibubi.create.AllTags
 import com.simibubi.create.content.fluids.PipeAttachmentModel
 import com.simibubi.create.content.kinetics.BlockStressDefaults
@@ -22,6 +23,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.material.MapColor
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.client.render.WingBlockItemRenderer
+import org.valkyrienskies.clockwork.content.AuricOreBlock
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock
@@ -243,6 +245,30 @@ object ClockworkBlocks {
         })
         .item()
         .transform(customItemModel())
+        .register()
+
+    val AURIC_DEEPSLATE_ORE = REGISTRATE.block<AuricOreBlock>(
+        "auric_deepslate_ore"
+    ) { properties: BlockBehaviour.Properties? ->
+        AuricOreBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .item()
+        .build()
+        .register()
+
+    val AURIC_END_ORE = REGISTRATE.block<AuricOreBlock>(
+        "auric_end_ore"
+    ) { properties: BlockBehaviour.Properties? ->
+        AuricOreBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .item()
+        .build()
         .register()
 
     @JvmStatic

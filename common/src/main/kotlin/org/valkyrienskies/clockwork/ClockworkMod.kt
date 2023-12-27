@@ -31,6 +31,7 @@ object ClockworkMod {
         ClockworkContraptions.init()
         ClockworkPackets.init()
         ClockworkTags.init()
+        ClockworkWorldgen.init()
 
         VSEvents.ShipLoadEvent.on { event ->
             event.ship
@@ -51,7 +52,10 @@ object ClockworkMod {
                 output.accept(ClockworkItems.GRAVITRON)
 
                 output.accept(ClockworkItems.AURIC_DESIGNATOR)
+                output.accept(ClockworkItems.AURIC_CRYSTAL)
 
+                output.accept(ClockworkBlocks.AURIC_DEEPSLATE_ORE.asStack())
+                output.accept(ClockworkBlocks.AURIC_END_ORE.asStack())
                 output.accept(ClockworkBlocks.HEAT_PIPE.asStack())
                 output.accept(ClockworkBlocks.PHYSICS_INFUSER.asStack())
                 output.accept(ClockworkBlocks.GYRO.asStack())

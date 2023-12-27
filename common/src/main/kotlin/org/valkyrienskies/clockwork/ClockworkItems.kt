@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork
 
+import com.simibubi.create.AllItems
 import com.simibubi.create.AllTags
 import com.simibubi.create.foundation.data.AssetLookup
 import com.tterrag.registrate.util.entry.ItemEntry
@@ -43,11 +44,15 @@ object ClockworkItems {
             .model(AssetLookup.itemModelWithPartials())
             .register()
 
+    @JvmField
+    val AURIC_CRYSTAL: ItemEntry<Item> = ingredient("auric_crystal")
+
     private fun ingredient(name: String): ItemEntry<Item> {
         return REGISTRATE.item<Item>(name) { properties: Item.Properties? -> Item(properties!!) }.register()
     }
 
     @JvmStatic
     fun register() {
+
     }
 }

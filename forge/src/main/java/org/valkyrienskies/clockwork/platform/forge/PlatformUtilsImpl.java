@@ -14,7 +14,7 @@ import org.valkyrienskies.clockwork.util.blocktype.LiquidFuelType;
 
 public class PlatformUtilsImpl {
     public static double getReachDistance(Player player) {
-        return player.getReachDistance();
+        return player.getEntityReach();
     }
 
     public static Packet<?> createExtraDataSpawnPacket(Entity entity) {
