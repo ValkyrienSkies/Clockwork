@@ -39,14 +39,14 @@ class AuricOreBlock(properties: Properties) : ExperienceBlock(properties) {
         return InteractionResult.FAIL;
     }
 
-    override fun attack(state: BlockState?, level: Level?, pos: BlockPos, player: Player?) {
+    override fun attack(state: BlockState, level: Level, pos: BlockPos, player: Player) {
         if (level is ServerLevel && !isAlreadyShip(level, pos)) {
             shipifyBlock(level, pos)
         }
-        //super.attack(state, level, pos, player)
+        super.attack(state, level, pos, player)
     }
 
-    override fun stepOn(level: Level?, pos: BlockPos, state: BlockState?, entity: Entity) {
+    override fun stepOn(level: Level, pos: BlockPos, state: BlockState, entity: Entity) {
         if (!entity.isSteppingCarefully && level is ServerLevel && !isAlreadyShip(level, pos)) {
             shipifyBlock(level, pos)
         }
