@@ -1,12 +1,9 @@
 {
   "replace": false,
   "values": [
-    "vs_clockwork:propellor_bearing",
     "vs_clockwork:flap_bearing",
     "vs_clockwork:redstone_resistor",
     "vs_clockwork:command_seat",
-    "vs_clockwork:physics_infuser",
-    "vs_clockwork:phys_bearing",
-    "vs_clockwork:gyro"
+    "vs_clockwork:physics_infuser"
   ]
 }
