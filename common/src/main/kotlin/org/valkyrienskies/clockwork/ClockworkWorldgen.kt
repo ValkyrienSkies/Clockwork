@@ -36,11 +36,11 @@ object ClockworkWorldgen {
                 listOf(
                     InSquarePlacement.spread(),
                     HeightRangePlacement.triangle(
-                        VerticalAnchor.absolute(64),
-                        VerticalAnchor.absolute(-64)),
+                        VerticalAnchor.absolute(-64),
+                        VerticalAnchor.absolute(64)),
                     BiomeFilter.biome()))
 
-            BiomeModifications.addProperties { ctx, mutable ->
+            BiomeModifications.addProperties { _, mutable ->
 
                 if (true) {
                     mutable.getGenerationProperties()

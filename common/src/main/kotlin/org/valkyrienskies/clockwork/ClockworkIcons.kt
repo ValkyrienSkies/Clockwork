@@ -54,7 +54,7 @@ class ClockworkIcons(x: Int, y: Int) : ScreenElement {
     }
 
     @Environment(EnvType.CLIENT)
-    override fun render(matrixStack: PoseStack?, x: Int, y: Int) {
+    override fun render(matrixStack: PoseStack, x: Int, y: Int) {
         bind()
         GuiComponent.blit(matrixStack, x, y, 0, iconX.toFloat(), iconY.toFloat(), 16, 16, 256, 256)
     }

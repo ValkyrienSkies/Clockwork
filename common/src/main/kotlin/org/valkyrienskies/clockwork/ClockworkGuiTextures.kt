@@ -54,13 +54,13 @@ enum class ClockworkGuiTextures(
     }
 
     @Environment(EnvType.CLIENT)
-    override fun render(ms: PoseStack?, x: Int, y: Int) {
+    override fun render(ms: PoseStack, x: Int, y: Int) {
         bind()
         GuiComponent.blit(ms, x, y, 0, startX.toFloat(), startY.toFloat(), width, height, 256, 256)
     }
 
     @Environment(EnvType.CLIENT)
-    fun render(ms: PoseStack?, x: Int, y: Int, component: GuiComponent) {
+    fun render(ms: PoseStack, x: Int, y: Int, component: GuiComponent) {
         bind()
         component.blit(ms, x, y, startX, startY, width, height)
     }

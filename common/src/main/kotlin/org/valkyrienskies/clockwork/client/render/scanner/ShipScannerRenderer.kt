@@ -78,7 +78,7 @@ class ShipScannerRenderer : ScannerRenderer {
 
     private fun render(viewMatrix: Matrix4f) {
         val scanEffect = ClockworkShaders.scan_effect()
-        if (scanEffect != null && ship != null) {
+        if (ship != null) {
             val oldShader = RenderSystem.getShader()
             renderShip.on { event: VSGameEvents.ShipRenderEvent, _: RegisteredHandler? ->
                 if (event.ship == ship) {

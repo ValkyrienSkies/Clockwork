@@ -29,7 +29,7 @@ object ClockworkShapes {
     }
 
     class Builder(private var shape: VoxelShape) {
-        fun add(shape: VoxelShape?): Builder {
+        fun add(shape: VoxelShape): Builder {
             this.shape = Shapes.or(this.shape, shape)
             return this
         }

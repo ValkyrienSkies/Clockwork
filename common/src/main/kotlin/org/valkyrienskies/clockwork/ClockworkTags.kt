@@ -10,7 +10,7 @@ object ClockworkTags {
 
     fun <T> optionalTag(
         registry: Registry<T>,
-        id: ResourceLocation?
+        id: ResourceLocation
     ): TagKey<T> {
         return TagKey.create(registry.key(), id)
     }

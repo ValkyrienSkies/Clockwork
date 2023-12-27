@@ -132,7 +132,7 @@ object ClockworkSounds {
             return "Clockwork's Custom Sounds"
         }
 
-        fun generate(path: Path, cache: HashCache?) {
+        fun generate(path: Path, cache: HashCache) {
             var path = path
             val GSON = GsonBuilder().setPrettyPrinting()
                 .disableHtmlEscaping()
@@ -298,7 +298,7 @@ object ClockworkSounds {
             }
         }
 
-        override val mainEvent: SoundEvent?
+        override val mainEvent: SoundEvent
             get() = compiledEvents[0]
                 .event
 
@@ -410,7 +410,7 @@ object ClockworkSounds {
             volume: Float,
             pitch: Float
         ) {
-            world!!.playSound(entity, x, y, z, mainEvent, category, volume, pitch)
+            world!!.playSound(entity, x, y, z, mainEvent!!, category, volume, pitch)
         }
 
         override fun playAt(
@@ -422,7 +422,7 @@ object ClockworkSounds {
             pitch: Float,
             fade: Boolean
         ) {
-            world!!.playLocalSound(x, y, z, mainEvent, category, volume, pitch, fade)
+            world!!.playLocalSound(x, y, z, mainEvent!!, category, volume, pitch, fade)
         }
     }
 }
