@@ -2,10 +2,10 @@ package org.valkyrienskies.clockwork
 
 import dev.architectury.event.events.common.LifecycleEvent
 import dev.architectury.registry.level.biome.BiomeModifications
-import net.fabricmc.fabric.api.tag.convention.v1.ConventionalBiomeTags
 import net.minecraft.data.worldgen.features.FeatureUtils
 import net.minecraft.data.worldgen.features.OreFeatures.DEEPSLATE_ORE_REPLACEABLES
 import net.minecraft.data.worldgen.placement.PlacementUtils
+import net.minecraft.tags.BiomeTags
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.levelgen.GenerationStep
 import net.minecraft.world.level.levelgen.VerticalAnchor
@@ -40,7 +40,7 @@ object ClockworkWorldgen {
 
             BiomeModifications.addProperties { ctx, mutable ->
 
-                if (ctx.hasTag(ConventionalBiomeTags.IN_OVERWORLD) || ctx.hasTag(ConventionalBiomeTags.IN_THE_END)) {
+                if (ctx.hasTag(BiomeTags.IS_OVERWORLD) || ctx.hasTag(BiomeTags.IS_END)) {
                     mutable.getGenerationProperties()
                         .addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, placedFeature);
                 }
