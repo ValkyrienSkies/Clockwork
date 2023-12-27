@@ -26,6 +26,7 @@ import org.valkyrienskies.clockwork.ClockworkBlockEntities
 
 class SequencedSeatBlock(properties: Properties) : HorizontalKineticBlock(properties),
     IBE<SequencedSeatBlockEntity> {
+
     override fun getStateForPlacement(context: BlockPlaceContext): BlockState? {
         val preferredFacing = getPreferredHorizontalFacing(context)
         return if (preferredFacing != null && (context.player == null || !context.player!!.isShiftKeyDown)) withDirection(
