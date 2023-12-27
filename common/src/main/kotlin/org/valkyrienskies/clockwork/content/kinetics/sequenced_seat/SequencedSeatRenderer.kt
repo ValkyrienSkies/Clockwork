@@ -2,19 +2,16 @@ package org.valkyrienskies.clockwork.content.kinetics.sequenced_seat
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllPartialModels
-import com.simibubi.create.content.kinetics.base.HorizontalKineticBlock
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
-import com.simibubi.create.foundation.utility.Iterate
+import com.simibubi.create.foundation.utility.AnimationTickHolder
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
-import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
-import org.valkyrienskies.clockwork.ClockworkPartials
 
 class SequencedSeatRenderer(context: BlockEntityRendererProvider.Context) :
     KineticBlockEntityRenderer<SequencedSeatBlockEntity>(context) {
@@ -36,16 +33,24 @@ class SequencedSeatRenderer(context: BlockEntityRendererProvider.Context) :
         renderRotatingBuffer(te, getRotatedModel(te, te.blockState), ms,
             buffer.getBuffer(RenderType.solid()), light)
 
-        val joystick = CachedBufferer.partialFacing(ClockworkPartials.JOYSTICK, te.blockState, facing.opposite)
-        val buttonone = CachedBufferer.partialFacing(ClockworkPartials.BUTTON_ONE, te.blockState, facing.opposite)
-        val buttontwo = CachedBufferer.partialFacing(ClockworkPartials.BUTTON_TWO, te.blockState, facing.opposite)
+        val time = AnimationTickHolder.getRenderTime(te.level)
+        for (hDir in Direction.Plane.HORIZONTAL) {
 
-        // superBuffer.rotateCentered(Direction.EAST, AngleHelper.rad(-90 - AngleHelper.verticalAngle(facing)));
-        // superBuffer.renderInto(ms, buffer.getBuffer(RenderType.solid()));
-        //joystick.light(light).renderInto(ms, buffer.getBuffer(RenderType.solid()))
-        //buttonone.light(light).renderInto(ms, buffer.getBuffer(RenderType.solid()))
-        //buttontwo.light(light).renderInto(ms, buffer.getBuffer(RenderType.solid()))
+            val shaft = CachedBufferer.partialFacing(AllPartialModels.SHAFT_HALF, te.blockState, hDir)
+            /*
+            val speedMod = te.getRotationSpeedModifier(hDir)
+            var angle = 0.0f
+            if (te.getSpeed() != 0f && te.hasSource()) {
+                angle = (time * speedMod * 3f / 20) % 360
+            }
 
+            val axis: Direction.Axis = hDir.axis
+
+            kineticRotationTransform(shaft, te, axis, angle, light)
+
+             */
+            shaft.renderInto(ms, buffer.getBuffer(RenderType.solid()))
+        }
     }
 
     override fun getRotatedModel(te: SequencedSeatBlockEntity, state: BlockState): SuperByteBuffer {

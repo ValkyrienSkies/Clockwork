@@ -23,7 +23,7 @@ class SequencedSeatBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, stat
     var rightRules: SequencedSeatRuleList = SequencedSeatRuleList.defaultList(Rotation.CLOCKWISE_90)
         private set
     private var pressedKeys = setOf<InputKey>()
-    private val degreesAwayFromBase = FloatArray(4)
+    public val degreesAwayFromBase = FloatArray(4)
     private val lastModifier = FloatArray(4)
 
     //val computerHandler: ComputerAttachmentHandler = ComputerAttachmentHandler()
