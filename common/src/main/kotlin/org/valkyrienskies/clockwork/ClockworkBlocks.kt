@@ -256,6 +256,7 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
         .register()
 
@@ -268,6 +269,7 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
         .register()
 

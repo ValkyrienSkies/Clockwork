@@ -48,7 +48,7 @@ object ClockworkItems {
     val AURIC_CRYSTAL: ItemEntry<Item> = ingredient("auric_crystal")
 
     private fun ingredient(name: String): ItemEntry<Item> {
-        return REGISTRATE.item<Item>(name) { properties: Item.Properties? -> Item(properties!!) }.register()
+        return REGISTRATE.item<Item>(name) { properties: Item.Properties? -> Item(properties!!) } .tab { ClockworkMod.BASE_CREATIVE_TAB }.register()
     }
 
     @JvmStatic
