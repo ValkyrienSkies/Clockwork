@@ -172,6 +172,9 @@ object ClockworkBlocks {
         REGISTRATE.block<SequencedSeatBlock>("command_seat") { properties: BlockBehaviour.Properties? ->
             SequencedSeatBlock(properties!!)
         }
+            .properties {
+                it.noOcclusion()
+            }
             .transform(TagGen.axeOrPickaxe())
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()

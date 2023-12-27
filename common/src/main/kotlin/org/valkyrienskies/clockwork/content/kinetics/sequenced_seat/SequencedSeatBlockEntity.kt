@@ -27,6 +27,7 @@ class SequencedSeatBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, stat
     private val lastModifier = FloatArray(4)
 
     //val computerHandler: ComputerAttachmentHandler = ComputerAttachmentHandler()
+    @OptIn(ExperimentalStdlibApi::class)
     override fun tick() {
         super.tick()
         if (level!!.isClientSide) return
