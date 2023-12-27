@@ -24,17 +24,17 @@ object ClockworkMod {
     val NETWORK_CHANNEL: ResourceLocation = asResource("main")
 
     val REGISTRATE: CreateRegistrate = CreateRegistrate.create(MOD_ID)
-    val BASE_CREATIVE_TAB: CreativeModeTab = CreativeTabRegistry
-        .create(ResourceLocation(MOD_ID, "clockwork")) { ClockworkItems.GRAVITRON.get().defaultInstance }
     val MIXIN_LOGGER = LoggerFactory.getLogger("ClockworkMixins")
     val LOGGER = LogUtils.getLogger()
-
+    val BASE_CREATIVE_TAB: CreativeModeTab = CreativeTabRegistry
+        .create(ResourceLocation(MOD_ID, "clockwork")) { ClockworkItems.GRAVITRON.get().defaultInstance }
 
     @JvmStatic
     fun init() {
         ClockworkContraptions.init()
         ClockworkPackets.init()
         ClockworkTags.init()
+        ClockworkWorldgen.init()
 
         VSEvents.ShipLoadEvent.on { event ->
             event.ship

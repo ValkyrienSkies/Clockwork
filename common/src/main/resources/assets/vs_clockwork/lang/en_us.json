@@ -39,6 +39,13 @@
   "item.vs_clockwork.afterblazer": "Afterblazer",
   "block.vs_clockwork.intake": "Intake",
   "item.vs_clockwork.intake": "Intake",
+
+  "block.vs_clockwork.auric_deepslate_ore": "Deepslate Auric Ore",
+  "item.vs_clockwork.auric_deepslate_ore": "Deepslate Auric Ore",
+  "block.vs_clockwork.auric_end_ore": "End Auric Ore",
+  "item.vs_clockwork.auric_end_ore": "End Auric Ore",
+  "item.vs_clockwork.auric_crystal": "Auric Crystal",
+
   "block.vs_clockwork.heat_pipe": "Heat Pipe",
   "item.vs_clockwork.heat_pipe": "Heat Pipe",
   "item.vs_clockwork.stratodonut": "Stratodonut",
