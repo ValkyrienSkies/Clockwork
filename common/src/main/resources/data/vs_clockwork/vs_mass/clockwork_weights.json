@@ -643,5 +643,10 @@
     "block": "vs_clockwork:gyro",
     "mass": 1550,
     "friction": 0.4
+  },
+  {
+    "block": "vs_clockwork:gyro",
+    "mass": 250,
+    "friction": 0.4
   }
 ]
