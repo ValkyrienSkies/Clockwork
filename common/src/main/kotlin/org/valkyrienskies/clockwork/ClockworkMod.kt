@@ -53,6 +53,9 @@ object ClockworkMod {
 
                 output.accept(ClockworkItems.AURIC_DESIGNATOR)
                 output.accept(ClockworkItems.AURIC_CRYSTAL)
+                output.accept(ClockworkItems.AURIC_CUBE)
+                output.accept(ClockworkItems.AURIC_MATRIX)
+                output.accept(ClockworkItems.INCOMPLETE_AURIC_DESIGNATOR)
 
                 output.accept(ClockworkBlocks.AURIC_DEEPSLATE_ORE.asStack())
                 output.accept(ClockworkBlocks.AURIC_END_ORE.asStack())
