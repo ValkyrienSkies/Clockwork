@@ -37,8 +37,7 @@ public class ClockworkRegistrate {
     }
 
     @Environment(EnvType.CLIENT)
-    private static <T extends CWItem, P> void customRenderedItem(ItemBuilder<T, P> b,
-                                                                 Supplier<Supplier<CustomRenderedItemModelRenderer>> supplier) {
+    private static <T extends CWItem, P> void customRenderedItem(ItemBuilder<T, P> b, Supplier<Supplier<CustomRenderedItemModelRenderer>> supplier) {
         b.onRegister(new CustomRendererRegistrationHelper(supplier));
     }
 
@@ -62,8 +61,7 @@ public class ClockworkRegistrate {
     }
 
     @Environment(EnvType.CLIENT)
-    private record CustomRendererRegistrationHelper(
-            Supplier<Supplier<CustomRenderedItemModelRenderer>> supplier) implements NonNullConsumer<CWItem> {
+    private record CustomRendererRegistrationHelper(Supplier<Supplier<CustomRenderedItemModelRenderer>> supplier) implements NonNullConsumer<CWItem> {
         @Override
         public void accept(CWItem entry) {
             CustomRenderedItemModelRenderer renderer = supplier.get().get();

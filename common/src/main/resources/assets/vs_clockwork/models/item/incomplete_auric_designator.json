@@ -1,0 +1,8 @@
+{
+  "parent": "vs_clockwork:item/auric_designator/item",
+  "textures": {
+    "0": "vs_clockwork:item/auric_designator",
+    "1": "vs_clockwork:item/auric_designator_wave",
+    "2": "vs_clockwork:item/auric_crystal"
+  }
+}
