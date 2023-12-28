@@ -646,12 +646,12 @@
   },
   {
     "block": "vs_clockwork:auric_deepslate_ore",
-    "mass": 250,
+    "mass": 1000,
     "friction": 0.4
   },
   {
     "block": "vs_clockwork:auric_end_ore",
-    "mass": 250,
+    "mass": 1000,
     "friction": 0.4
   }
 ]
