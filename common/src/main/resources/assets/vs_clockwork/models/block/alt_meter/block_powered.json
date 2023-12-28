@@ -6,6 +6,7 @@
     32
   ],
   "textures": {
-    "7": "vs_clockwork:block/alt_meter_on"
+    "7": "vs_clockwork:block/alt_meter_on",
+    "particle": "vs_clockwork:block/alt_meter"
   }
 }
