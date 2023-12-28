@@ -42,14 +42,13 @@ dependencies {
 
     // dependencies
     modImplementation("net.fabricmc.fabric-api:fabric-api:${fabric_api_version}")
-
-    include(modApi("dev.architectury:architectury-fabric:${rootProject.architectury_version}"))
+    implementation(include("io.github.llamalad7:mixinextras-fabric:0.2.1"))
+    (modApi("dev.architectury:architectury-fabric:${rootProject.architectury_version}"))
 
     //VS2
     modApi("org.valkyrienskies:valkyrienskies-118-fabric:${rootProject.vs2_version}")
     implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") {
         exclude group: 'org.joml', module: ''
-        transitive = false
     }
 
     implementation("org.valkyrienskies.core:util:${rootProject.vscore_version}") {
