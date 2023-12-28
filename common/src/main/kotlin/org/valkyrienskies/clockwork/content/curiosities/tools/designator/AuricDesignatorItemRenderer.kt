@@ -21,8 +21,6 @@ import kotlin.math.sin
 
 
 class AuricDesignatorItemRenderer() : CustomRenderedItemModelRenderer() {
-    protected val POLE: PartialModel = PartialModel(asResource("item/auric_designator/pole"))
-    protected val WAVE: PartialModel = PartialModel(asResource("item/auric_designator/wave"))
 
     private var crystalAngle = 0f
 
@@ -36,16 +34,21 @@ class AuricDesignatorItemRenderer() : CustomRenderedItemModelRenderer() {
         light: Int,
         overlay: Int
     ) {
-        if (!stack.`is`(ClockworkItems.AURIC_DESIGNATOR.get())) {
-            return
+        if (stack.`is`(ClockworkItems.INCOMPLETE_AURIC_DESIGNATOR.get())) {
+            ms.pushPose()
+            renderer!!.renderSolid(model!!.originalModel, light)
+            ms.popPose()
         }
-        val adi: AuricDesignatorItem = stack.item as AuricDesignatorItem
-        val stacker = TransformStack.cast(ms)
 
-        ms.pushPose()
-        renderer!!.renderSolid(model!!.originalModel, light)
-        animateIdle(ms, stacker, light, adi.idleProgress, renderer)
-        ms.popPose()
+        if (stack.`is`(ClockworkItems.AURIC_DESIGNATOR.get())) {
+            val stacker = TransformStack.cast(ms)
+            ms.pushPose()
+            renderer!!.renderSolid(model!!.originalModel, light)
+            val adi: AuricDesignatorItem = stack.item as AuricDesignatorItem
+            animateIdle(ms, stacker, light, adi.idleProgress, renderer)
+            ms.popPose()
+        }
+
     }
 
     private fun animateIdle(
@@ -66,16 +69,9 @@ class AuricDesignatorItemRenderer() : CustomRenderedItemModelRenderer() {
         stacker.translateY((heightAlt * 0.05f).toDouble())
         ms.translate(0f, heightAlt + 0.5f, 0f)
         ms.pushPose()
-        RenderUtil.renderCubeMatrix(ms, renderer, innerData, data, light)
-
-
+        RenderUtil.renderCubeMatrix(ms, renderer, innerData, data, 1.5f, light)
 
         ms.popPose()
-        ms.pushPose()
-
-        //renderer.renderSolid(POLE.get(), light)
-        stacker.translateY((-heightAlt * 0.05f).toDouble())
         this.crystalAngle = nextCrystalAngle
-        ms.popPose()
     }
 }

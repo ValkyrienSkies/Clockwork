@@ -44,6 +44,10 @@
   "block.vs_clockwork.auric_end_ore": "End Auric Ore",
   "item.vs_clockwork.auric_end_ore": "End Auric Ore",
   "item.vs_clockwork.auric_crystal": "Auric Crystal",
+  "item.vs_clockwork.auric_cube": "Auric Cube",
+  "item.vs_clockwork.auric_matrix": "Auric Matrix",
+  "item.vs_clockwork.incomplete_auric_designator": "Incomplete Auric Designator",
+
 
   "block.vs_clockwork.heat_pipe": "Heat Pipe",
   "item.vs_clockwork.heat_pipe": "Heat Pipe",
