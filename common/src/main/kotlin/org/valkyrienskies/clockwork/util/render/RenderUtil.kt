@@ -24,10 +24,18 @@ object RenderUtil {
      * @param innerData Data for inner cube offset and rotation
      * @param data Data for middle and outer cube's offset and rotation
      */
-    fun renderCubeMatrix(matrices: PoseStack, renderer: PartialItemModelRenderer, innerData: TransformData, data: TransformData, light: Int) {
-        renderAndTransform(matrices, ClockworkPartials.CRYSTAL_INNER, RenderType.endPortal(), renderer, innerData.offset.add(org.joml.Vector3f(0f, -4.5f / 16.0f, 0f)), innerData.rotation, light)
-        renderAndTransform(matrices, ClockworkPartials.CRYSTAL, ClockworkRenderTypes.CRYSTAL.apply(CRYSTAL_MATRIX), renderer, data.offset.add(org.joml.Vector3f(0f, -4.5f / 16.0f, 0f)), data.rotation, light)
-        renderAndTransform(matrices, ClockworkPartials.CRYSTAL_OUTER, RenderType.entityTranslucent(PURPLE_HUE), renderer, data.offset.add(org.joml.Vector3f(0f, -4.5f / 16.0f, 0f)), data.rotation, light)
+    fun renderCubeMatrix(matrices: PoseStack, renderer: PartialItemModelRenderer, innerData: TransformData, data: TransformData, scale: Float, light: Int) {
+        var modelOffset = org.joml.Vector3f(0f, -4.5f / 16.0f, 0f)
+
+        renderAndTransform(matrices, ClockworkPartials.CRYSTAL_INNER, RenderType.endPortal(), renderer, modelOffset, innerData.offset, innerData.rotation, scale, light)
+        renderAndTransform(matrices, ClockworkPartials.CRYSTAL, ClockworkRenderTypes.CRYSTAL.apply(CRYSTAL_MATRIX), renderer, modelOffset, data.offset, data.rotation, scale, light)
+        renderAndTransform(matrices, ClockworkPartials.CRYSTAL_OUTER, RenderType.entityTranslucent(PURPLE_HUE), renderer, modelOffset, data.offset, data.rotation, scale, light)
+    }
+
+    fun renderCube(matrices: PoseStack, renderer: PartialItemModelRenderer, data: TransformData, scale: Float, light: Int) {
+        var modelOffset = org.joml.Vector3f(0f, -4.5f / 16.0f, 0f)
+        renderAndTransform(matrices, ClockworkPartials.CRYSTAL, ClockworkRenderTypes.CRYSTAL.apply(CRYSTAL_MATRIX), renderer, modelOffset, data.offset, data.rotation, scale, light)
+        renderAndTransform(matrices, ClockworkPartials.CRYSTAL_OUTER, RenderType.entityTranslucent(PURPLE_HUE), renderer, modelOffset, data.offset, data.rotation, scale, light)
     }
 
     /**
@@ -35,26 +43,26 @@ object RenderUtil {
      * @see RenderUtil.renderCubeMatrix
      * Transforms and renders a model
      */
-    fun renderAndTransform(matrices: PoseStack, model: PartialModel, renderType: RenderType, renderer: PartialItemModelRenderer, offset: org.joml.Vector3f, rotationVec: org.joml.Vector3f, light: Int) {
+    fun renderAndTransform(matrices: PoseStack, model: PartialModel, renderType: RenderType, renderer: PartialItemModelRenderer, modelCorrection: org.joml.Vector3f, offset: org.joml.Vector3f, rotationVec: org.joml.Vector3f, scale : Float, light: Int) {
         matrices.pushPose()
+        matrices.translate(offset.x().toDouble(), offset.y().toDouble(), offset.z().toDouble())
         matrices.translate(0.25,0.25,0.25)
         matrices.pushPose()
         //Scale
-        val scale = 1.5f
+        //val scale = 1.5f
         matrices.scale(scale, scale, scale)
         matrices.translate(-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)))
 
-        matrices.translate(-offset.x().toDouble(), -offset.y().toDouble(), -offset.z().toDouble())
+        matrices.translate(-modelCorrection.x().toDouble(), -modelCorrection.y().toDouble(), -modelCorrection.z().toDouble())
         matrices.mulPose(Vector3f.YP.rotationDegrees(rotationVec.y()))
         matrices.mulPose(Vector3f.XP.rotationDegrees(rotationVec.x()))
         matrices.mulPose(Vector3f.ZP.rotationDegrees(rotationVec.z()))
-        matrices.translate(offset.x().toDouble(), offset.y().toDouble(), offset.z().toDouble())
+        matrices.translate(modelCorrection.x().toDouble(), modelCorrection.y().toDouble(), modelCorrection.z().toDouble())
         renderer.render(model.get(), renderType, light)
 
 
         matrices.popPose()
         matrices.popPose()
-
     }
 
     /**

@@ -21,6 +21,8 @@ import net.minecraft.world.phys.Vec3
 import org.joml.Quaternionf
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlockEntity
+import org.valkyrienskies.clockwork.util.render.RenderUtil
+import org.valkyrienskies.clockwork.util.render.TransformData
 
 class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) :
     KineticBlockEntityRenderer<PhysBearingBlockEntity>(context) {
@@ -32,7 +34,6 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) :
         light: Int,
         overlay: Int
     ) {
-        val vb = buffer.getBuffer(RenderType.translucent())
         val pte = te
         val ogfacing = te.blockState
             .getValue(BlockStateProperties.FACING)
@@ -52,7 +53,7 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) :
         }
         ms.translate(-0.5, -0.5, -0.5)
         val blockState = te.blockState
-        val core = CachedBufferer.partial(ClockworkPartials.PHYSICS_CORE, blockState)
+        //val core = CachedBufferer.partial(ClockworkPartials.PHYSICS_CORE, blockState)
         val flapNorth = CachedBufferer.partial(ClockworkPartials.PHYSFLAP_NORTH, blockState)
         val flapSouth = CachedBufferer.partial(ClockworkPartials.PHYSFLAP_SOUTH, blockState)
         val flapEast = CachedBufferer.partial(ClockworkPartials.PHYSFLAP_EAST, blockState)
@@ -61,7 +62,29 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) :
         val cornerNW = CachedBufferer.partial(ClockworkPartials.PHYSCORNER_NW, blockState)
         val cornerSE = CachedBufferer.partial(ClockworkPartials.PHYSCORNER_SE, blockState)
         val cornerSW = CachedBufferer.partial(ClockworkPartials.PHYSCORNER_SW, blockState)
-        idleRotateCore(core, pte.getCoreOffset(partialTicks) + 4 / 16f, pte)
+
+
+
+        //RENDER CRYSTAL MATRIX start
+        val interpolatedAngle = te.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1)
+        var offset = when(ogfacing) {
+            Direction.SOUTH -> org.joml.Vector3f(0.0f,0.0f,0.1f)
+            Direction.WEST -> org.joml.Vector3f(0.1f,0.0f,0.0f)
+            Direction.NORTH -> org.joml.Vector3f(0.0f,0.0f,0.1f)
+            Direction.EAST -> org.joml.Vector3f(0.1f,0.0f,0.0f)
+            Direction.UP -> org.joml.Vector3f(0.0f,0.1f,0.0f)
+            Direction.DOWN -> org.joml.Vector3f(0.0f,0.1f,0.0f)
+        }
+        val innerData = TransformData(offset, org.joml.Vector3f(interpolatedAngle, interpolatedAngle, 0f))
+        val data = TransformData(offset, org.joml.Vector3f(0f, 0f, 0f))
+        val outerData = TransformData(offset, org.joml.Vector3f(0f, 0f, 0f))
+
+        RenderUtil.renderCubeMatrix(ms, buffer, blockState, innerData, data, outerData, light)
+        val vb = buffer.getBuffer(RenderType.translucent())
+        //RENDER CRYSTAL MATRIX end
+
+
+
         rotateFlap(flapNorth, pte, 1, facing)
         rotateFlap(flapEast, pte, 2, facing)
         rotateFlap(flapSouth, pte, 3, facing)
@@ -71,10 +94,7 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) :
         translateCorner(cornerSE, pte, 3, facing)
         translateCorner(cornerSW, pte, 4, facing)
         if (facing.axis.isHorizontal) {
-            core.rotateCentered(
-                Direction.UP,
-                AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
-            )
+
             flapNorth.rotateCentered(
                 Direction.UP,
                 AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
@@ -108,7 +128,7 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) :
                 AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
             )
         }
-        core.rotateCentered(Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()))
+        //core.rotateCentered(Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()))
         flapEast.rotateCentered(Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()))
         flapNorth.rotateCentered(Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()))
         flapSouth.rotateCentered(Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()))
@@ -117,7 +137,7 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) :
         cornerSW.rotateCentered(Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()))
         cornerSE.rotateCentered(Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()))
         cornerNW.rotateCentered(Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()))
-        core.renderInto(ms, vb)
+        //core.renderInto(ms, vb)
         flapNorth.renderInto(ms, vb)
         flapEast.renderInto(ms, vb)
         flapSouth.renderInto(ms, vb)

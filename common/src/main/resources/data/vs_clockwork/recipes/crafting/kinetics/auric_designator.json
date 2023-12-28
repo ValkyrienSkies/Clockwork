@@ -1,19 +1,18 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "pattern": [
-    "3",
-    "2",
-    "2"
+  "type": "create:pressing",
+  "ingredients": [
+    [
+      {
+        "item": "vs_clockwork:incomplete_auric_designator"
+      },
+      {
+        "item": "vs_clockwork:auric_matrix"
+      }
+    ]
   ],
-  "key": {
-    "2": {
-      "tag": "forge:ingots/brass"
-    },
-    "3": {
-      "item": "vs_clockwork:auric_crystal"
+  "results": [
+    {
+      "item": "vs_clockwork:auric_designator"
     }
-  },
-  "result": {
-    "item": "vs_clockwork:auric_designator"
-  }
+  ]
 }
