@@ -100,7 +100,7 @@ object ShipDestroyer {
                             if (state.isAir) continue
 
                             val realX = (chunkX shl 4) + x
-                            val realY = chunk.minBuildHeight + y
+                            val realY = section.bottomBlockY() + y
                             val realZ = (chunkZ shl 4) + z
 
                             val inWorldPos =

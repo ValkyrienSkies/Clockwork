@@ -30,7 +30,7 @@ abstract class GravitronToolBase : IGravitronTool {
         }
 
         clickedPos = trace.blockPos.immutable()
-        ToolType
+
         clickedLocation = clickedPos!!.toDoubles().add(0.5,0.5,0.5)
     }
 
