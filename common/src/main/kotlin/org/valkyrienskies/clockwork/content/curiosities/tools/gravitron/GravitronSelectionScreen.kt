@@ -97,10 +97,10 @@ class GravitronSelectionScreen(private val tools: List<ToolType>, private val ca
                 graphics.drawString(font, toolTip[0], x - 10, y + 38, 0xEEEEEE + stringAlphaComponent, false)
             }
             if (toolTip.size > 1) {
-                graphics.drawString(font, toolTip[1], x - 10, y + 50, 0xCCDDFF + stringAlphaComponent, false)
+                graphics.drawString(font, toolTip[1], x - 10, y + 50, 0xDDCCFF + stringAlphaComponent, false)
             }
             if (toolTip.size > 2) {
-                graphics.drawString(font, toolTip[2], x - 10, y + 60, 0xCCDDFF + stringAlphaComponent, false)
+                graphics.drawString(font, toolTip[2], x - 10, y + 60, 0xDDCCFF + stringAlphaComponent, false)
             }
             if (toolTip.size > 3) {
                 graphics.drawString(font, toolTip[3], x - 10, y + 72, 0xCCCCDD + stringAlphaComponent, false)
