@@ -26,7 +26,7 @@ import net.minecraft.world.level.material.MapColor
 import net.minecraft.world.level.storage.loot.entries.LootItem
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.client.render.WingBlockItemRenderer
-import org.valkyrienskies.clockwork.content.AuricOreBlock
+import org.valkyrienskies.clockwork.content.curiosities.AuricOreBlock
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock

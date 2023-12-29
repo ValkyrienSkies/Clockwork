@@ -1,7 +1,6 @@
-package org.valkyrienskies.clockwork.content
+package org.valkyrienskies.clockwork.content.curiosities
 
 import org.joml.Vector3d
-import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroShipControl
 import org.valkyrienskies.core.api.ships.*
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 

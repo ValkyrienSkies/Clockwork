@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content
+package org.valkyrienskies.clockwork.content.curiosities
 
 import net.minecraft.world.item.Item
 import org.valkyrienskies.clockwork.platform.CWItem

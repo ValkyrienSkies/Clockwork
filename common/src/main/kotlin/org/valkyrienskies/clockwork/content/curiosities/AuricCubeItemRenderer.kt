@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content
+package org.valkyrienskies.clockwork.content.curiosities
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel
