@@ -3,7 +3,8 @@ package org.valkyrienskies.clockwork.fabric;
 import com.mojang.blaze3d.platform.Window;
 import dev.architectury.event.events.common.PlayerEvent;
 import io.github.fabricators_of_create.porting_lib.event.client.KeyInputCallback;
-import io.github.fabricators_of_create.porting_lib.event.client.MouseInputEvents;
+import io.github.fabricators_of_create.porting_lib.event.client.MouseButtonCallback;
+import io.github.fabricators_of_create.porting_lib.event.client.MouseScrolledCallback;
 import io.github.fabricators_of_create.porting_lib.event.common.LivingEntityEvents;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
@@ -12,11 +13,14 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorClusterRenderer;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler;
 import org.valkyrienskies.clockwork.content.events.ClockworkCommonEvents;
+import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
+import org.valkyrienskies.clockwork.fabric.integration.cc.ClockworkFabricPeripheralProviders;
 import org.valkyrienskies.mod.fabric.common.ValkyrienSkiesModFabric;
 
 public class ClockworkModFabric implements ModInitializer {
@@ -44,9 +48,15 @@ public class ClockworkModFabric implements ModInitializer {
         ClockworkMod.INSTANCE.getREGISTRATE().register();
 
         ClockworkMod.init();
+        AllClockworkConfigs.init();
+
         ClockworkParticles.init();
         FabricClockworkSounds.init();
         registerServerEvents();
+
+        if (FabricLoader.getInstance().isModLoaded("computercraft")) {
+            ClockworkFabricPeripheralProviders.register();
+        }
 
     }
 
