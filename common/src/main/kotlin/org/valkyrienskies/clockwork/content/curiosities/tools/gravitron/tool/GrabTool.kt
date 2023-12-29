@@ -14,6 +14,7 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkPackets.Companion.sendToServer
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronForceInducer
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronForceInducer.Companion.getOrCreate
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronForceInducerData
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronGrabPacket
@@ -46,20 +47,6 @@ class GrabTool : GravitronToolBase() {
             return Quaterniond().rotateY(Math.toRadians(-yaw)).rotateX(Math.toRadians(pitch))
         }
 
-        private fun dropShip(s: GravitronState, level: ServerLevel) {
-            val grabbedShipId = s.shipID
-            if (grabbedShipId != null) {
-                val loadedShip = level.shipObjectWorld.loadedShips.getById(grabbedShipId)
-                if (loadedShip != null) {
-                    val gravitronForceInducer = getOrCreate(loadedShip)
-                    gravitronForceInducer.data = null
-                }
-            }
-
-            s.shipID = null
-            s.shouldDrop = false
-        }
-
         private fun updateShipCommon(s: GravitronState, level: ServerLevel, entity: Entity, customRotation: Vector2d?) {
             if (s.shipID != null) {
                 val ship = level.shipObjectWorld.loadedShips.getById(s.shipID!!)
@@ -81,8 +68,6 @@ class GrabTool : GravitronToolBase() {
                     val gravitronForceInducer = getOrCreate(ship)
                     val newData = GravitronForceInducerData(position, rotation, location)
                     gravitronForceInducer.data = newData
-                } else if (ship == null) {
-                    dropShip(s, level)
                 }
             }
         }
@@ -103,14 +88,12 @@ class GrabTool : GravitronToolBase() {
                 val graviton = player.mainHandItem
                 val serverLevel = player.level as ServerLevel
 
-                if (!s.shouldDrop && graviton.`is`(ClockworkItems.GRAVITRON.get().asItem())) {
+                if (s.shipID != null && graviton.`is`(ClockworkItems.GRAVITRON.get().asItem())) {
                     if (AllKeys.ACTIVATE_TOOL.isPressed) {
                         updateShipDirection(s, serverLevel, player, player.direction)
                     } else {
                         updateShip(s, serverLevel, player)
                     }
-                } else {
-                    dropShip(s, serverLevel)
                 }
 
                 if (s.grabCD != null && s.grabCD!! > 0) {
@@ -136,11 +119,23 @@ class GrabTool : GravitronToolBase() {
 
         @JvmStatic
         fun tryGrabShip(level: ServerLevel, player: Player, clickedPos: BlockPos, clickLocation: Vec3): Boolean {
+            val s = getState(player)
+            if (s.shipID != null) {
+                val ship = level.shipObjectWorld.loadedShips.getById(s.shipID!!)
+                if (ship != null) {
+                    val gravitronForceInducer = getOrCreate(ship)
+                    gravitronForceInducer.data = null
+
+                    s.shipID = null
+
+                    return true
+                }
+            }
 
             val ship = level.getShipManagingPos(clickedPos)
             val grabPosInShip: Vector3dc = clickLocation.toJOML()
             val grabPosInWorld = Vector3d(grabPosInShip)
-            val s = getState(player)
+
             if (level.isBlockInShipyard(clickedPos) && ship == null) {
                 return false
             }
