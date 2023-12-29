@@ -2,7 +2,7 @@
   "parent": "vs_clockwork:block/physics_infuser/item",
   "textures": {
     "1": "vs_clockwork:block/infuserblock",
-    "2": "vs_clockwork:block/core",
-    "3": "vs_clockwork:block/mysteriousliquidtransparent"
+    "2": "vs_clockwork:block/mysteriousliquidtransparent",
+    "3": "vs_clockwork:block/core"
   }
 }
