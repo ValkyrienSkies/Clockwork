@@ -65,13 +65,14 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
     // || ITEM FUNCTIONS || //
     override fun use(level: Level, player: Player, usedHand: InteractionHand): InteractionResultHolder<ItemStack> {
         val s: GravitronState = getState(player)
-        if ((s.shipID != null) && (s.grabCD == 0) && s.grabbing) {
+        if ((s.shipID != null) && (s.grabCD == 0)) {
+            println("ShouldDrop")
             s.shouldDrop = true
         }
         if (level is ServerLevel) {
-            println("Server: ${s.shipID} : ${s.grabbing} : ${s.shouldDrop} : ${s.grabCD}")
+            println("Server: ${s.shipID} : ${s.shouldDrop} : ${s.grabCD}")
         } else {
-            println("Client: ${s.shipID} : ${s.grabbing} : ${s.shouldDrop} : ${s.grabCD}")
+            println("Client: ${s.shipID} : ${s.shouldDrop} : ${s.grabCD}")
         }
 
         return super.use(level, player, usedHand)
@@ -99,7 +100,6 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
 
     companion object {
         class GravitronState {
-            var grabbing: Boolean = false
             var shouldDrop: Boolean = false
             var heldBlockPos: Vector3dc? = null
             var playerGrabbedRotation: Vector2dc? = null // Pitch , Yaw
@@ -207,7 +207,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         @JvmStatic
         fun leftClickItem(player: Player, state: GravitronState): Boolean {
             val level = player.level
-            if (state.grabbing && level is ServerLevel) {
+            if (state.shipID != null && level is ServerLevel) {
                 val shipId = state.shipID
                 if (shipId != null) {
                     val ship: LoadedServerShip? = level.shipObjectWorld.loadedShips.getById(shipId)
@@ -243,7 +243,6 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                 }
             }
 
-            s.grabbing = false
             s.shipID = null
             s.shouldDrop = false
         }
