@@ -12,7 +12,6 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
-import org.valkyrienskies.clockwork.content.AuricShipControl
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.mod.common.*
 import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
