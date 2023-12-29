@@ -39,7 +39,6 @@ class GravitronGrabPacket : C2SCWPacket {
                 if (stack.`is`(ClockworkItems.GRAVITRON.get().asItem())) {
                     if (!serverPlayer.cooldowns.isOnCooldown(stack.item)) {
                         serverPlayer.cooldowns.addCooldown(stack.item, 20)
-                        s.grabCD = 20
                         when (mode) {
                             GravitronToolBase.GRAB -> {
                                 GrabTool.tryGrabShip(serverLevel, serverPlayer, clickedPos!!.mutable(), clickLocation!!)
