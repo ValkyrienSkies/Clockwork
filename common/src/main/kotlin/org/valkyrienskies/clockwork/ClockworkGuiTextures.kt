@@ -14,7 +14,9 @@ enum class ClockworkGuiTextures(
 
     GRAVITRON_SELECTED("widgets", 0, 0, 22, 22),
     GYRO("gyro", 200, 212),
-    ALT_METER("alt_meter", 173, 73);
+    ALT_METER("alt_meter", 173, 73),
+    COMMAND_SEAT("command_seat", 173, 159),
+    AURIC_TOOL_BACKGROUND("overlay", 0, 0, 16, 16);
 
     constructor(location: String, width: Int, height: Int) : this(
         ResourceLocation(

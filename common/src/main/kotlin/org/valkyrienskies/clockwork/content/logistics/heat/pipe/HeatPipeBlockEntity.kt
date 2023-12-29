@@ -33,6 +33,7 @@ class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         return (level!!.getBlockEntity(worldPosition.relative(direction)) is IHeatable)
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     override fun getAttachedNeighbors(): List<IHeatable> {
         val neighbors: MutableList<IHeatable> = mutableListOf()
         for (direction in Direction.entries) {

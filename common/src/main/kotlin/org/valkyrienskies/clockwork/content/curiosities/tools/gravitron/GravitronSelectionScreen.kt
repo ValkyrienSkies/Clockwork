@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.chat.Component
+import org.valkyrienskies.clockwork.ClockworkGuiTextures
 import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.ToolType
 import java.util.function.Consumer
@@ -57,7 +58,7 @@ class GravitronSelectionScreen(private val tools: List<ToolType>, private val ca
         matrixStack.pushPose()
         matrixStack.translate(0f, 20 - yOffset, (if (focus) 100 else 0).toFloat())
 
-        val gray = AllGuiTextures.HUD_BACKGROUND
+        val gray = ClockworkGuiTextures.AURIC_TOOL_BACKGROUND
         RenderSystem.enableBlend()
         RenderSystem.setShaderColor(1f, 1f, 1f, if (focus) 7 / 8f else 1 / 2f)
 
@@ -116,7 +117,7 @@ class GravitronSelectionScreen(private val tools: List<ToolType>, private val ca
                 ClockworkLang.translateDirect(holdToFocus, keyName),
                 width / 2,
                 y - 10,
-                0xCCDDFF
+                0xDDCCFF
             )
         } else {
             graphics.drawCenteredString(
@@ -124,7 +125,7 @@ class GravitronSelectionScreen(private val tools: List<ToolType>, private val ca
                 ClockworkLang.translateDirect("gui.toolmenu.cycle"),
                 width / 2,
                 y - 10,
-                0xCCDDFF
+                0xDDCCFF
             )
         }
 
@@ -141,7 +142,7 @@ class GravitronSelectionScreen(private val tools: List<ToolType>, private val ca
                     tools[i].getDisplayName().getString(),
                     x + i * 50 + 24,
                     y + 28,
-                    0xCCDDFF
+                    0xDDCCFF
                 )
                 alpha = 1f
             }
