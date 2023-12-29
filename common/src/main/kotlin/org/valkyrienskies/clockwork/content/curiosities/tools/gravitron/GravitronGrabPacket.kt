@@ -64,7 +64,9 @@ class GravitronGrabPacket : C2SCWPacket {
     }
 
     override fun write(buffer: FriendlyByteBuf) {
-        buffer.writeBlockPos(clickedPos)
+        if (clickedPos != null) {
+            buffer.writeBlockPos(clickedPos!!)
+        }
         buffer.writeDouble(clickLocation!!.x)
         buffer.writeDouble(clickLocation!!.y)
         buffer.writeDouble(clickLocation!!.z)
