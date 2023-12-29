@@ -89,14 +89,15 @@ object ShipDestroyer {
         }
 
         val toUpdate = Sets.newHashSet<Triple<BlockPos, BlockPos, BlockState>>()
-        var tempY = level.minBuildHeight - 16
-        println("Tempy $tempY")
+
         ship.activeChunksSet.forEach { chunkX, chunkZ ->
             val chunk = level.getChunk(chunkX, chunkZ)
-            for (section in chunk.sections) {
-                tempY += 16
-                println("Tempy2 $tempY")
+            for (sectionIndex in 0 until chunk.sections.size) {
+                val section = chunk.sections[sectionIndex]
                 if (section == null || section.hasOnlyAir()) continue
+
+                val bottomY = sectionIndex shl 4
+
                 for (x in 0..15) {
                     for (y in 0..15) {
                         for (z in 0..15) {
@@ -104,9 +105,7 @@ object ShipDestroyer {
                             if (state.isAir) continue
 
                             val realX = (chunkX shl 4) + x
-
-                            val realY = tempY + y
-                            println(realY)
+                            val realY = bottomY + y + level.minBuildHeight
                             val realZ = (chunkZ shl 4) + z
 
                             val inWorldPos =
