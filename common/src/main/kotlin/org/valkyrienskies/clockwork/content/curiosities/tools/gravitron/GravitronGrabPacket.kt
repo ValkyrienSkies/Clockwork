@@ -37,7 +37,7 @@ class GravitronGrabPacket : C2SCWPacket {
                 val s = getState(serverPlayer)
                 val stack = serverPlayer.mainHandItem
                 if (stack.`is`(ClockworkItems.GRAVITRON.get().asItem())) {
-                    if ((s.shipID == null) && !serverPlayer.cooldowns.isOnCooldown(stack.item)) {
+                    if (!serverPlayer.cooldowns.isOnCooldown(stack.item)) {
                         serverPlayer.cooldowns.addCooldown(stack.item, 20)
                         s.grabCD = 20
                         when (mode) {

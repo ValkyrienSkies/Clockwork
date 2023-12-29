@@ -34,6 +34,7 @@ import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.properties.ShipId
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
+import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft
@@ -46,7 +47,16 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             return
         }
 
-        if (stack.`is`(ClockworkItems.GRAVITRON.asItem()) && !isSelected) {
+        if (stack.`is`(ClockworkItems.GRAVITRON.get().asItem()) && !isSelected) {
+            if (getState(entity).shipID != null) {
+                val ship = level.shipObjectWorld.loadedShips.getById(getState(entity).shipID!!)
+                if (ship != null) {
+                    val gravitronForceInducer = GravitronForceInducer.getOrCreate(ship)
+                    gravitronForceInducer.data = null
+                    getState(entity).shipID = null
+                }
+            }
+
             if (stack.tag != null) {
                 if (stack.tag!!.contains("ShipId")) {
                     stack.tag!!.remove("ShipId")
@@ -61,33 +71,11 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
 
     }
 
-
-    // || ITEM FUNCTIONS || //
-    override fun use(level: Level, player: Player, usedHand: InteractionHand): InteractionResultHolder<ItemStack> {
-        val s: GravitronState = getState(player)
-        if ((s.shipID != null) && (s.grabCD == 0)) {
-            println("ShouldDrop")
-            s.shouldDrop = true
-        }
-        if (level is ServerLevel) {
-            println("Server: ${s.shipID} : ${s.shouldDrop} : ${s.grabCD}")
-        } else {
-            println("Client: ${s.shipID} : ${s.shouldDrop} : ${s.grabCD}")
-        }
-
-        return super.use(level, player, usedHand)
-    }
-
-
     override fun getUseAnimation(stack: ItemStack): UseAnim {
         return UseAnim.NONE
     }
 
-    override fun getArmPose(
-        stack: ItemStack?,
-        player: AbstractClientPlayer,
-        hand: InteractionHand?
-    ): HumanoidModel.ArmPose? {
+    override fun getArmPose(stack: ItemStack?, player: AbstractClientPlayer, hand: InteractionHand?): HumanoidModel.ArmPose? {
         if (!player.swinging) {
             return HumanoidModel.ArmPose.CROSSBOW_HOLD
         }
@@ -100,7 +88,6 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
 
     companion object {
         class GravitronState {
-            var shouldDrop: Boolean = false
             var heldBlockPos: Vector3dc? = null
             var playerGrabbedRotation: Vector2dc? = null // Pitch , Yaw
             var shipGrabbedPos: Vector3dc? = null
@@ -110,14 +97,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             var shipGrabbedDistance: Double? = null
         }
 
-        fun abstractAssemble(
-                level: Level,
-                player: Player,
-                toolkit: SelectedAreaToolkit,
-                blockPos: BlockPos,
-                clickLocation: Vec3,
-                grab: Boolean
-        ): Boolean {
+        fun abstractAssemble(level: Level, player: Player, toolkit: SelectedAreaToolkit, blockPos: BlockPos, clickLocation: Vec3, grab: Boolean): Boolean {
             toolkit.selectionClusters.forEach { cluster ->
                 val selection: DenseBlockPosSet = SelectedAreaToolkit.denseBlocksFromCluster(cluster)
 
@@ -138,36 +118,15 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                                     if (entity is AbstractContraptionEntity || entity is SuperGlueEntity || entity is SeatEntity) {
                                         if (entity !is SuperGlueEntity) {
                                             val oldPos: Vector3dc = entity.position().toJOML()
-                                            val newPos: Vector3dc =
-                                                connectedShip.transform.worldToShip.transformPosition(
-                                                    oldPos,
-                                                    Vector3d()
-                                                )
+                                            val newPos: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldPos, Vector3d())
                                             entity.moveTo(newPos.toMinecraft())
                                         } else {
                                             val oldBounds = entity.boundingBox
-                                            val oldMax: Vector3dc =
-                                                Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
-                                            val oldMin: Vector3dc =
-                                                Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
-                                            val newMax: Vector3dc =
-                                                connectedShip.transform.worldToShip.transformPosition(
-                                                    oldMax,
-                                                    Vector3d()
-                                                )
-                                            val newMin: Vector3dc =
-                                                connectedShip.transform.worldToShip.transformPosition(
-                                                    oldMin,
-                                                    Vector3d()
-                                                )
-                                            val newBounds = AABB(
-                                                newMin.x(),
-                                                newMin.y(),
-                                                newMin.z(),
-                                                newMax.x(),
-                                                newMax.y(),
-                                                newMax.z()
-                                            )
+                                            val oldMax: Vector3dc = Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
+                                            val oldMin: Vector3dc = Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
+                                            val newMax: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldMax, Vector3d())
+                                            val newMin: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldMin, Vector3d())
+                                            val newBounds = AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z())
                                             entity.boundingBox = newBounds
                                             entity.resetPositionToBB()
                                         }
@@ -190,6 +149,10 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         }
 
         fun grabssemble(level: Level, player: Player, blockPos: BlockPos, clickLocation: Vec3, grab: Boolean): Boolean {
+            if (getState(player).shipID != null) {
+                return false
+            }
+
             for (item in player.inventory.items) {
                 if (item.`is`(ClockworkItems.AURIC_DESIGNATOR.asItem())) {
                     val auricItem: AuricDesignatorItem = item.item as AuricDesignatorItem
@@ -213,9 +176,6 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                     val ship: LoadedServerShip? = level.shipObjectWorld.loadedShips.getById(shipId)
                     if (ship != null) {
                         ship.isStatic = !ship.isStatic
-                        if (ship.isStatic) {
-                            dropShip(state, level)
-                        }
                         level.playSound(
                             player,
                             player.blockPosition(),
@@ -229,22 +189,6 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                 }
             }
             return false
-        }
-
-
-        // sets down the ship
-        private fun dropShip(s: GravitronState, level: ServerLevel) {
-            val grabbedShipId = s.shipID
-            if (grabbedShipId != null) {
-                val loadedShip = level.shipObjectWorld.loadedShips.getById(grabbedShipId)
-                if (loadedShip != null) {
-                    val gravitronForceInducer = GravitronForceInducer.getOrCreate(loadedShip)
-                    gravitronForceInducer.data = null
-                }
-            }
-
-            s.shipID = null
-            s.shouldDrop = false
         }
 
         @JvmStatic
