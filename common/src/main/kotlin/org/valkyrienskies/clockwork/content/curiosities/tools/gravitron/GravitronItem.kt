@@ -68,6 +68,12 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         if ((s.shipID != null) && (s.grabCD == 0) && s.grabbing) {
             s.shouldDrop = true
         }
+        if (level is ServerLevel) {
+            println("Server: ${s.shipID} : ${s.grabbing} : ${s.shouldDrop} : ${s.grabCD}")
+        } else {
+            println("Client: ${s.shipID} : ${s.grabbing} : ${s.shouldDrop} : ${s.grabCD}")
+        }
+
         return super.use(level, player, usedHand)
     }
 
