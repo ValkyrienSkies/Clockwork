@@ -12,6 +12,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -23,6 +24,8 @@ import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorClusterRenderer;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler;
 import org.valkyrienskies.clockwork.content.events.ClockworkCommonEvents;
+import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
+import org.valkyrienskies.clockwork.fabric.integration.cc.ClockworkFabricPeripheralProviders;
 import org.valkyrienskies.mod.fabric.common.ValkyrienSkiesModFabric;
 
 public class ClockworkModFabric implements ModInitializer {
@@ -41,7 +44,6 @@ public class ClockworkModFabric implements ModInitializer {
 
         ClockworkEntities.register();
         FabricClockworkEntities.register();
-        ClockworkEntityDataSerializers.init();
         FabricClockworkFluids.register();
 
         ClockworkSounds.register();
@@ -50,9 +52,16 @@ public class ClockworkModFabric implements ModInitializer {
         ClockworkMod.INSTANCE.getREGISTRATE().register();
 
         ClockworkMod.init();
+        AllClockworkConfigs.init();
+
         ClockworkParticles.init();
         FabricClockworkSounds.init();
         registerServerEvents();
+
+        if (FabricLoader.getInstance().isModLoaded("computercraft")) {
+            ClockworkFabricPeripheralProviders.register();
+        }
+
 
         ClockworkMod.INSTANCE.createCreativeTab();
         Registry.register(
@@ -67,6 +76,4 @@ public class ClockworkModFabric implements ModInitializer {
         LivingEntityEvents.TICK.register(FabricClockworkCommonEvents::onLivingTick);
         AttackBlockCallback.EVENT.register(FabricClockworkCommonEvents::playerLeftClick);
     }
-
-
 }

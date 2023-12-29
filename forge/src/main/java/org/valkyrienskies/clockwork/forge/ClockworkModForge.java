@@ -12,10 +12,12 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.fml.loading.FMLLoader;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorClusterRenderer;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.ForgeGravitronHandler;
+import org.valkyrienskies.clockwork.forge.integration.cc.ClockworkForgePeripheralProviders;
 
 import static org.valkyrienskies.clockwork.ClockworkMod.MOD_ID;
 
@@ -26,7 +28,6 @@ public class ClockworkModForge {
 
     public ClockworkModForge() {
         ModLoadingContext modLoadingContext = ModLoadingContext.get();
-        AllClockworkConfigs.register(modLoadingContext);
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         ClockworkMod.INSTANCE.getREGISTRATE().registerEventListeners(modEventBus);
@@ -42,6 +43,8 @@ public class ClockworkModForge {
 
         ClockworkParticles.init();
 
+        AllClockworkConfigs.register(modLoadingContext);
+
         ClockworkSounds.register();
 
         ClockworkMod.init();
@@ -51,5 +54,8 @@ public class ClockworkModForge {
 
         TAB_REGISTER.register("general", ClockworkMod.INSTANCE::createCreativeTab);
         TAB_REGISTER.register(modEventBus);
+        if (FMLLoader.getLoadingModList().getModFileById("computercraft") != null) {
+            ClockworkForgePeripheralProviders.register();
+        }
     }
 }
