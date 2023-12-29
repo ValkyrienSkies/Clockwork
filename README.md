@@ -1,4 +1,4 @@
-![Logo-Recovered](vs_clockwork_logo.png)
+![Logo-Recovered](clockworklogolessbig.gif)
 
 # Clockwork
 
