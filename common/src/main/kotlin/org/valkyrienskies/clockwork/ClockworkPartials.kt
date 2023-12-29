@@ -57,6 +57,7 @@ object ClockworkPartials {
     val CRYSTAL_INNER: PartialModel = PartialModel(ClockworkMod.asResource("item/auric_designator/crystal_inner"))
 
     val GYRO_BASE: PartialModel = block("gyro/base")
+    val GYRO_OBJ: PartialModel = block("gyro/block")
 
     private fun block(path: String): PartialModel {
         return PartialModel(ClockworkMod.asResource("block/$path"))

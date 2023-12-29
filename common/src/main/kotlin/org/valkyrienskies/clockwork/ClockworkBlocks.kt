@@ -31,8 +31,11 @@ import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlock
+import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlockItem
+import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroItemRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
+import org.valkyrienskies.clockwork.content.curiosities.AuricCubeItemRenderer
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlock
@@ -142,9 +145,10 @@ object ClockworkBlocks {
         .transform(TagGen.axeOrPickaxe())
         .addLayer { Supplier { RenderType.cutout() } }
         .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
-        .item()
-        .model(AssetLookup.customBlockItemModel("gyro"))
-        .build()
+        .item { block: GyroBlock?, properties: Item.Properties? ->
+            GyroBlockItem(block, properties)
+        }
+        .transform(ClockworkRegistrate.customRenderedBlockItem { Supplier { GyroItemRenderer() } })
         .register()
 
     @JvmField
