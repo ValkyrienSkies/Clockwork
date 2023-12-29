@@ -1,7 +1,6 @@
 {
-  "parent": "minecraft:block/cube_column",
+  "parent": "minecraft:block/cube_all",
   "textures": {
-    "end": "vs_clockwork:block/deepslate_auric_ore_top",
-    "side": "vs_clockwork:block/deepslate_auric_ore"
+    "all": "vs_clockwork:block/deepslate_auric_ore"
   }
 }
