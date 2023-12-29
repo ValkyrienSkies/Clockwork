@@ -52,8 +52,8 @@ class GrabTool : GravitronToolBase() {
          * Will nullify the force inducer and effectively returning the ship to its regular physics, a success will return true
          */
         fun dropShip(player: Player) : Boolean{
-            if (getState(player).shipID != null && player.level is ServerLevel) {
-                val serverLevel = player.level as ServerLevel
+            if (getState(player).shipID != null && player.level() is ServerLevel) {
+                val serverLevel = player.level() as ServerLevel
                 val ship = serverLevel.shipObjectWorld.loadedShips.getById(getState(player).shipID!!)
                 if (ship != null) {
                     val gravitronForceInducer = getOrCreate(ship)
@@ -115,10 +115,10 @@ class GrabTool : GravitronToolBase() {
          */
         @JvmStatic
         fun tick(player: Player) {
-            if (player.level is ServerLevel) {
+            if (player.level() is ServerLevel) {
                 val s = getState(player)
                 val graviton = player.mainHandItem
-                val serverLevel = player.level as ServerLevel
+                val serverLevel = player.level() as ServerLevel
 
                 if (s.shipID != null && graviton.`is`(ClockworkItems.GRAVITRON.get().asItem())) {
                     if (AllKeys.ACTIVATE_TOOL.isPressed) {
