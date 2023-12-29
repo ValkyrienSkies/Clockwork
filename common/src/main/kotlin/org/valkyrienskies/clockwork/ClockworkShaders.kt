@@ -1,27 +1,48 @@
 package org.valkyrienskies.clockwork
 
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
-import com.mojang.blaze3d.vertex.VertexFormat
+import dev.architectury.event.events.client.ClientReloadShadersEvent
+import net.minecraft.client.renderer.ShaderInstance
 import net.minecraft.server.packs.resources.ResourceProvider
-import org.valkyrienskies.clockwork.client.render.ShaderReference
-import java.util.function.Consumer
+import java.io.IOException
+
 
 object ClockworkShaders {
-    private val SHADERS: MutableList<ShaderReference> = ArrayList<ShaderReference>()
-    val SCAN_EFFECT: ShaderReference = shader("scan_effect", DefaultVertexFormat.POSITION_TEX)
-    private fun shader(shader: String, format: VertexFormat): ShaderReference {
-        val result = ShaderReference(shader, format)
-        SHADERS.add(result)
-        return result
+
+    private var crystal: ShaderInstance? = null
+    private var scan_effect: ShaderInstance? = null
+
+    fun crystal(): ShaderInstance {
+        return crystal!!
     }
 
-    fun reloadShaders(resources: ResourceProvider) {
-        SHADERS.forEach(
-            Consumer { shaderReference: ShaderReference ->
-                shaderReference.reload(
-                    resources
-                )
-            }
-        )
+    fun scan_effect(): ShaderInstance {
+        return scan_effect!!
     }
+
+    fun init() {
+        ClientReloadShadersEvent.EVENT.register { resourceProvider: ResourceProvider, shadersSink: ClientReloadShadersEvent.ShadersSink ->
+            try {
+                shadersSink.registerShader(
+                    ShaderInstance(
+                        resourceProvider,
+                        "crystal",
+                        DefaultVertexFormat.NEW_ENTITY
+                    )
+                ) { inst -> crystal = inst }
+
+                shadersSink.registerShader(
+                    ShaderInstance(
+                        resourceProvider,
+                        "scan_effect",
+                        DefaultVertexFormat.POSITION_TEX
+                    )
+                ) { inst -> scan_effect = inst }
+            } catch (ex: IOException) {
+                System.err.println("Failed to load shader")
+                ex.printStackTrace()
+            }
+        }
+    }
+
 }

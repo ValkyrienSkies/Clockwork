@@ -11,31 +11,23 @@ test {
 }
 
 repositories {
-    if (!block_external_repositories) {
-        // mavens for Create Fabric and dependencies
-        maven { url = "https://api.modrinth.com/maven" } // LazyDFU
-        maven { url = "https://maven.terraformersmc.com/releases/" } // Mod Menu
-        maven { url = "https://mvn.devos.one/snapshots/" }
-        // Create Fabric, Porting Lib, Forge Tags, Milk Lib, Registrate Fabric
-        maven { url = "https://cursemaven.com" } // Forge Config API Port
-        maven { url = "https://maven.cafeteria.dev/releases" } // Fake Player API
-        //maven { url = "https://maven.jamieswhiteshirt.com/libs-release" } // Reach Entity Attributes
-        maven { url = "https://jitpack.io/" } // Mixin Extras, Fabric ASM
-    }
+    maven { url = "https://api.modrinth.com/maven" } // LazyDFU
+    maven { url = "https://maven.terraformersmc.com/releases/" } // Mod Menu
+    maven { url = "https://mvn.devos.one/snapshots/" }
+    maven { url = "https://cursemaven.com" } // Forge Config API Port
+    maven { url = "https://maven.cafeteria.dev/releases" } // Fake Player API
 }
 
 dependencies {
-    // We depend on fabric loader here to use the fabric @Environment annotations and get the mixin dependencies
-    // Do NOT use other classes from fabric loader
     modImplementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
 
-    modApi("dev.architectury:architectury:${rootProject.architectury_version}")
+    implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:0.2.1"))
+    implementation(("io.github.llamalad7:mixinextras-common:0.2.1"))
 
-    // Compile against Create Fabric in common
-    // beware of differences across platforms!
-    // dependencies must also be pulled in to minimize problems, from remapping issues to compile errors.
-    // All dependencies except Flywheel and Registrate are NOT safe to use!
-    // Flywheel and Registrate must also be used carefully due to differences.
+    modApi("dev.architectury:architectury:${rootProject.architectury_version}") {
+        exclude group: 'org.joml', module: ''
+    }
+
     modCompileOnly("com.simibubi.create:create-fabric-${minecraft_version}:${create_fabric_version}")
             { exclude group: 'com.github.AlphaMode', module: 'fakeconfigtoml' }
 
@@ -43,49 +35,23 @@ dependencies {
 
     // VS2
     modApi("org.valkyrienskies:valkyrienskies-118-common:${rootProject.vs2_version}")
-    implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}")
-    implementation("org.valkyrienskies.core:impl:${rootProject.vscore_version}")
-    implementation("org.valkyrienskies.core:api-game:${rootProject.vscore_version}")
+    implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") {
+        exclude group: 'org.joml', module: ''
+    }
+    implementation("org.valkyrienskies.core:impl:${rootProject.vscore_version}") {
+        exclude group: 'org.joml', module: ''
+    }
+    implementation("org.valkyrienskies.core:api-game:${rootProject.vscore_version}") {
+        exclude group: 'org.joml', module: ''
+    }
 
-    // Kotlin
-    api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10"
-    api "org.jetbrains.kotlin:kotlin-reflect:1.9.10"
+    implementation("org.joml:joml-primitives:1.10.0")
+    implementation("org.joml:joml:1.10.4")
 
-    // CC Restitched
+
     modCompileOnly("curse.maven:cc-restitched-462672:3622561")
+    //modImplementation("maven.modrinth:cc-tweaked:${cc_version}")
 
-
-    modCompileOnly("com.rbasamoyai:createbigcannons-fabric-${minecraft_version}:${createbigcannons_version}")
-
-    // JUnit
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
-
-}
-
-publishing {
-    publications {
-        mavenCommon(MavenPublication) {
-            groupId = "org.valkyrienskies.clockwork"
-            version = project.version
-            artifactId = rootProject.archives_base_name + "-" + project.name
-            from components.java
-        }
-    }
-
-    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-    repositories {
-        // Add repositories to publish to here.
-        if (System.getenv("GITHUB_ACTOR") != null) {
-            println "Publishing to Github Packages"
-            maven {
-                name = "GitHubPackages"
-                url = uri("https://maven.pkg.github.com/ValkyrienSkies/Clockwork")
-                credentials {
-                    username = System.getenv("GITHUB_ACTOR")
-                    password = System.getenv("GITHUB_TOKEN")
-                }
-            }
-        }
-    }
 }

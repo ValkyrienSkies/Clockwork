@@ -1,7 +1,9 @@
 package org.valkyrienskies.clockwork.content.logistics.heat.pipe
 
+
 import com.simibubi.create.content.contraptions.ITransformableBlockEntity
 import com.simibubi.create.content.contraptions.StructureTransform
+import com.simibubi.create.content.decoration.bracket.BracketedBlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
@@ -17,16 +19,22 @@ class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     override var flowDir: MutableSet<Direction> = mutableSetOf()
     override var flowRate: Int = 100
 
-    override fun transform(transform: StructureTransform) {}
-    override fun addBehaviours(behaviours: List<BlockEntityBehaviour>) {}
+    override fun transform(transform: StructureTransform?) {
+        val bracketBehaviour = getBehaviour(BracketedBlockEntityBehaviour.TYPE)
+        bracketBehaviour?.transformBracket(transform)
+    }
+    override fun addBehaviours(behaviours: List<BlockEntityBehaviour>) {
+        //TODO Add a heat behaviour to render the ends of the pipe
+    }
 
     override fun canTransferHeat(direction: Direction): Boolean {
         return (level!!.getBlockEntity(worldPosition.relative(direction)) is IHeatable)
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     override fun getAttachedNeighbors(): List<IHeatable> {
         val neighbors: MutableList<IHeatable> = mutableListOf()
-        for (direction in Direction.values()) {
+        for (direction in Direction.entries) {
             level!!.getBlockEntity(worldPosition.relative(direction))?.let {
                 if (it is IHeatable) {
                     neighbors.add(it)

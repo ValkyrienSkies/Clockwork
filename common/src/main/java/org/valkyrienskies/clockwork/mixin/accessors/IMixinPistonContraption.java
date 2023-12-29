@@ -7,5 +7,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(PistonContraption.class)
 public interface IMixinPistonContraption {
-    @Accessor Direction getOrientation();
+    @Accessor
+    Direction getOrientation();
 }

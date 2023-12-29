@@ -1,31 +1,20 @@
 package org.valkyrienskies.clockwork.util.builder
 
-import com.simibubi.create.AllBlocks
-import com.simibubi.create.content.decoration.encasing.CasingConnectivity
-import com.simibubi.create.content.decoration.encasing.EncasedCTBehaviour
 import com.simibubi.create.content.kinetics.BlockStressDefaults
 import com.simibubi.create.content.kinetics.base.RotatedPillarKineticBlock
-import com.simibubi.create.foundation.block.connected.CTSpriteShiftEntry
-import com.simibubi.create.foundation.data.AssetLookup
-import com.simibubi.create.foundation.data.BlockStateGen
-import com.simibubi.create.foundation.data.CreateRegistrate
 import com.simibubi.create.foundation.data.SharedProperties
 import com.tterrag.registrate.builders.BlockBuilder
 import com.tterrag.registrate.providers.DataGenContext
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider
 import com.tterrag.registrate.providers.RegistrateItemModelProvider
 import com.tterrag.registrate.util.nullness.NonNullUnaryOperator
-import net.minecraft.core.Direction
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
 import net.minecraft.world.level.ItemLike
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockBehaviour
-import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.content.kinetics.casing.ExtendedEncasedShaftBlock
 import java.util.function.Supplier
 
 object BuilderTransformersClockwork {
@@ -92,49 +81,6 @@ object BuilderTransformersClockwork {
                         .texture("1", topTextureLocation)
                         .texture("2", baseTextureLocation)
                 }
-                .build()
-        }
-    }
-
-    fun <B : ExtendedEncasedShaftBlock, P> encasedShaft(
-        casing: String,
-        casingShift: Supplier<CTSpriteShiftEntry?>
-    ): NonNullUnaryOperator<BlockBuilder<B, P>> {
-        return NonNullUnaryOperator<BlockBuilder<B, P>> { builder: BlockBuilder<B, P> ->
-            encasedBase(
-                builder
-            ) { AllBlocks.SHAFT.get() }
-                .onRegister(CreateRegistrate.connectedTextures {
-                    EncasedCTBehaviour(
-                        casingShift.get()
-                    )
-                })
-                .onRegister(CreateRegistrate.casingConnectivity { block: B, cc: CasingConnectivity ->
-                    cc.make(
-                        block, casingShift.get()
-                    ) { s: BlockState, f: Direction ->
-                        f.axis !== s.getValue(
-                            BlockStateProperties.AXIS
-                        )
-                    }
-                })
-                .blockstate { c: DataGenContext<Block?, B>?, p: RegistrateBlockstateProvider ->
-                    BlockStateGen.axisBlock(
-                        c,
-                        p,
-                        {
-                            p.models()
-                                .getExistingFile(p.modLoc("block/encased_shaft/block_$casing"))
-                        }, true
-                    )
-                }
-                .item()
-                .model(
-                    AssetLookup.customBlockItemModel(
-                        "encased_shaft",
-                        "item_$casing"
-                    )
-                )
                 .build()
         }
     }

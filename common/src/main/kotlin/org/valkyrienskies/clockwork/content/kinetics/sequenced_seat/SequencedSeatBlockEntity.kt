@@ -24,14 +24,16 @@ class SequencedSeatBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, stat
     var rightRules: SequencedSeatRuleList = SequencedSeatRuleList.defaultList(Rotation.CLOCKWISE_90)
         private set
     private var pressedKeys = setOf<InputKey>()
-    private val degreesAwayFromBase = FloatArray(4)
+    public val degreesAwayFromBase = FloatArray(4)
     private val lastModifier = FloatArray(4)
+
     val computerHandler: ComputerAttachmentHandler = ComputerAttachmentHandler()
+    @OptIn(ExperimentalStdlibApi::class)
     override fun tick() {
         super.tick()
         if (level!!.isClientSide) return
         for (i in 0..3) {
-            val dir = Direction.values()[i + 2]
+            val dir = Direction.entries[i + 2]
             val modifier = getRotationSpeedModifier(dir)
             degreesAwayFromBase[i] += convertToAngular(modifier * speed)
             if (modifier != lastModifier[i]) {

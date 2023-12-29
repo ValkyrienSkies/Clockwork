@@ -13,9 +13,6 @@ pluginManagement {
         maven("https://maven.architectury.dev/") {
             name = "Architectury"
         }
-        maven("https://maven.quiltmc.org/repository/release") {
-            name = "Quilt"
-        }
     }
 
     resolutionStrategy {
@@ -24,17 +21,12 @@ pluginManagement {
             if (requested.id.id == "net.minecraftforge.gradle") {
                 useModule("${requested.id}:ForgeGradle:${requested.version}")
             }
-
-            if (requested.id.namespace?.startsWith("org.jetbrains.kotlin") == true) {
-                val kotlin_version: String by settings
-                useVersion(kotlin_version)
-            }
         }
     }
 }
 
 include("common")
-include("fabric")
 include("forge")
+include("fabric")
 
 rootProject.name = "vs-clockwork-mod"

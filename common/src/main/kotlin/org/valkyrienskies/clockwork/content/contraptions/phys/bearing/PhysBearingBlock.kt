@@ -19,9 +19,8 @@ import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import java.util.function.Consumer
 
-class PhysBearingBlock(properties: Properties) :
-    BearingBlock(properties),
-    IBE<PhysBearingBlockEntity> {
+class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<PhysBearingBlockEntity> {
+
     override fun use(
         state: BlockState,
         worldIn: Level,

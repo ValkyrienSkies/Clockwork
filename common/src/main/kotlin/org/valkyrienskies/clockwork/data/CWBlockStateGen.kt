@@ -13,17 +13,17 @@ import net.minecraft.core.Direction
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraftforge.client.model.generators.BlockModelBuilder
-import net.minecraftforge.client.model.generators.ConfiguredModel
-import net.minecraftforge.client.model.generators.ModelBuilder
-import net.minecraftforge.client.model.generators.ModelFile
-import net.minecraftforge.client.model.generators.MultiPartBlockStateBuilder
+import net.minecraftforge.client.model.generators.*
 import org.apache.commons.lang3.tuple.Pair
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlock
-import java.util.IdentityHashMap
+import java.util.*
 import java.util.function.Function
+import kotlin.collections.HashMap
 
 object CWBlockStateGen {
+
+    //TODO datagen is still not done for arch, move this to forge or fabric and then copy paste the generated data to common
+    //https://docs.architectury.dev/loom/datagen
     fun <P : HeatPipeBlock?> pipe(): NonNullBiConsumer<DataGenContext<Block, P>, RegistrateBlockstateProvider> {
         return NonNullBiConsumer { c: DataGenContext<Block, P>, p: RegistrateBlockstateProvider ->
             val path = "block/" + c.name

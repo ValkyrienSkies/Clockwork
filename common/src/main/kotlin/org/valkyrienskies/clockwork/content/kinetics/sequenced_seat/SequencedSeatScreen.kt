@@ -14,7 +14,7 @@ import net.minecraft.world.level.block.Rotation
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
 import org.valkyrienskies.clockwork.ClockworkPackets
-import java.util.Arrays
+import java.util.*
 import java.util.function.Consumer
 
 class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSimiScreen() {
@@ -36,7 +36,7 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
         makeKeyButtons()
         makeOperationInputs()
         makeValueInputs()
-        addRenderableWidget(confirmButton)
+        addRenderableWidget(confirmButton!!)
         updateTab(Rotation.NONE)
     }
 
@@ -48,12 +48,15 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
     override fun renderWindow(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
         val x = guiLeft
         val y = guiTop
-        background.render(ms, x, y, this)
+
+        background.render(ms, x, y)
         drawCenteredString(ms, font, title, x + (background.width - 8) / 2, y + 3, 0xFFFFFF)
         drawRuleList(ms, x, y, partialTicks)
         GuiGameElement.of(renderedItem)
-            .at<GuiGameElement.GuiRenderBuilder>((x + background.width + 6).toFloat(),
-                (y + background.height - 56).toFloat(), -200f)
+            .at<GuiGameElement.GuiRenderBuilder>(
+                (x + background.width + 6).toFloat(),
+                (y + background.height - 56).toFloat(), -200f
+            )
             .scale(5.0)
             .render(ms)
     }
@@ -99,6 +102,7 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
         }
     }
 
+
     private fun drawInputField(x: Int, y: Int, ms: PoseStack, partialTicks: Float, i: Int) {
         background.bind()
         blit(
@@ -109,6 +113,7 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
             INPUT_FIELDS_HEIGHT
         )
     }
+
 
     private fun makeOperationInputs() {
         val x = guiLeft
@@ -289,8 +294,7 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
             isHovered =
                 rotation == currentShaft || mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height
             background.bind()
-            blit(ms, x, y, if (isHovered) 17 + blitX else blitX, blitY, width, height)
-        }
+            blit(ms, x, y, if (isHovered) 17 + blitX else blitX, blitY, width, height) }
     }
 
     inner class KeyButton(
@@ -329,8 +333,9 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
             isHovered =
                 isKeySelected(key, index) || mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height
             background.bind()
-            blit(ms, x, y, if (isHovered) 17 + blitX else blitX, blitY, width, height)
-        }
+            blit(ms, x, y, if (isHovered) 17 + blitX else blitX, blitY, width, height)}
+
+
     }
 
     companion object {

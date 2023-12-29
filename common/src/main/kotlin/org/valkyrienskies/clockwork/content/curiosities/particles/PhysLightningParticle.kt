@@ -10,6 +10,7 @@ import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.client.particle.SpriteSet
 import net.minecraft.core.particles.ParticleOptions
 import net.minecraft.core.particles.ParticleType
+import org.joml.Quaternionf
 import org.valkyrienskies.clockwork.ClockworkParticles
 
 class PhysLightningParticle(

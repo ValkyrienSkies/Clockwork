@@ -13,8 +13,9 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.ticks.TickPriority
+import kotlin.math.abs
 
-class RedstoneResistorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
+open class RedstoneResistorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
     SplitShaftBlockEntity(type, pos, state), IHaveGoggleInformation {
     var state = 0
     var lastChange = 0
@@ -58,7 +59,8 @@ class RedstoneResistorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
     override fun getRotationSpeedModifier(face: Direction): Float {
         if (hasSource()) {
             if (face != sourceFacing) {
-                return Math.abs(state - 15) / 15f
+                val i = abs(state - 15) / 15f;
+                return i
             }
         }
         return 1f

@@ -19,7 +19,10 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.level.block.state.properties.BooleanProperty
 import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.shapes.CollisionContext
+import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.ClockworkShapes
 
 class AltMeterBlock(properties: Properties) : Block(properties), IBE<AltMeterBlockEntity> {
     init {
@@ -35,11 +38,23 @@ class AltMeterBlock(properties: Properties) : Block(properties), IBE<AltMeterBlo
         hit: BlockHitResult
     ): InteractionResult {
         if (!player.isShiftKeyDown) {
-            if (level.isClientSide) withBlockEntityDo(level, pos) { te: AltMeterBlockEntity ->
-                displayScreen(te, player)
+            if (level.isClientSide) {
+                withBlockEntityDo(level, pos) { te: AltMeterBlockEntity ->
+                    displayScreen(te, player)
+                }
             }
         }
         return InteractionResult.SUCCESS
+    }
+
+    override fun getShape(
+        pState: BlockState,
+        pLevel: BlockGetter?,
+        pPos: BlockPos?,
+        pContext: CollisionContext?
+    ): VoxelShape {
+        return ClockworkShapes.ALT_METER
+
     }
 
     @Environment(value = EnvType.CLIENT)
@@ -47,12 +62,14 @@ class AltMeterBlock(properties: Properties) : Block(properties), IBE<AltMeterBlo
         if (player is LocalPlayer) ScreenOpener.open(AltMeterScreen(te))
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
         for (direction in Direction.entries) {
             level.updateNeighborsAt(pos.relative(direction), this)
         }
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
         if (isMoving) {
             return

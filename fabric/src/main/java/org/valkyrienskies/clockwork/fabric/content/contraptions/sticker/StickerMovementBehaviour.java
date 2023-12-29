@@ -150,7 +150,7 @@ public class StickerMovementBehaviour implements MovementBehaviour {
         if (!getAssembleNextTick(context)) {
             if (context.state.getValue(BlockStateProperties.POWERED))
                 extraData.putBoolean("ShipStickerAlreadyPowered", true);
-            StructureTransform structureTransform = ((MixinAbstractContraptionEntityDuck) context.contraption.entity).getStructureTransform();
+            StructureTransform structureTransform = ((org.valkyrienskies.clockwork.mixinduck.MixinAbstractContraptionEntityDuck) context.contraption.entity).getStructureTransform();
 
             position = toJOML(Vec3.atCenterOf(structureTransform.apply(context.localPos)).add(structureTransform.applyWithoutOffsetUncentered(myDirNormal)));
 

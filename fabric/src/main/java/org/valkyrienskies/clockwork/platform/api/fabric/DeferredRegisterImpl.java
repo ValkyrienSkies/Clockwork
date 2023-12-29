@@ -2,10 +2,11 @@ package org.valkyrienskies.clockwork.platform.api.fabric;
 
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
+import org.valkyrienskies.clockwork.platform.api.DeferredRegister;
 
 import java.util.function.Supplier;
 
-public class DeferredRegisterImpl<T> implements org.valkyrienskies.clockwork.platform.api.DeferredRegister<T> {
+public class DeferredRegisterImpl<T> implements DeferredRegister<T> {
     private final Registry<T> registry;
     private final String modId;
 

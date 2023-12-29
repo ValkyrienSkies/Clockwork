@@ -16,7 +16,6 @@ plugins {
     id "com.modrinth.minotaur"
 }
 
-apply from: '../gradle-scripts/publish-curseforge.gradle'
 
 architectury {
     platformSetupLoomIde()
@@ -27,8 +26,8 @@ configurations {
     common
     shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
     compileClasspath.extendsFrom common
-            runtimeClasspath.extendsFrom common
-            developmentForge.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentForge.extendsFrom common
 }
 
 repositories {
@@ -53,6 +52,7 @@ dependencies {
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 
     include(modApi("dev.architectury:architectury-forge:${rootProject.architectury_version}"))
+    implementation(include("io.github.llamalad7:mixinextras-forge:0.2.1"))
 
     //VS2
     modApi("org.valkyrienskies:valkyrienskies-118-forge:${rootProject.vs2_version}") { transitive = false }
@@ -114,7 +114,7 @@ shadowJar {
 
 remapJar {
     input.set shadowJar.archiveFile
-            dependsOn shadowJar
+    dependsOn shadowJar
     archiveClassifier.set null
 }
 
@@ -125,7 +125,7 @@ jar {
 sourcesJar {
     def commonSources = project(":common").sourcesJar
     dependsOn commonSources
-            from commonSources.archiveFile.map { zipTree(it) }
+    from commonSources.archiveFile.map { zipTree(it) }
 }
 
 components.java {

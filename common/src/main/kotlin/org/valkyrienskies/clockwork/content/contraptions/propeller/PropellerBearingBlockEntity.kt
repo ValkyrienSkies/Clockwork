@@ -80,16 +80,25 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         if (!this.running) {
             return 0f
         }
-        if (ordinal == 1) {
-            return 3f / 16f + sin(EaseHelper.easeInOutSine(this.pistonsA).toDouble()).toFloat() / 16f
-        } else if (ordinal == 2) {
-            return 3f / 16f + sin(EaseHelper.easeInOutSine(this.pistonsB).toDouble()).toFloat() / 16f
-        } else if (ordinal == 3) {
-            return 3f / 16f + sin(EaseHelper.easeInOutSine(this.pistonsC).toDouble()).toFloat() / 16f
-        } else {
-            return 3f / 16f + sin(EaseHelper.easeInOutSine(this.pistonsD).toDouble()).toFloat() / 16f
+        return when (ordinal) {
+            1 -> {
+                3f / 16f + sin(EaseHelper.easeInOutSine(this.pistonsA).toDouble()).toFloat() / 16f
+            }
+
+            2 -> {
+                3f / 16f + sin(EaseHelper.easeInOutSine(this.pistonsB).toDouble()).toFloat() / 16f
+            }
+
+            3 -> {
+                3f / 16f + sin(EaseHelper.easeInOutSine(this.pistonsC).toDouble()).toFloat() / 16f
+            }
+
+            else -> {
+                3f / 16f + sin(EaseHelper.easeInOutSine(this.pistonsD).toDouble()).toFloat() / 16f
+            }
         }
     }
+
     override fun getInterpolatedAngle(partialTicks: Float): Float {
         var partialTicks = partialTicks
         if (isVirtual) return Mth.lerp(partialTicks + .5f, prevAngle, realAngle)
@@ -99,7 +108,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
 
     val angularSpeed: Float
         get() {
-            var angspeed = convertToAngular(rotspeed)
+            var angspeed = convertToAngular(rotspeed) * 1.25f //* 1.25 to make it a bit easier to fly //TODO config?
             if (rotspeed == 0f) {
                 angspeed = 0f
             }
@@ -158,15 +167,13 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
                     blockPos
                 )
                 if (ship != null) {
-                    val data = PropUpdateData(
-                        angularSpeed.toDouble(), realAngle.toDouble(),
-                        isInverted
-                    )
+                    val data = PropUpdateData(angularSpeed.toDouble(), realAngle.toDouble(), isInverted)
                     PropellerController.getOrCreate(ship)!!.updatePropeller(physPropId!!, data)
                 }
             }
         }
     }
+
 
     private fun modSpeed() {
         if (movedContraption == null) {
@@ -175,7 +182,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         if (rotspeed == speed) {
             return
         }
-        
+
         val diff = speed - rotspeed
         rotspeed += Mth.clamp(diff / 10, -32f, 32f)
     }
@@ -215,7 +222,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         val Q = startingPoint / spinup
         rotspeed = (rotspeed + 6f * Q / spinup) * (1f - 1f / spinup)
     }
-    
+
     override fun calculateStressApplied(): Float {
         if (running && movedContraption != null) {
             sails = sailPositions.size
@@ -282,7 +289,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
     //            sendData();
     //        }
     //    }
-     override fun attach(contraption: ControlledContraptionEntity) {
+    override fun attach(contraption: ControlledContraptionEntity) {
         val blockState = blockState
         if (contraption.contraption !is PropellerContraption) return
         if (!blockState.hasProperty(BearingBlock.FACING)) return
@@ -345,14 +352,18 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         get() = worldPosition.offset(blockState.getValue(BlockStateProperties.FACING).normal)
     val streamOriginSide: Direction
         get() = blockState.getValue(BlockStateProperties.FACING)
+
+    /*
     val streamDirection: Direction?
         get() {
-            var speed = getSpeed()
+            var speed = getSpeed() * 1.25f
             if (speed == 0f) return null
             val facing = blockState.getValue(BlockStateProperties.FACING)
             speed = convertToDirection(speed, facing)
             return if (speed > 0) facing else facing.opposite
         }
+
+     */
     val isSourceRemoved: Boolean
         get() = remove
     val streamScale: Vector3d

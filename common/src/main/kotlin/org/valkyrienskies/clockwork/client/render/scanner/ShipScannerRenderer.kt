@@ -1,14 +1,12 @@
 package org.valkyrienskies.clockwork.client.render.scanner
-// Thanks to Scannable for this code! (https://github.com/MightyPirates/Scannable)
+
+
 import com.mojang.blaze3d.pipeline.RenderTarget
 import com.mojang.blaze3d.platform.GlConst
 import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.platform.TextureUtil
 import com.mojang.blaze3d.systems.RenderSystem
-import com.mojang.blaze3d.vertex.DefaultVertexFormat
-import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.blaze3d.vertex.Tesselator
-import com.mojang.blaze3d.vertex.VertexFormat
+import com.mojang.blaze3d.vertex.*
 import com.mojang.math.Matrix4f
 import com.mojang.math.Vector3f
 import net.fabricmc.api.EnvType
@@ -27,6 +25,8 @@ import org.valkyrienskies.core.impl.networking.RegisteredHandler
 import org.valkyrienskies.mod.common.hooks.VSGameEvents
 import org.valkyrienskies.mod.common.hooks.VSGameEvents.postRenderShip
 import org.valkyrienskies.mod.common.hooks.VSGameEvents.renderShip
+import org.valkyrienskies.mod.common.util.toJOML
+
 
 @Environment(EnvType.CLIENT)
 class ShipScannerRenderer : ScannerRenderer {
@@ -77,8 +77,8 @@ class ShipScannerRenderer : ScannerRenderer {
     }
 
     private fun render(viewMatrix: Matrix4f) {
-        val scanEffect = ClockworkShaders.SCAN_EFFECT.shader
-        if (scanEffect != null && ship != null) {
+        val scanEffect = ClockworkShaders.scan_effect()
+        if (ship != null) {
             val oldShader = RenderSystem.getShader()
             renderShip.on { event: VSGameEvents.ShipRenderEvent, _: RegisteredHandler? ->
                 if (event.ship == ship) {
@@ -91,8 +91,9 @@ class ShipScannerRenderer : ScannerRenderer {
                     RenderSystem.depthMask(false)
                     RenderSystem.disableDepthTest()
                     RenderSystem.enableBlend()
-                    RenderSystem.setShader(ClockworkShaders.SCAN_EFFECT::shader)
+                    RenderSystem.setShader(ClockworkShaders::crystal)
                     RenderSystem.backupProjectionMatrix()
+
                     RenderSystem.setProjectionMatrix(
                         Matrix4f.orthographic(
                             0f,
@@ -103,6 +104,7 @@ class ShipScannerRenderer : ScannerRenderer {
                             100f
                         )
                     )
+
                     val tesselator =
                         Tesselator.getInstance()
                     val buffer = tesselator.builder
@@ -144,7 +146,7 @@ class ShipScannerRenderer : ScannerRenderer {
     private fun updateShaderUniforms(shader: ShaderInstance, viewMatrix: Matrix4f) {
         val invertedViewMatrix = Matrix4f(viewMatrix)
         invertedViewMatrix.invert()
-        val invertedProjectionMatrix = Matrix4f(RenderSystem.getProjectionMatrix())
+        val invertedProjectionMatrix = com.mojang.math.Matrix4f(RenderSystem.getProjectionMatrix())
         invertedProjectionMatrix.invert()
         val cameraPosition = Minecraft.getInstance().gameRenderer.mainCamera.position
         val adjustedDuration: Int
@@ -158,7 +160,7 @@ class ShipScannerRenderer : ScannerRenderer {
             radius = 0f
         }
         shader.setSampler("depthTex", depthCopyDepthBuffer)
-        shader.safeGetUniform("center").set(Vector3f(currentCenter))
+        shader.safeGetUniform("center").set(Vector3f(currentCenter!!))
         shader.safeGetUniform("invViewMat").set(invertedViewMatrix)
         shader.safeGetUniform("invProjMat").set(invertedProjectionMatrix)
         shader.safeGetUniform("pos").set(Vector3f(cameraPosition))

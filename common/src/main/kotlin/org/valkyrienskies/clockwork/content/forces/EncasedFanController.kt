@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.forces
 import it.unimi.dsi.fastutil.Pair
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import net.minecraft.util.Mth
+import net.minecraft.world.entity.animal.horse.Horse
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanCreateData
@@ -70,6 +71,7 @@ class EncasedFanController : ShipForcesInducer {
         if (!java.lang.Double.isFinite(factor)) {
             factor = 0.0
         }
+
         providedForce = providedForce * airPress * factor
         return dir.mul(providedForce)
     }

@@ -9,7 +9,7 @@ import net.minecraft.world.level.block.state.BlockState
 import org.joml.Vector3d
 import org.valkyrienskies.mod.common.getShipManagingPos
 
-class AltMeterBlockEntity(typeIn: BlockEntityType<AltMeterBlockEntity>, pos: BlockPos, state: BlockState) :
+class AltMeterBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
     SmartBlockEntity(typeIn, pos, state) {
     internal var triggerHeight: Double = 0.0
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {}
@@ -27,6 +27,7 @@ class AltMeterBlockEntity(typeIn: BlockEntityType<AltMeterBlockEntity>, pos: Blo
         val shouldBePowered = posInWorld.y() >= triggerHeightCopy
 
         val isCurrentlyPowered = blockState.getValue(AltMeterBlock.POWERED)
+
         if (shouldBePowered != isCurrentlyPowered) {
             if (shouldBePowered) {
                 // Same flags as a redstone torch update

@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.client.render
 
+
 import com.mojang.blaze3d.vertex.VertexFormat
 import net.minecraft.client.renderer.ShaderInstance
 import net.minecraft.resources.ResourceLocation

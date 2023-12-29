@@ -1,0 +1,13 @@
+{
+  "type": "create:sandpaper_polishing",
+  "ingredients": [
+    {
+      "item": "vs_clockwork:auric_crystal"
+    }
+  ],
+  "results": [
+    {
+      "item": "vs_clockwork:auric_cube"
+    }
+  ]
+}

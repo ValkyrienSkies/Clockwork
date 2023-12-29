@@ -28,6 +28,7 @@ class PhysBearingData {
     var hingeID: Int? = null
 
     var secondAttachConstraint: VSAttachmentConstraint? = null
+
     @JsonIgnore
     var secondAttachId: Int? = null
 

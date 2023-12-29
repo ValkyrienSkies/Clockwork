@@ -23,10 +23,10 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import java.util.function.Consumer
 
 class SequencedSeatBlock(properties: Properties) : HorizontalKineticBlock(properties),
     IBE<SequencedSeatBlockEntity> {
+
     override fun getStateForPlacement(context: BlockPlaceContext): BlockState? {
         val preferredFacing = getPreferredHorizontalFacing(context)
         return if (preferredFacing != null && (context.player == null || !context.player!!.isShiftKeyDown)) withDirection(

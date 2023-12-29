@@ -23,8 +23,7 @@ class SequencedSeatDrivingPacket : C2SCWPacket {
             val level = context.sender.level
             val entity = level.getEntity(seatId)
             if (entity is SequencedSeatEntity && context.sender == entity.firstPassenger) {
-                val be =
-                    level.getBlockEntity(entity.blockPosition())
+                val be = level.getBlockEntity(entity.blockPosition())
                 (be as? SequencedSeatBlockEntity)?.updateInput(pressedKeys)
             }
         }

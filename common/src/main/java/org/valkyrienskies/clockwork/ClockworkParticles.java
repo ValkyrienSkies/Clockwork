@@ -30,8 +30,9 @@ public enum ClockworkParticles {
     @Environment(EnvType.CLIENT)
     public static void initClient() {
         ParticleEngine particles = Minecraft.getInstance().particleEngine;
-        for (final ClockworkParticles particle : values())
+        for (final ClockworkParticles particle : values()) {
             particle.entry.registerFactory(particles);
+        }
     }
 
     public ParticleType<?> get() {

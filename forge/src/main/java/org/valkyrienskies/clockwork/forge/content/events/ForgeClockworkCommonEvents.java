@@ -17,8 +17,9 @@ public class ForgeClockworkCommonEvents {
 
     @SubscribeEvent
     public static void onWorldTick(TickEvent.WorldTickEvent event) {
-        if (event.world.isClientSide())
+        if (event.world.isClientSide()) {
             return;
+        }
         ClockworkCommonEvents.INSTANCE.onWorldTick((ServerLevel) event.world);
     }
 

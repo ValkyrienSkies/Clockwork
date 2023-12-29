@@ -4,8 +4,6 @@ plugins {
     id "com.modrinth.minotaur"
 }
 
-apply from: '../gradle-scripts/publish-curseforge.gradle'
-
 architectury {
     platformSetupLoomIde()
     fabric()
@@ -19,22 +17,22 @@ configurations {
     common
     shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
     compileClasspath.extendsFrom common
-            runtimeClasspath.extendsFrom common
-            developmentFabric.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentFabric.extendsFrom common
 }
 
 repositories {
-    if (!block_external_repositories) {
-        // mavens for Fabric-exclusives
-        maven { url = "https://api.modrinth.com/maven" } // LazyDFU
-        maven { url = "https://maven.terraformersmc.com/releases/" } // Mod Menu
-        maven { url = "https://mvn.devos.one/snapshots/" }
-        // Create Fabric, Porting Lib, Forge Tags, Milk Lib, Registrate Fabric
-        maven { url = "https://cursemaven.com" } // Forge Config API Port
-        maven { url = "https://maven.cafeteria.dev/releases" } // Fake Player API
-        //maven { url = "https://maven.jamieswhiteshirt.com/libs-release" } // Reach Entity Attributes
-        maven { url = "https://jitpack.io/" } // Mixin Extras, Fabric ASM
-    }
+
+    // mavens for Fabric-exclusives
+    maven { url = "https://api.modrinth.com/maven" } // LazyDFU
+    maven { url = "https://maven.terraformersmc.com/releases/" } // Mod Menu
+    maven { url = "https://mvn.devos.one/snapshots/" }
+    // Create Fabric, Porting Lib, Forge Tags, Milk Lib, Registrate Fabric
+    maven { url = "https://cursemaven.com" } // Forge Config API Port
+    maven { url = "https://maven.cafeteria.dev/releases" } // Fake Player API
+    //maven { url = "https://maven.jamieswhiteshirt.com/libs-release" } // Reach Entity Attributes
+
+
 }
 
 dependencies {
@@ -44,15 +42,24 @@ dependencies {
 
     // dependencies
     modImplementation("net.fabricmc.fabric-api:fabric-api:${fabric_api_version}")
-
-    include(modApi("dev.architectury:architectury-fabric:${rootProject.architectury_version}"))
+    implementation(include("io.github.llamalad7:mixinextras-fabric:0.2.1"))
+    (modApi("dev.architectury:architectury-fabric:${rootProject.architectury_version}"))
 
     //VS2
-    modApi("org.valkyrienskies:valkyrienskies-118-fabric:${rootProject.vs2_version}") { transitive = false }
-    implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") { transitive = false }
+    modApi("org.valkyrienskies:valkyrienskies-118-fabric:${rootProject.vs2_version}")
+    implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") {
+        exclude group: 'org.joml', module: ''
+    }
+
+    implementation("org.valkyrienskies.core:util:${rootProject.vscore_version}") {
+        exclude group: 'org.joml', module: ''
+    }
+    implementation("org.valkyrienskies.core:api-game:${rootProject.vscore_version}") {
+        exclude group: 'org.joml', module: ''
+    }
 
     // Kotlin
-    modImplementation("net.fabricmc:fabric-language-kotlin:1.10.10+kotlin.1.9.10")
+    modImplementation("net.fabricmc:fabric-language-kotlin:${rootProject.fabric_language_kotlin_version}")
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10"
     api "org.jetbrains.kotlin:kotlin-reflect:1.9.10"
 
@@ -61,24 +68,29 @@ dependencies {
         exclude group: 'com.github.AlphaMode', module: 'fakeconfigtoml'
     }
 
-    modImplementation("curse.maven:indium-459496:3911811")
+
+    modImplementation("maven.modrinth:sodium:${sodium_version}")
+    modRuntimeOnly("maven.modrinth:indium:${indium_version}")
 
     modImplementation("com.terraformersmc:modmenu:${modmenu_version}")
 
-    modImplementation("net.minecraftforge:forgeconfigapiport-fabric:3.2.4") // TODO do we still need this?
+    //modImplementation("net.minecraftforge:forgeconfigapiport-fabric:4.2.9") // TODO do we still need this?
+    modImplementation("net.minecraftforge:forgeconfigapiport-fabric:${forge_config_api_port_version}")
 
     // Development QOL
     modLocalRuntime("maven.modrinth:lazydfu:${lazydfu_version}")
 
-    modLocalRuntime("org.valkyrienskies.eureka:eureka-fabric:${eureka_version}") { transitive = false }
-    modLocalRuntime("curse.maven:lithium-360438:4143613")
-    modLocalRuntime("curse.maven:dynamic-fps-335493:3606973")
-    modLocalRuntime("curse.maven:smooth-boot-415758:3692365")
-    modLocalRuntime("maven.modrinth:sodium:mc1.18.2-0.4.1")
+    //modLocalRuntime("maven.modrinth.eureka:${eureka_fabric_version}") { transitive = false }
+    //modLocalRuntime("curse.maven:dynamic-fps-335493:3606973")
+    //modLocalRuntime("curse.maven:smooth-boot-415758:3692365")
     modLocalRuntime("com.moandjiezana.toml:toml4j:0.7.2")
 
     // CC Restitched
     modCompileOnly("curse.maven:cc-restitched-462672:3622561")
+
+
+    implementation("org.joml:joml-primitives:1.10.0")
+    implementation("org.joml:joml:1.10.4")
 }
 
 processResources {
@@ -108,7 +120,7 @@ shadowJar {
 remapJar {
     injectAccessWidener = true
     input.set shadowJar.archiveFile
-            dependsOn shadowJar
+    dependsOn shadowJar
     archiveClassifier.set null
 }
 
@@ -119,7 +131,7 @@ jar {
 sourcesJar {
     def commonSources = project(":common").sourcesJar
     dependsOn commonSources
-            from commonSources.archiveFile.map { zipTree(it) }
+    from commonSources.archiveFile.map { zipTree(it) }
 }
 
 components.java {

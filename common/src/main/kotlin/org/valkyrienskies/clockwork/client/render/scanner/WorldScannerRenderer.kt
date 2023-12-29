@@ -1,14 +1,12 @@
 package org.valkyrienskies.clockwork.client.render.scanner
-// Thanks to Scannable for this code! (https://github.com/MightyPirates/Scannable)
+
+
 import com.mojang.blaze3d.pipeline.RenderTarget
 import com.mojang.blaze3d.platform.GlConst
 import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.platform.TextureUtil
 import com.mojang.blaze3d.systems.RenderSystem
-import com.mojang.blaze3d.vertex.DefaultVertexFormat
-import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.blaze3d.vertex.Tesselator
-import com.mojang.blaze3d.vertex.VertexFormat
+import com.mojang.blaze3d.vertex.*
 import com.mojang.math.Matrix4f
 import com.mojang.math.Vector3f
 import net.fabricmc.api.EnvType
@@ -69,7 +67,7 @@ class WorldScannerRenderer : ScannerRenderer {
     private fun render(viewMatrix: Matrix4f) {
         val target = Minecraft.getInstance().mainRenderTarget
         updateDepthTexture(target)
-        updateShaderUniforms(ClockworkShaders.SCAN_EFFECT.shader, viewMatrix)
+        updateShaderUniforms(ClockworkShaders.scan_effect(), viewMatrix)
         blit(target)
     }
 
@@ -98,14 +96,14 @@ class WorldScannerRenderer : ScannerRenderer {
             radius = currentBlockEntity!!.computeRadius(currentStart, adjustedDuration.toFloat())
         } else {
             adjustedDuration =
-                PhysicsInfuserRenderer.SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance / 12
+                PhysicsInfuserRenderer.SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance/ 12
             radius = 0f
         }
         shader!!.setSampler("depthTex", depthCopyDepthBuffer)
-        shader.safeGetUniform("center").set(Vector3f(currentCenter))
+        shader.safeGetUniform("center").set((Vector3f( currentCenter!!)))
         shader.safeGetUniform("invViewMat").set(invertedViewMatrix)
         shader.safeGetUniform("invProjMat").set(invertedProjectionMatrix)
-        shader.safeGetUniform("pos").set(Vector3f(cameraPosition))
+        shader.safeGetUniform("pos").set((Vector3f(cameraPosition)))
         shader.safeGetUniform("radius").set(radius)
     }
 
@@ -116,9 +114,18 @@ class WorldScannerRenderer : ScannerRenderer {
         RenderSystem.disableDepthTest()
         RenderSystem.enableBlend()
         val oldShader = RenderSystem.getShader()
-        RenderSystem.setShader(ClockworkShaders.SCAN_EFFECT::shader)
+        RenderSystem.setShader(ClockworkShaders::scan_effect)
         RenderSystem.backupProjectionMatrix()
-        RenderSystem.setProjectionMatrix(Matrix4f.orthographic(0f, width.toFloat(), 0f, height.toFloat(), 1f, 100f))
+        RenderSystem.setProjectionMatrix(
+            Matrix4f.orthographic(
+                0f,
+                width.toFloat(),
+                0f,
+                height.toFloat(),
+                1f,
+                100f
+            )
+        )
         val tesselator = Tesselator.getInstance()
         val buffer = tesselator.builder
         buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX)

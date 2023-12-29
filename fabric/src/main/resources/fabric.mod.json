@@ -12,7 +12,8 @@
     "Triode",
     "Rubydesic",
     "Fluffy",
-    "TechTastic"
+    "TechTastic",
+    "MrSterner"
   ],
   "contact": {
     "homepage": "https://valkyrienskies.org/",
@@ -26,13 +27,7 @@
       "org.valkyrienskies.clockwork.fabric.ClockworkModFabric"
     ],
     "client": [
-      "org.valkyrienskies.clockwork.fabric.ClockworkModFabric${'$'}Client"
-    ],
-    "preLaunch": [
-      "org.valkyrienskies.clockwork.fabric.ValkyrienPreLaunch"
-    ],
-    "modmenu": [
-      "org.valkyrienskies.clockwork.fabric.ClockworkModFabric${'$'}ModMenu"
+      "org.valkyrienskies.clockwork.fabric.ClockworkModFabricClient"
     ]
   },
   "mixins": [

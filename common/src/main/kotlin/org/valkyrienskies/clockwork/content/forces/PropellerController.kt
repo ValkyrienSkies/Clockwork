@@ -16,10 +16,12 @@ import org.valkyrienskies.core.api.ships.ShipForcesInducer
 import org.valkyrienskies.core.api.ships.properties.ShipTransform
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 import org.valkyrienskies.core.impl.game.ships.ShipInertiaDataImpl
-import java.util.Queue
+import java.lang.Math
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.function.BiConsumer
+import kotlin.math.sign
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class PropellerController : ShipForcesInducer {
@@ -84,9 +86,9 @@ class PropellerController : ShipForcesInducer {
         omega: Vector3dc,
         physShip: PhysShipImpl
     ): Pair<Vector3dc, Vector3dc> {
-        val modifiedSpeed: Double = physProp.bearingSpeed
+        val modifiedSpeed: Double = physProp.bearingSpeed * 1.25 //* 1.25, A little bit easier to generate force //TODO config?
         val bearingVector: Vector3dc = Vector3d(physProp.bearingPos).add(0.5, 0.5, 0.5)
-        val axis: Vector3dc = physProp.bearingAxis!!.mul(Math.signum(modifiedSpeed), Vector3d())
+        val axis: Vector3dc = physProp.bearingAxis!!.mul(sign(modifiedSpeed), Vector3d())
         val rotation: Quaterniondc = Quaterniond(AxisAngle4d(Math.toRadians(physProp.bearingAngle), axis))
         val angVel: Vector3dc = axis.mul(modifiedSpeed / 60.0 * (2.0 * Math.PI), Vector3d())
         val furthestTip = Vector3d()

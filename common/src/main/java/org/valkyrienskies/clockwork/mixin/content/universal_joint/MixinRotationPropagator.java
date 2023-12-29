@@ -3,25 +3,27 @@ package org.valkyrienskies.clockwork.mixin.content.universal_joint;
 import com.simibubi.create.content.kinetics.RotationPropagator;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import net.minecraft.core.BlockPos;
-import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.LinkedList;
 import java.util.List;
 
 @Mixin(RotationPropagator.class)
 public abstract class MixinRotationPropagator {
 
     @Shadow
-    private static List<BlockPos> getPotentialNeighbourLocations(KineticBlockEntity te) {return null;};
+    private static List<BlockPos> getPotentialNeighbourLocations(KineticBlockEntity te) {
+        return null;
+    }
+
+    ;
 
     @Shadow
-    private static KineticBlockEntity findConnectedNeighbour(KineticBlockEntity currentTE, BlockPos neighbourPos) {return null;};
+    private static KineticBlockEntity findConnectedNeighbour(KineticBlockEntity currentTE, BlockPos neighbourPos) {
+        return null;
+    }
+
+    ;
 
 //    @Inject(method = "getConnectedNeighbours", at = @At("HEAD"), cancellable = true, remap = false)
 //    private static void getConnectedNeighborsDistant(@NotNull KineticBlockEntity te, CallbackInfoReturnable<List<KineticBlockEntity>> cir) {

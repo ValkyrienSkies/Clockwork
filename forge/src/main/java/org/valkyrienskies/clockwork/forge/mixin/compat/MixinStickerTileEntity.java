@@ -17,8 +17,8 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.valkyrienskies.clockwork.forge.content.contraptions.sticker.StickerParticleUtil;
 import org.valkyrienskies.clockwork.forge.content.contraptions.sticker.StickerMovementBehaviour;
+import org.valkyrienskies.clockwork.forge.content.contraptions.sticker.StickerParticleUtil;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.mixinducks.mod_compat.create.IMixinStickerTileEntity;
 
@@ -48,8 +48,9 @@ public abstract class MixinStickerTileEntity extends SmartBlockEntity implements
     @Unique
     private void removeConstraint(@Nullable ServerLevel level, boolean removeTags) {
         if (getTileData().contains("ShipStickerConstraint")) {
-            if (level != null)
+            if (level != null) {
                 VSGameUtilsKt.getShipObjectWorld(level).removeConstraint(getTileData().getInt("ShipStickerConstraint"));
+            }
             if (removeTags) {
                 getTileData().remove("ShipStickerConstraint");
                 getTileData().remove("ShipStickerShip1Id");
@@ -70,8 +71,9 @@ public abstract class MixinStickerTileEntity extends SmartBlockEntity implements
     }
 
     private void doTick() {
-        if (level == null)
+        if (level == null) {
             return;
+        }
 
         Direction myDir = this.getBlockState().getValue(DirectionalBlock.FACING);
         Vector3d myDirNormal = toJOML(Vec3.atLowerCornerOf(myDir.getNormal()));

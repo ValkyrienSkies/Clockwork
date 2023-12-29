@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.fabric.content.contraptions.sticker;
 
+
 import com.simibubi.create.AllSoundEvents;
 import com.tterrag.registrate.fabric.EnvExecutor;
 import net.fabricmc.api.EnvType;
@@ -27,7 +28,7 @@ public class StickerParticleUtil implements StickerParticleUtilInterface {
     }
 
     @Override
-    public void runOnClient(Supplier<Runnable> func){
+    public void runOnClient(Supplier<Runnable> func) {
         EnvExecutor.runWhenOn(EnvType.CLIENT, func);
     }
 }

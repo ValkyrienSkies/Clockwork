@@ -1,5 +1,4 @@
 package org.valkyrienskies.clockwork.forge.content.contraptions.sticker;
-
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
 import com.simibubi.create.content.contraptions.ControlledContraptionEntity;
 import com.simibubi.create.content.contraptions.StructureTransform;
@@ -31,13 +30,13 @@ import org.joml.Quaterniondc;
 import org.joml.Vector3d;
 import org.spongepowered.asm.mixin.Unique;
 import org.valkyrienskies.clockwork.mixin.accessors.IMixinPistonContraption;
+import org.valkyrienskies.clockwork.mixinduck.MixinAbstractContraptionEntityDuck;
 import org.valkyrienskies.core.api.ships.Ship;
 import org.valkyrienskies.core.apigame.constraints.VSAttachmentOrientationConstraint;
 import org.valkyrienskies.core.apigame.world.ServerShipWorldCore;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.mixin.mod_compat.create.blockentity.IMixinMechanicalBearingTileEntity;
 import org.valkyrienskies.mod.mixinducks.mod_compat.create.IMixinControlledContraptionEntity;
-import org.valkyrienskies.mod.mixinducks.mod_compat.create.MixinAbstractContraptionEntityDuck;
 
 import javax.annotation.Nullable;
 import java.util.Iterator;

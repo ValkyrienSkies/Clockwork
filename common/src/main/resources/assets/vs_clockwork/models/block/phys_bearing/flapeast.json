@@ -1,45 +1,183 @@
 {
-	"credit": "Made with Blockbench",
-	"texture_size": [128, 128],
-	"textures": {
-		"0": "vs_clockwork:block/phys_bearing",
-		"particle": "vs_clockwork:block/phys_bearing"
-	},
-	"elements": [
-		{
-			"from": [10, 14, 3],
-			"to": [13, 16, 13],
-			"rotation": {"angle": 0, "axis": "z", "origin": [13, 10, 8]},
-			"faces": {
-				"north": {"uv": [6.75, 0.5, 7.125, 0.75], "texture": "#0"},
-				"east": {"uv": [5.125, 2, 6.375, 2.25], "texture": "#0"},
-				"south": {"uv": [6.75, 0.75, 7.125, 1], "texture": "#0"},
-				"west": {"uv": [5.125, 2.25, 6.375, 2.5], "texture": "#0"},
-				"up": {"uv": [2.375, 6, 2, 4.75], "texture": "#0"},
-				"down": {"uv": [2.75, 4.75, 2.375, 6], "texture": "#0"}
-			}
-		},
-		{
-			"from": [13, 10, 6],
-			"to": [16, 16, 10],
-			"rotation": {"angle": 0, "axis": "z", "origin": [13, 10, 8]},
-			"faces": {
-				"north": {"uv": [3.5, 5.5, 3.875, 6.25], "texture": "#0"},
-				"east": {"uv": [4.5, 4.75, 5, 5.5], "texture": "#0"},
-				"south": {"uv": [3.875, 5.5, 4.25, 6.25], "texture": "#0"},
-				"west": {"uv": [0, 5, 0.5, 5.75], "texture": "#0"},
-				"up": {"uv": [6.75, 0.75, 6.375, 0.25], "texture": "#0"},
-				"down": {"uv": [6.75, 0.75, 6.375, 1.25], "texture": "#0"}
-			}
-		}
-	],
-	"display": {},
-	"groups": [
-		{
-			"name": "FlapEast",
-			"origin": [8, 14, 8],
-			"color": 0,
-			"children": [0, 1]
-		}
-	]
+  "credit": "Made with Blockbench",
+  "texture_size": [
+    128,
+    128
+  ],
+  "textures": {
+    "0": "vs_clockwork:block/phys_bearing",
+    "particle": "vs_clockwork:block/phys_bearing"
+  },
+  "elements": [
+    {
+      "from": [
+        10,
+        14,
+        3
+      ],
+      "to": [
+        13,
+        16,
+        13
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "z",
+        "origin": [
+          13,
+          10,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            6.75,
+            0.5,
+            7.125,
+            0.75
+          ],
+          "texture": "#0"
+        },
+        "east": {
+          "uv": [
+            5.125,
+            2,
+            6.375,
+            2.25
+          ],
+          "texture": "#0"
+        },
+        "south": {
+          "uv": [
+            6.75,
+            0.75,
+            7.125,
+            1
+          ],
+          "texture": "#0"
+        },
+        "west": {
+          "uv": [
+            5.125,
+            2.25,
+            6.375,
+            2.5
+          ],
+          "texture": "#0"
+        },
+        "up": {
+          "uv": [
+            2.375,
+            6,
+            2,
+            4.75
+          ],
+          "texture": "#0"
+        },
+        "down": {
+          "uv": [
+            2.75,
+            4.75,
+            2.375,
+            6
+          ],
+          "texture": "#0"
+        }
+      }
+    },
+    {
+      "from": [
+        13,
+        10,
+        6
+      ],
+      "to": [
+        16,
+        16,
+        10
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "z",
+        "origin": [
+          13,
+          10,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            3.5,
+            5.5,
+            3.875,
+            6.25
+          ],
+          "texture": "#0"
+        },
+        "east": {
+          "uv": [
+            4.5,
+            4.75,
+            5,
+            5.5
+          ],
+          "texture": "#0"
+        },
+        "south": {
+          "uv": [
+            3.875,
+            5.5,
+            4.25,
+            6.25
+          ],
+          "texture": "#0"
+        },
+        "west": {
+          "uv": [
+            0,
+            5,
+            0.5,
+            5.75
+          ],
+          "texture": "#0"
+        },
+        "up": {
+          "uv": [
+            6.75,
+            0.75,
+            6.375,
+            0.25
+          ],
+          "texture": "#0"
+        },
+        "down": {
+          "uv": [
+            6.75,
+            0.75,
+            6.375,
+            1.25
+          ],
+          "texture": "#0"
+        }
+      }
+    }
+  ],
+  "display": {},
+  "groups": [
+    {
+      "name": "FlapEast",
+      "origin": [
+        8,
+        14,
+        8
+      ],
+      "color": 0,
+      "children": [
+        0,
+        1
+      ]
+    }
+  ]
 }

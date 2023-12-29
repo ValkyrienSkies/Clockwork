@@ -14,9 +14,9 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.valkyrienskies.clockwork.content.forces.EncasedFanController;
 import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanCreateData;
 import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanUpdateData;
-import org.valkyrienskies.clockwork.content.forces.EncasedFanController;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
@@ -65,40 +65,25 @@ public abstract class MixinEncasedFanTileEntity extends KineticBlockEntity {
             }
         }
     }
+
     @Inject(method = "tick", at = @At("HEAD"), remap = false)
     private void injectTick(CallbackInfo ci) {
         handleController();
     }
 
-    @Unique
-    private CompoundTag writeToCompound(CompoundTag compound, boolean clientPacket){
-        //write here
+    @Inject(method = "write", at = @At("TAIL"), remap = false)
+    private void injectWrite(CompoundTag compound, boolean clientPacket, CallbackInfo ci) {
         compound.putBoolean("alreadyAdded", alreadyAdded);
         if (fanID != null) {
             compound.putInt("fanID", fanID);
         }
-        return compound;
-    }
-    @Inject(method = "write", at = @At("HEAD"), cancellable = true, remap = false)
-    private void injectWrite(CompoundTag compound, boolean clientPacket, CallbackInfo ci) {
-        compound = writeToCompound(compound,clientPacket);
-        super.write(compound, clientPacket);
-        ci.cancel();
     }
 
-    @Unique
-    private CompoundTag readFromCompound(CompoundTag compound, boolean clientPacket){
-        //read (and remove before it passes up?) here
+    @Inject(method = "read", at = @At("TAIL"), remap = false)
+    private void injectRead(CompoundTag compound, boolean clientPacket, CallbackInfo ci) {
         alreadyAdded = compound.getBoolean("alreadyAdded");
         if (compound.contains("fanID")) {
             fanID = compound.getInt("fanID");
         }
-        return compound;
-    }
-    @Inject(method = "read", at = @At("HEAD"), cancellable = true, remap = false)
-    private void injectRead(CompoundTag compound, boolean clientPacket, CallbackInfo ci) {
-        compound = readFromCompound(compound,clientPacket);
-        super.read(compound, clientPacket);
-        ci.cancel();
     }
 }

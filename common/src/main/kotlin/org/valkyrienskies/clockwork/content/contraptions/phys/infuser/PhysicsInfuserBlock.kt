@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.infuser
 
+
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.world.InteractionHand
@@ -16,7 +17,7 @@ import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.AreaDesignatorItem
+import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorItem
 
 class PhysicsInfuserBlock(properties: Properties) : Block(properties),
     IBE<PhysicsInfuserBlockEntity> {
@@ -63,7 +64,7 @@ class PhysicsInfuserBlock(properties: Properties) : Block(properties),
                 }
             }
             return InteractionResult.SUCCESS
-        } else if (player.getItemInHand(handIn).item is AreaDesignatorItem) {
+        } else if (player.getItemInHand(handIn).item is AuricDesignatorItem) {
             if (worldIn.getBlockEntity(pos) != null) {
                 if (worldIn.getBlockEntity(pos) is PhysicsInfuserBlockEntity) {
                     val te: PhysicsInfuserBlockEntity = worldIn.getBlockEntity(pos) as PhysicsInfuserBlockEntity

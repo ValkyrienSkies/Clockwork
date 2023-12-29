@@ -1,11 +1,10 @@
-  {
+{
   "variants": {
     "powered=true": {
-      "model": "vs_clockwork:block/ballooner/block"
+      "model": "vs_clockwork:block/alt_meter/block_powered"
     },
     "powered=false": {
-      "model": "vs_clockwork:block/ballooner/block",
-      "y": 180
+      "model": "vs_clockwork:block/alt_meter/block"
     }
   }
 }

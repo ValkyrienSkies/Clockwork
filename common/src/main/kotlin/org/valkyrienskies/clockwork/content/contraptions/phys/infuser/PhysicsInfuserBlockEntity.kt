@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.infuser
 
+
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity
 import com.simibubi.create.content.contraptions.AssemblyException
 import com.simibubi.create.content.contraptions.actors.seat.SeatEntity
@@ -28,12 +29,13 @@ import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.primitives.AABBic
+import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.client.render.scanner.ScannerRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer.Companion.SCAN_GROWTH_DURATION
-import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.AreaDesignatorItem
-import org.valkyrienskies.clockwork.content.curiosities.tools.auric.designator.SelectedAreaToolkit
+import org.valkyrienskies.clockwork.content.curiosities.tools.designator.SelectedAreaToolkit
+import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorItem
 import org.valkyrienskies.clockwork.util.EaseHelper.easeInBounce
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.core.api.ships.Ship
@@ -43,8 +45,9 @@ import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
-import java.util.Random
+import java.util.*
 import java.util.function.Consumer
+import kotlin.collections.HashSet
 
 class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) :
     SmartBlockEntity(type, pos, state), WorldlyContainer {
@@ -78,7 +81,7 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     }
 
     override fun canPlaceItemThroughFace(index: Int, itemStack: ItemStack, direction: Direction?): Boolean {
-        return itemStack.item is AreaDesignatorItem
+        return itemStack.item is AuricDesignatorItem
     }
 
     override fun canTakeItemThroughFace(index: Int, stack: ItemStack, direction: Direction): Boolean {
@@ -131,14 +134,14 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             if (inventory[0].isEmpty) return
             var launchForce = 0
             for (cluster in toDump) {
-                val adi: AreaDesignatorItem = inventory[0].item as AreaDesignatorItem
+                val adi: AuricDesignatorItem = inventory[0].item as AuricDesignatorItem
                 adi.selectedArea.dumpCluster(cluster)
                 launchForce++
             }
             toDump.clear()
             val ejected = ItemEntity(
                 level, blockPos.x.toDouble(), (blockPos.y + 1).toDouble(), blockPos.z.toDouble(),
-                inventory[0]
+                ClockworkItems.AURIC_DESIGNATOR.asStack()//New item so the nbt gets cleared
             )
             inventory[0] = ItemStack.EMPTY
             ejected.deltaMovement = Vec3(0.0, launchForce.toDouble(), 0.0)
@@ -249,7 +252,7 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
                 val range = pulseRange
                 return SCAN_GROWTH_DURATION * range.toInt() / 12
             }
-            return SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance / 12
+            return SCAN_GROWTH_DURATION * (Minecraft.getInstance().options.renderDistance / 12)
         }
 
     fun computeRadius(start: Long, duration: Float): Float {
@@ -271,15 +274,33 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
     fun assemble() {
         if (getLevel()!!.isClientSide()) return
-        if (inventory[0].item !is AreaDesignatorItem) return
-        val item: AreaDesignatorItem = inventory[0].item as AreaDesignatorItem
+        if (inventory[0].item !is AuricDesignatorItem) return
+        val item: AuricDesignatorItem = inventory[0].item as AuricDesignatorItem
+
         item.selectedArea.selectionClusters.forEach { cluster ->
             val selection: DenseBlockPosSet
             val caughtEntities: Set<Entity>
             if (level is ServerLevel) {
+                val serverLevel = level as ServerLevel
                 selection = SelectedAreaToolkit.denseBlocksFromCluster(cluster)
                 caughtEntities = SelectedAreaToolkit.entitiesFromCluster(cluster, (level as ServerLevel))
                 if (selection == null) return@forEach
+
+                var bl = false
+
+                selection.run loop@{
+                    selection.forEach { x, y, z ->
+                        if (!serverLevel.getBlockState(BlockPos(x, y, z)).isAir) {
+                            bl = true
+                            return@loop
+                        }
+                    }
+                }
+
+                if (!bl) {
+                    return@forEach
+                }
+
                 connectedShip = createNewShipWithBlocks(worldPosition, selection, level as ServerLevel)
                 // TODO: relocate entities properly cause it barely works
                 if (caughtEntities != null) {
@@ -291,25 +312,16 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
                                     connectedShip!!.transform.worldToShip.transformPosition(oldPos, Vector3d())
                                 entity.moveTo(newPos.toMinecraft())
                             } else {
-                                val glueEntity =
-                                    entity
+                                val glueEntity = entity
                                 val oldBounds = glueEntity.boundingBox
-                                val oldMax: Vector3dc =
-                                    Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
-                                val oldMin: Vector3dc =
-                                    Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
+                                val oldMax: Vector3dc = Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
+                                val oldMin: Vector3dc = Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
                                 val newMax: Vector3dc =
                                     connectedShip!!.transform.worldToShip.transformPosition(oldMax, Vector3d())
                                 val newMin: Vector3dc =
                                     connectedShip!!.transform.worldToShip.transformPosition(oldMin, Vector3d())
-                                val newBounds = AABB(
-                                    newMin.x(),
-                                    newMin.y(),
-                                    newMin.z(),
-                                    newMax.x(),
-                                    newMax.y(),
-                                    newMax.z()
-                                )
+                                val newBounds =
+                                    AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z())
                                 glueEntity.boundingBox = newBounds
                                 glueEntity.resetPositionToBB()
                             }
@@ -323,6 +335,7 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     }
 
     fun disassemble() {}
+
     fun startAnimation(animation: Animation) {
         animationType = animation
         if (animation == Animation.ASSEMBLY) {
@@ -358,7 +371,9 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             val ticks = Mth.lerp(partialTicks, prevRunningTicks.toFloat(), runningTicks.toFloat())
             return if (runningTicks < ASSEMBLY_TIME * 3 / 4) {
                 Mth.clamp(Math.pow((ticks / ASSEMBLY_TIME * 3).toDouble(), 4.0), 0.0, 1.0).toFloat()
-            } else easeInBounce(Mth.clamp((ASSEMBLY_TIME - ticks) / ASSEMBLY_TIME * 8, 0f, 1f))
+            } else {
+                Mth.clamp(easeInBounce(Mth.clamp((ASSEMBLY_TIME - ticks) / ASSEMBLY_TIME * 8, 0f, 1f)), 0.0f, 1.0f)
+            }
         } else if (animationType == Animation.DISASSEMBLY) {
             return disassemblyProgress.getValue(partialTicks)
         }

@@ -1,0 +1,18 @@
+{
+  "type": "create:pressing",
+  "ingredients": [
+    [
+      {
+        "item": "vs_clockwork:incomplete_auric_designator"
+      },
+      {
+        "item": "vs_clockwork:auric_matrix"
+      }
+    ]
+  ],
+  "results": [
+    {
+      "item": "vs_clockwork:auric_designator"
+    }
+  ]
+}

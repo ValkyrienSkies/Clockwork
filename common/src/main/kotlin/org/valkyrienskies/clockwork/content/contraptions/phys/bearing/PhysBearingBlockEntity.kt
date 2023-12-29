@@ -53,14 +53,14 @@ import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.isBlockInShipyard
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOMLD
+import java.lang.Math
 import kotlin.math.sign
 import kotlin.math.sin
 
 class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) :
-    GeneratingKineticBlockEntity(type, pos, state),
-    IBearingBlockEntity,
-    IDisplayAssemblyExceptions,
+    GeneratingKineticBlockEntity(type, pos, state), IBearingBlockEntity, IDisplayAssemblyExceptions,
     ContraptionController {
+
     var movementMode: ScrollOptionBehaviour<LockedMode>? = null
     var shouldRefresh = false
     protected var bearingAngle = 0f
@@ -353,10 +353,26 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         // TODO: Maybe change this based on ship size?
         val extraDist = 1.0
         val firstAttachment =
-            VSAttachmentConstraint(shiptraptionID, otherShipID, 1e-10, bearingPos.fma(-extraDist, axis, Vector3d()), posInOwnerShip.fma(-extraDist, axis, Vector3d()), 1e10, 0.0)
+            VSAttachmentConstraint(
+                shiptraptionID,
+                otherShipID,
+                1e-10,
+                bearingPos.fma(-extraDist, axis, Vector3d()),
+                posInOwnerShip.fma(-extraDist, axis, Vector3d()),
+                1e10,
+                0.0
+            )
 
         val secondAttachment =
-            VSAttachmentConstraint(shiptraptionID, otherShipID, 1e-10, bearingPos.fma(extraDist, axis, Vector3d()), posInOwnerShip.fma(extraDist, axis, Vector3d()), 1e10, 0.0)
+            VSAttachmentConstraint(
+                shiptraptionID,
+                otherShipID,
+                1e-10,
+                bearingPos.fma(extraDist, axis, Vector3d()),
+                posInOwnerShip.fma(extraDist, axis, Vector3d()),
+                1e10,
+                0.0
+            )
 
         // Add position damping to make the hinge more stable
         // VSPosDampingConstraint posDampingConstraint = new VSPosDampingConstraint(shiptraptionID, otherShipID, 1e-10, posInBearingContraption, posInOwnerShip, 1e10, 1e-2);
@@ -554,7 +570,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                             if (secondAttachId != null) {
                                 BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.secondAttachConstraint =
                                     secondAttachConstraint
-                                BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.secondAttachId = secondAttachId
+                                BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.secondAttachId =
+                                    secondAttachId
                                 createdAttachment = true
                             }
                         }

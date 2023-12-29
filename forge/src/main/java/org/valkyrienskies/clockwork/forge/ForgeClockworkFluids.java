@@ -3,6 +3,15 @@ package org.valkyrienskies.clockwork.forge;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.tterrag.registrate.builders.FluidBuilder;
 import com.tterrag.registrate.util.entry.FluidEntry;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.FluidTags;
+import net.minecraftforge.fluids.ForgeFlowingFluid;
+import org.valkyrienskies.clockwork.ClockworkMod;
+import org.valkyrienskies.clockwork.ClockworkSounds;
+
+import com.simibubi.create.foundation.data.CreateRegistrate;
+import com.tterrag.registrate.builders.FluidBuilder;
+import com.tterrag.registrate.util.entry.FluidEntry;
 import com.tterrag.registrate.util.nullness.NonNullBiFunction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
@@ -35,34 +44,34 @@ public class ForgeClockworkFluids {
                     .register();
 
     public static final FluidEntry<ForgeFlowingFluid.Flowing> CHOCOLATE_FROSTING = standardFluid("chocolate_frosting", NoColorFluidAttributes::new)
-                    .lang(f -> "fluid.ClockWorkMod.chocolate_frosting", "Chocolate Frosting")
-                    .attributes(b -> b.viscosity(1250)
-                            .density(7040)
-                            .temperature(20)
-                            .sound(ClockworkSounds.INSTANCE.getTHICK_FLUID_FILL().getMainEvent(), ClockworkSounds.INSTANCE.getTHICK_FLUID_EMPTY().getMainEvent()))
-                    .properties(p -> p.levelDecreasePerBlock(2)
-                            .tickRate(25)
-                            .slopeFindDistance(3)
-                            .explosionResistance(5f))
-                    .source(ForgeFlowingFluid.Source::new)
-                    .bucket()
-                    .build()
-                    .register();
+            .lang(f -> "fluid.ClockWorkMod.chocolate_frosting", "Chocolate Frosting")
+            .attributes(b -> b.viscosity(1250)
+                    .density(7040)
+                    .temperature(20)
+                    .sound(ClockworkSounds.INSTANCE.getTHICK_FLUID_FILL().getMainEvent(), ClockworkSounds.INSTANCE.getTHICK_FLUID_EMPTY().getMainEvent()))
+            .properties(p -> p.levelDecreasePerBlock(2)
+                    .tickRate(25)
+                    .slopeFindDistance(3)
+                    .explosionResistance(5f))
+            .source(ForgeFlowingFluid.Source::new)
+            .bucket()
+            .build()
+            .register();
 
     public static final FluidEntry<ForgeFlowingFluid.Flowing> STRAWBERRY_FROSTING = standardFluid("strawberry_frosting", NoColorFluidAttributes::new)
-                    .lang(f -> "fluid.ClockWorkMod.strawberry_frosting", "Strawberry Frosting")
-                    .attributes(b -> b.viscosity(1250)
-                            .density(7040)
-                            .temperature(20)
-                            .sound(ClockworkSounds.INSTANCE.getTHICK_FLUID_FILL().getMainEvent(), ClockworkSounds.INSTANCE.getTHICK_FLUID_EMPTY().getMainEvent()))
-                    .properties(p -> p.levelDecreasePerBlock(2)
-                            .tickRate(25)
-                            .slopeFindDistance(3)
-                            .explosionResistance(5f))
-                    .source(ForgeFlowingFluid.Source::new)
-                    .bucket()
-                    .build()
-                    .register();
+            .lang(f -> "fluid.ClockWorkMod.strawberry_frosting", "Strawberry Frosting")
+            .attributes(b -> b.viscosity(1250)
+                    .density(7040)
+                    .temperature(20)
+                    .sound(ClockworkSounds.INSTANCE.getTHICK_FLUID_FILL().getMainEvent(), ClockworkSounds.INSTANCE.getTHICK_FLUID_EMPTY().getMainEvent()))
+            .properties(p -> p.levelDecreasePerBlock(2)
+                    .tickRate(25)
+                    .slopeFindDistance(3)
+                    .explosionResistance(5f))
+            .source(ForgeFlowingFluid.Source::new)
+            .bucket()
+            .build()
+            .register();
 
     private static FluidBuilder<ForgeFlowingFluid.Flowing, CreateRegistrate> standardFluid(String name, NonNullBiFunction<FluidAttributes.Builder, Fluid, FluidAttributes> factory) {
         return ClockworkMod.INSTANCE.getREGISTRATE()

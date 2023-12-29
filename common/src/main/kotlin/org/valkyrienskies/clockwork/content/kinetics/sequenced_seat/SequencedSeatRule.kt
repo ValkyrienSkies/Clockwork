@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.kinetics.sequenced_seat
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
+import kotlin.math.abs
 
 class SequencedSeatRule(
     val inputKeys: MutableSet<InputKey>,
@@ -37,7 +38,7 @@ class SequencedSeatRule(
         }
         inAction = true
         val degreesPerTick = KineticBlockEntity.convertToAngular(be.speed).toDouble()
-        return if (Math.abs(degreesPerTick) > Math.abs(diff)) {
+        return if (abs(degreesPerTick) > abs(diff)) {
             (diff / degreesPerTick).toFloat()
         } else if (diff * degreesPerTick < 0) -1f else 1f
         // If diff and degrees per tick have different signs, we need to reverse the direction
@@ -45,29 +46,25 @@ class SequencedSeatRule(
     }
 
     private fun distanceRotate(be: SequencedSeatBlockEntity, face: Direction, matches: Boolean): Float {
-        /*
-        if (!inAction && !matches) return 0;
-
-        int targetDegrees = ((SequencedSeatValue.DistanceValue) value).meters * 512;
-
-        float degreesAway = be.getDegreesAwayFromBase(face);
-        float diff = matches ? targetDegrees - degreesAway : -degreesAway;
-
-        if (diff > 180) diff -= 360;
-        else if (diff < -180) diff += 360;
-
+        if (!inAction && !matches) return 0f
+        val targetDegrees: Int = -(value as SequencedSeatValue.AngleValue).degrees
+        val degreesAway = be.getDegreesAwayFromBase(face)
+        var diff = if (matches) targetDegrees - degreesAway else -degreesAway
+        if (diff > 180) diff -= 360f else if (diff < -180) diff += 360f
         if (diff < 0.1 && diff > -0.1) {
-            inAction = matches;
-            return 0;
+            inAction = matches
+            return 0f
         }
+        inAction = true
 
-        inAction = true;
-        double metersPerTick = KineticTileEntity.convertToLinear(be.getSpeed());
-        if (Math.abs(metersPerTick) > Math.abs(diff)) {
-            return (float) (diff / metersPerTick);
-        } else return (diff * metersPerTick) < 0 ? -1 : 1;
-        */
-        return 1f //TODO
+        val metersPerTick = KineticBlockEntity.convertToLinear(be.getSpeed());
+        return if (abs(metersPerTick) > abs(diff)) {
+            (diff / metersPerTick);
+        } else if (diff * metersPerTick < 0) {
+            -1f
+        } else {
+            1f
+        }
     }
 
     fun serializeNBT(): CompoundTag {
@@ -83,6 +80,7 @@ class SequencedSeatRule(
             return SequencedSeatRule(HashSet(), SequencedSeatOperation.NOTHING, null)
         }
 
+        @OptIn(ExperimentalStdlibApi::class)
         fun deserializeNBT(tag: CompoundTag): SequencedSeatRule {
             val keys = InputKey.fromInt(tag.getInt("keys"))
             val operation = SequencedSeatOperation.entries[tag.getInt("operation")]

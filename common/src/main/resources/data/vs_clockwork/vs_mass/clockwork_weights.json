@@ -509,7 +509,6 @@
     "mass": 500,
     "friction": 0.77
   },
-
   {
     "block": "create:andesite_tunnel",
     "mass": 250,
@@ -638,6 +637,21 @@
   {
     "block": "vs_clockwork:physics_infuser",
     "mass": 1550,
+    "friction": 0.4
+  },
+  {
+    "block": "vs_clockwork:gyro",
+    "mass": 1550,
+    "friction": 0.4
+  },
+  {
+    "block": "vs_clockwork:auric_deepslate_ore",
+    "mass": 1000,
+    "friction": 0.4
+  },
+  {
+    "block": "vs_clockwork:auric_end_ore",
+    "mass": 1000,
     "friction": 0.4
   }
 ]

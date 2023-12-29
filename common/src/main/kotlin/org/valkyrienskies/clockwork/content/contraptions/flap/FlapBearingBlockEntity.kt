@@ -19,8 +19,9 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.content.contraptions.flap.contraption.FlapContraption
+import kotlin.math.max
 
-class FlapBearingBlockEntity(type: BlockEntityType<FlapBearingBlockEntity>, pos: BlockPos, state: BlockState) :
+class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
     KineticBlockEntity(type, pos, state), IBearingBlockEntity {
     var redstoneSideOne = false
     var redstoneSideTwo = false
@@ -45,7 +46,7 @@ class FlapBearingBlockEntity(type: BlockEntityType<FlapBearingBlockEntity>, pos:
     private fun getPower(worldIn: Level, pos: BlockPos): Int {
         var power = 0
         for (direction in Iterate.directions) {
-            power = Math.max(worldIn.getSignal(pos.relative(direction), direction), power)
+            power = max(worldIn.getSignal(pos.relative(direction), direction), power)
             if (power != 0) {
                 redstonePos = pos.relative(direction)
                 break
@@ -133,7 +134,7 @@ class FlapBearingBlockEntity(type: BlockEntityType<FlapBearingBlockEntity>, pos:
 
     fun assemble() {
         if (level!!.getBlockState(worldPosition)
-            .block !is FlapBearingBlock
+                .block !is FlapBearingBlock
         ) return
         val direction = blockState.getValue<Direction>(BlockStateProperties.FACING)
         val contraption: FlapContraption?
