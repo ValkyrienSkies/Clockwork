@@ -1,0 +1,6 @@
+{
+    "parent": "vs_clockwork:block/physics_infuser/item",
+    "textures": {
+    "3": "vs_clockwork:block/infuser"
+  }
+}
