@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.util
 import com.google.common.collect.Sets
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.core.SectionPos
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.ChunkPos
 import net.minecraft.world.level.block.Rotation
@@ -88,10 +89,13 @@ object ShipDestroyer {
         }
 
         val toUpdate = Sets.newHashSet<Triple<BlockPos, BlockPos, BlockState>>()
-
+        var tempY = level.minBuildHeight - 16
+        println("Tempy $tempY")
         ship.activeChunksSet.forEach { chunkX, chunkZ ->
             val chunk = level.getChunk(chunkX, chunkZ)
             for (section in chunk.sections) {
+                tempY += 16
+                println("Tempy2 $tempY")
                 if (section == null || section.hasOnlyAir()) continue
                 for (x in 0..15) {
                     for (y in 0..15) {
@@ -100,7 +104,9 @@ object ShipDestroyer {
                             if (state.isAir) continue
 
                             val realX = (chunkX shl 4) + x
-                            val realY = section. //.bottomBlockY() + y
+
+                            val realY = tempY + y
+                            println(realY)
                             val realZ = (chunkZ shl 4) + z
 
                             val inWorldPos =
@@ -115,6 +121,7 @@ object ShipDestroyer {
                         }
                     }
                 }
+
             }
         }
         // We update the blocks after they're set to prevent blocks from breaking
