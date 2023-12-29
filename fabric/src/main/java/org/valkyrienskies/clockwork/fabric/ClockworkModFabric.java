@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.fabric;
 
 import com.mojang.blaze3d.platform.Window;
 import dev.architectury.event.events.common.PlayerEvent;
+import fuzs.forgeconfigapiport.api.config.v2.ForgeConfigRegistry;
 import io.github.fabricators_of_create.porting_lib.entity.events.living.LivingEntityEvents;
 import io.github.fabricators_of_create.porting_lib.event.client.KeyInputCallback;
 import io.github.fabricators_of_create.porting_lib.event.client.MouseInputEvents;
@@ -36,6 +37,8 @@ public class ClockworkModFabric implements ModInitializer {
     public void onInitialize() {
         new ValkyrienSkiesModFabric().onInitialize();
 
+        AllClockworkConfigs.init();
+
         ClockworkTags.INSTANCE.init();
         ClockworkBlocks.register();
         ClockworkItems.register();
@@ -52,7 +55,7 @@ public class ClockworkModFabric implements ModInitializer {
         ClockworkMod.INSTANCE.getREGISTRATE().register();
 
         ClockworkMod.init();
-        AllClockworkConfigs.init();
+
 
         ClockworkParticles.init();
         FabricClockworkSounds.init();
