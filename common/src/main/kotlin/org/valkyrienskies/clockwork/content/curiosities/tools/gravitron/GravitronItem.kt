@@ -27,6 +27,7 @@ import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.tools.designator.SelectedAreaToolkit
 import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorItem
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.GrabTool
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.clockwork.util.ClockworkUtils
@@ -48,14 +49,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         }
 
         if (stack.`is`(ClockworkItems.GRAVITRON.get().asItem()) && !isSelected) {
-            if (getState(entity).shipID != null) {
-                val ship = level.shipObjectWorld.loadedShips.getById(getState(entity).shipID!!)
-                if (ship != null) {
-                    val gravitronForceInducer = GravitronForceInducer.getOrCreate(ship)
-                    gravitronForceInducer.data = null
-                    getState(entity).shipID = null
-                }
-            }
+            GrabTool.dropShip(entity)
 
             if (stack.tag != null) {
                 if (stack.tag!!.contains("ShipId")) {
@@ -68,7 +62,6 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         }
 
         super.inventoryTick(stack, level, entity, slotId, isSelected)
-
     }
 
     override fun getUseAnimation(stack: ItemStack): UseAnim {
@@ -93,10 +86,13 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             var shipGrabbedPos: Vector3dc? = null
             var shipGrabbedRot: Quaterniondc? = null
             var shipID: ShipId? = null
-            var grabCD: Int? = 0
             var shipGrabbedDistance: Double? = null
         }
 
+        /**
+         * Given a SelectedAreaToolkit this function will try and assemble a ship, if grab is true it will also store
+         * some nbt on the Gravitron to queue a grab in GrabTool#tick
+         */
         fun abstractAssemble(level: Level, player: Player, toolkit: SelectedAreaToolkit, blockPos: BlockPos, clickLocation: Vec3, grab: Boolean): Boolean {
             toolkit.selectionClusters.forEach { cluster ->
                 val selection: DenseBlockPosSet = SelectedAreaToolkit.denseBlocksFromCluster(cluster)
@@ -148,6 +144,10 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             return false
         }
 
+        /**
+         * Checking players inventory for an Auric Designator, extracts the first founds SelectedAreaToolkit
+         * to try and assemble the ship, if the player already has a ship connected to the Gravitron, don't proceed with the assembly
+         */
         fun grabssemble(level: Level, player: Player, blockPos: BlockPos, clickLocation: Vec3, grab: Boolean): Boolean {
             if (getState(player).shipID != null) {
                 return false
@@ -167,6 +167,9 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             return false
         }
 
+        /**
+         * Will freeze or unfreeze a ship in its position
+         */
         @JvmStatic
         fun leftClickItem(player: Player, state: GravitronState): Boolean {
             val level = player.level()
