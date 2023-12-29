@@ -36,26 +36,28 @@ class GravitronGrabPacket : C2SCWPacket {
                 val serverLevel = serverPlayer.serverLevel() as ServerLevel
                 val s = getState(serverPlayer)
                 val stack = serverPlayer.mainHandItem
-                if (stack.`is`(ClockworkItems.GRAVITRON.asItem())) {
-                    if ((s.shipID == null) && !serverPlayer.cooldowns
-                            .isOnCooldown(stack.item) && !s.grabbing
-                    ) {
+                if (stack.`is`(ClockworkItems.GRAVITRON.get().asItem())) {
+                    if ((s.shipID == null) && !serverPlayer.cooldowns.isOnCooldown(stack.item)) {
                         serverPlayer.cooldowns.addCooldown(stack.item, 20)
                         s.grabCD = 20
-                        if (mode == GravitronToolBase.GRAB) {
-                            s.grabbing = true
-                            GrabTool.tryGrabShip(serverLevel, serverPlayer, clickedPos!!.mutable(), clickLocation!!)
-                        } else if (mode == GravitronToolBase.ASSEMBLE) {
-                            grabssemble(
-                                serverLevel, serverPlayer, clickedPos!!.mutable(),
-                                clickLocation!!, false
-                            )
-                        } else if (mode == GravitronToolBase.GRABSSEMBLE) {
-                            s.grabbing = true
-                            grabssemble(
-                                serverLevel, serverPlayer, clickedPos!!.mutable(),
-                                clickLocation!!, true
-                            )
+                        when (mode) {
+                            GravitronToolBase.GRAB -> {
+                                GrabTool.tryGrabShip(serverLevel, serverPlayer, clickedPos!!.mutable(), clickLocation!!)
+                            }
+
+                            GravitronToolBase.ASSEMBLE -> {
+                                grabssemble(
+                                    serverLevel, serverPlayer, clickedPos!!.mutable(),
+                                    clickLocation!!, false
+                                )
+                            }
+
+                            GravitronToolBase.GRABSSEMBLE -> {
+                                grabssemble(
+                                    serverLevel, serverPlayer, clickedPos!!.mutable(),
+                                    clickLocation!!, true
+                                )
+                            }
                         }
                     }
                 }
