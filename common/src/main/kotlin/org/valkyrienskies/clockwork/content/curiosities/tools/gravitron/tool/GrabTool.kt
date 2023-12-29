@@ -21,7 +21,9 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.Gravitro
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem.Companion.getState
 import org.valkyrienskies.clockwork.util.ClockworkUtils.readVec3
 import org.valkyrienskies.core.api.ships.LoadedServerShip
+import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.mod.common.dimensionId
+import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.isBlockInShipyard
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOML
@@ -172,9 +174,8 @@ class GrabTool : GravitronToolBase() {
 
         @JvmStatic
         fun tryGrabShip(level: ServerLevel, player: Player, clickedPos: BlockPos, clickLocation: Vec3): Boolean {
-            val chunkX = clickedPos.x shr 4
-            val chunkZ = clickedPos.z shr 4
-            val ship = level.shipObjectWorld.loadedShips.getByChunkPos(chunkX, chunkZ, level.dimensionId)
+
+            val ship = level.getShipManagingPos(clickedPos)
             val grabPosInShip: Vector3dc = clickLocation.toJOML()
             val grabPosInWorld = Vector3d(grabPosInShip)
             val s = getState(player)
@@ -191,7 +192,7 @@ class GrabTool : GravitronToolBase() {
             return true
         }
 
-        private fun grabShip(s: GravitronState, p: Player, ship: LoadedServerShip, grabPosInShip: Vector3dc) {
+        private fun grabShip(s: GravitronState, p: Player, ship: ServerShip, grabPosInShip: Vector3dc) {
             val heldPosInWorld = Vector3d()
             ship.transform.shipToWorld.transformPosition(Vector3d(grabPosInShip), heldPosInWorld)
 
