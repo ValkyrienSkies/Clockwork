@@ -29,6 +29,10 @@ enum class ToolType(val tool: IGravitronTool, val icon: ClockworkIcons) {
                 result.add(
                     ClockworkLang.translate("${prefix}.1", AllKeys.ACTIVATE_TOOL.boundKey).component()
                 )
+            } else {
+                result.add(
+                    ClockworkLang.translate("${prefix}.1", "LEFT CTRL").component()
+                )
             }
 
             result.add(ClockworkLang.translate("${prefix}.2").component())
