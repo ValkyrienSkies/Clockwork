@@ -247,8 +247,7 @@ object ClockworkBlocks {
         )
     }
         .initialProperties { SharedProperties.netheriteMetal() }
-        .blockstate(CWBlockStateGen.pipe())
-        .onRegister(CreateRegistrate.blockModel<HeatPipeBlock> {
+        .onRegister(CreateRegistrate.blockModel {
             NonNullFunction<BakedModel?, BakedModel> { template: BakedModel? ->
                 PipeAttachmentModel(
                     template

@@ -4,6 +4,7 @@ import com.jozufozu.flywheel.core.PartialModel
 import com.simibubi.create.AllPartialModels
 
 object ClockworkPartials {
+
     val BEARING_TOP_VSIFIED = block("vstop")
     val BEARING_TOP_FLAP = block("flap_bearing/top")
     val JOYSTICK = block("command_seat/joystick")
@@ -58,6 +59,49 @@ object ClockworkPartials {
     val CRYSTAL_INNER: PartialModel = PartialModel(ClockworkMod.asResource("item/auric_designator/crystal_inner"))
 
     val GYRO_BASE: PartialModel = block("gyro/base")
+
+
+
+    //PIPE DEATH
+    val CORE_X: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/core_x"))
+    val CORE_Y: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/core_y"))
+    val CORE_Z: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/core_z"))
+
+    val CORE_LU_X: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/lu_x"))
+    val CORE_RU_X: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/ru_x"))
+    val CORE_LD_X: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/ld_x"))
+    val CORE_RD_X: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/rd_x"))
+    val CORE_UD_X: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/ud_x"))
+    val CORE_U_X: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/u_x"))
+    val CORE_D_X: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/d_x"))
+    val CORE_LR_X: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/lr_x"))
+    val CORE_L_X: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/l_x"))
+    val CORE_R_X: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/r_x"))
+
+    val CORE_LU_Y: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/lu_y"))
+    val CORE_RU_Y: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/ru_y"))
+    val CORE_LD_Y: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/ld_y"))
+    val CORE_RD_Y: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/rd_y"))
+    val CORE_UD_Y: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/ud_y"))
+    val CORE_U_Y: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/u_y"))
+    val CORE_D_Y: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/d_y"))
+    val CORE_LR_Y: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/lr_y"))
+    val CORE_L_Y: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/l_y"))
+    val CORE_R_Y: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/r_y"))
+
+    val CORE_LU_Z: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/lu_z"))
+    val CORE_RU_Z: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/ru_z"))
+    val CORE_LD_Z: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/ld_z"))
+    val CORE_RD_Z: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/rd_z"))
+    val CORE_UD_Z: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/ud_z"))
+    val CORE_U_Z: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/u_z"))
+    val CORE_D_Z: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/d_z"))
+    val CORE_LR_Z: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/lr_z"))
+    val CORE_L_Z: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/l_z"))
+    val CORE_R_Z: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/r_z"))
+    //END OF PIPE DEATH
+
+
 
     private fun block(path: String): PartialModel {
         return PartialModel(ClockworkMod.asResource("block/$path"))
