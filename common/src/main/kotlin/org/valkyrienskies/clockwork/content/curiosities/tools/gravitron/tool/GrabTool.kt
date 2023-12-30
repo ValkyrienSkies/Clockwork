@@ -35,10 +35,6 @@ class GrabTool : GravitronToolBase() {
         return true
     }
 
-    override fun handleMouseWheel(delta: Double): Boolean {
-        return false
-    }
-
     companion object {
 
         /**

@@ -7,11 +7,23 @@ import net.minecraft.world.phys.Vec3
 interface IGravitronTool {
     fun init()
 
+    /**
+     * Will run when a player rightClicks, should be overriden for tools which utilises right click
+     */
     fun handleRightClick(): Boolean
 
+    /**
+     * Will run when a player uses their mouse wheel, should be overriden for tools which utilises mouse wheel
+     */
     fun handleMouseWheel(delta: Double): Boolean
 
+    /**
+     * Override to render extra stuff on the specific tool selected
+     */
     fun renderTool(ms: PoseStack?, buffer: SuperRenderTypeBuffer?, camera: Vec3?)
 
+    /**
+     * Override to render extra stuff at hotbar slot when specific tool selected
+     */
     fun renderOverlay(poseStack: PoseStack, partialTicks: Float, width: Int, height: Int)
 }

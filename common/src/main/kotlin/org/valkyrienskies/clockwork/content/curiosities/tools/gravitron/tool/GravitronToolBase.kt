@@ -20,6 +20,10 @@ abstract class GravitronToolBase : IGravitronTool {
     var clickedLocation: Vec3? = null
 
 
+    /**
+     * This function will store the block the player looks
+     * at withing 15 blocks to be accessed by the Gravitrons other functions
+     */
     fun updateTargetPos() {
         val player = Minecraft.getInstance().player
 

@@ -34,7 +34,6 @@ class GravitronGrabPacket : C2SCWPacket {
             val serverPlayer = context.sender
             if (serverPlayer.level is ServerLevel) {
                 val serverLevel = serverPlayer.getLevel() as ServerLevel
-                val s = getState(serverPlayer)
                 val stack = serverPlayer.mainHandItem
                 if (stack.`is`(ClockworkItems.GRAVITRON.get().asItem())) {
                     if (!serverPlayer.cooldowns.isOnCooldown(stack.item)) {
