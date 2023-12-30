@@ -36,6 +36,7 @@
   ],
   "depends": {
     "minecraft": ">=1.19.2",
-    "valkyrienskies": ">=${vs2_version}"
+    "valkyrienskies": ">=${vs2_version}",
+    "fabric-api": "<=0.76.1"
   }
 }
