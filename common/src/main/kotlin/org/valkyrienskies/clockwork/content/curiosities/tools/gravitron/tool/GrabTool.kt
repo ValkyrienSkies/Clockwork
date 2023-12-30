@@ -121,11 +121,7 @@ class GrabTool : GravitronToolBase() {
                 val serverLevel = player.level() as ServerLevel
 
                 if (s.shipID != null && graviton.`is`(ClockworkItems.GRAVITRON.get().asItem())) {
-                    if (AllKeys.ACTIVATE_TOOL.isPressed) {
-                        updateShipDirection(s, serverLevel, player, player.direction)
-                    } else {
-                        updateShip(s, serverLevel, player)
-                    }
+                    updateShip(s, serverLevel, player)
                 }
 
                 if (graviton.hasTag() && graviton.tag!!.contains("GrabbedPosInShip") && !player.cooldowns.isOnCooldown(graviton.item)) {
