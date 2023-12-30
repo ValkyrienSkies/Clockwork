@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.forge.content.events;
 
 import com.simibubi.create.foundation.ModFilePackResources;
+import com.simibubi.create.foundation.utility.Components;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
@@ -23,8 +24,19 @@ public class ForgeClockworkEventBus {
                 return;
             }
             IModFile modFile = modFileInfo.getFile();
-            event.addRepositorySource((consumer, constructor) -> {
-                consumer.accept(Pack.create(ClockworkMod.asResource("gearwork").toString(), false, () -> new ModFilePackResources("Clockwork: Gearwork", modFile, "resourcepacks/gearwork"), constructor, Pack.Position.TOP, PackSource.DEFAULT));
+
+            event.addRepositorySource(consumer -> {
+                Pack pack = Pack.readMetaAndCreate(
+                        ClockworkMod.asResource("legacy_copper").toString(),
+                        Components.literal("Clockwork: Gearwork"),
+                        false,
+                        id -> new ModFilePackResources(id, modFile, "resourcepacks/gearwork"),
+                        PackType.CLIENT_RESOURCES,
+                        Pack.Position.TOP, PackSource.BUILT_IN
+                );
+                if (pack != null) {
+                    consumer.accept(pack);
+                }
             });
         }
     }

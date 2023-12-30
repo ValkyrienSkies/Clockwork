@@ -4,8 +4,7 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "accessors.ItemAccessor",
-    "compat.MixinAllBlocks",
-    "compat.MixinStickerTileEntity"
+    "compat.MixinAllBlocks"
   ],
   "client": [
   ],
