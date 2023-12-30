@@ -13,6 +13,15 @@ loom {
     accessWidenerPath = project(":common").loom.accessWidenerPath
 }
 
+if (project.hasProperty("CustomReleaseVersion")) {
+    // Remove release/ from the version if present
+    version = project.property("CustomReleaseVersion").replaceFirst("^release/", "")
+} else {
+    String gitRevision = "git rev-parse HEAD".execute().text.trim()
+
+    version = minecraft_version + '-'+ mod_version + '-' + "fabric" + '-' + gitRevision.substring(0, 10)
+}
+
 configurations {
     common
     shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
