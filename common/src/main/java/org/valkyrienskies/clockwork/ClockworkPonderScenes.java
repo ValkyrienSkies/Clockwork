@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork;
 
-import com.simibubi.create.AllBlocks;
 import com.simibubi.create.content.redstone.analogLever.AnalogLeverBlockEntity;
 import com.simibubi.create.foundation.ponder.*;
 import com.simibubi.create.foundation.ponder.element.InputWindowElement;

@@ -1,8 +1,5 @@
 package org.valkyrienskies.clockwork.forge;
 
-import com.simibubi.create.AllParticleTypes;
-import com.simibubi.create.CreateClient;
-import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.gui.ForgeIngameGui;
 import net.minecraftforge.client.gui.OverlayRegistry;
@@ -15,7 +12,6 @@ import net.minecraftforge.fml.loading.FMLLoader;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorClusterRenderer;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
-import org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.ForgeGravitronHandler;
 import org.valkyrienskies.clockwork.forge.integration.cc.ClockworkForgePeripheralProviders;
 
 import static org.valkyrienskies.clockwork.ClockworkMod.MOD_ID;

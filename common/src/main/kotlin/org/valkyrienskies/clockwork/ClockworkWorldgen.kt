@@ -40,7 +40,7 @@ object ClockworkWorldgen {
                         VerticalAnchor.absolute(64)),
                     BiomeFilter.biome()))
 
-            BiomeModifications.addProperties { _, mutable ->
+            BiomeModifications.addProperties { ctx, mutable ->
 
                 if (true) {
                     mutable.getGenerationProperties()
