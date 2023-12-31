@@ -197,11 +197,11 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         @JvmStatic
         fun getState(player: Player): GravitronState {
             val p = player as MixinPlayerDuck
-            var s = p.cw_getGravitronState()
+            var s = p.getGravitronState()
 
             if (s == null) {
                 s = GravitronState()
-                p.cw_setGravitronState(s)
+                p.setGravitronState(s)
             }
 
             return s

@@ -44,10 +44,10 @@ public abstract class MixinStickerTileEntity extends SmartBlockEntity implements
     public abstract boolean isBlockStateExtended();
 
     @Unique
-    private boolean waitForNoPower = false;
+    private boolean vs_clockwork$waitForNoPower = false;
 
     @Unique
-    private void removeConstraint(@Nullable ServerLevel level, boolean removeTags) {
+    private void vs_clockwork$removeConstraint(@Nullable ServerLevel level, boolean removeTags) {
         if (getExtraCustomData().contains("ShipStickerConstraint")) {
             if (level != null)
                 VSGameUtilsKt.getShipObjectWorld(level).removeConstraint(getExtraCustomData().getInt("ShipStickerConstraint"));
@@ -63,14 +63,14 @@ public abstract class MixinStickerTileEntity extends SmartBlockEntity implements
         }
     }
 
-    boolean shipStuck = false;
+    boolean vs_clockwork$shipStuck = false;
 
     @Inject(method = "tick", at = @At("HEAD"), remap = false)
-    private void injectTick(CallbackInfo ci) {
-        doTick();
+    private void vs_clockwork$injectTick(CallbackInfo ci) {
+        vs_clockwork$doTick();
     }
 
-    private void doTick() {
+    private void vs_clockwork$doTick() {
         if (level == null)
             return;
 
@@ -82,32 +82,32 @@ public abstract class MixinStickerTileEntity extends SmartBlockEntity implements
         if (!blockAttached && piston.getValue(0) != piston.getValue() && piston.getValue() == 1 && shipAttached) {
             new StickerParticleUtil().doBluperParticle(level, worldPosition, myDir);
         }
-        if (isBlockStateExtended() && !shipStuck) {
+        if (isBlockStateExtended() && !vs_clockwork$shipStuck) {
             //Sticker extended with no ship related thing stuck to it
-            waitForNoPower = false;
+            vs_clockwork$waitForNoPower = false;
             if (!blockAttached && shipAttached) {
                 //no sameworld block attached but there is a ship related thing near enough
                 if (StickerMovementBehaviour.isAttachedToShipOrWorld(true, level, toJOML(Vec3.atCenterOf(getBlockPos())), myDirNormal, getExtraCustomData())) {
-                    shipStuck = true;
+                    vs_clockwork$shipStuck = true;
                 }
             }
-        } else if (!isBlockStateExtended() && shipStuck) {
+        } else if (!isBlockStateExtended() && vs_clockwork$shipStuck) {
             //Sticker retracted with ship related thing stuck to it
             if (!level.isClientSide) {
-                removeConstraint((ServerLevel) level, true);
+                vs_clockwork$removeConstraint((ServerLevel) level, true);
             }
-            waitForNoPower = true;
-        } else if (isBlockStateExtended() && !getExtraCustomData().contains("ShipStickerConstraint") && !shipStuck && !blockAttached && shipAttached && getBlockState().getValue(POWERED)) {
+            vs_clockwork$waitForNoPower = true;
+        } else if (isBlockStateExtended() && !getExtraCustomData().contains("ShipStickerConstraint") && !vs_clockwork$shipStuck && !blockAttached && shipAttached && getBlockState().getValue(POWERED)) {
             //Sticker extended with nothing attached and is powered but there is a ship thing in range
-            waitForNoPower = false;
+            vs_clockwork$waitForNoPower = false;
             if (StickerMovementBehaviour.isAttachedToShipOrWorld(true, level, toJOML(Vec3.atCenterOf(getBlockPos())), myDirNormal, getExtraCustomData())) {
                 new StickerParticleUtil().doBluperParticle(level, worldPosition, myDir);
-                shipStuck = true;
+                vs_clockwork$shipStuck = true;
             }
         }
-        if (waitForNoPower && !getBlockState().getValue(POWERED)) {
-            waitForNoPower = false;
-            shipStuck = false;
+        if (vs_clockwork$waitForNoPower && !getBlockState().getValue(POWERED)) {
+            vs_clockwork$waitForNoPower = false;
+            vs_clockwork$shipStuck = false;
         }
     }
 
@@ -115,7 +115,7 @@ public abstract class MixinStickerTileEntity extends SmartBlockEntity implements
     public void destroy() {
         if (level != null) {
             if (!level.isClientSide) {
-                removeConstraint((ServerLevel) level, true);
+                vs_clockwork$removeConstraint((ServerLevel) level, true);
             }
         } else {
             throw new RuntimeException("ERROR Couldn't try to clean up constraint!");
