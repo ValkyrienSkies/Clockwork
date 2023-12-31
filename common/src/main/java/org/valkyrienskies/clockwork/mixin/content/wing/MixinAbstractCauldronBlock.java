@@ -47,7 +47,7 @@ public class MixinAbstractCauldronBlock {
     private Map<Item, CauldronInteraction> interactions;
 
     @Inject(method = "use", at = @At("HEAD"))
-    private void use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit, CallbackInfoReturnable<InteractionResult> cir) {
+    private void vs_clockwork$use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit, CallbackInfoReturnable<InteractionResult> cir) {
         if (!this.interactions.containsKey(ClockworkBlocks.WING.get().asItem())) {
             this.interactions.put(ClockworkBlocks.WING.get().asItem(), DYED_WING);
         }

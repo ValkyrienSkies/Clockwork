@@ -25,7 +25,7 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
     }
 
     @Inject(method = "swing", at = @At("HEAD"))
-    private void preSwing(final InteractionHand hand, final CallbackInfo ci) {
+    private void vs_clockwork$preSwing(final InteractionHand hand, final CallbackInfo ci) {
         final ItemStack itemStack = getItemInHand(hand);
         final Item item = itemStack.getItem();
         if (item == ClockworkItems.GRAVITRON.get()) {
