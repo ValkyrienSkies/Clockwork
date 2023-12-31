@@ -44,10 +44,10 @@ public abstract class MixinStickerTileEntity extends SmartBlockEntity implements
     public abstract boolean isBlockStateExtended();
 
     @Unique
-    private boolean waitForNoPower = false;
+    private boolean vs_clockworkwaitForNoPower = false;
 
     @Unique
-    private void removeConstraint(@Nullable ServerLevel level, boolean removeTags) {
+    private void vs_clockworkremoveConstraint(@Nullable ServerLevel level, boolean removeTags) {
         if (getCustomData().contains("ShipStickerConstraint")) {
             if (level != null)
                 VSGameUtilsKt.getShipObjectWorld(level).removeConstraint(getCustomData().getInt("ShipStickerConstraint"));
@@ -84,7 +84,7 @@ public abstract class MixinStickerTileEntity extends SmartBlockEntity implements
         }
         if (isBlockStateExtended() && !shipStuck) {
             //Sticker extended with no ship related thing stuck to it
-            waitForNoPower = false;
+            vs_clockworkwaitForNoPower = false;
             if (!blockAttached && shipAttached) {
                 //no sameworld block attached but there is a ship related thing near enough
                 if (StickerMovementBehaviour.isAttachedToShipOrWorld(true, level, toJOML(Vec3.atCenterOf(getBlockPos())), myDirNormal, getCustomData())) {
@@ -94,19 +94,19 @@ public abstract class MixinStickerTileEntity extends SmartBlockEntity implements
         } else if (!isBlockStateExtended() && shipStuck) {
             //Sticker retracted with ship related thing stuck to it
             if (!level.isClientSide) {
-                removeConstraint((ServerLevel) level, true);
+                vs_clockworkremoveConstraint((ServerLevel) level, true);
             }
-            waitForNoPower = true;
+            vs_clockworkwaitForNoPower = true;
         } else if (isBlockStateExtended() && !getCustomData().contains("ShipStickerConstraint") && !shipStuck && !blockAttached && shipAttached && getBlockState().getValue(POWERED)) {
             //Sticker extended with nothing attached and is powered but there is a ship thing in range
-            waitForNoPower = false;
+            vs_clockworkwaitForNoPower = false;
             if (StickerMovementBehaviour.isAttachedToShipOrWorld(true, level, toJOML(Vec3.atCenterOf(getBlockPos())), myDirNormal, getCustomData())) {
                 new StickerParticleUtil().doBluperParticle(level, worldPosition, myDir);
                 shipStuck = true;
             }
         }
-        if (waitForNoPower && !getBlockState().getValue(POWERED)) {
-            waitForNoPower = false;
+        if (vs_clockworkwaitForNoPower && !getBlockState().getValue(POWERED)) {
+            vs_clockworkwaitForNoPower = false;
             shipStuck = false;
         }
     }
@@ -116,7 +116,7 @@ public abstract class MixinStickerTileEntity extends SmartBlockEntity implements
     public void destroy() {
         if (level != null) {
             if (!level.isClientSide) {
-                removeConstraint((ServerLevel) level, true);
+                vs_clockworkremoveConstraint((ServerLevel) level, true);
             }
         } else {
             throw new RuntimeException("ERROR Couldn't try to clean up constraint!");

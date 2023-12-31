@@ -25,19 +25,22 @@ public class MixinItemInHandRenderer {
     private ItemStack offHandItem;
 
     @Inject(method = "tick", at = @At("HEAD"))
-    private void clockwork$gravitonCancelNbtUpdateAnim(CallbackInfo ci) {
-        ItemStack newMainStack = minecraft.player.getMainHandItem();
-        if (mainHandItem.getItem() == newMainStack.getItem()) {
-            if (newMainStack.is(ClockworkItems.GRAVITRON.asItem())) {
-                mainHandItem = newMainStack;
+    private void vs_clockwork$$gravitonCancelNbtUpdateAnim(CallbackInfo ci) {
+
+        if (minecraft.player != null) {
+            ItemStack newMainStack = minecraft.player.getMainHandItem();
+            if (mainHandItem.getItem() == newMainStack.getItem()) {
+                if (newMainStack.is(ClockworkItems.GRAVITRON.asItem())) {
+                    mainHandItem = newMainStack;
+                }
             }
-        }
 
-        ItemStack newOffStack = minecraft.player.getOffhandItem();
+            ItemStack newOffStack = minecraft.player.getOffhandItem();
 
-        if (offHandItem.getItem() == newOffStack.getItem()) {
-            if (newOffStack.is(ClockworkItems.GRAVITRON.asItem())) {
-                offHandItem = newOffStack;
+            if (offHandItem.getItem() == newOffStack.getItem()) {
+                if (newOffStack.is(ClockworkItems.GRAVITRON.asItem())) {
+                    offHandItem = newOffStack;
+                }
             }
         }
     }

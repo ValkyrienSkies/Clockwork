@@ -21,7 +21,7 @@ public class MixinAllBlocks {
                     to = @At(value = "FIELD", target = "Lcom/simibubi/create/AllBlocks;STICKER:Lcom/tterrag/registrate/util/entry/BlockEntry;")
             )
     )
-    private static ItemBuilder redirectItem(BlockBuilder instance) {
+    private static ItemBuilder vs_clockwork$redirectItem(BlockBuilder instance) {
         instance.onRegister(movementBehaviour(new StickerMovementBehaviour()));
         return instance.item();
     }

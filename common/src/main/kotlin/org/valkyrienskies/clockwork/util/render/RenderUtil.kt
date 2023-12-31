@@ -60,7 +60,6 @@ object RenderUtil {
         matrices.translate(modelCorrection.x().toDouble(), modelCorrection.y().toDouble(), modelCorrection.z().toDouble())
         renderer.render(model.get(), renderType, light)
 
-
         matrices.popPose()
         matrices.popPose()
     }
