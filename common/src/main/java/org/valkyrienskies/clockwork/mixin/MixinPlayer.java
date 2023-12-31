@@ -13,12 +13,12 @@ public class MixinPlayer implements MixinPlayerDuck {
     private GravitronItem.Companion.GravitronState vs_clockwork$state;
 
     @Override
-    public void vs_clockwork$setGravitronState(GravitronItem.Companion.GravitronState s) {
+    public void setGravitronState(GravitronItem.Companion.GravitronState s) {
         this.vs_clockwork$state = s;
     }
 
     @Override
-    public GravitronItem.Companion.GravitronState vs_clockwork$getGravitronState() {
+    public GravitronItem.Companion.GravitronState getGravitronState() {
         return vs_clockwork$state;
     }
 }
