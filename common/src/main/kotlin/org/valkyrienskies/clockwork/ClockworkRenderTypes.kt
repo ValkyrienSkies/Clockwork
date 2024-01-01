@@ -6,6 +6,7 @@ import net.minecraft.Util
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.resources.ResourceLocation
 import org.valkyrienskies.clockwork.ClockworkShaders.crystal
+import org.valkyrienskies.clockwork.ClockworkShaders.heat
 
 class ClockworkRenderTypes(
     name: String,
@@ -42,5 +43,24 @@ class ClockworkRenderTypes(
                 compositeState!!
             )
         }
+
+
+        //TODO actually make the shader and test if ADDITIVE_TRANSPARENCY is the right transparency, or TRANSLUCENT_TRANSPARENCY
+        val HEAT = create(
+            ClockworkMod.MOD_ID + "heat",
+            DefaultVertexFormat.NEW_ENTITY,
+            VertexFormat.Mode.QUADS,
+            262144,
+            true,
+            true,
+            CompositeState.builder()
+                .setShaderState(ShaderStateShard(::heat))
+                .setTransparencyState(NO_TRANSPARENCY)
+                .setCullState(CULL)
+                .setLightmapState(LIGHTMAP)
+                .setOverlayState(OVERLAY)
+                .setOutputState(TRANSLUCENT_TARGET)
+                .createCompositeState(true)
+        )
     }
 }

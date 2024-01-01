@@ -26,7 +26,7 @@ void main() {
     }
     color *= vertexColor * ColorModulator;
     color.rgb = mix(overlayColor.rgb, color.rgb, overlayColor.a);
-    color *= lightMapColor;
+    color *= lightMapColor * 1.2;
     color.rgba += Intensity;
     fragColor = linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
 }
