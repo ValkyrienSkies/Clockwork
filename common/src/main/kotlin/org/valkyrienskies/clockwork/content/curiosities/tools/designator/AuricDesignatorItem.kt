@@ -20,6 +20,7 @@ import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.ClipContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.phys.AABB
 import org.joml.Vector3ic
 import org.joml.primitives.AABBi
 import org.joml.primitives.AABBic
@@ -27,6 +28,7 @@ import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
+import org.valkyrienskies.clockwork.content.curiosities.tools.designator.SelectedAreaToolkit.Companion.toSerialize
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.clockwork.platform.SharedValues
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
@@ -53,7 +55,7 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
 
     override fun verifyTagAfterLoad(compoundTag: CompoundTag) {
         if (compoundTag.contains("selectedData")) {
-            this.selectedArea.overwriteFrom(getMapper().readValue<SelectedAreaToolkit>(compoundTag.getByteArray("selectedData")))
+            this.selectedArea.overwriteFrom(getMapper().readValue<SerializableSelectedAreaToolkit>(compoundTag.getByteArray("selectedData")))
         }
         super.verifyTagAfterLoad(compoundTag)
     }
@@ -176,20 +178,20 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
                 this.secondPos = null
                 return InteractionResult.SUCCESS
             }
-            val area: AABBic = AABBi(
-                min(this.firstPos!!.x(), this.secondPos!!.x()),
-                min(this.firstPos!!.y(), this.secondPos!!.y()),
-                min(this.firstPos!!.z(), this.secondPos!!.z()),
-                max(this.firstPos!!.x(), this.secondPos!!.x()),
-                max(this.firstPos!!.y(), this.secondPos!!.y()),
-                max(this.firstPos!!.z(), this.secondPos!!.z())
+            val area: AABB = AABB(
+                min(this.firstPos!!.x(), this.secondPos!!.x()).toDouble(),
+                min(this.firstPos!!.y(), this.secondPos!!.y()).toDouble(),
+                min(this.firstPos!!.z(), this.secondPos!!.z()).toDouble(),
+                max(this.firstPos!!.x(), this.secondPos!!.x()).toDouble(),
+                max(this.firstPos!!.y(), this.secondPos!!.y()).toDouble(),
+                max(this.firstPos!!.z(), this.secondPos!!.z()).toDouble()
             )
             this.firstPos = null
             this.secondPos = null
 
             for (setAabb in this.selectedArea.selectionClusters) {
                 for (aabb in setAabb) {
-                    if (intersectsAABBi(aabb, area)) {
+                    if (area.maxX == aabb.maxX && area.maxY == aabb.maxY && area.maxZ == aabb.maxZ && area.minX == aabb.minX && area.minY == aabb.minY && area.minZ == aabb.minZ) {
                         player.displayClientMessage(
                             Component.literal("Area Already Exists.").withStyle(
                                 Style.EMPTY.withColor(
@@ -246,7 +248,7 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
 
             this.selectedArea.clusterNewArea(area)
             val compoundTag = stack.orCreateTag
-            compoundTag.putByteArray("selectedData", getMapper().writeValueAsBytes(this.selectedArea))
+            compoundTag.putByteArray("selectedData", getMapper().writeValueAsBytes(toSerialize(this.selectedArea)))
             stack.tag = compoundTag
             player.displayClientMessage(
                 Component.literal("Area Designated!").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE)),
@@ -268,10 +270,10 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
         return super.useOn(context)
     }
 
-    fun intersectsAABBi(box: AABBic, other: AABBic): Boolean {
-        return box.maxX() >= other.minX() && (box.maxY() >= other.minY()) && (box.maxZ() >= other.minZ()) && (
-                box.minX() <= other.maxX()) && (box.minY() <= other.maxY()) && (box.minZ() <= other.maxZ())
-    }
+//    fun intersectsAABBi(box: AABBic, other: AABBic): Boolean {
+//        return box.maxX() >= other.minX() && (box.maxY() >= other.minY()) && (box.maxZ() >= other.minZ()) && (
+//                box.minX() <= other.maxX()) && (box.minY() <= other.maxY()) && (box.minZ() <= other.maxZ())
+//    }
 
 
     enum class Animation {
@@ -294,7 +296,7 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
             if (player.getItemInHand(InteractionHand.MAIN_HAND).item is AuricDesignatorItem) {
                 val item = player.getItemInHand(InteractionHand.MAIN_HAND).item as AuricDesignatorItem
 
-                val clone: HashSet<Set<AABBic>> = HashSet(item.selectedArea.selectionClusters)
+                val clone: HashSet<Set<AABB>> = HashSet(item.selectedArea.selectionClusters)
                 val copy: Map<Any, Outliner.OutlineEntry> = HashMap(ClockworkModClient.AURIC_OUTLINER.outlines)
                 for ((key) in copy) {
                     ClockworkModClient.AURIC_OUTLINER.remove(key)
@@ -309,7 +311,7 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
                     compoundTag.remove("selectedData")
                 }
 
-                val hitCluster: Set<AABBic> = item.selectedArea.getClusterContaining(pos) ?: return
+                val hitCluster: Set<AABB> = item.selectedArea.getClusterContaining(pos) ?: return
                 val pitch = Mth.randomBetween(item.soundRandom, 0.8f, 1.2f)
                 item.selectedArea.dumpCluster(hitCluster)
                 player.level.playSound(
