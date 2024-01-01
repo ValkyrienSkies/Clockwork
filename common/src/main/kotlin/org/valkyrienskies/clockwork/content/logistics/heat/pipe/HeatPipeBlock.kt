@@ -19,6 +19,7 @@ import net.minecraft.world.level.BlockAndTintGetter
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.PipeBlock
+import net.minecraft.world.level.block.RenderShape
 import net.minecraft.world.level.block.SimpleWaterloggedBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
@@ -39,6 +40,10 @@ class HeatPipeBlock(properties: Properties) :
 
     init {
         registerDefaultState(super.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, false))
+    }
+
+    override fun getRenderShape(state: BlockState): RenderShape {
+        return RenderShape.INVISIBLE
     }
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
@@ -135,12 +140,7 @@ class HeatPipeBlock(properties: Properties) :
         return state.getValue(PROPERTY_BY_DIRECTION[direction])
     }
 
-    fun canConnectTo(
-        world: BlockAndTintGetter?,
-        neighbourPos: BlockPos?,
-        neighbour: BlockState?,
-        direction: Direction
-    ): Boolean {
+    fun canConnectTo(world: BlockAndTintGetter?, neighbourPos: BlockPos?, neighbour: BlockState?, direction: Direction): Boolean {
         if (VanillaFluidTargets.shouldPipesConnectTo(neighbour)) return true
         val bracket = BlockEntityBehaviour.get(world, neighbourPos, BracketedBlockEntityBehaviour.TYPE)
         return if (isPipe(neighbour)) bracket == null else false
