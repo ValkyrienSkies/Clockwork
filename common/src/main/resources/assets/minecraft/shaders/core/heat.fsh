@@ -8,7 +8,7 @@ uniform vec4 ColorModulator;
 uniform float FogStart;
 uniform float FogEnd;
 uniform vec4 FogColor;
-uniform vec4 Intensity;
+uniform float Intensity;
 
 in float vertexDistance;
 in vec4 vertexColor;
@@ -19,6 +19,28 @@ in vec4 normal;
 
 out vec4 fragColor;
 
+vec3 heatLightIntensity(float intensity) {
+    intensity = clamp(intensity, 0.0, 100.0) / 100.0;
+    vec3 black = vec3(0.0, 0.0, 0.0);
+    vec3 red = vec3(1.0, 0.0, 0.0);
+    vec3 orange = vec3(1.0, 0.5, 0.0);
+
+    if (intensity < 0.5) {
+        return mix(black, red, intensity * 2.0);
+    } else {
+        return mix(red, orange, (intensity - 0.5) * 2.0);
+    }
+}
+
+float intensityToMultiplier(float intensity) {
+    intensity = clamp(intensity, 0.0, 100.0) / 100.0;
+
+    float power = 2.0;
+    float multiplier = mix(1.0, 1.5, pow(intensity, power));
+
+    return multiplier;
+}
+
 void main() {
     vec4 color = texture(Sampler0, texCoord0);
     if (color.a < 0.1) {
@@ -26,7 +48,7 @@ void main() {
     }
     color *= vertexColor * ColorModulator;
     color.rgb = mix(overlayColor.rgb, color.rgb, overlayColor.a);
-    color *= lightMapColor * 1.2;
-    color.rgba += Intensity;
+    color *= lightMapColor * intensityToMultiplier(Intensity);
+    color.rgba += vec4(heatLightIntensity(Intensity) / 1.2f, 1);
     fragColor = linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
 }
