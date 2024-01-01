@@ -1,22 +1,68 @@
 {
 	"credit": "Made with Blockbench",
-	"texture_size": [32, 32],
 	"textures": {
-		"0": "vs_clockwork:block/pipes",
-		"particle": "vs_clockwork:block/pipes"
+		"2": "vs_clockwork:block/heatpipe_rim",
+		"particle": "vs_clockwork:block/heatpipe_core"
 	},
 	"elements": [
 		{
-			"from": [14, 3, 3],
-			"to": [16, 13, 13],
+			"from": [14.05, 4.5, 4.5],
+			"to": [16.05, 11.5, 11.5],
+			"rotation": {"angle": 0, "axis": "z", "origin": [8, 8, 8]},
 			"faces": {
-				"north": {"uv": [11.5, 16, 10.5, 11], "texture": "#0"},
-				"east": {"uv": [11, 11, 16, 16], "texture": "#0", "cullface": "east"},
-				"south": {"uv": [10.5, 11, 11.5, 16], "texture": "#0"},
-				"west": {"uv": [6, 11, 11, 16], "texture": "#0"},
-				"up": {"uv": [11.5, 16, 10.5, 11], "rotation": 180, "texture": "#0"},
-				"down": {"uv": [10.5, 11, 11.5, 16], "texture": "#0"}
+				"north": {"uv": [0, 9, 7, 7], "rotation": 90, "texture": "#2"},
+				"east": {"uv": [0, 16, 7, 9], "rotation": 270, "texture": "#2"},
+				"south": {"uv": [0, 9, 7, 7], "rotation": 270, "texture": "#2"},
+				"west": {"uv": [0, 7, 7, 0], "rotation": 270, "texture": "#2"},
+				"up": {"uv": [0, 9, 7, 7], "rotation": 270, "texture": "#2"},
+				"down": {"uv": [0, 9, 7, 7], "rotation": 270, "texture": "#2"}
 			}
+		}
+	],
+	"display": {
+		"thirdperson_righthand": {
+			"rotation": [75, 45, 0],
+			"translation": [0, 2.5, 0],
+			"scale": [0.375, 0.375, 0.375]
+		},
+		"thirdperson_lefthand": {
+			"rotation": [75, 45, 0],
+			"translation": [0, 2.5, 0],
+			"scale": [0.375, 0.375, 0.375]
+		},
+		"firstperson_righthand": {
+			"rotation": [0, 45, 0],
+			"scale": [0.4, 0.4, 0.4]
+		},
+		"firstperson_lefthand": {
+			"rotation": [0, 225, 0],
+			"scale": [0.4, 0.4, 0.4]
+		},
+		"ground": {
+			"translation": [0, 3, 0],
+			"scale": [0.25, 0.25, 0.25]
+		},
+		"gui": {
+			"rotation": [30, 225, 0],
+			"scale": [0.625, 0.625, 0.625]
+		},
+		"fixed": {
+			"scale": [0.5, 0.5, 0.5]
+		}
+	},
+	"groups": [
+		{
+			"name": "rim",
+			"origin": [8, 8, 8],
+			"color": 0,
+			"children": [
+				{
+					"name": "east",
+					"origin": [8, 8, 8],
+					"color": 0,
+					"children": [0]
+				}
+			]
 		}
 	]
 }

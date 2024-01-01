@@ -43,7 +43,6 @@ class HeatPipeBlock(properties: Properties) :
     }
 
     override fun getRenderShape(state: BlockState): RenderShape {
-
         return RenderShape.INVISIBLE
     }
 
