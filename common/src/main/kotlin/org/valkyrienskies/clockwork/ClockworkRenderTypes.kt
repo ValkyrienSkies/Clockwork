@@ -43,18 +43,23 @@ class ClockworkRenderTypes(
             )
         }
 
-        private fun makeLayer(
-            name: String, format: VertexFormat, mode: VertexFormat.Mode,
-            bufSize: Int, hasCrumbling: Boolean, sortOnUpload: Boolean, glState: CompositeState
-        ): RenderType {
-            return create(name, format, mode, bufSize, hasCrumbling, sortOnUpload, glState)
-        }
 
-        private fun makeLayer(
-            name: String, format: VertexFormat, mode: VertexFormat.Mode,
-            bufSize: Int, glState: CompositeState
-        ): RenderType {
-            return makeLayer(name, format, mode, bufSize, false, false, glState)
-        }
+        //TODO actually make the shader and test if ADDITIVE_TRANSPARENCY is the right transparency, or TRANSLUCENT_TRANSPARENCY
+        val HEAT = create(
+            ClockworkMod.MOD_ID + "heat",
+            DefaultVertexFormat.NEW_ENTITY,
+            VertexFormat.Mode.QUADS,
+            262144,
+            true,
+            true,
+            CompositeState.builder()
+                .setShaderState(ShaderStateShard(::heat))
+                .setTransparencyState(NO_TRANSPARENCY)
+                .setCullState(CULL)
+                .setLightmapState(LIGHTMAP)
+                .setOverlayState(OVERLAY)
+                .setOutputState(TRANSLUCENT_TARGET)
+                .createCompositeState(true)
+        )
     }
 }
