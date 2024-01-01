@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork
 
-import com.simibubi.create.AllBlocks
 import com.simibubi.create.AllTags
 import com.simibubi.create.content.fluids.PipeAttachmentModel
 import com.simibubi.create.content.kinetics.BlockStressDefaults
@@ -22,7 +21,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.client.render.WingBlockItemRenderer
-import org.valkyrienskies.clockwork.content.AuricOreBlock
+import org.valkyrienskies.clockwork.content.curiosities.AuricOreBlock
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock

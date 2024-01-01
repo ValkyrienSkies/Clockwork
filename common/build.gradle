@@ -49,6 +49,7 @@ dependencies {
     implementation("org.joml:joml:1.10.4")
 
 
+    modCompileOnly("curse.maven:cc-restitched-462672:3622561")
     //modImplementation("maven.modrinth:cc-tweaked:${cc_version}")
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'

@@ -1,14 +1,13 @@
 package org.valkyrienskies.clockwork
 
-import com.simibubi.create.AllItems
 import com.simibubi.create.AllTags
 import com.simibubi.create.foundation.data.AssetLookup
 import com.tterrag.registrate.util.entry.ItemEntry
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.Rarity
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
-import org.valkyrienskies.clockwork.content.AuricCubeItemRenderer
-import org.valkyrienskies.clockwork.content.AuricItem
+import org.valkyrienskies.clockwork.content.curiosities.AuricCubeItemRenderer
+import org.valkyrienskies.clockwork.content.curiosities.AuricItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem

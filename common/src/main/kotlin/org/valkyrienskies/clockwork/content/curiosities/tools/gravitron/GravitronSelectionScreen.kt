@@ -57,6 +57,7 @@ class GravitronSelectionScreen(private val tools: List<ToolType>, private val ca
         poseStack.pushPose()
         poseStack.translate(0.0, 20.0 - yOffset, (if (focus) 100.0 else 0.0))
 
+
         val gray = ClockworkGuiTextures.AURIC_TOOL_BACKGROUND
         RenderSystem.enableBlend()
         RenderSystem.setShaderColor(1f, 1f, 1f, if (focus) 7 / 8f else 1 / 2f)
@@ -78,6 +79,7 @@ class GravitronSelectionScreen(private val tools: List<ToolType>, private val ca
 
         if (toolTipAlpha > 0.25f) {
             RenderSystem.setShaderColor(.7f, .7f, .8f, toolTipAlpha)
+
             RenderSystem.setShaderTexture(0, gray.location)
             blit(
                 poseStack,

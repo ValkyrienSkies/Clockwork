@@ -1,7 +1,6 @@
-package org.valkyrienskies.clockwork.content
+package org.valkyrienskies.clockwork.content.curiosities
 
 import com.simibubi.create.content.materials.ExperienceBlock
-import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerLevel
@@ -11,18 +10,11 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
-import net.minecraft.world.level.block.Rotation
-import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
-import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.mod.common.*
 import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
-import org.valkyrienskies.mod.common.util.toBlockPos
-import org.valkyrienskies.mod.common.util.toJOML
-import org.valkyrienskies.mod.util.relocateBlock
 
 class AuricOreBlock(properties: Properties) : ExperienceBlock(properties) {
 
