@@ -10,10 +10,15 @@ import java.io.IOException
 object ClockworkShaders {
 
     private var crystal: ShaderInstance? = null
+    private var heat: ShaderInstance? = null
     private var scan_effect: ShaderInstance? = null
 
     fun crystal(): ShaderInstance {
         return crystal!!
+    }
+
+    fun heat(): ShaderInstance? {
+        return heat
     }
 
     fun scan_effect(): ShaderInstance {
@@ -38,6 +43,7 @@ object ClockworkShaders {
                         DefaultVertexFormat.POSITION_TEX
                     )
                 ) { inst -> scan_effect = inst }
+
             } catch (ex: IOException) {
                 System.err.println("Failed to load shader")
                 ex.printStackTrace()

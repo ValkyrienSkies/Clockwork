@@ -6,6 +6,7 @@ import com.mojang.math.Vector4f
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
+import com.simibubi.create.foundation.utility.AnimationTickHolder
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
@@ -28,7 +29,6 @@ class HeatPipeBlockEntityRenderer(context: BlockEntityRendererProvider.Context) 
         if (blockEntity != null) {
             buffer?.getBuffer(RenderType.cutout())//Reset buffer because :KEKW:
             val pipe : SuperByteBuffer = CachedBufferer.partial(ClockworkPartials.DUCT_CORE, blockEntity.blockState)
-            val scale = 1.1f
             for (direction in Direction.entries) {
                 buffer?.getBuffer(RenderType.cutout())//Reset buffer because :KEKW:
                 if (blockEntity.canTransferHeat(direction)) {
@@ -50,7 +50,9 @@ class HeatPipeBlockEntityRenderer(context: BlockEntityRendererProvider.Context) 
                 }
             }
             val shader = ClockworkShaders.heat()
-            shader.safeGetUniform("Intensity").set(Vector4f(100f,0f,0f,0f))
+            val intensity = AnimationTickHolder.getTicks() / 1f % 100f //TODO here is the test code for the heat shader intensity, reimplement however you want
+            shader?.safeGetUniform("Intensity")?.set(intensity)//from 0 to 100 % intensity, shader handel color now :sungalges:
+
             pipe.color(255,255,255,255).light(light).overlay().renderInto(ms, buffer?.getBuffer(ClockworkRenderTypes.HEAT))
             buffer?.getBuffer(RenderType.cutout())//Reset buffer because :KEKW:
         }
