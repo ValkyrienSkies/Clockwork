@@ -1,0 +1,17 @@
+{
+	"credit": "Made with Blockbench",
+	"texture_size": [64, 64],
+	"textures": {
+		"0": "vs_clockwork:block/infuservortex",
+		"particle": "vs_clockwork:block/infuservortex"
+	},
+	"elements": [
+		{
+			"from": [-16, 0, -16],
+			"to": [32, 0, 32],
+			"faces": {
+				"up": {"uv": [12, 12, 0, 0], "texture": "#0"}
+			}
+		}
+	]
+}

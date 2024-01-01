@@ -20,14 +20,15 @@ import org.joml.primitives.LineSegmentf
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
+import org.valkyrienskies.core.util.toAABBi
 import org.valkyrienskies.mod.common.util.toBlockPos
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft
 
 class AuricDesignatorClusterRenderer {
     private val bbOutlineSlotAD = Any()
-    private var storedClusters = HashMap<Set<AABBic>, Pair<Set<BlockPos>, String>>()
-    private var hoveredCluster: Set<AABBic>? = HashSet()
+    private var storedClusters = HashMap<Set<AABB>, Pair<Set<BlockPos>, String>>()
+    private var hoveredCluster: Set<AABB>? = HashSet()
 
     fun discard() {
         storedClusters = HashMap()
@@ -44,11 +45,11 @@ class AuricDesignatorClusterRenderer {
 
                     // other players
                     val adi = player.mainHandItem.item as AuricDesignatorItem
-                    val clusters: Set<Set<AABBic>> = adi.selectedArea.selectionClusters
+                    val clusters: Set<Set<AABB>> = adi.selectedArea.selectionClusters
                     for (cluster in clusters) {
                         if (!storedClusters.containsKey(cluster)) {
                             storedClusters[cluster] =
-                                Pair.of(SelectedAreaToolkit.blocksFromCluster(cluster), clusterID + clusterIncrement)
+                                Pair.of(SelectedAreaToolkit.blocksFromCluster(cluster, level), clusterID + clusterIncrement)
                             clusterIncrement++
                         }
                     }
@@ -93,7 +94,7 @@ class AuricDesignatorClusterRenderer {
                                 Vector3f(tempTarget.x().toFloat(), tempTarget.y().toFloat(), tempTarget.z().toFloat())
                             val cast = LineSegmentf(traceOrigin, traceTarget)
                             for (box in cluster) {
-                                val intersection = Intersectionf.intersectLineSegmentAab(cast, AABBi(box), Vector2f())
+                                val intersection = Intersectionf.intersectLineSegmentAab(cast, box.toJOML().toAABBi(), Vector2f())
                                 if (intersection != Intersectionf.OUTSIDE) {
                                     hoveredCluster = cluster
                                     foundCluster = true

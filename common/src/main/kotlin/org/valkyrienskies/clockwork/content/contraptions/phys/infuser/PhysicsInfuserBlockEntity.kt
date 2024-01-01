@@ -70,7 +70,7 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         private set
     private val createdShips: MutableSet<Ship> = HashSet()
     private var sendAnimationUpdate = false
-    private val toDump: MutableSet<Set<AABBic>> = HashSet()
+    private val toDump: MutableSet<Set<AABB>> = HashSet()
     var shouldEjectDesignator = false
     var inventory = NonNullList.withSize(1, ItemStack.EMPTY)
 
