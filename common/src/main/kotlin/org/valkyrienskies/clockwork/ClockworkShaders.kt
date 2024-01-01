@@ -17,8 +17,8 @@ object ClockworkShaders {
         return crystal!!
     }
 
-    fun heat(): ShaderInstance {
-        return heat!!
+    fun heat(): ShaderInstance? {
+        return heat
     }
 
     fun scan_effect(): ShaderInstance {
