@@ -4,6 +4,7 @@ import com.jozufozu.flywheel.core.PartialModel
 import com.simibubi.create.AllPartialModels
 
 object ClockworkPartials {
+
     val BEARING_TOP_VSIFIED = block("vstop")
     val BEARING_TOP_FLAP = block("flap_bearing/top")
     val JOYSTICK = block("command_seat/joystick")
@@ -58,6 +59,28 @@ object ClockworkPartials {
     val CRYSTAL_INNER: PartialModel = PartialModel(ClockworkMod.asResource("item/auric_designator/crystal_inner"))
 
     val GYRO_BASE: PartialModel = block("gyro/base")
+
+
+
+    //PIPE DEATH
+    val DUCT_CORE: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/core"))
+
+    val DUCT_CONN_UP: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/connection/up"))
+    val DUCT_CONN_DOWN: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/connection/down"))
+    val DUCT_CONN_NORTH: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/connection/north"))
+    val DUCT_CONN_SOUTH: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/connection/south"))
+    val DUCT_CONN_EAST: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/connection/east"))
+    val DUCT_CONN_WEST: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/connection/west"))
+
+    val DUCT_RIM_UP: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/rim/up"))
+    val DUCT_RIM_DOWN: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/rim/down"))
+    val DUCT_RIM_NORTH: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/rim/north"))
+    val DUCT_RIM_SOUTH: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/rim/south"))
+    val DUCT_RIM_EAST: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/rim/east"))
+    val DUCT_RIM_WEST: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/rim/west"))
+    //END OF PIPE DEATH
+
+
 
     private fun block(path: String): PartialModel {
         return PartialModel(ClockworkMod.asResource("block/$path"))
