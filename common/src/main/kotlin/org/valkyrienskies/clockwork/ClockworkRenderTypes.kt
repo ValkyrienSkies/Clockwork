@@ -50,15 +50,16 @@ class ClockworkRenderTypes(
             ClockworkMod.MOD_ID + "heat",
             DefaultVertexFormat.NEW_ENTITY,
             VertexFormat.Mode.QUADS,
-            256,
+            262144,
             true,
             true,
             CompositeState.builder()
                 .setShaderState(ShaderStateShard(::heat))
-                .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-                .setCullState(NO_CULL)
+                .setTransparencyState(NO_TRANSPARENCY)
+                .setCullState(CULL)
                 .setLightmapState(LIGHTMAP)
                 .setOverlayState(OVERLAY)
+                .setOutputState(TRANSLUCENT_TARGET)
                 .createCompositeState(true)
         )
     }

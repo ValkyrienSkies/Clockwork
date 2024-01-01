@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.content.logistics.heat.pipe
 
 import com.jozufozu.flywheel.core.PartialModel
 import com.mojang.blaze3d.vertex.PoseStack
+import com.mojang.math.Vector4f
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
@@ -11,6 +12,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.Direction
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
+import org.valkyrienskies.clockwork.ClockworkShaders
 
 class HeatPipeBlockEntityRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEntityRenderer<HeatPipeBlockEntity>(context) {
 
@@ -24,10 +26,11 @@ class HeatPipeBlockEntityRenderer(context: BlockEntityRendererProvider.Context) 
         super.renderSafe(blockEntity, partialTicks, ms, buffer, light, overlay)
 
         if (blockEntity != null) {
-
+            buffer?.getBuffer(RenderType.cutout())//Reset buffer because :KEKW:
             val pipe : SuperByteBuffer = CachedBufferer.partial(ClockworkPartials.DUCT_CORE, blockEntity.blockState)
             val scale = 1.1f
             for (direction in Direction.entries) {
+                buffer?.getBuffer(RenderType.cutout())//Reset buffer because :KEKW:
                 if (blockEntity.canTransferHeat(direction)) {
                     // pipe connection
                     val connection = getPipeModel(direction, false)
@@ -35,20 +38,25 @@ class HeatPipeBlockEntityRenderer(context: BlockEntityRendererProvider.Context) 
                     val connectionBuffer = CachedBufferer.partial(connection, blockEntity.blockState)
 
                     connectionBuffer.color(255,255,255,255).light(light).overlay().renderInto(ms, buffer?.getBuffer(ClockworkRenderTypes.HEAT))
-
+                    buffer?.getBuffer(RenderType.cutout())//Reset buffer because :KEKW:
                     // if anything but a pipe, add vent cover
                     if (!blockEntity.isNeighborPipe(direction)) {
                         val rim = getPipeModel(direction, true)
                         val rimBuffer = CachedBufferer.partial(rim, blockEntity.blockState)
 
                         rimBuffer.color(255,255,255,255).light(light).overlay().renderInto(ms, buffer?.getBuffer(ClockworkRenderTypes.HEAT))
+                        buffer?.getBuffer(RenderType.cutout())//Reset buffer because :KEKW:
                     }
                 }
             }
+            val shader = ClockworkShaders.heat()
+            shader.safeGetUniform("Intensity").set(Vector4f(100f,0f,0f,0f))
             pipe.color(255,255,255,255).light(light).overlay().renderInto(ms, buffer?.getBuffer(ClockworkRenderTypes.HEAT))
+            buffer?.getBuffer(RenderType.cutout())//Reset buffer because :KEKW:
         }
 
 
+        buffer?.getBuffer(RenderType.cutout())//Reset buffer because :KEKW:
     }
 
     fun getPipeModel(direction: Direction, rim: Boolean): PartialModel {
