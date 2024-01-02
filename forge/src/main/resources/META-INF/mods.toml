@@ -1,6 +1,6 @@
 modLoader = "javafml"
 loaderVersion = "[${forge_version},)"
-issueTrackerURL = "https://github.com/ValkyrienSkies/Valkyrien-Skies-2/issues"
+issueTrackerURL = "https://github.com/ValkyrienSkies/Clockwork-Issues/issues"
 license = "Apache-2.0"
 
 [[mods]]

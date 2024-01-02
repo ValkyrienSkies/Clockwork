@@ -6,6 +6,9 @@ import net.minecraft.Util
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.resources.ResourceLocation
 import org.valkyrienskies.clockwork.ClockworkShaders.crystal
+import org.valkyrienskies.clockwork.ClockworkShaders.haze
+import org.valkyrienskies.clockwork.ClockworkShaders.heat
+import org.valkyrienskies.clockwork.platform.PlatformUtils
 
 class ClockworkRenderTypes(
     name: String,
@@ -19,7 +22,13 @@ class ClockworkRenderTypes(
 ) : RenderType(name, format, mode, bufferSize, affectsCrumbling, sortOnUpload, setupState, clearState) {
 
 
+
     companion object {
+        val BUFFER_SIZE = if (PlatformUtils.isModLoaded("rubidium") || PlatformUtils.isModLoaded("sodium") || PlatformUtils.isModLoaded("embeddium")) {
+            262144
+        } else {
+            256
+        }
 
         val CRYSTAL = Util.memoize { resourceLocation: ResourceLocation? ->
             val compositeState: CompositeState? =
@@ -36,25 +45,40 @@ class ClockworkRenderTypes(
                 ClockworkMod.MOD_ID + "crystal",
                 DefaultVertexFormat.NEW_ENTITY,
                 VertexFormat.Mode.QUADS,
-                256,
+                BUFFER_SIZE,
                 true,
                 false,
                 compositeState!!
             )
         }
 
-
-        //TODO actually make the shader and test if ADDITIVE_TRANSPARENCY is the right transparency, or TRANSLUCENT_TRANSPARENCY
         val HEAT = create(
             ClockworkMod.MOD_ID + "heat",
             DefaultVertexFormat.NEW_ENTITY,
             VertexFormat.Mode.QUADS,
-            262144,
+            BUFFER_SIZE,
             true,
             true,
             CompositeState.builder()
                 .setShaderState(ShaderStateShard(::heat))
                 .setTransparencyState(NO_TRANSPARENCY)
+                .setCullState(CULL)
+                .setLightmapState(LIGHTMAP)
+                .setOverlayState(OVERLAY)
+                .setOutputState(TRANSLUCENT_TARGET)
+                .createCompositeState(true)
+        )
+
+        val HAZE = create(
+            ClockworkMod.MOD_ID + "haze",
+            DefaultVertexFormat.NEW_ENTITY,
+            VertexFormat.Mode.QUADS,
+            BUFFER_SIZE,
+            true,
+            true,
+            CompositeState.builder()
+                .setShaderState(ShaderStateShard(::haze))
+                .setTransparencyState(ADDITIVE_TRANSPARENCY)
                 .setCullState(CULL)
                 .setLightmapState(LIGHTMAP)
                 .setOverlayState(OVERLAY)
