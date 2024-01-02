@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork.content.logistics.heat.pipe
 
 import com.jozufozu.flywheel.core.PartialModel
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.math.Vector4f
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
