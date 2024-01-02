@@ -1,0 +1,72 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "create:brass_ingot"
+  },
+  "transitionalItem": {
+    "item": "vs_clockwork:incomplete_auric_designator"
+  },
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "vs_clockwork:incomplete_auric_designator"
+        },
+        [
+          {
+            "item": "forge:nuggets/iron"
+          },
+          {
+            "tag": "forge:nuggets/zinc"
+          }
+        ]
+      ],
+      "results": [
+        {
+          "item": "vs_clockwork:incomplete_auric_designator"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "vs_clockwork:incomplete_auric_designator"
+        },
+        [
+          {
+            "tag": "forge:nuggets/iron"
+          },
+          {
+            "tag": "forge:nuggets/zinc"
+          }
+        ]
+      ],
+      "results": [
+        {
+          "item": "vs_clockwork:incomplete_auric_designator"
+        }
+      ]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {
+          "item": "vs_clockwork:incomplete_auric_designator"
+        }
+      ],
+      "results": [
+        {
+          "item": "vs_clockwork:incomplete_auric_designator"
+        }
+      ]
+    }
+  ],
+  "results": [
+    {
+      "item": "vs_clockwork:incomplete_auric_designator"
+    }
+  ],
+  "loops": 3
+}

@@ -15,7 +15,7 @@
         },
         [
           {
-            "tag": "c:nuggets/iron"
+            "item": "c:nuggets/iron"
           },
           {
             "tag": "c:nuggets/zinc"
@@ -24,7 +24,7 @@
       ],
       "results": [
         {
-          "item": "create:incomplete_track"
+          "item": "vs_clockwork:incomplete_auric_designator"
         }
       ]
     },

@@ -1,24 +1,24 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "1  ",
-    "123",
-    "454"
+    "W  ",
+    "WBL",
+    "CAC"
   ],
   "key": {
-    "1": {
+    "W": {
       "tag": "minecraft:wool"
     },
-    "2": {
+    "B": {
       "tag": "forge:ingots/brass"
     },
-    "3": {
+    "L": {
       "item": "create:linked_controller"
     },
-    "4": {
+    "C": {
       "item": "create:cogwheel"
     },
-    "5": {
+    "A": {
       "item": "create:brass_casing"
     }
   },
