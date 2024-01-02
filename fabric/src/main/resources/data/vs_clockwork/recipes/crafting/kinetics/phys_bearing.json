@@ -1,22 +1,22 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "2",
-    "3",
-    "1"
+    "M",
+    "A",
+    "T"
   ],
   "key": {
-    "1": {
+    "T": {
       "item": "create:turntable"
     },
-    "2": {
-      "tag": "forge:storage/brass"
+    "A": {
+      "item": "create:andesite_casing"
     },
-    "3": {
+    "M": {
       "item": "vs_clockwork:auric_matrix"
     }
   },
   "result": {
-    "item": "vs_clockwork:gyro"
+    "item": "vs_clockwork:phys_bearing"
   }
 }

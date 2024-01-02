@@ -1,21 +1,21 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    " 4 ",
-    "131",
-    " 2 "
+    " W ",
+    "RSR",
+    " B "
   ],
   "key": {
-    "1": {
+    "R": {
       "item": "minecraft:redstone"
     },
-    "2": {
+    "B": {
       "item": "create:brass_casing"
     },
-    "3": {
+    "S": {
       "item": "minecraft:string"
     },
-    "4": {
+    "W": {
       "tag": "minecraft:wool"
     }
   },

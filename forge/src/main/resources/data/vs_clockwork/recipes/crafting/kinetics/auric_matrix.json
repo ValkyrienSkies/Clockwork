@@ -1,0 +1,13 @@
+{
+  "type": "create:pressing",
+  "ingredients": [
+    {
+      "item": "vs_clockwork:auric_cube"
+    }
+  ],
+  "results": [
+    {
+      "item": "vs_clockwork:auric_matrix"
+    }
+  ]
+}

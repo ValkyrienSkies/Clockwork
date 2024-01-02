@@ -1,18 +1,18 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "121",
-    "232",
-    "121"
+    "BOB",
+    "OMO",
+    "BOB"
   ],
   "key": {
-    "1": {
-      "tag": "forge:ingots/brass"
+    "B": {
+      "tag": "c:ingots/brass"
     },
-    "2": {
+    "O": {
       "tag": "forge:plates/obsidian"
     },
-    "3": {
+    "M": {
       "item": "vs_clockwork:auric_matrix"
     }
   },
