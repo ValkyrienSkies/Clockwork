@@ -10,7 +10,7 @@
       "tag": "c:ingots/brass"
     },
     "O": {
-      "tag": "forge:plates/obsidian"
+      "tag": "c:plates/obsidian"
     },
     "M": {
       "item": "vs_clockwork:auric_matrix"
