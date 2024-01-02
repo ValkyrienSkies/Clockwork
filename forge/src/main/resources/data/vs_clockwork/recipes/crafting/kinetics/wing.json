@@ -1,17 +1,17 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "12",
-    "23"
+    "WB",
+    "BO"
   ],
   "key": {
-    "1": {
+    "W": {
       "tag": "minecraft:wool"
     },
-    "2": {
+    "B": {
       "tag": "forge:nuggets/brass"
     },
-    "3": {
+    "O": {
       "tag": "forge:plates/obsidian"
     }
   },

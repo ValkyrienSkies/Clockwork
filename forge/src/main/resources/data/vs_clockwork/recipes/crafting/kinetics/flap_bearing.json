@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "P",
+    "A",
+    "S"
+  ],
+  "key": {
+    "P": {
+      "tag": "forge:plates/brass"
+    },
+    "A": {
+      "item": "create:andesite_casing"
+    },
+    "S": {
+      "item": "create:shaft"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:flap_bearing"
+  }
+}

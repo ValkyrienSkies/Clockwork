@@ -1,18 +1,18 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "1",
-    "2",
-    "3"
+    "M",
+    "A",
+    "T"
   ],
   "key": {
-    "1": {
+    "T": {
       "item": "create:turntable"
     },
-    "2": {
+    "A": {
       "item": "create:andesite_casing"
     },
-    "3": {
+    "M": {
       "item": "vs_clockwork:auric_matrix"
     }
   },
