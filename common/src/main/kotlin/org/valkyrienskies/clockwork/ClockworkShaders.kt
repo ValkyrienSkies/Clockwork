@@ -11,6 +11,7 @@ object ClockworkShaders {
 
     private var crystal: ShaderInstance? = null
     private var heat: ShaderInstance? = null
+    private var haze: ShaderInstance? = null
     private var scan_effect: ShaderInstance? = null
 
     fun crystal(): ShaderInstance {
@@ -19,6 +20,10 @@ object ClockworkShaders {
 
     fun heat(): ShaderInstance? {
         return heat
+    }
+
+    fun haze(): ShaderInstance? {
+        return haze
     }
 
     fun scan_effect(): ShaderInstance {
@@ -35,6 +40,22 @@ object ClockworkShaders {
                         DefaultVertexFormat.NEW_ENTITY
                     )
                 ) { inst -> crystal = inst }
+
+                shadersSink.registerShader(
+                    ShaderInstance(
+                        resourceProvider,
+                        "heat",
+                        DefaultVertexFormat.NEW_ENTITY
+                    )
+                ) { inst -> heat = inst }
+
+                shadersSink.registerShader(
+                    ShaderInstance(
+                        resourceProvider,
+                        "haze",
+                        DefaultVertexFormat.NEW_ENTITY
+                    )
+                ) { inst -> haze = inst }
 
                 shadersSink.registerShader(
                     ShaderInstance(

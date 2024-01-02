@@ -37,6 +37,6 @@
   "depends": {
     "minecraft": ">=1.19.2",
     "valkyrienskies": ">=${vs2_version}",
-    "fabric-api": "<=0.76.1"
+    "create": ">=${create_fabric_version}"
   }
 }
