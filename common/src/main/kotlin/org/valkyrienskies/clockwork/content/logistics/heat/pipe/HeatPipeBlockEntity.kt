@@ -33,6 +33,7 @@ class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         super.initialize()
         val createData = KelvinHandler.defaultGasNodeCreateData(this.worldPosition.toJOML())
         KelvinHandler.addNode(createData)
+        this.gasNodeID = createData.identifier
         for (direction in Direction.values()) {
             if (canTransferHeat(direction)) {
                 KelvinHandler.connectNodes(GasConnectionCreateData(
@@ -99,5 +100,20 @@ class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
 
     override fun getPressureLimit(): Double {
         return 100.0
+    }
+
+    fun updateConnections() {
+        if (this.level != null && !this.level!!.isClientSide) {
+            for (direction in Direction.values()) {
+                if (canTransferHeat(direction)) {
+                    KelvinHandler.connectNodes(GasConnectionCreateData(
+                        this.gasNodeID!!,
+                        KelvinHandler.getNodeFromPos(this.worldPosition.relative(direction).toJOML()) ?: continue,
+                        0.125,
+                        0.0
+                    ))
+                }
+            }
+        }
     }
 }

@@ -77,8 +77,12 @@ class HeatPipeBlock(properties: Properties) :
     }
 
     override fun updateShape(
-        state: BlockState, direction: Direction, neighbourState: BlockState, world: LevelAccessor,
-        pos: BlockPos, neighbourPos: BlockPos?
+        state: BlockState,
+        direction: Direction,
+        neighbourState: BlockState,
+        world: LevelAccessor,
+        pos: BlockPos,
+        neighbourPos: BlockPos
     ): BlockState {
         if (state.getValue(BlockStateProperties.WATERLOGGED)) world.scheduleTick(
             pos,
@@ -89,6 +93,8 @@ class HeatPipeBlock(properties: Properties) :
                 BlockStateProperties.WATERLOGGED
             )
         ) world.scheduleTick(pos, this, 1, TickPriority.HIGH)
+
+        withBlockEntityDo(world, pos) { it.updateConnections() }
         return updateBlockState(state, direction, direction.opposite, world, pos)
     }
 
