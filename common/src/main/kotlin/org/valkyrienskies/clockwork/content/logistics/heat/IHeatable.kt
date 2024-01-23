@@ -1,9 +1,19 @@
 package org.valkyrienskies.clockwork.content.logistics.heat
 
 import net.minecraft.core.Direction
+import org.valkyrienskies.kelvin.GasNodeIdentifier
+import org.valkyrienskies.kelvin.GasNodeResultData
+import org.valkyrienskies.kelvin.GasType
 import java.util.EnumMap
 
 interface IHeatable {
+
+    var gasNodeID: GasNodeIdentifier?
+
+    val gasMasses: EnumMap<GasType, Double>
+    var temperature: Double
+    var currentPressure: Double
+    val gasFlows: HashMap<GasNodeIdentifier, Double>
 
     fun canTransferHeat(direction: Direction): Boolean
 
@@ -12,4 +22,25 @@ interface IHeatable {
     fun getNeighborFlowDir(direction: Direction): MutableSet<Direction>
 
     fun isNeighborPipe(direction: Direction): Boolean
+
+    fun getHeatLimit(): Double
+    fun getPressureLimit(): Double
+
+    fun recalculatePressure() {
+        var pressure = 0.0
+        for (gas in gasMasses.keys) {
+            pressure += gasMasses[gas]!! * 8.31446261815324 * temperature / 0.375
+        }
+        currentPressure = pressure
+    }
+
+    fun applyUpdate(update: GasNodeResultData) {
+        this.temperature = update.temperature
+        this.gasMasses.clear()
+        this.gasMasses.putAll(update.gasMasses)
+        this.gasFlows.clear()
+        this.gasFlows.putAll(update.gasFlows)
+
+        recalculatePressure()
+    }
 }

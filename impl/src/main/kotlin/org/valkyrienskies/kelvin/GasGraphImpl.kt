@@ -1,13 +1,14 @@
 package org.valkyrienskies.kelvin
 
 import java.util.EnumMap
+import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.abs
 import kotlin.math.pow
 
 class GasGraphImpl : GasGraph {
     private val nodes: MutableMap<GasNodeIdentifier, GasNode> = HashMap()
 
-    private var queuedChanges: GasSimChangesFrame? = null
+    private val gameFramesQueue: ConcurrentLinkedQueue<GasSimChangesFrame> = ConcurrentLinkedQueue()
 
     private val idealGasConstant = 8.31446261815324
 
@@ -66,120 +67,138 @@ class GasGraphImpl : GasGraph {
         return firstRemoveResult && secondRemoveResult
     }
 
-    private fun applyQueuedChanges() {
-        val queuedChangesCopy = queuedChanges ?: return
-        queuedChanges = null
+    private fun applyQueuedChanges(queuedChanges: GasSimChangesFrame) {
+//        val queuedChangesCopy = queuedChanges ?: return
+//        queuedChanges = null
 
-        queuedChangesCopy.newNodes.forEach {
+        queuedChanges.newNodes.forEach {
             addGasNode(it)
         }
-        queuedChangesCopy.removedNodes.forEach {
+        queuedChanges.removedNodes.forEach {
             removeGasNode(it)
         }
-        queuedChangesCopy.nodeChanges.forEach {
+        queuedChanges.nodeChanges.forEach {
             nodes[it.identifier]?.applyChanges(it)
         }
-        queuedChangesCopy.newConnections.forEach {
+        queuedChanges.newConnections.forEach {
             connect(it)
         }
-        queuedChangesCopy.removedConnections.forEach {
+        queuedChanges.removedConnections.forEach {
             disconnect(it)
         }
     }
 
     override fun tick(timeStep: Double, subSteps: Int): GasSimResultFrame {
-        applyQueuedChanges()
+        val finalResults: HashMap<GasNodeIdentifier, GasNodeResultData> = HashMap()
+        val trueTimeStep = timeStep / subSteps.toDouble()
 
-        val frameChangeData: MutableMap<GasNodeIdentifier, GasNodeChangesData> = HashMap()
+        for (subStep in 1..subSteps) {
+            while (gameFramesQueue.isNotEmpty()) {
+                applyQueuedChanges(gameFramesQueue.remove())
+            }
 
-        val activeNodePressureData: MutableMap<GasNodeIdentifier, Double> = HashMap()
 
-        //Calculate pressure
-        nodes.keys.forEach {
-            val nodeData = nodes[it]!!
+            val frameChangeData: MutableMap<GasNodeIdentifier, GasNodeChangesData> = HashMap()
 
-            val gasMass: Double = nodeData.gasMasses.values.sum()
+            val activeNodePressureData: MutableMap<GasNodeIdentifier, Double> = HashMap()
 
-            activeNodePressureData[it] = calcPressure(gasMass, nodeData.volume, nodeData.temperature)
-        }
+            //Calculate pressure
+            nodes.keys.forEach {
+                val nodeData = nodes[it]!!
 
-        //Calculate flow
+                val gasMass: Double = nodeData.gasMasses.values.sum()
 
-        val visitedConnections: HashSet<GasConnection> = HashSet()
+                activeNodePressureData[it] = calcPressure(gasMass, nodeData.volume, nodeData.temperature)
+            }
 
-        val collectedChangesData: HashMap<Int, GasNodeChangesData> = HashMap()
-        var changesId = 0
-        nodes.values.forEach {
-            it.connections.keys.forEach {itConn ->
-                if (!visitedConnections.contains(it.connections[itConn]!!)) {
-                    visitedConnections.add(it.connections[itConn]!!)
+            //Calculate flow
 
-                    val pressureOne = activeNodePressureData[it.identifier]!!
+            val visitedConnections: HashSet<GasConnection> = HashSet()
 
-                    val pressureTwo = activeNodePressureData[itConn.identifier]!!
+            val collectedChangesData: HashMap<Int, GasNodeChangesData> = HashMap()
+            var changesId = 0
+            nodes.values.forEach {
+                it.connections.keys.forEach { itConn ->
+                    if (!visitedConnections.contains(it.connections[itConn]!!)) {
+                        visitedConnections.add(it.connections[itConn]!!)
 
-                    if (pressureOne != pressureTwo) {
-                        val gasMasses = when {
-                            pressureOne < pressureTwo -> it.gasMasses
-                            else -> itConn.gasMasses
+                        val pressureOne = activeNodePressureData[it.identifier]!!
+
+                        val pressureTwo = activeNodePressureData[itConn.identifier]!!
+
+                        if (pressureOne != pressureTwo) {
+                            val gasMasses = when {
+                                pressureOne < pressureTwo -> it.gasMasses
+                                else -> itConn.gasMasses
+                            }
+
+                            val avgViscosity = viscosityAverage(gasMasses)
+
+                            val flow = poisuiellesLaw(
+                                pressureOne,
+                                pressureTwo,
+                                it.connections[itConn]!!.radius,
+                                avgViscosity,
+                                it.connections[itConn]!!.pumpPressureDrop ?: 0.0
+                            )
+
+                            it.connections[itConn]!!.lastTickFlow = flow
+
+                            val reverse = flow < 0.0
+                            val flowAbs = abs(flow)
+                            val returnVal = if (!reverse) {
+                                propagateGas(it, itConn, flowAbs, trueTimeStep)
+                            } else {
+                                propagateGas(itConn, it, flowAbs, trueTimeStep)
+                            }
+
+                            val fromChanges = returnVal.first
+                            val toChanges = returnVal.second
+
+                            collectedChangesData[changesId] = fromChanges
+                            changesId++
+                            collectedChangesData[changesId] = toChanges
+                            changesId++
                         }
+                    }
+                }
+            }
 
-                        val avgViscosity = viscosityAverage(gasMasses)
-
-                        val flow = poisuiellesLaw(pressureOne, pressureTwo, it.connections[itConn]!!.radius, avgViscosity, it.connections[itConn]!!.pumpPressureDrop ?: 0.0)
-
-                        it.connections[itConn]!!.lastTickFlow = flow
-
-                        val reverse = flow < 0.0
-                        val flowAbs = abs(flow)
-                        val returnVal = if (!reverse) {
-                            propagateGas(it, itConn, flowAbs)
+            collectedChangesData.values.forEach {
+                if (frameChangeData.containsKey(it.identifier)) {
+                    val existing = frameChangeData[it.identifier]!!
+                    existing.deltaGasMasses.keys.forEach { gasType ->
+                        existing.deltaGasMasses[gasType] =
+                            existing.deltaGasMasses[gasType]!! + it.deltaGasMasses[gasType]!!
+                    }
+                    existing.deltaThermalEnergy += it.deltaThermalEnergy
+                    it.directionalDeltaMasses.keys.forEach { gasNodeIdentifier ->
+                        if (existing.directionalDeltaMasses.containsKey(gasNodeIdentifier)) {
+                            existing.directionalDeltaMasses[gasNodeIdentifier] =
+                                existing.directionalDeltaMasses[gasNodeIdentifier]!! + it.directionalDeltaMasses[gasNodeIdentifier]!!
                         } else {
-                            propagateGas(itConn, it, flowAbs)
+                            existing.directionalDeltaMasses[gasNodeIdentifier] =
+                                it.directionalDeltaMasses[gasNodeIdentifier]!!
                         }
-
-                        val fromChanges = returnVal.first
-                        val toChanges = returnVal.second
-
-                        collectedChangesData[changesId] = fromChanges
-                        changesId++
-                        collectedChangesData[changesId] = toChanges
-                        changesId++
                     }
+                } else {
+                    frameChangeData[it.identifier] = it
                 }
             }
-        }
-
-        collectedChangesData.values.forEach {
-            if (frameChangeData.containsKey(it.identifier)) {
-                val existing = frameChangeData[it.identifier]!!
-                existing.deltaGasMasses.keys.forEach { gasType ->
-                    existing.deltaGasMasses[gasType] = existing.deltaGasMasses[gasType]!! + it.deltaGasMasses[gasType]!!
-                }
-                existing.deltaThermalEnergy += it.deltaThermalEnergy
-                it.directionalDeltaMasses.keys.forEach { gasNodeIdentifier ->
-                    if (existing.directionalDeltaMasses.containsKey(gasNodeIdentifier)) {
-                        existing.directionalDeltaMasses[gasNodeIdentifier] = existing.directionalDeltaMasses[gasNodeIdentifier]!! + it.directionalDeltaMasses[gasNodeIdentifier]!!
-                    } else {
-                        existing.directionalDeltaMasses[gasNodeIdentifier] = it.directionalDeltaMasses[gasNodeIdentifier]!!
-                    }
-                }
-            } else {
-                frameChangeData[it.identifier] = it
+            val results: HashMap<GasNodeIdentifier, GasNodeResultData> = HashMap()
+            //apply changes
+            frameChangeData.values.forEach {
+                val result = nodes[it.identifier]?.applyChanges(it)
+                if (result != null) results[it.identifier] = result
             }
-        }
-        val results: HashMap<GasNodeIdentifier, GasNodeResultData> = HashMap()
-        //apply changes
-        frameChangeData.values.forEach {
-            val result = nodes[it.identifier]?.applyChanges(it)
-            if (result != null) results[it.identifier] = result
-        }
 
-        return GasSimResultFrame(results)
+            finalResults.putAll(results)
+        }
+        return GasSimResultFrame(finalResults)
     }
 
-    private fun propagateGas(from: GasNode, to: GasNode, flow: Double): Pair<GasNodeChangesData, GasNodeChangesData> {
-        val timeAccFlowRate = flow / 1000.0
+    private fun propagateGas(from: GasNode, to: GasNode, flow: Double, timeStep: Double): Pair<GasNodeChangesData, GasNodeChangesData> {
+        val timeAccFlowRate = flow * timeStep
 
         val fromGasMasses = from.gasMasses
         val toGasMasses = to.gasMasses
@@ -253,9 +272,14 @@ class GasGraphImpl : GasGraph {
     }
 
     override fun queueChanges(changesFrame: GasSimChangesFrame) {
-        if (queuedChanges != null) {
-            throw IllegalStateException("Cannot queue changes when we already have changes queued")
+        if (gameFramesQueue.size > 100) {
+            logger.warn("Changes queue is overloaded!")
+            Thread.sleep(1000)
         }
-        queuedChanges = changesFrame
+        gameFramesQueue.add(changesFrame)
+    }
+
+    companion object {
+        private val logger by logger("GasGraph")
     }
 }

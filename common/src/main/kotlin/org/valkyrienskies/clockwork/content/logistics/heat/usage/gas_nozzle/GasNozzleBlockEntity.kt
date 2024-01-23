@@ -13,6 +13,9 @@ import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.logistics.heat.IHeatable
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.datastructures.ShipConnDataAttachment
+import org.valkyrienskies.kelvin.GasNodeIdentifier
+import org.valkyrienskies.kelvin.GasNodeResultData
+import org.valkyrienskies.kelvin.GasType
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOML
 import java.util.*
@@ -20,6 +23,13 @@ import java.util.*
 class GasNozzleBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KineticBlockEntity(typeIn, pos,
     state
 ), IHeatable {
+
+    override var gasNodeID: GasNodeIdentifier? = null
+
+    override var currentPressure: Double = 0.0
+    override var temperature: Double = 0.0
+    override val gasMasses: EnumMap<GasType, Double> = EnumMap(GasType::class.java)
+    override val gasFlows: HashMap<GasNodeIdentifier, Double> = HashMap()
 
     private var pocketId: Int? = null
     var pocketSize: Int = 0
@@ -92,7 +102,16 @@ class GasNozzleBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Blo
     }
 
     override fun getAttachedNeighbors(): EnumMap<Direction, IHeatable> {
-        TODO("Not yet implemented")
+        val neighbors: EnumMap<Direction, IHeatable> = EnumMap(net.minecraft.core.Direction::class.java)
+
+        if (level!!.getBlockEntity(worldPosition.below()) is IHeatable) {
+            val heatable = level!!.getBlockEntity(worldPosition.below()) as IHeatable
+            if (heatable.canTransferHeat(Direction.UP)) {
+                neighbors[Direction.DOWN] = heatable
+            }
+        }
+
+        return neighbors
     }
 
     override fun getNeighborFlowRate(direction: Direction): Int {
@@ -105,5 +124,13 @@ class GasNozzleBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Blo
 
     override fun isNeighborPipe(direction: Direction): Boolean {
         TODO("Not yet implemented")
+    }
+
+    override fun getHeatLimit(): Double {
+        return 1500.0
+    }
+
+    override fun getPressureLimit(): Double {
+        return 500.0
     }
 }

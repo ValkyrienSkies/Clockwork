@@ -2,14 +2,16 @@ package org.valkyrienskies.clockwork
 
 import com.mojang.logging.LogUtils
 import com.simibubi.create.foundation.data.CreateRegistrate
-import com.simibubi.create.foundation.outliner.Outliner
+import dev.architectury.event.events.common.LifecycleEvent
 import dev.architectury.registry.CreativeTabRegistry
-import net.minecraft.client.renderer.RenderType
-import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
 import org.slf4j.LoggerFactory
+import org.valkyrienskies.clockwork.content.forces.PocketForcesController
+import org.valkyrienskies.core.api.ships.setAttachment
+import org.valkyrienskies.core.impl.config.VSConfigClass
 import org.valkyrienskies.core.impl.hooks.VSEvents
+import kotlin.concurrent.thread
 
 object ClockworkMod {
     const val MOD_ID = "vs_clockwork"
@@ -28,16 +30,39 @@ object ClockworkMod {
     val BASE_CREATIVE_TAB: CreativeModeTab = CreativeTabRegistry
         .create(ResourceLocation(MOD_ID, "clockwork")) { ClockworkItems.GRAVITRON.get().defaultInstance }
 
+    private lateinit var kelvin: KelvinBackground
+
+    private val kelvinThread: Thread = thread(start = false, priority = 8, name = "Kelvin thread") {
+        kelvin.run()
+    }
+
     @JvmStatic
     fun init() {
         ClockworkContraptions.init()
         ClockworkPackets.init()
         ClockworkTags.init()
         ClockworkWorldgen.init()
+        VSConfigClass.registerConfig("clockwork", ClockworkConfig::class.java)
 
         VSEvents.ShipLoadEvent.on { event ->
-            event.ship
+            event.ship.setAttachment(PocketForcesController())
         }
+
+        kelvin = KelvinBackground(ClockworkConfig.SERVER.kelvinTickRate, ClockworkConfig.SERVER.kelvinSubSteps)
+
+        LifecycleEvent.SERVER_STARTING.register {
+            kelvinThread.start()
+        }
+
+        LifecycleEvent.SERVER_STOPPING.register {
+            kelvin.tellTaskToKillItself()
+        }
+
+        KelvinHandler.start()
+    }
+
+    fun getKelvinBackgroundTask(): KelvinBackground {
+        return kelvin
     }
 
     @JvmStatic
