@@ -16,11 +16,6 @@ import kotlin.collections.HashMap
 
 class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : SmartBlockEntity(type, pos, state), ITransformableBlockEntity, IHeatable {
 
-    override var heat: Int = 0
-    override val maxHeat: Int = 1000
-    override var flowDir: MutableSet<Direction> = mutableSetOf()
-    override var flowRate: Int = 100
-
     override fun transform(transform: StructureTransform?) {
         val bracketBehaviour = getBehaviour(BracketedBlockEntityBehaviour.TYPE)
         bracketBehaviour?.transformBracket(transform)
@@ -49,7 +44,7 @@ class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     override fun getNeighborFlowRate(direction: Direction): Int {
         level!!.getBlockEntity(worldPosition.relative(direction))?.let {
             if (it is IHeatable) {
-                return it.flowRate
+                return 0 //todo heat network
             }
         }
         return 0
@@ -58,7 +53,7 @@ class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     override fun getNeighborFlowDir(direction: Direction): MutableSet<Direction> {
         level!!.getBlockEntity(worldPosition.relative(direction))?.let {
             if (it is IHeatable) {
-                return it.flowDir
+                return mutableSetOf() //todo heat network
             }
         }
         return mutableSetOf()

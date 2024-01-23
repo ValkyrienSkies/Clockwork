@@ -31,6 +31,7 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBear
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlock
+import org.valkyrienskies.clockwork.content.logistics.heat.usage.gas_nozzle.GasNozzleBlock
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlock
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
@@ -280,6 +281,21 @@ object ClockworkBlocks {
         )
     }
         .initialProperties { SharedProperties.netheriteMetal() }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
+    val GAS_NOZZLE = REGISTRATE.block<GasNozzleBlock>(
+        "gas_nozzle"
+    ) { properties: BlockBehaviour.Properties? ->
+        GasNozzleBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .addLayer { Supplier { RenderType.cutout() } }
         .item()
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()

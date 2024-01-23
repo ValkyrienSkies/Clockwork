@@ -1,5 +1,6 @@
 pluginManagement {
     repositories {
+        mavenCentral()
         gradlePluginPortal()
         maven("https://maven.fabricmc.net/") {
             name = "Fabric"
@@ -28,5 +29,8 @@ pluginManagement {
 include("common")
 include("forge")
 include("fabric")
+
+include("api")
+include("impl")
 
 rootProject.name = "vs-clockwork-mod"

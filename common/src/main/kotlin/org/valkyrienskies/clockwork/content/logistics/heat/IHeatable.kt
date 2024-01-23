@@ -4,10 +4,6 @@ import net.minecraft.core.Direction
 import java.util.EnumMap
 
 interface IHeatable {
-    var heat: Int
-    val maxHeat: Int
-    var flowDir: MutableSet<Direction>
-    val flowRate: Int
 
     fun canTransferHeat(direction: Direction): Boolean
 

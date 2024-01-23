@@ -29,6 +29,8 @@ import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSea
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRenderer
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEntityRenderer
+import org.valkyrienskies.clockwork.content.logistics.heat.usage.gas_nozzle.GasNozzleBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.heat.usage.gas_nozzle.GasNozzleRenderer
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import java.util.function.BiFunction
@@ -238,6 +240,7 @@ object ClockworkBlockEntities {
         }
         .register()
 
+    @JvmField
     val HEAT_PIPE: BlockEntityEntry<HeatPipeBlockEntity> = ClockworkMod.REGISTRATE
         .blockEntity<HeatPipeBlockEntity>("heat_pipe") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
             HeatPipeBlockEntity(
@@ -254,6 +257,25 @@ object ClockworkBlockEntities {
             }
         }
         .validBlocks(ClockworkBlocks.HEAT_PIPE)
+        .register()
+
+    @JvmField
+    val GAS_NOZZLE: BlockEntityEntry<GasNozzleBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<GasNozzleBlockEntity>("gas_nozzle") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            GasNozzleBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in GasNozzleBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                GasNozzleRenderer(
+                    context!!
+                )
+            }
+        }
+        .validBlocks(ClockworkBlocks.GAS_NOZZLE)
         .register()
 
     @JvmStatic
