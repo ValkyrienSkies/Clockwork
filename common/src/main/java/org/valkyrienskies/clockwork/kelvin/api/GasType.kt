@@ -1,4 +1,4 @@
-package org.valkyrienskies.kelvin
+package org.valkyrienskies.clockwork.kelvin.api
 
 enum class GasType(
     val density: Double,              // Density of gas at STP (kg / m^3)

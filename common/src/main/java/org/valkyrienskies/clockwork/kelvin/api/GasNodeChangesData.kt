@@ -1,4 +1,4 @@
-package org.valkyrienskies.kelvin
+package org.valkyrienskies.clockwork.kelvin.api
 
 import java.util.EnumMap
 

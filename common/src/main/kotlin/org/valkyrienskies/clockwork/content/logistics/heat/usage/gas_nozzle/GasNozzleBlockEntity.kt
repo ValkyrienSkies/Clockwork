@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.logistics.heat.usage.gas_nozzle
 
-import com.simibubi.create.content.equipment.goggles.IHaveGoggleInformation
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -15,12 +14,14 @@ import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.KelvinHandler
 import org.valkyrienskies.clockwork.content.logistics.heat.IHeatable
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEntity
+import org.valkyrienskies.clockwork.kelvin.api.GasConnectionCreateData
+import org.valkyrienskies.clockwork.kelvin.api.GasNodeCreateData
+import org.valkyrienskies.clockwork.kelvin.api.GasNodeIdentifier
+import org.valkyrienskies.clockwork.kelvin.api.GasType
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.datastructures.ShipConnDataAttachment
-import org.valkyrienskies.kelvin.*
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOML
-import org.valkyrienskies.mod.util.putVector3d
 import java.util.*
 
 class GasNozzleBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KineticBlockEntity(typeIn, pos,

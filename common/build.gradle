@@ -21,8 +21,9 @@ repositories {
 dependencies {
     modImplementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
 
-    api(project(path: ":api", configuration: "namedElements")) { transitive = false }
-    implementation(project(path: ":impl", configuration: "namedElements")) { transitive = false }
+    //todo re separate kelvin
+//    implementation(project(path: ":api", configuration: "namedElements")) { transitive = false }
+//    implementation(project(path: ":impl", configuration: "namedElements")) { transitive = false }
 
     implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:0.2.1"))
     implementation(("io.github.llamalad7:mixinextras-common:0.2.1"))

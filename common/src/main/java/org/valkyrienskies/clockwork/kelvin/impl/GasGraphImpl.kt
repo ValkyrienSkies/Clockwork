@@ -1,5 +1,6 @@
-package org.valkyrienskies.kelvin
+package org.valkyrienskies.clockwork.kelvin.impl
 
+import org.valkyrienskies.clockwork.kelvin.api.*
 import java.util.EnumMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.abs

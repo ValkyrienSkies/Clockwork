@@ -1,9 +1,9 @@
 package org.valkyrienskies.clockwork.content.logistics.heat
 
 import net.minecraft.core.Direction
-import org.valkyrienskies.kelvin.GasNodeIdentifier
-import org.valkyrienskies.kelvin.GasNodeResultData
-import org.valkyrienskies.kelvin.GasType
+import org.valkyrienskies.clockwork.kelvin.api.GasNodeIdentifier
+import org.valkyrienskies.clockwork.kelvin.api.GasNodeResultData
+import org.valkyrienskies.clockwork.kelvin.api.GasType
 import java.util.EnumMap
 
 interface IHeatable {

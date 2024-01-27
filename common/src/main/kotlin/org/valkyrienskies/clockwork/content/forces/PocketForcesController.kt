@@ -31,7 +31,9 @@ class PocketForcesController: ShipForcesInducer {
 
     fun gameTick(level: ServerLevel, ship: ServerShip) {
         val pocketsCopy = ship.getAttachment(ShipConnDataAttachment::class.java)?.airPockets ?: return
-        queuedChanges.add(pocketsCopy)
+        if (pocketsCopy != pockets) {
+            queuedChanges.add(pocketsCopy)
+        }
     }
 
     companion object {

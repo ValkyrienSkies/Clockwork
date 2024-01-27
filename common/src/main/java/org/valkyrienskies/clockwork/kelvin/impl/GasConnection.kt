@@ -1,6 +1,6 @@
-package org.valkyrienskies.kelvin
+package org.valkyrienskies.clockwork.kelvin.impl
 
-import kotlin.math.abs
+import org.valkyrienskies.clockwork.kelvin.api.GasNodeIdentifier
 
 class GasConnection(
     val from: GasNodeIdentifier,

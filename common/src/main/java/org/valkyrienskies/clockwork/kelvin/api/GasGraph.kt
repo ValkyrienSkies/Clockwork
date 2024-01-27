@@ -1,4 +1,4 @@
-package org.valkyrienskies.kelvin
+package org.valkyrienskies.clockwork.kelvin.api
 
 interface GasGraph {
     fun tick(timeStep: Double, subSteps: Int): GasSimResultFrame

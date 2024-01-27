@@ -4,7 +4,7 @@ import dev.architectury.event.events.common.TickEvent
 import net.minecraft.server.level.ServerLevel
 import org.joml.Vector3ic
 import org.valkyrienskies.clockwork.content.logistics.heat.IHeatable
-import org.valkyrienskies.kelvin.*
+import org.valkyrienskies.clockwork.kelvin.api.*
 import org.valkyrienskies.mod.common.util.toBlockPos
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue

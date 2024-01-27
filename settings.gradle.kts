@@ -30,7 +30,7 @@ include("common")
 include("forge")
 include("fabric")
 
-include("api")
-include("impl")
+//include("api")
+//include("impl")
 
 rootProject.name = "vs-clockwork-mod"

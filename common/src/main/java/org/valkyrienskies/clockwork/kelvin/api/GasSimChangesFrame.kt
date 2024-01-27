@@ -1,4 +1,4 @@
-package org.valkyrienskies.kelvin
+package org.valkyrienskies.clockwork.kelvin.api
 
 data class GasSimChangesFrame(
     val newNodes: List<GasNodeCreateData>,

@@ -14,10 +14,9 @@ import net.minecraft.world.level.block.state.BlockState
 import org.joml.Vector3i
 import org.valkyrienskies.clockwork.KelvinHandler
 import org.valkyrienskies.clockwork.content.logistics.heat.IHeatable
-import org.valkyrienskies.kelvin.GasConnectionCreateData
-import org.valkyrienskies.kelvin.GasNodeIdentifier
-import org.valkyrienskies.kelvin.GasNodeResultData
-import org.valkyrienskies.kelvin.GasType
+import org.valkyrienskies.clockwork.kelvin.api.GasConnectionCreateData
+import org.valkyrienskies.clockwork.kelvin.api.GasNodeIdentifier
+import org.valkyrienskies.clockwork.kelvin.api.GasType
 import org.valkyrienskies.mod.common.util.toJOML
 import java.util.*
 import kotlin.collections.HashMap
@@ -42,12 +41,14 @@ class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         this.gasNodeID = createData.identifier
         for (direction in Direction.values()) {
             if (canTransferHeat(direction)) {
-                KelvinHandler.connectNodes(GasConnectionCreateData(
+                KelvinHandler.connectNodes(
+                    GasConnectionCreateData(
                     createData.identifier,
                     KelvinHandler.getNodeFromPos(this.worldPosition.relative(direction).toJOML()) ?: continue,
                     0.125,
                     0.0
-                ))
+                )
+                )
             }
         }
     }
@@ -134,12 +135,14 @@ class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         if (this.level != null && !this.level!!.isClientSide) {
             for (direction in Direction.values()) {
                 if (canTransferHeat(direction)) {
-                    KelvinHandler.connectNodes(GasConnectionCreateData(
+                    KelvinHandler.connectNodes(
+                        GasConnectionCreateData(
                         this.gasNodeID!!,
                         KelvinHandler.getNodeFromPos(this.worldPosition.relative(direction).toJOML()) ?: continue,
                         0.125,
                         0.0
-                    ))
+                    )
+                    )
                 }
             }
         }

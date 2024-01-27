@@ -1,5 +1,9 @@
-package org.valkyrienskies.kelvin
+package org.valkyrienskies.clockwork.kelvin.impl
 
+import org.valkyrienskies.clockwork.kelvin.api.GasNodeChangesData
+import org.valkyrienskies.clockwork.kelvin.api.GasNodeIdentifier
+import org.valkyrienskies.clockwork.kelvin.api.GasNodeResultData
+import org.valkyrienskies.clockwork.kelvin.api.GasType
 import java.util.EnumMap
 
 data class GasNode(
