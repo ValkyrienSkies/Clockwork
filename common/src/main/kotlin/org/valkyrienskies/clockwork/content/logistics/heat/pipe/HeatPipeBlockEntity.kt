@@ -8,8 +8,10 @@ import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import org.joml.Vector3i
 import org.valkyrienskies.clockwork.KelvinHandler
 import org.valkyrienskies.clockwork.content.logistics.heat.IHeatable
 import org.valkyrienskies.kelvin.GasConnectionCreateData
@@ -31,7 +33,11 @@ class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
 
     override fun initialize() {
         super.initialize()
-        val createData = KelvinHandler.defaultGasNodeCreateData(this.worldPosition.toJOML())
+        if (this.level == null || this.level!!.isClientSide) {
+            return
+        }
+        val newID = gasNodeID ?: GasNodeIdentifier(this.worldPosition.toJOML(), 0)
+        val createData = KelvinHandler.defaultGasNodeCreateData(newID.pos, initTemp = temperature)
         KelvinHandler.addNode(createData)
         this.gasNodeID = createData.identifier
         for (direction in Direction.values()) {
@@ -44,6 +50,28 @@ class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
                 ))
             }
         }
+    }
+
+    override fun write(tag: CompoundTag, clientPacket: Boolean) {
+        tag.putLong("kelvin/nodeId", gasNodeID?.id ?: -1)
+        val posAsIntArray = IntArray(3)
+        posAsIntArray[0] = gasNodeID?.pos?.x() ?: 0
+        posAsIntArray[1] = gasNodeID?.pos?.y() ?: 0
+        posAsIntArray[2] = gasNodeID?.pos?.z() ?: 0
+        tag.putIntArray("kelvin/nodePos", posAsIntArray)
+        tag.putDouble("kelvin/temperature", temperature)
+        super.write(tag, clientPacket)
+    }
+
+    override fun read(tag: CompoundTag, clientPacket: Boolean) {
+        temperature = tag.getDouble("kelvin/temperature")
+        val posAsIntArray = tag.getIntArray("kelvin/nodePos")
+        val pos = Vector3i(posAsIntArray[0], posAsIntArray[1], posAsIntArray[2])
+        val id = tag.getLong("kelvin/nodeId")
+        if (id.toInt() != -1) {
+            this.gasNodeID = GasNodeIdentifier(pos, id)
+        }
+        super.read(tag, clientPacket)
     }
 
     override fun transform(transform: StructureTransform?) {

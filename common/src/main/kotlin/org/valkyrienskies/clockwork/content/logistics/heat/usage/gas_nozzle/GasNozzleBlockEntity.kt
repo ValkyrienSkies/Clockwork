@@ -4,20 +4,23 @@ import com.simibubi.create.content.equipment.goggles.IHaveGoggleInformation
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import org.joml.Vector3i
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
+import org.valkyrienskies.clockwork.KelvinHandler
 import org.valkyrienskies.clockwork.content.logistics.heat.IHeatable
+import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEntity
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.datastructures.ShipConnDataAttachment
-import org.valkyrienskies.kelvin.GasNodeIdentifier
-import org.valkyrienskies.kelvin.GasNodeResultData
-import org.valkyrienskies.kelvin.GasType
+import org.valkyrienskies.kelvin.*
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOML
+import org.valkyrienskies.mod.util.putVector3d
 import java.util.*
 
 class GasNozzleBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KineticBlockEntity(typeIn, pos,
@@ -33,6 +36,51 @@ class GasNozzleBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Blo
 
     private var pocketId: Int? = null
     var pocketSize: Int = 0
+
+    override fun initialize() {
+        super.initialize()
+        if (this.level == null || this.level!!.isClientSide) {
+            return
+        }
+        val newID = gasNodeID ?: GasNodeIdentifier(this.worldPosition.toJOML(), 0)
+        val createData = GasNodeCreateData(newID, EnumMap(GasType::class.java), 1.0, temperature)
+        KelvinHandler.addNode(createData)
+        this.gasNodeID = createData.identifier
+        for (direction in Direction.values()) {
+            if (canTransferHeat(direction)) {
+                KelvinHandler.connectNodes(
+                    GasConnectionCreateData(
+                    createData.identifier,
+                    KelvinHandler.getNodeFromPos(this.worldPosition.relative(direction).toJOML()) ?: continue,
+                    0.125,
+                    0.0
+                )
+                )
+            }
+        }
+    }
+
+    override fun write(tag: CompoundTag, clientPacket: Boolean) {
+        tag.putLong("kelvin/nodeId", gasNodeID?.id ?: -1)
+        val posAsIntArray = IntArray(3)
+        posAsIntArray[0] = gasNodeID?.pos?.x() ?: 0
+        posAsIntArray[1] = gasNodeID?.pos?.y() ?: 0
+        posAsIntArray[2] = gasNodeID?.pos?.z() ?: 0
+        tag.putIntArray("kelvin/nodePos", posAsIntArray)
+        tag.putDouble("kelvin/temperature", temperature)
+        super.write(tag, clientPacket)
+    }
+
+    override fun read(tag: CompoundTag, clientPacket: Boolean) {
+        temperature = tag.getDouble("kelvin/temperature")
+        val posAsIntArray = tag.getIntArray("kelvin/nodePos")
+        val pos = Vector3i(posAsIntArray[0], posAsIntArray[1], posAsIntArray[2])
+        val id = tag.getLong("kelvin/nodeId")
+        if (id.toInt() != -1) {
+            this.gasNodeID = GasNodeIdentifier(pos, id)
+        }
+        super.read(tag, clientPacket)
+    }
 
     override fun tick() {
 
@@ -123,7 +171,7 @@ class GasNozzleBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Blo
     }
 
     override fun isNeighborPipe(direction: Direction): Boolean {
-        TODO("Not yet implemented")
+        return (level!!.getBlockEntity(worldPosition.relative(direction)) is HeatPipeBlockEntity)
     }
 
     override fun getHeatLimit(): Double {

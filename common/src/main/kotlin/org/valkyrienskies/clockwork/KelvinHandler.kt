@@ -104,12 +104,12 @@ object KelvinHandler {
     /**
      * For pipes.
      */
-    fun defaultGasNodeCreateData(pos: Vector3ic, id: GasNodeId = 0): GasNodeCreateData {
+    fun defaultGasNodeCreateData(pos: Vector3ic, id: GasNodeId = 0, initTemp: Double = 0.0): GasNodeCreateData {
         return GasNodeCreateData(
             GasNodeIdentifier(pos, id),
             EnumMap(GasType::class.java),
             0.375,
-            0.0
+            initTemp
         )
     }
 
