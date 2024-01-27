@@ -5,13 +5,16 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.Vector3i
 import org.joml.Vector3ic
+import org.joml.primitives.AABBi
 import org.joml.primitives.AABBic
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.ShipForcesInducer
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
+import org.valkyrienskies.core.util.expand
 import org.valkyrienskies.core.util.y
 import org.valkyrienskies.mod.common.util.toJOMLD
+import org.valkyrienskies.mod.util.logger
 import java.util.EnumMap
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -52,7 +55,12 @@ class DragController : ShipForcesInducer {
         }
 
         if (exposedFaces.isNotEmpty() && surfaceAreaByDirection.isNotEmpty()) {
-            physShip.applyInvariantForce(calculateDrag(impl))
+            val drag = calculateDrag(impl)
+            val dragPos = calculateDragPosition(impl)
+
+            if (drag.isFinite && dragPos.isFinite) {
+                physShip.applyInvariantForceToPos(drag, dragPos)
+            }
             physShip.applyInvariantTorque(calculateRotationalDrag()) //does nothing rn lol
         }
     }
@@ -74,12 +82,13 @@ class DragController : ShipForcesInducer {
 
         //NOTE TO SELF: REMEMBER TO USE OPPOSITE DIR
         for (dir in Direction.values()) {
-            val targetXMin = bounds!!.minX()
-            val targetYMin = bounds!!.minY()
-            val targetZMin = bounds!!.minZ()
-            val targetXMax = bounds!!.maxX()
-            val targetYMax = bounds!!.maxY()
-            val targetZMax = bounds!!.maxZ()
+            val actualBounds = bounds!!.expand(1, AABBi())
+            val targetXMin = actualBounds.minX()
+            val targetYMin = actualBounds.minY()
+            val targetZMin = actualBounds.minZ()
+            val targetXMax = actualBounds.maxX()
+            val targetYMax = actualBounds.maxY()
+            val targetZMax = actualBounds.maxZ()
 
             val step: Vector3ic = when (dir) {
                 Direction.WEST -> Vector3i(-1, 0, 0)
@@ -194,6 +203,29 @@ class DragController : ShipForcesInducer {
         return Vector3d(0.0,0.0,0.0)
     }
 
+    private fun calculateDragPosition(ship: PhysShipImpl): Vector3dc {
+        val motionVector: Vector3dc = ship.poseVel.vel
+        val motionNormal: Vector3dc = motionVector.normalize(Vector3d()).mul(-1.0)
+
+        val avgCenterOfPressure: Vector3d = Vector3d()
+        for (dir in Direction.values()) {
+            if (exposedFaces[dir]!!.isEmpty()) continue
+            val centerOfPressure = Vector3d()
+            exposedFaces[dir]!!.forEach {
+                centerOfPressure.add(it.x().toDouble(), it.y().toDouble(), it.z().toDouble())
+            }
+            centerOfPressure.div(exposedFaces[dir]!!.size.toDouble())
+            val dot = motionNormal.dot(dir.normal.toJOMLD())
+            centerOfPressure.mul(dot)
+            avgCenterOfPressure.add(centerOfPressure)
+        }
+
+        dragLogger.info("Center of Pressure: $avgCenterOfPressure")
+
+
+        return ship.transform.shipToWorld.transformPosition(avgCenterOfPressure, Vector3d())
+    }
+
     /**
      * Returns the density of air at a Y value adapted to a real life altitude, where Y = 60 is sea level, and Y = 320 is the top of the Troposphere.
      *
@@ -299,9 +331,11 @@ class DragController : ShipForcesInducer {
             return ship.getAttachment(DragController::class.java)
         }
 
-        private const val DRAG_COEFFICIENT = 0.8
+        private const val DRAG_COEFFICIENT = 1.05
         private const val GRAVITATIONAL_ACCELERATION = 9.80665
         private const val UNIVERSAL_GAS_CONSTANT = 8.3144598
         private const val AIR_MOLAR_MASS = 0.0289644
+
+        private val dragLogger by logger("Drag Controller")
     }
 }
