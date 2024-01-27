@@ -2,15 +2,19 @@ package org.valkyrienskies.clockwork
 
 import com.mojang.logging.LogUtils
 import com.simibubi.create.foundation.data.CreateRegistrate
+import dev.architectury.event.events.common.BlockEvent
 import dev.architectury.event.events.common.LifecycleEvent
+import dev.architectury.event.events.common.TickEvent
 import dev.architectury.registry.CreativeTabRegistry
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
 import org.slf4j.LoggerFactory
+import org.valkyrienskies.clockwork.content.forces.DragController
 import org.valkyrienskies.clockwork.content.forces.PocketForcesController
 import org.valkyrienskies.core.api.ships.setAttachment
 import org.valkyrienskies.core.impl.config.VSConfigClass
 import org.valkyrienskies.core.impl.hooks.VSEvents
+import org.valkyrienskies.mod.common.shipObjectWorld
 import kotlin.concurrent.thread
 
 object ClockworkMod {
@@ -46,6 +50,14 @@ object ClockworkMod {
 
         VSEvents.ShipLoadEvent.on { event ->
             event.ship.setAttachment(PocketForcesController())
+            event.ship.setAttachment(DragController())
+        }
+
+        TickEvent.SERVER_LEVEL_POST.register {
+            for (ship in it.shipObjectWorld.loadedShips) {
+                ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship)
+                ship.getAttachment(DragController::class.java)?.gameTick(ship)
+            }
         }
 
         kelvin = KelvinBackground(ClockworkConfig.SERVER.kelvinTickRate, ClockworkConfig.SERVER.kelvinSubSteps)
