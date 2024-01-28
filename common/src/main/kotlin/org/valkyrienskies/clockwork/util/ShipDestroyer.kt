@@ -62,8 +62,8 @@ object ShipDestroyer {
         // Direction comes from direction ship is aligning to
         // We can assume that the ship in shipspace is always facing north, because it has to be
         val rotation: Rotation = when (direction) {
-            Direction.SOUTH -> Rotation.CLOCKWISE_180 // Bug in Direction.from2DDataValue() can return south/north as opposite
-            Direction.NORTH -> Rotation.NONE
+            Direction.SOUTH -> Rotation.NONE // Bug in Direction.from2DDataValue() can return south/north as opposite
+            Direction.NORTH -> Rotation.CLOCKWISE_180
             Direction.EAST -> Rotation.COUNTERCLOCKWISE_90
             Direction.WEST -> Rotation.CLOCKWISE_90
             else -> {
@@ -120,7 +120,6 @@ object ShipDestroyer {
                         }
                     }
                 }
-
             }
         }
         // We update the blocks after they're set to prevent blocks from breaking
