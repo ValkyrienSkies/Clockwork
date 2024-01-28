@@ -22,7 +22,11 @@ public class ClockworkEvents {
 
     @SubscribeEvent
     public static void playerLeftClick(PlayerInteractEvent.LeftClickBlock event) {
-        GravitronItem.leftClickItem(event.getEntity(), GravitronItem.getState(event.getEntity()));
-        AuricDesignatorItem.onAttack(event.getEntity());
+        Player player = event.getEntity();
+        GravitronItem.leftClickItem(player, GravitronItem.getState(player));
+        boolean bl = AuricDesignatorItem.onAttack(player);
+        if (bl) {
+            event.setCanceled(true);
+        }
     }
 }

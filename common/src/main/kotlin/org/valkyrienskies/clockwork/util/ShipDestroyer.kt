@@ -61,8 +61,8 @@ object ShipDestroyer {
         // Direction comes from direction ship is aligning to
         // We can assume that the ship in shipspace is always facing north, because it has to be
         val rotation: Rotation = when (direction) {
-            Direction.SOUTH -> Rotation.CLOCKWISE_180 // Bug in Direction.from2DDataValue() can return south/north as opposite
-            Direction.NORTH -> Rotation.NONE
+            Direction.SOUTH -> Rotation.NONE // Bug in Direction.from2DDataValue() can return south/north as opposite
+            Direction.NORTH -> Rotation.CLOCKWISE_180
             Direction.EAST -> Rotation.COUNTERCLOCKWISE_90
             Direction.WEST -> Rotation.CLOCKWISE_90
             else -> {
@@ -103,11 +103,9 @@ object ShipDestroyer {
                             val realY = section.bottomBlockY() + y
                             val realZ = (chunkZ shl 4) + z
 
-                            val inWorldPos =
-                                shipToWorld.transformPosition(alloc0.set(realX + 0.5, realY + 0.5, realZ + 0.5)).floor()
+                            val inWorldPos = shipToWorld.transformPosition(alloc0.set(realX + 0.5, realY + 0.5, realZ + 0.5)).floor()
 
-                            val inWorldBlockPos =
-                                BlockPos(inWorldPos.x.toInt(), inWorldPos.y.toInt(), inWorldPos.z.toInt())
+                            val inWorldBlockPos = BlockPos(inWorldPos.x.toInt(), inWorldPos.y.toInt(), inWorldPos.z.toInt())
                             val inShipPos = BlockPos(realX, realY, realZ)
 
                             toUpdate.add(Triple(inShipPos, inWorldBlockPos, state))

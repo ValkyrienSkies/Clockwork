@@ -11,6 +11,8 @@ import org.valkyrienskies.clockwork.util.ShipDestroyer.unfillShip
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
+import kotlin.math.PI
+import kotlin.math.atan2
 import kotlin.math.floor
 
 class GravitronDestroyPacket : C2SCWPacket {
@@ -33,11 +35,12 @@ class GravitronDestroyPacket : C2SCWPacket {
             if (shipe != null) {
                 val invRotation = shipe.transform.shipToWorldRotation.invert(Quaterniond())
                 val invRotationAxisAngle = AxisAngle4d(invRotation)
-                val alignTarget = Direction.from2DDataValue(
-                    floor((invRotationAxisAngle.angle / (Math.PI * 0.5)) + 4.5)
-                        .toInt() % 4
-                )
 
+                val f = floor((invRotationAxisAngle.angle / (PI * 0.5)) + 4.5).toInt() % 4
+                var alignTarget = Direction.from2DDataValue(f)
+                if (invRotation.y < 0 && alignTarget != Direction.NORTH) {
+                    alignTarget = alignTarget.opposite
+                }
                 unfillShip(serverLevel, shipe, alignTarget)
             }
         }

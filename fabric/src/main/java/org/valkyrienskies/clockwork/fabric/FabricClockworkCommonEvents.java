@@ -21,7 +21,10 @@ public class FabricClockworkCommonEvents {
 
     public static InteractionResult playerLeftClick(Player player, Level level, InteractionHand interactionHand, BlockPos blockPos, Direction direction) {
         GravitronItem.leftClickItem(player, GravitronItem.getState(player));
-        AuricDesignatorItem.onAttack(player);
+        boolean bl = AuricDesignatorItem.onAttack(player);
+        if (bl) {
+            return InteractionResult.FAIL;
+        }
         return InteractionResult.PASS;
     }
 }
