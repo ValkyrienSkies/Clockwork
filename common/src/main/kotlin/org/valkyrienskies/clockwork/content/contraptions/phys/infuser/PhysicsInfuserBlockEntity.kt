@@ -277,61 +277,64 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         if (inventory[0].item !is AuricDesignatorItem) return
         val item: AuricDesignatorItem = inventory[0].item as AuricDesignatorItem
 
-        item.selectedArea.selectionClusters.forEach { cluster ->
-            val selection: DenseBlockPosSet
-            val caughtEntities: Set<Entity>
-            if (level is ServerLevel) {
-                val serverLevel = level as ServerLevel
-                selection = SelectedAreaToolkit.denseBlocksFromCluster(cluster)
-                caughtEntities = SelectedAreaToolkit.entitiesFromCluster(cluster, (level as ServerLevel))
-                if (selection == null) return@forEach
+        item.selectedArea.selectionClusters.run clusters@{
+            item.selectedArea.selectionClusters.forEach { cluster ->
+                val selection: DenseBlockPosSet
+                val caughtEntities: Set<Entity>
+                if (level is ServerLevel) {
+                    val serverLevel = level as ServerLevel
+                    selection = SelectedAreaToolkit.denseBlocksFromCluster(cluster)
+                    caughtEntities = SelectedAreaToolkit.entitiesFromCluster(cluster, (level as ServerLevel))
+                    if (selection == null) return@forEach
 
-                var bl = false
+                    var bl = false
 
-                selection.run loop@{
-                    selection.forEach { x, y, z ->
-                        if (!serverLevel.getBlockState(BlockPos(x, y, z)).isAir) {
-                            bl = true
-                            return@loop
-                        }
-                    }
-                }
-
-                if (!bl) {
-                    return@forEach
-                }
-
-                connectedShip = createNewShipWithBlocks(worldPosition, selection, level as ServerLevel)
-                // TODO: relocate entities properly cause it barely works
-                if (caughtEntities != null) {
-                    caughtEntities.forEach(Consumer { entity: Entity ->
-                        if (entity is AbstractContraptionEntity || entity is SuperGlueEntity || entity is SeatEntity) {
-                            if (entity !is SuperGlueEntity) {
-                                val oldPos: Vector3dc = entity.position().toJOML()
-                                val newPos: Vector3dc =
-                                    connectedShip!!.transform.worldToShip.transformPosition(oldPos, Vector3d())
-                                entity.moveTo(newPos.toMinecraft())
-                            } else {
-                                val glueEntity = entity
-                                val oldBounds = glueEntity.boundingBox
-                                val oldMax: Vector3dc = Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
-                                val oldMin: Vector3dc = Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
-                                val newMax: Vector3dc =
-                                    connectedShip!!.transform.worldToShip.transformPosition(oldMax, Vector3d())
-                                val newMin: Vector3dc =
-                                    connectedShip!!.transform.worldToShip.transformPosition(oldMin, Vector3d())
-                                val newBounds =
-                                    AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z())
-                                glueEntity.boundingBox = newBounds
-                                glueEntity.resetPositionToBB()
+                    selection.run loop@{
+                        selection.forEach { x, y, z ->
+                            if (!serverLevel.getBlockState(BlockPos(x, y, z)).isAir) {
+                                bl = true
+                                return@loop
                             }
                         }
-                    })
+                    }
+
+                    if (!bl) {
+                        return@forEach
+                    }
+
+                    connectedShip = createNewShipWithBlocks(worldPosition, selection, level as ServerLevel)
+                    // TODO: relocate entities properly cause it barely works
+                    if (caughtEntities != null) {
+                        caughtEntities.forEach(Consumer { entity: Entity ->
+                            if (entity is AbstractContraptionEntity || entity is SuperGlueEntity || entity is SeatEntity) {
+                                if (entity !is SuperGlueEntity) {
+                                    val oldPos: Vector3dc = entity.position().toJOML()
+                                    val newPos: Vector3dc =
+                                        connectedShip!!.transform.worldToShip.transformPosition(oldPos, Vector3d())
+                                    entity.moveTo(newPos.toMinecraft())
+                                } else {
+                                    val glueEntity = entity
+                                    val oldBounds = glueEntity.boundingBox
+                                    val oldMax: Vector3dc = Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
+                                    val oldMin: Vector3dc = Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
+                                    val newMax: Vector3dc =
+                                        connectedShip!!.transform.worldToShip.transformPosition(oldMax, Vector3d())
+                                    val newMin: Vector3dc =
+                                        connectedShip!!.transform.worldToShip.transformPosition(oldMin, Vector3d())
+                                    val newBounds =
+                                        AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z())
+                                    glueEntity.boundingBox = newBounds
+                                    glueEntity.resetPositionToBB()
+                                }
+                            }
+                        })
+                    }
+                    createdShips.add(connectedShip!!)
                 }
-                createdShips.add(connectedShip!!)
+                toDump.add(cluster)
             }
-            toDump.add(cluster)
         }
+
     }
 
     fun disassemble() {}
