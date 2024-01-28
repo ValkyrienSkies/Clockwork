@@ -56,7 +56,7 @@ object ClockworkMod {
         TickEvent.SERVER_LEVEL_POST.register {
             for (ship in it.shipObjectWorld.loadedShips) {
                 ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship)
-                ship.getAttachment(DragController::class.java)?.gameTick(ship)
+                ship.getAttachment(DragController::class.java)?.gameTick(ship, it)
             }
         }
 

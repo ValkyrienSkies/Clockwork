@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.forces
 
 import net.minecraft.core.Direction
+import net.minecraft.server.level.ServerLevel
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.Vector3i
@@ -13,6 +14,7 @@ import org.valkyrienskies.core.api.ships.ShipForcesInducer
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 import org.valkyrienskies.core.util.expand
 import org.valkyrienskies.core.util.y
+import org.valkyrienskies.mod.common.util.toBlockPos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.util.logger
 import java.util.EnumMap
@@ -31,6 +33,8 @@ class DragController : ShipForcesInducer {
     private var bounds: AABBic? = null
 
     private var shouldUpdate: Boolean = true
+
+    private var firstTimeUpdate: Boolean = true
 
     private var max_height: Double = 563.0
 
@@ -65,9 +69,27 @@ class DragController : ShipForcesInducer {
         }
     }
 
-    fun gameTick(ship: ServerShip) {
+    fun gameTick(ship: ServerShip, slevel: ServerLevel) {
         if (ship.shipAABB != null && ship.shipAABB != bounds) {
             aabbUpdateQueue.add(ship.shipAABB)
+        }
+
+        if (firstTimeUpdate) {
+            if (ship.shipAABB != null) {
+                val vecSet: HashSet<Pair<Vector3ic, Boolean>> = HashSet()
+                for (x in ship.shipAABB!!.minX() until ship.shipAABB!!.maxX()) {
+                    for (y in ship.shipAABB!!.minY() until ship.shipAABB!!.maxY()) {
+                        for (z in ship.shipAABB!!.minZ() until ship.shipAABB!!.maxZ()) {
+                            if (slevel.getBlockState(Vector3i(x, y, z).toBlockPos()).isAir) continue
+                            vecSet.add(Vector3i(x, y, z) to false)
+                        }
+                    }
+                }
+                if (vecSet.isNotEmpty()) {
+                    blockUpdateQueue.addAll(vecSet)
+                    firstTimeUpdate = false
+                }
+            }
         }
     }
 
