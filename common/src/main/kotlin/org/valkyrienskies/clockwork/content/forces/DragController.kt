@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork.content.forces
 
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerLevel
-import org.joml.Vector2ic
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.Vector3i
@@ -14,11 +13,10 @@ import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.ShipForcesInducer
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 import org.valkyrienskies.core.util.expand
-import org.valkyrienskies.core.util.y
 import org.valkyrienskies.mod.common.util.toBlockPos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.util.logger
-import java.util.EnumMap
+import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
 class DragController : ShipForcesInducer {
@@ -63,10 +61,15 @@ class DragController : ShipForcesInducer {
             val drag = calculateDrag(impl)
             val dragPos = calculateDragPosition(impl)
 
+            val rotDrag = calculateRotationalDrag(impl)
+
             if (drag.isFinite && dragPos.isFinite) {
                 physShip.applyInvariantForceToPos(drag, dragPos)
             }
-            physShip.applyInvariantTorque(calculateRotationalDrag()) //does nothing rn lol
+            if (rotDrag.isFinite) {
+                //dragLogger.info("Center of Pressure: $dragPos")
+                physShip.applyInvariantTorque(rotDrag)
+            }
         }
     }
 
@@ -226,13 +229,35 @@ class DragController : ShipForcesInducer {
 
         val dragForce = DRAG_COEFFICIENT * density * (motionVector.lengthSquared()/2.0) * exposedArea
 
+
         return motionNormal.mul(dragForce, Vector3d())
     }
 
-    private fun calculateRotationalDrag(): Vector3dc {
-        //todo: implement
-        //response: no, later
-        return Vector3d(0.0,0.0,0.0)
+    private fun calculateRotationalDrag(ship: PhysShipImpl): Vector3dc {
+//        val motionVector: Vector3dc = ship.poseVel.omega
+//        val motionNormal: Vector3dc = motionVector.normalize(Vector3d()).mul(-1.0)
+//
+//        val density = getAirDensityForY(ship.poseVel.pos.y())
+//
+//        var exposedArea = 0.0
+//
+//        for (dir in Direction.values()) {
+//            val surfaceArea = surfaceAreaByDirection[dir]?: continue
+//            val dot = motionNormal.dot(dir.normal.toJOMLD())
+//            if (dot > 0) {
+//                exposedArea += surfaceArea * dot
+//            }
+//        }
+//
+//        val dragForce = DRAG_COEFFICIENT * density * (motionVector.lengthSquared()/2.0) * exposedArea
+//
+//        return motionNormal.mul(dragForce, Vector3d())
+
+        //temporarily just *.99
+        var resistance = 0.02
+
+        return ship.poseVel.omega.mul(ship.inertia.momentOfInertiaTensor, Vector3d())
+            .mul(-resistance)
     }
 
     private fun calculateDragPosition(ship: PhysShipImpl): Vector3dc {
@@ -240,22 +265,27 @@ class DragController : ShipForcesInducer {
         val motionNormal: Vector3dc = motionVector.normalize(Vector3d()).mul(-1.0)
 
         val avgCenterOfPressure: Vector3d = Vector3d()
+        var sumOfWeights = 0.0
         for (dir in Direction.values()) {
             if (exposedFaces[dir]!!.isEmpty()) continue
             val centerOfPressure = Vector3d()
             exposedFaces[dir]!!.forEach {
-                centerOfPressure.add(it.x().toDouble(), it.y().toDouble(), it.z().toDouble())
+                centerOfPressure.add(it.x().toDouble(), it.y().toDouble(), it.z().toDouble()).add(0.5, 0.5, 0.5).add(dir.normal.toJOMLD().mul(0.5, Vector3d()))
             }
             centerOfPressure.div(exposedFaces[dir]!!.size.toDouble())
             val dot = motionNormal.dot(dir.normal.toJOMLD())
-            centerOfPressure.mul(dot)
-            avgCenterOfPressure.add(centerOfPressure)
+            if (dot > 0.0) {
+                centerOfPressure.mul(dot)
+                avgCenterOfPressure.add(centerOfPressure)
+                sumOfWeights += dot
+            }
         }
 
-        dragLogger.info("Center of Pressure: $avgCenterOfPressure")
+        val realAvg: Vector3dc = if (sumOfWeights != 0.0) avgCenterOfPressure.div(sumOfWeights) else avgCenterOfPressure
 
+        //return ship.transform.shipToWorld.transformPosition(realAvg, Vector3d())
 
-        return ship.transform.shipToWorld.transformPosition(avgCenterOfPressure, Vector3d())
+        return realAvg.sub(ship.transform.positionInShip, Vector3d())
     }
 
     /**
@@ -363,7 +393,7 @@ class DragController : ShipForcesInducer {
             return ship.getAttachment(DragController::class.java)
         }
 
-        private const val DRAG_COEFFICIENT = 1.05
+        private const val DRAG_COEFFICIENT = 2.05
         private const val GRAVITATIONAL_ACCELERATION = 9.80665
         private const val UNIVERSAL_GAS_CONSTANT = 8.3144598
         private const val AIR_MOLAR_MASS = 0.0289644
