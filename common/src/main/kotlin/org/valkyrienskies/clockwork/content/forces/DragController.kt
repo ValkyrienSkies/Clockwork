@@ -77,9 +77,9 @@ class DragController : ShipForcesInducer {
         if (firstTimeUpdate) {
             if (ship.shipAABB != null) {
                 val vecSet: HashSet<Pair<Vector3ic, Boolean>> = HashSet()
-                for (x in ship.shipAABB!!.minX() until ship.shipAABB!!.maxX()) {
-                    for (y in ship.shipAABB!!.minY() until ship.shipAABB!!.maxY()) {
-                        for (z in ship.shipAABB!!.minZ() until ship.shipAABB!!.maxZ()) {
+                for (x in ship.shipAABB!!.minX() .. ship.shipAABB!!.maxX()) {
+                    for (y in ship.shipAABB!!.minY() .. ship.shipAABB!!.maxY()) {
+                        for (z in ship.shipAABB!!.minZ() .. ship.shipAABB!!.maxZ()) {
                             if (slevel.getBlockState(Vector3i(x, y, z).toBlockPos()).isAir) continue
                             vecSet.add(Vector3i(x, y, z) to false)
                         }
@@ -123,7 +123,7 @@ class DragController : ShipForcesInducer {
             }
 
             val foundEdgesForDir = HashSet<Vector3ic>()
-            for (x in targetXMin until targetXMax) {
+            for (x in targetXMin .. targetXMax) {
                 for (y in targetYMin..targetYMax) {
                     for (z in targetZMin..targetZMax) {
                         val pos: Vector3ic = Vector3i(x, y, z)
