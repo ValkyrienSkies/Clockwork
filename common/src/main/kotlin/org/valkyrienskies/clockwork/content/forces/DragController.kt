@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.content.forces
 
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerLevel
+import org.joml.Vector2ic
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.Vector3i
@@ -112,84 +113,93 @@ class DragController : ShipForcesInducer {
             val targetYMax = actualBounds.maxY()
             val targetZMax = actualBounds.maxZ()
 
-            val step: Vector3ic = when (dir) {
-                Direction.WEST -> Vector3i(-1, 0, 0)
-                Direction.DOWN -> Vector3i(0, -1, 0)
-                Direction.NORTH -> Vector3i(0, 0, -1)
-                Direction.EAST -> Vector3i(1, 0, 0)
-                Direction.UP -> Vector3i(0, 1, 0)
-                Direction.SOUTH -> Vector3i(0, 0, 1)
-                else -> Vector3i(0, 0, 0)
-            }
-
             val foundEdgesForDir = HashSet<Vector3ic>()
-            for (x in targetXMin .. targetXMax) {
-                for (y in targetYMin..targetYMax) {
-                    for (z in targetZMin..targetZMax) {
-                        val pos: Vector3ic = Vector3i(x, y, z)
-                        if (allBlocks.contains(pos)) {
-                            val edge = pos.add(step, Vector3i())
-                            var isRealEdge = false
-                            if (!allBlocks.contains(edge)) {
-                                isRealEdge = true
-                                //possible edge, time to check
-                                val maxToCheck = when (dir) {
-                                    Direction.WEST -> bounds!!.minX()
-                                    Direction.DOWN -> bounds!!.minY()
-                                    Direction.NORTH -> bounds!!.minZ()
-                                    Direction.EAST -> bounds!!.maxX()
-                                    Direction.UP -> bounds!!.maxY()
-                                    Direction.SOUTH -> bounds!!.maxZ()
-                                    else -> 0
-                                }
-                                val check = when (dir) {
-                                    Direction.UP, Direction.DOWN -> pos.y()
-                                    Direction.NORTH, Direction.SOUTH -> pos.z()
-                                    Direction.WEST, Direction.EAST -> pos.x()
-                                    else -> 0
-                                }
 
-                                if (check > maxToCheck) {
-                                    for (w in check downTo maxToCheck) {
-                                        val checkEdge = when (dir) {
-                                            Direction.WEST, Direction.EAST -> Vector3i(w, pos.y(), pos.z())
-                                            Direction.DOWN, Direction.UP -> Vector3i(pos.x(), w, pos.z())
-                                            Direction.NORTH, Direction.SOUTH -> Vector3i(pos.x(), pos.y(), w)
-                                            else -> Vector3i()
-                                        }
-                                        if (allBlocks.contains(checkEdge)) {
-                                            isRealEdge = false
-                                            break
-                                        }
-                                    }
-                                } else {
-                                    for (w in check until maxToCheck) {
-                                        val checkEdge = when (dir) {
-                                            Direction.WEST, Direction.EAST -> Vector3i(w, pos.y(), pos.z())
-                                            Direction.DOWN, Direction.UP -> Vector3i(pos.x(), w, pos.z())
-                                            Direction.NORTH, Direction.SOUTH -> Vector3i(pos.x(), pos.y(), w)
-                                            else -> Vector3i()
-                                        }
-                                        if (allBlocks.contains(checkEdge)) {
-                                            isRealEdge = false
-                                            break
-                                        }
-                                    }
+            when (dir) {
+                Direction.NORTH -> {
+                    for (x in targetXMin .. targetXMax) {
+                        for (y in targetYMin .. targetYMax) {
+                            for (z in targetZMin .. targetZMax) {
+                                val pos = Vector3i(x, y, z)
+                                if (allBlocks.contains(pos)) {
+                                    foundEdgesForDir.add(pos)
+                                    break
                                 }
-                            }
-
-                            if (isRealEdge) {
-                                foundEdgesForDir.add(pos)
                             }
                         }
                     }
                 }
+                Direction.SOUTH -> {
+                    for (x in targetXMin .. targetXMax) {
+                        for (y in targetYMin .. targetYMax) {
+                            for (z in targetZMax downTo targetZMin) {
+                                val pos = Vector3i(x, y, z)
+                                if (allBlocks.contains(pos)) {
+                                    foundEdgesForDir.add(pos)
+                                    break
+                                }
+                            }
+                        }
+                    }
+                }
+                Direction.EAST -> {
+                    for (z in targetZMin .. targetZMax ) {
+                        for (y in targetYMin .. targetYMax) {
+                            for (x in targetXMax downTo targetXMin) {
+                                val pos = Vector3i(x, y, z)
+                                if (allBlocks.contains(pos)) {
+                                    foundEdgesForDir.add(pos)
+                                    break
+                                }
+                            }
+                        }
+                    }
+                }
+                Direction.WEST -> {
+                    for (z in targetZMin .. targetZMax ) {
+                        for (y in targetYMin .. targetYMax) {
+                            for (x in targetXMin .. targetXMax) {
+                                val pos = Vector3i(x, y, z)
+                                if (allBlocks.contains(pos)) {
+                                    foundEdgesForDir.add(pos)
+                                    break
+                                }
+                            }
+                        }
+                    }
+                }
+                Direction.UP -> {
+                    for (x in targetXMin .. targetXMax) {
+                        for (z in targetZMin .. targetZMax) {
+                            for (y in targetYMax downTo targetYMin) {
+                                val pos = Vector3i(x, y, z)
+                                if (allBlocks.contains(pos)) {
+                                    foundEdgesForDir.add(pos)
+                                    break
+                                }
+                            }
+                        }
+                    }
+                }
+                Direction.DOWN -> {
+                    for (x in targetXMin .. targetXMax) {
+                        for (z in targetZMin .. targetZMax) {
+                            for (y in targetYMin .. targetYMax) {
+                                val pos = Vector3i(x, y, z)
+                                if (allBlocks.contains(pos)) {
+                                    foundEdgesForDir.add(pos)
+                                    break
+                                }
+                            }
+                        }
+                    }
+                }
+                else -> {}
             }
             foundEdges[dir] = foundEdgesForDir
-            //ensure actual edges and not just like exposed inner wall or smthn
         }
 
-        exposedFaces += foundEdges
+        exposedFaces.putAll(foundEdges)
         for (dir in Direction.values()) {
             val surfaceArea = exposedFaces[dir]!!.size.toDouble()
             surfaceAreaByDirection[dir] = surfaceArea
