@@ -21,7 +21,8 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.Gravitro
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem.Companion.getState
 import org.valkyrienskies.clockwork.util.ClockworkUtils.readVec3
 import org.valkyrienskies.core.api.ships.LoadedServerShip
-import org.valkyrienskies.mod.common.dimensionId
+import org.valkyrienskies.core.api.ships.ServerShip
+import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.isBlockInShipyard
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOML
@@ -34,126 +35,92 @@ class GrabTool : GravitronToolBase() {
         return true
     }
 
-    override fun handleMouseWheel(delta: Double): Boolean {
-        return false
-    }
-
     companion object {
 
+        /**
+         * Converts a pitch and yaw rotation to Quaterniond
+         */
         private fun playerRotToQuaternion(pitch: Double, yaw: Double): Quaterniond {
             return Quaterniond().rotateY(Math.toRadians(-yaw)).rotateX(Math.toRadians(pitch))
         }
 
-        private fun dropShip(s: GravitronState, level: ServerLevel) {
-            val grabbedShipId = s.shipID
-            if (grabbedShipId != null) {
-                val loadedShip = level.shipObjectWorld.loadedShips.getById(grabbedShipId)
-                if (loadedShip != null) {
-                    val gravitronForceInducer = getOrCreate(loadedShip)
+        /**
+         * Will nullify the force inducer and effectively returning the ship to its regular physics, a success will return true
+         */
+        fun dropShip(player: Player) : Boolean{
+            if (getState(player).shipID != null && player.level is ServerLevel) {
+                val serverLevel = player.level as ServerLevel
+                val ship = serverLevel.shipObjectWorld.loadedShips.getById(getState(player).shipID!!)
+                if (ship != null) {
+                    val gravitronForceInducer = getOrCreate(ship)
                     gravitronForceInducer.data = null
+                    getState(player).shipID = null
+                    return true
                 }
             }
-
-            s.grabbing = false
-            s.shipID = null
-            s.shouldDrop = false
+            return false
         }
 
+        /**
+         * Controls the ships position and rotation when a player is grabbing the ship with the Gravitron.
+         * The force calculated will be applied with GravitronForceInducer
+         */
+        private fun updateShipCommon(s: GravitronState, level: ServerLevel, entity: Entity, customRotation: Vector2d?) {
+            if (s.shipID != null) {
+                val ship = level.shipObjectWorld.loadedShips.getById(s.shipID!!)
+                if (ship != null && s.playerGrabbedRotation != null && s.shipGrabbedDistance != null
+                    && s.shipGrabbedPos != null && s.heldBlockPos != null
+                ) {
+                    val playerCurrentRotation = customRotation ?: Vector2d(entity.xRot.toDouble(), entity.yRot.toDouble())
+                    val origPlayerRot = playerRotToQuaternion(s.playerGrabbedRotation!!.x(), s.playerGrabbedRotation!!.y()).normalize()
+                    val newPlayerRot = playerRotToQuaternion(playerCurrentRotation.x(), playerCurrentRotation.y()).normalize()
+                    val deltaPlayerRot = newPlayerRot.mul(origPlayerRot.conjugate(Quaterniond()), Quaterniond())
+                    val rotation = deltaPlayerRot.mul(s.shipGrabbedRot, Quaterniond()).normalize()
+
+                    // Update Pos Values
+                    val lookDif = entity.lookAngle.toJOML().normalize().mul(s.shipGrabbedDistance!!)
+                    s.heldBlockPos = entity.eyePosition.toJOML().add(lookDif)
+                    val location = Vector3d(s.shipGrabbedPos)
+                    val position = Vector3d(s.heldBlockPos)
+
+                    val gravitronForceInducer = getOrCreate(ship)
+                    val newData = GravitronForceInducerData(position, rotation, location)
+                    gravitronForceInducer.data = newData
+                }
+            }
+        }
+
+        /**
+         * Used with updateShipCommon to use the players rotation to determine the ships relative rotation
+         */
         private fun updateShip(s: GravitronState, level: ServerLevel, entity: Entity) {
-            if (s.grabbing) {
-                val shipId = s.shipID
-                if (shipId != null) {
-                    val shipUnloaded = level.shipObjectWorld.allShips.getById(shipId)
-                    val ship = level.shipObjectWorld.loadedShips.getById(shipId)
-                    if (ship != null && s.playerGrabbedRotation != null && s.shipGrabbedDistance != null && s.shipGrabbedPos != null && s.heldBlockPos != null) {
-                        // Update Rot Values
-                        val playerCurrentRotation = Vector2d(entity.xRot.toDouble(), entity.yRot.toDouble())
-                        val origPlayerRot =
-                            playerRotToQuaternion(
-                                s.playerGrabbedRotation!!.x(),
-                                s.playerGrabbedRotation!!.y()
-                            ).normalize()
-                        val newPlayerRot =
-                            playerRotToQuaternion(playerCurrentRotation.x(), playerCurrentRotation.y()).normalize()
-                        val deltaPlayerRot = newPlayerRot.mul(origPlayerRot.conjugate(Quaterniond()), Quaterniond())
-                        val rotation = deltaPlayerRot.mul(s.shipGrabbedRot, Quaterniond()).normalize()
-
-                        // Update Pos Values
-                        val lookDif = entity.lookAngle.toJOML().normalize().mul(s.shipGrabbedDistance!!)
-                        s.heldBlockPos = entity.eyePosition.toJOML().add(lookDif)
-                        val location = Vector3d(s.shipGrabbedPos)
-                        val position = Vector3d(s.heldBlockPos)
-
-                        val gravitronForceInducer = getOrCreate(ship)
-                        val newData = GravitronForceInducerData(position, rotation, location)
-                        gravitronForceInducer.data = newData
-                    } else if (shipUnloaded == null) {
-                        dropShip(s, level)
-                    }
-                }
-            }
+            updateShipCommon(s, level, entity, null)
         }
 
+        /**
+         * Used with updateShipCommon with an added Direction to lock the ships direction
+         */
         private fun updateShipDirection(s: GravitronState, level: ServerLevel, entity: Entity, dir: Direction) {
-            if (s.grabbing) {
-                val shipId = s.shipID
-                if (shipId != null) {
-                    val shipUnloaded = level.shipObjectWorld.allShips.getById(shipId)
-                    val ship = level.shipObjectWorld.loadedShips.getById(shipId)
-                    if (ship != null && s.playerGrabbedRotation != null && s.shipGrabbedDistance != null && s.shipGrabbedPos != null && s.heldBlockPos != null) {
-                        // Update Rot Values
-                        val lockedCurrentRotation = Vector2d(0.0, (dir.get2DDataValue() * 90).toDouble())
-                        val origPlayerRot =
-                            playerRotToQuaternion(
-                                s.playerGrabbedRotation!!.x(),
-                                s.playerGrabbedRotation!!.y()
-                            ).normalize()
-                        val newPlayerRot =
-                            playerRotToQuaternion(lockedCurrentRotation.x(), lockedCurrentRotation.y()).normalize()
-                        val deltaPlayerRot = newPlayerRot.mul(origPlayerRot.conjugate(Quaterniond()), Quaterniond())
-                        val rotation = deltaPlayerRot.mul(s.shipGrabbedRot, Quaterniond()).normalize()
-
-                        // Update Pos Values
-                        val lookDif = entity.lookAngle.toJOML().normalize().mul(s.shipGrabbedDistance!!)
-                        s.heldBlockPos = entity.eyePosition.toJOML().add(lookDif)
-                        val location = Vector3d(s.shipGrabbedPos)
-                        val position = Vector3d(s.heldBlockPos)
-
-                        val gravitronForceInducer = getOrCreate(ship)
-                        val newData = GravitronForceInducerData(position, rotation, location)
-                        gravitronForceInducer.data = newData
-                    } else if (shipUnloaded == null) {
-                        dropShip(s, level)
-                    }
-                }
-            }
+            val lockedCurrentRotation = Vector2d(0.0, (dir.get2DDataValue() * 90).toDouble())
+            updateShipCommon(s, level, entity, lockedCurrentRotation)
         }
 
+        /**
+         * Handles updating the ship with updateShipDirection and updateShip if there is a stored shipId.
+         * Handles the queued grab from Grabssemble, is the Gravitron has nbt for it
+         */
         @JvmStatic
         fun tick(player: Player) {
             if (player.level is ServerLevel) {
                 val s = getState(player)
-                val graviton = player.getMainHandItem()
+                val graviton = player.mainHandItem
                 val serverLevel = player.level as ServerLevel
 
-                if (!s.shouldDrop && graviton.`is`(ClockworkItems.GRAVITRON.get().asItem())) {
-                    if (AllKeys.ACTIVATE_TOOL.isPressed) {
-                        updateShipDirection(s, serverLevel, player, player.getDirection())
-                    } else {
-                        updateShip(s, serverLevel, player)
-                    }
-                } else {
-                    dropShip(s, serverLevel)
+                if (s.shipID != null && graviton.`is`(ClockworkItems.GRAVITRON.get().asItem())) {
+                    updateShip(s, serverLevel, player)
                 }
 
-                if (s.grabCD != null && s.grabCD!! > 0) {
-                    s.grabCD = s.grabCD!! - 1
-                }
-                if (graviton.hasTag() && graviton.tag!!.contains("GrabbedPosInShip") && !player.cooldowns.isOnCooldown(
-                        graviton.item
-                    )
-                ) {
-                    s.grabbing = true
+                if (graviton.hasTag() && graviton.tag!!.contains("GrabbedPosInShip") && !player.cooldowns.isOnCooldown(graviton.item)) {
                     val tag = graviton.tag
 
                     val clickLocation = readVec3(tag!!.getList("GrabbedPosInShip", Tag.TAG_DOUBLE.toInt()))
@@ -162,7 +129,7 @@ class GrabTool : GravitronToolBase() {
                     val ship: LoadedServerShip? = serverLevel.shipObjectWorld.loadedShips.getById(id)
                     if (ship != null) {
                         val transformedPos = ship.worldToShip.transformPosition(clickLocation.toJOML(), Vector3d())
-                        grabShip(s, player, ship, transformedPos)
+                        grabShip(player, ship, transformedPos)
                         graviton.removeTagKey("ShipId")
                         graviton.removeTagKey("GrabbedPosInShip")
                     }
@@ -170,14 +137,21 @@ class GrabTool : GravitronToolBase() {
             }
         }
 
+        /**
+         * Drops a ship if one is stored.
+         * Tries to grab a ship with a given Position
+         */
         @JvmStatic
         fun tryGrabShip(level: ServerLevel, player: Player, clickedPos: BlockPos, clickLocation: Vec3): Boolean {
-            val chunkX = clickedPos.x shr 4
-            val chunkZ = clickedPos.z shr 4
-            val ship = level.shipObjectWorld.loadedShips.getByChunkPos(chunkX, chunkZ, level.dimensionId)
+
+            if (dropShip(player)) {
+                return true
+            }
+
+            val ship = level.getShipManagingPos(clickedPos)
             val grabPosInShip: Vector3dc = clickLocation.toJOML()
             val grabPosInWorld = Vector3d(grabPosInShip)
-            val s = getState(player)
+
             if (level.isBlockInShipyard(clickedPos) && ship == null) {
                 return false
             }
@@ -187,20 +161,26 @@ class GrabTool : GravitronToolBase() {
             } else {
                 ship.shipToWorld.transformPosition(grabPosInWorld)
             }
-            grabShip(s, player, ship, grabPosInShip)
+
+            grabShip(player, ship, grabPosInShip)
+
             return true
         }
 
-        private fun grabShip(s: GravitronState, p: Player, ship: LoadedServerShip, grabPosInShip: Vector3dc) {
+        /**
+         * Grab a ship, makes ship not static and stores some data into GravitronState
+         */
+        private fun grabShip(player: Player, ship: ServerShip, grabPosInShip: Vector3dc) {
+            val s = getState(player)
             val heldPosInWorld = Vector3d()
             ship.transform.shipToWorld.transformPosition(Vector3d(grabPosInShip), heldPosInWorld)
 
             s.shipID = ship.id
             s.heldBlockPos = heldPosInWorld
-            s.playerGrabbedRotation = Vector2d(p.xRot.toDouble(), p.yRot.toDouble())
+            s.playerGrabbedRotation = Vector2d(player.xRot.toDouble(), player.yRot.toDouble())
             s.shipGrabbedPos = Vector3d(grabPosInShip)
             s.shipGrabbedRot = ship.transform.shipToWorldRotation
-            s.shipGrabbedDistance = p.eyePosition.toJOML().distance(heldPosInWorld)
+            s.shipGrabbedDistance = player.eyePosition.toJOML().distance(heldPosInWorld)
             ship.isStatic = false
         }
     }

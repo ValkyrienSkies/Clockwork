@@ -37,7 +37,6 @@ import org.valkyrienskies.core.apigame.world.ServerShipWorldCore;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.mixin.mod_compat.create.blockentity.IMixinMechanicalBearingTileEntity;
 import org.valkyrienskies.mod.mixinducks.mod_compat.create.IMixinControlledContraptionEntity;
-import org.valkyrienskies.mod.mixinducks.mod_compat.create.MixinAbstractContraptionEntityDuck;
 
 import javax.annotation.Nullable;
 import java.util.Iterator;

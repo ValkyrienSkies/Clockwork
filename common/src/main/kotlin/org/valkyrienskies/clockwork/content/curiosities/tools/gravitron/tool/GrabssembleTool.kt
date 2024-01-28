@@ -5,7 +5,6 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.Gravitro
 
 class GrabssembleTool : GravitronToolBase() {
 
-
     override fun handleRightClick(): Boolean {
         updateTargetPos()
         sendToServer(GravitronGrabPacket(clickedPos, clickedLocation, GRABSSEMBLE))

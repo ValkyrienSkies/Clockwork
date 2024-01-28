@@ -5,7 +5,6 @@ import com.simibubi.create.content.contraptions.ITransformableBlock
 import com.simibubi.create.content.contraptions.StructureTransform
 import com.simibubi.create.content.decoration.bracket.BracketedBlockEntityBehaviour
 import com.simibubi.create.content.equipment.wrench.IWrenchable
-import com.simibubi.create.content.fluids.pipes.FluidPipeBlock
 import com.simibubi.create.content.fluids.pipes.FluidPipeBlockRotation
 import com.simibubi.create.content.fluids.pipes.VanillaFluidTargets
 import com.simibubi.create.foundation.block.IBE
@@ -20,6 +19,7 @@ import net.minecraft.world.level.BlockAndTintGetter
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.PipeBlock
+import net.minecraft.world.level.block.RenderShape
 import net.minecraft.world.level.block.SimpleWaterloggedBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
@@ -40,6 +40,10 @@ class HeatPipeBlock(properties: Properties) :
 
     init {
         registerDefaultState(super.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, false))
+    }
+
+    override fun getRenderShape(state: BlockState): RenderShape {
+        return RenderShape.INVISIBLE
     }
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {

@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.fabric;
 
 import com.simibubi.create.AllTags;
-import com.simibubi.create.Create;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.tterrag.registrate.builders.FluidBuilder;
 import com.tterrag.registrate.fabric.SimpleFlowableFluid;
@@ -14,7 +13,6 @@ import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.material.Fluid;
 import org.valkyrienskies.clockwork.ClockworkMod;
-import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate;
 
 import static net.minecraft.world.item.Items.BUCKET;
 

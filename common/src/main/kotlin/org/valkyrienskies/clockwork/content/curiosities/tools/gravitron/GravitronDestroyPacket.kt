@@ -9,6 +9,7 @@ import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
 import org.valkyrienskies.clockwork.platform.api.network.ServerNetworkContext
 import org.valkyrienskies.clockwork.util.ShipDestroyer.unfillShip
 import org.valkyrienskies.mod.common.dimensionId
+import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
 import kotlin.math.PI
 import kotlin.math.atan2
@@ -29,16 +30,12 @@ class GravitronDestroyPacket : C2SCWPacket {
         context.enqueueWork {
             val serverPlayer = context.sender
             val serverLevel = serverPlayer.getLevel()
-            val chunkX = clickedPos!!.x shr 4
-            val chunkZ = clickedPos!!.z shr 4
-            val ship = serverLevel.shipObjectWorld.loadedShips.getByChunkPos(
-                chunkX,
-                chunkZ,
-                serverLevel.dimensionId
-            )
-            if (ship != null) {
-                val invRotation = ship.transform.shipToWorldRotation.invert(Quaterniond())
+
+            val shipe = serverLevel.getShipManagingPos(clickedPos!!)
+            if (shipe != null) {
+                val invRotation = shipe.transform.shipToWorldRotation.invert(Quaterniond())
                 val invRotationAxisAngle = AxisAngle4d(invRotation)
+
 
                 val f = floor((invRotationAxisAngle.angle / (PI * 0.5)) + 4.5).toInt() % 4
                 var alignTarget = Direction.from2DDataValue(f)
@@ -51,6 +48,6 @@ class GravitronDestroyPacket : C2SCWPacket {
     }
 
     override fun write(buffer: FriendlyByteBuf) {
-        buffer.writeBlockPos(clickedPos)
+        buffer.writeBlockPos(clickedPos!!)
     }
 }

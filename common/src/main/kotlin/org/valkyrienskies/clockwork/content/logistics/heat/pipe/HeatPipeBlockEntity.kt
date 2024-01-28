@@ -11,6 +11,8 @@ import net.minecraft.core.Direction
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.content.logistics.heat.IHeatable
+import java.util.*
+import kotlin.collections.HashMap
 
 class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : SmartBlockEntity(type, pos, state), ITransformableBlockEntity, IHeatable {
 
@@ -32,12 +34,12 @@ class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     }
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun getAttachedNeighbors(): List<IHeatable> {
-        val neighbors: MutableList<IHeatable> = mutableListOf()
+    override fun getAttachedNeighbors(): EnumMap<Direction, IHeatable> {
+        val neighbors: EnumMap<Direction, IHeatable> = EnumMap(net.minecraft.core.Direction::class.java)
         for (direction in Direction.entries) {
             level!!.getBlockEntity(worldPosition.relative(direction))?.let {
                 if (it is IHeatable) {
-                    neighbors.add(it)
+                    neighbors[direction] = it
                 }
             }
         }

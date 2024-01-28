@@ -79,11 +79,7 @@ open class GravitronHandler {
 
     private fun itemLost(player: Player?): Boolean {
         for (i in 0 until Inventory.getSelectionSize()) {
-            if (!ItemStack.matches(
-                    player!!.inventory
-                        .getItem(i), activeSchematicItem
-                )
-            ) {
+            if (!ItemStack.matches(player!!.inventory.getItem(i), activeSchematicItem)) {
                 continue
             }
             return false
@@ -148,8 +144,7 @@ open class GravitronHandler {
             return true
         }
         if (AllKeys.ctrlDown()) {
-            return currentTool!!.tool
-                .handleMouseWheel(delta)
+            return currentTool!!.tool.handleMouseWheel(delta)
         }
         return false
     }

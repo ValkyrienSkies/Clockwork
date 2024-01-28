@@ -28,6 +28,7 @@ import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRe
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRenderer
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import java.util.function.BiFunction
@@ -244,6 +245,13 @@ object ClockworkBlockEntities {
                 pos,
                 state
             )
+        }
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in HeatPipeBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                HeatPipeBlockEntityRenderer(
+                    context!!
+                )
+            }
         }
         .validBlocks(ClockworkBlocks.HEAT_PIPE)
         .register()

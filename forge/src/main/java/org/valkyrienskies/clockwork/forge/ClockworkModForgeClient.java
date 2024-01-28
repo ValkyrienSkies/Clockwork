@@ -4,7 +4,6 @@ import com.simibubi.create.AllParticleTypes;
 import net.minecraftforge.client.gui.ForgeIngameGui;
 import net.minecraftforge.client.gui.OverlayRegistry;
 import net.minecraftforge.eventbus.api.IEventBus;
-import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.ClockworkModClient;
 import org.valkyrienskies.clockwork.ClockworkPartials;
 import org.valkyrienskies.clockwork.ClockworkShaders;

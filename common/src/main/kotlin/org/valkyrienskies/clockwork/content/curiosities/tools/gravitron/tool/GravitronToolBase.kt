@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
+import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler
 import org.valkyrienskies.clockwork.platform.SharedValues
 import org.valkyrienskies.mod.common.util.toDoubles
@@ -19,6 +20,10 @@ abstract class GravitronToolBase : IGravitronTool {
     var clickedLocation: Vec3? = null
 
 
+    /**
+     * This function will store the block the player looks
+     * at withing 15 blocks to be accessed by the Gravitrons other functions
+     */
     fun updateTargetPos() {
         val player = Minecraft.getInstance().player
 
@@ -30,7 +35,7 @@ abstract class GravitronToolBase : IGravitronTool {
         }
 
         clickedPos = trace.blockPos.immutable()
-        ToolType
+
         clickedLocation = clickedPos!!.toDoubles().add(0.5,0.5,0.5)
     }
 

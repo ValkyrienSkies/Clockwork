@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "WB",
+    "BO"
+  ],
+  "key": {
+    "W": {
+      "tag": "minecraft:wool"
+    },
+    "B": {
+      "tag": "forge:nuggets/brass"
+    },
+    "O": {
+      "tag": "forge:plates/obsidian"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:wing",
+    "count": 8
+  }
+}

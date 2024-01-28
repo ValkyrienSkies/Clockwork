@@ -13,6 +13,15 @@ loom {
     accessWidenerPath = project(":common").loom.accessWidenerPath
 }
 
+if (project.hasProperty("CustomReleaseVersion")) {
+    // Remove release/ from the version if present
+    version = project.property("CustomReleaseVersion").replaceFirst("^release/", "")
+} else {
+    String gitRevision = "git rev-parse HEAD".execute().text.trim()
+
+    version = minecraft_version + '-'+ mod_version + '-' + "fabric" + '-' + gitRevision.substring(0, 10)
+}
+
 configurations {
     common
     shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
@@ -80,14 +89,13 @@ dependencies {
     // Development QOL
     modLocalRuntime("maven.modrinth:lazydfu:${lazydfu_version}")
 
-    //modLocalRuntime("maven.modrinth.eureka:${eureka_fabric_version}") { transitive = false }
-    //modLocalRuntime("curse.maven:dynamic-fps-335493:3606973")
-    //modLocalRuntime("curse.maven:smooth-boot-415758:3692365")
     modLocalRuntime("com.moandjiezana.toml:toml4j:0.7.2")
 
     // CC Restitched
     modCompileOnly("curse.maven:cc-restitched-462672:3622561")
 
+    //JEI
+    modRuntimeOnly("mezz.jei:jei-${minecraft_version}-fabric:${jei_version}")
 
     implementation("org.joml:joml-primitives:1.10.0")
     implementation("org.joml:joml:1.10.4")
@@ -101,7 +109,7 @@ processResources {
             "fabric_loader_version", fabric_loader_version,
             "fabric_api_version", fabric_api_version,
             "minecraft_version", minecraft_version,
-            "create_version", create_fabric_version // on fabric, use the entire version, unlike forge
+            "create_fabric_version", create_fabric_version // on fabric, use the entire version, unlike forge
     )
     properties.forEach((k, v) -> inputs.property(k, v))
 

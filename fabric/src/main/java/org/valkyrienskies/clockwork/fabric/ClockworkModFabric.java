@@ -1,26 +1,15 @@
 package org.valkyrienskies.clockwork.fabric;
 
-import com.mojang.blaze3d.platform.Window;
-import dev.architectury.event.events.common.PlayerEvent;
-import io.github.fabricators_of_create.porting_lib.event.client.KeyInputCallback;
-import io.github.fabricators_of_create.porting_lib.event.client.MouseButtonCallback;
-import io.github.fabricators_of_create.porting_lib.event.client.MouseScrolledCallback;
 import io.github.fabricators_of_create.porting_lib.event.common.LivingEntityEvents;
-import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorClusterRenderer;
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler;
 import org.valkyrienskies.clockwork.content.events.ClockworkCommonEvents;
 import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.fabric.integration.cc.ClockworkFabricPeripheralProviders;

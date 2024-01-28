@@ -7,10 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
-import org.valkyrienskies.clockwork.integration.cc.*;
-import org.valkyrienskies.clockwork.util.blocktype.ConnectedWingAlike;
 
 public class ClockworkFabricPeripheralProviders {
     public static void register() {

@@ -27,6 +27,7 @@ import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.tools.designator.SelectedAreaToolkit
 import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorItem
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.GrabTool
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.clockwork.util.ClockworkUtils
@@ -34,6 +35,7 @@ import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.properties.ShipId
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
+import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft
@@ -47,6 +49,8 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         }
 
         if (stack.`is`(ClockworkItems.GRAVITRON.get().asItem()) && !isSelected) {
+            GrabTool.dropShip(entity)
+
             if (stack.tag != null) {
                 if (stack.tag!!.contains("ShipId")) {
                     stack.tag!!.remove("ShipId")
@@ -58,29 +62,13 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         }
 
         super.inventoryTick(stack, level, entity, slotId, isSelected)
-
     }
-
-
-    // || ITEM FUNCTIONS || //
-    override fun use(level: Level, player: Player, usedHand: InteractionHand): InteractionResultHolder<ItemStack> {
-        val s: GravitronState = getState(player)
-        if ((s.shipID != null) && (s.grabCD == 0) && s.grabbing) {
-            s.shouldDrop = true
-        }
-        return super.use(level, player, usedHand)
-    }
-
 
     override fun getUseAnimation(stack: ItemStack): UseAnim {
         return UseAnim.NONE
     }
 
-    override fun getArmPose(
-        stack: ItemStack?,
-        player: AbstractClientPlayer,
-        hand: InteractionHand?
-    ): HumanoidModel.ArmPose? {
+    override fun getArmPose(stack: ItemStack?, player: AbstractClientPlayer, hand: InteractionHand?): HumanoidModel.ArmPose? {
         if (!player.swinging) {
             return HumanoidModel.ArmPose.CROSSBOW_HOLD
         }
@@ -93,25 +81,19 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
 
     companion object {
         class GravitronState {
-            var grabbing: Boolean = false
-            var shouldDrop: Boolean = false
             var heldBlockPos: Vector3dc? = null
             var playerGrabbedRotation: Vector2dc? = null // Pitch , Yaw
             var shipGrabbedPos: Vector3dc? = null
             var shipGrabbedRot: Quaterniondc? = null
             var shipID: ShipId? = null
-            var grabCD: Int? = 0
             var shipGrabbedDistance: Double? = null
         }
 
-        fun abstractAssemble(
-                level: Level,
-                player: Player,
-                toolkit: SelectedAreaToolkit,
-                blockPos: BlockPos,
-                clickLocation: Vec3,
-                grab: Boolean
-        ): Boolean {
+        /**
+         * Given a SelectedAreaToolkit this function will try and assemble a ship, if grab is true it will also store
+         * some nbt on the Gravitron to queue a grab in GrabTool#tick
+         */
+        fun abstractAssemble(level: Level, player: Player, toolkit: SelectedAreaToolkit, blockPos: BlockPos, clickLocation: Vec3, grab: Boolean): Boolean {
             toolkit.selectionClusters.forEach { cluster ->
                 val selection: DenseBlockPosSet = SelectedAreaToolkit.denseBlocksFromCluster(cluster)
 
@@ -132,36 +114,15 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                                     if (entity is AbstractContraptionEntity || entity is SuperGlueEntity || entity is SeatEntity) {
                                         if (entity !is SuperGlueEntity) {
                                             val oldPos: Vector3dc = entity.position().toJOML()
-                                            val newPos: Vector3dc =
-                                                connectedShip.transform.worldToShip.transformPosition(
-                                                    oldPos,
-                                                    Vector3d()
-                                                )
+                                            val newPos: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldPos, Vector3d())
                                             entity.moveTo(newPos.toMinecraft())
                                         } else {
                                             val oldBounds = entity.boundingBox
-                                            val oldMax: Vector3dc =
-                                                Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
-                                            val oldMin: Vector3dc =
-                                                Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
-                                            val newMax: Vector3dc =
-                                                connectedShip.transform.worldToShip.transformPosition(
-                                                    oldMax,
-                                                    Vector3d()
-                                                )
-                                            val newMin: Vector3dc =
-                                                connectedShip.transform.worldToShip.transformPosition(
-                                                    oldMin,
-                                                    Vector3d()
-                                                )
-                                            val newBounds = AABB(
-                                                newMin.x(),
-                                                newMin.y(),
-                                                newMin.z(),
-                                                newMax.x(),
-                                                newMax.y(),
-                                                newMax.z()
-                                            )
+                                            val oldMax: Vector3dc = Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
+                                            val oldMin: Vector3dc = Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
+                                            val newMax: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldMax, Vector3d())
+                                            val newMin: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldMin, Vector3d())
+                                            val newBounds = AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z())
                                             entity.boundingBox = newBounds
                                             entity.resetPositionToBB()
                                         }
@@ -183,7 +144,15 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             return false
         }
 
+        /**
+         * Checking players inventory for an Auric Designator, extracts the first founds SelectedAreaToolkit
+         * to try and assemble the ship, if the player already has a ship connected to the Gravitron, don't proceed with the assembly
+         */
         fun grabssemble(level: Level, player: Player, blockPos: BlockPos, clickLocation: Vec3, grab: Boolean): Boolean {
+            if (getState(player).shipID != null) {
+                return false
+            }
+
             for (item in player.inventory.items) {
                 if (item.`is`(ClockworkItems.AURIC_DESIGNATOR.get().asItem())) {
                     val auricItem: AuricDesignatorItem = item.item as AuricDesignatorItem
@@ -198,18 +167,18 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             return false
         }
 
+        /**
+         * Will freeze or unfreeze a ship in its position
+         */
         @JvmStatic
         fun leftClickItem(player: Player, state: GravitronState): Boolean {
             val level = player.level
-            if (state.grabbing && level is ServerLevel) {
+            if (state.shipID != null && level is ServerLevel) {
                 val shipId = state.shipID
                 if (shipId != null) {
                     val ship: LoadedServerShip? = level.shipObjectWorld.loadedShips.getById(shipId)
                     if (ship != null) {
                         ship.isStatic = !ship.isStatic
-                        if (ship.isStatic) {
-                            dropShip(state, level)
-                        }
                         level.playSound(
                             player,
                             player.blockPosition(),
@@ -225,31 +194,14 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             return false
         }
 
-
-        // sets down the ship
-        private fun dropShip(s: GravitronState, level: ServerLevel) {
-            val grabbedShipId = s.shipID
-            if (grabbedShipId != null) {
-                val loadedShip = level.shipObjectWorld.loadedShips.getById(grabbedShipId)
-                if (loadedShip != null) {
-                    val gravitronForceInducer = GravitronForceInducer.getOrCreate(loadedShip)
-                    gravitronForceInducer.data = null
-                }
-            }
-
-            s.grabbing = false
-            s.shipID = null
-            s.shouldDrop = false
-        }
-
         @JvmStatic
         fun getState(player: Player): GravitronState {
             val p = player as MixinPlayerDuck
-            var s = p.cw_getGravitronState()
+            var s = p.getGravitronState()
 
             if (s == null) {
                 s = GravitronState()
-                p.cw_setGravitronState(s)
+                p.setGravitronState(s)
             }
 
             return s
