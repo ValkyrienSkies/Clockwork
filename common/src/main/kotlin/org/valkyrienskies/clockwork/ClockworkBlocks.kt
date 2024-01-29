@@ -295,7 +295,7 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.wooden() }
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        //.tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
         .register()
 

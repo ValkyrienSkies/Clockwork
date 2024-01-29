@@ -19,8 +19,6 @@ import static org.valkyrienskies.clockwork.ClockworkMod.MOD_ID;
 @Mod(MOD_ID)
 public class ClockworkModForge {
 
-    //final DeferredRegister<EntityDataSerializer<?>> DATA_SERIALIZER_REGISTER = DeferredRegister.create(ForgeRegistries.Keys.DATA_SERIALIZERS, MOD_ID);
-
     public static final AuricDesignatorClusterRenderer AURIC_HANDLER = new AuricDesignatorClusterRenderer();
 
     public ClockworkModForge() {
@@ -32,6 +30,7 @@ public class ClockworkModForge {
         ClockworkBlocks.register();
         ClockworkItems.register();
         ClockworkBlockEntities.register();
+        ForgeClockworkBlockEntities.register();
 
         ForgeClockworkFluids.register();
 
