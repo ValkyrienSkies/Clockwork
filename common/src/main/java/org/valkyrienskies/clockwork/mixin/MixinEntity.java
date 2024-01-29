@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.mixin;
 
+import com.llamalad7.mixinextras.injector.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.core.BlockPos;
@@ -14,6 +15,9 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Set;
 import java.util.stream.Stream;
@@ -41,5 +45,24 @@ public class MixinEntity {
     private Stream<TagKey<Fluid>> d(FluidState instance, Operation<Stream<TagKey<Fluid>>> original){
         //System.out.println(instance);
         return original.call(instance);
+    }
+
+    @Inject(method = "isInWater", at = @At("RETURN"))
+    private void s(CallbackInfoReturnable<Boolean> cir){
+        Entity entity = (Entity) (Object) this;
+        if (isInAirPocket(entity)) {
+            cir.setReturnValue(false);
+        } else {
+            cir.setReturnValue(cir.getReturnValue());
+        }
+    }
+
+    @WrapOperation(method = "isUnderWater", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;isInWater()Z"))
+    private boolean s(Entity instance, Operation<Boolean> original){
+        if (isInAirPocket(instance)) {
+            return false;
+        } else {
+            return original.call(instance);
+        }
     }
 }
