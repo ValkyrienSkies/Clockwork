@@ -26,7 +26,7 @@ public class FabricBallastBlockEntity extends BallastBlockEntity {
         int maxCountItem = 4 * 64;
 
         var temp = 0;
-        for (int i = 0; i < getInventoryOfBlock().getSlots(); i++) {
+        for (int i = 0; i < getInventoryOfBlock().getSlots().size(); i++) {
             temp += getInventoryOfBlock().getStackInSlot(i).getCount();
         }
 

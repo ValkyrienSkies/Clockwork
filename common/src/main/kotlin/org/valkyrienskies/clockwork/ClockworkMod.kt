@@ -47,7 +47,7 @@ object ClockworkMod {
     fun createCreativeTab(): CreativeModeTab {
         return CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)
             .title(Component.translatable("itemGroup.clockwork"))
-            .icon { ClockworkItems.GRAVITRON.asStack() }
+            .icon { ClockworkBlocks.PHYSICS_INFUSER.asStack() }
             .displayItems { _, output ->
                 output.accept(ClockworkItems.GRAVITRON)
 
@@ -59,7 +59,7 @@ object ClockworkMod {
 
                 output.accept(ClockworkBlocks.AURIC_DEEPSLATE_ORE.asStack())
                 output.accept(ClockworkBlocks.AURIC_END_ORE.asStack())
-                output.accept(ClockworkBlocks.HEAT_PIPE.asStack())
+                //output.accept(ClockworkBlocks.HEAT_PIPE.asStack())
                 output.accept(ClockworkBlocks.PHYSICS_INFUSER.asStack())
                 output.accept(ClockworkBlocks.GYRO.asStack())
                 output.accept(ClockworkBlocks.ALT_METER.asStack())

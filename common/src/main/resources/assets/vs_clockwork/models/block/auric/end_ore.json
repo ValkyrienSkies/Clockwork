@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "vs_clockwork:block/end_auric_ore"
+    "all": "vs_clockwork:block/auric_end_ore"
   }
 }
