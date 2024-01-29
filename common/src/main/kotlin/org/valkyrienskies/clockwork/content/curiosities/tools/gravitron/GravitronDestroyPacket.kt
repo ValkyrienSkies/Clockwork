@@ -31,9 +31,9 @@ class GravitronDestroyPacket : C2SCWPacket {
             val serverPlayer = context.sender
             val serverLevel = serverPlayer.getLevel()
 
-            val shipe = serverLevel.getShipManagingPos(clickedPos!!)
-            if (shipe != null) {
-                val invRotation = shipe.transform.shipToWorldRotation.invert(Quaterniond())
+            val ship = serverLevel.getShipManagingPos(clickedPos!!)
+            if (ship != null) {
+                val invRotation = ship.transform.shipToWorldRotation.invert(Quaterniond())
                 val invRotationAxisAngle = AxisAngle4d(invRotation)
 
                 val f = floor((invRotationAxisAngle.angle / (PI * 0.5)) + 4.5).toInt() % 4
