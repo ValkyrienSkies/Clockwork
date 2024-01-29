@@ -5,8 +5,10 @@
   "mixins": [
     "MixinAbstractContraptionEntity",
     "MixinBlockStateInfoProvider",
+    "MixinEntity",
     "MixinPlayer",
     "MixinToolboxHandler",
+    "MixinWaterBlock",
     "accessors.FluidAccessor",
     "accessors.IMixinClockworkContraption",
     "accessors.IMixinPistonContraption",
@@ -16,6 +18,9 @@
   ],
   "client": [
     "MixinLevelRenderer",
+    "MixinLocalPlayer",
+    "client.MixinCamera",
+    "client.MixinFogRenderer",
     "client.MixinItemInHandRenderer",
     "content.gravitron.MinecraftAccessor",
     "content.gravitron.MixinLocalPlayer"
