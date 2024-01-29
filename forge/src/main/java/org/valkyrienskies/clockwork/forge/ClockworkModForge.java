@@ -25,6 +25,7 @@ import static org.valkyrienskies.clockwork.ClockworkMod.MOD_ID;
 public class ClockworkModForge {
 
     final DeferredRegister<CreativeModeTab> TAB_REGISTER = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MOD_ID);
+    public static final AuricDesignatorClusterRenderer AURIC_HANDLER = new AuricDesignatorClusterRenderer();
 
     public ClockworkModForge() {
         ModLoadingContext modLoadingContext = ModLoadingContext.get();
@@ -35,6 +36,7 @@ public class ClockworkModForge {
         ClockworkBlocks.register();
         ClockworkItems.register();
         ClockworkBlockEntities.register();
+        ForgeClockworkBlockEntities.register();
 
         ForgeClockworkFluids.register();
 

@@ -6,6 +6,7 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntityType
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.platform.SharedValues
 
 class BallastBlock(properties: Properties) : Block(properties), IBE<BallastBlockEntity> {
 
@@ -14,7 +15,7 @@ class BallastBlock(properties: Properties) : Block(properties), IBE<BallastBlock
     }
 
     override fun getBlockEntityType(): BlockEntityType<out BallastBlockEntity> {
-        return ClockworkBlockEntities.BALLAST.get()
+        return SharedValues.ballast.get()
     }
 
 }
