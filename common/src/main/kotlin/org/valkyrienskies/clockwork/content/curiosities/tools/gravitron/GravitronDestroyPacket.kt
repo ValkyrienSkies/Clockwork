@@ -41,7 +41,7 @@ class GravitronDestroyPacket : C2SCWPacket {
                 if (invRotation.y < 0 && alignTarget != Direction.NORTH) {
                     alignTarget = alignTarget.opposite
                 }
-                unfillShip(serverLevel, shipe, alignTarget)
+                unfillShip(serverLevel, ship, alignTarget)
             }
         }
     }
