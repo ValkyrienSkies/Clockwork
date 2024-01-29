@@ -41,6 +41,7 @@ import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSea
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlock
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlock
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlock
+import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.WingBlock
@@ -275,6 +276,19 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .item()
+        .build()
+        .register()
+
+    val BALLAST = REGISTRATE.block<BallastBlock>(
+        "ballast"
+    ) { properties: BlockBehaviour.Properties? ->
+        BallastBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.wooden() }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
         .register()
 
