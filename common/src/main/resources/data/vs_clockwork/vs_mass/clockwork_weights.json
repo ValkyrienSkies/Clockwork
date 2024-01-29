@@ -653,5 +653,10 @@
     "block": "vs_clockwork:auric_end_ore",
     "mass": 1000,
     "friction": 0.4
+  },
+  {
+    "block": "vs_clockwork:ballast",
+    "mass": 10,
+    "friction": 0.75
   }
 ]
