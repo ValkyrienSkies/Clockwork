@@ -250,19 +250,6 @@ object ClockworkBlockEntities {
         .validBlocks(ClockworkBlocks.HEAT_PIPE)
         .register()
 
-    @JvmField
-    val BALLAST: BlockEntityEntry<BallastBlockEntity> = ClockworkMod.REGISTRATE
-        .blockEntity<BallastBlockEntity>(
-            "ballast"
-        ) { typeIn: BlockEntityType<BallastBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
-            BallastBlockEntity(
-                typeIn,
-                pos!!, state!!
-            )
-        }
-        .validBlocks(ClockworkBlocks.BALLAST)
-        .register()
-
     @JvmStatic
     fun register() {
     }
