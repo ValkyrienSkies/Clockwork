@@ -10,6 +10,7 @@ import com.simibubi.create.foundation.render.SuperByteBuffer
 import com.simibubi.create.foundation.utility.AngleHelper
 import com.simibubi.create.foundation.utility.AnimationTickHolder
 import com.simibubi.create.foundation.utility.animation.LerpedFloat
+import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
@@ -25,14 +26,6 @@ import org.valkyrienskies.clockwork.util.render.TransformData
 
 @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
 class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : KineticBlockEntityRenderer<PhysBearingBlockEntity>(context) {
-
-    companion object {
-        const val NORTH: Byte = 1
-        const val SOUTH: Byte = 2
-        const val EAST: Byte = 3
-        const val WEST: Byte = 4
-    }
-
 
     override fun renderSafe(
             blockEntity: PhysBearingBlockEntity,
@@ -73,40 +66,60 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : Kineti
         //TODO render auric matrix
 
         //Render partials
-        //rotateAndRise(phys_north, blockEntity, facing)
-        //rotateAndRise(phys_south, blockEntity, facing)
+        rotateAndRiseNorth(phys_north, blockEntity)
+        rotateAndRiseSouth(phys_south, blockEntity)
 
-        rotate(phys_west, blockEntity, facing, WEST)
-        rotate(phys_east, blockEntity, facing, EAST)
+        rotateWestWing(phys_west, blockEntity)
+        rotateEastWing(phys_east, blockEntity)
 
-        //translateAttacher(shaft, attacher, blockEntity, facing)
-        val vb = buffer.getBuffer(RenderType.translucent())
-        phys_north.renderInto(matrices, vb)
-        phys_south.renderInto(matrices, vb)
-        phys_west.renderInto(matrices, vb)
-        phys_east.renderInto(matrices, vb)
+        //translateAttacher(shaft, attacher, blockEntity, facing) //TODO implement
+
+        val vertexConsumer = buffer.getBuffer(RenderType.translucent())
+
+        phys_north.renderInto(matrices, vertexConsumer)
+        phys_south.renderInto(matrices, vertexConsumer)
+        phys_west.renderInto(matrices, vertexConsumer)
+        phys_east.renderInto(matrices, vertexConsumer)
 
         matrices.popPose()
     }
 
-    private fun rotate(physPartial: SuperByteBuffer, blockEntity: PhysBearingBlockEntity, facing: Direction, ordinal: Byte) {
+    private fun rotateAndRiseNorth(physPartial: SuperByteBuffer, blockEntity: PhysBearingBlockEntity) {
+        val pivot = Vec3(0.0,0.0,0.0)//TODO find pivot
+        rotateAndRise(physPartial, blockEntity, pivot, Direction.EAST)
+    }
 
-        var pivot = Vec3(0.0,0.0,0.0)
-        when (ordinal) {
-            WEST -> {
-                pivot = Vec3(- 7 / 16.0,10 / 16.0,0.0)
-            }
+    private fun rotateAndRiseSouth(physPartial: SuperByteBuffer, blockEntity: PhysBearingBlockEntity) {
+        val pivot = Vec3(0.0,0.0,0.0)//TODO find pivot
+        rotateAndRise(physPartial, blockEntity, pivot, Direction.EAST)
+    }
 
-            EAST -> {
-                pivot = Vec3(7 / 16.0,10 / 16.0,0.0)
-            }
-        }
-        Direction.EAST -> Vec3(pivotY.toDouble(), pivotX.toDouble(), pivotZ.toDouble())
-        Direction.WEST -> Vec3(-pivotY.toDouble(), pivotX.toDouble(), pivotZ.toDouble())
+    private fun rotateAndRise(physPartial: SuperByteBuffer, blockEntity: PhysBearingBlockEntity, pivot: Vec3, axl: Direction) {
+        //TODO
 
+
+        val interpolatedAngle = blockEntity.getWingProgress(AnimationTickHolder.getPartialTicks() - 1)
+        //TODO get progress and dont start rotating before its done risen
+
+        physPartial.translate(pivot)
+        physPartial.rotateCentered(axl, (interpolatedAngle / 180 * Math.PI).toFloat())
+        physPartial.translateBack(pivot)
+    }
+
+    private fun rotateWestWing(physPartial: SuperByteBuffer, blockEntity: PhysBearingBlockEntity) {
+        val pivot = Vec3(- 7 / 16.0, 1.0 / 16, 0.0)
+        rotateWing(physPartial, blockEntity, pivot, Direction.SOUTH)
+    }
+
+    private fun rotateEastWing(physPartial: SuperByteBuffer, blockEntity: PhysBearingBlockEntity) {
+        val pivot = Vec3(7 / 16.0, 1.0 / 16, 0.0)
+        rotateWing(physPartial, blockEntity, pivot, Direction.NORTH)
+    }
+
+    private fun rotateWing(physPartial: SuperByteBuffer, blockEntity: PhysBearingBlockEntity, pivot: Vec3, axl: Direction) {
         val interpolatedAngle = blockEntity.getWingRotOffset(AnimationTickHolder.getPartialTicks() - 1)
         physPartial.translate(pivot)
-        physPartial.rotateCentered(facing, (interpolatedAngle / 180 * Math.PI).toFloat())
+        physPartial.rotateCentered(axl, (interpolatedAngle / 180 * Math.PI).toFloat())
         physPartial.translateBack(pivot)
     }
 
