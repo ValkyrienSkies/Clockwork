@@ -259,8 +259,8 @@ object ClockworkBlocks {
         .transform(customItemModel())
         .register()
 
-    val AURIC_DEEPSLATE_ORE = REGISTRATE.block<WanderliteOreBlock>(
-        "auric_deepslate_ore"
+    val WANDERLITE_DEEPSLATE_ORE = REGISTRATE.block<WanderliteOreBlock>(
+        "wanderlite_deepslate_ore"
     ) { properties: BlockBehaviour.Properties? ->
         WanderliteOreBlock(
             properties!!
@@ -272,8 +272,8 @@ object ClockworkBlocks {
         .build()
         .register()
 
-    val AURIC_END_ORE = REGISTRATE.block<WanderliteOreBlock>(
-        "auric_end_ore"
+    val WANDERLITE_END_ORE = REGISTRATE.block<WanderliteOreBlock>(
+        "wanderlite_end_ore"
     ) { properties: BlockBehaviour.Properties? ->
         WanderliteOreBlock(
             properties!!

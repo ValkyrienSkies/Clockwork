@@ -20,16 +20,16 @@ object ClockworkWorldgen {
         LifecycleEvent.SETUP.register{
 
             val configuredFeature =
-                FeatureUtils.register<OreConfiguration, Feature<OreConfiguration>>(ClockworkMod.MOD_ID + ":ore_auric",
+                FeatureUtils.register<OreConfiguration, Feature<OreConfiguration>>(ClockworkMod.MOD_ID + ":ore_wanderlite",
                     Feature.ORE,
                     OreConfiguration(
                         listOf(
-                            OreConfiguration.target(DEEPSLATE_ORE_REPLACEABLES, ClockworkBlocks.AURIC_DEEPSLATE_ORE.get().defaultBlockState()),
-                            OreConfiguration.target(BlockMatchTest(Blocks.END_STONE), ClockworkBlocks.AURIC_END_ORE.get().defaultBlockState())
+                            OreConfiguration.target(DEEPSLATE_ORE_REPLACEABLES, ClockworkBlocks.WANDERLITE_DEEPSLATE_ORE.get().defaultBlockState()),
+                            OreConfiguration.target(BlockMatchTest(Blocks.END_STONE), ClockworkBlocks.WANDERLITE_END_ORE.get().defaultBlockState())
                         ),
                         3))
 
-            val placedFeature = PlacementUtils.register(ClockworkMod.MOD_ID + ":ore_auric", configuredFeature,
+            val placedFeature = PlacementUtils.register(ClockworkMod.MOD_ID + ":ore_wanderlite", configuredFeature,
                 listOf(
                     InSquarePlacement.spread(),
                     HeightRangePlacement.triangle(

@@ -17,7 +17,7 @@ public class ClockworkPonderScenes {
 
     public static void init() {
         HELPER.forComponents(ClockworkItems.WANDERWAND, ClockworkBlocks.PHYSICS_INFUSER)
-                .addStoryBoard("auric_designator", ClockworkPonderScenes::createShip);
+                .addStoryBoard("wanderwand", ClockworkPonderScenes::createShip);
         HELPER.forComponents(ClockworkBlocks.REDSTONE_RESISTOR)
                 .addStoryBoard("resistor", ClockworkPonderScenes::redstoneResistor);
         HELPER.forComponents(ClockworkBlocks.ALT_METER)
@@ -90,7 +90,7 @@ public class ClockworkPonderScenes {
     }
 
     private static void createShip(SceneBuilder scene, SceneBuildingUtil util) {
-        scene.title("auric_designator", "Creating ships using Auric Designator");
+        scene.title("wanderwand", "Creating ships using the Wanderwand");
         scene.configureBasePlate(0, 0, 5);
         scene.showBasePlate();
         scene.setSceneOffsetY(-1);
@@ -132,7 +132,7 @@ public class ClockworkPonderScenes {
         scene.idle(20);
         scene.overlay.showText(40)
                 .attachKeyFrame()
-                .text("Place the Auric Designator in the Physics Infuser")
+                .text("Place the wand in the Physics Infuser")
                 .placeNearTarget()
                 .pointAt(util.vector.blockSurface(util.grid.at(0, 2, 0), Direction.WEST));
         scene.overlay.showControls(

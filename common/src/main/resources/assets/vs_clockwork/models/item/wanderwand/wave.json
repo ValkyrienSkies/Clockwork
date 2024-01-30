@@ -1,8 +1,8 @@
 {
   "credit": "Made with Blockbench",
   "textures": {
-    "1": "vs_clockwork:item/auric_designator_wave",
-    "particle": "vs_clockwork:item/auric_designator"
+    "1": "vs_clockwork:item/wanderwand_wave",
+    "particle": "vs_clockwork:item/wanderwand"
   },
   "elements": [
     {
