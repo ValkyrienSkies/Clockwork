@@ -34,6 +34,8 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlockItem
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroItemRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlock
+import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlock
+import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
 import org.valkyrienskies.clockwork.content.curiosities.AuricCubeItemRenderer
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
@@ -233,6 +235,30 @@ object ClockworkBlocks {
             .item()
             .transform(customItemModel("physics_infuser", "item"))
             .register()
+
+    @JvmField
+    val GOO_BLOCK = REGISTRATE.block<GooBlock>("goo_block") { properties: BlockBehaviour.Properties? ->
+        GooBlock(
+            properties!!
+        )
+    }
+        .initialProperties { Blocks.HONEY_BLOCK }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
+    val SLICKER = REGISTRATE.block<SlickerBlock>("slicker") { properties: BlockBehaviour.Properties? ->
+        SlickerBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.softMetal() }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
 
     val HEAT_PIPE = REGISTRATE.block<HeatPipeBlock>(
         "heat_pipe"
