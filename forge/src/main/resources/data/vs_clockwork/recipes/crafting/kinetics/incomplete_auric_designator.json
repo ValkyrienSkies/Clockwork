@@ -15,7 +15,7 @@
         },
         [
           {
-            "item": "forge:nuggets/iron"
+            "tag": "forge:nuggets/iron"
           },
           {
             "tag": "forge:nuggets/zinc"
