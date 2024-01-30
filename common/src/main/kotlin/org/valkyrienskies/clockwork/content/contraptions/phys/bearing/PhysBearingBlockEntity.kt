@@ -74,6 +74,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     private var shiptraptionID = NO_SHIPTRAPTION_ID
     private var bearingID: Int? = null
     var coreAngle = 0f
+    var wingAngle = 0f
     var previousCoreAngle = 0f
     var opening = false
     var open = false
@@ -156,14 +157,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         } else sin(easeInOutSine(inOutCorner).toDouble()).toFloat() / 5f
     }
 
-    fun getFlapRotOffset(partialTicks: Float): Float {
-        if (!isRunning) {
-            return 0f
-        } else if (opening) {
-            return Mth.lerp(easeOutBounce(openProgress).toDouble(), 0.0, 70.0).toFloat()
-        }
-        return 70f + sin(inOutCorner.toDouble()).toFloat()
-    }
+
 
     fun getCornerHorizontalOffset(partialTicks: Float): Float {
         if (!isRunning) {
@@ -194,6 +188,16 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (isVirtual) return Mth.lerp(partialTicks + .5f, prevAngle, bearingAngle)
         if (shiptraptionID == NO_SHIPTRAPTION_ID || !isRunning) partialTicks = 0f
         return Mth.lerp(partialTicks, bearingAngle, bearingAngle + angularSpeed)
+    }
+
+
+    fun getWingRotOffset(partialTicks: Float): Float {
+        if (!isRunning) {
+            return 0f
+        } else if (opening) {
+            return Mth.lerp(partialTicks + openProgress.toDouble(), 0.0, 70.0).toFloat()
+        }
+        return 70f + sin(inOutCorner.toDouble()).toFloat()
     }
 
     fun getInterpolatedCoreAngle(partialTicks: Float): Float {

@@ -22,6 +22,7 @@ object ClockworkPartials {
     val WHEEL_TOP = block("reactionwheel/wheeltop")
     val ENGINE = block("combustion_engine/main")
     val SINGLE_ENGINE_PISTON = block("combustion_engine/single_piston")
+    /*
     val PHYSFLAP_EAST = block("phys_bearing/flapeast")
     val PHYSFLAP_WEST = block("phys_bearing/flapwest")
     val PHYSFLAP_NORTH = block("phys_bearing/flapnorth")
@@ -30,6 +31,8 @@ object ClockworkPartials {
     val PHYSCORNER_NW = block("phys_bearing/cornernw")
     val PHYSCORNER_SE = block("phys_bearing/cornerse")
     val PHYSCORNER_SW = block("phys_bearing/cornersw")
+
+     */
     val WING_MIDDLE = block("wing/wing_middle")
     val WING_SIDE = block("wing/wing_side")
     val WING_SIDE_VERTICAL = block("wing/wing_side_vertical")
@@ -61,6 +64,14 @@ object ClockworkPartials {
     val GYRO_BASE: PartialModel = block("gyro/base")
 
 
+    // region Phys Bearing
+    val PHYS_NORTH_WING = block("phys_bearing/wing_north")
+    val PHYS_SOUTH_WING = block("phys_bearing/wing_south")
+    val PHYS_EAST_WING = block("phys_bearing/wing_east")
+    val PHYS_WEST_WING = block("phys_bearing/wing_west")
+    val PHYS_SHAFT = block("phys_bearing/shaft")
+    val PHYS_ATTACHER = block("phys_bearing/attacher")
+    // end region
 
     //PIPE DEATH
     val DUCT_CORE: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/core"))
