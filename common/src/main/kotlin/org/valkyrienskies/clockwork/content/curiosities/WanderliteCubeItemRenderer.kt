@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer
-import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.block.model.ItemTransforms
 import net.minecraft.world.item.ItemDisplayContext
@@ -13,7 +12,7 @@ import org.joml.Vector3f
 import org.valkyrienskies.clockwork.util.render.RenderUtil
 import org.valkyrienskies.clockwork.util.render.TransformData
 
-class AuricCubeItemRenderer(val renderMatrix: Boolean) : CustomRenderedItemModelRenderer() {
+class WanderliteCubeItemRenderer(val renderMatrix: Boolean) : CustomRenderedItemModelRenderer() {
     override fun render(
             stack: ItemStack,
             model: CustomRenderedItemModel?,

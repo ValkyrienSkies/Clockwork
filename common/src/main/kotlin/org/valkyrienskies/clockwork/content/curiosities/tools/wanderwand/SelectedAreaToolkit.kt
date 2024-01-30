@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content.curiosities.tools.designator
+package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import net.minecraft.core.BlockPos
@@ -8,11 +8,9 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.level.Level
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
-import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.Vector3ic
 import org.joml.primitives.AABBd
-import org.joml.primitives.AABBic
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.mod.common.util.toBlockPos
 import org.valkyrienskies.mod.common.util.toJOML

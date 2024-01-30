@@ -29,14 +29,13 @@ import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
 import org.joml.Vector3dc
-import org.joml.primitives.AABBic
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.client.render.scanner.ScannerRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer.Companion.SCAN_GROWTH_DURATION
-import org.valkyrienskies.clockwork.content.curiosities.tools.designator.SelectedAreaToolkit
-import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorItem
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.SelectedAreaToolkit
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItem
 import org.valkyrienskies.clockwork.util.EaseHelper.easeInBounce
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.core.api.ships.Ship
@@ -80,7 +79,7 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     }
 
     override fun canPlaceItemThroughFace(index: Int, itemStack: ItemStack, direction: Direction?): Boolean {
-        return itemStack.item is AuricDesignatorItem
+        return itemStack.item is WanderWandItem
     }
 
     override fun canTakeItemThroughFace(index: Int, stack: ItemStack, direction: Direction): Boolean {
@@ -133,14 +132,14 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             if (inventory[0].isEmpty) return
             var launchForce = 0
             for (cluster in toDump) {
-                val adi: AuricDesignatorItem = inventory[0].item as AuricDesignatorItem
+                val adi: WanderWandItem = inventory[0].item as WanderWandItem
                 adi.selectedArea.dumpCluster(cluster)
                 launchForce++
             }
             toDump.clear()
             val ejected = ItemEntity(
                 level, blockPos.x.toDouble(), (blockPos.y + 1).toDouble(), blockPos.z.toDouble(),
-                ClockworkItems.AURIC_DESIGNATOR.asStack()//New item so the nbt gets cleared
+                ClockworkItems.WANDERWAND.asStack()//New item so the nbt gets cleared
             )
             inventory[0] = ItemStack.EMPTY
             ejected.deltaMovement = Vec3(0.0, launchForce.toDouble(), 0.0)
@@ -273,8 +272,8 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
     fun assemble() {
         if (getLevel()!!.isClientSide()) return
-        if (inventory[0].item !is AuricDesignatorItem) return
-        val item: AuricDesignatorItem = inventory[0].item as AuricDesignatorItem
+        if (inventory[0].item !is WanderWandItem) return
+        val item: WanderWandItem = inventory[0].item as WanderWandItem
 
         item.selectedArea.selectionClusters.run clusters@{
             item.selectedArea.selectionClusters.forEach { cluster ->

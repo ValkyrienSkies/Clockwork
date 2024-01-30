@@ -10,7 +10,6 @@ import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionHand
-import net.minecraft.world.InteractionResultHolder
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
@@ -25,8 +24,8 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkSounds
-import org.valkyrienskies.clockwork.content.curiosities.tools.designator.SelectedAreaToolkit
-import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorItem
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.SelectedAreaToolkit
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.GrabTool
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 import org.valkyrienskies.clockwork.platform.CWItem
@@ -35,7 +34,6 @@ import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.properties.ShipId
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
-import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft
@@ -154,8 +152,8 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             }
 
             for (item in player.inventory.items) {
-                if (item.`is`(ClockworkItems.AURIC_DESIGNATOR.asItem())) {
-                    val auricItem: AuricDesignatorItem = item.item as AuricDesignatorItem
+                if (item.`is`(ClockworkItems.WANDERWAND.get().asItem())) {
+                    val auricItem: WanderWandItem = item.item as WanderWandItem
 
                     if (abstractAssemble(level, player, auricItem.selectedArea, blockPos, clickLocation, grab)) {
                         return true;

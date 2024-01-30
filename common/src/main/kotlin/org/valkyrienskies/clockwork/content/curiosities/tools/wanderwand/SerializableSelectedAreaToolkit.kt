@@ -1,6 +1,5 @@
-package org.valkyrienskies.clockwork.content.curiosities.tools.designator
+package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand
 
-import net.minecraft.world.phys.AABB
 import org.joml.primitives.AABBd
 
 data class SerializableSelectedAreaToolkit(val selectedAreas: HashSet<AABBd>, val selectionClusters: HashSet<Set<AABBd>>)

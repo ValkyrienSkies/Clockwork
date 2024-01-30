@@ -26,7 +26,7 @@ import net.minecraft.world.level.material.MapColor
 import net.minecraft.world.level.storage.loot.entries.LootItem
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.client.render.WingBlockItemRenderer
-import org.valkyrienskies.clockwork.content.curiosities.AuricOreBlock
+import org.valkyrienskies.clockwork.content.curiosities.WanderliteOreBlock
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock
@@ -45,7 +45,6 @@ import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.WingBlock
-import org.valkyrienskies.clockwork.data.CWBlockStateGen
 import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork.flapbearing
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import java.util.function.Supplier
@@ -255,10 +254,10 @@ object ClockworkBlocks {
         .transform(customItemModel())
         .register()
 
-    val AURIC_DEEPSLATE_ORE = REGISTRATE.block<AuricOreBlock>(
+    val AURIC_DEEPSLATE_ORE = REGISTRATE.block<WanderliteOreBlock>(
         "auric_deepslate_ore"
     ) { properties: BlockBehaviour.Properties? ->
-        AuricOreBlock(
+        WanderliteOreBlock(
             properties!!
         )
     }
@@ -267,10 +266,10 @@ object ClockworkBlocks {
         .build()
         .register()
 
-    val AURIC_END_ORE = REGISTRATE.block<AuricOreBlock>(
+    val AURIC_END_ORE = REGISTRATE.block<WanderliteOreBlock>(
         "auric_end_ore"
     ) { properties: BlockBehaviour.Properties? ->
-        AuricOreBlock(
+        WanderliteOreBlock(
             properties!!
         )
     }

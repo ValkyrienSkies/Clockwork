@@ -9,7 +9,7 @@ import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.UpdateAltMeterPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.UpdateGyroPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserSyncPacket
-import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorSelectionPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandSelectionPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDestroyPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronGrabPacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket
@@ -41,7 +41,7 @@ enum class ClockworkPackets(
     SYNCABLESTORAGE(SyncableStoragePacket::class.java, ::SyncableStoragePacket),
 
     PHYSICS_INFUSER(PhysicsInfuserSyncPacket::class.java, ::PhysicsInfuserSyncPacket),
-    AURIC_DESIGNATOR(AuricDesignatorSelectionPacket::class.java, ::AuricDesignatorSelectionPacket);
+    AURIC_DESIGNATOR(WanderWandSelectionPacket::class.java, ::WanderWandSelectionPacket);
 
     init {
         packetChannel.registerPacket(type as Class<CWPacket>, factory as Function<FriendlyByteBuf, CWPacket>)

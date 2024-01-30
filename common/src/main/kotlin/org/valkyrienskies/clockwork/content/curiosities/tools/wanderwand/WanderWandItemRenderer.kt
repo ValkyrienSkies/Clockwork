@@ -1,6 +1,5 @@
-package org.valkyrienskies.clockwork.content.curiosities.tools.designator
+package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand
 
-import com.jozufozu.flywheel.core.PartialModel
 import com.jozufozu.flywheel.util.AnimationTickHolder
 import com.jozufozu.flywheel.util.transform.TransformStack
 import com.mojang.blaze3d.vertex.PoseStack
@@ -20,7 +19,7 @@ import org.valkyrienskies.clockwork.util.render.TransformData
 import kotlin.math.sin
 
 
-class AuricDesignatorItemRenderer() : CustomRenderedItemModelRenderer() {
+class WanderWandItemRenderer() : CustomRenderedItemModelRenderer() {
 
     private var crystalAngle = 0f
 
@@ -34,17 +33,17 @@ class AuricDesignatorItemRenderer() : CustomRenderedItemModelRenderer() {
         light: Int,
         overlay: Int
     ) {
-        if (stack.`is`(ClockworkItems.INCOMPLETE_AURIC_DESIGNATOR.get())) {
+        if (stack.`is`(ClockworkItems.INCOMPLETE_WANDERWAND.get())) {
             ms.pushPose()
             renderer!!.renderSolid(model!!.originalModel, light)
             ms.popPose()
         }
 
-        if (stack.`is`(ClockworkItems.AURIC_DESIGNATOR.get())) {
+        if (stack.`is`(ClockworkItems.WANDERWAND.get())) {
             val stacker = TransformStack.cast(ms)
             ms.pushPose()
             renderer!!.renderSolid(model!!.originalModel, light)
-            val adi: AuricDesignatorItem = stack.item as AuricDesignatorItem
+            val adi: WanderWandItem = stack.item as WanderWandItem
             animateIdle(ms, stacker, light, adi.idleProgress, renderer)
             ms.popPose()
         }
