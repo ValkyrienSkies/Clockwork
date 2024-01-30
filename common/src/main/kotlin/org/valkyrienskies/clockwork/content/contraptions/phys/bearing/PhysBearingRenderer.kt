@@ -26,14 +26,7 @@ import org.valkyrienskies.clockwork.util.render.TransformData
 @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
 class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : KineticBlockEntityRenderer<PhysBearingBlockEntity>(context) {
 
-    override fun renderSafe(
-            blockEntity: PhysBearingBlockEntity,
-            partialTicks: Float,
-            matrices: PoseStack,
-            buffer: MultiBufferSource,
-            light: Int,
-            overlay: Int
-    ) {
+    override fun renderSafe(blockEntity: PhysBearingBlockEntity, partialTicks: Float, matrices: PoseStack, buffer: MultiBufferSource, light: Int, overlay: Int) {
         val blockState = blockEntity.blockState
         val facing = blockState.getValue(BlockStateProperties.FACING)
 
@@ -121,6 +114,13 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : Kineti
         physPartial.rotateCentered(axl, (interpolatedAngle / 180 * Math.PI).toFloat())
         physPartial.translateBack(pivot)
     }
+
+    private fun idleRotateCore(buffer: SuperByteBuffer, offset: Float, bearing: PhysBearingBlockEntity): SuperByteBuffer {
+        val interpolatedAngle = bearing.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1)
+        buffer.rotateCentered(Direction.UP, (interpolatedAngle / 180 * Math.PI).toFloat()).translate(0.0, offset.toDouble(), 0.0)
+        return buffer
+    }
+
 
     /*
     override fun renderSafe(
@@ -251,17 +251,6 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : Kineti
 
      */
 
-    private fun idleRotateCore(
-        buffer: SuperByteBuffer,
-        offset: Float,
-        bearing: PhysBearingBlockEntity
-    ): SuperByteBuffer {
-        val speen = LerpedFloat.linear()
-        val interpolatedAngle = bearing.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1)
-        buffer.rotateCentered(Direction.UP, (interpolatedAngle / 180 * Math.PI).toFloat())
-            .translate(0.0, offset.toDouble(), 0.0)
-        return buffer
-    }
 
     /*
     private fun rotateFlap(
