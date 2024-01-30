@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron
 
 import com.mojang.blaze3d.systems.RenderSystem
 import com.simibubi.create.AllKeys
-import com.simibubi.create.foundation.gui.AllGuiTextures
 import com.simibubi.create.foundation.utility.Components
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
@@ -58,7 +57,7 @@ class GravitronSelectionScreen(private val tools: List<ToolType>, private val ca
         matrixStack.pushPose()
         matrixStack.translate(0f, 20 - yOffset, (if (focus) 100 else 0).toFloat())
 
-        val gray = ClockworkGuiTextures.AURIC_TOOL_BACKGROUND
+        val gray = ClockworkGuiTextures.WANDER_TOOL_BACKGROUND
         RenderSystem.enableBlend()
         RenderSystem.setShaderColor(1f, 1f, 1f, if (focus) 7 / 8f else 1 / 2f)
 

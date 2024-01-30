@@ -645,12 +645,12 @@
     "friction": 0.4
   },
   {
-    "block": "vs_clockwork:auric_deepslate_ore",
+    "block": "vs_clockwork:wanderlite_deepslate_ore",
     "mass": 1000,
     "friction": 0.4
   },
   {
-    "block": "vs_clockwork:auric_end_ore",
+    "block": "vs_clockwork:wanderlite_end_ore",
     "mass": 1000,
     "friction": 0.4
   },

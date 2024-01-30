@@ -33,7 +33,8 @@ import org.valkyrienskies.mod.fabric.common.ValkyrienSkiesModFabric;
 
 public class ClockworkModFabric implements ModInitializer {
 
-    ResourceKey<CreativeModeTab> C_CREATIVE_TAB = ResourceKey.create(Registries.CREATIVE_MODE_TAB, new ResourceLocation(ClockworkMod.MOD_ID));
+
+   ResourceKey<CreativeModeTab> C_CREATIVE_TAB = ResourceKey.create(Registries.CREATIVE_MODE_TAB, new ResourceLocation(ClockworkMod.MOD_ID));
 
     @Override
     public void onInitialize() {
