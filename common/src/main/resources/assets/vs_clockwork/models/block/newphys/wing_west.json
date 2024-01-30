@@ -1,0 +1,86 @@
+{
+	"credit": "Made with Blockbench",
+	"texture_size": [64, 64],
+	"textures": {
+		"0": "vs_clockwork:block/phys_bearing",
+		"particle": "vs_clockwork:block/phys_bearing"
+	},
+	"elements": [
+		{
+			"from": [0, 11, 6],
+			"to": [2, 16, 10],
+			"rotation": {"angle": 0, "axis": "y", "origin": [1, 10, 8]},
+			"faces": {
+				"north": {"uv": [11, 12, 11.5, 13.25], "texture": "#0"},
+				"east": {"uv": [4, 10.75, 5, 12], "texture": "#0"},
+				"south": {"uv": [11.5, 12, 12, 13.25], "texture": "#0"},
+				"west": {"uv": [10, 10.75, 11, 12], "texture": "#0"},
+				"up": {"uv": [14.25, 13.25, 13.75, 12.25], "texture": "#0"}
+			}
+		},
+		{
+			"from": [0, 9, 4],
+			"to": [2, 11, 12],
+			"rotation": {"angle": 0, "axis": "y", "origin": [1, 10, 8]},
+			"faces": {
+				"north": {"uv": [14, 9.25, 14.5, 9.75], "texture": "#0"},
+				"east": {"uv": [11, 4.75, 13, 5.25], "texture": "#0"},
+				"south": {"uv": [14, 9.75, 14.5, 10.25], "texture": "#0"},
+				"west": {"uv": [12, 4.25, 14, 4.75], "texture": "#0"},
+				"up": {"uv": [11, 14, 10.5, 12], "texture": "#0"},
+				"down": {"uv": [12.5, 10.75, 12, 12.75], "texture": "#0"}
+			}
+		},
+		{
+			"from": [2, 14, 6],
+			"to": [8, 16, 10],
+			"rotation": {"angle": 0, "axis": "y", "origin": [1, 10, 8]},
+			"faces": {
+				"north": {"uv": [12.5, 2.5, 14, 3], "texture": "#0"},
+				"east": {"uv": [13, 13.75, 14, 14.25], "texture": "#0"},
+				"south": {"uv": [12.5, 10.75, 14, 11.25], "texture": "#0"},
+				"up": {"uv": [7.5, 11.75, 6, 10.75], "texture": "#0"},
+				"down": {"uv": [9, 10.75, 7.5, 11.75], "texture": "#0"}
+			}
+		}
+	],
+	"display": {
+		"thirdperson_righthand": {
+			"rotation": [75, 45, 0],
+			"translation": [0, 2.5, 0],
+			"scale": [0.375, 0.375, 0.375]
+		},
+		"thirdperson_lefthand": {
+			"rotation": [75, 45, 0],
+			"translation": [0, 2.5, 0],
+			"scale": [0.375, 0.375, 0.375]
+		},
+		"firstperson_righthand": {
+			"rotation": [0, 45, 0],
+			"scale": [0.4, 0.4, 0.4]
+		},
+		"firstperson_lefthand": {
+			"rotation": [0, 225, 0],
+			"scale": [0.4, 0.4, 0.4]
+		},
+		"ground": {
+			"translation": [0, 3, 0],
+			"scale": [0.25, 0.25, 0.25]
+		},
+		"gui": {
+			"rotation": [30, 225, 0],
+			"scale": [0.625, 0.625, 0.625]
+		},
+		"fixed": {
+			"scale": [0.5, 0.5, 0.5]
+		}
+	},
+	"groups": [
+		{
+			"name": "westWing",
+			"origin": [0, 0, 0],
+			"color": 0,
+			"children": [0, 1, 2]
+		}
+	]
+}
