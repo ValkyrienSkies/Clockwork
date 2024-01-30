@@ -1,0 +1,44 @@
+{
+	"credit": "Made with Blockbench",
+	"texture_size": [64, 64],
+	"textures": {
+		"0": "vs_clockwork:block/slicker",
+		"particle": "vs_clockwork:block/slicker"
+	},
+	"elements": [
+		{
+			"from": [2, 12, 2],
+			"to": [14, 16, 14],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 14, 8]},
+			"faces": {
+				"north": {"uv": [12.5, 12, 15.5, 13], "texture": "#0"},
+				"east": {"uv": [12.5, 15, 15.5, 16], "texture": "#0"},
+				"south": {"uv": [12.5, 12, 15.5, 13], "texture": "#0"},
+				"west": {"uv": [12.5, 15, 15.5, 16], "texture": "#0"},
+				"up": {"uv": [15.5, 15.5, 12.5, 12.5], "texture": "#0"},
+				"down": {"uv": [15.5, 12.5, 12.5, 15.5], "texture": "#0"}
+			}
+		},
+		{
+			"from": [1.5, 11.5, 1.5],
+			"to": [14.5, 16.5, 14.5],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 14, 8]},
+			"faces": {
+				"north": {"uv": [12.5, 5, 15.5, 6], "texture": "#0"},
+				"east": {"uv": [12.5, 6, 15.5, 7], "texture": "#0"},
+				"south": {"uv": [12.5, 7, 15.5, 8], "texture": "#0"},
+				"west": {"uv": [12.5, 4, 15.5, 5], "texture": "#0"},
+				"up": {"uv": [15.5, 11.5, 12.5, 8.5], "texture": "#0"},
+				"down": {"uv": [11.25, 12.25, 8.25, 15.25], "texture": "#0"}
+			}
+		}
+	],
+	"groups": [
+		{
+			"name": "goo",
+			"origin": [0, 0, 0],
+			"color": 0,
+			"children": [0, 1]
+		}
+	]
+}
