@@ -189,12 +189,15 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         return Mth.lerp(partialTicks, bearingAngle, bearingAngle + angularSpeed)
     }
 
+    fun getWingProgress(partialTicks: Float): Float {
+        TODO()
+    }
 
     fun getWingRotOffset(partialTicks: Float): Float {
         if (!isRunning) {
             return 0f
         } else if (opening) {
-            return Mth.lerp(partialTicks + openProgress.toDouble(), 0.0, 70.0).toFloat()
+            return Mth.lerp(openProgress.toDouble(), 0.0, 70.0).toFloat()
         }
         return 70f + sin(inOutCorner.toDouble()).toFloat()
     }
@@ -699,6 +702,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     fun getAngle(): Float {
         return bearingAngle
     }
+
+
 
     companion object {
         const val NO_SHIPTRAPTION_ID: Long = -1
