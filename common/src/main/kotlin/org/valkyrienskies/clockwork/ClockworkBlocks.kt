@@ -257,7 +257,7 @@ object ClockworkBlocks {
             }
         })
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        //.tab { ClockworkMod.BASE_CREATIVE_TAB }
         .transform(customItemModel())
         .register()
 
