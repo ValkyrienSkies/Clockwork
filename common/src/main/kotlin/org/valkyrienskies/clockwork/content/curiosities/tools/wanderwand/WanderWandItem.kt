@@ -289,7 +289,7 @@ class WanderWandItem(properties: Properties) : CWItem(properties) {
         }
 
         @JvmStatic
-        fun onAttack(player: Player) {
+        fun onAttack(player: Player): Boolean {
             val hitResult = getPlayerPOVHitResult(player.level, player, ClipContext.Fluid.NONE)
             val pos: Vector3ic = hitResult.blockPos.toJOML()
 
@@ -311,7 +311,8 @@ class WanderWandItem(properties: Properties) : CWItem(properties) {
                     compoundTag.remove("selectedData")
                 }
 
-                val hitCluster: Set<AABB> = item.selectedArea.getClusterContaining(pos) ?: return
+                val hitCluster: Set<AABB> = item.selectedArea.getClusterContaining(pos) ?: return true
+
                 val pitch = Mth.randomBetween(item.soundRandom, 0.8f, 1.2f)
                 item.selectedArea.dumpCluster(hitCluster)
                 player.level.playSound(
@@ -323,8 +324,9 @@ class WanderWandItem(properties: Properties) : CWItem(properties) {
                     pitch
                 )
                 item.animationType = Animation.DUMP
+                return true
             }
-
+        return false
         }
     }
 }

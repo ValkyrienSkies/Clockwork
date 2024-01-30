@@ -30,6 +30,7 @@ public class ClockworkModFabric implements ModInitializer {
         ClockworkItems.register();
 
         ClockworkBlockEntities.register();
+        FabricClockworkBlockEntities.register();
 
         ClockworkEntities.register();
         FabricClockworkEntities.register();

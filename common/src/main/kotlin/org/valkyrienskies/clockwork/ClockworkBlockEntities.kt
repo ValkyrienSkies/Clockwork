@@ -31,6 +31,7 @@ import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEnt
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
+import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlockEntity
 import java.util.function.BiFunction
 
 
@@ -238,6 +239,7 @@ object ClockworkBlockEntities {
         }
         .register()
 
+    @JvmField
     val HEAT_PIPE: BlockEntityEntry<HeatPipeBlockEntity> = ClockworkMod.REGISTRATE
         .blockEntity<HeatPipeBlockEntity>("heat_pipe") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
             HeatPipeBlockEntity(

@@ -24,9 +24,10 @@ public class ClockworkEvents {
     public static void playerLeftClick(PlayerInteractEvent.LeftClickBlock event) {
         if (event.getEntity() instanceof Player player) {
             GravitronItem.leftClickItem(player, GravitronItem.getState(player));
-            WanderWandItem.onAttack(player);
+            boolean bl = WanderWandItem.onAttack(player);
+            if (bl) {
+                event.setCanceled(true);
+            }
         }
-
-
     }
 }

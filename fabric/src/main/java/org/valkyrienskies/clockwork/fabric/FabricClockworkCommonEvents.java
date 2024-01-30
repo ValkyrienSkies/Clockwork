@@ -21,7 +21,11 @@ public class FabricClockworkCommonEvents {
 
     public static InteractionResult playerLeftClick(Player player, Level level, InteractionHand interactionHand, BlockPos blockPos, Direction direction) {
         GravitronItem.leftClickItem(player, GravitronItem.getState(player));
-        WanderWandItem.onAttack(player);
+
+        boolean bl = WanderWandItem.onAttack(player);
+        if (bl) {
+            return InteractionResult.FAIL;
+        }
         return InteractionResult.PASS;
     }
 }
