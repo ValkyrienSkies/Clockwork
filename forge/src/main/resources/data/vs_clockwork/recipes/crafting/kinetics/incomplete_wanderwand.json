@@ -4,27 +4,27 @@
     "item": "create:brass_ingot"
   },
   "transitionalItem": {
-    "item": "vs_clockwork:incomplete_auric_designator"
+    "item": "vs_clockwork:incomplete_wanderwand"
   },
   "sequence": [
     {
       "type": "create:deploying",
       "ingredients": [
         {
-          "item": "vs_clockwork:incomplete_auric_designator"
+          "item": "vs_clockwork:incomplete_wanderwand"
         },
         [
           {
-            "item": "iron_nugget"
+            "tag": "forge:nuggets/iron"
           },
           {
-            "tag": "c:nuggets/zinc"
+            "tag": "forge:nuggets/zinc"
           }
         ]
       ],
       "results": [
         {
-          "item": "vs_clockwork:incomplete_auric_designator"
+          "item": "vs_clockwork:incomplete_wanderwand"
         }
       ]
     },
@@ -32,20 +32,20 @@
       "type": "create:deploying",
       "ingredients": [
         {
-          "item": "vs_clockwork:incomplete_auric_designator"
+          "item": "vs_clockwork:incomplete_wanderwand"
         },
         [
           {
-            "item": "iron_nugget"
+            "tag": "forge:nuggets/iron"
           },
           {
-            "tag": "c:nuggets/zinc"
+            "tag": "forge:nuggets/zinc"
           }
         ]
       ],
       "results": [
         {
-          "item": "vs_clockwork:incomplete_auric_designator"
+          "item": "vs_clockwork:incomplete_wanderwand"
         }
       ]
     },
@@ -53,19 +53,19 @@
       "type": "create:pressing",
       "ingredients": [
         {
-          "item": "vs_clockwork:incomplete_auric_designator"
+          "item": "vs_clockwork:incomplete_wanderwand"
         }
       ],
       "results": [
         {
-          "item": "vs_clockwork:incomplete_auric_designator"
+          "item": "vs_clockwork:incomplete_wanderwand"
         }
       ]
     }
   ],
   "results": [
     {
-      "item": "vs_clockwork:incomplete_auric_designator"
+      "item": "vs_clockwork:incomplete_wanderwand"
     }
   ],
   "loops": 3

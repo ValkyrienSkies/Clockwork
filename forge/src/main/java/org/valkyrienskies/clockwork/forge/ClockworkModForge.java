@@ -18,7 +18,9 @@ import static org.valkyrienskies.clockwork.ClockworkMod.MOD_ID;
 @Mod(MOD_ID)
 public class ClockworkModForge {
 
-    public static final WanderWandClusterRenderer AURIC_HANDLER = new WanderWandClusterRenderer();
+    //final DeferredRegister<EntityDataSerializer<?>> DATA_SERIALIZER_REGISTER = DeferredRegister.create(ForgeRegistries.Keys.DATA_SERIALIZERS, MOD_ID);
+
+    public static final WanderWandClusterRenderer WANDER_HANDLER = new WanderWandClusterRenderer();
 
     public ClockworkModForge() {
         ModLoadingContext modLoadingContext = ModLoadingContext.get();

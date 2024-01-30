@@ -1,7 +1,7 @@
 {
   "replace": false,
   "values": [
-    "vs_clockwork:auric_deepslate_ore",
-    "vs_clockwork:auric_end_ore"
+    "vs_clockwork:wanderlite_deepslate_ore",
+    "vs_clockwork:wanderlite_end_ore"
   ]
 }
