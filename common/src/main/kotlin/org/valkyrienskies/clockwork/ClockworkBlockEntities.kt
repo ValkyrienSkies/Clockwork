@@ -20,6 +20,10 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlockEnti
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroInstance
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer
+import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlockEntity
+import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlockEntityRenderer
+import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlockEntity
+import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingRenderer
 import org.valkyrienskies.clockwork.content.generic.ColorBlockEntity
@@ -249,6 +253,43 @@ object ClockworkBlockEntities {
         }
         .validBlocks(ClockworkBlocks.HEAT_PIPE)
         .register()
+
+    @JvmField
+    val GOO_BLOCK = ClockworkMod.REGISTRATE.blockEntity<GooBlockEntity>("goo_block") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+        GooBlockEntity(
+            type,
+            pos,
+            state
+        )
+    }
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in GooBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                GooBlockEntityRenderer(
+                    context!!
+                )
+            }
+        }
+        .validBlocks(ClockworkBlocks.GOO_BLOCK)
+        .register()
+
+    @JvmField
+    val SLICKER = ClockworkMod.REGISTRATE.blockEntity<SlickerBlockEntity>("slicker") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+        SlickerBlockEntity(
+            type,
+            pos,
+            state
+        )
+    }
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in SlickerBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                SlickerBlockEntityRenderer(
+                    context!!
+                )
+            }
+        }
+        .validBlocks()
+        .register()
+
 
     @JvmStatic
     fun register() {

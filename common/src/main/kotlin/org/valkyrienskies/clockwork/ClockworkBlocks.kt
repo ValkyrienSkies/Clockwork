@@ -16,6 +16,7 @@ import net.minecraft.client.resources.model.BakedModel
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.block.state.BlockState
@@ -27,6 +28,8 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterB
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlock
+import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlock
+import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
@@ -238,6 +241,30 @@ object ClockworkBlocks {
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .transform(customItemModel("physics_infuser", "item"))
             .register()
+
+    @JvmField
+    val GOO_BLOCK = REGISTRATE.block<GooBlock>("goo_block") { properties: BlockBehaviour.Properties? ->
+        GooBlock(
+            properties!!
+        )
+    }
+        .initialProperties { Blocks.HONEY_BLOCK }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
+    val SLICKER = REGISTRATE.block<SlickerBlock>("slicker") { properties: BlockBehaviour.Properties? ->
+        SlickerBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.softMetal() }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
 
     val HEAT_PIPE = REGISTRATE.block<HeatPipeBlock>(
         "heat_pipe"
