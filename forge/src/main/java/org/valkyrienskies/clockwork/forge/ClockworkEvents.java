@@ -5,7 +5,7 @@ import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorItem;
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.GrabTool;
 
@@ -24,7 +24,7 @@ public class ClockworkEvents {
     public static void playerLeftClick(PlayerInteractEvent.LeftClickBlock event) {
         if (event.getEntity() instanceof Player player) {
             GravitronItem.leftClickItem(player, GravitronItem.getState(player));
-            AuricDesignatorItem.onAttack(player);
+            WanderWandItem.onAttack(player);
         }
 
 

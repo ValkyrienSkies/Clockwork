@@ -1,8 +1,6 @@
 package org.valkyrienskies.clockwork.forge;
 
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.gui.ForgeIngameGui;
-import net.minecraftforge.client.gui.OverlayRegistry;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -10,7 +8,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLLoader;
 import org.valkyrienskies.clockwork.*;
-import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorClusterRenderer;
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.forge.integration.cc.ClockworkForgePeripheralProviders;
 
@@ -21,7 +19,7 @@ public class ClockworkModForge {
 
     //final DeferredRegister<EntityDataSerializer<?>> DATA_SERIALIZER_REGISTER = DeferredRegister.create(ForgeRegistries.Keys.DATA_SERIALIZERS, MOD_ID);
 
-    public static final AuricDesignatorClusterRenderer AURIC_HANDLER = new AuricDesignatorClusterRenderer();
+    public static final WanderWandClusterRenderer AURIC_HANDLER = new WanderWandClusterRenderer();
 
     public ClockworkModForge() {
         ModLoadingContext modLoadingContext = ModLoadingContext.get();

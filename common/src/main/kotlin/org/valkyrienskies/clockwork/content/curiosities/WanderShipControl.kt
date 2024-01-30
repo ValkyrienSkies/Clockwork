@@ -4,7 +4,7 @@ import org.joml.Vector3d
 import org.valkyrienskies.core.api.ships.*
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 
-class AuricShipControl : ShipForcesInducer {
+class WanderShipControl : ShipForcesInducer {
 
     var aurics = 0
 
@@ -18,9 +18,9 @@ class AuricShipControl : ShipForcesInducer {
     }
 
     companion object {
-        fun getOrCreate(ship: ServerShip): AuricShipControl {
-            return ship.getAttachment<AuricShipControl>()
-                ?: AuricShipControl().also {
+        fun getOrCreate(ship: ServerShip): WanderShipControl {
+            return ship.getAttachment<WanderShipControl>()
+                ?: WanderShipControl().also {
                     ship.saveAttachment(it)
                 }
         }

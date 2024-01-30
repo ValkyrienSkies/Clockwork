@@ -7,7 +7,7 @@ object ClockworkModClient {
     val OUTLINER: Outliner = Outliner()
 
     @JvmStatic
-    val AURIC_OUTLINER: Outliner = Outliner()
+    val WANDER_OUTLINER: Outliner = Outliner()
 
     @JvmStatic
     fun initClient() {

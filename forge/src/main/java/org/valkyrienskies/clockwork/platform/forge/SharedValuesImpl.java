@@ -4,7 +4,7 @@ import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRendere
 import com.simibubi.create.foundation.item.render.SimpleCustomRenderer;
 import com.tterrag.registrate.util.entry.EntityEntry;
 import net.minecraft.world.item.BlockItem;
-import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorClusterRenderer;
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatEntity;
 import org.valkyrienskies.clockwork.forge.ClockworkModForge;
@@ -39,7 +39,7 @@ public class SharedValuesImpl {
         return ClockworkModForgeClient.GRAVITRON_HANDLER;
     }
 
-    public static AuricDesignatorClusterRenderer getAuricHandler() {
+    public static WanderWandClusterRenderer getAuricHandler() {
         return ClockworkModForge.AURIC_HANDLER;
     }
 }

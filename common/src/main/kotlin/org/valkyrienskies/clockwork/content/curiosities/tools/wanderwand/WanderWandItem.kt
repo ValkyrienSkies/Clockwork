@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content.curiosities.tools.designator
+package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -21,13 +21,11 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.AABB
 import org.joml.Vector3ic
-import org.joml.primitives.AABBi
-import org.joml.primitives.AABBic
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
-import org.valkyrienskies.clockwork.content.curiosities.tools.designator.SelectedAreaToolkit.Companion.toSerialize
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.SelectedAreaToolkit.Companion.toSerialize
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.clockwork.platform.SharedValues
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
@@ -39,7 +37,7 @@ import kotlin.collections.HashSet
 import kotlin.math.max
 import kotlin.math.min
 
-class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
+class WanderWandItem(properties: Properties) : CWItem(properties) {
     val selectedArea: SelectedAreaToolkit = SelectedAreaToolkit()
     private var wasSelected = false
     var firstPos: Vector3ic? = null
@@ -164,7 +162,7 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
                 pitch
             )
             player.cooldowns.addCooldown(this, 10)
-            ClockworkPackets.sendToClientsTrackingAndSelf(AuricDesignatorSelectionPacket(this), player as ServerPlayer)
+            ClockworkPackets.sendToClientsTrackingAndSelf(WanderWandSelectionPacket(this), player as ServerPlayer)
             return InteractionResult.SUCCESS
         } else if (this.secondPos == null && this.firstPos != null) {
             this.secondPos = pos
@@ -295,13 +293,13 @@ class AuricDesignatorItem(properties: Properties) : CWItem(properties) {
             val hitResult = getPlayerPOVHitResult(player.level, player, ClipContext.Fluid.NONE)
             val pos: Vector3ic = hitResult.blockPos.toJOML()
 
-            if (player.getItemInHand(InteractionHand.MAIN_HAND).item is AuricDesignatorItem) {
-                val item = player.getItemInHand(InteractionHand.MAIN_HAND).item as AuricDesignatorItem
+            if (player.getItemInHand(InteractionHand.MAIN_HAND).item is WanderWandItem) {
+                val item = player.getItemInHand(InteractionHand.MAIN_HAND).item as WanderWandItem
 
                 val clone: HashSet<Set<AABB>> = HashSet(item.selectedArea.selectionClusters)
-                val copy: Map<Any, Outliner.OutlineEntry> = HashMap(ClockworkModClient.AURIC_OUTLINER.outlines)
+                val copy: Map<Any, Outliner.OutlineEntry> = HashMap(ClockworkModClient.WANDER_OUTLINER.outlines)
                 for ((key) in copy) {
-                    ClockworkModClient.AURIC_OUTLINER.remove(key)
+                    ClockworkModClient.WANDER_OUTLINER.remove(key)
                 }
 
                 for (aabBic in clone) {
