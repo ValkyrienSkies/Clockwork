@@ -80,7 +80,7 @@ dependencies {
     implementation 'thedarkcolour:kotlinforforge:4.10.0'
 
     // CC Tweaked
-    modCompileOnly("curse.maven:cctweaked-282001:4061947")
+    modCompileOnly("curse.maven:cctweaked-282001:5062501")
 
 }
 

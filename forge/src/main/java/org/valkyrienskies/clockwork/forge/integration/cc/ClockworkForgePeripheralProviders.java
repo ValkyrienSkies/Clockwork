@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class ClockworkForgePeripheralProviders {
     public static void register() {
-        ComputerCraftAPI.registerPeripheralProvider(new ClockworkPeripheralProvider());
+        //ComputerCraftAPI.registerPeripheralProvider(new ClockworkPeripheralProvider());
     }
 
     public static class ClockworkPeripheralProvider implements IPeripheralProvider {
