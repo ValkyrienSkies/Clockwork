@@ -6,7 +6,7 @@ import com.tterrag.registrate.util.entry.EntityEntry
 import dev.architectury.injectables.annotations.ExpectPlatform
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
-import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorClusterRenderer
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatEntity
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlockEntity
@@ -63,7 +63,7 @@ object SharedValues {
 
     @get:ExpectPlatform
     @JvmStatic
-    val auricHandler: AuricDesignatorClusterRenderer
+    val auricHandler: WanderWandClusterRenderer
         get() {
             throw AssertionError()
         }

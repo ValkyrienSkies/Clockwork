@@ -3,25 +3,14 @@ package org.valkyrienskies.clockwork.content.contraptions.phys.infuser
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
-import com.simibubi.create.foundation.render.CachedBufferer
-import com.simibubi.create.foundation.render.SuperByteBuffer
 import com.simibubi.create.foundation.utility.AnimationTickHolder
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.renderer.MultiBufferSource
-import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
-import net.minecraft.core.Direction
-import net.minecraft.util.Mth
 import net.minecraft.world.phys.Vec3
 import org.joml.Matrix4f
-import org.joml.Vector3d
-import org.joml.Vector3dc
 import org.joml.Vector3f
-import org.joml.primitives.AABBi
-import org.valkyrienskies.clockwork.ClockworkPartials
-import org.valkyrienskies.clockwork.ClockworkRenderTypes
-import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorItem
 import org.valkyrienskies.clockwork.util.render.RenderUtil
 import org.valkyrienskies.clockwork.util.render.TransformData
 

@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content.curiosities.tools.designator
+package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand
 
 
 import net.minecraft.client.Minecraft
@@ -10,14 +10,14 @@ import org.valkyrienskies.mod.common.util.toBlockPos
 import org.valkyrienskies.mod.common.util.toJOML
 
 
-class AuricDesignatorSelectionPacket : S2CCWPacket {
+class WanderWandSelectionPacket : S2CCWPacket {
     private val firstPos: Vector3ic?
 
     constructor(buffer: FriendlyByteBuf) {
         firstPos = buffer.readBlockPos().toJOML()
     }
 
-    constructor(adi: AuricDesignatorItem) {
+    constructor(adi: WanderWandItem) {
         firstPos = adi.firstPos
     }
 
@@ -29,12 +29,12 @@ class AuricDesignatorSelectionPacket : S2CCWPacket {
         context.enqueueWork {
             if (Minecraft.getInstance().level != null && Minecraft.getInstance().player != null) {
                 if (Minecraft.getInstance().player!!.mainHandItem
-                        .item !is AuricDesignatorItem
+                        .item !is WanderWandItem
                 ) {
                     context.setPacketHandled(true)
                     return@enqueueWork
                 }
-                val adi = Minecraft.getInstance().player!!.mainHandItem.item as AuricDesignatorItem
+                val adi = Minecraft.getInstance().player!!.mainHandItem.item as WanderWandItem
                 adi.firstPos = firstPos
             }
         }

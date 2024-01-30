@@ -16,7 +16,7 @@ import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.mod.common.*
 import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
 
-class AuricOreBlock(properties: Properties) : ExperienceBlock(properties) {
+class WanderliteOreBlock(properties: Properties) : ExperienceBlock(properties) {
 
     override fun use(state: BlockState,
                      level: Level,
@@ -64,14 +64,14 @@ class AuricOreBlock(properties: Properties) : ExperienceBlock(properties) {
         }
 
         val connectedShip = createNewShipWithBlocks(blockPos, dense, level)
-        AuricShipControl.getOrCreate(connectedShip).aurics += dense.size
+        WanderShipControl.getOrCreate(connectedShip).aurics += dense.size
     }
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, movedByPiston: Boolean) {
         if (level is ServerLevel) {
             val ship = level.getShipManagingPos(pos)
             if (ship != null) {
-                AuricShipControl.getOrCreate(ship).aurics ++
+                WanderShipControl.getOrCreate(ship).aurics ++
             }
         }
         super.onPlace(state, level, pos, oldState, movedByPiston)
@@ -81,7 +81,7 @@ class AuricOreBlock(properties: Properties) : ExperienceBlock(properties) {
         if (level is ServerLevel) {
             val ship = level.getShipManagingPos(pos)
             if (ship != null) {
-                AuricShipControl.getOrCreate(ship).aurics --
+                WanderShipControl.getOrCreate(ship).aurics --
             }
         }
         super.destroy(level, pos, state)

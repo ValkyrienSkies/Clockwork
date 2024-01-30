@@ -17,7 +17,7 @@ public class ClockworkPonderScenes {
     static final PonderRegistrationHelper HELPER = new PonderRegistrationHelper(ClockworkMod.MOD_ID);
 
     public static void init() {
-        HELPER.forComponents(ClockworkItems.AURIC_DESIGNATOR, ClockworkBlocks.PHYSICS_INFUSER)
+        HELPER.forComponents(ClockworkItems.WANDERWAND, ClockworkBlocks.PHYSICS_INFUSER)
                 .addStoryBoard("auric_designator", ClockworkPonderScenes::createShip);
         HELPER.forComponents(ClockworkBlocks.REDSTONE_RESISTOR)
                 .addStoryBoard("resistor", ClockworkPonderScenes::redstoneResistor);
@@ -106,7 +106,7 @@ public class ClockworkPonderScenes {
         scene.idle(15);
         scene.overlay.showControls(
                 new InputWindowElement(util.vector.topOf(0, 2, 1), Pointing.UP)
-                        .withItem(ClockworkItems.AURIC_DESIGNATOR.asStack())
+                        .withItem(ClockworkItems.WANDERWAND.asStack())
                         .rightClick(),
                 40);
         scene.idle(6);
@@ -116,7 +116,7 @@ public class ClockworkPonderScenes {
         scene.idle(45);
         scene.overlay.showControls(
                 new InputWindowElement(util.vector.blockSurface(util.grid.at(4, 3, 4), Direction.DOWN), Pointing.DOWN)
-                        .withItem(ClockworkItems.AURIC_DESIGNATOR.asStack())
+                        .withItem(ClockworkItems.WANDERWAND.asStack())
                         .rightClick(),
                 40);
         scene.idle(6);
@@ -138,7 +138,7 @@ public class ClockworkPonderScenes {
                 .pointAt(util.vector.blockSurface(util.grid.at(0, 2, 0), Direction.WEST));
         scene.overlay.showControls(
                 new InputWindowElement(util.vector.blockSurface(util.grid.at(0, 2, 0), Direction.DOWN), Pointing.DOWN)
-                        .withItem(ClockworkItems.AURIC_DESIGNATOR.asStack())
+                        .withItem(ClockworkItems.WANDERWAND.asStack())
                         .rightClick(),
                 40);
 
