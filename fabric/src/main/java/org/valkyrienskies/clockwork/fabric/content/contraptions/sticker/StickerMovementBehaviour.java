@@ -435,7 +435,7 @@ public class StickerMovementBehaviour implements MovementBehaviour {
 
         VSAttachmentOrientationConstraint constraint = makeConstraint(ship1Pos, ship2ConstraintPos, ship1, ship2, level, ship1Rot, ship2Rot, ship2Pos);
 
-        if (constraint != null) {
+        if (constraint != null && adjustedDirNormal != null) {
 
             long groundId = VSGameUtilsKt.getShipObjectWorld(level).getDimensionToGroundBodyIdImmutable().get(VSGameUtilsKt.getDimensionId(level));
             if (constraint.getShipId0() != groundId)

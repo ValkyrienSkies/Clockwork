@@ -3,7 +3,9 @@
   "package": "org.valkyrienskies.clockwork.fabric.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "MixinAllBlocks"
+    "MixinAllBlocks",
+    "MixinSmartBlockEntity",
+    "MixinStickerTileEntity"
   ],
   "client": [
   ],

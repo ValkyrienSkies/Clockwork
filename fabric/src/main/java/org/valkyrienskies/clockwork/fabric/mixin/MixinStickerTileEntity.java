@@ -18,6 +18,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.valkyrienskies.clockwork.fabric.content.contraptions.sticker.ISticker;
 import org.valkyrienskies.clockwork.fabric.content.contraptions.sticker.StickerMovementBehaviour;
 import org.valkyrienskies.clockwork.fabric.content.contraptions.sticker.StickerParticleUtil;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
@@ -29,7 +30,8 @@ import static net.minecraft.world.level.block.state.properties.BlockStatePropert
 import static org.valkyrienskies.mod.common.util.VectorConversionsMCKt.toJOML;
 
 @Mixin(StickerBlockEntity.class)
-public abstract class MixinStickerTileEntity extends SmartBlockEntity implements IMixinStickerTileEntity {
+public abstract class MixinStickerTileEntity extends SmartBlockEntity implements IMixinStickerTileEntity, ISticker {
+
     public MixinStickerTileEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }
@@ -45,23 +47,6 @@ public abstract class MixinStickerTileEntity extends SmartBlockEntity implements
 
     @Unique
     private boolean vs_clockworkwaitForNoPower = false;
-
-    @Unique
-    private void vs_clockworkremoveConstraint(@Nullable ServerLevel level, boolean removeTags) {
-        if (getCustomData().contains("ShipStickerConstraint")) {
-            if (level != null)
-                VSGameUtilsKt.getShipObjectWorld(level).removeConstraint(getCustomData().getInt("ShipStickerConstraint"));
-            if (removeTags) {
-                getCustomData().remove("ShipStickerConstraint");
-                getCustomData().remove("ShipStickerShip1Id");
-                getCustomData().remove("ShipStickerShip1Vec");
-                getCustomData().remove("ShipStickerShip1Quat");
-                getCustomData().remove("ShipStickerShip2Id");
-                getCustomData().remove("ShipStickerShip2Vec");
-                getCustomData().remove("ShipStickerShip2Quat");
-            }
-        }
-    }
 
     boolean shipStuck = false;
 
@@ -94,7 +79,7 @@ public abstract class MixinStickerTileEntity extends SmartBlockEntity implements
         } else if (!isBlockStateExtended() && shipStuck) {
             //Sticker retracted with ship related thing stuck to it
             if (!level.isClientSide) {
-                vs_clockworkremoveConstraint((ServerLevel) level, true);
+                vs_clockwork$removeConstraint((ServerLevel) level, true);
             }
             vs_clockworkwaitForNoPower = true;
         } else if (isBlockStateExtended() && !getCustomData().contains("ShipStickerConstraint") && !shipStuck && !blockAttached && shipAttached && getBlockState().getValue(POWERED)) {
@@ -108,18 +93,6 @@ public abstract class MixinStickerTileEntity extends SmartBlockEntity implements
         if (vs_clockworkwaitForNoPower && !getBlockState().getValue(POWERED)) {
             vs_clockworkwaitForNoPower = false;
             shipStuck = false;
-        }
-    }
-
-    //TODO, kinda sus to Override
-    @Override
-    public void destroy() {
-        if (level != null) {
-            if (!level.isClientSide) {
-                vs_clockworkremoveConstraint((ServerLevel) level, true);
-            }
-        } else {
-            throw new RuntimeException("ERROR Couldn't try to clean up constraint!");
         }
     }
 
