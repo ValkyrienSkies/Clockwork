@@ -13,18 +13,21 @@ import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
-import net.minecraft.world.level.block.state.properties.BlockStateProperties
+import net.minecraft.world.level.block.state.properties.BooleanProperty
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 
 class SlickerBlock(properties: Properties) : WrenchableDirectionalBlock(properties), IBE<SlickerBlockEntity>, WeakPowerCheckingBlock {
 
-    val POWERED = BlockStateProperties.POWERED
-    val EXTENDED = BlockStateProperties.EXTENDED
+    companion object {
+        val POWERED: BooleanProperty = BooleanProperty.create("powered")
+        val EXTENDED: BooleanProperty = BooleanProperty.create("extended")
+    }
 
     init {
-        registerDefaultState(
-            defaultBlockState().setValue(POWERED, false)
-                .setValue(EXTENDED, false)
+        registerDefaultState(stateDefinition.any()
+            .setValue(POWERED, false)
+            .setValue(EXTENDED, false)
+            .setValue(FACING, Direction.NORTH)
         )
     }
 
@@ -40,7 +43,8 @@ class SlickerBlock(properties: Properties) : WrenchableDirectionalBlock(properti
     }
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
-        super.createBlockStateDefinition(builder.add(POWERED, EXTENDED))
+        builder.add(POWERED, EXTENDED, FACING)
+        //super.createBlockStateDefinition(builder)
     }
 
     override fun neighborChanged(

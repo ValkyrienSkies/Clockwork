@@ -255,7 +255,9 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val SLICKER = REGISTRATE.block<SlickerBlock>("slicker") { properties: BlockBehaviour.Properties? ->
+    val SLICKER = REGISTRATE.block<SlickerBlock>(
+        "slicker"
+    ) { properties: BlockBehaviour.Properties? ->
         SlickerBlock(
             properties!!
         )
