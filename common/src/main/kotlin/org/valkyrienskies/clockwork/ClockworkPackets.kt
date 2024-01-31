@@ -12,6 +12,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInf
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandSelectionPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDestroyPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronGrabPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClearPacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket
 import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket
@@ -41,7 +42,8 @@ enum class ClockworkPackets(
     SYNCABLESTORAGE(SyncableStoragePacket::class.java, ::SyncableStoragePacket),
 
     PHYSICS_INFUSER(PhysicsInfuserSyncPacket::class.java, ::PhysicsInfuserSyncPacket),
-    AURIC_DESIGNATOR(WanderWandSelectionPacket::class.java, ::WanderWandSelectionPacket);
+    AURIC_DESIGNATOR(WanderWandSelectionPacket::class.java, ::WanderWandSelectionPacket),
+    AURIC_CLEAR(WanderWandClearPacket::class.java, ::WanderWandClearPacket);
 
     init {
         packetChannel.registerPacket(type as Class<CWPacket>, factory as Function<FriendlyByteBuf, CWPacket>)
