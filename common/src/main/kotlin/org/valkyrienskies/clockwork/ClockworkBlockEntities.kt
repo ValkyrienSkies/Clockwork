@@ -292,7 +292,7 @@ object ClockworkBlockEntities {
                 )
             }
         }
-        .validBlocks()
+        .validBlocks(ClockworkBlocks.SLICKER)
         .register()
 
 
