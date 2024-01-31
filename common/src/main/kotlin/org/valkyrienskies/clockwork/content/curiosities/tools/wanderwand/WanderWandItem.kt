@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.simibubi.create.foundation.outliner.Outliner
 import net.minecraft.ChatFormatting
+import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Style
@@ -297,9 +298,8 @@ class WanderWandItem(properties: Properties) : CWItem(properties) {
                 val item = player.getItemInHand(InteractionHand.MAIN_HAND).item as WanderWandItem
 
                 val clone: HashSet<Set<AABB>> = HashSet(item.selectedArea.selectionClusters)
-                val copy: Map<Any, Outliner.OutlineEntry> = HashMap(ClockworkModClient.WANDER_OUTLINER.outlines)
-                for ((key) in copy) {
-                    ClockworkModClient.WANDER_OUTLINER.remove(key)
+                if (player is ServerPlayer) {
+                    ClockworkPackets.sendToClientsTrackingAndSelf(WanderWandClearPacket(), player)
                 }
 
                 for (aabBic in clone) {
