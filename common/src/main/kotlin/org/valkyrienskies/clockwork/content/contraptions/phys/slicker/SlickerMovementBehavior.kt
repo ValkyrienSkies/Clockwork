@@ -24,5 +24,9 @@ class SlickerMovementBehavior : MovementBehaviour {
         //LOGGER.warn("tick");
     }
 
+    private fun doUpdateConstraint(context: MovementContext, nothing: Nothing?, nothing1: Nothing?) {
+
+    }
+
 
 }
