@@ -80,6 +80,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     var open = false
     var closing = false
     private var openProgress = 0f
+    private var openProgressMax = 70f
     private val closeProgress = 0f
     private var inOutCorner = 0f
     private var cornerShrinking = false
@@ -151,38 +152,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (!clientPacket) return
     }
 
-    fun getCoreOffset(partialTicks: Float): Float {
-        return if (!isRunning) {
-            0f
-        } else sin(easeInOutSine(inOutCorner).toDouble()).toFloat() / 5f
-    }
-
-
-
-    fun getCornerHorizontalOffset(partialTicks: Float): Float {
-        if (!isRunning) {
-            return 0f
-        } else if (opening) {
-            return Mth.lerp(
-                easeInOutSine(openProgress).toDouble(), 0.0,
-                (3f / 16f + sin(easeInOutSine(inOutCorner).toDouble()).toFloat() / 16f).toDouble()
-            ).toFloat()
-        }
-        return 3f / 16f + sin(easeInOutSine(inOutCorner).toDouble()).toFloat() / 16f
-    }
-
-    fun getCornerVerticalOffset(partialTicks: Float): Float {
-        if (!isRunning) {
-            return 0f
-        } else if (opening) {
-            return Mth.lerp(
-                easeInOutSine(openProgress).toDouble(), 0.0,
-                (1f / 16f + sin(easeInOutSine(inOutCorner).toDouble()).toFloat() / 16f).toDouble()
-            ).toFloat()
-        }
-        return 1f / 16f + sin(easeInOutSine(inOutCorner).toDouble()).toFloat() / 16f
-    }
-
     override fun getInterpolatedAngle(partialTicks: Float): Float {
         var partialTicks = partialTicks
         if (isVirtual) return Mth.lerp(partialTicks + .5f, prevAngle, bearingAngle)
@@ -190,17 +159,16 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         return Mth.lerp(partialTicks, bearingAngle, bearingAngle + angularSpeed)
     }
 
-    fun getWingProgress(partialTicks: Float): Float {
-        TODO()
+    fun getOpeningProgress() : Float {
+        return openProgress
     }
 
-    fun getWingRotOffset(partialTicks: Float): Float {
-        if (!isRunning) {
-            return 0f
-        } else if (opening) {
-            return Mth.lerp(openProgress.toDouble(), 0.0, 70.0).toFloat()
+    fun getWingRotOffset(): Float {
+        return if (!isRunning) {
+            0f
+        } else {
+            Mth.lerp(openProgress.toDouble(), 0.0, openProgressMax.toDouble()).toFloat()
         }
-        return 70f + sin(inOutCorner.toDouble()).toFloat()
     }
 
     fun getInterpolatedCoreAngle(partialTicks: Float): Float {
