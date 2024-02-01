@@ -74,6 +74,9 @@ object ClockworkPartials {
     val PHYS_ATTACHER = block("phys_bearing/attacher")
     // end region
 
+
+    val GOO = block("slicker/goo")
+
     //PIPE DEATH
     val DUCT_CORE: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/core"))
 
