@@ -13,6 +13,7 @@ import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOp
 import com.simibubi.create.foundation.item.TooltipHelper
 import com.simibubi.create.foundation.utility.AngleHelper
 import com.simibubi.create.foundation.utility.ServerSpeedProvider
+import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
