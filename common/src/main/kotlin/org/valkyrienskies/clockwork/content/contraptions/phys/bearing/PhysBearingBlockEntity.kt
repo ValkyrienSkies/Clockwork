@@ -164,10 +164,12 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     }
 
     fun getWingRotOffset(): Float {
-        return if (!isRunning) {
-            0f
-        } else {
+        return if (open) {
+            openProgressMax.toDouble().toFloat()
+        } else if (isRunning) {
             Mth.lerp(openProgress.toDouble(), 0.0, openProgressMax.toDouble()).toFloat()
+        } else {
+            0f
         }
     }
 
