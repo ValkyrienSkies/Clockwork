@@ -3,18 +3,14 @@ package org.valkyrienskies.clockwork.content.contraptions.phys.bearing
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.Quaternion
 import com.mojang.math.Vector3f
-import com.simibubi.create.AllPartialModels
-import com.simibubi.create.content.contraptions.bearing.BearingBlock
+import com.simibubi.create.content.kinetics.KineticDebugger
+import com.simibubi.create.content.kinetics.base.IRotate
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
-import com.simibubi.create.content.kinetics.flywheel.FlywheelRenderer
-import com.simibubi.create.content.kinetics.gearbox.GearboxRenderer
-import com.simibubi.create.content.kinetics.mixer.MechanicalMixerRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
-import com.simibubi.create.foundation.utility.AngleHelper
 import com.simibubi.create.foundation.utility.AnimationTickHolder
-import com.simibubi.create.foundation.utility.animation.LerpedFloat
+import com.simibubi.create.foundation.utility.Color
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
@@ -24,24 +20,12 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkPartials
-import org.valkyrienskies.clockwork.util.render.RenderUtil
-import org.valkyrienskies.clockwork.util.render.TransformData
-import kotlin.math.PI
 
-@Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
 class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : KineticBlockEntityRenderer<PhysBearingBlockEntity>(context) {
 
-
-
-    override fun getRotatedModel(te: PhysBearingBlockEntity, state: BlockState): SuperByteBuffer {
-        var v =  getRotationAxisOf(te)
-
-        return CachedBufferer.partialFacing(
-            ClockworkPartials.PHYS_ATTACHER, state, state.getValue(BearingBlock.FACING).opposite
-        )
-    }
-
     override fun renderSafe(blockEntity: PhysBearingBlockEntity, partialTicks: Float, matrices: PoseStack, buffer: MultiBufferSource, light: Int, overlay: Int) {
+        super.renderSafe(blockEntity, partialTicks, matrices, buffer, light, overlay)
+
         val blockState = blockEntity.blockState
         val facing = blockState.getValue(BlockStateProperties.FACING)
 
@@ -50,37 +34,27 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : Kineti
         val phys_west = CachedBufferer.partial(ClockworkPartials.PHYS_WEST_WING, blockState)
         val phys_east = CachedBufferer.partial(ClockworkPartials.PHYS_EAST_WING, blockState)
 
-        //val shaft = CachedBufferer.partialFacing(ClockworkPartials.PHYS_SHAFT, blockState, facing)
-        //val attacher = CachedBufferer.partialFacing(ClockworkPartials.PHYS_ATTACHER, blockState, facing)
 
-
-        //Render Shaft and Attacher
         matrices.pushPose()
-        //matrices.mulPose(Vector3f.ZP.rotationDegrees(90f))
-        //renderRotatingBuffer(blockEntity, shaft, matrices, buffer.getBuffer(RenderType.solid()), light)
-        //renderRotatingBuffer(blockEntity, attacher, matrices, buffer.getBuffer(RenderType.solid()), light)
-
         matrices.translate(0.5, 0.5, 0.5)
         matrices.mulPose(Quaternion.fromXYZ(0.0f, Math.toRadians(-180.0).toFloat(), 0.0f))
 
         when (facing) {
             Direction.SOUTH -> matrices.mulPose(Vector3f.XP.rotationDegrees(270f))
-            Direction.WEST -> matrices.mulPose(Vector3f.ZP.rotationDegrees(270f))
+            Direction.WEST -> {
+                matrices.mulPose(Vector3f.ZP.rotationDegrees(270f))
+                matrices.mulPose(Vector3f.YP.rotationDegrees(90f))
+            }
             Direction.NORTH -> matrices.mulPose(Vector3f.XP.rotationDegrees(90f))
-            Direction.EAST -> matrices.mulPose(Vector3f.ZP.rotationDegrees(90f))
+            Direction.EAST -> {
+                matrices.mulPose(Vector3f.ZP.rotationDegrees(90f))
+                matrices.mulPose(Vector3f.YP.rotationDegrees(90f))
+            }
             Direction.UP -> matrices.mulPose(Vector3f.XP.rotationDegrees(0f))
             Direction.DOWN -> matrices.mulPose(Vector3f.XN.rotationDegrees(180f))
         }
 
         matrices.translate(-0.5, -0.5, -0.5)
-
-        matrices.pushPose()
-        var v = getRotatedModel(blockEntity, blockState)
-        //v.rotateCentered(Quaternion(Vector3f(0f,-1f,0f),90f, true))
-        matrices.mulPose(Vector3f.YN.rotationDegrees(90f))
-        renderRotatingBuffer(blockEntity, v, matrices, buffer.getBuffer(RenderType.solid()), light)
-        matrices.popPose()
-
 
         //TODO render auric matrix
 
@@ -101,6 +75,70 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : Kineti
         phys_east.renderInto(matrices, vertexConsumer)
 
         matrices.popPose()
+
+        matrices.pushPose()
+
+        val at = getRotatedModelAttacher(blockEntity, blockEntity.blockState)
+        val shaf = getRotatedModel(blockEntity, blockEntity.blockState)
+
+        sickoModeRotationTransform(at, blockEntity, light).renderInto(matrices, vertexConsumer)
+        sickoModeRotationTransform(shaf, blockEntity, light).renderInto(matrices, vertexConsumer)
+
+        matrices.popPose()
+    }
+
+    fun sickoModeRotationTransform(buffer: SuperByteBuffer, be: KineticBlockEntity, light: Int): SuperByteBuffer {
+        val pos = be.blockPos
+        val axis = (be.blockState.block as IRotate).getRotationAxis(be.blockState)
+
+        return coolKineticRotationTransform(buffer, be, getAngleForTe(be, pos, axis), light)
+    }
+
+    fun coolKineticRotationTransform(buffer: SuperByteBuffer, be: KineticBlockEntity, angle: Float, light: Int): SuperByteBuffer {
+        buffer.light(light)
+        val facing = be.blockState.getValue(BlockStateProperties.FACING)
+
+        when (facing) {
+            Direction.DOWN -> {
+                buffer.rotate(90.0, Direction.Axis.X)
+                buffer.translate(0.0,0.0,-1.0)
+            }
+            Direction.UP -> {
+                buffer.rotate(90.0, Direction.Axis.X)
+                buffer.translate(0.0,0.0,-1.0)
+            }
+            Direction.NORTH -> {
+                buffer.rotate(-90.0, Direction.Axis.X)
+                buffer.translate(0.0,-1.0,0.0)
+            }
+            Direction.SOUTH -> {
+                buffer.rotate(90.0, Direction.Axis.X)
+                buffer.translate(0.0,0.0,-1.0)
+            }
+            Direction.WEST -> {
+                buffer.rotate(90.0, Direction.Axis.Z)
+                buffer.translate(0.0,-1.0,0.0)
+            }
+            Direction.EAST -> {
+                buffer.rotate(-90.0, Direction.Axis.Z)
+                buffer.translate(-1.0,0.0,0.0)
+            }
+        }
+
+        var axlDir = Direction.AxisDirection.NEGATIVE
+        var axl = Direction.Axis.Y
+
+        if (facing == Direction.UP || facing == Direction.DOWN) {
+            axl = Direction.Axis.Z
+        }
+
+        if (facing == Direction.EAST || facing == Direction.SOUTH) {
+            axlDir = Direction.AxisDirection.NEGATIVE
+        }
+
+        buffer.rotateCentered(Direction.get(axlDir, axl), angle)
+
+        return buffer
     }
 
     private fun rotateAndRiseNorth(physPartial: SuperByteBuffer, blockEntity: PhysBearingBlockEntity) {
@@ -144,5 +182,17 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : Kineti
         val interpolatedAngle = bearing.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1)
         buffer.rotateCentered(Direction.UP, (interpolatedAngle / 180 * Math.PI).toFloat()).translate(0.0, offset.toDouble(), 0.0)
         return buffer
+    }
+
+    override fun getRotatedModel(te: PhysBearingBlockEntity, state: BlockState): SuperByteBuffer {
+        return CachedBufferer.partialFacing(
+            ClockworkPartials.PHYS_SHAFT, state, state.getValue(BlockStateProperties.FACING)
+        )
+    }
+
+    fun getRotatedModelAttacher(te: PhysBearingBlockEntity, state: BlockState): SuperByteBuffer {
+        return CachedBufferer.partialFacing(
+            ClockworkPartials.PHYS_ATTACHER, state, state.getValue(BlockStateProperties.FACING)
+        )
     }
 }
