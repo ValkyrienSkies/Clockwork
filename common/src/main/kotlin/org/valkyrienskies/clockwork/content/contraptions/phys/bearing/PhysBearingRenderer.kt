@@ -59,7 +59,6 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : Kineti
 
         matrices.translate(-0.5, -0.5, -0.5)
 
-        //TODO render auric matrix
         //RENDER CRYSTAL MATRIX start
         val interpolatedAngle = blockEntity.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1)
         var offset = when(facing) {
@@ -98,20 +97,16 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : Kineti
 
         matrices.pushPose()
 
-        val at = getRotatedModelAttacher(blockEntity, blockEntity.blockState)
-        val shaf = getRotatedModel(blockEntity, blockEntity.blockState)
+        val at = getRotatedModelAttacher(blockEntity, blockState)
+        val shaf = getRotatedModel(blockEntity, blockState)
 
-        sickoModeRotationTransform(at, blockEntity, light).renderInto(matrices, vertexConsumer)
-        sickoModeRotationTransform(shaf, blockEntity, light).renderInto(matrices, vertexConsumer)
+        val axis = (blockState.block as IRotate).getRotationAxis(blockState)
+        val angle = getAngleForTe(blockEntity, blockEntity.blockPos, axis);
+
+        coolKineticRotationTransform(at, blockEntity, angle, light).renderInto(matrices, vertexConsumer)
+        coolKineticRotationTransform(shaf, blockEntity, angle, light).renderInto(matrices, vertexConsumer)
 
         matrices.popPose()
-    }
-
-    fun sickoModeRotationTransform(buffer: SuperByteBuffer, be: KineticBlockEntity, light: Int): SuperByteBuffer {
-        val pos = be.blockPos
-        val axis = (be.blockState.block as IRotate).getRotationAxis(be.blockState)
-
-        return coolKineticRotationTransform(buffer, be, getAngleForTe(be, pos, axis), light)
     }
 
     fun coolKineticRotationTransform(buffer: SuperByteBuffer, be: KineticBlockEntity, angle: Float, light: Int): SuperByteBuffer {
@@ -193,12 +188,6 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : Kineti
         physPartial.translate(pivot)
         physPartial.rotateCentered(axl, (interpolatedAngle / 360 * Math.PI).toFloat())
         physPartial.translateBack(pivot)
-    }
-
-    private fun idleRotateCore(buffer: SuperByteBuffer, offset: Float, bearing: PhysBearingBlockEntity): SuperByteBuffer {
-        val interpolatedAngle = bearing.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1)
-        buffer.rotateCentered(Direction.UP, (interpolatedAngle / 180 * Math.PI).toFloat()).translate(0.0, offset.toDouble(), 0.0)
-        return buffer
     }
 
     override fun getRotatedModel(te: PhysBearingBlockEntity, state: BlockState): SuperByteBuffer {
