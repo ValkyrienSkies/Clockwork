@@ -41,6 +41,10 @@
   "item.vs_clockwork.intake": "Intake",
   "block.vs_clockwork.ballast": "Ballast",
   "item.vs_clockwork.ballast": "Ballast",
+  "block.vs_clockwork.goo_block": "Block of Goo",
+  "item.vs_clockwork.goo_block": "Block of Goo",
+  "block.vs_clockwork.slicker": "Slicker",
+  "item.vs_clockwork.slicker": "Slicker",
 
   "block.vs_clockwork.wanderlite_deepslate_ore": "Deepslate Wanderlite Ore",
   "item.vs_clockwork.wanderlite_deepslate_ore": "Deepslate Wanderlite Ore",

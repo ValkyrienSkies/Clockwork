@@ -27,7 +27,7 @@ object ClockworkWorldgen {
                             OreConfiguration.target(DEEPSLATE_ORE_REPLACEABLES, ClockworkBlocks.WANDERLITE_DEEPSLATE_ORE.get().defaultBlockState()),
                             OreConfiguration.target(BlockMatchTest(Blocks.END_STONE), ClockworkBlocks.WANDERLITE_END_ORE.get().defaultBlockState())
                         ),
-                        3))
+                        4))
 
             val placedFeature = PlacementUtils.register(ClockworkMod.MOD_ID + ":ore_wanderlite", configuredFeature,
                 listOf(
@@ -38,10 +38,7 @@ object ClockworkWorldgen {
                     BiomeFilter.biome()))
 
             BiomeModifications.addProperties { ctx, mutable ->
-                if (true) {
-                    mutable.getGenerationProperties()
-                        .addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, placedFeature);
-                }
+                mutable.generationProperties.addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, placedFeature)
             }
         }
     }
