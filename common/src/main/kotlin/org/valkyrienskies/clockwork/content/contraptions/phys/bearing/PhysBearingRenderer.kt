@@ -3,15 +3,13 @@ package org.valkyrienskies.clockwork.content.contraptions.phys.bearing
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.Quaternion
 import com.mojang.math.Vector3f
-import com.simibubi.create.content.kinetics.KineticDebugger
 import com.simibubi.create.content.kinetics.base.IRotate
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
+import com.simibubi.create.content.kinetics.clock.CuckooClockBlockEntity
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
 import com.simibubi.create.foundation.utility.AnimationTickHolder
-import com.simibubi.create.foundation.utility.Color
-import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
@@ -20,11 +18,16 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkPartials
+import org.valkyrienskies.clockwork.util.render.RenderUtil
+import org.valkyrienskies.clockwork.util.render.TransformData
 
+@Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
 class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : KineticBlockEntityRenderer<PhysBearingBlockEntity>(context) {
 
-    override fun renderSafe(blockEntity: PhysBearingBlockEntity, partialTicks: Float, matrices: PoseStack, buffer: MultiBufferSource, light: Int, overlay: Int) {
+    override fun renderSafe(blockEntity: PhysBearingBlockEntity?, partialTicks: Float, matrices: PoseStack, buffer: MultiBufferSource, light: Int, overlay: Int) {
         super.renderSafe(blockEntity, partialTicks, matrices, buffer, light, overlay)
+
+        if (blockEntity !is PhysBearingBlockEntity) return
 
         val blockState = blockEntity.blockState
         val facing = blockState.getValue(BlockStateProperties.FACING)
@@ -57,6 +60,23 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : Kineti
         matrices.translate(-0.5, -0.5, -0.5)
 
         //TODO render auric matrix
+        //RENDER CRYSTAL MATRIX start
+        val interpolatedAngle = blockEntity.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1)
+        var offset = when(facing) {
+            Direction.SOUTH -> org.joml.Vector3f(0.0f,0.0f,0.1f)
+            Direction.WEST -> org.joml.Vector3f(0.1f,0.0f,0.0f)
+            Direction.NORTH -> org.joml.Vector3f(0.0f,0.0f,0.1f)
+            Direction.EAST -> org.joml.Vector3f(0.1f,0.0f,0.0f)
+            Direction.UP -> org.joml.Vector3f(0.0f,0.1f,0.0f)
+            Direction.DOWN -> org.joml.Vector3f(0.0f,0.1f,0.0f)
+        }
+        val innerData = TransformData(offset, org.joml.Vector3f(interpolatedAngle, interpolatedAngle, 0f))
+        val data = TransformData(offset, org.joml.Vector3f(0f, 0f, 0f))
+        val outerData = TransformData(offset, org.joml.Vector3f(0f, 0f, 0f))
+
+        RenderUtil.renderCubeMatrix(matrices, buffer, blockState, innerData, data, outerData, 1.5f,light)
+        val vb = buffer.getBuffer(RenderType.translucent())
+        //RENDER CRYSTAL MATRIX end
 
         //Render partials
         rotateAndRiseNorth(phys_north, blockEntity)
@@ -99,11 +119,7 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : Kineti
         val facing = be.blockState.getValue(BlockStateProperties.FACING)
 
         when (facing) {
-            Direction.DOWN -> {
-                buffer.rotate(90.0, Direction.Axis.X)
-                buffer.translate(0.0,0.0,-1.0)
-            }
-            Direction.UP -> {
+            Direction.DOWN, Direction.UP -> {
                 buffer.rotate(90.0, Direction.Axis.X)
                 buffer.translate(0.0,0.0,-1.0)
             }
@@ -133,7 +149,7 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : Kineti
         }
 
         if (facing == Direction.EAST || facing == Direction.SOUTH) {
-            axlDir = Direction.AxisDirection.NEGATIVE
+            axlDir = Direction.AxisDirection.POSITIVE
         }
 
         buffer.rotateCentered(Direction.get(axlDir, axl), angle)
@@ -173,6 +189,7 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : Kineti
 
     private fun rotateWing(physPartial: SuperByteBuffer, blockEntity: PhysBearingBlockEntity, pivot: Vec3, axl: Direction) {
         val interpolatedAngle = blockEntity.getWingRotOffset()
+
         physPartial.translate(pivot)
         physPartial.rotateCentered(axl, (interpolatedAngle / 360 * Math.PI).toFloat())
         physPartial.translateBack(pivot)
