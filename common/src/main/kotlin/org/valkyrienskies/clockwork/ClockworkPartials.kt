@@ -62,8 +62,6 @@ object ClockworkPartials {
     val CRYSTAL_INNER: PartialModel = PartialModel(ClockworkMod.asResource("item/wanderwand/crystal_inner"))
 
     val GYRO_BASE: PartialModel = block("gyro/base")
-    val GYRO_OBJ: PartialModel = block("gyro/obj")
-
 
     // region Phys Bearing
     val PHYS_NORTH_WING = block("phys_bearing/wing_north")
