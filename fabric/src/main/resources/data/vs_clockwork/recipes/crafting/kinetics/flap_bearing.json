@@ -7,7 +7,7 @@
   ],
   "key": {
     "P": {
-      "tag": "c:plates/brass"
+      "item": "create:brass_plate"
     },
     "A": {
       "item": "create:andesite_casing"
