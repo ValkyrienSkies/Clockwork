@@ -68,9 +68,12 @@ class GravitronGrabPacket : C2SCWPacket {
         if (clickedPos != null) {
             buffer.writeBlockPos(clickedPos!!)
         }
-        buffer.writeDouble(clickLocation!!.x)
-        buffer.writeDouble(clickLocation!!.y)
-        buffer.writeDouble(clickLocation!!.z)
+        if (clickLocation != null) {
+            buffer.writeDouble(clickLocation!!.x)
+            buffer.writeDouble(clickLocation!!.y)
+            buffer.writeDouble(clickLocation!!.z)
+        }
+
         buffer.writeByte(mode.toInt())
     }
 }
