@@ -37,7 +37,6 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInf
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
-import org.valkyrienskies.clockwork.content.curiosities.AuricCubeItemRenderer
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlock
@@ -244,7 +243,6 @@ object ClockworkBlocks {
     }
         .initialProperties { Blocks.HONEY_BLOCK }
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
         .register()
 
@@ -258,7 +256,6 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.softMetal() }
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
         .register()
 

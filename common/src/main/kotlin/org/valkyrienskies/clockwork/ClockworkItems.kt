@@ -39,7 +39,7 @@ object ClockworkItems {
         REGISTRATE.item<WanderliteItem>("wanderlite_cube") { properties: Item.Properties? ->
             WanderliteItem(properties!!)
         }
-            .transform(ClockworkRegistrate.customRenderedItem { Supplier { AuricCubeItemRenderer(false) } })
+            .transform(ClockworkRegistrate.customRenderedItem { Supplier { WanderliteCubeItemRenderer(false) } })
             .register()
 
     @JvmField
@@ -47,7 +47,7 @@ object ClockworkItems {
         REGISTRATE.item<WanderliteItem>("wanderlite_matrix") { properties: Item.Properties? ->
             WanderliteItem(properties!!)
         }
-            .transform(ClockworkRegistrate.customRenderedItem { Supplier { AuricCubeItemRenderer(true) } })
+            .transform(ClockworkRegistrate.customRenderedItem { Supplier { WanderliteCubeItemRenderer(true) } })
             .register()
 
 
@@ -60,7 +60,7 @@ object ClockworkItems {
                 it.stacksTo(1)
                 it.rarity(Rarity.UNCOMMON)
             }
-            .transform(ClockworkRegistrate.customRenderedItem { Supplier { AuricDesignatorItemRenderer() } })
+            .transform(ClockworkRegistrate.customRenderedItem { Supplier { WanderWandItemRenderer() } })
             .tag(AllTags.AllItemTags.WRENCH.tag)
             .model(AssetLookup.itemModelWithPartials())
             .register()
@@ -74,7 +74,7 @@ object ClockworkItems {
                 it.stacksTo(1)
                 it.rarity(Rarity.UNCOMMON)
             }
-            .transform(ClockworkRegistrate.customRenderedItem { Supplier { AuricDesignatorItemRenderer() } })
+            .transform(ClockworkRegistrate.customRenderedItem { Supplier { WanderWandItemRenderer() } })
             .tag(AllTags.AllItemTags.WRENCH.tag)
             .model(AssetLookup.itemModelWithPartials())
             .register()

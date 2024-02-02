@@ -5,12 +5,12 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import org.valkyrienskies.clockwork.ClockworkModClient;
 import org.valkyrienskies.clockwork.ClockworkPartials;
 import org.valkyrienskies.clockwork.ClockworkShaders;
-import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorClusterRenderer;
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer;
 import org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.ForgeGravitronHandler;
 
 public class ClockworkModForgeClient {
     public static final ForgeGravitronHandler GRAVITRON_HANDLER = new ForgeGravitronHandler();
-    public static final AuricDesignatorClusterRenderer AURIC_HANDLER = new AuricDesignatorClusterRenderer();
+    public static final WanderWandClusterRenderer AURIC_HANDLER = new WanderWandClusterRenderer();
 
     public static void onCtorClient(IEventBus modEventBus) {
         ClockworkPartials.INSTANCE.init();

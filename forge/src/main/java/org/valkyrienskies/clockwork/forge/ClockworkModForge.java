@@ -1,6 +1,8 @@
 package org.valkyrienskies.clockwork.forge;
 
 import com.simibubi.create.AllParticleTypes;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.world.item.CreativeModeTab;
@@ -27,8 +29,6 @@ import static org.valkyrienskies.clockwork.ClockworkMod.MOD_ID;
 public class ClockworkModForge {
 
     final DeferredRegister<CreativeModeTab> TAB_REGISTER = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MOD_ID);
-    public static final AuricDesignatorClusterRenderer AURIC_HANDLER = new AuricDesignatorClusterRenderer();
-    public static final WanderWandClusterRenderer AURIC_HANDLER = new WanderWandClusterRenderer();
 
     public ClockworkModForge() {
         ModLoadingContext modLoadingContext = ModLoadingContext.get();
