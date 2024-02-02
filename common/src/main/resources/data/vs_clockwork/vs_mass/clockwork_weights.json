@@ -658,5 +658,95 @@
     "block": "vs_clockwork:ballast",
     "mass": 10,
     "friction": 0.75
+  },
+  {
+    "block": "vs_clockwork:flap",
+    "mass": 10,
+    "friction": 0.75
+  },
+  {
+  "block": "vs_clockwork:wing",
+  "mass": 10,
+  "friction": 0.75
+  },
+  {
+    "block": "create:white_sail",
+    "mass": 10,
+    "friction": 0.75
+  },
+  {
+    "block": "create:light_gray_sail",
+    "mass": 10,
+    "friction": 0.75
+  },
+  {
+    "block": "create:gray_sail",
+    "mass": 10,
+    "friction": 0.75
+  },
+  {
+    "block": "create:black_sail",
+    "mass": 10,
+    "friction": 0.75
+  },
+  {
+    "block": "create:brown_sail",
+    "mass": 10,
+    "friction": 0.75
+  },
+  {
+    "block": "create:orange_sail",
+    "mass": 10,
+    "friction": 0.75
+  },
+  {
+    "block": "create:magenta_sail",
+    "mass": 10,
+    "friction": 0.75
+  },
+  {
+    "block": "create:light_blue_sail",
+    "mass": 10,
+    "friction": 0.75
+  },
+  {
+    "block": "create:yellow_sail",
+    "mass": 10,
+    "friction": 0.75
+  },
+  {
+    "block": "create:lime_sail",
+    "mass": 10,
+    "friction": 0.75
+  },
+  {
+    "block": "create:pink_sail",
+    "mass": 10,
+    "friction": 0.75
+  },
+  {
+    "block": "create:cyan_sail",
+    "mass": 10,
+    "friction": 0.75
+  },
+  {
+    "block": "create:purple_sail",
+    "mass": 10,
+    "friction": 0.75
+  },
+  {
+    "block": "create:blue_sail",
+    "mass": 10,
+    "friction": 0.75
+  },
+  {
+    "block": "create:green_sail",
+    "mass": 10,
+    "friction": 0.75
+  },
+  {
+    "block": "create:red_sail",
+    "mass": 10,
+    "friction": 0.75
   }
 ]
