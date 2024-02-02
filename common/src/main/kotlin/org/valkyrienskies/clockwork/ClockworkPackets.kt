@@ -42,8 +42,8 @@ enum class ClockworkPackets(
 
 
     PHYSICS_INFUSER(PhysicsInfuserSyncPacket::class.java, ::PhysicsInfuserSyncPacket),
-    AURIC_DESIGNATOR(WanderWandSelectionPacket::class.java, ::WanderWandSelectionPacket),
-    AURIC_CLEAR(WanderWandClearPacket::class.java, ::WanderWandClearPacket);
+    WANDER_WAND(WanderWandSelectionPacket::class.java, ::WanderWandSelectionPacket),
+    WANDER_WAND_CLEAR(WanderWandClearPacket::class.java, ::WanderWandClearPacket);
 
     init {
         packetChannel.registerPacket(type as Class<CWPacket>, factory as Function<FriendlyByteBuf, CWPacket>)
