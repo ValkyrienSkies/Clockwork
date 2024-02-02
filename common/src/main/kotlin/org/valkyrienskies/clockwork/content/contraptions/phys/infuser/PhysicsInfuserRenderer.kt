@@ -42,7 +42,7 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
                 val data = TransformData(Vector3f(0f, coreOffset, 0f), Vector3f(0f, interpolatedAngle, 0f))
                 val outerData = TransformData(Vector3f(0f, coreOffset, 0f), Vector3f(0f, interpolatedAngle, 0f))
 
-                RenderUtil.renderCubeMatrix(ms, buffer, blockState, innerData, data, outerData, light)
+                RenderUtil.renderCubeMatrix(ms, buffer, blockState, innerData, data, outerData, 1.5f, light)
             }
 
             if (infuser.animationType === PhysicsInfuserBlockEntity.Animation.IDLE) {
@@ -53,7 +53,7 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
                 val data = TransformData(Vector3f(0f, 0f, 0f), Vector3f(0f, interpolatedAngle, 0f))
                 val outerData = TransformData(Vector3f(0f, 0f, 0f), Vector3f(0f, interpolatedAngle, 0f))
 
-                RenderUtil.renderCubeMatrix(ms, buffer, blockState, innerData, data, outerData, light)
+                RenderUtil.renderCubeMatrix(ms, buffer, blockState, innerData, data, outerData, 1.5f, light)
             }
         }
     }
