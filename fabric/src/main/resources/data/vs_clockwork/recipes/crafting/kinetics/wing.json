@@ -9,10 +9,10 @@
       "tag": "minecraft:wool"
     },
     "B": {
-      "tag": "c:nuggets/brass"
+      "item": "create:brass_nugget"
     },
     "O": {
-      "tag": "c:plates/obsidian"
+      "item": "create:sturdy_sheet"
     }
   },
   "result": {
