@@ -73,7 +73,7 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : Kineti
         val data = TransformData(offset, org.joml.Vector3f(0f, 0f, 0f))
         val outerData = TransformData(offset, org.joml.Vector3f(0f, 0f, 0f))
 
-        RenderUtil.renderCubeMatrix(matrices, buffer, blockState, innerData, data, outerData, 1.5f,light)
+        RenderUtil.renderCubeMatrix(matrices, buffer, blockState, innerData, data, outerData, 1.5f, light)
         val vb = buffer.getBuffer(RenderType.translucent())
         //RENDER CRYSTAL MATRIX end
 

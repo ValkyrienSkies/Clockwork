@@ -72,7 +72,7 @@ class GyroBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
         val data = TransformData(Vector3f(0f, 0f, 0f), Vector3f(0f, 0f, 0f))
         val outerData = TransformData(Vector3f(0f, 0f, 0f), Vector3f(0f, 0f, 0f))
 
-        RenderUtil.renderCubeMatrix(ms!!, buffer, blockState, innerData, data, outerData, light)
+        RenderUtil.renderCubeMatrix(ms!!, buffer, blockState, innerData, data, outerData, 1.5f, light)
 
     }
 
