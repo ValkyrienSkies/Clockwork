@@ -22,6 +22,5 @@ class GooBlockEntityRenderer(context: BlockEntityRendererProvider.Context) : Sma
         overlay: Int
     ) {
         super.renderSafe(blockEntity, partialTicks, ms, buffer, light, overlay)
-        Blocks.HONEY_BLOCK
     }
 }

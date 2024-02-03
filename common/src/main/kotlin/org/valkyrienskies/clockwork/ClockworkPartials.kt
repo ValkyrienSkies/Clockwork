@@ -74,6 +74,8 @@ object ClockworkPartials {
 
 
     val GOO = block("slicker/goo")
+    val DOINK = block("slicker/doink")
+    val BOING = block("boing")
 
     //PIPE DEATH
     val DUCT_CORE: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/core"))

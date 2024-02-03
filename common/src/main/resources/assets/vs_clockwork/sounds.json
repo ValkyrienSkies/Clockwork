@@ -153,5 +153,25 @@
       }
     ],
     "subtitle": "vs_clockwork.subtitle.designator_select_end"
+  },
+  "boing": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:boing",
+        "type": "file",
+        "attenuation_distance": 16
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.boing"
+  },
+  "doing": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:doink",
+        "type": "file",
+        "attenuation_distance": 16
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.doink"
   }
 }
