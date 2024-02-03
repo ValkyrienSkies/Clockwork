@@ -27,6 +27,7 @@ import org.joml.Quaterniond
 import org.joml.Quaterniondc
 import org.joml.Vector3d
 import org.joml.Vector3dc
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.mixin.accessors.IMixinPistonContraption
 import org.valkyrienskies.clockwork.mixinduck.MixinAbstractContraptionEntityDuck
 import org.valkyrienskies.core.api.ships.ServerShip
@@ -60,7 +61,7 @@ class SlickerMovementBehavior : MovementBehaviour {
                 doUpdateConstraint(context, null, null)
             }
         } else {
-            if (context.state.getValue(StickerBlock.EXTENDED)) {
+            if (context.state.getValue(SlickerBlock.EXTENDED)) {
                 context.blockEntityData.put("CondensedData", CompoundTag())
                 isAttachedToShipOrWorld(true, context.world as ServerLevel, context.localPos.toJOMLD(), context.rotation.apply(Vec3.atLowerCornerOf(context.state.getValue(
                     DirectionalBlock.FACING).normal)).toJOML(), context.blockEntityData.getCompound("CondensedData"))
@@ -213,15 +214,15 @@ class SlickerMovementBehavior : MovementBehaviour {
             if (constraintPair != null) {
                 val attachConstraint2 = constraintPair.first
                 val orientationConstraint2 = constraintPair.second
-                (context.world as ServerLevel).shipObjectWorld.removeConstraint(extraData.getInt("AttachmentConstraintId"))
-                (context.world as ServerLevel).shipObjectWorld.removeConstraint(extraData.getInt("OrientationConstraintId"))
-                val attachConstraintId = (context.world as ServerLevel).shipObjectWorld.createNewConstraint(attachConstraint2)
-                val orientationConstraintId = (context.world as ServerLevel).shipObjectWorld.createNewConstraint(orientationConstraint2)
-                extraData.putInt("AttachmentConstraintId", attachConstraintId ?: -1)
+                (context.world as ServerLevel).shipObjectWorld.updateConstraint(extraData.getInt("AttachmentConstraintId"), attachConstraint2)
+                (context.world as ServerLevel).shipObjectWorld.updateConstraint(extraData.getInt("OrientationConstraintId"), orientationConstraint2)
+                extraData.putInt("AttachmentConstraintId", extraData.getInt("AttachmentConstraintId"))
                 extraData.putByteArray("AttachmentConstraint", mapper.writeValueAsBytes(attachConstraint2))
-                extraData.putInt("OrientationConstraintId", orientationConstraintId ?: -1)
+                extraData.putInt("OrientationConstraintId", extraData.getInt("OrientationConstraintId"))
                 extraData.putByteArray("OrientationConstraint", mapper.writeValueAsBytes(orientationConstraint2))
                 extraData.putDouble("ShipStickerDistance", distance)
+
+                ClockworkMod.LOGGER.info("Updated constraint from ship ${attachConstraint2.shipId0} to ${attachConstraint2.shipId1} using points ${attachConstraint2.localPos0} && ${attachConstraint2.localPos1}")
             }
         }
     }
@@ -366,6 +367,8 @@ class SlickerMovementBehavior : MovementBehaviour {
                 tag.putInt("OrientationConstraintId", orientationConstraintId ?: -1)
                 tag.putByteArray("OrientationConstraint", mapper.writeValueAsBytes(orientationConstraint))
                 tag.putDouble("ShipStickerDistance", adjustedDistance)
+
+                ClockworkMod.LOGGER.info("Attached to ship ${attachConstraint.shipId1} using points ${attachConstraint.localPos0} && ${attachConstraint.localPos1}")
             }
         }
 
@@ -390,13 +393,13 @@ class SlickerMovementBehavior : MovementBehaviour {
             if (ship2Rot == null && ship2 == null) realShip1Rot = Quaterniond()
             var mass = 100.0
             if (ship1 != null) {
-                ship1.shipToWorld.transformPosition(ship2ConstraintPos)
+                ship1.shipToWorld.transformPosition(realShip2ConstraintPos)
                 ship1Id = ship1.id
                 if (realShip1Rot == null) realShip1Rot = ship1.transform.shipToWorldRotation as Quaterniond
                 mass = level.shipObjectWorld.allShips.getById(ship1Id)!!.inertiaData.mass
             } else ship1Id = groundId
             if (ship2 != null) {
-                ship2.worldToShip.transformPosition(ship2ConstraintPos)
+                ship2.worldToShip.transformPosition(realShip2ConstraintPos)
                 ship2Id = ship2.id
                 if (realShip2Rot == null) realShip2Rot = ship2.transform.shipToWorldRotation as Quaterniond
                 //ship2Rot.add(ship2.getTransform().getShipToWorldRotation());
