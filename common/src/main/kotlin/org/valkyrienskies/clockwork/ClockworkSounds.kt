@@ -84,6 +84,15 @@ object ClockworkSounds {
         .category(SoundSource.PLAYERS)
         .attenuationDistance(16)
         .build()
+    val BOING = create("boing").subtitle("Boioing!")
+        .category(SoundSource.BLOCKS)
+        .attenuationDistance(16)
+        .build()
+    val DOINK = create("doink").subtitle("Doink.")
+        .category(SoundSource.BLOCKS)
+        .attenuationDistance(16)
+        .build()
+
     private val sounds: DeferredRegister<SoundEvent> =
         DeferredRegister.create(Registry.SOUND_EVENT, ClockworkMod.MOD_ID)
 
