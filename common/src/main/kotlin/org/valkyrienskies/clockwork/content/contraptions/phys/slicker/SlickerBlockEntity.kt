@@ -17,6 +17,8 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
+import org.valkyrienskies.clockwork.ClockworkBlocks
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock.Companion.POWERED
@@ -82,8 +84,6 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
                 ).toJOML(), myDirNormal, this.extraCustomData
         ) //isAttachedToShipOrWorld(false);
 
-        if (piston!!.getValue(0f) != piston!!.value && piston!!.value == 1f && shipAttached) {
-        }
         if (isBlockStateExtended() && !shipStuck) {
             //Sticker extended with no ship related thing stuck to it
             waitForNoPower = false
@@ -161,12 +161,12 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
     override fun initialize() {
         super.initialize()
         if (!level!!.isClientSide) return
-        piston!!.startWithValue((if (isBlockStateExtended()) 1 else 0).toDouble())
+        piston!!.startWithValue((if (isBlockStateExtended()) -2.0/16.0 else 0).toDouble())
     }
 
     fun isBlockStateExtended(): Boolean {
         val blockState = blockState
-        return AllBlocks.STICKER.has(blockState) && blockState.getValue(StickerBlock.EXTENDED)
+        return ClockworkBlocks.SLICKER.has(blockState) && blockState.getValue(SlickerBlock.EXTENDED)
     }
 
     override fun tick() {
@@ -186,10 +186,11 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
         }
         if (!update) return
         update = false
-        val target = if (isBlockStateExtended()) 1 else 0
-        if (isAttachedToShip() && target == 0 && piston!!.chaseTarget == 1f) playSound(false)
-        piston!!.chase(target.toDouble(), .4, LerpedFloat.Chaser.LINEAR)
-        InstancedRenderDispatcher.enqueueUpdate(this)
+        val target = if (isBlockStateExtended()) 2.0/16.0 else 0.0
+        ClockworkMod.LOGGER.info(isBlockStateExtended().toString())
+        if (isAttachedToShip() && target == 0.0 && piston!!.chaseTarget == 1f) playSound(false)
+        piston!!.chase(target, .4, LerpedFloat.Chaser.LINEAR)
+        //InstancedRenderDispatcher.enqueueUpdate(this)
     }
 
     fun isAttachedToShip(): Boolean {
