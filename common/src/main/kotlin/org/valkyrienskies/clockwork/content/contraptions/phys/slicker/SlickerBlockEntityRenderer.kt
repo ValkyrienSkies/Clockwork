@@ -13,6 +13,7 @@ import net.minecraft.util.Mth
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPartials
+import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock.Companion.EXTENDED
 
 class SlickerBlockEntityRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEntityRenderer<SlickerBlockEntity>(
     context
@@ -68,7 +69,9 @@ class SlickerBlockEntityRenderer(context: BlockEntityRendererProvider.Context) :
 
         val goo = CachedBufferer.partial(ClockworkPartials.GOO, blockState)
 
-        goo.light(light).renderInto(matrices, buffer.getBuffer(RenderType.translucent()))
+        val gooOffset = blockEntity.piston?.getValue(partialTicks) ?: 0.0f
+
+        goo.light(light).translate(0.0, gooOffset.toDouble()-(2.0/16.0), 0.0).renderInto(matrices, buffer.getBuffer(RenderType.translucent()))
 
         if (attached != wasAttached) {
             shouldRenderDoink = true
