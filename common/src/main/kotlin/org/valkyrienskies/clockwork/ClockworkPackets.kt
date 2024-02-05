@@ -73,6 +73,12 @@ enum class ClockworkPackets(
         }
 
         @JvmStatic
+        fun sendTo(packet: S2CCWPacket?, player: ServerPlayer?) {
+            packetChannel.sendTo(packet!!, player!!)
+        }
+
+
+        @JvmStatic
         fun init() {
 
         }

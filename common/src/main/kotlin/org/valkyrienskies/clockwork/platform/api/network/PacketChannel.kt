@@ -13,4 +13,5 @@ interface PacketChannel {
     fun sendToServer(packet: C2SCWPacket)
     fun sendToClientsTracking(packet: S2CCWPacket, entity: Entity)
     fun sendToClientsTrackingAndSelf(packet: S2CCWPacket, player: ServerPlayer)
+    fun sendTo(packet: S2CCWPacket, player: ServerPlayer)
 }

@@ -10,6 +10,7 @@ import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
+import org.jetbrains.annotations.NotNull;
 import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.platform.api.network.*;
 
@@ -100,5 +101,10 @@ public class PacketChannelImpl implements PacketChannel {
     @Override
     public void sendToClientsTrackingAndSelf(S2CCWPacket packet, ServerPlayer player) {
         channel.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player), packet);
+    }
+
+    @Override
+    public void sendTo(@NotNull S2CCWPacket packet, @NotNull ServerPlayer player) {
+        channel.send(PacketDistributor.PLAYER.with(() -> player), packet);
     }
 }

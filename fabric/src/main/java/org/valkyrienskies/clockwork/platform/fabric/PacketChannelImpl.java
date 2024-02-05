@@ -15,6 +15,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.platform.api.network.*;
 
@@ -149,5 +150,10 @@ public class PacketChannelImpl implements PacketChannel {
         buf.writeVarInt(s2cIdMap.get(packet.getClass()));
         packet.write(buf);
         ServerPlayNetworking.send(player, ClockworkMod.INSTANCE.getNETWORK_CHANNEL(), buf);
+    }
+
+    @Override
+    public void sendTo(@NotNull S2CCWPacket packet, @NotNull ServerPlayer player) {
+        sendTo(player, packet);
     }
 }

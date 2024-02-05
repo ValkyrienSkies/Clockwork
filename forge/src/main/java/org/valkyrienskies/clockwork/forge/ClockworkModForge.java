@@ -25,8 +25,6 @@ public class ClockworkModForge {
 
     //final DeferredRegister<EntityDataSerializer<?>> DATA_SERIALIZER_REGISTER = DeferredRegister.create(ForgeRegistries.Keys.DATA_SERIALIZERS, MOD_ID);
 
-    public static final WanderWandClusterRenderer WANDER_HANDLER = new WanderWandClusterRenderer();
-
     public ClockworkModForge() {
         ModLoadingContext modLoadingContext = ModLoadingContext.get();
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();

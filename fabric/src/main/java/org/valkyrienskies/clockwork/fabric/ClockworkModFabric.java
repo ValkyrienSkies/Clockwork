@@ -17,10 +17,6 @@ import org.valkyrienskies.mod.fabric.common.ValkyrienSkiesModFabric;
 
 public class ClockworkModFabric implements ModInitializer {
 
-
-    public static final WanderWandClusterRenderer WANDER_HANDLER = new WanderWandClusterRenderer();
-
-
     @Override
     public void onInitialize() {
         new ValkyrienSkiesModFabric().onInitialize();

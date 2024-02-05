@@ -53,7 +53,7 @@ public class SharedValuesImpl {
     }
 
     public static WanderWandClusterRenderer getAuricHandler() {
-        return ClockworkModFabric.WANDER_HANDLER;
+        return ClockworkModFabricClient.WANDER_HANDLER;
     }
 
 }
