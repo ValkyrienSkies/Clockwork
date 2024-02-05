@@ -23,6 +23,7 @@ import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock.Companion.POWERED
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerMovementBehavior.Companion.isAttachedToShipOrWorld
+import org.valkyrienskies.clockwork.platform.PlatformUtils
 import org.valkyrienskies.core.apigame.constraints.VSAttachmentConstraint
 import org.valkyrienskies.core.apigame.constraints.VSFixedOrientationConstraint
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
@@ -54,7 +55,7 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
     }
 
     private fun removeConstraint(level: ServerLevel?, removeTags: Boolean) {
-        val extraData = extraCustomData.getCompound("CondensedData")
+        val extraData = PlatformUtils.getExtraData(this).getCompound("CondensedData")
         if (extraData.contains("AttachmentConstraint") && extraData.contains("OrientationConstraint")) {
             if (level != null) {
                 level.shipObjectWorld.removeConstraint(extraData.getInt("AttachmentConstraintId"))
@@ -81,7 +82,7 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
             false, slevel,
                 Vec3.atCenterOf(
                     blockPos
-                ).toJOML(), myDirNormal, this.extraCustomData
+                ).toJOML(), myDirNormal, PlatformUtils.getExtraData(this)// this.extraCustomData
         ) //isAttachedToShipOrWorld(false);
 
         if (isBlockStateExtended() && !shipStuck) {
@@ -93,7 +94,7 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
                         true, slevel,
                             Vec3.atCenterOf(
                                 blockPos
-                            ).toJOML(), myDirNormal, extraCustomData
+                            ).toJOML(), myDirNormal, PlatformUtils.getExtraData(this)
                     )
                 ) {
                     shipStuck = true
@@ -108,7 +109,7 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
                 removeConstraint(level as ServerLevel?, true)
             }
             waitForNoPower = true
-        } else if (isBlockStateExtended() && !extraCustomData.getCompound("CondensedData").contains("AttachmentConstraintId") && !shipStuck && shipAttached && blockState.getValue(
+        } else if (isBlockStateExtended() && !PlatformUtils.getExtraData(this).getCompound("CondensedData").contains("AttachmentConstraintId") && !shipStuck && shipAttached && blockState.getValue(
                 POWERED
             )
         ) {
@@ -118,7 +119,7 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
                     true, slevel,
                         Vec3.atCenterOf(
                             blockPos
-                        ).toJOML(), myDirNormal, extraCustomData
+                        ).toJOML(), myDirNormal, PlatformUtils.getExtraData(this)
                 )
             ) {
                 //StickerParticleUtil().doBluperParticle(level, worldPosition, myDir)
@@ -148,7 +149,7 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
     }
 
     fun isAlreadyPowered(reset: Boolean): Boolean {
-        val extraData = extraCustomData.getCompound("CondensedData")
+        val extraData = PlatformUtils.getExtraData(this).getCompound("CondensedData")
         val result: Boolean = extraData.contains("ShipStickerAlreadyPowered")
         if (reset) {
             extraData.remove("ShipStickerAlreadyPowered")
