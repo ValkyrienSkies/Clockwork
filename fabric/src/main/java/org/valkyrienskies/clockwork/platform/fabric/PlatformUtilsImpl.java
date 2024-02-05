@@ -2,8 +2,10 @@ package org.valkyrienskies.clockwork.platform.fabric;
 
 
 import com.jamieswhiteshirt.reachentityattributes.ReachEntityAttributes;
+import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
@@ -41,5 +43,9 @@ public class PlatformUtilsImpl {
             }
         }
         return LiquidFuelType.NONE;
+    }
+
+    public static CompoundTag getExtraData(SmartBlockEntity be) {
+        return be.getCustomData();
     }
 }

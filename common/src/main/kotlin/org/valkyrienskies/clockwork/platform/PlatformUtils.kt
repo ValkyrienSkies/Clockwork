@@ -4,6 +4,7 @@ import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType
 import dev.architectury.injectables.annotations.ExpectPlatform
 import net.minecraft.core.BlockPos
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.protocol.Packet
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
@@ -105,6 +106,12 @@ object PlatformUtils {
     @ExpectPlatform
     @JvmStatic
     fun getLiquidFuelTypeFromItemStack(stack: ItemStack): LiquidFuelType {
+        throw AssertionError()
+    }
+
+    @ExpectPlatform
+    @JvmStatic
+    fun getExtraData(be: SmartBlockEntity): CompoundTag {
         throw AssertionError()
     }
 }
