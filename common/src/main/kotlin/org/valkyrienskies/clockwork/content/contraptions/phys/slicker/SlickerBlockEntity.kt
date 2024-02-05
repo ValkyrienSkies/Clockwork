@@ -81,7 +81,7 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
             false, slevel,
                 Vec3.atCenterOf(
                     blockPos
-                ).toJOML(), myDirNormal, this.extraCustomData
+                ).toJOML(), myDirNormal, this.extraCustomData //TODO this breaks forge
         ) //isAttachedToShipOrWorld(false);
 
         if (isBlockStateExtended() && !shipStuck) {
