@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.platform.fabric;
 
-
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import com.tterrag.registrate.util.entry.EntityEntry;
@@ -53,9 +52,7 @@ public class SharedValuesImpl {
         return ClockworkModFabricClient.GRAVITRON_HANDLER;
     }
 
-
     public static WanderWandClusterRenderer getAuricHandler() {
-        return ClockworkModFabricClient.AURIC_HANDLER;
+        return ClockworkModFabricClient.WANDER_HANDLER;
     }
-
 }

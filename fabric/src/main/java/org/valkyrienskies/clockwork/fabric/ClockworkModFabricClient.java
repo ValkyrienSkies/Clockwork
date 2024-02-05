@@ -18,7 +18,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderW
 public class ClockworkModFabricClient implements ClientModInitializer {
 
     public static final GravitronHandler GRAVITRON_HANDLER = new GravitronHandler();
-    public static final WanderWandClusterRenderer AURIC_HANDLER = new WanderWandClusterRenderer();
+    public static final WanderWandClusterRenderer WANDER_HANDLER = new WanderWandClusterRenderer();
 
     @Override
     public void onInitializeClient() {

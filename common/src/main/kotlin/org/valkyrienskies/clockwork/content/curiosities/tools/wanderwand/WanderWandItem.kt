@@ -161,7 +161,7 @@ class WanderWandItem(properties: Properties) : CWItem(properties) {
                 pitch
             )
             player.cooldowns.addCooldown(this, 10)
-            ClockworkPackets.sendToClientsTrackingAndSelf(WanderWandSelectionPacket(this), player as ServerPlayer)
+            ClockworkPackets.sendTo(WanderWandSelectionPacket(this), player as ServerPlayer)
             return InteractionResult.SUCCESS
         } else if (this.secondPos == null && this.firstPos != null) {
             this.secondPos = pos

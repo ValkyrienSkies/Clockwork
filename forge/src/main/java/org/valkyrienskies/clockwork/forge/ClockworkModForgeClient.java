@@ -10,7 +10,7 @@ import org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.Fo
 
 public class ClockworkModForgeClient {
     public static final ForgeGravitronHandler GRAVITRON_HANDLER = new ForgeGravitronHandler();
-    public static final WanderWandClusterRenderer AURIC_HANDLER = new WanderWandClusterRenderer();
+    public static final WanderWandClusterRenderer WANDER_HANDLER = new WanderWandClusterRenderer();
 
     public static void onCtorClient(IEventBus modEventBus) {
         ClockworkPartials.INSTANCE.init();
