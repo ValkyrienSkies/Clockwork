@@ -13,9 +13,11 @@ import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler;
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer;
 
 public class ClockworkModFabricClient implements ClientModInitializer {
 
+    public static final WanderWandClusterRenderer WANDER_HANDLER = new WanderWandClusterRenderer();
     public static final GravitronHandler GRAVITRON_HANDLER = new GravitronHandler();
 
     @Override
