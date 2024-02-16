@@ -7,7 +7,6 @@ import com.simibubi.create.content.contraptions.bearing.BearingContraption
 import com.simibubi.create.content.contraptions.bearing.StabilizedContraption
 import com.simibubi.create.content.contraptions.behaviour.MovementBehaviour
 import com.simibubi.create.content.contraptions.behaviour.MovementContext
-import com.simibubi.create.content.contraptions.chassis.StickerBlock
 import com.simibubi.create.content.contraptions.gantry.GantryContraption
 import com.simibubi.create.content.contraptions.piston.LinearActuatorBlockEntity
 import com.simibubi.create.content.contraptions.piston.PistonContraption
@@ -29,7 +28,6 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.mixin.accessors.IMixinPistonContraption
-import org.valkyrienskies.clockwork.mixinduck.MixinAbstractContraptionEntityDuck
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.Ship
 import org.valkyrienskies.core.apigame.constraints.VSAttachmentConstraint
@@ -41,6 +39,7 @@ import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
 import org.valkyrienskies.mod.mixin.mod_compat.create.blockentity.IMixinMechanicalBearingTileEntity
 import org.valkyrienskies.mod.mixinducks.mod_compat.create.IMixinControlledContraptionEntity
+import org.valkyrienskies.mod.mixinducks.mod_compat.create.MixinAbstractContraptionEntityDuck
 
 
 class SlickerMovementBehavior : MovementBehaviour {
@@ -123,8 +122,7 @@ class SlickerMovementBehavior : MovementBehaviour {
                 "ShipStickerAlreadyPowered",
                 true
             )
-            val structureTransform: StructureTransform =
-                (context.contraption.entity as MixinAbstractContraptionEntityDuck).structureTransform
+            val structureTransform: StructureTransform = (context.contraption.entity as MixinAbstractContraptionEntityDuck).structureTransform
             position =
                 Vec3.atCenterOf(structureTransform.apply(context.localPos))
                     .add(structureTransform.applyWithoutOffsetUncentered(myDirNormal)).toJOML()
@@ -205,7 +203,7 @@ class SlickerMovementBehavior : MovementBehaviour {
                 realShip1Rot = Quaterniond(orientationConstraint.localRot0)
                 val rotationState = context.contraption.entity.rotationState
                 if (rotationState != null) {
-                    realShip1Rot = Quaterniond().setFromNormalized(rotationState.asMatrix().asMatrix4f.toJOML()).mul(realShip1Rot)
+                    realShip1Rot = Quaterniond().setFromNormalized(rotationState.asMatrix().asMatrix4f).mul(realShip1Rot)
                 }
             }
 
@@ -245,7 +243,7 @@ class SlickerMovementBehavior : MovementBehaviour {
             val tempDirNormal: Vector3d = myDirNormal.mul(.75, Vector3d())
             val searchPos: Vector3d = Vector3d(myPosCentered).add(tempDirNormal)
             ship?.shipToWorld?.transformPosition(searchPos, searchPos)
-            var searchBlockPos: BlockPos = BlockPos(searchPos.toMinecraft())
+            var searchBlockPos: BlockPos = BlockPos.containing(searchPos.toMinecraft())
             val worldBlockState: BlockState = level.getBlockState(searchBlockPos)
             var distance = 0.0
             if (!worldBlockState.isAir) {
@@ -272,7 +270,7 @@ class SlickerMovementBehavior : MovementBehaviour {
                         shipItr = ships.next()
                         if (shipItr === ship) continue
                         shipItr.worldToShip.transformPosition(transformedSearchPos)
-                        val blockPos: BlockPos = BlockPos(transformedSearchPos.toMinecraft())
+                        val blockPos: BlockPos = BlockPos.containing(transformedSearchPos.toMinecraft())
                         if (level.isBlockInShipyard(blockPos)) {
                             val blockState: BlockState = level.getBlockState(blockPos)
                             if (!blockState.isAir && blockState.isFaceSturdy(
@@ -282,7 +280,7 @@ class SlickerMovementBehavior : MovementBehaviour {
                                     SupportType.RIGID
                                 )
                             ) {
-                                searchBlockPos = BlockPos(
+                                searchBlockPos = BlockPos.containing(
                                     shipItr.shipToWorld.transformPosition(
                                         blockPos.x.toDouble(),
                                         blockPos.y.toDouble(),
