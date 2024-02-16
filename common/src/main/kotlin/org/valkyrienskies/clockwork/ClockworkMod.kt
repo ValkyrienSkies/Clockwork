@@ -70,8 +70,8 @@ object ClockworkMod {
                 output.accept(ClockworkBlocks.REDSTONE_RESISTOR.asStack())
                 output.accept(ClockworkBlocks.WING.asStack())
                 output.accept(ClockworkBlocks.COMMAND_SEAT.asStack())
-                output.accept(ClockworkBlocks.SLICKER.asStack())
-                output.accept(ClockworkBlocks.GOO_BLOCK.asStack())
+                //output.accept(ClockworkBlocks.SLICKER.asStack())
+                //output.accept(ClockworkBlocks.GOO_BLOCK.asStack())
             }
             .build()
     }
