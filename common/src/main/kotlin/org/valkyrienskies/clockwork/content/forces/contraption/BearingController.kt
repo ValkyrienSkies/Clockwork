@@ -76,8 +76,7 @@ class BearingController : ShipForcesInducer {
                         val torque = computeRotationalForce(data, physShip as PhysShipImpl, null)
                         physShip.applyInvariantTorque(torque)
                     } else {
-                        val torque =
-                            computeRotationalForce(data, physShip as PhysShipImpl, physShipBearingIsOn as PhysShipImpl?)
+                        val torque = computeRotationalForce(data, physShip as PhysShipImpl, physShipBearingIsOn as PhysShipImpl?)
                         physShip.applyInvariantTorque(torque)
                         physShipBearingIsOn.applyInvariantTorque(torque.mul(-1.0, Vector3d()))
                     }
@@ -167,22 +166,18 @@ class BearingController : ShipForcesInducer {
         val torqueMassMultiplier: Double
         if (!physShip.isStatic) {
             if (otherPhysShip != null && !otherPhysShip.isStatic) {
-                val physShipInertia =
-                    getAngularInertia(physShip, data.attachConstraint!!.localPos0, bearingAxisInGlobal)
-                val otherShipInertia =
-                    getAngularInertia(otherPhysShip, data.attachConstraint!!.localPos1, bearingAxisInGlobal)
+                val physShipInertia = getAngularInertia(physShip, data.attachConstraint!!.localPos0, bearingAxisInGlobal)
+                val otherShipInertia = getAngularInertia(otherPhysShip, data.attachConstraint!!.localPos1, bearingAxisInGlobal)
                 torqueMassMultiplier = parallelOperator(physShipInertia, otherShipInertia)
                 // Sub otherPhysShip angularVel from actualRelativeOmega if otherPhysShip is not static
                 // TODO: What about static bodies that are moving?
                 actualRelativeOmega.sub(otherPhysShip.poseVel.omega)
             } else {
-                torqueMassMultiplier =
-                    getAngularInertia(physShip, data.attachConstraint!!.localPos0, bearingAxisInGlobal)
+                torqueMassMultiplier = getAngularInertia(physShip, data.attachConstraint!!.localPos0, bearingAxisInGlobal)
             }
         } else if (otherPhysShip != null && !otherPhysShip.isStatic) {
             // Set it to be the inertia of otherPhysShip
-            torqueMassMultiplier =
-                getAngularInertia(otherPhysShip, data.attachConstraint!!.localPos1, bearingAxisInGlobal)
+            torqueMassMultiplier = getAngularInertia(otherPhysShip, data.attachConstraint!!.localPos1, bearingAxisInGlobal)
             // Sub otherPhysShip angularVel from actualRelativeOmega if otherPhysShip is not static
             // TODO: What about static bodies that are moving?
             actualRelativeOmega.sub(otherPhysShip.poseVel.omega)
@@ -199,8 +194,7 @@ class BearingController : ShipForcesInducer {
             return Vector3d()
         }
         val angularVelError: Vector3dc = idealRelativeOmega.sub(actualRelativeOmega, Vector3d())
-        val angularVelErrorAlongBearingAxis: Vector3dc =
-            bearingAxisInGlobal.mul(bearingAxisInGlobal.dot(angularVelError), Vector3d())
+        val angularVelErrorAlongBearingAxis: Vector3dc = bearingAxisInGlobal.mul(bearingAxisInGlobal.dot(angularVelError), Vector3d())
         // Only apply torque on the bearing axis
         return angularVelErrorAlongBearingAxis.mul(torqueMassMultiplier * 10.0, Vector3d())
     }
@@ -289,8 +283,7 @@ class BearingController : ShipForcesInducer {
         }
 
         // Derivative
-        val relativeOmegaInPhysShip: Vector3dc =
-            physShip.transform.worldToShip.transformDirection(actualRelativeOmega, Vector3d())
+        val relativeOmegaInPhysShip: Vector3dc = physShip.transform.worldToShip.transformDirection(actualRelativeOmega, Vector3d())
         val relativeOmegaInPhysShipParallelBearingAxis = data.bearingAxis.dot(relativeOmegaInPhysShip)
         val omegaErr = data.bearingRPM * (2 * Math.PI / 60) - relativeOmegaInPhysShipParallelBearingAxis
         val torque = angleErr * torqueMassMultiplier * 50.0 + omegaErr * torqueMassMultiplier * 50.0

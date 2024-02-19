@@ -13,7 +13,6 @@ import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOp
 import com.simibubi.create.foundation.item.TooltipHelper
 import com.simibubi.create.foundation.utility.AngleHelper
 import com.simibubi.create.foundation.utility.ServerSpeedProvider
-import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
@@ -35,8 +34,6 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysB
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.platform.api.ContraptionController
 import org.valkyrienskies.clockwork.platform.api.ContraptionController.LockedMode
-import org.valkyrienskies.clockwork.util.EaseHelper.easeInOutSine
-import org.valkyrienskies.clockwork.util.EaseHelper.easeOutBounce
 import org.valkyrienskies.clockwork.util.GlueAssembler.collectGlued
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.Ship
@@ -55,7 +52,6 @@ import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOMLD
 import java.lang.Math
 import kotlin.math.sign
-import kotlin.math.sin
 
 class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) :
     GeneratingKineticBlockEntity(type, pos, state), IBearingBlockEntity, IDisplayAssemblyExceptions,
@@ -251,6 +247,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (shipOn != null) {
             otherShipID = shipOn.id
         }
+        var veryUncoolFix = 1
         val rotationQuaternion: Quaterniond = when (direction) {
             Direction.DOWN -> {
                 Quaterniond(AxisAngle4d(Math.PI, Vector3d(1.0, 0.0, 0.0)))
@@ -281,6 +278,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             }
 
             Direction.WEST -> {
+                veryUncoolFix = -veryUncoolFix
                 Quaterniond(AxisAngle4d(1.5 * Math.PI, Vector3d(0.0, 1.0, 0.0))).mul(
                     Quaterniond(
                         AxisAngle4d(
@@ -291,7 +289,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             }
 
             else -> {
-
                 // UP or null
                 Quaterniond()
             }
@@ -324,6 +321,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             Quaterniond(AxisAngle4d(Math.toRadians(90.0), 0.0, 0.0, 1.0)),
             Quaterniond()
         ).normalize()
+        if (direction == Direction.WEST) {
+
+        }
         val hingeConstraint =
             VSHingeOrientationConstraint(shiptraptionID, otherShipID, 1e-10, hingeOrientation, hingeOrientation, 1e10)
 
@@ -373,7 +373,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             pos,
             axis,
             bearingAngle.toDouble(),
-            getSpeed(),
+            veryUncoolFix * getSpeed(),
             movementMode!!.get() == LockedMode.LOCKED,
             shiptraptionID,
             firstAttachmentConstraint,
@@ -611,10 +611,19 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 //                            VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).updateConstraint(BearingController.getOrCreate(ship).bearingData.get(bearingID).hingeID, hingeConstraint);
 //
 //                        }
+
+                        //DUMB FIX FOR INV ROTATION
+                        var dumbFix = 1
+                        val direction = blockState.getValue(BearingBlock.FACING)
+                        if (direction == Direction.WEST || direction == Direction.NORTH || direction == Direction.DOWN) {
+                            dumbFix = -dumbFix
+                        }
+
                         val data = PhysBearingUpdateData(
-                            bearingAngle.toDouble(), getSpeed(),
+                            bearingAngle.toDouble(), dumbFix * getSpeed(),
                             movementMode!!.get() == LockedMode.LOCKED, null, null
                         )
+                        //println("${bearingAngle.toDouble()} : ${getSpeed()}")
                         BearingController.getOrCreate(ship)!!.updatePhysBearing(bearingID!!, data)
                     }
                 }
@@ -634,8 +643,12 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (shiptraptionID != NO_SHIPTRAPTION_ID && !level!!.isClientSide) sendData()
     }
 
-    protected fun applyRotation() {}
+    private fun applyRotation() {
+
+    }
+
     override fun attach(contraption: ControlledContraptionEntity) {}
+
     override fun onStall() {
         if (!level!!.isClientSide) sendData()
     }

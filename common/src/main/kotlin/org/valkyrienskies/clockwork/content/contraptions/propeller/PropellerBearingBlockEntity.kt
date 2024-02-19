@@ -167,7 +167,13 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
                     blockPos
                 )
                 if (ship != null) {
-                    val data = PropUpdateData(angularSpeed.toDouble(), realAngle.toDouble(), isInverted)
+                    var dumbFix = 1
+                    val direction = blockState.getValue(BearingBlock.FACING)
+                    if (direction == Direction.WEST || direction == Direction.NORTH || direction == Direction.DOWN) {
+                        dumbFix = -dumbFix
+                    }
+
+                    val data = PropUpdateData(dumbFix * angularSpeed.toDouble(), realAngle.toDouble(), isInverted)
                     PropellerController.getOrCreate(ship)!!.updatePropeller(physPropId!!, data)
                 }
             }
