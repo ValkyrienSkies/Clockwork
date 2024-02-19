@@ -305,7 +305,11 @@ class WanderWandItem(properties: Properties) : CWItem(properties) {
                 for (aabBic in clone) {
                     item.selectedArea.dumpCluster(aabBic)
                 }
-                SharedValues.auricHandler.discard()
+
+                if (player.level.isClientSide) {
+                    SharedValues.auricHandler.discard()
+                }
+
                 val compoundTag = player.getItemInHand(InteractionHand.MAIN_HAND).tag
                 if (compoundTag != null && compoundTag.contains("selectedData")) {
                     compoundTag.remove("selectedData")

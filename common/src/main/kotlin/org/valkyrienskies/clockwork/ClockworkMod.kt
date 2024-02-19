@@ -9,6 +9,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
 import org.slf4j.LoggerFactory
+import org.valkyrienskies.core.impl.config.VSConfigClass
 import org.valkyrienskies.core.impl.hooks.VSEvents
 
 object ClockworkMod {
@@ -38,6 +39,8 @@ object ClockworkMod {
         VSEvents.ShipLoadEvent.on { event ->
             event.ship
         }
+
+        VSConfigClass.registerConfig("vs_clockwork", ClockworkConfig::class.java)
     }
 
     @JvmStatic

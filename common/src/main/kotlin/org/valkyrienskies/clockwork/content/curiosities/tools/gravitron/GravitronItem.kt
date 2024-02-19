@@ -7,6 +7,7 @@ import com.simibubi.create.foundation.item.CustomArmPoseItem
 import net.minecraft.client.model.HumanoidModel
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Registry
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionHand
@@ -22,6 +23,7 @@ import org.joml.Quaterniondc
 import org.joml.Vector2dc
 import org.joml.Vector3d
 import org.joml.Vector3dc
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.SelectedAreaToolkit
@@ -102,7 +104,10 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                 selection.forEach { x, y, z ->
                     if (level is ServerLevel) {
                         val serverLevel = level
-                        if (!serverLevel.getBlockState(BlockPos(x, y, z)).isAir) {
+                        val it = serverLevel.getBlockState(BlockPos(x, y, z))
+                        if (!it.isAir && !ClockworkConfig.SERVER.blockBlacklist.contains(
+                                Registry.BLOCK.getKey(it.block).toString())) {
+
                             val connectedShip = createNewShipWithBlocks(blockPos, selection, serverLevel)
 
                             val caughtEntities = SelectedAreaToolkit.entitiesFromCluster(cluster, serverLevel)
