@@ -34,7 +34,7 @@ object KelvinHandler {
         }
 
         nodes.addAll(newNodes.map { it.identifier })
-        nodes.removeAll(removedNodes)
+        nodes.removeAll(removedNodes.toSet())
 
         val changesFrame = GasSimChangesFrame(
             newNodes,
@@ -56,7 +56,7 @@ object KelvinHandler {
      * Returns the first node with a matching position. Breaks for multiple nodes at the same position.
      */
     fun getNodeFromPos(pos: Vector3ic): GasNodeIdentifier? {
-        nodes.forEach { if (it.pos.equals(pos)) return it }
+        nodes.forEach { if (it.pos == pos) return it }
         return null
     }
 

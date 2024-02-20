@@ -37,8 +37,9 @@ class HeatPipeBlockEntityRenderer(context: BlockEntityRendererProvider.Context) 
         buffer?.getBuffer(RenderType.cutout())//Reset buffer because :KEKW:
 
         val shader = ClockworkShaders.heat()
-        val intensity = AnimationTickHolder.getTicks() / 1f % 100f //TODO here is the test code for the heat shader intensity, reimplement however you want
-        shader?.safeGetUniform("Intensity")?.set(intensity)//from 0 to 100 % intensity, shader handel color now :sungalges:
+        val d = blockEntity.temperature / blockEntity.getHeatLimit().toFloat()
+        val intensity = d * 10f
+        shader?.safeGetUniform("Intensity")?.set(intensity.toFloat())//from 0 to 100 % intensity, shader handel color now :sungalges:
 
         for (direction in Direction.values()) {
             buffer?.getBuffer(RenderType.cutout())//Reset buffer because :KEKW:
