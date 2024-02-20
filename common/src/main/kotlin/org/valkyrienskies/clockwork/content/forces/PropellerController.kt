@@ -32,6 +32,7 @@ class PropellerController : ShipForcesInducer {
         ConcurrentLinkedQueue<Pair<Int, PropCreateData>>()
     private val removedProps = ConcurrentLinkedQueue<Int>()
     private var nextPropID = 0
+
     override fun applyForces(physShip: PhysShip) {
         while (!createdProps.isEmpty()) {
             val createData: Pair<Int, PropCreateData> = createdProps.remove()
@@ -45,7 +46,8 @@ class PropellerController : ShipForcesInducer {
                 createData.component2().bearingAngle,
                 createData.component2().bearingSpeed,
                 createData.component2().propellorPositions,
-                createData.component2().inverted
+                createData.component2().inverted,
+                createData.component2().overStressed
             )
         }
         while (!removedProps.isEmpty()) {
@@ -57,6 +59,7 @@ class PropellerController : ShipForcesInducer {
                 physData.bearingAngle = data.rotationAngle
                 physData.bearingSpeed = data.rotationSpeed
                 physData.inverted = data.inverted
+                physData.overStressed = data.overStressed
             }
         )
         propellorUpdatePhysData.clear()
@@ -65,12 +68,13 @@ class PropellerController : ShipForcesInducer {
         val netForce = Vector3d()
         val netTorque = Vector3d()
         for (physData in propellorPhysData.values) {
-            val forceTorque = computeForce(
-                physShip.transform, physData, (physShip as PhysShipImpl).poseVel.vel, physShip.poseVel.omega,
-                physShip
-            )
-            netForce.add(forceTorque.component1())
-            netTorque.add(forceTorque.component2())
+            if(!physData.overStressed) {
+                val forceTorque = computeForce(
+                    physShip.transform, physData, (physShip as PhysShipImpl).poseVel.vel, physShip.poseVel.omega, physShip
+                )
+                netForce.add(forceTorque.component1())
+                netTorque.add(forceTorque.component2())
+            }
         }
         if (netForce.isFinite && netTorque.isFinite) {
             physShip.applyInvariantForce(netForce)
