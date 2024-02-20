@@ -11,6 +11,7 @@ import net.minecraft.world.item.CreativeModeTab
 import org.slf4j.LoggerFactory
 import org.valkyrienskies.clockwork.content.forces.DragController
 import org.valkyrienskies.clockwork.content.forces.PocketForcesController
+import org.valkyrienskies.clockwork.content.logistics.heat.ClientAirPocketStorage
 import org.valkyrienskies.core.api.ships.setAttachment
 import org.valkyrienskies.core.impl.config.VSConfigClass
 import org.valkyrienskies.core.impl.hooks.VSEvents
@@ -53,11 +54,20 @@ object ClockworkMod {
             event.ship.setAttachment(DragController())
         }
 
+        VSEvents.airPocketModifyEvent.on { event ->
+            if (event.removed) {
+                ClientAirPocketStorage.pocketsToDeleteQueue.add(event.shipId to event.airPocketId)
+            } else {
+                ClientAirPocketStorage.pocketsToUpdateQueue.add(event.shipId to event.airPocketId)
+            }
+        }
+
         TickEvent.SERVER_LEVEL_POST.register {
             for (ship in it.shipObjectWorld.loadedShips) {
                 ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship)
                 ship.getAttachment(DragController::class.java)?.gameTick(ship, it)
             }
+            ClientAirPocketStorage.serverTick(it)
         }
 
         kelvin = KelvinBackground(ClockworkConfig.SERVER.kelvinTickRate, ClockworkConfig.SERVER.kelvinSubSteps)

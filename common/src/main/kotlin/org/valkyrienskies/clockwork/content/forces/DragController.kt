@@ -393,7 +393,7 @@ class DragController : ShipForcesInducer {
             return ship.getAttachment(DragController::class.java)
         }
 
-        private const val DRAG_COEFFICIENT = 2.05
+        private const val DRAG_COEFFICIENT = 3.15
         private const val GRAVITATIONAL_ACCELERATION = 9.80665
         private const val UNIVERSAL_GAS_CONSTANT = 8.3144598
         private const val AIR_MOLAR_MASS = 0.0289644
