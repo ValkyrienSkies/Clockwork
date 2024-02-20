@@ -5,6 +5,7 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.util.Mth
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Vector3i
@@ -13,10 +14,12 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterB
 import org.valkyrienskies.clockwork.content.logistics.heat.IHeatable
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEntity
 import org.valkyrienskies.clockwork.kelvin.api.GasConnectionCreateData
+import org.valkyrienskies.clockwork.kelvin.api.GasNodeChangesData
 import org.valkyrienskies.clockwork.kelvin.api.GasNodeIdentifier
 import org.valkyrienskies.clockwork.kelvin.api.GasType
 import org.valkyrienskies.mod.common.util.toJOML
 import java.util.*
+import kotlin.collections.HashMap
 
 class CreativeGasSourceBlockEntity (type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : SmartBlockEntity(type, pos, state) ,
     IHeatable {
@@ -61,7 +64,33 @@ class CreativeGasSourceBlockEntity (type: BlockEntityType<*>, pos: BlockPos, sta
     override fun tick() {
         super.tick()
 
+        val currentGasMass = gasMasses.getOrDefault(GasType.PHLOGISTON, 0.0)
 
+        val newGasMass = Mth.clamp(currentGasMass + 100.0, 0.0, getPressureLimit())
+        gasMasses[GasType.PHLOGISTON] = newGasMass
+
+        /*
+        val directionalDeltaMasses: HashMap<GasNodeIdentifier, Double> = HashMap()
+
+        for (direction in Direction.values()) {
+            if (canTransferHeat(direction)) {
+
+                val id = KelvinHandler.getNodeFromPos(worldPosition.relative(direction).toJOML())
+
+                directionalDeltaMasses.put(id, )
+            }
+        }
+
+        val updatedNode = GasNodeChangesData(
+            gasNodeID!!,
+            gasMasses,
+            temperature,
+            directionalDeltaMasses
+        )
+
+        KelvinHandler.editNode(updatedNode)
+
+         */
     }
 
     override fun canTransferHeat(direction: Direction): Boolean {
