@@ -41,7 +41,7 @@ import kotlin.math.sin
 class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
     KineticBlockEntity(type, pos, state), IBearingBlockEntity {
 
-    var sailPositions: MutableList<BlockPos>
+    var sailPositions: MutableList<BlockPos> = ArrayList()
     protected var airCurrentUpdateCooldown = 0
     protected var entitySearchCooldown = 0
     var speedChanged = false
@@ -57,6 +57,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
     var spinningUp = false
     protected var realAngle = 0f
     var running = false
+    var wasOverStressed = false
     protected var clientAngleDiff = 0f
     protected var lastException: AssemblyException? = null
     protected var movedContraption: ControlledContraptionEntity? = null
@@ -72,9 +73,6 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
     private val pistonsC: Float = 0.1875f
     private val pistonsD: Float = 0.28125f
 
-    init {
-        sailPositions = ArrayList()
-    }
 
     fun getCornerHorizontalOffset(partialTicks: Float, te: PropellerBearingBlockEntity, ordinal: Int): Float {
         if (!this.running) {
@@ -103,6 +101,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         var partialTicks = partialTicks
         if (isVirtual) return Mth.lerp(partialTicks + .5f, prevAngle, realAngle)
         if (movedContraption == null || movedContraption!!.isStalled || !running) partialTicks = 0f
+        if(overStressed) return 0f
         return Mth.lerp(partialTicks, realAngle, realAngle + angularSpeed)
     }
 
@@ -119,6 +118,26 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
             return angspeed
         }
 
+    fun handleOverStressed(): Boolean {
+        if (overStressed) {
+            wasOverStressed = true
+        }
+
+        if (wasOverStressed) {
+            countDown--
+            if (countDown <= 0) {
+                wasOverStressed =  false
+                countDown = 20 * 3
+            }
+        }
+
+        if (wasOverStressed) {
+            return true
+        }
+
+        return false
+    }
+
     override fun tick() {
         super.tick()
         val server = !level!!.isClientSide || isVirtual
@@ -134,8 +153,9 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
             modSpeed()
         }
         if (overStressed) {
-            stressShutdown()
+            //TODO ? stressShutdown()
         }
+
         if (rotspeed < 0) {
             setBlockDirection(PropellerBearingBlock.Direction.PULL)
         } else {
@@ -154,8 +174,13 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
                 assemble()
             }
         }
+
+        if (handleOverStressed()) {
+            return
+        }
+
         if (!running) return
-        if (!(movedContraption != null && movedContraption!!.isStalled)) {
+        if (!(movedContraption != null && movedContraption!!.isStalled) && !overStressed) {
             val angularSpeed = angularSpeed
             val newAngle = realAngle + angularSpeed
             realAngle = (newAngle % 360)
@@ -173,7 +198,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
                         dumbFix = -dumbFix
                     }
 
-                    val data = PropUpdateData(dumbFix * angularSpeed.toDouble(), realAngle.toDouble(), isInverted)
+                    val data = PropUpdateData(dumbFix * angularSpeed.toDouble(), realAngle.toDouble(), isInverted, overStressed)
                     PropellerController.getOrCreate(ship)!!.updatePropeller(physPropId!!, data)
                 }
             }
@@ -222,8 +247,6 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
             return
         }
 
-//            float time = 1f - (spinup / 20f);
-//            float Q = (rotspeed + (targetSpeed - rotspeed)) * time;
         val startingPoint = realAngle + speed * spinup * 0.5f
         val Q = startingPoint / spinup
         rotspeed = (rotspeed + 6f * Q / spinup) * (1f - 1f / spinup)
@@ -231,6 +254,9 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
 
     override fun calculateStressApplied(): Float {
         if (running && movedContraption != null) {
+            if (sails == 0) {
+                getSails()
+            }
             sails = sailPositions.size
             return sails * 2f
         }
@@ -278,23 +304,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         }
     }
 
-    //    @Override
-    //    public void attach(ControlledContraptionEntity contraption) {
-    //        BlockState blockState = getBlockState();
-    //        if (!(contraption.getContraption() instanceof PropellerContraption))
-    //            return;
-    //        if (!blockState.hasProperty(BearingBlock.FACING))
-    //            return;
-    //
-    //        this.movedContraption = contraption;
-    //        setChanged();
-    //        BlockPos anchor = worldPosition.relative(blockState.getValue(BearingBlock.FACING));
-    //        movedContraption.setPos(anchor.getX(), anchor.getY(), anchor.getZ());
-    //        if (!level.isClientSide) {
-    //            this.running = true;
-    //            sendData();
-    //        }
-    //    }
+
     override fun attach(contraption: ControlledContraptionEntity) {
         val blockState = blockState
         if (contraption.contraption !is PropellerContraption) return
@@ -307,17 +317,6 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
             running = true
             sendData()
         }
-    }
-
-    private fun onDirectionChanged() {
-        val state = blockState
-        val previouslyPowered: PropellerBearingBlock.Direction = state.getValue(PropellerBearingBlock.DIRECTION)
-        if (previouslyPowered === PropellerBearingBlock.Direction.PULL) level!!.setBlock(
-            blockPos,
-            state.cycle(PropellerBearingBlock.DIRECTION),
-            2
-        )
-        if (!running) return
     }
 
     override fun isWoodenTop(): Boolean {
@@ -348,105 +347,6 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
 
     override fun setAngle(forcedAngle: Float) {
         realAngle = forcedAngle
-    }
-
-    val sailCount: Int
-        get() = sailPositions.size
-    val streamWorld: Level
-        get() = level!!
-    val streamPos: BlockPos
-        get() = worldPosition.offset(blockState.getValue(BlockStateProperties.FACING).normal)
-    val streamOriginSide: Direction
-        get() = blockState.getValue(BlockStateProperties.FACING)
-
-    /*
-    val streamDirection: Direction?
-        get() {
-            var speed = getSpeed() * 1.25f
-            if (speed == 0f) return null
-            val facing = blockState.getValue(BlockStateProperties.FACING)
-            speed = convertToDirection(speed, facing)
-            return if (speed > 0) facing else facing.opposite
-        }
-
-     */
-    val isSourceRemoved: Boolean
-        get() = remove
-    val streamScale: Vector3d
-        get() {
-            val distance = Vector3d(1.0, 1.0, 1.0)
-
-            // facing Z
-            if (blockState.getValue(BlockStateProperties.FACING) === Direction.NORTH || blockState.getValue(
-                    BlockStateProperties.FACING
-                ) === Direction.SOUTH
-            ) {
-                sailPositions.forEach(
-                    Consumer { pos: BlockPos ->
-                        if (abs(pos.x) > abs(worldPosition.x)) {
-                            if (abs(pos.x) > distance.x) {
-                                distance.x = pos.x.toDouble()
-                            }
-                        }
-                        if (abs(pos.y) > abs(worldPosition.y)) {
-                            if (abs(pos.y) > distance.y) {
-                                distance.y = pos.y.toDouble()
-                            }
-                        }
-                    }
-                )
-            } else if (blockState.getValue(BlockStateProperties.FACING) === Direction.WEST || blockState.getValue(
-                    BlockStateProperties.FACING
-                ) === Direction.EAST
-            ) {
-                sailPositions.forEach(
-                    Consumer { pos: BlockPos ->
-                        if (abs(pos.z) > abs(worldPosition.z)) {
-                            if (abs(pos.z) > distance.z) {
-                                distance.z = pos.z.toDouble()
-                            }
-                        }
-                        if (abs(pos.y) > abs(worldPosition.y)) {
-                            if (abs(pos.y) > distance.y) {
-                                distance.y = pos.y.toDouble()
-                            }
-                        }
-                    }
-                )
-            } else if (blockState.getValue(BlockStateProperties.FACING) === Direction.UP || blockState.getValue(
-                    BlockStateProperties.FACING
-                ) === Direction.DOWN
-            ) {
-                sailPositions.forEach(
-                    Consumer { pos: BlockPos ->
-                        if (abs(pos.z) > abs(worldPosition.z)) {
-                            if (abs(pos.z) > distance.x) {
-                                distance.z = pos.z.toDouble()
-                            }
-                        }
-                        if (abs(pos.x) > abs(worldPosition.x)) {
-                            if (abs(pos.x) > distance.x) {
-                                distance.x = pos.x.toDouble()
-                            }
-                        }
-                    }
-                )
-            } else {
-                return distance
-            }
-            return distance
-        }
-
-    private fun stressShutdown() {
-        if (abs(speed) < 3f) {
-            countDown--
-            if (countDown <= 0) {
-                if (!level!!.isClientSide) {
-                    disassemble()
-                    countDown = 200
-                }
-            }
-        }
     }
 
     override fun remove() {
@@ -492,7 +392,8 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         val data = PropCreateData(
             vecPos, axis, realAngle.toDouble(),
             angularSpeed.toDouble(), sailVecs,
-            isInverted
+            isInverted,
+            overStressed
         )
         if (!level!!.isClientSide) {
             val ship = (level as ServerLevel).getShipObjectManagingPos(

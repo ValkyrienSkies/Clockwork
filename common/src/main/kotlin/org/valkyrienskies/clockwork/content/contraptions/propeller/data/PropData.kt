@@ -13,6 +13,7 @@ class PropData {
     var bearingSpeed = 0.0
     var inverted = false
     var prevAngularMomentum: Vector3dc? = null
+    var overStressed: Boolean = false
 
     // Default constructor for Jackson, should never be invoked manually
     @Deprecated("")
@@ -28,7 +29,8 @@ class PropData {
         bearingAngle: Double,
         bearingSpeed: Double,
         propellorPositions: List<Vector3ic>?,
-        inverted: Boolean
+        inverted: Boolean,
+        overStressed: Boolean
     ) {
         this.bearingPos = bearingPos
         this.bearingAxis = bearingAxis
@@ -36,5 +38,6 @@ class PropData {
         this.bearingSpeed = bearingSpeed
         this.propellorPositions = propellorPositions
         this.inverted = inverted
+        this.overStressed = overStressed
     }
 }
