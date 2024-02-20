@@ -27,6 +27,7 @@ public class MixinEntity {
 
     @Shadow @Final private Set<TagKey<Fluid>> fluidOnEyes;
 
+    /*
     @WrapOperation(method = "updateFluidOnEyes", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/world/level/Level;getFluidState(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/material/FluidState;"))
     private FluidState clockwork$submarine(Level level, BlockPos pos, Operation<FluidState> operation){
@@ -65,4 +66,6 @@ public class MixinEntity {
             return original.call(instance);
         }
     }
+
+     */
 }

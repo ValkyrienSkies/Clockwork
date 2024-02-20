@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(FogRenderer.class)
 public class MixinFogRenderer {
-
+/*
     private static Camera clockwork$capturedCamera = null;
 
     @Inject(method = "setupFog", at = @At(value = "HEAD"))
@@ -64,4 +64,6 @@ public class MixinFogRenderer {
     private static void e(Camera activeRenderInfo, FogRenderer.FogMode fogType, float farPlaneDistance, boolean nearFog, CallbackInfo ci){
         RenderSystem.disableScissor();
     }
+
+ */
 }
