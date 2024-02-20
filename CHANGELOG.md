@@ -1,6 +1,6 @@
 # Changelog
 
-v0.1.5
+v0.1.6
 -
 - Fixed Propeller applying force when overstressed
 - Fixed Propeller unable to be overstressed on world reload
