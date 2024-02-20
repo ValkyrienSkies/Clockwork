@@ -8,6 +8,9 @@ import org.joml.Vector3i
 import org.joml.Vector3ic
 import org.joml.primitives.AABBi
 import org.joml.primitives.AABBic
+import org.valkyrienskies.clockwork.util.AerodynamicUtils.DRAG_COEFFICIENT
+import org.valkyrienskies.clockwork.util.AerodynamicUtils.getAirDensityForY
+import org.valkyrienskies.clockwork.util.SideProfileTracker
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.ShipForcesInducer
@@ -27,7 +30,7 @@ class DragController : ShipForcesInducer {
     private val allBlocks = HashSet<Vector3ic>()
     private val exposedFaces : EnumMap<Direction, HashSet<Vector3ic>> = EnumMap(Direction::class.java)
 
-    private val surfaceAreaByDirection: EnumMap<Direction, Double> = EnumMap(Direction::class.java)
+    private val sideTracker: SideProfileTracker = SideProfileTracker()
 
     private var bounds: AABBic? = null
 
@@ -43,10 +46,12 @@ class DragController : ShipForcesInducer {
             val posair = blockUpdateQueue.poll()
             if (!posair.second) {
                 allBlocks.add(posair.first)
+                sideTracker.add(posair.first.x(), posair.first.y(), posair.first.z())
             } else {
                 allBlocks.remove(posair.first)
+                sideTracker.remove(posair.first.x(), posair.first.y(), posair.first.z())
             }
-            shouldUpdate = true
+            //shouldUpdate = true
         }
 
         if (aabbUpdateQueue.isNotEmpty()) {
@@ -54,10 +59,10 @@ class DragController : ShipForcesInducer {
         }
 
         if (shouldUpdate && allBlocks.isNotEmpty() && bounds != null) {
-            updateExposedFaces()
+            //updateExposedFaces()
         }
 
-        if (exposedFaces.isNotEmpty() && surfaceAreaByDirection.isNotEmpty()) {
+        if (sideTracker.xArea != 0 && sideTracker.yArea != 0 && sideTracker.zArea != 0) {
             val drag = calculateDrag(impl)
             val dragPos = calculateDragPosition(impl)
 
@@ -203,10 +208,6 @@ class DragController : ShipForcesInducer {
         }
 
         exposedFaces.putAll(foundEdges)
-        for (dir in Direction.values()) {
-            val surfaceArea = exposedFaces[dir]!!.size.toDouble()
-            surfaceAreaByDirection[dir] = surfaceArea
-        }
 
         shouldUpdate = false
     }
@@ -215,12 +216,18 @@ class DragController : ShipForcesInducer {
         val motionVector: Vector3dc = ship.poseVel.vel
         val motionNormal: Vector3dc = motionVector.normalize(Vector3d()).mul(-1.0)
 
-        val density = getAirDensityForY(ship.poseVel.pos.y())
+        val density = getAirDensityForY(ship.poseVel.pos.y(), max_height)
 
         var exposedArea = 0.0
 
         for (dir in Direction.values()) {
-            val surfaceArea = surfaceAreaByDirection[dir]?: continue
+            //val surfaceArea = surfaceAreaByDirection[dir]?: continue
+            val surfaceArea = when (dir.axis) {
+                Direction.Axis.X -> sideTracker.xArea
+                Direction.Axis.Y -> sideTracker.yArea
+                Direction.Axis.Z -> sideTracker.zArea
+                else -> continue
+            }
             val dot = motionNormal.dot(dir.normal.toJOMLD())
             if (dot > 0) {
                 exposedArea += surfaceArea * dot
@@ -288,103 +295,6 @@ class DragController : ShipForcesInducer {
         return realAvg.sub(ship.transform.positionInShip, Vector3d())
     }
 
-    /**
-     * Returns the density of air at a Y value adapted to a real life altitude, where Y = 60 is sea level, and Y = 320 is the top of the Troposphere.
-     *
-     * Where:
-     *
-     * p = mass density (kg/m^3)
-     *
-     * pb = base density via b (kg/m^3)
-     *
-     * Tb = standard temperature via b (K)
-     *
-     * g0 = standard gravitational acceleration (m/s^2)
-     *
-     * h = altitude over sea level (m)
-     *
-     * hb = base altitude via b (m)
-     *
-     * R = universal gas constant (N-m/(mol-K))
-     *
-     * M = molar mass of Earth's air (kg/mol)
-     *
-     * L = temperature lapse rate (K/m)
-     * @param y The Y value to get the air density for.
-     * @return The air density at the given Y value, in kg/m^3.
-     * @see <a href="https://en.wikipedia.org/wiki/Barometric_formula">Wikipedia source for krabber patter formuler</a>
-     */
-    private fun getAirDensityForY(y: Double): Double {
-        val worldScale = 11000.0 / (max_height - 63.0)
-
-        val realAltitude = (y - 63.0) * worldScale
-
-        val layer = when {
-            realAltitude < 11000 -> 0
-            realAltitude < 20000 -> 1
-            realAltitude < 32000 -> 2
-            realAltitude < 47000 -> 3
-            realAltitude < 51000 -> 4
-            realAltitude < 71000 -> 5
-            else -> 6
-        }
-
-        val hb = when (layer) {
-            0 -> 0.0
-            1 -> 11000.0
-            2 -> 20000.0
-            3 -> 32000.0
-            4 -> 47000.0
-            5 -> 51000.0
-            6 -> 71000.0
-            else -> 0.0
-        }
-
-        val pb = when (layer) {
-            0 -> 1.225
-            1 -> 0.36391
-            2 -> 0.08803
-            3 -> 0.01322
-            4 -> 0.00143
-            5 -> 0.00086
-            6 -> 0.000064
-            else -> 0.0
-        }
-
-        val Tb = when (layer) {
-            0 -> 288.15
-            1 -> 216.65
-            2 -> 216.65
-            3 -> 228.65
-            4 -> 270.65
-            5 -> 270.65
-            6 -> 214.65
-            else -> 0.0
-        }
-
-        val g0 = GRAVITATIONAL_ACCELERATION
-
-        val R = UNIVERSAL_GAS_CONSTANT
-
-        val M = AIR_MOLAR_MASS
-
-        val L = when (layer) {
-            0 -> 0.0065
-            1 -> 0.0
-            2 -> -0.001
-            3 -> -0.0028
-            4 -> 0.0
-            5 -> 0.0028
-            6 -> 0.002
-            else -> 0.0
-        }
-
-        return when (L != 0.0) {
-            true -> pb * Math.pow((Tb - (realAltitude - hb) * L) / Tb, ((g0 * M) / (R * L) -1.0))
-            else -> pb * Math.exp((-g0 * M * (realAltitude - hb)) / (R * Tb))
-        }
-    }
-
     companion object {
         fun getOrCreate(ship: ServerShip): DragController? {
             if (ship.getAttachment(DragController::class.java) == null) {
@@ -392,11 +302,6 @@ class DragController : ShipForcesInducer {
             }
             return ship.getAttachment(DragController::class.java)
         }
-
-        private const val DRAG_COEFFICIENT = 3.15
-        private const val GRAVITATIONAL_ACCELERATION = 9.80665
-        private const val UNIVERSAL_GAS_CONSTANT = 8.3144598
-        private const val AIR_MOLAR_MASS = 0.0289644
 
         private val dragLogger by logger("Drag Controller")
     }

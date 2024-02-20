@@ -9,6 +9,7 @@ import org.valkyrienskies.core.api.ships.datastructures.AirPocket
 import org.valkyrienskies.core.api.ships.properties.ShipId
 import org.valkyrienskies.core.apigame.datastructures.AirPocketImpl
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
+import java.util.EnumMap
 
 class AirPocketSyncPacket : S2CCWPacket {
     private val ship: Long

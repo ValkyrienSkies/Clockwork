@@ -109,7 +109,15 @@ class GasGraphImpl : GasGraph {
 
                 val gasMass: Double = nodeData.gasMasses.values.sum()
 
-                activeNodePressureData[it] = calcPressure(gasMass, nodeData.volume, nodeData.temperature)
+                var count = 0.0
+                var avgDensity: Double = 0.0
+                nodeData.gasMasses.keys.forEach { gasType ->
+                    avgDensity += gasType.density
+                    count++
+                }
+                avgDensity /= count
+
+                activeNodePressureData[it] = calcPressure(gasMass, nodeData.volume, nodeData.temperature, avgDensity)
             }
 
             //Calculate flow
@@ -229,9 +237,11 @@ class GasGraphImpl : GasGraph {
     /**
      * Calculates pressure using the ideal gas law.
      */
-    private fun calcPressure(mass: Double, volume: Double, temp: Double): Double {
+    private fun calcPressure(mass: Double, volume: Double, temp: Double, density: Double): Double {
         var pressure = 0.0
-        pressure = (mass * idealGasConstant * temp) / volume
+        val molarMass = density * 22.4
+        val moles = mass / molarMass
+        pressure = (moles * idealGasConstant * temp) / volume
         return pressure
     }
 
