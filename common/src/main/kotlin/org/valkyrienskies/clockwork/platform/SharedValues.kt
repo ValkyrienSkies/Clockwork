@@ -47,12 +47,7 @@ object SharedValues {
             throw AssertionError()
         }
 
-    @get:ExpectPlatform
-    @JvmStatic
-    val frostingBuckets: ArrayList<Item>
-        get() {
-            throw AssertionError()
-        }
+
 
     @get:ExpectPlatform
     @JvmStatic
