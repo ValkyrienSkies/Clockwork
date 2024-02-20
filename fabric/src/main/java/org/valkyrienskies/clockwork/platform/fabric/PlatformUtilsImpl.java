@@ -27,23 +27,7 @@ public class PlatformUtilsImpl {
         return FabricLoader.getInstance().isModLoaded(modId);
     }
 
-    public static LiquidFuelType getLiquidFuelTypeFromItemStack(ItemStack stack) {
-        if (stack.isEmpty()) {
-            return LiquidFuelType.NONE;
-        }
-        if (stack.getItem() instanceof BucketItem) {
-            if (stack.is(FabricClockworkFluids.VANILLA_FROSTING.get().getBucket())) {
-                return LiquidFuelType.STALE;
-            }
-            if (stack.is(FabricClockworkFluids.CHOCOLATE_FROSTING.get().getBucket())) {
-                return LiquidFuelType.PLAIN;
-            }
-            if (stack.is(FabricClockworkFluids.STRAWBERRY_FROSTING.get().getBucket())) {
-                return LiquidFuelType.SWEET;
-            }
-        }
-        return LiquidFuelType.NONE;
-    }
+
 
     public static CompoundTag getExtraData(SmartBlockEntity be) {
         return be.getExtraCustomData();

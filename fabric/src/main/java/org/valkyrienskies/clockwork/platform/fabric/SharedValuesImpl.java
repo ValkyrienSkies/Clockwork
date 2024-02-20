@@ -41,13 +41,7 @@ public class SharedValuesImpl {
         return (BlockEntityEntry) FabricClockworkBlockEntities.BALLAST;
     }
 
-    public static ArrayList<Item> getFrostingBuckets() {
-        ArrayList<Item> frostingBuckets = new ArrayList<>();
-        frostingBuckets.add(FabricClockworkFluids.VANILLA_FROSTING.get().getBucket());
-        frostingBuckets.add(FabricClockworkFluids.CHOCOLATE_FROSTING.get().getBucket());
-        frostingBuckets.add(FabricClockworkFluids.STRAWBERRY_FROSTING.get().getBucket());
-        return frostingBuckets;
-    }
+
 
     public static GravitronHandler getGravitronHandler() {
         return ClockworkModFabricClient.GRAVITRON_HANDLER;
