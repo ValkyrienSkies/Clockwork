@@ -9,5 +9,6 @@ data class PropCreateData(
     val bearingAngle: Double,
     val bearingSpeed: Double,
     val propellorPositions: List<Vector3ic>,
-    val inverted: Boolean
+    val inverted: Boolean,
+    val overStressed: Boolean
 )
