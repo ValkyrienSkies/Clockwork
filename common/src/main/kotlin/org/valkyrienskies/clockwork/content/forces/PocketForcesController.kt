@@ -32,6 +32,20 @@ class PocketForcesController: ShipForcesInducer {
             if (newPockets != null) {
                 pockets.clear()
                 pockets.putAll(newPockets)
+                for (pocketId in newPockets.keys){
+                    if (!newPockets[pocketId]!!.extraData.containsKey("kelvin/gas_masses")) {
+                        val newMap = HashMap<GasType, Double>()
+                        for (gas in GasType.values()) {
+                            if (gas == GasType.AIR){
+                                newMap[gas] = (newPockets[pocketId]!!.pocket.size.toDouble() * gas.density / 4.0)
+                            } else {
+                                newMap[gas] = 0.0
+                            }
+
+                        }
+                        newPockets[pocketId]!!.extraData["kelvin/gas_masses"] = newMap
+                    }
+                }
             }
         }
 
