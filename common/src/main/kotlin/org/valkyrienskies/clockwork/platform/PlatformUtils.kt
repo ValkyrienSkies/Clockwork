@@ -103,11 +103,6 @@ object PlatformUtils {
         throw AssertionError()
     }
 
-    @ExpectPlatform
-    @JvmStatic
-    fun getLiquidFuelTypeFromItemStack(stack: ItemStack): LiquidFuelType {
-        throw AssertionError()
-    }
 
     @ExpectPlatform
     @JvmStatic
