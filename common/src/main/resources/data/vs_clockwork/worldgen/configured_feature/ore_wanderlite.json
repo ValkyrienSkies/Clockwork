@@ -6,7 +6,7 @@
     "targets": [
       {
         "state": {
-          "Name": "vs_clockwork:auric_deepslate_ore"
+          "Name": "vs_clockwork:wanderlite_deepslate_ore"
         },
         "target": {
           "predicate_type": "minecraft:tag_match",
@@ -15,7 +15,7 @@
       },
       {
         "state": {
-          "Name": "vs_clockwork:auric_end_ore"
+          "Name": "vs_clockwork:wanderlite_end_ore"
         },
         "target": {
           "block": "minecraft:end_stone",

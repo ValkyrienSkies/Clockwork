@@ -20,7 +20,7 @@ object ClockworkWorldgen {
                     mutable.getGenerationProperties()
                         .addFeature(GenerationStep.Decoration.UNDERGROUND_ORES,
                             ResourceKey.create(Registries.PLACED_FEATURE,
-                                ResourceLocation(ClockworkMod.MOD_ID + ":ore_auric")));
+                                ResourceLocation(ClockworkMod.MOD_ID + ":ore_wanderlite")));
                 }
             }
         }
