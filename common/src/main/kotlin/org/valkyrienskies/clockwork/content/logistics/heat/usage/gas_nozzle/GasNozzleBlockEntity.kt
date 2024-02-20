@@ -31,7 +31,7 @@ class GasNozzleBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Blo
     override var gasNodeID: GasNodeIdentifier? = null
 
     override var currentPressure: Double = 0.0
-    override var temperature: Double = 0.0
+    override var temperature: Double = 273.0
     override val gasMasses: EnumMap<GasType, Double> = EnumMap(GasType::class.java)
     override val gasFlows: HashMap<GasNodeIdentifier, Double> = HashMap()
 
@@ -55,7 +55,7 @@ class GasNozzleBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Blo
                     KelvinHandler.getNodeFromPos(this.worldPosition.relative(direction).toJOML()) ?: continue,
                     0.125,
                     0.0
-                )
+                    )
                 )
             }
         }
