@@ -2,7 +2,9 @@ package org.valkyrienskies.clockwork.content.forces
 
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
+import org.joml.Vector3d
 import org.valkyrienskies.clockwork.kelvin.api.GasType
+import org.valkyrienskies.clockwork.util.AerodynamicUtils
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.ShipForcesInducer
@@ -30,23 +32,38 @@ class PocketForcesController: ShipForcesInducer {
             if (newPockets != null) {
                 pockets.clear()
                 pockets.putAll(newPockets)
+                for (pocketId in newPockets.keys){
+                    if (!newPockets[pocketId]!!.extraData.containsKey("kelvin/gas_masses")) {
+                        val newMap = HashMap<GasType, Double>()
+                        for (gas in GasType.values()) {
+                            if (gas == GasType.AIR){
+                                newMap[gas] = (newPockets[pocketId]!!.pocket.size.toDouble() * gas.density / 4.0)
+                            } else {
+                                newMap[gas] = 0.0
+                            }
+
+                        }
+                        newPockets[pocketId]!!.extraData["kelvin/gas_masses"] = newMap
+                    }
+                }
             }
         }
 
+        val buoyancyForce = calculateBuoyancyForce(physShip)
 
-
+        physShip.applyInvariantForce(Vector3d(0.0, buoyancyForce, 0.0))
     }
 
-    fun calculateBuoyancyForce(physShip: PhysShip) {
+    fun calculateBuoyancyForce(physShip: PhysShip): Double {
         val physShipImpl = physShip as PhysShipImpl
 
-        val totalBuoyantForce = 0.0
+        var totalBuoyantForce = 0.0
 
         pockets.values.forEach {
             if (it.pocket.size > 0) {
                 if (it.extraData.containsKey("kelvin/gas_masses") && it.extraData.containsKey("kelvin/temperature_dbl_mrg_avg")) {
-                    val gasMasses = (it.extraData["kelvin/gas_masses"] ?: return) as HashMap<GasType, Double>
-                    val temperature = (it.extraData["kelvin/temperature_dbl_mrg_avg"] ?: return) as Double
+                    val gasMasses = (it.extraData["kelvin/gas_masses"] ?: HashMap<GasType, Double>()) as HashMap<GasType, Double>
+                    val temperature = (it.extraData["kelvin/temperature_dbl_mrg_avg"] ?: 0.0) as Double
                     var totalInternalDensity = 0.0
                     for (gas in GasType.values()) {
                         if (gasMasses.containsKey(gas)) {
@@ -56,10 +73,13 @@ class PocketForcesController: ShipForcesInducer {
                             totalInternalDensity += density
                         }
                     }
-
+                    val buoyantForce = it.pocket.size.toDouble() * (AerodynamicUtils.getAirDensityForY(physShip.poseVel.pos.y(), max_height) - totalInternalDensity) * 10.0
+                    totalBuoyantForce += buoyantForce
                 }
             }
         }
+
+        return totalBuoyantForce
     }
 
     private fun getDensityFromTemperature(volume: Double, mass: Double, temperature: Double, gasType: GasType): Double {
@@ -68,7 +88,9 @@ class PocketForcesController: ShipForcesInducer {
         var density = mass / volume
 
         if (temperature != 0.0) {
-            density = mass / (volume * temperature)
+            val molarMass = gasType.density * 22.4
+            val pressure = calcPressure(mass, volume, temperature, gasType)
+            density = (molarMass * pressure) / (8.31446261815324 * temperature)
         }
         return density
     }
