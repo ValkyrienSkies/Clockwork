@@ -95,31 +95,7 @@ object ClockworkBlocks {
             .build()
             .register()
 
-    @JvmField
-    val DELIVERY_CANNON: BlockEntry<DeliveryCannonBlock> =
-        REGISTRATE.block<DeliveryCannonBlock>("delivery_cannon") { properties: BlockBehaviour.Properties? ->
-            DeliveryCannonBlock(properties!!)
-        }
-            .initialProperties { SharedProperties.netheriteMetal() }
-            .properties {
-                it.sound(SoundType.METAL)
-            }
-            .transform(BlockStressDefaults.setImpact(4.0))
-            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
-            .register()
 
-    @JvmField
-    val DELIVERY_CHUTE: BlockEntry<DeliveryChuteBlock> =
-        REGISTRATE.block<DeliveryChuteBlock>("delivery_chute") { properties: BlockBehaviour.Properties? ->
-            DeliveryChuteBlock(properties!!)
-        }
-            .initialProperties { SharedProperties.netheriteMetal() }
-            .properties {
-                it.sound(SoundType.METAL)
-            }
-            .transform(BlockStressDefaults.setImpact(4.0))
-            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
-            .register()
 
     @JvmField
     val ALT_METER: BlockEntry<AltMeterBlock> =
@@ -267,26 +243,6 @@ object ClockworkBlocks {
         .item()
         //TODO .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
-        .register()
-
-    val HEAT_PIPE = REGISTRATE.block<HeatPipeBlock>(
-        "heat_pipe"
-    ) { properties: BlockBehaviour.Properties? ->
-        HeatPipeBlock(
-            properties!!
-        )
-    }
-        .initialProperties { SharedProperties.netheriteMetal() }
-        .onRegister(CreateRegistrate.blockModel {
-            NonNullFunction<BakedModel?, BakedModel> { template: BakedModel? ->
-                PipeAttachmentModel(
-                    template
-                )
-            }
-        })
-        .item()
-        //.tab { ClockworkMod.BASE_CREATIVE_TAB }
-        .transform(customItemModel())
         .register()
 
     val WANDERLITE_DEEPSLATE_ORE = REGISTRATE.block<WanderliteOreBlock>(

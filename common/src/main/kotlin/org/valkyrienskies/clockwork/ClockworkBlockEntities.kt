@@ -124,32 +124,6 @@ object ClockworkBlockEntities {
         .register()
 
     @JvmField
-    val DELIVERY_CANNON: BlockEntityEntry<DeliveryCannonBlockEntity> = ClockworkMod.REGISTRATE
-        .blockEntity<DeliveryCannonBlockEntity>(
-            "delivery_cannon"
-        ) { typeIn: BlockEntityType<DeliveryCannonBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
-            DeliveryCannonBlockEntity(
-                typeIn,
-                pos!!, state!!
-            )
-        }
-        .validBlocks(ClockworkBlocks.DELIVERY_CANNON)
-        .register()
-
-    @JvmField
-    val DELIVERY_CHUTE: BlockEntityEntry<DeliveryChuteBlockEntity> = ClockworkMod.REGISTRATE
-        .blockEntity<DeliveryChuteBlockEntity>(
-            "delivery_chute"
-        ) { typeIn: BlockEntityType<DeliveryChuteBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
-            DeliveryChuteBlockEntity(
-                typeIn,
-                pos!!, state!!
-            )
-        }
-        .validBlocks(ClockworkBlocks.DELIVERY_CHUTE)
-        .register()
-
-    @JvmField
     val ALT_METER: BlockEntityEntry<AltMeterBlockEntity> = ClockworkMod.REGISTRATE
         .blockEntity<AltMeterBlockEntity>(
             "alt_meter"
@@ -241,25 +215,6 @@ object ClockworkBlockEntities {
                 )
             }
         }
-        .register()
-
-    @JvmField
-    val HEAT_PIPE: BlockEntityEntry<HeatPipeBlockEntity> = ClockworkMod.REGISTRATE
-        .blockEntity<HeatPipeBlockEntity>("heat_pipe") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
-            HeatPipeBlockEntity(
-                type,
-                pos,
-                state
-            )
-        }
-        .renderer {
-            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in HeatPipeBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
-                HeatPipeBlockEntityRenderer(
-                    context!!
-                )
-            }
-        }
-        .validBlocks(ClockworkBlocks.HEAT_PIPE)
         .register()
 
     @JvmField

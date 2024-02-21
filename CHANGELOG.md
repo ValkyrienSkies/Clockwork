@@ -7,3 +7,4 @@ v0.1.6
 - Fixed Flap Bearing recipe on Fabric version
 - Removed Frosting
 - Added spam protection for Propeller
+- Removed Delivery suite
