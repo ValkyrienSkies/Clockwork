@@ -112,7 +112,7 @@ object ClockworkUtils {
     fun loadArea(nbt: CompoundTag?): SelectedAreaToolkit {
         val toolKit = SelectedAreaToolkit()
         if (nbt != null) {
-            val nb = nbt.getByteArray("SelectedData")
+            val nb = nbt.getByteArray(ClockworkConstants.Nbt.SELECTED_DATA)
             try {
                 toolKit.overwriteFrom(
                     defaultMapper.readValue(
@@ -128,7 +128,7 @@ object ClockworkUtils {
 
     fun saveArea(nbt: CompoundTag, area: SelectedAreaToolkit?): CompoundTag {
         try {
-            nbt.putByteArray("SelectedData", defaultMapper.writeValueAsBytes(area))
+            nbt.putByteArray(ClockworkConstants.Nbt.SELECTED_DATA, defaultMapper.writeValueAsBytes(area))
         } catch (ignored: JsonProcessingException) {
         }
         return nbt

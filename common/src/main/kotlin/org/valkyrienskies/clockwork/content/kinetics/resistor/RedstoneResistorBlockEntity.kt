@@ -13,6 +13,7 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.ticks.TickPriority
+import org.valkyrienskies.clockwork.util.ClockworkConstants
 import kotlin.math.abs
 
 open class RedstoneResistorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
@@ -36,14 +37,14 @@ open class RedstoneResistorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos,
     }
 
     public override fun write(compound: CompoundTag, clientPacket: Boolean) {
-        compound.putInt("RedstoneLevel", state)
-        compound.putInt("ChangeTimer", lastChange)
+        compound.putInt(ClockworkConstants.Nbt.REDSTONE_LEVEL, state)
+        compound.putInt(ClockworkConstants.Nbt.CHANGE_TIMER, lastChange)
         super.write(compound, clientPacket)
     }
 
     override fun read(compound: CompoundTag, clientPacket: Boolean) {
-        state = compound.getInt("RedstoneLevel")
-        lastChange = compound.getInt("ChangeTimer")
+        state = compound.getInt(ClockworkConstants.Nbt.REDSTONE_LEVEL)
+        lastChange = compound.getInt(ClockworkConstants.Nbt.CHANGE_TIMER)
         super.read(compound, clientPacket)
     }
 

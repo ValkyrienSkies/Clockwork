@@ -30,6 +30,7 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.contraption.P
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropCreateData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropUpdateData
 import org.valkyrienskies.clockwork.content.forces.PropellerController
+import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.clockwork.util.EaseHelper
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOML
@@ -280,12 +281,12 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
     }
 
     public override fun write(compound: CompoundTag, clientPacket: Boolean) {
-        compound.putFloat("Rotspeed", rotspeed)
-        compound.putBoolean("Running", running)
-        compound.putFloat("Angle", realAngle)
-        compound.putBoolean("Inverted", isInverted)
+        compound.putFloat(ClockworkConstants.Nbt.ROT_SPEED, rotspeed)
+        compound.putBoolean(ClockworkConstants.Nbt.RUNNING, running)
+        compound.putFloat(ClockworkConstants.Nbt.ANGLE, realAngle)
+        compound.putBoolean(ClockworkConstants.Nbt.INVERTED, isInverted)
         if (physPropId != null) {
-            compound.putInt("ID", physPropId!!)
+            compound.putInt(ClockworkConstants.Nbt.ID, physPropId!!)
         }
         AssemblyException.write(compound, lastException)
         super.write(compound, clientPacket)
@@ -293,13 +294,13 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
 
     override fun read(compound: CompoundTag, clientPacket: Boolean) {
         val angleBefore = realAngle
-        rotspeed = compound.getFloat("Rotspeed")
-        running = compound.getBoolean("Running")
-        realAngle = compound.getFloat("Angle")
-        isInverted = compound.getBoolean("Inverted")
+        rotspeed = compound.getFloat(ClockworkConstants.Nbt.ROT_SPEED)
+        running = compound.getBoolean(ClockworkConstants.Nbt.RUNNING)
+        realAngle = compound.getFloat(ClockworkConstants.Nbt.ANGLE)
+        isInverted = compound.getBoolean(ClockworkConstants.Nbt.INVERTED)
         lastException = AssemblyException.read(compound)
-        if (compound.contains("ID")) {
-            physPropId = compound.getInt("ID")
+        if (compound.contains(ClockworkConstants.Nbt.ID)) {
+            physPropId = compound.getInt(ClockworkConstants.Nbt.ID)
         }
         super.read(compound, clientPacket)
         if (!clientPacket) return

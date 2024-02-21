@@ -34,6 +34,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysB
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.platform.api.ContraptionController
 import org.valkyrienskies.clockwork.platform.api.ContraptionController.LockedMode
+import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.clockwork.util.GlueAssembler.collectGlued
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.Ship
@@ -106,16 +107,16 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     }
 
     public override fun write(compound: CompoundTag, clientPacket: Boolean) {
-        compound.putBoolean("Running", isRunning)
-        compound.putFloat("Angle", bearingAngle)
+        compound.putBoolean(ClockworkConstants.Nbt.RUNNING, isRunning)
+        compound.putFloat(ClockworkConstants.Nbt.ANGLE, bearingAngle)
         if (bearingID != null) {
-            compound.putInt("BearingID", bearingID!!)
+            compound.putInt(ClockworkConstants.Nbt.BEARING_ID, bearingID!!)
         }
         if (shiptraptionID != NO_SHIPTRAPTION_ID) {
-            compound.putLong("ShiptraptionID", shiptraptionID)
+            compound.putLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID, shiptraptionID)
         }
         AssemblyException.write(compound, lastException)
-        compound.putBoolean("Open", open)
+        compound.putBoolean(ClockworkConstants.Nbt.OPEN, open)
         super.write(compound, clientPacket)
     }
 
@@ -125,15 +126,15 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             return
         }
         val angleBefore = bearingAngle
-        open = compound.getBoolean("Open")
-        isRunning = compound.getBoolean("Running")
-        bearingAngle = compound.getFloat("Angle")
+        open = compound.getBoolean(ClockworkConstants.Nbt.OPEN)
+        isRunning = compound.getBoolean(ClockworkConstants.Nbt.RUNNING)
+        bearingAngle = compound.getFloat(ClockworkConstants.Nbt.ANGLE)
         lastException = AssemblyException.read(compound)
-        if (compound.contains("BearingID")) {
-            bearingID = compound.getInt("BearingID")
+        if (compound.contains(ClockworkConstants.Nbt.BEARING_ID)) {
+            bearingID = compound.getInt(ClockworkConstants.Nbt.BEARING_ID)
         }
-        if (compound.contains("ShiptraptionID")) {
-            shiptraptionID = compound.getLong("ShiptraptionID")
+        if (compound.contains(ClockworkConstants.Nbt.SHIPTRAPTION_ID)) {
+            shiptraptionID = compound.getLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID)
         }
         if (isRunning) {
             if (shiptraptionID == NO_SHIPTRAPTION_ID) {
@@ -522,21 +523,17 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                         var createdAttachment = false
                         var createdHinge = false
                         if (attachConstraint != null) {
-                            val attachID: VSConstraintId? =
-                                (level as ServerLevel).shipObjectWorld.createNewConstraint(attachConstraint)
+                            val attachID: VSConstraintId? = (level as ServerLevel).shipObjectWorld.createNewConstraint(attachConstraint)
                             if (attachID != null) {
-                                BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.attachConstraint =
-                                    attachConstraint
+                                BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.attachConstraint = attachConstraint
                                 BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.attachID = attachID
                                 createdAttachment = true
                             }
                         }
                         if (hingeConstraint != null) {
-                            val hingeID: VSConstraintId? =
-                                (level as ServerLevel).shipObjectWorld.createNewConstraint(hingeConstraint)
+                            val hingeID: VSConstraintId? = (level as ServerLevel).shipObjectWorld.createNewConstraint(hingeConstraint)
                             if (hingeID != null) {
-                                BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.hingeConstraint =
-                                    hingeConstraint
+                                BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.hingeConstraint = hingeConstraint
                                 BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.hingeID = hingeID
                                 createdHinge = true
                             }

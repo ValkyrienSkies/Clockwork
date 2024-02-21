@@ -17,6 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.valkyrienskies.clockwork.content.forces.EncasedFanController;
 import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanCreateData;
 import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanUpdateData;
+import org.valkyrienskies.clockwork.util.ClockworkConstants;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
@@ -67,23 +68,23 @@ public abstract class MixinEncasedFanTileEntity extends KineticBlockEntity {
     }
 
     @Inject(method = "tick", at = @At("HEAD"), remap = false)
-    private void injectTick(CallbackInfo ci) {
+    private void vs_clockwork$injectTick(CallbackInfo ci) {
         vs_clockwork$handleController();
     }
 
     @Inject(method = "write", at = @At("TAIL"), remap = false)
-    private void injectWrite(CompoundTag compound, boolean clientPacket, CallbackInfo ci) {
-        compound.putBoolean("alreadyAdded", vs_clockwork$alreadyAdded);
+    private void vs_clockwork$injectWrite(CompoundTag compound, boolean clientPacket, CallbackInfo ci) {
+        compound.putBoolean(ClockworkConstants.Nbt.ALREADY_ADDED, vs_clockwork$alreadyAdded);
         if (vs_clockwork$fanID != null) {
-            compound.putInt("fanID", vs_clockwork$fanID);
+            compound.putInt(ClockworkConstants.Nbt.FAN_ID, vs_clockwork$fanID);
         }
     }
 
     @Inject(method = "read", at = @At("TAIL"), remap = false)
-    private void injectRead(CompoundTag compound, boolean clientPacket, CallbackInfo ci) {
-        vs_clockwork$alreadyAdded = compound.getBoolean("alreadyAdded");
-        if (compound.contains("fanID")) {
-            vs_clockwork$fanID = compound.getInt("fanID");
+    private void vs_clockwork$injectRead(CompoundTag compound, boolean clientPacket, CallbackInfo ci) {
+        vs_clockwork$alreadyAdded = compound.getBoolean(ClockworkConstants.Nbt.ALREADY_ADDED);
+        if (compound.contains(ClockworkConstants.Nbt.FAN_ID)) {
+            vs_clockwork$fanID = compound.getInt(ClockworkConstants.Nbt.FAN_ID);
         }
     }
 }
