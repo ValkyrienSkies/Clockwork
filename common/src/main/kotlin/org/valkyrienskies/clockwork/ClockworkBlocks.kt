@@ -31,6 +31,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInf
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
+import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.SmartPropellerBearingBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlock
@@ -51,6 +52,19 @@ object ClockworkBlocks {
     val PROPELLER_BEARING: BlockEntry<PropellerBearingBlock> =
         REGISTRATE.block<PropellerBearingBlock>("propeller_bearing") { properties: BlockBehaviour.Properties? ->
             PropellerBearingBlock(properties!!)
+        }
+            .transform(TagGen.axeOrPickaxe())
+            .transform(BuilderTransformers.bearing("propeller", "gearbox"))
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
+            .register()
+
+    @JvmField
+    val SMART_PROPELLER_BEARING: BlockEntry<SmartPropellerBearingBlock> =
+        REGISTRATE.block<SmartPropellerBearingBlock>("smart_propeller_bearing") { properties: BlockBehaviour.Properties? ->
+            SmartPropellerBearingBlock(properties!!)
         }
             .transform(TagGen.axeOrPickaxe())
             .transform(BuilderTransformers.bearing("propeller", "gearbox"))

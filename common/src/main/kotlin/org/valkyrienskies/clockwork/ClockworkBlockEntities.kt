@@ -26,6 +26,8 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlo
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingRenderer
+import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.SmartPropellerBearingBlockEntity
+import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.SmartPropellerBearingRenderer
 import org.valkyrienskies.clockwork.content.generic.ColorBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRenderer
@@ -54,6 +56,25 @@ object ClockworkBlockEntities {
         .renderer {
             NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in PropellerBearingBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
                 PropellerBearingRenderer(
+                    context!!
+                )
+            }
+        }
+        .register()
+
+    @JvmField
+    val SMART_PROPELLER_BEARING: BlockEntityEntry<SmartPropellerBearingBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<SmartPropellerBearingBlockEntity>(
+            "smart_propeller_bearing"
+        ) { type: BlockEntityType<SmartPropellerBearingBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
+            SmartPropellerBearingBlockEntity(
+                type!!, pos!!, state!!
+            )
+        }
+        .validBlocks(ClockworkBlocks.SMART_PROPELLER_BEARING)
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in SmartPropellerBearingBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                SmartPropellerBearingRenderer(
                     context!!
                 )
             }
