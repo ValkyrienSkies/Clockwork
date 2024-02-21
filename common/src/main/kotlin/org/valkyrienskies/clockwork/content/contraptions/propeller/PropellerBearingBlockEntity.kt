@@ -47,6 +47,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
     var speedChanged = false
     var rotspeed = 0f
     var oldRotspeed = 0f
+    var assembleCooldown = 0
     var assembleNextTick = false
     var sails = 0
     var moddingSpeed = 0
@@ -166,9 +167,15 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
             onRotspeedChanged()
             speedChanged = false
         }
+
+        if (assembleCooldown > 0) {
+            assembleCooldown--
+        }
+
         prevAngle = realAngle
         if (level!!.isClientSide) clientAngleDiff /= 2f
         if (!level!!.isClientSide && assembleNextTick) {
+            assembleCooldown = 20
             assembleNextTick = false
             if (!running) {
                 assemble()
@@ -390,8 +397,10 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         val axis: Vector3dc = blockState.getValue(BlockStateProperties.FACING).normal.toJOMLD()
         val vecPos: Vector3dc = blockPos.toJOMLD()
         val data = PropCreateData(
-            vecPos, axis, realAngle.toDouble(),
-            angularSpeed.toDouble(), sailVecs,
+            vecPos, axis,
+            realAngle.toDouble(),
+            angularSpeed.toDouble(),
+            sailVecs,
             isInverted,
             overStressed
         )

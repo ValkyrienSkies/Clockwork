@@ -98,6 +98,7 @@ class PropellerController : ShipForcesInducer {
         val furthestTip = Vector3d()
         val netForce = Vector3d()
         val netTorque = Vector3d()
+
         for (pos in physProp.propellorPositions!!) {
             val sailVector: Vector3dc = Vector3d(pos.x().toDouble(), pos.y().toDouble(), pos.z().toDouble())
                 .add(bearingVector)
