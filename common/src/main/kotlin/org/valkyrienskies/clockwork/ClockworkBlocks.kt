@@ -6,7 +6,6 @@ import com.simibubi.create.content.kinetics.BlockStressDefaults
 import com.simibubi.create.foundation.data.*
 import com.simibubi.create.foundation.data.ModelGen.customItemModel
 import com.simibubi.create.foundation.data.TagGen.axeOrPickaxe
-import com.simibubi.create.foundation.data.TagGen.pickaxeOnly
 import com.tterrag.registrate.builders.BlockBuilder
 import com.tterrag.registrate.providers.DataGenContext
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider
@@ -93,31 +92,7 @@ object ClockworkBlocks {
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .register()
 
-    @JvmField
-    val DELIVERY_CANNON: BlockEntry<DeliveryCannonBlock> =
-        REGISTRATE.block<DeliveryCannonBlock>("delivery_cannon") { properties: BlockBehaviour.Properties? ->
-            DeliveryCannonBlock(properties!!)
-        }
-            .initialProperties { SharedProperties.netheriteMetal() }
-            .properties {
-                it.sound(SoundType.METAL)
-            }
-            .transform(BlockStressDefaults.setImpact(4.0))
-            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
-            .register()
 
-    @JvmField
-    val DELIVERY_CHUTE: BlockEntry<DeliveryChuteBlock> =
-        REGISTRATE.block<DeliveryChuteBlock>("delivery_chute") { properties: BlockBehaviour.Properties? ->
-            DeliveryChuteBlock(properties!!)
-        }
-            .initialProperties { SharedProperties.netheriteMetal() }
-            .properties {
-                it.sound(SoundType.METAL)
-            }
-            .transform(BlockStressDefaults.setImpact(4.0))
-            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
-            .register()
 
     @JvmField
     val ALT_METER: BlockEntry<AltMeterBlock> =
@@ -257,26 +232,6 @@ object ClockworkBlocks {
         .initialProperties { SharedProperties.softMetal() }
         .item()
         .build()
-        .register()
-
-    val HEAT_PIPE = REGISTRATE.block<HeatPipeBlock>(
-        "heat_pipe"
-    ) { properties: BlockBehaviour.Properties? ->
-        HeatPipeBlock(
-            properties!!
-        )
-    }
-        .initialProperties { SharedProperties.netheriteMetal() }
-        //.blockstate(CWBlockStateGen.pipe())
-        .onRegister(CreateRegistrate.blockModel<HeatPipeBlock> {
-            NonNullFunction<BakedModel?, BakedModel> { template: BakedModel? ->
-                PipeAttachmentModel(
-                    template
-                )
-            }
-        })
-        .item()
-        .transform(customItemModel())
         .register()
 
     val WANDERLITE_DEEPSLATE_ORE = REGISTRATE.block<WanderliteOreBlock>(
