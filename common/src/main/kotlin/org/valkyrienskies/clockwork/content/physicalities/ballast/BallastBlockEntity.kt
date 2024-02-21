@@ -7,6 +7,7 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.clockwork.util.ClockworkUtils
 
 abstract class BallastBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : SmartBlockEntity(type, pos, state) {
@@ -49,15 +50,15 @@ abstract class BallastBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, sta
     override fun read(compound: CompoundTag, clientPacket: Boolean) {
         super.read(compound, clientPacket)
 
-        this.oldWeight = compound.getDouble("OldWeight")
-        this.newWeight = compound.getDouble("Weight")
+        this.oldWeight = compound.getDouble(ClockworkConstants.Nbt.OLD_WEIGHT)
+        this.newWeight = compound.getDouble(ClockworkConstants.Nbt.WEIGHT)
     }
 
     override fun write(compound: CompoundTag, clientPacket: Boolean) {
         super.write(compound, clientPacket)
 
-        compound.putDouble("OldWeight", this.oldWeight)
-        compound.putDouble("Weight", this.newWeight)
+        compound.putDouble(ClockworkConstants.Nbt.OLD_WEIGHT, this.oldWeight)
+        compound.putDouble(ClockworkConstants.Nbt.WEIGHT, this.newWeight)
     }
 
 }

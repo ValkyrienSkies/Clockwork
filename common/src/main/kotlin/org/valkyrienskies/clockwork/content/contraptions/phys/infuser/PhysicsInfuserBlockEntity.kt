@@ -37,6 +37,7 @@ import org.valkyrienskies.clockwork.client.render.scanner.ScannerRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer.Companion.SCAN_GROWTH_DURATION
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.SelectedAreaToolkit
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItem
+import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.clockwork.util.EaseHelper.easeInBounce
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.core.api.ships.Ship
@@ -386,13 +387,13 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     }
 
     public override fun write(compound: CompoundTag, clientPacket: Boolean) {
-        compound.putString("animationState", animationType.toString())
-        compound.putFloat("assemblyProgress", assemblyProgress.value)
-        compound.putFloat("disassemblyProgress", disassemblyProgress.value)
-        compound.putFloat("idleProgress", idleProgress.value)
-        compound.putBoolean("isAssembled", isAssembled)
-        compound.putBoolean("assembling", assembling)
-        compound.putBoolean("disassembling", disassembling)
+        compound.putString(ClockworkConstants.Nbt.ANIMATION_STATE, animationType.toString())
+        compound.putFloat(ClockworkConstants.Nbt.ASSEMBLY_PROGRESS, assemblyProgress.value)
+        compound.putFloat(ClockworkConstants.Nbt.DISASSEMBLY_PROGRESS, disassemblyProgress.value)
+        compound.putFloat(ClockworkConstants.Nbt.IDLE_PROGRESS, idleProgress.value)
+        compound.putBoolean(ClockworkConstants.Nbt.IS_ASSEMBLED, isAssembled)
+        compound.putBoolean(ClockworkConstants.Nbt.ASSEMBLING, assembling)
+        compound.putBoolean(ClockworkConstants.Nbt.DISASSEMBLING, disassembling)
         ContainerHelper.saveAllItems(compound, inventory)
         super.write(compound, clientPacket)
     }
@@ -400,13 +401,13 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     //NBT stuff
     override fun read(compound: CompoundTag, clientPacket: Boolean) {
         animationType =
-            if (compound.getString("animationState") == "ASSEMBLY") Animation.ASSEMBLY else if (compound.getString("animationState") == "DISASSEMBLY") Animation.DISASSEMBLY else Animation.IDLE
-        assemblyProgress.setValueNoUpdate(compound.getFloat("assemblyProgress").toDouble())
-        disassemblyProgress.setValueNoUpdate(compound.getFloat("disassemblyProgress").toDouble())
-        idleProgress.setValueNoUpdate(compound.getFloat("idleProgress").toDouble())
-        isAssembled = compound.getBoolean("isAssembled")
-        assembling = compound.getBoolean("assembling")
-        disassembling = compound.getBoolean("disassembling")
+            if (compound.getString(ClockworkConstants.Nbt.ANIMATION_STATE) == "ASSEMBLY") Animation.ASSEMBLY else if (compound.getString(ClockworkConstants.Nbt.ANIMATION_STATE) == "DISASSEMBLY") Animation.DISASSEMBLY else Animation.IDLE
+        assemblyProgress.setValueNoUpdate(compound.getFloat(ClockworkConstants.Nbt.ASSEMBLY_PROGRESS).toDouble())
+        disassemblyProgress.setValueNoUpdate(compound.getFloat(ClockworkConstants.Nbt.DISASSEMBLY_PROGRESS).toDouble())
+        idleProgress.setValueNoUpdate(compound.getFloat(ClockworkConstants.Nbt.IDLE_PROGRESS).toDouble())
+        isAssembled = compound.getBoolean(ClockworkConstants.Nbt.IS_ASSEMBLED)
+        assembling = compound.getBoolean(ClockworkConstants.Nbt.ASSEMBLING)
+        disassembling = compound.getBoolean(ClockworkConstants.Nbt.DISASSEMBLING)
         inventory = NonNullList.withSize(this.containerSize, ItemStack.EMPTY)
         ContainerHelper.loadAllItems(compound, inventory)
         super.read(compound, clientPacket)
