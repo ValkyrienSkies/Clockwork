@@ -7,6 +7,7 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Vector3d
+import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.mod.common.getShipManagingPos
 
 class AltMeterBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
@@ -41,11 +42,11 @@ class AltMeterBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: Blo
     public override fun write(compound: CompoundTag, clientPacket: Boolean) {
         super.write(compound, clientPacket)
         val triggerHeightCopy = triggerHeight
-        compound.putDouble("triggerHeight", triggerHeightCopy)
+        compound.putDouble(ClockworkConstants.Nbt.TRIGGER_HEIGHT, triggerHeightCopy)
     }
 
     public override fun read(compound: CompoundTag, clientPacket: Boolean) {
         super.read(compound, clientPacket)
-        triggerHeight = compound.getDouble("triggerHeight")
+        triggerHeight = compound.getDouble(ClockworkConstants.Nbt.TRIGGER_HEIGHT)
     }
 }

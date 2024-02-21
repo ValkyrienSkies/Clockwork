@@ -19,6 +19,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.content.contraptions.flap.contraption.FlapContraption
+import org.valkyrienskies.clockwork.util.ClockworkConstants
 import kotlin.math.max
 
 class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
@@ -111,16 +112,16 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
     }
 
     public override fun write(compound: CompoundTag, clientPacket: Boolean) {
-        compound.putBoolean("Running", isRunning)
-        compound.putFloat("Angle", bearingAngle)
+        compound.putBoolean(ClockworkConstants.Nbt.RUNNING, isRunning)
+        compound.putFloat(ClockworkConstants.Nbt.ANGLE, bearingAngle)
         AssemblyException.write(compound, lastException)
         super.write(compound, clientPacket)
     }
 
     override fun read(compound: CompoundTag, clientPacket: Boolean) {
         val angleBefore = bearingAngle
-        isRunning = compound.getBoolean("Running")
-        bearingAngle = compound.getFloat("Angle")
+        isRunning = compound.getBoolean(ClockworkConstants.Nbt.RUNNING)
+        bearingAngle = compound.getFloat(ClockworkConstants.Nbt.ANGLE)
         lastException = AssemblyException.read(compound)
         super.read(compound, clientPacket)
         if (!clientPacket) return
