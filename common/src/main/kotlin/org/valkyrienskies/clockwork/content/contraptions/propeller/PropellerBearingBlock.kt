@@ -46,7 +46,9 @@ class PropellerBearingBlock(properties: Properties) : BearingBlock(properties), 
                             te.shutDown()
                             return@withBlockEntityDo
                         }
-                        te.assembleNextTick = true
+                        if (te.assembleCooldown <= 0) {
+                            te.assembleNextTick = true
+                        }
                     })
             }
             return InteractionResult.SUCCESS
