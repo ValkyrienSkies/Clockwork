@@ -6,3 +6,4 @@ v0.1.6
 - Fixed Propeller unable to be overstressed on world reload
 - Fixed Flap Bearing recipe on Fabric version
 - Removed Frosting
+- Added spam protection for Propeller
