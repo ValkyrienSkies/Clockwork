@@ -174,9 +174,10 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         }
 
         prevAngle = realAngle
+
         if (level!!.isClientSide) clientAngleDiff /= 2f
         if (!level!!.isClientSide && assembleNextTick) {
-            assembleCooldown = 20
+            assembleCooldown = 20 * 2
             assembleNextTick = false
             if (!running) {
                 assemble()
@@ -440,6 +441,9 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
     }
 
     fun shutDown() {
+        if (assembleCooldown > 0) {
+            return
+        }
         slowingDown = true
         disassembling = abs(rotspeed)
         spinningUp = false
@@ -448,6 +452,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
 
     private fun disassemble() {
         if (!running && movedContraption == null) return
+
         rotspeed = 0f
         realAngle = 0f
         slowingDown = false
