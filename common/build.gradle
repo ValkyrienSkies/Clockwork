@@ -33,6 +33,7 @@ dependencies {
 
     modCompileOnly("net.fabricmc.fabric-api:fabric-api:${fabric_api_version}")
 
+
     // VS2
     modApi("org.valkyrienskies:valkyrienskies-118-common:${rootProject.vs2_version}")
     implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") {
@@ -56,4 +57,6 @@ dependencies {
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+
+    modCompileOnly "me.shedaniel:RoughlyEnoughItems-api:${rei_version}"
 }
