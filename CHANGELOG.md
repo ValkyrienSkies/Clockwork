@@ -2,7 +2,7 @@
 
 v0.1.7
 -
--
+- Improved Propeller spam protection
 
 v0.1.6
 -
