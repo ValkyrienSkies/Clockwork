@@ -1,0 +1,44 @@
+{
+  "credit": "Made with Blockbench",
+  "texture_size": [64, 64],
+  "textures": {
+    "5": "vs_clockwork:block/smart_propeller_bearing",
+    "particle": "vs_clockwork:block/smart_propeller_bearing"
+  },
+  "elements": [
+    {
+      "from": [6.5, 6, 2],
+      "to": [9.5, 8, 5],
+      "rotation": {"angle": 22.5, "axis": "x", "origin": [3.5, 9, 3.5]},
+      "faces": {
+        "north": {"uv": [7, 10.25, 7.75, 10.75], "texture": "#5"},
+        "east": {"uv": [12, 6, 12.75, 6.5], "texture": "#5"},
+        "south": {"uv": [0.5, 12.75, 1.25, 13.25], "texture": "#5"},
+        "west": {"uv": [12.75, 1.5, 13.5, 2], "texture": "#5"},
+        "up": {"uv": [0.75, 12.75, 0, 12], "texture": "#5"},
+        "down": {"uv": [1.5, 12, 0.75, 12.75], "texture": "#5"}
+      }
+    },
+    {
+      "from": [7, 8, 2.5],
+      "to": [9, 14, 4.5],
+      "rotation": {"angle": 22.5, "axis": "x", "origin": [3.5, 9, 3.5]},
+      "faces": {
+        "north": {"uv": [5.5, 12, 6, 13], "texture": "#5"},
+        "east": {"uv": [6, 12, 6.5, 13], "texture": "#5"},
+        "south": {"uv": [6.5, 12, 7, 13], "texture": "#5"},
+        "west": {"uv": [7, 12, 7.5, 13], "texture": "#5"},
+        "up": {"uv": [8.25, 13.5, 7.75, 13], "texture": "#5"},
+        "down": {"uv": [8.75, 13, 8.25, 13.5], "texture": "#5"}
+      }
+    }
+  ],
+  "groups": [
+    {
+      "name": "pistonNW",
+      "origin": [2.5, 8.5, 2.5],
+      "color": 0,
+      "children": [0, 1]
+    }
+  ]
+}

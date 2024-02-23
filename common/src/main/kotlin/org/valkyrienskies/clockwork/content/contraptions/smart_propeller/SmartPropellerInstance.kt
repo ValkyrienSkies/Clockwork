@@ -25,6 +25,11 @@ class SmartPropellerInstance(modelManager: MaterialManager?, blockEntity: SmartP
     val bearing: SmartPropellerBearingBlockEntity = blockEntity
     private val topData: ModelData
 
+    private val pistonNWData: ModelData
+    private val pistonNEData: ModelData
+    private val pistonSWData: ModelData
+    private val pistonSEData: ModelData
+
     private val rotationAxis: Vector3f
     private val blockOrientation: Quaternionf
 
@@ -35,9 +40,17 @@ class SmartPropellerInstance(modelManager: MaterialManager?, blockEntity: SmartP
         blockOrientation = getBlockStateOrientation(facing)
 
         val top: PartialModel = ClockworkPartials.SMART_PROP_TOP
+        val pistonNW: PartialModel = ClockworkPartials.SMART_PROP_PISTON_NW
+        val pistonNE: PartialModel = ClockworkPartials.SMART_PROP_PISTON_NE
+        val pistonSW: PartialModel = ClockworkPartials.SMART_PROP_PISTON_SW
+        val pistonSE: PartialModel = ClockworkPartials.SMART_PROP_PISTON_SE
 
         val mat: Material<ModelData> = transformMaterial
         topData = mat.getModel(top, blockState).createInstance()
+        pistonNWData = mat.getModel(pistonNW, blockState).createInstance()
+        pistonNEData = mat.getModel(pistonNE, blockState).createInstance()
+        pistonSWData = mat.getModel(pistonSW, blockState).createInstance()
+        pistonSEData = mat.getModel(pistonSE, blockState).createInstance()
     }
 
     override fun beginFrame() {
@@ -67,16 +80,36 @@ class SmartPropellerInstance(modelManager: MaterialManager?, blockEntity: SmartP
         transformStack.unCentre()
         topData.setTransform(matrices)
         transformStack.popPose()
+
+
+        transformStack.pushPose()
+        //transformStack.centre()
+        transformStack.unCentre()
+        pistonNWData.setTransform(matrices)
+        pistonNEData.setTransform(matrices)
+        pistonSWData.setTransform(matrices)
+        pistonSEData.setTransform(matrices)
+        //transformStack.unCentre()
+        transformStack.centre()
+        transformStack.popPose()
     }
 
     override fun updateLight() {
         super.updateLight()
         relight(pos, topData)
+        relight(pos, pistonNEData)
+        relight(pos, pistonNWData)
+        relight(pos, pistonSEData)
+        relight(pos, pistonSWData)
     }
 
     override fun remove() {
         super.remove()
         topData.delete()
+        pistonNEData.delete()
+        pistonNWData.delete()
+        pistonSEData.delete()
+        pistonSWData.delete()
     }
 
     companion object {
