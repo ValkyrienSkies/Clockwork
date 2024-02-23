@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content.contraptions.phys.gyro;
+package org.valkyrienskies.clockwork.content.contraptions.phys.gyro
 
 
 import com.jozufozu.flywheel.api.MaterialManager
@@ -15,8 +15,8 @@ import net.minecraft.core.Direction
 class GyroInstance(materialManager: MaterialManager, blockEntity: GyroBlockEntity) :
     KineticBlockEntityInstance<GyroBlockEntity>(materialManager, blockEntity), DynamicInstance {
 
-    private val shaft: RotatingData = setup(getRotatingMaterial().getModel(shaft()).createInstance())
-    private val wheel: ModelData = getTransformMaterial().getModel(blockState).createInstance()
+    private val shaft: RotatingData = setup(rotatingMaterial.getModel(shaft()).createInstance())
+    private val wheel: ModelData = transformMaterial.getModel(blockState).createInstance()
     private var lastAngle: Float = Float.NaN
 
     init {

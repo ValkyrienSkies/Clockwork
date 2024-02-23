@@ -3,7 +3,6 @@ package org.valkyrienskies.clockwork.content.forces
 import it.unimi.dsi.fastutil.Pair
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import net.minecraft.util.Mth
-import net.minecraft.world.entity.animal.horse.Horse
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanCreateData
@@ -53,8 +52,8 @@ class EncasedFanController : ShipForcesInducer {
     }
 
     private fun computeForce(
-        physData: EncasedFanData,
-        physShip: PhysShipImpl
+            physData: EncasedFanData,
+            physShip: PhysShipImpl
     ): Vector3dc {
         val speed: Double = physData.fanSpeed
         val dir: Vector3d = Vector3d(physData.fanDir).mul(Math.signum(speed))

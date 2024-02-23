@@ -49,7 +49,6 @@ import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
 import java.util.*
 import java.util.function.Consumer
-import kotlin.collections.HashSet
 
 class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) :
     SmartBlockEntity(type, pos, state), WorldlyContainer {
@@ -293,8 +292,10 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
                     selection.run loop@{
                         selection.forEach { x, y, z ->
-                            val it =serverLevel.getBlockState(BlockPos(x, y, z))
-                            if (!it.isAir && !ClockworkConfig.SERVER.blockBlacklist.contains(Registry.BLOCK.getKey(it.block).toString())) {
+                            val it = serverLevel.getBlockState(BlockPos(x, y, z))
+                            if (!it.isAir && !ClockworkConfig.SERVER.blockBlacklist.contains(Registry.BLOCK.getKey(it.block)
+                                    .toString())
+                            ) {
                                 bl = true
                                 return@loop
                             }
@@ -401,7 +402,9 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     //NBT stuff
     override fun read(compound: CompoundTag, clientPacket: Boolean) {
         animationType =
-            if (compound.getString(ClockworkConstants.Nbt.ANIMATION_STATE) == "ASSEMBLY") Animation.ASSEMBLY else if (compound.getString(ClockworkConstants.Nbt.ANIMATION_STATE) == "DISASSEMBLY") Animation.DISASSEMBLY else Animation.IDLE
+            if (compound.getString(ClockworkConstants.Nbt.ANIMATION_STATE) == "ASSEMBLY") Animation.ASSEMBLY else if (compound.getString(
+                    ClockworkConstants.Nbt.ANIMATION_STATE) == "DISASSEMBLY"
+            ) Animation.DISASSEMBLY else Animation.IDLE
         assemblyProgress.setValueNoUpdate(compound.getFloat(ClockworkConstants.Nbt.ASSEMBLY_PROGRESS).toDouble())
         disassemblyProgress.setValueNoUpdate(compound.getFloat(ClockworkConstants.Nbt.DISASSEMBLY_PROGRESS).toDouble())
         idleProgress.setValueNoUpdate(compound.getFloat(ClockworkConstants.Nbt.IDLE_PROGRESS).toDouble())

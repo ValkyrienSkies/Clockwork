@@ -17,7 +17,6 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearin
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlockEntityRenderer
-import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroInstance
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlockEntity
@@ -28,16 +27,12 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBear
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingRenderer
 import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.SmartPropellerBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.SmartPropellerBearingRenderer
+import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.SmartPropellerInstance
 import org.valkyrienskies.clockwork.content.generic.ColorBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRenderer
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRenderer
-import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEntity
-import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEntityRenderer
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
-import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlockEntity
 import java.util.function.BiFunction
 
 
@@ -71,6 +66,11 @@ object ClockworkBlockEntities {
                 type!!, pos!!, state!!
             )
         }
+        .instance {
+            BiFunction<MaterialManager?, SmartPropellerBearingBlockEntity?, BlockEntityInstance<in SmartPropellerBearingBlockEntity?>> { materialManager: MaterialManager?, blockEntity: SmartPropellerBearingBlockEntity? ->
+                SmartPropellerInstance(materialManager, blockEntity!!)
+            }
+        }
         .validBlocks(ClockworkBlocks.SMART_PROPELLER_BEARING)
         .renderer {
             NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in SmartPropellerBearingBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
@@ -79,7 +79,9 @@ object ClockworkBlockEntities {
                 )
             }
         }
+
         .register()
+
 
     @JvmField
     val PHYS_BEARING: BlockEntityEntry<PhysBearingBlockEntity> = ClockworkMod.REGISTRATE
@@ -239,40 +241,42 @@ object ClockworkBlockEntities {
         .register()
 
     @JvmField
-    val GOO_BLOCK = ClockworkMod.REGISTRATE.blockEntity<GooBlockEntity>("goo_block") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
-        GooBlockEntity(
-            type,
-            pos,
-            state
-        )
-    }
-        .renderer {
-            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in GooBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
-                GooBlockEntityRenderer(
-                    context!!
-                )
-            }
+    val GOO_BLOCK =
+        ClockworkMod.REGISTRATE.blockEntity<GooBlockEntity>("goo_block") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            GooBlockEntity(
+                type,
+                pos,
+                state
+            )
         }
-        .validBlocks(ClockworkBlocks.GOO_BLOCK)
-        .register()
+            .renderer {
+                NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in GooBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                    GooBlockEntityRenderer(
+                        context!!
+                    )
+                }
+            }
+            .validBlocks(ClockworkBlocks.GOO_BLOCK)
+            .register()
 
     @JvmField
-    val SLICKER = ClockworkMod.REGISTRATE.blockEntity<SlickerBlockEntity>("slicker") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
-        SlickerBlockEntity(
-            type,
-            pos,
-            state
-        )
-    }
-        .renderer {
-            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in SlickerBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
-                SlickerBlockEntityRenderer(
-                    context!!
-                )
-            }
+    val SLICKER =
+        ClockworkMod.REGISTRATE.blockEntity<SlickerBlockEntity>("slicker") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            SlickerBlockEntity(
+                type,
+                pos,
+                state
+            )
         }
-        .validBlocks(ClockworkBlocks.SLICKER)
-        .register()
+            .renderer {
+                NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in SlickerBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                    SlickerBlockEntityRenderer(
+                        context!!
+                    )
+                }
+            }
+            .validBlocks(ClockworkBlocks.SLICKER)
+            .register()
 
 
     @JvmStatic

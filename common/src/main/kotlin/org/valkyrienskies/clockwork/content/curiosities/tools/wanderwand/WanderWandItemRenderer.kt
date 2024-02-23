@@ -18,19 +18,19 @@ import org.valkyrienskies.clockwork.util.render.TransformData
 import kotlin.math.sin
 
 
-class WanderWandItemRenderer() : CustomRenderedItemModelRenderer() {
+class WanderWandItemRenderer : CustomRenderedItemModelRenderer() {
 
     private var crystalAngle = 0f
 
     override fun render(
-        stack: ItemStack,
-        model: CustomRenderedItemModel?,
-        renderer: PartialItemModelRenderer?,
-        transformType: ItemTransforms.TransformType?,
-        ms: PoseStack,
-        buffer: MultiBufferSource,
-        light: Int,
-        overlay: Int
+            stack: ItemStack,
+            model: CustomRenderedItemModel?,
+            renderer: PartialItemModelRenderer?,
+            transformType: ItemTransforms.TransformType?,
+            ms: PoseStack,
+            buffer: MultiBufferSource,
+            light: Int,
+            overlay: Int
     ) {
         if (stack.`is`(ClockworkItems.INCOMPLETE_WANDERWAND.get())) {
             ms.pushPose()
@@ -50,22 +50,22 @@ class WanderWandItemRenderer() : CustomRenderedItemModelRenderer() {
     }
 
     private fun animateIdle(
-        ms: PoseStack,
-        stacker: TransformStack,
-        light: Int,
-        progress: Float,
-        renderer: PartialItemModelRenderer
+            ms: PoseStack,
+            stacker: TransformStack,
+            light: Int,
+            progress: Float,
+            renderer: PartialItemModelRenderer
     ) {
         val partialTicks: Float = AnimationTickHolder.getPartialTicks() - 1
         val nextCrystalAngle = this.crystalAngle + 0.1f % 360
-        val i = Mth.lerp(partialTicks, this.crystalAngle, nextCrystalAngle);
+        val i = Mth.lerp(partialTicks, this.crystalAngle, nextCrystalAngle)
 
 
         val innerData = TransformData(Vector3f(0f, 0f, 0f), Vector3f(i, i, 0f))
         val data = TransformData(Vector3f(0f, 0f, 0f), Vector3f(0f, i, 0f))
         val heightAlt = 3f / 16f + sin(easeInOutSine(progress).toDouble()).toFloat() / 16f
         stacker.translateY((heightAlt * 0.05f).toDouble())
-        ms.translate(0.0,heightAlt + 0.5,0.0)
+        ms.translate(0.0, heightAlt + 0.5, 0.0)
         ms.pushPose()
         RenderUtil.renderCubeMatrix(ms, renderer, innerData, data, 1.5f, light)
 

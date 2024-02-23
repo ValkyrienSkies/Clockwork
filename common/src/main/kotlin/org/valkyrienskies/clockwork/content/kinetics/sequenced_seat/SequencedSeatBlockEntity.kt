@@ -25,10 +25,11 @@ class SequencedSeatBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, stat
     var rightRules: SequencedSeatRuleList = SequencedSeatRuleList.defaultList(Rotation.CLOCKWISE_90)
         private set
     private var pressedKeys = setOf<InputKey>()
-    public val degreesAwayFromBase = FloatArray(4)
+    val degreesAwayFromBase = FloatArray(4)
     private val lastModifier = FloatArray(4)
 
     val computerHandler: ComputerAttachmentHandler = ComputerAttachmentHandler()
+
     @OptIn(ExperimentalStdlibApi::class)
     override fun tick() {
         super.tick()
@@ -82,17 +83,20 @@ class SequencedSeatBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, stat
 
     override fun read(compound: CompoundTag, clientPacket: Boolean) {
         super.read(compound, clientPacket)
-        forwardRules.deserializeNBT(compound.getList(ClockworkConstants.Nbt.FORWARD_RULES, CompoundTag.TAG_COMPOUND.toInt()))
-        backwardRules.deserializeNBT(compound.getList(ClockworkConstants.Nbt.BACKWARD_RULES, CompoundTag.TAG_COMPOUND.toInt()))
+        forwardRules.deserializeNBT(compound.getList(ClockworkConstants.Nbt.FORWARD_RULES,
+            CompoundTag.TAG_COMPOUND.toInt()))
+        backwardRules.deserializeNBT(compound.getList(ClockworkConstants.Nbt.BACKWARD_RULES,
+            CompoundTag.TAG_COMPOUND.toInt()))
         leftRules.deserializeNBT(compound.getList(ClockworkConstants.Nbt.LEFT_RULES, CompoundTag.TAG_COMPOUND.toInt()))
-        rightRules.deserializeNBT(compound.getList(ClockworkConstants.Nbt.RIGHT_RULES, CompoundTag.TAG_COMPOUND.toInt()))
+        rightRules.deserializeNBT(compound.getList(ClockworkConstants.Nbt.RIGHT_RULES,
+            CompoundTag.TAG_COMPOUND.toInt()))
     }
 
     fun updateRules(
-        forwardRules: SequencedSeatRuleList,
-        backwardRules: SequencedSeatRuleList,
-        leftRules: SequencedSeatRuleList,
-        rightRules: SequencedSeatRuleList
+            forwardRules: SequencedSeatRuleList,
+            backwardRules: SequencedSeatRuleList,
+            leftRules: SequencedSeatRuleList,
+            rightRules: SequencedSeatRuleList
     ) {
         this.forwardRules = forwardRules
         this.backwardRules = backwardRules

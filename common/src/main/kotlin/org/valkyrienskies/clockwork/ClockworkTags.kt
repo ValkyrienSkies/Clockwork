@@ -9,8 +9,8 @@ import net.minecraft.world.level.block.state.BlockState
 object ClockworkTags {
 
     fun <T> optionalTag(
-        registry: Registry<T>,
-        id: ResourceLocation
+            registry: Registry<T>,
+            id: ResourceLocation
     ): TagKey<T> {
         return TagKey.create(registry.key(), id)
     }
@@ -19,20 +19,20 @@ object ClockworkTags {
         AllBlockTags.init()
     }
 
-    enum class NameSpace constructor(
-        val id: String,
-        val optionalDefault: Boolean = true,
-        val alwaysDatagenDefault: Boolean = false
+    enum class NameSpace(
+            val id: String,
+            val optionalDefault: Boolean = true,
+            val alwaysDatagenDefault: Boolean = false
     ) {
         MOD(ClockworkMod.MOD_ID, false, true),
         FORGE("c")
     }
 
-    enum class AllBlockTags constructor(
-        namespace: NameSpace,
-        path: String?,
-        optional: Boolean = namespace.optionalDefault,
-        alwaysDatagen: Boolean = namespace.alwaysDatagenDefault
+    enum class AllBlockTags(
+            namespace: NameSpace,
+            path: String?,
+            optional: Boolean = namespace.optionalDefault,
+            alwaysDatagen: Boolean = namespace.alwaysDatagenDefault
     ) {
         BALLOON_BLOCK;
 
@@ -40,9 +40,9 @@ object ClockworkTags {
         val alwaysDatagen: Boolean
 
         constructor(
-            namespace: NameSpace = NameSpace.MOD,
-            optional: Boolean = namespace.optionalDefault,
-            alwaysDatagen: Boolean = namespace.alwaysDatagenDefault
+                namespace: NameSpace = NameSpace.MOD,
+                optional: Boolean = namespace.optionalDefault,
+                alwaysDatagen: Boolean = namespace.alwaysDatagenDefault
         ) : this(namespace, null, optional, alwaysDatagen)
 
         init {

@@ -19,7 +19,7 @@ class UpdateGyroPacket : C2SCWPacket {
 
     constructor(newPos: BlockPos, targetVec3: Vector3d) {
         this.pos = newPos
-        this.targetVec3 = targetVec3;
+        this.targetVec3 = targetVec3
     }
 
     override fun handle(context: ServerNetworkContext) {

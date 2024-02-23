@@ -1,18 +1,15 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.content.schematics.client.tools.ToolType
 import com.simibubi.create.foundation.render.SuperRenderTypeBuffer
 import com.simibubi.create.foundation.utility.RaycastHelper
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
-import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler
 import org.valkyrienskies.clockwork.platform.SharedValues
 import org.valkyrienskies.mod.common.util.toDoubles
-import org.valkyrienskies.mod.common.util.toJOMLF
 
 abstract class GravitronToolBase : IGravitronTool {
     protected var gravitronHandler: GravitronHandler? = null
@@ -36,7 +33,7 @@ abstract class GravitronToolBase : IGravitronTool {
 
         clickedPos = trace.blockPos.immutable()
 
-        clickedLocation = clickedPos!!.toDoubles().add(0.5,0.5,0.5)
+        clickedLocation = clickedPos!!.toDoubles().add(0.5, 0.5, 0.5)
     }
 
     override fun handleRightClick(): Boolean {
@@ -44,7 +41,7 @@ abstract class GravitronToolBase : IGravitronTool {
     }
 
     override fun handleMouseWheel(delta: Double): Boolean {
-        return false;
+        return false
     }
 
     override fun init() {

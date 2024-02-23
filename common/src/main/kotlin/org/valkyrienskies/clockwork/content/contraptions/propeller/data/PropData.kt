@@ -24,13 +24,13 @@ class PropData {
     }
 
     constructor(
-        bearingPos: Vector3dc?,
-        bearingAxis: Vector3dc?,
-        bearingAngle: Double,
-        bearingSpeed: Double,
-        propellorPositions: List<Vector3ic>?,
-        inverted: Boolean,
-        overStressed: Boolean
+            bearingPos: Vector3dc?,
+            bearingAxis: Vector3dc?,
+            bearingAngle: Double,
+            bearingSpeed: Double,
+            propellorPositions: List<Vector3ic>?,
+            inverted: Boolean,
+            overStressed: Boolean
     ) {
         this.bearingPos = bearingPos
         this.bearingAxis = bearingAxis

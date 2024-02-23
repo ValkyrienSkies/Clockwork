@@ -10,22 +10,26 @@ import net.minecraft.world.level.levelgen.GenerationStep
 import net.minecraft.world.level.levelgen.VerticalAnchor
 import net.minecraft.world.level.levelgen.feature.Feature
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration
-import net.minecraft.world.level.levelgen.placement.*
+import net.minecraft.world.level.levelgen.placement.BiomeFilter
+import net.minecraft.world.level.levelgen.placement.HeightRangePlacement
+import net.minecraft.world.level.levelgen.placement.InSquarePlacement
 import net.minecraft.world.level.levelgen.structure.templatesystem.BlockMatchTest
 
 
 object ClockworkWorldgen {
 
     fun init() {
-        LifecycleEvent.SETUP.register{
+        LifecycleEvent.SETUP.register {
 
             val configuredFeature =
                 FeatureUtils.register<OreConfiguration, Feature<OreConfiguration>>(ClockworkMod.MOD_ID + ":ore_wanderlite",
                     Feature.ORE,
                     OreConfiguration(
                         listOf(
-                            OreConfiguration.target(DEEPSLATE_ORE_REPLACEABLES, ClockworkBlocks.WANDERLITE_DEEPSLATE_ORE.get().defaultBlockState()),
-                            OreConfiguration.target(BlockMatchTest(Blocks.END_STONE), ClockworkBlocks.WANDERLITE_END_ORE.get().defaultBlockState())
+                            OreConfiguration.target(DEEPSLATE_ORE_REPLACEABLES,
+                                ClockworkBlocks.WANDERLITE_DEEPSLATE_ORE.get().defaultBlockState()),
+                            OreConfiguration.target(BlockMatchTest(Blocks.END_STONE),
+                                ClockworkBlocks.WANDERLITE_END_ORE.get().defaultBlockState())
                         ),
                         6))
 

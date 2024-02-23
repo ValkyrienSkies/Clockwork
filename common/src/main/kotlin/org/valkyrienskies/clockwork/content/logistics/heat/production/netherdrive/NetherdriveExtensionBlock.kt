@@ -1,4 +1,3 @@
 package org.valkyrienskies.clockwork.content.logistics.heat.production.netherdrive
 
-class NetherdriveExtensionBlock {
-}
+class NetherdriveExtensionBlock

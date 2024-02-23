@@ -101,12 +101,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         behaviours.add(movementMode!!)
     }
 
-    override fun remove() {
-//        if (!level.isClientSide)
-//            disassemble();
-        super.remove()
-    }
-
     public override fun write(compound: CompoundTag, clientPacket: Boolean) {
         compound.putBoolean(ClockworkConstants.Nbt.RUNNING, isRunning)
         compound.putFloat(ClockworkConstants.Nbt.ANGLE, bearingAngle)
@@ -157,7 +151,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         return Mth.lerp(partialTicks, bearingAngle, bearingAngle + angularSpeed)
     }
 
-    fun getOpeningProgress() : Float {
+    fun getOpeningProgress(): Float {
         return openProgress
     }
 
@@ -524,17 +518,21 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                         var createdAttachment = false
                         var createdHinge = false
                         if (attachConstraint != null) {
-                            val attachID: VSConstraintId? = (level as ServerLevel).shipObjectWorld.createNewConstraint(attachConstraint)
+                            val attachID: VSConstraintId? =
+                                (level as ServerLevel).shipObjectWorld.createNewConstraint(attachConstraint)
                             if (attachID != null) {
-                                BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.attachConstraint = attachConstraint
+                                BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.attachConstraint =
+                                    attachConstraint
                                 BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.attachID = attachID
                                 createdAttachment = true
                             }
                         }
                         if (hingeConstraint != null) {
-                            val hingeID: VSConstraintId? = (level as ServerLevel).shipObjectWorld.createNewConstraint(hingeConstraint)
+                            val hingeID: VSConstraintId? =
+                                (level as ServerLevel).shipObjectWorld.createNewConstraint(hingeConstraint)
                             if (hingeID != null) {
-                                BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.hingeConstraint = hingeConstraint
+                                BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.hingeConstraint =
+                                    hingeConstraint
                                 BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.hingeID = hingeID
                                 createdHinge = true
                             }
@@ -684,7 +682,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     fun getAngle(): Float {
         return bearingAngle
     }
-
 
 
     companion object {

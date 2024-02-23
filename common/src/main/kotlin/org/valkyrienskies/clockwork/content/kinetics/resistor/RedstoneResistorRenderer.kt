@@ -19,9 +19,9 @@ import org.valkyrienskies.clockwork.ClockworkPartials
 
 class RedstoneResistorRenderer(context: BlockEntityRendererProvider.Context?) :
     KineticBlockEntityRenderer<RedstoneResistorBlockEntity>(context) {
-    protected override fun renderSafe(
-        te: RedstoneResistorBlockEntity, partialTicks: Float, ms: PoseStack, buffer: MultiBufferSource,
-        light: Int, overlay: Int
+    override fun renderSafe(
+            te: RedstoneResistorBlockEntity, partialTicks: Float, ms: PoseStack, buffer: MultiBufferSource,
+            light: Int, overlay: Int
     ) {
         val block = te.blockState.block
         val boxAxis = (block as IRotate).getRotationAxis(te.blockState)

@@ -11,24 +11,26 @@ import org.valkyrienskies.clockwork.ClockworkShaders.heat
 import org.valkyrienskies.clockwork.platform.PlatformUtils
 
 class ClockworkRenderTypes(
-    name: String,
-    format: VertexFormat,
-    mode: VertexFormat.Mode,
-    bufferSize: Int,
-    affectsCrumbling: Boolean,
-    sortOnUpload: Boolean,
-    setupState: Runnable,
-    clearState: Runnable
+        name: String,
+        format: VertexFormat,
+        mode: VertexFormat.Mode,
+        bufferSize: Int,
+        affectsCrumbling: Boolean,
+        sortOnUpload: Boolean,
+        setupState: Runnable,
+        clearState: Runnable
 ) : RenderType(name, format, mode, bufferSize, affectsCrumbling, sortOnUpload, setupState, clearState) {
 
 
-
     companion object {
-        val BUFFER_SIZE = if (PlatformUtils.isModLoaded("rubidium") || PlatformUtils.isModLoaded("sodium") || PlatformUtils.isModLoaded("embeddium")) {
-            262144
-        } else {
-            256
-        }
+        val BUFFER_SIZE =
+            if (PlatformUtils.isModLoaded("rubidium") || PlatformUtils.isModLoaded("sodium") || PlatformUtils.isModLoaded(
+                    "embeddium")
+            ) {
+                262144
+            } else {
+                256
+            }
 
         val CRYSTAL = Util.memoize { resourceLocation: ResourceLocation? ->
             val compositeState: CompositeState? =

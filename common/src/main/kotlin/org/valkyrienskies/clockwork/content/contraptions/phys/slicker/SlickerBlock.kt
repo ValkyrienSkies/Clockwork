@@ -13,7 +13,8 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BooleanProperty
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 
-class SlickerBlock(properties: Properties) : WrenchableDirectionalBlock(properties.noOcclusion()), IBE<SlickerBlockEntity> {
+class SlickerBlock(properties: Properties) : WrenchableDirectionalBlock(properties.noOcclusion()),
+    IBE<SlickerBlockEntity> {
 
     companion object {
         val POWERED: BooleanProperty = BooleanProperty.create("powered")
@@ -30,7 +31,8 @@ class SlickerBlock(properties: Properties) : WrenchableDirectionalBlock(properti
     override fun getStateForPlacement(context: BlockPlaceContext): BlockState {
         val nearestLookingDirection = context.nearestLookingDirection
         val shouldPower = context.level.hasNeighborSignal(context.clickedPos)
-        val facing = if (context.player != null && context.player!!.isShiftKeyDown) nearestLookingDirection else nearestLookingDirection.opposite
+        val facing =
+            if (context.player != null && context.player!!.isShiftKeyDown) nearestLookingDirection else nearestLookingDirection.opposite
 
         return defaultBlockState().setValue(FACING, facing)
             .setValue(POWERED, shouldPower)
@@ -42,8 +44,8 @@ class SlickerBlock(properties: Properties) : WrenchableDirectionalBlock(properti
     }
 
     override fun neighborChanged(
-        state: BlockState, worldIn: Level, pos: BlockPos, blockIn: Block, fromPos: BlockPos,
-        isMoving: Boolean
+            state: BlockState, worldIn: Level, pos: BlockPos, blockIn: Block, fromPos: BlockPos,
+            isMoving: Boolean
     ) {
 
         val previouslyPowered = state.getValue(StickerBlock.POWERED)

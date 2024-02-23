@@ -26,9 +26,9 @@ import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkSounds
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.GrabTool
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.SelectedAreaToolkit
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItem
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.GrabTool
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.clockwork.util.ClockworkUtils
@@ -68,7 +68,9 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
         return UseAnim.NONE
     }
 
-    override fun getArmPose(stack: ItemStack?, player: AbstractClientPlayer, hand: InteractionHand?): HumanoidModel.ArmPose? {
+    override fun getArmPose(stack: ItemStack?,
+                            player: AbstractClientPlayer,
+                            hand: InteractionHand?): HumanoidModel.ArmPose? {
         if (!player.swinging) {
             return HumanoidModel.ArmPose.CROSSBOW_HOLD
         }
@@ -93,7 +95,12 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
          * Given a SelectedAreaToolkit this function will try and assemble a ship, if grab is true it will also store
          * some nbt on the Gravitron to queue a grab in GrabTool#tick
          */
-        fun abstractAssemble(level: Level, player: Player, toolkit: SelectedAreaToolkit, blockPos: BlockPos, clickLocation: Vec3, grab: Boolean): Boolean {
+        fun abstractAssemble(level: Level,
+                             player: Player,
+                             toolkit: SelectedAreaToolkit,
+                             blockPos: BlockPos,
+                             clickLocation: Vec3,
+                             grab: Boolean): Boolean {
             toolkit.selectionClusters.forEach { cluster ->
                 val selection: DenseBlockPosSet = SelectedAreaToolkit.denseBlocksFromCluster(cluster)
 
@@ -106,7 +113,8 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                         val serverLevel = level
                         val it = serverLevel.getBlockState(BlockPos(x, y, z))
                         if (!it.isAir && !ClockworkConfig.SERVER.blockBlacklist.contains(
-                                Registry.BLOCK.getKey(it.block).toString())) {
+                                Registry.BLOCK.getKey(it.block).toString())
+                        ) {
 
                             val connectedShip = createNewShipWithBlocks(blockPos, selection, serverLevel)
 
@@ -117,15 +125,28 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                                     if (entity is AbstractContraptionEntity || entity is SuperGlueEntity || entity is SeatEntity) {
                                         if (entity !is SuperGlueEntity) {
                                             val oldPos: Vector3dc = entity.position().toJOML()
-                                            val newPos: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldPos, Vector3d())
+                                            val newPos: Vector3dc =
+                                                connectedShip.transform.worldToShip.transformPosition(oldPos,
+                                                    Vector3d())
                                             entity.moveTo(newPos.toMinecraft())
                                         } else {
                                             val oldBounds = entity.boundingBox
-                                            val oldMax: Vector3dc = Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
-                                            val oldMin: Vector3dc = Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
-                                            val newMax: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldMax, Vector3d())
-                                            val newMin: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldMin, Vector3d())
-                                            val newBounds = AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z())
+                                            val oldMax: Vector3dc =
+                                                Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
+                                            val oldMin: Vector3dc =
+                                                Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
+                                            val newMax: Vector3dc =
+                                                connectedShip.transform.worldToShip.transformPosition(oldMax,
+                                                    Vector3d())
+                                            val newMin: Vector3dc =
+                                                connectedShip.transform.worldToShip.transformPosition(oldMin,
+                                                    Vector3d())
+                                            val newBounds = AABB(newMin.x(),
+                                                newMin.y(),
+                                                newMin.z(),
+                                                newMax.x(),
+                                                newMax.y(),
+                                                newMax.z())
                                             entity.boundingBox = newBounds
                                             entity.resetPositionToBB()
                                         }
@@ -161,7 +182,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                     val auricItem: WanderWandItem = item.item as WanderWandItem
 
                     if (abstractAssemble(level, player, auricItem.selectedArea, blockPos, clickLocation, grab)) {
-                        return true;
+                        return true
                     }
                     break
                 }

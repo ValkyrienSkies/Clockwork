@@ -6,7 +6,10 @@ import com.mojang.blaze3d.platform.GlConst
 import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.platform.TextureUtil
 import com.mojang.blaze3d.systems.RenderSystem
-import com.mojang.blaze3d.vertex.*
+import com.mojang.blaze3d.vertex.DefaultVertexFormat
+import com.mojang.blaze3d.vertex.PoseStack
+import com.mojang.blaze3d.vertex.Tesselator
+import com.mojang.blaze3d.vertex.VertexFormat
 import com.mojang.math.Matrix4f
 import com.mojang.math.Vector3f
 import net.fabricmc.api.EnvType
@@ -25,7 +28,6 @@ import org.valkyrienskies.core.impl.networking.RegisteredHandler
 import org.valkyrienskies.mod.common.hooks.VSGameEvents
 import org.valkyrienskies.mod.common.hooks.VSGameEvents.postRenderShip
 import org.valkyrienskies.mod.common.hooks.VSGameEvents.renderShip
-import org.valkyrienskies.mod.common.util.toJOML
 
 
 @Environment(EnvType.CLIENT)
@@ -146,7 +148,7 @@ class ShipScannerRenderer : ScannerRenderer {
     private fun updateShaderUniforms(shader: ShaderInstance, viewMatrix: Matrix4f) {
         val invertedViewMatrix = Matrix4f(viewMatrix)
         invertedViewMatrix.invert()
-        val invertedProjectionMatrix = com.mojang.math.Matrix4f(RenderSystem.getProjectionMatrix())
+        val invertedProjectionMatrix = Matrix4f(RenderSystem.getProjectionMatrix())
         invertedProjectionMatrix.invert()
         val cameraPosition = Minecraft.getInstance().gameRenderer.mainCamera.position
         val adjustedDuration: Int

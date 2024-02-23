@@ -103,9 +103,11 @@ object ShipDestroyer {
                             val realY = section.bottomBlockY() + y
                             val realZ = (chunkZ shl 4) + z
 
-                            val inWorldPos = shipToWorld.transformPosition(alloc0.set(realX + 0.5, realY + 0.5, realZ + 0.5)).floor()
+                            val inWorldPos =
+                                shipToWorld.transformPosition(alloc0.set(realX + 0.5, realY + 0.5, realZ + 0.5)).floor()
 
-                            val inWorldBlockPos = BlockPos(inWorldPos.x.toInt(), inWorldPos.y.toInt(), inWorldPos.z.toInt())
+                            val inWorldBlockPos =
+                                BlockPos(inWorldPos.x.toInt(), inWorldPos.y.toInt(), inWorldPos.z.toInt())
                             val inShipPos = BlockPos(realX, realY, realZ)
 
                             toUpdate.add(Triple(inShipPos, inWorldBlockPos, state))

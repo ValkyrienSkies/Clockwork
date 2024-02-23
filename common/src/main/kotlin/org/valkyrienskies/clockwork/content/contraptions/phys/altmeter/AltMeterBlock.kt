@@ -30,12 +30,12 @@ class AltMeterBlock(properties: Properties) : Block(properties), IBE<AltMeterBlo
     }
 
     override fun use(
-        state: BlockState,
-        level: Level,
-        pos: BlockPos,
-        player: Player,
-        hand: InteractionHand,
-        hit: BlockHitResult
+            state: BlockState,
+            level: Level,
+            pos: BlockPos,
+            player: Player,
+            hand: InteractionHand,
+            hit: BlockHitResult
     ): InteractionResult {
         if (!player.isShiftKeyDown) {
             if (level.isClientSide) {
@@ -48,10 +48,10 @@ class AltMeterBlock(properties: Properties) : Block(properties), IBE<AltMeterBlo
     }
 
     override fun getShape(
-        pState: BlockState,
-        pLevel: BlockGetter?,
-        pPos: BlockPos?,
-        pContext: CollisionContext?
+            pState: BlockState,
+            pLevel: BlockGetter?,
+            pPos: BlockPos?,
+            pContext: CollisionContext?
     ): VoxelShape {
         return ClockworkShapes.ALT_METER
 

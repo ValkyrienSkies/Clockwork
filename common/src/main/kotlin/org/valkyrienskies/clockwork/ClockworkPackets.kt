@@ -9,10 +9,10 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.UpdateAlt
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.UpdateGyroPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerAttachmentSyncPacket
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandSelectionPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDestroyPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronGrabPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClearPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandSelectionPacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket
 import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket
@@ -25,8 +25,8 @@ import java.util.function.Function
 
 @Suppress("UNCHECKED_CAST")
 enum class ClockworkPackets(
-    private val type: Class<out CWPacket>,
-    private val factory: Function<FriendlyByteBuf, out CWPacket>
+        private val type: Class<out CWPacket>,
+        private val factory: Function<FriendlyByteBuf, out CWPacket>
 ) {
     // Client to Server
     UPDATE_SEAT_RULES(UpdateSeatRulesPacket::class.java, ::UpdateSeatRulesPacket),

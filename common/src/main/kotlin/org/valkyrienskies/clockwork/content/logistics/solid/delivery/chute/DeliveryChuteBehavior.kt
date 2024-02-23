@@ -6,5 +6,4 @@ import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollVa
 import net.minecraft.network.chat.Component
 
 class DeliveryChuteBehavior(label: Component, be: SmartBlockEntity, slot: ValueBoxTransform) :
-    ScrollValueBehaviour(label, be, slot) {
-}
+    ScrollValueBehaviour(label, be, slot)

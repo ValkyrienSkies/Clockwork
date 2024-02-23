@@ -2,9 +2,7 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.simibubi.create.foundation.outliner.Outliner
 import net.minecraft.ChatFormatting
-import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Style
@@ -22,7 +20,6 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.AABB
 import org.joml.Vector3ic
-import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
@@ -33,8 +30,6 @@ import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
 import org.valkyrienskies.mod.common.isBlockInShipyard
 import org.valkyrienskies.mod.common.util.toJOML
 import java.util.*
-import kotlin.collections.HashMap
-import kotlin.collections.HashSet
 import kotlin.math.max
 import kotlin.math.min
 
@@ -56,7 +51,8 @@ class WanderWandItem(properties: Properties) : CWItem(properties) {
 
     override fun verifyTagAfterLoad(compoundTag: CompoundTag) {
         if (compoundTag.contains("selectedData")) {
-            this.selectedArea.overwriteFrom(getMapper().readValue<SerializableSelectedAreaToolkit>(compoundTag.getByteArray("selectedData")))
+            this.selectedArea.overwriteFrom(getMapper().readValue<SerializableSelectedAreaToolkit>(compoundTag.getByteArray(
+                "selectedData")))
         }
         super.verifyTagAfterLoad(compoundTag)
     }
@@ -330,7 +326,7 @@ class WanderWandItem(properties: Properties) : CWItem(properties) {
                 item.animationType = Animation.DUMP
                 return true
             }
-        return false
+            return false
         }
     }
 }

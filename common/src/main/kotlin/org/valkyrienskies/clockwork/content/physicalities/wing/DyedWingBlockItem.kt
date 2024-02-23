@@ -18,10 +18,10 @@ import java.util.*
 class DyedWingBlockItem(block: Block?, properties: Properties?) :
     BlockItem(block, properties) {
     override fun appendHoverText(
-        stack: ItemStack,
-        level: Level?,
-        tooltipComponents: MutableList<Component>,
-        isAdvanced: TooltipFlag
+            stack: ItemStack,
+            level: Level?,
+            tooltipComponents: MutableList<Component>,
+            isAdvanced: TooltipFlag
     ) {
         if (stack.hasTag()) {
             val tag = stack.getOrCreateTag()

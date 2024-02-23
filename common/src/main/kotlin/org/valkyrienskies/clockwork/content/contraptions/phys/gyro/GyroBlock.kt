@@ -42,12 +42,12 @@ class GyroBlock(properties: Properties) : KineticBlock(properties), IBE<GyroBloc
     }
 
     override fun use(
-        state: BlockState,
-        level: Level,
-        pos: BlockPos,
-        player: Player,
-        hand: InteractionHand,
-        hit: BlockHitResult
+            state: BlockState,
+            level: Level,
+            pos: BlockPos,
+            player: Player,
+            hand: InteractionHand,
+            hit: BlockHitResult
     ): InteractionResult {
         if (!player.isShiftKeyDown) {
             if (level.isClientSide) {
@@ -61,10 +61,10 @@ class GyroBlock(properties: Properties) : KineticBlock(properties), IBE<GyroBloc
     }
 
     override fun getShape(
-        pState: BlockState,
-        pLevel: BlockGetter?,
-        pPos: BlockPos?,
-        pContext: CollisionContext?
+            pState: BlockState,
+            pLevel: BlockGetter?,
+            pPos: BlockPos?,
+            pContext: CollisionContext?
     ): VoxelShape {
         return ClockworkShapes.GYRO
     }

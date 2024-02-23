@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.slicker
 
-import com.jozufozu.flywheel.backend.instancing.InstancedRenderDispatcher
 import com.simibubi.create.AllBlocks
 import com.simibubi.create.content.contraptions.chassis.StickerBlock
 import com.simibubi.create.content.contraptions.glue.SuperGlueItem
@@ -14,7 +13,6 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.block.DirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkBlocks
@@ -81,9 +79,9 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
 
         val shipAttached: Boolean = isAttachedToShipOrWorld(
             false, slevel,
-                Vec3.atCenterOf(
-                    blockPos
-                ).toJOML(), myDirNormal, PlatformUtils.getExtraData(this)// this.extraCustomData
+            Vec3.atCenterOf(
+                blockPos
+            ).toJOML(), myDirNormal, PlatformUtils.getExtraData(this)// this.extraCustomData
         ) //isAttachedToShipOrWorld(false);
 
         if (isBlockStateExtended() && !shipStuck) {
@@ -93,9 +91,9 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
                 //no sameworld block attached but there is a ship related thing near enough
                 if (isAttachedToShipOrWorld(
                         true, slevel,
-                            Vec3.atCenterOf(
-                                blockPos
-                            ).toJOML(), myDirNormal, PlatformUtils.getExtraData(this)
+                        Vec3.atCenterOf(
+                            blockPos
+                        ).toJOML(), myDirNormal, PlatformUtils.getExtraData(this)
                     )
                 ) {
                     shipStuck = true
@@ -110,7 +108,9 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
                 removeConstraint(level as ServerLevel?, true)
             }
             waitForNoPower = true
-        } else if (isBlockStateExtended() && !PlatformUtils.getExtraData(this).getCompound(ClockworkConstants.Nbt.CONDENSED_DATA).contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID) && !shipStuck && shipAttached && blockState.getValue(
+        } else if (isBlockStateExtended() && !PlatformUtils.getExtraData(this)
+                .getCompound(ClockworkConstants.Nbt.CONDENSED_DATA)
+                .contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID) && !shipStuck && shipAttached && blockState.getValue(
                 POWERED
             )
         ) {
@@ -118,9 +118,9 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
             waitForNoPower = false
             if (isAttachedToShipOrWorld(
                     true, slevel,
-                        Vec3.atCenterOf(
-                            blockPos
-                        ).toJOML(), myDirNormal, PlatformUtils.getExtraData(this)
+                    Vec3.atCenterOf(
+                        blockPos
+                    ).toJOML(), myDirNormal, PlatformUtils.getExtraData(this)
                 )
             ) {
                 //StickerParticleUtil().doBluperParticle(level, worldPosition, myDir)
@@ -163,7 +163,7 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
     override fun initialize() {
         super.initialize()
         if (!level!!.isClientSide) return
-        piston!!.startWithValue((if (isBlockStateExtended()) -2.0/16.0 else 0).toDouble())
+        piston!!.startWithValue((if (isBlockStateExtended()) -2.0 / 16.0 else 0).toDouble())
     }
 
     fun isBlockStateExtended(): Boolean {
@@ -188,7 +188,7 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
         }
         if (!update) return
         update = false
-        val target = if (isBlockStateExtended()) 2.0/16.0 else 0.0
+        val target = if (isBlockStateExtended()) 2.0 / 16.0 else 0.0
         ClockworkMod.LOGGER.info(isBlockStateExtended().toString())
         if (isAttachedToShip() && target == 0.0 && piston!!.chaseTarget == 1f) playSound(false)
         piston!!.chase(target, .4, LerpedFloat.Chaser.LINEAR)
@@ -209,10 +209,12 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
             condensedTag.putLong(ClockworkConstants.Nbt.ATTACHED_SHIP, this.attachedShipId)
         }
         if (this.attachmentConstraintData != null) {
-            condensedTag.putByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT, mapper.writeValueAsBytes(this.attachmentConstraintData))
+            condensedTag.putByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT,
+                mapper.writeValueAsBytes(this.attachmentConstraintData))
         }
         if (this.orientationConstraintData != null) {
-            condensedTag.putByteArray(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT, mapper.writeValueAsBytes(this.orientationConstraintData))
+            condensedTag.putByteArray(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT,
+                mapper.writeValueAsBytes(this.orientationConstraintData))
         }
         if (this.attachmentConstraintId != -1) {
             condensedTag.putInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID, this.attachmentConstraintId)
@@ -237,10 +239,14 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
             this.attachedShipId = compound.getLong(ClockworkConstants.Nbt.ATTACHED_SHIP)
         }
         if (tag.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT)) {
-            this.attachmentConstraintData = mapper.readValue(compound.getByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT), VSAttachmentConstraint::class.java)
+            this.attachmentConstraintData =
+                mapper.readValue(compound.getByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT),
+                    VSAttachmentConstraint::class.java)
         }
         if (tag.contains(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT)) {
-            this.orientationConstraintData = mapper.readValue(compound.getByteArray(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT), VSFixedOrientationConstraint::class.java)
+            this.orientationConstraintData =
+                mapper.readValue(compound.getByteArray(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT),
+                    VSFixedOrientationConstraint::class.java)
         }
         if (tag.contains(ClockworkConstants.Nbt.SHIP_SLICKER_DISTANCE)) {
             this.distance = compound.getDouble(ClockworkConstants.Nbt.SHIP_SLICKER_DISTANCE)

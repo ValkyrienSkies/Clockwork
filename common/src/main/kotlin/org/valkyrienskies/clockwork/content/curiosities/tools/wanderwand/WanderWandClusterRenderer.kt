@@ -32,9 +32,9 @@ class WanderWandClusterRenderer {
     }
 
     fun renderDesignator(
-        level: ClientLevel?,
-        minecraft: Minecraft,
-        poseStack: PoseStack,
+            level: ClientLevel?,
+            minecraft: Minecraft,
+            poseStack: PoseStack,
     ) {
         if (level != null) {
             for (player in level.players()) {
@@ -46,7 +46,8 @@ class WanderWandClusterRenderer {
                     for (cluster in clusters) {
                         if (!storedClusters.containsKey(cluster)) {
                             storedClusters[cluster] =
-                                Pair.of(SelectedAreaToolkit.blocksFromCluster(cluster, level), clusterID + clusterIncrement)
+                                Pair.of(SelectedAreaToolkit.blocksFromCluster(cluster, level),
+                                    clusterID + clusterIncrement)
                             clusterIncrement++
                         }
                     }
@@ -91,7 +92,8 @@ class WanderWandClusterRenderer {
                                 Vector3f(tempTarget.x().toFloat(), tempTarget.y().toFloat(), tempTarget.z().toFloat())
                             val cast = LineSegmentf(traceOrigin, traceTarget)
                             for (box in cluster) {
-                                val intersection = Intersectionf.intersectLineSegmentAab(cast, box.toJOML().toAABBi(), Vector2f())
+                                val intersection =
+                                    Intersectionf.intersectLineSegmentAab(cast, box.toJOML().toAABBi(), Vector2f())
                                 if (intersection != Intersectionf.OUTSIDE) {
                                     hoveredCluster = cluster
                                     foundCluster = true
@@ -108,7 +110,8 @@ class WanderWandClusterRenderer {
                             if (adi.firstPos == null) {
                                 val vec = Vector3d(hoveredBlockPos).toMinecraft()
                                 if (vec != localPlayer.eyePosition) {
-                                    ClockworkModClient.WANDER_OUTLINER.chaseAABB(adi, AABB(hoveredBlockPos.toBlockPos()))
+                                    ClockworkModClient.WANDER_OUTLINER.chaseAABB(adi,
+                                        AABB(hoveredBlockPos.toBlockPos()))
                                     ClockworkModClient.WANDER_OUTLINER.edit(adi).ifPresent { outline ->
                                         outline.colored(
                                             HOVERPURPLE

@@ -5,7 +5,6 @@ import com.simibubi.create.content.contraptions.glue.SuperGlueEntity
 import com.simibubi.create.foundation.utility.UniqueLinkedList
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.TextComponent
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.level.Level
@@ -18,8 +17,8 @@ import java.util.function.Consumer
 object GlueAssembler {
     @Throws(AssemblyException::class)
     fun collectGlued(
-        level: Level,
-        pos: BlockPos,
+            level: Level,
+            pos: BlockPos,
     ): DenseBlockPosSet? {
         val toRemove: Set<Entity> = HashSet()
         val result = DenseBlockPosSet()
@@ -39,10 +38,10 @@ object GlueAssembler {
 
     @Throws(AssemblyException::class)
     private fun visitBlock(
-        level: LevelAccessor,
-        frontier: Queue<BlockPos>,
-        visited: DenseBlockPosSet,
-        cache: Set<Entity>
+            level: LevelAccessor,
+            frontier: Queue<BlockPos>,
+            visited: DenseBlockPosSet,
+            cache: Set<Entity>
     ) {
         val pos = frontier.poll()!!
 

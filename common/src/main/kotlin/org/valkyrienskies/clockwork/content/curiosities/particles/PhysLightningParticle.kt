@@ -10,19 +10,18 @@ import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.client.particle.SpriteSet
 import net.minecraft.core.particles.ParticleOptions
 import net.minecraft.core.particles.ParticleType
-import org.joml.Quaternionf
 import org.valkyrienskies.clockwork.ClockworkParticles
 
 class PhysLightningParticle(
-    worldIn: ClientLevel?,
-    x: Double,
-    y: Double,
-    z: Double,
-    vx: Double,
-    vy: Double,
-    vz: Double,
-    private val animatedSprite: SpriteSet,
-    data: ParticleOptions
+        worldIn: ClientLevel?,
+        x: Double,
+        y: Double,
+        z: Double,
+        vx: Double,
+        vy: Double,
+        vz: Double,
+        private val animatedSprite: SpriteSet,
+        data: ParticleOptions
 ) :
     CustomRotationParticle(worldIn, x, y, z, animatedSprite, 0f) {
     protected var startTicks: Int
@@ -106,7 +105,7 @@ class PhysLightningParticle(
             )
         }
 
-        override val next: AnimationStage?
+        override val next: AnimationStage
             get() = if (animAge < particle.startTicks) this else LoopAnimation(
                 particle
             )
@@ -124,7 +123,7 @@ class PhysLightningParticle(
 
         private val loopTick: Int
             private get() = animAge % particle.loopFrames
-        override val next: AnimationStage?
+        override val next: AnimationStage
             get() {
                 return if (loops <= particle.numLoops) this else EndAnimation(
                     particle

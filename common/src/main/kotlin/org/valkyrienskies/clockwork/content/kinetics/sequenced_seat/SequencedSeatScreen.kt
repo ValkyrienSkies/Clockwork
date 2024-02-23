@@ -265,12 +265,12 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
         return be.getList(currentShaft)
     }
 
-    private inner class TabButton constructor(
-        x: Int,
-        private val blitY: Int,
-        width: Int,
-        height: Int,
-        private val rotation: Rotation
+    private inner class TabButton(
+            x: Int,
+            private val blitY: Int,
+            width: Int,
+            height: Int,
+            private val rotation: Rotation
     ) :
         AbstractSimiWidget(
             guiLeft + x + TAB_PAD_X,
@@ -294,16 +294,17 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
             isHovered =
                 rotation == currentShaft || mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height
             background.bind()
-            blit(ms, x, y, if (isHovered) 17 + blitX else blitX, blitY, width, height) }
+            blit(ms, x, y, if (isHovered) 17 + blitX else blitX, blitY, width, height)
+        }
     }
 
     inner class KeyButton(
-        x: Int,
-        y: Int,
-        width: Int,
-        height: Int,
-        private val key: InputKey,
-        private val index: Int
+            x: Int,
+            y: Int,
+            width: Int,
+            height: Int,
+            private val key: InputKey,
+            private val index: Int
     ) :
         AbstractSimiWidget(
             guiLeft + x + INPUT_PAD_X,
@@ -333,7 +334,8 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
             isHovered =
                 isKeySelected(key, index) || mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height
             background.bind()
-            blit(ms, x, y, if (isHovered) 17 + blitX else blitX, blitY, width, height)}
+            blit(ms, x, y, if (isHovered) 17 + blitX else blitX, blitY, width, height)
+        }
 
 
     }

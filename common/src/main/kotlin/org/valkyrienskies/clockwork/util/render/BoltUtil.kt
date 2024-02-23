@@ -4,7 +4,6 @@ import com.simibubi.create.foundation.utility.Color
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.Vector4ic
-import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.mod.common.util.toMinecraft
 import kotlin.random.Random

@@ -1,11 +1,10 @@
-package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron;
+package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron
 
 import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkItems
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem.Companion.getState
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem.Companion.grabssemble
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.GrabTool
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.GravitronToolBase

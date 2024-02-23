@@ -18,28 +18,27 @@ import net.minecraft.util.Mth
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
-import org.joml.Quaternionf
 import org.valkyrienskies.clockwork.ClockworkPartials
 
 class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
     KineticBlockEntityRenderer<PropellerBearingBlockEntity>(context) {
 
     override fun renderSafe(
-        te: PropellerBearingBlockEntity,
-        partialTicks: Float,
-        ms: PoseStack,
-        buffer: MultiBufferSource,
-        light: Int,
-        overlay: Int
+            te: PropellerBearingBlockEntity,
+            partialTicks: Float,
+            ms: PoseStack,
+            buffer: MultiBufferSource,
+            light: Int,
+            overlay: Int
     ) {
         // if (Backend.canUseInstancing(te.getLevel())) return;
         super.renderSafe(te, partialTicks, ms, buffer, light, overlay)
-        val bearingTe: PropellerBearingBlockEntity = te as PropellerBearingBlockEntity
+        val bearingTe: PropellerBearingBlockEntity = te
         renderRotatingBuffer(te, getRotatedModel(te, te.blockState), ms,
             buffer.getBuffer(RenderType.solid()), light)
         val facing: Direction = te.blockState.getValue(BlockStateProperties.FACING)
         val top = ClockworkPartials.PROPELLER_TOP
-        val superBuffer = CachedBufferer.partial(top, te.getBlockState())
+        val superBuffer = CachedBufferer.partial(top, te.blockState)
         ms.pushPose()
         ms.translate(0.5, 0.5, 0.5)
         ms.mulPose(Quaternion.fromXYZ(0.0f, Math.toRadians(-180.0).toFloat(), 0.0f))
@@ -51,10 +50,12 @@ class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
                 ms.mulPose(Vector3f.ZP.rotationDegrees(270f))
                 disgustingFix = -disgustingFix
             }
+
             Direction.NORTH -> {
                 ms.mulPose(Vector3f.XP.rotationDegrees(90f))
                 disgustingFix = -disgustingFix
             }
+
             Direction.EAST -> ms.mulPose(Vector3f.ZP.rotationDegrees(90f))
             Direction.UP -> ms.mulPose(Vector3f.XP.rotationDegrees(0f))
             Direction.DOWN -> {
@@ -123,12 +124,12 @@ class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
     }
 
     private fun shakeEngine(
-        buffer: SuperByteBuffer,
-        speed: Float,
-        partialTicks: Float,
-        facing: Direction,
-        te: PropellerBearingBlockEntity,
-        ordinal: Int
+            buffer: SuperByteBuffer,
+            speed: Float,
+            partialTicks: Float,
+            facing: Direction,
+            te: PropellerBearingBlockEntity,
+            ordinal: Int
     ): SuperByteBuffer {
         // Clamp speed to be at most 48 (because of clipping issues)
         var speed = speed

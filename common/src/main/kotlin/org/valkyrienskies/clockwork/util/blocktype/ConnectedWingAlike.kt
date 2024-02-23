@@ -68,10 +68,10 @@ abstract class ConnectedWingAlike(properties: Properties?) : Block(properties) {
 
     abstract fun getNewState(state: BlockState?, level: Level?, pos: BlockPos?): BlockState?
     override fun getShape(
-        pState: BlockState,
-        pLevel: BlockGetter,
-        pPos: BlockPos,
-        pContext: CollisionContext
+            pState: BlockState,
+            pLevel: BlockGetter,
+            pPos: BlockPos,
+            pContext: CollisionContext
     ): VoxelShape {
         return ClockworkShapes.WING.get(
             when (pState.getValue<Direction>(FACING)) {
@@ -83,12 +83,12 @@ abstract class ConnectedWingAlike(properties: Properties?) : Block(properties) {
     }
 
     override fun neighborChanged(
-        state: BlockState,
-        level: Level,
-        pos: BlockPos,
-        block: Block,
-        fromPos: BlockPos,
-        isMoving: Boolean
+            state: BlockState,
+            level: Level,
+            pos: BlockPos,
+            block: Block,
+            fromPos: BlockPos,
+            isMoving: Boolean
     ) {
         super.neighborChanged(state, level, pos, block, fromPos, isMoving)
         level.setBlockAndUpdate(pos, getNewState(state, level, pos))

@@ -18,7 +18,6 @@ import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.platform.api.DeferredRegister
 import java.io.IOException
 import java.nio.file.Path
-import java.util.concurrent.CompletableFuture
 import java.util.function.Supplier
 
 object ClockworkSounds {
@@ -130,8 +129,6 @@ object ClockworkSounds {
         @Throws(IOException::class)
 
 
-
-
         //@Throws(IOException::class)
         //override fun run(output: CachedOutput) {
         //    generate(generator.outputFolder, output)
@@ -231,10 +228,10 @@ object ClockworkSounds {
     }
 
     abstract class SoundEntry(
-        var id: ResourceLocation,
-        var subtitle: String?,
-        protected var category: SoundSource,
-        protected var attenuationDistance: Int
+            var id: ResourceLocation,
+            var subtitle: String?,
+            protected var category: SoundSource,
+            protected var attenuationDistance: Int
     ) {
         abstract fun register()
         abstract fun write(json: JsonObject?)
@@ -278,8 +275,8 @@ object ClockworkSounds {
     }
 
     private class WrappedSoundEntry(
-        id: ResourceLocation, subtitle: String,
-        private val wrappedEvents: List<ConfiguredSoundEvent>, category: SoundSource, attenuationDistance: Int
+            id: ResourceLocation, subtitle: String,
+            private val wrappedEvents: List<ConfiguredSoundEvent>, category: SoundSource, attenuationDistance: Int
     ) :
         SoundEntry(id, subtitle, category, attenuationDistance) {
         private val compiledEvents: MutableList<CompiledSoundEvent>
@@ -337,13 +334,13 @@ object ClockworkSounds {
         }
 
         override fun play(
-            world: Level?,
-            entity: Player?,
-            x: Double,
-            y: Double,
-            z: Double,
-            volume: Float,
-            pitch: Float
+                world: Level?,
+                entity: Player?,
+                x: Double,
+                y: Double,
+                z: Double,
+                volume: Float,
+                pitch: Float
         ) {
             for ((event1, volume1, pitch1) in compiledEvents) {
                 world!!.playSound(
@@ -354,13 +351,13 @@ object ClockworkSounds {
         }
 
         override fun playAt(
-            world: Level?,
-            x: Double,
-            y: Double,
-            z: Double,
-            volume: Float,
-            pitch: Float,
-            fade: Boolean
+                world: Level?,
+                x: Double,
+                y: Double,
+                z: Double,
+                volume: Float,
+                pitch: Float,
+                fade: Boolean
         ) {
             for ((event1, volume1, pitch1) in compiledEvents) {
                 world!!.playLocalSound(
@@ -374,8 +371,8 @@ object ClockworkSounds {
     }
 
     private class CustomSoundEntry(
-        id: ResourceLocation, protected var variants: List<ResourceLocation>, subtitle: String?,
-        category: SoundSource, attenuationDistance: Int
+            id: ResourceLocation, protected var variants: List<ResourceLocation>, subtitle: String?,
+            category: SoundSource, attenuationDistance: Int
     ) :
         SoundEntry(id, subtitle, category, attenuationDistance) {
         override var mainEvent: SoundEvent? = null
@@ -411,25 +408,25 @@ object ClockworkSounds {
         }
 
         override fun play(
-            world: Level?,
-            entity: Player?,
-            x: Double,
-            y: Double,
-            z: Double,
-            volume: Float,
-            pitch: Float
+                world: Level?,
+                entity: Player?,
+                x: Double,
+                y: Double,
+                z: Double,
+                volume: Float,
+                pitch: Float
         ) {
             world!!.playSound(entity, x, y, z, mainEvent!!, category, volume, pitch)
         }
 
         override fun playAt(
-            world: Level?,
-            x: Double,
-            y: Double,
-            z: Double,
-            volume: Float,
-            pitch: Float,
-            fade: Boolean
+                world: Level?,
+                x: Double,
+                y: Double,
+                z: Double,
+                volume: Float,
+                pitch: Float,
+                fade: Boolean
         ) {
             world!!.playLocalSound(x, y, z, mainEvent!!, category, volume, pitch, fade)
         }

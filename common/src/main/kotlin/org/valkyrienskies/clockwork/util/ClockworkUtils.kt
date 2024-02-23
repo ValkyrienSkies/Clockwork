@@ -8,7 +8,6 @@ import net.minecraft.core.Direction
 import net.minecraft.nbt.*
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.server.level.ServerLevel
-import net.minecraft.world.level.Level
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3i
 import org.joml.Vector3ic
@@ -27,12 +26,19 @@ import java.util.stream.Collectors
 object ClockworkUtils {
 
     @JvmStatic
-    fun updateBlockStateWeight(serverLevel: ServerLevel, blockPos: BlockPos, oldWeight: Double, newWeight: Double){
+    fun updateBlockStateWeight(serverLevel: ServerLevel, blockPos: BlockPos, oldWeight: Double, newWeight: Double) {
         val state = serverLevel.getBlockState(blockPos)
 
         val (_, prevBlockType) = BlockStateInfo.get(state) ?: return
 
-        serverLevel.shipObjectWorld.onSetBlock(blockPos.x, blockPos.y, blockPos.z, serverLevel.dimensionId, prevBlockType, prevBlockType, oldWeight, newWeight)
+        serverLevel.shipObjectWorld.onSetBlock(blockPos.x,
+            blockPos.y,
+            blockPos.z,
+            serverLevel.dimensionId,
+            prevBlockType,
+            prevBlockType,
+            oldWeight,
+            newWeight)
     }
 
     @JvmStatic

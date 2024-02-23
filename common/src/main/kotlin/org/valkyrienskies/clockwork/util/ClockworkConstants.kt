@@ -2,6 +2,8 @@ package org.valkyrienskies.clockwork.util
 
 object ClockworkConstants {
     object Nbt {
+        val ANGLE_Z: String = "AngleZ"
+        val ANGLE_X: String = "AngleX"
         val SELECTED_DATA: String = "SelectedData"
         val WEIGHT: String = "Weight"
         val OLD_WEIGHT: String = "OldWeight"

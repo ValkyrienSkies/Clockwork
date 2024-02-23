@@ -28,7 +28,7 @@ class PhysicsInfuserSyncPacket : S2CCWPacket {
 
     constructor(tile: PhysicsInfuserBlockEntity) {
         inventoryPacket = tile.inventory
-        pos = tile.getBlockPos()
+        pos = tile.blockPos
     }
 
     override fun write(buffer: FriendlyByteBuf) {

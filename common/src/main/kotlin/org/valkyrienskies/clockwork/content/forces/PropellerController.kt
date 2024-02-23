@@ -27,8 +27,10 @@ import kotlin.math.sign
 class PropellerController : ShipForcesInducer {
 
     private val propellorPhysData: HashMap<Int, PropData> = HashMap<Int, PropData>()
-    private val propellorUpdatePhysData: ConcurrentHashMap<Int, PropUpdateData> = ConcurrentHashMap<Int, PropUpdateData>()
-    private val createdProps: ConcurrentLinkedQueue<Pair<Int, PropCreateData>> = ConcurrentLinkedQueue<Pair<Int, PropCreateData>>()
+    private val propellorUpdatePhysData: ConcurrentHashMap<Int, PropUpdateData> =
+        ConcurrentHashMap<Int, PropUpdateData>()
+    private val createdProps: ConcurrentLinkedQueue<Pair<Int, PropCreateData>> =
+        ConcurrentLinkedQueue<Pair<Int, PropCreateData>>()
     private val removedProps = ConcurrentLinkedQueue<Int>()
     private var nextPropID = 0
 
@@ -67,9 +69,13 @@ class PropellerController : ShipForcesInducer {
         val netForce = Vector3d()
         val netTorque = Vector3d()
         for (physData in propellorPhysData.values) {
-            if(!physData.overStressed) {
+            if (!physData.overStressed) {
                 val forceTorque = computeForce(
-                    physShip.transform, physData, (physShip as PhysShipImpl).poseVel.vel, physShip.poseVel.omega, physShip
+                    physShip.transform,
+                    physData,
+                    (physShip as PhysShipImpl).poseVel.vel,
+                    physShip.poseVel.omega,
+                    physShip
                 )
                 netForce.add(forceTorque.component1())
                 netTorque.add(forceTorque.component2())
@@ -83,13 +89,14 @@ class PropellerController : ShipForcesInducer {
     }
 
     private fun computeForce(
-        physTransform: ShipTransform,
-        physProp: PropData,
-        vel: Vector3dc,
-        omega: Vector3dc,
-        physShip: PhysShipImpl
+            physTransform: ShipTransform,
+            physProp: PropData,
+            vel: Vector3dc,
+            omega: Vector3dc,
+            physShip: PhysShipImpl
     ): Pair<Vector3dc, Vector3dc> {
-        val modifiedSpeed: Double = physProp.bearingSpeed * 1.5 //* 1.25, A little bit easier to generate force //TODO config?
+        val modifiedSpeed: Double =
+            physProp.bearingSpeed * 1.5 //* 1.25, A little bit easier to generate force //TODO config?
         val bearingVector: Vector3dc = Vector3d(physProp.bearingPos).add(0.5, 0.5, 0.5)
         val axis: Vector3dc = physProp.bearingAxis!!.mul(sign(modifiedSpeed), Vector3d())
         val rotation: Quaterniondc = Quaterniond(AxisAngle4d(Math.toRadians(physProp.bearingAngle), axis))
@@ -137,10 +144,10 @@ class PropellerController : ShipForcesInducer {
     }
 
     private fun conserveMomentum(
-        physShip: PhysShipImpl,
-        physProp: PropData,
-        furthestTip: Vector3dc,
-        angVel: Vector3dc
+            physShip: PhysShipImpl,
+            physProp: PropData,
+            furthestTip: Vector3dc,
+            angVel: Vector3dc
     ): Vector3dc {
         var prevAngMomentumRelProp: Vector3dc = Vector3d()
         if (physProp.prevAngularMomentum != null) {

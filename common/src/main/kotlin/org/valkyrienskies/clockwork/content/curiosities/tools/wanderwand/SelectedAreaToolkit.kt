@@ -20,7 +20,7 @@ import kotlin.math.roundToInt
 /**
  * A storage class for things (mostly the auric designator) that need to keep track of clustered selections.
  */
-public class SelectedAreaToolkit {
+class SelectedAreaToolkit {
     /**
      * A set of all selected areas (represented by [AABB]s), irrelevant of cluster.
      */
@@ -29,7 +29,7 @@ public class SelectedAreaToolkit {
     /**
      * A set of all individual clusters, which are represented by a set of [AABB]s.
      */
-    public var selectionClusters: HashSet<Set<AABB>> = HashSet()
+    var selectionClusters: HashSet<Set<AABB>> = HashSet()
 
     var blockClusters: HashSet<Set<BlockPos>> = HashSet()
 
@@ -122,7 +122,7 @@ public class SelectedAreaToolkit {
         var closestDistance = Double.MAX_VALUE
         for (cluster in this.selectionClusters) {
             for (area in cluster) {
-                if (area!!.contains(posAsVec3)) {
+                if (area.contains(posAsVec3)) {
                     return cluster
                 } else {
                     val center: Vector3dc = area.center.toJOML()
@@ -140,7 +140,7 @@ public class SelectedAreaToolkit {
     fun getClusterContaining(pos: Vector3ic?): Set<AABB>? {
         for (cluster in this.selectionClusters) {
             for (area in cluster) {
-                if (area!!.contains(Vec3.atCenterOf(pos!!.toBlockPos()))) {
+                if (area.contains(Vec3.atCenterOf(pos!!.toBlockPos()))) {
                     return cluster
                 }
             }
@@ -287,6 +287,7 @@ public class SelectedAreaToolkit {
             }
             return SerializableSelectedAreaToolkit(serializedAreas, serializedClusters)
         }
+
         fun toDeserialize(stk: SerializableSelectedAreaToolkit): SelectedAreaToolkit {
             val deserializedAreas: HashSet<AABB> = HashSet()
             for (area in stk.selectedAreas) {

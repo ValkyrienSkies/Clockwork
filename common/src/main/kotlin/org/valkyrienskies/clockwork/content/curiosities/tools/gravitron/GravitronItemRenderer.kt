@@ -16,18 +16,18 @@ import org.valkyrienskies.clockwork.ClockworkPartials
 
 class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
     override fun render(
-        stack: ItemStack,
-        model: CustomRenderedItemModel,
-        renderer: PartialItemModelRenderer,
-        transformType: ItemTransforms.TransformType,
-        ms: PoseStack,
-        buffer: MultiBufferSource,
-        light: Int,
-        overlay: Int,
+            stack: ItemStack,
+            model: CustomRenderedItemModel,
+            renderer: PartialItemModelRenderer,
+            transformType: ItemTransforms.TransformType,
+            ms: PoseStack,
+            buffer: MultiBufferSource,
+            light: Int,
+            overlay: Int,
     ) {
         val pt = AnimationTickHolder.getPartialTicks()
         val worldTime = AnimationTickHolder.getRenderTime() / 20
-        renderer.renderSolid(model.getOriginalModel(), light)
+        renderer.renderSolid(model.originalModel, light)
         val player = Minecraft.getInstance().player
         val leftHanded = player!!.mainArm == HumanoidArm.LEFT
         val mainHand = player.mainHandItem == stack

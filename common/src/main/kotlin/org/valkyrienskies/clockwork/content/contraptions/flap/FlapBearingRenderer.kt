@@ -6,7 +6,6 @@ import com.simibubi.create.AllPartialModels
 import com.simibubi.create.content.contraptions.bearing.BearingBlock
 import com.simibubi.create.content.contraptions.bearing.IBearingBlockEntity
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
-import com.simibubi.create.content.kinetics.saw.SawRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
 import com.simibubi.create.foundation.utility.AngleHelper
@@ -21,12 +20,12 @@ import org.valkyrienskies.clockwork.ClockworkPartials
 class FlapBearingRenderer(context: BlockEntityRendererProvider.Context) :
     KineticBlockEntityRenderer<FlapBearingBlockEntity>(context) {
     override fun renderSafe(
-        te: FlapBearingBlockEntity,
-        partialTicks: Float,
-        ms: PoseStack,
-        buffer: MultiBufferSource,
-        light: Int,
-        overlay: Int
+            te: FlapBearingBlockEntity,
+            partialTicks: Float,
+            ms: PoseStack,
+            buffer: MultiBufferSource,
+            light: Int,
+            overlay: Int
     ) {
         // if (Backend.canUseInstancing(te.getLevel())) return;
         super.renderSafe(te, partialTicks, ms, buffer, light, overlay)

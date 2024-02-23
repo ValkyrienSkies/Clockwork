@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork
 
 import com.jozufozu.flywheel.core.PartialModel
-import com.simibubi.create.AllPartialModels
 
 object ClockworkPartials {
 
@@ -22,6 +21,7 @@ object ClockworkPartials {
     val WHEEL_TOP = block("reactionwheel/wheeltop")
     val ENGINE = block("combustion_engine/main")
     val SINGLE_ENGINE_PISTON = block("combustion_engine/single_piston")
+
     /*
     val PHYSFLAP_EAST = block("phys_bearing/flapeast")
     val PHYSFLAP_WEST = block("phys_bearing/flapwest")
@@ -96,6 +96,9 @@ object ClockworkPartials {
     val DUCT_RIM_WEST: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/rim/west"))
     //END OF PIPE DEATH
 
+    //SMART PROPELLER
+    val SMART_PROP_TOP: PartialModel = PartialModel(ClockworkMod.asResource("block/smart_propeller_bearing/top"))
+    val SMART_PROP_BASE: PartialModel = PartialModel(ClockworkMod.asResource("block/smart_propeller_bearing/base"))
 
 
     private fun block(path: String): PartialModel {

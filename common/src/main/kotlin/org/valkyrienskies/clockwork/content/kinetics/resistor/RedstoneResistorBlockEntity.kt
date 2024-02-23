@@ -60,7 +60,7 @@ open class RedstoneResistorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos,
     override fun getRotationSpeedModifier(face: Direction): Float {
         if (hasSource()) {
             if (face != sourceFacing) {
-                val i = abs(state - 15) / 15f;
+                val i = abs(state - 15) / 15f
                 return i
             }
         }

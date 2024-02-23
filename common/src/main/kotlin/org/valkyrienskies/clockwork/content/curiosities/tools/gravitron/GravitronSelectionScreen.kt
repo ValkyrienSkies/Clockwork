@@ -139,7 +139,7 @@ class GravitronSelectionScreen(private val tools: List<ToolType>, private val ca
                 RenderSystem.setShaderColor(1f, 1f, 1f, 1f)
                 drawCenteredString(poseStack,
                     minecraft!!.font,
-                    tools[i].getDisplayName().getString(),
+                    tools[i].getDisplayName().string,
                     x + i * 50 + 24,
                     y + 28,
                     0xDDCCFF

@@ -5,11 +5,11 @@ import org.joml.Vector3dc
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 
 fun gyroStabilizer(
-    physShip: PhysShipImpl,
-    omega: Vector3dc,
-    forces: PhysShipImpl,
-    strength: Double,
-    targetVector: Vector3dc
+        physShip: PhysShipImpl,
+        omega: Vector3dc,
+        forces: PhysShipImpl,
+        strength: Double,
+        targetVector: Vector3dc
 ) {
     val shipUp = Vector3d(0.0, 1.0, 0.0)
     val worldUp = targetVector

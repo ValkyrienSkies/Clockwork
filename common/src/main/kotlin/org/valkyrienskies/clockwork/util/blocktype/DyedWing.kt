@@ -24,22 +24,22 @@ import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 abstract class DyedWing(properties: Properties?) :
     ConnectedWingAlike(properties), IBE<ColorBlockEntity> {
     override fun use(
-        state: BlockState,
-        level: Level,
-        pos: BlockPos,
-        player: Player,
-        hand: InteractionHand,
-        hit: BlockHitResult
+            state: BlockState,
+            level: Level,
+            pos: BlockPos,
+            player: Player,
+            hand: InteractionHand,
+            hit: BlockHitResult
     ): InteractionResult {
         val stack = player.getItemInHand(hand)
         val be: ColorBlockEntity = (level.getBlockEntity(pos) as ColorBlockEntity)
         val color: Int = be.getColor()
-        if (stack.item is DyeItem && color != (stack.item as DyeItem).getDyeColor().getTextColor()) {
+        if (stack.item is DyeItem && color != (stack.item as DyeItem).dyeColor.textColor) {
             val dye = stack.item as DyeItem
             be.setColor(
-                if (color == -1) dye.getDyeColor().getTextColor() else Color.mixColors(
+                if (color == -1) dye.dyeColor.textColor else Color.mixColors(
                     color,
-                    dye.getDyeColor().getTextColor(),
+                    dye.dyeColor.textColor,
                     0.5f
                 )
             )
@@ -77,7 +77,7 @@ abstract class DyedWing(properties: Properties?) :
 
     override fun getCloneItemStack(level: BlockGetter, pos: BlockPos, state: BlockState): ItemStack {
         val stack = super.getCloneItemStack(level, pos, state)
-        val be: ColorBlockEntity = (level.getBlockEntity(pos) as ColorBlockEntity)!!
+        val be: ColorBlockEntity = (level.getBlockEntity(pos) as ColorBlockEntity)
         val color: Int = be.getColor()
         if (color != -1) {
             val tag = stack.getOrCreateTag()

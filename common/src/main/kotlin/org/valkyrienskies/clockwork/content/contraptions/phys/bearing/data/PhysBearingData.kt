@@ -41,17 +41,17 @@ class PhysBearingData {
     }
 
     constructor(
-        bearingPosition: Vector3dc?,
-        bearingAxis: Vector3dc?,
-        bearingAngle: Double,
-        bearingRPM: Float,
-        locked: Boolean,
-        shiptraptionID: Long,
-        constraintAndId: VSConstraintAndId,
-        hingeConstraintAndId: VSConstraintAndId,
-        posDampConstraintAndId: VSConstraintAndId?,
-        rotDampConstraintAndId: VSConstraintAndId?,
-        secondAttachment: VSConstraintAndId?,
+            bearingPosition: Vector3dc?,
+            bearingAxis: Vector3dc?,
+            bearingAngle: Double,
+            bearingRPM: Float,
+            locked: Boolean,
+            shiptraptionID: Long,
+            constraintAndId: VSConstraintAndId,
+            hingeConstraintAndId: VSConstraintAndId,
+            posDampConstraintAndId: VSConstraintAndId?,
+            rotDampConstraintAndId: VSConstraintAndId?,
+            secondAttachment: VSConstraintAndId?,
     ) {
         this.bearingPosition = bearingPosition
         this.bearingAxis = bearingAxis

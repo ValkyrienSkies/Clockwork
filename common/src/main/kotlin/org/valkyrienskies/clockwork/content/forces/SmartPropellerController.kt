@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.content.forces
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect
-import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropCreateData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropUpdateData
 import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.SmartPropData
@@ -17,9 +16,11 @@ class SmartPropellerController : ShipForcesInducer {
 
     private val propellorPhysData: HashMap<Int, PropData> = HashMap<Int, PropData>()
 
-    private val propellorUpdatePhysData: ConcurrentHashMap<Int, PropUpdateData> = ConcurrentHashMap<Int, PropUpdateData>()
+    private val propellorUpdatePhysData: ConcurrentHashMap<Int, PropUpdateData> =
+        ConcurrentHashMap<Int, PropUpdateData>()
 
-    private val createdProps: ConcurrentLinkedQueue<Pair<Int, SmartPropData>> = ConcurrentLinkedQueue<Pair<Int, SmartPropData>>()
+    private val createdProps: ConcurrentLinkedQueue<Pair<Int, SmartPropData>> =
+        ConcurrentLinkedQueue<Pair<Int, SmartPropData>>()
     private val removedProps = ConcurrentLinkedQueue<Int>()
     private var nextPropID = 0
 

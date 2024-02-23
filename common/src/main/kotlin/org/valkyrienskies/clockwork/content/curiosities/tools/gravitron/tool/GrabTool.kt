@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool
 
-import com.simibubi.create.AllKeys
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.Tag
@@ -47,7 +46,7 @@ class GrabTool : GravitronToolBase() {
         /**
          * Will nullify the force inducer and effectively returning the ship to its regular physics, a success will return true
          */
-        fun dropShip(player: Player) : Boolean{
+        fun dropShip(player: Player): Boolean {
             if (getState(player).shipID != null && player.level is ServerLevel) {
                 val serverLevel = player.level as ServerLevel
                 val ship = serverLevel.shipObjectWorld.loadedShips.getById(getState(player).shipID!!)
@@ -71,9 +70,12 @@ class GrabTool : GravitronToolBase() {
                 if (ship != null && s.playerGrabbedRotation != null && s.shipGrabbedDistance != null
                     && s.shipGrabbedPos != null && s.heldBlockPos != null
                 ) {
-                    val playerCurrentRotation = customRotation ?: Vector2d(entity.xRot.toDouble(), entity.yRot.toDouble())
-                    val origPlayerRot = playerRotToQuaternion(s.playerGrabbedRotation!!.x(), s.playerGrabbedRotation!!.y()).normalize()
-                    val newPlayerRot = playerRotToQuaternion(playerCurrentRotation.x(), playerCurrentRotation.y()).normalize()
+                    val playerCurrentRotation =
+                        customRotation ?: Vector2d(entity.xRot.toDouble(), entity.yRot.toDouble())
+                    val origPlayerRot =
+                        playerRotToQuaternion(s.playerGrabbedRotation!!.x(), s.playerGrabbedRotation!!.y()).normalize()
+                    val newPlayerRot =
+                        playerRotToQuaternion(playerCurrentRotation.x(), playerCurrentRotation.y()).normalize()
                     val deltaPlayerRot = newPlayerRot.mul(origPlayerRot.conjugate(Quaterniond()), Quaterniond())
                     val rotation = deltaPlayerRot.mul(s.shipGrabbedRot, Quaterniond()).normalize()
 
@@ -120,7 +122,9 @@ class GrabTool : GravitronToolBase() {
                     updateShip(s, serverLevel, player)
                 }
 
-                if (graviton.hasTag() && graviton.tag!!.contains("GrabbedPosInShip") && !player.cooldowns.isOnCooldown(graviton.item)) {
+                if (graviton.hasTag() && graviton.tag!!.contains("GrabbedPosInShip") && !player.cooldowns.isOnCooldown(
+                        graviton.item)
+                ) {
                     val tag = graviton.tag
 
                     val clickLocation = readVec3(tag!!.getList("GrabbedPosInShip", Tag.TAG_DOUBLE.toInt()))

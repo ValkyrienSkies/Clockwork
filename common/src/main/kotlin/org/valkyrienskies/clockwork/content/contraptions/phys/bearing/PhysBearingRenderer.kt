@@ -6,7 +6,6 @@ import com.mojang.math.Vector3f
 import com.simibubi.create.content.kinetics.base.IRotate
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
-import com.simibubi.create.content.kinetics.clock.CuckooClockBlockEntity
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
 import com.simibubi.create.foundation.utility.AnimationTickHolder
@@ -22,9 +21,15 @@ import org.valkyrienskies.clockwork.util.render.RenderUtil
 import org.valkyrienskies.clockwork.util.render.TransformData
 
 @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
-class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : KineticBlockEntityRenderer<PhysBearingBlockEntity>(context) {
+class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) :
+    KineticBlockEntityRenderer<PhysBearingBlockEntity>(context) {
 
-    override fun renderSafe(blockEntity: PhysBearingBlockEntity?, partialTicks: Float, matrices: PoseStack, buffer: MultiBufferSource, light: Int, overlay: Int) {
+    override fun renderSafe(blockEntity: PhysBearingBlockEntity?,
+                            partialTicks: Float,
+                            matrices: PoseStack,
+                            buffer: MultiBufferSource,
+                            light: Int,
+                            overlay: Int) {
         super.renderSafe(blockEntity, partialTicks, matrices, buffer, light, overlay)
 
         if (blockEntity !is PhysBearingBlockEntity) return
@@ -48,11 +53,13 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : Kineti
                 matrices.mulPose(Vector3f.ZP.rotationDegrees(270f))
                 matrices.mulPose(Vector3f.YP.rotationDegrees(90f))
             }
+
             Direction.NORTH -> matrices.mulPose(Vector3f.XP.rotationDegrees(90f))
             Direction.EAST -> {
                 matrices.mulPose(Vector3f.ZP.rotationDegrees(90f))
                 matrices.mulPose(Vector3f.YP.rotationDegrees(90f))
             }
+
             Direction.UP -> matrices.mulPose(Vector3f.XP.rotationDegrees(0f))
             Direction.DOWN -> matrices.mulPose(Vector3f.XN.rotationDegrees(180f))
         }
@@ -61,19 +68,19 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : Kineti
 
         //RENDER CRYSTAL MATRIX start
         val interpolatedAngle = blockEntity.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1)
-        var offset = when(facing) {
-            Direction.SOUTH -> org.joml.Vector3f(0.0f,0.0f,0.1f)
-            Direction.WEST -> org.joml.Vector3f(0.1f,0.0f,0.0f)
-            Direction.NORTH -> org.joml.Vector3f(0.0f,0.0f,0.1f)
-            Direction.EAST -> org.joml.Vector3f(0.1f,0.0f,0.0f)
-            Direction.UP -> org.joml.Vector3f(0.0f,0.1f,0.0f)
-            Direction.DOWN -> org.joml.Vector3f(0.0f,0.1f,0.0f)
+        var offset = when (facing) {
+            Direction.SOUTH -> org.joml.Vector3f(0.0f, 0.0f, 0.1f)
+            Direction.WEST -> org.joml.Vector3f(0.1f, 0.0f, 0.0f)
+            Direction.NORTH -> org.joml.Vector3f(0.0f, 0.0f, 0.1f)
+            Direction.EAST -> org.joml.Vector3f(0.1f, 0.0f, 0.0f)
+            Direction.UP -> org.joml.Vector3f(0.0f, 0.1f, 0.0f)
+            Direction.DOWN -> org.joml.Vector3f(0.0f, 0.1f, 0.0f)
         }
         val innerData = TransformData(offset, org.joml.Vector3f(interpolatedAngle, interpolatedAngle, 0f))
         val data = TransformData(offset, org.joml.Vector3f(0f, 0f, 0f))
         val outerData = TransformData(offset, org.joml.Vector3f(0f, 0f, 0f))
 
-        RenderUtil.renderCubeMatrix(matrices, buffer, blockState, innerData, data, outerData, 1.5f,light)
+        RenderUtil.renderCubeMatrix(matrices, buffer, blockState, innerData, data, outerData, 1.5f, light)
         val vb = buffer.getBuffer(RenderType.translucent())
         //RENDER CRYSTAL MATRIX end
 
@@ -101,7 +108,7 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : Kineti
         val shaf = getRotatedModel(blockEntity, blockState)
 
         val axis = (blockState.block as IRotate).getRotationAxis(blockState)
-        val angle = getAngleForTe(blockEntity, blockEntity.blockPos, axis);
+        val angle = getAngleForTe(blockEntity, blockEntity.blockPos, axis)
 
         coolKineticRotationTransform(at, blockEntity, angle, light).renderInto(matrices, vertexConsumer)
         coolKineticRotationTransform(shaf, blockEntity, angle, light).renderInto(matrices, vertexConsumer)
@@ -109,30 +116,37 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : Kineti
         matrices.popPose()
     }
 
-    fun coolKineticRotationTransform(buffer: SuperByteBuffer, be: KineticBlockEntity, angle: Float, light: Int): SuperByteBuffer {
+    fun coolKineticRotationTransform(buffer: SuperByteBuffer,
+                                     be: KineticBlockEntity,
+                                     angle: Float,
+                                     light: Int): SuperByteBuffer {
         buffer.light(light)
         val facing = be.blockState.getValue(BlockStateProperties.FACING)
 
         when (facing) {
             Direction.DOWN, Direction.UP -> {
                 buffer.rotate(90.0, Direction.Axis.X)
-                buffer.translate(0.0,0.0,-1.0)
+                buffer.translate(0.0, 0.0, -1.0)
             }
+
             Direction.NORTH -> {
                 buffer.rotate(-90.0, Direction.Axis.X)
-                buffer.translate(0.0,-1.0,0.0)
+                buffer.translate(0.0, -1.0, 0.0)
             }
+
             Direction.SOUTH -> {
                 buffer.rotate(90.0, Direction.Axis.X)
-                buffer.translate(0.0,0.0,-1.0)
+                buffer.translate(0.0, 0.0, -1.0)
             }
+
             Direction.WEST -> {
                 buffer.rotate(90.0, Direction.Axis.Z)
-                buffer.translate(0.0,-1.0,0.0)
+                buffer.translate(0.0, -1.0, 0.0)
             }
+
             Direction.EAST -> {
                 buffer.rotate(-90.0, Direction.Axis.Z)
-                buffer.translate(-1.0,0.0,0.0)
+                buffer.translate(-1.0, 0.0, 0.0)
             }
         }
 
@@ -153,16 +167,19 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : Kineti
     }
 
     private fun rotateAndRiseNorth(physPartial: SuperByteBuffer, blockEntity: PhysBearingBlockEntity) {
-        val pivot = Vec3(0.0, -7.0 / 16,-5.5 / 16)//TODO find pivot
+        val pivot = Vec3(0.0, -7.0 / 16, -5.5 / 16)//TODO find pivot
         rotateAndRise(physPartial, blockEntity, pivot, Direction.WEST)
     }
 
     private fun rotateAndRiseSouth(physPartial: SuperByteBuffer, blockEntity: PhysBearingBlockEntity) {
-        val pivot = Vec3(0.0,-7.0 / 16,5.5 / 16)//TODO find pivot
+        val pivot = Vec3(0.0, -7.0 / 16, 5.5 / 16)//TODO find pivot
         rotateAndRise(physPartial, blockEntity, pivot, Direction.EAST)
     }
 
-    private fun rotateAndRise(physPartial: SuperByteBuffer, blockEntity: PhysBearingBlockEntity, pivot: Vec3, axl: Direction) {
+    private fun rotateAndRise(physPartial: SuperByteBuffer,
+                              blockEntity: PhysBearingBlockEntity,
+                              pivot: Vec3,
+                              axl: Direction) {
         //TODO
 
         val interpolatedAngle = blockEntity.getWingRotOffset()
@@ -173,7 +190,7 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : Kineti
     }
 
     private fun rotateWestWing(physPartial: SuperByteBuffer, blockEntity: PhysBearingBlockEntity) {
-        val pivot = Vec3(- 7 / 16.0, 1.0 / 16, 0.0)
+        val pivot = Vec3(-7 / 16.0, 1.0 / 16, 0.0)
         rotateWing(physPartial, blockEntity, pivot, Direction.SOUTH)
     }
 
@@ -182,7 +199,10 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : Kineti
         rotateWing(physPartial, blockEntity, pivot, Direction.NORTH)
     }
 
-    private fun rotateWing(physPartial: SuperByteBuffer, blockEntity: PhysBearingBlockEntity, pivot: Vec3, axl: Direction) {
+    private fun rotateWing(physPartial: SuperByteBuffer,
+                           blockEntity: PhysBearingBlockEntity,
+                           pivot: Vec3,
+                           axl: Direction) {
         val interpolatedAngle = blockEntity.getWingRotOffset()
 
         physPartial.translate(pivot)

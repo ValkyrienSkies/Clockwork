@@ -15,9 +15,10 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock.Companion.EXTENDED
 
-class SlickerBlockEntityRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEntityRenderer<SlickerBlockEntity>(
-    context
-) {
+class SlickerBlockEntityRenderer(context: BlockEntityRendererProvider.Context) :
+    SmartBlockEntityRenderer<SlickerBlockEntity>(
+        context
+    ) {
 
     var wasAttached = false
 
@@ -30,12 +31,12 @@ class SlickerBlockEntityRenderer(context: BlockEntityRendererProvider.Context) :
     val targetDoinkTransparency = 0.0
 
     override fun renderSafe(
-        blockEntity: SlickerBlockEntity?,
-        partialTicks: Float,
-        matrices: PoseStack,
-        buffer: MultiBufferSource,
-        light: Int,
-        overlay: Int
+            blockEntity: SlickerBlockEntity?,
+            partialTicks: Float,
+            matrices: PoseStack,
+            buffer: MultiBufferSource,
+            light: Int,
+            overlay: Int
     ) {
 
 
@@ -56,11 +57,13 @@ class SlickerBlockEntityRenderer(context: BlockEntityRendererProvider.Context) :
                 matrices.mulPose(Vector3f.ZP.rotationDegrees(270f))
                 matrices.mulPose(Vector3f.YP.rotationDegrees(90f))
             }
+
             Direction.NORTH -> matrices.mulPose(Vector3f.XP.rotationDegrees(90f))
             Direction.EAST -> {
                 matrices.mulPose(Vector3f.ZP.rotationDegrees(90f))
                 matrices.mulPose(Vector3f.YP.rotationDegrees(90f))
             }
+
             Direction.UP -> matrices.mulPose(Vector3f.XP.rotationDegrees(0f))
             Direction.DOWN -> matrices.mulPose(Vector3f.XN.rotationDegrees(180f))
         }
@@ -71,7 +74,8 @@ class SlickerBlockEntityRenderer(context: BlockEntityRendererProvider.Context) :
 
         val gooOffset = blockEntity.piston?.getValue(partialTicks) ?: 0.0f
 
-        goo.light(light).translate(0.0, gooOffset.toDouble()-(2.0/16.0), 0.0).renderInto(matrices, buffer.getBuffer(RenderType.translucent()))
+        goo.light(light).translate(0.0, gooOffset.toDouble() - (2.0 / 16.0), 0.0)
+            .renderInto(matrices, buffer.getBuffer(RenderType.translucent()))
 
         if (attached != wasAttached) {
             shouldRenderDoink = true
@@ -83,7 +87,8 @@ class SlickerBlockEntityRenderer(context: BlockEntityRendererProvider.Context) :
         if (shouldRenderDoink) {
             val doink = CachedBufferer.partial(ClockworkPartials.DOINK, blockState)
             currentDoinkSize = Mth.lerp(partialTicks.toDouble(), currentDoinkSize, targetDoinkSize)
-            currentDoinkTransparency = Mth.lerp(partialTicks.toDouble()/2, currentDoinkTransparency, targetDoinkTransparency)
+            currentDoinkTransparency =
+                Mth.lerp(partialTicks.toDouble() / 2, currentDoinkTransparency, targetDoinkTransparency)
 
             doink.light(light).scale(currentDoinkSize.toFloat()).color(
                 (1.0f * 255).toInt(),

@@ -13,8 +13,9 @@ import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
-import org.valkyrienskies.mod.common.*
 import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
+import org.valkyrienskies.mod.common.getShipManagingPos
+import org.valkyrienskies.mod.common.isBlockInShipyard
 
 class WanderliteOreBlock(properties: Properties) : ExperienceBlock(properties) {
 
@@ -30,7 +31,7 @@ class WanderliteOreBlock(properties: Properties) : ExperienceBlock(properties) {
             return InteractionResult.SUCCESS
         }
 
-        return InteractionResult.FAIL;
+        return InteractionResult.FAIL
     }
 
     override fun attack(state: BlockState, level: Level, pos: BlockPos, player: Player) {
@@ -52,7 +53,7 @@ class WanderliteOreBlock(properties: Properties) : ExperienceBlock(properties) {
         return level.isBlockInShipyard(blockPos.x, blockPos.y, blockPos.z)
     }
 
-    fun shipifyBlock(level: ServerLevel, blockPos: BlockPos)  {
+    fun shipifyBlock(level: ServerLevel, blockPos: BlockPos) {
         val dense = DenseBlockPosSet()
         dense.add(blockPos.x, blockPos.y, blockPos.z)
 
@@ -71,7 +72,7 @@ class WanderliteOreBlock(properties: Properties) : ExperienceBlock(properties) {
         if (level is ServerLevel) {
             val ship = level.getShipManagingPos(pos)
             if (ship != null) {
-                WanderShipControl.getOrCreate(ship).aurics ++
+                WanderShipControl.getOrCreate(ship).aurics++
             }
         }
         super.onPlace(state, level, pos, oldState, movedByPiston)
@@ -81,7 +82,7 @@ class WanderliteOreBlock(properties: Properties) : ExperienceBlock(properties) {
         if (level is ServerLevel) {
             val ship = level.getShipManagingPos(pos)
             if (ship != null) {
-                WanderShipControl.getOrCreate(ship).aurics --
+                WanderShipControl.getOrCreate(ship).aurics--
             }
         }
         super.destroy(level, pos, state)

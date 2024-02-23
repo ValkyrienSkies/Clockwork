@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork
 
 import com.simibubi.create.AllTags
-import com.simibubi.create.content.fluids.PipeAttachmentModel
 import com.simibubi.create.content.kinetics.BlockStressDefaults
 import com.simibubi.create.foundation.data.*
 import com.simibubi.create.foundation.data.ModelGen.customItemModel
@@ -10,19 +9,15 @@ import com.tterrag.registrate.builders.BlockBuilder
 import com.tterrag.registrate.providers.DataGenContext
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider
 import com.tterrag.registrate.util.entry.BlockEntry
-import com.tterrag.registrate.util.nullness.NonNullFunction
 import net.minecraft.client.renderer.RenderType
-import net.minecraft.client.resources.model.BakedModel
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.client.render.WingBlockItemRenderer
-import org.valkyrienskies.clockwork.content.curiosities.WanderliteOreBlock
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock
@@ -32,11 +27,9 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.SmartPropellerBearingBlock
+import org.valkyrienskies.clockwork.content.curiosities.WanderliteOreBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
-import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlock
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlock
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlock
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
@@ -53,7 +46,7 @@ object ClockworkBlocks {
         REGISTRATE.block<PropellerBearingBlock>("propeller_bearing") { properties: BlockBehaviour.Properties? ->
             PropellerBearingBlock(properties!!)
         }
-            .transform(TagGen.axeOrPickaxe())
+            .transform(axeOrPickaxe())
             .transform(BuilderTransformers.bearing("propeller", "gearbox"))
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
@@ -66,7 +59,7 @@ object ClockworkBlocks {
         REGISTRATE.block<SmartPropellerBearingBlock>("smart_propeller_bearing") { properties: BlockBehaviour.Properties? ->
             SmartPropellerBearingBlock(properties!!)
         }
-            .transform(TagGen.axeOrPickaxe())
+            .transform(axeOrPickaxe())
             .transform(BuilderTransformers.bearing("propeller", "gearbox"))
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
@@ -80,7 +73,7 @@ object ClockworkBlocks {
             PhysBearingBlock(properties!!)
         }
             .initialProperties { SharedProperties.stone() }
-            .transform(TagGen.axeOrPickaxe())
+            .transform(axeOrPickaxe())
             .properties {
                 it.lightLevel { state: BlockState? -> PhysBearingBlock.getLight(state) }
             }
@@ -100,7 +93,7 @@ object ClockworkBlocks {
         REGISTRATE.block<FlapBearingBlock>("flap_bearing") { properties: BlockBehaviour.Properties? ->
             FlapBearingBlock(properties)
         }
-            .transform(TagGen.axeOrPickaxe())
+            .transform(axeOrPickaxe())
             .transform(flapbearing())
             .transform(BlockStressDefaults.setImpact(4.0))
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
@@ -110,14 +103,13 @@ object ClockworkBlocks {
             .register()
 
 
-
     @JvmField
     val ALT_METER: BlockEntry<AltMeterBlock> =
         REGISTRATE.block<AltMeterBlock>("alt_meter") { properties: BlockBehaviour.Properties? ->
             AltMeterBlock(properties!!)
         }
             .initialProperties { SharedProperties.stone() }
-            .transform(TagGen.axeOrPickaxe())
+            .transform(axeOrPickaxe())
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
@@ -135,7 +127,7 @@ object ClockworkBlocks {
         .properties {
             it.noOcclusion()
         }
-        .transform(TagGen.axeOrPickaxe())
+        .transform(axeOrPickaxe())
         .addLayer { Supplier { RenderType.cutout() } }
         .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
         .item()
@@ -157,13 +149,13 @@ object ClockworkBlocks {
                 BlockStressDefaults.setNoImpact()
             )
             .transform<Block, RedstoneResistorBlock, CreateRegistrate, BlockBuilder<RedstoneResistorBlock, CreateRegistrate>>(
-                TagGen.axeOrPickaxe()
+                axeOrPickaxe()
             )
             .addLayer { Supplier { RenderType.cutoutMipped() } }
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .transform(
-                ModelGen.customItemModel<BlockItem, BlockBuilder<RedstoneResistorBlock, CreateRegistrate>>(
+                customItemModel<BlockItem, BlockBuilder<RedstoneResistorBlock, CreateRegistrate>>(
                     "redstone_resistor",
                     "item"
                 )
@@ -178,18 +170,18 @@ object ClockworkBlocks {
             .properties {
                 it.noOcclusion()
             }
-            .transform(TagGen.axeOrPickaxe())
+            .transform(axeOrPickaxe())
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
-            .transform(ModelGen.customItemModel("command_seat", "item"))
+            .transform(customItemModel("command_seat", "item"))
             .register()
 
     @JvmField
     val WING: BlockEntry<WingBlock> = REGISTRATE.block<WingBlock>("wing") { properties: BlockBehaviour.Properties? ->
         WingBlock(properties)
     }
-        .transform<Block, WingBlock, CreateRegistrate, BlockBuilder<WingBlock, CreateRegistrate>>(TagGen.axeOrPickaxe())
+        .transform<Block, WingBlock, CreateRegistrate, BlockBuilder<WingBlock, CreateRegistrate>>(axeOrPickaxe())
         .addLayer { Supplier { RenderType.cutoutMipped() } }
         .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
         .item { block: WingBlock?, properties: Item.Properties? ->
@@ -203,7 +195,7 @@ object ClockworkBlocks {
     val FLAP: BlockEntry<FlapBlock> = REGISTRATE.block<FlapBlock>("flap") { properties: BlockBehaviour.Properties? ->
         FlapBlock(properties)
     }
-        .transform(TagGen.axeOrPickaxe())
+        .transform(axeOrPickaxe())
         .addLayer { Supplier { RenderType.cutoutMipped() } }
         .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
         .item { block: FlapBlock?, properties: Item.Properties? ->

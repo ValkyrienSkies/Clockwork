@@ -20,12 +20,11 @@ import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
-import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
-import org.joml.Vector3d
 import org.joml.Vector3dc
+import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.content.contraptions.propeller.contraption.PropellerContraption
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropCreateData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropUpdateData
@@ -35,7 +34,6 @@ import org.valkyrienskies.clockwork.util.EaseHelper
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toJOMLD
-import java.util.function.Consumer
 import kotlin.math.abs
 import kotlin.math.sin
 
@@ -103,7 +101,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         var partialTicks = partialTicks
         if (isVirtual) return Mth.lerp(partialTicks + .5f, prevAngle, realAngle)
         if (movedContraption == null || movedContraption!!.isStalled || !running) partialTicks = 0f
-        if(overStressed) return 0f
+        if (overStressed) return 0f
         return Mth.lerp(partialTicks, realAngle, realAngle + angularSpeed)
     }
 
@@ -128,7 +126,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         if (wasOverStressed) {
             countDown--
             if (countDown <= 0) {
-                wasOverStressed =  false
+                wasOverStressed = false
                 countDown = 20 * 3
             }
         }
@@ -206,7 +204,10 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
                         dumbFix = -dumbFix
                     }
 
-                    val data = PropUpdateData(dumbFix * angularSpeed.toDouble(), realAngle.toDouble(), isInverted, overStressed)
+                    val data = PropUpdateData(dumbFix * angularSpeed.toDouble(),
+                        realAngle.toDouble(),
+                        isInverted,
+                        overStressed)
                     PropellerController.getOrCreate(ship)!!.updatePropeller(physPropId!!, data)
                 }
             }
@@ -502,7 +503,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         NORMAL(AllIcons.I_REFRESH),
         INVERTED(AllIcons.I_ROTATE_CCW);
 
-        private val translationKey: String = "generic." + Lang.asId(name)
+        private val translationKey: String = "generic." + ClockworkLang.asId(name)
 
         override fun getIcon(): AllIcons {
             return icon

@@ -11,11 +11,11 @@ import net.minecraft.client.gui.GuiComponent
 import net.minecraft.resources.ResourceLocation
 
 enum class ClockworkGuiTextures(
-    val location: ResourceLocation,
-    val width: Int,
-    val height: Int,
-    val startX: Int,
-    val startY: Int
+        val location: ResourceLocation,
+        val width: Int,
+        val height: Int,
+        val startX: Int,
+        val startY: Int
 ) : ScreenElement {
 
     GRAVITRON_SELECTED("widgets", 0, 0, 22, 22),

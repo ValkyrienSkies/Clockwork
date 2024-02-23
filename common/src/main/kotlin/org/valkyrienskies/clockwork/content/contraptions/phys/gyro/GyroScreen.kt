@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.gyro
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.content.redstone.thresholdSwitch.ThresholdSwitchScreen
 import com.simibubi.create.foundation.gui.AbstractSimiScreen
 import com.simibubi.create.foundation.gui.AllIcons
 import com.simibubi.create.foundation.gui.widget.AbstractSimiWidget
@@ -15,7 +14,7 @@ import org.valkyrienskies.clockwork.ClockworkPackets
 class GyroScreen(private val be: GyroBlockEntity) : AbstractSimiScreen() {
     private val background: ClockworkGuiTextures = ClockworkGuiTextures.GYRO
     private var confirmButton: IconButton? = null
-    private var targetVec = Vector3d(0.0,1.0,0.0)
+    private var targetVec = Vector3d(0.0, 1.0, 0.0)
     var buttonStateArray = BooleanArray(9)
 
     override fun init() {
@@ -74,9 +73,11 @@ class GyroScreen(private val be: GyroBlockEntity) : AbstractSimiScreen() {
         var ym45 = buttonStateArray.get(7)
         var ym90 = buttonStateArray.get(8)
 
-        var x = (if (x90) 1.0 else 0.0) + (if (xm90) -1.0 else 0.0) + (if (x45) 0.5 else 0.0) + (if (xm45) -0.5 else 0.0)
+        var x =
+            (if (x90) 1.0 else 0.0) + (if (xm90) -1.0 else 0.0) + (if (x45) 0.5 else 0.0) + (if (xm45) -0.5 else 0.0)
         var y = if (x0) 1.0 else 0.0
-        var z = (if (y90) 1.0 else 0.0) + (if (ym90) -1.0 else 0.0) + (if (y45) 0.5 else 0.0) + (if (ym45) -0.5 else 0.0)
+        var z =
+            (if (y90) 1.0 else 0.0) + (if (ym90) -1.0 else 0.0) + (if (y45) 0.5 else 0.0) + (if (ym45) -0.5 else 0.0)
 
 
         targetVec = Vector3d(Mth.clamp(x, -1.0, 1.0), Mth.clamp(y, -1.0, 1.0), Mth.clamp(z, -1.0, 1.0))

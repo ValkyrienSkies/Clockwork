@@ -51,10 +51,10 @@ class PropellerContraption : Contraption {
 
     @Throws(AssemblyException::class)
     override fun moveBlock(
-        world: Level,
-        direction: Direction?,
-        frontier: Queue<BlockPos>,
-        visited: Set<BlockPos>
+            world: Level,
+            direction: Direction?,
+            frontier: Queue<BlockPos>,
+            visited: Set<BlockPos>
     ): Boolean {
         return super.moveBlock(world, direction, frontier, visited)
     }

@@ -6,9 +6,9 @@ import net.minecraft.nbt.CompoundTag
 import kotlin.math.abs
 
 class SequencedSeatRule(
-    val inputKeys: MutableSet<InputKey>,
-    val operation: SequencedSeatOperation,
-    val value: SequencedSeatValue?
+        val inputKeys: MutableSet<InputKey>,
+        val operation: SequencedSeatOperation,
+        val value: SequencedSeatValue?
 ) {
 
     fun matches(inputKeys: Set<InputKey>): Boolean {
@@ -57,9 +57,9 @@ class SequencedSeatRule(
         }
         inAction = true
 
-        val metersPerTick = KineticBlockEntity.convertToLinear(be.getSpeed());
+        val metersPerTick = KineticBlockEntity.convertToLinear(be.getSpeed())
         return if (abs(metersPerTick) > abs(diff)) {
-            (diff / metersPerTick);
+            (diff / metersPerTick)
         } else if (diff * metersPerTick < 0) {
             -1f
         } else {

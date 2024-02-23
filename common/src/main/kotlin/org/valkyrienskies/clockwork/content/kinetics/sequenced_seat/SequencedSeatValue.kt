@@ -13,7 +13,7 @@ interface SequencedSeatValue {
     fun configureInput(input: ScrollInput)
     fun serializeNBT(): Tag
     fun deserializeNBT(tag: Tag)
-    class DistanceValue constructor(var meters: Int) : SequencedSeatValue {
+    class DistanceValue(var meters: Int) : SequencedSeatValue {
         override fun asComponent(): Component {
             return TextComponent(meters.toString() + "m")
         }
@@ -38,7 +38,7 @@ interface SequencedSeatValue {
         }
     }
 
-    class AngleValue constructor(var degrees: Int) : SequencedSeatValue {
+    class AngleValue(var degrees: Int) : SequencedSeatValue {
         override fun asComponent(): Component {
             return TextComponent("$degrees°")
         }
@@ -63,7 +63,7 @@ interface SequencedSeatValue {
         }
     }
 
-    class MultiplyValue constructor(var multiplier: Float) : SequencedSeatValue {
+    class MultiplyValue(var multiplier: Float) : SequencedSeatValue {
         override fun asComponent(): Component {
             return TextComponent(multiplier.toString() + "x")
         }

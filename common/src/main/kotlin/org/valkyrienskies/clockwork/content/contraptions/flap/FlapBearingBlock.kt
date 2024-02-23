@@ -28,12 +28,12 @@ class FlapBearingBlock(properties: Properties?) :
     }
 
     override fun use(
-        state: BlockState,
-        worldIn: Level,
-        pos: BlockPos,
-        player: Player,
-        handIn: InteractionHand,
-        hit: BlockHitResult
+            state: BlockState,
+            worldIn: Level,
+            pos: BlockPos,
+            player: Player,
+            handIn: InteractionHand,
+            hit: BlockHitResult
     ): InteractionResult {
         if (!player.mayBuild()) return InteractionResult.FAIL
         if (player.isShiftKeyDown) return InteractionResult.FAIL

@@ -16,7 +16,6 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.InputKey
-import org.valkyrienskies.clockwork.util.blocktype.LiquidFuelType
 import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour
 
 object PlatformUtils {
@@ -52,12 +51,12 @@ object PlatformUtils {
     @ExpectPlatform
     @JvmStatic
     fun useBallooner(
-        state: BlockState?,
-        world: Level,
-        pos: BlockPos,
-        player: Player,
-        hand: InteractionHand,
-        blockRayTraceResult: BlockHitResult
+            state: BlockState?,
+            world: Level,
+            pos: BlockPos,
+            player: Player,
+            hand: InteractionHand,
+            blockRayTraceResult: BlockHitResult
     ) {
         throw AssertionError()
     }
@@ -76,11 +75,11 @@ object PlatformUtils {
     @ExpectPlatform
     @JvmStatic
     fun cwFluidTank(
-        type: BehaviourType<CWFluidTankBehaviour>,
-        te: SmartBlockEntity,
-        tanks: Int,
-        tankCapacity: Long,
-        enforceVariety: Boolean
+            type: BehaviourType<CWFluidTankBehaviour>,
+            te: SmartBlockEntity,
+            tanks: Int,
+            tankCapacity: Long,
+            enforceVariety: Boolean
     ): CWFluidTankBehaviour {
         throw AssertionError()
     }

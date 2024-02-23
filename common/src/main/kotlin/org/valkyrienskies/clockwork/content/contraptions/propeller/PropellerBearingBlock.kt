@@ -29,8 +29,8 @@ class PropellerBearingBlock(properties: Properties) : BearingBlock(properties), 
 
 
     override fun use(
-        state: BlockState, worldIn: Level, pos: BlockPos, player: Player, handIn: InteractionHand,
-        hit: BlockHitResult
+            state: BlockState, worldIn: Level, pos: BlockPos, player: Player, handIn: InteractionHand,
+            hit: BlockHitResult
     ): InteractionResult {
         if (!player.mayBuild()) return InteractionResult.FAIL
         if (player.isShiftKeyDown) return InteractionResult.FAIL
@@ -65,10 +65,10 @@ class PropellerBearingBlock(properties: Properties) : BearingBlock(properties), 
     }
 
     override fun hasShaftTowards(
-        world: LevelReader,
-        pos: BlockPos,
-        state: BlockState,
-        face: net.minecraft.core.Direction
+            world: LevelReader,
+            pos: BlockPos,
+            state: BlockState,
+            face: net.minecraft.core.Direction
     ): Boolean {
         return face == state.getValue(FACING).opposite
     }

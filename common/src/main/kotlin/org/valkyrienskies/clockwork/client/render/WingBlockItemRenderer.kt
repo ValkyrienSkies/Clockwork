@@ -16,14 +16,14 @@ import org.valkyrienskies.clockwork.ClockworkPartials.WING_SAIL_ITEM
 class WingBlockItemRenderer : CustomRenderedItemModelRenderer() {
 
     override fun render(
-        stack: ItemStack,
-        model: CustomRenderedItemModel?,
-        renderer: PartialItemModelRenderer?,
-        transformType: ItemTransforms.TransformType,
-        ms: PoseStack,
-        buffer: MultiBufferSource,
-        light: Int,
-        overlay: Int
+            stack: ItemStack,
+            model: CustomRenderedItemModel?,
+            renderer: PartialItemModelRenderer?,
+            transformType: ItemTransforms.TransformType,
+            ms: PoseStack,
+            buffer: MultiBufferSource,
+            light: Int,
+            overlay: Int
     ) {
         if (transformType.firstPerson()) {
             renderFirstPerson(stack, buffer, ms, light)

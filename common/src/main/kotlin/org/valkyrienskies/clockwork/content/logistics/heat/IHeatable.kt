@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.content.logistics.heat
 
 import net.minecraft.core.Direction
-import java.util.EnumMap
+import java.util.*
 
 interface IHeatable {
     var heat: Int

@@ -22,12 +22,12 @@ import java.util.function.Consumer
 class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<PhysBearingBlockEntity> {
 
     override fun use(
-        state: BlockState,
-        worldIn: Level,
-        pos: BlockPos,
-        player: Player,
-        handIn: InteractionHand,
-        hit: BlockHitResult
+            state: BlockState,
+            worldIn: Level,
+            pos: BlockPos,
+            player: Player,
+            handIn: InteractionHand,
+            hit: BlockHitResult
     ): InteractionResult {
         if (!player.mayBuild()) return InteractionResult.FAIL
         if (player.isShiftKeyDown) return InteractionResult.FAIL
@@ -60,10 +60,10 @@ class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<P
     }
 
     override fun getShape(
-        state: BlockState,
-        worldIn: BlockGetter,
-        pos: BlockPos,
-        context: CollisionContext
+            state: BlockState,
+            worldIn: BlockGetter,
+            pos: BlockPos,
+            context: CollisionContext
     ): VoxelShape {
         return AllShapes.MECHANICAL_PISTON[state.getValue(FACING)]
     }

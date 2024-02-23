@@ -16,12 +16,12 @@ import org.valkyrienskies.clockwork.content.generic.ColorBlockEntity
 class WingBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
     SmartBlockEntityRenderer<ColorBlockEntity>(context) {
     override fun renderSafe(
-        be: ColorBlockEntity,
-        partialTicks: Float,
-        ms: PoseStack,
-        buffer: MultiBufferSource,
-        light: Int,
-        overlay: Int
+            be: ColorBlockEntity,
+            partialTicks: Float,
+            ms: PoseStack,
+            buffer: MultiBufferSource,
+            light: Int,
+            overlay: Int
     ) {
         super.renderSafe(be, partialTicks, ms, buffer, light, overlay)
         val vb = buffer.getBuffer(RenderType.cutout())

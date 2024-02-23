@@ -19,8 +19,8 @@ import java.util.function.Supplier
 
 object BuilderTransformersClockwork {
     private fun <B : RotatedPillarKineticBlock?, P> encasedBase(
-        b: BlockBuilder<B, P>,
-        drop: Supplier<ItemLike>
+            b: BlockBuilder<B, P>,
+            drop: Supplier<ItemLike>
     ): BlockBuilder<B, P> {
         return b.initialProperties { SharedProperties.stone() }
             .properties(BlockBehaviour.Properties::noOcclusion)

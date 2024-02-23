@@ -60,7 +60,7 @@ class GyroShipControl : ShipForcesInducer, ServerTickListener {
         powerLinear = 0.0
 
         extraForceAngular = powerAngular
-        powerAngular = 0.0;
+        powerAngular = 0.0
 
         consumed = physConsumption * /* should be physics ticks based*/ 0.1f
         physConsumption = 0.0f

@@ -17,12 +17,12 @@ class SequencedSeatRenderer(context: BlockEntityRendererProvider.Context) :
     KineticBlockEntityRenderer<SequencedSeatBlockEntity>(context) {
     private var te: SequencedSeatBlockEntity? = null
     override fun renderSafe(
-        te: SequencedSeatBlockEntity,
-        partialTicks: Float,
-        ms: PoseStack,
-        buffer: MultiBufferSource,
-        light: Int,
-        overlay: Int
+            te: SequencedSeatBlockEntity,
+            partialTicks: Float,
+            ms: PoseStack,
+            buffer: MultiBufferSource,
+            light: Int,
+            overlay: Int
     ) {
         super.renderSafe(te, partialTicks, ms, buffer, light, overlay)
         this.te = te

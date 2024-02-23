@@ -17,13 +17,13 @@ import org.valkyrienskies.clockwork.util.render.TransformData
 class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
     SmartBlockEntityRenderer<PhysicsInfuserBlockEntity>(context) {
     private var teForScanner: PhysicsInfuserBlockEntity? = null
-    protected override fun renderSafe(
-        te: PhysicsInfuserBlockEntity,
-        partialTicks: Float,
-        ms: PoseStack,
-        buffer: MultiBufferSource,
-        light: Int,
-        overlay: Int
+    override fun renderSafe(
+            te: PhysicsInfuserBlockEntity,
+            partialTicks: Float,
+            ms: PoseStack,
+            buffer: MultiBufferSource,
+            light: Int,
+            overlay: Int
     ) {
         super.renderSafe(te, partialTicks, ms, buffer, light, overlay)
         if (te !is PhysicsInfuserBlockEntity) return
@@ -38,7 +38,8 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
                 val interpolatedAngle = infuser.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1)
                 val coreOffset = te.getCoreOffset(partialTicks - 1)
 
-                val innerData = TransformData(Vector3f(0f, coreOffset, 0f), Vector3f(interpolatedAngle, interpolatedAngle, 0f))
+                val innerData =
+                    TransformData(Vector3f(0f, coreOffset, 0f), Vector3f(interpolatedAngle, interpolatedAngle, 0f))
                 val data = TransformData(Vector3f(0f, coreOffset, 0f), Vector3f(0f, interpolatedAngle, 0f))
                 val outerData = TransformData(Vector3f(0f, coreOffset, 0f), Vector3f(0f, interpolatedAngle, 0f))
 
@@ -53,7 +54,7 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
                 val data = TransformData(Vector3f(0f, 0f, 0f), Vector3f(0f, interpolatedAngle, 0f))
                 val outerData = TransformData(Vector3f(0f, 0f, 0f), Vector3f(0f, interpolatedAngle, 0f))
 
-                RenderUtil.renderCubeMatrix(ms, buffer, blockState, innerData, data, outerData,1.5f, light)
+                RenderUtil.renderCubeMatrix(ms, buffer, blockState, innerData, data, outerData, 1.5f, light)
             }
         }
     }

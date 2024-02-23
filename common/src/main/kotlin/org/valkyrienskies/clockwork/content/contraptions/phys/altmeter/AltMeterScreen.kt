@@ -14,7 +14,7 @@ import org.valkyrienskies.clockwork.ClockworkPackets
 import kotlin.math.roundToInt
 
 class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen() {
-    private val background: ClockworkGuiTextures = ClockworkGuiTextures.ALT_METER;
+    private val background: ClockworkGuiTextures = ClockworkGuiTextures.ALT_METER
     private var altitudeInput: ScrollInput? = null
     private var confirmButton: IconButton? = null
     private var triggerHeight: Int = be.triggerHeight.roundToInt()
