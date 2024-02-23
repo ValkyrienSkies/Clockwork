@@ -31,7 +31,7 @@ class SmartPropellerInstance(modelManager: MaterialManager?, blockEntity: SmartP
     init {
         val facing = blockState.getValue(BlockStateProperties.FACING)
         rotationAxis = Direction.get(Direction.AxisDirection.POSITIVE, axis).step()
-        bearing.blockNormal = Vec3(facing.stepX.toDouble(), facing.stepY.toDouble(), facing.stepZ.toDouble())
+        bearing.blockNormalVector = Vec3(facing.stepX.toDouble(), facing.stepY.toDouble(), facing.stepZ.toDouble())
         blockOrientation = getBlockStateOrientation(facing)
 
         val top: PartialModel = ClockworkPartials.SMART_PROP_TOP
@@ -57,9 +57,9 @@ class SmartPropellerInstance(modelManager: MaterialManager?, blockEntity: SmartP
         transformStack.translate(instancePosition)
         transformStack.centre()
         transformStack.pushPose()
-        transformStack.translate(bearing.blockNormal!!.scale(1.0))
+        transformStack.translate(bearing.blockNormalVector!!.scale(0.1))
         transformStack.multiply(bearing.tiltQuaternion.toMinecraft())
-        transformStack.translate(bearing.blockNormal!!.scale(-1.0))
+        transformStack.translate(bearing.blockNormalVector!!.scale(-0.1))
         transformStack.multiply(blockOrientation.toMinecraft())
 
         transformStack.multiply(rotationAxis.rotationDegrees(interpolatedAngle))

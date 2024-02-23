@@ -26,7 +26,7 @@ class SuperContraptionEntity(entityTypeIn: EntityType<*>?, worldIn: Level?) :
     override fun applyRotation(localPos: Vec3, partialTicks: Float): Vec3 {
         var newLocalPos: Vec3 = localPos
         newLocalPos = VecHelper.rotate(newLocalPos, getAngle(partialTicks).toDouble(), rotationAxis)
-        newLocalPos = MathUtil.rotateQuatReverse(newLocalPos, tiltQuaternion)
+        newLocalPos = MathUtil.reverseRotateVecWithQuat(newLocalPos, tiltQuaternion)
         return newLocalPos
     }
 
@@ -40,7 +40,7 @@ class SuperContraptionEntity(entityTypeIn: EntityType<*>?, worldIn: Level?) :
 
     override fun reverseRotation(localPos: Vec3, partialTicks: Float): Vec3 {
         var newLocalPos: Vec3 = localPos
-        newLocalPos = MathUtil.rotateQuat(newLocalPos, tiltQuaternion)
+        newLocalPos = MathUtil.rotateVecWithQuat(newLocalPos, tiltQuaternion)
         newLocalPos = VecHelper.rotate(newLocalPos, -getAngle(partialTicks).toDouble(), rotationAxis)
         return newLocalPos
     }
@@ -50,15 +50,18 @@ class SuperContraptionEntity(entityTypeIn: EntityType<*>?, worldIn: Level?) :
         val axis = getRotationAxis()
         var normal = Vec3(direction.stepX.toDouble(), direction.stepY.toDouble(), direction.stepZ.toDouble())
         normal = normal.scale(1 / 16.0)
+        val pivotOffset = Vec3(0.0, -0.9, 0.0)
+
         TransformStack.cast(matrixStack)
             .nudge(id)
             .centre()
+            .translate(pivotOffset.x, pivotOffset.y, pivotOffset.z)
             .translate(normal.scale(-1.0))
             .multiply(tiltQuaternion.toMinecraft())
             .translate(normal)
+            .translate(-pivotOffset.x, -pivotOffset.y, -pivotOffset.z)
             .rotate(angle.toDouble(), axis)
             .unCentre()
-
     }
 
     companion object {

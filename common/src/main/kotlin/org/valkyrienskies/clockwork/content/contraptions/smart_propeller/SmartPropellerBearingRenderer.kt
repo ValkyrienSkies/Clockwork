@@ -42,9 +42,9 @@ class SmartPropellerBearingRenderer(context: BlockEntityRendererProvider.Context
         val top: PartialModel = ClockworkPartials.SMART_PROP_TOP
         val superBuffer: SuperByteBuffer = CachedBufferer.partial(top, blockEntity.blockState)
 
-        superBuffer.translate(normal.scale(1.0))
+        superBuffer.translate(normal.scale(0.1))
         superBuffer.rotateCentered(tiltQuaternion.toMinecraft())
-        superBuffer.translate(normal.scale(-1.0))
+        superBuffer.translate(normal.scale(-0.1))
 
         val interpolatedAngle: Float = blockEntity.getInterpolatedAngle(partialTicks - 1)
         kineticRotationTransform(superBuffer,

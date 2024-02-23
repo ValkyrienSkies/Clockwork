@@ -35,7 +35,13 @@ import kotlin.math.sqrt
 class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
     MechanicalBearingBlockEntity(type, pos, state), IBearingBlockEntity {
 
-    private var movementDirection: ScrollOptionBehaviour<RotationDirection>? = null
+    private var rotationDirectionBehavior: ScrollOptionBehaviour<RotationDirection>? = ScrollOptionBehaviour(
+        RotationDirection::class.java,
+        TranslatableComponent("vs_clockwork:rotation_direction"),
+        this,
+        movementModeSlot
+    )
+
     private var sailPositions: MutableList<BlockPos> = mutableListOf()
     private var rotationSpeed: Float = 0f
     private var disassemblyTimer: Float = 0f
@@ -48,7 +54,7 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
     private var targetVector: Vec3 = Vec3(0.0, 1.0, 0.0)
 
     var tiltQuaternion: Quaternionf = Quaternionf(0f, 0f, 0f, 1f)
-    var blockNormal: Vec3? = null
+    var blockNormalVector: Vec3? = null
 
     init {
         tiltQuaternion.normalize()
@@ -59,14 +65,9 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
 
         movementMode.setValue(2)
         behaviours?.remove(movementMode)
-        movementDirection = ScrollOptionBehaviour(
-            RotationDirection::class.java,
-            TranslatableComponent("vs_clockwork:rotation_direction"), this, movementModeSlot
-        )
-
-        movementDirection!!.requiresWrench()
-        movementDirection!!.withCallback { _: Int? -> onDirectionChanged() }
-        behaviours!!.add(movementDirection!!)
+        rotationDirectionBehavior!!.requiresWrench()
+        rotationDirectionBehavior!!.withCallback { _: Int? -> onDirectionChanged() }
+        behaviours!!.add(rotationDirectionBehavior!!)
     }
 
     private fun onDirectionChanged() {
@@ -87,14 +88,14 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
 
     fun setTilt(target: Vec3) {
         val direction: Direction = blockState.getValue(BlockStateProperties.FACING)
-        blockNormal = Vec3(direction.stepX.toDouble(), direction.stepY.toDouble(), direction.stepZ.toDouble())
+        blockNormalVector = Vec3(direction.stepX.toDouble(), direction.stepY.toDouble(), direction.stepZ.toDouble())
 
         targetVector = target
-        tiltVector = MathUtil.clampIntoCone(target, blockNormal!!, Math.toRadians(12.0))
+        tiltVector = MathUtil.clampVecIntoCone(target, blockNormalVector!!, Math.toRadians(12.0))
         if (disassemblySlowdown) {
-            tiltVector = VecHelper.lerp(disassemblyTimer / disassemblyTimerTotal, blockNormal, tiltVector)
+            tiltVector = VecHelper.lerp(disassemblyTimer / disassemblyTimerTotal, blockNormalVector, tiltVector)
         }
-        tiltQuaternion = MathUtil.getQuaternionFromVectorRotation(blockNormal!!, tiltVector)
+        tiltQuaternion = MathUtil.quatFromVecRot(blockNormalVector!!, tiltVector)
         thrustDirection = tiltVector
     }
 
@@ -112,8 +113,10 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
             movedContraption = null
         }
 
-        val facing = level!!.getBlockState(worldPosition).getValue(BlockStateProperties.FACING)
-        blockNormal = Vec3(facing.stepX.toDouble(), facing.stepY.toDouble(), facing.stepZ.toDouble())
+        if (level != null) {
+            val facing = level!!.getBlockState(worldPosition).getValue(BlockStateProperties.FACING)
+            blockNormalVector = Vec3(facing.stepX.toDouble(), facing.stepY.toDouble(), facing.stepZ.toDouble())
+        }
 
         if (movedContraption == null) {
             return
@@ -125,7 +128,6 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
             superContraption.superDirection = blockState.getValue(BlockStateProperties.FACING)
         }
     }
-
 
     private fun updateRotationSpeed() {
         var nextSpeed = convertToAngular(getSpeed())
@@ -229,7 +231,7 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
         }
         val facing = blockState.getValue(BlockStateProperties.FACING)
         speed = convertToDirection(speed, facing)
-        if (movementDirection!!.value == 1) {
+        if (rotationDirectionBehavior!!.value == 1) {
             speed *= -1f
         }
         return if (speed > 0) 1f else -1f
@@ -239,7 +241,7 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
         var speed = rotationSpeed
         val facing = blockState.getValue(BlockStateProperties.FACING)
         speed = convertToDirection(speed, facing)
-        if (movementDirection!!.value == 1) {
+        if (rotationDirectionBehavior!!.value == 1) {
             speed *= -1f
         }
         return speed.toDouble()
