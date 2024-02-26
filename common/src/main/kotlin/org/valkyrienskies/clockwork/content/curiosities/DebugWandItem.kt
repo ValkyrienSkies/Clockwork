@@ -12,11 +12,19 @@ class DebugWandItem(properties: Properties) : Item(properties) {
     override fun useOn(context: UseOnContext): InteractionResult {
         val level = context.level
         val blockPos = context.clickedPos
+        val rend = level.random
 
         if (level.getBlockState(blockPos).`is`(ClockworkBlocks.SMART_PROPELLER_BEARING.get())) {
             if (level.getBlockEntity(blockPos) is SmartPropellerBearingBlockEntity) {
                 val be = level.getBlockEntity(blockPos) as SmartPropellerBearingBlockEntity
-                be.setTilt(Vec3(0.5, 0.0, 0.5))
+
+                if (rend.nextBoolean()) {
+                    be.setTilt(Vec3(-0.33, 0.0, -0.67))
+                } else {
+                    be.setTilt(Vec3(0.5, 0.0, 0.5))
+                }
+
+
                 return InteractionResult.SUCCESS
             }
         }
