@@ -8,7 +8,7 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.util.ClockworkConstants
-import org.valkyrienskies.clockwork.util.ClockworkUtils
+import org.valkyrienskies.clockwork.util.ClockworkUtil
 
 abstract class BallastBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) :
     SmartBlockEntity(type, pos, state) {
@@ -39,7 +39,7 @@ abstract class BallastBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, sta
             if (this.level is ServerLevel) {
                 val serverLevel = this.level as ServerLevel
                 updateWeight()
-                ClockworkUtils.updateBlockStateWeight(serverLevel, blockPos, oldWeight, newWeight)
+                ClockworkUtil.updateBlockStateWeight(serverLevel, blockPos, oldWeight, newWeight)
             }
         }
     }

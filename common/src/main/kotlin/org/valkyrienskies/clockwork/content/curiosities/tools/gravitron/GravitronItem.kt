@@ -31,7 +31,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.Selecte
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItem
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 import org.valkyrienskies.clockwork.platform.CWItem
-import org.valkyrienskies.clockwork.util.ClockworkUtils
+import org.valkyrienskies.clockwork.util.ClockworkUtil
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.properties.ShipId
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
@@ -157,7 +157,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
                                 val grabPosInShip: Vec3 = clickLocation
                                 val tag = player.mainHandItem.orCreateTag
                                 tag.putLong("ShipId", connectedShip.id)
-                                tag.put("GrabbedPosInShip", ClockworkUtils.writeVec3(grabPosInShip))
+                                tag.put("GrabbedPosInShip", ClockworkUtil.writeVec3(grabPosInShip))
                             }
 
                             return true

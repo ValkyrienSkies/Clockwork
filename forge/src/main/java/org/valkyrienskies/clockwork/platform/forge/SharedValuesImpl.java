@@ -5,6 +5,7 @@ import com.simibubi.create.foundation.item.render.SimpleCustomRenderer;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import com.tterrag.registrate.util.entry.EntityEntry;
 import net.minecraft.world.item.BlockItem;
+import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.SuperContraptionEntity;
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatEntity;
@@ -36,6 +37,10 @@ public class SharedValuesImpl {
 
     public static EntityEntry<SequencedSeatEntity> getSequencedSeat() {
         return (EntityEntry) ForgeClockworkEntities.SEQUENCED_SEAT;
+    }
+
+    public static EntityEntry<SuperContraptionEntity> getSuperContraption() {
+        return (EntityEntry) ForgeClockworkEntities.SUPER_CONTRAPTION_ENTITY;
     }
 
     public static BlockEntityEntry<BallastBlockEntity> getBallast() {

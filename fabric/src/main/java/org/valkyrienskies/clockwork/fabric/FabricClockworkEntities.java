@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.fabric;
 
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
 import com.simibubi.create.content.contraptions.actors.seat.SeatEntity;
+import com.simibubi.create.content.contraptions.render.ContraptionEntityRenderer;
 import com.simibubi.create.foundation.data.CreateEntityBuilder;
 import com.tterrag.registrate.util.entry.EntityEntry;
 import com.tterrag.registrate.util.nullness.NonNullConsumer;
@@ -13,8 +14,10 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
+import org.valkyrienskies.clockwork.ClockworkEntities;
 import org.valkyrienskies.clockwork.ClockworkLang;
 import org.valkyrienskies.clockwork.ClockworkMod;
+import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.SuperContraptionEntity;
 import org.valkyrienskies.clockwork.platform.entity.FabricSequencedSeatEntity;
 
 public class FabricClockworkEntities {
@@ -29,7 +32,14 @@ public class FabricClockworkEntities {
             true,
             FabricSequencedSeatEntity::build
     ).register();
-    //
+
+
+    public static final EntityEntry<SuperContraptionEntity> SUPER_CONTRAPTION_ENTITY = contraption(
+            "super_contraption",
+            SuperContraptionEntity::new,
+            () -> ContraptionEntityRenderer::new,
+            20, 40, false
+            ).register();
 
     private static <T extends Entity> CreateEntityBuilder<T, ?> contraption(String name, EntityType.EntityFactory<T> factory,
                                                                             NonNullSupplier<NonNullFunction<EntityRendererProvider.Context, EntityRenderer<? super T>>> renderer, int range,
