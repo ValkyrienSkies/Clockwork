@@ -62,7 +62,7 @@
 	"display": {},
 	"groups": [
 		{
-			"name": "waffer",
+			"name": "wafer",
 			"origin": [8, 0, 8],
 			"color": 0,
 			"children": [0, 1, 2, 3]

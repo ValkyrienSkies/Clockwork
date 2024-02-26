@@ -21,12 +21,22 @@ import org.valkyrienskies.mod.common.util.toMinecraft
 class SmartPropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
     KineticBlockEntityRenderer<SmartPropellerBearingBlockEntity>(context) {
 
+    private val pistonNW: PartialModel = ClockworkPartials.SMART_PROP_PISTON_NW
+    private val pistonNE: PartialModel = ClockworkPartials.SMART_PROP_PISTON_NE
+    private val pistonSW: PartialModel = ClockworkPartials.SMART_PROP_PISTON_SW
+    private val pistonSE: PartialModel = ClockworkPartials.SMART_PROP_PISTON_SE
+
+    private val top: PartialModel = ClockworkPartials.SMART_PROP_TOP
+
+    private val wafer: PartialModel = ClockworkPartials.SMART_PROP_WAFER
+
     override fun renderSafe(blockEntity: SmartPropellerBearingBlockEntity,
                             partialTicks: Float,
                             ms: PoseStack,
                             buffer: MultiBufferSource,
                             light: Int,
                             overlay: Int) {
+
         if (Backend.canUseInstancing(blockEntity.level)) return
 
         super.renderSafe(blockEntity, partialTicks, ms, buffer, light, overlay)
@@ -39,23 +49,27 @@ class SmartPropellerBearingRenderer(context: BlockEntityRendererProvider.Context
         quaternionCopy.mul(Quaternionf(normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat(), 0f))
         quaternionCopy.mul(tiltQuaternion)
 
-        val piston_nw: PartialModel = ClockworkPartials.SMART_PROP_PISTON_NW
-        val piston_ne: PartialModel = ClockworkPartials.SMART_PROP_PISTON_NE
-        val piston_sw: PartialModel = ClockworkPartials.SMART_PROP_PISTON_SW
-        val piston_se: PartialModel = ClockworkPartials.SMART_PROP_PISTON_SE
+        //Render Pistons
+        renderPistons(ms, buffer, blockEntity)
 
-        var superBuffer: SuperByteBuffer
-        superBuffer = CachedBufferer.partial(piston_nw, blockEntity.blockState)
-        superBuffer.renderInto(ms, buffer.getBuffer(RenderType.solid()))
-        superBuffer = CachedBufferer.partial(piston_ne, blockEntity.blockState)
-        superBuffer.renderInto(ms, buffer.getBuffer(RenderType.solid()))
-        superBuffer = CachedBufferer.partial(piston_sw, blockEntity.blockState)
-        superBuffer.renderInto(ms, buffer.getBuffer(RenderType.solid()))
-        superBuffer = CachedBufferer.partial(piston_se, blockEntity.blockState)
-        superBuffer.renderInto(ms, buffer.getBuffer(RenderType.solid()))
+        //Render Top
+        renderTop(ms, buffer, blockEntity, normal, tiltQuaternion, facing, partialTicks, light)
 
-        val top: PartialModel = ClockworkPartials.SMART_PROP_TOP
-        superBuffer = CachedBufferer.partial(top, blockEntity.blockState)
+        //Render Wafer
+        renderWafer(ms, buffer, blockEntity, normal, tiltQuaternion, facing)
+    }
+
+    private fun renderTop(
+        ms: PoseStack,
+        buffer: MultiBufferSource,
+        blockEntity: SmartPropellerBearingBlockEntity,
+        normal: Vec3,
+        tiltQuaternion: Quaternionf,
+        facing: Direction,
+        partialTicks: Float,
+        light: Int
+    ) {
+        val superBuffer = CachedBufferer.partial(top, blockEntity.blockState)
 
         superBuffer.translate(normal.scale(0.1))
         superBuffer.rotateCentered(tiltQuaternion.toMinecraft())
@@ -66,12 +80,32 @@ class SmartPropellerBearingRenderer(context: BlockEntityRendererProvider.Context
 
         superBuffer.rotateCentered(Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()))
         superBuffer.renderInto(ms, buffer.getBuffer(RenderType.solid()))
+    }
 
+    private fun renderPistons(
+        ms: PoseStack,
+        buffer: MultiBufferSource,
+        blockEntity: SmartPropellerBearingBlockEntity
+    ) {
+        var superBuffer: SuperByteBuffer = CachedBufferer.partial(pistonNW, blockEntity.blockState)
+        superBuffer.renderInto(ms, buffer.getBuffer(RenderType.solid()))
+        superBuffer = CachedBufferer.partial(pistonNE, blockEntity.blockState)
+        superBuffer.renderInto(ms, buffer.getBuffer(RenderType.solid()))
+        superBuffer = CachedBufferer.partial(pistonSW, blockEntity.blockState)
+        superBuffer.renderInto(ms, buffer.getBuffer(RenderType.solid()))
+        superBuffer = CachedBufferer.partial(pistonSE, blockEntity.blockState)
+        superBuffer.renderInto(ms, buffer.getBuffer(RenderType.solid()))
+    }
 
-
-
-        val wafer: PartialModel = ClockworkPartials.SMART_PROP_WAFFER
-        superBuffer = CachedBufferer.partial(wafer, blockEntity.blockState)
+    private fun renderWafer(
+        ms: PoseStack,
+        buffer: MultiBufferSource,
+        blockEntity: SmartPropellerBearingBlockEntity,
+        normal: Vec3,
+        tiltQuaternion: Quaternionf,
+        facing: Direction
+    ) {
+        val superBuffer = CachedBufferer.partial(wafer, blockEntity.blockState)
 
         superBuffer.translate(normal.scale(0.1))
         superBuffer.rotateCentered(tiltQuaternion.toMinecraft())

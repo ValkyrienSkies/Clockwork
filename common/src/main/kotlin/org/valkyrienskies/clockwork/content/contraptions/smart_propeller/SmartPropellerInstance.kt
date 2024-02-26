@@ -29,7 +29,7 @@ class SmartPropellerInstance(modelManager: MaterialManager?, blockEntity: SmartP
     private val pistonSWData: ModelData
     private val pistonSEData: ModelData
 
-    private val wafferData: ModelData
+    private val waferData: ModelData
 
     private val rotationAxis: Vector3f
     private val blockOrientation: Quaternionf
@@ -46,7 +46,7 @@ class SmartPropellerInstance(modelManager: MaterialManager?, blockEntity: SmartP
         pistonNEData = mat.getModel(ClockworkPartials.SMART_PROP_PISTON_NE, blockState).createInstance()
         pistonSWData = mat.getModel(ClockworkPartials.SMART_PROP_PISTON_SW, blockState).createInstance()
         pistonSEData = mat.getModel(ClockworkPartials.SMART_PROP_PISTON_SE, blockState).createInstance()
-        wafferData = mat.getModel(ClockworkPartials.SMART_PROP_WAFFER, blockState).createInstance()
+        waferData = mat.getModel(ClockworkPartials.SMART_PROP_WAFER, blockState).createInstance()
     }
 
     private fun transformTop(matrices: PoseStack, transformStack: TransformStack, interpolatedAngle: Float) {
@@ -63,7 +63,7 @@ class SmartPropellerInstance(modelManager: MaterialManager?, blockEntity: SmartP
         transformStack.popPose()
     }
 
-    private fun transformWaffer(matrices: PoseStack, transformStack: TransformStack) {
+    private fun transformWafer(matrices: PoseStack, transformStack: TransformStack) {
         transformStack.pushPose()
         transformStack.translate(bearing.blockNormalVector!!.scale(0.1))
         transformStack.multiply(bearing.tiltQuaternion.toMinecraft())
@@ -71,7 +71,7 @@ class SmartPropellerInstance(modelManager: MaterialManager?, blockEntity: SmartP
         transformStack.multiply(blockOrientation.toMinecraft())
 
         transformStack.unCentre()
-        wafferData.setTransform(matrices)
+        waferData.setTransform(matrices)
         transformStack.popPose()
     }
 
@@ -95,7 +95,7 @@ class SmartPropellerInstance(modelManager: MaterialManager?, blockEntity: SmartP
         //Transform, tilt and rotate Top part of propeller
         transformTop(matrices, transformStack, interpolatedAngle)
         //Transform and tilt Wafer of the propeller
-        transformWaffer(matrices, transformStack)
+        transformWafer(matrices, transformStack)
         //Transform Pistons of the propeller
         transformPistons(matrices, transformStack)
     }
@@ -118,7 +118,7 @@ class SmartPropellerInstance(modelManager: MaterialManager?, blockEntity: SmartP
         relight(pos, pistonNWData)
         relight(pos, pistonSEData)
         relight(pos, pistonSWData)
-        relight(pos, wafferData)
+        relight(pos, waferData)
     }
 
     override fun remove() {
@@ -128,7 +128,7 @@ class SmartPropellerInstance(modelManager: MaterialManager?, blockEntity: SmartP
         pistonNWData.delete()
         pistonSEData.delete()
         pistonSWData.delete()
-        wafferData.delete()
+        waferData.delete()
     }
 
     companion object {

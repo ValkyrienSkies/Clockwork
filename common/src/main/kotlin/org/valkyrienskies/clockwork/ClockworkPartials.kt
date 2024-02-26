@@ -104,7 +104,7 @@ object ClockworkPartials {
     val SMART_PROP_PISTON_NE: PartialModel = PartialModel(ClockworkMod.asResource("block/smart_propeller_bearing/piston_ne"))
     val SMART_PROP_PISTON_SW: PartialModel = PartialModel(ClockworkMod.asResource("block/smart_propeller_bearing/piston_sw"))
     val SMART_PROP_PISTON_SE: PartialModel = PartialModel(ClockworkMod.asResource("block/smart_propeller_bearing/piston_se"))
-    val SMART_PROP_WAFFER: PartialModel = PartialModel(ClockworkMod.asResource("block/smart_propeller_bearing/waffer"))
+    val SMART_PROP_WAFER: PartialModel = PartialModel(ClockworkMod.asResource("block/smart_propeller_bearing/wafer"))
 
 
     private fun block(path: String): PartialModel {
