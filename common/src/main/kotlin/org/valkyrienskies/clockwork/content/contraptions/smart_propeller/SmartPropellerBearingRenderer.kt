@@ -66,5 +66,18 @@ class SmartPropellerBearingRenderer(context: BlockEntityRendererProvider.Context
 
         superBuffer.rotateCentered(Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()))
         superBuffer.renderInto(ms, buffer.getBuffer(RenderType.solid()))
+
+
+
+
+        val wafer: PartialModel = ClockworkPartials.SMART_PROP_WAFFER
+        superBuffer = CachedBufferer.partial(wafer, blockEntity.blockState)
+
+        superBuffer.translate(normal.scale(0.1))
+        superBuffer.rotateCentered(tiltQuaternion.toMinecraft())
+        superBuffer.translate(normal.scale(-0.1))
+
+        superBuffer.rotateCentered(Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()))
+        superBuffer.renderInto(ms, buffer.getBuffer(RenderType.solid()))
     }
 }
