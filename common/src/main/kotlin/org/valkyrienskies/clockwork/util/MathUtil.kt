@@ -34,7 +34,7 @@ object MathUtil {
         vecQuat.mul(quatCopy)
         quatCopy.conjugate()
         quatCopy.mul(vecQuat)
-        return Vec3(quatCopy.x().toDouble(), quatCopy.y().toDouble(), quatCopy.z().toDouble())
+        return Vec3(-quatCopy.x().toDouble(), -quatCopy.y().toDouble(), -quatCopy.z().toDouble())
     }
 
     /**
