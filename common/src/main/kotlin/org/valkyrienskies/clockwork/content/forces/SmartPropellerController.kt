@@ -3,7 +3,7 @@ package org.valkyrienskies.clockwork.content.forces
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import net.minecraft.util.Mth
 import org.joml.*
-import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropData
+import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.data.SmartCreatePropData
 import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.data.SmartPropData
 import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.data.SmartUpdateData
 import org.valkyrienskies.core.api.ships.PhysShip
@@ -22,13 +22,13 @@ import kotlin.math.sign
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class SmartPropellerController : ShipForcesInducer {
 
-    private val propellorPhysData: HashMap<Int, PropData> = HashMap<Int, PropData>()
+    private val propellorPhysData: HashMap<Int, SmartPropData> = HashMap<Int, SmartPropData>()
 
     private val propellorUpdatePhysData: ConcurrentHashMap<Int, SmartUpdateData> =
         ConcurrentHashMap<Int, SmartUpdateData>()
 
-    private val createdProps: ConcurrentLinkedQueue<Pair<Int, SmartPropData>> =
-        ConcurrentLinkedQueue<Pair<Int, SmartPropData>>()
+    private val createdProps: ConcurrentLinkedQueue<Pair<Int, SmartCreatePropData>> =
+        ConcurrentLinkedQueue<Pair<Int, SmartCreatePropData>>()
     private val removedProps = ConcurrentLinkedQueue<Int>()
     private var nextPropID = 0
 
@@ -60,7 +60,7 @@ class SmartPropellerController : ShipForcesInducer {
 
     private fun computeForce(
         physTransform: ShipTransform,
-        physProp: PropData,
+        physProp: SmartPropData,
         vel: Vector3dc,
         omega: Vector3dc,
         physShip: PhysShipImpl
@@ -68,7 +68,7 @@ class SmartPropellerController : ShipForcesInducer {
         val netForce = Vector3d()
         val netTorque = Vector3d()
 
-        val speed = physProp.bearingSpeed * 0.05
+        val speed = physProp.bearingSpeed * 0.2
         val bearingVector: Vector3dc = Vector3d(physProp.bearingPos).add(0.5, 0.5, 0.5)
         val axis: Vector3dc = physProp.bearingAxis!!.mul(sign(speed), Vector3d())
         val rotation: Quaterniondc = Quaterniond(AxisAngle4d(Math.toRadians(physProp.bearingAngle), axis))
@@ -128,12 +128,12 @@ class SmartPropellerController : ShipForcesInducer {
 
     private fun refreshAndRemove() {
         while (!createdProps.isEmpty()) {
-            val createData: Pair<Int, SmartPropData> = createdProps.remove()
+            val createData: Pair<Int, SmartCreatePropData> = createdProps.remove()
             val propInertiaData = ShipInertiaDataImpl.newEmptyShipInertiaData()
             for (i in createData.second.sailPositions) {
                 propInertiaData.onSetBlock(i.x(), i.y(), i.z(), 0.0, 100.0)
             }
-            propellorPhysData[createData.component1()] = PropData(
+            propellorPhysData[createData.component1()] = SmartPropData(
                 createData.component2().bearingPos,
                 createData.component2().bearingAxis,
                 createData.component2().rotationAngle,
@@ -148,7 +148,8 @@ class SmartPropellerController : ShipForcesInducer {
         }
         propellorUpdatePhysData.forEach(
             BiConsumer<Int, SmartUpdateData> forEach@{ id: Int, data: SmartUpdateData ->
-                val physData: PropData = propellorPhysData[id] ?: return@forEach
+                val physData: SmartPropData = propellorPhysData[id] ?: return@forEach
+                physData.bearingAxis = data.bearingAxis
                 physData.bearingAngle = data.rotationAngle
                 physData.bearingSpeed = data.rotationSpeed
                 physData.inverted = data.inverted
@@ -158,9 +159,9 @@ class SmartPropellerController : ShipForcesInducer {
         propellorUpdatePhysData.clear()
     }
 
-    fun addPropeller(data: SmartPropData): Int {
+    fun addPropeller(data: SmartCreatePropData): Int {
         val id = nextPropID++
-        createdProps.add(Pair<Int, SmartPropData>(id, data))
+        createdProps.add(Pair<Int, SmartCreatePropData>(id, data))
         return id
     }
 
@@ -179,7 +180,7 @@ class SmartPropellerController : ShipForcesInducer {
         } else if (other !is SmartPropellerController) {
             false
         } else {
-            (propellorPhysData == other.propellorPhysData && propellorUpdatePhysData == other.propellorUpdatePhysData && areQueuesEqual<Pair<Int, SmartPropData>>(
+            (propellorPhysData == other.propellorPhysData && propellorUpdatePhysData == other.propellorUpdatePhysData && areQueuesEqual<Pair<Int, SmartCreatePropData>>(
                 createdProps,
                 other.createdProps
             ) && areQueuesEqual<Int>(removedProps, other.removedProps) && nextPropID == other.nextPropID)

@@ -1,14 +1,43 @@
 package org.valkyrienskies.clockwork.content.contraptions.smart_propeller.data
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect
 import org.joml.Vector3dc
-import org.joml.Vector3i
+import org.joml.Vector3ic
 
-data class SmartPropData(
-        val bearingPos: Vector3dc,
-        val bearingAxis: Vector3dc,
-        val rotationSpeed: Double,
-        val rotationAngle: Double,
-        val sailPositions: MutableList<Vector3i>,
-        val inverted: Boolean,
-        val overStressed: Boolean
-)
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+class SmartPropData {
+    val bearingPos: Vector3dc?
+    var bearingAxis: Vector3dc?
+    val propellorPositions: List<Vector3ic>?
+    var bearingAngle = 0.0
+    var bearingSpeed = 0.0
+    var inverted = false
+    var prevAngularMomentum: Vector3dc? = null
+    var overStressed: Boolean = false
+
+    // Default constructor for Jackson, should never be invoked manually
+    @Deprecated("")
+    constructor() {
+        bearingPos = null
+        bearingAxis = null
+        propellorPositions = null
+    }
+
+    constructor(
+        bearingPos: Vector3dc?,
+        bearingAxis: Vector3dc?,
+        bearingAngle: Double,
+        bearingSpeed: Double,
+        propellorPositions: List<Vector3ic>?,
+        inverted: Boolean,
+        overStressed: Boolean
+    ) {
+        this.bearingPos = bearingPos
+        this.bearingAxis = bearingAxis
+        this.bearingAngle = bearingAngle
+        this.bearingSpeed = bearingSpeed
+        this.propellorPositions = propellorPositions
+        this.inverted = inverted
+        this.overStressed = overStressed
+    }
+}

@@ -30,7 +30,7 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.contraption.SuperContraptionEntity
-import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.data.SmartPropData
+import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.data.SmartCreatePropData
 import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.data.SmartUpdateData
 import org.valkyrienskies.clockwork.content.forces.SmartPropellerController
 import org.valkyrienskies.clockwork.util.ClockworkConstants
@@ -40,6 +40,7 @@ import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
 import kotlin.math.max
+import kotlin.math.pow
 import kotlin.math.sqrt
 
 
@@ -148,10 +149,7 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
                 val invRotation = csShip.transform.shipToWorldRotation.invert(Quaterniond())
                 val modifiedInvRotation = Quaterniond(invRotation.x, -invRotation.y, invRotation.z, invRotation.w)
 
-                val globalTarget = -getDirectionScale()
-                var localTarget = MathUtil.rotateVecWithQuat(Vector3d(0.0, globalTarget.toDouble(), 0.0).toMinecraft(), modifiedInvRotation)
-
-                //localTarget = Vec3(localTarget.x, 0.0, localTarget.z)
+                val localTarget = MathUtil.rotateVecWithQuat(Vector3d(0.0, -getDirectionScale().toDouble(), 0.0).toMinecraft(), modifiedInvRotation)
 
                 setTilt(localTarget)
             }
@@ -163,15 +161,9 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
                 )
                 if (ship != null) {
 
-                    var dumbFix = 1
-                    val direction = blockState.getValue(BearingBlock.FACING)
-                    if (direction == Direction.WEST || direction == Direction.NORTH || direction == Direction.DOWN) {
-                        dumbFix = -dumbFix
-                    }
-
                     val data = SmartUpdateData(
                         tiltVector.toJOML(),
-                        dumbFix * angularSpeed.toDouble(),
+                        getThrust(),
                         angle.toDouble(),
                         false,
                         overStressed
@@ -256,7 +248,7 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
         val sailVecs = sailPositions.stream().map { v: BlockPos -> v.toJOML() }.toList()
         val vecPos: Vector3dc = blockPos.toJOMLD()
 
-        val data = SmartPropData(
+        val data = SmartCreatePropData(
             vecPos,
             axis,
             angle.toDouble(),
@@ -311,6 +303,12 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
             speed *= -1f
         }
         return if (speed > 0) 1f else -1f
+    }
+
+    fun getThrust(): Double {
+        val sails = sailPositions.size
+        return 0.1f * sails.toDouble().pow(1.5) * getDirectedRotationRate() * (10 / 3.0)
+
     }
 
     fun getDirectedRotationRate(): Double {
