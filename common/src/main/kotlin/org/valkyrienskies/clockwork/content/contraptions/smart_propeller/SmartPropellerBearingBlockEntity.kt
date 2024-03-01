@@ -64,7 +64,6 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
     private var disassemblyTimerScale: Float = 3.5f
     private var prevAngle: Float = 0f
     private var tiltVector: Vec3 = Vec3(0.0, 1.0, 0.0)
-    private var targetVector: Vec3 = Vec3(0.0, 1.0, 0.0)
 
     var tiltQuaternion: Quaternionf = Quaternionf(0f, 0f, 0f, 1f)
     var blockNormalVector: Vec3? = null
@@ -103,7 +102,6 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
         val direction: Direction = blockState.getValue(BlockStateProperties.FACING)
         blockNormalVector = Vec3(direction.stepX.toDouble(), direction.stepY.toDouble(), direction.stepZ.toDouble())
 
-        targetVector = target
         tiltVector = MathUtil.clampVecIntoCone(target, blockNormalVector!!, Math.toRadians(24.0))
         if (disassemblySlowdown) {
             tiltVector = VecHelper.lerp(disassemblyTimer / disassemblyTimerTotal, blockNormalVector, tiltVector)
@@ -148,9 +146,14 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
             val csShip = level.getShipObjectManagingPos(blockPos)
             if (csShip != null) {
                 val invRotation = csShip.transform.shipToWorldRotation.invert(Quaterniond())
+                val modifiedInvRotation = Quaterniond(invRotation.x, -invRotation.y, invRotation.z, invRotation.w)
+
                 val globalTarget = -getDirectionScale()
-                val invv = MathUtil.rotateVecWithQuat(Vector3d(0.0, globalTarget.toDouble(), 0.0).toMinecraft(), invRotation)
-                setTilt(invv)
+                var localTarget = MathUtil.rotateVecWithQuat(Vector3d(0.0, globalTarget.toDouble(), 0.0).toMinecraft(), modifiedInvRotation)
+
+                //localTarget = Vec3(localTarget.x, 0.0, localTarget.z)
+
+                setTilt(localTarget)
             }
 
 
