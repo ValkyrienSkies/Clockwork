@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content.contraptions.smart_propeller
+package org.valkyrienskies.clockwork.content.contraptions.smart_propeller.contraption
 
 import com.jozufozu.flywheel.util.transform.TransformStack
 import com.mojang.blaze3d.vertex.PoseStack

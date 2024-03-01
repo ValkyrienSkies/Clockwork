@@ -5,7 +5,7 @@ import com.tterrag.registrate.util.entry.BlockEntityEntry
 import com.tterrag.registrate.util.entry.EntityEntry
 import dev.architectury.injectables.annotations.ExpectPlatform
 import net.minecraft.world.item.BlockItem
-import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.SuperContraptionEntity
+import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.contraption.SuperContraptionEntity
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatEntity

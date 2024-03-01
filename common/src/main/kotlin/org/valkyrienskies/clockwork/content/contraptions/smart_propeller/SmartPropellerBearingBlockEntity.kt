@@ -12,22 +12,33 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.INamedIconOptions
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour
 import com.simibubi.create.foundation.gui.AllIcons
-import com.simibubi.create.foundation.utility.Lang
 import com.simibubi.create.foundation.utility.ServerSpeedProvider
 import com.simibubi.create.foundation.utility.VecHelper
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.TranslatableComponent
+import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
+import org.joml.Quaterniond
 import org.joml.Quaternionf
+import org.joml.Vector3d
+import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkLang
+import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.contraption.SuperContraptionEntity
+import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.data.SmartPropData
+import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.data.SmartUpdateData
+import org.valkyrienskies.clockwork.content.forces.SmartPropellerController
 import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.clockwork.util.MathUtil
+import org.valkyrienskies.mod.common.getShipObjectManagingPos
+import org.valkyrienskies.mod.common.util.toJOML
+import org.valkyrienskies.mod.common.util.toJOMLD
+import org.valkyrienskies.mod.common.util.toMinecraft
 import kotlin.math.max
 import kotlin.math.sqrt
 
@@ -41,6 +52,8 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
         this,
         movementModeSlot
     )
+
+    private var smartPropId: Int? = null
 
     private var sailPositions: MutableList<BlockPos> = mutableListOf()
     private var rotationSpeed: Float = 0f
@@ -91,7 +104,7 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
         blockNormalVector = Vec3(direction.stepX.toDouble(), direction.stepY.toDouble(), direction.stepZ.toDouble())
 
         targetVector = target
-        tiltVector = MathUtil.clampVecIntoCone(target, blockNormalVector!!, Math.toRadians(12.0))
+        tiltVector = MathUtil.clampVecIntoCone(target, blockNormalVector!!, Math.toRadians(24.0))
         if (disassemblySlowdown) {
             tiltVector = VecHelper.lerp(disassemblyTimer / disassemblyTimerTotal, blockNormalVector, tiltVector)
         }
@@ -113,7 +126,7 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
             movedContraption = null
         }
 
-        if (level != null) {
+        if (level != null && level!!.getBlockState(worldPosition).hasProperty(BlockStateProperties.FACING)) {
             val facing = level!!.getBlockState(worldPosition).getValue(BlockStateProperties.FACING)
             blockNormalVector = Vec3(facing.stepX.toDouble(), facing.stepY.toDouble(), facing.stepZ.toDouble())
         }
@@ -122,10 +135,47 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
             return
         }
 
+
+
         if (movedContraption is SuperContraptionEntity) {
             val superContraption = movedContraption as SuperContraptionEntity
             superContraption.tiltQuaternion = tiltQuaternion
             superContraption.superDirection = blockState.getValue(BlockStateProperties.FACING)
+        }
+
+        if (smartPropId != null) {
+
+            val csShip = level.getShipObjectManagingPos(blockPos)
+            if (csShip != null) {
+                val invRotation = csShip.transform.shipToWorldRotation.invert(Quaterniond())
+                val globalTarget = -getDirectionScale()
+                val invv = MathUtil.rotateVecWithQuat(Vector3d(0.0, globalTarget.toDouble(), 0.0).toMinecraft(), invRotation)
+                setTilt(invv)
+            }
+
+
+            if (level is ServerLevel && !isVirtual) {
+                val ship = (level as ServerLevel).getShipObjectManagingPos(
+                    blockPos
+                )
+                if (ship != null) {
+
+                    var dumbFix = 1
+                    val direction = blockState.getValue(BearingBlock.FACING)
+                    if (direction == Direction.WEST || direction == Direction.NORTH || direction == Direction.DOWN) {
+                        dumbFix = -dumbFix
+                    }
+
+                    val data = SmartUpdateData(
+                        tiltVector.toJOML(),
+                        dumbFix * angularSpeed.toDouble(),
+                        angle.toDouble(),
+                        false,
+                        overStressed
+                    )
+                    SmartPropellerController.getOrCreate(ship)!!.updatePropeller(smartPropId!!, data)
+                }
+            }
         }
     }
 
@@ -198,6 +248,29 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
         updateGeneratedRotation()
         rotationSpeed = 0f
         getSails()
+
+        val axis: Vector3dc = tiltVector.toJOML()
+        val sailVecs = sailPositions.stream().map { v: BlockPos -> v.toJOML() }.toList()
+        val vecPos: Vector3dc = blockPos.toJOMLD()
+
+        val data = SmartPropData(
+            vecPos,
+            axis,
+            angle.toDouble(),
+            angularSpeed.toDouble(),
+            sailVecs,
+            false,
+            overStressed
+        )
+        if (!level!!.isClientSide) {
+            val ship = (level as ServerLevel).getShipObjectManagingPos(
+                blockPos
+            )
+            if (ship != null) {
+                smartPropId = SmartPropellerController.getOrCreate(ship)!!.addPropeller(data)
+            }
+        }
+        sendData()
     }
 
     fun getPartialVelocity(partialTick: Float): Float {
@@ -265,6 +338,19 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
         }
         angle = 0f
         applyRotation()
+
+        if (smartPropId != null) {
+            if (!level!!.isClientSide) {
+                val ship = (level as ServerLevel).getShipObjectManagingPos(
+                    blockPos
+                )
+                if (ship != null) {
+                    SmartPropellerController.getOrCreate(ship)!!.removePropeller(smartPropId!!)
+                }
+            }
+        }
+        sendData()
+
         super.disassemble()
     }
 
@@ -303,11 +389,17 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
 
     override fun write(compound: CompoundTag, clientPacket: Boolean) {
         compound.putFloat(ClockworkConstants.Nbt.ROT_SPEED, rotationSpeed)
+        if (smartPropId != null) {
+            compound.putInt(ClockworkConstants.Nbt.ID, smartPropId!!)
+        }
         super.write(compound, clientPacket)
     }
 
     override fun read(compound: CompoundTag, clientPacket: Boolean) {
         rotationSpeed = compound.getFloat(ClockworkConstants.Nbt.ROT_SPEED)
+        if (compound.contains(ClockworkConstants.Nbt.ID)) {
+            smartPropId = compound.getInt(ClockworkConstants.Nbt.ID)
+        }
         super.read(compound, clientPacket)
     }
 

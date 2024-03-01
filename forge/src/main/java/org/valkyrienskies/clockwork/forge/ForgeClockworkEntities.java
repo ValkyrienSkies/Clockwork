@@ -15,7 +15,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import org.valkyrienskies.clockwork.ClockworkLang;
 import org.valkyrienskies.clockwork.ClockworkMod;
-import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.SuperContraptionEntity;
+import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.contraption.SuperContraptionEntity;
 import org.valkyrienskies.clockwork.platform.entity.ForgeSequencedSeatEntity;
 
 public class ForgeClockworkEntities {

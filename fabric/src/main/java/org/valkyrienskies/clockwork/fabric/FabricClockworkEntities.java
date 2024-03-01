@@ -14,10 +14,9 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import org.valkyrienskies.clockwork.ClockworkEntities;
 import org.valkyrienskies.clockwork.ClockworkLang;
 import org.valkyrienskies.clockwork.ClockworkMod;
-import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.SuperContraptionEntity;
+import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.contraption.SuperContraptionEntity;
 import org.valkyrienskies.clockwork.platform.entity.FabricSequencedSeatEntity;
 
 public class FabricClockworkEntities {
