@@ -17,6 +17,8 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.function.BiConsumer
+import kotlin.math.exp
+import kotlin.math.min
 import kotlin.math.sign
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
@@ -68,7 +70,7 @@ class SmartPropellerController : ShipForcesInducer {
         val netForce = Vector3d()
         val netTorque = Vector3d()
 
-        val speed = physProp.bearingSpeed * 0.2
+        val speed = physProp.bearingSpeed * 0.19
         val bearingVector: Vector3dc = Vector3d(physProp.bearingPos).add(0.5, 0.5, 0.5)
         val axis: Vector3dc = physProp.bearingAxis!!.mul(sign(speed), Vector3d())
         val rotation: Quaterniondc = Quaterniond(AxisAngle4d(Math.toRadians(physProp.bearingAngle), axis))
@@ -77,8 +79,7 @@ class SmartPropellerController : ShipForcesInducer {
 
 
         for (pos in physProp.propellorPositions!!) {
-            val sailVector: Vector3dc = Vector3d(pos.x().toDouble(), pos.y().toDouble(), pos.z().toDouble())
-                .add(bearingVector)
+            val sailVector: Vector3dc = Vector3d(pos.x().toDouble(), pos.y().toDouble(), pos.z().toDouble()).add(bearingVector)
             val diff: Vector3dc = sailVector.sub(bearingVector, Vector3d())
             val rotatedDiff: Vector3dc = rotation.transform(diff, Vector3d())
             val sailVel: Vector3dc = rotatedDiff.cross(angVel, Vector3d())
@@ -88,8 +89,7 @@ class SmartPropellerController : ShipForcesInducer {
             val sailPosWorld: Vector3dc = physTransform.shipToWorld.transformPosition(sailVector, Vector3d())
             val sailPosRelShip: Vector3dc = sailPosWorld.sub(physTransform.positionInWorld, Vector3d())
             val torque = sailPosRelShip.cross(force, Vector3d())
-            val sailPosRelCenterMass: Vector3dc = physTransform.shipToWorld.transformPosition(sailVector, Vector3d())
-                .sub(physTransform.positionInWorld, Vector3d())
+            val sailPosRelCenterMass: Vector3dc = physTransform.shipToWorld.transformPosition(sailVector, Vector3d()).sub(physTransform.positionInWorld, Vector3d())
             val worldVelAtSail: Vector3dc = omega.cross(sailPosRelCenterMass, Vector3d()).add(vel, Vector3d())
             val exhaustVel = exhaustVelocity(rotatedDiff, angVel)
             var factor = 1.0 - Mth.clamp(axis.dot(worldVelAtSail) / exhaustVel, 0.0, 1.0)
@@ -112,9 +112,9 @@ class SmartPropellerController : ShipForcesInducer {
     }
 
     private fun airPressure(pos: Vector3dc): Double {
-        val offset = Math.exp(-(320.0 - 64.0) / 192.0)
+        val offset = exp(-(320.0 - 64.0) / 192.0)
         val height = pos.y()
-        val airPress = (Math.exp(-(height - 64.0) / 192) - offset) / (1.0 - offset)
+        val airPress = (exp(-(height - 64.0) / 192) - offset) / (1.0 - offset)
         return if (java.lang.Double.isFinite(airPress)) {
             Mth.clamp(airPress, 0.0, 1.0)
         } else {
@@ -123,7 +123,7 @@ class SmartPropellerController : ShipForcesInducer {
     }
 
     private fun exhaustVelocity(posRelBearing: Vector3dc, omega: Vector3dc): Double {
-        return Math.min(posRelBearing.cross(omega, Vector3d()).length() * 15, 40.0)
+        return min(posRelBearing.cross(omega, Vector3d()).length() * 15, 40.0)
     }
 
     private fun refreshAndRemove() {

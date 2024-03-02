@@ -19,9 +19,9 @@ class DebugWandItem(properties: Properties) : Item(properties) {
                 val be = level.getBlockEntity(blockPos) as SmartPropellerBearingBlockEntity
 
                 if (rend.nextBoolean()) {
-                    be.setTilt(Vec3(-0.33, 0.0, -0.67))
+                    be.setTiltTarget(Vec3(-0.33, 0.0, -0.67))
                 } else {
-                    be.setTilt(Vec3(0.5, 0.0, 0.5))
+                    be.setTiltTarget(Vec3(0.5, 0.0, 0.5))
                 }
 
 

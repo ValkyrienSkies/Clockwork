@@ -10,11 +10,13 @@ import com.mojang.math.Vector3f
 import com.simibubi.create.content.kinetics.base.BackHalfShaftInstance
 import com.simibubi.create.foundation.utility.AngleHelper
 import com.simibubi.create.foundation.utility.AnimationTickHolder
+import com.simibubi.create.foundation.utility.VecHelper
 import net.minecraft.core.Direction
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
 import org.joml.Quaternionf
 import org.valkyrienskies.clockwork.ClockworkPartials
+import org.valkyrienskies.clockwork.util.MathUtil
 import org.valkyrienskies.mod.common.util.toMinecraft
 
 
@@ -34,6 +36,9 @@ class SmartPropellerInstance(modelManager: MaterialManager?, blockEntity: SmartP
     private val rotationAxis: Vector3f
     private val blockOrientation: Quaternionf
 
+    private val prevTilt: Vec3 = Vec3(0.0,0.0,0.0)
+    private val tilt: Vec3 = Vec3(0.0,0.0,0.0)
+
     init {
         val facing = blockState.getValue(BlockStateProperties.FACING)
         rotationAxis = Direction.get(Direction.AxisDirection.POSITIVE, axis).step()
@@ -49,10 +54,10 @@ class SmartPropellerInstance(modelManager: MaterialManager?, blockEntity: SmartP
         waferData = mat.getModel(ClockworkPartials.SMART_PROP_WAFER, blockState).createInstance()
     }
 
-    private fun transformTop(matrices: PoseStack, transformStack: TransformStack, interpolatedAngle: Float) {
+    private fun transformTop(matrices: PoseStack, transformStack: TransformStack, interpolatedAngle: Float, interpolatedQuaternion: Quaternionf) {
         transformStack.pushPose()
         transformStack.translate(bearing.blockNormalVector!!.scale(0.1))
-        transformStack.multiply(bearing.tiltQuaternion.toMinecraft())
+        transformStack.multiply(interpolatedQuaternion.toMinecraft())
         transformStack.translate(bearing.blockNormalVector!!.scale(-0.1))
         transformStack.multiply(blockOrientation.toMinecraft())
 
@@ -75,11 +80,26 @@ class SmartPropellerInstance(modelManager: MaterialManager?, blockEntity: SmartP
         transformStack.popPose()
     }
 
+
+
     override fun beginFrame() {
         val interpolatedAngle: Float = bearing.getInterpolatedAngle(AnimationTickHolder.getPartialTicks() - 1)
+        //val interpolatedQuaternion = bearing.getInterpolatedTiltQuaternion(AnimationTickHolder.getPartialTicks() - 1)
+
+
+        //var interpolatedQuaternion = bearing.tiltQuaternion
+
+        val prevQuaternion = bearing.targetTiltQuaternion // Store the previous quaternion value
+        val currQuaternion = bearing.tiltQuaternion // Get the current quaternion value
+        val partialTicks = AnimationTickHolder.getPartialTicks() - 1 // Calculate partial ticks
+
+        // Perform spherical linear interpolation (slerp) between the previous and current quaternion values
+        val interpolatedQuaternion = Quaternionf().slerp(prevQuaternion, partialTicks, currQuaternion)
+
+
         val rotQuaternion = Quaternionf(0.0F, 0.0F, 0.0F, 1.0F)
 
-        rotQuaternion.mul(bearing.tiltQuaternion)
+        rotQuaternion.mul(interpolatedQuaternion)
 
         val quat = rotationAxis.rotationDegrees(interpolatedAngle)
         rotQuaternion.mul(quat.i(), quat.j(), quat.k(), quat.r())
@@ -93,7 +113,7 @@ class SmartPropellerInstance(modelManager: MaterialManager?, blockEntity: SmartP
         transformStack.centre()
 
         //Transform, tilt and rotate Top part of propeller
-        transformTop(matrices, transformStack, interpolatedAngle)
+        transformTop(matrices, transformStack, interpolatedAngle, interpolatedQuaternion)
         //Transform and tilt Wafer of the propeller
         transformWafer(matrices, transformStack)
         //Transform Pistons of the propeller

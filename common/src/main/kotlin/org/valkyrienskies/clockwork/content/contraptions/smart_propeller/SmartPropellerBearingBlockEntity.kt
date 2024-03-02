@@ -25,6 +25,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
 import org.joml.Quaterniond
+import org.joml.QuaterniondInterpolator
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3dc
@@ -39,9 +40,7 @@ import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
-import kotlin.math.max
-import kotlin.math.pow
-import kotlin.math.sqrt
+import kotlin.math.*
 
 
 class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
@@ -64,13 +63,18 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
     private var disassemblyTimerTotal: Float = 0f
     private var disassemblyTimerScale: Float = 3.5f
     private var prevAngle: Float = 0f
-    private var tiltVector: Vec3 = Vec3(0.0, 1.0, 0.0)
+    var tiltVector: Vec3 = Vec3(0.0, 1.0, 0.0)
+    var targetTiltVector: Vec3 = tiltVector
+    private var tiltCooldown: Int = 0
 
     var tiltQuaternion: Quaternionf = Quaternionf(0f, 0f, 0f, 1f)
+    var targetTiltQuaternion: Quaternionf = Quaternionf(0f, 0f, 0f, 1f)
+
     var blockNormalVector: Vec3? = null
 
     init {
         tiltQuaternion.normalize()
+        targetTiltQuaternion.normalize()
     }
 
     override fun addBehavioursDeferred(behaviours: MutableList<BlockEntityBehaviour>?) {
@@ -99,16 +103,46 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
         }
     }
 
-    fun setTilt(target: Vec3) {
-        val direction: Direction = blockState.getValue(BlockStateProperties.FACING)
-        blockNormalVector = Vec3(direction.stepX.toDouble(), direction.stepY.toDouble(), direction.stepZ.toDouble())
 
-        tiltVector = MathUtil.clampVecIntoCone(target, blockNormalVector!!, Math.toRadians(24.0))
+    private fun lerpTarget() {
+        // Calculate the intermediate tilt vector
+        val tempTiltVector = VecHelper.lerp(0.1f, tiltVector, targetTiltVector)
+
+
+        // Update tiltVector to the intermediate tilt vector
+        tiltVector = tempTiltVector
+
+        // Update other variables based on the new tiltVector
+        thrustDirection = tiltVector
+        tiltQuaternion = MathUtil.quatFromVecRot(blockNormalVector!!, tiltVector)
+
+
+        // Apply additional lerping if necessary
         if (disassemblySlowdown) {
             tiltVector = VecHelper.lerp(disassemblyTimer / disassemblyTimerTotal, blockNormalVector, tiltVector)
         }
-        tiltQuaternion = MathUtil.quatFromVecRot(blockNormalVector!!, tiltVector)
-        thrustDirection = tiltVector
+
+        val formattedPrev = String.format("(%.3f, %.3f, %.3f, %.3f)",
+            targetTiltQuaternion.x, targetTiltQuaternion.y,
+            targetTiltQuaternion.z, targetTiltQuaternion.w)
+        val formattedCurr = String.format("(%.3f, %.3f, %.3f, %.3f)",
+            tiltQuaternion.x, tiltQuaternion.y,
+            tiltQuaternion.z, tiltQuaternion.w)
+
+
+        println("Interpolating quaternion: \ntarg=$formattedPrev, \ncurr=$formattedCurr")
+
+    }
+
+
+    fun setTiltTarget(target: Vec3) {
+        val direction: Direction = blockState.getValue(BlockStateProperties.FACING)
+        blockNormalVector = Vec3(direction.stepX.toDouble(), direction.stepY.toDouble(), direction.stepZ.toDouble())
+
+        val clampedTiltVector = MathUtil.clampVecIntoCone(target, blockNormalVector!!, Math.toRadians(24.0))
+
+        targetTiltVector = clampedTiltVector
+        targetTiltQuaternion = MathUtil.quatFromVecRot(blockNormalVector!!, targetTiltVector)
     }
 
     override fun tick() {
@@ -146,12 +180,26 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
 
             val csShip = level.getShipObjectManagingPos(blockPos)
             if (csShip != null) {
-                val invRotation = csShip.transform.shipToWorldRotation.invert(Quaterniond())
-                val modifiedInvRotation = Quaterniond(invRotation.x, -invRotation.y, invRotation.z, invRotation.w)
 
-                val localTarget = MathUtil.rotateVecWithQuat(Vector3d(0.0, -getDirectionScale().toDouble(), 0.0).toMinecraft(), modifiedInvRotation)
+                // Call lerpTarget only when the tilt target is updated
+                if (tiltCooldown > 10) {
+                    tiltCooldown = 0
 
-                setTilt(localTarget)
+                    val invRotation = csShip.transform.shipToWorldRotation.invert(Quaterniond())
+                    val modifiedInvRotation = Quaterniond(invRotation.x, -invRotation.y, invRotation.z, invRotation.w)
+
+                    val localTarget = MathUtil.rotateVecWithQuat(Vector3d(0.0, -getDirectionScale().toDouble(), 0.0).toMinecraft(), modifiedInvRotation)
+
+                    setTiltTarget(localTarget)
+                }
+
+                // Call lerpTarget every tick to gradually approach the target tilt vector
+                lerpTarget()
+
+                // Increment tiltCooldown every tick
+                tiltCooldown++
+
+
             }
 
 
@@ -173,6 +221,7 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
             }
         }
     }
+
 
     private fun updateRotationSpeed() {
         var nextSpeed = convertToAngular(getSpeed())
@@ -378,6 +427,27 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
         }
 
         return Mth.lerp(newPartialTicks, angle, angle + angularSpeed)
+    }
+
+    fun getInterpolatedTiltQuaternion(partialTicks: Float): Quaternionf {
+        val qua = Quaternionf().slerp(targetTiltQuaternion, partialTicks, tiltQuaternion)
+        /*
+        val formattedPrev = String.format("(%.3f, %.3f, %.3f, %.3f)",
+            prevTiltQuaternion.x, prevTiltQuaternion.y,
+            prevTiltQuaternion.z, prevTiltQuaternion.w)
+        val formattedCurr = String.format("(%.3f, %.3f, %.3f, %.3f)",
+            tiltQuaternion.x, tiltQuaternion.y,
+            tiltQuaternion.z, tiltQuaternion.w)
+
+        val formattedLerp = String.format("(%.3f, %.3f, %.3f, %.3f)",
+            qua.x, qua.y, qua.z, qua.w)
+
+
+        println("Interpolating quaternion: \nprev=$formattedPrev, \ncurr=$formattedCurr, \nlerp=$formattedLerp")
+
+
+         */
+        return qua
     }
 
     override fun isWoodenTop(): Boolean {
