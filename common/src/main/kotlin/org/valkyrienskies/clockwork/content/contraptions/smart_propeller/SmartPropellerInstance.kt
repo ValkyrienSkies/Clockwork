@@ -90,15 +90,6 @@ class SmartPropellerInstance(modelManager: MaterialManager?, blockEntity: SmartP
         //val tempTiltVector = VecHelper.lerp(newPartialTicks, tiltVector, targetTiltVector)
         //MathUtil.quatFromVecRot(blockNormalVector!!, tempTiltVector)
 
-        val rotQuaternion = Quaternionf(0.0F, 0.0F, 0.0F, 1.0F)
-
-        rotQuaternion.mul(interpolatedQuaternion)
-
-        val quat = rotationAxis.rotationDegrees(interpolatedAngle)
-        rotQuaternion.mul(quat.i(), quat.j(), quat.k(), quat.r())
-
-        rotQuaternion.mul(blockOrientation)
-
         val matrices = PoseStack()
         val transformStack: TransformStack = TransformStack.cast(matrices)
 

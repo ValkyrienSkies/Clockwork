@@ -37,17 +37,13 @@ class SmartPropellerBearingRenderer(context: BlockEntityRendererProvider.Context
                             light: Int,
                             overlay: Int) {
 
-        if (Backend.canUseInstancing(blockEntity.level)) return
+        //if (Backend.canUseInstancing(blockEntity.level)) return
 
         super.renderSafe(blockEntity, partialTicks, ms, buffer, light, overlay)
 
         val facing: Direction = blockEntity.blockState.getValue(BlockStateProperties.FACING)
         val normal = Vec3(facing.stepX.toDouble(), facing.stepY.toDouble(), facing.stepZ.toDouble())
         val tiltQuaternion: Quaternionf = blockEntity.tiltQuaternion
-        val quaternionCopy = Quaternionf(tiltQuaternion)
-        quaternionCopy.conjugate()
-        quaternionCopy.mul(Quaternionf(normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat(), 0f))
-        quaternionCopy.mul(tiltQuaternion)
 
         //Render Pistons
         renderPistons(ms, buffer, blockEntity)
