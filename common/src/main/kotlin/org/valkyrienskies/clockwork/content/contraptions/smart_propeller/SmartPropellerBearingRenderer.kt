@@ -7,6 +7,7 @@ import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
 import com.simibubi.create.foundation.utility.AngleHelper
+import com.simibubi.create.foundation.utility.VecHelper
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
@@ -17,6 +18,8 @@ import org.joml.Quaternionf
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.util.MathUtil
 import org.valkyrienskies.mod.common.util.toMinecraft
+import kotlin.math.acos
+import kotlin.math.sin
 
 
 class SmartPropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
@@ -44,19 +47,73 @@ class SmartPropellerBearingRenderer(context: BlockEntityRendererProvider.Context
 
         val facing: Direction = blockEntity.blockState.getValue(BlockStateProperties.FACING)
         val normal = Vec3(facing.stepX.toDouble(), facing.stepY.toDouble(), facing.stepZ.toDouble())
-        val tiltQuaternion: Quaternionf = blockEntity.tiltQuaternion
-        val targetTiltQuaternion: Quaternionf = blockEntity.targetTiltQuaternion
+        val quat: Vec3 =blockEntity.clientTiltVector
+        val targetQuat: Vec3 = blockEntity.clientTargetTiltVector
 
-        var interpolated: Quaternionf = MathUtil.nlerp(tiltQuaternion, targetTiltQuaternion, partialTicks)
+        val resultVec = VecHelper.lerp(partialTicks, quat, targetQuat)
+        val resultQuat = MathUtil.quatFromVecRot(blockEntity.blockNormalVector!!, resultVec)
+
+        val formattedPrev = String.format("(%.3f, %.3f, %.3f)",
+            quat.x, quat.y,
+            quat.z)
+        val formattedQuat = String.format("(%.3f, %.3f, %.3f)",
+            targetQuat.x, targetQuat.y,
+            targetQuat.z)
+        val formattedInterpol = String.format("(%.3f, %.3f, %.3f)",
+            resultVec.x, resultVec.y,
+            resultVec.z)
+
+
+        println("Interpolating quaternion: ${String.format("%.3f", partialTicks)} \nprev=$formattedPrev, \ninte=$formattedInterpol, \ntarg=$formattedQuat")
+
 
         //Render Pistons
         renderPistons(ms, buffer, blockEntity)
 
         //Render Top
-        renderTop(ms, buffer, blockEntity, normal, interpolated, facing, partialTicks, light)
+        renderTop(ms, buffer, blockEntity, normal, resultQuat, facing, partialTicks, light)
 
         //Render Wafer
-        renderWafer(ms, buffer, blockEntity, normal, interpolated, facing)
+        renderWafer(ms, buffer, blockEntity, normal, resultQuat, facing)
+    }
+
+    fun interpolateQuaternion(quat: Quaternionf, targetQuat: Quaternionf, partialTicks: Float): Quaternionf {
+        val resultQuat = Quaternionf()
+
+        // Calculate the cosine of the angle between the quaternions
+        val cosom = quat.dot(targetQuat)
+
+        // Adjust signs if necessary
+        val targetQuatAdjusted = if (cosom < 0) {
+            targetQuat.mul(-1.0f, -1.0f, -1.0f, -1.0f)
+        } else {
+            targetQuat
+        }
+
+        // Interpolate using spherical linear interpolation (SLERP)
+        if (1.0f - cosom > 1E-6f) {
+            val omega = acos(cosom)
+            val sinom = sin(omega)
+            val scale0 = sin((1.0f - partialTicks) * omega) / sinom
+            val scale1 = sin(partialTicks * omega) / sinom
+
+            resultQuat.set(
+                scale0 * quat.x + scale1 * targetQuatAdjusted.x,
+                scale0 * quat.y + scale1 * targetQuatAdjusted.y,
+                scale0 * quat.z + scale1 * targetQuatAdjusted.z,
+                scale0 * quat.w + scale1 * targetQuatAdjusted.w
+            )
+        } else {
+            // If the quaternions are very close, perform linear interpolation
+            resultQuat.set(
+                (1.0f - partialTicks) * quat.x + partialTicks * targetQuatAdjusted.x,
+                (1.0f - partialTicks) * quat.y + partialTicks * targetQuatAdjusted.y,
+                (1.0f - partialTicks) * quat.z + partialTicks * targetQuatAdjusted.z,
+                (1.0f - partialTicks) * quat.w + partialTicks * targetQuatAdjusted.w
+            )
+        }
+
+        return resultQuat
     }
 
     private fun renderTop(

@@ -1,11 +1,13 @@
 package org.valkyrienskies.clockwork.util
 
 import com.mojang.math.Quaternion
+import io.netty.buffer.ByteBuf
 import net.minecraft.world.phys.Vec3
 import org.joml.Quaterniond
+import org.joml.Quaterniondc
 import org.joml.Quaternionf
 import org.joml.Vector3d
-import kotlin.math.PI
+import kotlin.jvm.internal.Intrinsics
 import kotlin.math.sqrt
 import kotlin.math.tan
 
@@ -148,5 +150,21 @@ object MathUtil {
     // This is the method you want
     fun nlerp(a: Quaternionf, b: Quaternionf, t: Float): Quaternionf {
         return normalize(lerp(a, b, t))
+    }
+
+    fun writeQuatf(byteBuf: ByteBuf, q: Quaternionf) {
+        byteBuf.writeFloat(q.x())
+        byteBuf.writeFloat(q.y())
+        byteBuf.writeFloat(q.z())
+        byteBuf.writeFloat(q.w())
+    }
+
+    fun readQuatf(byteBuf: ByteBuf): Quaternionf {
+        return Quaternionf(
+            byteBuf.readFloat(),
+            byteBuf.readFloat(),
+            byteBuf.readFloat(),
+            byteBuf.readFloat()
+        )
     }
 }

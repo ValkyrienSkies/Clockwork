@@ -9,6 +9,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.UpdateAlt
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.UpdateGyroPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerAttachmentSyncPacket
+import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.SmartPropSyncPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDestroyPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronGrabPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClearPacket
@@ -41,6 +42,7 @@ enum class ClockworkPackets(
     COLORBLOCKENTITY(BlockEntityColorPacket::class.java, ::BlockEntityColorPacket),
     SYNCABLESTORAGE(SyncableStoragePacket::class.java, ::SyncableStoragePacket),
     SLICKERATTACHMENT(SlickerAttachmentSyncPacket::class.java, ::SlickerAttachmentSyncPacket),
+    SMART_PROP_SYNC_PACKET(SmartPropSyncPacket::class.java, ::SmartPropSyncPacket),
 
 
     PHYSICS_INFUSER(PhysicsInfuserSyncPacket::class.java, ::PhysicsInfuserSyncPacket),

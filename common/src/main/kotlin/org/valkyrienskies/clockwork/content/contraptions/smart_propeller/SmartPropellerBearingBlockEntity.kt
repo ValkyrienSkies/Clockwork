@@ -14,6 +14,7 @@ import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOp
 import com.simibubi.create.foundation.gui.AllIcons
 import com.simibubi.create.foundation.utility.ServerSpeedProvider
 import com.simibubi.create.foundation.utility.VecHelper
+import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
@@ -30,6 +31,7 @@ import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkLang
+import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.contraption.SuperContraptionEntity
 import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.data.SmartCreatePropData
 import org.valkyrienskies.clockwork.content.contraptions.smart_propeller.data.SmartUpdateData
@@ -45,6 +47,7 @@ import kotlin.math.*
 
 class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
     MechanicalBearingBlockEntity(type, pos, state), IBearingBlockEntity {
+
 
     private var rotationDirectionBehavior: ScrollOptionBehaviour<RotationDirection>? = ScrollOptionBehaviour(
         RotationDirection::class.java,
@@ -65,16 +68,20 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
     private var prevAngle: Float = 0f
     var tiltVector: Vec3 = Vec3(0.0, 1.0, 0.0)
     var targetTiltVector: Vec3 = tiltVector
+
+
+    var clientTiltVector: Vec3 = Vec3(0.0, 1.0, 0.0)
+    var clientTargetTiltVector: Vec3 = clientTiltVector
     private var tiltCooldown: Int = 0
 
     var tiltQuaternion: Quaternionf = Quaternionf(0f, 0f, 0f, 1f)
-    var targetTiltQuaternion: Quaternionf = Quaternionf(0f, 0f, 0f, 1f)
+
+    //var clientTargetTiltQuat: Quaternionf = Quaternionf(0f, 0f, 0f, 1f)
 
     var blockNormalVector: Vec3? = null
 
     init {
         tiltQuaternion.normalize()
-        targetTiltQuaternion.normalize()
     }
 
     override fun addBehavioursDeferred(behaviours: MutableList<BlockEntityBehaviour>?) {
@@ -106,32 +113,21 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
 
     private fun lerpTarget() {
         // Calculate the intermediate tilt vector
-        val tempTiltVector = VecHelper.lerp(0.1f, tiltVector, targetTiltVector)
-
-
-        // Update tiltVector to the intermediate tilt vector
+        var tempTiltVector = VecHelper.lerp(0.1f, tiltVector, targetTiltVector)
         tiltVector = tempTiltVector
-
         // Update other variables based on the new tiltVector
         thrustDirection = tiltVector
         tiltQuaternion = MathUtil.quatFromVecRot(blockNormalVector!!, tiltVector)
 
-
-        // Apply additional lerping if necessary
         if (disassemblySlowdown) {
             tiltVector = VecHelper.lerp(disassemblyTimer / disassemblyTimerTotal, blockNormalVector, tiltVector)
         }
+    }
 
-        val formattedPrev = String.format("(%.3f, %.3f, %.3f, %.3f)",
-            targetTiltQuaternion.x, targetTiltQuaternion.y,
-            targetTiltQuaternion.z, targetTiltQuaternion.w)
-        val formattedCurr = String.format("(%.3f, %.3f, %.3f, %.3f)",
-            tiltQuaternion.x, tiltQuaternion.y,
-            tiltQuaternion.z, tiltQuaternion.w)
-
-
-        println("Interpolating quaternion: \ntarg=$formattedPrev, \ncurr=$formattedCurr")
-
+    private fun lerpClientTarget() {
+        // Calculate the intermediate tilt vector
+        var tempTiltVector = VecHelper.lerp(0.1f, clientTiltVector, clientTargetTiltVector)
+        clientTiltVector = tempTiltVector
     }
 
 
@@ -139,10 +135,14 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
         val direction: Direction = blockState.getValue(BlockStateProperties.FACING)
         blockNormalVector = Vec3(direction.stepX.toDouble(), direction.stepY.toDouble(), direction.stepZ.toDouble())
 
-        val clampedTiltVector = MathUtil.clampVecIntoCone(target, blockNormalVector!!, Math.toRadians(24.0))
+        targetTiltVector = MathUtil.clampVecIntoCone(target, blockNormalVector!!, Math.toRadians(24.0))
+    }
 
-        targetTiltVector = clampedTiltVector
-        targetTiltQuaternion = MathUtil.quatFromVecRot(blockNormalVector!!, targetTiltVector)
+    private fun setClientTarget(localTarget: Vec3) {
+        val direction: Direction = blockState.getValue(BlockStateProperties.FACING)
+        blockNormalVector = Vec3(direction.stepX.toDouble(), direction.stepY.toDouble(), direction.stepZ.toDouble())
+
+        clientTargetTiltVector = MathUtil.clampVecIntoCone(localTarget, blockNormalVector!!, Math.toRadians(24.0))
     }
 
     override fun tick() {
@@ -177,37 +177,47 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
         }
 
         if (smartPropId != null) {
+            if (level != null && level!!.isClientSide() && !isVirtual) {
+                val ship = (level as ClientLevel).getShipObjectManagingPos(
+                    blockPos
+                )
+                if (ship != null) {
+                    if (tiltCooldown > 10) {
+                        tiltCooldown = 0
+                        val invRotation = ship.transform.shipToWorldRotation.invert(Quaterniond())
+                        val modifiedInvRotation = Quaterniond(invRotation.x, -invRotation.y, invRotation.z, invRotation.w)
 
-            val csShip = level.getShipObjectManagingPos(blockPos)
-            if (csShip != null) {
+                        val localTarget = MathUtil.rotateVecWithQuat(Vector3d(0.0, -getDirectionScale().toDouble(), 0.0).toMinecraft(), modifiedInvRotation)
 
-                // Call lerpTarget only when the tilt target is updated
-                if (tiltCooldown > 10) {
-                    tiltCooldown = 0
-
-                    val invRotation = csShip.transform.shipToWorldRotation.invert(Quaterniond())
-                    val modifiedInvRotation = Quaterniond(invRotation.x, -invRotation.y, invRotation.z, invRotation.w)
-
-                    val localTarget = MathUtil.rotateVecWithQuat(Vector3d(0.0, -getDirectionScale().toDouble(), 0.0).toMinecraft(), modifiedInvRotation)
-
-                    setTiltTarget(localTarget)
+                        setClientTarget(localTarget)
+                    }
+                    tiltCooldown++
+                    lerpClientTarget()
                 }
-
-                // Call lerpTarget every tick to gradually approach the target tilt vector
-                lerpTarget()
-
-                // Increment tiltCooldown every tick
-                tiltCooldown++
-
-
             }
-
-
             if (level is ServerLevel && !isVirtual) {
                 val ship = (level as ServerLevel).getShipObjectManagingPos(
                     blockPos
                 )
                 if (ship != null) {
+
+                    // Call lerpTarget only when the tilt target is updated
+                    if (tiltCooldown > 10) {
+                        tiltCooldown = 0
+
+                        val invRotation = ship.transform.shipToWorldRotation.invert(Quaterniond())
+                        val modifiedInvRotation = Quaterniond(invRotation.x, -invRotation.y, invRotation.z, invRotation.w)
+
+                        val localTarget = MathUtil.rotateVecWithQuat(Vector3d(0.0, -getDirectionScale().toDouble(), 0.0).toMinecraft(), modifiedInvRotation)
+
+                        setTiltTarget(localTarget)
+                    }
+
+                    // Call lerpTarget every tick to gradually approach the target tilt vector
+                    lerpTarget()
+
+                    // Increment tiltCooldown every tick
+                    tiltCooldown++
 
                     val data = SmartUpdateData(
                         tiltVector.toJOML(),
@@ -221,6 +231,8 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
             }
         }
     }
+
+
 
 
     private fun updateRotationSpeed() {
