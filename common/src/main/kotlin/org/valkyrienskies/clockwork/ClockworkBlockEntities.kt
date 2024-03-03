@@ -66,11 +66,11 @@ object ClockworkBlockEntities {
                 type!!, pos!!, state!!
             )
         }
-        .instance {
-            BiFunction<MaterialManager?, SmartPropellerBearingBlockEntity?, BlockEntityInstance<in SmartPropellerBearingBlockEntity?>> { materialManager: MaterialManager?, blockEntity: SmartPropellerBearingBlockEntity? ->
-                SmartPropellerInstance(materialManager, blockEntity!!)
-            }
-        }
+        //.instance {
+        //    BiFunction<MaterialManager?, SmartPropellerBearingBlockEntity?, BlockEntityInstance<in SmartPropellerBearingBlockEntity?>> { materialManager: MaterialManager?, blockEntity: SmartPropellerBearingBlockEntity? ->
+        //        SmartPropellerInstance(materialManager, blockEntity!!)
+        //    }
+        //}
         .validBlocks(ClockworkBlocks.SMART_PROPELLER_BEARING)
         .renderer {
             NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in SmartPropellerBearingBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->

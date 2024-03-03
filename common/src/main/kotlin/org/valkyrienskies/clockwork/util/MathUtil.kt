@@ -114,4 +114,39 @@ object MathUtil {
         val invertedQuaternion = quaternion.copy()
         return Vector3d(invertedQuaternion.i().toDouble(), invertedQuaternion.j().toDouble(), invertedQuaternion.k().toDouble())
     }
+
+
+    fun dot(a: Quaternionf, b: Quaternionf): Float {
+        return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w
+    }
+
+    fun negate(a: Quaternionf): Quaternionf {
+        return Quaternionf(-a.x, -a.y, -a.z, -a.w)
+    }
+
+    fun normalize(a: Quaternionf): Quaternionf {
+        val l = 1.0f / sqrt(dot(a, a))
+        return Quaternionf(l * a.x, l * a.y, l * a.z, l * a.w)
+    }
+
+    fun lerp(a: Quaternionf, b: Quaternionf, t: Float): Quaternionf {
+        // negate second quaternion if dot product is negative
+        var bb = b
+        val l2 = dot(a, b)
+        if (l2 < 0.0f) {
+            bb = negate(b)
+        }
+        // c = a + t(b - a)  -->   c = a - t(a - b)
+        // the latter is slightly better on x64
+        val cX = a.x - t * (a.x - bb.x)
+        val cY = a.y - t * (a.y - bb.y)
+        val cZ = a.z - t * (a.z - bb.z)
+        val cW = a.w - t * (a.w - bb.w)
+        return Quaternionf(cX, cY, cZ, cW)
+    }
+
+    // This is the method you want
+    fun nlerp(a: Quaternionf, b: Quaternionf, t: Float): Quaternionf {
+        return normalize(lerp(a, b, t))
+    }
 }

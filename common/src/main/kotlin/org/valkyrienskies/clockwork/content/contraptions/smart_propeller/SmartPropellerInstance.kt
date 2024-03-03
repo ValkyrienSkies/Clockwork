@@ -84,18 +84,11 @@ class SmartPropellerInstance(modelManager: MaterialManager?, blockEntity: SmartP
 
     override fun beginFrame() {
         val interpolatedAngle: Float = bearing.getInterpolatedAngle(AnimationTickHolder.getPartialTicks() - 1)
-        //val interpolatedQuaternion = bearing.getInterpolatedTiltQuaternion(AnimationTickHolder.getPartialTicks() - 1)
+        //var interpolatedQuaternion = bearing.getInterpolatedQuat(AnimationTickHolder.getPartialTicks() - 1)
 
-
-        //var interpolatedQuaternion = bearing.tiltQuaternion
-
-        val prevQuaternion = bearing.targetTiltQuaternion // Store the previous quaternion value
-        val currQuaternion = bearing.tiltQuaternion // Get the current quaternion value
-        val partialTicks = AnimationTickHolder.getPartialTicks() - 1 // Calculate partial ticks
-
-        // Perform spherical linear interpolation (slerp) between the previous and current quaternion values
-        val interpolatedQuaternion = Quaternionf().slerp(prevQuaternion, partialTicks, currQuaternion)
-
+        var interpolatedQuaternion = bearing.tiltQuaternion
+        //val tempTiltVector = VecHelper.lerp(newPartialTicks, tiltVector, targetTiltVector)
+        //MathUtil.quatFromVecRot(blockNormalVector!!, tempTiltVector)
 
         val rotQuaternion = Quaternionf(0.0F, 0.0F, 0.0F, 1.0F)
 
