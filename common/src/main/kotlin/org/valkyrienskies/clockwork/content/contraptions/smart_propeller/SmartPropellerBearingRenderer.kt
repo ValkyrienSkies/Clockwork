@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
 import org.joml.Quaternionf
 import org.valkyrienskies.clockwork.ClockworkPartials
+import org.valkyrienskies.clockwork.util.MathUtil
 import org.valkyrienskies.mod.common.util.toMinecraft
 
 
@@ -44,15 +45,18 @@ class SmartPropellerBearingRenderer(context: BlockEntityRendererProvider.Context
         val facing: Direction = blockEntity.blockState.getValue(BlockStateProperties.FACING)
         val normal = Vec3(facing.stepX.toDouble(), facing.stepY.toDouble(), facing.stepZ.toDouble())
         val tiltQuaternion: Quaternionf = blockEntity.tiltQuaternion
+        val targetTiltQuaternion: Quaternionf = blockEntity.targetTiltQuaternion
+
+        var interpolated: Quaternionf = MathUtil.nlerp(tiltQuaternion, targetTiltQuaternion, partialTicks)
 
         //Render Pistons
         renderPistons(ms, buffer, blockEntity)
 
         //Render Top
-        renderTop(ms, buffer, blockEntity, normal, tiltQuaternion, facing, partialTicks, light)
+        renderTop(ms, buffer, blockEntity, normal, interpolated, facing, partialTicks, light)
 
         //Render Wafer
-        renderWafer(ms, buffer, blockEntity, normal, tiltQuaternion, facing)
+        renderWafer(ms, buffer, blockEntity, normal, interpolated, facing)
     }
 
     private fun renderTop(

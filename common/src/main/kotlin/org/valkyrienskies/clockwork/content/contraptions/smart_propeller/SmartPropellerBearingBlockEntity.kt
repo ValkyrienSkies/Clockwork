@@ -429,27 +429,6 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
         return Mth.lerp(newPartialTicks, angle, angle + angularSpeed)
     }
 
-    fun getInterpolatedTiltQuaternion(partialTicks: Float): Quaternionf {
-        val qua = Quaternionf().slerp(targetTiltQuaternion, partialTicks, tiltQuaternion)
-        /*
-        val formattedPrev = String.format("(%.3f, %.3f, %.3f, %.3f)",
-            prevTiltQuaternion.x, prevTiltQuaternion.y,
-            prevTiltQuaternion.z, prevTiltQuaternion.w)
-        val formattedCurr = String.format("(%.3f, %.3f, %.3f, %.3f)",
-            tiltQuaternion.x, tiltQuaternion.y,
-            tiltQuaternion.z, tiltQuaternion.w)
-
-        val formattedLerp = String.format("(%.3f, %.3f, %.3f, %.3f)",
-            qua.x, qua.y, qua.z, qua.w)
-
-
-        println("Interpolating quaternion: \nprev=$formattedPrev, \ncurr=$formattedCurr, \nlerp=$formattedLerp")
-
-
-         */
-        return qua
-    }
-
     override fun isWoodenTop(): Boolean {
         return false
     }
