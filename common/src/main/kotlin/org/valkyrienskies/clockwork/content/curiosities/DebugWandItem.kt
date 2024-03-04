@@ -14,7 +14,7 @@ class DebugWandItem(properties: Properties) : Item(properties) {
         val blockPos = context.clickedPos
         val rend = level.random
 
-        if (level.getBlockState(blockPos).`is`(ClockworkBlocks.SMART_PROPELLER_BEARING.get())) {
+        if (!level.isClientSide && level.getBlockState(blockPos).`is`(ClockworkBlocks.SMART_PROPELLER_BEARING.get())) {
             if (level.getBlockEntity(blockPos) is SmartPropellerBearingBlockEntity) {
                 val be = level.getBlockEntity(blockPos) as SmartPropellerBearingBlockEntity
 

@@ -164,7 +164,7 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
 
         if (movedContraption is SuperContraptionEntity) {
             val superContraption = movedContraption as SuperContraptionEntity
-            superContraption.tiltQuaternion = tiltQuaternion
+            superContraption.tiltQuaternion = clientTiltQuat
             superContraption.superDirection = blockState.getValue(BlockStateProperties.FACING)
         }
 
