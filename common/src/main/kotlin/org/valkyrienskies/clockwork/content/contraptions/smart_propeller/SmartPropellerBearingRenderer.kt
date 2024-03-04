@@ -2,7 +2,9 @@ package org.valkyrienskies.clockwork.content.contraptions.smart_propeller
 
 import com.jozufozu.flywheel.backend.Backend
 import com.jozufozu.flywheel.core.PartialModel
+import com.jozufozu.flywheel.util.transform.TransformStack
 import com.mojang.blaze3d.vertex.PoseStack
+import com.simibubi.create.content.contraptions.render.ContraptionEntityRenderer
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
@@ -67,6 +69,7 @@ class SmartPropellerBearingRenderer(context: BlockEntityRendererProvider.Context
 
         println("Interpolating quaternion: ${String.format("%.3f", partialTicks)} \nprev=$formattedPrev, \ninte=$formattedInterpol, \ntarg=$formattedQuat")
          */
+
 
         //Render Pistons
         renderPistons(ms, buffer, blockEntity)

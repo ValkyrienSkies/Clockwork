@@ -336,8 +336,7 @@ class SmartPropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
 
     fun getThrust(): Double {
         val sails = sailPositions.size
-        return 0.1f * sails.toDouble().pow(1.5) * getDirectedRotationRate() * (10 / 3.0)
-
+        return 0.1f * sails.toDouble().pow(1.5) * getDirectedRotationRate()
     }
 
     fun getDirectedRotationRate(): Double {
