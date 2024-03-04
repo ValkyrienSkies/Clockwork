@@ -28,8 +28,8 @@ class SmartPropSyncPacket : S2CCWPacket {
             val level = Minecraft.getInstance().level
             if (level != null && level.getBlockEntity(pos) is SmartPropellerBearingBlockEntity) {
                 val be = level.getBlockEntity(pos) as SmartPropellerBearingBlockEntity
-                //be.clientTargetTiltQuat = targetQuaternion
-                //be.clientTiltQuat =
+                be.clientTiltQuat = be.clientTargetTiltQuat
+                be.clientTargetTiltQuat = targetQuaternion
             }
         }
     }

@@ -47,12 +47,13 @@ class SmartPropellerBearingRenderer(context: BlockEntityRendererProvider.Context
 
         val facing: Direction = blockEntity.blockState.getValue(BlockStateProperties.FACING)
         val normal = Vec3(facing.stepX.toDouble(), facing.stepY.toDouble(), facing.stepZ.toDouble())
-        val quat: Vec3 =blockEntity.clientTiltVector
-        val targetQuat: Vec3 = blockEntity.clientTargetTiltVector
 
-        val resultVec = VecHelper.lerp(partialTicks, quat, targetQuat)
-        val resultQuat = MathUtil.quatFromVecRot(blockEntity.blockNormalVector!!, resultVec)
+        val quat = blockEntity.clientTiltQuat
+        val target = blockEntity.clientTargetTiltQuat
 
+        val interpol = MathUtil.nlerp(quat, target, partialTicks)
+
+        /*
         val formattedPrev = String.format("(%.3f, %.3f, %.3f)",
             quat.x, quat.y,
             quat.z)
@@ -65,55 +66,16 @@ class SmartPropellerBearingRenderer(context: BlockEntityRendererProvider.Context
 
 
         println("Interpolating quaternion: ${String.format("%.3f", partialTicks)} \nprev=$formattedPrev, \ninte=$formattedInterpol, \ntarg=$formattedQuat")
-
+         */
 
         //Render Pistons
         renderPistons(ms, buffer, blockEntity)
 
         //Render Top
-        renderTop(ms, buffer, blockEntity, normal, resultQuat, facing, partialTicks, light)
+        renderTop(ms, buffer, blockEntity, normal, interpol, facing, partialTicks, light)
 
         //Render Wafer
-        renderWafer(ms, buffer, blockEntity, normal, resultQuat, facing)
-    }
-
-    fun interpolateQuaternion(quat: Quaternionf, targetQuat: Quaternionf, partialTicks: Float): Quaternionf {
-        val resultQuat = Quaternionf()
-
-        // Calculate the cosine of the angle between the quaternions
-        val cosom = quat.dot(targetQuat)
-
-        // Adjust signs if necessary
-        val targetQuatAdjusted = if (cosom < 0) {
-            targetQuat.mul(-1.0f, -1.0f, -1.0f, -1.0f)
-        } else {
-            targetQuat
-        }
-
-        // Interpolate using spherical linear interpolation (SLERP)
-        if (1.0f - cosom > 1E-6f) {
-            val omega = acos(cosom)
-            val sinom = sin(omega)
-            val scale0 = sin((1.0f - partialTicks) * omega) / sinom
-            val scale1 = sin(partialTicks * omega) / sinom
-
-            resultQuat.set(
-                scale0 * quat.x + scale1 * targetQuatAdjusted.x,
-                scale0 * quat.y + scale1 * targetQuatAdjusted.y,
-                scale0 * quat.z + scale1 * targetQuatAdjusted.z,
-                scale0 * quat.w + scale1 * targetQuatAdjusted.w
-            )
-        } else {
-            // If the quaternions are very close, perform linear interpolation
-            resultQuat.set(
-                (1.0f - partialTicks) * quat.x + partialTicks * targetQuatAdjusted.x,
-                (1.0f - partialTicks) * quat.y + partialTicks * targetQuatAdjusted.y,
-                (1.0f - partialTicks) * quat.z + partialTicks * targetQuatAdjusted.z,
-                (1.0f - partialTicks) * quat.w + partialTicks * targetQuatAdjusted.w
-            )
-        }
-
-        return resultQuat
+        renderWafer(ms, buffer, blockEntity, normal, interpol, facing)
     }
 
     private fun renderTop(
