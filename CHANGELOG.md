@@ -3,6 +3,11 @@
 v0.1.7
 -
 - Improved Propeller spam protection
+- Added Creative Gravitron
+- Added recipe for Gravitron
+- Made regular Gravitron worse
+- [Fixed #24](https://github.com/mrsterner/Clockwork-Issues/issues/24)
+- [Fixed #21](https://github.com/mrsterner/Clockwork-Issues/issues/21)
 
 v0.1.6
 -
