@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.platform.forge;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import dev.architectury.registry.CreativeTabRegistry;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -38,7 +39,7 @@ public class PlatformUtilsImpl {
     }
 
     public static CreativeModeTab getCreativeTab(){
-        return CreativeTabRegistry.create(new ResourceLocation(MOD_ID, "clockwork"), () -> {
+        return CreativeTabRegistry.create(Component.translatable(MOD_ID, "clockwork"), () -> {
             return ClockworkItems.GRAVITRON.get().getDefaultInstance();
         });
     }

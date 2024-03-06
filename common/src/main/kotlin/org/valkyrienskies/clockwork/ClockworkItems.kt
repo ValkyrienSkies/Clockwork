@@ -44,7 +44,6 @@ object ClockworkItems {
                 it.stacksTo(1)
                 it.rarity(Rarity.UNCOMMON)
             }
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .tag(AllTags.AllItemTags.WRENCH.tag)
             .register()
 

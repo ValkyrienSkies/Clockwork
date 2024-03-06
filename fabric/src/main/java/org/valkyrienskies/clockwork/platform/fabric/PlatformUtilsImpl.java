@@ -7,6 +7,7 @@ import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTank
 import dev.architectury.registry.CreativeTabRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BucketItem;
@@ -40,7 +41,7 @@ public class PlatformUtilsImpl {
     }
 
     public static CreativeModeTab getCreativeTab(){
-        return CreativeTabRegistry.create(new ResourceLocation(MOD_ID, "clockwork"), () -> {
+        return CreativeTabRegistry.create(Component.translatable(MOD_ID, "clockwork"), () -> {
             return ClockworkItems.GRAVITRON.get().getDefaultInstance();
         });
     }

@@ -36,7 +36,7 @@ class GravitronState {
 
         @JvmStatic
         fun leftClickItem(player: Player, state: GravitronState): Boolean {
-            val level = player.level
+            val level = player.level()
             if (state.shipID != null && level is ServerLevel) {
                 val shipId = state.shipID
                 if (shipId != null) {
