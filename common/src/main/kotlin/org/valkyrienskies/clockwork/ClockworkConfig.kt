@@ -26,5 +26,8 @@ object ClockworkConfig {
             "minecraft:lava",
             "minecraft:flowing_lava"
         )
+
+        @JsonSchema(description = "Max Gravitron mass in 1000 kg")
+        var maxGravitronMass = 256
     }
 }
