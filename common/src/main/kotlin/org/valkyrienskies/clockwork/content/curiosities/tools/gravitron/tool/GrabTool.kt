@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool
 
-import com.simibubi.create.AllKeys
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.Tag
@@ -17,8 +16,8 @@ import org.valkyrienskies.clockwork.ClockworkPackets.Companion.sendToServer
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronForceInducer.Companion.getOrCreate
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronForceInducerData
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronGrabPacket
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem.Companion.GravitronState
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem.Companion.getState
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronState
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronState.Companion.getState
 import org.valkyrienskies.clockwork.util.ClockworkUtils.readVec3
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.ServerShip
@@ -116,7 +115,9 @@ class GrabTool : GravitronToolBase() {
                 val graviton = player.mainHandItem
                 val serverLevel = player.level as ServerLevel
 
-                if (s.shipID != null && graviton.`is`(ClockworkItems.GRAVITRON.get().asItem())) {
+                var bl = graviton.`is`(ClockworkItems.GRAVITRON.get().asItem())
+                var bl2 = graviton.`is`(ClockworkItems.CREATIVE_GRAVITRON.get().asItem())
+                if (s.shipID != null && (bl || bl2)) {
                     updateShip(s, serverLevel, player)
                 }
 

@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.fabric;
 
 import com.mojang.blaze3d.platform.Window;
+import dev.architectury.event.events.client.ClientReloadShadersEvent;
 import io.github.fabricators_of_create.porting_lib.event.client.KeyInputCallback;
 import io.github.fabricators_of_create.porting_lib.event.client.MouseButtonCallback;
 import io.github.fabricators_of_create.porting_lib.event.client.MouseScrolledCallback;
@@ -12,9 +13,12 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.server.packs.resources.ResourceProvider;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler;
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer;
+
+import java.io.IOException;
 
 public class ClockworkModFabricClient implements ClientModInitializer {
 
@@ -32,7 +36,8 @@ public class ClockworkModFabricClient implements ClientModInitializer {
 
         registerClientEvents();
         FabricClockworkClientEvents.register();
-        ClockworkShaders.INSTANCE.init();
+        //ClockworkShaders.INSTANCE.init();
+        ClientReloadShadersEvent.EVENT.register(ClockworkModFabricClient::onShaderReload);
 
         KeyInputCallback.EVENT.register(FabricClockworkInputEvents::onKeyInput);
 
@@ -42,6 +47,14 @@ public class ClockworkModFabricClient implements ClientModInitializer {
         BlockRenderLayerMap.INSTANCE.putBlock(ClockworkBlocks.GOO_BLOCK.get(), RenderType.translucent());
         BlockRenderLayerMap.INSTANCE.putItem(ClockworkBlocks.GOO_BLOCK.get().asItem(), RenderType.translucent());
         BlockRenderLayerMap.INSTANCE.putItem(ClockworkBlocks.SLICKER.get().asItem(), RenderType.translucent());
+    }
+
+    private static void onShaderReload(ResourceProvider provider, ClientReloadShadersEvent.ShadersSink sink) {
+        try {
+            ClockworkShaders.reload(provider, sink);
+        } catch (IOException e) {
+            throw new RuntimeException("could not reload shaders", e);
+        }
     }
 
     public static void registerClientEvents() {

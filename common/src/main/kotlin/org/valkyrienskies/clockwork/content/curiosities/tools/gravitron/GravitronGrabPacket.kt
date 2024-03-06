@@ -5,8 +5,7 @@ import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkItems
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem.Companion.getState
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem.Companion.grabssemble
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.CreativeGravitronItem.Companion.grabssemble
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.GrabTool
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.GravitronToolBase
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
@@ -35,9 +34,14 @@ class GravitronGrabPacket : C2SCWPacket {
             if (serverPlayer.level is ServerLevel) {
                 val serverLevel = serverPlayer.getLevel() as ServerLevel
                 val stack = serverPlayer.mainHandItem
-                if (stack.`is`(ClockworkItems.GRAVITRON.get().asItem())) {
+                val bl = stack.`is`(ClockworkItems.CREATIVE_GRAVITRON.get().asItem())
+                val bl2 = stack.`is`(ClockworkItems.GRAVITRON.get().asItem())
+                if (bl2 || bl) {
                     if (!serverPlayer.cooldowns.isOnCooldown(stack.item)) {
                         serverPlayer.cooldowns.addCooldown(stack.item, 20)
+                        if (bl2) {
+                            mode = GravitronToolBase.GRAB
+                        }
                         when (mode) {
                             GravitronToolBase.GRAB -> {
                                 GrabTool.tryGrabShip(serverLevel, serverPlayer, clickedPos!!.mutable(), clickLocation!!)

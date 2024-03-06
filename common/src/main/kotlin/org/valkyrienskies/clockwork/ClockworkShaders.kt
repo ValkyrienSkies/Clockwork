@@ -30,46 +30,39 @@ object ClockworkShaders {
         return scan_effect!!
     }
 
-    fun init() {
-        ClientReloadShadersEvent.EVENT.register { resourceProvider: ResourceProvider, shadersSink: ClientReloadShadersEvent.ShadersSink ->
-            try {
-                shadersSink.registerShader(
-                    ShaderInstance(
-                        resourceProvider,
-                        "crystal",
-                        DefaultVertexFormat.NEW_ENTITY
-                    )
-                ) { inst -> crystal = inst }
+    @Throws(IOException::class)
+    @JvmStatic
+    fun reload(resourceProvider: ResourceProvider, shadersSink: ClientReloadShadersEvent.ShadersSink) {
+        shadersSink.registerShader(
+            ShaderInstance(
+                resourceProvider,
+                "crystal",
+                DefaultVertexFormat.NEW_ENTITY
+            )
+        ) { inst -> crystal = inst }
 
-                shadersSink.registerShader(
-                    ShaderInstance(
-                        resourceProvider,
-                        "heat",
-                        DefaultVertexFormat.NEW_ENTITY
-                    )
-                ) { inst -> heat = inst }
+        shadersSink.registerShader(
+            ShaderInstance(
+                resourceProvider,
+                "heat",
+                DefaultVertexFormat.NEW_ENTITY
+            )
+        ) { inst -> heat = inst }
 
-                shadersSink.registerShader(
-                    ShaderInstance(
-                        resourceProvider,
-                        "haze",
-                        DefaultVertexFormat.NEW_ENTITY
-                    )
-                ) { inst -> haze = inst }
+        shadersSink.registerShader(
+            ShaderInstance(
+                resourceProvider,
+                "haze",
+                DefaultVertexFormat.NEW_ENTITY
+            )
+        ) { inst -> haze = inst }
 
-                shadersSink.registerShader(
-                    ShaderInstance(
-                        resourceProvider,
-                        "scan_effect",
-                        DefaultVertexFormat.POSITION_TEX
-                    )
-                ) { inst -> scan_effect = inst }
-
-            } catch (ex: IOException) {
-                System.err.println("Failed to load shader")
-                ex.printStackTrace()
-            }
-        }
+        shadersSink.registerShader(
+            ShaderInstance(
+                resourceProvider,
+                "scan_effect",
+                DefaultVertexFormat.POSITION_TEX
+            )
+        ) { inst -> scan_effect = inst }
     }
-
 }
