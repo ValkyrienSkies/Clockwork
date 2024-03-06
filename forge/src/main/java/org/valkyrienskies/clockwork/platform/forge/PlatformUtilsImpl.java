@@ -3,7 +3,6 @@ package org.valkyrienskies.clockwork.platform.forge;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import dev.architectury.registry.CreativeTabRegistry;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
