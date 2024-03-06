@@ -8,11 +8,14 @@ import com.simibubi.create.foundation.item.render.PartialItemModelRenderer
 import com.simibubi.create.foundation.utility.AnimationTickHolder
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
+import net.minecraft.client.renderer.block.model.ItemTransforms
+import net.minecraft.core.Direction
 import net.minecraft.world.entity.HumanoidArm
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkPartials
+import kotlin.math.PI
 
 class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
     override fun render(
@@ -36,7 +39,8 @@ class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
         var angle = worldTime * -25
         if (mainHand || offHand) angle += 360 * animation
         val offset = Vec3(7.7016, 8.3536, 1.6978)
-        renderer.render(ClockworkPartials.GRAV_DIAL_HAND.get(), light)
+        //renderer.render(ClockworkPartials.GRAV_DIAL_HAND.get(), light)
+        renderDial(stack, ms, renderer, light)
         renderer.render(ClockworkPartials.GRAV_PRONG_LEFT_ONE.get(), light)
         renderer.render(ClockworkPartials.GRAV_PRONG_RIGHT_ONE.get(), light)
         renderer.render(ClockworkPartials.GRAV_PRONG_LEFT_TWO.get(), light)
@@ -52,6 +56,32 @@ class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
         renderer.render(ClockworkPartials.GRAV_PRONG_TOP_THREE.get(), light)
     }
 
-    protected fun renderDial() {}
+    protected fun renderDial(stack: ItemStack, ms: PoseStack, renderer: PartialItemModelRenderer, light: Int) {
+
+        ms.pushPose()
+
+        ms.mulPose(Axis.XN.rotationDegrees(22.5f))
+        ms.translate(0.315,0.175,-0.115)
+        ms.pushPose()
+        val x = -8.517/16
+        val y = -6.48/16
+        val z = 14.0/16
+
+        ms.translate(x,y,y)
+        ms.mulPose(Axis.ZN.rotationDegrees(6 * AnimationTickHolder.getTicks() % 360.0f))
+        ms.translate(-x,-y,-z)
+        ms.pushPose()
+        ms.popPose()
+        ms.translate(.0015,.0,2.2)
+        ms.pushPose()
+        ms.translate(-.04,.05,.0)
+
+        renderer.render(ClockworkPartials.GRAV_DIAL_HAND.get(), light)
+        ms.popPose()
+        ms.popPose()
+
+        ms.popPose()
+
+    }
     protected fun renderProngs() {}
 }

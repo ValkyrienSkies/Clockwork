@@ -46,7 +46,7 @@ class GravitronGrabPacket : C2SCWPacket {
                         }
                         when (mode) {
                             GravitronToolBase.GRAB -> {
-                                GrabTool.tryGrabShip(serverLevel, serverPlayer, clickedPos!!.mutable(), clickLocation!!)
+                                GrabTool.tryGrabShip(serverLevel, serverPlayer, clickedPos!!.mutable(), clickLocation!!, bl)
                             }
 
                             GravitronToolBase.ASSEMBLE -> {
