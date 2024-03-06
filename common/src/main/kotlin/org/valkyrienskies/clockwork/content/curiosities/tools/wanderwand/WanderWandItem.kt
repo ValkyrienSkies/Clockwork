@@ -23,6 +23,7 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.AABB
 import org.joml.Vector3ic
+import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
@@ -69,19 +70,23 @@ class WanderWandItem(properties: Properties) : CWItem(properties) {
         if (level.isClientSide) {
             return
         }
+        if (entity !is Player) {
+            return
+        }
 
-        if (isSelected && !this.wasSelected) {
+        val bl = entity.mainHandItem.`is`(ClockworkItems.WANDERWAND.get().asItem())
+        if (bl && !this.wasSelected) {
             this.shouldRenderOutlines = true
             this.animationType = Animation.DRAW
-        } else if (!isSelected && this.wasSelected) {
+        } else if (!bl && this.wasSelected) {
             this.shouldRenderOutlines = false
         }
-        this.wasSelected = isSelected
+        this.wasSelected = bl
         this.idleProgress += (0.01f * Math.PI).toFloat()
         if (this.idleProgress >= 2f * Math.PI) {
             this.idleProgress = 0f
         }
-        if (isSelected) {
+        if (bl) {
             if (this.animationType == Animation.IDLE) {
                 this.soundTickCounter += Mth.randomBetween(soundRandom, 0.1f, 0.3f)
                 if (this.soundTickCounter >= 40) {

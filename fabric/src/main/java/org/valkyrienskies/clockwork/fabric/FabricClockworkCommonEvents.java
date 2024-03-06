@@ -7,6 +7,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronState;
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.GrabTool;
@@ -20,7 +21,8 @@ public class FabricClockworkCommonEvents {
     }
 
     public static InteractionResult playerLeftClick(Player player, Level level, InteractionHand interactionHand, BlockPos blockPos, Direction direction) {
-        GravitronItem.leftClickItem(player, GravitronItem.getState(player));
+        GravitronState.leftClickItem(player, GravitronState.getState(player));
+
         boolean bl = WanderWandItem.onAttack(player);
         if (bl) {
             return InteractionResult.FAIL;

@@ -19,6 +19,7 @@ open class GravitronHandler {
     var activeHotbarSlot: Int = 0
     var activeSchematicItem: ItemStack? = null
     var overlay: GravitronHotbarSlotOverlay? = null
+    var isRegular = true
 
     init {
         overlay = GravitronHotbarSlotOverlay()
@@ -46,7 +47,7 @@ open class GravitronHandler {
         val stack = findGravitronInHand(player)
         if (stack == null) {
             active = false
-            if (activeSchematicItem != null && itemLost(player)) {
+            if (activeSchematicItem != null && itemLost(player!!)) {
                 activeHotbarSlot = 0
                 activeSchematicItem = null
             }
@@ -61,7 +62,7 @@ open class GravitronHandler {
     }
 
     fun render(poseStack: PoseStack, partialTicks: Float, width: Int, height: Int) {
-        if (Minecraft.getInstance().options.hideGui || !active) {
+        if (Minecraft.getInstance().options.hideGui || !active || isRegular) {
             return
         }
         if (activeSchematicItem != null) {
@@ -76,13 +77,11 @@ open class GravitronHandler {
         active = true
     }
 
-    private fun itemLost(player: Player?): Boolean {
+    private fun itemLost(player: Player): Boolean {
         for (i in 0 until Inventory.getSelectionSize()) {
-            if (!ItemStack.matches(
-                    player!!.inventory
-                        .getItem(i), activeSchematicItem
-                )
-            ) {
+            val bl = player.inventory.getItem(i).`is`(ClockworkItems.GRAVITRON.get().asItem())
+            val bl2 = player.inventory.getItem(i).`is`(ClockworkItems.CREATIVE_GRAVITRON.get().asItem())
+            if (!bl && !bl2) {
                 continue
             }
             return false
@@ -97,9 +96,11 @@ open class GravitronHandler {
 
     private fun findGravitronInHand(player: Player?): ItemStack? {
         val stack = player!!.mainHandItem
-        if (!ClockworkItems.GRAVITRON.isIn(stack)) {
+        if (!ClockworkItems.GRAVITRON.isIn(stack) && !ClockworkItems.CREATIVE_GRAVITRON.isIn(stack)) {
             return null
         }
+
+        isRegular = ClockworkItems.GRAVITRON.isIn(stack)
 
         activeSchematicItem = stack
         activeHotbarSlot = player.inventory.selected
@@ -141,14 +142,16 @@ open class GravitronHandler {
         if (!active) {
             return false
         }
+        if (isRegular) {
+            return false
+        }
 
         if (selectionScreen!!.focus) {
             selectionScreen!!.cycle(delta.toInt())
             return true
         }
         if (AllKeys.ctrlDown()) {
-            return currentTool!!.tool
-                .handleMouseWheel(delta)
+            return currentTool!!.tool.handleMouseWheel(delta)
         }
         return false
     }

@@ -9,6 +9,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
 import org.slf4j.LoggerFactory
+import org.valkyrienskies.clockwork.platform.PlatformUtils
 import org.valkyrienskies.core.impl.config.VSConfigClass
 import org.valkyrienskies.core.impl.hooks.VSEvents
 
@@ -25,8 +26,7 @@ object ClockworkMod {
     val REGISTRATE: CreateRegistrate = CreateRegistrate.create(MOD_ID)
     val MIXIN_LOGGER = LoggerFactory.getLogger("ClockworkMixins")
     val LOGGER = LogUtils.getLogger()
-    val BASE_CREATIVE_TAB: CreativeModeTab = CreativeTabRegistry
-        .create(ResourceLocation(MOD_ID, "clockwork")) { ClockworkItems.GRAVITRON.get().defaultInstance }
+    val BASE_CREATIVE_TAB: CreativeModeTab = PlatformUtils.getCreativeTab()
 
     @JvmStatic
     fun init() {
