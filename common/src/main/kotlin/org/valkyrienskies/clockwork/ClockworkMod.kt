@@ -52,7 +52,7 @@ object ClockworkMod {
             .icon { ClockworkBlocks.PHYSICS_INFUSER.asStack() }
             .displayItems { _, output ->
                 output.accept(ClockworkItems.GRAVITRON)
-
+                output.accept(ClockworkItems.CREATIVE_GRAVITRON)
                 output.accept(ClockworkItems.WANDERWAND)
                 output.accept(ClockworkItems.WANDERLITE_CRYSTAL)
                 output.accept(ClockworkItems.WANDERLITE_CUBE)
