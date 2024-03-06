@@ -41,7 +41,6 @@ object ClockworkMod {
         VSConfigClass.registerConfig("vs_clockwork", ClockworkConfig::class.java)
     }
 
-
     @JvmStatic
     fun asResource(path: String): ResourceLocation {
         return ResourceLocation(MOD_ID, path)

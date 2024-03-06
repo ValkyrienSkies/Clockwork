@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.fabric;
 
 import com.mojang.blaze3d.platform.Window;
+import dev.architectury.event.events.client.ClientReloadShadersEvent;
 import io.github.fabricators_of_create.porting_lib.event.client.KeyInputCallback;
 import io.github.fabricators_of_create.porting_lib.event.client.MouseInputEvents;
 import net.fabricmc.api.ClientModInitializer;
@@ -11,9 +12,12 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.server.packs.resources.ResourceProvider;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler;
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer;
+
+import java.io.IOException;
 
 public class ClockworkModFabricClient implements ClientModInitializer {
 
@@ -31,7 +35,8 @@ public class ClockworkModFabricClient implements ClientModInitializer {
 
         registerClientEvents();
         FabricClockworkClientEvents.register();
-        ClockworkShaders.INSTANCE.init();
+        //ClockworkShaders.INSTANCE.init();
+        ClientReloadShadersEvent.EVENT.register(ClockworkModFabricClient::onShaderReload);
 
         KeyInputCallback.EVENT.register(FabricClockworkInputEvents::onKeyInput);
 
@@ -42,6 +47,14 @@ public class ClockworkModFabricClient implements ClientModInitializer {
 
         MouseInputEvents.BEFORE_SCROLL.register(FabricClockworkInputEvents::onMouseScrolled);
         MouseInputEvents.BEFORE_BUTTON.register(FabricClockworkInputEvents::onMouseInput);
+    }
+
+    private static void onShaderReload(ResourceProvider provider, ClientReloadShadersEvent.ShadersSink sink) {
+        try {
+            ClockworkShaders.reload(provider, sink);
+        } catch (IOException e) {
+            throw new RuntimeException("could not reload shaders", e);
+        }
     }
 
     public static void registerClientEvents() {

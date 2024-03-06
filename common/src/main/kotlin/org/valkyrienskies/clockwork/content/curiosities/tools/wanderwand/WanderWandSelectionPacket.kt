@@ -28,9 +28,7 @@ class WanderWandSelectionPacket : S2CCWPacket {
     override fun handle(context: ClientNetworkContext) {
         context.enqueueWork {
             if (Minecraft.getInstance().level != null && Minecraft.getInstance().player != null) {
-                if (Minecraft.getInstance().player!!.mainHandItem
-                        .item !is WanderWandItem
-                ) {
+                if (Minecraft.getInstance().player!!.mainHandItem.item !is WanderWandItem) {
                     context.setPacketHandled(true)
                     return@enqueueWork
                 }

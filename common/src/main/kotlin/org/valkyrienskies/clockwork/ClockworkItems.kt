@@ -10,6 +10,7 @@ import org.valkyrienskies.clockwork.content.curiosities.WanderliteCubeItemRender
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItem
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.CreativeGravitronItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItemRenderer
 import org.valkyrienskies.clockwork.platform.CWItem
@@ -32,6 +33,19 @@ object ClockworkItems {
             .transform(ClockworkRegistrate.customRenderedItem { Supplier { GravitronItemRenderer() } })
             .tag(AllTags.AllItemTags.WRENCH.tag)
             .model(AssetLookup.itemModelWithPartials())
+            .register()
+
+    @JvmField
+    val CREATIVE_GRAVITRON: ItemEntry<CreativeGravitronItem> =
+        REGISTRATE.item<CreativeGravitronItem>("creative_gravitron") { properties: Item.Properties? ->
+            CreativeGravitronItem(properties!!)
+        }
+            .properties {
+                it.stacksTo(1)
+                it.rarity(Rarity.UNCOMMON)
+            }
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tag(AllTags.AllItemTags.WRENCH.tag)
             .register()
 
     @JvmField

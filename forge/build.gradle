@@ -82,7 +82,7 @@ dependencies {
     // CC Tweaked
     modCompileOnly("curse.maven:cctweaked-282001:5062501")
 
-    modRuntimeOnly "me.shedaniel:RoughlyEnoughItems-forge:${rei_version}"
+    //modRuntimeOnly "me.shedaniel:RoughlyEnoughItems-forge:${rei_version}"
 
 }
 
