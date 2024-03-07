@@ -4,9 +4,8 @@ import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.Tag
+import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Style
-import net.minecraft.network.chat.TextComponent
-import net.minecraft.network.chat.TranslatableComponent
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Entity
@@ -34,7 +33,6 @@ import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.isBlockInShipyard
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOML
-import java.awt.Component
 
 class GrabTool : GravitronToolBase() {
 
@@ -188,7 +186,7 @@ class GrabTool : GravitronToolBase() {
 
                 if (mass > ClockworkConfig.SERVER.maxGravitronMass * 1000 * 0.9) {
                     player.displayClientMessage(
-                        TextComponent("Ship's starting to get heavy! ${mass.toInt()} / ${ClockworkConfig.SERVER.maxGravitronMass * 1000}").withStyle(
+                        Component.literal("Ship's starting to get heavy! ${mass.toInt()} / ${ClockworkConfig.SERVER.maxGravitronMass * 1000}").withStyle(
                             Style.EMPTY.withColor(
                                 ChatFormatting.GOLD
                             )
@@ -197,7 +195,7 @@ class GrabTool : GravitronToolBase() {
                 }
                 if (mass > ClockworkConfig.SERVER.maxGravitronMass * 1000) {
                     player.displayClientMessage(
-                        TextComponent("Ship too heavy! ${mass.toInt()} / ${ClockworkConfig.SERVER.maxGravitronMass * 1000}").withStyle(
+                        Component.literal("Ship too heavy! ${mass.toInt()} / ${ClockworkConfig.SERVER.maxGravitronMass * 1000}").withStyle(
                             Style.EMPTY.withColor(
                                 ChatFormatting.RED
                             )
