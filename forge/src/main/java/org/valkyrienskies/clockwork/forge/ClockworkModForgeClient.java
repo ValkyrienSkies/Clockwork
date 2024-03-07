@@ -23,17 +23,9 @@ public class ClockworkModForgeClient {
         ClockworkPartials.INSTANCE.init();
         ClockworkModClient.initClient();
         modEventBus.addListener(AllParticleTypes::registerFactories);
-        //ClockworkShaders.INSTANCE.init();
-        ClientReloadShadersEvent.EVENT.register(ClockworkModForgeClient::onShaderReload);
+        ClockworkShaders.INSTANCE.init();
+        //ClientReloadShadersEvent.EVENT.register(ClockworkModForgeClient::onShaderReload);
         OverlayRegistry.registerOverlayAbove(ForgeIngameGui.HOTBAR_ELEMENT, "Gravitron",
                 ClockworkModForgeClient.GRAVITRON_HANDLER.getOverlayRenderer());
-    }
-
-    private static void onShaderReload(ResourceProvider provider, ClientReloadShadersEvent.ShadersSink sink) {
-        try {
-            ClockworkShaders.reload(provider, sink);
-        } catch (IOException e) {
-            throw new RuntimeException("could not reload shaders", e);
-        }
     }
 }

@@ -61,11 +61,11 @@ dependencies {
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 
     include(modApi("dev.architectury:architectury-forge:${rootProject.architectury_version}"))
-    implementation(include("io.github.llamalad7:mixinextras-forge:0.2.1"))
+    include(forgeRuntimeLibrary(annotationProcessor(implementation("com.github.LlamaLad7:MixinExtras:0.1.1"))))
 
     //VS2
     modApi("org.valkyrienskies:valkyrienskies-118-forge:${rootProject.vs2_version}") { transitive = false }
-    implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") { transitive = false }
+    implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}")
 
     // Create and its dependencies
     modImplementation("com.simibubi.create:create-${minecraft_version}:${create_forge_version}:slim") { transitive = false }
@@ -80,9 +80,9 @@ dependencies {
     implementation 'thedarkcolour:kotlinforforge:3.12.0'
 
     // CC Tweaked
-    modCompileOnly("curse.maven:cctweaked-282001:4061947")
+    //modCompileOnly("curse.maven:cctweaked-282001:4061947")
 
-    //modRuntimeOnly "me.shedaniel:RoughlyEnoughItems-forge:${rei_version}"
+    modRuntimeOnly "me.shedaniel:RoughlyEnoughItems-forge:${rei_version}"
 
 }
 
