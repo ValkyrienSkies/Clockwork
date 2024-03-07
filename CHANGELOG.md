@@ -1,5 +1,10 @@
 # Changelog
 
+v0.1.8
+-
+- Added Mass limit to Gravitron
+- Added Functional mass displaying dial to Gravitron
+
 v0.1.7
 -
 - Improved Propeller spam protection

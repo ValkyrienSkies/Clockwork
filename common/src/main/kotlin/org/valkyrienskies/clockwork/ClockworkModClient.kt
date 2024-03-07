@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork
 import com.simibubi.create.foundation.outliner.Outliner
 
 object ClockworkModClient {
+
     @JvmStatic
     val OUTLINER: Outliner = Outliner()
 

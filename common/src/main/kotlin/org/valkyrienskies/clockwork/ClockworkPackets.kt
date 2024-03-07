@@ -11,6 +11,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInf
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerAttachmentSyncPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandSelectionPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDestroyPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDialPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronGrabPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClearPacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket
@@ -41,6 +42,7 @@ enum class ClockworkPackets(
     COLORBLOCKENTITY(BlockEntityColorPacket::class.java, ::BlockEntityColorPacket),
     SYNCABLESTORAGE(SyncableStoragePacket::class.java, ::SyncableStoragePacket),
     SLICKERATTACHMENT(SlickerAttachmentSyncPacket::class.java, ::SlickerAttachmentSyncPacket),
+    GRAVITRON_DIAL_PACKET(GravitronDialPacket::class.java, ::GravitronDialPacket),
 
 
     PHYSICS_INFUSER(PhysicsInfuserSyncPacket::class.java, ::PhysicsInfuserSyncPacket),
