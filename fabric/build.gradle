@@ -52,7 +52,7 @@ dependencies {
     // dependencies
     modImplementation("net.fabricmc.fabric-api:fabric-api:${fabric_api_version}")
     implementation(include("io.github.llamalad7:mixinextras-fabric:0.2.1"))
-    (modApi("dev.architectury:architectury-fabric:${rootProject.architectury_version}"))
+    include(modApi("dev.architectury:architectury-fabric:${rootProject.architectury_version}"))
 
     //VS2
     modApi("org.valkyrienskies:valkyrienskies-119-fabric:${rootProject.vs2_version}")
