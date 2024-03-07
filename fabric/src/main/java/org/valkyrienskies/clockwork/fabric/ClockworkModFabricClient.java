@@ -35,8 +35,8 @@ public class ClockworkModFabricClient implements ClientModInitializer {
 
         registerClientEvents();
         FabricClockworkClientEvents.register();
-        //ClockworkShaders.INSTANCE.init();
-        ClientReloadShadersEvent.EVENT.register(ClockworkModFabricClient::onShaderReload);
+        ClockworkShaders.INSTANCE.init();
+        //ClientReloadShadersEvent.EVENT.register(ClockworkModFabricClient::onShaderReload);
 
         KeyInputCallback.EVENT.register(FabricClockworkInputEvents::onKeyInput);
 
@@ -48,15 +48,6 @@ public class ClockworkModFabricClient implements ClientModInitializer {
         MouseInputEvents.BEFORE_SCROLL.register(FabricClockworkInputEvents::onMouseScrolled);
         MouseInputEvents.BEFORE_BUTTON.register(FabricClockworkInputEvents::onMouseInput);
     }
-
-    private static void onShaderReload(ResourceProvider provider, ClientReloadShadersEvent.ShadersSink sink) {
-        try {
-            ClockworkShaders.reload(provider, sink);
-        } catch (IOException e) {
-            throw new RuntimeException("could not reload shaders", e);
-        }
-    }
-
     public static void registerClientEvents() {
         ClientTickEvents.END_CLIENT_TICK.register(FabricClockworkClientEvents::onTick);
         ClientTickEvents.START_CLIENT_TICK.register(FabricClockworkClientEvents::onTickStart);

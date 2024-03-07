@@ -21,15 +21,8 @@ public class ClockworkModForgeClient {
         ClockworkPartials.INSTANCE.init();
         ClockworkModClient.initClient();
         modEventBus.addListener(AllParticleTypes::registerFactories);
-        //ClockworkShaders.INSTANCE.init();
-        ClientReloadShadersEvent.EVENT.register(ClockworkModForgeClient::onShaderReload);
+        ClockworkShaders.INSTANCE.init();
+        //ClientReloadShadersEvent.EVENT.register(ClockworkModForgeClient::onShaderReload);
      }
 
-    private static void onShaderReload(ResourceProvider provider, ClientReloadShadersEvent.ShadersSink sink) {
-        try {
-            ClockworkShaders.reload(provider, sink);
-        } catch (IOException e) {
-            throw new RuntimeException("could not reload shaders", e);
-        }
-    }
 }

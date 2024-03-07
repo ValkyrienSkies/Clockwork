@@ -30,9 +30,12 @@ object ClockworkShaders {
         return scan_effect!!
     }
 
-    @Throws(IOException::class)
+    fun init(){
+        ClientReloadShadersEvent.EVENT.register(::register)
+    }
+
     @JvmStatic
-    fun reload(resourceProvider: ResourceProvider, shadersSink: ClientReloadShadersEvent.ShadersSink) {
+    fun register(resourceProvider: ResourceProvider, shadersSink: ClientReloadShadersEvent.ShadersSink) {
         shadersSink.registerShader(
             ShaderInstance(
                 resourceProvider,
