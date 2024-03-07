@@ -425,20 +425,20 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         const val ASSEMBLY_TIME = 500
         const val DISASSEMBLY_TIME = 1000
         fun playInitializeSound(world: Level, location: Vec3) {
-            ClockworkSounds.PHYSICS_INFUSER_INITIALIZE.playAt(world, location, 1f, 1f, false)
+            ClockworkSounds.PHYSICS_INFUSER_INITIALIZE.playAt(world, location, 0.5f, 1f, false)
         }
 
         fun playWindupSound(world: Level, location: Vec3) {
-            ClockworkSounds.PHYSICS_INFUSER_WINDUP.playAt(world, location, 1f, 1f, false)
+            ClockworkSounds.PHYSICS_INFUSER_WINDUP.playAt(world, location, 0.5f, 1f, false)
         }
 
         fun playZapSound(world: Level, location: Vec3, rand: RandomSource) {
             val pitch = 0.6f + rand.nextFloat() * 0.4f
-            ClockworkSounds.PHYSICS_INFUSER_LIGHTNING.playAt(world, location, 1f, 1f, false)
+            ClockworkSounds.PHYSICS_INFUSER_LIGHTNING.playAt(world, location, 0.5f, 1f, false)
         }
 
         fun playFinishSound(world: Level, location: Vec3) {
-            ClockworkSounds.PHYSICS_INFUSER_FINISH.playAt(world, location, 1f, 1f, false)
+            ClockworkSounds.PHYSICS_INFUSER_FINISH.playAt(world, location, 0.5f, 1f, false)
         }
 
         fun spawnParticlesAssembly(world: Level, pos: Vec3, rand: RandomSource) {
