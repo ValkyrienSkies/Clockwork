@@ -10,6 +10,8 @@ import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkSounds
 
 class GravitronRenderHandler : ShootableGadgetRenderHandler() {
+
+
     override fun transformTool(ms: PoseStack, flip: Float, equipProgress: Float, recoil: Float, pt: Float) {
         ms.translate((flip * -0.1f).toDouble(), 0.1, -0.4)
         ms.mulPose(Axis.YP.rotationDegrees(flip * 5.0f))

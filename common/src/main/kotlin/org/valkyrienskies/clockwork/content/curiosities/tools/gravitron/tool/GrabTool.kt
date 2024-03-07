@@ -8,6 +8,7 @@ import net.minecraft.network.chat.Style
 import net.minecraft.network.chat.TextComponent
 import net.minecraft.network.chat.TranslatableComponent
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.Vec3
@@ -17,12 +18,15 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkItems
+import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkPackets.Companion.sendToServer
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDialPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronForceInducer.Companion.getOrCreate
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronForceInducerData
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronGrabPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronState
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronState.Companion.getState
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronState.Companion.mapValueToAngle
 import org.valkyrienskies.clockwork.util.ClockworkUtils.readVec3
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.ServerShip
@@ -174,7 +178,14 @@ class GrabTool : GravitronToolBase() {
             }
 
             if (!isCreative) {
+
                 val mass = ship.inertiaData.mass
+                if (player is ServerPlayer) {
+                    val q = mass.toFloat() / (ClockworkConfig.SERVER.maxGravitronMass * 1000f)
+                    val angle = mapValueToAngle(q * 100)
+                    ClockworkPackets.sendTo(GravitronDialPacket(angle), player)
+                }
+
                 if (mass > ClockworkConfig.SERVER.maxGravitronMass * 1000 * 0.9) {
                     player.displayClientMessage(
                         TextComponent("Ship's starting to get heavy! ${mass.toInt()} / ${ClockworkConfig.SERVER.maxGravitronMass * 1000}").withStyle(
