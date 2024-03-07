@@ -1,5 +1,9 @@
 # Changelog
 
+v0.1.9
+-
+- Only players can step on wanderlite ore to activate it
+
 v0.1.8
 -
 - Added mass limit to Gravitron
