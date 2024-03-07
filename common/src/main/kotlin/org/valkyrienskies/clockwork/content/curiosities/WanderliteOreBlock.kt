@@ -41,7 +41,7 @@ class WanderliteOreBlock(properties: Properties) : ExperienceBlock(properties) {
     }
 
     override fun stepOn(level: Level, pos: BlockPos, state: BlockState, entity: Entity) {
-        if (!entity.isSteppingCarefully && level is ServerLevel && !isAlreadyShip(level, pos)) {
+        if (entity is Player && !entity.isSteppingCarefully && level is ServerLevel && !isAlreadyShip(level, pos)) {
             shipifyBlock(level, pos)
         }
 
