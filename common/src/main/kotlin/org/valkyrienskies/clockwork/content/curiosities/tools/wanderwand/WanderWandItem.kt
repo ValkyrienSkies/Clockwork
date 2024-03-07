@@ -97,7 +97,7 @@ class WanderWandItem(properties: Properties) : CWItem(properties) {
                         entity,
                         ClockworkSounds.DESIGNATOR_IDLE.mainEvent!!,
                         entity.soundSource,
-                        0.5f,
+                        0.25f,
                         pitch
                     )
                 }
@@ -162,7 +162,7 @@ class WanderWandItem(properties: Properties) : CWItem(properties) {
                 player,
                 ClockworkSounds.DESIGNATOR_SELECT_START.mainEvent!!,
                 player.soundSource,
-                0.5f,
+                0.25f,
                 pitch
             )
             player.cooldowns.addCooldown(this, 10)
@@ -221,7 +221,7 @@ class WanderWandItem(properties: Properties) : CWItem(properties) {
                     player,
                     ClockworkSounds.PHYSICS_INFUSER_LIGHTNING.mainEvent!!,
                     player.soundSource,
-                    0.5f,
+                    0.25f,
                     pitch
                 )
                 this.animationType = Animation.DUMP
@@ -242,7 +242,7 @@ class WanderWandItem(properties: Properties) : CWItem(properties) {
                     player,
                     ClockworkSounds.PHYSICS_INFUSER_LIGHTNING.mainEvent!!,
                     player.soundSource,
-                    0.5f,
+                    0.25f,
                     pitch
                 )
                 this.animationType = Animation.DUMP
