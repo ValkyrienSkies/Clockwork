@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import dev.architectury.event.events.client.ClientReloadShadersEvent
 import net.minecraft.client.renderer.ShaderInstance
+import net.minecraft.server.packs.resources.ResourceManager
 import net.minecraft.server.packs.resources.ResourceProvider
 import java.io.IOException
 
@@ -30,12 +31,15 @@ object ClockworkShaders {
         return scan_effect!!
     }
 
-    @Throws(IOException::class)
-    @JvmStatic
-    fun reload(resourceProvider: ResourceProvider, shadersSink: ClientReloadShadersEvent.ShadersSink) {
-        shadersSink.registerShader(
+    fun init(){
+        ClientReloadShadersEvent.EVENT.register(::register)
+
+    }
+
+    fun register(resourceProvider: ResourceManager?, shadersSink: ClientReloadShadersEvent.ShadersSink?) {
+        shadersSink!!.registerShader(
             ShaderInstance(
-                resourceProvider,
+                resourceProvider!!,
                 "crystal",
                 DefaultVertexFormat.NEW_ENTITY
             )
