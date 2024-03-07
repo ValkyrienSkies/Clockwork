@@ -13,6 +13,15 @@ public class MixinPlayer implements MixinPlayerDuck {
     @Unique
     private GravitronState vs_clockwork$state;
 
+    @Unique
+    private float vs_clockwork$angle = 0f;
+
+    @Unique
+    private float vs_clockwork$prevAngle = 0f;
+
+    @Unique
+    private boolean vs_clockwork$needsRefresh = true;
+
     @Override
     public void setGravitronState(GravitronState s) {
         this.vs_clockwork$state = s;
@@ -21,5 +30,35 @@ public class MixinPlayer implements MixinPlayerDuck {
     @Override
     public GravitronState getGravitronState() {
         return vs_clockwork$state;
+    }
+
+    @Override
+    public void setGravitronDialAngle(float angle) {
+        this.vs_clockwork$angle = angle;
+    }
+
+    @Override
+    public float getGravitronDialAngle() {
+        return vs_clockwork$angle;
+    }
+
+    @Override
+    public void setPrevGravitronDialAngle(float angle) {
+        this.vs_clockwork$prevAngle = angle;
+    }
+
+    @Override
+    public float getPrevGravitronDialAngle() {
+        return vs_clockwork$prevAngle;
+    }
+
+    @Override
+    public void setNeedsRefresh(boolean refresh) {
+        this.vs_clockwork$needsRefresh = refresh;
+    }
+
+    @Override
+    public boolean getNeedsRefresh() {
+        return vs_clockwork$needsRefresh;
     }
 }

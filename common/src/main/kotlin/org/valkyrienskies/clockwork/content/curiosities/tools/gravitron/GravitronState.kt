@@ -11,6 +11,8 @@ import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.properties.ShipId
 import org.valkyrienskies.mod.common.shipObjectWorld
+import kotlin.math.max
+import kotlin.math.min
 
 class GravitronState {
     var heldBlockPos: Vector3dc? = null
@@ -32,6 +34,33 @@ class GravitronState {
             }
 
             return s
+        }
+
+        @JvmStatic
+        fun getDialAngle(player: Player): Float {
+            val p = player as MixinPlayerDuck
+            val angle = p.gravitronDialAngle
+            return angle
+        }
+
+        @JvmStatic
+        fun getPrevDialAngle(player: Player): Float {
+            val p = player as MixinPlayerDuck
+            val angle = p.prevGravitronDialAngle
+            return angle
+        }
+
+        @JvmStatic
+        fun getNeedRefresh(player: Player): Boolean {
+            val p = player as MixinPlayerDuck
+            val bl = p.needsRefresh
+            return bl
+        }
+
+        //value should be between 0 and 100
+        @JvmStatic
+        fun mapValueToAngle(value: Float): Float {
+            return min( value * 3.5f + 10, 350f) // (350 - 10) / 100
         }
 
         @JvmStatic
