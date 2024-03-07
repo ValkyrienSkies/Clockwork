@@ -4,6 +4,7 @@ v0.1.8
 -
 - Added Mass limit to Gravitron
 - Added Functional mass displaying dial to Gravitron
+- Decrease sfx volume
 
 v0.1.7
 -
