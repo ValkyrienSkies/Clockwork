@@ -245,6 +245,7 @@ object ClockworkBlocks {
         .build()
         .register()
 
+    @JvmField
     val WANDERLITE_DEEPSLATE_ORE = REGISTRATE.block<WanderliteOreBlock>(
         "wanderlite_deepslate_ore"
     ) { properties: BlockBehaviour.Properties? ->
@@ -258,6 +259,7 @@ object ClockworkBlocks {
         .build()
         .register()
 
+    @JvmField
     val WANDERLITE_END_ORE = REGISTRATE.block<WanderliteOreBlock>(
         "wanderlite_end_ore"
     ) { properties: BlockBehaviour.Properties? ->
@@ -271,6 +273,7 @@ object ClockworkBlocks {
         .build()
         .register()
 
+    @JvmField
     val BALLAST = REGISTRATE.block<BallastBlock>(
         "ballast"
     ) { properties: BlockBehaviour.Properties? ->

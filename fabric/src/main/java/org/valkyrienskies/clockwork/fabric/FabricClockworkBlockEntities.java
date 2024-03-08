@@ -9,7 +9,7 @@ public class FabricClockworkBlockEntities {
 
     public static final BlockEntityEntry<FabricBallastBlockEntity> BALLAST = ClockworkMod.INSTANCE.getREGISTRATE()
             .blockEntity("ballast", FabricBallastBlockEntity::new)
-            .validBlocks(ClockworkBlocks.INSTANCE.getBALLAST())
+            .validBlocks(ClockworkBlocks.BALLAST)
             .register();
 
     public static void register() {

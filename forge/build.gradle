@@ -60,8 +60,8 @@ dependencies {
     common(project(path: ":common", configuration: "namedElements")) { transitive = false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 
-    include(modApi("dev.architectury:architectury-forge:${rootProject.architectury_version}"))
-    implementation(include("io.github.llamalad7:mixinextras-forge:0.2.1"))
+    //include(modApi("dev.architectury:architectury-forge:${rootProject.architectury_version}"))
+    implementation(include((("io.github.llamalad7:mixinextras-forge:0.2.1"))))
 
     //VS2
     modApi("org.valkyrienskies:valkyrienskies-118-forge:${rootProject.vs2_version}") { transitive = false }
@@ -82,7 +82,7 @@ dependencies {
     // CC Tweaked
     //modCompileOnly("curse.maven:cctweaked-282001:4061947")
 
-    modRuntimeOnly "me.shedaniel:RoughlyEnoughItems-forge:${rei_version}"
+    //modRuntimeOnly "me.shedaniel:RoughlyEnoughItems-forge:${rei_version}"
 
 }
 

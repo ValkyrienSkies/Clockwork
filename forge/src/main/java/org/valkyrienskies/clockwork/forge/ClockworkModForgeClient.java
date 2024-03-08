@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.forge;
 
 import com.simibubi.create.AllParticleTypes;
-import dev.architectury.event.events.client.ClientReloadShadersEvent;
 import net.minecraft.server.packs.resources.ResourceProvider;
 import net.minecraftforge.client.gui.ForgeIngameGui;
 import net.minecraftforge.client.gui.OverlayRegistry;
@@ -23,7 +22,7 @@ public class ClockworkModForgeClient {
         ClockworkPartials.INSTANCE.init();
         ClockworkModClient.initClient();
         modEventBus.addListener(AllParticleTypes::registerFactories);
-        ClockworkShaders.INSTANCE.init();
+
         //ClientReloadShadersEvent.EVENT.register(ClockworkModForgeClient::onShaderReload);
         OverlayRegistry.registerOverlayAbove(ForgeIngameGui.HOTBAR_ELEMENT, "Gravitron",
                 ClockworkModForgeClient.GRAVITRON_HANDLER.getOverlayRenderer());
