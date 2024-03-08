@@ -1,8 +1,6 @@
 package org.valkyrienskies.clockwork.forge;
 
 import com.simibubi.create.AllParticleTypes;
-import dev.architectury.event.events.client.ClientReloadShadersEvent;
-import net.minecraft.server.packs.resources.ResourceProvider;
 import net.minecraftforge.eventbus.api.IEventBus;
 import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.ClockworkModClient;
@@ -22,7 +20,5 @@ public class ClockworkModForgeClient {
         ClockworkPartials.INSTANCE.init();
         ClockworkModClient.initClient();
         modEventBus.addListener(AllParticleTypes::registerFactories);
-        ClockworkShaders.INSTANCE.init();
-        //ClientReloadShadersEvent.EVENT.register(ClockworkModForgeClient::onShaderReload);
     }
 }

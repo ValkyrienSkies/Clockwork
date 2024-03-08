@@ -2,9 +2,6 @@ package org.valkyrienskies.clockwork
 
 import com.mojang.logging.LogUtils
 import com.simibubi.create.foundation.data.CreateRegistrate
-import com.simibubi.create.foundation.outliner.Outliner
-import dev.architectury.registry.CreativeTabRegistry
-import net.minecraft.client.renderer.RenderType
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
@@ -33,7 +30,6 @@ object ClockworkMod {
         ClockworkContraptions.init()
         ClockworkPackets.init()
         ClockworkTags.init()
-        ClockworkWorldgen.init()
 
         VSEvents.ShipLoadEvent.on { event ->
             event.ship

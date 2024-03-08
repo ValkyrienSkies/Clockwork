@@ -19,8 +19,16 @@ import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.InputKey
 import org.valkyrienskies.clockwork.util.blocktype.LiquidFuelType
 import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour
+import java.util.function.Supplier
 
 object PlatformUtils {
+
+    @ExpectPlatform
+    @JvmStatic
+    fun getEnvExecutor(toRun: Supplier<Runnable>) {
+        throw AssertionError()
+    }
+
     @ExpectPlatform
     @JvmStatic
     fun getReachDistance(player: Player): Double {

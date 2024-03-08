@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "features": "vs_clockwork:ore_wanderlite",
+  "biomes": "#minecraft:is_end",
+  "step": "underground_ores"
+}

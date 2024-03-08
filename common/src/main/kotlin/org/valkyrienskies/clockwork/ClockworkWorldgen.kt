@@ -1,7 +1,5 @@
 package org.valkyrienskies.clockwork
 
-import dev.architectury.event.events.common.LifecycleEvent
-import dev.architectury.registry.level.biome.BiomeModifications
 import net.minecraft.data.worldgen.features.FeatureUtils
 import net.minecraft.data.worldgen.features.OreFeatures.DEEPSLATE_ORE_REPLACEABLES
 import net.minecraft.data.worldgen.placement.PlacementUtils
@@ -17,34 +15,21 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.BlockMatchTes
 
 object ClockworkWorldgen {
 
-    fun init() {
-        LifecycleEvent.SETUP.register{
-
-            val configuredFeature =
-                FeatureUtils.register<OreConfiguration, Feature<OreConfiguration>>(ClockworkMod.MOD_ID + ":ore_wanderlite",
-                    Feature.ORE,
-                    OreConfiguration(
-                        listOf(
-                            OreConfiguration.target(DEEPSLATE_ORE_REPLACEABLES, ClockworkBlocks.WANDERLITE_DEEPSLATE_ORE.get().defaultBlockState()),
-                            OreConfiguration.target(BlockMatchTest(Blocks.END_STONE), ClockworkBlocks.WANDERLITE_END_ORE.get().defaultBlockState())
-                        ),
-                        6))
-
-            val placedFeature = PlacementUtils.register(ClockworkMod.MOD_ID + ":ore_wanderlite", configuredFeature,
+    val configuredFeature =
+        FeatureUtils.register<OreConfiguration, Feature<OreConfiguration>>(ClockworkMod.MOD_ID + ":ore_wanderlite",
+            Feature.ORE,
+            OreConfiguration(
                 listOf(
-                    InSquarePlacement.spread(),
-                    HeightRangePlacement.triangle(
-                        VerticalAnchor.absolute(-64),
-                        VerticalAnchor.absolute(64)),
-                    BiomeFilter.biome()))
+                    OreConfiguration.target(DEEPSLATE_ORE_REPLACEABLES, ClockworkBlocks.WANDERLITE_DEEPSLATE_ORE.get().defaultBlockState()),
+                    OreConfiguration.target(BlockMatchTest(Blocks.END_STONE), ClockworkBlocks.WANDERLITE_END_ORE.get().defaultBlockState())
+                ),
+                6))
 
-            BiomeModifications.addProperties { ctx, mutable ->
-
-                if (ctx.hasTag(BiomeTags.IS_OVERWORLD) || ctx.hasTag(BiomeTags.IS_END)) {
-                    mutable.getGenerationProperties()
-                        .addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, placedFeature);
-                }
-            }
-        }
-    }
+    val placedFeature = PlacementUtils.register(ClockworkMod.MOD_ID + ":ore_wanderlite", configuredFeature,
+        listOf(
+            InSquarePlacement.spread(),
+            HeightRangePlacement.triangle(
+                VerticalAnchor.absolute(-64),
+                VerticalAnchor.absolute(64)),
+            BiomeFilter.biome()))
 }
