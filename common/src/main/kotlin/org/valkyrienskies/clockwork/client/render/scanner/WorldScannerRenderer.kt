@@ -66,7 +66,7 @@ class WorldScannerRenderer : ScannerRenderer {
     private fun render(viewMatrix: Matrix4f) {
         val target = Minecraft.getInstance().mainRenderTarget
         updateDepthTexture(target)
-        updateShaderUniforms(ClockworkShaders.scan_effect(), viewMatrix)
+        updateShaderUniforms(ClockworkShaders.scan_effect, viewMatrix)
         blit(target)
     }
 

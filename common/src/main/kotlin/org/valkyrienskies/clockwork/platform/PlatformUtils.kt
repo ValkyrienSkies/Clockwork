@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.platform
 
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType
+import com.tterrag.registrate.fabric.EnvExecutor
 import dev.architectury.injectables.annotations.ExpectPlatform
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
@@ -19,8 +20,15 @@ import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.InputKey
 import org.valkyrienskies.clockwork.util.blocktype.LiquidFuelType
 import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour
+import java.util.function.Supplier
 
 object PlatformUtils {
+    @ExpectPlatform
+    @JvmStatic
+    fun getEnvExecutor(toRun: Supplier<Runnable>) {
+        throw AssertionError()
+    }
+
     @ExpectPlatform
     @JvmStatic
     fun getReachDistance(player: Player): Double {
@@ -108,12 +116,6 @@ object PlatformUtils {
     @ExpectPlatform
     @JvmStatic
     fun getExtraData(be: SmartBlockEntity): CompoundTag {
-        throw AssertionError()
-    }
-
-    @ExpectPlatform
-    @JvmStatic
-    fun getCreativeTab(): CreativeModeTab {
         throw AssertionError()
     }
 }

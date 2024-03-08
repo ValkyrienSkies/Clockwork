@@ -1,5 +1,9 @@
 # Changelog
 
+v0.1.11
+-
+- Rewrote worldgen, and shaders to not use Arch API
+
 v0.1.9
 -
 - Only players can step on wanderlite ore to activate it

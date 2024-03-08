@@ -24,9 +24,7 @@ dependencies {
     implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:0.2.1"))
     implementation(("io.github.llamalad7:mixinextras-common:0.2.1"))
 
-    modApi("dev.architectury:architectury:${rootProject.architectury_version}") {
-        exclude group: 'org.joml', module: ''
-    }
+    //modApi("dev.architectury:architectury:${rootProject.architectury_version}") {}
 
     modCompileOnly("com.simibubi.create:create-fabric-${minecraft_version}:${create_fabric_version}")
             { exclude group: 'com.github.AlphaMode', module: 'fakeconfigtoml' }

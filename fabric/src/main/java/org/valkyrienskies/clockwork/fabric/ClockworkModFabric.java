@@ -1,17 +1,12 @@
 package org.valkyrienskies.clockwork.fabric;
 
-import com.mojang.blaze3d.platform.Window;
-import dev.architectury.event.events.common.PlayerEvent;
-import fuzs.forgeconfigapiport.api.config.v2.ForgeConfigRegistry;
 import io.github.fabricators_of_create.porting_lib.entity.events.living.LivingEntityEvents;
-import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -19,7 +14,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import org.valkyrienskies.clockwork.*;
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer;
 import org.valkyrienskies.clockwork.content.events.ClockworkCommonEvents;
 import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.fabric.integration.cc.ClockworkFabricPeripheralProviders;
@@ -53,6 +47,7 @@ public class ClockworkModFabric implements ModInitializer {
         ClockworkMod.INSTANCE.getREGISTRATE().register();
 
         ClockworkMod.init();
+        FabricClockworkWorldgen.bootstrap();
 
 
         ClockworkParticles.init();
@@ -68,7 +63,6 @@ public class ClockworkModFabric implements ModInitializer {
 
 
 
-        ClockworkMod.INSTANCE.createCreativeTab();
         Registry.register(
                 BuiltInRegistries.CREATIVE_MODE_TAB,
                 C_CREATIVE_TAB,

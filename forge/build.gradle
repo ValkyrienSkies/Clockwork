@@ -60,7 +60,7 @@ dependencies {
     common(project(path: ":common", configuration: "namedElements")) { transitive = false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 
-    include(modApi("dev.architectury:architectury-forge:${rootProject.architectury_version}"))
+    //include(modApi("dev.architectury:architectury-forge:${rootProject.architectury_version}"))
     implementation(include("io.github.llamalad7:mixinextras-forge:0.2.1"))
 
     //VS2

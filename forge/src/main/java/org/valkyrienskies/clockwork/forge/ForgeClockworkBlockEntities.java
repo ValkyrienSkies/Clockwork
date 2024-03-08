@@ -11,7 +11,7 @@ public class ForgeClockworkBlockEntities {
 
     public static final BlockEntityEntry<ForgeBallastBlockEntity> BALLAST = ClockworkMod.INSTANCE.getREGISTRATE()
             .blockEntity("ballast", ForgeBallastBlockEntity::new)
-            .validBlocks(ClockworkBlocks.INSTANCE.getBALLAST())
+            .validBlocks(ClockworkBlocks.BALLAST)
             .register();
 
     public static void register() {
