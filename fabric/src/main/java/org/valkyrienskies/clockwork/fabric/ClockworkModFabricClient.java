@@ -59,7 +59,7 @@ public class ClockworkModFabricClient implements ClientModInitializer {
         ctx.register(new ResourceLocation("crystal"), DefaultVertexFormat.NEW_ENTITY, shaderInstance -> ClockworkShaders.crystal = shaderInstance);
         ctx.register(new ResourceLocation("heat"), DefaultVertexFormat.NEW_ENTITY, shaderInstance -> ClockworkShaders.heat = shaderInstance);
         ctx.register(new ResourceLocation("haze"), DefaultVertexFormat.NEW_ENTITY, shaderInstance -> ClockworkShaders.haze = shaderInstance);
-        ctx.register(new ResourceLocation("scan_effect"), DefaultVertexFormat.NEW_ENTITY, shaderInstance -> ClockworkShaders.scan_effect = shaderInstance);
+        //ctx.register(new ResourceLocation("scan_effect"), DefaultVertexFormat.NEW_ENTITY, shaderInstance -> ClockworkShaders.scan_effect = shaderInstance);
 
 
     }
