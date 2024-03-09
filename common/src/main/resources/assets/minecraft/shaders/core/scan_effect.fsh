@@ -35,7 +35,12 @@ vec3 worldpos(float depth) {
 void main() {
     vec4 color = vec4(0, 0, 0, 0);
 
-    float depth = texture2D(depthTex, texCoord0).r;
+    #if __VERSION__ > 120
+        depth = texture(depthTex, texCoord0).r;
+    #else
+        depth = texture2D(depthTex, texCoord0).r;
+    #endif
+
     vec3 pos = worldpos(depth);
     float dist = distance(pos, center);
 
