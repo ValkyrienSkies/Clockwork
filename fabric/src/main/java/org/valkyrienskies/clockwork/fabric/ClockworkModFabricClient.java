@@ -57,7 +57,7 @@ public class ClockworkModFabricClient implements ClientModInitializer {
         shaderRegistry.registerShader(new ShaderInstance(resourceManager, "crystal", DefaultVertexFormat.NEW_ENTITY), shaderInstance -> ClockworkShaders.crystal = shaderInstance);
         shaderRegistry.registerShader(new ShaderInstance(resourceManager, "heat", DefaultVertexFormat.NEW_ENTITY), shaderInstance -> ClockworkShaders.heat = shaderInstance);
         shaderRegistry.registerShader(new ShaderInstance(resourceManager, "haze", DefaultVertexFormat.NEW_ENTITY), shaderInstance -> ClockworkShaders.haze = shaderInstance);
-        shaderRegistry.registerShader(new ShaderInstance(resourceManager, "scan_effect", DefaultVertexFormat.POSITION_TEX), shaderInstance -> ClockworkShaders.scan_effect = shaderInstance);
+        //shaderRegistry.registerShader(new ShaderInstance(resourceManager, "scan_effect", DefaultVertexFormat.POSITION_TEX), shaderInstance -> ClockworkShaders.scan_effect = shaderInstance);
     }
 
 

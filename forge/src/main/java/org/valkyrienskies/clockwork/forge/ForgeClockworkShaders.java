@@ -34,11 +34,5 @@ public class ForgeClockworkShaders {
                     ClockworkShaders.haze = shaderInstance;
                 }
         );
-        event.registerShader(
-                new ShaderInstance(event.getResourceManager(), "scan_effect", DefaultVertexFormat.POSITION_TEX),
-                shaderInstance -> {
-                    ClockworkShaders.scan_effect = shaderInstance;
-                }
-        );
     }
 }

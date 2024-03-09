@@ -78,6 +78,7 @@ class ShipScannerRenderer : ScannerRenderer {
     }
 
     private fun render(viewMatrix: Matrix4f) {
+        /*
         val scanEffect = ClockworkShaders.scan_effect
         if (scanEffect != null && ship != null) {
             val oldShader = RenderSystem.getShader()
@@ -130,6 +131,8 @@ class ShipScannerRenderer : ScannerRenderer {
                 }
             }
         }
+
+         */
     }
 
     private fun updateDepthTexture(target: RenderTarget) {
