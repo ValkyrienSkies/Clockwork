@@ -10,6 +10,4 @@ object ClockworkShaders {
     var heat: ShaderInstance? = null
     @JvmField
     var haze: ShaderInstance? = null
-    @JvmField
-    var scan_effect: ShaderInstance? = null
 }
