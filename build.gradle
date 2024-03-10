@@ -94,6 +94,13 @@ allprojects {
 
     repositories {
         mavenLocal()
+        maven { url = "https://mvn.devos.one/snapshots/" }
+        maven { url = "https://mvn.devos.one/releases/" }
+        maven { // for Porting Lib: Mixin Extras, Fabric ASM
+            url = "https://jitpack.io/"
+            content { includeGroupAndSubgroups("com.github") }
+        }
+
         maven {
             name = 'Kotlin for Forge'
             url = 'https://thedarkcolour.github.io/KotlinForForge/'

@@ -76,7 +76,9 @@ dependencies {
     modImplementation("com.simibubi.create:create-fabric-${minecraft_version}:${create_fabric_version}") {
         exclude group: 'com.github.AlphaMode', module: 'fakeconfigtoml'
     }
-
+    for (String module in port_lib_modules.split(",")) {
+        modApi(("io.github.fabricators_of_create.Porting-Lib:$module:$port_lib_version"))
+    }
 
     modImplementation("maven.modrinth:sodium:${sodium_version}")
     modRuntimeOnly("maven.modrinth:indium:${indium_version}")

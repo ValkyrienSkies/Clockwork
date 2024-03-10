@@ -286,8 +286,8 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
                 )
             })
         }
-
-        override fun renderButton(graphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
+//public void renderWidget(@Nonnull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        override fun renderWidget(graphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
             isHovered =
                 rotation == currentShaft || mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height
             graphics.blit(background.location, x, y, if (isHovered) 17 + blitX else blitX, blitY, width, height)
@@ -326,7 +326,7 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
             )
         }
 
-        override fun renderButton(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
+        override fun renderWidget(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
             isHovered =
                 isKeySelected(key, index) || mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height
             guiGraphics.blit(background.location, x, y, if (isHovered) 17 + blitX else blitX, blitY, width, height)
