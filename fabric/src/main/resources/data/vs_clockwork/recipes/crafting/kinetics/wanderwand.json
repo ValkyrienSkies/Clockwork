@@ -1,48 +1,16 @@
 {
-  "type": "create:sequenced_assembly",
-  "ingredient": {
-    "item": "vs_clockwork:incomplete_wanderwand"
-  },
-  "transitionalItem": {
-    "item": "vs_clockwork:incomplete_wanderwand"
-  },
-  "sequence": [
+  "type": "create:deploying",
+  "ingredients": [
     {
-      "type": "create:deploying",
-      "ingredients": [
-        {
-          "item": "vs_clockwork:incomplete_wanderwand"
-        },
-        [
-          {
-            "item": "vs_clockwork:wanderlite_matrix"
-          }
-        ]
-      ],
-      "results": [
-        {
-          "item": "vs_clockwork:incomplete_wanderwand"
-        }
-      ]
+      "item": "vs_clockwork:incomplete_wanderwand"
     },
     {
-      "type": "create:pressing",
-      "ingredients": [
-        {
-          "item": "vs_clockwork:incomplete_wanderwand"
-        }
-      ],
-      "results": [
-        {
-          "item": "vs_clockwork:incomplete_wanderwand"
-        }
-      ]
+      "item": "vs_clockwork:wanderlite_matrix"
     }
   ],
   "results": [
     {
       "item": "vs_clockwork:wanderwand"
     }
-  ],
-  "loops": 1
+  ]
 }

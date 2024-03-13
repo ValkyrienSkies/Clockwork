@@ -22,7 +22,7 @@ class GravitronDestroyPacket : C2SCWPacket {
         clickedPos = buffer.readBlockPos()
     }
 
-    constructor(clickedPos: BlockPos?) {
+    constructor(clickedPos: BlockPos) {
         this.clickedPos = clickedPos
     }
 

@@ -7,7 +7,9 @@ class DisassembleTool : GravitronToolBase() {
 
     override fun handleRightClick(): Boolean {
         updateTargetPos()
-        sendToServer(GravitronDestroyPacket(clickedPos))
+        if (clickedPos != null) {
+            sendToServer(GravitronDestroyPacket(clickedPos!!))
+        }
         return true
     }
 }

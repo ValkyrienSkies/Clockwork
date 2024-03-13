@@ -7,7 +7,9 @@ class GrabssembleTool : GravitronToolBase() {
 
     override fun handleRightClick(): Boolean {
         updateTargetPos()
-        sendToServer(GravitronGrabPacket(clickedPos, clickedLocation, GRABSSEMBLE))
+        if (clickedLocation != null && clickedPos != null) {
+            sendToServer(GravitronGrabPacket(clickedPos!!, clickedLocation!!, GRABSSEMBLE))
+        }
         return true
     }
 }
