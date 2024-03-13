@@ -38,7 +38,10 @@ class GrabTool : GravitronToolBase() {
 
     override fun handleRightClick(): Boolean {
         updateTargetPos()
-        sendToServer(GravitronGrabPacket(clickedPos, clickedLocation, GRAB))
+        if (clickedPos != null && clickedLocation != null) {
+            sendToServer(GravitronGrabPacket(clickedPos!!, clickedLocation!!, GRAB))
+        }
+
         return true
     }
 

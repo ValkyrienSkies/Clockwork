@@ -23,7 +23,7 @@ class GravitronGrabPacket : C2SCWPacket {
         mode = buffer.readByte()
     }
 
-    constructor(clickedPos: BlockPos?, clickedLocation: Vec3?, mode: Byte) {
+    constructor(clickedPos: BlockPos, clickedLocation: Vec3, mode: Byte) {
         this.clickedPos = clickedPos
         this.clickLocation = clickedLocation
         this.mode = mode
@@ -70,14 +70,14 @@ class GravitronGrabPacket : C2SCWPacket {
     }
 
     override fun write(buffer: FriendlyByteBuf) {
-        if (clickedPos != null) {
-            buffer.writeBlockPos(clickedPos!!)
-        }
-        if (clickLocation != null) {
-            buffer.writeDouble(clickLocation!!.x)
-            buffer.writeDouble(clickLocation!!.y)
-            buffer.writeDouble(clickLocation!!.z)
-        }
+
+        buffer.writeBlockPos(clickedPos!!)
+
+
+        buffer.writeDouble(clickLocation!!.x)
+        buffer.writeDouble(clickLocation!!.y)
+        buffer.writeDouble(clickLocation!!.z)
+
 
         buffer.writeByte(mode.toInt())
     }
