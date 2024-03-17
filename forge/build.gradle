@@ -103,6 +103,7 @@ processResources {
 }
 
 loom {
+    accessWidenerPath = project(":common").loom.accessWidenerPath
     forge {
         mixinConfig(
                 "vs_clockwork-common.mixins.json",
