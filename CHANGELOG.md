@@ -1,5 +1,9 @@
 # Changelog
 
+v0.1.16
+-
+- Fixed forge not getting the AW
+
 v0.1.15
 -
 - Fix accesswidener, making arch api obsolete
