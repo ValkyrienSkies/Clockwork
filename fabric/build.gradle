@@ -80,8 +80,8 @@ dependencies {
         modApi(("io.github.fabricators_of_create.Porting-Lib:$module:$port_lib_version"))
     }
 
-    modImplementation("maven.modrinth:sodium:${sodium_version}")
-    modRuntimeOnly("maven.modrinth:indium:${indium_version}")
+    //modImplementation("maven.modrinth:sodium:${sodium_version}")
+    //modRuntimeOnly("maven.modrinth:indium:${indium_version}")
 
     modImplementation("com.terraformersmc:modmenu:${modmenu_version}")
 
