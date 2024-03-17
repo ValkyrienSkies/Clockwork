@@ -1,5 +1,9 @@
 # Changelog
 
+v0.1.15
+-
+- Fix accesswidener, making arch api obsolete
+
 v0.1.9
 -
 - Only players can step on wanderlite ore to activate it
