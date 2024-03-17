@@ -1,5 +1,8 @@
 {
   "itemGroup.clockwork": "VS: Clockwork",
+  "itemGroup.vs_clockwork": "VS: Clockwork",
+  "itemGroup.vs_clockwork.clockwork": "VS: Clockwork",
+  "itemGroup.vs_clockwork.vs_clockwork": "VS: Clockwork",
   "block.vs_clockwork.propeller_bearing": "Propeller Bearing",
   "item.vs_clockwork.propeller_bearing": "Propeller Bearing",
   "item.vs_clockwork.bluuguu": "Bluu Guu",
@@ -119,6 +122,7 @@
   "vs_clockwork.ponder.resistor.text_3": "10.67 RPM",
   "vs_clockwork.ponder.resistor.text_4": "5.33 RPM",
   "vs_clockwork.ponder.resistor.text_5": "0 RPM",
+
   "vs_clockwork.ponder.alt_meter.header": "Altitude Meter",
   "vs_clockwork.ponder.alt_meter.text_1": "Configure Altitude Meter to desired height",
   "vs_clockwork.ponder.alt_meter.text_2": "Redstone output will trigger at configured height",
