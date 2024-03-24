@@ -15,6 +15,7 @@ import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSea
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket
 import org.valkyrienskies.clockwork.content.logistics.heat.AirPocketDeletePacket
 import org.valkyrienskies.clockwork.content.logistics.heat.AirPocketSyncPacket
+import org.valkyrienskies.clockwork.content.logistics.heat.TemperatureSyncPacket
 import org.valkyrienskies.clockwork.content.logistics.heat.usage.gas_nozzle.TempGasNozzleSyncPacket
 import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket
 import org.valkyrienskies.clockwork.platform.SharedValues.packetChannel
@@ -45,6 +46,7 @@ enum class ClockworkPackets(
     SYNC_AIR_POCKETS(AirPocketSyncPacket::class.java, ::AirPocketSyncPacket),
     DELETE_AIR_POCKETS(AirPocketDeletePacket::class.java, ::AirPocketDeletePacket),
 
+    SYNC_TEMPERATURE(TemperatureSyncPacket::class.java, ::TemperatureSyncPacket),
 
     PHYSICS_INFUSER(PhysicsInfuserSyncPacket::class.java, ::PhysicsInfuserSyncPacket),
     AURIC_DESIGNATOR(AuricDesignatorSelectionPacket::class.java, ::AuricDesignatorSelectionPacket);

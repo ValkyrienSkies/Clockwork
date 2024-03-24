@@ -14,10 +14,13 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Vector3i
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.KelvinHandler
 import org.valkyrienskies.clockwork.content.logistics.heat.IHeatable
+import org.valkyrienskies.clockwork.content.logistics.heat.TemperatureSyncPacket
 import org.valkyrienskies.clockwork.kelvin.api.GasConnectionCreateData
 import org.valkyrienskies.clockwork.kelvin.api.GasNodeIdentifier
+import org.valkyrienskies.clockwork.kelvin.api.GasNodeResultData
 import org.valkyrienskies.clockwork.kelvin.api.GasType
 import org.valkyrienskies.mod.common.util.toJOML
 import java.util.*
@@ -136,6 +139,12 @@ class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         return 100.0
     }
 
+    override fun applyUpdate(update: GasNodeResultData) {
+        super.applyUpdate(update)
+        if (gasNodeID == null) return
+        ClockworkPackets.sendToNear(level, worldPosition, 64, TemperatureSyncPacket(this.worldPosition, this.temperature, this.gasNodeID!!.id))
+    }
+
     fun updateConnections() {
         if (this.level != null && !this.level!!.isClientSide) {
             for (direction in Direction.values()) {
@@ -146,7 +155,7 @@ class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
                         KelvinHandler.getNodeFromPos(this.worldPosition.relative(direction).toJOML()) ?: continue,
                         0.125,
                         0.0
-                    )
+                        )
                     )
                 }
             }

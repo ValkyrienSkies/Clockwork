@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.logistics.heat
 
 import net.minecraft.core.Direction
+import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.kelvin.api.GasNodeIdentifier
 import org.valkyrienskies.clockwork.kelvin.api.GasNodeResultData
 import org.valkyrienskies.clockwork.kelvin.api.GasType
