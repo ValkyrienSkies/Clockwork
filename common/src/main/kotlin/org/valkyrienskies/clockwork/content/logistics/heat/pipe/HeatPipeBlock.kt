@@ -29,7 +29,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty
 import net.minecraft.world.level.material.Fluids
 import net.minecraft.world.ticks.TickPriority
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import java.util.*
+import java.util.Arrays
 
 class HeatPipeBlock(properties: Properties) :
     PipeBlock(4 / 16f, properties),
@@ -94,7 +94,7 @@ class HeatPipeBlock(properties: Properties) :
             )
         ) world.scheduleTick(pos, this, 1, TickPriority.HIGH)
 
-        withBlockEntityDo(world, pos) { it.updateConnections() }
+        withBlockEntityDo(world, pos) { it.markConnectionsDirty() }
         return updateBlockState(state, direction, direction.opposite, world, pos)
     }
 
@@ -155,6 +155,4 @@ class HeatPipeBlock(properties: Properties) :
     fun isPipe(neighbour: BlockState?): Boolean {
         return neighbour!!.getBlock() is HeatPipeBlock
     }
-
-
 }

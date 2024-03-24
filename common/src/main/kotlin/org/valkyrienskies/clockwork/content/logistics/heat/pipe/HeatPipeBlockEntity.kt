@@ -4,7 +4,6 @@ package org.valkyrienskies.clockwork.content.logistics.heat.pipe
 import com.simibubi.create.content.contraptions.ITransformableBlockEntity
 import com.simibubi.create.content.contraptions.StructureTransform
 import com.simibubi.create.content.decoration.bracket.BracketedBlockEntityBehaviour
-import com.simibubi.create.content.fluids.PipeAttachmentBlockEntity
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
@@ -23,7 +22,7 @@ import org.valkyrienskies.clockwork.kelvin.api.GasNodeIdentifier
 import org.valkyrienskies.clockwork.kelvin.api.GasNodeResultData
 import org.valkyrienskies.clockwork.kelvin.api.GasType
 import org.valkyrienskies.mod.common.util.toJOML
-import java.util.*
+import java.util.EnumMap
 
 class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : SmartBlockEntity(type, pos, state), ITransformableBlockEntity, IHeatable {
 
@@ -33,11 +32,12 @@ class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     override val gasMasses: EnumMap<GasType, Double> = EnumMap(GasType::class.java)
     override var temperature: Double = 0.0
     override var currentPressure: Double = 0.0
+    private var areConnectionsDirty: Boolean = false
 
     override fun initialize() {
         super.initialize()
         ClockworkMod.LOGGER.info("Initializing HeatPipeBlockEntity")
-            if (this.level == null || this.level!!.isClientSide) {
+        if (this.level == null || this.level!!.isClientSide) {
             return
         }
         ClockworkMod.LOGGER.info("level was not null :3dsmile:")
@@ -49,11 +49,11 @@ class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
             if (canTransferHeat(direction)) {
                 KelvinHandler.connectNodes(
                     GasConnectionCreateData(
-                    createData.identifier,
-                    KelvinHandler.getNodeFromPos(this.worldPosition.relative(direction).toJOML()) ?: continue,
-                    0.125,
-                    0.0
-                )
+                        createData.identifier,
+                        KelvinHandler.getNodeFromPos(this.worldPosition.relative(direction).toJOML()) ?: continue,
+                        0.125,
+                        0.0
+                    )
                 )
             }
         }
@@ -145,20 +145,32 @@ class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         ClockworkPackets.sendToNear(level, worldPosition, 64, TemperatureSyncPacket(this.worldPosition, this.temperature, this.gasNodeID!!.id))
     }
 
-    fun updateConnections() {
+    private fun updateConnections() {
         if (this.level != null && !this.level!!.isClientSide) {
             for (direction in Direction.values()) {
                 if (canTransferHeat(direction)) {
                     KelvinHandler.connectNodes(
                         GasConnectionCreateData(
-                        this.gasNodeID!!,
-                        KelvinHandler.getNodeFromPos(this.worldPosition.relative(direction).toJOML()) ?: continue,
-                        0.125,
-                        0.0
+                            this.gasNodeID!!,
+                            KelvinHandler.getNodeFromPos(this.worldPosition.relative(direction).toJOML()) ?: continue,
+                            0.125,
+                            0.0
                         )
                     )
                 }
             }
         }
+    }
+
+    override fun tick() {
+        super.tick()
+        if (areConnectionsDirty) {
+            updateConnections()
+            areConnectionsDirty = false
+        }
+    }
+
+    fun markConnectionsDirty() {
+        areConnectionsDirty = true
     }
 }
