@@ -25,6 +25,7 @@ import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRe
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRenderer
 import org.valkyrienskies.clockwork.content.logistics.heat.creative.gas.CreativeGasSourceBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.heat.creative.source.CreativeHeatSourceBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.logistics.heat.usage.gas_nozzle.GasNozzleBlockEntity
@@ -266,6 +267,18 @@ object ClockworkBlockEntities {
             )
         }
         .validBlocks(ClockworkBlocks.CREATIVE_GAS_SOURCE)
+        .register()
+
+    @JvmField
+    val CREATIVE_HEAT_SOURCE: BlockEntityEntry<CreativeHeatSourceBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<CreativeHeatSourceBlockEntity>("creative_heat_source") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            CreativeHeatSourceBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .validBlocks(ClockworkBlocks.CREATIVE_HEAT_SOURCE)
         .register()
 
     @JvmField

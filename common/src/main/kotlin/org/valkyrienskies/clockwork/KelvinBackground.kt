@@ -22,7 +22,7 @@ class KelvinBackground(var idealTickRate: Int = 400, var subSteps: Int = 10): Ru
         try {
             while (true) {
                 if (killTask) {
-                    return
+                    break
                 }
 
                 val timeToSimulateNs = 1e9 / idealTickRate.toDouble()

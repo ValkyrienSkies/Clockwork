@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.content.logistics.heat.creative.source
 
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
+import com.simibubi.create.foundation.blockEntity.behaviour.CenteredSideValueBoxTransform
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour
 import com.simibubi.create.foundation.utility.Lang
@@ -164,14 +165,11 @@ class CreativeHeatSourceBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, s
     }
 
     override fun tick() {
-
+        this.currentTargetHeat = generatedHeat!!.value.toDouble()
     }
 
 
-    private class HeatValueBox : ValueBoxTransform.Sided() {
-        override fun getSouthLocation(): Vec3 {
-            TODO("Not yet implemented")
-        }
+    private class HeatValueBox : CenteredSideValueBoxTransform() {
 
     }
     companion object {

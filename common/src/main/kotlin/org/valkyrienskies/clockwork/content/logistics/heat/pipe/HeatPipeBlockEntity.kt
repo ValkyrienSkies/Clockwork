@@ -13,6 +13,7 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Vector3i
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.KelvinHandler
 import org.valkyrienskies.clockwork.content.logistics.heat.IHeatable
 import org.valkyrienskies.clockwork.kelvin.api.GasConnectionCreateData
@@ -32,9 +33,11 @@ class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
 
     override fun initialize() {
         super.initialize()
-        if (this.level == null || this.level!!.isClientSide) {
+        ClockworkMod.LOGGER.info("Initializing HeatPipeBlockEntity")
+            if (this.level == null || this.level!!.isClientSide) {
             return
         }
+        ClockworkMod.LOGGER.info("level was not null :3dsmile:")
         val newID = gasNodeID ?: GasNodeIdentifier(this.worldPosition.toJOML(), 0)
         val createData = KelvinHandler.defaultGasNodeCreateData(newID.pos, initTemp = temperature)
         KelvinHandler.addNode(createData)

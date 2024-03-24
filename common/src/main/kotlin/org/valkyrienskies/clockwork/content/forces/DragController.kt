@@ -29,6 +29,7 @@ class DragController : ShipForcesInducer {
 
     private val allBlocks = HashSet<Vector3ic>()
     private val exposedFaces : EnumMap<Direction, HashSet<Vector3ic>> = EnumMap(Direction::class.java)
+    private val surfaceAreaByDirection = EnumMap<Direction, Double>(Direction::class.java)
 
     private val sideTracker: SideProfileTracker = SideProfileTracker()
 
@@ -46,12 +47,12 @@ class DragController : ShipForcesInducer {
             val posair = blockUpdateQueue.poll()
             if (!posair.second) {
                 allBlocks.add(posair.first)
-                sideTracker.add(posair.first.x(), posair.first.y(), posair.first.z())
+                //sideTracker.add(posair.first.x(), posair.first.y(), posair.first.z())
             } else {
                 allBlocks.remove(posair.first)
-                sideTracker.remove(posair.first.x(), posair.first.y(), posair.first.z())
+                //sideTracker.remove(posair.first.x(), posair.first.y(), posair.first.z())
             }
-            //shouldUpdate = true
+            shouldUpdate = true
         }
 
         if (aabbUpdateQueue.isNotEmpty()) {
@@ -59,10 +60,11 @@ class DragController : ShipForcesInducer {
         }
 
         if (shouldUpdate && allBlocks.isNotEmpty() && bounds != null) {
-            //updateExposedFaces()
+            updateExposedFaces()
         }
 
-        if (sideTracker.xArea != 0 && sideTracker.yArea != 0 && sideTracker.zArea != 0) {
+        //if (sideTracker.xArea != 0 && sideTracker.yArea != 0 && sideTracker.zArea != 0) {
+        if (allBlocks.isNotEmpty() && exposedFaces.isNotEmpty() && bounds != null) {
             val drag = calculateDrag(impl)
             val dragPos = calculateDragPosition(impl)
 
@@ -209,6 +211,13 @@ class DragController : ShipForcesInducer {
 
         exposedFaces.putAll(foundEdges)
 
+        surfaceAreaByDirection[Direction.NORTH] = foundEdges[Direction.NORTH]?.size?.toDouble()?: 0.0
+        surfaceAreaByDirection[Direction.SOUTH] = foundEdges[Direction.SOUTH]?.size?.toDouble()?: 0.0
+        surfaceAreaByDirection[Direction.EAST] = foundEdges[Direction.EAST]?.size?.toDouble()?: 0.0
+        surfaceAreaByDirection[Direction.WEST] = foundEdges[Direction.WEST]?.size?.toDouble()?: 0.0
+        surfaceAreaByDirection[Direction.UP] = foundEdges[Direction.UP]?.size?.toDouble()?: 0.0
+        surfaceAreaByDirection[Direction.DOWN] = foundEdges[Direction.DOWN]?.size?.toDouble()?: 0.0
+
         shouldUpdate = false
     }
 
@@ -221,13 +230,13 @@ class DragController : ShipForcesInducer {
         var exposedArea = 0.0
 
         for (dir in Direction.values()) {
-            //val surfaceArea = surfaceAreaByDirection[dir]?: continue
-            val surfaceArea = when (dir.axis) {
-                Direction.Axis.X -> sideTracker.xArea
-                Direction.Axis.Y -> sideTracker.yArea
-                Direction.Axis.Z -> sideTracker.zArea
-                else -> continue
-            }
+            val surfaceArea = surfaceAreaByDirection[dir]?: continue
+//            val surfaceArea = when (dir.axis) {
+//                Direction.Axis.X -> sideTracker.xArea
+//                Direction.Axis.Y -> sideTracker.yArea
+//                Direction.Axis.Z -> sideTracker.zArea
+//                else -> continue
+//            }
             val dot = motionNormal.dot(dir.normal.toJOMLD())
             if (dot > 0) {
                 exposedArea += surfaceArea * dot
@@ -268,18 +277,19 @@ class DragController : ShipForcesInducer {
     }
 
     private fun calculateDragPosition(ship: PhysShipImpl): Vector3dc {
+
         val motionVector: Vector3dc = ship.poseVel.vel
         val motionNormal: Vector3dc = motionVector.normalize(Vector3d()).mul(-1.0)
 
-        val avgCenterOfPressure: Vector3d = Vector3d()
+        val avgCenterOfPressure = Vector3d()
         var sumOfWeights = 0.0
-        for (dir in Direction.values()) {
-            if (exposedFaces[dir]!!.isEmpty()) continue
+        for ((dir, faces) in exposedFaces.entries) {
+            if (faces.isEmpty()) continue
             val centerOfPressure = Vector3d()
-            exposedFaces[dir]!!.forEach {
+            faces.forEach {
                 centerOfPressure.add(it.x().toDouble(), it.y().toDouble(), it.z().toDouble()).add(0.5, 0.5, 0.5).add(dir.normal.toJOMLD().mul(0.5, Vector3d()))
             }
-            centerOfPressure.div(exposedFaces[dir]!!.size.toDouble())
+            centerOfPressure.div(faces.size.toDouble())
             val dot = motionNormal.dot(dir.normal.toJOMLD())
             if (dot > 0.0) {
                 centerOfPressure.mul(dot)

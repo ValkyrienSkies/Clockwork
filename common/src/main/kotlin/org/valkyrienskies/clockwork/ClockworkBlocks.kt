@@ -31,6 +31,7 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBear
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
 import org.valkyrienskies.clockwork.content.logistics.heat.creative.gas.CreativeGasSourceBlock
+import org.valkyrienskies.clockwork.content.logistics.heat.creative.source.CreativeHeatSourceBlock
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlock
 import org.valkyrienskies.clockwork.content.logistics.heat.usage.gas_nozzle.GasNozzleBlock
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlock
@@ -304,9 +305,24 @@ object ClockworkBlocks {
 
     @JvmField
     val CREATIVE_GAS_SOURCE = REGISTRATE.block<CreativeGasSourceBlock>(
-        "gas_nozzle"
+        "creative_gas_source"
     ) { properties: BlockBehaviour.Properties? ->
         CreativeGasSourceBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
+    val CREATIVE_HEAT_SOURCE = REGISTRATE.block<CreativeHeatSourceBlock>(
+        "creative_heat_source"
+    ) { properties: BlockBehaviour.Properties? ->
+        CreativeHeatSourceBlock(
             properties!!
         )
     }
