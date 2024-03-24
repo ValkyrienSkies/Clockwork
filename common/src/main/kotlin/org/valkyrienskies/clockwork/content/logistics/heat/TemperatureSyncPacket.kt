@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.heat
 
+import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
 import org.valkyrienskies.clockwork.platform.api.network.ClientNetworkContext
@@ -21,11 +22,18 @@ class TemperatureSyncPacket: S2CCWPacket {
         this.temperature = buffer.readDouble()
         this.id = buffer.readInt()
     }
-
     override fun handle(context: ClientNetworkContext) {
         context.enqueueWork {
-            println("TODO: Handle a TemperatureSyncPacket")
+            if (Minecraft.getInstance().level != null && Minecraft.getInstance().level!!.getBlockEntity(
+                    pos
+                ) is IHeatable
+            ) {
+                val ce =
+                    Minecraft.getInstance().level!!.getBlockEntity(pos) as IHeatable?
+                ce?.temperature = this.temperature
+            }
         }
+        context.setPacketHandled(true)
     }
 
     override fun write(buffer: FriendlyByteBuf) {
