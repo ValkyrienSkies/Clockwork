@@ -94,7 +94,7 @@ class HeatPipeBlock(properties: Properties) :
             )
         ) world.scheduleTick(pos, this, 1, TickPriority.HIGH)
 
-        withBlockEntityDo(world, pos) { it.updateConnections() }
+        withBlockEntityDo(world, pos) { it.markConnectionsDirty() }
         return updateBlockState(state, direction, direction.opposite, world, pos)
     }
 
