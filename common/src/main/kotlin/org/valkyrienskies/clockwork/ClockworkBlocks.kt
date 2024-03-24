@@ -33,7 +33,10 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlo
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
+import org.valkyrienskies.clockwork.content.logistics.heat.creative.gas.CreativeGasSourceBlock
+import org.valkyrienskies.clockwork.content.logistics.heat.creative.source.CreativeHeatSourceBlock
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlock
+import org.valkyrienskies.clockwork.content.logistics.heat.usage.gas_nozzle.GasNozzleBlock
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlock
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlock
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlock
@@ -241,7 +244,8 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.softMetal() }
         .item()
-        //TODO .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .transform(customItemModel())
         .build()
         .register()
 
@@ -274,6 +278,51 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
+    val GAS_NOZZLE = REGISTRATE.block<GasNozzleBlock>(
+        "gas_nozzle"
+    ) { properties: BlockBehaviour.Properties? ->
+        GasNozzleBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
+    val CREATIVE_GAS_SOURCE = REGISTRATE.block<CreativeGasSourceBlock>(
+        "creative_gas_source"
+    ) { properties: BlockBehaviour.Properties? ->
+        CreativeGasSourceBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
+    val CREATIVE_HEAT_SOURCE = REGISTRATE.block<CreativeHeatSourceBlock>(
+        "creative_heat_source"
+    ) { properties: BlockBehaviour.Properties? ->
+        CreativeHeatSourceBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+    
+    @JvmField
     val BALLAST = REGISTRATE.block<BallastBlock>(
         "ballast"
     ) { properties: BlockBehaviour.Properties? ->
@@ -283,7 +332,7 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.wooden() }
         .item()
-        //.tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
         .register()
 

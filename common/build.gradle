@@ -20,8 +20,8 @@ repositories {
 
 dependencies {
     modImplementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
-
-    annotationProcessor(implementation("com.github.LlamaLad7:MixinExtras:0.1.1"))
+    implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:0.2.1"))
+    implementation(("io.github.llamalad7:mixinextras-common:0.2.1"))
 
     //modApi("dev.architectury:architectury:${rootProject.architectury_version}")
 

@@ -9,9 +9,22 @@ object ClockworkConfig {
     @JvmField
     val SERVER = Server()
 
-    class Client
+
+    class Client {
+        @JsonSchema(description = "Enable debug rendering")
+        var debugRender = false
+    }
 
     class Server {
+        @JsonSchema(description = "Enable verbose debug logging")
+        var debugMode = false
+
+        @JsonSchema(description = "Kelvin tick rate (in Ticks / Second)")
+        var kelvinTickRate = 400
+
+        @JsonSchema(description = "Kelvin sub steps (per Tick)")
+        var kelvinSubSteps = 10
+      
         // Blacklist of blocks that don't get added for ship building
         @JsonSchema(description = "Blacklist of blocks that don't get assembled")
         var blockBlacklist = setOf(

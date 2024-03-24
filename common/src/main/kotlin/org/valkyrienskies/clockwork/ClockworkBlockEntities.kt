@@ -1,7 +1,5 @@
 package org.valkyrienskies.clockwork
 
-import com.jozufozu.flywheel.api.MaterialManager
-import com.jozufozu.flywheel.backend.instancing.blockentity.BlockEntityInstance
 import com.tterrag.registrate.util.entry.BlockEntityEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer
@@ -17,7 +15,6 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearin
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlockEntityRenderer
-import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroInstance
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlockEntity
@@ -31,8 +28,12 @@ import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBl
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRenderer
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRenderer
+import org.valkyrienskies.clockwork.content.logistics.heat.creative.gas.CreativeGasSourceBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.heat.creative.source.CreativeHeatSourceBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEntityRenderer
+import org.valkyrienskies.clockwork.content.logistics.heat.usage.gas_nozzle.GasNozzleBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.heat.usage.gas_nozzle.GasNozzleRenderer
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlockEntity
@@ -218,6 +219,27 @@ object ClockworkBlockEntities {
         .register()
 
     @JvmField
+    val HEAT_PIPE = REGISTRATE.block<HeatPipeBlock>(
+        "heat_pipe"
+    ) { properties: BlockBehaviour.Properties? ->
+        HeatPipeBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .onRegister(CreateRegistrate.blockModel {
+            NonNullFunction<BakedModel?, BakedModel> { template: BakedModel? ->
+                PipeAttachmentModel(
+                    template
+                )
+            }
+        })
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .transform(customItemModel())
+        .register()
+    
+    @JvmField
     val GOO_BLOCK = ClockworkMod.REGISTRATE.blockEntity<GooBlockEntity>("goo_block") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
         GooBlockEntity(
             type,
@@ -252,7 +274,49 @@ object ClockworkBlockEntities {
         }
         .validBlocks(ClockworkBlocks.SLICKER)
         .register()
+        
+    @JvmField
+    val CREATIVE_GAS_SOURCE: BlockEntityEntry<CreativeGasSourceBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<CreativeGasSourceBlockEntity>("creative_gas_source") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            CreativeGasSourceBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .validBlocks(ClockworkBlocks.CREATIVE_GAS_SOURCE)
+        .register()
 
+    @JvmField
+    val CREATIVE_HEAT_SOURCE: BlockEntityEntry<CreativeHeatSourceBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<CreativeHeatSourceBlockEntity>("creative_heat_source") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            CreativeHeatSourceBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .validBlocks(ClockworkBlocks.CREATIVE_HEAT_SOURCE)
+        .register()
+
+    @JvmField
+    val GAS_NOZZLE: BlockEntityEntry<GasNozzleBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<GasNozzleBlockEntity>("gas_nozzle") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            GasNozzleBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in GasNozzleBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                GasNozzleRenderer(
+                    context!!
+                )
+            }
+        }
+        .validBlocks(ClockworkBlocks.GAS_NOZZLE)
+        .register()
 
     @JvmStatic
     fun register() {

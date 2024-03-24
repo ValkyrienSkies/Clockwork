@@ -1,0 +1,9 @@
+{
+  "parent": "vs_clockwork:block/gas_nozzle/item",
+  "textures": {
+    "0": "vs_clockwork:block/nozzle",
+    "1": "create:block/axis",
+    "2": "create:block/axis_top",
+    "particle": "create:block/girder"
+  }
+}
