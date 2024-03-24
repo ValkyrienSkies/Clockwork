@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.logistics.heat.pipe
 
-
 import com.simibubi.create.content.contraptions.ITransformableBlock
 import com.simibubi.create.content.contraptions.StructureTransform
 import com.simibubi.create.content.decoration.bracket.BracketedBlockEntityBehaviour
@@ -29,7 +28,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty
 import net.minecraft.world.level.material.Fluids
 import net.minecraft.world.ticks.TickPriority
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import java.util.*
+import java.util.Arrays
 
 class HeatPipeBlock(properties: Properties) :
     PipeBlock(4 / 16f, properties),
@@ -98,11 +97,14 @@ class HeatPipeBlock(properties: Properties) :
         return updateBlockState(state, direction, direction.opposite, world, pos)
     }
 
-    fun updateBlockState(
-        state: BlockState, preferredDirection: Direction, ignore: Direction?,
-        world: BlockAndTintGetter, pos: BlockPos
+    private fun updateBlockState(
+        stateInput: BlockState,
+        preferredDirection: Direction,
+        ignore: Direction?,
+        world: BlockAndTintGetter,
+        pos: BlockPos,
     ): BlockState {
-        var state = state
+        var state = stateInput
         val bracket = BlockEntityBehaviour.get(world, pos, BracketedBlockEntityBehaviour.TYPE)
         if (bracket != null && bracket.isBracketPresent) return state
         val prevState = state
@@ -112,7 +114,7 @@ class HeatPipeBlock(properties: Properties) :
             }
             .filter { property: BooleanProperty? ->
                 prevState.getValue(
-                    property
+                    property!!
                 )
             }
             .count().toInt()
@@ -120,7 +122,7 @@ class HeatPipeBlock(properties: Properties) :
         // Update sides that are not ignored
         for (d in Iterate.directions) if (d != ignore) {
             val shouldConnect = canConnectTo(world, pos.relative(d), world.getBlockState(pos.relative(d)), d)
-            state = state.setValue(PROPERTY_BY_DIRECTION[d], shouldConnect)
+            state = state.setValue(PROPERTY_BY_DIRECTION[d]!!, shouldConnect)
         }
 
         // See if it has enough connections
@@ -133,28 +135,26 @@ class HeatPipeBlock(properties: Properties) :
         }
 
         // Add opposite end if only one connection
-        if (connectedDirection != null) return state.setValue(PROPERTY_BY_DIRECTION[connectedDirection.opposite], true)
+        if (connectedDirection != null) return state.setValue(PROPERTY_BY_DIRECTION[connectedDirection.opposite]!!, true)
 
         // If we can't connect to anything and weren't connected before, do nothing
-        return if (prevStateSides == 2) prevState else state.setValue(PROPERTY_BY_DIRECTION[preferredDirection], true)
-            .setValue(PROPERTY_BY_DIRECTION[preferredDirection.opposite], true)
+        return if (prevStateSides == 2) prevState else state.setValue(PROPERTY_BY_DIRECTION[preferredDirection]!!, true)
+            .setValue(PROPERTY_BY_DIRECTION[preferredDirection.opposite]!!, true)
 
         // Use preferred
     }
 
-    fun isOpenAt(state: BlockState, direction: Direction?): Boolean {
-        return state.getValue(PROPERTY_BY_DIRECTION[direction])
+    private fun isOpenAt(state: BlockState, direction: Direction): Boolean {
+        return state.getValue(PROPERTY_BY_DIRECTION[direction]!!)
     }
 
-    fun canConnectTo(world: BlockAndTintGetter?, neighbourPos: BlockPos?, neighbour: BlockState?, direction: Direction): Boolean {
+    private fun canConnectTo(world: BlockAndTintGetter?, neighbourPos: BlockPos?, neighbour: BlockState?, direction: Direction): Boolean {
         if (VanillaFluidTargets.shouldPipesConnectTo(neighbour)) return true
         val bracket = BlockEntityBehaviour.get(world, neighbourPos, BracketedBlockEntityBehaviour.TYPE)
-        return if (isPipe(neighbour)) bracket == null else false
+        return if (isPipe(neighbour!!)) bracket == null else false
     }
 
-    fun isPipe(neighbour: BlockState?): Boolean {
-        return neighbour!!.getBlock() is HeatPipeBlock
+    private fun isPipe(neighbour: BlockState): Boolean {
+        return neighbour.block is HeatPipeBlock
     }
-
-
 }
