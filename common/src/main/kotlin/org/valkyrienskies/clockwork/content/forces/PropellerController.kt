@@ -46,6 +46,7 @@ class PropellerController : ShipForcesInducer {
                 createData.component2().bearingAxis,
                 createData.component2().bearingAngle,
                 createData.component2().bearingSpeed,
+                Quaterniond(),
                 createData.component2().propellorPositions,
                 createData.component2().inverted,
                 createData.component2().overStressed
@@ -61,6 +62,7 @@ class PropellerController : ShipForcesInducer {
                 physData.bearingSpeed = data.rotationSpeed
                 physData.inverted = data.inverted
                 physData.overStressed = data.overStressed
+                physData.bearingRotation = data.bearingRotation
             }
         )
         propellorUpdatePhysData.clear()
@@ -97,7 +99,7 @@ class PropellerController : ShipForcesInducer {
     ): Pair<Vector3dc, Vector3dc> {
         val modifiedSpeed: Double = physProp.bearingSpeed * 1.5 //* 1.25, A little bit easier to generate force //TODO config?
         val bearingVector: Vector3dc = Vector3d(physProp.bearingPos).add(0.5, 0.5, 0.5)
-        val axis: Vector3dc = physProp.bearingAxis!!.mul(sign(modifiedSpeed), Vector3d())
+        val axis: Vector3dc = physProp.bearingAxis!!.mul(sign(modifiedSpeed), Vector3d()).rotate(physTransform.shipToWorldRotation)
         val rotation: Quaterniondc = Quaterniond(AxisAngle4d(Math.toRadians(physProp.bearingAngle), axis))
         val angVel: Vector3dc = axis.mul(modifiedSpeed / 60.0 * (2.0 * Math.PI), Vector3d())
         val furthestTip = Vector3d()
@@ -113,7 +115,7 @@ class PropellerController : ShipForcesInducer {
             if (rotatedDiff.length() > furthestTip.length()) {
                 furthestTip.set(rotatedDiff)
             }
-            val force = physTransform.shipToWorldRotation.transform(axis.mul(sailVel.length(), Vector3d()))
+            val force = axis.mul(sailVel.length(), Vector3d())
                 .mul(5000.0, Vector3d())
             //            Vector3d force2 = force.mul(physProp.bearingSpeed, new Vector3d());
             val sailPosWorld: Vector3dc = physTransform.shipToWorld.transformPosition(sailVector, Vector3d())
@@ -127,7 +129,12 @@ class PropellerController : ShipForcesInducer {
             if (!java.lang.Double.isFinite(factor)) {
                 factor = 1.0
             }
-            val airPress = airPressure(sailPosWorld)
+            val airPressFact = getAirPressureForY(sailPosWorld.y())
+            var airPress = 0.0
+            if (airPressFact > 0.0) {
+                airPress = Mth.clamp(airPressFact / 22632.10, 0.0, 1.0)
+            }
+
             force.mul(airPress * factor)
             torque.mul(airPress * factor)
             netForce.add(force)
@@ -135,9 +142,11 @@ class PropellerController : ShipForcesInducer {
         }
 
 //        netTorque.add(conserveMomentum(physShip, physProp, furthestTip, angVel));
+        netForce.rotate(physProp.bearingRotation)
         if (physProp.inverted) {
             netForce.mul(-1.0)
         }
+
         //        System.out.println(netTorque);
         return Pair<Vector3dc, Vector3dc>(netForce, netTorque)
     }
@@ -176,14 +185,149 @@ class PropellerController : ShipForcesInducer {
         return torque
     }
 
-    private fun airPressure(pos: Vector3dc): Double {
-        val offset = Math.exp(-(320.0 - 64.0) / 192.0)
-        val height = pos.y()
-        val airPress = (Math.exp(-(height - 64.0) / 192) - offset) / (1.0 - offset)
-        return if (java.lang.Double.isFinite(airPress)) {
-            Mth.clamp(airPress, 0.0, 1.0)
-        } else {
-            0.0
+    //todo add this to AerodynamicUtils once this is merged to Melting Point's branch
+    fun getAirPressureForY(y: Double, maxHeight: Double = 563.0): Double {
+        val worldScale = 11000.0 / (maxHeight - 63.0)
+
+        val realAltitude = (y - 63.0) * worldScale
+
+        val layer = when {
+            realAltitude < 11000 -> 0
+            realAltitude < 20000 -> 1
+            realAltitude < 32000 -> 2
+            realAltitude < 47000 -> 3
+            realAltitude < 51000 -> 4
+            realAltitude < 71000 -> 5
+            else -> 6
+        }
+
+        val hb = when (layer) {
+            0 -> 0.0
+            1 -> 11000.0
+            2 -> 20000.0
+            3 -> 32000.0
+            4 -> 47000.0
+            5 -> 51000.0
+            6 -> 71000.0
+            else -> 0.0
+        }
+
+        val pb = when (layer) {
+            0 -> 101325.00
+            1 -> 22632.10
+            2 -> 5747.89
+            3 -> 868.02
+            4 -> 110.91
+            5 -> 66.94
+            6 -> 3.96
+            else -> 0.0
+        }
+
+        val Tb = when (layer) {
+            0 -> 288.15
+            1 -> 216.65
+            2 -> 216.65
+            3 -> 228.65
+            4 -> 270.65
+            5 -> 270.65
+            6 -> 214.65
+            else -> 0.0
+        }
+
+        val g0 = 9.80665 // grav accelerant
+
+        val R = 8.3144598 // universal gas constant
+
+        val M = 0.0289644 // molar mass of air
+
+        val L = when (layer) {
+            0 -> 0.0065
+            1 -> 0.0
+            2 -> -0.001
+            3 -> -0.0028
+            4 -> 0.0
+            5 -> 0.0028
+            6 -> 0.002
+            else -> 0.0
+        }
+
+        return when (L != 0.0) {
+            true -> pb * Math.pow(1.0 - (L / Tb) * (realAltitude - hb), ((g0 * M) / (R * L)))
+            else -> pb * Math.exp((-g0 * M * (realAltitude - hb)) / (R * Tb))
+        }
+
+
+    }
+
+    //todo replace this call with AerodynamicUtils once this is merged to Melting Point's branch
+    fun getAirDensityForY(y: Double, maxHeight: Double): Double {
+        val worldScale = 11000.0 / (maxHeight - 63.0)
+
+        val realAltitude = (y - 63.0) * worldScale
+
+        val layer = when {
+            realAltitude < 11000 -> 0
+            realAltitude < 20000 -> 1
+            realAltitude < 32000 -> 2
+            realAltitude < 47000 -> 3
+            realAltitude < 51000 -> 4
+            realAltitude < 71000 -> 5
+            else -> 6
+        }
+
+        val hb = when (layer) {
+            0 -> 0.0
+            1 -> 11000.0
+            2 -> 20000.0
+            3 -> 32000.0
+            4 -> 47000.0
+            5 -> 51000.0
+            6 -> 71000.0
+            else -> 0.0
+        }
+
+        val pb = when (layer) {
+            0 -> 1.225
+            1 -> 0.36391
+            2 -> 0.08803
+            3 -> 0.01322
+            4 -> 0.00143
+            5 -> 0.00086
+            6 -> 0.000064
+            else -> 0.0
+        }
+
+        val Tb = when (layer) {
+            0 -> 288.15
+            1 -> 216.65
+            2 -> 216.65
+            3 -> 228.65
+            4 -> 270.65
+            5 -> 270.65
+            6 -> 214.65
+            else -> 0.0
+        }
+
+        val g0 = 9.80665
+
+        val R = 8.3144598
+
+        val M = 0.0289644
+
+        val L = when (layer) {
+            0 -> 0.0065
+            1 -> 0.0
+            2 -> -0.001
+            3 -> -0.0028
+            4 -> 0.0
+            5 -> 0.0028
+            6 -> 0.002
+            else -> 0.0
+        }
+
+        return when (L != 0.0) {
+            true -> pb * Math.pow((Tb - (realAltitude - hb) * L) / Tb, ((g0 * M) / (R * L) -1.0))
+            else -> pb * Math.exp((-g0 * M * (realAltitude - hb)) / (R * Tb))
         }
     }
 

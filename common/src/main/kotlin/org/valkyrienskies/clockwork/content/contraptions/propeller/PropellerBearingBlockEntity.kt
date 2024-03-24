@@ -23,6 +23,8 @@ import net.minecraft.util.Mth
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
+import org.joml.Quaterniond
+import org.joml.Vector2d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.content.contraptions.propeller.contraption.PropellerContraption
@@ -207,7 +209,8 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
                     val data = PropUpdateData(dumbFix * angularSpeed.toDouble(),
                         realAngle.toDouble(),
                         isInverted,
-                        overStressed)
+                        overStressed,
+                        Quaterniond())
                     PropellerController.getOrCreate(ship)!!.updatePropeller(physPropId!!, data)
                 }
             }

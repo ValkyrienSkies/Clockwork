@@ -1,6 +1,10 @@
 package org.valkyrienskies.clockwork.content.contraptions.propeller.data
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect
+import org.joml.Quaterniond
+import org.joml.Quaterniondc
+import org.joml.Vector2d
+import org.joml.Vector2dc
 import org.joml.Vector3dc
 import org.joml.Vector3ic
 
@@ -11,6 +15,7 @@ class PropData {
     val propellorPositions: List<Vector3ic>?
     var bearingAngle = 0.0
     var bearingSpeed = 0.0
+    var bearingRotation: Quaterniondc? = Quaterniond()
     var inverted = false
     var prevAngularMomentum: Vector3dc? = null
     var overStressed: Boolean = false
@@ -21,6 +26,7 @@ class PropData {
         bearingPos = null
         bearingAxis = null
         propellorPositions = null
+        bearingRotation = null
     }
 
     constructor(
@@ -28,6 +34,7 @@ class PropData {
             bearingAxis: Vector3dc?,
             bearingAngle: Double,
             bearingSpeed: Double,
+            bearingRotation: Quaterniondc?,
             propellorPositions: List<Vector3ic>?,
             inverted: Boolean,
             overStressed: Boolean
@@ -36,6 +43,7 @@ class PropData {
         this.bearingAxis = bearingAxis
         this.bearingAngle = bearingAngle
         this.bearingSpeed = bearingSpeed
+        this.bearingRotation = bearingRotation
         this.propellorPositions = propellorPositions
         this.inverted = inverted
         this.overStressed = overStressed

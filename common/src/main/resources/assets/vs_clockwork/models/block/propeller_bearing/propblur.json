@@ -1,0 +1,17 @@
+{
+	"credit": "Made with Blockbench",
+	"textures": {
+		"0": "airstream",
+		"particle": "airstream"
+	},
+	"elements": [
+		{
+			"from": [-16, 18, -16],
+			"to": [32, 18, 32],
+			"faces": {
+				"up": {"uv": [0, 0, 16, 16], "texture": "#0"},
+				"down": {"uv": [16, 0, 0, 16], "texture": "#0"}
+			}
+		}
+	]
+}
