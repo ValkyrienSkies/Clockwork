@@ -222,6 +222,27 @@ object ClockworkBlocks {
             .register()
 
     @JvmField
+    val HEAT_PIPE: BlockEntry<HeatPipeBlock> = REGISTRATE.block<HeatPipeBlock>(
+        "heat_pipe"
+    ) { properties: BlockBehaviour.Properties? ->
+        HeatPipeBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .onRegister(CreateRegistrate.blockModel {
+            NonNullFunction<BakedModel?, BakedModel> { template: BakedModel? ->
+                PipeAttachmentModel(
+                    template
+                )
+            }
+        })
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .transform(customItemModel())
+        .register()
+
+    @JvmField
     val GOO_BLOCK = REGISTRATE.block<GooBlock>("goo_block") { properties: BlockBehaviour.Properties? ->
         GooBlock(
             properties!!
@@ -246,7 +267,6 @@ object ClockworkBlocks {
         .item()
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .transform(customItemModel())
-        .build()
         .register()
 
     @JvmField

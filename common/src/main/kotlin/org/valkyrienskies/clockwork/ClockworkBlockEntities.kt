@@ -219,24 +219,22 @@ object ClockworkBlockEntities {
         .register()
 
     @JvmField
-    val HEAT_PIPE = REGISTRATE.block<HeatPipeBlock>(
-        "heat_pipe"
-    ) { properties: BlockBehaviour.Properties? ->
-        HeatPipeBlock(
-            properties!!
-        )
-    }
-        .initialProperties { SharedProperties.netheriteMetal() }
-        .onRegister(CreateRegistrate.blockModel {
-            NonNullFunction<BakedModel?, BakedModel> { template: BakedModel? ->
-                PipeAttachmentModel(
-                    template
+    val HEAT_PIPE: BlockEntityEntry<HeatPipeBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<HeatPipeBlockEntity>("heat_pipe") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            HeatPipeBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in HeatPipeBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                HeatPipeBlockEntityRenderer(
+                    context!!
                 )
             }
-        })
-        .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
-        .transform(customItemModel())
+        }
+        .validBlocks(ClockworkBlocks.HEAT_PIPE)
         .register()
     
     @JvmField
