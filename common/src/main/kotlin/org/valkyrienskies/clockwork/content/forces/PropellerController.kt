@@ -32,6 +32,7 @@ class PropellerController : ShipForcesInducer {
         ConcurrentLinkedQueue<Pair<Int, PropCreateData>>()
     private val removedProps = ConcurrentLinkedQueue<Int>()
     private var nextPropID = 0
+
     override fun applyForces(physShip: PhysShip) {
         while (!createdProps.isEmpty()) {
             val createData: Pair<Int, PropCreateData> = createdProps.remove()
@@ -45,7 +46,8 @@ class PropellerController : ShipForcesInducer {
                 createData.component2().bearingAngle,
                 createData.component2().bearingSpeed,
                 createData.component2().propellorPositions,
-                createData.component2().inverted
+                createData.component2().inverted,
+                createData.component2().overStressed
             )
         }
         while (!removedProps.isEmpty()) {
@@ -57,6 +59,7 @@ class PropellerController : ShipForcesInducer {
                 physData.bearingAngle = data.rotationAngle
                 physData.bearingSpeed = data.rotationSpeed
                 physData.inverted = data.inverted
+                physData.overStressed = data.overStressed
             }
         )
         propellorUpdatePhysData.clear()
@@ -65,12 +68,13 @@ class PropellerController : ShipForcesInducer {
         val netForce = Vector3d()
         val netTorque = Vector3d()
         for (physData in propellorPhysData.values) {
-            val forceTorque = computeForce(
-                physShip.transform, physData, (physShip as PhysShipImpl).poseVel.vel, physShip.poseVel.omega,
-                physShip
-            )
-            netForce.add(forceTorque.component1())
-            netTorque.add(forceTorque.component2())
+            if(!physData.overStressed) {
+                val forceTorque = computeForce(
+                    physShip.transform, physData, (physShip as PhysShipImpl).poseVel.vel, physShip.poseVel.omega, physShip
+                )
+                netForce.add(forceTorque.component1())
+                netTorque.add(forceTorque.component2())
+            }
         }
         if (netForce.isFinite && netTorque.isFinite) {
             physShip.applyInvariantForce(netForce)
@@ -86,7 +90,7 @@ class PropellerController : ShipForcesInducer {
         omega: Vector3dc,
         physShip: PhysShipImpl
     ): Pair<Vector3dc, Vector3dc> {
-        val modifiedSpeed: Double = physProp.bearingSpeed * 1.25 //* 1.25, A little bit easier to generate force //TODO config?
+        val modifiedSpeed: Double = physProp.bearingSpeed * 1.5 //* 1.25, A little bit easier to generate force //TODO config?
         val bearingVector: Vector3dc = Vector3d(physProp.bearingPos).add(0.5, 0.5, 0.5)
         val axis: Vector3dc = physProp.bearingAxis!!.mul(sign(modifiedSpeed), Vector3d())
         val rotation: Quaterniondc = Quaterniond(AxisAngle4d(Math.toRadians(physProp.bearingAngle), axis))
@@ -94,6 +98,7 @@ class PropellerController : ShipForcesInducer {
         val furthestTip = Vector3d()
         val netForce = Vector3d()
         val netTorque = Vector3d()
+
         for (pos in physProp.propellorPositions!!) {
             val sailVector: Vector3dc = Vector3d(pos.x().toDouble(), pos.y().toDouble(), pos.z().toDouble())
                 .add(bearingVector)

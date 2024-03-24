@@ -1,13 +1,15 @@
 package org.valkyrienskies.clockwork.platform
 
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer
+import com.tterrag.registrate.util.entry.BlockEntityEntry
 import com.tterrag.registrate.util.entry.EntityEntry
 import dev.architectury.injectables.annotations.ExpectPlatform
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
-import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorClusterRenderer
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatEntity
+import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlockEntity
 import org.valkyrienskies.clockwork.platform.api.network.PacketChannel
 import java.util.function.BiConsumer
 
@@ -34,18 +36,18 @@ object SharedValues {
     @get:ExpectPlatform
     @JvmStatic
     val sequencedSeat: EntityEntry<SequencedSeatEntity>
-        //region Entities
         get() {
             throw AssertionError()
         }
 
     @get:ExpectPlatform
     @JvmStatic
-    val frostingBuckets: ArrayList<Item>
-        //endregion
+    val ballast: BlockEntityEntry<BallastBlockEntity>
         get() {
             throw AssertionError()
         }
+
+
 
     @get:ExpectPlatform
     @JvmStatic
@@ -56,7 +58,7 @@ object SharedValues {
 
     @get:ExpectPlatform
     @JvmStatic
-    val auricHandler: AuricDesignatorClusterRenderer
+    val auricHandler: WanderWandClusterRenderer
         get() {
             throw AssertionError()
         }

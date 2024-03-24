@@ -13,6 +13,13 @@ import org.valkyrienskies.clockwork.content.forces.DragController
 import org.valkyrienskies.clockwork.content.forces.PocketForcesController
 import org.valkyrienskies.clockwork.content.logistics.heat.ClientAirPocketStorage
 import org.valkyrienskies.core.api.ships.setAttachment
+import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.TranslatableComponent
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.item.CreativeModeTab
+import org.slf4j.LoggerFactory
+import org.valkyrienskies.clockwork.platform.PlatformUtils
+import org.valkyrienskies.clockwork.platform.SharedValues
 import org.valkyrienskies.core.impl.config.VSConfigClass
 import org.valkyrienskies.core.impl.hooks.VSEvents
 import org.valkyrienskies.mod.common.shipObjectWorld
@@ -32,8 +39,7 @@ object ClockworkMod {
     val MIXIN_LOGGER = LoggerFactory.getLogger("ClockworkMixins")
     val LOGGER = LogUtils.getLogger()
 
-    val BASE_CREATIVE_TAB: CreativeModeTab = CreativeTabRegistry
-        .create(ResourceLocation(MOD_ID, "clockwork")) { ClockworkItems.GRAVITRON.get().defaultInstance }
+    val BASE_CREATIVE_TAB: CreativeModeTab = PlatformUtils.getCreativeTab()
 
     private lateinit var kelvin: KelvinBackground
 
@@ -69,7 +75,7 @@ object ClockworkMod {
             }
             ClientAirPocketStorage.serverTick(it)
         }
-
+        
         kelvin = KelvinBackground(ClockworkConfig.SERVER.kelvinTickRate, ClockworkConfig.SERVER.kelvinSubSteps)
 
         LifecycleEvent.SERVER_STARTING.register {

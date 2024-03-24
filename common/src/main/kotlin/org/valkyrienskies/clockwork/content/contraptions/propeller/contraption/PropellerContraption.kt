@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate
 import org.apache.commons.lang3.tuple.Pair
 import org.valkyrienskies.clockwork.ClockworkContraptions
+import org.valkyrienskies.clockwork.util.ClockworkConstants
 import java.util.*
 
 class PropellerContraption : Contraption {
@@ -79,16 +80,16 @@ class PropellerContraption : Contraption {
 
     override fun writeNBT(spawnPacket: Boolean): CompoundTag {
         val tag = super.writeNBT(spawnPacket)
-        tag.putInt("Sails", sailBlocks)
-        tag.putInt("Facing", facing!!.get3DDataValue())
-        tag.putInt("Offset", offset)
+        tag.putInt(ClockworkConstants.Nbt.SAILS, sailBlocks)
+        tag.putInt(ClockworkConstants.Nbt.FACING, facing!!.get3DDataValue())
+        tag.putInt(ClockworkConstants.Nbt.OFFSET, offset)
         return tag
     }
 
     override fun readNBT(world: Level, tag: CompoundTag, spawnData: Boolean) {
-        sailBlocks = tag.getInt("Sails")
-        facing = Direction.from3DDataValue(tag.getInt("Facing"))
-        offset = tag.getInt("Offset")
+        sailBlocks = tag.getInt(ClockworkConstants.Nbt.SAILS)
+        facing = Direction.from3DDataValue(tag.getInt(ClockworkConstants.Nbt.FACING))
+        offset = tag.getInt(ClockworkConstants.Nbt.OFFSET)
         super.readNBT(world, tag, spawnData)
     }
 

@@ -20,22 +20,16 @@ repositories {
 
 dependencies {
     modImplementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
-
-    //todo re separate kelvin
-//    implementation(project(path: ":api", configuration: "namedElements")) { transitive = false }
-//    implementation(project(path: ":impl", configuration: "namedElements")) { transitive = false }
-
     implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:0.2.1"))
     implementation(("io.github.llamalad7:mixinextras-common:0.2.1"))
 
-    modApi("dev.architectury:architectury:${rootProject.architectury_version}") {
-        exclude group: 'org.joml', module: ''
-    }
+    //modApi("dev.architectury:architectury:${rootProject.architectury_version}")
 
     modCompileOnly("com.simibubi.create:create-fabric-${minecraft_version}:${create_fabric_version}")
             { exclude group: 'com.github.AlphaMode', module: 'fakeconfigtoml' }
 
     modCompileOnly("net.fabricmc.fabric-api:fabric-api:${fabric_api_version}")
+
 
     // VS2
     modApi("org.valkyrienskies:valkyrienskies-118-common:${rootProject.vs2_version}")
@@ -56,6 +50,10 @@ dependencies {
     modCompileOnly("curse.maven:cc-restitched-462672:3622561")
     //modImplementation("maven.modrinth:cc-tweaked:${cc_version}")
 
+    //modCompileOnlyApi("mezz.jei:jei-${minecraft_version}-common-api:${jei_version_fabric}")
+
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+
+    modCompileOnly "me.shedaniel:RoughlyEnoughItems-api:${rei_version}"
 }

@@ -5,6 +5,7 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
 import org.valkyrienskies.clockwork.platform.api.network.ServerNetworkContext
+import org.valkyrienskies.clockwork.util.ClockworkConstants
 
 class UpdateSeatRulesPacket : C2SCWPacket {
     private val pos: BlockPos
@@ -47,10 +48,10 @@ class UpdateSeatRulesPacket : C2SCWPacket {
     override fun write(buffer: FriendlyByteBuf) {
         buffer.writeBlockPos(pos)
         val nbt = CompoundTag()
-        nbt.put("rulesForward", rulesForward.serializeNBT())
-        nbt.put("rulesBackward", rulesBackward.serializeNBT())
-        nbt.put("rulesLeft", rulesLeft.serializeNBT())
-        nbt.put("rulesRight", rulesRight.serializeNBT())
+        nbt.put(ClockworkConstants.Nbt.FORWARD_RULES, rulesForward.serializeNBT())
+        nbt.put(ClockworkConstants.Nbt.BACKWARD_RULES, rulesBackward.serializeNBT())
+        nbt.put(ClockworkConstants.Nbt.LEFT_RULES, rulesLeft.serializeNBT())
+        nbt.put(ClockworkConstants.Nbt.RIGHT_RULES, rulesRight.serializeNBT())
         buffer.writeNbt(nbt)
     }
 }

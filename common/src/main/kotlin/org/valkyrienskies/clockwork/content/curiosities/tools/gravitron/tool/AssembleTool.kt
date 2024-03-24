@@ -7,7 +7,9 @@ class AssembleTool : GravitronToolBase() {
 
     override fun handleRightClick(): Boolean {
         updateTargetPos()
-        sendToServer(GravitronGrabPacket(clickedPos, clickedLocation, ASSEMBLE))
+        if (clickedPos != null && clickedLocation != null) {
+            sendToServer(GravitronGrabPacket(clickedPos!!, clickedLocation!!, ASSEMBLE))
+        }
         return true
     }
 }

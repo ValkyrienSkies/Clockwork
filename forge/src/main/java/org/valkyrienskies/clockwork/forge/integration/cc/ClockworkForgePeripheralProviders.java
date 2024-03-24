@@ -1,8 +1,5 @@
 package org.valkyrienskies.clockwork.forge.integration.cc;
 
-import dan200.computercraft.api.ComputerCraftAPI;
-import dan200.computercraft.api.peripheral.IPeripheral;
-import dan200.computercraft.api.peripheral.IPeripheralProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -11,15 +8,15 @@ import org.jetbrains.annotations.NotNull;
 
 public class ClockworkForgePeripheralProviders {
     public static void register() {
-        ComputerCraftAPI.registerPeripheralProvider(new ClockworkPeripheralProvider());
+        //ComputerCraftAPI.registerPeripheralProvider(new ClockworkPeripheralProvider());
     }
-
+/*
     public static class ClockworkPeripheralProvider implements IPeripheralProvider {
         @NotNull
         @Override
         public LazyOptional<IPeripheral> getPeripheral(@NotNull Level level, @NotNull BlockPos blockPos, @NotNull Direction direction) {
             // TODO: Fix this
-            /*
+
             BlockEntity be = level.getBlockEntity(blockPos);
             if (be instanceof AfterblazerEngineBlockEntity afterblazer)
                 return LazyOptional.of(() -> new ForgeAfterblazerPeripheral(afterblazer));
@@ -37,8 +34,9 @@ public class ClockworkForgePeripheralProviders {
                 return LazyOptional.of(() -> new PhysBearingPeripheral(phys));
             else if (be instanceof ColorBlockEntity color)
                 return LazyOptional.of(() -> new ColorPeripheral(color));
-             */
+
             return LazyOptional.empty();
         }
     }
+    */
 }

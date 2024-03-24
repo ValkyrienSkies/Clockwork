@@ -7,19 +7,33 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.*
 import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.level.Level
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3i
 import org.joml.Vector3ic
 import org.joml.primitives.AABBi
 import org.joml.primitives.AABBic
-import org.valkyrienskies.clockwork.content.curiosities.tools.designator.SelectedAreaToolkit
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.SelectedAreaToolkit
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil.defaultMapper
+import org.valkyrienskies.mod.common.BlockStateInfo
+import org.valkyrienskies.mod.common.dimensionId
+import org.valkyrienskies.mod.common.shipObjectWorld
 import java.io.IOException
 import java.util.*
 import java.util.stream.Collectors
 
 
 object ClockworkUtils {
+
+    @JvmStatic
+    fun updateBlockStateWeight(serverLevel: ServerLevel, blockPos: BlockPos, oldWeight: Double, newWeight: Double){
+        val state = serverLevel.getBlockState(blockPos)
+
+        val (_, prevBlockType) = BlockStateInfo.get(state) ?: return
+
+        serverLevel.shipObjectWorld.onSetBlock(blockPos.x, blockPos.y, blockPos.z, serverLevel.dimensionId, prevBlockType, prevBlockType, oldWeight, newWeight)
+    }
 
     @JvmStatic
     fun writeVec3(vec: Vec3): ListTag {
@@ -98,7 +112,7 @@ object ClockworkUtils {
     fun loadArea(nbt: CompoundTag?): SelectedAreaToolkit {
         val toolKit = SelectedAreaToolkit()
         if (nbt != null) {
-            val nb = nbt.getByteArray("SelectedData")
+            val nb = nbt.getByteArray(ClockworkConstants.Nbt.SELECTED_DATA)
             try {
                 toolKit.overwriteFrom(
                     defaultMapper.readValue(
@@ -114,7 +128,7 @@ object ClockworkUtils {
 
     fun saveArea(nbt: CompoundTag, area: SelectedAreaToolkit?): CompoundTag {
         try {
-            nbt.putByteArray("SelectedData", defaultMapper.writeValueAsBytes(area))
+            nbt.putByteArray(ClockworkConstants.Nbt.SELECTED_DATA, defaultMapper.writeValueAsBytes(area))
         } catch (ignored: JsonProcessingException) {
         }
         return nbt

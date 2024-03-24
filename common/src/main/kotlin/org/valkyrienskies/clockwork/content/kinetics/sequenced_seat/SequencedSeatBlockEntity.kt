@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.integration.cc.ComputerAttachmentHandler
 import org.valkyrienskies.clockwork.platform.PlatformUtils.isModLoaded
+import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.clockwork.util.MinecraftUtil.between
 import java.util.function.Consumer
 
@@ -73,18 +74,18 @@ class SequencedSeatBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, stat
 
     override fun write(compound: CompoundTag, clientPacket: Boolean) {
         super.write(compound, clientPacket)
-        compound.put("ForwardRules", forwardRules.serializeNBT())
-        compound.put("BackwardRules", backwardRules.serializeNBT())
-        compound.put("LeftRules", leftRules.serializeNBT())
-        compound.put("RightRules", rightRules.serializeNBT())
+        compound.put(ClockworkConstants.Nbt.FORWARD_RULES, forwardRules.serializeNBT())
+        compound.put(ClockworkConstants.Nbt.BACKWARD_RULES, backwardRules.serializeNBT())
+        compound.put(ClockworkConstants.Nbt.LEFT_RULES, leftRules.serializeNBT())
+        compound.put(ClockworkConstants.Nbt.RIGHT_RULES, rightRules.serializeNBT())
     }
 
     override fun read(compound: CompoundTag, clientPacket: Boolean) {
         super.read(compound, clientPacket)
-        forwardRules.deserializeNBT(compound.getList("ForwardRules", CompoundTag.TAG_COMPOUND.toInt()))
-        backwardRules.deserializeNBT(compound.getList("BackwardRules", CompoundTag.TAG_COMPOUND.toInt()))
-        leftRules.deserializeNBT(compound.getList("LeftRules", CompoundTag.TAG_COMPOUND.toInt()))
-        rightRules.deserializeNBT(compound.getList("RightRules", CompoundTag.TAG_COMPOUND.toInt()))
+        forwardRules.deserializeNBT(compound.getList(ClockworkConstants.Nbt.FORWARD_RULES, CompoundTag.TAG_COMPOUND.toInt()))
+        backwardRules.deserializeNBT(compound.getList(ClockworkConstants.Nbt.BACKWARD_RULES, CompoundTag.TAG_COMPOUND.toInt()))
+        leftRules.deserializeNBT(compound.getList(ClockworkConstants.Nbt.LEFT_RULES, CompoundTag.TAG_COMPOUND.toInt()))
+        rightRules.deserializeNBT(compound.getList(ClockworkConstants.Nbt.RIGHT_RULES, CompoundTag.TAG_COMPOUND.toInt()))
     }
 
     fun updateRules(

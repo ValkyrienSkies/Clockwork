@@ -25,7 +25,7 @@ public class FabricClockworkClientEvents {
         ClockworkModFabricClient.GRAVITRON_HANDLER.tick();
 
         ClockworkModClient.getOUTLINER().tickOutlines();
-        ClockworkModClient.getAURIC_OUTLINER().tickOutlines();
+        ClockworkModClient.getWANDER_OUTLINER().tickOutlines();
     }
 
     public static void register() {
@@ -41,7 +41,7 @@ public class FabricClockworkClientEvents {
         Vec3 camera = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
 
         ClockworkModClient.getOUTLINER().renderOutlines(ms, SuperRenderTypeBuffer.getInstance(), camera, partialTicks);
-        ClockworkModClient.getAURIC_OUTLINER().renderOutlines(ms, SuperRenderTypeBuffer.getInstance(), camera, partialTicks);
+        ClockworkModClient.getWANDER_OUTLINER().renderOutlines(ms, SuperRenderTypeBuffer.getInstance(), camera, partialTicks);
 
         buffer.draw();
         RenderSystem.enableCull();

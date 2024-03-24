@@ -34,7 +34,7 @@ public class ClockworkClientEvents {
                 .getPosition();
 
         ClockworkModClient.getOUTLINER().renderOutlines(ms, SuperRenderTypeBuffer.getInstance(), camera, partialTicks);
-        ClockworkModClient.getAURIC_OUTLINER().renderOutlines(ms, SuperRenderTypeBuffer.getInstance(), camera, partialTicks);
+        ClockworkModClient.getWANDER_OUTLINER().renderOutlines(ms, SuperRenderTypeBuffer.getInstance(), camera, partialTicks);
 
         buffer.draw();
         RenderSystem.enableCull();
@@ -54,7 +54,7 @@ public class ClockworkClientEvents {
         ClockworkModForgeClient.GRAVITRON_HANDLER.tick();
 
         ClockworkModClient.getOUTLINER().tickOutlines();
-        ClockworkModClient.getAURIC_OUTLINER().tickOutlines();
+        ClockworkModClient.getWANDER_OUTLINER().tickOutlines();
     }
 
     @SubscribeEvent

@@ -12,6 +12,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.NonNullList
+import net.minecraft.core.Registry
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
@@ -28,14 +29,15 @@ import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
 import org.joml.Vector3dc
-import org.joml.primitives.AABBic
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.client.render.scanner.ScannerRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer.Companion.SCAN_GROWTH_DURATION
-import org.valkyrienskies.clockwork.content.curiosities.tools.designator.SelectedAreaToolkit
-import org.valkyrienskies.clockwork.content.curiosities.tools.designator.AuricDesignatorItem
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.SelectedAreaToolkit
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItem
+import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.clockwork.util.EaseHelper.easeInBounce
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.core.api.ships.Ship
@@ -81,7 +83,7 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     }
 
     override fun canPlaceItemThroughFace(index: Int, itemStack: ItemStack, direction: Direction?): Boolean {
-        return itemStack.item is AuricDesignatorItem
+        return itemStack.item is WanderWandItem
     }
 
     override fun canTakeItemThroughFace(index: Int, stack: ItemStack, direction: Direction): Boolean {
@@ -134,14 +136,14 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             if (inventory[0].isEmpty) return
             var launchForce = 0
             for (cluster in toDump) {
-                val adi: AuricDesignatorItem = inventory[0].item as AuricDesignatorItem
+                val adi: WanderWandItem = inventory[0].item as WanderWandItem
                 adi.selectedArea.dumpCluster(cluster)
                 launchForce++
             }
             toDump.clear()
             val ejected = ItemEntity(
                 level, blockPos.x.toDouble(), (blockPos.y + 1).toDouble(), blockPos.z.toDouble(),
-                ClockworkItems.AURIC_DESIGNATOR.asStack()//New item so the nbt gets cleared
+                ClockworkItems.WANDERWAND.asStack()//New item so the nbt gets cleared
             )
             inventory[0] = ItemStack.EMPTY
             ejected.deltaMovement = Vec3(0.0, launchForce.toDouble(), 0.0)
@@ -274,64 +276,68 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
     fun assemble() {
         if (getLevel()!!.isClientSide()) return
-        if (inventory[0].item !is AuricDesignatorItem) return
-        val item: AuricDesignatorItem = inventory[0].item as AuricDesignatorItem
+        if (inventory[0].item !is WanderWandItem) return
+        val item: WanderWandItem = inventory[0].item as WanderWandItem
 
-        item.selectedArea.selectionClusters.forEach { cluster ->
-            val selection: DenseBlockPosSet
-            val caughtEntities: Set<Entity>
-            if (level is ServerLevel) {
-                val serverLevel = level as ServerLevel
-                selection = SelectedAreaToolkit.denseBlocksFromCluster(cluster)
-                caughtEntities = SelectedAreaToolkit.entitiesFromCluster(cluster, (level as ServerLevel))
-                if (selection == null) return@forEach
+        item.selectedArea.selectionClusters.run clusters@{
+            item.selectedArea.selectionClusters.forEach { cluster ->
+                val selection: DenseBlockPosSet
+                val caughtEntities: Set<Entity>
+                if (level is ServerLevel) {
+                    val serverLevel = level as ServerLevel
+                    selection = SelectedAreaToolkit.denseBlocksFromCluster(cluster)
+                    caughtEntities = SelectedAreaToolkit.entitiesFromCluster(cluster, (level as ServerLevel))
+                    if (selection == null) return@forEach
 
-                var bl = false
+                    var bl = false
 
-                selection.run loop@{
-                    selection.forEach { x, y, z ->
-                        if (!serverLevel.getBlockState(BlockPos(x, y, z)).isAir) {
-                            bl = true
-                            return@loop
-                        }
-                    }
-                }
-
-                if (!bl) {
-                    return@forEach
-                }
-
-                connectedShip = createNewShipWithBlocks(worldPosition, selection, level as ServerLevel)
-                // TODO: relocate entities properly cause it barely works
-                if (caughtEntities != null) {
-                    caughtEntities.forEach(Consumer { entity: Entity ->
-                        if (entity is AbstractContraptionEntity || entity is SuperGlueEntity || entity is SeatEntity) {
-                            if (entity !is SuperGlueEntity) {
-                                val oldPos: Vector3dc = entity.position().toJOML()
-                                val newPos: Vector3dc =
-                                    connectedShip!!.transform.worldToShip.transformPosition(oldPos, Vector3d())
-                                entity.moveTo(newPos.toMinecraft())
-                            } else {
-                                val glueEntity = entity
-                                val oldBounds = glueEntity.boundingBox
-                                val oldMax: Vector3dc = Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
-                                val oldMin: Vector3dc = Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
-                                val newMax: Vector3dc =
-                                    connectedShip!!.transform.worldToShip.transformPosition(oldMax, Vector3d())
-                                val newMin: Vector3dc =
-                                    connectedShip!!.transform.worldToShip.transformPosition(oldMin, Vector3d())
-                                val newBounds =
-                                    AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z())
-                                glueEntity.boundingBox = newBounds
-                                glueEntity.resetPositionToBB()
+                    selection.run loop@{
+                        selection.forEach { x, y, z ->
+                            val it =serverLevel.getBlockState(BlockPos(x, y, z))
+                            if (!it.isAir && !ClockworkConfig.SERVER.blockBlacklist.contains(Registry.BLOCK.getKey(it.block).toString())) {
+                                bl = true
+                                return@loop
                             }
                         }
-                    })
+                    }
+
+                    if (!bl) {
+                        return@forEach
+                    }
+
+                    connectedShip = createNewShipWithBlocks(worldPosition, selection, level as ServerLevel)
+                    // TODO: relocate entities properly cause it barely works
+                    if (caughtEntities != null) {
+                        caughtEntities.forEach(Consumer { entity: Entity ->
+                            if (entity is AbstractContraptionEntity || entity is SuperGlueEntity || entity is SeatEntity) {
+                                if (entity !is SuperGlueEntity) {
+                                    val oldPos: Vector3dc = entity.position().toJOML()
+                                    val newPos: Vector3dc =
+                                        connectedShip!!.transform.worldToShip.transformPosition(oldPos, Vector3d())
+                                    entity.moveTo(newPos.toMinecraft())
+                                } else {
+                                    val glueEntity = entity
+                                    val oldBounds = glueEntity.boundingBox
+                                    val oldMax: Vector3dc = Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
+                                    val oldMin: Vector3dc = Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
+                                    val newMax: Vector3dc =
+                                        connectedShip!!.transform.worldToShip.transformPosition(oldMax, Vector3d())
+                                    val newMin: Vector3dc =
+                                        connectedShip!!.transform.worldToShip.transformPosition(oldMin, Vector3d())
+                                    val newBounds =
+                                        AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z())
+                                    glueEntity.boundingBox = newBounds
+                                    glueEntity.resetPositionToBB()
+                                }
+                            }
+                        })
+                    }
+                    createdShips.add(connectedShip!!)
                 }
-                createdShips.add(connectedShip!!)
+                toDump.add(cluster)
             }
-            toDump.add(cluster)
         }
+
     }
 
     fun disassemble() {}
@@ -381,13 +387,13 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     }
 
     public override fun write(compound: CompoundTag, clientPacket: Boolean) {
-        compound.putString("animationState", animationType.toString())
-        compound.putFloat("assemblyProgress", assemblyProgress.value)
-        compound.putFloat("disassemblyProgress", disassemblyProgress.value)
-        compound.putFloat("idleProgress", idleProgress.value)
-        compound.putBoolean("isAssembled", isAssembled)
-        compound.putBoolean("assembling", assembling)
-        compound.putBoolean("disassembling", disassembling)
+        compound.putString(ClockworkConstants.Nbt.ANIMATION_STATE, animationType.toString())
+        compound.putFloat(ClockworkConstants.Nbt.ASSEMBLY_PROGRESS, assemblyProgress.value)
+        compound.putFloat(ClockworkConstants.Nbt.DISASSEMBLY_PROGRESS, disassemblyProgress.value)
+        compound.putFloat(ClockworkConstants.Nbt.IDLE_PROGRESS, idleProgress.value)
+        compound.putBoolean(ClockworkConstants.Nbt.IS_ASSEMBLED, isAssembled)
+        compound.putBoolean(ClockworkConstants.Nbt.ASSEMBLING, assembling)
+        compound.putBoolean(ClockworkConstants.Nbt.DISASSEMBLING, disassembling)
         ContainerHelper.saveAllItems(compound, inventory)
         super.write(compound, clientPacket)
     }
@@ -395,13 +401,13 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     //NBT stuff
     override fun read(compound: CompoundTag, clientPacket: Boolean) {
         animationType =
-            if (compound.getString("animationState") == "ASSEMBLY") Animation.ASSEMBLY else if (compound.getString("animationState") == "DISASSEMBLY") Animation.DISASSEMBLY else Animation.IDLE
-        assemblyProgress.setValueNoUpdate(compound.getFloat("assemblyProgress").toDouble())
-        disassemblyProgress.setValueNoUpdate(compound.getFloat("disassemblyProgress").toDouble())
-        idleProgress.setValueNoUpdate(compound.getFloat("idleProgress").toDouble())
-        isAssembled = compound.getBoolean("isAssembled")
-        assembling = compound.getBoolean("assembling")
-        disassembling = compound.getBoolean("disassembling")
+            if (compound.getString(ClockworkConstants.Nbt.ANIMATION_STATE) == "ASSEMBLY") Animation.ASSEMBLY else if (compound.getString(ClockworkConstants.Nbt.ANIMATION_STATE) == "DISASSEMBLY") Animation.DISASSEMBLY else Animation.IDLE
+        assemblyProgress.setValueNoUpdate(compound.getFloat(ClockworkConstants.Nbt.ASSEMBLY_PROGRESS).toDouble())
+        disassemblyProgress.setValueNoUpdate(compound.getFloat(ClockworkConstants.Nbt.DISASSEMBLY_PROGRESS).toDouble())
+        idleProgress.setValueNoUpdate(compound.getFloat(ClockworkConstants.Nbt.IDLE_PROGRESS).toDouble())
+        isAssembled = compound.getBoolean(ClockworkConstants.Nbt.IS_ASSEMBLED)
+        assembling = compound.getBoolean(ClockworkConstants.Nbt.ASSEMBLING)
+        disassembling = compound.getBoolean(ClockworkConstants.Nbt.DISASSEMBLING)
         inventory = NonNullList.withSize(this.containerSize, ItemStack.EMPTY)
         ContainerHelper.loadAllItems(compound, inventory)
         super.read(compound, clientPacket)
@@ -420,20 +426,20 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         const val ASSEMBLY_TIME = 500
         const val DISASSEMBLY_TIME = 1000
         fun playInitializeSound(world: Level, location: Vec3) {
-            ClockworkSounds.PHYSICS_INFUSER_INITIALIZE.playAt(world, location, 1f, 1f, false)
+            ClockworkSounds.PHYSICS_INFUSER_INITIALIZE.playAt(world, location, 0.5f, 1f, false)
         }
 
         fun playWindupSound(world: Level, location: Vec3) {
-            ClockworkSounds.PHYSICS_INFUSER_WINDUP.playAt(world, location, 1f, 1f, false)
+            ClockworkSounds.PHYSICS_INFUSER_WINDUP.playAt(world, location, 0.5f, 1f, false)
         }
 
         fun playZapSound(world: Level, location: Vec3, rand: Random) {
             val pitch = 0.6f + rand.nextFloat() * 0.4f
-            ClockworkSounds.PHYSICS_INFUSER_LIGHTNING.playAt(world, location, 1f, 1f, false)
+            ClockworkSounds.PHYSICS_INFUSER_LIGHTNING.playAt(world, location, 0.5f, 1f, false)
         }
 
         fun playFinishSound(world: Level, location: Vec3) {
-            ClockworkSounds.PHYSICS_INFUSER_FINISH.playAt(world, location, 1f, 1f, false)
+            ClockworkSounds.PHYSICS_INFUSER_FINISH.playAt(world, location, 0.5f, 1f, false)
         }
 
         fun spawnParticlesAssembly(world: Level, pos: Vec3, rand: Random) {

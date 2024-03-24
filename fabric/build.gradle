@@ -51,8 +51,8 @@ dependencies {
 
     // dependencies
     modImplementation("net.fabricmc.fabric-api:fabric-api:${fabric_api_version}")
-    implementation(include("io.github.llamalad7:mixinextras-fabric:0.2.1"))
-    (modApi("dev.architectury:architectury-fabric:${rootProject.architectury_version}"))
+    include(annotationProcessor(implementation("com.github.LlamaLad7:MixinExtras:0.1.1")))
+    //include(modApi("dev.architectury:architectury-fabric:${rootProject.architectury_version}"))
 
     //VS2
     modApi("org.valkyrienskies:valkyrienskies-118-fabric:${rootProject.vs2_version}")
@@ -95,7 +95,7 @@ dependencies {
     modCompileOnly("curse.maven:cc-restitched-462672:3622561")
 
     //JEI
-    modRuntimeOnly("mezz.jei:jei-${minecraft_version}-fabric:${jei_version}")
+    //modRuntimeOnly("mezz.jei:jei-${minecraft_version}-fabric:${jei_version_fabric}")
 
     implementation("org.joml:joml-primitives:1.10.0")
     implementation("org.joml:joml:1.10.4")

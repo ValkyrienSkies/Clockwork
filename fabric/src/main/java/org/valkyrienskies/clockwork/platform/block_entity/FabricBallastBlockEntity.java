@@ -1,0 +1,39 @@
+package org.valkyrienskies.clockwork.platform.block_entity;
+
+import io.github.fabricators_of_create.porting_lib.transfer.item.ItemStackHandler;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.Nullable;
+import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlockEntity;
+
+public class FabricBallastBlockEntity extends BallastBlockEntity {
+    public FabricBallastBlockEntity(@Nullable BlockEntityType<?> type, @Nullable BlockPos pos, @Nullable BlockState state) {
+        super(type, pos, state);
+        inventory = new ItemStackHandler(4) {
+            @Override
+            protected void onContentsChanged(int slot) {
+                super.onContentsChanged(slot);
+                recalculateWeightNextTick = true;
+            }
+        };
+    }
+
+    @Override
+    public void updateWeight(){
+        this.oldWeight = this.newWeight;
+
+        int maxCountItem = 4 * 64;
+
+        var temp = 0;
+        for (int i = 0; i < getInventoryOfBlock().getSlots(); i++) {
+            temp += getInventoryOfBlock().getStackInSlot(i).getCount();
+        }
+
+        this.newWeight = (double) mapValue(temp, 0, maxCountItem, 0, 10000);
+    }
+
+    public ItemStackHandler getInventoryOfBlock(){
+        return (ItemStackHandler)inventory;
+    }
+}

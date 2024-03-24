@@ -1,0 +1,100 @@
+{
+  "credit": "Made with Blockbench",
+  "textures": {
+    "2": "vs_clockwork:item/wanderlite_crystal",
+    "particle": "vs_clockwork:item/wanderwand"
+  },
+  "elements": [
+    {
+      "from": [
+        6.4,
+        10.9,
+        6.4
+      ],
+      "to": [
+        9.6,
+        14.1,
+        9.6
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          8,
+          12.5,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#2"
+        },
+        "east": {
+          "uv": [
+            0,
+            2,
+            2,
+            4
+          ],
+          "texture": "#2"
+        },
+        "south": {
+          "uv": [
+            2,
+            0,
+            4,
+            2
+          ],
+          "texture": "#2"
+        },
+        "west": {
+          "uv": [
+            2,
+            2,
+            4,
+            4
+          ],
+          "texture": "#2"
+        },
+        "up": {
+          "uv": [
+            2,
+            6,
+            0,
+            4
+          ],
+          "texture": "#2"
+        },
+        "down": {
+          "uv": [
+            6,
+            0,
+            4,
+            2
+          ],
+          "texture": "#2"
+        }
+      }
+    }
+  ],
+  "groups": [
+    {
+      "name": "crystal",
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "color": 0,
+      "children": [
+        0
+      ]
+    }
+  ]
+}

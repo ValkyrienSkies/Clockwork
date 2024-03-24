@@ -7,13 +7,13 @@
   ],
   "key": {
     "B": {
-      "tag": "c:ingots/brass"
+      "item": "create:brass_ingot"
     },
     "O": {
-      "tag": "c:plates/obsidian"
+      "item": "create:sturdy_sheet"
     },
     "M": {
-      "item": "vs_clockwork:auric_matrix"
+      "item": "vs_clockwork:wanderlite_matrix"
     }
   },
   "result": {

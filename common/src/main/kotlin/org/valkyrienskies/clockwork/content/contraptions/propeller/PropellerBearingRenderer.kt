@@ -44,13 +44,23 @@ class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
         ms.translate(0.5, 0.5, 0.5)
         ms.mulPose(Quaternion.fromXYZ(0.0f, Math.toRadians(-180.0).toFloat(), 0.0f))
         val ogfacing = te.blockState.getValue(BlockStateProperties.FACING)
+        var disgustingFix = 1
         when (ogfacing) {
             Direction.SOUTH -> ms.mulPose(Vector3f.XP.rotationDegrees(270f))
-            Direction.WEST -> ms.mulPose(Vector3f.ZP.rotationDegrees(270f))
-            Direction.NORTH -> ms.mulPose(Vector3f.XP.rotationDegrees(90f))
+            Direction.WEST -> {
+                ms.mulPose(Vector3f.ZP.rotationDegrees(270f))
+                disgustingFix = -disgustingFix
+            }
+            Direction.NORTH -> {
+                ms.mulPose(Vector3f.XP.rotationDegrees(90f))
+                disgustingFix = -disgustingFix
+            }
             Direction.EAST -> ms.mulPose(Vector3f.ZP.rotationDegrees(90f))
             Direction.UP -> ms.mulPose(Vector3f.XP.rotationDegrees(0f))
-            Direction.DOWN -> ms.mulPose(Vector3f.XN.rotationDegrees(180f))
+            Direction.DOWN -> {
+                ms.mulPose(Vector3f.XN.rotationDegrees(180f))
+                disgustingFix = -disgustingFix
+            }
         }
         ms.translate(-0.5, -0.5, -0.5)
         val pistonTopL = CachedBufferer.partial(ClockworkPartials.PROPELLER_PISTON_TOP_LEFT, te.blockState)
@@ -58,11 +68,12 @@ class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
         val pistonBotL = CachedBufferer.partial(ClockworkPartials.PROPELLER_PISTON_BOTTOM_LEFT, te.blockState)
         val pistonBotR = CachedBufferer.partial(ClockworkPartials.PROPELLER_PISTON_BOTTOM_RIGHT, te.blockState)
         val interpolatedAngle: Float = bearingTe.getInterpolatedAngle(partialTicks - 1)
+
         kineticRotationTransform(
             superBuffer,
             te,
             Direction.UP.axis,
-            (interpolatedAngle / 180 * Math.PI).toFloat(),
+            disgustingFix * (interpolatedAngle / 180 * Math.PI).toFloat(),
             light
         )
         shakeEngine(pistonTopL, te.rotspeed, partialTicks, facing, te, 1)

@@ -67,7 +67,7 @@ class WorldScannerRenderer : ScannerRenderer {
     private fun render(viewMatrix: Matrix4f) {
         val target = Minecraft.getInstance().mainRenderTarget
         updateDepthTexture(target)
-        updateShaderUniforms(ClockworkShaders.scan_effect(), viewMatrix)
+        //updateShaderUniforms(ClockworkShaders.scan_effect, viewMatrix)
         blit(target)
     }
 
@@ -114,7 +114,7 @@ class WorldScannerRenderer : ScannerRenderer {
         RenderSystem.disableDepthTest()
         RenderSystem.enableBlend()
         val oldShader = RenderSystem.getShader()
-        RenderSystem.setShader(ClockworkShaders::scan_effect)
+        //RenderSystem.setShader(ClockworkShaders::scan_effect)
         RenderSystem.backupProjectionMatrix()
         RenderSystem.setProjectionMatrix(
             Matrix4f.orthographic(

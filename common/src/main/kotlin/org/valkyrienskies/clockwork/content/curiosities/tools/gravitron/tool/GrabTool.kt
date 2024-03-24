@@ -1,10 +1,14 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool
 
-import com.simibubi.create.AllKeys
+import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.Tag
+import net.minecraft.network.chat.Style
+import net.minecraft.network.chat.TextComponent
+import net.minecraft.network.chat.TranslatableComponent
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.Vec3
@@ -12,13 +16,17 @@ import org.joml.Quaterniond
 import org.joml.Vector2d
 import org.joml.Vector3d
 import org.joml.Vector3dc
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkItems
+import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkPackets.Companion.sendToServer
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDialPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronForceInducer.Companion.getOrCreate
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronForceInducerData
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronGrabPacket
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem.Companion.GravitronState
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem.Companion.getState
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronState
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronState.Companion.getState
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronState.Companion.mapValueToAngle
 import org.valkyrienskies.clockwork.util.ClockworkUtils.readVec3
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.ServerShip
@@ -26,12 +34,16 @@ import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.isBlockInShipyard
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOML
+import java.awt.Component
 
 class GrabTool : GravitronToolBase() {
 
     override fun handleRightClick(): Boolean {
         updateTargetPos()
-        sendToServer(GravitronGrabPacket(clickedPos, clickedLocation, GRAB))
+        if (clickedPos != null && clickedLocation != null) {
+            sendToServer(GravitronGrabPacket(clickedPos!!, clickedLocation!!, GRAB))
+        }
+
         return true
     }
 
@@ -116,7 +128,9 @@ class GrabTool : GravitronToolBase() {
                 val graviton = player.mainHandItem
                 val serverLevel = player.level as ServerLevel
 
-                if (s.shipID != null && graviton.`is`(ClockworkItems.GRAVITRON.get().asItem())) {
+                var bl = graviton.`is`(ClockworkItems.GRAVITRON.get().asItem())
+                var bl2 = graviton.`is`(ClockworkItems.CREATIVE_GRAVITRON.get().asItem())
+                if (s.shipID != null && (bl || bl2)) {
                     updateShip(s, serverLevel, player)
                 }
 
@@ -142,7 +156,7 @@ class GrabTool : GravitronToolBase() {
          * Tries to grab a ship with a given Position
          */
         @JvmStatic
-        fun tryGrabShip(level: ServerLevel, player: Player, clickedPos: BlockPos, clickLocation: Vec3): Boolean {
+        fun tryGrabShip(level: ServerLevel, player: Player, clickedPos: BlockPos, clickLocation: Vec3, isCreative: Boolean): Boolean {
 
             if (dropShip(player)) {
                 return true
@@ -160,6 +174,36 @@ class GrabTool : GravitronToolBase() {
                 return false
             } else {
                 ship.shipToWorld.transformPosition(grabPosInWorld)
+            }
+
+            if (!isCreative) {
+
+                val mass = ship.inertiaData.mass
+                if (player is ServerPlayer) {
+                    val q = mass.toFloat() / (ClockworkConfig.SERVER.maxGravitronMass * 1000f)
+                    val angle = mapValueToAngle(q * 100)
+                    ClockworkPackets.sendTo(GravitronDialPacket(angle), player)
+                }
+
+                if (mass > ClockworkConfig.SERVER.maxGravitronMass * 1000 * 0.9) {
+                    player.displayClientMessage(
+                        TextComponent("Ship's starting to get heavy! ${mass.toInt()} / ${ClockworkConfig.SERVER.maxGravitronMass * 1000}").withStyle(
+                            Style.EMPTY.withColor(
+                                ChatFormatting.GOLD
+                            )
+                        ), true
+                    )
+                }
+                if (mass > ClockworkConfig.SERVER.maxGravitronMass * 1000) {
+                    player.displayClientMessage(
+                        TextComponent("Ship too heavy! ${mass.toInt()} / ${ClockworkConfig.SERVER.maxGravitronMass * 1000}").withStyle(
+                            Style.EMPTY.withColor(
+                                ChatFormatting.RED
+                            )
+                        ), true
+                    )
+                    return false
+                }
             }
 
             grabShip(player, ship, grabPosInShip)
