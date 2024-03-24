@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.logistics.heat.pipe
 
-
 import com.simibubi.create.content.contraptions.ITransformableBlockEntity
 import com.simibubi.create.content.contraptions.StructureTransform
 import com.simibubi.create.content.decoration.bracket.BracketedBlockEntityBehaviour
