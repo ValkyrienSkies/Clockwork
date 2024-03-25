@@ -327,7 +327,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         }
         val hingeConstraint =
-            VSHingeOrientationConstraint(shiptraptionID, otherShipID, 1e-10, hingeOrientation, hingeOrientation, 1e10)
+            VSHingeOrientationConstraint(shiptraptionID, otherShipID, 1e-12, hingeOrientation, hingeOrientation, 1e10)
 
         // TODO: Maybe change this based on ship size?
         val extraDist = 1.0
@@ -335,23 +335,23 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             VSAttachmentConstraint(
                 shiptraptionID,
                 otherShipID,
-                1e-10,
+                1e-16,
                 bearingPos.fma(-extraDist, axis, Vector3d()),
                 posInOwnerShip.fma(-extraDist, axis, Vector3d()),
                 1e10,
                 0.0
             )
 
-//        val secondAttachment =
-//            VSAttachmentConstraint(
-//                shiptraptionID,
-//                otherShipID,
-//                1e-10,
-//                bearingPos.fma(extraDist, axis, Vector3d()),
-//                posInOwnerShip.fma(extraDist, axis, Vector3d()),
-//                1e10,
-//                0.0
-//            )
+        val secondAttachment =
+            VSAttachmentConstraint(
+                shiptraptionID,
+                otherShipID,
+                1e-16,
+                bearingPos.fma(extraDist, axis, Vector3d()),
+                posInOwnerShip.fma(extraDist, axis, Vector3d()),
+                1e10,
+                0.0
+            )
 
         // Add position damping to make the hinge more stable
         // VSPosDampingConstraint posDampingConstraint = new VSPosDampingConstraint(shiptraptionID, otherShipID, 1e-10, posInBearingContraption, posInOwnerShip, 1e10, 1e-2);
@@ -362,13 +362,13 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             (level as ServerLevel).shipObjectWorld.createNewConstraint(firstAttachment) ?: return
         val hingeID: VSConstraintId =
             (level as ServerLevel).shipObjectWorld.createNewConstraint(hingeConstraint) ?: return
-//        val secondAttachmentID: VSConstraintId =
-//            (level as ServerLevel).shipObjectWorld.createNewConstraint(secondAttachment) ?: return
+        val secondAttachmentID: VSConstraintId =
+            (level as ServerLevel).shipObjectWorld.createNewConstraint(secondAttachment) ?: return
         // Integer posDamperID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).createNewConstraint(posDampingConstraint);
         // Integer rotDamperID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).createNewConstraint(perpendicularRotDampingConstraint);
         val firstAttachmentConstraint = VSConstraintAndId(firstAttachmentId, firstAttachment)
         val hingeContraptionConstraint = VSConstraintAndId(hingeID, hingeConstraint)
-//        val secondAttachmentConstraint = VSConstraintAndId(secondAttachmentID, secondAttachment)
+        val secondAttachmentConstraint = VSConstraintAndId(secondAttachmentID, secondAttachment)
         // VSConstraintAndId posDampingContraptionConstraint = new VSConstraintAndId(posDamperID, posDampingConstraint);
         // VSConstraintAndId rotDampingContraptionConstraint = new VSConstraintAndId(rotDamperID, perpendicularRotDampingConstraint);
         val data = PhysBearingCreateData(
@@ -382,7 +382,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             hingeContraptionConstraint,
             null,
             null,
-            null,
+            secondAttachmentConstraint,
         )
         if (!level!!.isClientSide) {
             bearingID = BearingController.getOrCreate(shiptraption)!!.addPhysBearing(data)
