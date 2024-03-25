@@ -253,7 +253,7 @@ object ClockworkBlocks {
         .initialProperties { Blocks.HONEY_BLOCK }
         .addLayer { Supplier { RenderType.cutout() } }
         .item()
-        //TODO .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
         .register()
 

@@ -1,7 +1,7 @@
 {
   "parent": "vs_clockwork:block/wing/item",
   "textures": {
-    "1": "vs_clockwork:block/wing",
-    "particle": "vs_clockwork:block/wing"
+    "1": "vs_clockwork:block/flap",
+    "particle": "vs_clockwork:block/flap"
   }
 }
