@@ -17,6 +17,7 @@ import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.SlabBlock
 import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.block.StairBlock
 import net.minecraft.world.level.block.state.BlockBehaviour
@@ -299,6 +300,20 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
+    val WANDERLITE_NYX_ORE = REGISTRATE.block<WanderliteOreBlock>(
+        "wanderlite_nyx_ore"
+    ) { properties: BlockBehaviour.Properties? ->
+        WanderliteOreBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
     val GAS_NOZZLE = REGISTRATE.block<GasNozzleBlock>(
         "gas_nozzle"
     ) { properties: BlockBehaviour.Properties? ->
@@ -352,6 +367,119 @@ object ClockworkBlocks {
         )
     }
         .initialProperties { SharedProperties.wooden() }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
+    val NYX = REGISTRATE.block<Block>(
+        "nyx"
+    ) { properties: BlockBehaviour.Properties? ->
+        Block(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
+    val COBBLED_NYX = REGISTRATE.block<Block>(
+        "cobbled_nyx"
+    ) { properties: BlockBehaviour.Properties? ->
+        Block(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
+    val WANDERLITE_BLOCK = REGISTRATE.block<Block>(
+        "wanderlite_block"
+    ) { properties: BlockBehaviour.Properties? ->
+        Block(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
+    val CHISELED_WANDERLITE = REGISTRATE.block<Block>(
+        "chiseled_wanderlite"
+    ) { properties: BlockBehaviour.Properties? ->
+        Block(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
+    val SMOOTH_WANDERLITE = REGISTRATE.block<Block>(
+        "smooth_wanderlite"
+    ) { properties: BlockBehaviour.Properties? ->
+        Block(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
+    val SMOOTH_WANDERLITE_SLAB = REGISTRATE.block<SlabBlock>(
+        "smooth_wanderlite_slab"
+    ) { properties: BlockBehaviour.Properties? ->
+        SlabBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
+    val SMOOTH_WANDERLITE_STAIRS = REGISTRATE.block<StairBlock>(
+        "smooth_wanderlite_stairs"
+    ) { properties: BlockBehaviour.Properties? ->
+        StairBlock(
+            Blocks.ANDESITE_STAIRS.defaultBlockState(),
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
+    val WANDERLITE_BRICKS = REGISTRATE.block<Block>(
+        "wanderlite_bricks"
+    ) { properties: BlockBehaviour.Properties? ->
+        Block(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
         .item()
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
