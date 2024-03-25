@@ -36,6 +36,8 @@ class SmartPropellerBearingRenderer(context: BlockEntityRendererProvider.Context
 
     private val wafer: PartialModel = ClockworkPartials.SMART_PROP_WAFER
 
+    private var prevRotationQuat: Quaternionf = Quaternionf()
+
     override fun renderSafe(blockEntity: SmartPropellerBearingBlockEntity,
                             partialTicks: Float,
                             ms: PoseStack,
@@ -50,11 +52,11 @@ class SmartPropellerBearingRenderer(context: BlockEntityRendererProvider.Context
         val facing: Direction = blockEntity.blockState.getValue(BlockStateProperties.FACING)
         val normal = Vec3(facing.stepX.toDouble(), facing.stepY.toDouble(), facing.stepZ.toDouble())
 
-        val quat = blockEntity.clientTiltQuat
-        val target = blockEntity.clientTargetTiltQuat
+        //val target = blockEntity.clientTargetTiltQuat
 
-        val interpol = MathUtil.nlerp(quat, target, partialTicks)
+        //val interpol = MathUtil.nlerp(prevRotationQuat, target, partialTicks)
 
+        blockEntity.clientTiltQuat = blockEntity.clientTiltQuat.slerp(blockEntity.clientTargetTiltQuat, partialTicks / 10f)
         /*
         val formattedPrev = String.format("(%.3f, %.3f, %.3f)",
             quat.x, quat.y,
@@ -75,10 +77,10 @@ class SmartPropellerBearingRenderer(context: BlockEntityRendererProvider.Context
         renderPistons(ms, buffer, blockEntity)
 
         //Render Top
-        renderTop(ms, buffer, blockEntity, normal, interpol, facing, partialTicks, light)
+        renderTop(ms, buffer, blockEntity, normal, blockEntity.clientTiltQuat, facing, partialTicks, light)
 
         //Render Wafer
-        renderWafer(ms, buffer, blockEntity, normal, interpol, facing)
+        renderWafer(ms, buffer, blockEntity, normal, blockEntity.clientTiltQuat, facing)
     }
 
     private fun renderTop(
