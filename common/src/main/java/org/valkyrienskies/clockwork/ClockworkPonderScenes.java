@@ -8,6 +8,7 @@ import com.simibubi.create.foundation.utility.Pointing;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.RedStoneWireBlock;
+import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -24,6 +25,7 @@ public class ClockworkPonderScenes {
                 .addStoryBoard("alt_meter", ClockworkPonderScenes::altMeter);
         HELPER.forComponents(ClockworkBlocks.FLAP_BEARING, ClockworkBlocks.FLAP)
                 .addStoryBoard("flap_bearing", ClockworkPonderScenes::flap);
+        HELPER.forComponents(ClockworkBlocks.GYRO).addStoryBoard("gyro", ClockworkPonderScenes::gyro);
     }
 
     private static void flap(SceneBuilder scene, SceneBuildingUtil util) {
@@ -149,7 +151,7 @@ public class ClockworkPonderScenes {
                 .pointAt(util.vector.blockSurface(util.grid.at(2, 2, 2), Direction.WEST));
         scene.overlay.showControls(
                 new InputWindowElement(util.vector.blockSurface(util.grid.at(2, 2, 2), Direction.DOWN), Pointing.DOWN)
-                        .withItem(ClockworkItems.GRAVITRON.asStack())
+                        .withItem(ClockworkItems.CREATIVE_GRAVITRON.asStack())
                         .rightClick(),
                 40);
         scene.idle(50);
@@ -268,6 +270,55 @@ public class ClockworkPonderScenes {
         //scene.world.toggleRedstonePower(lever);
         //scene.world.toggleRedstonePower(redstone);
         //0,1,3   1,1,3   3,1,3   4,1,3
+        scene.idle(37 * 4);
+    }
+
+    private static void gyro(SceneBuilder scene, SceneBuildingUtil util) {
+        scene.title("gyro", "Stabilize your ship");
+        scene.configureBasePlate(0, 0, 5);
+        scene.showBasePlate();
+        scene.setSceneOffsetY(-1);
+        scene.idle(15);
+
+        Selection leverN = util.select.position(2, 2, 3);
+        Selection leverE = util.select.position(3, 2, 2);
+        Selection leverS = util.select.position(2, 2, 1);
+        Selection leverW = util.select.position(1, 2, 2);
+        Selection ship = util.select.fromTo(0, 1, 0, 4, 3, 4);
+
+        ElementLink<WorldSectionElement> contraption = scene.world.showIndependentSection(ship, Direction.DOWN);
+        scene.world.moveSection(contraption, util.vector.of(0, 0, 0), 0);
+        scene.overlay.showText(40)
+                .attachKeyFrame()
+                .text("Gyro will stabilize ship in its direction");
+        scene.idle(40);
+        scene.idle(20);
+        scene.overlay.showText(40)
+                .attachKeyFrame()
+                .text("Redstone input from each side will tilt the ship");
+        scene.idle(30);
+        scene.world.modifyBlockEntityNBT(leverN, AnalogLeverBlockEntity.class, nbt -> nbt.putInt("State", 5));
+        scene.world.configureCenterOfRotation(contraption, new Vec3(2.0,3.0,2.0));
+        scene.world.rotateSection(contraption, -25.0,0.0,0, 30);
+        scene.idle(40);
+        scene.world.modifyBlockEntityNBT(leverN, AnalogLeverBlockEntity.class, nbt -> nbt.putInt("State", 0));
+        scene.world.rotateSection(contraption, 25.0,0.0,0, 30);
+        scene.idle(40);
+
+        scene.world.modifyBlockEntityNBT(leverE, AnalogLeverBlockEntity.class, nbt -> nbt.putInt("State", 5));
+        scene.world.rotateSection(contraption, 0.0,0.0,25.0, 30);
+        scene.idle(40);
+        scene.world.modifyBlockEntityNBT(leverE, AnalogLeverBlockEntity.class, nbt -> nbt.putInt("State", 0));
+        scene.world.rotateSection(contraption, 0.0,0.0,-25.0, 30);
+        scene.idle(40);
+
+        scene.world.modifyBlockEntityNBT(leverW, AnalogLeverBlockEntity.class, nbt -> nbt.putInt("State", 10));
+        scene.world.rotateSection(contraption, 0.0,0.0,-50.0, 50);
+        scene.idle(60);
+        scene.world.modifyBlockEntityNBT(leverW, AnalogLeverBlockEntity.class, nbt -> nbt.putInt("State", 0));
+        scene.world.rotateSection(contraption, 0.0,0.0,50, 50);
+        scene.idle(40);
+
         scene.idle(37 * 4);
     }
 }

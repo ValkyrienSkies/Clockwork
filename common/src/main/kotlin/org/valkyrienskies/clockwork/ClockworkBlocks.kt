@@ -461,7 +461,7 @@ object ClockworkBlocks {
         "smooth_wanderlite_stairs"
     ) { properties: BlockBehaviour.Properties? ->
         StairBlock(
-            Blocks.ANDESITE_STAIRS.defaultBlockState(),
+            SMOOTH_WANDERLITE.defaultState,
             properties!!
         )
     }
