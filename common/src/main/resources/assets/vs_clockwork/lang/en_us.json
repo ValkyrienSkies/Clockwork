@@ -126,5 +126,9 @@
   "vs_clockwork.ponder.alt_meter.header": "Altitude Meter",
   "vs_clockwork.ponder.alt_meter.text_1": "Configure Altitude Meter to desired height",
   "vs_clockwork.ponder.alt_meter.text_2": "Redstone output will trigger at configured height",
-  "vs_clockwork.ponder.flap_bearing.header": "Flap Bearing"
+  "vs_clockwork.ponder.flap_bearing.header": "Flap Bearing",
+
+  "vs_clockwork.ponder.gyro.header": "Gyro",
+  "vs_clockwork.ponder.gyro.text_1": "Gyro will stabilize ship in its direction",
+  "vs_clockwork.ponder.gyro.text_2": "Redstone input from each side will tilt the ship"
 }
