@@ -15,6 +15,7 @@ import org.valkyrienskies.clockwork.content.logistics.heat.ClientAirPocketStorag
 import org.valkyrienskies.core.api.ships.setAttachment
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.TranslatableComponent
+import org.valkyrienskies.clockwork.content.forces.WanderShipControl
 import org.valkyrienskies.clockwork.platform.PlatformUtils
 import org.valkyrienskies.clockwork.platform.SharedValues
 import org.valkyrienskies.core.impl.config.VSConfigClass
@@ -55,6 +56,7 @@ object ClockworkMod {
         VSEvents.ShipLoadEvent.on { event ->
             event.ship.setAttachment(PocketForcesController())
             event.ship.setAttachment(DragController())
+            event.ship.setAttachment(WanderShipControl())
         }
 
         VSEvents.airPocketModifyEvent.on { event ->

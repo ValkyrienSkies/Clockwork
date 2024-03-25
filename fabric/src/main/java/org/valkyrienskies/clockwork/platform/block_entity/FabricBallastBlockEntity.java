@@ -1,14 +1,20 @@
 package org.valkyrienskies.clockwork.platform.block_entity;
 
+import com.simibubi.create.content.logistics.vault.ItemVaultBlockEntity;
 import io.github.fabricators_of_create.porting_lib.transfer.item.ItemStackHandler;
+import io.github.fabricators_of_create.porting_lib.transfer.item.ItemTransferable;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlockEntity;
 
-public class FabricBallastBlockEntity extends BallastBlockEntity {
+public class FabricBallastBlockEntity extends BallastBlockEntity implements ItemTransferable {
     public FabricBallastBlockEntity(@Nullable BlockEntityType<?> type, @Nullable BlockPos pos, @Nullable BlockState state) {
+
         super(type, pos, state);
         inventory = new ItemStackHandler(4) {
             @Override
@@ -35,5 +41,10 @@ public class FabricBallastBlockEntity extends BallastBlockEntity {
 
     public ItemStackHandler getInventoryOfBlock(){
         return (ItemStackHandler)inventory;
+    }
+
+    @Override
+    public @Nullable Storage<ItemVariant> getItemStorage(@Nullable Direction face) {
+        return (Storage<ItemVariant>) inventory;
     }
 }
