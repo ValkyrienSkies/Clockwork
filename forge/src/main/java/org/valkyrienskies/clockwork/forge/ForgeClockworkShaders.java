@@ -19,19 +19,19 @@ public class ForgeClockworkShaders {
         event.registerShader(
                 new ShaderInstance(event.getResourceManager(), "crystal", DefaultVertexFormat.NEW_ENTITY),
                 shaderInstance -> {
-                    ClockworkShaders.crystal = shaderInstance;
+                    //ClockworkShaders.crystal = shaderInstance;
                 }
         );
         event.registerShader(
                 new ShaderInstance(event.getResourceManager(), "heat", DefaultVertexFormat.NEW_ENTITY),
                 shaderInstance -> {
-                    ClockworkShaders.heat = shaderInstance;
+                    //ClockworkShaders.heat = shaderInstance;
                 }
         );
         event.registerShader(
                 new ShaderInstance(event.getResourceManager(), "haze", DefaultVertexFormat.NEW_ENTITY),
                 shaderInstance -> {
-                    ClockworkShaders.haze = shaderInstance;
+                    //ClockworkShaders.haze = shaderInstance;
                 }
         );
     }
