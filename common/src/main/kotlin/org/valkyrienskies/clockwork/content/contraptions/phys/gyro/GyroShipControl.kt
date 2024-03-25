@@ -7,6 +7,8 @@ import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.valkyrienskies.core.api.ships.*
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
+import kotlin.math.abs
+import kotlin.math.exp
 
 @JsonAutoDetect(
     fieldVisibility = JsonAutoDetect.Visibility.ANY,
@@ -57,9 +59,14 @@ class GyroShipControl : ShipForcesInducer, ServerTickListener {
             physShip.inertia.momentOfInertiaTensor.transform(
                 physShip.poseVel.rot.transformInverse(idealOmega, Vector3d())))
 
-        idealTorque.mul(100.0)
+        idealTorque.mul(abs(speedToForce(speed)))
 
         physShip.applyInvariantTorque(idealTorque)
+    }
+
+    private fun speedToForce(speed: Float): Double {
+        val y = 128.0 / (1 + exp(6 - (speed * 0.05)))
+        return y.coerceIn(0.0, 100.0)
     }
 
     private fun deleteIfEmpty() {
