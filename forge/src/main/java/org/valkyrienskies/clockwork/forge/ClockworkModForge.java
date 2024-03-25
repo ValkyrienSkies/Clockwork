@@ -50,8 +50,10 @@ public class ClockworkModForge {
         ClockworkMod.init();
         ClockworkPackets.init();
 
-        ForgeClockworkWorldgen.CONFIGURED_FEATURES.register(modEventBus);
-        ForgeClockworkWorldgen.PLACED_FEATURES.register(modEventBus);
+        ClockworkShaders.INSTANCE.init();
+
+        //ForgeClockworkWorldgen.CONFIGURED_FEATURES.register(modEventBus);
+        //ForgeClockworkWorldgen.PLACED_FEATURES.register(modEventBus);
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClockworkModForgeClient.onCtorClient(modEventBus));
 

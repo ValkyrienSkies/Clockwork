@@ -40,8 +40,9 @@ public class ClockworkModFabricClient implements ClientModInitializer {
 
         registerClientEvents();
         FabricClockworkClientEvents.register();
+        ClockworkShaders.INSTANCE.init();
         //ClientReloadShadersEvent.EVENT.register(ClockworkModClient::onShaderReload);
-        RegisterShadersCallback.EVENT.register(this::registerShaders);
+        //RegisterShadersCallback.EVENT.register(this::registerShaders);
 
         KeyInputCallback.EVENT.register(FabricClockworkInputEvents::onKeyInput);
 
@@ -53,12 +54,12 @@ public class ClockworkModFabricClient implements ClientModInitializer {
         BlockRenderLayerMap.INSTANCE.putItem(ClockworkBlocks.SLICKER.get().asItem(), RenderType.translucent());
     }
 
-    private void registerShaders(ResourceManager resourceManager, RegisterShadersCallback.ShaderRegistry shaderRegistry) throws IOException {
-        shaderRegistry.registerShader(new ShaderInstance(resourceManager, "crystal", DefaultVertexFormat.NEW_ENTITY), shaderInstance -> ClockworkShaders.crystal = shaderInstance);
-        shaderRegistry.registerShader(new ShaderInstance(resourceManager, "heat", DefaultVertexFormat.NEW_ENTITY), shaderInstance -> ClockworkShaders.heat = shaderInstance);
-        shaderRegistry.registerShader(new ShaderInstance(resourceManager, "haze", DefaultVertexFormat.NEW_ENTITY), shaderInstance -> ClockworkShaders.haze = shaderInstance);
-        //shaderRegistry.registerShader(new ShaderInstance(resourceManager, "scan_effect", DefaultVertexFormat.POSITION_TEX), shaderInstance -> ClockworkShaders.scan_effect = shaderInstance);
-    }
+//    private void registerShaders(ResourceManager resourceManager, RegisterShadersCallback.ShaderRegistry shaderRegistry) throws IOException {
+//        shaderRegistry.registerShader(new ShaderInstance(resourceManager, "crystal", DefaultVertexFormat.NEW_ENTITY), shaderInstance -> ClockworkShaders.crystal = shaderInstance);
+//        shaderRegistry.registerShader(new ShaderInstance(resourceManager, "heat", DefaultVertexFormat.NEW_ENTITY), shaderInstance -> ClockworkShaders.heat = shaderInstance);
+//        shaderRegistry.registerShader(new ShaderInstance(resourceManager, "haze", DefaultVertexFormat.NEW_ENTITY), shaderInstance -> ClockworkShaders.haze = shaderInstance);
+//        //shaderRegistry.registerShader(new ShaderInstance(resourceManager, "scan_effect", DefaultVertexFormat.POSITION_TEX), shaderInstance -> ClockworkShaders.scan_effect = shaderInstance);
+//    }
 
 
     public static void registerClientEvents() {

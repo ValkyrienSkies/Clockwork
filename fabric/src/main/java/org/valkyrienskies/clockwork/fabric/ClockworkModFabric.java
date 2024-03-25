@@ -38,7 +38,7 @@ public class ClockworkModFabric implements ModInitializer {
         ClockworkMod.INSTANCE.getREGISTRATE().register();
 
         ClockworkMod.init();
-        FabricClockworkWorldgen.bootstrap();
+        //FabricClockworkWorldgen.bootstrap();
         AllClockworkConfigs.init();
 
         ClockworkParticles.init();

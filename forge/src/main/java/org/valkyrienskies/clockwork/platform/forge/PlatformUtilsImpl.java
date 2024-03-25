@@ -15,6 +15,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.network.NetworkHooks;
+import org.valkyrienskies.clockwork.ClockworkBlocks;
 import org.valkyrienskies.clockwork.ClockworkItems;
 import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.forge.ForgeClockworkFluids;
@@ -52,7 +53,7 @@ public class PlatformUtilsImpl {
         return new CreativeModeTab("vs_clockwork") {
             @Override
             public ItemStack makeIcon() {
-                return new ItemStack(ClockworkItems.GRAVITRON.get());
+                return new ItemStack(ClockworkBlocks.PHYSICS_INFUSER.get());
             }
         };
     }

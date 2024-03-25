@@ -14,6 +14,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
+import org.valkyrienskies.clockwork.ClockworkBlocks;
 import org.valkyrienskies.clockwork.ClockworkItems;
 import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.fabric.ClockworkModFabric;
@@ -51,6 +52,6 @@ public class PlatformUtilsImpl {
     }
 
     public static CreativeModeTab getCreativeTab() {
-        return FabricItemGroupBuilder.build(ClockworkMod.asResource("vs_clockwork"), () -> new ItemStack(ClockworkItems.GRAVITRON.get()));
+        return FabricItemGroupBuilder.build(ClockworkMod.asResource("vs_clockwork"), () -> new ItemStack(ClockworkBlocks.PHYSICS_INFUSER.get()));
     }
 }
