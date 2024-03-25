@@ -5,7 +5,7 @@
         "facing": "north"
       },
       "apply": {
-        "model": "vs_clockwork:block/wing/wing_frame",
+        "model": "vs_clockwork:block/wing/flap_frame",
         "x": 90
       }
     },
@@ -14,7 +14,7 @@
         "facing": "south"
       },
       "apply": {
-        "model": "vs_clockwork:block/wing/wing_frame",
+        "model": "vs_clockwork:block/wing/flap_frame",
         "x": 90
       }
     },
@@ -23,7 +23,7 @@
         "facing": "east"
       },
       "apply": {
-        "model": "vs_clockwork:block/wing/wing_frame",
+        "model": "vs_clockwork:block/wing/flap_frame",
         "x": 90,
         "y": 90
       }
@@ -33,7 +33,7 @@
         "facing": "west"
       },
       "apply": {
-        "model": "vs_clockwork:block/wing/wing_frame",
+        "model": "vs_clockwork:block/wing/flap_frame",
         "x": 90,
         "y": 90
       }
@@ -43,7 +43,7 @@
         "facing": "up"
       },
       "apply": {
-        "model": "vs_clockwork:block/wing/wing_frame"
+        "model": "vs_clockwork:block/wing/flap_frame"
       }
     },
     {
@@ -51,7 +51,7 @@
         "facing": "down"
       },
       "apply": {
-        "model": "vs_clockwork:block/wing/wing_frame"
+        "model": "vs_clockwork:block/wing/flap_frame"
       }
     },
     {

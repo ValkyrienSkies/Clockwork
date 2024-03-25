@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=top": {
+      "model": "vs_clockwork:block/wanderlite/smooth_wanderlite_slab_top"
+    },
+    "type=bottom": {
+      "model": "vs_clockwork:block/wanderlite/smooth_wanderlite_slab"
+    },
+    "type=double": {
+      "model": "vs_clockwork:block/wanderlite/smooth_wanderlite"
+    }
+  }
+}
