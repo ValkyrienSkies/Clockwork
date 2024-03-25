@@ -11,7 +11,6 @@ object ClockworkShaders {
     private var crystal: ShaderInstance? = null
     private var heat: ShaderInstance? = null
     private var haze: ShaderInstance? = null
-    private var scan_effect: ShaderInstance? = null
 
     fun crystal(): ShaderInstance {
         return crystal!!
@@ -23,10 +22,6 @@ object ClockworkShaders {
 
     fun haze(): ShaderInstance? {
         return haze
-    }
-
-    fun scan_effect(): ShaderInstance {
-        return scan_effect!!
     }
 
     fun init() {
@@ -55,14 +50,6 @@ object ClockworkShaders {
                         DefaultVertexFormat.NEW_ENTITY
                     )
                 ) { inst -> haze = inst }
-
-                shadersSink.registerShader(
-                    ShaderInstance(
-                        resourceProvider,
-                        "scan_effect",
-                        DefaultVertexFormat.POSITION_TEX
-                    )
-                ) { inst -> scan_effect = inst }
 
             } catch (ex: IOException) {
                 System.err.println("Failed to load shader")

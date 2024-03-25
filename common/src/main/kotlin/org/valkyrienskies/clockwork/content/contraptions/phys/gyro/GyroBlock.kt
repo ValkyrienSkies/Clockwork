@@ -41,25 +41,6 @@ class GyroBlock(properties: Properties) : KineticBlock(properties), IBE<GyroBloc
         return ClockworkBlockEntities.GYRO.get()
     }
 
-    override fun use(
-        state: BlockState,
-        level: Level,
-        pos: BlockPos,
-        player: Player,
-        hand: InteractionHand,
-        hit: BlockHitResult
-    ): InteractionResult {
-        if (!player.isShiftKeyDown) {
-            if (level.isClientSide) {
-                withBlockEntityDo(level, pos) { te: GyroBlockEntity ->
-                    displayScreen(te, player)
-                }
-            }
-
-        }
-        return InteractionResult.SUCCESS
-    }
-
     override fun getShape(
         pState: BlockState,
         pLevel: BlockGetter?,
@@ -100,10 +81,5 @@ class GyroBlock(properties: Properties) : KineticBlock(properties), IBE<GyroBloc
 
     override fun getRenderShape(pState: BlockState?): RenderShape {
         return RenderShape.ENTITYBLOCK_ANIMATED
-    }
-
-    @Environment(value = EnvType.CLIENT)
-    private fun displayScreen(te: GyroBlockEntity, player: Player) {
-        if (player is LocalPlayer) ScreenOpener.open(GyroScreen(te))
     }
 }
