@@ -1,12 +1,26 @@
 package org.valkyrienskies.clockwork.content.physicalities.ballast
 
+import com.simibubi.create.content.logistics.vault.ItemVaultBlockEntity
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
+import net.minecraft.core.NonNullList
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.ContainerHelper
+import net.minecraft.world.WorldlyContainer
+import net.minecraft.world.WorldlyContainerHolder
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.LevelAccessor
+import net.minecraft.world.level.block.entity.BarrelBlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
+import net.minecraft.world.level.block.entity.DispenserBlockEntity
+import net.minecraft.world.level.block.entity.HopperBlockEntity
 import net.minecraft.world.level.block.state.BlockState
+import org.valkyrienskies.clockwork.ClockworkPackets
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItem
 import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.clockwork.util.ClockworkUtils
 
@@ -15,7 +29,7 @@ abstract class BallastBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, sta
     @JvmField
     var inventory: Any? = null
     @JvmField
-    var recalculateWeightNextTick = false
+    var recalculateWeightNextTick = true
 
     @JvmField
     var oldWeight = 0.0
@@ -31,7 +45,7 @@ abstract class BallastBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, sta
         super.tick()
 
         if (recalculateWeightNextTick) {
-            recalculateWeightNextTick = true
+            recalculateWeightNextTick = false
 
             if (this.level is ServerLevel) {
                 val serverLevel = this.level as ServerLevel
@@ -61,4 +75,8 @@ abstract class BallastBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, sta
         compound.putDouble(ClockworkConstants.Nbt.WEIGHT, this.newWeight)
     }
 
+    override fun setChanged() {
+        recalculateWeightNextTick = true
+        super.setChanged()
+    }
 }
