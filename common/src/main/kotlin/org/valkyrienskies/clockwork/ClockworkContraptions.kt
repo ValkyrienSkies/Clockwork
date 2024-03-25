@@ -8,8 +8,8 @@ object ClockworkContraptions {
     val FLAP = ContraptionType.register(
         ClockworkMod.asResource("flap").toString()
     ) { FlapContraption() }
-    val PROPELLOR = ContraptionType.register(
-        ClockworkMod.asResource("propellor").toString()
+    val PROPELLER = ContraptionType.register(
+        ClockworkMod.asResource("propeller").toString()
     ) { PropellerContraption() }
 
     fun init() {}

@@ -65,7 +65,7 @@ class PropellerContraption : Contraption {
     }
 
     override fun getType(): ContraptionType {
-        return ClockworkContraptions.PROPELLOR
+        return ClockworkContraptions.PROPELLER
     }
 
     override fun isAnchoringBlockAt(pos: BlockPos): Boolean {
