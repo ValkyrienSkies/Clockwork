@@ -23,10 +23,7 @@ import kotlin.math.max
 class GyroBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
     KineticBlockEntity(typeIn, pos, state) {
 
-    var redstonePowerXN: Int = 0
-    var redstonePowerZN: Int = 0
-    var redstonePowerXP: Int = 0
-    var redstonePowerZP: Int = 0
+    var redstonePower: Point = Point(0,0)
 
     var visualSpeed: LerpedFloat = LerpedFloat.linear()
     var angle: Float = 0f
@@ -61,8 +58,8 @@ class GyroBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockSt
 
         updatePower(level!!, blockPos)
 
-        targetQuat.x = (redstonePowerXP / 15.0) - (redstonePowerXN / 15.0)
-        targetQuat.z = (redstonePowerZP / 15.0) - (redstonePowerZN / 15.0)
+        targetQuat.x = (redstonePower.x / 15.0)
+        targetQuat.z = (redstonePower.y / 15.0)
         val targetSpeed = getSpeed()
         visualSpeed.updateChaseTarget(targetSpeed)
         visualSpeed.tickChaser()
@@ -70,17 +67,22 @@ class GyroBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockSt
         angle %= 360f
     }
 
+    /**
+     * Updates the power of the current block based on neighboring blocks' signals.
+     * Calculates the difference in power between the east and west directions (X-axis)
+     * and between the south and north directions (Z-axis) to determine the redstone power.
+     *
+     * @param worldIn The level (world) in which the block resides.
+     * @param pos The position of the current block.
+     */
     private fun updatePower(worldIn: Level, pos: BlockPos) {
-        var powerZP = worldIn.getSignal(pos.relative(Direction.SOUTH), Direction.SOUTH) //EAST
-        var powerZN = worldIn.getSignal(pos.relative(Direction.NORTH), Direction.NORTH) //WEST
+        val powerZP = worldIn.getSignal(pos.relative(Direction.SOUTH), Direction.SOUTH)
+        val powerZN = worldIn.getSignal(pos.relative(Direction.NORTH), Direction.NORTH)
 
-        var powerXP = worldIn.getSignal(pos.relative(Direction.EAST), Direction.EAST)
-        var powerXN = worldIn.getSignal(pos.relative(Direction.WEST), Direction.WEST)
+        val powerXP = worldIn.getSignal(pos.relative(Direction.EAST), Direction.EAST)
+        val powerXN = worldIn.getSignal(pos.relative(Direction.WEST), Direction.WEST)
 
-        this.redstonePowerXP = powerXP
-        this.redstonePowerZP = powerZP
-        this.redstonePowerXN = powerXN
-        this.redstonePowerZN = powerZN
+        this.redstonePower = Point(powerXP - powerXN,  powerZP - powerZN)
     }
 
     public override fun write(compound: CompoundTag, clientPacket: Boolean) {
@@ -90,21 +92,16 @@ class GyroBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockSt
         compound.putDouble("Z", targetQuat.z())
         compound.putDouble("W", targetQuat.w())
 
-        compound.putInt("PowerXP", redstonePowerXP)
-        compound.putInt("PowerZP", redstonePowerZP)
-        compound.putInt("PowerXN", redstonePowerXN)
-        compound.putInt("PowerZN", redstonePowerZN)
+        compound.putInt("PowerX", redstonePower.x)
+        compound.putInt("PowerZ", redstonePower.y)
     }
 
     public override fun read(compound: CompoundTag, clientPacket: Boolean) {
         if (compound.contains("X")) {
             targetQuat = Quaterniond(compound.getDouble("X"), compound.getDouble("Y"), compound.getDouble("Z"), compound.getDouble("Z"))
         }
-        if (compound.contains("PowerXP")) {
-            redstonePowerXP = compound.getInt("PowerXP")
-            redstonePowerZP = compound.getInt("PowerZP")
-            redstonePowerXN = compound.getInt("PowerXN")
-            redstonePowerZN = compound.getInt("PowerZN")
+        if (compound.contains("PowerX")) {
+            redstonePower = Point(compound.getInt("PowerX"), compound.getInt("PowerXZ"))
         }
         super.read(compound, clientPacket)
 
