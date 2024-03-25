@@ -3,6 +3,7 @@
   "ambientocclusion": false,
   "textures": {
     "0": "vs_clockwork:block/gyro",
+    "1": "vs_clockwork:block/alt_meter",
     "particle": "vs_clockwork:block/gyro"
   }
 }

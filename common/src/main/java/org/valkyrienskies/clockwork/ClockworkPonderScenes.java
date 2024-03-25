@@ -298,7 +298,7 @@ public class ClockworkPonderScenes {
                 .text("Redstone input from each side will tilt the ship");
         scene.idle(30);
         scene.world.modifyBlockEntityNBT(leverN, AnalogLeverBlockEntity.class, nbt -> nbt.putInt("State", 5));
-        scene.world.configureCenterOfRotation(contraption, new Vec3(2.0,3.0,2.0));
+        scene.world.configureCenterOfRotation(contraption, new Vec3(2.0,2.0,2.0));
         scene.world.rotateSection(contraption, -25.0,0.0,0, 30);
         scene.idle(40);
         scene.world.modifyBlockEntityNBT(leverN, AnalogLeverBlockEntity.class, nbt -> nbt.putInt("State", 0));
