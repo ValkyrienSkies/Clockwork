@@ -8,6 +8,7 @@ import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandHandler
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatEntity
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlockEntity
 import org.valkyrienskies.clockwork.platform.api.network.PacketChannel
@@ -52,6 +53,13 @@ object SharedValues {
     @get:ExpectPlatform
     @JvmStatic
     val gravitronHandler: GravitronHandler
+        get() {
+            throw AssertionError()
+        }
+
+    @get:ExpectPlatform
+    @JvmStatic
+    val wanderwandHandler: WanderwandHandler
         get() {
             throw AssertionError()
         }
