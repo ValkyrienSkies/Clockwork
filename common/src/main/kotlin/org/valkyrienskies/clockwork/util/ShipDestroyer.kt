@@ -20,10 +20,7 @@ import org.valkyrienskies.mod.common.playerWrapper
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.util.relocateBlock
 import org.valkyrienskies.mod.util.updateBlock
-import kotlin.math.PI
-import kotlin.math.abs
-import kotlin.math.round
-import kotlin.math.sign
+import kotlin.math.*
 
 object ShipDestroyer {
     private fun roundToNearestMultipleOf(number: Double, multiple: Double) = multiple * round(number / multiple)
@@ -44,8 +41,38 @@ object ShipDestroyer {
         }
     }
 
-    fun unfillShip(level: ServerLevel, ship: ServerShip, direction: Direction) {
+    private fun rotationFromAxisAngle(axis: AxisAngle4d): Rotation {
+        if (axis.y.absoluteValue < 0.1) {
+            return Rotation.NONE
+        }
+
+        if (axis.y.sign < 0.0) {
+            axis.y = 1.0
+            axis.angle = 2.0 * PI - axis.angle
+            axis.angle %= (2.0 * PI)
+        }
+
+        val eps = 0.001
+        return if (axis.angle < eps)
+            Rotation.NONE
+        else if ((axis.angle - PI / 2.0).absoluteValue < eps)
+            Rotation.COUNTERCLOCKWISE_90
+        else if ((axis.angle - PI).absoluteValue < eps)
+            Rotation.CLOCKWISE_180
+        else if ((axis.angle - 3.0 * PI / 2.0).absoluteValue < eps)
+            Rotation.CLOCKWISE_90
+        else {
+            Rotation.NONE
+        }
+    }
+
+    fun unfillShip(level: ServerLevel, ship: ServerShip) {
         ship.isStatic = true
+
+        val rotation: Rotation = ship.transform.shipToWorldRotation
+            .let(::AxisAngle4d)
+            .let(ShipDestroyer::snapRotation)
+            .let(::rotationFromAxisAngle)
 
         // ship's rotation rounded to nearest 90*
         val shipToWorld = ship.transform.run {
@@ -57,18 +84,6 @@ object ShipDestroyer {
         }
 
         val alloc0 = Vector3d()
-
-        // Direction comes from direction ship is aligning to
-        // We can assume that the ship in shipspace is always facing north, because it has to be
-        val rotation: Rotation = when (direction) {
-            Direction.SOUTH -> Rotation.NONE // Bug in Direction.from2DDataValue() can return south/north as opposite
-            Direction.NORTH -> Rotation.CLOCKWISE_180
-            Direction.EAST -> Rotation.COUNTERCLOCKWISE_90
-            Direction.WEST -> Rotation.CLOCKWISE_90
-            else -> {
-                Rotation.NONE
-            }
-        }
 
         val chunksToBeUpdated = mutableMapOf<ChunkPos, Pair<ChunkPos, ChunkPos>>()
 
@@ -91,8 +106,13 @@ object ShipDestroyer {
 
         ship.activeChunksSet.forEach { chunkX, chunkZ ->
             val chunk = level.getChunk(chunkX, chunkZ)
-            for (section in chunk.sections) {
+            for (sectionIndex in 0 until chunk.sections.size) {
+                val section = chunk.sections[sectionIndex]
+
                 if (section == null || section.hasOnlyAir()) continue
+
+                val bottomY = sectionIndex shl 4
+
                 for (x in 0..15) {
                     for (y in 0..15) {
                         for (z in 0..15) {
@@ -100,7 +120,7 @@ object ShipDestroyer {
                             if (state.isAir) continue
 
                             val realX = (chunkX shl 4) + x
-                            val realY = section.bottomBlockY() + y
+                            val realY = bottomY + y + level.minBuildHeight
                             val realZ = (chunkZ shl 4) + z
 
                             val inWorldPos = shipToWorld.transformPosition(alloc0.set(realX + 0.5, realY + 0.5, realZ + 0.5)).floor()
@@ -131,4 +151,5 @@ object ShipDestroyer {
             }
         }
     }
+
 }

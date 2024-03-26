@@ -33,16 +33,7 @@ class GravitronDestroyPacket : C2SCWPacket {
 
             val ship = serverLevel.getShipManagingPos(clickedPos!!)
             if (ship != null) {
-                val invRotation = ship.transform.shipToWorldRotation.invert(Quaterniond())
-                val invRotationAxisAngle = AxisAngle4d(invRotation)
-
-
-                val f = floor((invRotationAxisAngle.angle / (PI * 0.5)) + 4.5).toInt() % 4
-                var alignTarget = Direction.from2DDataValue(f)
-                if (invRotation.y < 0 && alignTarget != Direction.NORTH) {
-                    alignTarget = alignTarget.opposite
-                }
-                unfillShip(serverLevel, ship, alignTarget)
+                unfillShip(serverLevel, ship)
             }
         }
     }
