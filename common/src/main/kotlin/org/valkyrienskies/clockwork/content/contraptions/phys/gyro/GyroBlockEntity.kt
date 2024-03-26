@@ -58,8 +58,8 @@ class GyroBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockSt
 
         updatePower(level!!, blockPos)
 
-        targetQuat.x = (redstonePower.x / 15.0)
-        targetQuat.z = (redstonePower.y / 15.0)
+        targetQuat.x = (redstonePower.x / 15.0) / 2
+        targetQuat.z = (redstonePower.y / 15.0) / 2
         val targetSpeed = getSpeed()
         visualSpeed.updateChaseTarget(targetSpeed)
         visualSpeed.tickChaser()
