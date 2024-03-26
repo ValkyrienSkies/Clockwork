@@ -18,7 +18,6 @@ import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.SlabBlock
-import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.block.StairBlock
 import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.block.state.BlockState
@@ -39,8 +38,6 @@ import org.valkyrienskies.clockwork.content.logistics.heat.creative.gas.Creative
 import org.valkyrienskies.clockwork.content.logistics.heat.creative.source.CreativeHeatSourceBlock
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlock
 import org.valkyrienskies.clockwork.content.logistics.heat.usage.gas_nozzle.GasNozzleBlock
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlock
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlock
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
@@ -187,7 +184,8 @@ object ClockworkBlocks {
             DyedWingBlockItem(block, properties)
         }
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
-        .transform(ClockworkRegistrate.customRenderedBlockItem<DyedWingBlockItem, BlockBuilder<WingBlock, CreateRegistrate>> { Supplier { WingBlockItemRenderer() } })
+        .transform(ClockworkRegistrate.customRenderedBlockItem<DyedWingBlockItem, BlockBuilder<WingBlock, CreateRegistrate>> { Supplier { WingBlockItemRenderer(
+            ClockworkPartials.WING_FRAME_ITEM) } })
         .register()
 
     @JvmField
@@ -204,7 +202,8 @@ object ClockworkBlocks {
             )
         }
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
-        .transform(ClockworkRegistrate.customRenderedBlockItem { Supplier { WingBlockItemRenderer() } })
+        .transform(ClockworkRegistrate.customRenderedBlockItem { Supplier { WingBlockItemRenderer(
+            ClockworkPartials.FLAP_FRAME_ITEM) } })
         .register()
 
     @JvmField

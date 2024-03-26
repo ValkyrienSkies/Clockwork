@@ -69,8 +69,8 @@ class GyroBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
         val interpolatedAngle = be.getInterpolatedCoreAngle(com.simibubi.create.foundation.utility.AnimationTickHolder.getPartialTicks() - 1)
 
         val innerData = TransformData(Vector3f(0f, 0f, 0f), Vector3f(interpolatedAngle, interpolatedAngle, 0f))
-        val data = TransformData(Vector3f(0f, 0f, 0f), Vector3f(0f, 0f, 0f))
-        val outerData = TransformData(Vector3f(0f, 0f, 0f), Vector3f(0f, 0f, 0f))
+        val data = TransformData(Vector3f(0f, 0f, 0f), Vector3f(interpolatedAngle, 0f, -interpolatedAngle))
+        val outerData = TransformData(Vector3f(0f, 0f, 0f), Vector3f(interpolatedAngle, 0f, -interpolatedAngle))
 
         RenderUtil.renderCubeMatrix(ms!!, buffer, blockState, innerData, data, outerData, 1.5f, light)
 

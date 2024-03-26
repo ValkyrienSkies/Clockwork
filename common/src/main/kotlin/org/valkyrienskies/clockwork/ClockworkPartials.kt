@@ -38,6 +38,7 @@ object ClockworkPartials {
     val WING_SIDE_VERTICAL = block("wing/wing_side_vertical")
     val WING_SAIL_ITEM = item("wing/wing_sail")
     val WING_FRAME_ITEM = item("wing")
+    val FLAP_FRAME_ITEM = item("flap")
     val PROPELLER_PISTON_TOP_LEFT = block("propeller_bearing/pistontopl")
     val PROPELLER_PISTON_TOP_RIGHT = block("propeller_bearing/pistontopr")
     val PROPELLER_PISTON_BOTTOM_LEFT = block("propeller_bearing/pistonbotl")

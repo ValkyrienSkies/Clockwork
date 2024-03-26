@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.client.render
 
+import com.jozufozu.flywheel.core.PartialModel
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer
@@ -13,7 +14,7 @@ import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkPartials.WING_FRAME_ITEM
 import org.valkyrienskies.clockwork.ClockworkPartials.WING_SAIL_ITEM
 
-class WingBlockItemRenderer : CustomRenderedItemModelRenderer() {
+class WingBlockItemRenderer(var wingFrameItem: PartialModel) : CustomRenderedItemModelRenderer() {
 
     override fun render(
         stack: ItemStack,
@@ -34,7 +35,7 @@ class WingBlockItemRenderer : CustomRenderedItemModelRenderer() {
 
     private fun renderInventory(stack: ItemStack, buffer: MultiBufferSource, ms: PoseStack, light: Int) {
         val vb = buffer.getBuffer(RenderType.cutout())
-        val frame = CachedBufferer.partial(WING_FRAME_ITEM, ClockworkBlocks.WING.defaultState).light(light)
+        val frame = CachedBufferer.partial(wingFrameItem, ClockworkBlocks.WING.defaultState).light(light)
             .translate(0.0, 0.0, -1.0)
         val sail = CachedBufferer.partial(WING_SAIL_ITEM, ClockworkBlocks.WING.defaultState).light(light)
             .translate(0.0, 0.0, -1.0)
@@ -51,7 +52,7 @@ class WingBlockItemRenderer : CustomRenderedItemModelRenderer() {
 
     private fun renderFirstPerson(stack: ItemStack, buffer: MultiBufferSource, ms: PoseStack, light: Int) {
         val vb = buffer.getBuffer(RenderType.cutout())
-        val frame = CachedBufferer.partial(WING_FRAME_ITEM, ClockworkBlocks.WING.defaultState)
+        val frame = CachedBufferer.partial(wingFrameItem, ClockworkBlocks.WING.defaultState)
             .light(light).translate(-0.5, -0.5, -0.5)
         val sail = CachedBufferer.partial(WING_SAIL_ITEM, ClockworkBlocks.WING.defaultState)
             .light(light).translate(-0.5, -0.5, -0.5)
