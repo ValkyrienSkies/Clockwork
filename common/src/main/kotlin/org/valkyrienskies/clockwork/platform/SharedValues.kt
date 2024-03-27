@@ -64,7 +64,7 @@ object SharedValues {
 
     @get:ExpectPlatform
     @JvmStatic
-    val auricHandler: WanderWandClusterRenderer
+    val auricHandler: Any
         get() {
             throw AssertionError()
         }

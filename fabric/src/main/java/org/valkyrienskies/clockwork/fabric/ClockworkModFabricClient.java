@@ -20,13 +20,13 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceProvider;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler;
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer;
+//import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer;
 
 import java.io.IOException;
 
 public class ClockworkModFabricClient implements ClientModInitializer {
 
-    public static final WanderWandClusterRenderer WANDER_HANDLER = new WanderWandClusterRenderer();
+    //public static final WanderWandClusterRenderer WANDER_HANDLER = new WanderWandClusterRenderer();
     public static final GravitronHandler GRAVITRON_HANDLER = new GravitronHandler();
 
     @Override

@@ -11,6 +11,7 @@ import net.minecraft.world.level.GameType
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.ToolType
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.ToolType.Companion.getTools
+import org.valkyrienskies.clockwork.util.ClockworkHotbarSlotOverlays
 
 open class GravitronHandler {
     var selectionScreen: GravitronSelectionScreen? = null
@@ -18,11 +19,11 @@ open class GravitronHandler {
     var currentTool: ToolType? = null
     var activeHotbarSlot: Int = 0
     var activeSchematicItem: ItemStack? = null
-    var overlay: GravitronHotbarSlotOverlay? = null
+    var overlay: ClockworkHotbarSlotOverlays? = null
     var isRegular = true
 
     init {
-        overlay = GravitronHotbarSlotOverlay()
+        overlay = ClockworkHotbarSlotOverlays()
         currentTool = ToolType.GRAB
         selectionScreen = GravitronSelectionScreen(
             getTools()
@@ -62,11 +63,13 @@ open class GravitronHandler {
     }
 
     fun render(poseStack: PoseStack, partialTicks: Float, width: Int, height: Int) {
-        if (Minecraft.getInstance().options.hideGui || !active || isRegular) {
+        if (Minecraft.getInstance().options.hideGui || !active) {
             return
         }
-        if (activeSchematicItem != null) {
-            overlay!!.renderOn(poseStack, activeHotbarSlot)
+        if (activeSchematicItem != null && isRegular) {
+            overlay!!.renderBrass(poseStack, activeHotbarSlot)
+        } else if (activeSchematicItem != null) {
+            overlay!!.renderWanderlite(poseStack, activeHotbarSlot, partialTicks)
         }
 
         currentTool!!.tool.renderOverlay(poseStack, partialTicks, width, height)

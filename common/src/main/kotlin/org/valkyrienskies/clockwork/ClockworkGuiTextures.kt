@@ -18,7 +18,9 @@ enum class ClockworkGuiTextures(
     val startY: Int
 ) : ScreenElement {
 
-    GRAVITRON_SELECTED("widgets", 0, 0, 22, 22),
+    BRASS_SELECTED("widgets", 0, 0, 22, 22),
+    WANDERLITE_SELECTED_1("widgets", 0, 22, 22, 22),
+    WANDERLITE_SELECTED_2("widgets", 22, 22, 22, 22),
     GYRO("gyro", 200, 212),
     ALT_METER("alt_meter", 173, 73),
     COMMAND_SEAT("command_seat", 173, 159),

@@ -1,5 +1,5 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand
 
 import org.joml.primitives.AABBd
-@Deprecated("This class is deprecated and will be removed in the future. Do not use it.")
+@Deprecated("This class is deprecated and will be removed in the future. Do not use it. <3")
 data class SerializableSelectedAreaToolkit(val selectedAreas: HashSet<AABBd>, val selectionClusters: HashSet<Set<AABBd>>)

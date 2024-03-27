@@ -30,6 +30,7 @@ import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.client.render.scanner.ScannerRenderer
@@ -133,14 +134,14 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             if (inventory[0].isEmpty) return
             var launchForce = 0
             for (cluster in toDump) {
-                //val adi: WanderWandItem = inventory[0].item as WanderWandItem
+                val adi: WanderwandItem = inventory[0].item as WanderwandItem
                 //adi.selectedArea.dumpCluster(cluster)
-                //launchForce++
+                launchForce++
             }
             toDump.clear()
             val ejected = ItemEntity(
                 level, blockPos.x.toDouble(), (blockPos.y + 1).toDouble(), blockPos.z.toDouble(),
-                //ClockworkItems.WANDERWAND.asStack()//New item so the nbt gets cleared
+                ClockworkItems.WANDERWAND.asStack()//New item so the nbt gets cleared
             )
             inventory[0] = ItemStack.EMPTY
             ejected.deltaMovement = Vec3(0.0, launchForce.toDouble(), 0.0)
@@ -276,64 +277,64 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         if (inventory[0].item !is WanderwandItem) return
         val item: WanderwandItem = inventory[0].item as WanderwandItem
 
-        item.selectedArea.selectionClusters.run clusters@{
-            item.selectedArea.selectionClusters.forEach { cluster ->
-                val selection: DenseBlockPosSet
-                val caughtEntities: Set<Entity>
-                if (level is ServerLevel) {
-                    val serverLevel = level as ServerLevel
-                    selection = SelectedAreaToolkit.denseBlocksFromCluster(cluster)
-                    caughtEntities = SelectedAreaToolkit.entitiesFromCluster(cluster, (level as ServerLevel))
-                    if (selection == null) return@forEach
-
-                    var bl = false
-
-                    selection.run loop@{
-                        selection.forEach { x, y, z ->
-                            val it =serverLevel.getBlockState(BlockPos(x, y, z))
-                            if (!it.isAir && !ClockworkConfig.SERVER.blockBlacklist.contains(Registry.BLOCK.getKey(it.block).toString())) {
-                                bl = true
-                                return@loop
-                            }
-                        }
-                    }
-
-                    if (!bl) {
-                        return@forEach
-                    }
-
-                    connectedShip = createNewShipWithBlocks(worldPosition, selection, level as ServerLevel)
-                    // TODO: relocate entities properly cause it barely works
-                    if (caughtEntities != null) {
-                        caughtEntities.forEach(Consumer { entity: Entity ->
-                            if (entity is AbstractContraptionEntity || entity is SuperGlueEntity || entity is SeatEntity) {
-                                if (entity !is SuperGlueEntity) {
-                                    val oldPos: Vector3dc = entity.position().toJOML()
-                                    val newPos: Vector3dc =
-                                        connectedShip!!.transform.worldToShip.transformPosition(oldPos, Vector3d())
-                                    entity.moveTo(newPos.toMinecraft())
-                                } else {
-                                    val glueEntity = entity
-                                    val oldBounds = glueEntity.boundingBox
-                                    val oldMax: Vector3dc = Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
-                                    val oldMin: Vector3dc = Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
-                                    val newMax: Vector3dc =
-                                        connectedShip!!.transform.worldToShip.transformPosition(oldMax, Vector3d())
-                                    val newMin: Vector3dc =
-                                        connectedShip!!.transform.worldToShip.transformPosition(oldMin, Vector3d())
-                                    val newBounds =
-                                        AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z())
-                                    glueEntity.boundingBox = newBounds
-                                    glueEntity.resetPositionToBB()
-                                }
-                            }
-                        })
-                    }
-                    createdShips.add(connectedShip!!)
-                }
-                toDump.add(cluster)
-            }
-        }
+//        item.selectedArea.selectionClusters.run clusters@{
+//            item.selectedArea.selectionClusters.forEach { cluster ->
+//                val selection: DenseBlockPosSet
+//                val caughtEntities: Set<Entity>
+//                if (level is ServerLevel) {
+//                    val serverLevel = level as ServerLevel
+//                    selection = SelectedAreaToolkit.denseBlocksFromCluster(cluster)
+//                    caughtEntities = SelectedAreaToolkit.entitiesFromCluster(cluster, (level as ServerLevel))
+//                    if (selection == null) return@forEach
+//
+//                    var bl = false
+//
+//                    selection.run loop@{
+//                        selection.forEach { x, y, z ->
+//                            val it =serverLevel.getBlockState(BlockPos(x, y, z))
+//                            if (!it.isAir && !ClockworkConfig.SERVER.blockBlacklist.contains(Registry.BLOCK.getKey(it.block).toString())) {
+//                                bl = true
+//                                return@loop
+//                            }
+//                        }
+//                    }
+//
+//                    if (!bl) {
+//                        return@forEach
+//                    }
+//
+//                    connectedShip = createNewShipWithBlocks(worldPosition, selection, level as ServerLevel)
+//                    // TODO: relocate entities properly cause it barely works
+//                    if (caughtEntities != null) {
+//                        caughtEntities.forEach(Consumer { entity: Entity ->
+//                            if (entity is AbstractContraptionEntity || entity is SuperGlueEntity || entity is SeatEntity) {
+//                                if (entity !is SuperGlueEntity) {
+//                                    val oldPos: Vector3dc = entity.position().toJOML()
+//                                    val newPos: Vector3dc =
+//                                        connectedShip!!.transform.worldToShip.transformPosition(oldPos, Vector3d())
+//                                    entity.moveTo(newPos.toMinecraft())
+//                                } else {
+//                                    val glueEntity = entity
+//                                    val oldBounds = glueEntity.boundingBox
+//                                    val oldMax: Vector3dc = Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
+//                                    val oldMin: Vector3dc = Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
+//                                    val newMax: Vector3dc =
+//                                        connectedShip!!.transform.worldToShip.transformPosition(oldMax, Vector3d())
+//                                    val newMin: Vector3dc =
+//                                        connectedShip!!.transform.worldToShip.transformPosition(oldMin, Vector3d())
+//                                    val newBounds =
+//                                        AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z())
+//                                    glueEntity.boundingBox = newBounds
+//                                    glueEntity.resetPositionToBB()
+//                                }
+//                            }
+//                        })
+//                    }
+//                    createdShips.add(connectedShip!!)
+//                }
+//                toDump.add(cluster)
+//            }
+//        }
 
     }
 

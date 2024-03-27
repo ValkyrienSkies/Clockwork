@@ -21,7 +21,7 @@ import kotlin.math.roundToInt
 /**
  * A storage class for things (mostly the auric designator) that need to keep track of clustered selections.
  *
- * DEPRICATED: This class is no longer used in the project, but is kept for reference.
+ * DEPRECATED: This class is no longer used in the project, but is kept for reference.
  */
 public class SelectedAreaToolkit {
     /**
