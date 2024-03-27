@@ -9,7 +9,6 @@ import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Registry
 import net.minecraft.server.level.ServerLevel
-import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
@@ -19,25 +18,17 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
-import org.joml.Quaterniondc
-import org.joml.Vector2dc
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkItems
-import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronState.Companion.getState
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.SelectedAreaToolkit
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.GrabTool
-import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.clockwork.util.ClockworkUtils
-import org.valkyrienskies.core.api.ships.LoadedServerShip
-import org.valkyrienskies.core.api.ships.properties.ShipId
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
-import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft
 import java.util.function.Consumer
@@ -152,16 +143,18 @@ class CreativeGravitronItem(properties: Properties) : CWItem(properties), Custom
                 return false
             }
 
-            for (item in player.inventory.items) {
-                if (item.`is`(ClockworkItems.WANDERWAND.get().asItem())) {
-                    val auricItem: WanderWandItem = item.item as WanderWandItem
+            //todo: reimplement when wanderwand rework done
 
-                    if (abstractAssemble(level, player, auricItem.selectedArea, blockPos, clickLocation, grab)) {
-                        return true;
-                    }
-                    break
-                }
-            }
+//            for (item in player.inventory.items) {
+//                if (item.`is`(ClockworkItems.WANDERWAND.get().asItem())) {
+//                    val auricItem: WanderWandItem = item.item as WanderWandItem
+//
+//                    if (abstractAssemble(level, player, auricItem.selectedArea, blockPos, clickLocation, grab)) {
+//                        return true;
+//                    }
+//                    break
+//                }
+//            }
 
             return false
         }

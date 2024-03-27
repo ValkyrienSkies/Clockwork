@@ -8,11 +8,9 @@ import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.UpdateAltMeterPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerAttachmentSyncPacket
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandSelectionPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDestroyPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDialPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronGrabPacket
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClearPacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket
 import org.valkyrienskies.clockwork.content.logistics.heat.AirPocketDeletePacket
@@ -53,9 +51,7 @@ enum class ClockworkPackets(
 
     SYNC_TEMPERATURE(TemperatureSyncPacket::class.java, ::TemperatureSyncPacket),
 
-    PHYSICS_INFUSER(PhysicsInfuserSyncPacket::class.java, ::PhysicsInfuserSyncPacket),
-    WANDER_WAND(WanderWandSelectionPacket::class.java, ::WanderWandSelectionPacket),
-    WANDER_WAND_CLEAR(WanderWandClearPacket::class.java, ::WanderWandClearPacket);
+    PHYSICS_INFUSER(PhysicsInfuserSyncPacket::class.java, ::PhysicsInfuserSyncPacket);
 
     init {
         packetChannel.registerPacket(type as Class<CWPacket>, factory as Function<FriendlyByteBuf, CWPacket>)

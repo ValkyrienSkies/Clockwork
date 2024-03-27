@@ -17,8 +17,11 @@ import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft
 import kotlin.math.roundToInt
 
+@Deprecated("This class is no longer used in the project, but is kept for reference.")
 /**
  * A storage class for things (mostly the auric designator) that need to keep track of clustered selections.
+ *
+ * DEPRICATED: This class is no longer used in the project, but is kept for reference.
  */
 public class SelectedAreaToolkit {
     /**

@@ -9,10 +9,10 @@ import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteCubeItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItemRenderer
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.CreativeGravitronItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItemRenderer
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItem
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import java.util.function.Supplier
@@ -43,7 +43,7 @@ object ClockworkItems {
         }
             .properties {
                 it.stacksTo(1)
-                it.rarity(Rarity.UNCOMMON)
+                it.rarity(Rarity.RARE)
             }
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .tag(AllTags.AllItemTags.WRENCH.tag)
@@ -84,9 +84,9 @@ object ClockworkItems {
             .register()
 
     @JvmField
-    val WANDERWAND: ItemEntry<WanderWandItem> =
-        REGISTRATE.item<WanderWandItem>("wanderwand") { properties: Item.Properties? ->
-            WanderWandItem(properties!!)
+    val WANDERWAND: ItemEntry<WanderwandItem> =
+        REGISTRATE.item<WanderwandItem>("wanderwand") { properties: Item.Properties? ->
+            WanderwandItem(properties!!)
         }
             .properties {
                 it.stacksTo(1)

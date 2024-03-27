@@ -68,12 +68,12 @@ abstract class WanderwandToolBase : IWanderwandTool {
         var DESELECT: Byte = 2
 
         @JvmField
-        var CLEAR: Byte = 3
+        var ATTACH: Byte = 3
 
         @JvmField
-        var ATTACH: Byte = 4
+        var ROPE: Byte = 4
 
         @JvmField
-        var ROPE: Byte = 5
+        var WELD: Byte = 5
     }
 }

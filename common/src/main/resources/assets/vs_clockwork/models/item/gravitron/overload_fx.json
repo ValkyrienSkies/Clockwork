@@ -1,0 +1,31 @@
+{
+	"credit": "Made with Blockbench",
+	"texture_size": [32, 32],
+	"textures": {
+		"0": "vs_clockwork:item/supercharged_gravitron_fx",
+		"particle": "vs_clockwork:item/supercharged_gravitron_fx"
+	},
+	"elements": [
+		{
+			"from": [2.75, 1, 6.75],
+			"to": [12.75, 11, 8.75],
+			"rotation": {"angle": 45, "axis": "z", "origin": [7.75, 6, 7.75]},
+			"faces": {
+				"north": {"uv": [0, 0, 5, 5], "texture": "#0"},
+				"east": {"uv": [5, 0, 6, 5], "texture": "#0"},
+				"south": {"uv": [0, 5, 5, 10], "texture": "#0"},
+				"west": {"uv": [5, 5, 6, 10], "texture": "#0"},
+				"up": {"uv": [11, 1, 6, 0], "texture": "#0"},
+				"down": {"uv": [11, 1, 6, 2], "texture": "#0"}
+			}
+		}
+	],
+	"groups": [
+		{
+			"name": "supercharge",
+			"origin": [7.75, 6, 7.75],
+			"color": 0,
+			"children": [0]
+		}
+	]
+}

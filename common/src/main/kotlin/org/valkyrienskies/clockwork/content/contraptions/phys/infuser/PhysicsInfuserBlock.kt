@@ -17,7 +17,6 @@ import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItem
 
 class PhysicsInfuserBlock(properties: Properties) : Block(properties),
     IBE<PhysicsInfuserBlockEntity> {
@@ -64,7 +63,7 @@ class PhysicsInfuserBlock(properties: Properties) : Block(properties),
                 }
             }
             return InteractionResult.SUCCESS
-        } else if (player.getItemInHand(handIn).item is WanderWandItem) {
+        } else if (player.getItemInHand(handIn).item is Nothing) { //todo replace with wanderwand when wanderwand rework done
             if (worldIn.getBlockEntity(pos) != null) {
                 if (worldIn.getBlockEntity(pos) is PhysicsInfuserBlockEntity) {
                     val te: PhysicsInfuserBlockEntity = worldIn.getBlockEntity(pos) as PhysicsInfuserBlockEntity

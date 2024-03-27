@@ -42,8 +42,8 @@ class WanderWandItemRenderer() : CustomRenderedItemModelRenderer() {
             val stacker = TransformStack.cast(ms)
             ms.pushPose()
             renderer!!.renderSolid(model!!.originalModel, light)
-            val adi: WanderWandItem = stack.item as WanderWandItem
-            animateIdle(ms, stacker, light, adi.idleProgress, renderer)
+            val ww: WanderwandItem = stack.item as WanderwandItem
+            animateIdle(ms, stacker, light, ww.idleProgress, renderer)
             ms.popPose()
         }
 
