@@ -4,9 +4,16 @@ import dev.architectury.event.events.common.TickEvent
 import net.minecraft.server.level.ServerLevel
 import org.joml.Vector3ic
 import org.valkyrienskies.clockwork.content.logistics.heat.IHeatable
-import org.valkyrienskies.clockwork.kelvin.api.*
+import org.valkyrienskies.clockwork.kelvin.api.GasConnectionCreateData
+import org.valkyrienskies.clockwork.kelvin.api.GasNodeChangesData
+import org.valkyrienskies.clockwork.kelvin.api.GasNodeCreateData
+import org.valkyrienskies.clockwork.kelvin.api.GasNodeId
+import org.valkyrienskies.clockwork.kelvin.api.GasNodeIdentifier
+import org.valkyrienskies.clockwork.kelvin.api.GasSimChangesFrame
+import org.valkyrienskies.clockwork.kelvin.api.GasSimResultFrame
+import org.valkyrienskies.clockwork.kelvin.api.GasType
 import org.valkyrienskies.mod.common.util.toBlockPos
-import java.util.*
+import java.util.EnumMap
 import java.util.concurrent.ConcurrentLinkedQueue
 
 object KelvinHandler {
@@ -17,16 +24,16 @@ object KelvinHandler {
     }
 
     // to sim
-    private val newNodes: MutableList<GasNodeCreateData> = mutableListOf()
-    private val removedNodes: MutableList<GasNodeIdentifier> = mutableListOf()
-    private val nodeChanges: MutableList<GasNodeChangesData> = mutableListOf()
-    private val newConnections: MutableList<GasConnectionCreateData> = mutableListOf()
-    private val removedConnections: MutableList<Pair<GasNodeIdentifier, GasNodeIdentifier>> = mutableListOf()
+    private var newNodes: MutableList<GasNodeCreateData> = mutableListOf()
+    private var removedNodes: MutableList<GasNodeIdentifier> = mutableListOf()
+    private var nodeChanges: MutableList<GasNodeChangesData> = mutableListOf()
+    private var newConnections: MutableList<GasConnectionCreateData> = mutableListOf()
+    private var removedConnections: MutableList<Pair<GasNodeIdentifier, GasNodeIdentifier>> = mutableListOf()
 
     // from sim
     private val gasSimResultQueue: ConcurrentLinkedQueue<GasSimResultFrame> = ConcurrentLinkedQueue()
 
-    val nodes: HashSet<GasNodeIdentifier> = hashSetOf()
+    private val nodes: HashSet<GasNodeIdentifier> = hashSetOf()
 
     fun tick(serverLevel: ServerLevel) {
         while (gasSimResultQueue.isNotEmpty()) {
@@ -41,15 +48,17 @@ object KelvinHandler {
             removedNodes,
             nodeChanges,
             newConnections,
-            removedConnections
+            removedConnections,
         )
-        pushChangesFrame(changesFrame)
 
-        newNodes.clear()
-        removedNodes.clear()
-        nodeChanges.clear()
-        newConnections.clear()
-        removedConnections.clear()
+        // Update the fields to prevent concurrent modification
+        newNodes = mutableListOf()
+        removedNodes = mutableListOf()
+        nodeChanges = mutableListOf()
+        newConnections = mutableListOf()
+        removedConnections = mutableListOf()
+
+        pushChangesFrame(changesFrame)
     }
 
     /**

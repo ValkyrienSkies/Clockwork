@@ -18,8 +18,7 @@ import org.valkyrienskies.clockwork.kelvin.api.GasNodeChangesData
 import org.valkyrienskies.clockwork.kelvin.api.GasNodeIdentifier
 import org.valkyrienskies.clockwork.kelvin.api.GasType
 import org.valkyrienskies.mod.common.util.toJOML
-import java.util.*
-import kotlin.collections.HashMap
+import java.util.EnumMap
 
 class CreativeGasSourceBlockEntity (type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : SmartBlockEntity(type, pos, state) ,
     IHeatable {
@@ -64,21 +63,18 @@ class CreativeGasSourceBlockEntity (type: BlockEntityType<*>, pos: BlockPos, sta
     override fun tick() {
         super.tick()
 
+        if (level!!.isClientSide) return
+
         val currentGasMass = gasMasses.getOrDefault(GasType.PHLOGISTON, 0.0)
 
         val newGasMass = Mth.clamp(currentGasMass + 100.0, 0.0, getPressureLimit())
         gasMasses[GasType.PHLOGISTON] = newGasMass
 
-        /*
         val directionalDeltaMasses: HashMap<GasNodeIdentifier, Double> = HashMap()
 
-        for (direction in Direction.values()) {
-            if (canTransferHeat(direction)) {
-
-                val id = KelvinHandler.getNodeFromPos(worldPosition.relative(direction).toJOML())
-
-                directionalDeltaMasses.put(id, )
-            }
+        Direction.values().filter { canTransferHeat(it) }.forEach { direction ->
+            val id = KelvinHandler.getNodeFromPos(worldPosition.relative(direction).toJOML()) ?: return@forEach
+            directionalDeltaMasses[id] = 100.0
         }
 
         val updatedNode = GasNodeChangesData(
@@ -89,8 +85,6 @@ class CreativeGasSourceBlockEntity (type: BlockEntityType<*>, pos: BlockPos, sta
         )
 
         KelvinHandler.editNode(updatedNode)
-
-         */
     }
 
     override fun canTransferHeat(direction: Direction): Boolean {
