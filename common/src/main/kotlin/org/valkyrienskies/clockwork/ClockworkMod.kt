@@ -2,21 +2,16 @@ package org.valkyrienskies.clockwork
 
 import com.mojang.logging.LogUtils
 import com.simibubi.create.foundation.data.CreateRegistrate
-import dev.architectury.event.events.common.BlockEvent
 import dev.architectury.event.events.common.LifecycleEvent
 import dev.architectury.event.events.common.TickEvent
-import dev.architectury.registry.CreativeTabRegistry
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
 import org.slf4j.LoggerFactory
 import org.valkyrienskies.clockwork.content.forces.DragController
 import org.valkyrienskies.clockwork.content.forces.PocketForcesController
 import org.valkyrienskies.clockwork.content.logistics.heat.ClientAirPocketStorage
-import org.valkyrienskies.core.api.ships.setAttachment
-import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.TranslatableComponent
 import org.valkyrienskies.clockwork.platform.PlatformUtils
-import org.valkyrienskies.clockwork.platform.SharedValues
+import org.valkyrienskies.core.api.ships.setAttachment
 import org.valkyrienskies.core.impl.config.VSConfigClass
 import org.valkyrienskies.core.impl.hooks.VSEvents
 import org.valkyrienskies.mod.common.shipObjectWorld
@@ -38,11 +33,8 @@ object ClockworkMod {
 
     val BASE_CREATIVE_TAB: CreativeModeTab = PlatformUtils.getCreativeTab()
 
-    private lateinit var kelvin: KelvinBackground
-
-    private val kelvinThread: Thread = thread(start = false, priority = 8, name = "Kelvin thread") {
-        kelvin.run()
-    }
+    private var kelvin: KelvinBackground? = null
+    private var kelvinThread: Thread? = null
 
     @JvmStatic
     fun init() {
@@ -72,26 +64,36 @@ object ClockworkMod {
             }
             ClientAirPocketStorage.serverTick(it)
         }
-        
-        kelvin = KelvinBackground(ClockworkConfig.SERVER.kelvinTickRate, ClockworkConfig.SERVER.kelvinSubSteps)
+
+        createKelvinStuff()
 
         LifecycleEvent.SERVER_STARTING.register {
-            kelvinThread.start()
+            kelvinThread!!.start()
         }
 
         LifecycleEvent.SERVER_STOPPING.register {
-            kelvin.tellTaskToKillItself()
+            kelvin!!.tellTaskToKillItself()
         }
 
         KelvinHandler.start()
     }
 
     fun getKelvinBackgroundTask(): KelvinBackground {
-        return kelvin
+        return kelvin!!
     }
 
     @JvmStatic
     fun asResource(path: String): ResourceLocation {
         return ResourceLocation(MOD_ID, path)
+    }
+
+    private fun createKelvinStuff() {
+        if (kelvin != null) {
+            kelvin!!.tellTaskToKillItself()
+        }
+        kelvin = KelvinBackground(ClockworkConfig.SERVER.kelvinTickRate, ClockworkConfig.SERVER.kelvinSubSteps)
+        kelvinThread = thread(start = false, priority = 8, name = "Kelvin thread") {
+            kelvin!!.run()
+        }
     }
 }

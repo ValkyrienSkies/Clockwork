@@ -1,6 +1,14 @@
 package org.valkyrienskies.clockwork.kelvin.impl
 
-import org.valkyrienskies.clockwork.kelvin.api.*
+import org.valkyrienskies.clockwork.kelvin.api.GasConnectionCreateData
+import org.valkyrienskies.clockwork.kelvin.api.GasGraph
+import org.valkyrienskies.clockwork.kelvin.api.GasNodeChangesData
+import org.valkyrienskies.clockwork.kelvin.api.GasNodeCreateData
+import org.valkyrienskies.clockwork.kelvin.api.GasNodeIdentifier
+import org.valkyrienskies.clockwork.kelvin.api.GasNodeResultData
+import org.valkyrienskies.clockwork.kelvin.api.GasSimChangesFrame
+import org.valkyrienskies.clockwork.kelvin.api.GasSimResultFrame
+import org.valkyrienskies.clockwork.kelvin.api.GasType
 import java.util.EnumMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.abs
@@ -141,7 +149,7 @@ class GasGraphImpl : GasGraph {
                                 else -> itConn.gasMasses
                             }
 
-                            val avgViscosity = viscosityAverage(gasMasses)
+                            val avgViscosity = computeWeightedViscosity(gasMasses)
 
                             val flow = poisuiellesLaw(
                                 pressureOne,
@@ -238,11 +246,12 @@ class GasGraphImpl : GasGraph {
      * Calculates pressure using the ideal gas law.
      */
     private fun calcPressure(mass: Double, volume: Double, temp: Double, density: Double): Double {
-        var pressure = 0.0
+        if (density == 0.0 || volume == 0.0) {
+            return 0.0
+        }
         val molarMass = density * 22.4
         val moles = mass / molarMass
-        pressure = (moles * idealGasConstant * temp) / volume
-        return pressure
+        return (moles * idealGasConstant * temp) / volume
     }
 
     /**
@@ -254,32 +263,12 @@ class GasGraphImpl : GasGraph {
         return ((pressureOne - pressureTwo + pumpPressure) * radius.pow(4.0)) / ((8.0/Math.PI) * viscosity * (10.0/16.0))
     }
 
-    private fun viscosityAverage(gasMasses: EnumMap<GasType, Double>): Double {
-        val totalMass = gasMasses.values.sum()
-
-        if (totalMass == 0.0) {
+    private fun computeWeightedViscosity(gasMasses: EnumMap<GasType, Double>): Double {
+        val totalGasMass = gasMasses.values.sum()
+        if (totalGasMass < 1e-6) {
             return 0.0
         }
-
-        val massPerGas = EnumMap<GasType, Double>(GasType::class.java)
-
-        val gasWeight = EnumMap<GasType, Double>(GasType::class.java)
-
-        gasMasses.keys.forEach {
-            massPerGas[it] = massPerGas[it]!! + gasMasses[it]!!
-        }
-
-        for (gas in massPerGas.keys) {
-            gasWeight[gas] = massPerGas[gas]!! / totalMass
-        }
-
-        var viscosity = 0.0
-
-        for (gas in gasWeight.keys) {
-            viscosity += gasWeight[gas]!! * gas.viscosity
-        }
-
-        return viscosity
+        return (gasMasses.map { (gasType, mass) -> gasType.viscosity * mass }.sum() / totalGasMass)
     }
 
     override fun queueChanges(changesFrame: GasSimChangesFrame) {

@@ -7,7 +7,7 @@ import org.valkyrienskies.clockwork.kelvin.api.GasType
 import java.util.EnumMap
 import kotlin.math.max
 
-data class GasNode(
+class GasNode(
     val identifier: GasNodeIdentifier,
     val gasMasses: EnumMap<GasType, Double>,
     val volume: Double,
@@ -23,11 +23,18 @@ data class GasNode(
             }
         }
 
-        val averageSpecificHeat = gasMasses.keys.sumOf { it.specificHeatCapacity } / gasMasses.values.size
+        val totalGasMass = gasMasses.values.sum()
+        if (totalGasMass < 1e-6) {
+            return GasNodeResultData(
+                gasMasses,
+                temperature,
+                changes.directionalDeltaMasses,
+            )
+        }
 
-        val temperatureChange = (changes.deltaThermalEnergy / (gasMasses.values.sum() * averageSpecificHeat))
+        val weightedSpecificHeat = gasMasses.map { (gas, mass) -> gas.specificHeatCapacity * mass }.sum() / totalGasMass
 
-        temperature += temperatureChange
+        temperature += changes.deltaThermalEnergy / (totalGasMass * weightedSpecificHeat)
 
         return GasNodeResultData(
             gasMasses,
