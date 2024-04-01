@@ -8,11 +8,12 @@ import net.minecraft.world.item.Rarity
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteCubeItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteItem
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItemRenderer
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.CreativeGravitronItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItemRenderer
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItem
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItemRenderer
+import org.valkyrienskies.clockwork.content.logistics.heat.detector.DetectorItem
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import java.util.function.Supplier
@@ -105,6 +106,13 @@ object ClockworkItems {
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .register()
 
+    @JvmField
+    val DETECTOR: ItemEntry<DetectorItem> =
+        REGISTRATE.item<DetectorItem>("detector") { properties: Item.Properties? ->
+            DetectorItem(properties!!)
+        }
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .register()
 
     @JvmStatic
     fun register() {

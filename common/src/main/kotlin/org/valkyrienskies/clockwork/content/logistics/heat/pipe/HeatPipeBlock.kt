@@ -67,12 +67,14 @@ class HeatPipeBlock(properties: Properties) :
     }
 
     override fun getStateForPlacement(context: BlockPlaceContext): BlockState {
-        val FluidState = context.level
-            .getFluidState(context.clickedPos)
+        val fluidState = context.level.getFluidState(context.clickedPos)
         return updateBlockState(
-            defaultBlockState(), context.nearestLookingDirection, null, context.level,
-            context.clickedPos
-        ).setValue(BlockStateProperties.WATERLOGGED, FluidState.type === Fluids.WATER)
+            defaultBlockState(),
+            context.nearestLookingDirection,
+            null,
+            context.level,
+            context.clickedPos,
+        ).setValue(BlockStateProperties.WATERLOGGED, fluidState.type === Fluids.WATER)
     }
 
     override fun updateShape(
@@ -88,10 +90,9 @@ class HeatPipeBlock(properties: Properties) :
             Fluids.WATER,
             Fluids.WATER.getTickDelay(world)
         )
-        if (isOpenAt(state, direction) && neighbourState.hasProperty(
-                BlockStateProperties.WATERLOGGED
-            )
-        ) world.scheduleTick(pos, this, 1, TickPriority.HIGH)
+        if (isOpenAt(state, direction) && neighbourState.hasProperty(BlockStateProperties.WATERLOGGED)) {
+            world.scheduleTick(pos, this, 1, TickPriority.HIGH)
+        }
 
         withBlockEntityDo(world, pos) { it.markConnectionsDirty() }
         return updateBlockState(state, direction, direction.opposite, world, pos)
