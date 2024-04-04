@@ -15,7 +15,11 @@ interface IWanderwandTool {
     /**
      * Will run when a player rightClicks, should be overridden for tools which utilise right click
      */
-    fun handleRightClick(): Boolean
+    fun handleRightClick(crouching: Boolean): Boolean
+
+    fun handleRightClick(): Boolean {
+        return handleRightClick(false)
+    }
 
     /**
      * Will run when a player uses their mouse wheel, should be overridden for tools which utilise mouse wheel

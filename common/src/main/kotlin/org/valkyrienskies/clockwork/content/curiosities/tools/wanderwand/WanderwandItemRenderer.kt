@@ -18,7 +18,7 @@ import org.valkyrienskies.clockwork.util.render.TransformData
 import kotlin.math.sin
 
 
-class WanderWandItemRenderer() : CustomRenderedItemModelRenderer() {
+class WanderwandItemRenderer() : CustomRenderedItemModelRenderer() {
 
     private var crystalAngle = 0f
 
@@ -44,6 +44,10 @@ class WanderWandItemRenderer() : CustomRenderedItemModelRenderer() {
             renderer!!.renderSolid(model!!.originalModel, light)
             val ww: WanderwandItem = stack.item as WanderwandItem
             animateIdle(ms, stacker, light, ww.idleProgress, renderer)
+            ww.idleProgress += 0.1f
+            if (ww.idleProgress > 1.0f) {
+                ww.idleProgress = 0.0f
+            }
             ms.popPose()
         }
 
@@ -63,7 +67,7 @@ class WanderWandItemRenderer() : CustomRenderedItemModelRenderer() {
 
         val innerData = TransformData(Vector3f(0f, 0f, 0f), Vector3f(i, i, 0f))
         val data = TransformData(Vector3f(0f, 0f, 0f), Vector3f(0f, i, 0f))
-        val heightAlt = 3f / 16f + sin(easeInOutSine(progress).toDouble()).toFloat() / 16f
+        val heightAlt = 6f / 16f + sin(easeInOutSine(progress).toDouble()).toFloat() / 16f
         stacker.translateY((heightAlt * 0.05f).toDouble())
         ms.translate(0.0,heightAlt + 0.5,0.0)
         ms.pushPose()

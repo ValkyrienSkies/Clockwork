@@ -8,7 +8,7 @@ import net.minecraft.world.item.Rarity
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteCubeItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteItem
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItemRenderer
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.CreativeGravitronItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItemRenderer
@@ -78,7 +78,7 @@ object ClockworkItems {
                 it.rarity(Rarity.UNCOMMON)
             }
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
-            .transform(ClockworkRegistrate.customRenderedItem { Supplier { WanderWandItemRenderer() } })
+            .transform(ClockworkRegistrate.customRenderedItem { Supplier { WanderwandItemRenderer() } })
             .tag(AllTags.AllItemTags.WRENCH.tag)
             .model(AssetLookup.itemModelWithPartials())
             .register()
@@ -93,7 +93,7 @@ object ClockworkItems {
                 it.rarity(Rarity.UNCOMMON)
             }
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
-            .transform(ClockworkRegistrate.customRenderedItem { Supplier { WanderWandItemRenderer() } })
+            .transform(ClockworkRegistrate.customRenderedItem { Supplier { WanderwandItemRenderer() } })
             .tag(AllTags.AllItemTags.WRENCH.tag)
             .model(AssetLookup.itemModelWithPartials())
             .register()

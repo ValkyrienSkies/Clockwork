@@ -17,6 +17,8 @@ abstract class WanderwandToolBase : IWanderwandTool {
     protected var wanderwandHandler: WanderwandHandler? = null
     var clickedPos: BlockPos? = null
     var clickedLocation: Vec3? = null
+    var lastClickedPos: BlockPos? = null
+    var lastClickedLocation: Vec3? = null
 
 
     /**
@@ -24,6 +26,9 @@ abstract class WanderwandToolBase : IWanderwandTool {
      * at within 15 blocks to be accessed by the Wanderwand's other functions
      */
     fun updateTargetPos() {
+        lastClickedPos = clickedPos
+        lastClickedLocation = clickedLocation
+
         val player = Minecraft.getInstance().player
 
         val trace = RaycastHelper.rayTraceRange(
@@ -42,7 +47,7 @@ abstract class WanderwandToolBase : IWanderwandTool {
         return false
     }
 
-    override fun handleRightClick(): Boolean {
+    override fun handleRightClick(crouching: Boolean): Boolean {
         return false
     }
 
