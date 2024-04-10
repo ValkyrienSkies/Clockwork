@@ -22,7 +22,7 @@ import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.datastructures.ShipConnDataAttachment
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOML
-import java.util.*
+import java.util.EnumMap
 
 class GasNozzleBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KineticBlockEntity(typeIn, pos,
     state
@@ -33,7 +33,6 @@ class GasNozzleBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Blo
     override var currentPressure: Double = 0.0
     override var temperature: Double = 273.0
     override val gasMasses: EnumMap<GasType, Double> = EnumMap(GasType::class.java)
-    override val gasFlows: HashMap<GasNodeIdentifier, Double> = HashMap()
 
     private var pocketId: Int? = null
     var pocketSize: Int = 0

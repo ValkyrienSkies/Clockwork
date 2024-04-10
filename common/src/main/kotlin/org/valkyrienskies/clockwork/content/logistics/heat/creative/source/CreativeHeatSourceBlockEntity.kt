@@ -3,7 +3,6 @@ package org.valkyrienskies.clockwork.content.logistics.heat.creative.source
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.CenteredSideValueBoxTransform
-import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour
 import com.simibubi.create.foundation.utility.Lang
 import net.minecraft.core.BlockPos
@@ -11,7 +10,6 @@ import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.phys.Vec3
 import org.joml.Vector3i
 import org.valkyrienskies.clockwork.KelvinHandler
 import org.valkyrienskies.clockwork.content.logistics.heat.IHeatable
@@ -21,8 +19,7 @@ import org.valkyrienskies.clockwork.kelvin.api.GasNodeCreateData
 import org.valkyrienskies.clockwork.kelvin.api.GasNodeIdentifier
 import org.valkyrienskies.clockwork.kelvin.api.GasType
 import org.valkyrienskies.mod.common.util.toJOML
-import java.util.*
-import kotlin.collections.HashMap
+import java.util.EnumMap
 
 class CreativeHeatSourceBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : SmartBlockEntity(type, pos,
     state
@@ -32,7 +29,6 @@ class CreativeHeatSourceBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, s
     override val gasMasses: EnumMap<GasType, Double> = EnumMap(GasType::class.java)
     override var temperature: Double = 273.0
     override var currentPressure: Double = 0.0
-    override val gasFlows: HashMap<GasNodeIdentifier, Double> = HashMap()
 
     protected var generatedHeat: ScrollValueBehaviour? = null
 
@@ -165,7 +161,34 @@ class CreativeHeatSourceBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, s
     }
 
     override fun tick() {
+        super.tick()
+        if (level!!.isClientSide) return
+
         this.currentTargetHeat = generatedHeat!!.value.toDouble()
+
+        // TODO: Implement this adding thermal energy
+        /*
+        val currentGasMass = gasMasses.getOrDefault(GasType.PHLOGISTON, 0.0)
+
+        val newGasMass = Mth.clamp(currentGasMass + 100.0, 0.0, getPressureLimit())
+        gasMasses[GasType.PHLOGISTON] = newGasMass
+
+        val directionalDeltaMasses: HashMap<GasNodeIdentifier, Double> = HashMap()
+
+        Direction.values().filter { canTransferHeat(it) }.forEach { direction ->
+            val id = KelvinHandler.getNodeFromPos(worldPosition.relative(direction).toJOML()) ?: return@forEach
+            directionalDeltaMasses[id] = 100.0
+        }
+
+        val updatedNode = GasNodeChangesData(
+            gasNodeID!!,
+            gasMasses,
+            temperature,
+            directionalDeltaMasses
+        )
+
+        KelvinHandler.editNode(updatedNode)
+         */
     }
 
 

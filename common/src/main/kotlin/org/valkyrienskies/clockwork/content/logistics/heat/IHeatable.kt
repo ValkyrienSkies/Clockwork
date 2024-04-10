@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.heat
 
 import net.minecraft.core.Direction
-import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.kelvin.api.GasNodeIdentifier
 import org.valkyrienskies.clockwork.kelvin.api.GasNodeResultData
 import org.valkyrienskies.clockwork.kelvin.api.GasType
@@ -14,7 +13,6 @@ interface IHeatable {
     val gasMasses: EnumMap<GasType, Double>
     var temperature: Double
     var currentPressure: Double
-    val gasFlows: HashMap<GasNodeIdentifier, Double>
 
     fun canTransferHeat(direction: Direction): Boolean
 
@@ -39,8 +37,6 @@ interface IHeatable {
         this.temperature = update.temperature
         this.gasMasses.clear()
         this.gasMasses.putAll(update.gasMasses)
-        this.gasFlows.clear()
-        this.gasFlows.putAll(update.gasFlows)
 
         recalculatePressure()
     }

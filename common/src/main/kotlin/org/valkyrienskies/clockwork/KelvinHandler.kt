@@ -5,7 +5,7 @@ import net.minecraft.server.level.ServerLevel
 import org.joml.Vector3ic
 import org.valkyrienskies.clockwork.content.logistics.heat.IHeatable
 import org.valkyrienskies.clockwork.kelvin.api.GasConnectionCreateData
-import org.valkyrienskies.clockwork.kelvin.api.GasNodeChangesData
+import org.valkyrienskies.clockwork.kelvin.api.GasNodeChangeFromGame
 import org.valkyrienskies.clockwork.kelvin.api.GasNodeCreateData
 import org.valkyrienskies.clockwork.kelvin.api.GasNodeId
 import org.valkyrienskies.clockwork.kelvin.api.GasNodeIdentifier
@@ -26,7 +26,7 @@ object KelvinHandler {
     // to sim
     private var newNodes: MutableList<GasNodeCreateData> = mutableListOf()
     private var removedNodes: MutableList<GasNodeIdentifier> = mutableListOf()
-    private var nodeChanges: MutableList<GasNodeChangesData> = mutableListOf()
+    private var nodeChanges: MutableList<GasNodeChangeFromGame> = mutableListOf()
     private var newConnections: MutableList<GasConnectionCreateData> = mutableListOf()
     private var removedConnections: MutableList<Pair<GasNodeIdentifier, GasNodeIdentifier>> = mutableListOf()
 
@@ -98,7 +98,7 @@ object KelvinHandler {
         removedNodes.add(nodeIdentifier)
     }
 
-    fun editNode(change: GasNodeChangesData) {
+    fun editNode(change: GasNodeChangeFromGame) {
         nodeChanges.add(change)
     }
 

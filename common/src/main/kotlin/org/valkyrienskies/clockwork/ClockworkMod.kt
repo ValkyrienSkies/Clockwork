@@ -65,10 +65,8 @@ object ClockworkMod {
             ClientAirPocketStorage.serverTick(it)
         }
 
-        createKelvinStuff()
-
         LifecycleEvent.SERVER_STARTING.register {
-            kelvinThread!!.start()
+            createKelvinStuff()
         }
 
         LifecycleEvent.SERVER_STOPPING.register {
@@ -92,7 +90,7 @@ object ClockworkMod {
             kelvin!!.tellTaskToKillItself()
         }
         kelvin = KelvinBackground(ClockworkConfig.SERVER.kelvinTickRate, ClockworkConfig.SERVER.kelvinSubSteps)
-        kelvinThread = thread(start = false, priority = 8, name = "Kelvin thread") {
+        kelvinThread = thread(start = true, priority = 8, name = "Kelvin thread") {
             kelvin!!.run()
         }
     }

@@ -14,20 +14,17 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterB
 import org.valkyrienskies.clockwork.content.logistics.heat.IHeatable
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEntity
 import org.valkyrienskies.clockwork.kelvin.api.GasConnectionCreateData
-import org.valkyrienskies.clockwork.kelvin.api.GasNodeChangesData
+import org.valkyrienskies.clockwork.kelvin.api.GasNodeChangeFromGame
 import org.valkyrienskies.clockwork.kelvin.api.GasNodeIdentifier
 import org.valkyrienskies.clockwork.kelvin.api.GasType
 import org.valkyrienskies.mod.common.util.toJOML
 import java.util.EnumMap
+import kotlin.math.max
 
-class CreativeGasSourceBlockEntity (type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : SmartBlockEntity(type, pos, state) ,
+class CreativeGasSourceBlockEntity (type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : SmartBlockEntity(type, pos, state),
     IHeatable {
 
     override var gasNodeID: GasNodeIdentifier? = null
-
-    override val gasFlows: HashMap<GasNodeIdentifier, Double> = HashMap()
-
-
 
     override val gasMasses: EnumMap<GasType, Double> = EnumMap(GasType::class.java)
     override var temperature: Double = 0.0
@@ -68,20 +65,17 @@ class CreativeGasSourceBlockEntity (type: BlockEntityType<*>, pos: BlockPos, sta
         val currentGasMass = gasMasses.getOrDefault(GasType.PHLOGISTON, 0.0)
 
         val newGasMass = Mth.clamp(currentGasMass + 100.0, 0.0, getPressureLimit())
-        gasMasses[GasType.PHLOGISTON] = newGasMass
 
-        val directionalDeltaMasses: HashMap<GasNodeIdentifier, Double> = HashMap()
+        val deltaGasMass = max(newGasMass - currentGasMass, 0.0)
 
-        Direction.values().filter { canTransferHeat(it) }.forEach { direction ->
-            val id = KelvinHandler.getNodeFromPos(worldPosition.relative(direction).toJOML()) ?: return@forEach
-            directionalDeltaMasses[id] = 100.0
-        }
-
-        val updatedNode = GasNodeChangesData(
+        // TODO: Implement adding heat correctly
+        val deltaThermalEnergy = 100.0
+        val updatedNode = GasNodeChangeFromGame(
             gasNodeID!!,
-            gasMasses,
-            temperature,
-            directionalDeltaMasses
+            EnumMap<GasType, Double>(GasType::class.java).apply {
+                put(GasType.PHLOGISTON, deltaGasMass)
+            },
+            deltaThermalEnergy,
         )
 
         KelvinHandler.editNode(updatedNode)

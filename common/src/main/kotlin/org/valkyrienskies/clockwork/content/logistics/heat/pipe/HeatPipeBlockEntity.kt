@@ -27,7 +27,6 @@ class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
 
     override var gasNodeID: GasNodeIdentifier? = null
 
-    override val gasFlows: HashMap<GasNodeIdentifier, Double> = HashMap()
     override val gasMasses: EnumMap<GasType, Double> = EnumMap(GasType::class.java)
     override var temperature: Double = 0.0
     override var currentPressure: Double = 0.0
