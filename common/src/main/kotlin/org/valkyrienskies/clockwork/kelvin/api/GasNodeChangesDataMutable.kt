@@ -10,7 +10,13 @@ data class GasNodeChangesDataMutable(
      */
     override var deltaThermalEnergy: Double,
     override val directionalDeltaMasses: MutableMap<GasNodeIdentifier, Double>,
-): GasNodeChangesData
+): GasNodeChangesData {
+    init {
+        require(deltaGasMasses.values.all{ it.isFinite() }) { "Delta gas masses must be finite" }
+        require(deltaThermalEnergy.isFinite()) { "Delta thermal energy must be finite" }
+        require(directionalDeltaMasses.values.all{ it.isFinite() }) { "Directional delta gas masses must be finite" }
+    }
+}
 
 interface GasNodeChangesData {
     val identifier: GasNodeIdentifier

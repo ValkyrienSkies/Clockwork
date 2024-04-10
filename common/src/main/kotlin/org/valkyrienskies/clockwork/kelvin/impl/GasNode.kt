@@ -46,8 +46,8 @@ class GasNode(
             throw IllegalStateException("Delta temperature must be finite")
         }
 
-        // Do not let temperature go below 0
-        temperature = max(temperature + deltaTemperature, 0.0)
+        // Do not let temperature go below 0 or above 1,000,000 Kelvin
+        temperature = (temperature + deltaTemperature).coerceIn(0.0, 1e6)
     }
 
     fun applyChanges2(changes: GasNodeChangesData) {

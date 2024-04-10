@@ -127,7 +127,7 @@ class GasGraphImpl : GasGraph {
             val collectedChangesData: HashMap<Int, GasNodeChangesDataMutable> = HashMap()
             var changesId = 0
             nodes.values.forEach {
-                it.connections.keys.forEach { itConn ->
+                it.connections.keys.forEach inner@{ itConn ->
                     if (!visitedConnections.contains(it.connections[itConn]!!)) {
                         visitedConnections.add(it.connections[itConn]!!)
 
@@ -136,8 +136,9 @@ class GasGraphImpl : GasGraph {
                         val pressureTwo = activeNodePressureData[itConn.identifier]!!
 
                         if (pressureOne != pressureTwo) {
+                            // TODO: Should we compute avgViscosity using the gas masses of both the nodes?
                             val gasMasses = when {
-                                pressureOne < pressureTwo -> it.gasMasses
+                                pressureOne >= pressureTwo -> it.gasMasses
                                 else -> itConn.gasMasses
                             }
 
@@ -159,7 +160,7 @@ class GasGraphImpl : GasGraph {
                                 propagateGas(it, itConn, flowAbs, trueTimeStep)
                             } else {
                                 propagateGas(itConn, it, flowAbs, trueTimeStep)
-                            }
+                            } ?: return@inner
 
                             val fromChanges = returnVal.first
                             val toChanges = returnVal.second
@@ -211,21 +212,23 @@ class GasGraphImpl : GasGraph {
         })
     }
 
-    private fun propagateGas(from: GasNode, to: GasNode, flow: Double, timeStep: Double): Pair<GasNodeChangesDataMutable, GasNodeChangesDataMutable> {
+    private fun propagateGas(from: GasNode, to: GasNode, flow: Double, timeStep: Double): Pair<GasNodeChangesDataMutable, GasNodeChangesDataMutable>? {
         val timeAccFlowRate = flow * timeStep
 
         val fromGasMasses = from.gasMasses
-        val toGasMasses = to.gasMasses
 
-        val fromGasMassesCopy = EnumMap<GasType, Double>(GasType::class.java)
-        val toGasMassesCopy = EnumMap<GasType, Double>(GasType::class.java)
-
-        fromGasMasses.keys.forEach {
-            fromGasMassesCopy[it] = -flow
+        val totalFromGasMass = fromGasMasses.values.sum()
+        if (Epsilon.isEffectivelyZero(totalFromGasMass)) {
+            return null
         }
 
-        toGasMasses.keys.forEach {
-            toGasMassesCopy[it] = flow
+        val fromGasFlows = EnumMap<GasType, Double>(GasType::class.java)
+        val toGasFlows = EnumMap<GasType, Double>(GasType::class.java)
+
+        fromGasMasses.forEach { (gasType, gasMass) ->
+            val gasFlow = flow * gasMass / totalFromGasMass
+            fromGasFlows[gasType] = -gasFlow
+            toGasFlows[gasType] = gasFlow
         }
 
         // TODO: Make this a weighted average
@@ -234,8 +237,8 @@ class GasGraphImpl : GasGraph {
 
         val deltaThermalEnergy = thermalEnergyFrom * timeAccFlowRate
 
-        val fromChanges = GasNodeChangesDataMutable(from.identifier, fromGasMassesCopy, -deltaThermalEnergy, hashMapOf(to.identifier to flow))
-        val toChanges = GasNodeChangesDataMutable(to.identifier, toGasMassesCopy, deltaThermalEnergy, hashMapOf(from.identifier to -flow))
+        val fromChanges = GasNodeChangesDataMutable(from.identifier, fromGasFlows, -deltaThermalEnergy, hashMapOf(to.identifier to flow))
+        val toChanges = GasNodeChangesDataMutable(to.identifier, toGasFlows, deltaThermalEnergy, hashMapOf(from.identifier to -flow))
 
         return Pair(fromChanges, toChanges)
     }
