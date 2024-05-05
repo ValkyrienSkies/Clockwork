@@ -1,6 +1,13 @@
 package org.valkyrienskies.clockwork
 
 import dev.architectury.event.events.common.TickEvent
+import net.minecraft.ChatFormatting
+import net.minecraft.Util
+import net.minecraft.client.Minecraft
+import net.minecraft.client.server.IntegratedServer
+import net.minecraft.network.chat.ChatType
+import net.minecraft.network.chat.Style
+import net.minecraft.network.chat.TextComponent
 import net.minecraft.server.level.ServerLevel
 import org.joml.Vector3ic
 import org.valkyrienskies.clockwork.content.logistics.heat.IHeatable
@@ -35,9 +42,33 @@ object KelvinHandler {
 
     private val nodes: HashSet<GasNodeIdentifier> = hashSetOf()
 
+    private var hasStatedCrashMessage = false
+
     fun tick(serverLevel: ServerLevel) {
+
+        if (!serverLevel.server.isDedicatedServer && serverLevel.server is IntegratedServer) {
+            ClockworkMod.isKelvinRunning = !Minecraft.getInstance().isPaused
+        }
+
+        if (ClockworkMod.getKelvinBackgroundTask().crashed && !hasStatedCrashMessage) {
+            hasStatedCrashMessage = true
+            serverLevel.players().forEach {
+                it.displayClientMessage(TextComponent("The Kelvin thread has crashed due to an unexpected error. This WILL result in all heat-related features no longer functioning, and/or exhibiting strange behavior. To fix, please restart your world, and report this bug to the devs!").withStyle(
+                    Style.EMPTY.withColor(ChatFormatting.RED)), false)
+            }
+        }
+
+        if (!ClockworkMod.getKelvinBackgroundTask().crashed && hasStatedCrashMessage) hasStatedCrashMessage = false
+
+        if (!ClockworkMod.isKelvinRunning) {
+            return
+        }
+
         while (gasSimResultQueue.isNotEmpty()) {
             applyResults(gasSimResultQueue.remove(), serverLevel)
+            if (gasSimResultQueue.size >= 10) {
+
+            }
         }
 
         nodes.addAll(newNodes.map { it.identifier })

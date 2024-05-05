@@ -6,17 +6,24 @@ import org.valkyrienskies.clockwork.kelvin.api.GasSimResultFrame
 import org.valkyrienskies.clockwork.kelvin.impl.logger
 import java.util.*
 import java.util.concurrent.locks.LockSupport
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 import kotlin.math.min
 import kotlin.system.measureNanoTime
 
-class KelvinBackground(var idealTickRate: Int = 400, var subSteps: Int = 10): Runnable {
+class KelvinBackground(var idealTickRate: Int = 40, var subSteps: Int = 10): Runnable {
 
     val gasGraph: GasGraph = GasGraphImpl()
+
+    var crashed = false
 
     private var killTask = false
 
     private var lostTime: Long = 0
     private val prevKelvinTicksTimeMillis: Queue<Long> = LinkedList()
+
+    val pauseLock = ReentrantLock()
+    val shouldUnpauseKelvinTick = pauseLock.newCondition()
 
     override fun run() {
         try {
@@ -25,18 +32,28 @@ class KelvinBackground(var idealTickRate: Int = 400, var subSteps: Int = 10): Ru
                     break
                 }
 
+                if (!ClockworkMod.isKelvinRunning) {
+                    lostTime = 0
+                    prevKelvinTicksTimeMillis.clear()
+
+                    pauseLock.withLock {
+                        shouldUnpauseKelvinTick.await()
+                    }
+                }
+
+                crashed = false
+
                 val timeToSimulateNs = 1e9 / idealTickRate.toDouble()
                 val timeStep = timeToSimulateNs / 1e9
                 var results: GasSimResultFrame
                 val timeToRunSplitTick = measureNanoTime {
-                    // Run the splitting tick
+                    // Run the tick
                     results = gasGraph.tick(timeStep, subSteps)
                 }
 
                 //logger.warn("Time to run Split Tick: $timeToRunSplitTick")
 
                 // Push the results to the main thread
-                KelvinHandler.pushResultsFrame(results)
 
                 trackTickEnd()
                 sleepOnLostTime(timeToSimulateNs, timeToRunSplitTick)
@@ -44,6 +61,7 @@ class KelvinBackground(var idealTickRate: Int = 400, var subSteps: Int = 10): Ru
         } catch (e: Exception) {
             logger.error("Error in Kelvin pipeline task", e)
             repeat(10) { logger.error("!!!!!!! KELVIN THREAD CRASHED !!!!!!!") }
+            crashed = true
         }
         logger.info("Kelvin thread ending")
     }

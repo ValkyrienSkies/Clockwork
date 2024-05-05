@@ -16,6 +16,7 @@ import org.valkyrienskies.core.impl.config.VSConfigClass
 import org.valkyrienskies.core.impl.hooks.VSEvents
 import org.valkyrienskies.mod.common.shipObjectWorld
 import kotlin.concurrent.thread
+import kotlin.concurrent.withLock
 
 object ClockworkMod {
     const val MOD_ID = "vs_clockwork"
@@ -35,6 +36,17 @@ object ClockworkMod {
 
     private var kelvin: KelvinBackground? = null
     private var kelvinThread: Thread? = null
+
+    @Volatile
+    var isKelvinRunning = false
+        set(value) {
+            field = value
+            if (value) {
+                kelvin!!.pauseLock.withLock {
+                    kelvin!!.shouldUnpauseKelvinTick.signal()
+                }
+            }
+        }
 
     @JvmStatic
     fun init() {

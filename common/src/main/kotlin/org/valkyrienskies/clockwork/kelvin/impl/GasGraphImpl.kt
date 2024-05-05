@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.kelvin.impl
 
+import org.joml.Math.clamp
+import org.valkyrienskies.clockwork.KelvinHandler
 import org.valkyrienskies.clockwork.kelvin.api.GasConnectionCreateData
 import org.valkyrienskies.clockwork.kelvin.api.GasGraph
 import org.valkyrienskies.clockwork.kelvin.api.GasNodeChangesData
@@ -100,6 +102,15 @@ class GasGraphImpl : GasGraph {
 
     override fun tick(timeStep: Double, subSteps: Int): GasSimResultFrame {
         val trueTimeStep = timeStep / subSteps.toDouble()
+
+        if (gameFramesQueue.isEmpty()) {
+            return GasSimResultFrame(nodes.mapValues { (_, gasNode) ->
+                GasNodeResultData(
+                    gasNode.gasMasses,
+                    gasNode.temperature,
+                )
+            })
+        }
 
         for (subStep in 1..subSteps) {
             while (gameFramesQueue.isNotEmpty()) {
@@ -204,12 +215,18 @@ class GasGraphImpl : GasGraph {
             }
         }
 
-        return GasSimResultFrame(nodes.mapValues { (_, gasNode) ->
+
+
+        val result = GasSimResultFrame(nodes.mapValues { (_, gasNode) ->
             GasNodeResultData(
                 gasNode.gasMasses,
                 gasNode.temperature,
             )
         })
+
+        KelvinHandler.pushResultsFrame(result)
+
+        return result
     }
 
     private fun propagateGas(from: GasNode, to: GasNode, flow: Double, timeStep: Double): Pair<GasNodeChangesDataMutable, GasNodeChangesDataMutable>? {
@@ -226,19 +243,19 @@ class GasGraphImpl : GasGraph {
         val toGasFlows = EnumMap<GasType, Double>(GasType::class.java)
 
         fromGasMasses.forEach { (gasType, gasMass) ->
-            val gasFlow = flow * gasMass / totalFromGasMass
+            val gasFlow = clamp(-gasMass, gasMass, timeAccFlowRate * gasMass / totalFromGasMass)
             fromGasFlows[gasType] = -gasFlow
             toGasFlows[gasType] = gasFlow
         }
 
         // TODO: Make this a weighted average
-        val fromAverageSpecificHeat = if (fromGasMasses.isNotEmpty()) (fromGasMasses.keys.sumOf { it.specificHeatCapacity } / fromGasMasses.values.size) else 0.0
+        val fromAverageSpecificHeat = if (fromGasMasses.isNotEmpty()) (fromGasMasses.keys.sumOf { it.specificHeatCapacity } / fromGasMasses.keys.size) else 0.0
         val thermalEnergyFrom = fromGasMasses.values.sum() * fromAverageSpecificHeat * (from.temperature - to.temperature)
 
         val deltaThermalEnergy = thermalEnergyFrom * timeAccFlowRate
 
-        val fromChanges = GasNodeChangesDataMutable(from.identifier, fromGasFlows, -deltaThermalEnergy, hashMapOf(to.identifier to flow))
-        val toChanges = GasNodeChangesDataMutable(to.identifier, toGasFlows, deltaThermalEnergy, hashMapOf(from.identifier to -flow))
+        val fromChanges = GasNodeChangesDataMutable(from.identifier, fromGasFlows, -deltaThermalEnergy, hashMapOf(to.identifier to timeAccFlowRate))
+        val toChanges = GasNodeChangesDataMutable(to.identifier, toGasFlows, deltaThermalEnergy, hashMapOf(from.identifier to -timeAccFlowRate))
 
         return Pair(fromChanges, toChanges)
     }

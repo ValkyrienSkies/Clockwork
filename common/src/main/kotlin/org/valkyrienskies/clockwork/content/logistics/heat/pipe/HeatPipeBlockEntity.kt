@@ -139,7 +139,7 @@ class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
 
     override fun applyUpdate(update: GasNodeResultData) {
         super.applyUpdate(update)
-        if (gasNodeID == null) return
+        if (gasNodeID == null || this.getLevel()!!.isClientSide) return
         ClockworkPackets.sendToNear(level, worldPosition, 64, TemperatureSyncPacket(this.worldPosition, this.temperature, this.gasNodeID!!.id))
     }
 

@@ -75,7 +75,7 @@ class CreativeGasSourceBlockEntity (type: BlockEntityType<*>, pos: BlockPos, sta
             EnumMap<GasType, Double>(GasType::class.java).apply {
                 put(GasType.PHLOGISTON, deltaGasMass)
             },
-            deltaThermalEnergy,
+            0.0,
         )
 
         KelvinHandler.editNode(updatedNode)

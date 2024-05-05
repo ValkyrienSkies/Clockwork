@@ -8,6 +8,7 @@ import com.simibubi.create.foundation.utility.Lang
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.util.Mth
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Vector3i
@@ -15,11 +16,13 @@ import org.valkyrienskies.clockwork.KelvinHandler
 import org.valkyrienskies.clockwork.content.logistics.heat.IHeatable
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEntity
 import org.valkyrienskies.clockwork.kelvin.api.GasConnectionCreateData
+import org.valkyrienskies.clockwork.kelvin.api.GasNodeChangeFromGame
 import org.valkyrienskies.clockwork.kelvin.api.GasNodeCreateData
 import org.valkyrienskies.clockwork.kelvin.api.GasNodeIdentifier
 import org.valkyrienskies.clockwork.kelvin.api.GasType
 import org.valkyrienskies.mod.common.util.toJOML
 import java.util.EnumMap
+import kotlin.math.max
 
 class CreativeHeatSourceBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : SmartBlockEntity(type, pos,
     state
@@ -166,7 +169,25 @@ class CreativeHeatSourceBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, s
 
         this.currentTargetHeat = generatedHeat!!.value.toDouble()
 
-        // TODO: Implement this adding thermal energy
+        val currentGasMass = gasMasses.getOrDefault(GasType.PHLOGISTON, 0.0)
+
+        // TODO: Implement adding heat correctly
+        var deltaThermalEnergy = 0.0
+
+        if (currentGasMass > 0.0) {
+            deltaThermalEnergy = (currentTargetHeat - temperature) * currentGasMass * 4.0
+        }
+
+        val updatedNode = GasNodeChangeFromGame(
+            gasNodeID!!,
+            EnumMap<GasType, Double>(GasType::class.java).apply {
+                put(GasType.PHLOGISTON, 0.0)
+            },
+            deltaThermalEnergy,
+        )
+
+        KelvinHandler.editNode(updatedNode)
+
         /*
         val currentGasMass = gasMasses.getOrDefault(GasType.PHLOGISTON, 0.0)
 
