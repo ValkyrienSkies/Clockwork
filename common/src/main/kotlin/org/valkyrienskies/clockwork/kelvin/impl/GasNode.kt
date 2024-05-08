@@ -6,6 +6,7 @@ import org.valkyrienskies.clockwork.kelvin.api.GasNodeIdentifier
 import org.valkyrienskies.clockwork.kelvin.api.GasType
 import java.util.EnumMap
 import kotlin.math.max
+import kotlin.math.min
 
 class GasNode(
     val identifier: GasNodeIdentifier,
@@ -21,13 +22,13 @@ class GasNode(
                 throw IllegalArgumentException("Change in gas mass must be finite")
             }
             if (gasMasses.containsKey(gas)) {
-                gasMasses[gas] = max(gasMasses[gas]!! + change, 0.0)
+                gasMasses[gas] = min(max(gasMasses[gas]!! + change, 0.0), volume)
             } else {
                 gasMasses[gas] = max(change, 0.0)
             }
         }
 
-        val totalGasMass = gasMasses.values.sum()
+        val totalGasMass = gasMasses.values.filter{ it.isFinite() }.sum()
         if (!totalGasMass.isFinite()) {
             throw IllegalStateException("Total gas mass must be finite")
         }

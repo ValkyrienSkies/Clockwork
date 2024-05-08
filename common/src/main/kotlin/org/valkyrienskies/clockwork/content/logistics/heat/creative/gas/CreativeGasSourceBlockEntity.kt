@@ -30,6 +30,8 @@ class CreativeGasSourceBlockEntity (type: BlockEntityType<*>, pos: BlockPos, sta
     override var temperature: Double = 0.0
     override var currentPressure: Double = 0.0
 
+    var productionCD = 0
+
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) {
 
     }
@@ -57,10 +59,34 @@ class CreativeGasSourceBlockEntity (type: BlockEntityType<*>, pos: BlockPos, sta
         }
     }
 
+    override fun remove() {
+        super.remove()
+        if (this.level == null || this.level!!.isClientSide) {
+            return
+        }
+        val id = gasNodeID ?: return
+        KelvinHandler.delNode(id)
+    }
+
+    override fun destroy() {
+        super.destroy()
+        if (this.level == null || this.level!!.isClientSide) {
+            return
+        }
+        val id = gasNodeID ?: return
+        KelvinHandler.delNode(id)
+    }
+
     override fun tick() {
         super.tick()
 
         if (level!!.isClientSide) return
+
+        if (productionCD > 0) {
+            productionCD--
+            return
+        }
+        productionCD+=20
 
         val currentGasMass = gasMasses.getOrDefault(GasType.PHLOGISTON, 0.0)
 
@@ -68,14 +94,20 @@ class CreativeGasSourceBlockEntity (type: BlockEntityType<*>, pos: BlockPos, sta
 
         val deltaGasMass = max(newGasMass - currentGasMass, 0.0)
 
+        var deltaThermalEnergy = 0.0
+
+        if (currentGasMass > 0.0) {
+            deltaThermalEnergy = ((273.0 - temperature) * currentGasMass * 4.0).coerceAtLeast(0.0)
+
+        }
+
         // TODO: Implement adding heat correctly
-        val deltaThermalEnergy = 100.0
         val updatedNode = GasNodeChangeFromGame(
             gasNodeID!!,
             EnumMap<GasType, Double>(GasType::class.java).apply {
                 put(GasType.PHLOGISTON, deltaGasMass)
             },
-            0.0,
+            deltaThermalEnergy,
         )
 
         KelvinHandler.editNode(updatedNode)

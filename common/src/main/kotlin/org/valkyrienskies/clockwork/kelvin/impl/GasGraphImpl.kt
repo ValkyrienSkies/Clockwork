@@ -43,6 +43,17 @@ class GasGraphImpl : GasGraph {
      * Return true if success
      */
     fun removeGasNode(identifier: GasNodeIdentifier): Boolean {
+
+        val toDisconnect = mutableSetOf<GasNode>()
+
+        toDisconnect.addAll(nodes[identifier]?.connections?.keys ?: emptySet())
+
+        if (toDisconnect.isNotEmpty()) {
+            toDisconnect.forEach {
+                disconnect(Pair(identifier, it.identifier))
+            }
+        }
+
         return nodes.remove(identifier) != null
     }
 
@@ -103,19 +114,11 @@ class GasGraphImpl : GasGraph {
     override fun tick(timeStep: Double, subSteps: Int): GasSimResultFrame {
         val trueTimeStep = timeStep / subSteps.toDouble()
 
-        if (gameFramesQueue.isEmpty()) {
-            return GasSimResultFrame(nodes.mapValues { (_, gasNode) ->
-                GasNodeResultData(
-                    gasNode.gasMasses,
-                    gasNode.temperature,
-                )
-            })
+        while (gameFramesQueue.isNotEmpty()) {
+            applyQueuedChanges(gameFramesQueue.remove())
         }
 
         for (subStep in 1..subSteps) {
-            while (gameFramesQueue.isNotEmpty()) {
-                applyQueuedChanges(gameFramesQueue.remove())
-            }
 
             // Calculate pressure
             val activeNodePressureData: Map<GasNodeIdentifier, Double> = nodes.mapValues { (_, nodeData) ->
@@ -250,12 +253,23 @@ class GasGraphImpl : GasGraph {
 
         // TODO: Make this a weighted average
         val fromAverageSpecificHeat = if (fromGasMasses.isNotEmpty()) (fromGasMasses.keys.sumOf { it.specificHeatCapacity } / fromGasMasses.keys.size) else 0.0
+
         val thermalEnergyFrom = fromGasMasses.values.sum() * fromAverageSpecificHeat * (from.temperature - to.temperature)
 
-        val deltaThermalEnergy = thermalEnergyFrom * timeAccFlowRate
+        val deltaThermalEnergy = if (fromAverageSpecificHeat.isFinite()) {
+            thermalEnergyFrom * timeAccFlowRate
+        } else {
+            0.0
+        }
 
-        val fromChanges = GasNodeChangesDataMutable(from.identifier, fromGasFlows, -deltaThermalEnergy, hashMapOf(to.identifier to timeAccFlowRate))
-        val toChanges = GasNodeChangesDataMutable(to.identifier, toGasFlows, deltaThermalEnergy, hashMapOf(from.identifier to -timeAccFlowRate))
+        if (!deltaThermalEnergy.isFinite()) {
+            val fromChanges = GasNodeChangesDataMutable(from.identifier, fromGasFlows, -0.0, hashMapOf(to.identifier to toGasFlows.values.sum()))
+            val toChanges = GasNodeChangesDataMutable(to.identifier, toGasFlows, 0.0, hashMapOf(from.identifier to fromGasFlows.values.sum()))
+            return Pair(fromChanges, toChanges)
+        }
+
+        val fromChanges = GasNodeChangesDataMutable(from.identifier, fromGasFlows, -deltaThermalEnergy, hashMapOf(to.identifier to toGasFlows.values.sum()))
+        val toChanges = GasNodeChangesDataMutable(to.identifier, toGasFlows, deltaThermalEnergy, hashMapOf(from.identifier to fromGasFlows.values.sum()))
 
         return Pair(fromChanges, toChanges)
     }

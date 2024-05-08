@@ -53,7 +53,7 @@ object KelvinHandler {
         if (ClockworkMod.getKelvinBackgroundTask().crashed && !hasStatedCrashMessage) {
             hasStatedCrashMessage = true
             serverLevel.players().forEach {
-                it.displayClientMessage(TextComponent("The Kelvin thread has crashed due to an unexpected error. This WILL result in all heat-related features no longer functioning, and/or exhibiting strange behavior. To fix, please restart your world, and report this bug to the devs!").withStyle(
+                it.displayClientMessage(TextComponent("The Kelvin thread has crashed due to an unexpected error. This WILL result in all heat-related features no longer functioning, and/or exhibiting strange behavior. To fix, please exit and reopen your world, and report this bug to the devs!").withStyle(
                     Style.EMPTY.withColor(ChatFormatting.RED)), false)
             }
         }
@@ -66,9 +66,6 @@ object KelvinHandler {
 
         while (gasSimResultQueue.isNotEmpty()) {
             applyResults(gasSimResultQueue.remove(), serverLevel)
-            if (gasSimResultQueue.size >= 10) {
-
-            }
         }
 
         nodes.addAll(newNodes.map { it.identifier })
@@ -116,7 +113,9 @@ object KelvinHandler {
     }
 
     fun pushResultsFrame(frame: GasSimResultFrame) {
-        gasSimResultQueue.add(frame)
+        if (gasSimResultQueue.size <= 10) {
+            gasSimResultQueue.add(frame)
+        }
     }
 
     // game funcs

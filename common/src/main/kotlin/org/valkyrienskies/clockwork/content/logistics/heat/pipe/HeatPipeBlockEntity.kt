@@ -57,6 +57,24 @@ class HeatPipeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         }
     }
 
+    override fun remove() {
+        super.remove()
+        if (this.level == null || this.level!!.isClientSide) {
+            return
+        }
+        val id = gasNodeID ?: return
+        KelvinHandler.delNode(id)
+    }
+
+    override fun destroy() {
+        super.destroy()
+        if (this.level == null || this.level!!.isClientSide) {
+            return
+        }
+        val id = gasNodeID ?: return
+        KelvinHandler.delNode(id)
+    }
+
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
         tag.putLong("kelvin/nodeId", gasNodeID?.id ?: -1)
         val posAsIntArray = IntArray(3)

@@ -163,6 +163,24 @@ class CreativeHeatSourceBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, s
         super.read(tag, clientPacket)
     }
 
+    override fun remove() {
+        super.remove()
+        if (this.level == null || this.level!!.isClientSide) {
+            return
+        }
+        val id = gasNodeID ?: return
+        KelvinHandler.delNode(id)
+    }
+
+    override fun destroy() {
+        super.destroy()
+        if (this.level == null || this.level!!.isClientSide) {
+            return
+        }
+        val id = gasNodeID ?: return
+        KelvinHandler.delNode(id)
+    }
+
     override fun tick() {
         super.tick()
         if (level!!.isClientSide) return
@@ -175,14 +193,14 @@ class CreativeHeatSourceBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, s
         var deltaThermalEnergy = 0.0
 
         if (currentGasMass > 0.0) {
-            deltaThermalEnergy = (currentTargetHeat - temperature) * currentGasMass * 4.0
+            deltaThermalEnergy = ((currentTargetHeat - temperature) * currentGasMass * 4.0).coerceAtLeast(0.0)
         }
+
+        temperature = 273.0
 
         val updatedNode = GasNodeChangeFromGame(
             gasNodeID!!,
-            EnumMap<GasType, Double>(GasType::class.java).apply {
-                put(GasType.PHLOGISTON, 0.0)
-            },
+            EnumMap<GasType, Double>(GasType::class.java),
             deltaThermalEnergy,
         )
 
