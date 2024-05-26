@@ -5,6 +5,7 @@ import com.simibubi.create.foundation.data.CreateRegistrate
 import dev.architectury.event.events.common.BlockEvent
 import dev.architectury.event.events.common.LifecycleEvent
 import dev.architectury.event.events.common.TickEvent
+import dev.architectury.platform.Platform
 import dev.architectury.registry.CreativeTabRegistry
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
@@ -16,6 +17,7 @@ import org.valkyrienskies.core.api.ships.setAttachment
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.TranslatableComponent
 import org.valkyrienskies.clockwork.content.forces.WanderShipControl
+import org.valkyrienskies.clockwork.integration.cc.ClockworkComputerCraftIntegration
 import org.valkyrienskies.clockwork.platform.PlatformUtils
 import org.valkyrienskies.clockwork.platform.SharedValues
 import org.valkyrienskies.core.impl.config.VSConfigClass
@@ -86,6 +88,9 @@ object ClockworkMod {
         }
 
         KelvinHandler.start()
+
+        if (Platform.isModLoaded("computercraft"))
+            ClockworkComputerCraftIntegration.integrate()
     }
 
     fun getKelvinBackgroundTask(): KelvinBackground {

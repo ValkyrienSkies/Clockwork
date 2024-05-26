@@ -12,7 +12,6 @@ import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer;
 import org.valkyrienskies.clockwork.content.events.ClockworkCommonEvents;
 import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
-import org.valkyrienskies.clockwork.fabric.integration.cc.ClockworkFabricPeripheralProviders;
 import org.valkyrienskies.mod.fabric.common.ValkyrienSkiesModFabric;
 
 public class ClockworkModFabric implements ModInitializer {
@@ -44,10 +43,6 @@ public class ClockworkModFabric implements ModInitializer {
         ClockworkParticles.init();
         FabricClockworkSounds.init();
         registerServerEvents();
-
-        if (FabricLoader.getInstance().isModLoaded("computercraft")) {
-            ClockworkFabricPeripheralProviders.register();
-        }
 
         var gearwork = new ResourceLocation(ClockworkMod.MOD_ID, "gearwork");
         FabricLoader.getInstance().getModContainer(ClockworkMod.MOD_ID).ifPresent(container -> ResourceManagerHelper.registerBuiltinResourcePack(gearwork, container, "Clockwork: Gearwork", ResourcePackActivationType.NORMAL));

@@ -16,7 +16,6 @@ import net.minecraftforge.fml.loading.FMLLoader;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
-import org.valkyrienskies.clockwork.forge.integration.cc.ClockworkForgePeripheralProviders;
 
 import static org.valkyrienskies.clockwork.ClockworkMod.MOD_ID;
 
@@ -58,10 +57,6 @@ public class ClockworkModForge {
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClockworkModForgeClient.onCtorClient(modEventBus));
 
         modEventBus.addListener(this::onClientSetup);
-
-        if (FMLLoader.getLoadingModList().getModFileById("computercraft") != null) {
-            ClockworkForgePeripheralProviders.register();
-        }
     }
 
     private void onClientSetup(FMLClientSetupEvent event) {
