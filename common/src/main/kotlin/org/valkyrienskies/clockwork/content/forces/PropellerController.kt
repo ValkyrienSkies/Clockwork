@@ -171,7 +171,7 @@ class PropellerController : ShipForcesInducer {
         return torque
     }
 
-    private fun airPressure(pos: Vector3dc): Double {
+    fun airPressure(pos: Vector3dc): Double {
         val offset = Math.exp(-(320.0 - 64.0) / 192.0)
         val height = pos.y()
         val airPress = (Math.exp(-(height - 64.0) / 192) - offset) / (1.0 - offset)
@@ -182,7 +182,7 @@ class PropellerController : ShipForcesInducer {
         }
     }
 
-    private fun exhaustVelocity(posRelBearing: Vector3dc, omega: Vector3dc): Double {
+    fun exhaustVelocity(posRelBearing: Vector3dc, omega: Vector3dc): Double {
         return Math.min(posRelBearing.cross(omega, Vector3d()).length() * 15, 40.0)
     }
 

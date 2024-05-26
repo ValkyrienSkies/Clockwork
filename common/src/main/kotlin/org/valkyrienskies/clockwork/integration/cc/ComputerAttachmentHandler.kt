@@ -13,12 +13,10 @@ class ComputerAttachmentHandler {
         accessList.remove(access)
     }
 
-    fun sendEvent(name: String?, obj: Any?) {
+    fun sendEvent(name: String, obj: Any?) {
         accessList.forEach(
             Consumer { access: IComputerAccess ->
-                access.queueEvent(
-                    name!!, obj
-                )
+                access.queueEvent(name, obj)
             }
         )
     }

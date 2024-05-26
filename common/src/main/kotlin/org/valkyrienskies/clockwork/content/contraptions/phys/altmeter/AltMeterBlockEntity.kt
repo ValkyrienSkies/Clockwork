@@ -7,11 +7,13 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Vector3d
+import org.valkyrienskies.clockwork.integration.cc.ComputerAttachmentHandler
 import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.mod.common.getShipManagingPos
 
 class AltMeterBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
     SmartBlockEntity(typeIn, pos, state) {
+    val computerHandler = ComputerAttachmentHandler()
     internal var triggerHeight: Double = 0.0
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {}
 
@@ -33,6 +35,7 @@ class AltMeterBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: Blo
             if (shouldBePowered) {
                 // Same flags as a redstone torch update
                 level!!.setBlock(blockPos, blockState.setValue(AltMeterBlock.POWERED, true), 3)
+                this.computerHandler.sendEvent("altitude_reached", null)
             } else {
                 level!!.setBlock(blockPos, blockState.setValue(AltMeterBlock.POWERED, false), 3)
             }

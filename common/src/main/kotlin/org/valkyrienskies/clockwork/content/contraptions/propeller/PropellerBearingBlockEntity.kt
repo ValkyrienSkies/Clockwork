@@ -30,6 +30,7 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.contraption.P
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropCreateData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropUpdateData
 import org.valkyrienskies.clockwork.content.forces.PropellerController
+import org.valkyrienskies.clockwork.integration.cc.ComputerAttachmentHandler
 import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.clockwork.util.EaseHelper
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
@@ -42,6 +43,8 @@ import kotlin.math.sin
 class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
     KineticBlockEntity(type, pos, state), IBearingBlockEntity {
 
+    val computerHandler = ComputerAttachmentHandler()
+
     var sailPositions: MutableList<BlockPos> = ArrayList()
     protected var airCurrentUpdateCooldown = 0
     protected var entitySearchCooldown = 0
@@ -53,19 +56,44 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
     var sails = 0
     var moddingSpeed = 0
     var slowingDown = false
+        set(value) {
+            field = value
+            if (value)
+                computerHandler.sendEvent("slowing_down", null)
+        }
     var disassembling = 0f
     var countDown = 200
     var spinup = 0f
     var spinningUp = false
+        set(value) {
+            field = value
+            if (value)
+                computerHandler.sendEvent("spinning_up", null)
+        }
     protected var realAngle = 0f
     var running = false
+        set(value) {
+            field = value
+            if (value)
+                computerHandler.sendEvent("running", null)
+        }
     var wasOverStressed = false
     protected var clientAngleDiff = 0f
     protected var lastException: AssemblyException? = null
+        set(value) {
+            field = value
+            if (value != null)
+                computerHandler.sendEvent("assembly_exception", value.localizedMessage)
+        }
     protected var movedContraption: ControlledContraptionEntity? = null
     private var prevAngle = 0f
     private val prevSpeed = 0f
     protected var movementDirection: ScrollOptionBehaviour<RotationDirection>? = null
+        set(value) {
+            field = value
+            if (value != null)
+                computerHandler.sendEvent("direction_changed", value.get()?.name)
+        }
     var isInverted = false
         private set
     private var physPropId: Int? = null
@@ -134,6 +162,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         }
 
         if (wasOverStressed) {
+            computerHandler.sendEvent("overstressed", countDown)
             return true
         }
 
