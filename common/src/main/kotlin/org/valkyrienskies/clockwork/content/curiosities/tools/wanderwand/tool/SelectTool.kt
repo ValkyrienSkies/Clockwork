@@ -36,10 +36,11 @@ class SelectTool(): WanderwandToolBase() {
 
                 Minecraft.getInstance().player!!.displayClientMessage(message, true)
 
-                ClockworkPackets.sendToServer(WandSelectionPacket(lastClickedPos!!, clickedPos!!, ToolType.SELECT))
+                ClockworkPackets.sendToServer(WandSelectionPacket(lastClickedPos!!, clickedPos!!, ToolType.SELECT, false))
                 return true
             }
         }
+        return false
     }
 
 }
