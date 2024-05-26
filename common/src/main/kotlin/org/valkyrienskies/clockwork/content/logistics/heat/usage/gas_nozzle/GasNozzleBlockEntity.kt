@@ -118,6 +118,7 @@ class GasNozzleBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Blo
                             64,
                             TempGasNozzleSyncPacket(this)
                         )
+                        airPocket.extraData["kelvin/temperature_dbl_mrg_avg"] = 1000.0
                     }
                 } else {
                     this.pocketSize = 0

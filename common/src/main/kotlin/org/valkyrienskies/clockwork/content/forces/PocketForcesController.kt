@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.forces
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
 import org.joml.Vector3d
+import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.kelvin.api.GasType
 import org.valkyrienskies.clockwork.util.AerodynamicUtils
 import org.valkyrienskies.core.api.ships.PhysShip
@@ -49,19 +50,28 @@ class PocketForcesController: ShipForcesInducer {
             }
         }
 
-        val buoyancyForce = calculateBuoyancyForce(physShip)
+        val buoyancyForces = calculateBuoyancyForce(physShip)
 
-        physShip.applyInvariantForce(Vector3d(0.0, buoyancyForce, 0.0))
+
+        for (stuff in buoyancyForces) {
+            physShip.applyInvariantForceToPos(Vector3d(0.0, stuff.second, 0.0), stuff.first)
+        }
+
     }
 
-    fun calculateBuoyancyForce(physShip: PhysShip): Double {
+    fun calculateBuoyancyForce(physShip: PhysShip): HashSet<Pair<Vector3dc, Double>> {
         val physShipImpl = physShip as PhysShipImpl
 
         var totalBuoyantForce = 0.0
 
+
+
+        var totalForces = HashSet<Pair<Vector3dc, Double>>()
+
         pockets.values.forEach {
             if (it.pocket.size > 0) {
                 if (it.extraData.containsKey("kelvin/gas_masses") && it.extraData.containsKey("kelvin/temperature_dbl_mrg_avg")) {
+                    val centerOfBuoyancy = Vector3d(0.0, 0.0, 0.0)
                     val gasMasses = (it.extraData["kelvin/gas_masses"] ?: HashMap<GasType, Double>()) as HashMap<GasType, Double>
                     val temperature = (it.extraData["kelvin/temperature_dbl_mrg_avg"] ?: 0.0) as Double
                     var totalInternalDensity = 0.0
@@ -75,11 +85,17 @@ class PocketForcesController: ShipForcesInducer {
                     }
                     val buoyantForce = it.pocket.size.toDouble() * (AerodynamicUtils.getAirDensityForY(physShip.poseVel.pos.y(), max_height) - totalInternalDensity) * 10.0
                     totalBuoyantForce += buoyantForce
+
+                    it.pocket.keys.forEach { pocketPos ->
+                        centerOfBuoyancy.add(Vector3d(pocketPos.x().toDouble() + 0.5, pocketPos.y().toDouble() + 0.5, pocketPos.z().toDouble() + 0.5))
+                    }
+                    centerOfBuoyancy.div(it.pocket.size.toDouble()).sub(physShip.transform.positionInShip)
+                    totalForces.add(Pair(centerOfBuoyancy, buoyantForce))
                 }
             }
         }
 
-        return totalBuoyantForce
+        return totalForces
     }
 
     private fun getDensityFromTemperature(volume: Double, mass: Double, temperature: Double, gasType: GasType): Double {
