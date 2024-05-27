@@ -58,8 +58,8 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
     var slowingDown = false
         set(value) {
             field = value
-            if (value)
-                computerHandler.sendEvent("slowing_down", null)
+            if (value && computerHandler != null)
+                computerHandler.sendEvent("slowing_down", arrayListOf<Any>())
         }
     var disassembling = 0f
     var countDown = 200
@@ -67,22 +67,22 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
     var spinningUp = false
         set(value) {
             field = value
-            if (value)
-                computerHandler.sendEvent("spinning_up", null)
+            if (value && computerHandler != null)
+                computerHandler.sendEvent("spinning_up", arrayListOf<Any>())
         }
     protected var realAngle = 0f
     var running = false
         set(value) {
             field = value
-            if (value)
-                computerHandler.sendEvent("running", null)
+            if (value && computerHandler != null)
+                computerHandler.sendEvent("running", arrayListOf<Any>())
         }
     var wasOverStressed = false
     protected var clientAngleDiff = 0f
     protected var lastException: AssemblyException? = null
         set(value) {
             field = value
-            if (value != null)
+            if (value != null && computerHandler != null)
                 computerHandler.sendEvent("assembly_exception", value.localizedMessage)
         }
     protected var movedContraption: ControlledContraptionEntity? = null
@@ -91,7 +91,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
     protected var movementDirection: ScrollOptionBehaviour<RotationDirection>? = null
         set(value) {
             field = value
-            if (value != null)
+            if (value != null && computerHandler != null)
                 computerHandler.sendEvent("direction_changed", value.get()?.name)
         }
     var isInverted = false

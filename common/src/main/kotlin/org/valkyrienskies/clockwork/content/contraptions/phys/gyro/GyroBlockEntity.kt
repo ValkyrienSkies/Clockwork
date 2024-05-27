@@ -32,7 +32,7 @@ class GyroBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockSt
 
     var targetQuat: Quaterniond = Quaterniond(0.0,1.0,0.0,0.0)
     private val ship: ServerShip? get() = (level as ServerLevel).getShipObjectManagingPos(this.blockPos)
-    private val control: GyroShipControl? get() = ship?.getAttachment(GyroShipControl::class.java)
+    val control: GyroShipControl? get() = ship?.getAttachment(GyroShipControl::class.java)
 
     fun getInterpolatedCoreAngle(partialTicks: Float): Float {
         previousCoreAngle = coreAngle

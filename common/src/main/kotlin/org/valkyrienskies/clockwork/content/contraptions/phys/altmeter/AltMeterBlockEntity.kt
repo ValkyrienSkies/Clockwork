@@ -35,7 +35,7 @@ class AltMeterBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: Blo
             if (shouldBePowered) {
                 // Same flags as a redstone torch update
                 level!!.setBlock(blockPos, blockState.setValue(AltMeterBlock.POWERED, true), 3)
-                this.computerHandler.sendEvent("altitude_reached", null)
+                this.computerHandler.sendEvent("altitude_reached", arrayListOf<Any>())
             } else {
                 level!!.setBlock(blockPos, blockState.setValue(AltMeterBlock.POWERED, false), 3)
             }

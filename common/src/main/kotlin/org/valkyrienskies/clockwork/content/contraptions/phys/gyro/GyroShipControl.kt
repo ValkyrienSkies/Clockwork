@@ -64,7 +64,7 @@ class GyroShipControl : ShipForcesInducer, ServerTickListener {
         physShip.applyInvariantTorque(idealTorque)
     }
 
-    private fun speedToForce(speed: Float): Double {
+    fun speedToForce(speed: Float): Double {
         val y = 128.0 / (1 + exp(6 - (speed * 0.05)))
         return y.coerceIn(0.0, 100.0)
     }
