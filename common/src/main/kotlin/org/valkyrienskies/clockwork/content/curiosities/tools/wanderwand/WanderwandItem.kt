@@ -18,12 +18,6 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
 
     var idleProgress = 0.0f
 
-    override fun inventoryTick(stack: ItemStack, level: Level, entity: Entity, slotId: Int, isSelected: Boolean) {
-        super.inventoryTick(stack, level, entity, slotId, isSelected)
-
-        val listtag = ListTag()
-    }
-
     companion object {
 
         @JvmStatic
