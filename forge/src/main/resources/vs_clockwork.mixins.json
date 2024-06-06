@@ -3,7 +3,9 @@
   "package": "org.valkyrienskies.clockwork.forge.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "accessors.ItemAccessor"
+    "accessors.ItemAccessor",
+    "cc.MixinTileComputer",
+    "cc.MixinTileTurtle"
   ],
   "client": [
   ],

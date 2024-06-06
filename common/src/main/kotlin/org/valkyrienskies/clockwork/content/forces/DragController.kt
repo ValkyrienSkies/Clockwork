@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.content.forces
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.google.common.util.concurrent.AtomicDoubleArray
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerLevel
 import org.joml.Vector3d
@@ -8,6 +10,7 @@ import org.joml.Vector3i
 import org.joml.Vector3ic
 import org.joml.primitives.AABBi
 import org.joml.primitives.AABBic
+import org.valkyrienskies.clockwork.integration.cc.ComputerAttachmentHandler
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.DRAG_COEFFICIENT
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.getAirDensityForY
 import org.valkyrienskies.clockwork.util.SideProfileTracker
@@ -29,7 +32,7 @@ class DragController : ShipForcesInducer {
 
     private val allBlocks = HashSet<Vector3ic>()
     private val exposedFaces : EnumMap<Direction, HashSet<Vector3ic>> = EnumMap(Direction::class.java)
-    private val surfaceAreaByDirection = EnumMap<Direction, Double>(Direction::class.java)
+    val surfaceAreaByDirection = EnumMap<Direction, Double>(Direction::class.java)
 
     private val sideTracker: SideProfileTracker = SideProfileTracker()
 
@@ -39,7 +42,9 @@ class DragController : ShipForcesInducer {
 
     private var firstTimeUpdate: Boolean = true
 
-    private var max_height: Double = 563.0
+    var max_height: Double = 563.0
+
+    val dragDataQueue = ConcurrentLinkedQueue<DragData>()
 
     override fun applyForces(physShip: PhysShip) {
         val impl = physShip as PhysShipImpl
@@ -69,6 +74,8 @@ class DragController : ShipForcesInducer {
             val dragPos = calculateDragPosition(impl)
 
             val rotDrag = calculateRotationalDrag(impl)
+
+            this.dragDataQueue.add(DragData(drag, dragPos, rotDrag))
 
             if (drag.isFinite && dragPos.isFinite) {
                 physShip.applyInvariantForceToPos(drag, dragPos)
@@ -304,6 +311,8 @@ class DragController : ShipForcesInducer {
 
         return realAvg.sub(ship.transform.positionInShip, Vector3d())
     }
+
+    data class DragData(val drag: Vector3dc, val dragPos: Vector3dc, val rotDrag: Vector3dc)
 
     companion object {
         fun getOrCreate(ship: ServerShip): DragController? {

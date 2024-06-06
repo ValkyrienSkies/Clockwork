@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.integration.cc.peripheral
 
+import dan200.computercraft.api.lua.LuaException
 import dan200.computercraft.api.lua.LuaFunction
 import dan200.computercraft.api.peripheral.IPeripheral
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity
@@ -15,16 +16,13 @@ class PhysBearingPeripheral(val bearing: PhysBearingBlockEntity): IPeripheral {
 
     @LuaFunction
     fun setAngle(angle: Double) {
-        this.bearing.setAngle(angle.toFloat())
+        if (this.bearing.movementMode?.get() == ContraptionController.LockedMode.LOCKED)
+            throw LuaException("Cannot set angle, Phys Bearing is locked!")
+        this.bearing.bearingAngle = angle.toFloat()
     }
 
     @LuaFunction
     fun getSpeed() = this.bearing.speed.toDouble()
-
-    @LuaFunction
-    fun setSpeed(speed: Double) {
-        this.bearing.speed = speed.toFloat()
-    }
 
     @LuaFunction
     fun getMode() = this.bearing.movementMode?.get()?.name

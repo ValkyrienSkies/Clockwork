@@ -22,7 +22,6 @@ class GyroscopePeripheral(val gyroscope: GyroBlockEntity): IPeripheral {
         )
     }
 
-    @LuaFunction
     fun setTargetQuaternion(args: IArguments) {
         this.gyroscope.targetQuat = Quaterniond(
             args.optDouble(0, 0.0),

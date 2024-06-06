@@ -61,7 +61,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     var movementMode: ScrollOptionBehaviour<LockedMode>? = null
     var shouldRefresh = false
-    protected var bearingAngle = 0f
+    var bearingAngle = 0f
     var isRunning = false
         protected set
     var assembleNextTick = false

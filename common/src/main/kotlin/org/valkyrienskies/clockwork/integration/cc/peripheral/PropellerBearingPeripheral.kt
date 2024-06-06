@@ -1,12 +1,13 @@
 package org.valkyrienskies.clockwork.integration.cc.peripheral
 
-import dan200.computercraft.api.lua.IArguments
+import dan200.computercraft.api.lua.LuaException
 import dan200.computercraft.api.lua.LuaFunction
 import dan200.computercraft.api.peripheral.IComputerAccess
 import dan200.computercraft.api.peripheral.IPeripheral
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity
 import org.valkyrienskies.clockwork.content.forces.PropellerController
+import org.valkyrienskies.mod.common.util.toJOMLD
 
 class PropellerBearingPeripheral(val bearing: PropellerBearingBlockEntity, private val controller: PropellerController?): IPeripheral {
     override fun equals(peripheral: IPeripheral?) = peripheral is PropellerBearingPeripheral &&
@@ -55,30 +56,14 @@ class PropellerBearingPeripheral(val bearing: PropellerBearingBlockEntity, priva
         return list.toList()
     }
 
-    @LuaFunction
-    fun getAirPressureAtPosition(args: IArguments): Double {
-        return this.controller?.airPressure(Vector3d(
-            args.getDouble(0),
-            args.getDouble(1),
-            args.getDouble(2)
-        )) ?: 0.0
+    fun getAirPressure(): Double {
+        return this.controller?.airPressure(this.bearing.blockPos.toJOMLD()) ?: throw LuaException("Not on a Ship!")
     }
 
     @LuaFunction
-    fun getExhaustVelocityAtPosition(args: IArguments): Double {
-        return this.controller?.exhaustVelocity(
-            Vector3d(
-                args.getDouble(0),
-                args.getDouble(1),
-                args.getDouble(2)
-            ),
-            Vector3d(
-                args.getDouble(3),
-                args.getDouble(4),
-                args.getDouble(5)
-            )
-        ) ?: 0.0
-    }
+    fun getExhaustVelocityWithOmega(xOmega: Double, yOmega: Double, zOmega: Double): Double =
+        this.controller?.exhaustVelocity(this.bearing.blockPos.toJOMLD(),
+            Vector3d(xOmega, yOmega, zOmega)) ?: throw LuaException("Not on a Ship!")
 
     override fun attach(computer: IComputerAccess) {
         this.bearing.computerHandler.attachComputer(computer)

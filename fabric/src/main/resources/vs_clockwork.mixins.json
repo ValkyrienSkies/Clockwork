@@ -3,6 +3,8 @@
   "package": "org.valkyrienskies.clockwork.fabric.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "cc.MixinTileComputer",
+    "cc.MixinTileTurtle"
   ],
   "client": [
   ],
