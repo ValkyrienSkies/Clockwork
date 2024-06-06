@@ -12,7 +12,7 @@ import org.valkyrienskies.clockwork.integration.cc.ClockworkComputerCraftIntegra
 @Pseudo
 @Mixin(TileComputer.class)
 public class MixinTileComputer {
-    @Inject(method = "createComputer", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "createComputer", at = @At("RETURN"), cancellable = true, remap = false)
     public void clockwork$addAPIs(int id, CallbackInfoReturnable<ServerComputer> cir) {
         ServerComputer computer = cir.getReturnValue();
         ClockworkComputerCraftIntegration.INSTANCE.addAPIs(computer.getLevel(), computer);
