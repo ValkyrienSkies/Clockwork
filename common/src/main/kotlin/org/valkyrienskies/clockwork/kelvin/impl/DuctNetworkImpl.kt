@@ -159,6 +159,10 @@ class DuctNetworkImpl(
                     }
                 }
 
+                if (flowRate.isInfinite() || flowRate.isNaN()) {
+                    flowRate = 0.0
+                }
+
                 val flowRateA = flowRate
                 val flowRateB = -flowRate
 
@@ -201,6 +205,10 @@ class DuctNetworkImpl(
 
                     nodeA.currentGasMasses[gas] = min(volumeA + deltaVolumeA, 0.0)
                     nodeB.currentGasMasses[gas] = min(volumeB + deltaVolumeB, 0.0)
+
+                    if (deltaThermalEnergy.isInfinite() || deltaThermalEnergy.isNaN()) {
+                        continue
+                    }
 
                     if (flowRate > 0) {
                         nodeA.currentTemperature -= deltaThermalEnergy / (totalGasMassA * specificHeatAverage(nodeA.currentGasMasses))
