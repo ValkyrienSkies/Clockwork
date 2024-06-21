@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork.content.logistics.gas.duct
 
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.block.PipeBlock
 import net.minecraft.world.level.block.SimpleWaterloggedBlock
