@@ -18,9 +18,6 @@ import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.KelvinHandler
 import org.valkyrienskies.clockwork.content.logistics.heat.IHeatable
 import org.valkyrienskies.clockwork.content.logistics.heat.TemperatureSyncPacket
-import org.valkyrienskies.clockwork.kelvin.api.GasConnectionCreateData
-import org.valkyrienskies.clockwork.kelvin.api.GasNodeIdentifier
-import org.valkyrienskies.clockwork.kelvin.api.GasNodeResultData
 import org.valkyrienskies.clockwork.kelvin.api.GasType
 import org.valkyrienskies.mod.common.util.toJOML
 import java.util.*

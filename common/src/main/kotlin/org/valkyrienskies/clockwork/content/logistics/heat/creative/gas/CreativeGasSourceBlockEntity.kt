@@ -13,9 +13,6 @@ import org.valkyrienskies.clockwork.KelvinHandler
 import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlock
 import org.valkyrienskies.clockwork.content.logistics.heat.IHeatable
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEntity
-import org.valkyrienskies.clockwork.kelvin.api.GasConnectionCreateData
-import org.valkyrienskies.clockwork.kelvin.api.GasNodeChangesData
-import org.valkyrienskies.clockwork.kelvin.api.GasNodeIdentifier
 import org.valkyrienskies.clockwork.kelvin.api.GasType
 import org.valkyrienskies.mod.common.util.toJOML
 import java.util.*

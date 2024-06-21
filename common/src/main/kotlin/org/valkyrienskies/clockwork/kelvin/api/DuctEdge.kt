@@ -4,8 +4,8 @@ interface DuctEdge {
 
     val type: ConnectionType
 
-    val nodeA: DuctNode
-    val nodeB: DuctNode
+    val nodeA: DuctNodePos
+    val nodeB: DuctNodePos
 
     var radius: Double
     var length: Double

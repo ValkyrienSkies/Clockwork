@@ -1,8 +1,5 @@
 package org.valkyrienskies.clockwork
 
-import org.valkyrienskies.clockwork.kelvin.api.GasGraph
-import org.valkyrienskies.clockwork.kelvin.impl.GasGraphImpl
-import org.valkyrienskies.clockwork.kelvin.api.GasSimResultFrame
 import org.valkyrienskies.clockwork.kelvin.impl.logger
 import java.util.*
 import java.util.concurrent.locks.LockSupport
