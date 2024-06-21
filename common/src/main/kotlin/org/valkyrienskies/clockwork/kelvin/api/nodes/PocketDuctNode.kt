@@ -28,7 +28,7 @@ class PocketDuctNode(
         return nodeEdges
     }
 
-    override fun getEdgeTo(neighbor: DuctNode): DuctEdge? {
-        return nodeEdges.firstOrNull { it.nodeA == this && it.nodeB == neighbor || it.nodeA == neighbor && it.nodeB == this }
+    override fun getEdgeTo(neighbor: DuctNodePos): DuctEdge? {
+        return nodeEdges.firstOrNull { it.nodeA == this.pos && it.nodeB == neighbor || it.nodeA == neighbor && it.nodeB == this.pos }
     }
 }

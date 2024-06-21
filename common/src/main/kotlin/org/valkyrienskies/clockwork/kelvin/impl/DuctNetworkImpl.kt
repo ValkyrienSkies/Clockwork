@@ -5,7 +5,6 @@ import org.valkyrienskies.clockwork.kelvin.api.*
 import org.valkyrienskies.clockwork.kelvin.api.edges.ApertureEdge
 import org.valkyrienskies.clockwork.kelvin.api.edges.FilteredEdge
 import org.valkyrienskies.clockwork.kelvin.api.edges.OneWayEdge
-import org.valkyrienskies.clockwork.kelvin.api.nodes.PocketDuctNode
 import org.valkyrienskies.clockwork.kelvin.api.nodes.PumpDuctNode
 import java.util.*
 import kotlin.collections.HashMap

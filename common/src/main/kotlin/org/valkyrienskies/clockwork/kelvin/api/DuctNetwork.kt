@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.kelvin.api
 
 import net.minecraft.server.level.ServerLevel
+import org.valkyrienskies.clockwork.kelvin.impl.DuctNodeInfo
 import java.util.EnumMap
 
 /**

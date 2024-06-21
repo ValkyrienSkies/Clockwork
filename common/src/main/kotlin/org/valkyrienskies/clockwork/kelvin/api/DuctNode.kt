@@ -16,5 +16,5 @@ interface DuctNode {
 
     fun getEdges(): Set<DuctEdge>
 
-    fun getEdgeTo(neighbor: DuctNode): DuctEdge?
+    fun getEdgeTo(neighbor: DuctNodePos): DuctEdge?
 }
