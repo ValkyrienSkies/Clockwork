@@ -54,9 +54,10 @@ object ClockworkComputerCraftIntegration {
     /**
      * This method exists as a helper to add APIs via Mixins that need special fields
      */
-    fun addAPIs(level: ServerLevel, computer: ServerComputer) {
-        val ship: ServerShip = level.getShipObjectManagingPos(computer.position) ?: return
-        val drag: DragController = DragController.getOrCreate(ship) ?: return
-        computer.addAPI(DragAPI(computer.apiEnvironment, drag))
+    fun addAPIs(computer: ServerComputer, ship: ServerShip?) {
+        ship?.let{
+            val drag: DragController = DragController.getOrCreate(it) ?: return
+            computer.addAPI(DragAPI(computer.apiEnvironment, drag))
+        }
     }
 }
