@@ -47,7 +47,7 @@ dependencies {
     implementation("org.joml:joml:1.10.4")
 
 
-    modCompileOnly("curse.maven:cc-restitched-462672:3622561")
+    modCompileOnly("curse.maven:cc-restitched-462672:3838648")
 
     //modCompileOnlyApi("mezz.jei:jei-${minecraft_version}-common-api:${jei_version_fabric}")
 

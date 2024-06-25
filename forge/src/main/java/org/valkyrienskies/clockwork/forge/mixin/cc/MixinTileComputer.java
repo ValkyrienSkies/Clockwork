@@ -14,7 +14,7 @@ import org.valkyrienskies.mod.common.VSGameUtilsKt;
 @Pseudo
 @Mixin(TileComputer.class)
 public class MixinTileComputer {
-    @Inject(method = "createComputer", at = @At("RETURN"), cancellable = true, remap = false)
+    @Inject(method = "createComputer", at = @At("RETURN"), remap = false)
     public void clockwork$addAPIs(int id, CallbackInfoReturnable<ServerComputer> cir) {
         ServerComputer computer = cir.getReturnValue();
         ServerShip ship = VSGameUtilsKt.getShipManagingPos(computer.getLevel(), computer.getPosition());

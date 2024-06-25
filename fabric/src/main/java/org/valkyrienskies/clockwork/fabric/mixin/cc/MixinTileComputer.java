@@ -18,7 +18,7 @@ public class MixinTileComputer {
     @Inject(method = "createComputer", at = @At("RETURN"), remap = false)
     public void clockwork$addAPIs(int instanceID, int id, CallbackInfoReturnable<ServerComputer> cir) {
         ServerComputer computer = cir.getReturnValue();
-        ServerShip ship = VSGameUtilsKt.getShipManagingPos((ServerLevel) computer.getWorld(), computer.getPosition());
+        ServerShip ship = VSGameUtilsKt.getShipManagingPos((ServerLevel) computer.getLevel(), computer.getPosition());
 
         ClockworkComputerCraftIntegration.INSTANCE.addAPIs(computer, ship);
     }
