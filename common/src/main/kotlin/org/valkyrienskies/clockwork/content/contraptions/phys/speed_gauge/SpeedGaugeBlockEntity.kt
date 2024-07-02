@@ -22,6 +22,7 @@ class SpeedGaugeBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, state: 
 
     var current = 0.0
     var target = 0.0
+    var speed = 0.0
 
     private val maxSpeed = 100.0
     private val changeSpeed = 0.15
@@ -48,7 +49,8 @@ class SpeedGaugeBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, state: 
         super.tick()
 
         //Smooth dial movement
-        target = getShipSpeed()/maxSpeed
+        speed = getShipSpeed()
+        target = speed/maxSpeed
         current +=  max(min(target-current,changeSpeed),-changeSpeed)
 
         var shouldBePowered = false

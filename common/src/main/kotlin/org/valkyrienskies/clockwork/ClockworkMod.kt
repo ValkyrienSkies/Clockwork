@@ -51,6 +51,8 @@ object ClockworkMod {
         ClockworkPackets.init()
         ClockworkTags.init()
         ClockworkWorldgen.init()
+        ClockworkDisplayBehaviours.init()
+
         VSConfigClass.registerConfig("clockwork", ClockworkConfig::class.java)
 
         VSEvents.ShipLoadEvent.on { event ->
