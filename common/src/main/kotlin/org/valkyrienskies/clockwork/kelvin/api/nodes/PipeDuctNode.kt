@@ -7,7 +7,7 @@ class PipeDuctNode(
     override val pos: DuctNodePos,
     override val behavior: NodeBehaviorType,
     override val network: DuctNetwork,
-    override val nodeEdges: HashSet<DuctEdge>,
+    override val nodeEdges: HashSet<DuctEdge> = HashSet(),
     override val volume: Double,
     override val maxPressure: Double,
     override val maxTemperature: Double

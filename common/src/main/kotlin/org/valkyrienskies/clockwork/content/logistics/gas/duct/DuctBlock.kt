@@ -4,15 +4,20 @@ import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.block.PipeBlock
+import net.minecraft.world.level.block.RenderShape
 import net.minecraft.world.level.block.SimpleWaterloggedBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
+import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.content.logistics.gas.GasHeatLevel
+import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock.Companion.GAS_HEAT_LEVEL
 
 class DuctBlock(properties: Properties) : PipeBlock(4/16f, properties), IDuct, IBE<DuctBlockEntity>, SimpleWaterloggedBlock {
 
     init {
-        registerDefaultState(super.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, false))
+        registerDefaultState(super.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, false).setValue(
+            GAS_HEAT_LEVEL, GasHeatLevel.COOL))
     }
 
     override fun canConnectTo(self: BlockPos, other: BlockPos, level: BlockGetter): Boolean {
@@ -22,9 +27,11 @@ class DuctBlock(properties: Properties) : PipeBlock(4/16f, properties), IDuct, I
 
         if (otherState.block !is IDuct) return false
 
-        if (otherState.block is IAxisAlignedDuct) return (otherState.block as IAxisAlignedDuct).canConnectTo(other, self, level)
-
         return true
+    }
+
+    override fun getRenderShape(state: BlockState): RenderShape {
+        return RenderShape.INVISIBLE
     }
 
     override fun getBlockEntityClass(): Class<DuctBlockEntity> {

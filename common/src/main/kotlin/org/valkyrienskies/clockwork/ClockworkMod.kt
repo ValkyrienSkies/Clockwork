@@ -15,6 +15,7 @@ import org.valkyrienskies.clockwork.kelvin.impl.DuctNetworkImpl
 import org.valkyrienskies.clockwork.platform.PlatformUtils
 import org.valkyrienskies.core.impl.config.VSConfigClass
 import org.valkyrienskies.core.impl.hooks.VSEvents
+import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.shipObjectWorld
 
 object ClockworkMod {
@@ -41,7 +42,7 @@ object ClockworkMod {
         ClockworkPackets.init()
         ClockworkTags.init()
         ClockworkWorldgen.init()
-        VSConfigClass.registerConfig("clockwork", ClockworkConfig::class.java)
+        ValkyrienSkiesMod.vsCore.registerConfigLegacy("clockwork", ClockworkConfig::class.java)
 
         VSEvents.ShipLoadEvent.on { event ->
             event.ship.setAttachment(PocketForcesController())

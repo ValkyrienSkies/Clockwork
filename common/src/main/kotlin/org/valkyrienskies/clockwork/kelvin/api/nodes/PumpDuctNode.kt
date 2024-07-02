@@ -7,12 +7,12 @@ class PumpDuctNode(
     override val pos: DuctNodePos,
     override val behavior: NodeBehaviorType,
     override val network: DuctNetwork,
-    override val nodeEdges: HashSet<DuctEdge>,
+    override val nodeEdges: HashSet<DuctEdge> = HashSet(),
     override val volume: Double,
     override val maxPressure: Double,
     override val maxTemperature: Double,
-    var pumpPressure: Double,
-    var pumpTarget: DuctEdge
+    var pumpPressure: Double = 0.0,
+    var pumpTarget: DuctEdge? = null
 ) : DuctNode {
 
     fun setTargetPressure(pressure: Double) {

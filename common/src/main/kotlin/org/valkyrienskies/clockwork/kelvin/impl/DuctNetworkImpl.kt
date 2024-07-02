@@ -15,8 +15,24 @@ import kotlin.math.pow
 class DuctNetworkImpl(
     override val nodes: HashMap<DuctNodePos, DuctNode> = hashMapOf(),
     override val edges: HashSet<DuctEdge> = hashSetOf(),
-    override val nodeInfo: HashMap<DuctNodePos, DuctNodeInfo> = hashMapOf()
+    override val nodeInfo: HashMap<DuctNodePos, DuctNodeInfo> = hashMapOf(),
+    override val unloadedNodes: HashSet<DuctNodePos> = hashSetOf()
 ) : DuctNetwork {
+
+    override fun markLoaded(pos: DuctNodePos) {
+        if (!nodes.contains(pos)) {
+            return
+        }
+        unloadedNodes.remove(pos)
+    }
+
+    override fun markUnloaded(pos: DuctNodePos) {
+        if (!nodes.contains(pos)) {
+            return
+        }
+        unloadedNodes.add(pos)
+    }
+
     override fun getFlowBetween(from: DuctNodePos, to: DuctNodePos): Double {
         val edge = getEdgeBetween(from, to) ?: return 0.0
         return edge.currentFlowRate
@@ -52,6 +68,10 @@ class DuctNetworkImpl(
         nodeInfo.remove(pos)
         val edgesToRemove = edges.filter { it.nodeA == pos || it.nodeB == pos }
         edges.removeAll(edgesToRemove.toSet())
+
+        if (unloadedNodes.contains(pos)) {
+            unloadedNodes.remove(pos)
+        }
     }
 
     override fun addEdge(posA: DuctNodePos, posB: DuctNodePos, edge: DuctEdge) {
@@ -95,6 +115,10 @@ class DuctNetworkImpl(
                 val nodeDataA = nodes[edge.nodeA]!!
                 val nodeDataB = nodes[edge.nodeB]!!
 
+                if (unloadedNodes.contains(edge.nodeA) || unloadedNodes.contains(edge.nodeB)) {
+                    continue
+                }
+
                 var madeNewA = false
                 var madeNewB = false
 
@@ -134,11 +158,11 @@ class DuctNetworkImpl(
                 var pumpPressureA = 0.0
                 var pumpPressureB = 0.0
 
-                if (nodeDataA.behavior == NodeBehaviorType.PUMP) {
-                    pumpPressureA = (nodeDataA as PumpDuctNode).pumpPressure
+                if (nodeDataA.behavior == NodeBehaviorType.PUMP && (nodeDataA as PumpDuctNode).pumpTarget == edge) {
+                    pumpPressureA = nodeDataA.pumpPressure
                 }
-                if (nodeDataB.behavior == NodeBehaviorType.PUMP) {
-                    pumpPressureB = (nodeDataB as PumpDuctNode).pumpPressure
+                if (nodeDataB.behavior == NodeBehaviorType.PUMP && (nodeDataB as PumpDuctNode).pumpTarget == edge) {
+                    pumpPressureB = nodeDataB.pumpPressure
                 }
 
                 var pumpPressure = pumpPressureA - pumpPressureB

@@ -8,15 +8,19 @@ import net.minecraft.world.level.block.RotatedPillarBlock
 import net.minecraft.world.level.block.SimpleWaterloggedBlock
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
+import net.minecraft.world.level.block.state.properties.EnumProperty
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
+import org.valkyrienskies.clockwork.content.logistics.gas.GasHeatLevel
 
 open class StraightDuctBlock(properties: Properties) : RotatedPillarBlock(properties), IAxisAlignedDuct, SimpleWaterloggedBlock {
 
-    init {
-        registerDefaultState(super.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, false))
+    val gasHeatLevel: EnumProperty<GasHeatLevel> = EnumProperty.create("heat_level", GasHeatLevel::class.java)
 
+    init {
+        registerDefaultState(super.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, false).setValue(gasHeatLevel, GasHeatLevel.COOL))
     }
+
     override fun getAxis(state: BlockState?): Direction.Axis? {
         return state?.getValue(AXIS)
     }

@@ -14,6 +14,11 @@ interface DuctNetwork {
 
     val nodeInfo: HashMap<DuctNodePos, DuctNodeInfo>
 
+    val unloadedNodes: HashSet<DuctNodePos>
+
+    fun markLoaded(pos: DuctNodePos)
+    fun markUnloaded(pos: DuctNodePos)
+
     // interfacing with the duct network
     /**
      * Returns the flow between two nodes from the previous tick.

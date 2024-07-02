@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.duct
 
 import com.simibubi.create.AllShapes
-import com.simibubi.create.content.kinetics.base.DirectionalAxisKineticBlock
 import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock
 import com.simibubi.create.content.kinetics.simpleRelays.ICogWheel
 import com.simibubi.create.foundation.block.IBE
@@ -13,11 +12,20 @@ import net.minecraft.world.level.block.RotatedPillarBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
+import net.minecraft.world.level.block.state.properties.EnumProperty
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.content.logistics.gas.GasHeatLevel
 
 class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties), IAxisAlignedDuct, ICogWheel, IBE<PumpDuctBlockEntity> {
+
+    val gasHeatLevel: EnumProperty<GasHeatLevel> = EnumProperty.create("heat_level", GasHeatLevel::class.java)
+
+    init {
+        registerDefaultState(super.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, false).setValue(gasHeatLevel, GasHeatLevel.COOL))
+    }
+
     override fun hasShaftTowards(world: LevelReader, pos: BlockPos, state: BlockState, face: Direction): Boolean {
         return false
     }
@@ -31,10 +39,6 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
 
     }
 
-    init {
-        registerDefaultState(super.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, false))
-
-    }
     override fun getAxis(state: BlockState?): Direction.Axis? {
         return state?.getValue(RotatedPillarBlock.AXIS)
     }
