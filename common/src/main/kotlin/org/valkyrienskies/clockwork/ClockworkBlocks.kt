@@ -39,7 +39,7 @@ import org.valkyrienskies.clockwork.content.logistics.heat.creative.source.Creat
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlock
 import org.valkyrienskies.clockwork.content.logistics.heat.usage.gas_nozzle.GasNozzleBlock
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlock
-import org.valkyrienskies.clockwork.content.physicalities.speed_gauge.SpeedGaugeBlock
+import org.valkyrienskies.clockwork.content.contraptions.phys.speed_gauge.SpeedGaugeBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.WingBlock

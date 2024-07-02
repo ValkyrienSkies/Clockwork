@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content.physicalities.speed_gauge
+package org.valkyrienskies.clockwork.content.contraptions.phys.speed_gauge
 
 import com.jozufozu.flywheel.backend.Backend
 import com.mojang.blaze3d.vertex.PoseStack

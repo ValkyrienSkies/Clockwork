@@ -8,6 +8,7 @@ import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.UpdateAltMeterPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerAttachmentSyncPacket
+import org.valkyrienskies.clockwork.content.contraptions.phys.speed_gauge.UpdateSpeedGaugePacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandSelectionPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDestroyPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDialPacket
@@ -36,6 +37,7 @@ enum class ClockworkPackets(
     UPDATE_SEAT_RULES(UpdateSeatRulesPacket::class.java, ::UpdateSeatRulesPacket),
     SEQUENCER_SEAT_DRIVING(SequencedSeatDrivingPacket::class.java, ::SequencedSeatDrivingPacket),
     UPDATE_ALT_METER(UpdateAltMeterPacket::class.java, ::UpdateAltMeterPacket),
+    UPDATE_SPEED_GAUGE(UpdateSpeedGaugePacket::class.java, ::UpdateSpeedGaugePacket),
 
     GRAVITRON_GRAB_PACKET(GravitronGrabPacket::class.java, ::GravitronGrabPacket),
     GRAVITRON_DESTROY_PACKET(GravitronDestroyPacket::class.java, ::GravitronDestroyPacket),

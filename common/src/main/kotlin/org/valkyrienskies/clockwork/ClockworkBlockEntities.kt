@@ -37,8 +37,8 @@ import org.valkyrienskies.clockwork.content.logistics.heat.usage.gas_nozzle.GasN
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlockEntity
-import org.valkyrienskies.clockwork.content.physicalities.speed_gauge.SpeedGaugeBlockEntity
-import org.valkyrienskies.clockwork.content.physicalities.speed_gauge.SpeedGaugeRenderer
+import org.valkyrienskies.clockwork.content.contraptions.phys.speed_gauge.SpeedGaugeBlockEntity
+import org.valkyrienskies.clockwork.content.contraptions.phys.speed_gauge.SpeedGaugeRenderer
 import java.util.function.BiFunction
 
 

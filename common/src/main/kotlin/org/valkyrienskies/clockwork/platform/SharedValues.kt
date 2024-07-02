@@ -10,7 +10,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderW
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatEntity
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlockEntity
-import org.valkyrienskies.clockwork.content.physicalities.speed_gauge.SpeedGaugeBlockEntity
+import org.valkyrienskies.clockwork.content.contraptions.phys.speed_gauge.SpeedGaugeBlockEntity
 import org.valkyrienskies.clockwork.platform.api.network.PacketChannel
 import java.util.function.BiConsumer
 
