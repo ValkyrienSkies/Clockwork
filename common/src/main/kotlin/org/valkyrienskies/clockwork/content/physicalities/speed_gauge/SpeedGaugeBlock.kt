@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.physicalities.speed_gauge
 
 import com.simibubi.create.content.kinetics.base.KineticBlock
+import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.level.block.BaseEntityBlock
@@ -13,11 +14,20 @@ import net.minecraft.world.level.block.*
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.DirectionProperty
 import net.minecraft.world.level.block.state.properties.Property
+import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlockEntity
+import org.valkyrienskies.clockwork.platform.SharedValues
 
-class SpeedGaugeBlock(properties: Properties?): BaseEntityBlock(properties) {
-    override fun newBlockEntity(pos: BlockPos, state: BlockState): BlockEntity? {
-        return SpeedGaugeBlockEntity(ClockworkBlockEntities.SPEED_GAUGE.get(),pos,state)
+class SpeedGaugeBlock(properties: Properties?): BaseEntityBlock(properties), IBE<SpeedGaugeBlockEntity> {
+
+    override fun getBlockEntityClass(): Class<SpeedGaugeBlockEntity> {
+        return SpeedGaugeBlockEntity::class.java
     }
+
+    override fun getBlockEntityType(): BlockEntityType<out SpeedGaugeBlockEntity> {
+        return ClockworkBlockEntities.SPEED_GAUGE.get()
+    }
+
+
 
     init {
         this.registerDefaultState(
