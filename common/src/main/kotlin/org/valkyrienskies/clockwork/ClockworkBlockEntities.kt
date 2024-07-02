@@ -37,6 +37,8 @@ import org.valkyrienskies.clockwork.content.logistics.heat.usage.gas_nozzle.GasN
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlockEntity
+import org.valkyrienskies.clockwork.content.physicalities.speed_gauge.SpeedGaugeBlockEntity
+import org.valkyrienskies.clockwork.content.physicalities.speed_gauge.SpeedGaugeRenderer
 import java.util.function.BiFunction
 
 
@@ -314,6 +316,25 @@ object ClockworkBlockEntities {
             }
         }
         .validBlocks(ClockworkBlocks.GAS_NOZZLE)
+        .register()
+
+    val SPEED_GAUGE: BlockEntityEntry<SpeedGaugeBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<SpeedGaugeBlockEntity>(
+            "speed_gauge"
+        ) { typeIn: BlockEntityType<SpeedGaugeBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
+            SpeedGaugeBlockEntity(
+                typeIn,
+                pos!!, state!!
+            )
+        }
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in SpeedGaugeBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                SpeedGaugeRenderer(
+                    context!!
+                )
+            }
+        }
+        .validBlocks(ClockworkBlocks.SPEED_GAUGE)
         .register()
 
     @JvmStatic

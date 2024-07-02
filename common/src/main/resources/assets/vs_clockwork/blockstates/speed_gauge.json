@@ -1,0 +1,20 @@
+
+{
+  "variants": {
+    "facing=north": {
+      "model": "vs_clockwork:block/speed_gauge"
+    },
+    "facing=east": {
+      "model": "vs_clockwork:block/speed_gauge",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vs_clockwork:block/speed_gauge",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vs_clockwork:block/speed_gauge",
+      "y": 270
+    }
+  }
+}

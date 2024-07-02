@@ -39,6 +39,7 @@ import org.valkyrienskies.clockwork.content.logistics.heat.creative.source.Creat
 import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlock
 import org.valkyrienskies.clockwork.content.logistics.heat.usage.gas_nozzle.GasNozzleBlock
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlock
+import org.valkyrienskies.clockwork.content.physicalities.speed_gauge.SpeedGaugeBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.WingBlock
@@ -479,6 +480,22 @@ object ClockworkBlocks {
         )
     }
         .initialProperties { SharedProperties.netheriteMetal() }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
+    val SPEED_GAUGE = REGISTRATE.block<SpeedGaugeBlock>(
+        "speed_gauge"
+    ) { properties: BlockBehaviour.Properties? ->
+        SpeedGaugeBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.wooden() }
+        .properties { it.noOcclusion() }
+        .addLayer { Supplier { RenderType.cutoutMipped() } }
         .item()
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
