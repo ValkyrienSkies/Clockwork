@@ -21,6 +21,8 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlockEn
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlockEntityRenderer
+import org.valkyrienskies.clockwork.content.contraptions.phys.speed_gauge.SpeedGaugeBlockEntity
+import org.valkyrienskies.clockwork.content.contraptions.phys.speed_gauge.SpeedGaugeRenderer
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingRenderer
 import org.valkyrienskies.clockwork.content.generic.ColorBlockEntity
@@ -286,6 +288,24 @@ object ClockworkBlockEntities {
             }
         }
         .validBlocks(ClockworkBlocks.SLICKER)
+        .register()
+    val SPEED_GAUGE: BlockEntityEntry<SpeedGaugeBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<SpeedGaugeBlockEntity>(
+            "speed_gauge"
+        ) { typeIn: BlockEntityType<SpeedGaugeBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
+            SpeedGaugeBlockEntity(
+                typeIn,
+                pos!!, state!!
+            )
+        }
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in SpeedGaugeBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                SpeedGaugeRenderer(
+                    context!!
+                )
+            }
+        }
+        .validBlocks(ClockworkBlocks.SPEED_GAUGE)
         .register()
 
     @JvmStatic
