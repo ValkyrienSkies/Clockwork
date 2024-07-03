@@ -12,7 +12,6 @@ import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanU
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.ShipForcesInducer
-import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.function.BiConsumer
@@ -45,7 +44,7 @@ class EncasedFanController : ShipForcesInducer {
         })
         fanUpdateData.clear()
         for (physData in fanData.values) {
-            val force = computeForce(physData, physShip as PhysShipImpl)
+            val force = computeForce(physData, physShip)
             val fanVector: Vector3dc =
                 physData.fanPos.add(0.5, 0.5, 0.5, Vector3d()).sub(physShip.transform.positionInShip)
             physShip.applyRotDependentForceToPos(force, fanVector)
@@ -54,7 +53,7 @@ class EncasedFanController : ShipForcesInducer {
 
     private fun computeForce(
         physData: EncasedFanData,
-        physShip: PhysShipImpl
+        physShip: PhysShip
     ): Vector3dc {
         val speed: Double = physData.fanSpeed
         val dir: Vector3d = Vector3d(physData.fanDir).mul(Math.signum(speed))
@@ -64,8 +63,8 @@ class EncasedFanController : ShipForcesInducer {
             physData.fanPos.add(0.5, 0.5, 0.5, Vector3d()),
             Vector3d()
         ).sub(physShip.transform.positionInWorld, Vector3d())
-        val worldVelAtFan: Vector3dc = physShip.poseVel.omega.cross(fanPosRelCenterMass, Vector3d())
-            .add(physShip.poseVel.vel, Vector3d())
+        val worldVelAtFan: Vector3dc = physShip.omega.cross(fanPosRelCenterMass, Vector3d())
+            .add(physShip.velocity, Vector3d())
         val exhaustVel = exhaustVelocity()
         var factor = 1.0 - Mth.clamp(dir.dot(worldVelAtFan) / exhaustVel, 0.0, 1.0)
         if (!java.lang.Double.isFinite(factor)) {
