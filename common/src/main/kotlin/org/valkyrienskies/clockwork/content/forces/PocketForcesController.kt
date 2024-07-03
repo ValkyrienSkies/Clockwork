@@ -8,9 +8,6 @@ import org.valkyrienskies.clockwork.util.AerodynamicUtils
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.ShipForcesInducer
-import org.valkyrienskies.core.api.ships.datastructures.AirPocket
-import org.valkyrienskies.core.api.ships.datastructures.ShipConnDataAttachment
-import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 import org.valkyrienskies.mod.common.shipObjectWorld
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -18,36 +15,10 @@ import kotlin.collections.HashMap
 
 class PocketForcesController: ShipForcesInducer {
 
-    val pockets: HashMap<Int, AirPocket> = HashMap()
-
-    val queuedChanges: ConcurrentLinkedQueue<HashMap<Int, AirPocket>> = ConcurrentLinkedQueue()
-
     private var max_height: Double = 563.0
 
     override fun applyForces(physShip: PhysShip) {
-        val physShipImpl = physShip as PhysShipImpl
-
-        if (queuedChanges.isNotEmpty()) {
-            val newPockets = queuedChanges.poll()
-            if (newPockets != null) {
-                pockets.clear()
-                pockets.putAll(newPockets)
-                for (pocketId in newPockets.keys){
-                    if (!newPockets[pocketId]!!.extraData.containsKey("kelvin/gas_masses")) {
-                        val newMap = HashMap<GasType, Double>()
-                        for (gas in GasType.values()) {
-                            if (gas == GasType.AIR){
-                                newMap[gas] = (newPockets[pocketId]!!.pocket.size.toDouble() * gas.density / 4.0)
-                            } else {
-                                newMap[gas] = 0.0
-                            }
-
-                        }
-                        newPockets[pocketId]!!.extraData["kelvin/gas_masses"] = newMap
-                    }
-                }
-            }
-        }
+        val physShipImpl = physShip
 
         val buoyancyForce = calculateBuoyancyForce(physShip)
 
@@ -55,29 +26,29 @@ class PocketForcesController: ShipForcesInducer {
     }
 
     fun calculateBuoyancyForce(physShip: PhysShip): Double {
-        val physShipImpl = physShip as PhysShipImpl
+        val physShipImpl = physShip
 
         var totalBuoyantForce = 0.0
 
-        pockets.values.forEach {
-            if (it.pocket.size > 0) {
-                if (it.extraData.containsKey("kelvin/gas_masses") && it.extraData.containsKey("kelvin/temperature_dbl_mrg_avg")) {
-                    val gasMasses = (it.extraData["kelvin/gas_masses"] ?: HashMap<GasType, Double>()) as HashMap<GasType, Double>
-                    val temperature = (it.extraData["kelvin/temperature_dbl_mrg_avg"] ?: 0.0) as Double
-                    var totalInternalDensity = 0.0
-                    for (gas in GasType.values()) {
-                        if (gasMasses.containsKey(gas)) {
-                            val gasMass = gasMasses[gas] ?: 0.0
-
-                            val density = getDensityFromTemperature(it.pocket.size.toDouble(), gasMass, temperature, gas)
-                            totalInternalDensity += density
-                        }
-                    }
-                    val buoyantForce = it.pocket.size.toDouble() * (AerodynamicUtils.getAirDensityForY(physShip.poseVel.pos.y(), max_height) - totalInternalDensity) * 10.0
-                    totalBuoyantForce += buoyantForce
-                }
-            }
-        }
+//        pockets.values.forEach {
+//            if (it.pocket.size > 0) {
+//                if (it.extraData.containsKey("kelvin/gas_masses") && it.extraData.containsKey("kelvin/temperature_dbl_mrg_avg")) {
+//                    val gasMasses = (it.extraData["kelvin/gas_masses"] ?: HashMap<GasType, Double>()) as HashMap<GasType, Double>
+//                    val temperature = (it.extraData["kelvin/temperature_dbl_mrg_avg"] ?: 0.0) as Double
+//                    var totalInternalDensity = 0.0
+//                    for (gas in GasType.values()) {
+//                        if (gasMasses.containsKey(gas)) {
+//                            val gasMass = gasMasses[gas] ?: 0.0
+//
+//                            val density = getDensityFromTemperature(it.pocket.size.toDouble(), gasMass, temperature, gas)
+//                            totalInternalDensity += density
+//                        }
+//                    }
+//                    val buoyantForce = it.pocket.size.toDouble() * (AerodynamicUtils.getAirDensityForY(physShip.transform.positionInWorld.y(), max_height) - totalInternalDensity) * 10.0
+//                    totalBuoyantForce += buoyantForce.toDouble()
+//                }
+//            }
+//        }
 
         return totalBuoyantForce
     }
@@ -108,10 +79,7 @@ class PocketForcesController: ShipForcesInducer {
 
     fun gameTick(level: ServerLevel, ship: ServerShip) {
         val loadedShip = level.shipObjectWorld.loadedShips.getById(ship.id) ?: return
-        val pocketsCopy = ship.getAttachment(ShipConnDataAttachment::class.java)?.airPockets ?: return
-        if (pocketsCopy != pockets) {
-            queuedChanges.add(pocketsCopy)
-        }
+        //val pocketsCopy = ship.getAttachment(ShipConnDataAttachment::class.java)?.airPockets ?: return
     }
 
     companion object {

@@ -82,19 +82,19 @@ object ClockworkPartials {
     //PIPE DEATH
     val DUCT_CORE: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/core"))
 
-    val DUCT_CONN_UP: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/connection/up"))
-    val DUCT_CONN_DOWN: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/connection/down"))
-    val DUCT_CONN_NORTH: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/connection/north"))
-    val DUCT_CONN_SOUTH: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/connection/south"))
-    val DUCT_CONN_EAST: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/connection/east"))
-    val DUCT_CONN_WEST: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/connection/west"))
+    val DUCT_CONN: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/connection/cool"))
+    val DUCT_CONN_WARM: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/connection/warm"))
+    val DUCT_CONN_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/connection/hot"))
+    val DUCT_CONN_VERY_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/connection/very_hot"))
+    val DUCT_CONN_SUPER_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/connection/super_hot"))
+    val DUCT_CONN_MOLTEN: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/connection/molten"))
 
-    val DUCT_RIM_UP: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/rim/up"))
-    val DUCT_RIM_DOWN: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/rim/down"))
-    val DUCT_RIM_NORTH: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/rim/north"))
-    val DUCT_RIM_SOUTH: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/rim/south"))
-    val DUCT_RIM_EAST: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/rim/east"))
-    val DUCT_RIM_WEST: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/rim/west"))
+    val DUCT_RIM: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/rim/cool"))
+    val DUCT_RIM_WARM: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/rim/warm"))
+    val DUCT_RIM_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/rim/hot"))
+    val DUCT_RIM_VERY_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/rim/very_hot"))
+    val DUCT_RIM_SUPER_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/rim/super_hot"))
+    val DUCT_RIM_MOLTEN: PartialModel = PartialModel(ClockworkMod.asResource("block/heat_pipe/rim/molten"))
     //END OF PIPE DEATH
 
 

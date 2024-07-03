@@ -1,0 +1,7 @@
+{
+  "parent": "vs_clockwork:block/heat_pipe/core",
+  "textures": {
+    "0": "vs_clockwork:block/heatpipe_core",
+    "particle": "vs_clockwork:block/heatpipe_core"
+  }
+}
