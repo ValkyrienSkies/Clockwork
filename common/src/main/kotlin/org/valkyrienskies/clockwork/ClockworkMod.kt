@@ -2,26 +2,21 @@ package org.valkyrienskies.clockwork
 
 import com.mojang.logging.LogUtils
 import com.simibubi.create.foundation.data.CreateRegistrate
-import dev.architectury.event.events.common.BlockEvent
-import dev.architectury.event.events.common.LifecycleEvent
 import dev.architectury.event.events.common.TickEvent
-import dev.architectury.registry.CreativeTabRegistry
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
 import org.slf4j.LoggerFactory
 import org.valkyrienskies.clockwork.content.forces.DragController
 import org.valkyrienskies.clockwork.content.forces.PocketForcesController
-import org.valkyrienskies.clockwork.content.logistics.heat.ClientAirPocketStorage
 import org.valkyrienskies.core.api.ships.setAttachment
-import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.TranslatableComponent
 import org.valkyrienskies.clockwork.content.forces.WanderShipControl
+import org.valkyrienskies.clockwork.kelvin.api.DuctNetwork
+import org.valkyrienskies.clockwork.kelvin.impl.DuctNetworkImpl
 import org.valkyrienskies.clockwork.platform.PlatformUtils
-import org.valkyrienskies.clockwork.platform.SharedValues
 import org.valkyrienskies.core.impl.config.VSConfigClass
 import org.valkyrienskies.core.impl.hooks.VSEvents
+import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.shipObjectWorld
-import kotlin.concurrent.thread
 
 object ClockworkMod {
     const val MOD_ID = "vs_clockwork"
@@ -39,11 +34,7 @@ object ClockworkMod {
 
     val BASE_CREATIVE_TAB: CreativeModeTab = PlatformUtils.getCreativeTab()
 
-    private lateinit var kelvin: KelvinBackground
-
-    private val kelvinThread: Thread = thread(start = false, priority = 8, name = "Kelvin thread") {
-        kelvin.run()
-    }
+    val Kelvin: DuctNetworkImpl = DuctNetworkImpl()
 
     @JvmStatic
     fun init() {
@@ -51,7 +42,7 @@ object ClockworkMod {
         ClockworkPackets.init()
         ClockworkTags.init()
         ClockworkWorldgen.init()
-        VSConfigClass.registerConfig("clockwork", ClockworkConfig::class.java)
+        ValkyrienSkiesMod.vsCore.registerConfigLegacy("clockwork", ClockworkConfig::class.java)
 
         VSEvents.ShipLoadEvent.on { event ->
             event.ship.setAttachment(PocketForcesController())
@@ -59,37 +50,17 @@ object ClockworkMod {
             event.ship.setAttachment(WanderShipControl())
         }
 
-        VSEvents.airPocketModifyEvent.on { event ->
-            if (event.removed) {
-                ClientAirPocketStorage.pocketsToDeleteQueue.add(event.shipId to event.airPocketId)
-            } else {
-                ClientAirPocketStorage.pocketsToUpdateQueue.add(event.shipId to event.airPocketId)
-            }
-        }
-
         TickEvent.SERVER_LEVEL_POST.register {
             for (ship in it.shipObjectWorld.loadedShips) {
                 ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship)
                 ship.getAttachment(DragController::class.java)?.gameTick(ship, it)
             }
-            ClientAirPocketStorage.serverTick(it)
+            Kelvin.tick(it, ClockworkConfig.SERVER.kelvinSubSteps)
         }
-        
-        kelvin = KelvinBackground(ClockworkConfig.SERVER.kelvinTickRate, ClockworkConfig.SERVER.kelvinSubSteps)
-
-        LifecycleEvent.SERVER_STARTING.register {
-            kelvinThread.start()
-        }
-
-        LifecycleEvent.SERVER_STOPPING.register {
-            kelvin.tellTaskToKillItself()
-        }
-
-        KelvinHandler.start()
     }
 
-    fun getKelvinBackgroundTask(): KelvinBackground {
-        return kelvin
+    fun getKelvin(): DuctNetwork {
+        return Kelvin
     }
 
     @JvmStatic

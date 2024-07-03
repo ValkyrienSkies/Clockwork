@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.joml.Vector3d
 import org.valkyrienskies.core.api.ships.*
-import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 
 @JsonAutoDetect(
     fieldVisibility = JsonAutoDetect.Visibility.ANY,
@@ -29,8 +28,6 @@ class WanderShipControl : ShipForcesInducer {
             ship?.saveAttachment<WanderShipControl>(null)
             return
         }
-
-        physShip as PhysShipImpl
 
         val yForce = (aurics * 1.0)
         val force =  Vector3d(0.0, yForce,0.0).mul(1100.0, Vector3d())
