@@ -19,9 +19,6 @@ object ClockworkConfig {
         @JsonSchema(description = "Enable verbose debug logging")
         var debugMode = false
 
-        @JsonSchema(description = "Kelvin tick rate (in Ticks / Second)")
-        var kelvinTickRate = 400
-
         @JsonSchema(description = "Kelvin sub steps (per Tick)")
         var kelvinSubSteps = 10
       

@@ -1,0 +1,17 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "vs_clockwork:block/heat_pipe/straight",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "vs_clockwork:block/heat_pipe/straight"
+    },
+    "axis=z": {
+      "model": "vs_clockwork:block/heat_pipe/straight",
+      "x": 90,
+      "y": 180
+    }
+  }
+}

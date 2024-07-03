@@ -14,7 +14,6 @@ import org.valkyrienskies.clockwork.util.SideProfileTracker
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.ShipForcesInducer
-import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 import org.valkyrienskies.core.util.expand
 import org.valkyrienskies.mod.common.util.toBlockPos
 import org.valkyrienskies.mod.common.util.toJOMLD
@@ -42,7 +41,7 @@ class DragController : ShipForcesInducer {
     private var max_height: Double = 563.0
 
     override fun applyForces(physShip: PhysShip) {
-        val impl = physShip as PhysShipImpl
+        val impl = physShip
         if (blockUpdateQueue.isNotEmpty()) {
             val posair = blockUpdateQueue.poll()
             if (!posair.second) {
@@ -221,11 +220,11 @@ class DragController : ShipForcesInducer {
         shouldUpdate = false
     }
 
-    private fun calculateDrag(ship: PhysShipImpl): Vector3dc {
-        val motionVector: Vector3dc = ship.poseVel.vel
+    private fun calculateDrag(ship: PhysShip): Vector3dc {
+        val motionVector: Vector3dc = ship.velocity
         val motionNormal: Vector3dc = motionVector.normalize(Vector3d()).mul(-1.0)
 
-        val density = getAirDensityForY(ship.poseVel.pos.y(), max_height)
+        val density = getAirDensityForY(ship.transform.positionInWorld.y(), max_height)
 
         var exposedArea = 0.0
 
@@ -249,7 +248,7 @@ class DragController : ShipForcesInducer {
         return motionNormal.mul(dragForce, Vector3d())
     }
 
-    private fun calculateRotationalDrag(ship: PhysShipImpl): Vector3dc {
+    private fun calculateRotationalDrag(ship: PhysShip): Vector3dc {
 //        val motionVector: Vector3dc = ship.poseVel.omega
 //        val motionNormal: Vector3dc = motionVector.normalize(Vector3d()).mul(-1.0)
 //
@@ -272,13 +271,13 @@ class DragController : ShipForcesInducer {
         //temporarily just *.99
         var resistance = 0.02
 
-        return ship.poseVel.omega.mul(ship.inertia.momentOfInertiaTensor, Vector3d())
+        return ship.omega.mul(ship.momentOfInertia, Vector3d())
             .mul(-resistance)
     }
 
-    private fun calculateDragPosition(ship: PhysShipImpl): Vector3dc {
+    private fun calculateDragPosition(ship: PhysShip): Vector3dc {
 
-        val motionVector: Vector3dc = ship.poseVel.vel
+        val motionVector: Vector3dc = ship.velocity
         val motionNormal: Vector3dc = motionVector.normalize(Vector3d()).mul(-1.0)
 
         val avgCenterOfPressure = Vector3d()

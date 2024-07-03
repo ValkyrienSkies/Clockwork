@@ -34,10 +34,8 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlo
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
-import org.valkyrienskies.clockwork.content.logistics.heat.creative.gas.CreativeGasSourceBlock
-import org.valkyrienskies.clockwork.content.logistics.heat.creative.source.CreativeHeatSourceBlock
-import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlock
-import org.valkyrienskies.clockwork.content.logistics.heat.usage.gas_nozzle.GasNozzleBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.PumpDuctBlock
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.speed_gauge.SpeedGaugeBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
@@ -223,11 +221,53 @@ object ClockworkBlocks {
             .transform(customItemModel("physics_infuser", "item"))
             .register()
 
+//    @JvmField
+//    val HEAT_PIPE: BlockEntry<HeatPipeBlock> = REGISTRATE.block<HeatPipeBlock>(
+//        "heat_pipe"
+//    ) { properties: BlockBehaviour.Properties? ->
+//        HeatPipeBlock(
+//            properties!!
+//        )
+//    }
+//        .initialProperties { SharedProperties.netheriteMetal() }
+//        .onRegister(CreateRegistrate.blockModel {
+//            NonNullFunction<BakedModel?, BakedModel> { template: BakedModel? ->
+//                PipeAttachmentModel(
+//                    template
+//                )
+//            }
+//        })
+//        .item()
+//        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+//        .transform(customItemModel())
+//        .register()
+
     @JvmField
-    val HEAT_PIPE: BlockEntry<HeatPipeBlock> = REGISTRATE.block<HeatPipeBlock>(
-        "heat_pipe"
+    val DUCT: BlockEntry<DuctBlock> = REGISTRATE.block<DuctBlock>(
+        "duct"
     ) { properties: BlockBehaviour.Properties? ->
-        HeatPipeBlock(
+        DuctBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .onRegister(CreateRegistrate.blockModel {
+            NonNullFunction<BakedModel?, BakedModel> { template: BakedModel? ->
+                PipeAttachmentModel(
+                    template
+                )
+            }
+        })
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .transform(customItemModel())
+        .register()
+
+    @JvmField
+    val PUMP_DUCT: BlockEntry<PumpDuctBlock> = REGISTRATE.block<PumpDuctBlock>(
+        "pump_duct"
+    ) { properties: BlockBehaviour.Properties? ->
+        PumpDuctBlock(
             properties!!
         )
     }
@@ -313,51 +353,6 @@ object ClockworkBlocks {
         .build()
         .register()
 
-    @JvmField
-    val GAS_NOZZLE = REGISTRATE.block<GasNozzleBlock>(
-        "gas_nozzle"
-    ) { properties: BlockBehaviour.Properties? ->
-        GasNozzleBlock(
-            properties!!
-        )
-    }
-        .initialProperties { SharedProperties.netheriteMetal() }
-        .addLayer { Supplier { RenderType.cutout() } }
-        .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
-        .build()
-        .register()
-
-    @JvmField
-    val CREATIVE_GAS_SOURCE = REGISTRATE.block<CreativeGasSourceBlock>(
-        "creative_gas_source"
-    ) { properties: BlockBehaviour.Properties? ->
-        CreativeGasSourceBlock(
-            properties!!
-        )
-    }
-        .initialProperties { SharedProperties.netheriteMetal() }
-        .addLayer { Supplier { RenderType.cutout() } }
-        .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
-        .build()
-        .register()
-
-    @JvmField
-    val CREATIVE_HEAT_SOURCE = REGISTRATE.block<CreativeHeatSourceBlock>(
-        "creative_heat_source"
-    ) { properties: BlockBehaviour.Properties? ->
-        CreativeHeatSourceBlock(
-            properties!!
-        )
-    }
-        .initialProperties { SharedProperties.netheriteMetal() }
-        .addLayer { Supplier { RenderType.cutout() } }
-        .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
-        .build()
-        .register()
-    
     @JvmField
     val BALLAST = REGISTRATE.block<BallastBlock>(
         "ballast"

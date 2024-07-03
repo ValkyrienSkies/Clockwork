@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.valkyrienskies.core.api.ships.*
-import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 import kotlin.math.abs
 import kotlin.math.exp
 
@@ -43,7 +42,7 @@ class GyroShipControl : ShipForcesInducer, ServerTickListener {
             return
         }
 
-        physShip as PhysShipImpl
+        physShip as PhysShip
 
         val rotDif = targetRotation
             .mul(physShip.transform.shipToWorldRotation.invert(Quaterniond()), Quaterniond())
@@ -53,11 +52,11 @@ class GyroShipControl : ShipForcesInducer, ServerTickListener {
         val idealOmega = Vector3d(rotDif.x() * 2.0, rotDif.y() * 2.0, rotDif.z() * 2.0)
         if (rotDif.w() > 0) idealOmega.mul(-1.0)
 
-        idealOmega.sub(physShip.poseVel.omega)
+        idealOmega.sub(physShip.omega)
 
-        val idealTorque = physShip.poseVel.rot.transform(
-            physShip.inertia.momentOfInertiaTensor.transform(
-                physShip.poseVel.rot.transformInverse(idealOmega, Vector3d())))
+        val idealTorque = physShip.transform.shipToWorldRotation.transform(
+            physShip.momentOfInertia.transform(
+                physShip.transform.shipToWorldRotation.transformInverse(idealOmega, Vector3d())))
 
         idealTorque.mul(abs(speedToForce(speed)))
 

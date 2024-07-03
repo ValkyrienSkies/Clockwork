@@ -14,7 +14,6 @@ import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.ShipForcesInducer
 import org.valkyrienskies.core.api.ships.properties.ShipTransform
-import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 import org.valkyrienskies.core.impl.game.ships.ShipInertiaDataImpl
 import java.lang.Math
 import java.util.*
@@ -70,7 +69,7 @@ class PropellerController : ShipForcesInducer {
         for (physData in propellorPhysData.values) {
             if(!physData.overStressed) {
                 val forceTorque = computeForce(
-                    physShip.transform, physData, (physShip as PhysShipImpl).poseVel.vel, physShip.poseVel.omega, physShip
+                    physShip.transform, physData, (physShip).velocity, physShip.omega, physShip
                 )
                 netForce.add(forceTorque.component1())
                 netTorque.add(forceTorque.component2())
@@ -88,7 +87,7 @@ class PropellerController : ShipForcesInducer {
         physProp: PropData,
         vel: Vector3dc,
         omega: Vector3dc,
-        physShip: PhysShipImpl
+        physShip: PhysShip
     ): Pair<Vector3dc, Vector3dc> {
         val modifiedSpeed: Double = physProp.bearingSpeed * 1.5 //* 1.25, A little bit easier to generate force //TODO config?
         val bearingVector: Vector3dc = Vector3d(physProp.bearingPos).add(0.5, 0.5, 0.5)
@@ -138,7 +137,7 @@ class PropellerController : ShipForcesInducer {
     }
 
     private fun conserveMomentum(
-        physShip: PhysShipImpl,
+        physShip: PhysShip,
         physProp: PropData,
         furthestTip: Vector3dc,
         angVel: Vector3dc
@@ -156,14 +155,14 @@ class PropellerController : ShipForcesInducer {
         val rotVel = propSpeed * (2 * Math.PI / 60) * -1
         val angularVelocityPropeller: Vector3dc = Vector3d(propAxis).mul(rotVel)
         val angularMomentumRelProp: Vector3dc =
-            angularVelocityPropeller.mul(physShip.inertia.momentOfInertiaTensor, Vector3d())
+            angularVelocityPropeller.mul(physShip.momentOfInertia, Vector3d())
 
         // Add to convert from momentum relative to wheel into relative to ship
         val centerOfMassInShip = physShip.transform.positionInShip
         val r: Vector3dc =
             Vector3d(centerOfMassInShip.add(physProp.bearingPos, Vector3d())).sub(physShip.transform.positionInShip)
                 .rotate(physShip.transform.shipToWorldRotation)
-        val momentumModifier: Vector3dc = Vector3d(physShip.poseVel.omega).cross(r).mul(physShip.inertia.shipMass)
+        val momentumModifier: Vector3dc = Vector3d(physShip.omega).cross(r).mul(physShip.mass)
         val angularMomentumRelShip: Vector3dc = Vector3d(angularMomentumRelProp).add(momentumModifier)
         val prevAngularMomentumRelShip: Vector3dc = Vector3d(prevAngMomentumRelProp).add(momentumModifier)
         val torque: Vector3dc = Vector3d(prevAngularMomentumRelShip).sub(angularMomentumRelShip).div(1 / 60.0)

@@ -28,19 +28,8 @@ import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBl
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRenderer
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRenderer
-import org.valkyrienskies.clockwork.content.logistics.heat.creative.gas.CreativeGasSourceBlockEntity
-import org.valkyrienskies.clockwork.content.logistics.heat.creative.source.CreativeHeatSourceBlockEntity
-import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEntity
-import org.valkyrienskies.clockwork.content.logistics.heat.pipe.HeatPipeBlockEntityRenderer
-import org.valkyrienskies.clockwork.content.logistics.heat.usage.gas_nozzle.GasNozzleBlockEntity
-import org.valkyrienskies.clockwork.content.logistics.heat.usage.gas_nozzle.GasNozzleRenderer
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
-import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlockEntity
-import org.valkyrienskies.clockwork.content.contraptions.phys.speed_gauge.SpeedGaugeBlockEntity
-import org.valkyrienskies.clockwork.content.contraptions.phys.speed_gauge.SpeedGaugeRenderer
-import java.util.function.BiFunction
-
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.PumpDuctBlockEntity
 
 object ClockworkBlockEntities {
 
@@ -220,25 +209,49 @@ object ClockworkBlockEntities {
         }
         .register()
 
+//    @JvmField
+//    val HEAT_PIPE: BlockEntityEntry<HeatPipeBlockEntity> = ClockworkMod.REGISTRATE
+//        .blockEntity<HeatPipeBlockEntity>("heat_pipe") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+//            HeatPipeBlockEntity(
+//                type,
+//                pos,
+//                state
+//            )
+//        }
+//        .renderer {
+//            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in HeatPipeBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+//                HeatPipeBlockEntityRenderer(
+//                    context!!
+//                )
+//            }
+//        }
+//        .validBlocks(ClockworkBlocks.HEAT_PIPE)
+//        .register()
+
     @JvmField
-    val HEAT_PIPE: BlockEntityEntry<HeatPipeBlockEntity> = ClockworkMod.REGISTRATE
-        .blockEntity<HeatPipeBlockEntity>("heat_pipe") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
-            HeatPipeBlockEntity(
+    val DUCT: BlockEntityEntry<DuctBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<DuctBlockEntity>("duct") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            DuctBlockEntity(
                 type,
                 pos,
                 state
             )
         }
-        .renderer {
-            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in HeatPipeBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
-                HeatPipeBlockEntityRenderer(
-                    context!!
-                )
-            }
-        }
-        .validBlocks(ClockworkBlocks.HEAT_PIPE)
+        .validBlocks(ClockworkBlocks.DUCT)
         .register()
-    
+
+    @JvmField
+    val PUMP_DUCT: BlockEntityEntry<PumpDuctBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<PumpDuctBlockEntity>("pump_duct") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            PumpDuctBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .validBlocks(ClockworkBlocks.PUMP_DUCT)
+        .register()
+
     @JvmField
     val GOO_BLOCK = ClockworkMod.REGISTRATE.blockEntity<GooBlockEntity>("goo_block") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
         GooBlockEntity(
@@ -273,68 +286,6 @@ object ClockworkBlockEntities {
             }
         }
         .validBlocks(ClockworkBlocks.SLICKER)
-        .register()
-        
-    @JvmField
-    val CREATIVE_GAS_SOURCE: BlockEntityEntry<CreativeGasSourceBlockEntity> = ClockworkMod.REGISTRATE
-        .blockEntity<CreativeGasSourceBlockEntity>("creative_gas_source") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
-            CreativeGasSourceBlockEntity(
-                type,
-                pos,
-                state
-            )
-        }
-        .validBlocks(ClockworkBlocks.CREATIVE_GAS_SOURCE)
-        .register()
-
-    @JvmField
-    val CREATIVE_HEAT_SOURCE: BlockEntityEntry<CreativeHeatSourceBlockEntity> = ClockworkMod.REGISTRATE
-        .blockEntity<CreativeHeatSourceBlockEntity>("creative_heat_source") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
-            CreativeHeatSourceBlockEntity(
-                type,
-                pos,
-                state
-            )
-        }
-        .validBlocks(ClockworkBlocks.CREATIVE_HEAT_SOURCE)
-        .register()
-
-    @JvmField
-    val GAS_NOZZLE: BlockEntityEntry<GasNozzleBlockEntity> = ClockworkMod.REGISTRATE
-        .blockEntity<GasNozzleBlockEntity>("gas_nozzle") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
-            GasNozzleBlockEntity(
-                type,
-                pos,
-                state
-            )
-        }
-        .renderer {
-            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in GasNozzleBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
-                GasNozzleRenderer(
-                    context!!
-                )
-            }
-        }
-        .validBlocks(ClockworkBlocks.GAS_NOZZLE)
-        .register()
-
-    val SPEED_GAUGE: BlockEntityEntry<SpeedGaugeBlockEntity> = ClockworkMod.REGISTRATE
-        .blockEntity<SpeedGaugeBlockEntity>(
-            "speed_gauge"
-        ) { typeIn: BlockEntityType<SpeedGaugeBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
-            SpeedGaugeBlockEntity(
-                typeIn,
-                pos!!, state!!
-            )
-        }
-        .renderer {
-            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in SpeedGaugeBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
-                SpeedGaugeRenderer(
-                    context!!
-                )
-            }
-        }
-        .validBlocks(ClockworkBlocks.SPEED_GAUGE)
         .register()
 
     @JvmStatic
