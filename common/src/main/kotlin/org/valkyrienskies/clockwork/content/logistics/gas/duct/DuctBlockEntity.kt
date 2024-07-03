@@ -43,23 +43,6 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
         super.write(tag, clientPacket)
     }
 
-    override fun initialize() {
-        super.initialize()
-
-        if (this.level?.isClientSide == true) {
-            return
-        }
-
-        ClockworkMod.getKelvin().addNode(this.blockPos.toJOMLD(), createPipeNode(this.blockPos.toJOMLD(), ClockworkMod.getKelvin()))
-        for (dir in Direction.values()) {
-            val block = this.level!!.getBlockState(this.blockPos).block
-            val otherBlock = this.level!!.getBlockState(this.blockPos.relative(dir)).block
-            if (block is IDuct && otherBlock is IDuct && block.canConnectTo(this.blockPos, this.blockPos.relative(dir), this.level!!) && otherBlock.canConnectTo(this.blockPos.relative(dir), this.blockPos, this.level!!)) {
-                ClockworkMod.getKelvin().addEdge(this.blockPos.toJOMLD(), this.blockPos.relative(dir).toJOMLD(), createPipeEdge(this.blockPos.toJOMLD(), this.blockPos.relative(dir).toJOMLD()))
-            }
-        }
-    }
-
     override fun remove() {
         ClockworkMod.getKelvin().removeNode(this.blockPos.toJOMLD())
         super.remove()
