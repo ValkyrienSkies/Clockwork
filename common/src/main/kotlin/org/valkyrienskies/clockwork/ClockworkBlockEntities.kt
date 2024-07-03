@@ -32,6 +32,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.PumpDuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteRenderer
 
 object ClockworkBlockEntities {
 
@@ -312,6 +313,13 @@ object ClockworkBlockEntities {
                 typeIn,
                 pos!!, state!!
             )
+        }
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in DeliveryChuteBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                DeliveryChuteRenderer(
+                    context!!
+                )
+            }
         }
         .validBlocks(ClockworkBlocks.DELIVERY_CHUTE)
         .register()

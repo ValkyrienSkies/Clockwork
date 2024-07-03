@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute
 
+import com.simibubi.create.content.redstone.link.RedstoneLinkBlockEntity
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -22,6 +23,7 @@ class DeliveryChuteBlock(properties: Properties): Block(properties), IBE<Deliver
 
     override fun getBlockEntityType(): BlockEntityType<out DeliveryChuteBlockEntity> {
         return ClockworkBlockEntities.DELIVERY_CHUTE.get()
+
     }
 
 

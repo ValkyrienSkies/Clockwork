@@ -5,6 +5,8 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllBlocks
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.content.logistics.depot.EjectorBlock
+import com.simibubi.create.content.redstone.link.LinkBehaviour
+import com.simibubi.create.content.redstone.link.RedstoneLinkBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour
@@ -27,6 +29,8 @@ import org.valkyrienskies.clockwork.util.blocktype.ISyncableStorage
 import org.valkyrienskies.clockwork.util.blocktype.SyncableStoragePacket
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOMLD
+import java.util.function.Function
+import java.util.function.IntSupplier
 
 class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
     KineticBlockEntity(typeIn, pos, state), ISyncableStorage {
@@ -35,43 +39,42 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
     private var previousInventory: NonNullList<ItemStack> = inventory
     var id = 0
 
-    private lateinit var idBehavior: ScrollValueBehaviour
+    private lateinit var chuteBehaviour: DeliveryChuteBehavior
+
+
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
+        chuteBehaviour = DeliveryChuteBehavior(this,ChuteSlot())
 
-
-        idBehavior = ScrollValueBehaviour(
-            Lang.translateDirect("delivery.identifier"),
-            this,
-            ChuteSlot()
-        )
-            .between(1, 99)
-            .withFormatter { i: Int -> if (i == 0) "*" else i.toString() }
-
-        behaviours.add(idBehavior)
+        behaviours.add(chuteBehaviour)
         super.addBehaviours(behaviours)
     }
 
+
+
+
+
+
     override fun tick() {
-        if (this.level == null) return
-
-        if (this.level!!.isClientSide) return
-
-        if (!ActiveChutes.hasChute(this.worldPosition)) {
-            ActiveChutes.addChute(this.worldPosition, this)
-        }
-
-        id = idBehavior.value
-
-        if (previousInventory != inventory) {
-            ClockworkPackets.sendToNear(
-                this.level!! as ServerLevel,
-                this.worldPosition,
-                64,
-                SyncableStoragePacket(this)
-            )
-        }
-        previousInventory = inventory
+//        if (this.level == null) return
+//
+//        if (this.level!!.isClientSide) return
+//
+//        if (!ActiveChutes.hasChute(this.worldPosition)) {
+//            ActiveChutes.addChute(this.worldPosition, this)
+//        }
+//
+//        id = idBehavior.value
+//
+//        if (previousInventory != inventory) {
+//            ClockworkPackets.sendToNear(
+//                this.level!! as ServerLevel,
+//                this.worldPosition,
+//                64,
+//                SyncableStoragePacket(this)
+//            )
+//        }
+//        previousInventory = inventory
     }
 
     override fun remove() {
