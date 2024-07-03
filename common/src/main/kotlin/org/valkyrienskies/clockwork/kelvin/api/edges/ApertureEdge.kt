@@ -8,7 +8,7 @@ interface ApertureEdge {
 
     var aperture: Double
 
-    fun setAperture(newAperture: Double) {
+    fun setTargetAperture(newAperture: Double) {
         if (newAperture > 0) {
             this.aperture = 0.0
         } else {
