@@ -316,6 +316,32 @@ object ClockworkBlockEntities {
         .validBlocks(ClockworkBlocks.GAS_NOZZLE)
         .register()
 
+    @JvmField
+    val DELIVERY_CANNON: BlockEntityEntry<DeliveryCannonBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<DeliveryCannonBlockEntity>(
+            "delivery_cannon"
+        ) { typeIn: BlockEntityType<DeliveryCannonBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
+            DeliveryCannonBlockEntity(
+                typeIn,
+                pos!!, state!!
+            )
+        }
+        .validBlocks(ClockworkBlocks.DELIVERY_CANNON)
+        .register()
+
+    @JvmField
+    val DELIVERY_CHUTE: BlockEntityEntry<DeliveryChuteBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<DeliveryChuteBlockEntity>(
+            "delivery_chute"
+        ) { typeIn: BlockEntityType<DeliveryChuteBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
+            DeliveryChuteBlockEntity(
+                typeIn,
+                pos!!, state!!
+            )
+        }
+        .validBlocks(ClockworkBlocks.DELIVERY_CHUTE)
+        .register()
+
     @JvmStatic
     fun register() {
     }

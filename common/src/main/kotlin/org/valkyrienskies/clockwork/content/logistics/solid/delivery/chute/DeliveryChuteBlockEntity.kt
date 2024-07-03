@@ -39,13 +39,13 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
 
+
         idBehavior = ScrollValueBehaviour(
             Lang.translateDirect("delivery.identifier"),
             this,
             ChuteSlot()
         )
             .between(1, 99)
-            .requiresWrench()
             .withFormatter { i: Int -> if (i == 0) "*" else i.toString() }
 
         behaviours.add(idBehavior)
@@ -196,7 +196,7 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
         }
 
         override fun isSideActive(state: BlockState, direction: Direction): Boolean {
-            return (direction.axis === state.getValue(EjectorBlock.HORIZONTAL_FACING).axis || direction == Direction.UP)
+            return direction != Direction.UP && direction != Direction.DOWN
         }
 
         override fun getSouthLocation(): Vec3 {
