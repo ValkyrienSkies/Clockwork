@@ -3,10 +3,8 @@ package org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon
 import com.jozufozu.flywheel.util.transform.TransformStack
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
-import com.simibubi.create.content.schematics.cannon.SchematicannonRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
-import com.simibubi.create.foundation.utility.AngleHelper
 import com.simibubi.create.foundation.utility.VecHelper
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
@@ -19,8 +17,10 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.FrequencySlotRenderer
+import kotlin.math.atan
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sqrt
 
 class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): FrequencySlotRenderer<DeliveryCannonBlockEntity>(context) {
 
@@ -37,27 +37,28 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
     ) {
         super.renderSafe(be, partialTicks, ms, buffer, light, overlay)
 
-        val antenna = CachedBufferer.partial(ClockworkPartials.CANNON_ANTENNA,be.blockState)
-        val base = CachedBufferer.partial(ClockworkPartials.CANNON_BASE,be.blockState)
-        val mount = CachedBufferer.partial(ClockworkPartials.CANNON_MOUNT,be.blockState)
-        val barrel = CachedBufferer.partial(ClockworkPartials.CANNON_BARREL,be.blockState)
+        var antenna = CachedBufferer.partial(ClockworkPartials.CANNON_ANTENNA,be.blockState)
+        var base = CachedBufferer.partial(ClockworkPartials.CANNON_BASE,be.blockState)
+        var mount = CachedBufferer.partial(ClockworkPartials.CANNON_MOUNT,be.blockState)
+        var barrel = CachedBufferer.partial(ClockworkPartials.CANNON_BARREL,be.blockState)
+
+
 
         val vb = buffer.getBuffer(RenderType.cutout())
 
-        renderBufferNeutral(be,antenna,ms,vb,light)
-        renderBufferNeutral(be,base,ms,vb,light)
-        renderBufferNeutral(be,mount,ms,vb,light)
-        renderBufferNeutral(be,barrel,ms,vb,light)
 
 
 
-        val msr = TransformStack.cast(ms)
+
+
+
+
 
 
         if (!be.transportStack.isEmpty) {
-            be.rotate+=1
+            be.rotate+=partialTicks
 
-            val startVec = blockToVec(be.blockPos).add(Vec3(0.0,1.0,0.0))
+            val startVec = blockToVec(be.blockPos).add(Vec3(0.0,0.75,0.0))
             val endVec = blockToVec(be.location).add(Vec3(0.0,0.5,0.0))
 
             var delta = 0.0
@@ -70,10 +71,48 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
             if (startVec.x-endVec.x>startVec.z-endVec.z) y = Parabola(startVec.x,startVec.y,endVec.x,endVec.y,startVec.lerp(endVec,delta).x,og.x)
             else y = Parabola(startVec.z,startVec.y,endVec.z,endVec.y,startVec.lerp(endVec,delta).z,og.z)
 
+            val msr = TransformStack.cast(ms)
+
+            val msLocal = PoseStack()
+            val msrLocal = TransformStack.cast(msLocal)
 
 
-            println(be.progress)
-            println(y)
+            msrLocal.centre()
+            // Y Axis rotation
+            var dif = startVec.subtract(endVec)
+            var mount_angle = euler_angle(dif.z,-dif.x)
+
+            mount.rotateCentered(Direction.UP, ((-mount_angle - 90) / 180 * Math.PI).toFloat())
+            base.rotateCentered(Direction.UP, ((-mount_angle - 90) / 180 * Math.PI).toFloat())
+            barrel.rotateCentered(Direction.UP, ((-mount_angle - 90) / 180 * Math.PI).toFloat())
+            antenna.rotateCentered(Direction.UP, ((-mount_angle - 90) / 180 * Math.PI).toFloat())
+
+            // X Axis rotation
+
+            var cY: Double
+            if (startVec.x-endVec.x>startVec.z-endVec.z) cY = Parabola(startVec.x,startVec.y,endVec.x,endVec.y,startVec.lerp(endVec,delta).x,startVec.lerp(endVec,delta).x)
+            else cY = Parabola(startVec.z,startVec.y,endVec.z,endVec.y,startVec.lerp(endVec,delta).z,startVec.lerp(endVec,delta).z)
+
+            dif = startVec.subtract(startVec.lerp(endVec,delta).x,cY,startVec.lerp(endVec,delta).z)
+            mount_angle = min(50.0,euler_angle(dif.y,dif.z)+5)
+            println(mount_angle)
+
+            msrLocal.translate(-8/16.0,-6/16.0,-11.5/16.0)
+            msrLocal.rotateX(mount_angle)
+            base = base.transform(msLocal)
+
+            msrLocal.translate(0/16.0,0/16.0,0/16.0)
+            barrel = barrel.transform(msLocal)
+
+            msrLocal.translate(0/16.0,0/16.0,0/16.0)
+            antenna = antenna.transform(msLocal)
+            // I have to split up the render functions like this, instead having it be at the end
+            // otherwise "BufferBuilder not started" error will pop up
+            render(mount,base,barrel,antenna,ms,vb,light)
+
+
+
+
             val launchedItemLocation = Vec3(og.x,y,og.z)
             be.last = launchedItemLocation
             ms.pushPose()
@@ -95,15 +134,31 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
                     0
                 )
             ms.popPose()
+
+
+
+
+
+
         } else {
 
             be.last = blockToVec(be.blockPos)
             be.rotate=0.0
+
+            render(mount,base,barrel,antenna,ms,vb,light)
         }
+
+
+
     }
 
 
-
+    fun render(mount: SuperByteBuffer, base: SuperByteBuffer, barrel: SuperByteBuffer, antenna: SuperByteBuffer, ms: PoseStack, vb: VertexConsumer, light: Int) {
+        mount.light(light).renderInto(ms,vb)
+        base.light(light).renderInto(ms,vb)
+        barrel.light(light).renderInto(ms,vb)
+        antenna.light(light).renderInto(ms,vb)
+    }
 
     fun blockToVec(pos: BlockPos): Vec3 {
         return Vec3(pos.x.toDouble(),pos.y.toDouble(),pos.z.toDouble())
@@ -113,8 +168,20 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         return buffer.rotateCentered(Direction.UP, ((-target.toYRot() - 90) / 180 * Math.PI).toFloat())
     }
 
-    fun renderBufferNeutral(be: DeliveryCannonBlockEntity, bf: SuperByteBuffer, ms: PoseStack?, vb: VertexConsumer, light: Int) {
-        rotateBufferTowards(bf,be.blockState.getValue(HorizontalDirectionalBlock.FACING)).light(light).renderInto(ms,vb)
+    fun rotatedBuffer(be: DeliveryCannonBlockEntity, bf: SuperByteBuffer, ms: PoseStack?, vb: VertexConsumer, light: Int): SuperByteBuffer {
+        return rotateBufferTowards(bf,be.blockState.getValue(HorizontalDirectionalBlock.FACING))
+    }
+
+    fun antiRotatedBuffer(be: DeliveryCannonBlockEntity, bf: SuperByteBuffer, ms: PoseStack?, vb: VertexConsumer, light: Int): SuperByteBuffer {
+        return rotateBufferTowards(bf,be.blockState.getValue(HorizontalDirectionalBlock.FACING).opposite)
+    }
+
+    fun euler_angle(x: Double,y: Double): Double {
+        var rad = atan(y/x);   // arcus tangent in radians
+        var deg = rad*180/Math.PI;  // converted to degrees
+        if (x<0) deg += 180;        // fixed mirrored angle of arctan
+        var eul = (270+deg)%360;    // folded to [0,360) domain
+        return eul;
     }
 
     companion object {

@@ -39,6 +39,6 @@ class DuctBlock(properties: Properties) : PipeBlock(4/16f, properties), IDuct, I
     }
 
     override fun getBlockEntityType(): BlockEntityType<out DuctBlockEntity> {
-        return ClockworkBlockEntities.DUCT.get()
+        TODO()
     }
 }

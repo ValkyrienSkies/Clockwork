@@ -45,6 +45,8 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     var last = Vec3.ZERO
     var rotate = 0.0
 
+    var xRotation = 0.0
+    var yRotation = 0.0
 
     override fun tick() {
         super.tick()
