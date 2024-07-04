@@ -58,7 +58,7 @@ object ActiveChutes {
             val realBlockPos = BlockPos(realPos.x().toInt(), realPos.y().toInt(), realPos.z().toInt())
             if (realBlockPos.closerThan(pos, maxDistance)) {
                 if (realPos.distance(pos.toJOMLD()) < closestDistance) {
-                    if (actives[chute]!=null) continue
+                    //if (actives[chute]!=null) continue
                     if (actives[chute]!!.frequencySlotBehaviour.frequency == frequency) {
                         closest = chute
                         closestDistance = chute.toJOMLD().distance(pos.toJOMLD())
@@ -83,24 +83,24 @@ object ActiveChutes {
     }
 
     fun tick(level: ServerLevel) {
-        val toUnload: ArrayList<BlockPos> = ArrayList()
-        for (pos in actives.keys) {
-            if (!level.isLoaded(pos)) {
-                toUnload.add(pos)
-            }
-        }
-        for (pos in toUnload) {
-            unloadChute(pos)
-        }
-
-        val toLoad: ArrayList<BlockPos> = ArrayList()
-        for (pos in unloaded.keys) {
-            if (level.isLoaded(pos)) {
-                toLoad.add(pos)
-            }
-        }
-        for (pos in toLoad) {
-            loadChute(pos)
-        }
+//        val toUnload: ArrayList<BlockPos> = ArrayList()
+//        for (pos in actives.keys) {
+//            if (!level.isLoaded(pos)) {
+//                toUnload.add(pos)
+//            }
+//        }
+//        for (pos in toUnload) {
+//            unloadChute(pos)
+//        }
+//
+//        val toLoad: ArrayList<BlockPos> = ArrayList()
+//        for (pos in unloaded.keys) {
+//            if (level.isLoaded(pos)) {
+//                toLoad.add(pos)
+//            }
+//        }
+//        for (pos in toLoad) {
+//            loadChute(pos)
+//        }
     }
 }

@@ -7,14 +7,20 @@ import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.content.logistics.depot.EjectorBlock
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
+import com.simibubi.create.foundation.item.ItemHelper
 import com.simibubi.create.foundation.utility.AngleHelper
 import com.simibubi.create.foundation.utility.VecHelper
+import io.github.fabricators_of_create.porting_lib.transfer.StorageProvider
+import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.NonNullList
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
@@ -29,6 +35,8 @@ import org.valkyrienskies.mod.common.util.toJOMLD
 
 class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
     KineticBlockEntity(typeIn, pos, state), ISyncableStorage {
+
+    lateinit var capBelow: StorageProvider<ItemVariant>
 
     private var inventory: NonNullList<ItemStack> = NonNullList.withSize(1, ItemStack.EMPTY)
     private var previousInventory: NonNullList<ItemStack> = inventory
@@ -69,6 +77,13 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
             )
         }
         previousInventory = inventory
+
+        if (!isEmpty) handleDownwardOutput(false)
+    }
+
+    override fun setLevel(level: Level) {
+        super.setLevel(level)
+        capBelow = StorageProvider.createForItems(level, worldPosition.below())
     }
 
     override fun remove() {
@@ -86,6 +101,10 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
 
     override fun getStorageInventorySize(): Int {
         return 1
+    }
+
+    override fun getBlockPositionFromISS(): BlockPos {
+        return worldPosition
     }
 
     private fun isOnShip(): Boolean {
@@ -164,10 +183,40 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
         return true
     }
 
-    override fun getBlockPositionFromISS(): BlockPos {
-        return this.worldPosition
+    private fun grabCapability(side: Direction): Storage<ItemVariant>? {
+        if (level == null) return null
+        val provider: StorageProvider<ItemVariant> = capBelow
+        val be = provider.findBlockEntity()
+        return provider[side.opposite]
     }
 
+    fun handleDownwardOutput(simulate: Boolean): Boolean {
+
+		if (level == null) return false
+		val inv  = grabCapability(Direction.DOWN);
+		if (!isEmpty) {
+            if (level!!.isClientSide && !isVirtual())
+                return false;
+
+
+            TransferUtil.getTransaction().use { t ->
+                val inserted = inv!!.insert(
+                    ItemVariant.of(getItem(0)),
+                    getItem(0).getCount().toLong(),
+                    t
+                )
+                if (inserted != 0L && !simulate) t.commit()
+                val held = getItem(0)
+                if (!simulate) {
+                    val newStack = held.copy()
+                    newStack.shrink(ItemHelper.truncateLong(inserted))
+                    setItem(0, newStack)
+                }
+                if (inserted != 0L) return true
+            }
+        }
+        return false
+   }
 
     public class FrequencySlot : ValueBoxTransform.Sided() {
         override fun getLocalOffset(state: BlockState): Vec3 {

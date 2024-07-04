@@ -47,8 +47,8 @@ class DeliveryCannonBlock(properties: Properties) : HorizontalDirectionalBlock(p
         return ClockworkBlockEntities.DELIVERY_CANNON.get()
     }
 
-    override fun canSurvive(state: BlockState?, level: LevelReader, pos: BlockPos): Boolean {
-        
+    override fun canSurvive(state: BlockState, level: LevelReader, pos: BlockPos): Boolean {
+
         // This is a really stupid way to do it, but neither == ALlBlocks.Depot nor anything else seems to work
         val desc = level.getBlockState(pos.below()).block.descriptionId
         return desc == "block.create.depot" || desc == "block.create.belt" || desc == "block.create.chute"
@@ -57,12 +57,12 @@ class DeliveryCannonBlock(properties: Properties) : HorizontalDirectionalBlock(p
     override fun updateShape(
         state: BlockState,
         direction: Direction,
-        neighborState: BlockState?,
-        level: LevelAccessor?,
-        currentPos: BlockPos?,
-        neighborPos: BlockPos?
+        neighborState: BlockState,
+        level: LevelAccessor,
+        currentPos: BlockPos,
+        neighborPos: BlockPos
     ): BlockState {
-        if (level == null || currentPos == null || !canSurvive(state,level,currentPos))  {
+        if (!canSurvive(state,level,currentPos))  {
             return Blocks.AIR.defaultBlockState()
         }
         return super.updateShape(state, direction, neighborState, level, currentPos, neighborPos)
@@ -94,7 +94,7 @@ class DeliveryCannonBlock(properties: Properties) : HorizontalDirectionalBlock(p
             val blockBelt = underBlock.block as BeltBlock
             val axis = blockBelt.getRotationAxis(underBlock)
 
-            if (axis.isHorizontal) {
+            if (axis.isHorizontal) { // This forces the block to be aligned with belts
                 if (axis == Axis.X) {
                     if (context.horizontalDirection == Direction.EAST || context.horizontalDirection == Direction.WEST) {
                         return defaultBlockState().setValue(
@@ -116,7 +116,7 @@ class DeliveryCannonBlock(properties: Properties) : HorizontalDirectionalBlock(p
 
         return defaultBlockState().setValue(
             FACING,
-            context.horizontalDirection.clockWise
+            context.horizontalDirection.clockWise // The model is made in a weird way, so i have to do this
         ) as BlockState
     }
 
