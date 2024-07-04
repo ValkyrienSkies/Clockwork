@@ -4,8 +4,6 @@ import com.jozufozu.flywheel.util.transform.TransformStack
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllBlocks
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
-import com.simibubi.create.content.logistics.chute.ChuteBlockEntity
-import com.simibubi.create.content.logistics.chute.SmartChuteBlockEntity
 import com.simibubi.create.content.logistics.depot.EjectorBlock
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
@@ -23,9 +21,11 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
+import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.ActiveChutes
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.FrequencySlotBehaviour
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
+import kotlin.math.max
 
 class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : KineticBlockEntity(type, pos,
     state
@@ -36,9 +36,20 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
     var currentStack: ItemStack = ItemStack.EMPTY
 
+    var transportStack: ItemStack = ItemStack.EMPTY
+    var progress: Double = 0.0
+    var location = BlockPos.ZERO
+    var distance: Double = 0.0
+
+
+    var last = Vec3.ZERO
+    var rotate = 0.0
+
+
     override fun tick() {
         super.tick()
 
+        if (level!!.isClientSide) return
 
 
         val cap = grabCapability(Direction.DOWN) ?: return
@@ -47,12 +58,46 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
         val chute = ActiveChutes.getNearestChuteWithFrequency(blockPos,100.0,frequencySlotBehaviour.frequency)
 
-        if (chute!=null && !currentStack.isEmpty) {
+        if (chute!=null && !currentStack.isEmpty && transportStack.isEmpty) {
             val be = level!!.getBlockEntity(chute) as DeliveryChuteBlockEntity
-            val attempt = be.receiveItem(currentStack)
-            println(attempt)
-            if (attempt) currentStack = ItemStack.EMPTY
+            val attempt = be.receiveItem(currentStack,true)
+            if (attempt) {
+
+                transportStack = currentStack.copy()
+                currentStack = ItemStack.EMPTY
+                location = chute
+                distance = blockPos.distSqr(chute)
+                be.isRecieving = true
+
+
+            }
         }
+
+
+        if (!transportStack.isEmpty) {
+            if (!ActiveChutes.hasChute(location)) {
+                transportStack = ItemStack.EMPTY
+                progress = 0.0
+
+                return
+            }
+
+            progress += max(-0.00005*distance + 0.05,0.001)
+            if (progress >= 1 ) {
+                val be = level!!.getBlockEntity(location) as DeliveryChuteBlockEntity
+                be.receiveItem(transportStack,false)
+                transportStack = ItemStack.EMPTY
+                progress = 0.0
+                be.isRecieving = false
+
+            }
+        }
+
+        sync()
+    }
+
+    fun sync() {
+        ClockworkPackets.sendToNear(level!!,blockPos,100,DeliveryCannonSyncPacket(transportStack,location, progress,blockPos))
     }
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {

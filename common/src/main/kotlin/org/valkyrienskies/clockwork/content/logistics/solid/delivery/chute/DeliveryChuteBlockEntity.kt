@@ -44,6 +44,7 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
 
     lateinit var frequencySlotBehaviour: FrequencySlotBehaviour
 
+    var isRecieving = false
 
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
@@ -122,14 +123,14 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
         }
     }
 
-    fun receiveItem(itemStack: ItemStack): Boolean {
+    fun receiveItem(itemStack: ItemStack, simulate: Boolean): Boolean {
         if (inventory[0].isEmpty) {
-            inventory[0] = itemStack
+            if (!simulate) inventory[0] = itemStack
             return true
         } else {
             if (inventory[0].`is`(itemStack.item)) {
                 if (inventory[0].count + itemStack.count <= inventory[0].maxStackSize) {
-                    inventory[0].count += itemStack.count
+                    if (!simulate) inventory[0].count += itemStack.count
                     return true
                 }
             }
