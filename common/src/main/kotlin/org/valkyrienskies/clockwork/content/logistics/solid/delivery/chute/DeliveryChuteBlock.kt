@@ -1,17 +1,30 @@
 package org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute
 
-import com.simibubi.create.content.redstone.link.RedstoneLinkBlockEntity
+import com.simibubi.create.AllItems
 import com.simibubi.create.foundation.block.IBE
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
+import com.simibubi.create.foundation.utility.AdventureUtil
+import com.simibubi.create.foundation.utility.RaycastHelper
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.sounds.SoundEvents
+import net.minecraft.sounds.SoundSource
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.InteractionResult
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.level.block.FaceAttachedHorizontalDirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.ClockworkPackets
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.FrequencySlotBehaviour
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.FrequencySlotGlobals
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.UpdateFrequencySlotPacket
 
 class DeliveryChuteBlock(properties: Properties): Block(properties), IBE<DeliveryChuteBlockEntity> {
     override fun getBlockEntityClass(): Class<DeliveryChuteBlockEntity> {
@@ -19,7 +32,17 @@ class DeliveryChuteBlock(properties: Properties): Block(properties), IBE<Deliver
         return DeliveryChuteBlockEntity::class.java
     }
 
+    override fun use(
+        state: BlockState,
+        level: Level,
+        pos: BlockPos,
+        player: Player,
+        hand: InteractionHand,
+        hit: BlockHitResult
+    ): InteractionResult {
 
+        return FrequencySlotGlobals.use(state, level, pos, player, hand, hit)
+    }
 
     override fun getBlockEntityType(): BlockEntityType<out DeliveryChuteBlockEntity> {
         return ClockworkBlockEntities.DELIVERY_CHUTE.get()

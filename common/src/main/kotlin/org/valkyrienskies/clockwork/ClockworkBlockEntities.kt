@@ -28,11 +28,10 @@ import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBl
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRenderer
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRenderer
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.PumpDuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteRenderer
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.FrequencySlotRenderer
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer
 
 object ClockworkBlockEntities {
 
@@ -231,29 +230,29 @@ object ClockworkBlockEntities {
 //        .validBlocks(ClockworkBlocks.HEAT_PIPE)
 //        .register()
 
-    @JvmField
-    val DUCT: BlockEntityEntry<DuctBlockEntity> = ClockworkMod.REGISTRATE
-        .blockEntity<DuctBlockEntity>("duct") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
-            DuctBlockEntity(
-                type,
-                pos,
-                state
-            )
-        }
-        .validBlocks(ClockworkBlocks.DUCT)
-        .register()
-
-    @JvmField
-    val PUMP_DUCT: BlockEntityEntry<PumpDuctBlockEntity> = ClockworkMod.REGISTRATE
-        .blockEntity<PumpDuctBlockEntity>("pump_duct") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
-            PumpDuctBlockEntity(
-                type,
-                pos,
-                state
-            )
-        }
-        .validBlocks(ClockworkBlocks.PUMP_DUCT)
-        .register()
+//    @JvmField
+//    val DUCT: BlockEntityEntry<DuctBlockEntity> = ClockworkMod.REGISTRATE
+//        .blockEntity<DuctBlockEntity>("duct") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+//            DuctBlockEntity(
+//                type,
+//                pos,
+//                state
+//            )
+//        }
+//        .validBlocks(ClockworkBlocks.DUCT)
+//        .register()
+//
+//    @JvmField
+//    val PUMP_DUCT: BlockEntityEntry<PumpDuctBlockEntity> = ClockworkMod.REGISTRATE
+//        .blockEntity<PumpDuctBlockEntity>("pump_duct") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+//            PumpDuctBlockEntity(
+//                type,
+//                pos,
+//                state
+//            )
+//        }
+//        .validBlocks(ClockworkBlocks.PUMP_DUCT)
+//        .register()
 
     @JvmField
     val GOO_BLOCK = ClockworkMod.REGISTRATE.blockEntity<GooBlockEntity>("goo_block") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
@@ -301,6 +300,13 @@ object ClockworkBlockEntities {
                 pos!!, state!!
             )
         }
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in DeliveryCannonBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                DeliveryCannonRenderer(
+                    context!!
+                )
+            }
+        }
         .validBlocks(ClockworkBlocks.DELIVERY_CANNON)
         .register()
 
@@ -316,7 +322,7 @@ object ClockworkBlockEntities {
         }
         .renderer {
             NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in DeliveryChuteBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
-                DeliveryChuteRenderer(
+                FrequencySlotRenderer<DeliveryChuteBlockEntity>(
                     context!!
                 )
             }

@@ -5,13 +5,9 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllBlocks
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.content.logistics.depot.EjectorBlock
-import com.simibubi.create.content.redstone.link.LinkBehaviour
-import com.simibubi.create.content.redstone.link.RedstoneLinkBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
-import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour
 import com.simibubi.create.foundation.utility.AngleHelper
-import com.simibubi.create.foundation.utility.Lang
 import com.simibubi.create.foundation.utility.VecHelper
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -25,28 +21,27 @@ import net.minecraft.world.phys.Vec3
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.ActiveChutes
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.FrequencySlotBehaviour
 import org.valkyrienskies.clockwork.util.blocktype.ISyncableStorage
 import org.valkyrienskies.clockwork.util.blocktype.SyncableStoragePacket
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOMLD
-import java.util.function.Function
-import java.util.function.IntSupplier
 
 class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
     KineticBlockEntity(typeIn, pos, state), ISyncableStorage {
 
     private var inventory: NonNullList<ItemStack> = NonNullList.withSize(1, ItemStack.EMPTY)
     private var previousInventory: NonNullList<ItemStack> = inventory
-    var id = 0
 
-    private lateinit var chuteBehaviour: DeliveryChuteBehavior
+
+    lateinit var frequencySlotBehaviour: FrequencySlotBehaviour
 
 
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
-        chuteBehaviour = DeliveryChuteBehavior(this,ChuteSlot())
+        frequencySlotBehaviour = FrequencySlotBehaviour(this,FrequencySlot())
 
-        behaviours.add(chuteBehaviour)
+        behaviours.add(frequencySlotBehaviour)
         super.addBehaviours(behaviours)
     }
 
@@ -56,25 +51,24 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
 
 
     override fun tick() {
-//        if (this.level == null) return
-//
-//        if (this.level!!.isClientSide) return
-//
-//        if (!ActiveChutes.hasChute(this.worldPosition)) {
-//            ActiveChutes.addChute(this.worldPosition, this)
-//        }
-//
-//        id = idBehavior.value
-//
-//        if (previousInventory != inventory) {
-//            ClockworkPackets.sendToNear(
-//                this.level!! as ServerLevel,
-//                this.worldPosition,
-//                64,
-//                SyncableStoragePacket(this)
-//            )
-//        }
-//        previousInventory = inventory
+        if (this.level == null) return
+
+        if (this.level!!.isClientSide) return
+
+        if (!ActiveChutes.hasChute(this.worldPosition)) {
+            ActiveChutes.addChute(this.worldPosition, this)
+        }
+
+
+        if (previousInventory != inventory) {
+            ClockworkPackets.sendToNear(
+                this.level!! as ServerLevel,
+                this.worldPosition,
+                64,
+                SyncableStoragePacket(this)
+            )
+        }
+        previousInventory = inventory
     }
 
     override fun remove() {
@@ -175,7 +169,7 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
     }
 
 
-    private class ChuteSlot : ValueBoxTransform.Sided() {
+    public class FrequencySlot : ValueBoxTransform.Sided() {
         override fun getLocalOffset(state: BlockState): Vec3 {
             return if (direction != Direction.UP) super.getLocalOffset(state) else Vec3(.5, 10.5 / 16f, .5).add(
                 VecHelper.rotate(

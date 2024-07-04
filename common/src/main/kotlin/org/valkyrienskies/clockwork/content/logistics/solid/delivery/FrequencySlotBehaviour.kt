@@ -1,7 +1,6 @@
-package org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute
+package org.valkyrienskies.clockwork.content.logistics.solid.delivery
 
 import com.simibubi.create.content.equipment.clipboard.ClipboardCloneable
-import com.simibubi.create.content.redstone.link.LinkBehaviour
 import com.simibubi.create.content.redstone.link.RedstoneLinkNetworkHandler.Frequency
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType
@@ -11,10 +10,9 @@ import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
-import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.Vec3
 
-class DeliveryChuteBehavior(be: SmartBlockEntity?, val slot: ValueBoxTransform) : BlockEntityBehaviour(be), ClipboardCloneable  {
+class FrequencySlotBehaviour(be: SmartBlockEntity?, val slot: ValueBoxTransform) : BlockEntityBehaviour(be), ClipboardCloneable  {
 
 
 
@@ -77,7 +75,7 @@ class DeliveryChuteBehavior(be: SmartBlockEntity?, val slot: ValueBoxTransform) 
 
 
     companion object {
-        val TYPE: BehaviourType<DeliveryChuteBehavior> = BehaviourType()
+        val TYPE: BehaviourType<FrequencySlotBehaviour> = BehaviourType()
     }
 
 }

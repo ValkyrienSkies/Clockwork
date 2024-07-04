@@ -1,27 +1,37 @@
-package org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute
+package org.valkyrienskies.clockwork.content.logistics.solid.delivery
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.datafixers.util.Pair
+import com.simibubi.create.AllItems
 import com.simibubi.create.CreateClient
-import com.simibubi.create.content.redstone.link.LinkBehaviour
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBox
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxRenderer
-import com.simibubi.create.foundation.utility.Iterate
+import com.simibubi.create.foundation.utility.AdventureUtil
 import com.simibubi.create.foundation.utility.Lang
+import com.simibubi.create.foundation.utility.RaycastHelper
 import com.simibubi.create.foundation.utility.VecHelper
 import com.simibubi.create.infrastructure.config.AllConfigs
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
+import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
+import net.minecraft.sounds.SoundEvents
+import net.minecraft.sounds.SoundSource
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.InteractionResult
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.level.Level
+import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
+import org.valkyrienskies.clockwork.ClockworkPackets
 
 
-object ChuteSlotRenderer {
+object FrequencySlotGlobals {
     fun tick() {
         val mc = Minecraft.getInstance()
         val target = mc.hitResult
@@ -31,7 +41,7 @@ object ChuteSlotRenderer {
         val world = mc.level
         val pos = result.blockPos
 
-        val behaviour = BlockEntityBehaviour.get(world, pos, DeliveryChuteBehavior.TYPE)
+        val behaviour = BlockEntityBehaviour.get(world, pos, FrequencySlotBehaviour.TYPE)
             ?: return
 
 
@@ -63,28 +73,35 @@ object ChuteSlotRenderer {
 
     }
 
-    fun renderOnBlockEntity(
-        be: SmartBlockEntity?, partialTicks: Float, ms: PoseStack,
-        buffer: MultiBufferSource?, light: Int, overlay: Int
-    ) {
-        if (be == null || be.isRemoved) return
 
-        val cameraEntity = Minecraft.getInstance().cameraEntity
-        val max = AllConfigs.client().filterItemRenderDistance.f
-        if (!be.isVirtual && cameraEntity != null && cameraEntity.position()
-                .distanceToSqr(VecHelper.getCenterOf(be.blockPos)) > (max * max)
-        ) return
-
-        val behaviour = be.getBehaviour(DeliveryChuteBehavior.TYPE)
-            ?: return
+    fun use(
+        state: BlockState,
+        level: Level,
+        pos: BlockPos,
+        player: Player,
+        hand: InteractionHand,
+        hit: BlockHitResult
+    ): InteractionResult {
 
 
-        val stack = behaviour.frequency.stack
+        if (!level.isClientSide) return InteractionResult.SUCCESS
+        val pos = hit.blockPos
+        if (player.isShiftKeyDown || player.isSpectator) return InteractionResult.PASS
+        val behaviour = BlockEntityBehaviour.get(level, pos, FrequencySlotBehaviour.TYPE)
+            ?: return InteractionResult.PASS
+        if (AdventureUtil.isAdventure(player)) return InteractionResult.PASS
+        val heldItem = player.getItemInHand(hand)
+        val ray = RaycastHelper.rayTraceRange(level, player, 10.0)
+            ?: return InteractionResult.PASS
+        if (AllItems.WRENCH.isIn(heldItem)) return InteractionResult.PASS
 
-        ms.pushPose()
-        behaviour.slot.transform(be.blockState, ms)
-        ValueBoxRenderer.renderItemIntoValueBox(stack, ms, buffer, light, overlay)
-        ms.popPose()
+        if (behaviour.testHit(ray.location)) {
+            ClockworkPackets.sendToServer(UpdateFrequencySlotPacket(heldItem, pos))
+            level.playSound(player, pos, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.BLOCKS, .25f, .1f)
+            return InteractionResult.SUCCESS
 
+        }
+
+        return InteractionResult.PASS
     }
 }

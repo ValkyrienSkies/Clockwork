@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.solid.delivery
 
+import com.simibubi.create.content.redstone.link.RedstoneLinkNetworkHandler.Frequency
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
 import org.joml.Vector3dc
@@ -7,8 +8,8 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.Deliv
 import org.valkyrienskies.mod.common.util.toJOMLD
 
 object ActiveChutes {
-    private val actives: HashMap<BlockPos, DeliveryChuteBlockEntity> = HashMap()
-    private val unloaded: HashMap<BlockPos, DeliveryChuteBlockEntity> = HashMap()
+     val actives: HashMap<BlockPos, DeliveryChuteBlockEntity> = HashMap()
+     val unloaded: HashMap<BlockPos, DeliveryChuteBlockEntity> = HashMap()
 
     fun addChute(pos: BlockPos, chute: DeliveryChuteBlockEntity) {
         actives[pos] = chute
@@ -49,7 +50,7 @@ object ActiveChutes {
         return closest
     }
 
-    fun getNearestChuteWithId(pos: BlockPos, maxDistance: Double, id: Int): BlockPos? {
+    fun getNearestChuteWithFrequency(pos: BlockPos, maxDistance: Double, frequency: Frequency): BlockPos? {
         var closest: BlockPos? = null
         var closestDistance: Double = Double.MAX_VALUE
         for (chute in actives.keys) {
@@ -57,7 +58,8 @@ object ActiveChutes {
             val realBlockPos = BlockPos(realPos.x().toInt(), realPos.y().toInt(), realPos.z().toInt())
             if (realBlockPos.closerThan(pos, maxDistance)) {
                 if (realPos.distance(pos.toJOMLD()) < closestDistance) {
-                    if (actives[chute]!!.id == id) {
+                    if (actives[chute]!=null) continue
+                    if (actives[chute]!!.frequencySlotBehaviour.frequency == frequency) {
                         closest = chute
                         closestDistance = chute.toJOMLD().distance(pos.toJOMLD())
                     }
