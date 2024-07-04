@@ -11,6 +11,7 @@ import com.simibubi.create.foundation.utility.AngleHelper
 import com.simibubi.create.foundation.utility.VecHelper
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
@@ -62,7 +63,9 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         }
 
         override fun isSideActive(state: BlockState, direction: Direction): Boolean {
-            return direction != Direction.UP && direction != Direction.DOWN
+            return direction != Direction.UP && direction != Direction.DOWN  // This is atrocious, but it's 5 am and I don't care
+                    && ((state.getValue(HorizontalDirectionalBlock.FACING)==Direction.NORTH || state.getValue(HorizontalDirectionalBlock.FACING)==Direction.SOUTH) && (direction == Direction.NORTH || direction == Direction.SOUTH)
+                    || ((state.getValue(HorizontalDirectionalBlock.FACING)==Direction.WEST || state.getValue(HorizontalDirectionalBlock.FACING)==Direction.EAST) && (direction == Direction.WEST || direction == Direction.EAST)))
         }
 
         override fun getSouthLocation(): Vec3 {

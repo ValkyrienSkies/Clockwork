@@ -98,6 +98,12 @@ object ClockworkPartials {
     //END OF PIPE DEATH
 
 
+    // region Delivery cannon
+    val CANNON_ANTENNA = PartialModel(ClockworkMod.asResource("block/delivery_cannon/antenna"))
+    val CANNON_BARREL = PartialModel(ClockworkMod.asResource("block/delivery_cannon/cannon_barrel"))
+    val CANNON_BASE = PartialModel(ClockworkMod.asResource("block/delivery_cannon/cannon_base"))
+    val CANNON_MOUNT = PartialModel(ClockworkMod.asResource("block/delivery_cannon/mount"))
+    // endregion
 
     private fun block(path: String): PartialModel {
         return PartialModel(ClockworkMod.asResource("block/$path"))

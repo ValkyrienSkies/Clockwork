@@ -15,10 +15,10 @@ open class FrequencySlotRenderer<T : SmartBlockEntity>(context: BlockEntityRende
 ) {
 
     override fun renderSafe(
-        be: T?,
+        be: T,
         partialTicks: Float,
-        ms: PoseStack?,
-        buffer: MultiBufferSource?,
+        ms: PoseStack,
+        buffer: MultiBufferSource,
         light: Int,
         overlay: Int
     ) {
