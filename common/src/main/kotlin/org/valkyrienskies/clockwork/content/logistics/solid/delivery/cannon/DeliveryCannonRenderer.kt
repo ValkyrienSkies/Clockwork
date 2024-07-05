@@ -23,7 +23,10 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.FrequencySl
 import org.valkyrienskies.clockwork.util.EaseHelper
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.atan
+import kotlin.math.max
+import kotlin.math.min
 
 class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): FrequencySlotRenderer<DeliveryCannonBlockEntity>(context) {
 
@@ -45,7 +48,6 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         var mount = CachedBufferer.partial(ClockworkPartials.CANNON_MOUNT,be.blockState)
         var barrel = CachedBufferer.partial(ClockworkPartials.CANNON_BARREL,be.blockState)
 
-        var endOfBarrel = Vec3(8/16.0, 15/16.0,-12/16.0)
 
         val xTurnSpeed = Mth.clamp(be.xTargetRotation - be.xLastRotation, -1.0, 1.0)
         val yTurnSpeed = Mth.clamp(be.yTargetRotation - be.yLastRotation, -0.75, 0.75)
@@ -53,45 +55,17 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
 
         val xCurrentRotation = Mth.lerp(partialTicks.toDouble(), be.xLastRotation, be.xLastRotation + xTurnSpeed)
         val yCurrentRotation = Mth.lerp(partialTicks.toDouble(), be.yLastRotation, be.yLastRotation + yTurnSpeed)
-        if (be.progress > 0) {
-            be.clientShotProgress = Mth.clamp(be.clientShotProgress + partialTicks, 0.0, 12.0)
 
-            if (be.clientShotProgress<=4.0) {
-
-                be.clientAntennaRotationOffset = EaseHelper.easeOutElastic(be.clientShotProgress.toFloat()/4f)
-                be.clientCannonRotationOffset = EaseHelper.easeOutQuad(be.clientShotProgress.toFloat()/4f)
-            }
-            else if (be.clientShotProgress <= 8.0){
-                be.clientAntennaRotationOffset = 0.5f-(EaseHelper.easeOutElastic((be.clientShotProgress.toFloat()-5f)/7f))
-                be.clientCannonRotationOffset = 1f - EaseHelper.easeInOutSine((be.clientShotProgress.toFloat()-5f)/7f)
-            } else {
-                be.clientAntennaRotationOffset = Mth.lerp(partialTicks/2f,be.clientAntennaRotationOffset,0f)
-                be.clientCannonRotationOffset = 1f - EaseHelper.easeInOutSine((be.clientShotProgress.toFloat()-5f)/7f)
-            }
-            if (be.clientShotProgress <= 3.0) {
-                be.clientBarrelOffset = EaseHelper.easeOutOvershoot(be.clientShotProgress.toFloat()/3f)
-            } else {
-                be.clientBarrelOffset = 1f - EaseHelper.easeInOutQuad((be.clientShotProgress.toFloat()-4f)/8f)
-
-            }
-
-        } else {
-            be.clientShotProgress = 0.0
-            be.clientBarrelOffset = 0.0f
-            be.clientAntennaRotationOffset = 0.0f
-            be.clientCannonRotationOffset = 0.0f
-        }
+        handleShootingAnim(be, partialTicks)
 
         val lookDir = VecHelper.rotate(be.blockState.getValue(HorizontalDirectionalBlock.FACING).normal.toJOMLD().toMinecraft(), be.yRotation, be.xRotation, 0.0).normalize()
 
         // X Axis rotation
         // doing it like this is easier than using AngleHelper.rad()
-        mount.rotateCentered(Direction.UP, ((-xCurrentRotation - 90.0) / 180.0 * Math.PI).toFloat())
-        base.rotateCentered(Direction.UP, ((-xCurrentRotation - 90.0) / 180.0 * Math.PI).toFloat())
-        barrel.rotateCentered(Direction.UP, ((-xCurrentRotation - 90.0) / 180.0 * Math.PI).toFloat())
-        antenna.rotateCentered(Direction.UP, ((-xCurrentRotation - 90.0) / 180.0 * Math.PI).toFloat())
-
-        endOfBarrel = VecHelper.rotate(endOfBarrel, AngleHelper.rad(xCurrentRotation).toDouble(), AngleHelper.rad(yCurrentRotation).toDouble(), 0.0)
+        mount = rotateCentered(mount, xCurrentRotation)
+        base = rotateCentered(base, xCurrentRotation)
+        barrel = rotateCentered(barrel, xCurrentRotation)
+        antenna = rotateCentered(antenna, xCurrentRotation)
 
         // Y Axis rotation
         var clientCannonRotOffsetRad = be.clientCannonRotationOffset * 15.0
@@ -158,11 +132,47 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         }
     }
 
+    fun handleShootingAnim(be: DeliveryCannonBlockEntity, partialTicks: Float) {
+        if (be.progress > 0) {
+            be.clientShotProgress = Mth.clamp(be.clientShotProgress + partialTicks, 0.0, 12.0)
+
+            if (be.clientShotProgress<=4.0) {
+
+                be.clientAntennaRotationOffset = EaseHelper.easeOutElastic(be.clientShotProgress.toFloat()/4f)
+                be.clientCannonRotationOffset = EaseHelper.easeOutQuad(be.clientShotProgress.toFloat()/4f)
+            }
+            else if (be.clientShotProgress <= 8.0){
+                be.clientAntennaRotationOffset = 0.5f-(EaseHelper.easeOutElastic((be.clientShotProgress.toFloat()-5f)/7f))
+                be.clientCannonRotationOffset = 1f - EaseHelper.easeInOutSine((be.clientShotProgress.toFloat()-5f)/7f)
+            } else {
+                be.clientAntennaRotationOffset = Mth.lerp(partialTicks/2f,be.clientAntennaRotationOffset,0f)
+                be.clientCannonRotationOffset = 1f - EaseHelper.easeInOutSine((be.clientShotProgress.toFloat()-5f)/7f)
+            }
+            if (be.clientShotProgress <= 3.0) {
+                be.clientBarrelOffset = EaseHelper.easeOutOvershoot(be.clientShotProgress.toFloat()/3f)
+            } else {
+                be.clientBarrelOffset = 1f - EaseHelper.easeInOutQuad((be.clientShotProgress.toFloat()-4f)/8f)
+
+            }
+
+        } else {
+            be.clientShotProgress = 0.0
+            be.clientBarrelOffset = 0.0f
+            be.clientAntennaRotationOffset = 0.0f
+            be.clientCannonRotationOffset = 0.0f
+        }
+    }
+
     fun rotateToAngle(buffer: SuperByteBuffer, angle: Double): SuperByteBuffer {
         var buffer = buffer.translate(pivot);
         buffer = buffer.rotate(Direction.EAST,AngleHelper.rad(angle))
         buffer = buffer.translate(pivot.scale(-1.0))
         return buffer
+    }
+
+    fun rotateCentered(buffer: SuperByteBuffer, angle: Double): SuperByteBuffer {
+
+        return buffer.rotateCentered(Direction.UP, ((-angle - 90.0) / 180.0 * Math.PI).toFloat())
     }
 
     fun rotateAntenna(buffer: SuperByteBuffer, angle: Double): SuperByteBuffer {
@@ -180,20 +190,9 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
     }
 
 
-
-    fun rotateBufferTowards(buffer: SuperByteBuffer, target: Direction): SuperByteBuffer {
-        return buffer.rotateCentered(Direction.UP, ((-target.toYRot() - 90) / 180 * Math.PI).toFloat())
+    override fun shouldRenderOffScreen(blockEntity: DeliveryCannonBlockEntity): Boolean {
+        return true
     }
-
-    fun rotatedBuffer(be: DeliveryCannonBlockEntity, bf: SuperByteBuffer, ms: PoseStack?, vb: VertexConsumer, light: Int): SuperByteBuffer {
-        return rotateBufferTowards(bf,be.blockState.getValue(HorizontalDirectionalBlock.FACING))
-    }
-
-    fun antiRotatedBuffer(be: DeliveryCannonBlockEntity, bf: SuperByteBuffer, ms: PoseStack?, vb: VertexConsumer, light: Int): SuperByteBuffer {
-        return rotateBufferTowards(bf,be.blockState.getValue(HorizontalDirectionalBlock.FACING).opposite)
-    }
-
-
 
     companion object {
         fun blockToVec(pos: BlockPos): Vec3 {
