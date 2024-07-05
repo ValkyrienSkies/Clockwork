@@ -45,6 +45,8 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     var last = Vec3.ZERO
     var rotate = 0.0
 
+    var xRotation = 0.0
+    var yRotation = 0.0
 
     override fun tick() {
         super.tick()
@@ -82,7 +84,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
                 return
             }
 
-            progress += max(-0.00005*distance + 0.05,0.001)
+            progress += max(-0.00001*distance + 0.05,0.001)
             if (progress >= 1 ) {
                 val be = level!!.getBlockEntity(location) as DeliveryChuteBlockEntity
                 be.receiveItem(transportStack,false)
