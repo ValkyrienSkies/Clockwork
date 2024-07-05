@@ -14,6 +14,7 @@ class DeliveryCannonSyncPacket : S2CCWPacket {
     private val progress: Double
     private val xRotation: Double
     private val yRotation: Double
+    private val shootingTicks: Int
     private val pos: BlockPos
 
 
@@ -23,15 +24,17 @@ class DeliveryCannonSyncPacket : S2CCWPacket {
         progress = buffer.readDouble()
         xRotation = buffer.readDouble()
         yRotation = buffer.readDouble()
+        shootingTicks = buffer.readInt()
         pos = buffer.readBlockPos()
     }
 
-    constructor(newStack: ItemStack,newLoc:BlockPos,newProg: Double,newxRotation: Double, newyRotation: Double, newPos: BlockPos) {
+    constructor(newStack: ItemStack,newLoc:BlockPos,newProg: Double,newxRotation: Double, newyRotation: Double, newShootingTicks:Int, newPos: BlockPos) {
         stack = newStack
         location = newLoc
         progress = newProg
         xRotation = newxRotation
         yRotation = newyRotation
+        shootingTicks = newShootingTicks
         pos  = newPos
     }
 
@@ -44,6 +47,7 @@ class DeliveryCannonSyncPacket : S2CCWPacket {
             be.progress = progress
             be.xRotation = xRotation
             be.yRotation = yRotation
+            be.shootingTicks = shootingTicks
         }
         context.setPacketHandled(true)
     }
@@ -54,6 +58,7 @@ class DeliveryCannonSyncPacket : S2CCWPacket {
         buffer.writeDouble(progress)
         buffer.writeDouble(xRotation)
         buffer.writeDouble(yRotation)
+        buffer.writeInt(shootingTicks)
         buffer.writeBlockPos(pos)
     }
 

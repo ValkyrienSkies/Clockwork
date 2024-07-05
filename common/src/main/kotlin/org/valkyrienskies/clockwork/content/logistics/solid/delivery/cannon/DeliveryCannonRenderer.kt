@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.FrequencySlotRenderer
+import org.valkyrienskies.clockwork.util.EaseHelper
 import kotlin.math.*
 import kotlin.random.Random
 
@@ -42,29 +43,39 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         var barrel = CachedBufferer.partial(ClockworkPartials.CANNON_BARREL,be.blockState)
 
 
+        // lerp rotation to make it look smoother
+        val xCurrentRotation = be.xLastRotation + (be.xRotation-be.xLastRotation) * partialTicks
+        val yCurrentRotation = be.yLastRotation + (be.yRotation-be.yLastRotation) * partialTicks
+
+        // X Axis rotation
+        // doing it like this is easier than using AngleHelper.rad()
+        mount.rotateCentered(Direction.UP, ((-xCurrentRotation - 90) / 180 * Math.PI).toFloat())
+        base.rotateCentered(Direction.UP, ((-xCurrentRotation - 90) / 180 * Math.PI).toFloat())
+        barrel.rotateCentered(Direction.UP, ((-xCurrentRotation - 90) / 180 * Math.PI).toFloat())
+        antenna.rotateCentered(Direction.UP, ((-xCurrentRotation - 90) / 180 * Math.PI).toFloat())
+
+        // Y Axis rotation
+        base = rotateToAngle(base,yCurrentRotation)
+        antenna = rotateToAngle(antenna,yCurrentRotation)
+        barrel = rotateToAngle(barrel,yCurrentRotation)
+
+        be.xLastRotation = xCurrentRotation
+        be.yLastRotation = yCurrentRotation
 
         val vb = buffer.getBuffer(RenderType.cutout())
-        if (!be.transportStack.isEmpty) {
-
-            // X Axis rotation
-            mount.rotateCentered(Direction.UP, ((-be.xRotation - 90) / 180 * Math.PI).toFloat())
-            base.rotateCentered(Direction.UP, ((-be.xRotation - 90) / 180 * Math.PI).toFloat())
-            barrel.rotateCentered(Direction.UP, ((-be.xRotation - 90) / 180 * Math.PI).toFloat())
-            antenna.rotateCentered(Direction.UP, ((-be.xRotation - 90) / 180 * Math.PI).toFloat())
-
-            // Y Axis rotation
-            base = rotateToAngle(base,be.yRotation)
-            antenna = rotateToAngle(antenna,be.yRotation)
-            barrel = rotateToAngle(barrel,be.yRotation)
 
 
+        if (be.shootingTicks in 1..6) {
 
-            // I have to split up the render functions like this, instead having it be at the end
-            // otherwise "BufferBuilder not started" error will pop up
-            render(mount,base,barrel,antenna,ms,vb,light)
+            if (be.shootingTicks<=2) barrel=barrel.translate(Vec3(0.0,0.0,be.shootingTicks/16.0))
+            else barrel=barrel.translate(Vec3(0.0,0.0,(3-be.shootingTicks/2)/16.0))
+        }
 
+        render(mount,base,barrel,antenna,ms,vb,light)
+        if (!be.transportStack.isEmpty && be.progress > 0) {
 
-            val og: Vec3 = be.last.lerp(blockToVec(be.blockPos).lerp(blockToVec(be.location),be.progress),partialTicks.toDouble())
+            // Item Render code
+            val og: Vec3 = be.last.lerp(blockToVec(be.blockPos).lerp(blockToVec(be.location),be.progress ),partialTicks.toDouble())
             val y = get_Parabola_Y(be,og)
             be.rotate+=partialTicks
 
@@ -94,8 +105,6 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
 
             be.last = blockToVec(be.blockPos)
             be.rotate=0.0
-
-            render(mount,base,barrel,antenna,ms,vb,light)
         }
 
 

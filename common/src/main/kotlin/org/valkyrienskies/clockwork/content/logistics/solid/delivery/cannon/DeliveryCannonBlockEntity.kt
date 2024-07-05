@@ -54,6 +54,20 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     var xRotation = 0.0
     var yRotation = 0.0
 
+    var xTargetRotation = 0.0
+    var yTargetRotation = 0.0
+
+    var xLastRotation = 0.0
+    var yLastRotation = 0.0
+
+    val turnSpeed = 1.5
+    var shootingTicks = 0
+
+    init {
+        xRotation = blockState.getValue(HorizontalDirectionalBlock.FACING).toYRot().toDouble()
+        xLastRotation = xTargetRotation
+    }
+
     override fun tick() {
         super.tick()
 
@@ -66,7 +80,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
         val chute = ActiveChutes.getNearestChuteWithFrequency(blockPos,100.0,frequencySlotBehaviour.frequency)
 
-        if (chute!=null && !currentStack.isEmpty && transportStack.isEmpty) {
+        if (chute!=null && !currentStack.isEmpty && transportStack.isEmpty && shootingTicks == 0 ) {
             val be = level!!.getBlockEntity(chute) as DeliveryChuteBlockEntity
             val attempt = be.receiveItem(currentStack,true)
             if (attempt) {
@@ -77,13 +91,15 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
                 distance = blockPos.distSqr(chute)
                 be.isRecieving = true
 
-
             }
         }
 
 
         if (!transportStack.isEmpty) {
             getAngle()
+
+
+
 
             if (!ActiveChutes.hasChute(location)) {
                 transportStack = ItemStack.EMPTY
@@ -92,16 +108,26 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
                 return
             }
 
-            progress += max(-0.00001*distance + 0.05,0.001)
+            if (xRotation==xTargetRotation && yRotation == yTargetRotation) {
+                progress += max(-0.00001*distance + 0.05,0.001)
+                if (shootingTicks<=6) shootingTicks+=1
+            }
+
             if (progress >= 1 ) {
                 val be = level!!.getBlockEntity(location) as DeliveryChuteBlockEntity
                 be.receiveItem(transportStack,false)
                 transportStack = ItemStack.EMPTY
                 progress = 0.0
                 be.isRecieving = false
-
+                shootingTicks=0
             }
+        } else {
+            xTargetRotation = blockState.getValue(HorizontalDirectionalBlock.FACING).toYRot().toDouble()
+            yTargetRotation = 0.0
         }
+
+        xRotation +=  max(min(xTargetRotation-xRotation,turnSpeed),-turnSpeed)
+        yRotation +=  max(min(yTargetRotation-yRotation,turnSpeed),-turnSpeed)
 
         sync()
     }
@@ -115,7 +141,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         val y = get_Parabola_Y(this, startVec.lerp(endVec,delta))
 
         val dif = startVec.subtract(startVec.lerp(endVec,delta).x,y,startVec.lerp(endVec,delta).z)
-        xRotation = euler_angle(dif.z,-dif.x)
+        xTargetRotation = euler_angle(dif.z,-dif.x)
 
 
 
@@ -126,11 +152,11 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         var u_angle = euler_angle(dif.y,otherV)
         if (u_angle>90) u_angle=180-u_angle
 
-        yRotation = min(90.0,u_angle+20)
+        yTargetRotation = min(90.0,u_angle+20)
     }
 
     fun sync() {
-        ClockworkPackets.sendToNear(level!!,blockPos,100,DeliveryCannonSyncPacket(transportStack,location, progress, xRotation, yRotation, blockPos))
+        ClockworkPackets.sendToNear(level!!,blockPos,100,DeliveryCannonSyncPacket(transportStack,location, progress, xRotation ,yRotation, shootingTicks , blockPos))
     }
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
@@ -186,7 +212,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         }
 
         override fun getSouthLocation(): Vec3 {
-            return if (direction == Direction.UP) Vec3.ZERO else VecHelper.voxelSpace(8.0, 6.0, 15.5)
+            return if (direction == Direction.UP) Vec3.ZERO else VecHelper.voxelSpace(8.0, 3.0, 15.5)
         }
     }
 
