@@ -11,13 +11,14 @@ object ActiveChutes {
      val actives: HashMap<BlockPos, DeliveryChuteBlockEntity> = HashMap()
      val unloaded: HashMap<BlockPos, DeliveryChuteBlockEntity> = HashMap()
 
+    val chutesToRemove: ArrayList<BlockPos> = ArrayList()
+
     fun addChute(pos: BlockPos, chute: DeliveryChuteBlockEntity) {
         actives[pos] = chute
     }
 
     fun removeChute(pos: BlockPos) {
-        actives.remove(pos)
-        unloaded.remove(pos)
+        chutesToRemove.add(pos)
     }
 
     private fun unloadChute(pos: BlockPos) {
@@ -83,6 +84,13 @@ object ActiveChutes {
     }
 
     fun tick(level: ServerLevel) {
+
+        for (pos in chutesToRemove) {
+            actives.remove(pos)
+            unloaded
+        }
+        chutesToRemove.clear()
+
 //        val toUnload: ArrayList<BlockPos> = ArrayList()
 //        for (pos in actives.keys) {
 //            if (!level.isLoaded(pos)) {

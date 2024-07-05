@@ -15,6 +15,8 @@ import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.sounds.SoundSource
+import net.minecraft.util.Mth
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.HorizontalDirectionalBlock
@@ -22,6 +24,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkPackets
+import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.ActiveChutes
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.FrequencySlotBehaviour
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.blockToVec
@@ -29,6 +32,7 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.Deli
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.get_Parabola_Y
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.get_delta
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
+import java.util.Random
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -40,16 +44,20 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     lateinit var capBelow: StorageProvider<ItemVariant>
     lateinit var frequencySlotBehaviour: FrequencySlotBehaviour
 
+    val soundRandom = Random()
+
     var currentStack: ItemStack = ItemStack.EMPTY
 
     var transportStack: ItemStack = ItemStack.EMPTY
     var progress: Double = 0.0
-    var location = BlockPos.ZERO
+    var location: BlockPos = BlockPos.ZERO
     var distance: Double = 0.0
-
 
     var last = Vec3.ZERO
     var rotate = 0.0
+
+    var didParticles = false
+    var playedSound = false
 
     var xRotation = 0.0
     var yRotation = 0.0
@@ -63,7 +71,14 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     val turnSpeed = 1.5
     var shootingTicks = 0
 
+    var clientShotProgress = 0.0
+
+    var clientBarrelOffset = 0.0f
+    var clientCannonRotationOffset = 0.0f
+    var clientAntennaRotationOffset = 0.0f
+
     init {
+        xTargetRotation = blockState.getValue(HorizontalDirectionalBlock.FACING).toYRot().toDouble()
         xRotation = blockState.getValue(HorizontalDirectionalBlock.FACING).toYRot().toDouble()
         xLastRotation = xTargetRotation
     }
@@ -81,10 +96,11 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         val chute = ActiveChutes.getNearestChuteWithFrequency(blockPos,100.0,frequencySlotBehaviour.frequency)
 
         if (chute!=null && !currentStack.isEmpty && transportStack.isEmpty && shootingTicks == 0 ) {
+            if (level!!.getBlockEntity(chute) == null || level!!.getBlockEntity(chute) !is DeliveryChuteBlockEntity) return
             val be = level!!.getBlockEntity(chute) as DeliveryChuteBlockEntity
+
             val attempt = be.receiveItem(currentStack,true)
             if (attempt) {
-
                 transportStack = currentStack.copy()
                 currentStack = ItemStack.EMPTY
                 location = chute
@@ -109,6 +125,11 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             }
 
             if (xRotation==xTargetRotation && yRotation == yTargetRotation) {
+                if (!playedSound) {
+                    val pitch = Mth.randomBetween(soundRandom, 0.9f, 1.1f)
+                    level!!.playSound(null, blockPos, ClockworkSounds.THWOOM.mainEvent!!, SoundSource.BLOCKS, 1f,pitch)
+                    playedSound = true
+                }
                 progress += max(-0.00001*distance + 0.05,0.001)
                 if (shootingTicks<=6) shootingTicks+=1
             }
@@ -120,6 +141,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
                 progress = 0.0
                 be.isRecieving = false
                 shootingTicks=0
+                playedSound = false
             }
         } else {
             xTargetRotation = blockState.getValue(HorizontalDirectionalBlock.FACING).toYRot().toDouble()
@@ -156,7 +178,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     }
 
     fun sync() {
-        ClockworkPackets.sendToNear(level!!,blockPos,100,DeliveryCannonSyncPacket(transportStack,location, progress, xRotation ,yRotation, shootingTicks , blockPos))
+        ClockworkPackets.sendToNear(level!!,blockPos,100,DeliveryCannonSyncPacket(transportStack,location, progress, xRotation ,yRotation, shootingTicks , blockPos, xTargetRotation, yTargetRotation))
     }
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {

@@ -76,7 +76,7 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
     }
 
     override fun getBlockEntityType(): BlockEntityType<out PumpDuctBlockEntity> {
-        return ClockworkBlockEntities.PUMP_DUCT.get()
+        TODO()
     }
 
 }

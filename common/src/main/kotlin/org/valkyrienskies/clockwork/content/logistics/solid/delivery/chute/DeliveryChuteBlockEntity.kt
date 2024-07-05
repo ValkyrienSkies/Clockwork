@@ -60,14 +60,11 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
 
 
     override fun tick() {
-        if (this.level == null) return
-
-        if (this.level!!.isClientSide) return
+        if (this.level == null || this.level!!.isClientSide) return
 
         if (!ActiveChutes.hasChute(this.worldPosition)) {
             ActiveChutes.addChute(this.worldPosition, this)
         }
-
 
         if (previousInventory != inventory) {
             ClockworkPackets.sendToNear(
@@ -90,6 +87,11 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
     override fun remove() {
         ActiveChutes.removeChute(this.worldPosition)
         super.remove()
+    }
+
+    override fun destroy() {
+        ActiveChutes.removeChute(this.worldPosition)
+        super.destroy()
     }
 
     override fun sync(storage: NonNullList<ItemStack>) {
@@ -196,7 +198,7 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
 		if (level == null) return false
 		val inv  = grabCapability(Direction.DOWN);
 		if (!isEmpty) {
-            if (level!!.isClientSide && !isVirtual())
+            if (level!!.isClientSide && !isVirtual)
                 return false;
 
 

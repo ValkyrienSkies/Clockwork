@@ -68,47 +68,47 @@ object ClockworkBlocks {
             .register()
 
 
-    @JvmField
-    val DUCT: BlockEntry<DuctBlock> = REGISTRATE.block<DuctBlock>(
-        "duct"
-    ) { properties: BlockBehaviour.Properties? ->
-        DuctBlock(
-            properties!!
-        )
-    }
-        .initialProperties { SharedProperties.netheriteMetal() }
-        .onRegister(CreateRegistrate.blockModel {
-            NonNullFunction<BakedModel?, BakedModel> { template: BakedModel? ->
-                PipeAttachmentModel(
-                    template
-                )
-            }
-        })
-        .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
-        .transform(customItemModel())
-        .register()
-
-    @JvmField
-    val PUMP_DUCT: BlockEntry<PumpDuctBlock> = REGISTRATE.block<PumpDuctBlock>(
-        "pump_duct"
-    ) { properties: BlockBehaviour.Properties? ->
-        PumpDuctBlock(
-            properties!!
-        )
-    }
-        .initialProperties { SharedProperties.netheriteMetal() }
-        .onRegister(CreateRegistrate.blockModel {
-            NonNullFunction<BakedModel?, BakedModel> { template: BakedModel? ->
-                PipeAttachmentModel(
-                    template
-                )
-            }
-        })
-        .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
-        .transform(customItemModel())
-        .register()
+//    @JvmField
+//    val DUCT: BlockEntry<DuctBlock> = REGISTRATE.block<DuctBlock>(
+//        "duct"
+//    ) { properties: BlockBehaviour.Properties? ->
+//        DuctBlock(
+//            properties!!
+//        )
+//    }
+//        .initialProperties { SharedProperties.netheriteMetal() }
+//        .onRegister(CreateRegistrate.blockModel {
+//            NonNullFunction<BakedModel?, BakedModel> { template: BakedModel? ->
+//                PipeAttachmentModel(
+//                    template
+//                )
+//            }
+//        })
+//        .item()
+//        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+//        .transform(customItemModel())
+//        .register()
+//
+//    @JvmField
+//    val PUMP_DUCT: BlockEntry<PumpDuctBlock> = REGISTRATE.block<PumpDuctBlock>(
+//        "pump_duct"
+//    ) { properties: BlockBehaviour.Properties? ->
+//        PumpDuctBlock(
+//            properties!!
+//        )
+//    }
+//        .initialProperties { SharedProperties.netheriteMetal() }
+//        .onRegister(CreateRegistrate.blockModel {
+//            NonNullFunction<BakedModel?, BakedModel> { template: BakedModel? ->
+//                PipeAttachmentModel(
+//                    template
+//                )
+//            }
+//        })
+//        .item()
+//        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+//        .transform(customItemModel())
+//        .register()
 
     @JvmField
     val PHYS_BEARING: BlockEntry<PhysBearingBlock> =
