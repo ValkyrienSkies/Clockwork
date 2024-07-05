@@ -44,77 +44,31 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
 
 
         val vb = buffer.getBuffer(RenderType.cutout())
-
-
-
-
-
-
-
-
-
-
         if (!be.transportStack.isEmpty) {
-            be.rotate+=partialTicks
-
-            val startVec = blockToVec(be.blockPos).add(Vec3(0.0,0.75,0.0))
-            val endVec = blockToVec(be.location).add(Vec3(0.0,0.5,0.0))
-
-            var delta = 0.0
-            if (endVec.y>startVec.y) delta = min((endVec.y-startVec.y)/30+0.51,0.85)
-            else delta = max(0.49-(startVec.y-endVec.y)/30,0.15)
-
-            val og: Vec3 = be.last.lerp(blockToVec(be.blockPos).lerp(blockToVec(be.location),be.progress),partialTicks.toDouble())
-
-
-            var y = 0.0
-            if (abs(startVec.x-endVec.x)>abs(startVec.z-endVec.z)) y = Parabola(startVec.x,startVec.y,endVec.x,endVec.y,startVec.lerp(endVec,delta).x,og.x)
-            else y = Parabola(startVec.z,startVec.y,endVec.z,endVec.y,startVec.lerp(endVec,delta).z,og.z)
-
-            val msr = TransformStack.cast(ms)
-
-            val msLocal = PoseStack()
-            val msrLocal = TransformStack.cast(msLocal)
-
-
-            msrLocal.centre()
-            // Y Axis rotation
-            var dif = startVec.subtract(endVec)
-            var mount_angle = euler_angle(dif.z,-dif.x)
-
-
-            mount.rotateCentered(Direction.UP, ((-mount_angle - 90) / 180 * Math.PI).toFloat())
-            base.rotateCentered(Direction.UP, ((-mount_angle - 90) / 180 * Math.PI).toFloat())
-            barrel.rotateCentered(Direction.UP, ((-mount_angle - 90) / 180 * Math.PI).toFloat())
-            antenna.rotateCentered(Direction.UP, ((-mount_angle - 90) / 180 * Math.PI).toFloat())
 
             // X Axis rotation
+            mount.rotateCentered(Direction.UP, ((-be.xRotation - 90) / 180 * Math.PI).toFloat())
+            base.rotateCentered(Direction.UP, ((-be.xRotation - 90) / 180 * Math.PI).toFloat())
+            barrel.rotateCentered(Direction.UP, ((-be.xRotation - 90) / 180 * Math.PI).toFloat())
+            antenna.rotateCentered(Direction.UP, ((-be.xRotation - 90) / 180 * Math.PI).toFloat())
 
-            val cY: Double
-            if (abs(startVec.x-endVec.x)>abs(startVec.z-endVec.z)) cY = Parabola(startVec.x,startVec.y,endVec.x,endVec.y,startVec.lerp(endVec,delta).x,startVec.lerp(endVec,delta).x)
-            else cY = Parabola(startVec.z,startVec.y,endVec.z,endVec.y,startVec.lerp(endVec,delta).z,startVec.lerp(endVec,delta).z)
-
-            dif = startVec.subtract(startVec.lerp(endVec,delta).x,cY,startVec.lerp(endVec,delta).z)
-            val otherV: Double
-            if (abs(dif.z) > abs(dif.x)) otherV = dif.z
-            else otherV =  dif.x
-            var u_angle = euler_angle(dif.y,otherV)
-            if (u_angle>90) u_angle=180-u_angle
-            mount_angle = min(90.0,u_angle+20)
-            println(dif)
+            // Y Axis rotation
+            base = rotateToAngle(base,be.yRotation)
+            antenna = rotateToAngle(antenna,be.yRotation)
+            barrel = rotateToAngle(barrel,be.yRotation)
 
 
 
-            base = rotateToAngle(base,mount_angle)
-            antenna = rotateToAngle(antenna,mount_angle)
-            barrel = rotateToAngle(barrel,mount_angle)
             // I have to split up the render functions like this, instead having it be at the end
             // otherwise "BufferBuilder not started" error will pop up
             render(mount,base,barrel,antenna,ms,vb,light)
 
 
+            val og: Vec3 = be.last.lerp(blockToVec(be.blockPos).lerp(blockToVec(be.location),be.progress),partialTicks.toDouble())
+            val y = get_Parabola_Y(be,og)
+            be.rotate+=partialTicks
 
-
+            val msr = TransformStack.cast(ms)
             val launchedItemLocation = Vec3(og.x,y,og.z)
             be.last = launchedItemLocation
             ms.pushPose()
@@ -136,12 +90,6 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
                     0
                 )
             ms.popPose()
-
-
-
-
-
-
         } else {
 
             be.last = blockToVec(be.blockPos)
@@ -169,9 +117,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         antenna.light(light).renderInto(ms,vb)
     }
 
-    fun blockToVec(pos: BlockPos): Vec3 {
-        return Vec3(pos.x.toDouble(),pos.y.toDouble(),pos.z.toDouble())
-    }
+
 
     fun rotateBufferTowards(buffer: SuperByteBuffer, target: Direction): SuperByteBuffer {
         return buffer.rotateCentered(Direction.UP, ((-target.toYRot() - 90) / 180 * Math.PI).toFloat())
@@ -185,15 +131,13 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         return rotateBufferTowards(bf,be.blockState.getValue(HorizontalDirectionalBlock.FACING).opposite)
     }
 
-    fun euler_angle(x: Double,y: Double): Double {
-        var rad = atan(y/x);   // arcus tangent in radians
-        var deg = rad*180/Math.PI;  // converted to degrees
-        if (x<0) deg += 180;        // fixed mirrored angle of arctan
-        var eul = (270+deg)%360;    // folded to [0,360) domain
-        return eul;
-    }
+
 
     companion object {
+        fun blockToVec(pos: BlockPos): Vec3 {
+            return Vec3(pos.x.toDouble(),pos.y.toDouble(),pos.z.toDouble())
+        }
+
         // This function solves a parabola using 2 points and the X of the vertex . Z is the value that gets fed into the resulting quadratic
         fun Parabola(x1: Double,y1: Double,x2: Double,y2: Double,m: Double, z:Double): Double {
             val a = (y1-y2)/(x1*x1-x2*x2-2*m*x1+2*m*x2)
@@ -201,6 +145,38 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
             val c = y1-b*x1-a*x1*x1
 
             return a*z*z+b*z+c
+        }
+
+        fun euler_angle(x: Double,y: Double): Double {
+            var rad = atan(y/x);   // arcus tangent in radians
+            var deg = rad*180/Math.PI;  // converted to degrees
+            if (x<0) deg += 180;        // fixed mirrored angle of arctan
+            var eul = (270+deg)%360;    // folded to [0,360) domain
+            return eul;
+        }
+
+        fun get_delta(be: DeliveryCannonBlockEntity): Double {
+            val startVec = blockToVec(be.blockPos).add(Vec3(0.0, 0.75, 0.0))
+            val endVec = blockToVec(be.location).add(Vec3(0.0, 0.5, 0.0))
+
+            val delta: Double
+            if (endVec.y > startVec.y) delta = min((endVec.y - startVec.y) / 30 + 0.51, 0.85)
+            else delta = max(0.49 - (startVec.y - endVec.y) / 30, 0.15)
+
+            return delta
+        }
+
+        fun get_Parabola_Y(be: DeliveryCannonBlockEntity, input_vector: Vec3): Double {
+            val startVec = blockToVec(be.blockPos).add(Vec3(0.0,0.75,0.0))
+            val endVec = blockToVec(be.location).add(Vec3(0.0,0.5,0.0))
+
+            val delta = get_delta(be)
+
+            var y = 0.0
+            if (abs(startVec.x-endVec.x)>abs(startVec.z-endVec.z)) y = Parabola(startVec.x,startVec.y,endVec.x,endVec.y,startVec.lerp(endVec,delta).x,input_vector.x)
+            else y = Parabola(startVec.z,startVec.y,endVec.z,endVec.y,startVec.lerp(endVec,delta).z,input_vector.z)
+
+            return y
         }
     }
 }

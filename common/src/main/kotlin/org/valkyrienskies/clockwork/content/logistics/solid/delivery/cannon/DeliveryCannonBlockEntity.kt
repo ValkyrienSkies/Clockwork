@@ -24,8 +24,14 @@ import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.ActiveChutes
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.FrequencySlotBehaviour
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.blockToVec
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.euler_angle
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.get_Parabola_Y
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.get_delta
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
+import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.min
 
 class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : KineticBlockEntity(type, pos,
     state
@@ -77,6 +83,8 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
 
         if (!transportStack.isEmpty) {
+            getAngle()
+
             if (!ActiveChutes.hasChute(location)) {
                 transportStack = ItemStack.EMPTY
                 progress = 0.0
@@ -98,8 +106,31 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         sync()
     }
 
+    fun getAngle() {
+
+        val startVec = blockToVec(blockPos)
+        val endVec = blockToVec(location)
+
+        val delta = get_delta(this)
+        val y = get_Parabola_Y(this, startVec.lerp(endVec,delta))
+
+        val dif = startVec.subtract(startVec.lerp(endVec,delta).x,y,startVec.lerp(endVec,delta).z)
+        xRotation = euler_angle(dif.z,-dif.x)
+
+
+
+
+        val otherV: Double
+        if (abs(dif.z) > abs(dif.x)) otherV = dif.z
+        else otherV =  dif.x
+        var u_angle = euler_angle(dif.y,otherV)
+        if (u_angle>90) u_angle=180-u_angle
+
+        yRotation = min(90.0,u_angle+20)
+    }
+
     fun sync() {
-        ClockworkPackets.sendToNear(level!!,blockPos,100,DeliveryCannonSyncPacket(transportStack,location, progress,blockPos))
+        ClockworkPackets.sendToNear(level!!,blockPos,100,DeliveryCannonSyncPacket(transportStack,location, progress, xRotation, yRotation, blockPos))
     }
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
@@ -110,7 +141,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         return
     }
 
-    override fun setLevel(level: Level?) {
+    override fun setLevel(level: Level) {
         super.setLevel(level)
         capBelow = StorageProvider.createForItems(level, worldPosition.below())
     }
