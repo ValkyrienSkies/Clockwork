@@ -27,7 +27,7 @@ import net.minecraft.world.phys.Vec3
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.ActiveChutes
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.FrequencySlotBehaviour
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotBehaviour
 import org.valkyrienskies.clockwork.util.blocktype.ISyncableStorage
 import org.valkyrienskies.clockwork.util.blocktype.SyncableStoragePacket
 import org.valkyrienskies.mod.common.getShipObjectManagingPos

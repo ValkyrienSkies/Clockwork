@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content.logistics.solid.delivery
+package org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
@@ -10,7 +10,6 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.world.phys.Vec3
-import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.toShipRenderCoordinates
 
 
@@ -33,10 +32,6 @@ open class FrequencySlotRenderer<T : SmartBlockEntity>(context: BlockEntityRende
 
         val cameraEntity = Minecraft.getInstance().cameraEntity
         val max = AllConfigs.client().filterItemRenderDistance.f
-
-        val ship = be.level.getShipManagingPos(be.blockPos)
-
-
 
         if (!be.isVirtual && cameraEntity != null && distance(cameraEntity.position(), VecHelper.getCenterOf(be.blockPos)) > (max * max)) return
 

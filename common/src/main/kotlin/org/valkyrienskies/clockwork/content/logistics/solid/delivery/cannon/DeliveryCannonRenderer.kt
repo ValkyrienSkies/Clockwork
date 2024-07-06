@@ -19,7 +19,7 @@ import net.minecraft.util.Mth
 import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkPartials
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.FrequencySlotRenderer
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotRenderer
 import org.valkyrienskies.clockwork.util.EaseHelper
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft

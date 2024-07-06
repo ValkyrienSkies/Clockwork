@@ -1,20 +1,14 @@
-package org.valkyrienskies.clockwork.content.logistics.solid.delivery
+package org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot
 
-import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.datafixers.util.Pair
 import com.simibubi.create.AllItems
 import com.simibubi.create.CreateClient
-import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBox
-import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxRenderer
 import com.simibubi.create.foundation.utility.AdventureUtil
 import com.simibubi.create.foundation.utility.Lang
 import com.simibubi.create.foundation.utility.RaycastHelper
-import com.simibubi.create.foundation.utility.VecHelper
-import com.simibubi.create.infrastructure.config.AllConfigs
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent

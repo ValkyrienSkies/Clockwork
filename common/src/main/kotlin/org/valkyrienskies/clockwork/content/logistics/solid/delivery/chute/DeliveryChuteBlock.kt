@@ -1,14 +1,8 @@
 package org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute
 
-import com.simibubi.create.AllItems
 import com.simibubi.create.foundation.block.IBE
-import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
-import com.simibubi.create.foundation.utility.AdventureUtil
-import com.simibubi.create.foundation.utility.RaycastHelper
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.sounds.SoundEvents
-import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
@@ -21,10 +15,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import org.valkyrienskies.clockwork.ClockworkPackets
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.FrequencySlotBehaviour
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.FrequencySlotGlobals
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.UpdateFrequencySlotPacket
 
 class DeliveryChuteBlock(properties: Properties): Block(properties), IBE<DeliveryChuteBlockEntity> {
     override fun getBlockEntityClass(): Class<DeliveryChuteBlockEntity> {

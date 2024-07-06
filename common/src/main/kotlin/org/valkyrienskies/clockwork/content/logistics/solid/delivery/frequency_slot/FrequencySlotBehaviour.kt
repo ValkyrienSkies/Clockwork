@@ -1,7 +1,6 @@
-package org.valkyrienskies.clockwork.content.logistics.solid.delivery
+package org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot
 
 import com.simibubi.create.content.equipment.clipboard.ClipboardCloneable
-import com.simibubi.create.content.redstone.link.LinkBehaviour
 import com.simibubi.create.content.redstone.link.RedstoneLinkNetworkHandler.Frequency
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType
