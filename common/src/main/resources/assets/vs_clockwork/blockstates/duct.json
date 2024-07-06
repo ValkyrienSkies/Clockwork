@@ -1,3 +1,160 @@
 {
+  "multipart": [
+    {
+      "when": {
+        "OR": [
+          {"up": "true", "north": "true", "heat_level": "cool"},
+          {"up": "true", "east": "true", "heat_level": "cool"},
+          {"up": "true", "south": "true", "heat_level": "cool"},
+          {"up": "true", "west": "true", "heat_level": "cool"},
 
+          {"down": "true", "north": "true", "heat_level": "cool"},
+          {"down": "true", "east": "true", "heat_level": "cool"},
+          {"down": "true", "south": "true", "heat_level": "cool"},
+          {"down": "true", "west": "true", "heat_level": "cool"},
+
+          {"north": "true", "east": "true", "heat_level": "cool"},
+          {"north": "true", "west": "true", "heat_level": "cool"},
+
+          {"south": "true", "east": "true", "heat_level": "cool"},
+          {"south": "true", "west": "true", "heat_level": "cool"},
+
+          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "false|forced", "down": "false|forced", "heat_level": "cool"}
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/duct/core/cool"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {"up": "true", "north": "true", "heat_level": "warm"},
+          {"up": "true", "east": "true", "heat_level": "warm"},
+          {"up": "true", "south": "true", "heat_level": "warm"},
+          {"up": "true", "west": "true", "heat_level": "warm"},
+
+          {"down": "true", "north": "true", "heat_level": "warm"},
+          {"down": "true", "east": "true", "heat_level": "warm"},
+          {"down": "true", "south": "true", "heat_level": "warm"},
+          {"down": "true", "west": "true", "heat_level": "warm"},
+
+          {"north": "true", "east": "true", "heat_level": "warm"},
+          {"north": "true", "west": "true", "heat_level": "warm"},
+
+          {"south": "true", "east": "true", "heat_level": "warm"},
+          {"south": "true", "west": "true", "heat_level": "warm"},
+
+          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "false|forced", "down": "false|forced", "heat_level": "warm"}
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/duct/core/warm"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {"up": "true", "north": "true", "heat_level": "hot"},
+          {"up": "true", "east": "true", "heat_level": "hot"},
+          {"up": "true", "south": "true", "heat_level": "hot"},
+          {"up": "true", "west": "true", "heat_level": "hot"},
+
+          {"down": "true", "north": "true", "heat_level": "hot"},
+          {"down": "true", "east": "true", "heat_level": "hot"},
+          {"down": "true", "south": "true", "heat_level": "hot"},
+          {"down": "true", "west": "true", "heat_level": "hot"},
+
+          {"north": "true", "east": "true", "heat_level": "hot"},
+          {"north": "true", "west": "true", "heat_level": "hot"},
+
+          {"south": "true", "east": "true", "heat_level": "hot"},
+          {"south": "true", "west": "true", "heat_level": "hot"},
+
+          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "false|forced", "down": "false|forced", "heat_level": "hot"}
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/duct/core/hot"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {"up": "true", "north": "true", "heat_level": "very_hot"},
+          {"up": "true", "east": "true", "heat_level": "very_hot"},
+          {"up": "true", "south": "true", "heat_level": "very_hot"},
+          {"up": "true", "west": "true", "heat_level": "very_hot"},
+
+          {"down": "true", "north": "true", "heat_level": "very_hot"},
+          {"down": "true", "east": "true", "heat_level": "very_hot"},
+          {"down": "true", "south": "true", "heat_level": "very_hot"},
+          {"down": "true", "west": "true", "heat_level": "very_hot"},
+
+          {"north": "true", "east": "true", "heat_level": "very_hot"},
+          {"north": "true", "west": "true", "heat_level": "very_hot"},
+
+          {"south": "true", "east": "true", "heat_level": "very_hot"},
+          {"south": "true", "west": "true", "heat_level": "very_hot"},
+
+          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "false|forced", "down": "false|forced", "heat_level": "very_hot"}
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/duct/core/very_hot"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {"up": "true", "north": "true", "heat_level": "super_hot"},
+          {"up": "true", "east": "true", "heat_level": "super_hot"},
+          {"up": "true", "south": "true", "heat_level": "super_hot"},
+          {"up": "true", "west": "true", "heat_level": "super_hot"},
+
+          {"down": "true", "north": "true", "heat_level": "super_hot"},
+          {"down": "true", "east": "true", "heat_level": "super_hot"},
+          {"down": "true", "south": "true", "heat_level": "super_hot"},
+          {"down": "true", "west": "true", "heat_level": "super_hot"},
+
+          {"north": "true", "east": "true", "heat_level": "super_hot"},
+          {"north": "true", "west": "true", "heat_level": "super_hot"},
+
+          {"south": "true", "east": "true", "heat_level": "super_hot"},
+          {"south": "true", "west": "true", "heat_level": "super_hot"},
+
+          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "false|forced", "down": "false|forced", "heat_level": "super_hot"}
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/duct/core/super_hot"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {"up": "true", "north": "true", "heat_level": "molten"},
+          {"up": "true", "east": "true", "heat_level": "molten"},
+          {"up": "true", "south": "true", "heat_level": "molten"},
+          {"up": "true", "west": "true", "heat_level": "molten"},
+
+          {"down": "true", "north": "true", "heat_level": "molten"},
+          {"down": "true", "east": "true", "heat_level": "molten"},
+          {"down": "true", "south": "true", "heat_level": "molten"},
+          {"down": "true", "west": "true", "heat_level": "molten"},
+
+          {"north": "true", "east": "true", "heat_level": "molten"},
+          {"north": "true", "west": "true", "heat_level": "molten"},
+
+          {"south": "true", "east": "true", "heat_level": "molten"},
+          {"south": "true", "west": "true", "heat_level": "molten"},
+
+          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "false|forced", "down": "false|forced", "heat_level": "molten"}
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/duct/core/molten"
+      }
+    }
+  ]
 }

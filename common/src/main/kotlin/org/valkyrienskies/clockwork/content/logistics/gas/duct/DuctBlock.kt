@@ -148,6 +148,12 @@ class DuctBlock(properties: Properties) : Block(properties), IDuct, IBE<DuctBloc
                             ClockworkMod.getKelvin().removeEdge(pos.toJOMLD(), adjPos.toJOMLD())
                         }
                     }
+                } else if (adjState.block is IDuct) {
+                    if (newState.getValue(DIR_TO_CONNECTION[direction]!!).isConnected && (adjState.block as IDuct).canConnectTo(adjPos, pos, direction.opposite, world)) {
+                        ClockworkMod.getKelvin().addEdge(pos.toJOMLD(), adjPos.toJOMLD(), createPipeEdge(pos.toJOMLD(), adjPos.toJOMLD()))
+                    } else {
+                        ClockworkMod.getKelvin().removeEdge(pos.toJOMLD(), adjPos.toJOMLD())
+                    }
                 }
 
             }
@@ -281,6 +287,8 @@ class DuctBlock(properties: Properties) : Block(properties), IDuct, IBE<DuctBloc
             forced = forced || neighborState.getValue(DIR_TO_CONNECTION[direction.opposite]!!) == DuctConnectionType.FORCED
             otherConnected = neighborState.getValue(DIR_TO_CONNECTION[direction.opposite]!!) == DuctConnectionType.SIDE
 
+        } else if (neighborState.block is IDuct) {
+            otherConnected =  (neighborState.block as IDuct).canConnectTo(neighborPos, currentPos, direction.opposite, level)
         }
 
         val finalConnection: DuctConnectionType = if (otherConnected) {
