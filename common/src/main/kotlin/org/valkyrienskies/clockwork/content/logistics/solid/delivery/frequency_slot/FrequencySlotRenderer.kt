@@ -27,8 +27,6 @@ open class FrequencySlotRenderer<T : SmartBlockEntity>(context: BlockEntityRende
     ) {
         super.renderSafe(be, partialTicks, ms, buffer, light, overlay)
 
-        if (ms==null) return
-        if (be == null || be.isRemoved) return
 
         val cameraEntity = Minecraft.getInstance().cameraEntity
         val max = AllConfigs.client().filterItemRenderDistance.f

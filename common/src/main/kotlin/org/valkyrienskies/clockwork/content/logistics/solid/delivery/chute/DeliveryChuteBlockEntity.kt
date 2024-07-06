@@ -189,7 +189,6 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
     private fun grabCapability(side: Direction): Storage<ItemVariant>? {
         if (level == null) return null
         val provider: StorageProvider<ItemVariant> = capBelow
-        val be = provider.findBlockEntity()
         return provider[side.opposite]
     }
 

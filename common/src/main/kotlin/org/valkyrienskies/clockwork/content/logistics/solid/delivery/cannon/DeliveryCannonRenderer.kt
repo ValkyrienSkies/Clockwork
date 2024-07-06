@@ -201,7 +201,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         }
 
         // This function solves a parabola using 2 points and the X of the vertex . Z is the value that gets fed into the resulting quadratic
-        fun Parabola(x1: Double,y1: Double,x2: Double,y2: Double,m: Double, z:Double): Double {
+        fun parabola(x1: Double, y1: Double, x2: Double, y2: Double, m: Double, z:Double): Double {
             val a = (y1-y2)/(x1*x1-x2*x2-2*m*x1+2*m*x2)
             val b = -2*a*m
             val c = y1-b*x1-a*x1*x1
@@ -234,9 +234,9 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
 
             val delta = get_delta(be)
 
-            var y = 0.0
-            if (abs(startVec.x-endVec.x)>abs(startVec.z-endVec.z)) y = Parabola(startVec.x,startVec.y,endVec.x,endVec.y,startVec.lerp(endVec,delta).x,input_vector.x)
-            else y = Parabola(startVec.z,startVec.y,endVec.z,endVec.y,startVec.lerp(endVec,delta).z,input_vector.z)
+            val y: Double
+            if (abs(startVec.x-endVec.x)>abs(startVec.z-endVec.z)) y = parabola(startVec.x,startVec.y,endVec.x,endVec.y,startVec.lerp(endVec,delta).x,input_vector.x)
+            else y = parabola(startVec.z,startVec.y,endVec.z,endVec.y,startVec.lerp(endVec,delta).z,input_vector.z)
 
             return y
         }

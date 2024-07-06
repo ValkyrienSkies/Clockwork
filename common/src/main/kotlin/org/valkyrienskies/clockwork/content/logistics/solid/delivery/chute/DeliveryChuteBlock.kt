@@ -41,7 +41,7 @@ class DeliveryChuteBlock(properties: Properties): Block(properties), IBE<Deliver
     }
 
 
-    override fun canSurvive(state: BlockState?, level: LevelReader, pos: BlockPos): Boolean {
+    override fun canSurvive(state: BlockState, level: LevelReader, pos: BlockPos): Boolean {
         // This is a really stupid way to do it, but neither == ALlBlocks.Depot nor anything else seems to work
         val desc = level.getBlockState(pos.below()).block.descriptionId
         return desc == "block.create.depot" || desc == "block.create.belt" || desc == "block.create.chute"
@@ -50,14 +50,13 @@ class DeliveryChuteBlock(properties: Properties): Block(properties), IBE<Deliver
     override fun updateShape(
         state: BlockState,
         direction: Direction,
-        neighborState: BlockState?,
-        level: LevelAccessor?,
-        currentPos: BlockPos?,
-        neighborPos: BlockPos?
+        neighborState: BlockState,
+        level: LevelAccessor,
+        currentPos: BlockPos,
+        neighborPos: BlockPos
     ): BlockState {
-        if (level == null || currentPos == null || !canSurvive(state,level,currentPos))  {
-            return Blocks.AIR.defaultBlockState()
-        }
+        if (!canSurvive(state,level,currentPos)) return Blocks.AIR.defaultBlockState()
+
         return super.updateShape(state, direction, neighborState, level, currentPos, neighborPos)
     }
 

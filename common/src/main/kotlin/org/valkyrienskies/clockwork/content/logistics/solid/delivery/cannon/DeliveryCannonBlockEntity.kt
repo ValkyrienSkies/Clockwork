@@ -112,8 +112,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         if (!transportStack.isEmpty) {
             getAngle()
 
-            if (distance==0.0) distance = blockPos.distSqr(chute)
-
+            if (distance==0.0) distance = blockPos.distSqr(location)
 
             if (!ActiveChutes.hasChute(location)) {
                 transportStack = ItemStack.EMPTY
@@ -121,6 +120,8 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
                 return
             }
+
+
 
             if (xRotation==xTargetRotation && yRotation == yTargetRotation) {
                 if (!playedSound) {
@@ -198,7 +199,6 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     private fun grabCapability(side: Direction): Storage<ItemVariant>? {
         if (level == null) return null
         val provider: StorageProvider<ItemVariant> = capBelow
-        val be = provider.findBlockEntity()
         return provider[side.opposite]
     }
 
