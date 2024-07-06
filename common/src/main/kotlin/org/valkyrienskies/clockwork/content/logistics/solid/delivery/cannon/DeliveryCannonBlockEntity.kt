@@ -18,23 +18,25 @@ import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.sounds.SoundSource
 import net.minecraft.util.Mth
+import net.minecraft.world.entity.item.ItemEntity
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
+import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.ActiveChutes
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotBehaviour
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.blockToVec
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.euler_angle
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.get_Parabola_Y
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.get_delta
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.turn
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
-import java.util.Random
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotBehaviour
+import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -52,14 +54,15 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
     var transportStack: ItemStack = ItemStack.EMPTY
     var progress: Double = 0.0
-    var location: BlockPos = BlockPos.ZERO
+    var chuteLocation: BlockPos = BlockPos.ZERO
+    var realLocation: Vec3 = Vec3.ZERO
     var distance: Double = 0.0
 
     var itemLastPos = Vec3.ZERO
     var itemRotation = 0.0
 
     var didParticles = false
-    var playedSound = false
+    var fired = false
 
     var xRotation = 0.0
     var yRotation = 0.0
@@ -76,6 +79,11 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     var clientCannonRotationOffset = 0.0f
     var clientAntennaRotationOffset = 0.0f
 
+    val velocityThreshold = 1.0
+    var lastVelocity = Vector3d(0.0,0.0,0.0)
+
+    var cooldown: Int = 0
+
     init {
         xTargetRotation = blockState.getValue(HorizontalDirectionalBlock.FACING).toYRot().toDouble()
         xRotation = blockState.getValue(HorizontalDirectionalBlock.FACING).toYRot().toDouble()
@@ -84,9 +92,10 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
     override fun tick() {
         super.tick()
+        cooldown=max(0,cooldown-1)
+
 
         if (level!!.isClientSide) return
-
 
         val cap = grabCapability(Direction.DOWN) ?: return
         if (currentStack.isEmpty) currentStack  = ItemHelper.extract(cap, { true}, ItemHelper.ExtractionCountMode.UPTO, 64, false)
@@ -99,12 +108,13 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             val be = level!!.getBlockEntity(chute) as DeliveryChuteBlockEntity
 
             val attempt = be.receiveItem(currentStack,true)
-            if (attempt) {
+            if (attempt && cooldown == 0) {
                 transportStack = currentStack.copy()
                 currentStack = ItemStack.EMPTY
-                location = chute
+                chuteLocation = chute
+                realLocation = ActiveChutes.getChuteRealPos(chute)!!
                 be.isRecieving = true
-
+                lastVelocity = getChuteVelocity()
             }
         }
 
@@ -112,34 +122,54 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         if (!transportStack.isEmpty) {
             getAngle()
 
-            if (distance==0.0) distance = blockPos.distSqr(location)
 
-            if (!ActiveChutes.hasChute(location)) {
-                transportStack = ItemStack.EMPTY
-                progress = 0.0
+
+
+            if (!ActiveChutes.hasChute(chuteLocation)) {
+                end(false)
 
                 return
             }
 
+            if (ActiveChutes.getChutes()[chuteLocation]!!.isOnShip()) {
+                if (getChuteVelocity().sub(lastVelocity).length()>velocityThreshold) {
+                    val lerped = blockToVec(blockPos).lerp(realLocation,progress)
+                    val item = ItemEntity(level, lerped.x, get_Parabola_Y(this, lerped), lerped.z, transportStack)
+
+                    item.deltaMovement = blockToVec(blockPos).lerp(realLocation,progress -0.00001*distance + 0.05).subtract(lerped)
+                    item.setDefaultPickUpDelay()
+                    level!!.addFreshEntity(item)
+
+                    end(true)
+
+                    return
+                }
 
 
-            if (xRotation==xTargetRotation && yRotation == yTargetRotation) {
-                if (!playedSound) {
+                lastVelocity = getChuteVelocity()
+            }
+
+            realLocation = ActiveChutes.getChuteRealPos(chuteLocation)!!
+            distance = blockToVec(blockPos).distanceToSqr(realLocation)
+
+
+
+            if ((abs(xTargetRotation-xRotation) < 1 && abs(yTargetRotation-yRotation)< 0.5) || fired) {
+                if (!fired) {
                     val pitch = Mth.randomBetween(soundRandom, 0.9f, 1.1f)
                     level!!.playSound(null, blockPos, ClockworkSounds.THWOOM.mainEvent!!, SoundSource.BLOCKS, 1f,pitch)
-                    playedSound = true
+                    fired = true
                 }
                 progress += max(-0.00001*distance + 0.05,0.001)
             }
 
             if (progress >= 1 ) {
-                val be = level!!.getBlockEntity(location) as DeliveryChuteBlockEntity
+                val be = level!!.getBlockEntity(chuteLocation) as DeliveryChuteBlockEntity
                 be.receiveItem(transportStack,false)
-                transportStack = ItemStack.EMPTY
-                progress = 0.0
-                distance = 0.0
+
                 be.isRecieving = false
-                playedSound = false
+
+                end(false)
             }
         } else {
             xTargetRotation = blockState.getValue(HorizontalDirectionalBlock.FACING).toYRot().toDouble()
@@ -154,12 +184,25 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         sync()
     }
 
+    fun end(has_cooldown: Boolean) {
+        transportStack = ItemStack.EMPTY
+        progress = 0.0
+        distance = 0.0
+        fired = false
 
+        if (has_cooldown) cooldown = 10
+
+    }
+
+    fun getChuteVelocity(): Vector3d {
+        return if (ActiveChutes.getChutes()[chuteLocation]!!.isOnShip()) ActiveChutes.getChutes()[chuteLocation]!!.getVelocity()!!.get(Vector3d(0.0,0.0,0.0))
+            else Vector3d(0.0,0.0,0.0)
+    }
 
     fun getAngle() {
 
         val startVec = blockToVec(blockPos)
-        val endVec = blockToVec(location)
+        val endVec = realLocation
 
         val delta = get_delta(this)
         val y = get_Parabola_Y(this, startVec.lerp(endVec,delta))
@@ -180,7 +223,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     }
 
     fun sync() {
-        ClockworkPackets.sendToNear(level!!,blockPos,100,DeliveryCannonSyncPacket(transportStack,location, progress, xRotation ,yRotation , blockPos, xTargetRotation, yTargetRotation))
+        ClockworkPackets.sendToNear(level!!,blockPos,100,DeliveryCannonSyncPacket(transportStack, realLocation, progress, xRotation ,yRotation , blockPos, xTargetRotation, yTargetRotation))
     }
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
@@ -208,7 +251,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         val currentStack = currentStack.copy()
         val transportStack = transportStack.copy()
         val progress = progress
-        val location = location
+        val location = chuteLocation
         val xRotation = xRotation
         val yRotation = yRotation
 
@@ -228,7 +271,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         currentStack = ItemStack.of(compound.getCompound("currentStack"))
         transportStack = ItemStack.of(compound.getCompound("transportStack"))
         progress = compound.getDouble("progress")
-        location = BlockPos(compound.getInt("locationX"), compound.getInt("locationY"), compound.getInt("locationZ"))
+        chuteLocation = BlockPos(compound.getInt("locationX"), compound.getInt("locationY"), compound.getInt("locationZ"))
         xRotation = compound.getDouble("rotationX")
         yRotation = compound.getDouble("rotationY")
     }

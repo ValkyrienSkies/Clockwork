@@ -3,8 +3,12 @@ package org.valkyrienskies.clockwork.content.logistics.solid.delivery
 import com.simibubi.create.content.redstone.link.RedstoneLinkNetworkHandler.Frequency
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.phys.Vec3
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
+import org.valkyrienskies.core.util.x
+import org.valkyrienskies.core.util.y
+import org.valkyrienskies.core.util.z
 import org.valkyrienskies.mod.common.util.toJOMLD
 
 object ActiveChutes {
@@ -70,15 +74,19 @@ object ActiveChutes {
         return closest
     }
 
+
+
     fun hasChute(pos: BlockPos): Boolean {
         return actives.containsKey(pos) || unloaded.containsKey(pos)
     }
 
-    fun getChuteRealPos(pos: BlockPos): Vector3dc? {
+    fun getChuteRealPos(pos: BlockPos): Vec3? {
         if (actives.containsKey(pos)) {
-            return actives[pos]!!.getRealPos()
+            val temp = actives[pos]!!.getRealPos()
+            return Vec3(temp.x,temp.y,temp.z)
         } else if (unloaded.containsKey(pos)) {
-            return unloaded[pos]!!.getRealPos()
+            val temp = unloaded[pos]!!.getRealPos()
+            return Vec3(temp.x,temp.y,temp.z)
         }
         return null
     }

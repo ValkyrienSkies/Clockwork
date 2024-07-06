@@ -99,7 +99,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
             }
 
             // Item Render code
-            val og: Vec3 = be.itemLastPos.lerp(blockToVec(be.blockPos).lerp(blockToVec(be.location),be.progress),partialTicks.toDouble())
+            val og: Vec3 = be.itemLastPos.lerp(blockToVec(be.blockPos).lerp(be.realLocation,be.progress),partialTicks.toDouble())
             val y = get_Parabola_Y(be,og)
             be.itemRotation+=partialTicks
 
@@ -219,7 +219,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
 
         fun get_delta(be: DeliveryCannonBlockEntity): Double {
             val startVec = blockToVec(be.blockPos).add(Vec3(0.0, 0.75, 0.0))
-            val endVec = blockToVec(be.location).add(Vec3(0.0, 0.5, 0.0))
+            val endVec = be.realLocation.add(Vec3(0.0, 0.5, 0.0))
 
             val delta: Double
             if (endVec.y > startVec.y) delta = min((endVec.y - startVec.y) / 30 + 0.51, 0.85)
@@ -230,7 +230,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
 
         fun get_Parabola_Y(be: DeliveryCannonBlockEntity, input_vector: Vec3): Double {
             val startVec = blockToVec(be.blockPos).add(Vec3(0.0,0.75,0.0))
-            val endVec = blockToVec(be.location).add(Vec3(0.0,0.5,0.0))
+            val endVec = be.realLocation.add(Vec3(0.0,0.5,0.0))
 
             val delta = get_delta(be)
 

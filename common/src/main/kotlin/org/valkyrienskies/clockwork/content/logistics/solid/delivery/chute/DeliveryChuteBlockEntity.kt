@@ -110,7 +110,7 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
         return worldPosition
     }
 
-    private fun isOnShip(): Boolean {
+    fun isOnShip(): Boolean {
         if (this.level!!.isClientSide) return false
         return (this.level!! as ServerLevel).getShipObjectManagingPos(this.worldPosition) != null
     }
@@ -123,6 +123,12 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
         } else {
             this.worldPosition.toJOMLD()
         }
+    }
+
+    fun getVelocity(): Vector3dc? {
+        return if (isOnShip()) {
+            (this.level!! as ServerLevel).getShipObjectManagingPos(this.worldPosition)!!.velocity
+        } else null
     }
 
     fun receiveItem(itemStack: ItemStack, simulate: Boolean): Boolean {
