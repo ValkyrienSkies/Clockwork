@@ -2,7 +2,8 @@ package org.valkyrienskies.clockwork
 
 import com.simibubi.create.foundation.outliner.Outliner
 import dev.architectury.event.events.common.TickEvent
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.FrequencySlotGlobals
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotGlobals
+
 
 object ClockworkModClient {
 

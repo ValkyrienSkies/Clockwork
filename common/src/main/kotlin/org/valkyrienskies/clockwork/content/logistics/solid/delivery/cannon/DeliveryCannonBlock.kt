@@ -23,7 +23,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.level.block.state.properties.DirectionProperty
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.FrequencySlotGlobals
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotGlobals
 
 class DeliveryCannonBlock(properties: Properties) : HorizontalDirectionalBlock(properties), IBE<DeliveryCannonBlockEntity> {
 

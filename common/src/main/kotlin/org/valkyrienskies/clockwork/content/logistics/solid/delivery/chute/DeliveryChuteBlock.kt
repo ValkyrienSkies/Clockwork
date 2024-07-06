@@ -15,7 +15,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.FrequencySlotGlobals
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotGlobals
 
 class DeliveryChuteBlock(properties: Properties): Block(properties), IBE<DeliveryChuteBlockEntity> {
     override fun getBlockEntityClass(): Class<DeliveryChuteBlockEntity> {
