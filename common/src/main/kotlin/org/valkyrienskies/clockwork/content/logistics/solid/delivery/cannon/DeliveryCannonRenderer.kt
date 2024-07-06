@@ -99,19 +99,19 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
             }
 
             // Item Render code
-            val og: Vec3 = be.last.lerp(blockToVec(be.blockPos).lerp(blockToVec(be.location),be.progress),partialTicks.toDouble())
+            val og: Vec3 = be.itemLastPos.lerp(blockToVec(be.blockPos).lerp(blockToVec(be.location),be.progress),partialTicks.toDouble())
             val y = get_Parabola_Y(be,og)
-            be.rotate+=partialTicks
+            be.itemRotation+=partialTicks
 
             val msr = TransformStack.cast(ms)
             val launchedItemLocation = Vec3(og.x,y,og.z)
-            be.last = launchedItemLocation
+            be.itemLastPos = launchedItemLocation
             ms.pushPose()
             msr.translate(launchedItemLocation.subtract(Vec3.atLowerCornerOf(be.blockPos).add(Vec3(-0.5,-0.5,-0.5))))
             val itemRotOffset = VecHelper.voxelSpace(0.0, 3.0, 0.0)
             msr.translate(itemRotOffset)
-            msr.rotateY(be.rotate*3)
-            msr.rotateX(be.rotate*3)
+            msr.rotateY(be.itemRotation*3)
+            msr.rotateX(be.itemRotation*3)
             msr.translateBack(itemRotOffset)
             Minecraft.getInstance()
                 .itemRenderer
@@ -127,8 +127,8 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
             ms.popPose()
         } else {
             be.didParticles = false
-            be.last = blockToVec(be.blockPos)
-            be.rotate=0.0
+            be.itemLastPos = blockToVec(be.blockPos)
+            be.itemRotation=0.0
         }
     }
 

@@ -14,7 +14,6 @@ class DeliveryCannonSyncPacket : S2CCWPacket {
     private val progress: Double
     private val xRotation: Double
     private val yRotation: Double
-    private val shootingTicks: Int
     private val xTargetRotation: Double
     private val yTargetRotation: Double
     private val pos: BlockPos
@@ -27,20 +26,18 @@ class DeliveryCannonSyncPacket : S2CCWPacket {
         progress = buffer.readDouble()
         xRotation = buffer.readDouble()
         yRotation = buffer.readDouble()
-        shootingTicks = buffer.readInt()
         xTargetRotation = buffer.readDouble()
         yTargetRotation = buffer.readDouble()
         pos = buffer.readBlockPos()
 
     }
 
-    constructor(newStack: ItemStack,newLoc:BlockPos,newProg: Double,newxRotation: Double, newyRotation: Double, newShootingTicks:Int, newPos: BlockPos, newXTargetRotation: Double, newYTargetRotation: Double) {
+    constructor(newStack: ItemStack,newLoc:BlockPos,newProg: Double,newxRotation: Double, newyRotation: Double, newPos: BlockPos, newXTargetRotation: Double, newYTargetRotation: Double) {
         stack = newStack
         location = newLoc
         progress = newProg
         xRotation = newxRotation
         yRotation = newyRotation
-        shootingTicks = newShootingTicks
         xTargetRotation = newXTargetRotation
         yTargetRotation = newYTargetRotation
         pos  = newPos
@@ -56,7 +53,6 @@ class DeliveryCannonSyncPacket : S2CCWPacket {
             be.progress = progress
             be.xRotation = xRotation
             be.yRotation = yRotation
-            be.shootingTicks = shootingTicks
             be.xTargetRotation = xTargetRotation
             be.yTargetRotation = yTargetRotation
         }
@@ -69,7 +65,6 @@ class DeliveryCannonSyncPacket : S2CCWPacket {
         buffer.writeDouble(progress)
         buffer.writeDouble(xRotation)
         buffer.writeDouble(yRotation)
-        buffer.writeInt(shootingTicks)
         buffer.writeDouble(xTargetRotation)
         buffer.writeDouble(yTargetRotation)
         buffer.writeBlockPos(pos)

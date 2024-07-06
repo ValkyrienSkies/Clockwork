@@ -35,11 +35,12 @@ object FrequencySlotGlobals {
     fun tick() {
         val mc = Minecraft.getInstance()
         val target = mc.hitResult
-        if (target == null || target !is BlockHitResult) return
+        if (mc.level == null || target == null || target !is BlockHitResult) return
 
         val result = target
         val world = mc.level
         val pos = result.blockPos
+
 
         val behaviour = BlockEntityBehaviour.get(world, pos, FrequencySlotBehaviour.TYPE)
             ?: return
