@@ -48,20 +48,20 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         var mount = CachedBufferer.partial(ClockworkPartials.CANNON_MOUNT,be.blockState)
         var barrel = CachedBufferer.partial(ClockworkPartials.CANNON_BARREL,be.blockState)
 
+        val xResult = turn(be.xLastRotation, be.xTargetRotation, 1.0)
+        val yResult = turn(be.yLastRotation, be.yTargetRotation, 0.75)
 
-        val xTurnSpeed = Mth.clamp(be.xTargetRotation - be.xLastRotation, -1.0, 1.0)
-        val yTurnSpeed = Mth.clamp(be.yTargetRotation - be.yLastRotation, -0.75, 0.75)
-        // lerp rotation to make it look smoother
+        val xCurrentRotation: Double
+        if (xResult.second) xCurrentRotation = Mth.lerp(partialTicks.toDouble(), be.xLastRotation, xResult.first)
+        else xCurrentRotation = xResult.first
 
-        val xCurrentRotation = Mth.lerp(partialTicks.toDouble(), be.xLastRotation, be.xLastRotation + xTurnSpeed)
-        val yCurrentRotation = Mth.lerp(partialTicks.toDouble(), be.yLastRotation, be.yLastRotation + yTurnSpeed)
+        val yCurrentRotation = Mth.lerp(partialTicks.toDouble(), be.yLastRotation, yResult.first)
 
         handleShootingAnim(be, partialTicks)
 
         val lookDir = VecHelper.rotate(be.blockState.getValue(HorizontalDirectionalBlock.FACING).normal.toJOMLD().toMinecraft(), be.yRotation, be.xRotation, 0.0).normalize()
 
         // X Axis rotation
-        // doing it like this is easier than using AngleHelper.rad()
         mount = rotateCentered(mount, xCurrentRotation)
         base = rotateCentered(base, xCurrentRotation)
         barrel = rotateCentered(barrel, xCurrentRotation)
@@ -170,6 +170,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         return buffer
     }
 
+    // doing it like this is easier than using AngleHelper.rad()
     fun rotateCentered(buffer: SuperByteBuffer, angle: Double): SuperByteBuffer {
 
         return buffer.rotateCentered(Direction.UP, ((-angle - 90.0) / 180.0 * Math.PI).toFloat())
@@ -238,6 +239,32 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
             else y = Parabola(startVec.z,startVec.y,endVec.z,endVec.y,startVec.lerp(endVec,delta).z,input_vector.z)
 
             return y
+        }
+
+        fun turn(rotation: Double, targetRotation: Double, turnSpeed: Double): Pair<Double, Boolean> {
+
+            var shouldLerp = true
+            var rotation = rotation
+
+            if (360+rotation-targetRotation<abs(targetRotation-rotation)) {
+
+                rotation -=  turnSpeed
+                if (rotation<0) {
+                    rotation += 360
+                    shouldLerp = false
+                }
+            }
+            else if (360-rotation+targetRotation<abs(targetRotation-rotation)) {
+
+                rotation +=  turnSpeed
+                if (rotation>=360) {
+                    rotation -= 360
+                    shouldLerp = false
+                }
+            }
+            else
+            rotation +=  Mth.clamp(targetRotation-rotation, -turnSpeed, turnSpeed)
+            return Pair(rotation,shouldLerp)
         }
     }
 }

@@ -15,9 +15,10 @@ class DeliveryCannonSyncPacket : S2CCWPacket {
     private val xRotation: Double
     private val yRotation: Double
     private val shootingTicks: Int
-    private val pos: BlockPos
     private val xTargetRotation: Double
     private val yTargetRotation: Double
+    private val pos: BlockPos
+
 
 
     constructor(buffer: FriendlyByteBuf) {
@@ -27,9 +28,10 @@ class DeliveryCannonSyncPacket : S2CCWPacket {
         xRotation = buffer.readDouble()
         yRotation = buffer.readDouble()
         shootingTicks = buffer.readInt()
-        pos = buffer.readBlockPos()
         xTargetRotation = buffer.readDouble()
         yTargetRotation = buffer.readDouble()
+        pos = buffer.readBlockPos()
+
     }
 
     constructor(newStack: ItemStack,newLoc:BlockPos,newProg: Double,newxRotation: Double, newyRotation: Double, newShootingTicks:Int, newPos: BlockPos, newXTargetRotation: Double, newYTargetRotation: Double) {
@@ -39,9 +41,10 @@ class DeliveryCannonSyncPacket : S2CCWPacket {
         xRotation = newxRotation
         yRotation = newyRotation
         shootingTicks = newShootingTicks
-        pos  = newPos
         xTargetRotation = newXTargetRotation
         yTargetRotation = newYTargetRotation
+        pos  = newPos
+
     }
 
     override fun handle(context: ClientNetworkContext) {
@@ -67,9 +70,10 @@ class DeliveryCannonSyncPacket : S2CCWPacket {
         buffer.writeDouble(xRotation)
         buffer.writeDouble(yRotation)
         buffer.writeInt(shootingTicks)
-        buffer.writeBlockPos(pos)
         buffer.writeDouble(xTargetRotation)
         buffer.writeDouble(yTargetRotation)
+        buffer.writeBlockPos(pos)
+
     }
 
 

@@ -31,6 +31,7 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.Deli
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.euler_angle
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.get_Parabola_Y
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.get_delta
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.turn
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import java.util.Random
 import kotlin.math.abs
@@ -148,11 +149,20 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             yTargetRotation = 0.0
         }
 
-        xRotation +=  max(min(xTargetRotation-xRotation,turnSpeed),-turnSpeed)
-        yRotation +=  max(min(yTargetRotation-yRotation,turnSpeed),-turnSpeed)
+        print(xRotation)
+        print(" ")
+        print(xTargetRotation)
+        print(" ")
+        println(xTargetRotation-xRotation)
+        xRotation =  turn(xRotation, xTargetRotation, 3.0).first
+        yRotation =  turn(yRotation, yTargetRotation, 2.1).first
+
+
 
         sync()
     }
+
+
 
     fun getAngle() {
 
