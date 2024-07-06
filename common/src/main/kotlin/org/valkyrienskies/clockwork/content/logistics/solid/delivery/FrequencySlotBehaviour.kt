@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.logistics.solid.delivery
 
 import com.simibubi.create.content.equipment.clipboard.ClipboardCloneable
+import com.simibubi.create.content.redstone.link.LinkBehaviour
 import com.simibubi.create.content.redstone.link.RedstoneLinkNetworkHandler.Frequency
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType
@@ -11,6 +12,9 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.phys.Vec3
+import org.valkyrienskies.mod.common.getShipManagingPos
+import org.valkyrienskies.mod.common.util.toJOML
+import org.valkyrienskies.mod.common.util.toMinecraft
 
 class FrequencySlotBehaviour(be: SmartBlockEntity?, val slot: ValueBoxTransform) : BlockEntityBehaviour(be), ClipboardCloneable  {
 
@@ -69,10 +73,29 @@ class FrequencySlotBehaviour(be: SmartBlockEntity?, val slot: ValueBoxTransform)
 
     fun testHit( hit: Vec3): Boolean {
         val state = blockEntity.blockState
-        val localHit = hit.subtract(Vec3.atLowerCornerOf(blockEntity.blockPos))
+        val localHit = subtract(hit,Vec3.atLowerCornerOf(blockEntity.blockPos))
         return slot.testHit(state, localHit)
     }
 
+    private fun subtract(instance: Vec3, vec: Vec3): Vec3 {
+        val level = this.world
+
+        var pos1 = instance
+        var pos2 = vec
+
+        if (level != null) {
+            val ship1 = level.getShipManagingPos(pos1.x, pos1.y, pos1.z)
+            val ship2 = level.getShipManagingPos(pos2.x, pos2.y, pos2.z)
+            if (ship1 != null && ship2 == null) {
+                pos2 = ship1.worldToShip.transformPosition(pos2.toJOML())
+                    .toMinecraft()
+            } else if (ship1 == null && ship2 != null) {
+                pos1 = ship2.worldToShip.transformPosition(pos1.toJOML())
+                    .toMinecraft()
+            }
+        }
+        return pos1.subtract(pos2)
+    }
 
     companion object {
         val TYPE: BehaviourType<FrequencySlotBehaviour> = BehaviourType()
