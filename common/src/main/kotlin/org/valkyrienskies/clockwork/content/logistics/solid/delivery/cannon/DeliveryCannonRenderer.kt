@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon
 import com.jozufozu.flywheel.util.transform.TransformStack
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
+import com.simibubi.create.content.logistics.depot.EjectorRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
 import com.simibubi.create.foundation.utility.AngleHelper
@@ -48,14 +49,21 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         var mount = CachedBufferer.partial(ClockworkPartials.CANNON_MOUNT,be.blockState)
         var barrel = CachedBufferer.partial(ClockworkPartials.CANNON_BARREL,be.blockState)
 
-        val xResult = turn(be.xLastRotation, be.xTargetRotation, 1.0)
-        val yResult = turn(be.yLastRotation, be.yTargetRotation, 0.75)
+        val mult = if(be.gunPowderTicks>0) 3 else 1
+
+        val xResult = turn(be.xLastRotation, be.xTargetRotation, 1.0*mult)
+        val yResult = turn(be.yLastRotation, be.yTargetRotation, 0.75*mult)
+
 
         val xCurrentRotation: Double
         if (xResult.second) xCurrentRotation = Mth.lerp(partialTicks.toDouble(), be.xLastRotation, xResult.first)
         else xCurrentRotation = xResult.first
 
-        val yCurrentRotation = Mth.lerp(partialTicks.toDouble(), be.yLastRotation, yResult.first)
+        val yCurrentRotation: Double
+        if (xResult.second) yCurrentRotation = Mth.lerp(partialTicks.toDouble(), be.yLastRotation, yResult.first)
+        else yCurrentRotation = yResult.first
+
+
 
         handleShootingAnim(be, partialTicks)
 
@@ -74,6 +82,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         antenna = rotateToAngle(antenna,yCurrentRotation + clientCannonRotOffsetRad)
         barrel = rotateToAngle(barrel,yCurrentRotation + clientCannonRotOffsetRad)
 
+
         antenna = rotateAntenna(antenna,yCurrentRotation + clientAntennaRotOffsetRad)
         barrel.translate(Vec3(0.0,0.0,(be.clientBarrelOffset*2.0)/16.0))
         be.xLastRotation = xCurrentRotation
@@ -82,7 +91,10 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         val vb = buffer.getBuffer(RenderType.cutout())
 
         render(mount,base,barrel,antenna,ms,vb,light)
-        if (!be.transportStack.isEmpty && be.progress > 0) {
+        if (!be.transportStack.isEmpty && be.maxProgress > 0) {
+
+            println(partialTicks)
+            be.clientProgress+=(1-partialTicks)
 
             if (!be.didParticles) {
                 for (i in 0..9) {
@@ -93,19 +105,18 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
                     val rX = r.nextFloat() - sX * 40f
                     val rY = r.nextFloat() - sY * 40f
                     val rZ = r.nextFloat() - sZ * 40f
-                    be.level!!.addParticle(ParticleTypes.CLOUD, be.getRealPos().x + (lookDir.x*2.0) + rX, pivot.y + be.getRealPos().y.toDouble() + 1.0 + (lookDir.y*2.0) + rY, be.getRealPos().z.toDouble() + (lookDir.z*2.0) + rZ, sX, sY, sZ)
+                    be.level!!.addParticle(ParticleTypes.CLOUD, be.getRealPos().x + (lookDir.x*-1.0) + rX, pivot.y + be.getRealPos().y + (lookDir.y*-2.0) + rY, be.getRealPos().z + (lookDir.z*-1.0) + rZ, sX, sY, sZ)
                 }
                 be.didParticles = true
             }
 
             // Item Render code
-            val og: Vec3 = be.itemLastPos.lerp(be.getRealPos().lerp(be.realLocation,be.progress),partialTicks.toDouble())
+            val og: Vec3 = be.getRealPos().lerp(be.realLocation,be.clientProgress/be.maxProgress)
             val y = get_Parabola_Y(be,og)
             be.itemRotation+=partialTicks
 
             val msr = TransformStack.cast(ms)
             val launchedItemLocation = Vec3(og.x,y,og.z)
-            be.itemLastPos = launchedItemLocation
             ms.pushPose()
             msr.translate(launchedItemLocation.subtract(be.getRealPos().add(Vec3(-0.5,-0.5,-0.5))))
             val itemRotOffset = VecHelper.voxelSpace(0.0, 3.0, 0.0)
@@ -127,13 +138,13 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
             ms.popPose()
         } else {
             be.didParticles = false
-            be.itemLastPos = be.getRealPos()
+            be.clientProgress = 0.0
             be.itemRotation=0.0
         }
     }
 
     fun handleShootingAnim(be: DeliveryCannonBlockEntity, partialTicks: Float) {
-        if (be.progress > 0) {
+        if (be.maxProgress > 0) {
             be.clientShotProgress = Mth.clamp(be.clientShotProgress + partialTicks, 0.0, 12.0)
 
             if (be.clientShotProgress<=4.0) {

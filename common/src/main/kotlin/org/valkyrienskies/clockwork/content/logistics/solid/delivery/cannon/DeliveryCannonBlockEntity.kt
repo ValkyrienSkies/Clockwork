@@ -6,8 +6,6 @@ import com.simibubi.create.AllBlocks
 import com.simibubi.create.content.equipment.goggles.IHaveGoggleInformation
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.content.logistics.depot.EjectorBlock
-import com.simibubi.create.content.processing.burner.BlazeBurnerBlock
-import com.simibubi.create.content.processing.burner.BlazeBurnerBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.item.ItemHelper
@@ -60,12 +58,13 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
     var transportStack: ItemStack = ItemStack.EMPTY
     var progress: Double = 0.0
+    var clientProgress: Double = 0.0
+    var maxProgress: Double = 0.0
     var chuteLocation: BlockPos = BlockPos.ZERO
     var realLocation: Vec3 = Vec3.ZERO
     var distance: Double = 0.0
     var lastDistance: Double = 1.0
 
-    var itemLastPos = Vec3.ZERO
     var itemRotation = 0.0
 
     var didParticles = false
@@ -106,7 +105,6 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         if (level!!.isClientSide) return
         cooldown=max(0,cooldown-1)
         gunPowderTicks=max(0,gunPowderTicks-1)
-        println(gunPowderTicks)
 
 
         val cap = grabCapability(Direction.DOWN) ?: return
@@ -114,6 +112,8 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
 
         val chute = ActiveChutes.getNearestChuteWithFrequency(getRealPos(),100.0,frequencySlotBehaviour.frequency)
+
+        val mult = if(gunPowderTicks>0) 3 else 1
 
         if (chute!=null && !currentStack.isEmpty && transportStack.isEmpty ) {
             if (level!!.getBlockEntity(chute) == null || level!!.getBlockEntity(chute) !is DeliveryChuteBlockEntity) return
@@ -127,6 +127,9 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
                 realLocation = ActiveChutes.getChuteRealPos(chute)!!
                 be.isRecieving = true
                 lastVelocity = getChuteVelocity()
+
+                distance = getRealPos().distanceToSqr(realLocation)
+
             }
         }
 
@@ -148,7 +151,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
                     val lerped = getRealPos().lerp(realLocation,progress)
                     val item = ItemEntity(level, lerped.x, get_Parabola_Y(this, lerped), lerped.z, transportStack)
 
-                    item.deltaMovement = getRealPos().lerp(realLocation,progress -0.00001*distance + 0.05).subtract(lerped)
+                    item.deltaMovement = getRealPos().lerp(realLocation,(progress+1)/maxProgress ).subtract(lerped)
                     item.setDefaultPickUpDelay()
                     level!!.addFreshEntity(item)
 
@@ -173,26 +176,30 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
                     level!!.playSound(null, blockPos, ClockworkSounds.THWOOM.mainEvent!!, SoundSource.BLOCKS, 1f,pitch)
                     fired = true
                 }
-                progress = progress * max(distance/lastDistance,1.0)
+
                 lastDistance = distance
-                progress += max(-0.00001*distance + 0.05,0.001)
-            }
 
-            if (progress >= 1 ) {
-                val be = level!!.getBlockEntity(chuteLocation) as DeliveryChuteBlockEntity
-                be.receiveItem(transportStack,false)
+                maxProgress = 20+distance*0.8
+                progress += 1
 
-                be.isRecieving = false
+                if (progress >= maxProgress ) {
+                    val be = level!!.getBlockEntity(chuteLocation) as DeliveryChuteBlockEntity
+                    be.receiveItem(transportStack,false)
 
-                end(false)
+                    be.isRecieving = false
+
+                    end(false)
+                }
             }
         } else {
             xTargetRotation = blockState.getValue(HorizontalDirectionalBlock.FACING).toYRot().toDouble()
             yTargetRotation = 0.0
         }
 
-        xRotation =  turn(xRotation, xTargetRotation, 3.0).first
-        yRotation =  turn(yRotation, yTargetRotation, 2.1).first
+
+
+        xRotation =  turn(xRotation, xTargetRotation, 3.0*mult).first
+        yRotation =  turn(yRotation, yTargetRotation, 2.1*mult).first
 
 
 
@@ -200,7 +207,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     }
 
     fun addGunpowderTicks(count: Int) {
-        gunPowderTicks = count*6000
+        gunPowderTicks += count*6000
     }
 
     fun getRealPos(): Vec3 {
@@ -213,6 +220,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     fun end(has_cooldown: Boolean) {
         transportStack = ItemStack.EMPTY
         progress = 0.0
+        maxProgress = 0.0
         distance = 0.0
         fired = false
 
@@ -256,7 +264,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     }
 
     fun sync() {
-        ClockworkPackets.sendToNear(level!!,blockPos,100,DeliveryCannonSyncPacket(currentStack, transportStack, realLocation, progress, xRotation ,yRotation , blockPos, xTargetRotation, yTargetRotation, gunPowderTicks))
+        ClockworkPackets.sendToNear(level!!,blockPos,100,DeliveryCannonSyncPacket(currentStack, transportStack, realLocation, maxProgress, xRotation ,yRotation , blockPos, xTargetRotation, yTargetRotation, gunPowderTicks))
     }
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
@@ -328,7 +336,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         }
         if (gunPowderTicks>0) {
 
-            tooltip.add(Components.literal((gunPowderTicks/1200).toString() + " minutes " + (gunPowderTicks/20%60).toString() + " seconds of gunpowder left")
+            tooltip.add(Components.literal((gunPowderTicks/1200).toString() + "m " + (gunPowderTicks/20%60).toString() + "s of gunpowder left")
                 .withStyle(ChatFormatting.GOLD))
 
             shouldShow = true

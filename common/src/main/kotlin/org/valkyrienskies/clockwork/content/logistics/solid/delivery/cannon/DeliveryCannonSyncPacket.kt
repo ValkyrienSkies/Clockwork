@@ -16,7 +16,7 @@ class DeliveryCannonSyncPacket : S2CCWPacket {
     private val currentStack: ItemStack
     private val transportStack: ItemStack
     private val location: Vec3
-    private val progress: Double
+    private val maxProgress: Double
     private val xRotation: Double
     private val yRotation: Double
     private val xTargetRotation: Double
@@ -31,7 +31,7 @@ class DeliveryCannonSyncPacket : S2CCWPacket {
         transportStack = buffer.readItem()
         val temp = buffer.readVec3d()
         location = Vec3(temp.x,temp.y,temp.z)
-        progress = buffer.readDouble()
+        maxProgress = buffer.readDouble()
         xRotation = buffer.readDouble()
         yRotation = buffer.readDouble()
         xTargetRotation = buffer.readDouble()
@@ -45,7 +45,7 @@ class DeliveryCannonSyncPacket : S2CCWPacket {
         currentStack = newCurrentStack
         transportStack = newTransportStack
         location = newLoc
-        progress = newProg
+        maxProgress = newProg
         xRotation = newxRotation
         yRotation = newyRotation
         xTargetRotation = newXTargetRotation
@@ -62,7 +62,7 @@ class DeliveryCannonSyncPacket : S2CCWPacket {
             be.currentStack = currentStack
             be.transportStack = transportStack
             be.realLocation = location
-            be.progress = progress
+            be.maxProgress = maxProgress
             be.xRotation = xRotation
             be.yRotation = yRotation
             be.xTargetRotation = xTargetRotation
@@ -76,7 +76,7 @@ class DeliveryCannonSyncPacket : S2CCWPacket {
         buffer.writeItem(currentStack)
         buffer.writeItem(transportStack)
         buffer.writeVec3d(Vector3d(location.x,location.y,location.z))
-        buffer.writeDouble(progress)
+        buffer.writeDouble(maxProgress)
         buffer.writeDouble(xRotation)
         buffer.writeDouble(yRotation)
         buffer.writeDouble(xTargetRotation)
