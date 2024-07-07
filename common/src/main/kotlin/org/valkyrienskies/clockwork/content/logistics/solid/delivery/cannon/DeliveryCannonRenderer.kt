@@ -93,13 +93,13 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
                     val rX = r.nextFloat() - sX * 40f
                     val rY = r.nextFloat() - sY * 40f
                     val rZ = r.nextFloat() - sZ * 40f
-                    be.level!!.addParticle(ParticleTypes.CLOUD, be.blockPos.x.toDouble() + (lookDir.x*2.0) + rX, pivot.y + be.blockPos.y.toDouble() + 1.0 + (lookDir.y*2.0) + rY, be.blockPos.z.toDouble() + (lookDir.z*2.0) + rZ, sX, sY, sZ)
+                    be.level!!.addParticle(ParticleTypes.CLOUD, be.getRealPos().x + (lookDir.x*2.0) + rX, pivot.y + be.getRealPos().y.toDouble() + 1.0 + (lookDir.y*2.0) + rY, be.getRealPos().z.toDouble() + (lookDir.z*2.0) + rZ, sX, sY, sZ)
                 }
                 be.didParticles = true
             }
 
             // Item Render code
-            val og: Vec3 = be.itemLastPos.lerp(blockToVec(be.blockPos).lerp(be.realLocation,be.progress),partialTicks.toDouble())
+            val og: Vec3 = be.itemLastPos.lerp(be.getRealPos().lerp(be.realLocation,be.progress),partialTicks.toDouble())
             val y = get_Parabola_Y(be,og)
             be.itemRotation+=partialTicks
 
@@ -107,7 +107,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
             val launchedItemLocation = Vec3(og.x,y,og.z)
             be.itemLastPos = launchedItemLocation
             ms.pushPose()
-            msr.translate(launchedItemLocation.subtract(Vec3.atLowerCornerOf(be.blockPos).add(Vec3(-0.5,-0.5,-0.5))))
+            msr.translate(launchedItemLocation.subtract(be.getRealPos().add(Vec3(-0.5,-0.5,-0.5))))
             val itemRotOffset = VecHelper.voxelSpace(0.0, 3.0, 0.0)
             msr.translate(itemRotOffset)
             msr.rotateY(be.itemRotation*3)
@@ -127,7 +127,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
             ms.popPose()
         } else {
             be.didParticles = false
-            be.itemLastPos = blockToVec(be.blockPos)
+            be.itemLastPos = be.getRealPos()
             be.itemRotation=0.0
         }
     }
@@ -218,7 +218,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         }
 
         fun get_delta(be: DeliveryCannonBlockEntity): Double {
-            val startVec = blockToVec(be.blockPos).add(Vec3(0.0, 0.75, 0.0))
+            val startVec = be.getRealPos().add(Vec3(0.0, 0.75, 0.0))
             val endVec = be.realLocation.add(Vec3(0.0, 0.5, 0.0))
 
             val delta: Double
@@ -229,7 +229,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         }
 
         fun get_Parabola_Y(be: DeliveryCannonBlockEntity, input_vector: Vec3): Double {
-            val startVec = blockToVec(be.blockPos).add(Vec3(0.0,0.75,0.0))
+            val startVec = be.getRealPos().add(Vec3(0.0,0.75,0.0))
             val endVec = be.realLocation.add(Vec3(0.0,0.5,0.0))
 
             val delta = get_delta(be)

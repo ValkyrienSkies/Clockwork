@@ -36,6 +36,7 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.Deli
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.turn
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotBehaviour
+import org.valkyrienskies.mod.common.getShipManagingPos
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
@@ -57,6 +58,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     var chuteLocation: BlockPos = BlockPos.ZERO
     var realLocation: Vec3 = Vec3.ZERO
     var distance: Double = 0.0
+    var lastDistance: Double = 1.0
 
     var itemLastPos = Vec3.ZERO
     var itemRotation = 0.0
@@ -79,7 +81,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     var clientCannonRotationOffset = 0.0f
     var clientAntennaRotationOffset = 0.0f
 
-    val velocityThreshold = 1.0
+    val velocityThreshold = 5.0
     var lastVelocity = Vector3d(0.0,0.0,0.0)
 
     var cooldown: Int = 0
@@ -101,7 +103,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         if (currentStack.isEmpty) currentStack  = ItemHelper.extract(cap, { true}, ItemHelper.ExtractionCountMode.UPTO, 64, false)
 
 
-        val chute = ActiveChutes.getNearestChuteWithFrequency(blockPos,100.0,frequencySlotBehaviour.frequency)
+        val chute = ActiveChutes.getNearestChuteWithFrequency(getRealPos(),100.0,frequencySlotBehaviour.frequency)
 
         if (chute!=null && !currentStack.isEmpty && transportStack.isEmpty ) {
             if (level!!.getBlockEntity(chute) == null || level!!.getBlockEntity(chute) !is DeliveryChuteBlockEntity) return
@@ -133,10 +135,10 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
             if (ActiveChutes.getChutes()[chuteLocation]!!.isOnShip()) {
                 if (getChuteVelocity().sub(lastVelocity).length()>velocityThreshold) {
-                    val lerped = blockToVec(blockPos).lerp(realLocation,progress)
+                    val lerped = getRealPos().lerp(realLocation,progress)
                     val item = ItemEntity(level, lerped.x, get_Parabola_Y(this, lerped), lerped.z, transportStack)
 
-                    item.deltaMovement = blockToVec(blockPos).lerp(realLocation,progress -0.00001*distance + 0.05).subtract(lerped)
+                    item.deltaMovement = getRealPos().lerp(realLocation,progress -0.00001*distance + 0.05).subtract(lerped)
                     item.setDefaultPickUpDelay()
                     level!!.addFreshEntity(item)
 
@@ -150,7 +152,8 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             }
 
             realLocation = ActiveChutes.getChuteRealPos(chuteLocation)!!
-            distance = blockToVec(blockPos).distanceToSqr(realLocation)
+            distance = getRealPos().distanceToSqr(realLocation)
+
 
 
 
@@ -160,6 +163,8 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
                     level!!.playSound(null, blockPos, ClockworkSounds.THWOOM.mainEvent!!, SoundSource.BLOCKS, 1f,pitch)
                     fired = true
                 }
+                progress = progress * max(distance/lastDistance,1.0)
+                lastDistance = distance
                 progress += max(-0.00001*distance + 0.05,0.001)
             }
 
@@ -184,6 +189,13 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         sync()
     }
 
+    fun getRealPos(): Vec3 {
+        if (level.getShipManagingPos(blockPos) != null) {
+            val temp = level.getShipManagingPos(blockPos)!!.shipToWorld.transformPosition(Vector3d(blockPos.x.toDouble(),blockPos.y.toDouble(),blockPos.z.toDouble()))
+            return Vec3(temp.x,temp.y,temp.z)
+        } else return blockToVec(blockPos)
+    }
+
     fun end(has_cooldown: Boolean) {
         transportStack = ItemStack.EMPTY
         progress = 0.0
@@ -201,17 +213,21 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
     fun getAngle() {
 
-        val startVec = blockToVec(blockPos)
+        val startVec = getRealPos()
         val endVec = realLocation
 
         val delta = get_delta(this)
         val y = get_Parabola_Y(this, startVec.lerp(endVec,delta))
 
-        val dif = startVec.subtract(startVec.lerp(endVec,delta).x,y,startVec.lerp(endVec,delta).z)
+        var dif = startVec.subtract(startVec.lerp(endVec,delta).x,y,startVec.lerp(endVec,delta).z)
+
+        val ship = level!!.getShipManagingPos(blockPos)
+        if (ship!=null) {
+            val temp = ship.worldToShip.transformDirection(Vector3d(dif.x,dif.y,dif.z))
+            dif = Vec3(temp.x,temp.y,temp.z)
+        }
+
         xTargetRotation = euler_angle(dif.z,-dif.x)
-
-
-
 
         val otherV: Double
         if (abs(dif.z) > abs(dif.x)) otherV = dif.z
@@ -220,6 +236,9 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         if (u_angle>90) u_angle=180-u_angle
 
         yTargetRotation = min(90.0,u_angle+20)
+
+
+
     }
 
     fun sync() {
