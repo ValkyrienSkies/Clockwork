@@ -12,7 +12,6 @@ import org.valkyrienskies.clockwork.content.logistics.gas.GasHeatLevel
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock
 
 class DuctRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEntityRenderer<DuctBlockEntity>(context) {
-
     override fun renderSafe(
         blockEntity: DuctBlockEntity,
         partialTicks: Float,
@@ -22,6 +21,16 @@ class DuctRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEnt
         overlay: Int
     ) {
         super.renderSafe(blockEntity, partialTicks, ms, buffer, light, overlay)
+
+//        val core = when (blockEntity.blockState.getValue(IHeatableBlock.GAS_HEAT_LEVEL)) {
+//            GasHeatLevel.COOL -> ClockworkPartials.DUCT_CORE
+//            GasHeatLevel.WARM -> ClockworkPartials.DUCT_CORE_WARM
+//            GasHeatLevel.HOT -> ClockworkPartials.DUCT_CORE_HOT
+//            GasHeatLevel.VERY_HOT -> ClockworkPartials.DUCT_CORE_VERY_HOT
+//            GasHeatLevel.SUPER_HOT -> ClockworkPartials.DUCT_CORE_SUPER_HOT
+//            GasHeatLevel.MOLTEN -> ClockworkPartials.DUCT_CORE_MOLTEN
+//            null -> ClockworkPartials.DUCT_CORE
+//        }
 
         val connection = when (blockEntity.blockState.getValue(IHeatableBlock.GAS_HEAT_LEVEL)) {
             GasHeatLevel.COOL -> ClockworkPartials.DUCT_CONN
@@ -45,9 +54,11 @@ class DuctRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEnt
 
         val vertexConsumer = buffer.getBuffer(RenderType.cutout())
 
+//        CachedBufferer.partial(core, blockEntity.blockState).light(light).overlay(overlay).renderInto(ms, vertexConsumer)
+
         for (dir in Direction.values()) {
-            val dirConnection = CachedBufferer.partialFacing(connection, blockEntity.blockState, dir)
-            val dirRim = CachedBufferer.partialFacing(rim, blockEntity.blockState, dir)
+            val dirConnection = CachedBufferer.partialFacing(connection, blockEntity.blockState, dir.opposite)
+            val dirRim = CachedBufferer.partialFacing(rim, blockEntity.blockState, dir.opposite)
             if (blockEntity.blockState.getValue((blockEntity.blockState.block as DuctBlock).DIR_TO_CONNECTION[dir]!!).isConnected) {
                 if (blockEntity.level != null) {
                     when (blockEntity.level!!.getBlockState(blockEntity.blockPos.relative(dir)).block) {

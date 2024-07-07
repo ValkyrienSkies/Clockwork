@@ -3,12 +3,8 @@ package org.valkyrienskies.clockwork.content.logistics.gas.duct
 import com.simibubi.create.foundation.utility.Lang
 import net.minecraft.util.StringRepresentable
 
-enum class DuctConnectionType: StringRepresentable {
-    SIDE, FORCED, NONE;
-
-    fun asString(): String {
-        return name
-    }
+enum class DuctConnectionType(private val stringName: String): StringRepresentable {
+    SIDE("true"), FORCED("forced"), NONE("false");
 
     val isConnected: Boolean
         get() = this == SIDE
@@ -18,6 +14,6 @@ enum class DuctConnectionType: StringRepresentable {
     }
 
     override fun getSerializedName(): String {
-        return Lang.asId(name)
+        return Lang.asId(stringName)
     }
 }

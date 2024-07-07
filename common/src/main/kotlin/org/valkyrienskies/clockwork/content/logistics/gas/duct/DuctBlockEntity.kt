@@ -1,22 +1,24 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.duct
 
+import com.simibubi.create.content.equipment.goggles.IHaveGoggleInformation
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
+import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.kelvin.api.nodes.PipeDuctNode
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createPipeEdge
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createPipeNode
 import org.valkyrienskies.mod.common.util.toJOMLD
 import java.time.Clock
 
-class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : SmartBlockEntity(type, pos,
-    state
-) {
+class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : SmartBlockEntity(type, pos, state), IHeatableBlockEntity {
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
         super.addBehavioursDeferred(behaviours)
     }
@@ -51,5 +53,9 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
     override fun destroy() {
         ClockworkMod.getKelvin().removeNode(this.blockPos.toJOMLD())
         super.destroy()
+    }
+
+    override fun getDuctNodePosition(): DuctNodePos {
+        return this.blockPos.toJOMLD()
     }
 }

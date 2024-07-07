@@ -80,7 +80,12 @@ object ClockworkPartials {
     val BOING = block("boing")
 
     //PIPE DEATH
-    val DUCT_CORE: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/core"))
+    val DUCT_CORE: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/core/cool"))
+    val DUCT_CORE_WARM: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/core/warm"))
+    val DUCT_CORE_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/core/hot"))
+    val DUCT_CORE_VERY_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/core/very_hot"))
+    val DUCT_CORE_SUPER_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/core/super_hot"))
+    val DUCT_CORE_MOLTEN: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/core/molten"))
 
     val DUCT_CONN: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/connection/cool"))
     val DUCT_CONN_WARM: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/connection/warm"))

@@ -29,7 +29,9 @@ import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRe
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.PumpDuctBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.PumpDuctRenderer
 
 object ClockworkBlockEntities {
 
@@ -238,6 +240,13 @@ object ClockworkBlockEntities {
             )
         }
         .validBlocks(ClockworkBlocks.DUCT)
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in DuctBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                DuctRenderer(
+                    context!!
+                )
+            }
+        }
         .register()
 
     @JvmField
@@ -250,6 +259,13 @@ object ClockworkBlockEntities {
             )
         }
         .validBlocks(ClockworkBlocks.PUMP_DUCT)
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in PumpDuctBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                PumpDuctRenderer(
+                    context!!
+                )
+            }
+        }
         .register()
 
     @JvmField

@@ -10,18 +10,21 @@ import com.simibubi.create.foundation.utility.Lang
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
+import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.kelvin.api.NodeBehaviorType
 import org.valkyrienskies.clockwork.kelvin.api.nodes.PumpDuctNode
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils
 import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.math.abs
 
-class PumpDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: BlockState): KineticBlockEntity(typeIn, pos, state) {
+class PumpDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: BlockState): KineticBlockEntity(typeIn, pos, state), IHeatableBlockEntity {
 
     lateinit var pumpDirection: ScrollOptionBehaviour<PumpDirectionMode>
 
@@ -71,7 +74,7 @@ class PumpDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Bloc
         for (dir in Direction.values()) {
             val block = this.level!!.getBlockState(this.blockPos).block
             val otherBlock = this.level!!.getBlockState(this.blockPos.relative(dir)).block
-            if (block is IDuct && otherBlock is IDuct && block.canConnectTo(this.blockPos, this.blockPos.relative(dir), this.level!!) && otherBlock.canConnectTo(this.blockPos.relative(dir), this.blockPos, this.level!!)) {
+            if (block is IDuct && otherBlock is IDuct && block.canConnectTo(this.blockPos, this.blockPos.relative(dir), dir, this.level!!) && otherBlock.canConnectTo(this.blockPos.relative(dir), this.blockPos, dir.opposite, this.level!!)) {
                 ClockworkMod.getKelvin().addEdge(this.blockPos.toJOMLD(), this.blockPos.relative(dir).toJOMLD(),
                     DuctNetworkUtils.createPipeEdge(this.blockPos.toJOMLD(), this.blockPos.relative(dir).toJOMLD())
                 )
@@ -139,5 +142,13 @@ class PumpDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Bloc
             return Vec3(0.5, 0.5, 0.5)
         }
 
+    }
+
+    override fun getDuctNodePosition(): DuctNodePos {
+        return this.blockPos.toJOMLD()
+    }
+
+    override fun addToGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
+        return super<IHeatableBlockEntity>.addToGoggleTooltip(tooltip, isPlayerSneaking)
     }
 }

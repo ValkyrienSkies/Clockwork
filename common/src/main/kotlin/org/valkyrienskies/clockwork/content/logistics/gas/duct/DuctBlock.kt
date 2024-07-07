@@ -63,12 +63,12 @@ class DuctBlock(properties: Properties) : Block(properties), IDuct, IBE<DuctBloc
             .put(Direction.UP, UP_CONNECTION).build()
 
     val DIR_SHAPES: Map<Direction, VoxelShape> = ImmutableMap.Builder<Direction, VoxelShape>()
-        .put(Direction.NORTH, box(4.0, 4.0, 0.0, 12.0, 12.0, 5.0))
-        .put(Direction.EAST, box(11.0, 4.0, 4.0, 16.0, 12.0, 12.0))
-        .put(Direction.SOUTH, box(4.0, 4.0, 11.0, 12.0, 12.0, 16.0))
-        .put(Direction.WEST, box(0.0, 4.0, 4.0, 5.0, 12.0, 12.0))
-        .put(Direction.UP, box(4.0, 11.0, 4.0, 12.0, 16.0, 12.0))
-        .put(Direction.DOWN, box(4.0, 0.0, 4.0, 12.0, 5.0, 12.0)).build()
+        .put(Direction.NORTH, box(5.0, 5.0, 0.0, 11.0, 11.0, 5.0))
+        .put(Direction.EAST, box(11.0, 5.0, 5.0, 16.0, 11.0, 11.0))
+        .put(Direction.SOUTH, box(5.0, 5.0, 11.0, 11.0, 11.0, 16.0))
+        .put(Direction.WEST, box(0.0, 5.0, 5.0, 5.0, 11.0, 11.0))
+        .put(Direction.UP, box(5.0, 11.0, 5.0, 11.0, 16.0, 11.0))
+        .put(Direction.DOWN, box(5.0, 0.0, 5.0, 11.0, 5.0, 11.0)).build()
 
     init {
         registerDefaultState(super.defaultBlockState()
@@ -206,7 +206,7 @@ class DuctBlock(properties: Properties) : Block(properties), IDuct, IBE<DuctBloc
     }
 
     protected fun getCenterShape(): VoxelShape {
-        return box(4.0, 4.0, 4.0, 12.0, 12.0, 12.0)
+        return box(5.0, 5.0, 5.0, 11.0, 11.0, 11.0)
     }
 
     fun getShapeForState(state: BlockState): VoxelShape {

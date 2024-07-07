@@ -1,11 +1,16 @@
 package org.valkyrienskies.clockwork.kelvin.impl
 
+import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.level.Explosion
+import org.valkyrienskies.clockwork.content.logistics.gas.GasHeatLevel
+import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock
 import org.valkyrienskies.clockwork.kelvin.api.*
 import org.valkyrienskies.clockwork.kelvin.api.edges.ApertureEdge
 import org.valkyrienskies.clockwork.kelvin.api.edges.FilteredEdge
 import org.valkyrienskies.clockwork.kelvin.api.edges.OneWayEdge
 import org.valkyrienskies.clockwork.kelvin.api.nodes.PumpDuctNode
+import org.valkyrienskies.mod.common.util.toMinecraft
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.HashSet
@@ -78,6 +83,9 @@ class DuctNetworkImpl(
         edges.find { (it.nodeA == posA && it.nodeB == posB) || (it.nodeA == posB && it.nodeB == posA) }?.let {
             return
         }
+        if (posA == posB) {
+            return
+        }
         edges.add(edge)
         nodes[posA]?.nodeEdges?.add(edge)
         nodes[posB]?.nodeEdges?.add(edge)
@@ -140,6 +148,10 @@ class DuctNetworkImpl(
 
                 nodeA!!.currentGasMasses.forEach { totalGasMassA += it.value }
                 nodeB!!.currentGasMasses.forEach { totalGasMassB += it.value }
+
+                if (totalGasMassA == 0.0 && totalGasMassB == 0.0) {
+                    continue
+                }
 
                 val densityA = densityAverage(nodeA.currentGasMasses)
                 val densityB = densityAverage(nodeB.currentGasMasses)
@@ -253,7 +265,7 @@ class DuctNetworkImpl(
             val info = nodeInfo[nodePos]!!
 
             if (info.currentPressure > node.maxPressure) {
-                // todo wuh oh spaghettio prepare to explodio
+                level.explode(null, nodePos.x() + 0.5, nodePos.y() + 0.5, nodePos.z() + 0.5, 1f, Explosion.BlockInteraction.BREAK)
             }
 
 //            if (info.currentPressure < node.minPressure) {
@@ -262,24 +274,42 @@ class DuctNetworkImpl(
             //copilot wrote this so im immortalizing it
 
             //temperature control stuff
-            if (info.currentTemperature < 327.0 && info.previousTemperatureLevel != 0) {
+            if (info.currentTemperature < (node.maxTemperature/5) && info.previousTemperatureLevel != 0) {
                 info.previousTemperatureLevel = 0
-                // todo pipe cold texture if not already
-            } else if (info.currentTemperature < 527.0 && info.previousTemperatureLevel != 1) {
+                if (level.getBlockState(BlockPos(nodePos.toMinecraft())).block is IHeatableBlock) {
+                    val newState = level.getBlockState(BlockPos(nodePos.toMinecraft())).setValue(IHeatableBlock.GAS_HEAT_LEVEL, GasHeatLevel.COOL)
+                    level.setBlockAndUpdate(BlockPos(nodePos.toMinecraft()), newState)
+                }
+            } else if (info.currentTemperature < ((2 * node.maxTemperature)/5) && info.previousTemperatureLevel != 1) {
                 info.previousTemperatureLevel = 1
-                // todo pipe hot texture if not already
-            } else if (info.currentTemperature < 677.0 && info.previousTemperatureLevel != 2) {
+                if (level.getBlockState(BlockPos(nodePos.toMinecraft())).block is IHeatableBlock) {
+                    val newState = level.getBlockState(BlockPos(nodePos.toMinecraft())).setValue(IHeatableBlock.GAS_HEAT_LEVEL, GasHeatLevel.WARM)
+                    level.setBlockAndUpdate(BlockPos(nodePos.toMinecraft()), newState)
+                }
+            } else if (info.currentTemperature < ((3 * node.maxTemperature)/5) && info.previousTemperatureLevel != 2) {
                 info.previousTemperatureLevel = 2
-                // todo pipe very hot texture if not already
-            } else if (info.currentTemperature < 1100.0 && info.previousTemperatureLevel != 3) {
+                if (level.getBlockState(BlockPos(nodePos.toMinecraft())).block is IHeatableBlock) {
+                    val newState = level.getBlockState(BlockPos(nodePos.toMinecraft())).setValue(IHeatableBlock.GAS_HEAT_LEVEL, GasHeatLevel.HOT)
+                    level.setBlockAndUpdate(BlockPos(nodePos.toMinecraft()), newState)
+                }
+            } else if (info.currentTemperature < ((4 * node.maxTemperature)/5) && info.previousTemperatureLevel != 3) {
                 info.previousTemperatureLevel = 3
-                // todo pipe very very hot texture if not already
+                if (level.getBlockState(BlockPos(nodePos.toMinecraft())).block is IHeatableBlock) {
+                    val newState = level.getBlockState(BlockPos(nodePos.toMinecraft())).setValue(IHeatableBlock.GAS_HEAT_LEVEL, GasHeatLevel.VERY_HOT)
+                    level.setBlockAndUpdate(BlockPos(nodePos.toMinecraft()), newState)
+                }
             } else if (info.currentTemperature < node.maxTemperature && info.previousTemperatureLevel != 4) {
                 info.previousTemperatureLevel = 4
-                // todo thats a spicy pipe
+                if (level.getBlockState(BlockPos(nodePos.toMinecraft())).block is IHeatableBlock) {
+                    val newState = level.getBlockState(BlockPos(nodePos.toMinecraft())).setValue(IHeatableBlock.GAS_HEAT_LEVEL, GasHeatLevel.SUPER_HOT)
+                    level.setBlockAndUpdate(BlockPos(nodePos.toMinecraft()), newState)
+                }
             } else if (info.previousTemperatureLevel != 5) {
                 info.previousTemperatureLevel = 5
-                // todo WAY TOO SPICY
+                if (level.getBlockState(BlockPos(nodePos.toMinecraft())).block is IHeatableBlock) {
+                    val newState = level.getBlockState(BlockPos(nodePos.toMinecraft())).setValue(IHeatableBlock.GAS_HEAT_LEVEL, GasHeatLevel.MOLTEN)
+                    level.setBlockAndUpdate(BlockPos(nodePos.toMinecraft()), newState)
+                }
             }
         }
     }
