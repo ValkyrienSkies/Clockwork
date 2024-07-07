@@ -9,6 +9,8 @@ import net.minecraft.core.Direction.Axis
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
@@ -77,7 +79,15 @@ class DeliveryCannonBlock(properties: Properties) : HorizontalDirectionalBlock(p
         hit: BlockHitResult
     ): InteractionResult {
 
-        return FrequencySlotGlobals.use(state, level, pos, player, hand, hit)
+        val result = FrequencySlotGlobals.use(state, level, pos, player, hand, hit)
+        val be = level.getBlockEntity(pos) as DeliveryCannonBlockEntity
+
+        if (player.getItemInHand(hand).item == Items.GUNPOWDER) {
+            be.addGunpowderTicks(player.getItemInHand(hand).count)
+            player.setItemInHand(hand, ItemStack.EMPTY)
+            return InteractionResult.SUCCESS
+        }
+        return result
     }
 
 

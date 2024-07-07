@@ -6,6 +6,8 @@ import com.simibubi.create.AllBlocks
 import com.simibubi.create.content.equipment.goggles.IHaveGoggleInformation
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.content.logistics.depot.EjectorBlock
+import com.simibubi.create.content.processing.burner.BlazeBurnerBlock
+import com.simibubi.create.content.processing.burner.BlazeBurnerBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.item.ItemHelper
@@ -88,6 +90,8 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     var lastVelocity = Vector3d(0.0,0.0,0.0)
 
     var cooldown: Int = 0
+    var gunPowderTicks: Int = 0
+
 
     init {
         xTargetRotation = blockState.getValue(HorizontalDirectionalBlock.FACING).toYRot().toDouble()
@@ -97,10 +101,13 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
     override fun tick() {
         super.tick()
-        cooldown=max(0,cooldown-1)
 
 
         if (level!!.isClientSide) return
+        cooldown=max(0,cooldown-1)
+        gunPowderTicks=max(0,gunPowderTicks-1)
+        println(gunPowderTicks)
+
 
         val cap = grabCapability(Direction.DOWN) ?: return
         if (currentStack.isEmpty) currentStack  = ItemHelper.extract(cap, { true}, ItemHelper.ExtractionCountMode.UPTO, 64, false)
@@ -192,6 +199,10 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         sync()
     }
 
+    fun addGunpowderTicks(count: Int) {
+        gunPowderTicks = count*6000
+    }
+
     fun getRealPos(): Vec3 {
         if (level.getShipManagingPos(blockPos) != null) {
             val temp = level.getShipManagingPos(blockPos)!!.shipToWorld.transformPosition(Vector3d(blockPos.x.toDouble(),blockPos.y.toDouble(),blockPos.z.toDouble()))
@@ -245,7 +256,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     }
 
     fun sync() {
-        ClockworkPackets.sendToNear(level!!,blockPos,100,DeliveryCannonSyncPacket(currentStack, transportStack, realLocation, progress, xRotation ,yRotation , blockPos, xTargetRotation, yTargetRotation))
+        ClockworkPackets.sendToNear(level!!,blockPos,100,DeliveryCannonSyncPacket(currentStack, transportStack, realLocation, progress, xRotation ,yRotation , blockPos, xTargetRotation, yTargetRotation, gunPowderTicks))
     }
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
@@ -303,12 +314,28 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
         tooltip.add(Components.empty())
 
-        if (!currentStack.isEmpty) Lang.translate("tooltip.chute.contains", Components.translatable(currentStack.getDescriptionId()).string, currentStack.getCount())
-            .style(ChatFormatting.GREEN)
-            .forGoggles(tooltip)
-        else return false
+        var shouldShow = false
 
-        return true
+        if (!currentStack.isEmpty) {
+            Lang.translate(
+                "tooltip.chute.contains",
+                Components.translatable(currentStack.getDescriptionId()).string,
+                currentStack.getCount()
+            )
+                .style(ChatFormatting.GREEN)
+                .forGoggles(tooltip)
+            shouldShow = true
+        }
+        if (gunPowderTicks>0) {
+
+            tooltip.add(Components.literal((gunPowderTicks/1200).toString() + " minutes " + (gunPowderTicks/20%60).toString() + " seconds of gunpowder left")
+                .withStyle(ChatFormatting.GOLD))
+
+            shouldShow = true
+        }
+
+
+        return shouldShow
     }
 
     public class FrequencySlot : ValueBoxTransform.Sided() {
