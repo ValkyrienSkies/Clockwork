@@ -94,7 +94,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         if (!be.transportStack.isEmpty && be.maxProgress > 0) {
 
             println(partialTicks)
-            be.clientProgress+=(1-partialTicks)
+            be.clientProgress+=partialTicks
 
             if (!be.didParticles) {
                 for (i in 0..9) {
