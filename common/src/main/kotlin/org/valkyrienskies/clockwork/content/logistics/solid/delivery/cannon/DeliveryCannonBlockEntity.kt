@@ -3,19 +3,24 @@ package org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon
 import com.jozufozu.flywheel.util.transform.TransformStack
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllBlocks
+import com.simibubi.create.content.equipment.goggles.IHaveGoggleInformation
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.content.logistics.depot.EjectorBlock
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.item.ItemHelper
 import com.simibubi.create.foundation.utility.AngleHelper
+import com.simibubi.create.foundation.utility.Components
+import com.simibubi.create.foundation.utility.Lang
 import com.simibubi.create.foundation.utility.VecHelper
 import io.github.fabricators_of_create.porting_lib.transfer.StorageProvider
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage
+import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
 import net.minecraft.sounds.SoundSource
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.item.ItemEntity
@@ -42,9 +47,7 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : KineticBlockEntity(type, pos,
-    state
-) {
+class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : KineticBlockEntity(type, pos, state), IHaveGoggleInformation {
 
     lateinit var capBelow: StorageProvider<ItemVariant>
     lateinit var frequencySlotBehaviour: FrequencySlotBehaviour
@@ -242,7 +245,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     }
 
     fun sync() {
-        ClockworkPackets.sendToNear(level!!,blockPos,100,DeliveryCannonSyncPacket(transportStack, realLocation, progress, xRotation ,yRotation , blockPos, xTargetRotation, yTargetRotation))
+        ClockworkPackets.sendToNear(level!!,blockPos,100,DeliveryCannonSyncPacket(currentStack, transportStack, realLocation, progress, xRotation ,yRotation , blockPos, xTargetRotation, yTargetRotation))
     }
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
@@ -295,6 +298,18 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         yRotation = compound.getDouble("rotationY")
     }
 
+
+    override fun addToGoggleTooltip(tooltip: MutableList<Component?>, isPlayerSneaking: Boolean): Boolean {
+
+        tooltip.add(Components.empty())
+
+        if (!currentStack.isEmpty) Lang.translate("tooltip.chute.contains", Components.translatable(currentStack.getDescriptionId()).string, currentStack.getCount())
+            .style(ChatFormatting.GREEN)
+            .forGoggles(tooltip)
+        else return false
+
+        return true
+    }
 
     public class FrequencySlot : ValueBoxTransform.Sided() {
         override fun getLocalOffset(state: BlockState): Vec3 {

@@ -10,11 +10,11 @@ import org.joml.Vector3d
 import org.valkyrienskies.clockwork.platform.api.network.ClientNetworkContext
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket
 import org.valkyrienskies.core.util.readVec3d
-import org.valkyrienskies.core.util.readVec3fAsDouble
 import org.valkyrienskies.core.util.writeVec3d
 
 class DeliveryCannonSyncPacket : S2CCWPacket {
-    private val stack: ItemStack
+    private val currentStack: ItemStack
+    private val transportStack: ItemStack
     private val location: Vec3
     private val progress: Double
     private val xRotation: Double
@@ -26,7 +26,8 @@ class DeliveryCannonSyncPacket : S2CCWPacket {
 
 
     constructor(buffer: FriendlyByteBuf) {
-        stack = buffer.readItem()
+        currentStack = buffer.readItem()
+        transportStack = buffer.readItem()
         val temp = buffer.readVec3d()
         location = Vec3(temp.x,temp.y,temp.z)
         progress = buffer.readDouble()
@@ -38,8 +39,9 @@ class DeliveryCannonSyncPacket : S2CCWPacket {
 
     }
 
-    constructor(newStack: ItemStack,newLoc:Vec3,newProg: Double,newxRotation: Double, newyRotation: Double, newPos: BlockPos, newXTargetRotation: Double, newYTargetRotation: Double) {
-        stack = newStack
+    constructor(newCurrentStack: ItemStack, newTransportStack: ItemStack, newLoc:Vec3, newProg: Double, newxRotation: Double, newyRotation: Double, newPos: BlockPos, newXTargetRotation: Double, newYTargetRotation: Double) {
+        currentStack = newCurrentStack
+        transportStack = newTransportStack
         location = newLoc
         progress = newProg
         xRotation = newxRotation
@@ -54,7 +56,8 @@ class DeliveryCannonSyncPacket : S2CCWPacket {
         context.enqueueWork {
 
             val be = Minecraft.getInstance().level?.getBlockEntity(pos) as DeliveryCannonBlockEntity
-            be.transportStack = stack
+            be.currentStack = currentStack
+            be.transportStack = transportStack
             be.realLocation = location
             be.progress = progress
             be.xRotation = xRotation
@@ -66,7 +69,8 @@ class DeliveryCannonSyncPacket : S2CCWPacket {
     }
 
     override fun write(buffer: FriendlyByteBuf) {
-        buffer.writeItem(stack)
+        buffer.writeItem(currentStack)
+        buffer.writeItem(transportStack)
         buffer.writeVec3d(Vector3d(location.x,location.y,location.z))
         buffer.writeDouble(progress)
         buffer.writeDouble(xRotation)
