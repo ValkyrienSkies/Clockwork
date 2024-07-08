@@ -34,6 +34,7 @@ import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.GasHeatLevel
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock.Companion.GAS_HEAT_LEVEL
+import org.valkyrienskies.clockwork.content.logistics.gas.IScrewdrivable
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.DOWN_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.EAST_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.NORTH_CONNECTION
@@ -47,7 +48,7 @@ import org.valkyrienskies.clockwork.util.MathFunctions.removeAxis
 import org.valkyrienskies.mod.common.util.toJOMLD
 
 
-class DuctBlock(properties: Properties) : Block(properties), IDuct, IBE<DuctBlockEntity>, SimpleWaterloggedBlock, IWrenchable {
+class DuctBlock(properties: Properties) : Block(properties), IDuct, IBE<DuctBlockEntity>, SimpleWaterloggedBlock, IWrenchable, IScrewdrivable {
 
     //credit to NEEPMeat for the pipe implementation idea :3dsmile:
 
@@ -201,6 +202,10 @@ class DuctBlock(properties: Properties) : Block(properties), IDuct, IBE<DuctBloc
         return super.onSneakWrenched(state, context)
     }
 
+    override fun playRemoveSound(world: Level?, pos: BlockPos?) {
+        TODO("Not yet implemented")
+    }
+
     fun connectionChangeSound(): SoundEvent {
         return AllSoundEvents.WRENCH_ROTATE.mainEvent
     }
@@ -351,5 +356,17 @@ class DuctBlock(properties: Properties) : Block(properties), IDuct, IBE<DuctBloc
 
     override fun getBlockEntityType(): BlockEntityType<out DuctBlockEntity> {
         return ClockworkBlockEntities.DUCT.get()
+    }
+
+    override fun onScrewdrived(state: BlockState, context: UseOnContext): InteractionResult {
+        TODO("Not yet implemented")
+    }
+
+    override fun onSneakScrewdrived(state: BlockState, context: UseOnContext): InteractionResult {
+        TODO("Not yet implemented")
+    }
+
+    override fun playRemoveSound(world: Level, pos: BlockPos) {
+        TODO("Not yet implemented")
     }
 }
