@@ -97,6 +97,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         xTargetRotation = blockState.getValue(HorizontalDirectionalBlock.FACING).toYRot().toDouble()
         xRotation = blockState.getValue(HorizontalDirectionalBlock.FACING).toYRot().toDouble()
         xLastRotation = xTargetRotation
+
     }
 
     override fun tick() {
@@ -305,6 +306,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         compound.putInt("locationZ",location.z)
         compound.putDouble("rotationX",xRotation)
         compound.putDouble("rotationY",yRotation)
+        compound.putInt("gunPowderTicks",gunPowderTicks)
     }
 
     override fun read(compound: CompoundTag, clientPacket: Boolean) {
@@ -316,6 +318,10 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         chuteLocation = BlockPos(compound.getInt("locationX"), compound.getInt("locationY"), compound.getInt("locationZ"))
         xRotation = compound.getDouble("rotationX")
         yRotation = compound.getDouble("rotationY")
+        gunPowderTicks = compound.getInt("gunPowderTicks")
+
+        xLastRotation = xRotation
+        yLastRotation = yRotation
     }
 
 
