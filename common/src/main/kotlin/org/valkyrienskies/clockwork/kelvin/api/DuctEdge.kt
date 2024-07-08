@@ -10,4 +10,8 @@ interface DuctEdge {
     var radius: Double
     var length: Double
     var currentFlowRate: Double
+
+    fun interact(): Boolean {
+        return false
+    }
 }

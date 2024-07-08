@@ -15,6 +15,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.Gravitro
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClearPacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctEdgeSyncPacket
 import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket
 import org.valkyrienskies.clockwork.platform.SharedValues.packetChannel
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
@@ -47,7 +48,10 @@ enum class ClockworkPackets(
 
     PHYSICS_INFUSER(PhysicsInfuserSyncPacket::class.java, ::PhysicsInfuserSyncPacket),
     WANDER_WAND(WanderWandSelectionPacket::class.java, ::WanderWandSelectionPacket),
-    WANDER_WAND_CLEAR(WanderWandClearPacket::class.java, ::WanderWandClearPacket);
+    WANDER_WAND_CLEAR(WanderWandClearPacket::class.java, ::WanderWandClearPacket),
+
+    UPDATE_DUCT_EDGE(DuctEdgeSyncPacket::class.java, ::DuctEdgeSyncPacket)
+    ;
 
     init {
         packetChannel.registerPacket(type as Class<CWPacket>, factory as Function<FriendlyByteBuf, CWPacket>)

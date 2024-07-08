@@ -14,5 +14,4 @@ class FilteredDuctEdge(
     override var blacklist: Boolean = false,
 ) : DuctEdge, FilteredEdge {
 
-
 }

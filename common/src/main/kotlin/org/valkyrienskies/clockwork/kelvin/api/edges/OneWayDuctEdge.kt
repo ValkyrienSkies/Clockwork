@@ -15,4 +15,9 @@ class OneWayDuctEdge(
     override var radius: Double = 0.125, override var length: Double = 0.5, override var currentFlowRate: Double = 0.0,
     override var reversed: Boolean = false,
 ) : DuctEdge, OneWayEdge {
+
+    override fun interact(): Boolean {
+        reversed = !reversed
+        return reversed
+    }
 }

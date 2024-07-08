@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content.logistics.gas
+package org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver
 
 import com.simibubi.create.AllSoundEvents
 import com.simibubi.create.Create

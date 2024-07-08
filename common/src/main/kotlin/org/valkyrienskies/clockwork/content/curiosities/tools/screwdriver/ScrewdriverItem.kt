@@ -1,9 +1,8 @@
-package org.valkyrienskies.clockwork.content.logistics.gas.utilities
+package org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver
 
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.context.UseOnContext
-import org.valkyrienskies.clockwork.content.logistics.gas.IScrewdrivable
 
 class ScrewdriverItem(properties: Properties) : Item(properties) {
     override fun useOn(context: UseOnContext): InteractionResult {

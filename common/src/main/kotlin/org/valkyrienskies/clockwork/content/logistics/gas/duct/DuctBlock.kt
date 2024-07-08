@@ -34,13 +34,14 @@ import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.GasHeatLevel
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock.Companion.GAS_HEAT_LEVEL
-import org.valkyrienskies.clockwork.content.logistics.gas.IScrewdrivable
+import org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver.IScrewdrivable
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.DOWN_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.EAST_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.NORTH_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.SOUTH_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.UP_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.WEST_CONNECTION
+import org.valkyrienskies.clockwork.kelvin.api.ConnectionType
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createPipeEdge
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createPipeNode
 import org.valkyrienskies.clockwork.util.MathFunctions.isWithin
@@ -48,7 +49,8 @@ import org.valkyrienskies.clockwork.util.MathFunctions.removeAxis
 import org.valkyrienskies.mod.common.util.toJOMLD
 
 
-class DuctBlock(properties: Properties) : Block(properties), IDuct, IBE<DuctBlockEntity>, SimpleWaterloggedBlock, IWrenchable, IScrewdrivable {
+class DuctBlock(properties: Properties) : Block(properties), IDuct, IBE<DuctBlockEntity>, SimpleWaterloggedBlock, IWrenchable,
+    IScrewdrivable {
 
     //credit to NEEPMeat for the pipe implementation idea :3dsmile:
 
@@ -107,9 +109,9 @@ class DuctBlock(properties: Properties) : Block(properties), IDuct, IBE<DuctBloc
             context.level.playSound(null, context.clickedPos, connectionChangeSound(), SoundSource.BLOCKS, 1f, 1f)
             onConnectionUpdate(context.level, state, newState, context.clickedPos)
 
-            return InteractionResult.SUCCESS;
+            return InteractionResult.SUCCESS
         }
-        return InteractionResult.SUCCESS;
+        return InteractionResult.SUCCESS
     }
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
@@ -138,8 +140,31 @@ class DuctBlock(properties: Properties) : Block(properties), IDuct, IBE<DuctBloc
                 if (adjState.block is DuctBlock) {
                     if (newState.getValue(DIR_TO_CONNECTION[direction]!!).isConnected && adjState.getValue(DIR_TO_CONNECTION[direction.opposite]!!).isConnected) {
                         ClockworkMod.getKelvin().addEdge(pos.toJOMLD(), adjPos.toJOMLD(), createPipeEdge(pos.toJOMLD(), adjPos.toJOMLD()))
+                        withBlockEntityDo(world, pos) { blockEntity ->
+                            blockEntity.setEdgeType(direction, ConnectionType.PIPE, clientPacket = false, silent = true)
+                            if (world.getBlockEntity(adjPos) is DuctBlockEntity) {
+                                (world.getBlockEntity(adjPos) as DuctBlockEntity).setEdgeType(
+                                    direction.opposite,
+                                    ConnectionType.PIPE,
+                                    clientPacket = false,
+                                    silent = true
+                                )
+                            }
+                        }
                     } else {
                         ClockworkMod.getKelvin().removeEdge(pos.toJOMLD(), adjPos.toJOMLD())
+                        ClockworkMod.getKelvin().addEdge(pos.toJOMLD(), adjPos.toJOMLD(), createPipeEdge(pos.toJOMLD(), adjPos.toJOMLD()))
+                        withBlockEntityDo(world, pos) { blockEntity ->
+                            blockEntity.setEdgeType(direction, ConnectionType.NONE, clientPacket = false, silent = true)
+                            if (world.getBlockEntity(adjPos) is DuctBlockEntity) {
+                                (world.getBlockEntity(adjPos) as DuctBlockEntity).setEdgeType(
+                                    direction.opposite,
+                                    ConnectionType.NONE,
+                                    clientPacket = false,
+                                    silent = true
+                                )
+                            }
+                        }
                     }
                 } else if (adjState.block is IAxisAlignedDuct) {
                     if (direction.axis == (adjState.block as IAxisAlignedDuct).getAxis(adjState)) {
@@ -200,10 +225,6 @@ class DuctBlock(properties: Properties) : Block(properties), IDuct, IBE<DuctBloc
 
     override fun onSneakWrenched(state: BlockState?, context: UseOnContext?): InteractionResult {
         return super.onSneakWrenched(state, context)
-    }
-
-    override fun playRemoveSound(world: Level?, pos: BlockPos?) {
-        TODO("Not yet implemented")
     }
 
     fun connectionChangeSound(): SoundEvent {
@@ -308,8 +329,14 @@ class DuctBlock(properties: Properties) : Block(properties), IDuct, IBE<DuctBloc
 
         if (finalConnection.isConnected) {
             ClockworkMod.getKelvin().addEdge(currentPos.toJOMLD(), neighborPos.toJOMLD(), createPipeEdge(currentPos.toJOMLD(), neighborPos.toJOMLD()))
+            withBlockEntityDo(level, currentPos) { blockEntity ->
+                blockEntity.setEdgeType(direction, ConnectionType.PIPE, clientPacket = false, silent = true)
+            }
         } else {
             ClockworkMod.getKelvin().removeEdge(currentPos.toJOMLD(), neighborPos.toJOMLD())
+            withBlockEntityDo(level, currentPos) { blockEntity ->
+                blockEntity.setEdgeType(direction, ConnectionType.NONE, clientPacket = false, silent = true)
+            }
         }
 
         return state.setValue(DIR_TO_CONNECTION.get(direction)!!, finalConnection)
@@ -359,14 +386,58 @@ class DuctBlock(properties: Properties) : Block(properties), IDuct, IBE<DuctBloc
     }
 
     override fun onScrewdrived(state: BlockState, context: UseOnContext): InteractionResult {
-        TODO("Not yet implemented")
+        if (!context.level.isClientSide) {
+            val direction = context.clickedFace
+
+            val hitPos = context.clickLocation
+
+            val changeDirection = getUseDirection(direction, context.clickedPos, hitPos)
+            val connected = state.getValue(DIR_TO_CONNECTION[changeDirection]!!) == DuctConnectionType.SIDE
+
+            if (connected) {
+                playScrewSound(context.level, context.clickedPos)
+            } else {
+                return InteractionResult.SUCCESS
+            }
+
+            val foundEdge = ClockworkMod.getKelvin().getEdgeBetween(context.clickedPos.toJOMLD(), context.clickedPos.relative(changeDirection).toJOMLD())
+
+            foundEdge?.interact()
+
+            return InteractionResult.SUCCESS
+        }
+        return InteractionResult.SUCCESS
     }
 
     override fun onSneakScrewdrived(state: BlockState, context: UseOnContext): InteractionResult {
-        TODO("Not yet implemented")
-    }
+        if (!context.level.isClientSide) {
+            val direction = context.clickedFace
 
-    override fun playRemoveSound(world: Level, pos: BlockPos) {
-        TODO("Not yet implemented")
+            val hitPos = context.clickLocation
+
+            val changeDirection = getUseDirection(direction, context.clickedPos, hitPos)
+            val connected = state.getValue(DIR_TO_CONNECTION[changeDirection]!!) == DuctConnectionType.SIDE
+
+            if (connected) {
+                playScrewSound(context.level, context.clickedPos)
+            } else {
+                return InteractionResult.SUCCESS
+            }
+
+            withBlockEntityDo(context.level, context.clickedPos) { blockEntity ->
+                val type = blockEntity.cycleEdgeType(changeDirection)
+                if (context.level.getBlockEntity(context.clickedPos.relative(changeDirection)) is DuctBlockEntity) {
+                    (context.level.getBlockEntity(context.clickedPos.relative(changeDirection)) as DuctBlockEntity).setEdgeType(
+                        changeDirection.opposite,
+                        type,
+                        clientPacket = false,
+                        silent = true
+                    )
+                }
+            }
+
+            return InteractionResult.SUCCESS
+        }
+        return InteractionResult.SUCCESS
     }
 }
