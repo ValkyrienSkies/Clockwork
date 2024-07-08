@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.block.model.ItemTransforms
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
+import net.minecraft.client.server.IntegratedServer
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.particles.ParticleTypes
@@ -90,11 +91,13 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
 
         val vb = buffer.getBuffer(RenderType.cutout())
 
+
+
         render(mount,base,barrel,antenna,ms,vb,light)
         if (!be.transportStack.isEmpty && be.maxProgress > 0) {
 
-            println(partialTicks)
-            be.clientProgress+=partialTicks
+
+            be.clientProgress+=partialTicks.toDouble()/3.0
 
             if (!be.didParticles) {
                 for (i in 0..9) {

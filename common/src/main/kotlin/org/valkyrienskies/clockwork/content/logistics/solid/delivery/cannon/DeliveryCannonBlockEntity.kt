@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllBlocks
 import com.simibubi.create.content.equipment.goggles.IHaveGoggleInformation
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
+import com.simibubi.create.content.logistics.chute.ChuteBlockEntity
 import com.simibubi.create.content.logistics.depot.EjectorBlock
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
@@ -179,7 +180,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
                 lastDistance = distance
 
-                maxProgress = 20+distance*0.8
+                maxProgress = (10+distance*0.1)/mult
                 progress += 1
 
                 if (progress >= maxProgress ) {
@@ -320,10 +321,10 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
     override fun addToGoggleTooltip(tooltip: MutableList<Component?>, isPlayerSneaking: Boolean): Boolean {
 
-        tooltip.add(Components.empty())
 
         var shouldShow = false
 
+        tooltip.add(Components.literal("     Delivery Cannon Information").withStyle(ChatFormatting.WHITE))
         if (!currentStack.isEmpty) {
             Lang.translate(
                 "tooltip.chute.contains",
