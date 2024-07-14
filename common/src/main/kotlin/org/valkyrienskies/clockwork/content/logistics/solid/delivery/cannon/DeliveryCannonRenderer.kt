@@ -116,44 +116,9 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
             val og: Vec3 = be.getRealPos().lerp(be.realLocation.add(-0.5,0.0,-0.5),be.clientProgress/be.maxProgress)
             val y = getParabolaY(be,og)
             be.itemRotation+=partialTicks
+            renderItem(Vec3(og.x,y,og.z),be,light,overlay,buffer)
 
 
-
-            val new = PoseStack()
-            val msr = TransformStack.cast(new)
-            val cam = Minecraft.getInstance().gameRenderer.mainCamera
-
-
-
-//            // Get inverse of quaternion
-//            val rot = Minecraft.getInstance().gameRenderer.mainCamera.rotation()
-//
-//            rot.set(-rot.i(), -rot.j(), -rot.k(), rot.r())
-
-            new.pushPose()
-            msr.multiply(Vector3f.XP.rotationDegrees(cam.getXRot()))
-            msr.multiply(Vector3f.YP.rotationDegrees(cam.getYRot() + 180.0f))
-            msr.translate(-cam.position.x,-cam.position.y,-cam.position.z)
-            msr.translate(og.x,y,og.z)
-
-
-            val itemRotOffset = VecHelper.voxelSpace(0.0, 3.0, 0.0)
-            msr.translate(itemRotOffset)
-            msr.rotateY(be.itemRotation*3)
-            msr.rotateX(be.itemRotation*3)
-            msr.translateBack(itemRotOffset)
-            Minecraft.getInstance()
-                .itemRenderer
-                .renderStatic(
-                    be.transportStack,
-                    ItemTransforms.TransformType.GROUND,
-                    light,
-                    overlay,
-                    new,
-                    buffer,
-                    0
-                )
-            new.popPose()
         } else {
             be.didParticles = false
             be.clientProgress = 0.0
@@ -190,6 +155,37 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
             be.clientAntennaRotationOffset = 0.0f
             be.clientCannonRotationOffset = 0.0f
         }
+    }
+
+    fun renderItem(og: Vec3, be: DeliveryCannonBlockEntity, light: Int, overlay: Int, buffer: MultiBufferSource) {
+        val new = PoseStack()
+        val msr = TransformStack.cast(new)
+        val cam = Minecraft.getInstance().gameRenderer.mainCamera
+
+        new.pushPose()
+        msr.multiply(Vector3f.XP.rotationDegrees(cam.getXRot()))
+        msr.multiply(Vector3f.YP.rotationDegrees(cam.getYRot() + 180.0f))
+        msr.translate(-cam.position.x,-cam.position.y,-cam.position.z)
+        msr.translate(og.x,og.y,og.z)
+
+
+        val itemRotOffset = VecHelper.voxelSpace(0.0, 3.0, 0.0)
+        msr.translate(itemRotOffset)
+        msr.rotateY(be.itemRotation*3)
+        msr.rotateX(be.itemRotation*3)
+        msr.translateBack(itemRotOffset)
+        Minecraft.getInstance()
+            .itemRenderer
+            .renderStatic(
+                be.transportStack,
+                ItemTransforms.TransformType.GROUND,
+                light,
+                overlay,
+                new,
+                buffer,
+                0
+            )
+        new.popPose()
     }
 
     fun rotateToAngle(buffer: SuperByteBuffer, angle: Double): SuperByteBuffer {
