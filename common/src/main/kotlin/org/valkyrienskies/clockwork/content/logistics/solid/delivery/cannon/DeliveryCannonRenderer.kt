@@ -8,6 +8,7 @@ import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
 import com.simibubi.create.foundation.utility.AngleHelper
 import com.simibubi.create.foundation.utility.VecHelper
+import net.fabricmc.loader.impl.lib.sat4j.core.Vec
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
@@ -20,9 +21,12 @@ import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.util.Mth
 import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.phys.Vec3
+import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotRenderer
 import org.valkyrienskies.clockwork.util.EaseHelper
+import org.valkyrienskies.mod.common.VSClientGameUtils
+import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
 import kotlin.math.abs
@@ -97,7 +101,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         if (!be.transportStack.isEmpty && be.maxProgress > 0) {
 
 
-            be.clientProgress+=partialTicks.toDouble()/3.0
+            be.clientProgress=min(be.clientProgress+partialTicks.toDouble()/3.0,be.maxProgress)
 
             if (!be.didParticles) {
                 for (i in 0..9) {
@@ -114,14 +118,18 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
             }
 
             // Item Render code
-            val og: Vec3 = be.getRealPos().lerp(be.realLocation,be.clientProgress/be.maxProgress)
+            val og: Vec3 = be.getRealPos().lerp(be.realLocation.add(-0.5,0.0,-0.5),be.clientProgress/be.maxProgress)
             val y = get_Parabola_Y(be,og)
             be.itemRotation+=partialTicks
 
             val msr = TransformStack.cast(ms)
+
             val launchedItemLocation = Vec3(og.x,y,og.z)
+
+
             ms.pushPose()
             msr.translate(launchedItemLocation.subtract(be.getRealPos().add(Vec3(-0.5,-0.5,-0.5))))
+
             val itemRotOffset = VecHelper.voxelSpace(0.0, 3.0, 0.0)
             msr.translate(itemRotOffset)
             msr.rotateY(be.itemRotation*3)
@@ -233,7 +241,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
 
         fun get_delta(be: DeliveryCannonBlockEntity): Double {
             val startVec = be.getRealPos().add(Vec3(0.0, 0.75, 0.0))
-            val endVec = be.realLocation.add(Vec3(0.0, 0.5, 0.0))
+            val endVec = be.realLocation.add(Vec3(0.0, 0.25, 0.0))
 
             val delta: Double
             if (endVec.y > startVec.y) delta = min((endVec.y - startVec.y) / 30 + 0.51, 0.85)
@@ -244,7 +252,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
 
         fun get_Parabola_Y(be: DeliveryCannonBlockEntity, input_vector: Vec3): Double {
             val startVec = be.getRealPos().add(Vec3(0.0,0.75,0.0))
-            val endVec = be.realLocation.add(Vec3(0.0,0.5,0.0))
+            val endVec = be.realLocation.add(Vec3(0.0,0.25,0.0))
 
             val delta = get_delta(be)
 

@@ -24,6 +24,7 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
+import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.ActiveChutes
@@ -121,7 +122,7 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
                 this.worldPosition.toJOMLD()
             )
         } else {
-            this.worldPosition.toJOMLD()
+            Vector3d(worldPosition.x+0.5,worldPosition.y+0.95,worldPosition.z+0.5)
         }
     }
 

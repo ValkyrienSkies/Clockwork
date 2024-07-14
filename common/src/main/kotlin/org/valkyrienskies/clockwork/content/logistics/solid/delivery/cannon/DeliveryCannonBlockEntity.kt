@@ -7,6 +7,7 @@ import com.simibubi.create.content.equipment.goggles.IHaveGoggleInformation
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.content.logistics.chute.ChuteBlockEntity
 import com.simibubi.create.content.logistics.depot.EjectorBlock
+import com.simibubi.create.content.logistics.depot.EjectorRenderer
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.item.ItemHelper
@@ -26,10 +27,13 @@ import net.minecraft.sounds.SoundSource
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.item.ItemEntity
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.ClipContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkPackets
@@ -43,6 +47,7 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.Deli
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotBehaviour
 import org.valkyrienskies.mod.common.getShipManagingPos
+import org.valkyrienskies.mod.common.world.clipIncludeShips
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
@@ -93,6 +98,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     var gunPowderTicks: Int = 0
 
 
+
     init {
         xTargetRotation = blockState.getValue(HorizontalDirectionalBlock.FACING).toYRot().toDouble()
         xRotation = blockState.getValue(HorizontalDirectionalBlock.FACING).toYRot().toDouble()
@@ -127,6 +133,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
                 currentStack = ItemStack.EMPTY
                 chuteLocation = chute
                 realLocation = ActiveChutes.getChuteRealPos(chute)!!
+                println(realLocation)
                 be.isRecieving = true
                 lastVelocity = getChuteVelocity()
 
@@ -170,9 +177,22 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             distance = getRealPos().distanceToSqr(realLocation)
 
 
+            var hit = true
+            if (!fired) { // Obstruction checker
+                val cannonToVertexResult = clip(getRealPos().add(0.0,1.0,0.0), getVertexOfParabola())
+
+                if (cannonToVertexResult.type==HitResult.Type.BLOCK) hit = false
+                else {
+
+                    val vertexToChuteResult = clip(getVertexOfParabola(), realLocation)
+                    println(vertexToChuteResult.blockPos)
+                    println(realLocation)
+                    if (vertexToChuteResult.type==HitResult.Type.MISS || vertexToChuteResult.blockPos!=chuteLocation) hit = false
+                }
+            }
 
 
-            if ((abs(xTargetRotation-xRotation) < 1 && abs(yTargetRotation-yRotation)< 0.5) || fired) {
+            if ((hit && abs(xTargetRotation-xRotation) < 1 && abs(yTargetRotation-yRotation)< 0.5) || fired) {
                 if (!fired) {
                     val pitch = Mth.randomBetween(soundRandom, 0.9f, 1.1f)
                     level!!.playSound(null, blockPos, ClockworkSounds.THWOOM.mainEvent!!, SoundSource.BLOCKS, 1f,pitch)
@@ -183,6 +203,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
                 maxProgress = (10+distance*0.1)/mult
                 progress += 1
+
 
                 if (progress >= maxProgress ) {
                     val be = level!!.getBlockEntity(chuteLocation) as DeliveryChuteBlockEntity
@@ -206,6 +227,10 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
 
         sync()
+    }
+
+    fun clip(from: Vec3, to: Vec3): BlockHitResult {
+        return level!!.clipIncludeShips(ClipContext(from, to, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, null))
     }
 
     fun addGunpowderTicks(count: Int) {
@@ -240,10 +265,8 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         val startVec = getRealPos()
         val endVec = realLocation
 
-        val delta = get_delta(this)
-        val y = get_Parabola_Y(this, startVec.lerp(endVec,delta))
 
-        var dif = startVec.subtract(startVec.lerp(endVec,delta).x,y,startVec.lerp(endVec,delta).z)
+        var dif = startVec.subtract(getVertexOfParabola())
 
         val ship = level!!.getShipManagingPos(blockPos)
         if (ship!=null) {
@@ -260,8 +283,16 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         if (u_angle>90) u_angle=180-u_angle
 
         yTargetRotation = min(90.0,u_angle+20)
+    }
 
+    fun getVertexOfParabola(): Vec3 {
+        val startVec = getRealPos()
+        val endVec = realLocation
 
+        val delta = get_delta(this)
+        val y = get_Parabola_Y(this, startVec.lerp(endVec,delta))
+
+        return Vec3(startVec.lerp(endVec,delta).x,y,startVec.lerp(endVec,delta).z)
 
     }
 
