@@ -98,6 +98,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
 
             be.clientProgress=min(be.clientProgress+partialTicks.toDouble()/3.0,be.maxProgress)
 
+
             if (!be.didParticles) {
                 for (i in 0..9) {
                     val r: java.util.Random = be.level!!.getRandom()
@@ -166,7 +167,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         msr.multiply(Vector3f.XP.rotationDegrees(cam.getXRot()))
         msr.multiply(Vector3f.YP.rotationDegrees(cam.getYRot() + 180.0f))
         msr.translate(-cam.position.x,-cam.position.y,-cam.position.z)
-        msr.translate(og.x,og.y,og.z)
+        msr.translate(og.x+0.5,og.y+0.5,og.z+0.5)
 
 
         val itemRotOffset = VecHelper.voxelSpace(0.0, 3.0, 0.0)
@@ -243,8 +244,8 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         }
 
         fun get_delta(be: DeliveryCannonBlockEntity): Double {
-            val startVec = be.getRealPos().add(Vec3(0.0, 0.75, 0.0))
-            val endVec = be.realLocation.add(Vec3(0.0, 0.25, 0.0))
+            val startVec = be.getRealPos()
+            val endVec = be.realLocation
 
             val delta: Double
             if (endVec.y > startVec.y) delta = min((endVec.y - startVec.y) / 30 + 0.51, 0.85)
@@ -254,8 +255,8 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         }
 
         fun getParabolaY(be: DeliveryCannonBlockEntity, input_vector: Vec3): Double {
-            val startVec = be.getRealPos().add(Vec3(0.0,0.75,0.0))
-            val endVec = be.realLocation.add(Vec3(0.0,0.25,0.0))
+            val startVec = be.getRealPos()
+            val endVec = be.realLocation
 
             val delta = get_delta(be)
 

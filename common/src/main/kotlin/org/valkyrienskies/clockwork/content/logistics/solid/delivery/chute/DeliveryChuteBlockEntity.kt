@@ -118,9 +118,9 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
 
     fun getRealPos(): Vector3dc {
         return if (isOnShip()) {
-            (this.level!! as ServerLevel).getShipObjectManagingPos(this.worldPosition)!!.transform.shipToWorld.transformPosition(
-                this.worldPosition.toJOMLD()
-            )
+            (this.level!! as ServerLevel).getShipObjectManagingPos(this.worldPosition)!!.transform.shipToWorld.transformPosition(Vector3d(
+                worldPosition.x+0.5,worldPosition.y+0.95,worldPosition.z+0.5
+            ))
         } else {
             Vector3d(worldPosition.x+0.5,worldPosition.y+0.95,worldPosition.z+0.5)
         }

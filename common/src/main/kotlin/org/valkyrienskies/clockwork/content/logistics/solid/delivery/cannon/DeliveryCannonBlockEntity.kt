@@ -199,7 +199,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
                 lastDistance = distance
 
-                maxProgress = (10+distance*0.1)/mult
+                maxProgress = (15+distance*0.05)/mult
                 progress += 1
 
 
@@ -237,7 +237,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
     fun getRealPos(): Vec3 {
         if (level.getShipManagingPos(blockPos) != null) {
-            val temp = level.getShipManagingPos(blockPos)!!.shipToWorld.transformPosition(Vector3d(blockPos.x.toDouble(),blockPos.y.toDouble(),blockPos.z.toDouble()))
+            val temp = level.getShipManagingPos(blockPos)!!.shipToWorld.transformPosition(Vector3d(blockPos.x.toDouble()+0.5,blockPos.y.toDouble()+0.75,blockPos.z.toDouble()+0.5))
             return Vec3(temp.x,temp.y,temp.z)
         } else return blockToVec(blockPos)
     }
@@ -287,7 +287,8 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         val startVec = getRealPos()
         val endVec = realLocation
 
-        val delta = get_delta(this)
+        val delta = max(get_delta(this)+0.2,0.01)
+        println(delta)
         val y = getParabolaY(this, startVec.lerp(endVec,delta))
 
         return Vec3(startVec.lerp(endVec,delta).x,y,startVec.lerp(endVec,delta).z)
