@@ -5,9 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllBlocks
 import com.simibubi.create.content.equipment.goggles.IHaveGoggleInformation
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
-import com.simibubi.create.content.logistics.chute.ChuteBlockEntity
 import com.simibubi.create.content.logistics.depot.EjectorBlock
-import com.simibubi.create.content.logistics.depot.EjectorRenderer
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.item.ItemHelper
@@ -41,7 +39,7 @@ import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.ActiveChutes
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.blockToVec
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.euler_angle
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.get_Parabola_Y
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.getParabolaY
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.get_delta
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.turn
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
@@ -158,7 +156,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             if (ActiveChutes.getChutes()[chuteLocation]!!.isOnShip()) {
                 if (getChuteVelocity().sub(lastVelocity).length()>velocityThreshold) {
                     val lerped = getRealPos().lerp(realLocation,progress)
-                    val item = ItemEntity(level, lerped.x, get_Parabola_Y(this, lerped), lerped.z, transportStack)
+                    val item = ItemEntity(level, lerped.x, getParabolaY(this, lerped), lerped.z, transportStack)
 
                     item.deltaMovement = getRealPos().lerp(realLocation,(progress+1)/maxProgress ).subtract(lerped)
                     item.setDefaultPickUpDelay()
@@ -290,7 +288,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         val endVec = realLocation
 
         val delta = get_delta(this)
-        val y = get_Parabola_Y(this, startVec.lerp(endVec,delta))
+        val y = getParabolaY(this, startVec.lerp(endVec,delta))
 
         return Vec3(startVec.lerp(endVec,delta).x,y,startVec.lerp(endVec,delta).z)
 

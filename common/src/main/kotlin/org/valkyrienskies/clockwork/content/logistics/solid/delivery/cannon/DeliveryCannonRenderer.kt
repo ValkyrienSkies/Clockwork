@@ -3,30 +3,25 @@ package org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon
 import com.jozufozu.flywheel.util.transform.TransformStack
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
-import com.simibubi.create.content.logistics.depot.EjectorRenderer
+import com.mojang.math.Vector3f
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
 import com.simibubi.create.foundation.utility.AngleHelper
 import com.simibubi.create.foundation.utility.VecHelper
-import net.fabricmc.loader.impl.lib.sat4j.core.Vec
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.block.model.ItemTransforms
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
-import net.minecraft.client.server.IntegratedServer
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.util.Mth
 import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.phys.Vec3
-import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotRenderer
 import org.valkyrienskies.clockwork.util.EaseHelper
-import org.valkyrienskies.mod.common.VSClientGameUtils
-import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
 import kotlin.math.abs
@@ -119,16 +114,28 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
 
             // Item Render code
             val og: Vec3 = be.getRealPos().lerp(be.realLocation.add(-0.5,0.0,-0.5),be.clientProgress/be.maxProgress)
-            val y = get_Parabola_Y(be,og)
+            val y = getParabolaY(be,og)
             be.itemRotation+=partialTicks
 
-            val msr = TransformStack.cast(ms)
-
-            val launchedItemLocation = Vec3(og.x,y,og.z)
 
 
-            ms.pushPose()
-            msr.translate(launchedItemLocation.subtract(be.getRealPos().add(Vec3(-0.5,-0.5,-0.5))))
+            val new = PoseStack()
+            val msr = TransformStack.cast(new)
+            val cam = Minecraft.getInstance().gameRenderer.mainCamera
+
+
+
+//            // Get inverse of quaternion
+//            val rot = Minecraft.getInstance().gameRenderer.mainCamera.rotation()
+//
+//            rot.set(-rot.i(), -rot.j(), -rot.k(), rot.r())
+
+            new.pushPose()
+            msr.multiply(Vector3f.XP.rotationDegrees(cam.getXRot()))
+            msr.multiply(Vector3f.YP.rotationDegrees(cam.getYRot() + 180.0f))
+            msr.translate(-cam.position.x,-cam.position.y,-cam.position.z)
+            msr.translate(og.x,y,og.z)
+
 
             val itemRotOffset = VecHelper.voxelSpace(0.0, 3.0, 0.0)
             msr.translate(itemRotOffset)
@@ -142,11 +149,11 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
                     ItemTransforms.TransformType.GROUND,
                     light,
                     overlay,
-                    ms,
+                    new,
                     buffer,
                     0
                 )
-            ms.popPose()
+            new.popPose()
         } else {
             be.didParticles = false
             be.clientProgress = 0.0
@@ -250,7 +257,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
             return delta
         }
 
-        fun get_Parabola_Y(be: DeliveryCannonBlockEntity, input_vector: Vec3): Double {
+        fun getParabolaY(be: DeliveryCannonBlockEntity, input_vector: Vec3): Double {
             val startVec = be.getRealPos().add(Vec3(0.0,0.75,0.0))
             val endVec = be.realLocation.add(Vec3(0.0,0.25,0.0))
 
