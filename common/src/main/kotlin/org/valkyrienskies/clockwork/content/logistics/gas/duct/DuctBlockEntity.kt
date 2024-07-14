@@ -26,6 +26,13 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
 
     val DIR_TO_CONNECTION_TYPE: EnumMap<Direction, ConnectionType> = EnumMap(Direction::class.java)
 
+    init {
+        for (dir in Direction.values()) {
+            this.DIR_TO_CONNECTION_TYPE[dir] = ConnectionType.NONE
+        }
+    }
+
+
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
         super.addBehavioursDeferred(behaviours)
     }
@@ -55,7 +62,9 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
         tag.putDouble("currentTemperature", ClockworkMod.getKelvin().getTemperatureAt(this.blockPos.toJOMLD()))
         for (dir in Direction.values()) {
-            tag.putInt("connectionType${dir.name}", this.DIR_TO_CONNECTION_TYPE[dir]!!.ordinal)
+            if (this.DIR_TO_CONNECTION_TYPE[dir] != null) {
+                tag.putInt("connectionType${dir.name}", this.DIR_TO_CONNECTION_TYPE[dir]!!.ordinal)
+            }
         }
         super.write(tag, clientPacket)
     }

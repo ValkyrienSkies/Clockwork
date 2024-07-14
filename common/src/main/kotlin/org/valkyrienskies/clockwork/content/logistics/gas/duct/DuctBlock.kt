@@ -153,7 +153,6 @@ class DuctBlock(properties: Properties) : Block(properties), IDuct, IBE<DuctBloc
                         }
                     } else {
                         ClockworkMod.getKelvin().removeEdge(pos.toJOMLD(), adjPos.toJOMLD())
-                        ClockworkMod.getKelvin().addEdge(pos.toJOMLD(), adjPos.toJOMLD(), createPipeEdge(pos.toJOMLD(), adjPos.toJOMLD()))
                         withBlockEntityDo(world, pos) { blockEntity ->
                             blockEntity.setEdgeType(direction, ConnectionType.NONE, clientPacket = false, silent = true)
                             if (world.getBlockEntity(adjPos) is DuctBlockEntity) {

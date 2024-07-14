@@ -11,7 +11,7 @@ class ScrewdriverItem(properties: Properties) : Item(properties) {
         val state = context.level
             .getBlockState(context.clickedPos)
         val block = state.block
-        if (block is IScrewdrivable) {
+        if (block !is IScrewdrivable) {
             return super.useOn(context)
         }
         val actor = block as IScrewdrivable

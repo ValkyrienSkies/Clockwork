@@ -18,8 +18,9 @@ import kotlin.math.min
 import kotlin.math.pow
 
 class DuctNetworkImpl(
+    override var disabled: Boolean = true,
     override val nodes: HashMap<DuctNodePos, DuctNode> = hashMapOf(),
-    override val edges: HashSet<DuctEdge> = hashSetOf(),
+    override val edges: HashMap<Pair<DuctNodePos, DuctNodePos>, DuctEdge> = hashMapOf(),
     override val nodeInfo: HashMap<DuctNodePos, DuctNodeInfo> = hashMapOf(),
     override val unloadedNodes: HashSet<DuctNodePos> = hashSetOf()
 ) : DuctNetwork {
@@ -56,7 +57,7 @@ class DuctNetworkImpl(
     }
 
     override fun getEdgeBetween(from: DuctNodePos, to: DuctNodePos): DuctEdge? {
-        return edges.find { (it.nodeA == from && it.nodeB == to) || (it.nodeA == to && it.nodeB == from) }
+        return edges[Pair(from, to)]
     }
 
     override fun getNodeAt(pos: DuctNodePos): DuctNode? {
@@ -71,8 +72,6 @@ class DuctNetworkImpl(
     override fun removeNode(pos: DuctNodePos) {
         nodes.remove(pos)
         nodeInfo.remove(pos)
-        val edgesToRemove = edges.filter { it.nodeA == pos || it.nodeB == pos }
-        edges.removeAll(edgesToRemove.toSet())
 
         if (unloadedNodes.contains(pos)) {
             unloadedNodes.remove(pos)
@@ -80,22 +79,22 @@ class DuctNetworkImpl(
     }
 
     override fun addEdge(posA: DuctNodePos, posB: DuctNodePos, edge: DuctEdge) {
-        edges.find { (it.nodeA == posA && it.nodeB == posB) || (it.nodeA == posB && it.nodeB == posA) }?.let {
+        if (edges.containsKey(Pair(posA, posB))) {
             return
         }
         if (posA == posB) {
             return
         }
-        edges.add(edge)
+        edges[Pair(posA, posB)] = edge
         nodes[posA]?.nodeEdges?.add(edge)
         nodes[posB]?.nodeEdges?.add(edge)
     }
 
     override fun removeEdge(posA: DuctNodePos, posB: DuctNodePos) {
-        edges.find { (it.nodeA == posA && it.nodeB == posB) || (it.nodeA == posB && it.nodeB == posA) }?.let {
-            edges.remove(it)
-            nodes[posA]?.nodeEdges?.remove(it)
-            nodes[posB]?.nodeEdges?.remove(it)
+        val edge = edges.remove(Pair(posA, posB))
+        if (edge != null) {
+            nodes[posA]?.nodeEdges?.remove(edge)
+            nodes[posB]?.nodeEdges?.remove(edge)
         }
     }
 
@@ -112,11 +111,16 @@ class DuctNetworkImpl(
     }
 
     override fun tick(level: ServerLevel, subSteps: Int) {
-        val invalidEdges = edges.filter { it.nodeA !in nodes || it.nodeB !in nodes }
-        edges.removeAll(invalidEdges.toSet())
+        if (disabled) return
 
+        val invalidEdges = edges.keys.filter { it.first !in nodes || it.second !in nodes }
+        for (edge in invalidEdges) {
+            edges.remove(edge)
+        }
+        val edgesToProcess = HashMap(edges)
         for (step in 1..subSteps) {
-            for (edge in edges) {
+            for (edgeKey in edgesToProcess.keys) {
+                val edge = edgesToProcess[edgeKey]!!
                 val nodeA = nodeInfo[edge.nodeA]
                 val nodeB = nodeInfo[edge.nodeB]
 
@@ -256,6 +260,8 @@ class DuctNetworkImpl(
             }
         }
 
+        val nodesToSync = HashMap<DuctNodePos, GasHeatLevel>()
+
         for (nodePos in nodeInfo.keys) {
             if (nodeInfo[nodePos] == null || nodes[nodePos] == null) {
                 continue
@@ -277,40 +283,38 @@ class DuctNetworkImpl(
             if (info.currentTemperature < (node.maxTemperature/5) && info.previousTemperatureLevel != 0) {
                 info.previousTemperatureLevel = 0
                 if (level.getBlockState(BlockPos(nodePos.toMinecraft())).block is IHeatableBlock) {
-                    val newState = level.getBlockState(BlockPos(nodePos.toMinecraft())).setValue(IHeatableBlock.GAS_HEAT_LEVEL, GasHeatLevel.COOL)
-                    level.setBlockAndUpdate(BlockPos(nodePos.toMinecraft()), newState)
+                    nodesToSync[nodePos] = GasHeatLevel.COOL
                 }
-            } else if (info.currentTemperature < ((2 * node.maxTemperature)/5) && info.previousTemperatureLevel != 1) {
+            } else if (info.currentTemperature >= (node.maxTemperature/5) && info.currentTemperature < ((2 * node.maxTemperature)/5) && info.previousTemperatureLevel != 1) {
                 info.previousTemperatureLevel = 1
                 if (level.getBlockState(BlockPos(nodePos.toMinecraft())).block is IHeatableBlock) {
-                    val newState = level.getBlockState(BlockPos(nodePos.toMinecraft())).setValue(IHeatableBlock.GAS_HEAT_LEVEL, GasHeatLevel.WARM)
-                    level.setBlockAndUpdate(BlockPos(nodePos.toMinecraft()), newState)
+                    nodesToSync[nodePos] = GasHeatLevel.WARM
                 }
-            } else if (info.currentTemperature < ((3 * node.maxTemperature)/5) && info.previousTemperatureLevel != 2) {
+            } else if (info.currentTemperature >= ((2 * node.maxTemperature)/5) && info.currentTemperature < ((3 * node.maxTemperature)/5) && info.previousTemperatureLevel != 2) {
                 info.previousTemperatureLevel = 2
                 if (level.getBlockState(BlockPos(nodePos.toMinecraft())).block is IHeatableBlock) {
-                    val newState = level.getBlockState(BlockPos(nodePos.toMinecraft())).setValue(IHeatableBlock.GAS_HEAT_LEVEL, GasHeatLevel.HOT)
-                    level.setBlockAndUpdate(BlockPos(nodePos.toMinecraft()), newState)
+                    nodesToSync[nodePos] = GasHeatLevel.HOT
                 }
-            } else if (info.currentTemperature < ((4 * node.maxTemperature)/5) && info.previousTemperatureLevel != 3) {
+            } else if (info.currentTemperature >= ((3 * node.maxTemperature)/5) && info.currentTemperature < ((4 * node.maxTemperature)/5) && info.previousTemperatureLevel != 3) {
                 info.previousTemperatureLevel = 3
                 if (level.getBlockState(BlockPos(nodePos.toMinecraft())).block is IHeatableBlock) {
-                    val newState = level.getBlockState(BlockPos(nodePos.toMinecraft())).setValue(IHeatableBlock.GAS_HEAT_LEVEL, GasHeatLevel.VERY_HOT)
-                    level.setBlockAndUpdate(BlockPos(nodePos.toMinecraft()), newState)
+                    nodesToSync[nodePos] = GasHeatLevel.VERY_HOT
                 }
-            } else if (info.currentTemperature < node.maxTemperature && info.previousTemperatureLevel != 4) {
+            } else if (info.currentTemperature >= ((4 * node.maxTemperature)/5) && info.currentTemperature < node.maxTemperature && info.previousTemperatureLevel != 4) {
                 info.previousTemperatureLevel = 4
                 if (level.getBlockState(BlockPos(nodePos.toMinecraft())).block is IHeatableBlock) {
-                    val newState = level.getBlockState(BlockPos(nodePos.toMinecraft())).setValue(IHeatableBlock.GAS_HEAT_LEVEL, GasHeatLevel.SUPER_HOT)
-                    level.setBlockAndUpdate(BlockPos(nodePos.toMinecraft()), newState)
+                    nodesToSync[nodePos] = GasHeatLevel.SUPER_HOT
                 }
-            } else if (info.previousTemperatureLevel != 5) {
+            } else if (info.currentTemperature >= node.maxTemperature && info.previousTemperatureLevel != 5) {
                 info.previousTemperatureLevel = 5
                 if (level.getBlockState(BlockPos(nodePos.toMinecraft())).block is IHeatableBlock) {
-                    val newState = level.getBlockState(BlockPos(nodePos.toMinecraft())).setValue(IHeatableBlock.GAS_HEAT_LEVEL, GasHeatLevel.MOLTEN)
-                    level.setBlockAndUpdate(BlockPos(nodePos.toMinecraft()), newState)
+                    nodesToSync[nodePos] = GasHeatLevel.MOLTEN
                 }
             }
+        }
+
+        for (node in nodesToSync.keys) {
+            level.setBlockAndUpdate(BlockPos(node.toMinecraft()), level.getBlockState(BlockPos(node.toMinecraft())).setValue(IHeatableBlock.GAS_HEAT_LEVEL, nodesToSync[node]!!))
         }
     }
 
@@ -425,7 +429,25 @@ class DuctNetworkImpl(
         return specificHeat
     }
 
+    override fun dump() {
+        KELVINLOGGER.logger.info("Disabling Kelvin...")
+
+        disabled = true
+
+        KELVINLOGGER.logger.info("Dumping Kelvin information...")
+
+        edges.clear()
+        nodes.clear()
+        nodeInfo.clear()
+
+        unloadedNodes.clear()
+
+        KELVINLOGGER.logger.info("Dumped Kelvin information. Now get out!")
+    }
+
     companion object {
         const val idealGasConstant = 8.314
+
+        val KELVINLOGGER = logger("fart factory")
     }
 }

@@ -1,0 +1,82 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/coal_burner/block"
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/coal_burner/block",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/coal_burner/block",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/coal_burner/block",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {"facing":  "east", "lit":  true}
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/coal_burner/flame"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {"facing": "south", "lit":  true}
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/coal_burner/flame",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {"facing": "east", "lit":  true}
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/coal_burner/flame",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {"facing": "west", "lit":  true}
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/coal_burner/flame",
+        "y": 270
+      }
+    }
+  ]
+}
