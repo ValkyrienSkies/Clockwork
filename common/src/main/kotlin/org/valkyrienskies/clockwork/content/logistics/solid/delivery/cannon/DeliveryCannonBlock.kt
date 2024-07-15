@@ -51,7 +51,7 @@ class DeliveryCannonBlock(properties: Properties) : HorizontalDirectionalBlock(p
 
     override fun canSurvive(state: BlockState, level: LevelReader, pos: BlockPos): Boolean {
 
-        // This is a really stupid way to do it, but neither == ALlBlocks.Depot nor anything else seems to work
+        // This is a really stupid way to do it, but neither == AllBlocks.DEPOT nor anything else seems to work
         val desc = level.getBlockState(pos.below()).block.descriptionId
         return desc == "block.create.depot" || desc == "block.create.belt" || desc == "block.create.chute"
     }

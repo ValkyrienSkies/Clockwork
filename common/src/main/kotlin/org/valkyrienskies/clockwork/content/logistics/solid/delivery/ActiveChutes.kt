@@ -4,14 +4,12 @@ import com.simibubi.create.content.redstone.link.RedstoneLinkNetworkHandler.Freq
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.phys.Vec3
-import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import org.valkyrienskies.core.util.x
 import org.valkyrienskies.core.util.y
 import org.valkyrienskies.core.util.z
 import org.valkyrienskies.mod.common.util.toJOMLD
-import kotlin.math.max
 
 object ActiveChutes {
      val actives: HashMap<BlockPos, DeliveryChuteBlockEntity> = HashMap()
@@ -57,24 +55,27 @@ object ActiveChutes {
         return closest
     }
 
-    fun getNearestChuteWithFrequency(pos: Vec3, maxDistance: Double, frequency: Frequency): BlockPos? {
-        var closest: BlockPos? = null
-        var closestDistance: Double = Double.MAX_VALUE
+    fun getSortedChuteWithFrequency(pos: Vec3, maxDistance: Double, frequency: Frequency): MutableList<BlockPos>{
+
+        var inRange = mutableListOf<BlockPos>()
+
         for (chute in actives.keys) {
             val realPos = actives[chute]!!.getRealPos()
             val realVec3 = Vec3(realPos.x,realPos.y,realPos.z)
 
             if (realVec3.subtract(pos).length() < maxDistance) {
-                if (realVec3.subtract(pos).length() < closestDistance) {
-                    //if (actives[chute]!=null) continue
-                    if (actives[chute]!!.frequencySlotBehaviour.frequency == frequency) {
-                        closest = chute
-                        closestDistance = DeliveryCannonRenderer.blockToVec(chute).subtract(pos).length()
-                    }
+                //if (actives[chute]!=null) continue
+                if (actives[chute]!!.frequencySlotBehaviour.frequency == frequency) {
+                    inRange.add(chute)
+                    //closestDistance = DeliveryCannonRenderer.blockToVec(chute).subtract(pos).length()
                 }
+
             }
         }
-        return closest
+
+        inRange.sortWith(compareBy { DeliveryCannonRenderer.blockToVec(it).subtract(pos).length() })
+
+        return inRange
     }
 
 

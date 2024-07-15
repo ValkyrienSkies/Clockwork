@@ -9,6 +9,7 @@ import com.simibubi.create.infrastructure.config.AllConfigs
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
+import net.minecraft.world.InteractionHand
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.mod.common.toShipRenderCoordinates
 
@@ -36,7 +37,8 @@ open class FrequencySlotRenderer<T : SmartBlockEntity>(context: BlockEntityRende
         val behaviour = be.getBehaviour(FrequencySlotBehaviour.TYPE)
             ?: return
 
-        if (!behaviour.slot.shouldRender(be.blockState)) return
+
+        if (!behaviour.slot.shouldRender(be.blockState) || Minecraft.getInstance().player!!.getItemInHand(InteractionHand.MAIN_HAND).descriptionId == "item.create.wrench") return
         val stack = behaviour.frequency.stack
 
         ms.pushPose()
