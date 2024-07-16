@@ -1,18 +1,24 @@
 package org.valkyrienskies.clockwork
 
+import com.simibubi.create.content.logistics.depot.EjectorBlockEntity
 import com.simibubi.create.content.redstone.analogLever.AnalogLeverBlockEntity
 import com.simibubi.create.foundation.ponder.PonderPalette
 import com.simibubi.create.foundation.ponder.PonderRegistrationHelper
 import com.simibubi.create.foundation.ponder.SceneBuilder
 import com.simibubi.create.foundation.ponder.SceneBuildingUtil
 import com.simibubi.create.foundation.ponder.element.InputWindowElement
+import com.simibubi.create.foundation.utility.NBTHelper
 import com.simibubi.create.foundation.utility.Pointing
+import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.RedStoneWireBlock
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
 
 object ClockworkPonders {
 
@@ -39,6 +45,26 @@ object ClockworkPonders {
         HELPER.forComponents(ClockworkBlocks.GYRO).addStoryBoard(
             "gyro", ::gyro
         )
+        HELPER.forComponents(ClockworkBlocks.DELIVERY_CANNON, ClockworkBlocks.DELIVERY_CHUTE)
+            .addStoryBoard(
+                "solid_delivery", ::solid_delivery
+            )
+    }
+
+    private fun solid_delivery(scene: SceneBuilder, util: SceneBuildingUtil) {
+
+        scene.title("solid_delivery", "Solid delivery")
+        scene.configureBasePlate(0, 0, 5)
+        scene.showBasePlate()
+        scene.setSceneOffsetY(-1f)
+        scene.idle(15)
+        val depotLine = util.select.fromTo(0, 1, 0, 4, 2, 0)
+        val deliveryCannon = util.select.position(BlockPos(0,2,0))
+
+        scene.world.showSection(depotLine, Direction.DOWN)
+        scene.idle(15)
+        scene.world.createItemOnBeltLike(BlockPos(0,1,0), Direction.NORTH, ItemStack(Items.CAKE))
+        scene.idle(60)
     }
 
     private fun flap(scene: SceneBuilder, util: SceneBuildingUtil) {
