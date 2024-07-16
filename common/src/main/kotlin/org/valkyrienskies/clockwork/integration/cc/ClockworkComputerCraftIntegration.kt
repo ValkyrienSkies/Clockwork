@@ -31,7 +31,8 @@ object ClockworkComputerCraftIntegration {
     fun integrate() {
         ComputerCraftAPI.registerPeripheralProvider(ComputerCraftUtils.getClockworkPeripheralProvider())
 
-        ComputerCraftAPI.registerAPIFactory { AerodynamicAPI() }
+        //Fuck it ill add AerodynamicAPI to the Mixin
+        //ComputerCraftAPI.registerAPIFactory { AerodynamicAPI() }
     }
 
     /**
@@ -56,8 +57,8 @@ object ClockworkComputerCraftIntegration {
      */
     fun addAPIs(computer: ServerComputer, ship: ServerShip?) {
         ship?.let{
-            val drag: DragController = DragController.getOrCreate(it) ?: return
-            computer.addAPI(DragAPI(computer.apiEnvironment, drag))
+            computer.addAPI(DragAPI(computer.apiEnvironment, it))
         }
+        computer.addAPI(AerodynamicAPI())
     }
 }

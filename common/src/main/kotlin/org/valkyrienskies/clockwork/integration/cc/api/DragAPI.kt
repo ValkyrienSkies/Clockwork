@@ -5,14 +5,15 @@ import dan200.computercraft.api.lua.LuaFunction
 import dan200.computercraft.core.apis.IAPIEnvironment
 import net.minecraft.core.Direction
 import org.valkyrienskies.clockwork.content.forces.DragController
+import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.util.pollUntilEmpty
 
-class DragAPI(private val environment: IAPIEnvironment, private val controller: DragController): ILuaAPI {
+class DragAPI(private val environment: IAPIEnvironment, private val ship: ServerShip): ILuaAPI {
     override fun getNames() = arrayOf("drag")
 
     override fun update() {
         val dragDataQueue = mutableListOf<LuaDragData>()
-        this.controller.dragDataQueue.pollUntilEmpty {
+        DragController.getOrCreate(this.ship)?.dragDataQueue?.pollUntilEmpty {
             dragDataQueue.add(dragDataQueue.size, LuaDragData(it))
         }
         this.environment.queueEvent("drag_queued", dragDataQueue.toList())
@@ -22,10 +23,10 @@ class DragAPI(private val environment: IAPIEnvironment, private val controller: 
 
     @LuaFunction
     fun getSurfaceAreaOfDirection(direction: String) =
-        this.controller.surfaceAreaByDirection.clone().getValue(Direction.valueOf(direction))
+        DragController.getOrCreate(this.ship)?.surfaceAreaByDirection?.clone()?.getValue(Direction.valueOf(direction)) ?: 0.0
 
     @LuaFunction
-    fun getMaxHeight() = this.controller.max_height
+    fun getMaxHeight() = DragController.getOrCreate(this.ship)?.max_height ?: 0.0
 
     data class LuaDragData(val dragData: DragController.DragData) {
         @LuaFunction

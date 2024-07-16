@@ -70,7 +70,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     protected var disassembleWhenPossible = false
     private var prevAngle = 0f
     private var shiptraptionID = NO_SHIPTRAPTION_ID
-    private var bearingID: Int? = null
+    var bearingID: Int? = null
     var coreAngle = 0f
     var wingAngle = 0f
     var previousCoreAngle = 0f
