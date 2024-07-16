@@ -15,7 +15,7 @@ object ClockworkModClient {
 
     @JvmStatic
     fun initClient() {
-        ClockworkPonderScenes.init()
+        ClockworkPonders.init()
 
         // This is really stupid, but it's how create does it, so ¯\_(ツ)_/¯
         TickEvent.PLAYER_POST.register() {
