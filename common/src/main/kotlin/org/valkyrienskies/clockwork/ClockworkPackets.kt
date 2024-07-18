@@ -13,10 +13,6 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.Gravitro
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronGrabPacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket
-import org.valkyrienskies.clockwork.content.logistics.heat.AirPocketDeletePacket
-import org.valkyrienskies.clockwork.content.logistics.heat.AirPocketSyncPacket
-import org.valkyrienskies.clockwork.content.logistics.heat.TemperatureSyncPacket
-import org.valkyrienskies.clockwork.content.logistics.heat.usage.gas_nozzle.TempGasNozzleSyncPacket
 import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket
 import org.valkyrienskies.clockwork.platform.SharedValues.packetChannel
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
@@ -42,14 +38,10 @@ enum class ClockworkPackets(
     COLORBLOCKENTITY(BlockEntityColorPacket::class.java, ::BlockEntityColorPacket),
     SYNCABLESTORAGE(SyncableStoragePacket::class.java, ::SyncableStoragePacket),
 
-    SYNC_GAS_NOZZLE(TempGasNozzleSyncPacket::class.java, ::TempGasNozzleSyncPacket),
-    SYNC_AIR_POCKETS(AirPocketSyncPacket::class.java, ::AirPocketSyncPacket),
-    DELETE_AIR_POCKETS(AirPocketDeletePacket::class.java, ::AirPocketDeletePacket),
-
     SLICKERATTACHMENT(SlickerAttachmentSyncPacket::class.java, ::SlickerAttachmentSyncPacket),
     GRAVITRON_DIAL_PACKET(GravitronDialPacket::class.java, ::GravitronDialPacket),
 
-    SYNC_TEMPERATURE(TemperatureSyncPacket::class.java, ::TemperatureSyncPacket),
+    //SYNC_TEMPERATURE(TemperatureSyncPacket::class.java, ::TemperatureSyncPacket),
 
     PHYSICS_INFUSER(PhysicsInfuserSyncPacket::class.java, ::PhysicsInfuserSyncPacket);
 

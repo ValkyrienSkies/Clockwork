@@ -6,5 +6,6 @@ enum class GasType(
     val specificHeatCapacity: Double, // (J / (K * g)
 ) {
     AIR(1.293, 1.81e-5, 1.005),
-    PHLOGISTON(3.0, 3.0e-5, 4.0),
+    PHLOGISTON(3.0, 0.75e-5, 14.30),
+    HELIUM(0.166, 1.81e-5, 5.1832)
 }

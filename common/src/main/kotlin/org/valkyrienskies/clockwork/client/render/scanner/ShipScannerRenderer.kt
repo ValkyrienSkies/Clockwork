@@ -21,7 +21,6 @@ import org.valkyrienskies.clockwork.ClockworkShaders
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer
 import org.valkyrienskies.core.api.ships.ClientShip
-import org.valkyrienskies.core.impl.networking.RegisteredHandler
 import org.valkyrienskies.mod.common.hooks.VSGameEvents
 import org.valkyrienskies.mod.common.hooks.VSGameEvents.postRenderShip
 import org.valkyrienskies.mod.common.hooks.VSGameEvents.renderShip

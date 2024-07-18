@@ -7,14 +7,12 @@ import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ShipForcesInducer
 import org.valkyrienskies.core.api.ships.getAttachment
-import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 
 class GravitronForceInducer : ShipForcesInducer {
     var data: GravitronForceInducerData? = null
 
     override fun applyForces(physShip: PhysShip) {
         val dataCopy = data ?: return
-        physShip as PhysShipImpl
 
         run {
             val pConst = 160.0
@@ -25,10 +23,10 @@ class GravitronForceInducer : ShipForcesInducer {
             val idealPosDif: Vector3dc = dataCopy.idealPos.sub(localGrabPos, Vector3d())
 
             val posDif: Vector3d = idealPosDif.mul(pConst, Vector3d())
-            val mass = physShip.inertia.shipMass
+            val mass = physShip.mass
 
             // Integrate
-            posDif.sub(physShip.poseVel.vel.mul(dConst, Vector3d()))
+            posDif.sub(physShip.velocity.mul(dConst, Vector3d()))
 
             val force = posDif.mul(mass, Vector3d())
             physShip.applyInvariantForce(force)
@@ -47,11 +45,11 @@ class GravitronForceInducer : ShipForcesInducer {
             rotDifVector.mul(-1.0)
 
             // Integrate
-            rotDifVector.sub(physShip.poseVel.omega.mul(dConst, Vector3d()))
+            rotDifVector.sub(physShip.omega.mul(dConst, Vector3d()))
 
-            val torque = physShip.poseVel.rot.transform(
-                physShip.inertia.momentOfInertiaTensor.transform(
-                    physShip.poseVel.rot.transformInverse(
+            val torque = physShip.transform.shipToWorldRotation.transform(
+                physShip.momentOfInertia.transform(
+                    physShip.transform.shipToWorldRotation.transformInverse(
                         rotDifVector,
                         Vector3d()
                     )
