@@ -1,13 +1,11 @@
 package org.valkyrienskies.clockwork
 
-import com.simibubi.create.content.logistics.depot.EjectorBlockEntity
 import com.simibubi.create.content.redstone.analogLever.AnalogLeverBlockEntity
 import com.simibubi.create.foundation.ponder.PonderPalette
 import com.simibubi.create.foundation.ponder.PonderRegistrationHelper
 import com.simibubi.create.foundation.ponder.SceneBuilder
 import com.simibubi.create.foundation.ponder.SceneBuildingUtil
 import com.simibubi.create.foundation.ponder.element.InputWindowElement
-import com.simibubi.create.foundation.utility.NBTHelper
 import com.simibubi.create.foundation.utility.Pointing
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -59,12 +57,46 @@ object ClockworkPonders {
         scene.setSceneOffsetY(-1f)
         scene.idle(15)
         val depotLine = util.select.fromTo(0, 1, 0, 4, 2, 0)
+        val chuteLine = util.select.fromTo(0, 1, 2, 4, 2, 2)
+        val beltLine = util.select.fromTo(0, 1, 4, 4, 2, 4)
         val deliveryCannon = util.select.position(BlockPos(0,2,0))
 
+
         scene.world.showSection(depotLine, Direction.DOWN)
-        scene.idle(15)
-        scene.world.createItemOnBeltLike(BlockPos(0,1,0), Direction.NORTH, ItemStack(Items.CAKE))
+        scene.overlay.showText(60)
+            .attachKeyFrame()
+            .text("Delivery cannons and delivery chutes allows transporting items in a short distance")
+            .placeNearTarget()
+            .pointAt(util.vector.blockSurface(util.grid.at(0, 2, 0), Direction.WEST))
         scene.idle(60)
+        scene.world.createItemOnBeltLike(BlockPos(0,1,0), Direction.NORTH, ItemStack(Items.CAKE))
+        scene.idle(2)
+        scene.world.modifyBlockEntity(BlockPos(0, 2, 0), DeliveryCannonBlockEntity::class.java) { be: DeliveryCannonBlockEntity -> be.ponder = true}
+        scene.idle(2)
+        scene.world.modifyBlockEntity(BlockPos(0, 2, 0), DeliveryCannonBlockEntity::class.java) { be: DeliveryCannonBlockEntity -> be.ponderFire(BlockPos(4,2,0))}
+        scene.idle(60)
+        scene.overlay.showText(40)
+            .attachKeyFrame()
+            .text("They can only be placed on Depots,")
+            .placeNearTarget()
+            .pointAt(util.vector.blockSurface(util.grid.at(4, 1, 0), Direction.WEST))
+        scene.idle(40)
+        scene.world.showSection(chuteLine, Direction.DOWN)
+        scene.world.hideSection(depotLine, Direction.DOWN)
+        scene.overlay.showText(40)
+            .attachKeyFrame()
+            .text("Chutes,")
+            .placeNearTarget()
+            .pointAt(util.vector.blockSurface(util.grid.at(4, 1, 2), Direction.WEST))
+        scene.idle(40)
+        scene.world.showSection(beltLine, Direction.DOWN)
+        scene.world.hideSection(chuteLine, Direction.DOWN)
+        scene.overlay.showText(40)
+            .attachKeyFrame()
+            .text("and belts")
+            .placeNearTarget()
+            .pointAt(util.vector.blockSurface(util.grid.at(4, 1, 4), Direction.WEST))
+        scene.idle(40)
     }
 
     private fun flap(scene: SceneBuilder, util: SceneBuildingUtil) {

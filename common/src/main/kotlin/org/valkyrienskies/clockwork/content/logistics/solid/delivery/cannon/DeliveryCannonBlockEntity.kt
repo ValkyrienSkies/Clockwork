@@ -4,6 +4,7 @@ import com.jozufozu.flywheel.util.transform.TransformStack
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.content.equipment.goggles.IHaveGoggleInformation
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
+import com.simibubi.create.content.logistics.depot.EjectorBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.INamedIconOptions
@@ -40,7 +41,6 @@ import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.ActiveChutes
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.blockToVec
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.euler_angle
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.getParabolaY
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.get_delta
@@ -104,6 +104,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     var roundRobin = true
 
     var visitedChutes = mutableListOf<BlockPos>()
+    var ponder = false
 
     init {
         xTargetRotation = blockState.getValue(HorizontalDirectionalBlock.FACING).toYRot().toDouble()
@@ -116,7 +117,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         super.tick()
 
 
-        if (level!!.isClientSide) return
+        if (level!!.isClientSide && !ponder ) return
         cooldown=max(0,cooldown-1)
         gunPowderTicks=max(0,gunPowderTicks-1)
         val mult = if(gunPowderTicks>0) 3 else 1
@@ -153,13 +154,13 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
 
 
-            if (!ActiveChutes.hasChute(chuteLocation)) {
+            if (!ponder && !ActiveChutes.hasChute(chuteLocation)) {
                 end(false)
 
                 return
             }
 
-            if (ActiveChutes.getChutes()[chuteLocation]!!.isOnShip()) {
+            if (!ponder && ActiveChutes.getChutes()[chuteLocation]!!.isOnShip()) {
                 if (getChuteVelocity().sub(lastVelocity).length()>velocityThreshold) {
                     val lerped = getRealPos().lerp(realLocation,progress)
                     val item = ItemEntity(level!!, lerped.x, getParabolaY(this, lerped), lerped.z, transportStack)
@@ -177,7 +178,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
                 lastVelocity = getChuteVelocity()
             }
 
-            realLocation = ActiveChutes.getChuteRealPos(chuteLocation)!!
+            if (!ponder) realLocation = ActiveChutes.getChuteRealPos(chuteLocation)!!
             distance = getRealPos().distanceToSqr(realLocation)
 
 
@@ -215,8 +216,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         yRotation =  turn(yRotation, yTargetRotation, 2.1*mult).first
 
 
-
-        sync()
+        if (!ponder) sync()
     }
 
     fun obstructionChecker(location: Vec3): Boolean {
@@ -269,7 +269,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         if (level.getShipManagingPos(blockPos) != null) {
             val temp = level.getShipManagingPos(blockPos)!!.shipToWorld.transformPosition(Vector3d(blockPos.x.toDouble()+0.5,blockPos.y.toDouble()+0.75,blockPos.z.toDouble()+0.5))
             return Vec3(temp.x,temp.y,temp.z)
-        } else return blockToVec(blockPos)
+        } else return Vec3(blockPos.x.toDouble()+0.5,blockPos.y.toDouble()+0.75,blockPos.z.toDouble()+0.5)
     }
 
     fun end(has_cooldown: Boolean) {
@@ -291,9 +291,10 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     fun getAngle() {
 
         val startVec = getRealPos()
-        val endVec = realLocation
 
 
+        println(realLocation)
+        println(startVec)
         var dif = startVec.subtract(getVertexOfParabola(realLocation))
 
         val ship = level!!.getShipManagingPos(blockPos)
@@ -391,6 +392,14 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         yLastRotation = yRotation
     }
 
+    fun ponderFire(chute: BlockPos) {
+        transportStack = currentStack.copy()
+        currentStack = ItemStack.EMPTY
+        chuteLocation = chute
+        realLocation = Vec3(chuteLocation.x+0.5,chuteLocation.y+0.7,chuteLocation.z+0.5)
+
+        distance = getRealPos().distanceToSqr(realLocation)
+    }
 
     override fun addToGoggleTooltip(tooltip: MutableList<Component?>, isPlayerSneaking: Boolean): Boolean {
 

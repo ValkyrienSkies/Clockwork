@@ -114,10 +114,12 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
             }
 
             // Item Render code
-            val og: Vec3 = be.getRealPos().lerp(be.realLocation.add(-0.5,0.0,-0.5),be.clientProgress/be.maxProgress)
+            val og: Vec3 = be.getRealPos().lerp(be.realLocation,be.clientProgress/be.maxProgress)
             val y = getParabolaY(be,og)
             be.itemRotation+=partialTicks
-            renderItem(Vec3(og.x,y,og.z),be,light,overlay,buffer)
+
+
+            renderItem(Vec3(og.x,y,og.z),be,light,overlay,buffer, ms)
 
 
         } else {
@@ -158,16 +160,24 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         }
     }
 
-    fun renderItem(og: Vec3, be: DeliveryCannonBlockEntity, light: Int, overlay: Int, buffer: MultiBufferSource) {
-        val new = PoseStack()
+    fun renderItem(launchedItemPos: Vec3, be: DeliveryCannonBlockEntity, light: Int, overlay: Int, buffer: MultiBufferSource, ms: PoseStack) {
+
+        val new: PoseStack
+        if (be.ponder) new = ms
+        else new = PoseStack()
+
         val msr = TransformStack.cast(new)
         val cam = Minecraft.getInstance().gameRenderer.mainCamera
 
         new.pushPose()
-        msr.multiply(Vector3f.XP.rotationDegrees(cam.getXRot()))
-        msr.multiply(Vector3f.YP.rotationDegrees(cam.getYRot() + 180.0f))
-        msr.translate(-cam.position.x,-cam.position.y,-cam.position.z)
-        msr.translate(og.x+0.5,og.y+0.5,og.z+0.5)
+        if (be.ponder) msr.translate(launchedItemPos.subtract(be.getRealPos()).add(0.5,1.0,0.5))
+        else {
+            msr.multiply(Vector3f.XP.rotationDegrees(cam.getXRot()))
+            msr.multiply(Vector3f.YP.rotationDegrees(cam.getYRot() + 180.0f))
+            msr.translate(-cam.position.x,-cam.position.y,-cam.position.z)
+            msr.translate(launchedItemPos.x,launchedItemPos.y+0.25,launchedItemPos.z)
+        }
+
 
 
         val itemRotOffset = VecHelper.voxelSpace(0.0, 3.0, 0.0)
@@ -222,9 +232,6 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
     }
 
     companion object {
-        fun blockToVec(pos: BlockPos): Vec3 {
-            return Vec3(pos.x.toDouble(),pos.y.toDouble(),pos.z.toDouble())
-        }
 
         // This function solves a parabola using 2 points and the X of the vertex . Z is the value that gets fed into the resulting quadratic
         fun parabola(x1: Double, y1: Double, x2: Double, y2: Double, m: Double, z:Double): Double {

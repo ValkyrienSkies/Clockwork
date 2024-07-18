@@ -64,16 +64,14 @@ object ActiveChutes {
             val realVec3 = Vec3(realPos.x,realPos.y,realPos.z)
 
             if (realVec3.subtract(pos).length() < maxDistance) {
-                //if (actives[chute]!=null) continue
                 if (actives[chute]!!.frequencySlotBehaviour.frequency == frequency) {
                     inRange.add(chute)
-                    //closestDistance = DeliveryCannonRenderer.blockToVec(chute).subtract(pos).length()
                 }
 
             }
         }
 
-        inRange.sortWith(compareBy { DeliveryCannonRenderer.blockToVec(it).subtract(pos).length() })
+        inRange.sortWith(compareBy { getChuteRealPos(it)!!.subtract(pos).length() })
 
         return inRange
     }

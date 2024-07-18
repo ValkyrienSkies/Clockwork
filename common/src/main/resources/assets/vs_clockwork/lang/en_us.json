@@ -156,5 +156,11 @@
 
   "vs_clockwork.ponder.gyro.header": "Gyro",
   "vs_clockwork.ponder.gyro.text_1": "Gyro will stabilize ship in its direction",
-  "vs_clockwork.ponder.gyro.text_2": "Redstone input from each side will tilt the ship"
+  "vs_clockwork.ponder.gyro.text_2": "Redstone input from each side will tilt the ship",
+
+  "vs_clockwork.ponder.solid_delivery.header": "Solid Delivery",
+  "vs_clockwork.ponder.solid_delivery.text_1": "Delivery cannons and delivery chutes allows transporting items in a short distance",
+  "vs_clockwork.ponder.solid_delivery.text_2": "They can only be placed on Depots,",
+  "vs_clockwork.ponder.solid_delivery.text_3": "Chutes,",
+  "vs_clockwork.ponder.solid_delivery.text_4": "and Belts"
 }
