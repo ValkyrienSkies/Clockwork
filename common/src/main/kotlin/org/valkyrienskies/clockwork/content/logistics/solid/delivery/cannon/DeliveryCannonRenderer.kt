@@ -170,7 +170,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         val cam = Minecraft.getInstance().gameRenderer.mainCamera
 
         new.pushPose()
-        if (be.ponder) msr.translate(launchedItemPos.subtract(be.getRealPos()).add(0.5,1.0,0.5))
+        if (be.ponder) msr.translate(launchedItemPos.subtract(be.getRealPos()).add(0.5,1.25,0.5))
         else {
             msr.multiply(Vector3f.XP.rotationDegrees(cam.getXRot()))
             msr.multiply(Vector3f.YP.rotationDegrees(cam.getYRot() + 180.0f))

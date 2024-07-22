@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork
 
 import com.simibubi.create.content.redstone.analogLever.AnalogLeverBlockEntity
+import com.simibubi.create.content.redstone.link.RedstoneLinkBlockEntity
 import com.simibubi.create.foundation.ponder.PonderPalette
 import com.simibubi.create.foundation.ponder.PonderRegistrationHelper
 import com.simibubi.create.foundation.ponder.SceneBuilder
@@ -59,7 +60,14 @@ object ClockworkPonders {
         val depotLine = util.select.fromTo(0, 1, 0, 4, 2, 0)
         val chuteLine = util.select.fromTo(0, 1, 2, 4, 2, 2)
         val beltLine = util.select.fromTo(0, 1, 4, 4, 2, 4)
-        val deliveryCannon = util.select.position(BlockPos(0,2,0))
+
+        val cannonSlot = util.vector.blockSurface(BlockPos(0,2,0), Direction.NORTH)
+            .add(0.0, -0.35, 0.0)
+
+        val chuteSlot = util.vector.blockSurface(BlockPos(4,2,0), Direction.NORTH)
+            .add(0.0, -0.35, 0.0)
+
+
 
 
         scene.world.showSection(depotLine, Direction.DOWN)
@@ -68,8 +76,23 @@ object ClockworkPonders {
             .text("Delivery cannons and delivery chutes allows transporting items in a short distance")
             .placeNearTarget()
             .pointAt(util.vector.blockSurface(util.grid.at(0, 2, 0), Direction.WEST))
+
+
         scene.idle(60)
-        scene.world.createItemOnBeltLike(BlockPos(0,1,0), Direction.NORTH, ItemStack(Items.CAKE))
+        scene.overlay.showFilterSlotInput(cannonSlot, Direction.NORTH, 60)
+        scene.overlay.showFilterSlotInput(chuteSlot, Direction.NORTH, 60)
+        scene.overlay.showText(120)
+            .attachKeyFrame()
+            .text("Delivery Cannons and Chutes have a frequency slot, similar to Redstone links. Delivery cannons will only fire to chutes with the same frequency")
+            .pointAt(chuteSlot)
+
+        scene.idle(120)
+        scene.overlay.showText(40)
+            .attachKeyFrame()
+            .text("Delivery cannons will shoot out any items placed in the storage below it")
+            .placeNearTarget()
+            .pointAt(util.vector.blockSurface(util.grid.at(0, 2, 0), Direction.WEST))
+        scene.world.createItemOnBeltLike(BlockPos(0,1,0), Direction.NORTH, ItemStack(Items.COPPER_BLOCK))
         scene.idle(2)
         scene.world.modifyBlockEntity(BlockPos(0, 2, 0), DeliveryCannonBlockEntity::class.java) { be: DeliveryCannonBlockEntity -> be.ponder = true}
         scene.idle(2)

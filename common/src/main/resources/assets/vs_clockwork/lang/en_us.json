@@ -160,7 +160,9 @@
 
   "vs_clockwork.ponder.solid_delivery.header": "Solid Delivery",
   "vs_clockwork.ponder.solid_delivery.text_1": "Delivery cannons and delivery chutes allows transporting items in a short distance",
-  "vs_clockwork.ponder.solid_delivery.text_2": "They can only be placed on Depots,",
-  "vs_clockwork.ponder.solid_delivery.text_3": "Chutes,",
-  "vs_clockwork.ponder.solid_delivery.text_4": "and Belts"
+  "vs_clockwork.ponder.solid_delivery.text_2": "Delivery Cannons and Chutes have a frequency slot, similar to Redstone links. Delivery cannons will only fire to chutes with the same frequency",
+  "vs_clockwork.ponder.solid_delivery.text_3": "Delivery cannons will shoot out any items placed in the storage below it",
+  "vs_clockwork.ponder.solid_delivery.text_4": "They can only be placed on Depots,",
+  "vs_clockwork.ponder.solid_delivery.text_5": "Chutes,",
+  "vs_clockwork.ponder.solid_delivery.text_6": "and Belts"
 }

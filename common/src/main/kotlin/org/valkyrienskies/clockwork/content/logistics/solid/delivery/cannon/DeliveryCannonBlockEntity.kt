@@ -396,7 +396,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         transportStack = currentStack.copy()
         currentStack = ItemStack.EMPTY
         chuteLocation = chute
-        realLocation = Vec3(chuteLocation.x+0.5,chuteLocation.y+0.7,chuteLocation.z+0.5)
+        realLocation = Vec3(chuteLocation.x+0.5,chuteLocation.y+0.95,chuteLocation.z+0.5)
 
         distance = getRealPos().distanceToSqr(realLocation)
     }
