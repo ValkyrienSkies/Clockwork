@@ -251,11 +251,11 @@ class DuctNetworkImpl(
                     }
 
                     if (flowRate > 0) {
-                        nodeA.currentTemperature -= deltaThermalEnergy / (totalGasMassA * specificHeatAverage(nodeA.currentGasMasses))
-                        nodeB.currentTemperature += deltaThermalEnergy / (totalGasMassB * specificHeatAverage(nodeB.currentGasMasses))
+                        if (totalGasMassA > 0) nodeA.currentTemperature -= deltaThermalEnergy / (totalGasMassA * specificHeatAverage(nodeA.currentGasMasses))
+                        if (totalGasMassB > 0) nodeB.currentTemperature += deltaThermalEnergy / (totalGasMassB * specificHeatAverage(nodeB.currentGasMasses))
                     } else {
-                        nodeA.currentTemperature += deltaThermalEnergy / (totalGasMassA * specificHeatAverage(nodeA.currentGasMasses))
-                        nodeB.currentTemperature -= deltaThermalEnergy / (totalGasMassB * specificHeatAverage(nodeB.currentGasMasses))
+                        if (totalGasMassA > 0) nodeA.currentTemperature += deltaThermalEnergy / (totalGasMassA * specificHeatAverage(nodeA.currentGasMasses))
+                        if (totalGasMassB > 0) nodeB.currentTemperature -= deltaThermalEnergy / (totalGasMassB * specificHeatAverage(nodeB.currentGasMasses))
                     }
                 }
             }
