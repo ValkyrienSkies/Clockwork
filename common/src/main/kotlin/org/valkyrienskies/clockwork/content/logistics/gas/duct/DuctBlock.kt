@@ -42,6 +42,9 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.S
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.UP_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.WEST_CONNECTION
 import org.valkyrienskies.clockwork.kelvin.api.ConnectionType
+import org.valkyrienskies.clockwork.kelvin.api.DuctNetwork
+import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
+import org.valkyrienskies.clockwork.kelvin.api.nodes.PipeDuctNode
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createPipeEdge
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createPipeNode
 import org.valkyrienskies.clockwork.util.MathFunctions.isWithin
@@ -49,7 +52,7 @@ import org.valkyrienskies.clockwork.util.MathFunctions.removeAxis
 import org.valkyrienskies.mod.common.util.toJOMLD
 
 
-class DuctBlock(properties: Properties) : Block(properties), IDuct, IBE<DuctBlockEntity>, SimpleWaterloggedBlock, IWrenchable,
+class DuctBlock(properties: Properties) : Block(properties), AbstractNodeBlock, IDuct, IBE<DuctBlockEntity>, SimpleWaterloggedBlock, IWrenchable,
     IScrewdrivable {
 
     //credit to NEEPMeat for the pipe implementation idea :3dsmile:
@@ -73,23 +76,40 @@ class DuctBlock(properties: Properties) : Block(properties), IDuct, IBE<DuctBloc
         .put(Direction.UP, box(5.0, 11.0, 5.0, 11.0, 16.0, 11.0))
         .put(Direction.DOWN, box(5.0, 0.0, 5.0, 11.0, 5.0, 11.0)).build()
 
-    init {
-        registerDefaultState(super.defaultBlockState()
-            .setValue(NORTH_CONNECTION, DuctConnectionType.NONE)
-            .setValue(EAST_CONNECTION, DuctConnectionType.NONE)
-            .setValue(SOUTH_CONNECTION, DuctConnectionType.NONE)
-            .setValue(WEST_CONNECTION, DuctConnectionType.NONE)
-            .setValue(UP_CONNECTION, DuctConnectionType.NONE)
-            .setValue(DOWN_CONNECTION, DuctConnectionType.NONE)
-            .setValue(BlockStateProperties.WATERLOGGED, false)
-            .setValue(GAS_HEAT_LEVEL, GasHeatLevel.COOL)
-        )
 
+    init {
+        registerDefaultState(ductConnectionsDefault(defaultBlockState()).setValue(BlockStateProperties.WATERLOGGED, false))
 
         for (state: BlockState in this.stateDefinition.possibleStates)
         {
             shapes[state] = getShapeForState(state)
         }
+    }
+
+    override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
+        _createBlockStateDefinition(builder)
+
+        builder.add(BlockStateProperties.WATERLOGGED)
+
+        super.createBlockStateDefinition(builder)
+    }
+
+
+
+    override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
+        super.onPlace(state, level, pos, oldState, isMoving)
+        _onPlace(state, level, pos, oldState, isMoving)
+    }
+
+    override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
+        _onRemove(state, level, pos, newState, isMoving)
+        super.onRemove(state, level, pos, newState, isMoving)
+    }
+
+
+
+    override fun createNode(pos: DuctNodePos, network: DuctNetwork): PipeDuctNode {
+        return createPipeNode(pos, ClockworkMod.getKelvin())
     }
 
     override fun getPistonPushReaction(state: BlockState): PushReaction {
@@ -114,12 +134,6 @@ class DuctBlock(properties: Properties) : Block(properties), IDuct, IBE<DuctBloc
         return InteractionResult.SUCCESS
     }
 
-    override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
-        super.onPlace(state, level, pos, oldState, isMoving)
-        if (!level.isClientSide) {
-            ClockworkMod.getKelvin().addNode(pos.toJOMLD(), createPipeNode(pos.toJOMLD(), ClockworkMod.getKelvin()))
-        }
-    }
 
     override fun canBeReplaced(state: BlockState, fluid: Fluid): Boolean {
         return false
@@ -281,12 +295,6 @@ class DuctBlock(properties: Properties) : Block(properties), IDuct, IBE<DuctBloc
         return this.getConnectedState(level, this.defaultBlockState(), pos)
     }
 
-    override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
-        if (!level.isClientSide) {
-            ClockworkMod.getKelvin().removeNode(pos.toJOMLD())
-        }
-        super.onRemove(state, level, pos, newState, isMoving)
-    }
 
     override fun updateShape(
         state: BlockState,
@@ -341,6 +349,8 @@ class DuctBlock(properties: Properties) : Block(properties), IDuct, IBE<DuctBloc
         return state.setValue(DIR_TO_CONNECTION.get(direction)!!, finalConnection)
     }
 
+
+
     protected fun getConnectedState(level: BlockGetter, state: BlockState, pos: BlockPos): BlockState? {
         var state = state
         for (direction in Direction.values()) {
@@ -362,19 +372,7 @@ class DuctBlock(properties: Properties) : Block(properties), IDuct, IBE<DuctBloc
         return state.setValue(BlockStateProperties.WATERLOGGED, level.getFluidState(pos).type === Fluids.WATER)
     }
 
-    override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
-        builder.add(
-            NORTH_CONNECTION,
-            EAST_CONNECTION,
-            SOUTH_CONNECTION,
-            WEST_CONNECTION,
-            UP_CONNECTION,
-            DOWN_CONNECTION,
-            BlockStateProperties.WATERLOGGED,
-            GAS_HEAT_LEVEL
-        )
-        super.createBlockStateDefinition(builder)
-    }
+
 
     override fun getBlockEntityClass(): Class<DuctBlockEntity> {
         return DuctBlockEntity::class.java
