@@ -322,6 +322,7 @@ class DuctNetworkImpl(
      * Calculates pressure using the ideal gas law.
      */
     private fun calcPressure(mass: Double, volume: Double, temp: Double, density: Double): Double {
+        if (volume == 0.0) return 0.0
         val pressure: Double
         val molarMass = density * 22.4
         val moles = mass / molarMass
