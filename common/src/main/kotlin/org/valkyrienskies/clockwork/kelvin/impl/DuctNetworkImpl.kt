@@ -161,7 +161,7 @@ class DuctNetworkImpl(
                 val densityB = densityAverage(nodeB.currentGasMasses)
 
                 val pressureA = calcPressure(totalGasMassA, nodeDataA.volume, nodeA.currentTemperature, densityA)
-                val pressureB = calcPressure(totalGasMassB, nodeDataB.volume, nodeA.currentTemperature, densityB)
+                val pressureB = calcPressure(totalGasMassB, nodeDataB.volume, nodeB.currentTemperature, densityB)
 
 
                 val viscosityA = viscosityAverage(nodeA.currentGasMasses)
@@ -426,7 +426,7 @@ class DuctNetworkImpl(
 
         gasMasses.keys.forEach {
             if (gasMasses[it] != 0.0 ) {
-                massPerGas[it] = massPerGas[it]!! + gasMasses[it]!!
+                massPerGas[it] =  gasMasses[it]!!
             }
 
         }
