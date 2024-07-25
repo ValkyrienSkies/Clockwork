@@ -21,6 +21,7 @@ import kotlin.math.sin
 class WanderwandItemRenderer() : CustomRenderedItemModelRenderer() {
 
     private var crystalAngle = 0f
+    private var idleProgress = 0f
 
     override fun render(
         stack: ItemStack,
@@ -43,10 +44,10 @@ class WanderwandItemRenderer() : CustomRenderedItemModelRenderer() {
             ms.pushPose()
             renderer!!.renderSolid(model!!.originalModel, light)
             val ww: WanderwandItem = stack.item as WanderwandItem
-            animateIdle(ms, stacker, light, ww.idleProgress, renderer)
-            ww.idleProgress += 0.1f
-            if (ww.idleProgress > 1.0f) {
-                ww.idleProgress = 0.0f
+            animateIdle(ms, stacker, light, idleProgress, renderer)
+            idleProgress += 0.1f
+            if (idleProgress > 1.0f) {
+                idleProgress = 0.0f
             }
             ms.popPose()
         }

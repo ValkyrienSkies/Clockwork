@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand
 
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.Tag
@@ -16,13 +17,28 @@ import kotlin.math.min
 
 class WanderwandItem(properties: Properties) : CWItem(properties) {
 
-    var idleProgress = 0.0f
-
     companion object {
 
         @JvmStatic
         fun select(sLevel: ServerLevel, sPlayer: ServerPlayer, firstPos: BlockPos, secondPos: BlockPos, isSecond: Boolean, deselect: Boolean, leftClick: Boolean) {
-            if (isSecond) return
+            if (!isSecond) {
+                if (leftClick && sPlayer.mainHandItem.item is WanderwandItem && !sPlayer.cooldowns.isOnCooldown(sPlayer.mainHandItem.item)) {
+                    val existingSelection = sPlayer.mainHandItem.tag?.get("selectedBlocks") as CompoundTag?
+                    if (existingSelection != null) {
+                        val existingSelectionDeser = readBlockPosSetFromNBT(existingSelection)
+                        if (existingSelectionDeser.contains(firstPos)) {
+                            val components = findIsolatedComponents(existingSelectionDeser)
+                            val component = components.find { it.contains(firstPos) }
+                            if (component != null) {
+                                existingSelectionDeser.removeAll(component)
+                                sPlayer.mainHandItem.tag?.put("selectedBlocks", writeBlockPosSetToNBT(existingSelectionDeser))
+                            }
+                        }
+                    }
+                }
+            } else {
+                return
+            }
 
             val minX = min(firstPos.x, secondPos.x)
             val minY = min(firstPos.y, secondPos.y)
@@ -42,18 +58,18 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
                 }
             }
 
-            if (sPlayer.inventory.getSelected().item is WanderwandItem) {
-                val wand = sPlayer.inventory.getSelected()
+            if (sPlayer.mainHandItem.item is WanderwandItem) {
+                val wand = sPlayer.mainHandItem
 
                 if (!deselect) {
-                    val existingSelection = wand.tag?.get("selectedBlocks") as CompoundTag
+                    val existingSelection = wand.tag?.get("selectedBlocks") as CompoundTag?
                     if (existingSelection != null) {
                         selection.addAll(readBlockPosSetFromNBT(existingSelection))
                     }
 
                     wand.tag?.put("selectedBlocks", writeBlockPosSetToNBT(selection))
                 } else {
-                    var existingSelection = wand.tag?.get("selectedBlocks") as CompoundTag
+                    val existingSelection = wand.tag?.get("selectedBlocks") as CompoundTag?
                     if (existingSelection != null) {
                         val existingSelectionDeser = readBlockPosSetFromNBT(existingSelection)
                         existingSelectionDeser.removeAll(selection)
@@ -67,6 +83,7 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
         fun startWeld(sLevel: ServerLevel, sPlayer: ServerPlayer, clickedPos: BlockPos) {
 
         }
+
         @JvmStatic
         fun weld(sLevel: ServerLevel, sPlayer: ServerPlayer, clickedPos: BlockPos) {
 
@@ -79,11 +96,12 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
 
         @JvmStatic
         fun startBind(sLevel: ServerLevel, sPlayer: ServerPlayer, clickedPos: BlockPos) {
-
+            TODO()
         }
+
         @JvmStatic
         fun bind(sLevel: ServerLevel, sPlayer: ServerPlayer, clickedPos: BlockPos) {
-
+            TODO()
         }
 
         // Method to write a set of BlockPos to NBT
@@ -133,6 +151,62 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
                 blockPosSet.add(blockPos)
             }
             return blockPosSet
+        }
+
+        @JvmStatic
+        fun findIsolatedComponents(set: HashSet<BlockPos>): HashSet<HashSet<BlockPos>> {
+            if (set.isEmpty()) return HashSet()
+            if (set.size == 1) return HashSet(hashSetOf(set))
+            val isolatedComponents = HashSet<HashSet<BlockPos>>()
+            val visited = HashSet<BlockPos>()
+
+            for (pos in set) {
+                if (visited.contains(pos)) continue
+
+                val component = HashSet<BlockPos>()
+                val queue = ArrayDeque<BlockPos>()
+                queue.add(pos)
+
+                while (queue.isNotEmpty()) {
+                    val current = queue.removeFirst()
+                    if (visited.contains(current)) continue
+
+                    visited.add(current)
+                    component.add(current)
+
+                    for (neighbor in getNeighbors(current)) {
+                        if (set.contains(neighbor) && !visited.contains(neighbor)) {
+                            queue.add(neighbor)
+                        }
+                    }
+                }
+
+                isolatedComponents.add(component)
+            }
+
+            return isolatedComponents
+        }
+
+        @JvmStatic
+        fun findCorners(set: HashSet<BlockPos>): Pair<BlockPos, BlockPos> {
+            val minX = set.minByOrNull { it.x }!!.x
+            val minY = set.minByOrNull { it.y }!!.y
+            val minZ = set.minByOrNull { it.z }!!.z
+
+            val maxX = set.maxByOrNull { it.x }!!.x
+            val maxY = set.maxByOrNull { it.y }!!.y
+            val maxZ = set.maxByOrNull { it.z }!!.z
+
+            return Pair(BlockPos(minX, minY, minZ), BlockPos(maxX, maxY, maxZ))
+        }
+
+        @JvmStatic
+        fun getNeighbors(pos: BlockPos): Set<BlockPos> {
+            val neighbors = HashSet<BlockPos>()
+            for (dir in Direction.values()) {
+                neighbors.add(pos.relative(dir))
+            }
+            return neighbors
         }
     }
 }

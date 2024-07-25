@@ -9,7 +9,7 @@ enum class ToolType(val tool: IWanderwandTool, val icon: ClockworkIcons) {
     SELECT(SelectTool(), ClockworkIcons.GRAB),
     DESELECT(DeselectTool(), ClockworkIcons.ASSEMBLE),
     ATTACH(AttachTool(), ClockworkIcons.GRABSSEMBLE),
-    BIND(BindTool(), ClockworkIcons.DESTROY),
+    //BIND(BindTool(), ClockworkIcons.DESTROY),
     WELD(WeldTool(), ClockworkIcons.WELD);
 
     fun getDisplayName(): MutableComponent {
@@ -44,7 +44,7 @@ enum class ToolType(val tool: IWanderwandTool, val icon: ClockworkIcons) {
         @JvmStatic
         fun getTools(): List<ToolType> {
             val tools: MutableList<ToolType> = ArrayList()
-            tools.addAll(listOf(SELECT, DESELECT, ATTACH, BIND, WELD))
+            tools.addAll(listOf(SELECT, DESELECT, ATTACH, WELD))
             return tools
         }
     }

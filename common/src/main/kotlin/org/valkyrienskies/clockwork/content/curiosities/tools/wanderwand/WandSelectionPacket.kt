@@ -64,17 +64,17 @@ class WandSelectionPacket : C2SCWPacket {
                                 )
                             }
 
-                            ToolType.BIND -> {
-                                if (isSecond) {
-                                    WanderwandItem.bind(
-                                        serverLevel, serverPlayer, secondPos!!.mutable()
-                                    )
-                                } else {
-                                    WanderwandItem.startBind(
-                                        serverLevel, serverPlayer, firstPos!!.mutable()
-                                    )
-                                }
-                            }
+//                            ToolType.BIND -> {
+//                                if (isSecond) {
+//                                    WanderwandItem.bind(
+//                                        serverLevel, serverPlayer, secondPos!!.mutable()
+//                                    )
+//                                } else {
+//                                    WanderwandItem.startBind(
+//                                        serverLevel, serverPlayer, firstPos!!.mutable()
+//                                    )
+//                                }
+//                            }
                         }
                     }
                 }
