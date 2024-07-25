@@ -321,7 +321,6 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
             otherConnected = neighborState.getValue(DIR_TO_CONNECTION[direction.opposite]!!) == DuctConnectionType.SIDE
 
         } else if (neighborState.block is IDuct) {
-            println("1")
             otherConnected =  (neighborState.block as IDuct).canConnectTo(neighborPos, currentPos, direction.opposite, level)
         }
 

@@ -70,7 +70,6 @@ class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(prope
 
 
     override fun canConnectTo(self: BlockPos, other: BlockPos, direction: Direction, level: BlockGetter): Boolean {
-        println(direction)
 
 
         if (self.distSqr(other) > 1.0) return false

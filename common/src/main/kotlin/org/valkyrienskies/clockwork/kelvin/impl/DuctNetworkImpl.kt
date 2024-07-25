@@ -163,6 +163,7 @@ class DuctNetworkImpl(
                 val pressureA = calcPressure(totalGasMassA, nodeDataA.volume, nodeA.currentTemperature, densityA)
                 val pressureB = calcPressure(totalGasMassB, nodeDataB.volume, nodeA.currentTemperature, densityB)
 
+
                 val viscosityA = viscosityAverage(nodeA.currentGasMasses)
                 val viscosityB = viscosityAverage(nodeB.currentGasMasses)
 
@@ -322,11 +323,20 @@ class DuctNetworkImpl(
      * Calculates pressure using the ideal gas law.
      */
     private fun calcPressure(mass: Double, volume: Double, temp: Double, density: Double): Double {
-        if (volume == 0.0) return 0.0
+        if (volume == 0.0 || density == 0.0) return 0.0
         val pressure: Double
         val molarMass = density * 22.4
         val moles = mass / molarMass
         pressure = (moles * idealGasConstant * temp) / volume
+        print(pressure)
+        print(" ")
+        print(density)
+        print(" ")
+        print(moles)
+        print(" ")
+        print(temp)
+        print(" ")
+        println(volume)
         return pressure
     }
 
@@ -349,9 +359,11 @@ class DuctNetworkImpl(
         val gasWeight = EnumMap<GasType, Double>(GasType::class.java)
 
         gasMasses.keys.forEach {
-            if (massPerGas[it]!=null && gasMasses[it]!=null && gasMasses[it] != 0.0 ) {
+            if (gasMasses[it] != 0.0 ) {
 
-                massPerGas[it] = massPerGas[it]!! + gasMasses[it]!!
+
+                massPerGas[it] =  gasMasses[it]!!
+
             }
 
         }
@@ -366,6 +378,7 @@ class DuctNetworkImpl(
         for (gas in gasWeight.keys) {
             density += gasWeight[gas]!! * gas.density
         }
+
 
         return density
     }
@@ -382,12 +395,11 @@ class DuctNetworkImpl(
         val gasWeight = EnumMap<GasType, Double>(GasType::class.java)
 
         gasMasses.keys.forEach {
-            if (massPerGas[it]!=null && gasMasses[it]!=null && gasMasses[it] != 0.0 ) {
-                massPerGas[it] = massPerGas[it]!! + gasMasses[it]!!
+            if (gasMasses[it] != 0.0 ) {
+                massPerGas[it] = gasMasses[it]!!
             }
 
         }
-
         for (gas in massPerGas.keys) {
             gasWeight[gas] = massPerGas[gas]!! / totalMass
         }
