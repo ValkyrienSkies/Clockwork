@@ -1,28 +1,36 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner
 
-import com.simibubi.create.content.kinetics.base.HorizontalKineticBlock
 import com.simibubi.create.foundation.block.IBE
+import dev.architectury.registry.fuel.FuelRegistry
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.InteractionResult
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
+import net.minecraft.world.level.block.AbstractFurnaceBlock
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
+import net.minecraft.world.level.block.entity.FurnaceBlockEntity
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
+import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.AbstractNodeBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.INodeBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 import org.valkyrienskies.clockwork.kelvin.api.DuctNetwork
 import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.kelvin.api.NodeBehaviorType
 import org.valkyrienskies.clockwork.kelvin.api.nodes.PipeDuctNode
+import java.util.function.Function
 
 
-class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(properties), AbstractNodeBlock, IBE<CoalBurnerBlockEntity> {
+class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(properties), INodeBlock, IBE<CoalBurnerBlockEntity> {
 
 
 
@@ -31,17 +39,51 @@ class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(prope
         registerDefaultState(ductConnectionsDefault(defaultBlockState()).setValue(FACING, Direction.NORTH).setValue(LIT, false))
     }
 
-    override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
-        _createBlockStateDefinition(builder)
-        builder.add(FACING, LIT)
+
+    override fun use(
+        state: BlockState,
+        level: Level,
+        pos: BlockPos,
+        player: Player,
+        hand: InteractionHand,
+        hit: BlockHitResult
+    ): InteractionResult {
 
 
-        super.createBlockStateDefinition(builder)
+
+        val be = level.getBlockEntity(pos) as CoalBurnerBlockEntity? ?: return  InteractionResult.PASS
+        val item = player.getItemInHand(hand)
+
+
+        if (FuelRegistry.get(item)>0 && !player.isShiftKeyDown) {
+            be.fuelTicks+=FuelRegistry.get(item)*item.count
+            player.setItemInHand(hand, ItemStack.EMPTY)
+            return InteractionResult.SUCCESS
+        }
+
+        return InteractionResult.PASS
     }
 
     override fun createNode(pos: DuctNodePos, network: DuctNetwork): PipeDuctNode {
         return PipeDuctNode(pos, NodeBehaviorType.COAL_BURNER, network, volume = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0)
     }
+
+
+    override fun canConnectTo(self: BlockPos, other: BlockPos, direction: Direction, level: BlockGetter): Boolean {
+        println(direction)
+
+
+        if (self.distSqr(other) > 1.0) return false
+        val selfState = level.getBlockState(self)
+        val otherState = level.getBlockState(other)
+
+        if (otherState.block !is IDuct) return false
+
+        return true
+    }
+
+
+
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
         super.onPlace(state, level, pos, oldState, isMoving)
@@ -53,16 +95,6 @@ class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(prope
         super.onRemove(state, level, pos, newState, isMoving)
     }
 
-
-    override fun canConnectTo(self: BlockPos, other: BlockPos, direction: Direction, level: BlockGetter): Boolean {
-        if (self.distSqr(other) > 1.0) return false
-        val selfState = level.getBlockState(self)
-        val otherState = level.getBlockState(other)
-
-        if (otherState.block !is IDuct) return false
-        println(direction)
-        return true
-    }
 
     override fun getBlockEntityClass(): Class<CoalBurnerBlockEntity> {
         return  CoalBurnerBlockEntity::class.java
@@ -79,6 +111,14 @@ class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(prope
                     .opposite
             )
     }
+    override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
+        _createBlockStateDefinition(builder)
+        builder.add(FACING, LIT)
+
+
+        super.createBlockStateDefinition(builder)
+    }
+
 
     companion object {
         val LIT = BlockStateProperties.LIT;

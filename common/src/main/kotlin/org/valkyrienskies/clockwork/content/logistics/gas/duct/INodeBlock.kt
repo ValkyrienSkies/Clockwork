@@ -19,7 +19,7 @@ import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.kelvin.api.nodes.PipeDuctNode
 import org.valkyrienskies.mod.common.util.toJOMLD
 
-interface AbstractNodeBlock : IDuct {
+interface INodeBlock : IDuct {
 
 
 

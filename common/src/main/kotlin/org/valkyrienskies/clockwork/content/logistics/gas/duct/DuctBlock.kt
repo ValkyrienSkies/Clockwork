@@ -6,6 +6,7 @@ import com.simibubi.create.content.equipment.wrench.IWrenchable
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionResult
@@ -32,8 +33,6 @@ import net.minecraft.world.phys.shapes.VoxelShape
 import org.joml.Vector2f
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.content.logistics.gas.GasHeatLevel
-import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock.Companion.GAS_HEAT_LEVEL
 import org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver.IScrewdrivable
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.DOWN_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.EAST_CONNECTION
@@ -52,7 +51,7 @@ import org.valkyrienskies.clockwork.util.MathFunctions.removeAxis
 import org.valkyrienskies.mod.common.util.toJOMLD
 
 
-class DuctBlock(properties: Properties) : Block(properties), AbstractNodeBlock, IDuct, IBE<DuctBlockEntity>, SimpleWaterloggedBlock, IWrenchable,
+class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, IBE<DuctBlockEntity>, SimpleWaterloggedBlock, IWrenchable,
     IScrewdrivable {
 
     //credit to NEEPMeat for the pipe implementation idea :3dsmile:
@@ -138,6 +137,7 @@ class DuctBlock(properties: Properties) : Block(properties), AbstractNodeBlock, 
     override fun canBeReplaced(state: BlockState, fluid: Fluid): Boolean {
         return false
     }
+
 
     fun onConnectionUpdate(
         world: Level,
@@ -321,6 +321,7 @@ class DuctBlock(properties: Properties) : Block(properties), AbstractNodeBlock, 
             otherConnected = neighborState.getValue(DIR_TO_CONNECTION[direction.opposite]!!) == DuctConnectionType.SIDE
 
         } else if (neighborState.block is IDuct) {
+            println("1")
             otherConnected =  (neighborState.block as IDuct).canConnectTo(neighborPos, currentPos, direction.opposite, level)
         }
 

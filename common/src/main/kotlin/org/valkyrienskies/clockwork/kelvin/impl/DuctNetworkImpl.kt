@@ -348,13 +348,15 @@ class DuctNetworkImpl(
         val gasWeight = EnumMap<GasType, Double>(GasType::class.java)
 
         gasMasses.keys.forEach {
-            if (gasMasses[it] != 0.0 ) {
+            if (massPerGas[it]!=null && gasMasses[it]!=null && gasMasses[it] != 0.0 ) {
+
                 massPerGas[it] = massPerGas[it]!! + gasMasses[it]!!
             }
 
         }
 
         for (gas in massPerGas.keys) {
+
             gasWeight[gas] = massPerGas[gas]!! / totalMass
         }
 
@@ -379,7 +381,7 @@ class DuctNetworkImpl(
         val gasWeight = EnumMap<GasType, Double>(GasType::class.java)
 
         gasMasses.keys.forEach {
-            if (gasMasses[it] != 0.0 ) {
+            if (massPerGas[it]!=null && gasMasses[it]!=null && gasMasses[it] != 0.0 ) {
                 massPerGas[it] = massPerGas[it]!! + gasMasses[it]!!
             }
 
