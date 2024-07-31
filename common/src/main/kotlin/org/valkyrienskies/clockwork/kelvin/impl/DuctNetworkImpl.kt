@@ -244,6 +244,12 @@ class DuctNetworkImpl(
                     val deltaVolumeA = Mth.clamp(flowRateA / subSteps.toDouble(), -(volumeA + volumeB), (volumeA + volumeB))
                     val deltaVolumeB = Mth.clamp(flowRateB / subSteps.toDouble(), -(volumeA + volumeB), (volumeA + volumeB))
 
+                    nodeA.currentGasMasses[gas] = max(volumeA + deltaVolumeA, 0.0)
+                    nodeB.currentGasMasses[gas] = max(volumeB + deltaVolumeB, 0.0)
+
+                    totalGasMassA = nodeA.currentGasMasses.values.sum()
+                    totalGasMassB = nodeB.currentGasMasses.values.sum()
+
 
                     edge.currentFlowRate = flowRate
 
@@ -253,13 +259,12 @@ class DuctNetworkImpl(
                         (totalGasMassB * specificHeatAverage(nodeB.currentGasMasses) * (nodeB.currentTemperature - nodeA.currentTemperature))
                     }
 
-                    nodeA.currentGasMasses[gas] = max(volumeA + deltaVolumeA, 0.0)
-                    nodeB.currentGasMasses[gas] = max(volumeB + deltaVolumeB, 0.0)
 
 
-                    if (deltaThermalEnergy.isInfinite() || deltaThermalEnergy.isNaN()) {
-                        continue
-                    }
+
+                    if (deltaThermalEnergy.isInfinite() || deltaThermalEnergy.isNaN()) return
+
+
 
                     if (flowRate > 0) {
                         if (totalGasMassA > 0) nodeA.currentTemperature -= deltaThermalEnergy / (totalGasMassA * specificHeatAverage(nodeA.currentGasMasses))
@@ -417,7 +422,6 @@ class DuctNetworkImpl(
 
     private fun specificHeatAverage(gasMasses: EnumMap<GasType, Double>): Double {
         val totalMass = gasMasses.values.sum()
-
         if (totalMass == 0.0) {
             return 0.0
         }
