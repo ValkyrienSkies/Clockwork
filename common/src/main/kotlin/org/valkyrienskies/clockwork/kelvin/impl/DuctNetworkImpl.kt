@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.kelvin.impl
 
+import kotlinx.coroutines.flow.flow
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
@@ -15,6 +16,7 @@ import org.valkyrienskies.mod.common.util.toMinecraft
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.HashSet
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
@@ -156,7 +158,7 @@ class DuctNetworkImpl(
                 nodeB!!.currentGasMasses.forEach { totalGasMassB += it.value }
 
                 if (totalGasMassA == 0.0 && totalGasMassB == 0.0) {
-                    return
+                    continue
                 }
 
                 val densityA = densityAverage(nodeA.currentGasMasses)
@@ -206,6 +208,7 @@ class DuctNetworkImpl(
                     }
                 }
 
+
                 if (flowRate.isInfinite() || flowRate.isNaN()) {
                     flowRate = 0.0
                 }
@@ -240,9 +243,12 @@ class DuctNetworkImpl(
                     val volumeB = nodeB.currentGasMasses[gas]!!
 
 
+                    val limit = abs(volumeA-volumeB)/2
 
-                    val deltaVolumeA = Mth.clamp(flowRateA / subSteps.toDouble(), -(volumeA + volumeB), (volumeA + volumeB))
-                    val deltaVolumeB = Mth.clamp(flowRateB / subSteps.toDouble(), -(volumeA + volumeB), (volumeA + volumeB))
+                    val deltaVolumeA = Mth.clamp(flowRateA / subSteps.toDouble(), -limit, limit)
+                    val deltaVolumeB = Mth.clamp(flowRateB / subSteps.toDouble(), -limit, limit)
+
+
 
                     nodeA.currentGasMasses[gas] = max(volumeA + deltaVolumeA, 0.0)
                     nodeB.currentGasMasses[gas] = max(volumeB + deltaVolumeB, 0.0)
@@ -250,14 +256,20 @@ class DuctNetworkImpl(
                     totalGasMassA = nodeA.currentGasMasses.values.sum()
                     totalGasMassB = nodeB.currentGasMasses.values.sum()
 
+                    val heatCapacityA = specificHeatAverage(nodeA.currentGasMasses)
+                    val heatCapacityB = specificHeatAverage(nodeB.currentGasMasses)
+
 
                     edge.currentFlowRate = flowRate
 
-                    val deltaThermalEnergy = if (flowRate > 0) {
+                    var deltaThermalEnergy = if (flowRate > 0) {
                         (totalGasMassA * specificHeatAverage(nodeA.currentGasMasses) * (nodeA.currentTemperature - nodeB.currentTemperature))
                     } else {
                         (totalGasMassB * specificHeatAverage(nodeB.currentGasMasses) * (nodeB.currentTemperature - nodeA.currentTemperature))
                     }
+
+                    val thermalLimit = abs(totalGasMassA*heatCapacityA*nodeA.currentTemperature-totalGasMassB*heatCapacityB*nodeB.currentTemperature)/2
+                    deltaThermalEnergy = Mth.clamp(deltaThermalEnergy/subSteps, -thermalLimit, thermalLimit)
 
 
 
@@ -267,11 +279,11 @@ class DuctNetworkImpl(
 
 
                     if (flowRate > 0) {
-                        if (totalGasMassA > 0) nodeA.currentTemperature -= deltaThermalEnergy / (totalGasMassA * specificHeatAverage(nodeA.currentGasMasses))
-                        if (totalGasMassB > 0) nodeB.currentTemperature += deltaThermalEnergy / (totalGasMassB * specificHeatAverage(nodeB.currentGasMasses))
+                        if (totalGasMassA > 0) nodeA.currentTemperature -= deltaThermalEnergy / (totalGasMassA * heatCapacityA)
+                        if (totalGasMassB > 0) nodeB.currentTemperature += deltaThermalEnergy / (totalGasMassB * heatCapacityB)
                     } else {
-                        if (totalGasMassA > 0) nodeA.currentTemperature += deltaThermalEnergy / (totalGasMassA * specificHeatAverage(nodeA.currentGasMasses))
-                        if (totalGasMassB > 0) nodeB.currentTemperature -= deltaThermalEnergy / (totalGasMassB * specificHeatAverage(nodeB.currentGasMasses))
+                        if (totalGasMassA > 0) nodeA.currentTemperature += deltaThermalEnergy / (totalGasMassA * heatCapacityA)
+                        if (totalGasMassB > 0) nodeB.currentTemperature -= deltaThermalEnergy / (totalGasMassB * heatCapacityB)
                     }
                 }
             }
