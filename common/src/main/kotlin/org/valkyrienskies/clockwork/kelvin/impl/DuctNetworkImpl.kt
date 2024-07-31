@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.kelvin.impl
 
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.util.Mth
 import net.minecraft.world.level.Explosion
 import org.valkyrienskies.clockwork.content.logistics.gas.GasHeatLevel
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock
@@ -14,6 +15,7 @@ import org.valkyrienskies.mod.common.util.toMinecraft
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.HashSet
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 
@@ -154,20 +156,24 @@ class DuctNetworkImpl(
                 nodeB!!.currentGasMasses.forEach { totalGasMassB += it.value }
 
                 if (totalGasMassA == 0.0 && totalGasMassB == 0.0) {
-                    continue
+                    return
                 }
 
                 val densityA = densityAverage(nodeA.currentGasMasses)
                 val densityB = densityAverage(nodeB.currentGasMasses)
 
+
                 val pressureA = calcPressure(totalGasMassA, nodeDataA.volume, nodeA.currentTemperature, densityA)
+
                 val pressureB = calcPressure(totalGasMassB, nodeDataB.volume, nodeB.currentTemperature, densityB)
 
 
                 val viscosityA = viscosityAverage(nodeA.currentGasMasses)
                 val viscosityB = viscosityAverage(nodeB.currentGasMasses)
 
+
                 nodeA.currentPressure = pressureA
+
                 nodeB.currentPressure = pressureB
 
                 val viscosity = (viscosityA + viscosityB) / 2.0
@@ -191,6 +197,7 @@ class DuctNetworkImpl(
 
                 var flowRate = calculateFlow(pressureA, pressureB, edge.radius - aperture, viscosity, pumpPressure)
 
+
                 if (edge is OneWayEdge) {
                     if (!edge.reversed && flowRate < 0.0) {
                         flowRate = 0.0
@@ -203,8 +210,8 @@ class DuctNetworkImpl(
                     flowRate = 0.0
                 }
 
-                val flowRateA = flowRate
-                val flowRateB = -flowRate
+                val flowRateA = -flowRate
+                val flowRateB = flowRate
 
                 for (gas in GasType.values()) {
                     if (flowRate == 0.0) {
@@ -232,8 +239,11 @@ class DuctNetworkImpl(
                     val volumeA = nodeA.currentGasMasses[gas]!!
                     val volumeB = nodeB.currentGasMasses[gas]!!
 
-                    val deltaVolumeA = flowRateA / subSteps.toDouble()
-                    val deltaVolumeB = flowRateB / subSteps.toDouble()
+
+
+                    val deltaVolumeA = Mth.clamp(flowRateA / subSteps.toDouble(), -(volumeA + volumeB), (volumeA + volumeB))
+                    val deltaVolumeB = Mth.clamp(flowRateB / subSteps.toDouble(), -(volumeA + volumeB), (volumeA + volumeB))
+
 
                     edge.currentFlowRate = flowRate
 
@@ -243,8 +253,9 @@ class DuctNetworkImpl(
                         (totalGasMassB * specificHeatAverage(nodeB.currentGasMasses) * (nodeB.currentTemperature - nodeA.currentTemperature))
                     }
 
-                    nodeA.currentGasMasses[gas] = min(volumeA + deltaVolumeA, 0.0)
-                    nodeB.currentGasMasses[gas] = min(volumeB + deltaVolumeB, 0.0)
+                    nodeA.currentGasMasses[gas] = max(volumeA + deltaVolumeA, 0.0)
+                    nodeB.currentGasMasses[gas] = max(volumeB + deltaVolumeB, 0.0)
+
 
                     if (deltaThermalEnergy.isInfinite() || deltaThermalEnergy.isNaN()) {
                         continue
@@ -328,15 +339,6 @@ class DuctNetworkImpl(
         val molarMass = density * 22.4
         val moles = mass / molarMass
         pressure = (moles * idealGasConstant * temp) / volume
-        print(pressure)
-        print(" ")
-        print(density)
-        print(" ")
-        print(moles)
-        print(" ")
-        print(temp)
-        print(" ")
-        println(volume)
         return pressure
     }
 
