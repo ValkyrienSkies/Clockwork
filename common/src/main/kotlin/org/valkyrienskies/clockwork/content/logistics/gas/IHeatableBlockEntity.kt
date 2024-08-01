@@ -14,7 +14,9 @@ interface IHeatableBlockEntity: IHaveGoggleInformation {
     override fun addToGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
         tooltip.add(TextComponent("    Duct Info").withStyle(ChatFormatting.GRAY))
 
+
         var found = false
+
         if (ClockworkMod.getKelvin().getTemperatureAt(this.getDuctNodePosition()) != 0.0) {
             tooltip.add(TextComponent("Temperature: ${ClockworkMod.getKelvin().getTemperatureAt(this.getDuctNodePosition()).toInt()} K").withStyle(ChatFormatting.GOLD))
             found = true
@@ -26,7 +28,7 @@ interface IHeatableBlockEntity: IHaveGoggleInformation {
         if (ClockworkMod.getKelvin().getGasVolumesAt(this.getDuctNodePosition()).isNotEmpty()) {
             tooltip.add(TextComponent("Gas Volumes:"))
             for (entry in ClockworkMod.getKelvin().getGasVolumesAt(this.getDuctNodePosition()).entries) {
-                tooltip.add(TextComponent("${entry.key}: ${entry.value} m^3"))
+                tooltip.add(TextComponent("${entry.key}: ${entry.value.roundToInt()} m^3"))
             }
             found = true
         }
@@ -34,6 +36,8 @@ interface IHeatableBlockEntity: IHaveGoggleInformation {
         if (!found) {
             tooltip.add(TextComponent("Empty."))
         }
+
         return found
     }
+    
 }
