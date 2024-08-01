@@ -39,5 +39,5 @@ interface IHeatableBlockEntity: IHaveGoggleInformation {
 
         return found
     }
-    
+
 }
