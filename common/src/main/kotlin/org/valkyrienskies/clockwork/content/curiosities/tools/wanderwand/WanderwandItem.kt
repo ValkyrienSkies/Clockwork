@@ -10,12 +10,31 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.Level
+import org.valkyrienskies.clockwork.ClockworkPackets.Companion.sendTo
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool.ToolType
 import org.valkyrienskies.clockwork.platform.CWItem
 import kotlin.math.max
 import kotlin.math.min
 
 
 class WanderwandItem(properties: Properties) : CWItem(properties) {
+
+    override fun verifyTagAfterLoad(compoundTag: CompoundTag) {
+        compoundTag.putBoolean("hasLoaded", false)
+        super.verifyTagAfterLoad(compoundTag)
+    }
+
+    override fun inventoryTick(stack: ItemStack, level: Level, entity: Entity, slotId: Int, isSelected: Boolean) {
+        if (!level.isClientSide && entity is ServerPlayer) {
+            if (!stack.orCreateTag.getBoolean("hasLoaded")) {
+                stack.tag!!.putBoolean("hasLoaded", true)
+                if (stack.tag!!.contains("selectedBlocks")) {
+                    sendTo(WanderwandRenderUpdatePacket(BlockPos.ZERO, ToolType.SELECT, blocks = stack.tag!!.get("selectedBlocks") as CompoundTag), entity as ServerPlayer)
+                }
+            }
+        }
+        super.inventoryTick(stack, level, entity, slotId, isSelected)
+    }
 
     companion object {
 
@@ -36,7 +55,6 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
                         }
                     }
                 }
-            } else {
                 return
             }
 
@@ -76,7 +94,7 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
                         wand.tag?.put("selectedBlocks", writeBlockPosSetToNBT(existingSelectionDeser))
                     }
                 }
-
+                sendTo(WanderwandRenderUpdatePacket(firstPos, ToolType.SELECT, blocks = writeBlockPosSetToNBT(selection)), sPlayer)
             }
         }
 

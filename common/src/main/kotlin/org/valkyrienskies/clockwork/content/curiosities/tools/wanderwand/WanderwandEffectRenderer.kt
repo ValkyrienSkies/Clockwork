@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand
 import com.jamieswhiteshirt.reachentityattributes.ReachEntityAttributes
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.Quaternion
+import com.simibubi.create.AllSpecialTextures
 import com.simibubi.create.foundation.render.SuperRenderTypeBuffer
 import com.simibubi.create.foundation.utility.RaycastHelper
 import net.fabricmc.api.EnvType
@@ -42,18 +43,16 @@ class WanderwandEffectRenderer {
 
     val clusters = HashSet<Set<BlockPos>>()
 
-    val shouldUpdateClusters = true
-
     //clusters and attachments
     fun clientTick(clientLevel: ClientLevel) {
         var count = 0
         for (cluster in clusters) {
-            ClockworkModClient.WANDER_OUTLINER.showCluster("cluster$count", cluster)
+            ClockworkModClient.WANDER_OUTLINER.showCluster("cluster$count", cluster).colored(0xd8b2e9).lineWidth(0.5f).withFaceTextures(AllSpecialTextures.CHECKERED, AllSpecialTextures.HIGHLIGHT_CHECKERED)
             count++
         }
         count = 0
         for (attachment in attachments) {
-            ClockworkModClient.WANDER_OUTLINER.showLine("attachment$count", attachment.first.toMinecraft(), attachment.second.toMinecraft())
+            ClockworkModClient.WANDER_OUTLINER.showLine("attachment$count", attachment.first.toMinecraft(), attachment.second.toMinecraft()).lineWidth(0.5f).colored(0xd8b2e9)
             count++
         }
     }
