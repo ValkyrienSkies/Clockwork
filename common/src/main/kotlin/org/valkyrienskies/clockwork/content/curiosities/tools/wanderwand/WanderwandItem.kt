@@ -76,6 +76,7 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
                         wand.tag?.put("selectedBlocks", writeBlockPosSetToNBT(existingSelectionDeser))
                     }
                 }
+
             }
         }
 

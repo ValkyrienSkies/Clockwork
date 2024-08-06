@@ -10,7 +10,7 @@ import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandSelectionPacket
 
-class SelectTool(): WanderwandToolBase() {
+class SelectTool(): SelectionToolBase() {
 
     override fun handleRightClick(crouching: Boolean): Boolean {
         if (crouching) {
@@ -37,6 +37,7 @@ class SelectTool(): WanderwandToolBase() {
                 Minecraft.getInstance().player!!.displayClientMessage(message, true)
 
                 ClockworkPackets.sendToServer(WandSelectionPacket(lastClickedPos!!, clickedPos!!, ToolType.SELECT, false))
+                lastClickedPos = null
                 return true
             }
         }

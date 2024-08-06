@@ -6,10 +6,10 @@ import net.minecraft.network.chat.MutableComponent
 import org.valkyrienskies.clockwork.ClockworkIcons
 import org.valkyrienskies.clockwork.ClockworkLang
 enum class ToolType(val tool: IWanderwandTool, val icon: ClockworkIcons) {
-    SELECT(SelectTool(), ClockworkIcons.GRAB),
-    DESELECT(DeselectTool(), ClockworkIcons.ASSEMBLE),
-    ATTACH(AttachTool(), ClockworkIcons.GRABSSEMBLE),
-    //BIND(BindTool(), ClockworkIcons.DESTROY),
+    SELECT(SelectTool(), ClockworkIcons.SELECT),
+    DESELECT(DeselectTool(), ClockworkIcons.DESELECT),
+    ATTACH(AttachTool(), ClockworkIcons.ATTACH),
+    //BIND(BindTool(), ClockworkIcons.BIND),
     WELD(WeldTool(), ClockworkIcons.WELD);
 
     fun getDisplayName(): MutableComponent {
