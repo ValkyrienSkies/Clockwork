@@ -20,9 +20,6 @@ import org.valkyrienskies.clockwork.kelvin.api.nodes.PipeDuctNode
 import org.valkyrienskies.mod.common.util.toJOMLD
 
 interface INodeBlock : IDuct {
-
-
-
     fun _createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
         builder.add(
             NORTH_CONNECTION,

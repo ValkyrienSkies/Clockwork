@@ -26,6 +26,7 @@ import net.minecraft.world.level.material.Fluids
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctConnectionType
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.INodeBlock
@@ -46,7 +47,7 @@ import org.valkyrienskies.mod.common.util.toJOMLD
 import java.util.function.Function
 
 
-class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(properties), INodeBlock, IBE<CoalBurnerBlockEntity> {
+class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(properties), IHeatableBlock, INodeBlock, IBE<CoalBurnerBlockEntity> {
 
     val DIR_TO_CONNECTION: Map<Direction, EnumProperty<DuctConnectionType>> =
         ImmutableMap.builder<Direction, EnumProperty<DuctConnectionType>>()
@@ -71,9 +72,6 @@ class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(prope
         hand: InteractionHand,
         hit: BlockHitResult
     ): InteractionResult {
-
-
-
         val be = level.getBlockEntity(pos) as CoalBurnerBlockEntity? ?: return  InteractionResult.PASS
         val item = player.getItemInHand(hand)
 
@@ -93,8 +91,6 @@ class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(prope
 
 
     override fun canConnectTo(self: BlockPos, other: BlockPos, direction: Direction, level: BlockGetter): Boolean {
-
-
         if (self.distSqr(other) > 1.0) return false
         val selfState = level.getBlockState(self)
         val otherState = level.getBlockState(other)
@@ -167,7 +163,7 @@ class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(prope
             otherConnected = neighborState.getValue(DIR_TO_CONNECTION[direction.opposite]!!) == DuctConnectionType.SIDE
 
         } else if (neighborState.block is IDuct) {
-            otherConnected =  (neighborState.block as IDuct).canConnectTo(neighborPos, currentPos, direction.opposite, level)
+            otherConnected = (neighborState.block as IDuct).canConnectTo(neighborPos, currentPos, direction.opposite, level)
         }
 
         val finalConnection: DuctConnectionType = if (otherConnected) {
@@ -192,7 +188,7 @@ class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(prope
             }
         }
 
-        return state.setValue(DIR_TO_CONNECTION.get(direction)!!, finalConnection)
+        return state.setValue(DIR_TO_CONNECTION[direction]!!, finalConnection)
     }
 
 

@@ -190,14 +190,14 @@ class DuctNetworkImpl(
                     pumpPressureB = nodeDataB.pumpPressure
                 }
 
-                var pumpPressure = pumpPressureA - pumpPressureB
+                val pumpPressure = pumpPressureA - pumpPressureB
 
                 var aperture = 0.0
                 if (edge is ApertureEdge) {
-                    aperture = Math.min(edge.aperture, -edge.radius)
+                    aperture = Math.max(edge.aperture, -edge.radius)
                 }
 
-                var flowRate = calculateFlow(pressureA, pressureB, edge.radius - aperture, viscosity, pumpPressure)
+                var flowRate = calculateFlow(pressureA, pressureB, edge.radius + aperture, viscosity, pumpPressure)
 
 
                 if (edge is OneWayEdge) {
@@ -243,12 +243,10 @@ class DuctNetworkImpl(
                     val volumeB = nodeB.currentGasMasses[gas]!!
 
 
-                    val limit = abs(volumeA-volumeB)/2
+                    val limit = abs(volumeA-volumeB)/2.0
 
-                    val deltaVolumeA = Mth.clamp(flowRateA / subSteps.toDouble(), -limit, limit)
-                    val deltaVolumeB = Mth.clamp(flowRateB / subSteps.toDouble(), -limit, limit)
-
-
+                    val deltaVolumeA = Mth.clamp(flowRateA, -limit, limit) / subSteps.toDouble()
+                    val deltaVolumeB = Mth.clamp(flowRateB, -limit, limit) / subSteps.toDouble()
 
                     nodeA.currentGasMasses[gas] = max(volumeA + deltaVolumeA, 0.0)
                     nodeB.currentGasMasses[gas] = max(volumeB + deltaVolumeB, 0.0)
@@ -263,19 +261,18 @@ class DuctNetworkImpl(
                     edge.currentFlowRate = flowRate
 
                     var deltaThermalEnergy = if (flowRate > 0) {
-                        (totalGasMassA * specificHeatAverage(nodeA.currentGasMasses) * (nodeA.currentTemperature - nodeB.currentTemperature))
+                        (totalGasMassA * heatCapacityA * (nodeA.currentTemperature - nodeB.currentTemperature))
+                    } else if (flowRate < 0) {
+                        (totalGasMassB * heatCapacityB * (nodeB.currentTemperature - nodeA.currentTemperature))
                     } else {
-                        (totalGasMassB * specificHeatAverage(nodeB.currentGasMasses) * (nodeB.currentTemperature - nodeA.currentTemperature))
+                        0.0
                     }
 
-                    val thermalLimit = abs(totalGasMassA*heatCapacityA*nodeA.currentTemperature-totalGasMassB*heatCapacityB*nodeB.currentTemperature)/2
-                    deltaThermalEnergy = Mth.clamp(deltaThermalEnergy/subSteps, -thermalLimit, thermalLimit)
-
-
+                    val thermalLimit = abs((totalGasMassA*heatCapacityA*nodeA.currentTemperature)-(totalGasMassB*heatCapacityB*nodeB.currentTemperature))/2.0
+                    deltaThermalEnergy = Mth.clamp(deltaThermalEnergy, -thermalLimit, thermalLimit)/subSteps.toDouble()
 
 
                     if (deltaThermalEnergy.isInfinite() || deltaThermalEnergy.isNaN()) return
-
 
 
                     if (flowRate > 0) {
@@ -285,6 +282,7 @@ class DuctNetworkImpl(
                         if (totalGasMassA > 0) nodeA.currentTemperature += deltaThermalEnergy / (totalGasMassA * heatCapacityA)
                         if (totalGasMassB > 0) nodeB.currentTemperature -= deltaThermalEnergy / (totalGasMassB * heatCapacityB)
                     }
+
                 }
             }
         }
