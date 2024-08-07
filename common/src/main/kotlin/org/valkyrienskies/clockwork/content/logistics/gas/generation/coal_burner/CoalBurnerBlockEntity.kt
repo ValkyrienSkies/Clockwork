@@ -20,11 +20,15 @@ import java.util.*
 
 class CoalBurnerBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : SmartBlockEntity(type, pos, state), IHeatableBlockEntity {
 
-
+    val DIR_TO_CONNECTION_TYPE: EnumMap<Direction, ConnectionType> = EnumMap(Direction::class.java)
 
     var fuelTicks: Int = 0
 
-
+    init {
+        for (dir in Direction.values()) {
+            this.DIR_TO_CONNECTION_TYPE[dir] = ConnectionType.NONE
+        }
+    }
 
     override fun tick() {
         super.tick()
@@ -37,7 +41,7 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bl
         if (fuelTicks>0) {
             fuelTicks-=1
             if (node.network.getTemperatureAt(blockPos.toJOMLD())<450.0) node.network.modTemperature(blockPos.toJOMLD(),30.0)
-            if (node.network.getGasVolumesAt(blockPos.toJOMLD())[GasType.AIR] == null || node.network.getGasVolumesAt(blockPos.toJOMLD())[GasType.AIR]!!<50) node.network.modGasVolume(blockPos.toJOMLD(),GasType.AIR, 50.0)
+            //if (node.network.getGasVolumesAt(blockPos.toJOMLD())[GasType.AIR] == null || node.network.getGasVolumesAt(blockPos.toJOMLD())[GasType.AIR]!!<50) node.network.modGasVolume(blockPos.toJOMLD(),GasType.AIR, 50.0)
 
             if (blockState.getValue(CoalBurnerBlock.LIT)==false) level!!.setBlock(blockPos,blockState.setValue(CoalBurnerBlock.LIT,true), 15)
         } else {
@@ -45,6 +49,45 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bl
         }
     }
 
+    fun setEdgeType(dir: Direction, edgeType: ConnectionType, clientPacket: Boolean, silent: Boolean = false) {
+        if (this.level?.isClientSide != false && !clientPacket) {
+            return
+        }
+        val previousType = this.DIR_TO_CONNECTION_TYPE[dir]!!
+        this.DIR_TO_CONNECTION_TYPE[dir] = edgeType
+        if (!clientPacket) {
+            syncEdge(dir)
+            if (previousType != edgeType && !silent) {
+                ClockworkMod.getKelvin().removeEdge(this.blockPos.toJOMLD(), this.blockPos.relative(dir).toJOMLD())
+                if (edgeType != ConnectionType.NONE) {
+                    val newEdge = createEdgeType(this.blockPos.toJOMLD(), this.blockPos.relative(dir).toJOMLD(), edgeType)
+                    ClockworkMod.getKelvin().addEdge(this.blockPos.toJOMLD(), this.blockPos.relative(dir).toJOMLD(), newEdge)
+                }
+            }
+        }
+    }
+
+    fun clearEdgeType(dir: Direction) {
+        if (this.level?.isClientSide != false) {
+            return
+        }
+        this.DIR_TO_CONNECTION_TYPE[dir] = ConnectionType.NONE
+        syncEdge(dir)
+    }
+
+    private fun syncEdge(direction: Direction) {
+        if (this.level?.isClientSide != false) {
+            return
+        }
+        val edgeType = this.DIR_TO_CONNECTION_TYPE[direction]!!
+
+        ClockworkPackets.sendToNear(
+            this.level!!,
+            this.blockPos,
+            64,
+            DuctEdgeSyncPacket(this.blockPos, direction, edgeType)
+        )
+    }
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) {
         return

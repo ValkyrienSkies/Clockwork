@@ -49,9 +49,18 @@ import java.util.function.Function
 
 class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(properties), IHeatableBlock, INodeBlock, IBE<CoalBurnerBlockEntity> {
 
+    val DIR_TO_CONNECTION: Map<Direction, EnumProperty<DuctConnectionType>> =
+        ImmutableMap.builder<Direction, EnumProperty<DuctConnectionType>>()
+            .put(Direction.NORTH, NORTH_CONNECTION)
+            .put(Direction.EAST, EAST_CONNECTION)
+            .put(Direction.SOUTH, SOUTH_CONNECTION)
+            .put(Direction.WEST, WEST_CONNECTION)
+            .put(Direction.DOWN, DOWN_CONNECTION)
+            .put(Direction.UP, UP_CONNECTION).build()
+
 
     init {
-        registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH).setValue(LIT, false))
+        registerDefaultState(ductConnectionsDefault(defaultBlockState()).setValue(FACING, Direction.NORTH).setValue(LIT, false))
     }
 
 
@@ -115,10 +124,94 @@ class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(prope
 
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
+        _createBlockStateDefinition(builder)
         builder.add(FACING, LIT)
 
 
         super.createBlockStateDefinition(builder)
+    }
+
+
+    override fun getStateForPlacement(ctx: BlockPlaceContext): BlockState? {
+        val level: Level = ctx.level
+        val pos: BlockPos = ctx.clickedPos
+        return this.getConnectedState(level, this.defaultBlockState(), pos)!!.setValue(
+            FACING, ctx .horizontalDirection
+                .opposite
+        )
+    }
+
+
+    override fun updateShape(
+        state: BlockState,
+        direction: Direction,
+        neighborState: BlockState,
+        level: LevelAccessor,
+        currentPos: BlockPos,
+        neighborPos: BlockPos
+    ): BlockState {
+
+        val type: DuctConnectionType = state.getValue(DIR_TO_CONNECTION[direction]!!)
+        var forced = type == DuctConnectionType.FORCED
+        var otherConnected = false
+
+        val canConnect = canConnectTo(currentPos, neighborPos, direction.getOpposite(), level as Level)
+
+        if (neighborState.getBlock() is DuctBlock)
+        {
+            forced = forced || neighborState.getValue(DIR_TO_CONNECTION[direction.opposite]!!) == DuctConnectionType.FORCED
+            otherConnected = neighborState.getValue(DIR_TO_CONNECTION[direction.opposite]!!) == DuctConnectionType.SIDE
+
+        } else if (neighborState.block is IDuct) {
+            otherConnected = (neighborState.block as IDuct).canConnectTo(neighborPos, currentPos, direction.opposite, level)
+        }
+
+        val finalConnection: DuctConnectionType = if (otherConnected) {
+            DuctConnectionType.SIDE
+        } else if (forced) {
+            DuctConnectionType.FORCED
+        } else if (canConnect) {
+            DuctConnectionType.SIDE
+        } else {
+            DuctConnectionType.NONE
+        }
+
+        if (finalConnection.isConnected) {
+            ClockworkMod.getKelvin().addEdge(currentPos.toJOMLD(), neighborPos.toJOMLD(), createPipeEdge(currentPos.toJOMLD(), neighborPos.toJOMLD()))
+            withBlockEntityDo(level, currentPos) { blockEntity ->
+                blockEntity.setEdgeType(direction, ConnectionType.PIPE, clientPacket = false, silent = true)
+            }
+        } else {
+            ClockworkMod.getKelvin().removeEdge(currentPos.toJOMLD(), neighborPos.toJOMLD())
+            withBlockEntityDo(level, currentPos) { blockEntity ->
+                blockEntity.setEdgeType(direction, ConnectionType.NONE, clientPacket = false, silent = true)
+            }
+        }
+
+        return state.setValue(DIR_TO_CONNECTION[direction]!!, finalConnection)
+    }
+
+
+
+    protected fun getConnectedState(level: BlockGetter, state: BlockState, pos: BlockPos): BlockState? {
+        var state = state
+        for (direction in Direction.values()) {
+            val property: DuctConnectionType = state.getValue(DIR_TO_CONNECTION[direction]!!)
+            if (property === DuctConnectionType.SIDE) continue
+            val adjPos = pos.relative(direction)
+            state = state.setValue(
+                DIR_TO_CONNECTION[direction]!!,
+                if (canConnectTo(
+                        pos,
+                        adjPos,
+                        direction.opposite,
+                        level as Level
+
+                    )
+                ) DuctConnectionType.SIDE else DuctConnectionType.NONE
+            )
+        }
+        return state
     }
 
 

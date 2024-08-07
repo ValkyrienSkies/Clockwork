@@ -34,8 +34,6 @@ import org.joml.Vector2f
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver.IScrewdrivable
-import org.valkyrienskies.clockwork.content.logistics.gas.GasHeatLevel
-import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock.Companion.GAS_HEAT_LEVEL
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.DOWN_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.EAST_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.NORTH_CONNECTION
@@ -55,30 +53,6 @@ import org.valkyrienskies.mod.common.util.toJOMLD
 
 class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, IBE<DuctBlockEntity>, SimpleWaterloggedBlock, IWrenchable,
     IScrewdrivable {
-
-
-    fun _createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
-        builder.add(
-            NORTH_CONNECTION,
-            EAST_CONNECTION,
-            SOUTH_CONNECTION,
-            WEST_CONNECTION,
-            UP_CONNECTION,
-            DOWN_CONNECTION,
-            GAS_HEAT_LEVEL
-        )
-    }
-
-    fun ductConnectionsDefault(defaultBlockState: BlockState): BlockState {
-        return defaultBlockState
-            .setValue(NORTH_CONNECTION, DuctConnectionType.NONE)
-            .setValue(EAST_CONNECTION, DuctConnectionType.NONE)
-            .setValue(SOUTH_CONNECTION, DuctConnectionType.NONE)
-            .setValue(WEST_CONNECTION, DuctConnectionType.NONE)
-            .setValue(UP_CONNECTION, DuctConnectionType.NONE)
-            .setValue(DOWN_CONNECTION, DuctConnectionType.NONE)
-            .setValue(GAS_HEAT_LEVEL, GasHeatLevel.COOL)
-    }
 
     //credit to NEEPMeat for the pipe implementation idea :3dsmile:
 
