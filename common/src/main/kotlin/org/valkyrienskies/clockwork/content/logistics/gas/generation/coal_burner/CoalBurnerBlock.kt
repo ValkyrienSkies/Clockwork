@@ -83,17 +83,6 @@ class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(prope
     }
 
 
-    override fun canConnectTo(self: BlockPos, other: BlockPos, direction: Direction, level: BlockGetter): Boolean {
-        if (self.distSqr(other) > 1.0) return false
-        val selfState = level.getBlockState(self)
-        val otherState = level.getBlockState(other)
-
-        if (otherState.block !is IDuct) return false
-
-        return true
-    }
-
-
 
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {

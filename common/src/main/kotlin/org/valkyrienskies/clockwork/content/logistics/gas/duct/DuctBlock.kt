@@ -61,14 +61,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
     private val shapes: HashMap<BlockState, VoxelShape> = HashMap()
 
-    val DIR_TO_CONNECTION: Map<Direction, EnumProperty<DuctConnectionType>> =
-        ImmutableMap.builder<Direction, EnumProperty<DuctConnectionType>>()
-            .put(Direction.NORTH, NORTH_CONNECTION)
-            .put(Direction.EAST, EAST_CONNECTION)
-            .put(Direction.SOUTH, SOUTH_CONNECTION)
-            .put(Direction.WEST, WEST_CONNECTION)
-            .put(Direction.DOWN, DOWN_CONNECTION)
-            .put(Direction.UP, UP_CONNECTION).build()
+
 
     val DIR_SHAPES: Map<Direction, VoxelShape> = ImmutableMap.Builder<Direction, VoxelShape>()
         .put(Direction.NORTH, box(5.0, 5.0, 0.0, 11.0, 11.0, 5.0))
@@ -288,20 +281,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         return shapes[state]!!
     }
 
-    fun connectInDirection(world: BlockGetter, pos: BlockPos, state: BlockState, direction: Direction): Boolean {
-        return state.getValue(DIR_TO_CONNECTION[direction]!!).canBeChanged()
-    }
 
-    override fun canConnectTo(self: BlockPos, other: BlockPos, direction: Direction, level: BlockGetter): Boolean {
-        if (self.distSqr(other) > 1.0) return false
-        val selfState = level.getBlockState(self)
-        val otherState = level.getBlockState(other)
-
-        if (otherState.block !is IDuct) return false
-        if (otherState.block !is DuctBlock) return true
-
-        return connectInDirection(level, other, otherState, direction)
-    }
 
     override fun getRenderShape(state: BlockState): RenderShape {
         return RenderShape.MODEL
@@ -454,5 +434,20 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
             return InteractionResult.SUCCESS
         }
         return InteractionResult.SUCCESS
+    }
+
+    companion object {
+        val DIR_TO_CONNECTION: Map<Direction, EnumProperty<DuctConnectionType>> =
+            ImmutableMap.builder<Direction, EnumProperty<DuctConnectionType>>()
+                .put(Direction.NORTH, NORTH_CONNECTION)
+                .put(Direction.EAST, EAST_CONNECTION)
+                .put(Direction.SOUTH, SOUTH_CONNECTION)
+                .put(Direction.WEST, WEST_CONNECTION)
+                .put(Direction.DOWN, DOWN_CONNECTION)
+                .put(Direction.UP, UP_CONNECTION).build()
+
+        fun connectInDirection(world: BlockGetter, pos: BlockPos, state: BlockState, direction: Direction): Boolean {
+            return state.getValue(DIR_TO_CONNECTION[direction]!!).canBeChanged()
+        }
     }
 }

@@ -10,6 +10,7 @@ import net.minecraft.core.Direction
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.content.logistics.gas.GasHeatLevel
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock.Companion.DIR_TO_CONNECTION
 
 class DuctRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEntityRenderer<DuctBlockEntity>(context) {
     override fun renderSafe(
@@ -47,7 +48,7 @@ class DuctRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEnt
         for (dir in Direction.values()) {
             val dirConnection = CachedBufferer.partialFacing(connection, blockEntity.blockState, dir.opposite)
             val dirRim = CachedBufferer.partialFacing(rim, blockEntity.blockState, dir.opposite)
-            if (blockEntity.blockState.getValue((blockEntity.blockState.block as DuctBlock).DIR_TO_CONNECTION[dir]!!).isConnected) {
+            if (blockEntity.blockState.getValue(DIR_TO_CONNECTION[dir]!!).isConnected) {
                 if (blockEntity.level != null) {
                     when (blockEntity.level!!.getBlockState(blockEntity.blockPos.relative(dir)).block) {
                         is DuctBlock, is IAxisAlignedDuct -> {

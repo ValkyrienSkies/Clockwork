@@ -20,6 +20,7 @@ import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.content.logistics.gas.GasHeatLevel
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock.Companion.DIR_TO_CONNECTION
 
 class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties), IAxisAlignedDuct, ICogWheel, IBE<PumpDuctBlockEntity>, IHeatableBlock {
 
@@ -64,7 +65,7 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
                 return (level.getBlockState(other).block as IAxisAlignedDuct).getAxis(level.getBlockState(other)) == state.getValue(RotatedPillarBlock.AXIS)
             }
             if (level.getBlockState(other).block is DuctBlock) {
-                if (level.getBlockState(other).getValue((level.getBlockState(other).block as DuctBlock).DIR_TO_CONNECTION[direction]!!).isConnected) {
+                if (level.getBlockState(other).getValue(DIR_TO_CONNECTION[direction]!!).isConnected) {
                     return true
                 }
             }
