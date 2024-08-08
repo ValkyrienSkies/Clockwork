@@ -138,8 +138,10 @@ class DuctNetworkImpl(
                 val nodeA = nodeInfo[edge.nodeA]
                 val nodeB = nodeInfo[edge.nodeB]
 
-                val nodeDataA = nodes[edge.nodeA]!!
-                val nodeDataB = nodes[edge.nodeB]!!
+
+                
+                val nodeDataA = nodes[edge.nodeA] ?: continue
+                val nodeDataB = nodes[edge.nodeB] ?: continue
 
                 if (unloadedNodes.contains(edge.nodeA) || unloadedNodes.contains(edge.nodeB)) {
                     continue
