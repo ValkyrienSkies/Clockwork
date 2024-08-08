@@ -7,6 +7,7 @@ import net.minecraft.util.Mth
 import net.minecraft.world.level.Explosion
 import org.valkyrienskies.clockwork.content.logistics.gas.GasHeatLevel
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
 import org.valkyrienskies.clockwork.kelvin.api.*
 import org.valkyrienskies.clockwork.kelvin.api.edges.ApertureEdge
 import org.valkyrienskies.clockwork.kelvin.api.edges.FilteredEdge
@@ -350,7 +351,9 @@ class DuctNetworkImpl(
         }
 
         for (node in nodesToSync.keys) {
-            level.setBlockAndUpdate(BlockPos(node.toMinecraft()), level.getBlockState(BlockPos(node.toMinecraft())).setValue(IHeatableBlock.GAS_HEAT_LEVEL, nodesToSync[node]!!))
+            val state = level.getBlockState(BlockPos(node.toMinecraft()))
+            if (state.block is DuctBlock) state.setValue(IHeatableBlock.GAS_HEAT_LEVEL, nodesToSync[node]!!)
+            level.setBlockAndUpdate(BlockPos(node.toMinecraft()), state)
         }
     }
 

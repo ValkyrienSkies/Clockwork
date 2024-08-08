@@ -34,6 +34,9 @@ import org.joml.Vector2f
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver.IScrewdrivable
+import org.valkyrienskies.clockwork.content.logistics.gas.GasHeatLevel
+import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock.Companion.GAS_HEAT_LEVEL
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.DOWN_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.EAST_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.NORTH_CONNECTION
@@ -52,7 +55,7 @@ import org.valkyrienskies.mod.common.util.toJOMLD
 
 
 class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, IBE<DuctBlockEntity>, SimpleWaterloggedBlock, IWrenchable,
-    IScrewdrivable {
+    IScrewdrivable, IHeatableBlock {
 
     //credit to NEEPMeat for the pipe implementation idea :3dsmile:
 
@@ -77,7 +80,14 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
 
     init {
-        registerDefaultState(ductConnectionsDefault(defaultBlockState()).setValue(BlockStateProperties.WATERLOGGED, false))
+        registerDefaultState(defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, false)
+            .setValue(NORTH_CONNECTION, DuctConnectionType.NONE)
+            .setValue(EAST_CONNECTION, DuctConnectionType.NONE)
+            .setValue(SOUTH_CONNECTION, DuctConnectionType.NONE)
+            .setValue(WEST_CONNECTION, DuctConnectionType.NONE)
+            .setValue(UP_CONNECTION, DuctConnectionType.NONE)
+            .setValue(DOWN_CONNECTION, DuctConnectionType.NONE)
+            .setValue(GAS_HEAT_LEVEL, GasHeatLevel.COOL))
 
         for (state: BlockState in this.stateDefinition.possibleStates)
         {
@@ -86,9 +96,16 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
     }
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
-        _createBlockStateDefinition(builder)
-
-        builder.add(BlockStateProperties.WATERLOGGED)
+        builder.add(
+            NORTH_CONNECTION,
+            EAST_CONNECTION,
+            SOUTH_CONNECTION,
+            WEST_CONNECTION,
+            UP_CONNECTION,
+            DOWN_CONNECTION,
+            GAS_HEAT_LEVEL,
+            BlockStateProperties.WATERLOGGED
+        )
 
         super.createBlockStateDefinition(builder)
     }
@@ -281,6 +298,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         val otherState = level.getBlockState(other)
 
         if (otherState.block !is IDuct) return false
+        if (otherState.block !is DuctBlock) return true
 
         return connectInDirection(level, other, otherState, direction)
     }
