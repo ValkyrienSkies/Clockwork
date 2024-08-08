@@ -45,15 +45,19 @@ interface INodeBlock : IDuct {
 
     fun _onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
         if (!level.isClientSide) {
+            if (state.isAir || state.block !is INodeBlock || oldState.`is`(state.block)) {
+                return
+            }
             ClockworkMod.getKelvin().addNode(pos.toJOMLD(), createNode(pos.toJOMLD(), ClockworkMod.getKelvin()))
         }
     }
 
     fun _onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
         if (!level.isClientSide) {
-            ClockworkMod.getKelvin().removeNode(pos.toJOMLD())
+            if (newState.isAir || newState.block !is INodeBlock) {
+                ClockworkMod.getKelvin().removeNode(pos.toJOMLD())
+            }
         }
-
     }
 
     fun createNode(pos: DuctNodePos, network: DuctNetwork): PipeDuctNode

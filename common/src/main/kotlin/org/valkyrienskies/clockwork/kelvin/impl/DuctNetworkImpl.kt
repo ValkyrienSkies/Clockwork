@@ -61,7 +61,7 @@ class DuctNetworkImpl(
     }
 
     override fun getEdgeBetween(from: DuctNodePos, to: DuctNodePos): DuctEdge? {
-        return edges[Pair(from, to)]
+        return edges[Pair(from, to)] ?: edges[Pair(to, from)]
     }
 
     override fun getNodeAt(pos: DuctNodePos): DuctNode? {
@@ -69,21 +69,28 @@ class DuctNetworkImpl(
     }
 
     override fun addNode(pos: DuctNodePos, node: DuctNode) {
+        if (nodes.containsKey(pos) && nodes[pos]!!.behavior == node.behavior) {
+            KELVINLOGGER.logger.info("Node already exists at $pos")
+            return
+        }
         nodes[pos] = node
         nodeInfo[pos] = DuctNodeInfo(node.behavior, 0.0, 0.0, EnumMap<GasType, Double>(GasType::class.java))
+        KELVINLOGGER.logger.info("Added node at $pos")
     }
 
     override fun removeNode(pos: DuctNodePos) {
-        nodes.remove(pos)
+        val node = nodes.remove(pos)
         nodeInfo.remove(pos)
 
         if (unloadedNodes.contains(pos)) {
             unloadedNodes.remove(pos)
         }
+        if (node != null) KELVINLOGGER.logger.info("Removed node at $pos")
     }
 
     override fun addEdge(posA: DuctNodePos, posB: DuctNodePos, edge: DuctEdge) {
-        if (edges.containsKey(Pair(posA, posB))) {
+        if (getEdgeBetween(posA, posB) != null && getEdgeBetween(posA, posB)!!.type == edge.type) {
+            KELVINLOGGER.logger.info("Edge already exists between $posA and $posB")
             return
         }
         if (posA == posB) {
@@ -92,13 +99,15 @@ class DuctNetworkImpl(
         edges[Pair(posA, posB)] = edge
         nodes[posA]?.nodeEdges?.add(edge)
         nodes[posB]?.nodeEdges?.add(edge)
+        KELVINLOGGER.logger.info("Added edge between $posA and $posB")
     }
 
     override fun removeEdge(posA: DuctNodePos, posB: DuctNodePos) {
-        val edge = edges.remove(Pair(posA, posB))
+        val edge = edges.remove(Pair(posA, posB)) ?: edges.remove(Pair(posB, posA))
         if (edge != null) {
             nodes[posA]?.nodeEdges?.remove(edge)
             nodes[posB]?.nodeEdges?.remove(edge)
+            KELVINLOGGER.logger.info("Removed edge between $posA and $posB")
         }
     }
 
