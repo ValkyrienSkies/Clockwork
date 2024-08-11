@@ -33,6 +33,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.PumpDuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.PumpDuctRenderer
+import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlockEntity
 
 object ClockworkBlockEntities {
 
@@ -280,6 +281,18 @@ object ClockworkBlockEntities {
             )
         }
         .validBlocks(ClockworkBlocks.COAL_BURNER)
+        .register()
+
+    @JvmField
+    val AIR_COMPRESSOR: BlockEntityEntry<AirCompressorBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<AirCompressorBlockEntity>("air_compressor") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            AirCompressorBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .validBlocks(ClockworkBlocks.AIR_COMPRESSOR)
         .register()
 
     @JvmField

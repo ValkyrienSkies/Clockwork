@@ -311,6 +311,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         var forced = type == DuctConnectionType.FORCED
         var otherConnected = false
 
+        // TODO: Fix side connections not working with non duct blocks (updateShape doesn't get called when a duct is placed next to a non-duct)
         val canConnect = canConnectTo(currentPos, neighborPos, direction.getOpposite(), level as Level)
 
         if (neighborState.getBlock() is DuctBlock)

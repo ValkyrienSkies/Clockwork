@@ -37,6 +37,7 @@ import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSea
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.PumpDuctBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlock
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
@@ -272,7 +273,23 @@ object ClockworkBlocks {
         )
     }
         .initialProperties { SharedProperties.netheriteMetal() }
-        .addLayer { Supplier { RenderType.cutoutMipped() } }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
+    val AIR_COMPRESSOR: BlockEntry<AirCompressorBlock> = REGISTRATE.block<AirCompressorBlock>(
+        "air_compressor"
+    ) { properties: BlockBehaviour.Properties? ->
+        AirCompressorBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .transform(BlockStressDefaults.setImpact(4.0))
         .item()
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()

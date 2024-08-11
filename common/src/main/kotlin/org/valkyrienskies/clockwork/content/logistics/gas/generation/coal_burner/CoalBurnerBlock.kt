@@ -48,7 +48,7 @@ import org.valkyrienskies.mod.common.util.toJOMLD
 import java.util.function.Function
 
 
-class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(properties), IHeatableBlock, INodeBlock, IBE<CoalBurnerBlockEntity> {
+class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(properties), INodeBlock, IBE<CoalBurnerBlockEntity> {
 
 
 
@@ -79,7 +79,7 @@ class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(prope
     }
 
     override fun createNode(pos: DuctNodePos, network: DuctNetwork): PipeDuctNode {
-        return PipeDuctNode(pos, NodeBehaviorType.COAL_BURNER, network, volume = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0)
+        return PipeDuctNode(pos, NodeBehaviorType.PIPE, network, volume = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0)
     }
 
 
