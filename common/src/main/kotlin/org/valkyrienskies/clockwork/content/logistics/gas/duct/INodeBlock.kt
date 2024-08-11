@@ -40,4 +40,7 @@ interface INodeBlock : IDuct {
     }
 
     fun createNode(pos: DuctNodePos, network: DuctNetwork): PipeDuctNode
+
+
+    //TODO: Fix non-duct blocks only updating connections when changing
 }
