@@ -351,11 +351,6 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
             otherConnected =  (neighborState.block as IDuct).canConnectTo(neighborPos, currentPos, direction.opposite, level)
         }
 
-        print(direction)
-        print(" ")
-        print(canConnect)
-        print(" ")
-        println(otherConnected)
 
         val finalConnection: DuctConnectionType = if (otherConnected && canConnect) {
             DuctConnectionType.SIDE

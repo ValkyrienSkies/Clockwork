@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.kelvin.api.nodes
 
+import net.minecraft.core.BlockPos
+import org.joml.Vector3d
 import org.valkyrienskies.clockwork.kelvin.api.*
 import java.util.HashSet
 
@@ -11,16 +13,9 @@ class PumpDuctNode(
     override val volume: Double,
     override val maxPressure: Double,
     override val maxTemperature: Double,
-    var pumpVolume: Double = 0.0,
-    var pumpTarget: DuctNode? = null
+    var pumpSpeed: Double = 0.0,
+    var pumpTarget: DuctNodePos? = null
 ) : DuctNode {
-
-    fun setTargetPressure(volume: Double) {
-        pumpVolume = volume
-    }
-    fun setTargetEdge(node: DuctNode) {
-        pumpTarget = node
-    }
 
     override fun getEdges(): Set<DuctEdge> {
         return nodeEdges

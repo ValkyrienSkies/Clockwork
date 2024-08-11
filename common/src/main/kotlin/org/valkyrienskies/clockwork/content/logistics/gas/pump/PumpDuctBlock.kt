@@ -9,6 +9,7 @@ import net.minecraft.core.Direction
 import net.minecraft.core.Direction.Axis
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.BlockGetter
+import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.Block
@@ -57,7 +58,7 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
     }
 
     override fun createNode(pos: DuctNodePos, network: DuctNetwork): DuctNode {
-        return PumpDuctNode(pos, NodeBehaviorType.PIPE, network, volume = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0)
+        return PumpDuctNode(pos, NodeBehaviorType.PUMP, network, volume = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0)
     }
 
 
@@ -86,6 +87,16 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
     ): BlockState {
         _updateShape(state, direction, neighborState, level, currentPos, neighborPos)
         return super.updateShape(state, direction, neighborState, level, currentPos, neighborPos)
+    }
+
+    override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
+        super.onPlace(state, level, pos, oldState, isMoving)
+        _onPlace(state, level, pos, oldState, isMoving)
+    }
+
+    override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
+        _onRemove(state, level, pos, newState, isMoving)
+        super.onRemove(state, level, pos, newState, isMoving)
     }
 
 }

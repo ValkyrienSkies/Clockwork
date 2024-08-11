@@ -13,6 +13,7 @@ import org.valkyrienskies.clockwork.kelvin.api.edges.FilteredEdge
 import org.valkyrienskies.clockwork.kelvin.api.edges.OneWayEdge
 import org.valkyrienskies.clockwork.kelvin.api.nodes.PumpDuctNode
 import org.valkyrienskies.mod.common.util.toMinecraft
+import org.w3c.dom.Node
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.HashSet
@@ -204,10 +205,10 @@ class DuctNetworkImpl(
                 var pumpPressureB = 0.0
 
                 if (nodeDataA.behavior == NodeBehaviorType.PUMP && (nodeDataA as PumpDuctNode).pumpTarget == edge) {
-                    pumpPressureA = nodeDataA.pumpVolume
+                    pumpPressureA = nodeDataA.pumpSpeed
                 }
                 if (nodeDataB.behavior == NodeBehaviorType.PUMP && (nodeDataB as PumpDuctNode).pumpTarget == edge) {
-                    pumpPressureB = nodeDataB.pumpVolume
+                    pumpPressureB = nodeDataB.pumpSpeed
                 }
 
                 val pumpPressure = pumpPressureA - pumpPressureB
@@ -259,13 +260,25 @@ class DuctNetworkImpl(
                         nodeB.currentGasMasses[gas] = 0.0
                     }
 
+
+
+
                     val volumeA = nodeA.currentGasMasses[gas]!!
                     val volumeB = nodeB.currentGasMasses[gas]!!
 
-                    val limit = abs(volumeA-volumeB)
 
-                    val deltaVolumeA = Mth.clamp(flowRateA, -limit, limit) / subSteps.toDouble()
-                    val deltaVolumeB = Mth.clamp(flowRateB, -limit, limit) / subSteps.toDouble()
+                    val limit: Double
+                    if (nodeA.nodeType==NodeBehaviorType.PUMP && (nodeDataA as PumpDuctNode).pumpTarget == nodeDataB.pos && flowRateA<0) limit = volumeA
+                    else if (nodeB.nodeType==NodeBehaviorType.PUMP && (nodeDataB as PumpDuctNode).pumpTarget == nodeDataA.pos && flowRateB<0) limit = volumeB
+
+                    else if (nodeA.nodeType!=NodeBehaviorType.PUMP && nodeB.nodeType!=NodeBehaviorType.PUMP || nodeA.nodeType==NodeBehaviorType.PUMP && (nodeDataA as PumpDuctNode).pumpTarget != nodeDataB.pos && flowRateA>0 || nodeB.nodeType==NodeBehaviorType.PUMP && (nodeDataB as PumpDuctNode).pumpTarget != nodeDataA.pos && flowRateB>0 ) limit = abs(volumeA-volumeB)
+                    else limit = 0.0
+
+
+
+                    val deltaVolumeA = Mth.clamp(flowRateA, -limit, limit) / subSteps
+                    val deltaVolumeB = Mth.clamp(flowRateB, -limit, limit) / subSteps
+
 
                     nodeA.currentGasMasses[gas] = max(volumeA + deltaVolumeA, 0.0)
                     nodeB.currentGasMasses[gas] = max(volumeB + deltaVolumeB, 0.0)
@@ -365,6 +378,8 @@ class DuctNetworkImpl(
             level.setBlockAndUpdate(BlockPos(node.toMinecraft()), state)
         }
     }
+
+
 
     /**
      * Calculates pressure using the ideal gas law.

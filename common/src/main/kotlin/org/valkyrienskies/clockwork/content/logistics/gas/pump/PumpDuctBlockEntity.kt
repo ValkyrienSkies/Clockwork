@@ -7,6 +7,7 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
 import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
@@ -62,15 +63,17 @@ class PumpDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Bloc
         if (this.level?.isClientSide == true) {
             return
         }
+//        if (this.getSpeed() == 0f) {
+//            return
+//        }
 
-        if (this.getSpeed() == 0f) {
-            return
-        }
+        val pumpPressure =  maxPumpPressure //  (abs(this.getSpeed()).toDouble() / 256.0) * maxPumpPressure
 
-        val pumpPressure = (abs(this.getSpeed()).toDouble() / 256.0) * maxPumpPressure
+        if (ClockworkMod.getKelvin().nodes[blockPos.toJOMLD()]?.behavior == NodeBehaviorType.PUMP) {
+            val pumpNode = (ClockworkMod.getKelvin().nodes[this.blockPos.toJOMLD()] as PumpDuctNode)
+            pumpNode.pumpSpeed = pumpPressure
 
-        if (ClockworkMod.getKelvin().nodes[this.blockPos.toJOMLD()]?.behavior == NodeBehaviorType.PUMP) {
-            (ClockworkMod.getKelvin().nodes[this.blockPos.toJOMLD()] as PumpDuctNode).pumpVolume = pumpPressure
+            if (pumpNode.getEdges().size >=2) pumpNode.pumpTarget = this.blockPos.relative(blockState.getValue(BlockStateProperties.FACING)).toJOMLD()
         }
 
 
