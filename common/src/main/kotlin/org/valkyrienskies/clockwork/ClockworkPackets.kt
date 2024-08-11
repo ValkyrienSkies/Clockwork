@@ -16,6 +16,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderW
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctEdgeSyncPacket
+import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorPacket
 import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket
 import org.valkyrienskies.clockwork.platform.SharedValues.packetChannel
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
@@ -50,7 +51,8 @@ enum class ClockworkPackets(
     WANDER_WAND(WanderWandSelectionPacket::class.java, ::WanderWandSelectionPacket),
     WANDER_WAND_CLEAR(WanderWandClearPacket::class.java, ::WanderWandClearPacket),
 
-    UPDATE_DUCT_EDGE(DuctEdgeSyncPacket::class.java, ::DuctEdgeSyncPacket)
+    UPDATE_DUCT_EDGE(DuctEdgeSyncPacket::class.java, ::DuctEdgeSyncPacket),
+    AIR_COMPRESSOR_PACKET(AirCompressorPacket::class.java, ::AirCompressorPacket)
     ;
 
     init {
