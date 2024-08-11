@@ -49,7 +49,7 @@ interface INodeBlock : IDuct {
                      currentPos: BlockPos,
                      neighborPos: BlockPos) {
         if (neighborState.block is DuctBlock) {
-            neighborState.block.updateShape(neighborState, direction.opposite, state, level, neighborPos, currentPos)
+            //neighborState.block.updateShape(neighborState, direction.opposite, state, level, neighborPos, currentPos)
         }
     }
 

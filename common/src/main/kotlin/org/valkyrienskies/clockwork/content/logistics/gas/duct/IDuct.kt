@@ -22,9 +22,6 @@ interface IDuct: IHeatableBlock {
         val selfState = level.getBlockState(self)
         val otherState = level.getBlockState(other)
 
-        if (otherState.block !is IDuct) return false
-        if (otherState.block is DuctBlock) return connectInDirection(level, other, otherState, direction)
-
 
         return true
     }

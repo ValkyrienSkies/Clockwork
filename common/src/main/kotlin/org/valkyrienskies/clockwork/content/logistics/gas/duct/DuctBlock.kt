@@ -16,6 +16,7 @@ import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.RenderShape
 import net.minecraft.world.level.block.SimpleWaterloggedBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
@@ -45,6 +46,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.U
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.WEST_CONNECTION
 import org.valkyrienskies.clockwork.kelvin.api.ConnectionType
 import org.valkyrienskies.clockwork.kelvin.api.DuctNetwork
+import org.valkyrienskies.clockwork.kelvin.api.DuctNode
 import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.kelvin.api.nodes.PipeDuctNode
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createPipeEdge
@@ -117,7 +119,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
 
 
-    override fun createNode(pos: DuctNodePos, network: DuctNetwork): PipeDuctNode {
+    override fun createNode(pos: DuctNodePos, network: DuctNetwork): DuctNode {
         return createPipeNode(pos, ClockworkMod.getKelvin())
     }
 
@@ -307,28 +309,58 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
             level.scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickDelay(level))
         }
 
+        val finalConnection = getConnectionType(state,currentPos,neighborState,neighborPos,direction,level)
+
+
+        return state.setValue(DIR_TO_CONNECTION.get(direction)!!, finalConnection)
+    }
+
+
+
+    protected fun getConnectedState(level: BlockGetter, state: BlockState, pos: BlockPos): BlockState? {
+        var state = state
+        for (direction in Direction.values()) {
+            val adjPos = pos.relative(direction)
+            val connectionType = getConnectionType(state,pos,level.getBlockState(adjPos),adjPos,direction,level)
+            state = state.setValue(
+                DIR_TO_CONNECTION[direction]!!,
+                connectionType
+            )
+        }
+        return state.setValue(BlockStateProperties.WATERLOGGED, level.getFluidState(pos).type === Fluids.WATER)
+
+
+
+    }
+
+    fun getConnectionType(state: BlockState, currentPos: BlockPos, neighborState: BlockState, neighborPos: BlockPos, direction: Direction, level: BlockGetter): DuctConnectionType {
+
+
         val type: DuctConnectionType = state.getValue(DIR_TO_CONNECTION[direction]!!)
         var forced = type == DuctConnectionType.FORCED
         var otherConnected = false
 
-        // TODO: Fix side connections not working with non duct blocks (updateShape doesn't get called when a duct is placed next to a non-duct)
-        val canConnect = canConnectTo(currentPos, neighborPos, direction.getOpposite(), level as Level)
+        val canConnect = canConnectTo(currentPos, neighborPos, direction.getOpposite(), level as Level) && level.getBlockState(neighborPos).block is IDuct
 
-        if (neighborState.getBlock() is DuctBlock)
+        if (neighborState.block is DuctBlock)
         {
             forced = forced || neighborState.getValue(DIR_TO_CONNECTION[direction.opposite]!!) == DuctConnectionType.FORCED
-            otherConnected = neighborState.getValue(DIR_TO_CONNECTION[direction.opposite]!!) == DuctConnectionType.SIDE
+            otherConnected = neighborState.getValue(DIR_TO_CONNECTION[direction.opposite]!!).canBeChanged()
 
         } else if (neighborState.block is IDuct) {
             otherConnected =  (neighborState.block as IDuct).canConnectTo(neighborPos, currentPos, direction.opposite, level)
         }
 
-        val finalConnection: DuctConnectionType = if (otherConnected) {
+        print(direction)
+        print(" ")
+        print(canConnect)
+        print(" ")
+        println(otherConnected)
+
+        val finalConnection: DuctConnectionType = if (otherConnected && canConnect) {
             DuctConnectionType.SIDE
         } else if (forced) {
             DuctConnectionType.FORCED
-        } else if (canConnect) {
-            DuctConnectionType.SIDE
         } else {
             DuctConnectionType.NONE
         }
@@ -345,33 +377,8 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
             }
         }
 
-        return state.setValue(DIR_TO_CONNECTION.get(direction)!!, finalConnection)
+        return finalConnection
     }
-
-
-
-    protected fun getConnectedState(level: BlockGetter, state: BlockState, pos: BlockPos): BlockState? {
-        var state = state
-        for (direction in Direction.values()) {
-            val property: DuctConnectionType = state.getValue(DIR_TO_CONNECTION[direction]!!)
-            if (property === DuctConnectionType.SIDE) continue
-            val adjPos = pos.relative(direction)
-            state = state.setValue(
-                DIR_TO_CONNECTION[direction]!!,
-                if (canConnectTo(
-                        pos,
-                        adjPos,
-                        direction.opposite,
-                        level as Level
-
-                    )
-                ) DuctConnectionType.SIDE else DuctConnectionType.NONE
-            )
-        }
-        return state.setValue(BlockStateProperties.WATERLOGGED, level.getFluidState(pos).type === Fluids.WATER)
-    }
-
-
 
     override fun getBlockEntityClass(): Class<DuctBlockEntity> {
         return DuctBlockEntity::class.java
@@ -451,4 +458,5 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
             return state.getValue(DIR_TO_CONNECTION[direction]!!).canBeChanged()
         }
     }
+
 }

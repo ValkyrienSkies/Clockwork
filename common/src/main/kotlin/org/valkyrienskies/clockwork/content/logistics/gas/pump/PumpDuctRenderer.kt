@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content.logistics.gas.duct
+package org.valkyrienskies.clockwork.content.logistics.gas.pump
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer

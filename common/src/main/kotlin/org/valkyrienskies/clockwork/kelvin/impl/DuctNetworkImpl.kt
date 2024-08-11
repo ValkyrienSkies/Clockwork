@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.kelvin.impl
 
-import kotlinx.coroutines.flow.flow
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
@@ -19,7 +18,6 @@ import kotlin.collections.HashMap
 import kotlin.collections.HashSet
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.pow
 
 class DuctNetworkImpl(
@@ -206,10 +204,10 @@ class DuctNetworkImpl(
                 var pumpPressureB = 0.0
 
                 if (nodeDataA.behavior == NodeBehaviorType.PUMP && (nodeDataA as PumpDuctNode).pumpTarget == edge) {
-                    pumpPressureA = nodeDataA.pumpPressure
+                    pumpPressureA = nodeDataA.pumpVolume
                 }
                 if (nodeDataB.behavior == NodeBehaviorType.PUMP && (nodeDataB as PumpDuctNode).pumpTarget == edge) {
-                    pumpPressureB = nodeDataB.pumpPressure
+                    pumpPressureB = nodeDataB.pumpVolume
                 }
 
                 val pumpPressure = pumpPressureA - pumpPressureB
@@ -264,8 +262,7 @@ class DuctNetworkImpl(
                     val volumeA = nodeA.currentGasMasses[gas]!!
                     val volumeB = nodeB.currentGasMasses[gas]!!
 
-
-                    val limit = abs(volumeA-volumeB)/2.0
+                    val limit = abs(volumeA-volumeB)
 
                     val deltaVolumeA = Mth.clamp(flowRateA, -limit, limit) / subSteps.toDouble()
                     val deltaVolumeB = Mth.clamp(flowRateB, -limit, limit) / subSteps.toDouble()

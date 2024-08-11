@@ -31,8 +31,8 @@ import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSea
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctRenderer
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.PumpDuctBlockEntity
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.PumpDuctRenderer
+import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorRenderer
 

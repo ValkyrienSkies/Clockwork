@@ -49,7 +49,6 @@ class AirCompressorRenderer(context: BlockEntityRendererProvider.Context?) : Kin
         val mult = if (be.clientParticles || !be.isOn) -1 else 1
         be.clientSize += partialTicks*be.speed*mult/1500f
         be.clientSize = Mth.clamp(be.clientSize,0f,1f)
-        println(be.clientSize)
 
         if (be.clientSize>=1f && !be.clientParticles) {
             be.clientParticles = true
