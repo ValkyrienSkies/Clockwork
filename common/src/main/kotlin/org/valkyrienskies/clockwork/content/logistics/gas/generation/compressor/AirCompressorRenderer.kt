@@ -1,16 +1,23 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor
 
 import com.mojang.blaze3d.vertex.PoseStack
+import com.mojang.datafixers.TypeRewriteRule.All
+import com.simibubi.create.AllParticleTypes
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
+import com.simibubi.create.content.kinetics.steamEngine.SteamJetParticleData
+import com.simibubi.create.foundation.particle.AirParticle
+import com.simibubi.create.foundation.particle.AirParticleData
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.utility.AnimationTickHolder
 import net.minecraft.client.renderer.LevelRenderer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
-import net.minecraft.core.Direction
-import net.minecraft.util.Mth
+import net.minecraft.core.particles.ParticleTypes
 import org.valkyrienskies.clockwork.ClockworkPartials
+import org.valkyrienskies.clockwork.util.EaseHelper
+import kotlin.math.abs
+import kotlin.math.roundToInt
 
 
 class AirCompressorRenderer(context: BlockEntityRendererProvider.Context?) : KineticBlockEntityRenderer<AirCompressorBlockEntity>(context) {
@@ -25,10 +32,43 @@ class AirCompressorRenderer(context: BlockEntityRendererProvider.Context?) : Kin
         super.renderSafe(be, partialTicks, ms, buffer, light, overlay)
 
         val vb = buffer!!.getBuffer(RenderType.cutoutMipped())
+        val lightBelow = LevelRenderer.getLightColor(be!!.level, be.blockPos.below())
+        val lightAbove = LevelRenderer.getLightColor(be.level, be.blockPos.above())
 
+
+        // Shaft renderer
         val axis = CachedBufferer.partial(ClockworkPartials.COMPRESSOR_AXIS, be!!.blockState)
-        val lightBelow = LevelRenderer.getLightColor(be.level, be.blockPos.below())
+        standardKineticRotationTransform(axis,be,lightBelow).renderInto(ms, vb)
 
-        standardKineticRotationTransform(axis,be,lightBelow).renderInto(ms, vb);
+
+        val fabric = CachedBufferer.partial(ClockworkPartials.COMPRESSOR_FABRIC, be.blockState)
+        val top = CachedBufferer.partial(ClockworkPartials.COMPRESSOR_TOP, be.blockState)
+
+        val time = AnimationTickHolder.getRenderTime(be.level)
+        var size = EaseHelper.easeInOutSine(abs(time*be.speed%2000/2000-0.5f)*2)/2
+        if (size>0.495f && be.clientParticles == false) {
+            be.clientParticles = true
+            for (i in 0..12) {
+                val r: java.util.Random = be.level!!.getRandom()
+
+                val rX = 0.5 - r.nextFloat()
+                val rY = r.nextFloat()
+                val rZ = 0.5 - r.nextFloat()
+                be.level!!.addParticle(AirParticleData(0.00f,0.005f), be.blockPos.x + 0.5 + rX, be.blockPos.y + 1.6 + rY, be.blockPos.z + 0.5 + rZ, 0.0, 0.05, 0.0)
+
+            }
+        }
+
+        if (size<0.495f) be.clientParticles = false
+
+        fabric.scale(1.0f,0.5f+size,1.0f)
+        fabric.translate(0.0,(0.5-size)/2,0.0)
+        top.translate(0.0,(size-0.5)*1.5,0.0)
+
+
+        fabric.light(lightAbove+(32*(0.5-size).roundToInt())).renderInto(ms,vb)
+        top.light(lightAbove).renderInto(ms,vb)
     }
+
+
 }

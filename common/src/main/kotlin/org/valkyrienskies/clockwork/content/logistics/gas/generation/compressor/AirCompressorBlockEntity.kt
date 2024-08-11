@@ -18,6 +18,8 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, stat
     val maxGas: Double = 100.0
     val baselineSpeed: Double = 1.0
 
+    var clientParticles: Boolean = false
+
     override fun tick() {
         super.tick()
 
