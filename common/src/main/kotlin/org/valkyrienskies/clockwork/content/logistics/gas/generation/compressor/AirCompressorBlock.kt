@@ -5,6 +5,7 @@ import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.level.Level
+import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
@@ -47,4 +48,15 @@ class AirCompressorBlock(properties: Properties?) : KineticBlock(properties), IN
         return face == Direction.DOWN
     }
 
+    override fun updateShape(
+        state: BlockState,
+        direction: Direction,
+        neighborState: BlockState,
+        level: LevelAccessor,
+        currentPos: BlockPos,
+        neighborPos: BlockPos
+    ): BlockState {
+        _updateShape(state, direction, neighborState, level, currentPos, neighborPos)
+        return super.updateShape(state, direction, neighborState, level, currentPos, neighborPos)
+    }
 }

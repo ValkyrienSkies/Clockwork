@@ -30,9 +30,7 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, stat
         val speed = getSpeed()
         val currentAirVolume = node.network.getGasVolumesAt(blockPos.toJOMLD())[GasType.AIR]?: 0.0
 
-        print(speed)
-        print(" ")
-        print(node.network.getGasVolumesAt(blockPos.toJOMLD())[GasType.AIR])
+
         if (speed>0 && currentAirVolume<maxGas) {
             if (!isOn) syncOn(true)
             isOn = true

@@ -1,7 +1,9 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.duct
 
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.world.level.Level
+import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
@@ -16,6 +18,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.S
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.UP_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.WEST_CONNECTION
 import org.valkyrienskies.clockwork.kelvin.api.DuctNetwork
+import org.valkyrienskies.clockwork.kelvin.api.DuctNode
 import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.kelvin.api.nodes.PipeDuctNode
 import org.valkyrienskies.mod.common.util.toJOMLD
@@ -39,7 +42,18 @@ interface INodeBlock : IDuct {
         }
     }
 
-    fun createNode(pos: DuctNodePos, network: DuctNetwork): PipeDuctNode
+    fun _updateShape(state: BlockState,
+                     direction: Direction,
+                     neighborState: BlockState,
+                     level: LevelAccessor,
+                     currentPos: BlockPos,
+                     neighborPos: BlockPos) {
+        if (neighborState.block is DuctBlock) {
+            neighborState.block.updateShape(neighborState, direction.opposite, state, level, neighborPos, currentPos)
+        }
+    }
+
+    fun createNode(pos: DuctNodePos, network: DuctNetwork): DuctNode
 
 
     //TODO: Fix non-duct blocks only updating connections when changing

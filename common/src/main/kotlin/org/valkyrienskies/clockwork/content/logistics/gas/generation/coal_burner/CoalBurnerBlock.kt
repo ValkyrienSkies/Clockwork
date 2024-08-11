@@ -38,10 +38,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.N
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.SOUTH_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.UP_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.WEST_CONNECTION
-import org.valkyrienskies.clockwork.kelvin.api.ConnectionType
-import org.valkyrienskies.clockwork.kelvin.api.DuctNetwork
-import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
-import org.valkyrienskies.clockwork.kelvin.api.NodeBehaviorType
+import org.valkyrienskies.clockwork.kelvin.api.*
 import org.valkyrienskies.clockwork.kelvin.api.nodes.PipeDuctNode
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createPipeEdge
 import org.valkyrienskies.mod.common.util.toJOMLD
@@ -78,11 +75,21 @@ class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(prope
         return InteractionResult.PASS
     }
 
-    override fun createNode(pos: DuctNodePos, network: DuctNetwork): PipeDuctNode {
+    override fun createNode(pos: DuctNodePos, network: DuctNetwork): DuctNode {
         return PipeDuctNode(pos, NodeBehaviorType.PIPE, network, volume = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0)
     }
 
-
+    override fun updateShape(
+        state: BlockState,
+        direction: Direction,
+        neighborState: BlockState,
+        level: LevelAccessor,
+        currentPos: BlockPos,
+        neighborPos: BlockPos
+    ): BlockState {
+        _updateShape(state, direction, neighborState, level, currentPos, neighborPos)
+        return super.updateShape(state, direction, neighborState, level, currentPos, neighborPos)
+    }
 
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
