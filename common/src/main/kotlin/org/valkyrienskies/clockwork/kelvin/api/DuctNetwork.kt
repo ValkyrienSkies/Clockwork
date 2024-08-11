@@ -55,6 +55,7 @@ interface DuctNetwork {
     fun modPressure(pos: DuctNodePos, deltaPressure: Double)
     fun modGasVolume(pos: DuctNodePos, gasType: GasType, deltaVolume: Double)
 
+    fun addGasVolumeOfTemperature(pos: DuctNodePos, gasType: GasType, deltaVolume: Double, gasTemperature: Double)
     // the real meat
     fun tick(level: ServerLevel, subSteps: Int = 1)
 

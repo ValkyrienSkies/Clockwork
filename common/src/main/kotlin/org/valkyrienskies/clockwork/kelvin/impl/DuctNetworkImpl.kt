@@ -124,6 +124,16 @@ class DuctNetworkImpl(
         nodeInfo[pos]?.currentGasMasses?.put(gasType, nodeInfo[pos]?.currentGasMasses?.get(gasType)?.plus(deltaVolume) ?: 0.0)
     }
 
+    override fun addGasVolumeOfTemperature(pos: DuctNodePos, gasType: GasType, deltaVolume: Double, gasTemperature: Double ) {
+        var totalMass = 0.0
+        nodeInfo[pos]?.currentGasMasses?.forEach { totalMass += it.value } ?: return
+        val specificHeat = specificHeatAverage(nodeInfo[pos]?.currentGasMasses!!)
+
+        nodeInfo[pos]?.currentTemperature = (deltaVolume*gasType.specificHeatCapacity*gasTemperature + totalMass*specificHeat*nodeInfo[pos]!!.currentTemperature)/(deltaVolume*gasType.specificHeatCapacity + totalMass*specificHeat)
+        modGasVolume(pos, gasType, deltaVolume)
+
+    }
+
     override fun tick(level: ServerLevel, subSteps: Int) {
         if (disabled) return
 
