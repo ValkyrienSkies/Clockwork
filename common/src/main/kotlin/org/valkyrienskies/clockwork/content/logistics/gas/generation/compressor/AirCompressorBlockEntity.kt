@@ -12,6 +12,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
 import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.kelvin.api.GasType
 import org.valkyrienskies.mod.common.util.toJOMLD
+import kotlin.math.abs
 
 class AirCompressorBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : KineticBlockEntity(typeIn, pos, state), IHeatableBlockEntity {
     var isOn: Boolean = false
@@ -27,7 +28,7 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, stat
 
         if (level!!.isClientSide) return
         val node = ClockworkMod.getKelvin().getNodeAt(blockPos.toJOMLD()) ?: return
-        val speed = getSpeed()
+        val speed = abs(getSpeed())
         val currentAirVolume = node.network.getGasVolumesAt(blockPos.toJOMLD())[GasType.AIR]?: 0.0
 
 

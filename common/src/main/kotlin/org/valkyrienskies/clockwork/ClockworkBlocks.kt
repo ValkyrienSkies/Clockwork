@@ -314,6 +314,7 @@ object ClockworkBlocks {
         .item()
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .transform(customItemModel())
+        .transform(BlockStressDefaults.setImpact(4.0))
         .register()
 
     @JvmField

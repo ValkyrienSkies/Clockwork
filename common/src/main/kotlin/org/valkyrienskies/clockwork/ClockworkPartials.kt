@@ -106,6 +106,7 @@ object ClockworkPartials {
     val COMPRESSOR_FABRIC: PartialModel = PartialModel(ClockworkMod.asResource("block/compressor/fabric"))
     val COMPRESSOR_TOP: PartialModel = PartialModel(ClockworkMod.asResource("block/compressor/top"))
 
+    val PUMP_COG: PartialModel = AllPartialModels.MECHANICAL_PUMP_COG
 
     private fun block(path: String): PartialModel {
         return PartialModel(ClockworkMod.asResource("block/$path"))

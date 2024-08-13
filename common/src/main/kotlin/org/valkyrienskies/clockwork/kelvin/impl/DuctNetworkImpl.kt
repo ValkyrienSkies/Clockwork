@@ -214,12 +214,12 @@ class DuctNetworkImpl(
                 var pumpPressureB = 0.0
 
                 if (nodeDataA.behavior == NodeBehaviorType.PUMP) {
-                    if (aTarget) pumpPressureA = (nodeDataA as PumpDuctNode).pumpSpeed
-                    else pumpPressureA = -(nodeDataA as PumpDuctNode).pumpSpeed
+                    if (aTarget) pumpPressureA = (nodeDataA as PumpDuctNode).pumpPressure
+                    else pumpPressureA = -(nodeDataA as PumpDuctNode).pumpPressure
                 }
                 if (nodeDataB.behavior == NodeBehaviorType.PUMP) {
-                    if (bTarget) pumpPressureB = (nodeDataB as PumpDuctNode).pumpSpeed
-                    else pumpPressureB = -(nodeDataB as PumpDuctNode).pumpSpeed
+                    if (bTarget) pumpPressureB = (nodeDataB as PumpDuctNode).pumpPressure
+                    else pumpPressureB = -(nodeDataB as PumpDuctNode).pumpPressure
                 }
 
                 val pumpPressure = pumpPressureA - pumpPressureB

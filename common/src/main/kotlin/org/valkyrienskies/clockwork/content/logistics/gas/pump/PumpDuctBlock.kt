@@ -2,18 +2,14 @@ package org.valkyrienskies.clockwork.content.logistics.gas.pump
 
 import com.simibubi.create.AllShapes
 import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock
-import com.simibubi.create.content.kinetics.base.KineticBlock
+import com.simibubi.create.content.kinetics.simpleRelays.ICogWheel
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.core.Direction.Axis
-import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
-import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.Block
-import net.minecraft.world.level.block.RotatedPillarBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
@@ -23,19 +19,15 @@ import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.content.logistics.gas.GasHeatLevel
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock.Companion.DIR_TO_CONNECTION
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.IAxisAlignedDuct
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.INodeBlock
 import org.valkyrienskies.clockwork.kelvin.api.DuctNetwork
 import org.valkyrienskies.clockwork.kelvin.api.DuctNode
 import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.kelvin.api.NodeBehaviorType
-import org.valkyrienskies.clockwork.kelvin.api.nodes.PipeDuctNode
 import org.valkyrienskies.clockwork.kelvin.api.nodes.PumpDuctNode
 
-class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties), IBE<PumpDuctBlockEntity>, INodeBlock {
+class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties), IBE<PumpDuctBlockEntity>, INodeBlock,
+    ICogWheel {
 
     init {
         registerDefaultState(super.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, false).setValue(IHeatableBlock.GAS_HEAT_LEVEL, GasHeatLevel.COOL))

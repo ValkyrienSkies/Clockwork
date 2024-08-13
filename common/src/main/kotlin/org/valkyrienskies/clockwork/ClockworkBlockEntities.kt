@@ -1,5 +1,11 @@
 package org.valkyrienskies.clockwork
 
+import com.jozufozu.flywheel.api.MaterialManager
+import com.jozufozu.flywheel.backend.instancing.blockentity.BlockEntityInstance
+import com.simibubi.create.AllBlocks
+import com.simibubi.create.Create
+import com.simibubi.create.content.fluids.pump.PumpBlockEntity
+import com.tterrag.registrate.builders.BlockEntityBuilder
 import com.tterrag.registrate.util.entry.BlockEntityEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer
@@ -28,13 +34,15 @@ import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBl
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRenderer
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRenderer
-import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctRenderer
-import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlockEntity
-import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctRenderer
+import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorRenderer
+import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctCogInstance
+import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctRenderer
+import java.util.function.BiFunction
 
 object ClockworkBlockEntities {
 
@@ -262,6 +270,14 @@ object ClockworkBlockEntities {
                 state
             )
         }
+        .instance {
+            BiFunction<MaterialManager?, PumpDuctBlockEntity?, BlockEntityInstance<in PumpDuctBlockEntity?>> { materialManager: MaterialManager?, blockEntity: PumpDuctBlockEntity? ->
+                PumpDuctCogInstance(
+                    materialManager,
+                    blockEntity
+                )
+            }
+        }
         .validBlocks(ClockworkBlocks.PUMP_DUCT)
         .renderer {
             NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in PumpDuctBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
@@ -271,6 +287,7 @@ object ClockworkBlockEntities {
             }
         }
         .register()
+
 
     @JvmField
     val COAL_BURNER: BlockEntityEntry<CoalBurnerBlockEntity> = ClockworkMod.REGISTRATE
