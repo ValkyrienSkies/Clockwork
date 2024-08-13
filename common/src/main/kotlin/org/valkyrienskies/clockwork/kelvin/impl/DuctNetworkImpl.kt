@@ -266,15 +266,25 @@ class DuctNetworkImpl(
                     val volumeA = nodeA.currentGasMasses[gas]!!
                     val volumeB = nodeB.currentGasMasses[gas]!!
 
+                    val aPump = nodeA.nodeType==NodeBehaviorType.PUMP
+                    val bPump = nodeB.nodeType==NodeBehaviorType.PUMP
+
+                    val aTarget = aPump && (nodeDataA as PumpDuctNode).pumpTarget == nodeDataB.pos
+                    val bTarget = bPump && (nodeDataB as PumpDuctNode).pumpTarget == nodeDataA.pos
+
+                    val aFlow = flowRateA<0
+                    val bFlow = flowRateB<0
+
+                    // This entire block is quite disgusting, but it serves a simple function.
+                    // It lets pumps intake the entire volume of the node behind it, and outtake its own volume into the targetNode
 
                     val limit: Double
-                    if (nodeA.nodeType==NodeBehaviorType.PUMP && (nodeDataA as PumpDuctNode).pumpTarget == nodeDataB.pos && flowRateA<0) limit = volumeA
-                    else if (nodeB.nodeType==NodeBehaviorType.PUMP && (nodeDataB as PumpDuctNode).pumpTarget == nodeDataA.pos && flowRateB<0) limit = volumeB
-
-                    else if (nodeA.nodeType!=NodeBehaviorType.PUMP && nodeB.nodeType!=NodeBehaviorType.PUMP || nodeA.nodeType==NodeBehaviorType.PUMP && (nodeDataA as PumpDuctNode).pumpTarget != nodeDataB.pos && flowRateA>0 || nodeB.nodeType==NodeBehaviorType.PUMP && (nodeDataB as PumpDuctNode).pumpTarget != nodeDataA.pos && flowRateB>0 ) limit = abs(volumeA-volumeB)
+                    if (aTarget && aFlow || bPump && !bTarget && aFlow) limit = volumeA
+                    else if (bTarget && bFlow || aPump && !aTarget && bFlow) limit = volumeB
+                    else if (!aPump && !bPump) limit = abs(volumeA-volumeB)
                     else limit = 0.0
 
-
+                    if (aTarget && aFlow || bTarget && bFlow) println(limit)
 
                     val deltaVolumeA = Mth.clamp(flowRateA, -limit, limit) / subSteps
                     val deltaVolumeB = Mth.clamp(flowRateB, -limit, limit) / subSteps
