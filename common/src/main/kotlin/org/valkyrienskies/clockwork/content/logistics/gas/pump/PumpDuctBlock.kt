@@ -6,6 +6,7 @@ import com.simibubi.create.content.kinetics.simpleRelays.ICogWheel
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
@@ -14,17 +15,21 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
+import net.minecraft.world.level.material.Fluids
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.GasHeatLevel
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock.Companion.DIR_TO_CONNECTION
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.INodeBlock
-import org.valkyrienskies.clockwork.kelvin.api.DuctNetwork
-import org.valkyrienskies.clockwork.kelvin.api.DuctNode
-import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
-import org.valkyrienskies.clockwork.kelvin.api.NodeBehaviorType
+import org.valkyrienskies.clockwork.kelvin.api.*
 import org.valkyrienskies.clockwork.kelvin.api.nodes.PumpDuctNode
+import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createEdgeType
+import org.valkyrienskies.mod.common.util.toJOMLD
 
 class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties), IBE<PumpDuctBlockEntity>, INodeBlock,
     ICogWheel {
@@ -69,6 +74,26 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
         return ClockworkBlockEntities.PUMP_DUCT.get()
     }
 
+
+    override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
+        super.onPlace(state, level, pos, oldState, isMoving)
+        val facing = state.getValue(BlockStateProperties.FACING)
+
+        _onPlace(state, level, pos, oldState, isMoving)
+
+        handleConnections(pos, facing,level)
+        handleConnections(pos, facing.opposite,level)
+    }
+
+    override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
+        _onRemove(state, level, pos, newState, isMoving)
+        super.onRemove(state, level, pos, newState, isMoving)
+    }
+
+
+
+
+
     override fun updateShape(
         state: BlockState,
         direction: Direction,
@@ -77,18 +102,46 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
         currentPos: BlockPos,
         neighborPos: BlockPos
     ): BlockState {
-        _updateShape(state, direction, neighborState, level, currentPos, neighborPos)
-        return super.updateShape(state, direction, neighborState, level, currentPos, neighborPos)
+        if (state.getValue(BlockStateProperties.WATERLOGGED))
+        {
+            level.scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickDelay(level))
+        }
+        handleConnections(currentPos,direction,level)
+
+
+        return state
     }
 
-    override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
-        super.onPlace(state, level, pos, oldState, isMoving)
-        _onPlace(state, level, pos, oldState, isMoving)
-    }
 
-    override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
-        _onRemove(state, level, pos, newState, isMoving)
-        super.onRemove(state, level, pos, newState, isMoving)
+
+
+    fun handleConnections(currentPos: BlockPos, direction: Direction, level: BlockGetter) {
+
+        val neighborPos = currentPos.relative(direction)
+        val neighborState = level.getBlockState(neighborPos)
+
+        var otherConnected = false
+
+        val canConnect = canConnectTo(currentPos, neighborPos, direction.getOpposite(), level as Level) && level.getBlockState(neighborPos).block is IDuct
+
+        if (neighborState.block is DuctBlock)
+        {
+            otherConnected = neighborState.getValue(DIR_TO_CONNECTION[direction.opposite]!!).canBeChanged()
+
+        } else if (neighborState.block is IDuct) {
+            otherConnected =  (neighborState.block as IDuct).canConnectTo(neighborPos, currentPos, direction.opposite, level)
+        }
+
+
+
+
+        if (otherConnected && canConnect) {
+            ClockworkMod.getKelvin().removeEdge(currentPos.toJOMLD(), neighborPos.toJOMLD())
+            withBlockEntityDo(level, currentPos) { blockEntity ->
+                val newEdge = createEdgeType(blockEntity.blockPos.toJOMLD(), blockEntity.blockPos.relative(direction).toJOMLD(), ConnectionType.PIPE)
+                ClockworkMod.getKelvin().addEdge(blockEntity.blockPos.toJOMLD(), blockEntity.blockPos.relative(direction).toJOMLD(), newEdge)
+            }
+        }
     }
 
 }
