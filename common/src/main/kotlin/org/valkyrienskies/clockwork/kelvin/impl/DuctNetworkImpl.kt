@@ -287,15 +287,17 @@ class DuctNetworkImpl(
                     // It lets pumps intake the entire volume of the node behind it, and outtake its own volume into the targetNode
 
                     val limit: Double
-                    if (aTarget && aFlowOut || bPump && !bTarget && aFlowOut) limit = volumeA
-                    else if (bTarget && bFlowOut || aPump && !aTarget && bFlowOut) limit = volumeB
+                    if (aTarget && aFlowOut || bPump && !bTarget && aFlowOut) limit = volumeA - 0.01
+                    else if (bTarget && bFlowOut || aPump && !aTarget && bFlowOut) limit = volumeB - 0.01
                     else if (!aPump && !bPump) limit = abs(volumeA-volumeB)
                     else limit = 0.0
 
 
 
+
                     val deltaVolumeA = Mth.clamp(flowRateA, -limit, limit) / subSteps
                     val deltaVolumeB = Mth.clamp(flowRateB, -limit, limit) / subSteps
+
 
 
                     nodeA.currentGasMasses[gas] = max(volumeA + deltaVolumeA, 0.0)
