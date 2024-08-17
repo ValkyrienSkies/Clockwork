@@ -9,6 +9,7 @@ import com.simibubi.create.foundation.particle.AirParticle
 import com.simibubi.create.foundation.particle.AirParticleData
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.utility.AnimationTickHolder
+import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.LevelRenderer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
@@ -46,7 +47,7 @@ class AirCompressorRenderer(context: BlockEntityRendererProvider.Context?) : Kin
 
 
 
-        val mult = if (be.clientParticles || !be.isOn) -1 else 1
+        val mult = if (Minecraft.getInstance().isPaused) 0 else if (be.clientParticles || !be.isOn) -1 else 1
         be.clientSize += partialTicks*be.speed*mult/1500f
         be.clientSize = Mth.clamp(be.clientSize,0f,1f)
 
