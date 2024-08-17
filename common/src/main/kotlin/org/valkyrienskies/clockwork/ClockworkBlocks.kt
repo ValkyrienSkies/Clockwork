@@ -37,6 +37,7 @@ import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSea
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankBlock
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlock
@@ -270,6 +271,21 @@ object ClockworkBlocks {
         "coal_burner"
     ) { properties: BlockBehaviour.Properties? ->
         CoalBurnerBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
+    val CREATIVE_GENERATOR: BlockEntry<CreativeGeneratorBlock> = REGISTRATE.block<CreativeGeneratorBlock>(
+        "creative_gas_generator"
+    ) { properties: BlockBehaviour.Properties? ->
+        CreativeGeneratorBlock(
             properties!!
         )
     }
