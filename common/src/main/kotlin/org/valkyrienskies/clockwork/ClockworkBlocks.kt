@@ -38,6 +38,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankBlock
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
@@ -269,6 +270,21 @@ object ClockworkBlocks {
         "coal_burner"
     ) { properties: BlockBehaviour.Properties? ->
         CoalBurnerBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
+    val DUCT_TANK: BlockEntry<DuctTankBlock> = REGISTRATE.block<DuctTankBlock>(
+        "duct_tank"
+    ) { properties: BlockBehaviour.Properties? ->
+        DuctTankBlock(
             properties!!
         )
     }

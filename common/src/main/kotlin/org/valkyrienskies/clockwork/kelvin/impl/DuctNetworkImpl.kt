@@ -12,7 +12,9 @@ import org.valkyrienskies.clockwork.kelvin.api.edges.ApertureEdge
 import org.valkyrienskies.clockwork.kelvin.api.edges.FilteredEdge
 import org.valkyrienskies.clockwork.kelvin.api.edges.OneWayEdge
 import org.valkyrienskies.clockwork.kelvin.api.nodes.PumpDuctNode
+import org.valkyrienskies.clockwork.kelvin.api.nodes.TankDuctNode
 import org.valkyrienskies.mod.common.util.toMinecraft
+import org.w3c.dom.Node
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.HashSet
@@ -184,10 +186,16 @@ class DuctNetworkImpl(
                 val densityA = densityAverage(nodeA.currentGasMasses)
                 val densityB = densityAverage(nodeB.currentGasMasses)
 
+                val tankMultA = if (nodeA.nodeType == NodeBehaviorType.TANK) (nodeDataB as TankDuctNode).size else 1.0
+                val tankMultB = if (nodeB.nodeType == NodeBehaviorType.TANK) (nodeDataB as TankDuctNode).size else 1.0
 
-                val pressureA = calcPressure(totalGasMassA, nodeDataA.volume, nodeA.currentTemperature, densityA)
 
-                val pressureB = calcPressure(totalGasMassB, nodeDataB.volume, nodeB.currentTemperature, densityB)
+
+                val pressureA = calcPressure(totalGasMassA, nodeDataA.volume, nodeA.currentTemperature, densityA)/tankMultA
+
+                val pressureB = calcPressure(totalGasMassB, nodeDataB.volume, nodeB.currentTemperature, densityB)/tankMultB
+
+
 
 
                 val viscosityA = viscosityAverage(nodeA.currentGasMasses)
@@ -289,7 +297,7 @@ class DuctNetworkImpl(
                     val limit: Double
                     if (aTarget && aFlowOut || bPump && !bTarget && aFlowOut) limit = volumeA
                     else if (bTarget && bFlowOut || aPump && !aTarget && bFlowOut) limit = volumeB
-                    else if (!aPump && !bPump) limit = abs(volumeA-volumeB)
+                    else if (!aPump && !bPump) limit = abs(volumeA/tankMultA-volumeB/tankMultB)
                     else limit = 0.0
 
 

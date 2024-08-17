@@ -42,6 +42,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctCogInstance
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctRenderer
+import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankBlockEntity
 import java.util.function.BiFunction
 
 object ClockworkBlockEntities {
@@ -299,6 +300,18 @@ object ClockworkBlockEntities {
             )
         }
         .validBlocks(ClockworkBlocks.COAL_BURNER)
+        .register()
+
+    @JvmField
+    val DUCT_TANK: BlockEntityEntry<DuctTankBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<DuctTankBlockEntity>("duct_tank") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            DuctTankBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .validBlocks(ClockworkBlocks.DUCT_TANK)
         .register()
 
     @JvmField
