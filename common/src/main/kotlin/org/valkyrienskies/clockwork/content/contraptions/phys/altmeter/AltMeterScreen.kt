@@ -43,6 +43,7 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
         confirmButton = IconButton(x + background.width - 33, y + background.height - 24, AllIcons.I_CONFIRM)
         confirmButton!!.withCallback<AbstractSimiWidget>(Runnable { onClose() })
         addRenderableWidget(confirmButton!!)
+
     }
 
 

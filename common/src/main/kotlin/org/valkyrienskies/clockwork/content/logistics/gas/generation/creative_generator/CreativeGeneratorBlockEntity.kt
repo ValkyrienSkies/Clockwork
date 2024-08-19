@@ -2,11 +2,18 @@ package org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_g
 
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
+import com.simibubi.create.foundation.gui.ScreenOpener
+import net.fabricmc.api.EnvType
+import net.fabricmc.api.Environment
+import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlockEntity
+import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterScreen
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
 import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
 import org.valkyrienskies.mod.common.util.toJOMLD
@@ -23,6 +30,8 @@ class CreativeGeneratorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, st
 
 
     }
+
+
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) {
         return

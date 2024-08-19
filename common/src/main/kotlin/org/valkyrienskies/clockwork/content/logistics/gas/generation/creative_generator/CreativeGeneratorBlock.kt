@@ -1,7 +1,14 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator
 
+import com.simibubi.create.content.trains.TrainHUD
+import com.simibubi.create.content.trains.schedule.ScheduleMenu
+import com.simibubi.create.content.trains.schedule.ScheduleScreen
 import com.simibubi.create.foundation.block.IBE
+import com.simibubi.create.foundation.gui.ScreenOpener
 import dev.architectury.registry.fuel.FuelRegistry
+import net.fabricmc.api.EnvType
+import net.fabricmc.api.Environment
+import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.InteractionHand
@@ -19,6 +26,7 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.INodeBlock
 import org.valkyrienskies.clockwork.kelvin.api.*
 import org.valkyrienskies.clockwork.kelvin.api.nodes.PipeDuctNode
@@ -27,10 +35,28 @@ import org.valkyrienskies.clockwork.kelvin.api.nodes.PipeDuctNode
 class CreativeGeneratorBlock(properties: Properties) : Block(properties), INodeBlock, IBE<CreativeGeneratorBlockEntity> {
 
 
+    override fun use(
+        state: BlockState,
+        level: Level,
+        pos: BlockPos,
+        player: Player,
+        hand: InteractionHand,
+        hit: BlockHitResult
+    ): InteractionResult {
+        if (level.isClientSide) withBlockEntityDo(level, pos) { be: CreativeGeneratorBlockEntity -> displayScreen(be, player) }
+        return  InteractionResult.SUCCESS
+    }
+
+    @Environment(value = EnvType.CLIENT)
+    private fun displayScreen(be: CreativeGeneratorBlockEntity, player: Player) {
+        if (player is LocalPlayer) ScreenOpener.open(CreativeGeneratorScreen(be))
+    }
+
 
 
     override fun createNode(pos: DuctNodePos, network: DuctNetwork): DuctNode {
         return PipeDuctNode(pos, NodeBehaviorType.PIPE, network, volume = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0)
+
     }
 
     override fun updateShape(
