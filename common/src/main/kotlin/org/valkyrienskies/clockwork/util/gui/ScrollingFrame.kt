@@ -1,12 +1,14 @@
 package org.valkyrienskies.clockwork.util.gui
 
 import com.mojang.blaze3d.vertex.PoseStack
+import com.simibubi.create.foundation.gui.AbstractSimiScreen
 import com.simibubi.create.foundation.gui.widget.AbstractSimiWidget
 import net.minecraft.client.gui.components.AbstractWidget
 import net.minecraft.client.gui.narration.NarrationElementOutput
 import net.minecraft.network.chat.Component
 import net.minecraft.util.Mth
 import org.valkyrienskies.clockwork.util.gui.GuiUtil.withinRectangle
+import kotlin.math.max
 import kotlin.math.roundToInt
 
 open class ScrollingFrame(x: Int, y: Int, w: Int, h: Int): AbstractSimiWidget(x,y,w,h) {
@@ -15,11 +17,16 @@ open class ScrollingFrame(x: Int, y: Int, w: Int, h: Int): AbstractSimiWidget(x,
     var maxScroll = 0.0
 
     var scroll = 0.0
+    var currentScroll = 0.0
 
     open var scrollSpeed = 1.0
     open var padding = 0.0
 
+    val scrollLerpSpeed = 2.0
+
+
     var scrollingElements: MutableList<ScrollingElement> = mutableListOf()
+
 
     override fun mouseScrolled(mouseX: Double, mouseY: Double, delta: Double): Boolean {
 
@@ -32,27 +39,29 @@ open class ScrollingFrame(x: Int, y: Int, w: Int, h: Int): AbstractSimiWidget(x,
     }
 
     override fun renderButton(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
+        currentScroll += Mth.clamp(scroll-currentScroll,-partialTicks*scrollLerpSpeed, partialTicks*scrollLerpSpeed)
 
+        ms.translate(0.0,currentScroll,0.0)
 
         var pastHeight = 0.0
-        val frameY = y+scroll
+        val frameY = y+currentScroll
         for (element in scrollingElements) {
 
             val elementY = frameY+pastHeight
             val visible = elementY+element.height>=y && elementY<=y+height
 
 
-            element.renderElement(ms, mouseX, mouseY, partialTicks, x, elementY.roundToInt(), visible)
+            element.renderElement(ms, mouseX, mouseY, partialTicks, x, (y+pastHeight).roundToInt(), visible)
 
             pastHeight+=element.height+padding
         }
-
+        minScroll = -max(pastHeight-height,0.0)
 
     }
 
 
-    interface ScrollingElement {
-        val height: Double
+    abstract class ScrollingElement() {
+        open val height: Double = 0.0
 
 
         abstract fun renderElement(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float, x: Int, y: Int, visible: Boolean)

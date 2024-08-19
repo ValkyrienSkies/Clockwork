@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator
 
 import com.mojang.blaze3d.vertex.PoseStack
+import com.simibubi.create.content.trains.schedule.ScheduleScreen
 import com.simibubi.create.foundation.gui.AbstractSimiScreen
 import com.simibubi.create.foundation.gui.widget.AbstractSimiWidget
 import com.simibubi.create.foundation.gui.widget.ScrollInput
@@ -24,18 +25,15 @@ class CreativeGeneratorScreen(private val be: CreativeGeneratorBlockEntity) : Ab
         super.init()
 
         scrollingFrame = CreativeGeneratorScrolling(guiLeft+3, guiTop+16)
-
         for (type in GasType.values()) {
 
-            val input = ScrollInput(0,0,159, 13)
+            val input = ScrollInput(0,0,51, 18)
             input.calling { state: Int -> stateChange(type, state) }
             input.withRange(0,1000)
 
-            scrollingElements.add(CreativeGeneratorScrolling.CreativeGeneratorScrollingElement(input))
+            scrollingElements.add(CreativeGeneratorScrolling.CreativeGeneratorScrollingElement(type, font, input))
         }
 
-        scrollingFrame.maxScroll = 1000.0
-        scrollingFrame.minScroll = -1000.0
         scrollingFrame.scrollingElements = scrollingElements
 
 

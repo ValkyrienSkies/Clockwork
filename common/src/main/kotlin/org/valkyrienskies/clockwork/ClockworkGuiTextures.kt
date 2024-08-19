@@ -24,7 +24,7 @@ enum class ClockworkGuiTextures(
 
     CREATIVE_GAS_GENERATOR("creative_gas_generator", 173, 112),
     CREATIVE_GAS_GENERATOR_FRAME("creative_gas_generator_frame", 173, 112),
-    CREATIVE_GAS_GENERATOR_TAB("creative_gas_generator_tab", 93, 18),
+    CREATIVE_GAS_GENERATOR_TAB("creative_gas_generator_tab", 128, 18),
 
 
     COMMAND_SEAT("command_seat", 173, 159),
