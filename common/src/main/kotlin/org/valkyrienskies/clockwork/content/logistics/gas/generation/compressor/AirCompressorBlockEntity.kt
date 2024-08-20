@@ -37,7 +37,7 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, stat
             isOn = true
 
             val deltaVolume = Mth.clamp(maxGas-currentAirVolume,0.0001, baselineSpeed*speed)
-            node.network.addGasVolumeOfTemperature(getDuctNodePosition(),GasType.AIR, deltaVolume, 300.0)
+            node.network.modGasVolumeOfTemperature(getDuctNodePosition(),GasType.AIR, deltaVolume, 300.0)
         } else {
             if (isOn) syncOn(false)
             isOn = false

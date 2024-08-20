@@ -17,6 +17,7 @@ import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSea
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctEdgeSyncPacket
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorPacket
+import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorPacket
 import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket
 import org.valkyrienskies.clockwork.platform.SharedValues.packetChannel
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
@@ -34,6 +35,7 @@ enum class ClockworkPackets(
     UPDATE_SEAT_RULES(UpdateSeatRulesPacket::class.java, ::UpdateSeatRulesPacket),
     SEQUENCER_SEAT_DRIVING(SequencedSeatDrivingPacket::class.java, ::SequencedSeatDrivingPacket),
     UPDATE_ALT_METER(UpdateAltMeterPacket::class.java, ::UpdateAltMeterPacket),
+    CREATIVE_GENERATOR_PACKET(CreativeGeneratorPacket::class.java, ::CreativeGeneratorPacket),
 
     GRAVITRON_GRAB_PACKET(GravitronGrabPacket::class.java, ::GravitronGrabPacket),
     GRAVITRON_DESTROY_PACKET(GravitronDestroyPacket::class.java, ::GravitronDestroyPacket),
@@ -52,7 +54,7 @@ enum class ClockworkPackets(
     WANDER_WAND_CLEAR(WanderWandClearPacket::class.java, ::WanderWandClearPacket),
 
     UPDATE_DUCT_EDGE(DuctEdgeSyncPacket::class.java, ::DuctEdgeSyncPacket),
-    AIR_COMPRESSOR_PACKET(AirCompressorPacket::class.java, ::AirCompressorPacket)
+    AIR_COMPRESSOR_PACKET(AirCompressorPacket::class.java, ::AirCompressorPacket),
     ;
 
     init {

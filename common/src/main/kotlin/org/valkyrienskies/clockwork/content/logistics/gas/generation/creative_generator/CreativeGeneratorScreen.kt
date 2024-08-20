@@ -7,9 +7,11 @@ import com.simibubi.create.foundation.gui.widget.AbstractSimiWidget
 import com.simibubi.create.foundation.gui.widget.ScrollInput
 import net.minecraft.client.gui.components.AbstractWidget
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
+import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlockEntity
 import org.valkyrienskies.clockwork.kelvin.api.GasType
 import org.valkyrienskies.clockwork.util.gui.ScrollingFrame
+import kotlin.reflect.typeOf
 
 class CreativeGeneratorScreen(private val be: CreativeGeneratorBlockEntity) : AbstractSimiScreen()  {
 
@@ -25,11 +27,12 @@ class CreativeGeneratorScreen(private val be: CreativeGeneratorBlockEntity) : Ab
         super.init()
 
         scrollingFrame = CreativeGeneratorScrolling(guiLeft+3, guiTop+16)
-        for (type in GasType.values()) {
+        for (type in GasType.entries) {
 
             val input = ScrollInput(0,0,51, 18)
             input.calling { state: Int -> stateChange(type, state) }
             input.withRange(0,1000)
+            input.state = be.gasValues[type] ?: 0
 
             scrollingElements.add(CreativeGeneratorScrolling.CreativeGeneratorScrollingElement(type, font, input))
         }
@@ -42,9 +45,7 @@ class CreativeGeneratorScreen(private val be: CreativeGeneratorBlockEntity) : Ab
     }
 
     fun stateChange(gas: GasType, state: Int) {
-        print(gas.name)
-        print(" ")
-        println(state)
+        be.gasValues[gas] = state
     }
 
     override fun renderWindowBackground(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
@@ -59,5 +60,8 @@ class CreativeGeneratorScreen(private val be: CreativeGeneratorBlockEntity) : Ab
         background.render(ms, guiLeft, guiTop)
     }
 
-
+    override fun onClose() {
+        ClockworkPackets.sendToServer(CreativeGeneratorPacket(be.gasValues,be.blockPos))
+        super.onClose()
+    }
 }
