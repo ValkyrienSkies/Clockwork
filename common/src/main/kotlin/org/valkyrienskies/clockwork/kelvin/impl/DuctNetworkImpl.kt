@@ -417,10 +417,11 @@ class DuctNetworkImpl(
      */
     private fun calcPressure(mass: Double, volume: Double, temp: Double, density: Double): Double {
         if (volume == 0.0 || density == 0.0) return 0.0
+        val adjustedTemp = max(temp,0.001)
         val pressure: Double
         val molarMass = density * 22.4
         val moles = mass / molarMass
-        pressure = (moles * idealGasConstant * temp) / volume
+        pressure = (moles * idealGasConstant * adjustedTemp) / volume
         return pressure
     }
 

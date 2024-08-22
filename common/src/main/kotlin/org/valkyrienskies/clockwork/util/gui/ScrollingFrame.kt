@@ -47,11 +47,13 @@ open class ScrollingFrame(x: Int, y: Int, w: Int, h: Int): AbstractSimiWidget(x,
         val frameY = y+currentScroll
         for (element in scrollingElements) {
 
+
             val elementY = frameY+pastHeight
             val visible = elementY+element.height>=y && elementY<=y+height
 
-
-            element.renderElement(ms, mouseX, mouseY, partialTicks, x, (y+pastHeight).roundToInt(), visible)
+            element.x = x
+            element.y = (y+pastHeight).roundToInt()
+            element.renderElement(ms, mouseX, mouseY, partialTicks, visible)
 
             pastHeight+=element.height+padding
         }
@@ -62,9 +64,10 @@ open class ScrollingFrame(x: Int, y: Int, w: Int, h: Int): AbstractSimiWidget(x,
 
     abstract class ScrollingElement() {
         open val height: Double = 0.0
+        var x: Int = 0
+        var y: Int = 0
 
-
-        abstract fun renderElement(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float, x: Int, y: Int, visible: Boolean)
+        abstract fun renderElement(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float, visible: Boolean)
     }
 
 }

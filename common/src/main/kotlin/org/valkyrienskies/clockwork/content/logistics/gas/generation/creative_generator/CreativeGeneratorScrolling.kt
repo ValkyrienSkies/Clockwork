@@ -21,7 +21,10 @@ class CreativeGeneratorScrolling(x: Int, y: Int) : ScrollingFrame(x, y, 159, 64)
         for (element in scrollingElements) {
             val input = (element as CreativeGeneratorScrollingElement).input
 
-            if (withinRectangle(mouseX.roundToInt(),mouseY.roundToInt(),input.x,input.y,input.width,input.height)) return input.mouseScrolled(mouseX, mouseY, delta)
+
+            if (input.visible && withinRectangle(mouseX.roundToInt(),(mouseY-scroll).roundToInt(),input.x,input.y,input.width,input.height)) {
+                return input.mouseScrolled(mouseX, mouseY, delta)
+            }
         }
 
         return super.mouseScrolled(mouseX, mouseY, delta)
@@ -31,13 +34,13 @@ class CreativeGeneratorScrolling(x: Int, y: Int) : ScrollingFrame(x, y, 159, 64)
         override val height = 18.0
 
 
-        override fun renderElement(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float, x: Int, y: Int, visible: Boolean) {
+        override fun renderElement(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float, visible: Boolean) {
 
             val tab = ClockworkGuiTextures.CREATIVE_GAS_GENERATOR_TAB
 
             input.x = x+79
             input.y = y+5
-
+            input.visible = visible
 
 
             if (visible) {
@@ -46,6 +49,7 @@ class CreativeGeneratorScrolling(x: Int, y: Int) : ScrollingFrame(x, y, 159, 64)
                 AbstractSimiScreen.drawString(ms, font, input.state.toString()+" m^3", x+79, y+5,0xFFFFFF)
                 input.render(ms, mouseX, mouseY, partialTicks)
             }
+
         }
     }
 }
