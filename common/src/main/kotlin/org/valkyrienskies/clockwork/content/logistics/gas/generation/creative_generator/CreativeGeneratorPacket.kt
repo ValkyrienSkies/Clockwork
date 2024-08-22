@@ -8,16 +8,20 @@ import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
 import org.valkyrienskies.clockwork.platform.api.network.ServerNetworkContext
 import java.util.*
 
-class CreativeGeneratorPacket(var gasValues: EnumMap<GasType, Int>, var blockPos: BlockPos): C2SCWPacket {
+class CreativeGeneratorPacket(var gasValues: EnumMap<GasType, Int>, var temperature: Double, var blockPos: BlockPos): C2SCWPacket {
 
 
     constructor(buffer: FriendlyByteBuf) : this(
+
         buffer.readNbt()!!.let {
             val map: EnumMap<GasType, Int> = EnumMap(GasType.entries.associateWith { 0 })
             for (key in it.allKeys) {
                 map[GasType.valueOf(key)] = it.getInt(key)
             }
-            map },
+            map
+       },
+
+        buffer.readDouble(),
         buffer.readBlockPos()
     )
 
@@ -27,6 +31,7 @@ class CreativeGeneratorPacket(var gasValues: EnumMap<GasType, Int>, var blockPos
             val be = context.sender.level.getBlockEntity(blockPos) ?: return@enqueueWork
             val cBe = be as CreativeGeneratorBlockEntity
             cBe.gasValues = gasValues
+            cBe.temperature = temperature
         }
         context.setPacketHandled(true)
     }
@@ -37,6 +42,7 @@ class CreativeGeneratorPacket(var gasValues: EnumMap<GasType, Int>, var blockPos
             compound.putInt(gas.name, gasValues[gas] ?: 0)
         }
         buffer.writeNbt(compound)
+        buffer.writeDouble(temperature)
         buffer.writeBlockPos(blockPos)
     }
 }

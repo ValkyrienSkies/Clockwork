@@ -1,17 +1,12 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.content.trains.schedule.ScheduleScreen
 import com.simibubi.create.foundation.gui.AbstractSimiScreen
-import com.simibubi.create.foundation.gui.widget.AbstractSimiWidget
 import com.simibubi.create.foundation.gui.widget.ScrollInput
-import net.minecraft.client.gui.components.AbstractWidget
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
 import org.valkyrienskies.clockwork.ClockworkPackets
-import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlockEntity
 import org.valkyrienskies.clockwork.kelvin.api.GasType
 import org.valkyrienskies.clockwork.util.gui.ScrollingFrame
-import kotlin.reflect.typeOf
 
 class CreativeGeneratorScreen(private val be: CreativeGeneratorBlockEntity) : AbstractSimiScreen()  {
 
@@ -21,6 +16,7 @@ class CreativeGeneratorScreen(private val be: CreativeGeneratorBlockEntity) : Ab
     val scrollingElements: MutableList<ScrollingFrame.ScrollingElement> = mutableListOf()
     lateinit var scrollingFrame: CreativeGeneratorScrolling
 
+    lateinit var temperatureInput: ScrollInput
 
     override fun init() {
         setWindowSize(background.width, background.height)
@@ -30,7 +26,7 @@ class CreativeGeneratorScreen(private val be: CreativeGeneratorBlockEntity) : Ab
         for (type in GasType.entries) {
 
             val input = ScrollInput(0,0,51, 18)
-            input.calling { state: Int -> stateChange(type, state) }
+            input.calling { state: Int -> be.gasValues[type] = state }
             input.withRange(0,1000)
             input.state = be.gasValues[type] ?: 0
 
@@ -38,15 +34,14 @@ class CreativeGeneratorScreen(private val be: CreativeGeneratorBlockEntity) : Ab
         }
 
         scrollingFrame.scrollingElements = scrollingElements
-
-
-
         addRenderableWidget(scrollingFrame)
+
+        temperatureInput = ScrollInput(guiLeft + 82,guiTop + 89, 51, 18)
+        temperatureInput.withRange(0,4500)
+        temperatureInput.calling { state: Int -> be.temperature = state.toDouble() }
+        addRenderableWidget(temperatureInput)
     }
 
-    fun stateChange(gas: GasType, state: Int) {
-        be.gasValues[gas] = state
-    }
 
     override fun renderWindowBackground(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
 
@@ -54,14 +49,17 @@ class CreativeGeneratorScreen(private val be: CreativeGeneratorBlockEntity) : Ab
 
     }
 
-    override fun renderWindow(ms: PoseStack?, mouseX: Int, mouseY: Int, partialTicks: Float) { }
+    override fun renderWindow(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) { }
 
     override fun renderWindowForeground(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
         background.render(ms, guiLeft, guiTop)
+
+        drawString(ms, font, "Temperature", guiLeft+8, guiTop+93,0xFFFFFF)
+        drawString(ms, font, be.temperature.toInt().toString()+" K", guiLeft+82, guiTop+93,0xFFFFFF)
     }
 
     override fun onClose() {
-        ClockworkPackets.sendToServer(CreativeGeneratorPacket(be.gasValues,be.blockPos))
+        ClockworkPackets.sendToServer(CreativeGeneratorPacket(be.gasValues, be.temperature, be.blockPos))
         super.onClose()
     }
 }

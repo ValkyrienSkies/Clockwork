@@ -19,7 +19,7 @@ class CreativeGeneratorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, st
 
 
     var gasValues: EnumMap<GasType, Int> = EnumMap(GasType.entries.associateWith { 0 }) // This makes an EnumMap of all 0s
-    var tempearature: Double = 0.0
+    var temperature: Double = 0.0
     var fuelTicks: Int = 0
 
     override fun tick() {
@@ -33,7 +33,7 @@ class CreativeGeneratorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, st
             val gasVolume: Double
             if (volumes[gas] == null) gasVolume = 0.0
             else gasVolume = volumes[gas]!!
-            node.network.modGasVolumeOfTemperature(getDuctNodePosition(), gas, max(gasValues[gas]!!.toDouble()-gasVolume, 0.0),tempearature)
+            node.network.modGasVolumeOfTemperature(getDuctNodePosition(), gas, max(gasValues[gas]!!.toDouble()-gasVolume, 0.0),temperature)
         }
 
 
