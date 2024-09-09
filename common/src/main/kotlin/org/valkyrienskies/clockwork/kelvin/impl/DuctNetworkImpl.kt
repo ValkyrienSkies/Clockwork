@@ -123,14 +123,20 @@ class DuctNetworkImpl(
         nodeInfo[pos]?.currentGasVolumes?.put(gasType, nodeInfo[pos]?.currentGasVolumes?.get(gasType)?.plus(deltaVolume) ?: 0.0)
     }
 
-    override fun modGasVolumeOfTemperature(pos: DuctNodePos, gasType: GasType, deltaVolume: Double, gasTemperature: Double ) {
-        var totalMass = 0.0
-        nodeInfo[pos]?.currentGasVolumes?.forEach { totalMass += it.value*it.key.density } ?: return
-        val specificHeat = specificHeatAverage(nodeInfo[pos]?.currentGasVolumes!!)
+    override fun modGasVolumeOfTemperature(pos: DuctNodePos, gasType: GasType, deltaVolume: Double, deltaTemperature: Double ) {
+        var massInNode = 0.0
+        nodeInfo[pos]?.currentGasVolumes?.forEach { massInNode += it.value*it.key.density } ?: return
+        val specificHeatOfNode = specificHeatAverage(nodeInfo[pos]?.currentGasVolumes!!)
+        val tempInNode = nodeInfo[pos]!!.currentTemperature
+        val energyInNode = massInNode * specificHeatOfNode * tempInNode
 
-        println("modGasVolumeOfTemp $pos ${nodeInfo[pos]!!.currentTemperature} ${gasTemperature} $totalMass $deltaVolume $specificHeat ${gasType.specificHeatCapacity}")
+        val deltaMass = deltaVolume * gasType.density
 
-        val temp = (deltaVolume*gasType.density*gasType.specificHeatCapacity*gasTemperature + totalMass*specificHeat*nodeInfo[pos]!!.currentTemperature)/(deltaVolume*gasType.specificHeatCapacity + totalMass*specificHeat)
+
+        val temp = (massInNode*specificHeatOfNode*tempInNode + deltaMass*deltaTemperature*gasType.specificHeatCapacity) / (massInNode*specificHeatOfNode + deltaMass*gasType.specificHeatCapacity)
+
+        // = (deltaVolume*gasType.density*gasType.specificHeatCapacity*gasTemperature + massInNode*specificHeatOfNode*)/(deltaVolume*gasType.specificHeatCapacity + massInNode*specificHeatOfNode)
+
         nodeInfo[pos]!!.currentTemperature = temp
 
         modGasVolume(pos, gasType, deltaVolume)
@@ -144,6 +150,7 @@ class DuctNetworkImpl(
         for (edge in invalidEdges) {
             edges.remove(edge)
         }
+        // TODO: Fix ConcurrentModificationException
         val edgesToProcess = HashMap(edges)
         for (step in 1..subSteps) {
             for (edgeKey in edgesToProcess.keys) {
