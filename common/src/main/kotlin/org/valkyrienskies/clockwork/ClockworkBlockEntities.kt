@@ -36,6 +36,8 @@ import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSea
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctRenderer
+import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterDuctBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterDuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorRenderer
@@ -288,6 +290,18 @@ object ClockworkBlockEntities {
                 )
             }
         }
+        .register()
+
+    @JvmField
+    val FILTER_DUCT: BlockEntityEntry<FilterDuctBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<FilterDuctBlockEntity>("filter_duct") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            FilterDuctBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .validBlocks(ClockworkBlocks.FILTER_DUCT)
         .register()
 
 
