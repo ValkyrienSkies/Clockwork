@@ -17,10 +17,12 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.N
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.SOUTH_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.UP_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.WEST_CONNECTION
+import org.valkyrienskies.clockwork.kelvin.api.ConnectionType
 import org.valkyrienskies.clockwork.kelvin.api.DuctNetwork
 import org.valkyrienskies.clockwork.kelvin.api.DuctNode
 import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.kelvin.api.nodes.PipeDuctNode
+import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createEdgeType
 import org.valkyrienskies.mod.common.util.toJOMLD
 
 interface INodeBlock : IDuct {
@@ -53,7 +55,10 @@ interface INodeBlock : IDuct {
         }
     }
 
-    fun createNode(pos: DuctNodePos, network: DuctNetwork): DuctNode
+    fun createNode(pos: DuctNodePos, network: DuctNetwork): DuctNode {
+        return PipeDuctNode.DEFAULT(pos, network)
+    }
+    
 
 
 }

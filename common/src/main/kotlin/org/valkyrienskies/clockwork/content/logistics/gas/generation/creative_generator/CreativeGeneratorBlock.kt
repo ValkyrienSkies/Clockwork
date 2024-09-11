@@ -54,11 +54,6 @@ class CreativeGeneratorBlock(properties: Properties) : Block(properties), INodeB
 
 
 
-    override fun createNode(pos: DuctNodePos, network: DuctNetwork): DuctNode {
-        return PipeDuctNode(pos, NodeBehaviorType.PIPE, network, volume = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0)
-
-    }
-
     override fun updateShape(
         state: BlockState,
         direction: Direction,

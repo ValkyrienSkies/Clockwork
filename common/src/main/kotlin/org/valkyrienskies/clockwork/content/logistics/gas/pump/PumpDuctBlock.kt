@@ -61,7 +61,6 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
 
     override fun canConnectTo(self: BlockPos, other: BlockPos, direction: Direction, level: BlockGetter): Boolean {
 
-        println(direction)
         if (direction.axis==level.getBlockState(self).getValue(BlockStateProperties.FACING).axis) return true
         return false
     }
@@ -137,10 +136,10 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
 
         if (otherConnected && canConnect) {
             ClockworkMod.getKelvin().removeEdge(currentPos.toJOMLD(), neighborPos.toJOMLD())
-            withBlockEntityDo(level, currentPos) { blockEntity ->
-                val newEdge = createEdgeType(blockEntity.blockPos.toJOMLD(), blockEntity.blockPos.relative(direction).toJOMLD(), ConnectionType.PIPE)
-                ClockworkMod.getKelvin().addEdge(blockEntity.blockPos.toJOMLD(), blockEntity.blockPos.relative(direction).toJOMLD(), newEdge)
-            }
+
+            val newEdge = createEdgeType(currentPos.toJOMLD(), neighborPos.toJOMLD(), ConnectionType.PIPE)
+            ClockworkMod.getKelvin().addEdge(currentPos.toJOMLD(), neighborPos.toJOMLD(), newEdge)
+
         }
     }
 
