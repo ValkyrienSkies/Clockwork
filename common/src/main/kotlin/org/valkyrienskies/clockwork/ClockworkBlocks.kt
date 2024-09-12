@@ -36,7 +36,6 @@ import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBl
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
-import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlock
@@ -344,21 +343,6 @@ object ClockworkBlocks {
         .transform(BlockStressDefaults.setImpact(4.0))
         .register()
 
-    @JvmField
-    val FILTER_DUCT: BlockEntry<FilterDuctBlock> = REGISTRATE.block<FilterDuctBlock>(
-        "filter_duct"
-    ) { properties: BlockBehaviour.Properties? ->
-        FilterDuctBlock(
-            properties!!
-        )
-    }
-        .initialProperties { SharedProperties.netheriteMetal() }
-        .properties {it.noOcclusion()}
-        .addLayer { Supplier { RenderType.cutoutMipped() } }
-        .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
-        .transform(customItemModel())
-        .register()
 
     @JvmField
     val GOO_BLOCK = REGISTRATE.block<GooBlock>("goo_block") { properties: BlockBehaviour.Properties? ->
