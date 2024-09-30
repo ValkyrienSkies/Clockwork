@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.kelvin.api.edges
 
+import net.minecraft.server.level.ServerPlayer
 import org.valkyrienskies.clockwork.kelvin.api.*
 
 /**
@@ -13,9 +14,9 @@ class FilteredOneWayDuctEdge(
     override val filter: HashSet<GasType> = HashSet(),
     override var blacklist: Boolean = false,
     override var reversed: Boolean = false
-) : DuctEdge, FilteredEdge, OneWayEdge {
+) : FilteredEdge, OneWayEdge {
 
-    override fun interact(): Boolean {
+    override fun interact(player: ServerPlayer): Boolean {
         reversed = !reversed
         return reversed
     }

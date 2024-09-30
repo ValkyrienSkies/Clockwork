@@ -7,6 +7,7 @@ import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.server.level.ServerPlayer
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionResult
@@ -400,7 +401,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
             val foundEdge = ClockworkMod.getKelvin().getEdgeBetween(context.clickedPos.toJOMLD(), context.clickedPos.relative(changeDirection).toJOMLD())
 
-            foundEdge?.interact()
+            foundEdge?.interact(context.player as ServerPlayer)
 
             return InteractionResult.SUCCESS
         }

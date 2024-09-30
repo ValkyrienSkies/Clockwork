@@ -1,9 +1,7 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.content.trains.schedule.ScheduleScreen
 import com.simibubi.create.foundation.gui.AbstractSimiScreen
-import com.simibubi.create.foundation.gui.widget.IconButton
 import com.simibubi.create.foundation.gui.widget.ScrollInput
 import net.minecraft.client.gui.Font
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
@@ -34,9 +32,9 @@ class CreativeGeneratorScrolling(x: Int, y: Int) : ScrollingFrame(x, y, 159, 64)
         override val height = 18.0
 
 
-        override fun renderElement(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float, visible: Boolean) {
+        override fun renderElement(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float, visible: Boolean, scroll: Double) {
 
-            val tab = ClockworkGuiTextures.CREATIVE_GAS_GENERATOR_TAB
+            val tab = ClockworkGuiTextures.CREATIVE_GAS_GENERATOR_ELEMENT
 
             input.x = x+79
             input.y = y+5

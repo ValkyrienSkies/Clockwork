@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.kelvin.api.edges
 
+import net.minecraft.server.level.ServerPlayer
 import org.valkyrienskies.clockwork.kelvin.api.ConnectionType
 import org.valkyrienskies.clockwork.kelvin.api.DuctEdge
 import org.valkyrienskies.clockwork.kelvin.api.DuctNode
@@ -16,7 +17,7 @@ class OneWayDuctEdge(
     override var reversed: Boolean = false,
 ) : DuctEdge, OneWayEdge {
 
-    override fun interact(): Boolean {
+    override fun interact(player: ServerPlayer): Boolean {
         reversed = !reversed
         return reversed
     }

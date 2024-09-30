@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.kelvin.api
 
+import net.minecraft.server.level.ServerPlayer
+
 interface DuctEdge {
 
     val type: ConnectionType
@@ -11,7 +13,7 @@ interface DuctEdge {
     var length: Double
     var currentFlowRate: Double
 
-    fun interact(): Boolean {
+    fun interact(player: ServerPlayer): Boolean {
         return false
     }
 }

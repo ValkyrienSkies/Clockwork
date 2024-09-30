@@ -16,7 +16,7 @@ class ApertureFilteredDuctEdge(
     override val filter: HashSet<GasType> = HashSet(),
     override var blacklist: Boolean = false,
     override var aperture: Double = 0.0
-) : DuctEdge, ApertureEdge, FilteredEdge {
+) : ApertureEdge, FilteredEdge {
 
 
 }

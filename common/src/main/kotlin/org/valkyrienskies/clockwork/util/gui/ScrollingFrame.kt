@@ -53,7 +53,7 @@ open class ScrollingFrame(x: Int, y: Int, w: Int, h: Int): AbstractSimiWidget(x,
 
             element.x = x
             element.y = (y+pastHeight).roundToInt()
-            element.renderElement(ms, mouseX, mouseY, partialTicks, visible)
+            element.renderElement(ms, mouseX, mouseY, partialTicks, visible, scroll)
 
             pastHeight+=element.height+padding
         }
@@ -67,7 +67,7 @@ open class ScrollingFrame(x: Int, y: Int, w: Int, h: Int): AbstractSimiWidget(x,
         var x: Int = 0
         var y: Int = 0
 
-        abstract fun renderElement(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float, visible: Boolean)
+        abstract fun renderElement(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float, visible: Boolean, scroll: Double)
     }
 
 }
