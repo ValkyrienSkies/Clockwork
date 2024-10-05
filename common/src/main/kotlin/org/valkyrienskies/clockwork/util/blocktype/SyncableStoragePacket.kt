@@ -6,11 +6,13 @@ import net.minecraft.core.NonNullList
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.world.ContainerHelper
+import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import org.valkyrienskies.clockwork.platform.api.network.ClientNetworkContext
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket
 
 class SyncableStoragePacket : S2CCWPacket {
+    override var player: Player? = null
     private val pos: BlockPos
     private val inventory: NonNullList<ItemStack>
     private val inventorySize: Int
@@ -55,5 +57,6 @@ class SyncableStoragePacket : S2CCWPacket {
                 }
             }
         }
+        context.setPacketHandled(true)
     }
 }

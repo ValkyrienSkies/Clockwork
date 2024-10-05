@@ -36,6 +36,7 @@ class GravitronDestroyPacket : C2SCWPacket {
                 unfillShip(serverLevel, ship)
             }
         }
+        context.setPacketHandled(true)
     }
 
     override fun write(buffer: FriendlyByteBuf) {

@@ -5,6 +5,7 @@ import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.entity.player.Player
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool.ToolType
@@ -14,7 +15,7 @@ import org.valkyrienskies.clockwork.platform.api.network.ServerNetworkContext
 import org.valkyrienskies.core.api.ships.properties.ShipId
 
 class WanderwandRenderUpdatePacket : S2CCWPacket {
-
+    override var player: Player? = null
     val selectionPos: BlockPos
     val tool: ToolType
     val blocks: CompoundTag?

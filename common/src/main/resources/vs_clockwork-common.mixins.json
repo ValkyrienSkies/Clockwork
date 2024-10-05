@@ -14,7 +14,8 @@
     "accessors.IMixinPistonContraption",
     "content.fan.MixinEncasedFanTileEntity",
     "content.universal_joint.MixinRotationPropagator",
-    "content.wing.MixinAbstractCauldronBlock"
+    "content.wing.MixinAbstractCauldronBlock",
+    "effekseer.MixinResourceLocation"
   ],
   "client": [
     "MixinLevelRenderer",
@@ -23,7 +24,12 @@
     "client.MixinFogRenderer",
     "client.MixinItemInHandRenderer",
     "content.gravitron.MinecraftAccessor",
-    "content.gravitron.MixinLocalPlayer"
+    "content.gravitron.MixinLocalPlayer",
+    "effekseer.client.GameRendererAccessor",
+    "effekseer.client.MixinGameRenderer",
+    "effekseer.client.MixinItemInHandRenderer",
+    "effekseer.client.MixinLevelRenderer",
+    "effekseer.client.MixinMinecraft"
   ],
   "injectors": {
     "defaultRequire": 1

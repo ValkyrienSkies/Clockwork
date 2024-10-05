@@ -2,12 +2,13 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron
 
 import net.minecraft.client.Minecraft
 import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.world.entity.player.Player
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 import org.valkyrienskies.clockwork.platform.api.network.ClientNetworkContext
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket
 
 class GravitronDialPacket : S2CCWPacket {
-
+    override var player: Player? = null
     val quote: Float
 
     constructor(quote: Float) {
@@ -27,6 +28,7 @@ class GravitronDialPacket : S2CCWPacket {
             duckPlayer.gravitronDialAngle = quote
             duckPlayer.needsRefresh = true
         }
+        context.setPacketHandled(true)
     }
 
     override fun write(buffer: FriendlyByteBuf) {

@@ -80,6 +80,7 @@ class WandSelectionPacket : C2SCWPacket {
                 }
             }
         }
+        context.setPacketHandled(true)
     }
 
     override fun write(buffer: FriendlyByteBuf) {

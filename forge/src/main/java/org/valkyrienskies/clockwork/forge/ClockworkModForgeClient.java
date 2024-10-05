@@ -8,6 +8,7 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import org.valkyrienskies.clockwork.ClockworkModClient;
 import org.valkyrienskies.clockwork.ClockworkPartials;
 import org.valkyrienskies.clockwork.ClockworkShaders;
+import org.valkyrienskies.clockwork.effekseer.client.render.EffekRenderer;
 import org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.ForgeGravitronHandler;
 
 import java.io.IOException;
@@ -25,5 +26,7 @@ public class ClockworkModForgeClient {
         //ClientReloadShadersEvent.EVENT.register(ClockworkModForgeClient::onShaderReload);
         OverlayRegistry.registerOverlayAbove(ForgeIngameGui.HOTBAR_ELEMENT, "Gravitron",
                 ClockworkModForgeClient.GRAVITRON_HANDLER.getOverlayRenderer());
+
+        EffekRenderer.INSTANCE.init();
     }
 }

@@ -16,6 +16,9 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.Wanderw
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket
 import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket
+import org.valkyrienskies.clockwork.effekseer.common.network.AddParticlePacket
+import org.valkyrienskies.clockwork.effekseer.common.network.EmitterTriggerPacket
+import org.valkyrienskies.clockwork.effekseer.common.network.UpdateEmitterParameterPacket
 import org.valkyrienskies.clockwork.platform.SharedValues.packetChannel
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
 import org.valkyrienskies.clockwork.platform.api.network.CWPacket
@@ -47,7 +50,13 @@ enum class ClockworkPackets(
     //SYNC_TEMPERATURE(TemperatureSyncPacket::class.java, ::TemperatureSyncPacket),
 
     PHYSICS_INFUSER(PhysicsInfuserSyncPacket::class.java, ::PhysicsInfuserSyncPacket),
-    WAND_RENDER_UPDATE_PACKET(WanderwandRenderUpdatePacket::class.java, ::WanderwandRenderUpdatePacket);
+    WAND_RENDER_UPDATE_PACKET(WanderwandRenderUpdatePacket::class.java, ::WanderwandRenderUpdatePacket),
+
+    //TEMPORARY
+    ADD_PARTICLE(AddParticlePacket::class.java, ::AddParticlePacket),
+    EMITTER_TRIGGER(EmitterTriggerPacket::class.java, ::EmitterTriggerPacket),
+    UPDATE_EMITTER_PARAMETER(UpdateEmitterParameterPacket::class.java, ::UpdateEmitterParameterPacket)
+    ;
 
     init {
         packetChannel.registerPacket(type as Class<CWPacket>, factory as Function<FriendlyByteBuf, CWPacket>)

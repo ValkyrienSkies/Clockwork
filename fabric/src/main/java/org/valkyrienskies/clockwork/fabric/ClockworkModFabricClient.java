@@ -20,6 +20,7 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceProvider;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler;
+import org.valkyrienskies.clockwork.effekseer.client.render.EffekRenderer;
 //import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer;
 
 import java.io.IOException;
@@ -43,6 +44,8 @@ public class ClockworkModFabricClient implements ClientModInitializer {
         ClockworkShaders.INSTANCE.init();
         //ClientReloadShadersEvent.EVENT.register(ClockworkModClient::onShaderReload);
         //RegisterShadersCallback.EVENT.register(this::registerShaders);
+
+        EffekRenderer.INSTANCE.init();
 
         KeyInputCallback.EVENT.register(FabricClockworkInputEvents::onKeyInput);
 
