@@ -4,17 +4,16 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.gui.AbstractSimiScreen
 import com.simibubi.create.foundation.gui.AllIcons
 import com.simibubi.create.foundation.gui.widget.IconButton
-import com.simibubi.create.foundation.gui.widget.ScrollInput
 import com.simibubi.create.foundation.utility.Components
-import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.TextComponent
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.kelvin.api.GasType
+import org.valkyrienskies.clockwork.util.gui.GuiUtil
 import org.valkyrienskies.clockwork.util.gui.ScrollingFrame
+import kotlin.math.roundToInt
 
-class FilterScreen(private val nodeA: DuctNodePos, private val nodeB: DuctNodePos, private val filter: HashSet<GasType>, private val blacklist: Boolean) : AbstractSimiScreen()  {
+class FilterScreen(private val nodeA: DuctNodePos, private val nodeB: DuctNodePos, private val filter: HashSet<GasType>, private var blacklist: Boolean) : AbstractSimiScreen()  {
 
     private val tab: ClockworkGuiTextures = ClockworkGuiTextures.GAS_FILTER_TAB;
     private val frame: ClockworkGuiTextures = ClockworkGuiTextures.GAS_FILTER_FRAME;
@@ -22,8 +21,10 @@ class FilterScreen(private val nodeA: DuctNodePos, private val nodeB: DuctNodePo
     val scrollingElements: MutableList<ScrollingFrame.ScrollingElement> = mutableListOf()
     lateinit var scrollingFrame: FilterScrolling
 
+    lateinit var blacklistToggle: IconButton
 
-    fun updateIcon(button: IconButton, gasType: GasType, Added: Boolean?=null) {
+
+    fun updateListIcon(button: IconButton, gasType: GasType, Added: Boolean?=null) {
         if (Added==true || gasType in filter) {
             button.setIcon(AllIcons.I_CONFIRM)
             button.setToolTip(Components.translatable("Added"))
@@ -32,6 +33,11 @@ class FilterScreen(private val nodeA: DuctNodePos, private val nodeB: DuctNodePo
             button.setIcon(AllIcons.I_NONE)
             button.setToolTip(Components.translatable("Removed"))
         }
+    }
+
+    fun updateBlacklistIcon() {
+        if (blacklist) blacklistToggle.setIcon(AllIcons.I_BLACKLIST)
+        else blacklistToggle.setIcon(AllIcons.I_WHITELIST)
     }
 
     override fun init() {
@@ -45,14 +51,14 @@ class FilterScreen(private val nodeA: DuctNodePos, private val nodeB: DuctNodePo
             button.withCallback<IconButton> { _, _ ->
                 if (type in filter) {
                     filter.remove(type)
-                    updateIcon(button, type, false)
+                    updateListIcon(button, type, false)
                 }
                 else {
                     filter.add(type)
-                    updateIcon(button, type, true)
+                    updateListIcon(button, type, true)
                 }
             }
-            updateIcon(button, type)
+            updateListIcon(button, type)
 
             scrollingElements.add(FilterScrolling.FilterScrollingElement(type, font, button))
         }
@@ -64,6 +70,13 @@ class FilterScreen(private val nodeA: DuctNodePos, private val nodeB: DuctNodePo
 //        temperatureInput.withRange(0,4500)
 //        temperatureInput.calling { state: Int -> be.temperature = state.toDouble() }
 //        addRenderableWidget(temperatureInput)
+
+        blacklistToggle = IconButton(guiLeft+152, guiTop+80, AllIcons.I_BLACKLIST)
+        blacklistToggle.withCallback<IconButton> { _, _ ->
+            blacklist = !blacklist
+            updateBlacklistIcon()
+        }
+        updateBlacklistIcon()
     }
 
 
@@ -76,11 +89,18 @@ class FilterScreen(private val nodeA: DuctNodePos, private val nodeB: DuctNodePo
 
     override fun renderWindowForeground(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
         tab.render(ms, guiLeft, guiTop)
+        blacklistToggle.render(ms, mouseX, mouseY, partialTicks )
 
     }
 
     override fun onClose() {
         ClockworkPackets.sendToServer(FilterClosePacket(nodeA, nodeB, filter, blacklist))
         super.onClose()
+    }
+
+    override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
+
+        return if (GuiUtil.withinRectangle(mouseX.roundToInt(),mouseY.roundToInt(),guiLeft+152, guiTop+80, 18, 18)) blacklistToggle.mouseClicked(mouseX,mouseY,button)
+        else super.mouseClicked(mouseX, mouseY, button)
     }
 }
