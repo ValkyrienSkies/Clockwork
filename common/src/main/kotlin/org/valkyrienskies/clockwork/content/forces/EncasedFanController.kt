@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.forces
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect
 import it.unimi.dsi.fastutil.Pair
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import net.minecraft.util.Mth
@@ -16,6 +17,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.function.BiConsumer
 
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class EncasedFanController : ShipForcesInducer {
     val fanData: Int2ObjectOpenHashMap<EncasedFanData> = Int2ObjectOpenHashMap<EncasedFanData>()
     private val fanUpdateData: ConcurrentHashMap<Int, EncasedFanUpdateData> =

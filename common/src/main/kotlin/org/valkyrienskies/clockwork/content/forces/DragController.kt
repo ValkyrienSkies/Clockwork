@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.content.forces
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect
+import com.fasterxml.jackson.annotation.JsonIgnore
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerLevel
 import org.joml.Vector3d
@@ -22,23 +24,28 @@ import org.valkyrienskies.mod.util.logger
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class DragController : ShipForcesInducer {
 
+    @JsonIgnore
     private val blockUpdateQueue = ConcurrentLinkedQueue<Pair<Vector3ic, Boolean>>()
+    @JsonIgnore
     private val aabbUpdateQueue = ConcurrentLinkedQueue<AABBic>()
 
     private val allBlocks = HashSet<Vector3ic>()
     private val exposedFaces : EnumMap<Direction, HashSet<Vector3ic>> = EnumMap(Direction::class.java)
     private val surfaceAreaByDirection = EnumMap<Direction, Double>(Direction::class.java)
 
+    @JsonIgnore
     private val sideTracker: SideProfileTracker = SideProfileTracker()
 
     private var bounds: AABBic? = null
 
+    @JsonIgnore
     private var shouldUpdate: Boolean = true
-
+    @JsonIgnore
     private var firstTimeUpdate: Boolean = true
-
+    @JsonIgnore
     private var max_height: Double = 563.0
 
     override fun applyForces(physShip: PhysShip) {

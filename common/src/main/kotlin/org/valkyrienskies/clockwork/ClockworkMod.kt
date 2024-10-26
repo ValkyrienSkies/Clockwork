@@ -59,6 +59,13 @@ object ClockworkMod {
             Kelvin.dump()
         }
 
+        LifecycleEvent.SERVER_STARTED.register {
+            ClockworkAugmentations.registerComponentAugmentation("temperature", it.shipObjectWorld)
+            ClockworkAugmentations.registerComponentAugmentation("gas_air", it.shipObjectWorld)
+            ClockworkAugmentations.registerComponentAugmentation("gas_phlogiston", it.shipObjectWorld)
+            ClockworkAugmentations.registerComponentAugmentation("gas_helium", it.shipObjectWorld)
+        }
+
         TickEvent.SERVER_LEVEL_POST.register {
             for (ship in it.shipObjectWorld.loadedShips) {
                 ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship)
