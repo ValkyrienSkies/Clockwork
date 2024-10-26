@@ -9,6 +9,7 @@ import org.joml.Vector3dc
 import org.joml.Vector3i
 import org.joml.Vector3ic
 import org.valkyrienskies.clockwork.ClockworkAugmentations
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.content.logistics.gas.utilities.PocketForcesQueueable
 import org.valkyrienskies.clockwork.kelvin.api.GasType
 import org.valkyrienskies.clockwork.util.AerodynamicUtils
@@ -95,7 +96,7 @@ class PocketForcesController: ShipForcesInducer {
                         }
                     }
                     if (totalInternalDensity != 0.0) {
-                        val buoyantForce = pocketRoots[it]!!.toDouble() * (AerodynamicUtils.getAirDensityForY(physShip.transform.positionInWorld.y(), max_height) - totalInternalDensity) * 10.0
+                        val buoyantForce = pocketRoots[it]!!.toDouble() * (AerodynamicUtils.getAirDensityForY(physShip.transform.positionInWorld.y(), max_height) - totalInternalDensity) * ClockworkConfig.SERVER.balloonForceMult
                         totalBuoyantForce[it] = buoyantForce
                     }
                 }
