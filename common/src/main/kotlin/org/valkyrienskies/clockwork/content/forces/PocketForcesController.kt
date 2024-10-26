@@ -94,8 +94,10 @@ class PocketForcesController: ShipForcesInducer {
                             totalInternalDensity += density
                         }
                     }
-                    val buoyantForce = pocketRoots[it]!!.toDouble() * (AerodynamicUtils.getAirDensityForY(physShip.transform.positionInWorld.y(), max_height) - totalInternalDensity) * 10.0
-                    totalBuoyantForce[it] = buoyantForce
+                    if (totalInternalDensity != 0.0) {
+                        val buoyantForce = pocketRoots[it]!!.toDouble() * (AerodynamicUtils.getAirDensityForY(physShip.transform.positionInWorld.y(), max_height) - totalInternalDensity) * 10.0
+                        totalBuoyantForce[it] = buoyantForce
+                    }
                 }
             }
         }
