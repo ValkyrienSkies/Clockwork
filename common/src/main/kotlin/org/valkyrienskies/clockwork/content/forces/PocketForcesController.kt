@@ -13,6 +13,8 @@ import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.content.logistics.gas.utilities.PocketForcesQueueable
 import org.valkyrienskies.clockwork.kelvin.api.GasType
 import org.valkyrienskies.clockwork.util.AerodynamicUtils
+import org.valkyrienskies.clockwork.util.ClockworkUtils.getAirComponentsInChunkClaim
+import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
 import org.valkyrienskies.clockwork.util.MathFunctions.chunkPos
 import org.valkyrienskies.clockwork.util.MathFunctions.toTriple
 import org.valkyrienskies.clockwork.util.MathFunctions.toVector3i
@@ -30,7 +32,7 @@ class PocketForcesController: ShipForcesInducer {
     @JsonIgnore
     private var max_height: Double = 563.0
     @JsonIgnore
-    val gametickKnownPocketRoots: HashSet<Vector3ic> = HashSet()
+    val gametickKnownPocketRoots: HashSet<Triple<Int, Int, Int>> = HashSet()
     @JsonIgnore
     val pocketRoots: HashMap<Vector3ic, Long> = HashMap()
     @JsonIgnore
@@ -135,18 +137,12 @@ class PocketForcesController: ShipForcesInducer {
     fun gameTick(level: ServerLevel, ship: ServerShip) {
         val loadedShip = level.shipObjectWorld.loadedShips.getById(ship.id) ?: return
 
-        val temperature = level.shipObjectWorld.getFromEachAirComponent(ClockworkAugmentations.getComponentAugmentation("temperature"), level.dimensionId).filter { loadedShip.chunkClaim.contains(it.key.chunkPos().x, it.key.chunkPos().z) }
-        val air = level.shipObjectWorld.getFromEachAirComponent(ClockworkAugmentations.getComponentAugmentation("gas_air"), level.dimensionId).filter { loadedShip.chunkClaim.contains(it.key.chunkPos().x, it.key.chunkPos().z) }
-        val phlogiston = level.shipObjectWorld.getFromEachAirComponent(ClockworkAugmentations.getComponentAugmentation("gas_phlogiston"), level.dimensionId).filter { loadedShip.chunkClaim.contains(it.key.chunkPos().x, it.key.chunkPos().z) }
-        val helium = level.shipObjectWorld.getFromEachAirComponent(ClockworkAugmentations.getComponentAugmentation("gas_helium"), level.dimensionId).filter { loadedShip.chunkClaim.contains(it.key.chunkPos().x, it.key.chunkPos().z) }
+        val roots = getAirComponentsInChunkClaim(loadedShip.chunkClaim, level, ClockworkAugmentations.getComponentAugmentation("temperature"))
 
-        for (root: Triple<Int, Int, Int> in temperature.keys) {
-            val gasMap = EnumMap<GasType, Double>(GasType::class.java)
-            gasMap[GasType.AIR] = air[root] ?: 0.0
-            gasMap[GasType.PHLOGISTON] = phlogiston[root] ?: 0.0
-            gasMap[GasType.HELIUM] = helium[root] ?: 0.0
+        for (root: Triple<Int, Int, Int> in roots.keys) {
+            val gasMap = retrieveGasInfoFromPocket(root.toVector3i(), level)
 
-            val componentSize = level.shipObjectWorld.getAirComponentSize(root.first, root.second, root.third, level.dimensionId)
+            val componentSize = roots[root] ?: 0L
 
             val collectX = level.shipObjectWorld.collectAirAugmentation(level.shipObjectWorld.createDoubleSumAugmentation("core", "x"), root.first, root.second, root.third, level.dimensionId)
             val collectY = level.shipObjectWorld.collectAirAugmentation(level.shipObjectWorld.createDoubleSumAugmentation("core", "y"), root.first, root.second, root.third, level.dimensionId)
@@ -154,13 +150,13 @@ class PocketForcesController: ShipForcesInducer {
 
             val center = Vector3d(collectX / componentSize.toDouble(), collectY / componentSize.toDouble(), collectZ / componentSize.toDouble())
 
-            pocketQueue.add(PocketForcesQueueable(root.toVector3i(), center, componentSize, gasMap, temperature[root] ?: 0.0))
-            gametickKnownPocketRoots.add(root.toVector3i())
+            pocketQueue.add(PocketForcesQueueable(root.toVector3i(), center, componentSize, gasMap.first, gasMap.second))
+            gametickKnownPocketRoots.add(root)
         }
-        val toRemove = HashSet<Vector3ic>()
+        val toRemove = HashSet<Triple<Int, Int, Int>>()
         for (root in gametickKnownPocketRoots) {
-            if (!temperature.containsKey(root.toTriple())) {
-                pocketRemoveQueue.add(root)
+            if (!roots.containsKey(root)) {
+                pocketRemoveQueue.add(root.toVector3i())
                 toRemove.add(root)
             }
         }

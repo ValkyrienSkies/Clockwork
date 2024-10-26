@@ -32,7 +32,7 @@ object MathFunctions {
     }
 
     fun Triple<Int, Int, Int>.chunkPos(): ChunkPos {
-        return ChunkPos(this.first shr 4, this.third shr 4)
+        return ChunkPos((this.first shr 4), (this.third shr 4))
     }
 
     fun Vector3ic.toTriple(): Triple<Int, Int, Int> {

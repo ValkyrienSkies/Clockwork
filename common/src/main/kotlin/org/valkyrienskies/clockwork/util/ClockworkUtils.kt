@@ -14,7 +14,13 @@ import org.joml.Vector3i
 import org.joml.Vector3ic
 import org.joml.primitives.AABBi
 import org.joml.primitives.AABBic
+import org.valkyrienskies.clockwork.ClockworkAugmentations
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.SelectedAreaToolkit
+import org.valkyrienskies.clockwork.kelvin.api.GasType
+import org.valkyrienskies.clockwork.util.MathFunctions.chunkPos
+import org.valkyrienskies.clockwork.util.MathFunctions.toVector3i
+import org.valkyrienskies.core.api.ships.properties.ChunkClaim
+import org.valkyrienskies.core.api.world.connectivity.DoubleComponentAugmentation
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil.defaultMapper
 import org.valkyrienskies.mod.common.BlockStateInfo
 import org.valkyrienskies.mod.common.dimensionId
@@ -132,5 +138,64 @@ object ClockworkUtils {
         } catch (ignored: JsonProcessingException) {
         }
         return nbt
+    }
+
+    fun retrieveGasInfoFromPocket(pos: Vector3ic, level: ServerLevel): Pair<EnumMap<GasType, Double>, Double> {
+        val gasMap = EnumMap<GasType, Double>(GasType::class.java)
+        for (type in GasType.entries) {
+            val key = ClockworkAugmentations.getComponentAugmentation("gas_" + type.name.lowercase(Locale.getDefault()))
+            val gas = level.shipObjectWorld.getAirComponentAugmentation(key, pos.x(), pos.y(), pos.z(), level.dimensionId)
+            gasMap[type] = gas
+        }
+
+        val temperature = level.shipObjectWorld.getAirComponentAugmentation(
+            ClockworkAugmentations.getComponentAugmentation("temperature"),
+            pos.x(),
+            pos.y(),
+            pos.z(),
+            level.dimensionId
+        )
+
+        return Pair(gasMap, temperature)
+    }
+
+    /**
+     * Retrieves all components within a given chunk claim, using a key as reference.
+     *
+     * Temporary implementation until it's properly indexed in VS Core.
+     */
+    @Deprecated("Temporary. Will be replaced with proper implementation in VS Core.")
+    fun getAirComponentsInChunkClaim(claim: ChunkClaim, level: ServerLevel, referenceKey: DoubleComponentAugmentation): HashMap<Triple<Int, Int, Int>, Long> {
+        val map = HashMap<Triple<Int, Int, Int>, Long>()
+        level.shipObjectWorld.getFromEachAirComponentRoot(referenceKey, level.dimensionId).keys.forEach { pos ->
+            if (claim.contains(pos.chunkPos().x, pos.chunkPos().z)) {
+                map[pos] = try {
+                    level.shipObjectWorld.getAirComponentSize(pos.first, pos.second, pos.third, level.dimensionId)
+                } catch (e: IllegalArgumentException) {
+                    -1
+                }
+            }
+        }
+        return HashMap(map.filterNot { it.value == -1L })
+    }
+
+    /**
+     * Retrieves all components within a given chunk claim, using a key as reference.
+     *
+     * Temporary implementation until it's properly indexed in VS Core.
+     */
+    @Deprecated("Temporary. Will be replaced with proper implementation in VS Core.")
+    fun getSolidComponentsInChunkClaim(claim: ChunkClaim, level: ServerLevel, referenceKey: DoubleComponentAugmentation): HashMap<Triple<Int, Int, Int>, Long> {
+        val map = HashMap<Triple<Int, Int, Int>, Long>()
+        level.shipObjectWorld.getFromEachSolidComponentRoot(referenceKey, level.dimensionId).keys.forEach { pos ->
+            if (claim.contains(pos.chunkPos().x, pos.chunkPos().z)) {
+                map[pos] = try {
+                    level.shipObjectWorld.getSolidComponentSize(pos.first, pos.second, pos.third, level.dimensionId)
+                } catch (e: IllegalArgumentException) {
+                    -1
+                }
+            }
+        }
+        return HashMap(map.filterNot { it.value == -1L })
     }
 }
