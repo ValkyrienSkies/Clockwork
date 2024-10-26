@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=y": {
+      "model": "vs_clockwork:block/filter/block"
+    },
+    "axis=z": {
+      "model": "vs_clockwork:block/filter/block",
+      "x": 90
+    },
+    "axis=x": {
+      "model": "vs_clockwork:block/filter/block",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

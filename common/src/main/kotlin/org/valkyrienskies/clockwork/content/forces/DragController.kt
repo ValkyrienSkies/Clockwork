@@ -15,6 +15,7 @@ import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.ShipForcesInducer
 import org.valkyrienskies.core.util.expand
+import org.valkyrienskies.mod.common.util.settings
 import org.valkyrienskies.mod.common.util.toBlockPos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.util.logger

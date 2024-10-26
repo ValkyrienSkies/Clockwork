@@ -4,4 +4,5 @@ enum class NodeBehaviorType {
     PIPE,
     PUMP,
     POCKET,
+    TANK
 }

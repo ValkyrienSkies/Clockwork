@@ -1,0 +1,117 @@
+{
+	"credit": "Made with Blockbench",
+	"textures": {
+		"particle": "vs_clockwork:block/heatpipe_core"
+	},
+	"elements": [
+		{
+			"name": "Gear8",
+			"from": [-1, 5.05, 6.5],
+			"to": [17, 11.05, 9.5],
+			"rotation": {"angle": -45, "axis": "y", "origin": [8, 9.55, 8]},
+			"faces": {
+				"north": {"uv": [0, 20, 18, 26], "rotation": 180, "texture": "#missing"},
+				"east": {"uv": [18, 20, 21, 26], "rotation": 180, "texture": "#missing"},
+				"south": {"uv": [0, 20, 18, 26], "rotation": 180, "texture": "#missing"},
+				"west": {"uv": [18, 20, 21, 26], "rotation": 180, "texture": "#missing"},
+				"up": {"uv": [0, 17, 18, 20], "rotation": 180, "texture": "#missing"},
+				"down": {"uv": [0, 17, 18, 20], "texture": "#missing"}
+			}
+		},
+		{
+			"name": "Gear8",
+			"from": [-1, 5.05, 6.5],
+			"to": [17, 11.05, 9.5],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 9.55, 8]},
+			"faces": {
+				"north": {"uv": [0, 20, 18, 26], "rotation": 180, "texture": "#missing"},
+				"east": {"uv": [18, 20, 21, 26], "rotation": 180, "texture": "#missing"},
+				"south": {"uv": [0, 20, 18, 26], "rotation": 180, "texture": "#missing"},
+				"west": {"uv": [18, 20, 21, 26], "rotation": 180, "texture": "#missing"},
+				"up": {"uv": [0, 17, 18, 20], "rotation": 180, "texture": "#missing"},
+				"down": {"uv": [0, 17, 18, 20], "texture": "#missing"}
+			}
+		},
+		{
+			"name": "Gear7",
+			"from": [6.5, 5.05, -1],
+			"to": [9.5, 11.05, 17],
+			"rotation": {"angle": -45, "axis": "y", "origin": [8, 9.55, 8]},
+			"faces": {
+				"north": {"uv": [18, 20, 21, 26], "rotation": 180, "texture": "#missing"},
+				"east": {"uv": [0, 20, 18, 26], "rotation": 180, "texture": "#missing"},
+				"south": {"uv": [18, 20, 21, 26], "rotation": 180, "texture": "#missing"},
+				"west": {"uv": [0, 20, 18, 26], "rotation": 180, "texture": "#missing"},
+				"up": {"uv": [0, 17, 18, 20], "rotation": 270, "texture": "#missing"},
+				"down": {"uv": [0, 17, 18, 20], "rotation": 90, "texture": "#missing"}
+			}
+		},
+		{
+			"name": "Gear6",
+			"from": [6.5, 5.05, -1],
+			"to": [9.5, 11.05, 17],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 9.55, 8]},
+			"faces": {
+				"north": {"uv": [18, 20, 21, 26], "rotation": 180, "texture": "#missing"},
+				"east": {"uv": [0, 20, 18, 26], "rotation": 180, "texture": "#missing"},
+				"south": {"uv": [18, 20, 21, 26], "rotation": 180, "texture": "#missing"},
+				"west": {"uv": [0, 20, 18, 26], "rotation": 180, "texture": "#missing"},
+				"up": {"uv": [0, 17, 18, 20], "rotation": 270, "texture": "#missing"},
+				"down": {"uv": [0, 17, 18, 20], "rotation": 90, "texture": "#missing"}
+			}
+		},
+		{
+			"name": "GearCaseInner",
+			"from": [2, 5.5, 2.5],
+			"to": [14, 10.5, 14.5],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 9, 8.5]},
+			"faces": {
+				"north": {"uv": [0, 12, 12, 17], "rotation": 180, "texture": "#missing"},
+				"east": {"uv": [0, 12, 12, 17], "rotation": 180, "texture": "#missing"},
+				"south": {"uv": [0, 12, 12, 17], "rotation": 180, "texture": "#missing"},
+				"west": {"uv": [0, 12, 12, 17], "rotation": 180, "texture": "#missing"},
+				"up": {"uv": [0, 0, 12, 12], "texture": "#missing"},
+				"down": {"uv": [0, 0, 12, 12], "texture": "#missing"}
+			}
+		}
+	],
+	"display": {
+		"thirdperson_righthand": {
+			"rotation": [75, 45, 0],
+			"translation": [0, 2.5, 0],
+			"scale": [0.375, 0.375, 0.375]
+		},
+		"thirdperson_lefthand": {
+			"rotation": [75, 45, 0],
+			"translation": [0, 2.5, 0],
+			"scale": [0.375, 0.375, 0.375]
+		},
+		"firstperson_righthand": {
+			"rotation": [0, 45, 0],
+			"scale": [0.4, 0.4, 0.4]
+		},
+		"firstperson_lefthand": {
+			"rotation": [0, 225, 0],
+			"scale": [0.4, 0.4, 0.4]
+		},
+		"ground": {
+			"translation": [0, 3, 0],
+			"scale": [0.25, 0.25, 0.25]
+		},
+		"gui": {
+			"rotation": [30, 225, 0],
+			"scale": [0.625, 0.625, 0.625]
+		},
+		"fixed": {
+			"scale": [0.5, 0.5, 0.5]
+		}
+	},
+	"groups": [
+		{
+			"name": "cogwheel",
+			"origin": [8, 8, 8],
+			"color": 0,
+			"children": [0, 1, 2, 3, 4]
+		}
+	]
+}

@@ -20,4 +20,10 @@ class PipeDuctNode(
     override fun getEdgeTo(neighbor: DuctNodePos): DuctEdge? {
         return nodeEdges.firstOrNull { it.nodeA == this.pos && it.nodeB == neighbor || it.nodeA == neighbor && it.nodeB == this.pos }
     }
+
+    companion object {
+        fun DEFAULT(pos: DuctNodePos, network: DuctNetwork): PipeDuctNode {
+            return PipeDuctNode(pos, NodeBehaviorType.PIPE, network, volume = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0)
+        }
+    }
 }

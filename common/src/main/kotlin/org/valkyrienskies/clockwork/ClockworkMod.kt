@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork
 
 import com.mojang.logging.LogUtils
 import com.simibubi.create.foundation.data.CreateRegistrate
+import dev.architectury.event.events.common.LifecycleEvent
 import dev.architectury.event.events.common.TickEvent
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
@@ -50,6 +51,14 @@ object ClockworkMod {
             event.ship.setAttachment(WanderShipControl())
         }
 
+        LifecycleEvent.SERVER_BEFORE_START.register {
+            Kelvin.disabled = false
+        }
+
+        LifecycleEvent.SERVER_STOPPED.register {
+            Kelvin.dump()
+        }
+
         TickEvent.SERVER_LEVEL_POST.register {
             for (ship in it.shipObjectWorld.loadedShips) {
                 ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship)
@@ -60,6 +69,9 @@ object ClockworkMod {
     }
 
     fun getKelvin(): DuctNetwork {
+        if (Kelvin.disabled) {
+            throw IllegalStateException("Attempted to access Kelvin from the wrong place!")
+        }
         return Kelvin
     }
 

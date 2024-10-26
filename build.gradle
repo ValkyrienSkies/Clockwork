@@ -106,6 +106,12 @@ allprojects {
         options.release = 17
     }
 
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile).configureEach {
+        kotlinOptions {
+            jvmTarget = "17"
+        }
+    }
+
     java {
         withSourcesJar()
     }

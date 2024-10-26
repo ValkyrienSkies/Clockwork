@@ -12,15 +12,8 @@ class PumpDuctNode(
     override val maxPressure: Double,
     override val maxTemperature: Double,
     var pumpPressure: Double = 0.0,
-    var pumpTarget: DuctEdge? = null
+    var pumpTarget: DuctNodePos? = null
 ) : DuctNode {
-
-    fun setTargetPressure(pressure: Double) {
-        pumpPressure = pressure
-    }
-    fun setTargetEdge(edge: DuctEdge) {
-        pumpTarget = edge
-    }
 
     override fun getEdges(): Set<DuctEdge> {
         return nodeEdges
