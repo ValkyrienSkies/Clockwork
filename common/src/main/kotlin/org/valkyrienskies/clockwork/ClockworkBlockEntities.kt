@@ -44,6 +44,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlockEnti
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctCogInstance
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankBlockEntity
+import org.valkyrienskies.clockwork.content.physicalities.ballooner.BalloonerBlockEntity
 import java.util.function.BiFunction
 
 object ClockworkBlockEntities {
@@ -346,6 +347,18 @@ object ClockworkBlockEntities {
                 )
             }
         }
+        .register()
+
+    @JvmField
+    val BALLOONER: BlockEntityEntry<BalloonerBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<BalloonerBlockEntity>("ballooner") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            BalloonerBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .validBlocks(ClockworkBlocks.BALLOONER)
         .register()
 
     @JvmField

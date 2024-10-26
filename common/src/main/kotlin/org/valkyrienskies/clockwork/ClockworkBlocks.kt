@@ -41,6 +41,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_ge
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankBlock
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlock
+import org.valkyrienskies.clockwork.content.physicalities.ballooner.BalloonerBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.WingBlock
@@ -343,6 +344,21 @@ object ClockworkBlocks {
         .transform(BlockStressDefaults.setImpact(4.0))
         .register()
 
+    @JvmField
+    val BALLOONER: BlockEntry<BalloonerBlock> =
+        REGISTRATE.block<BalloonerBlock>("ballooner") { properties: BlockBehaviour.Properties? ->
+            BalloonerBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.stone() }
+            .transform(TagGen.axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .model(AssetLookup.customBlockItemModel("ballooner"))
+            .build()
+            .register()
 
     @JvmField
     val GOO_BLOCK = REGISTRATE.block<GooBlock>("goo_block") { properties: BlockBehaviour.Properties? ->

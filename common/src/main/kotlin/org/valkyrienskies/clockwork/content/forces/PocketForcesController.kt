@@ -63,6 +63,8 @@ class PocketForcesController: ShipForcesInducer {
 
         val buoyancyForce = calculateBuoyancyForce(physShip)
 
+        println(buoyancyForce)
+
         buoyancyForce.forEach {
             physShipImpl.applyInvariantForceToPos(Vector3d(0.0, it.value, 0.0), Vector3d(pocketCenters[it.key]!!))
         }
