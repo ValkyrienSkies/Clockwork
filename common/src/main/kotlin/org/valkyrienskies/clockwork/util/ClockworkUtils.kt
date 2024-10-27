@@ -165,11 +165,11 @@ object ClockworkUtils {
      * Temporary implementation until it's properly indexed in VS Core.
      */
     @Deprecated("Temporary. Will be replaced with proper implementation in VS Core.")
-    fun getAirComponentsInChunkClaim(claim: ChunkClaim, level: ServerLevel, referenceKey: DoubleComponentAugmentation): HashMap<Triple<Int, Int, Int>, Long> {
-        val map = HashMap<Triple<Int, Int, Int>, Long>()
+    fun getAirComponentsInChunkClaim(claim: ChunkClaim, level: ServerLevel, referenceKey: DoubleComponentAugmentation): HashMap<Vector3ic, Long> {
+        val map = HashMap<Vector3ic, Long>()
         level.shipObjectWorld.getFromEachAirComponentRoot(referenceKey, level.dimensionId).keys.forEach { pos ->
             if (claim.contains(pos.chunkPos().x, pos.chunkPos().z)) {
-                map[pos] = try {
+                map[pos.toVector3i()] = try {
                     level.shipObjectWorld.getAirComponentSize(pos.first, pos.second, pos.third, level.dimensionId)
                 } catch (e: IllegalArgumentException) {
                     -1
@@ -185,11 +185,11 @@ object ClockworkUtils {
      * Temporary implementation until it's properly indexed in VS Core.
      */
     @Deprecated("Temporary. Will be replaced with proper implementation in VS Core.")
-    fun getSolidComponentsInChunkClaim(claim: ChunkClaim, level: ServerLevel, referenceKey: DoubleComponentAugmentation): HashMap<Triple<Int, Int, Int>, Long> {
-        val map = HashMap<Triple<Int, Int, Int>, Long>()
+    fun getSolidComponentsInChunkClaim(claim: ChunkClaim, level: ServerLevel, referenceKey: DoubleComponentAugmentation): HashMap<Vector3ic, Long> {
+        val map = HashMap<Vector3ic, Long>()
         level.shipObjectWorld.getFromEachSolidComponentRoot(referenceKey, level.dimensionId).keys.forEach { pos ->
             if (claim.contains(pos.chunkPos().x, pos.chunkPos().z)) {
-                map[pos] = try {
+                map[pos.toVector3i()] = try {
                     level.shipObjectWorld.getSolidComponentSize(pos.first, pos.second, pos.third, level.dimensionId)
                 } catch (e: IllegalArgumentException) {
                     -1

@@ -32,7 +32,7 @@ class PocketForcesController: ShipForcesInducer {
     @JsonIgnore
     private var max_height: Double = 563.0
     @JsonIgnore
-    val gametickKnownPocketRoots: HashSet<Triple<Int, Int, Int>> = HashSet()
+    val gametickKnownPocketRoots: HashSet<Vector3ic> = HashSet()
     @JsonIgnore
     val pocketRoots: HashMap<Vector3ic, Long> = HashMap()
     @JsonIgnore
@@ -139,24 +139,24 @@ class PocketForcesController: ShipForcesInducer {
 
         val roots = getAirComponentsInChunkClaim(loadedShip.chunkClaim, level, ClockworkAugmentations.getComponentAugmentation("temperature"))
 
-        for (root: Triple<Int, Int, Int> in roots.keys) {
-            val gasMap = retrieveGasInfoFromPocket(root.toVector3i(), level)
+        for (root: Vector3ic in roots.keys) {
+            val gasMap = retrieveGasInfoFromPocket(root, level)
 
             val componentSize = roots[root] ?: 0L
 
-            val collectX = level.shipObjectWorld.collectAirAugmentation(level.shipObjectWorld.createDoubleSumAugmentation("core", "x"), root.first, root.second, root.third, level.dimensionId)
-            val collectY = level.shipObjectWorld.collectAirAugmentation(level.shipObjectWorld.createDoubleSumAugmentation("core", "y"), root.first, root.second, root.third, level.dimensionId)
-            val collectZ = level.shipObjectWorld.collectAirAugmentation(level.shipObjectWorld.createDoubleSumAugmentation("core", "z"), root.first, root.second, root.third, level.dimensionId)
+            val collectX = level.shipObjectWorld.collectAirAugmentation(level.shipObjectWorld.createDoubleSumAugmentation("core", "x"), root.x(), root.y(), root.z(), level.dimensionId)
+            val collectY = level.shipObjectWorld.collectAirAugmentation(level.shipObjectWorld.createDoubleSumAugmentation("core", "y"), root.x(), root.y(), root.z(), level.dimensionId)
+            val collectZ = level.shipObjectWorld.collectAirAugmentation(level.shipObjectWorld.createDoubleSumAugmentation("core", "z"), root.x(), root.y(), root.z(), level.dimensionId)
 
             val center = Vector3d(collectX / componentSize.toDouble(), collectY / componentSize.toDouble(), collectZ / componentSize.toDouble())
 
-            pocketQueue.add(PocketForcesQueueable(root.toVector3i(), center, componentSize, gasMap.first, gasMap.second))
+            pocketQueue.add(PocketForcesQueueable(root, center, componentSize, gasMap.first, gasMap.second))
             gametickKnownPocketRoots.add(root)
         }
-        val toRemove = HashSet<Triple<Int, Int, Int>>()
+        val toRemove = HashSet<Vector3ic>()
         for (root in gametickKnownPocketRoots) {
             if (!roots.containsKey(root)) {
-                pocketRemoveQueue.add(root.toVector3i())
+                pocketRemoveQueue.add(root)
                 toRemove.add(root)
             }
         }
