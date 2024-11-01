@@ -1,6 +1,11 @@
 package org.valkyrienskies.clockwork.util
 
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.forces.DragController
+import org.valkyrienskies.clockwork.kelvin.api.GasType
+import java.util.*
+import kotlin.math.max
+import kotlin.math.pow
 
 /**
  * Contains useful functions for features that need funny wind maths. Mainly drag and balloons.
@@ -37,7 +42,11 @@ object AerodynamicUtils {
     fun getAirDensityForY(y: Double, maxHeight: Double): Double {
         val worldScale = 11000.0 / (maxHeight - 63.0)
 
-        val realAltitude = (y - 63.0) * worldScale
+        val realAltitude = if ((y - 63.0) * worldScale >= 0) {
+            (y - 63.0) * worldScale
+        } else {
+            0.0
+        }
 
         val layer = when {
             realAltitude < 11000 -> 0
@@ -105,6 +114,147 @@ object AerodynamicUtils {
         }
     }
 
+    fun getDensityFromTemperature(volume: Double, mass: Double, temperature: Double, gasType: GasType): Double {
+        if (volume == 0.0) return 0.0
+
+        var density = (mass/1000.0) / volume
+
+        if (temperature != 0.0) {
+            val molarMass = gasType.density * 22.4
+            val pressure = calcPressure(mass/1000.0, volume, temperature, gasType)
+            density = (molarMass * pressure) / (UNIVERSAL_GAS_CONSTANT * temperature)
+        }
+        return density
+    }
+
+    /**
+     * Calculates pressure using the ideal gas law.
+     */
+    fun calcPressure(mass: Double, volume: Double, temp: Double, gasType: GasType): Double {
+        if (volume == 0.0) return 0.0
+        val adjustedTemp = max(temp,0.001)
+        val pressure: Double
+        val molarMass = gasType.density * 22.4
+        val moles = mass / molarMass
+        pressure = ((moles) * UNIVERSAL_GAS_CONSTANT * adjustedTemp) / volume
+        return pressure
+    }
+
+    /**
+     * Calculates pressure using the ideal gas law. For use with the average of multiple gas types rather than one.
+     */
+    fun calcPressure(mass: Double, volume: Double, temp: Double, density: Double): Double {
+        if (volume == 0.0 || density == 0.0) return 0.0
+        val adjustedTemp = max(temp,0.001)
+        val pressure: Double
+        val molarMass = density * 22.4
+        val moles = mass / molarMass
+        pressure = (moles * UNIVERSAL_GAS_CONSTANT * adjustedTemp) / volume
+        return pressure
+    }
+
+    /**
+     * Calculates the flow of gas based off pressure differentia, pipe radius, and viscosity using Poiseuille's Law.
+     */
+    fun calculateFlow(pressureOne: Double, pressureTwo: Double, radius: Double, viscosity: Double, pumpPressure: Double = 0.0): Double {
+        return ((pressureOne - pressureTwo + pumpPressure) * radius.pow(4.0)) / ((8.0/Math.PI) * viscosity * (10.0/16.0))
+    }
+
+    fun densityAverage(gasMasses: EnumMap<GasType, Double>): Double {
+        val totalMass = gasMasses.values.sum()
+
+        if (totalMass == 0.0) {
+            return 0.0
+        }
+
+        val massPerGas = EnumMap<GasType, Double>(GasType::class.java)
+
+        val gasWeight = EnumMap<GasType, Double>(GasType::class.java)
+
+        gasMasses.keys.forEach {
+            if (gasMasses[it] != 0.0 ) {
+
+
+                massPerGas[it] =  gasMasses[it]!!
+
+            }
+
+        }
+
+        for (gas in massPerGas.keys) {
+
+            gasWeight[gas] = massPerGas[gas]!! / totalMass
+        }
+
+        var density = 0.0
+
+        for (gas in gasWeight.keys) {
+            density += gasWeight[gas]!! * gas.density
+        }
+
+
+        return density
+    }
+
+    fun viscosityAverage(gasMasses: EnumMap<GasType, Double>): Double {
+        val totalMass = gasMasses.values.sum()
+
+        if (totalMass == 0.0) {
+            return 0.0
+        }
+
+        val massPerGas = EnumMap<GasType, Double>(GasType::class.java)
+
+        val gasWeight = EnumMap<GasType, Double>(GasType::class.java)
+
+        gasMasses.keys.forEach {
+            if (gasMasses[it] != 0.0 ) {
+                massPerGas[it] = gasMasses[it]!!
+            }
+
+        }
+        for (gas in massPerGas.keys) {
+            gasWeight[gas] = massPerGas[gas]!! / totalMass
+        }
+
+        var viscosity = 0.0
+
+        for (gas in gasWeight.keys) {
+            viscosity += gasWeight[gas]!! * gas.viscosity
+        }
+
+        return viscosity
+    }
+
+    fun specificHeatAverage(gasMasses: EnumMap<GasType, Double>): Double {
+        val totalMass = gasMasses.values.sum()
+        if (totalMass == 0.0) {
+            return 0.0
+        }
+
+        val massPerGas = EnumMap<GasType, Double>(GasType::class.java)
+
+        val gasWeight = EnumMap<GasType, Double>(GasType::class.java)
+
+        gasMasses.keys.forEach {
+            if (gasMasses[it] != 0.0 ) {
+                massPerGas[it] =  gasMasses[it]!!
+            }
+
+        }
+
+        for (gas in massPerGas.keys) {
+            gasWeight[gas] = massPerGas[gas]!! / totalMass
+        }
+
+        var specificHeat = 0.0
+
+        for (gas in gasWeight.keys) {
+            specificHeat += gasWeight[gas]!! * gas.specificHeatCapacity
+        }
+
+        return specificHeat
+    }
 
 
     // useful values

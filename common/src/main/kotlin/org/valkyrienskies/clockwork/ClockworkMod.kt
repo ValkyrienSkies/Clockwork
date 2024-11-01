@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils
 import com.simibubi.create.foundation.data.CreateRegistrate
 import dev.architectury.event.events.common.LifecycleEvent
 import dev.architectury.event.events.common.TickEvent
+import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
 import org.slf4j.LoggerFactory
@@ -43,6 +44,7 @@ object ClockworkMod {
         ClockworkPackets.init()
         ClockworkTags.init()
         ClockworkWorldgen.init()
+        ClockworkDamageSources.init()
         ValkyrienSkiesMod.vsCore.registerConfigLegacy("clockwork", ClockworkConfig::class.java)
 
         VSEvents.ShipLoadEvent.on { event ->

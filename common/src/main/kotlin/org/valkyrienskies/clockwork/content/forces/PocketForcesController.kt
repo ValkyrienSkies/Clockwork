@@ -10,9 +10,13 @@ import org.joml.Vector3i
 import org.joml.Vector3ic
 import org.valkyrienskies.clockwork.ClockworkAugmentations
 import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.utilities.PocketForcesQueueable
 import org.valkyrienskies.clockwork.kelvin.api.GasType
 import org.valkyrienskies.clockwork.util.AerodynamicUtils
+import org.valkyrienskies.clockwork.util.AerodynamicUtils.GRAVITATIONAL_ACCELERATION
+import org.valkyrienskies.clockwork.util.AerodynamicUtils.UNIVERSAL_GAS_CONSTANT
+import org.valkyrienskies.clockwork.util.AerodynamicUtils.getDensityFromTemperature
 import org.valkyrienskies.clockwork.util.ClockworkUtils.getAirComponentsInChunkClaim
 import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
 import org.valkyrienskies.clockwork.util.MathFunctions.chunkPos
@@ -46,6 +50,9 @@ class PocketForcesController: ShipForcesInducer {
     @JsonIgnore
     private val pocketRemoveQueue: ConcurrentLinkedQueue<Vector3ic> = ConcurrentLinkedQueue()
 
+    @JsonIgnore
+    private val pocketsOnRemoval = HashMap<Vector3ic, Int>()
+
     // Todo: Implement serialization
 
     override fun applyForces(physShip: PhysShip) {
@@ -65,10 +72,10 @@ class PocketForcesController: ShipForcesInducer {
 
         val buoyancyForce = calculateBuoyancyForce(physShip)
 
-        println(buoyancyForce)
+        //ClockworkMod.LOGGER.info(physShip.mass.toString())
 
         buoyancyForce.forEach {
-            physShipImpl.applyInvariantForceToPos(Vector3d(0.0, it.value, 0.0), physShipImpl.transform.shipToWorld.transformPosition(Vector3d(pocketCenters[it.key]!!)))
+            physShipImpl.applyInvariantForceToPos(Vector3d(0.0, it.value, 0.0), Vector3d(pocketCenters[it.key]!!).sub(physShip.transform.positionInShip))
         }
     }
 
@@ -94,13 +101,16 @@ class PocketForcesController: ShipForcesInducer {
                     for (gas in GasType.entries) {
                         if (gasMassesLocal.containsKey(gas)) {
                             val gasMass = gasMassesLocal[gas] ?: 0.0
+                            if (gasMass == 0.0) continue
 
                             val density = getDensityFromTemperature(pocketRoots[it]!!.toDouble(), gasMass, temperature, gas)
                             totalInternalDensity += density
                         }
                     }
                     if (totalInternalDensity != 0.0) {
-                        val buoyantForce = pocketRoots[it]!!.toDouble() * (AerodynamicUtils.getAirDensityForY(physShip.transform.positionInWorld.y(), max_height) - totalInternalDensity) * ClockworkConfig.SERVER.balloonForceMult
+                        //ClockworkMod.LOGGER.info("Density at Y: " + AerodynamicUtils.getAirDensityForY(physShip.transform.positionInWorld.y(), max_height).toString())
+                        //ClockworkMod.LOGGER.info("Internal Density: $totalInternalDensity")
+                        val buoyantForce = (pocketRoots[it]!!.toDouble() * (AerodynamicUtils.getAirDensityForY(physShip.transform.positionInWorld.y(), max_height) - totalInternalDensity) * GRAVITATIONAL_ACCELERATION) * ClockworkConfig.SERVER.balloonForceMult
                         totalBuoyantForce[it] = buoyantForce
                     }
                 }
@@ -110,39 +120,15 @@ class PocketForcesController: ShipForcesInducer {
         return totalBuoyantForce
     }
 
-    private fun getDensityFromTemperature(volume: Double, mass: Double, temperature: Double, gasType: GasType): Double {
-        if (volume == 0.0) return 0.0
-
-        var density = mass / volume
-
-        if (temperature != 0.0) {
-            val molarMass = gasType.density * 22.4
-            val pressure = calcPressure(mass, volume, temperature, gasType)
-            density = (molarMass * pressure) / (8.31446261815324 * temperature)
-        }
-        return density
-    }
-
-    /**
-     * Calculates pressure using the ideal gas law.
-     */
-    private fun calcPressure(mass: Double, volume: Double, temp: Double, gasType: GasType): Double {
-        var pressure = 0.0
-        val molarMass = gasType.density * 22.4
-        val moles = mass / molarMass
-        pressure = ((moles) * 8.31446261815324 * temp) / volume
-        return pressure
-    }
-
     fun gameTick(level: ServerLevel, ship: ServerShip) {
         val loadedShip = level.shipObjectWorld.loadedShips.getById(ship.id) ?: return
 
         val roots = getAirComponentsInChunkClaim(loadedShip.chunkClaim, level, ClockworkAugmentations.getComponentAugmentation("temperature"))
 
-        for (root: Vector3ic in roots.keys) {
+        for (root: Vector3i in roots.keys) {
             val gasMap = retrieveGasInfoFromPocket(root, level)
 
-            val componentSize = roots[root] ?: 0L
+            val componentSize = roots[root] ?: continue
 
             val collectX = level.shipObjectWorld.collectAirAugmentation(level.shipObjectWorld.createDoubleSumAugmentation("core", "x"), root.x(), root.y(), root.z(), level.dimensionId)
             val collectY = level.shipObjectWorld.collectAirAugmentation(level.shipObjectWorld.createDoubleSumAugmentation("core", "y"), root.x(), root.y(), root.z(), level.dimensionId)
@@ -150,17 +136,28 @@ class PocketForcesController: ShipForcesInducer {
 
             val center = Vector3d(collectX / componentSize.toDouble(), collectY / componentSize.toDouble(), collectZ / componentSize.toDouble())
 
+            center.add(0.5, 0.5, 0.5)
+
             pocketQueue.add(PocketForcesQueueable(root, center, componentSize, gasMap.first, gasMap.second))
             gametickKnownPocketRoots.add(root)
+            //ClockworkMod.LOGGER.info("Added pocket with root: ($root)")
         }
-        val toRemove = HashSet<Vector3ic>()
-        for (root in gametickKnownPocketRoots) {
-            if (!roots.containsKey(root)) {
-                pocketRemoveQueue.add(root)
-                toRemove.add(root)
+
+        val toRemove = ArrayList(gametickKnownPocketRoots.filterNot { roots[it] != null })
+        while (toRemove.isNotEmpty()) {
+            val polled = toRemove.removeFirst()
+            if (pocketsOnRemoval.containsKey(polled)) {
+                pocketsOnRemoval[polled] = pocketsOnRemoval[polled]!! + 1
+            } else {
+                pocketsOnRemoval[polled] = 1
+            }
+            if (pocketsOnRemoval[polled]!! > 4) {
+                pocketRemoveQueue.add(polled)
+                pocketsOnRemoval.remove(polled)
+                gametickKnownPocketRoots.remove(polled)
+                //ClockworkMod.LOGGER.info("Removed pocket with root: ($polled)")
             }
         }
-        gametickKnownPocketRoots.removeAll(toRemove)
     }
 
     companion object {

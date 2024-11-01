@@ -15,6 +15,7 @@ import org.joml.Vector3ic
 import org.joml.primitives.AABBi
 import org.joml.primitives.AABBic
 import org.valkyrienskies.clockwork.ClockworkAugmentations
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.SelectedAreaToolkit
 import org.valkyrienskies.clockwork.kelvin.api.GasType
 import org.valkyrienskies.clockwork.util.MathFunctions.chunkPos
@@ -165,14 +166,17 @@ object ClockworkUtils {
      * Temporary implementation until it's properly indexed in VS Core.
      */
     @Deprecated("Temporary. Will be replaced with proper implementation in VS Core.")
-    fun getAirComponentsInChunkClaim(claim: ChunkClaim, level: ServerLevel, referenceKey: DoubleComponentAugmentation): HashMap<Vector3ic, Long> {
-        val map = HashMap<Vector3ic, Long>()
+    fun getAirComponentsInChunkClaim(claim: ChunkClaim, level: ServerLevel, referenceKey: DoubleComponentAugmentation): HashMap<Vector3i, Long> {
+        val map = HashMap<Vector3i, Long>()
         level.shipObjectWorld.getFromEachAirComponentRoot(referenceKey, level.dimensionId).keys.forEach { pos ->
             if (claim.contains(pos.chunkPos().x, pos.chunkPos().z)) {
                 map[pos.toVector3i()] = try {
                     level.shipObjectWorld.getAirComponentSize(pos.first, pos.second, pos.third, level.dimensionId)
                 } catch (e: IllegalArgumentException) {
                     -1
+                }
+                if (map[pos.toVector3i()] == -1L) {
+                    ClockworkMod.LOGGER.warn("Failed to get air component size at $pos")
                 }
             }
         }
@@ -185,8 +189,8 @@ object ClockworkUtils {
      * Temporary implementation until it's properly indexed in VS Core.
      */
     @Deprecated("Temporary. Will be replaced with proper implementation in VS Core.")
-    fun getSolidComponentsInChunkClaim(claim: ChunkClaim, level: ServerLevel, referenceKey: DoubleComponentAugmentation): HashMap<Vector3ic, Long> {
-        val map = HashMap<Vector3ic, Long>()
+    fun getSolidComponentsInChunkClaim(claim: ChunkClaim, level: ServerLevel, referenceKey: DoubleComponentAugmentation): HashMap<Vector3i, Long> {
+        val map = HashMap<Vector3i, Long>()
         level.shipObjectWorld.getFromEachSolidComponentRoot(referenceKey, level.dimensionId).keys.forEach { pos ->
             if (claim.contains(pos.chunkPos().x, pos.chunkPos().z)) {
                 map[pos.toVector3i()] = try {
