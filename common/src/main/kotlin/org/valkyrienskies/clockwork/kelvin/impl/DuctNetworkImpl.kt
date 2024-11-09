@@ -202,7 +202,7 @@ class DuctNetworkImpl(
                 val densityA = densityAverage(nodeA.currentGasVolumes)
                 val densityB = densityAverage(nodeB.currentGasVolumes)
 
-                val tankMultA = if (nodeA.nodeType == NodeBehaviorType.TANK) (nodeDataB as TankDuctNode).size else 1.0
+                val tankMultA = if (nodeA.nodeType == NodeBehaviorType.TANK) (nodeDataA as TankDuctNode).size else 1.0
                 val tankMultB = if (nodeB.nodeType == NodeBehaviorType.TANK) (nodeDataB as TankDuctNode).size else 1.0
 
 
@@ -471,6 +471,8 @@ class DuctNetworkImpl(
         val molarMass = density * 22.4
         val moles = mass / molarMass
         pressure = (moles * idealGasConstant * adjustedTemp) / volume
+        if (pressure >= 1000000) println("pressure: $pressure, moles: $moles, adjustedTemp: $adjustedTemp, volume: $volume, mass: $mass, density: $density, molarMass: $molarMass, idealGasConstant: $idealGasConstant")
+        
         return pressure
     }
 
