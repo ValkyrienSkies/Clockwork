@@ -138,8 +138,6 @@ class DuctNetworkImpl(
 
         val temp = (massInNode*specificHeatOfNode*tempInNode + deltaMass*deltaTemperature*gasType.specificHeatCapacity) / (massInNode*specificHeatOfNode + deltaMass*gasType.specificHeatCapacity)
 
-        // = (deltaVolume*gasType.density*gasType.specificHeatCapacity*gasTemperature + massInNode*specificHeatOfNode*)/(deltaVolume*gasType.specificHeatCapacity + massInNode*specificHeatOfNode)
-
         nodeInfo[pos]!!.currentTemperature = temp
 
         modGasVolume(pos, gasType, deltaVolume)
@@ -237,6 +235,7 @@ class DuctNetworkImpl(
                 var pumpPressureA = 0.0
                 var pumpPressureB = 0.0
 
+                // Determines pump pressure based on target node
                 if (nodeDataA.behavior == NodeBehaviorType.PUMP) {
                     if (aTarget) pumpPressureA = (nodeDataA as PumpDuctNode).pumpPressure
                     else pumpPressureA = -(nodeDataA as PumpDuctNode).pumpPressure
@@ -284,6 +283,8 @@ class DuctNetworkImpl(
 
                 val totalAvgHeatConductivity = (heatConductivityA + heatConductivityB) / 2.0
 
+
+                // Calculates passive heat transfer between nodes
                 val passiveHeatDelta = (totalAvgHeatConductivity * (Math.PI * edge.radius * 2.0) * ((nodeA.currentTemperature - nodeB.currentTemperature) / edge.length))
                 val passiveHeatLimit = ((totalGasMassA * heatCapacityA * nodeA.currentTemperature) + (totalGasMassB * heatCapacityB * nodeB.currentTemperature))/2.0
 
@@ -333,8 +334,11 @@ class DuctNetworkImpl(
                     val volumeB = nodeB.currentGasVolumes[gas]!!
 
 
-                    // This entire block is quite disgusting, but it serves a simple function.
-                    // It lets pumps intake the entire volume of the node behind it, and outtake its own volume into the targetNode
+                    // Calculate flow limit based on pump behavior:
+                    // - For pumps: Allow full extraction from source node when pumping in or out
+                    // - For normal pipes: Limit to half the volume difference between nodes
+                    // - For invalid pump configurations: No flow allowed
+                    // Plus extra code for tanks, so that their limit was bigger to compensate for the volume they store
 
                     val limit: Double
                     if (aTarget && aFlowOut || bPump && !bTarget && aFlowOut) limit = volumeA
@@ -389,6 +393,7 @@ class DuctNetworkImpl(
                     nodeB.currentTemperature += deltaThermalEnergy / (newTotalGasMassesB * newHeatCapacityB)
                 }
 
+                // Clamps temperature to prevent impossible values
                 nodeA.currentTemperature = max(nodeA.currentTemperature, 0.0)
                 nodeB.currentTemperature = max(nodeB.currentTemperature, 0.0)
 
@@ -416,7 +421,15 @@ class DuctNetworkImpl(
 //            }
             //copilot wrote this so im immortalizing it
 
-            //temperature control stuff
+
+            /** Update visual heat level of ducts based on temperature thresholds:
+            COOL:      < 20% of max temp
+            WARM:      20-40% of max temp
+            HOT:       40-60% of max temp
+            VERY_HOT:  60-80% of max temp  
+            SUPER_HOT: 80-100% of max temp
+            MOLTEN:    >= 100% of max temp
+            */ 
             if (info.currentTemperature < (node.maxTemperature/5) && info.previousTemperatureLevel != 0) {
                 info.previousTemperatureLevel = 0
                 if (level.getBlockState(BlockPos(nodePos.toMinecraft())).block is IHeatableBlock) {
