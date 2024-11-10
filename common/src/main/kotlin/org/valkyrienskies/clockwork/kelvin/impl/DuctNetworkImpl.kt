@@ -373,8 +373,8 @@ class DuctNetworkImpl(
 
 
                 val thermalLimit = if (flowRate > 0) {
-                    totalGasMassA * heatCapacityA * nodeA.currentTemperature
-                } else if (flowRate < 0) {
+                                        totalGasMassA * heatCapacityA * nodeA.currentTemperature
+} else if (flowRate < 0) {
                     totalGasMassB * heatCapacityB * nodeB.currentTemperature
                 } else {
                     0.0
@@ -383,13 +383,13 @@ class DuctNetworkImpl(
 
                 if (deltaThermalEnergy.isInfinite() || deltaThermalEnergy.isNaN()) continue
 
-                val newTotalGasMassesA = nodeA.currentGasVolumes.values.sum()
-                val newTotalGasMassesB = nodeB.currentGasVolumes.values.sum()
+                val newTotalGasMassesA = nodeA.currentGasVolumes.values.sum() * densityAverage(nodeA.currentGasVolumes)
+                val newTotalGasMassesB = nodeB.currentGasVolumes.values.sum() * densityAverage(nodeB.currentGasVolumes)
                 val newHeatCapacityA = specificHeatAverage(nodeA.currentGasVolumes)
                 val newHeatCapacityB = specificHeatAverage(nodeB.currentGasVolumes)
 
                 
-                //if (nodeA.currentTemperature > 300.0 || nodeB.currentTemperature > 300.0) println("High Temp! DeltaThermalEnergy: $deltaThermalEnergy, flowHeat: $flowHeatCapacity, ThermalLimit: $thermalLimit, totalGasMassA: $newTotalGasMassesA, totalGasMassB: $newTotalGasMassesB")
+                if (nodeA.currentTemperature > 300.0 || nodeB.currentTemperature > 300.0) println("High Temp! DeltaThermalEnergy: $deltaThermalEnergy, flowHeat: $flowHeatCapacity, ThermalLimit: $thermalLimit, totalGasMassA: $newTotalGasMassesA, totalGasMassB: $newTotalGasMassesB")
                 if (newTotalGasMassesA != 0.0 && newTotalGasMassesB != 0.0) {
                     nodeA.currentTemperature -= deltaThermalEnergy / (newTotalGasMassesA * newHeatCapacityA)
                     nodeB.currentTemperature += deltaThermalEnergy / (newTotalGasMassesB * newHeatCapacityB)
