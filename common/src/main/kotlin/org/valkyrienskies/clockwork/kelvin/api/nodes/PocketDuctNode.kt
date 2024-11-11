@@ -8,7 +8,7 @@ class PocketDuctNode(
     override val behavior: NodeBehaviorType,
     override val network: DuctNetwork,
     override val nodeEdges: HashSet<DuctEdge>,
-    override val volume: Double,
+    override val mass: Double,
     override val maxPressure: Double,
     override val maxTemperature: Double,
     val partnerNodes: HashSet<DuctNode>,
@@ -19,7 +19,7 @@ class PocketDuctNode(
         partnerNodes.clear()
         partnerNodes.addAll(nodes)
 
-        totalVolume = nodes.sumOf { it.volume }
+        totalVolume = nodes.sumOf { it.mass }
         totalMaxPressure = nodes.sumOf { it.maxPressure }
         totalMaxTemperature = nodes.sumOf { it.maxTemperature }
     }

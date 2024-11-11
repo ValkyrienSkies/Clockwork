@@ -29,7 +29,7 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, stat
         if (level!!.isClientSide) return
         val node = ClockworkMod.getKelvin().getNodeAt(blockPos.toJOMLD()) ?: return
         val speed = abs(getSpeed())
-        val currentAirVolume = node.network.getGasVolumesAt(blockPos.toJOMLD())[GasType.AIR]?: 0.0
+        val currentAirVolume = node.network.getGasMassAt(blockPos.toJOMLD())[GasType.AIR]?: 0.0
 
 
         if (speed>0 && currentAirVolume<maxGas) {
@@ -37,7 +37,7 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, stat
             isOn = true
 
             val deltaVolume = Mth.clamp(maxGas-currentAirVolume,0.0001, baselineSpeed*speed)
-            node.network.modGasVolumeOfTemperature(getDuctNodePosition(),GasType.AIR, deltaVolume, 300.0)
+            node.network.modGasMassOfTemperature(getDuctNodePosition(),GasType.AIR, deltaVolume, 300.0)
         } else {
             if (isOn) syncOn(false)
             isOn = false

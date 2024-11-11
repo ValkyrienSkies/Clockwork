@@ -10,7 +10,7 @@ interface DuctNode {
 
     val nodeEdges: HashSet<DuctEdge>
 
-    val volume: Double
+    val mass: Double
     val maxPressure: Double
     val maxTemperature: Double
 

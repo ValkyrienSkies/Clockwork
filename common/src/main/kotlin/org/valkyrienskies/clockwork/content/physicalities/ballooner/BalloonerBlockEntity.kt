@@ -7,7 +7,6 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
-import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkAugmentations
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
@@ -19,11 +18,7 @@ import org.valkyrienskies.clockwork.util.AerodynamicUtils.densityAverage
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.specificHeatAverage
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.viscosityAverage
 import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
-import org.valkyrienskies.clockwork.util.MathFunctions.toVector3i
-import org.valkyrienskies.core.api.world.connectivity.ConnectionStatus
-import org.valkyrienskies.core.impl.shadow.DW
 import org.valkyrienskies.mod.common.dimensionId
-import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toJOMLD
@@ -61,7 +56,7 @@ class BalloonerBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
 
         val currentNodeTemperature = ClockworkMod.getKelvin().getTemperatureAt(blockPos.toJOMLD())
         val currentNodePressure = ClockworkMod.getKelvin().getPressureAt(blockPos.toJOMLD())
-        val currentNodeGasVolumes = ClockworkMod.getKelvin().getGasVolumesAt(blockPos.toJOMLD())
+        val currentNodeGasVolumes = ClockworkMod.getKelvin().getGasMassAt(blockPos.toJOMLD())
         val currentNodeTotalMass = currentNodeGasVolumes.values.sum()
         val currentNodeAvgDensity = densityAverage(currentNodeGasVolumes)
         val currentNodeAvgViscosity = viscosityAverage(currentNodeGasVolumes)
@@ -122,7 +117,7 @@ class BalloonerBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
         }
 
         for (gas in GasType.entries) {
-            ClockworkMod.getKelvin().modGasVolume(blockPos.toJOMLD(), gas, newCurrentNodeMasses[gas]!! - currentNodeGasVolumes[gas]!!)
+            ClockworkMod.getKelvin().modGasMass(blockPos.toJOMLD(), gas, newCurrentNodeMasses[gas]!! - currentNodeGasVolumes[gas]!!)
             serverLevel.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("gas_" + gas.name.lowercase()), pocketRef.x, pocketRef.y, pocketRef.z, serverLevel.dimensionId, newPocketMasses[gas]!!)
         }
         ClockworkMod.getKelvin().modTemperature(blockPos.toJOMLD(), newCurrentNodeTemperature - currentNodeTemperature)

@@ -3,7 +3,6 @@ package org.valkyrienskies.clockwork.content.logistics.gas
 import com.simibubi.create.content.equipment.goggles.IHaveGoggleInformation
 import net.minecraft.ChatFormatting
 import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.Style
 import net.minecraft.network.chat.TextComponent
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
@@ -25,9 +24,9 @@ interface IHeatableBlockEntity: IHaveGoggleInformation {
             tooltip.add(TextComponent("Pressure: ${(ClockworkMod.getKelvin().getPressureAt(this.getDuctNodePosition())/1000).roundToInt()} KPa").withStyle(ChatFormatting.BLUE))
             found = true
         }
-        if (ClockworkMod.getKelvin().getGasVolumesAt(this.getDuctNodePosition()).isNotEmpty()) {
+        if (ClockworkMod.getKelvin().getGasMassAt(this.getDuctNodePosition()).isNotEmpty()) {
             tooltip.add(TextComponent("Gas Volumes:"))
-            for (entry in ClockworkMod.getKelvin().getGasVolumesAt(this.getDuctNodePosition()).entries) {
+            for (entry in ClockworkMod.getKelvin().getGasMassAt(this.getDuctNodePosition()).entries) {
                 tooltip.add(TextComponent("${entry.key}: ${entry.value.roundToInt()} m^3"))
             }
             found = true

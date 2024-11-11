@@ -6,7 +6,6 @@ import com.simibubi.create.content.kinetics.simpleRelays.ICogWheel
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
@@ -55,7 +54,7 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
     }
 
     override fun createNode(pos: DuctNodePos, network: DuctNetwork): DuctNode {
-        return PumpDuctNode(pos, NodeBehaviorType.PUMP, network, volume = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0)
+        return PumpDuctNode(pos, NodeBehaviorType.PUMP, network, mass = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0)
     }
 
 
