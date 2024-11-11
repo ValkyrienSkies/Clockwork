@@ -202,9 +202,9 @@ class DuctNetworkImpl(
 
 
 
-                val pressureA = calcPressure(totalGasMassA, nodeA.currentTemperature, densityA)/tankMultA
+                val pressureA = calcPressure(totalGasMassA, nodeDataA.volume, nodeA.currentTemperature, densityA)/tankMultA
 
-                val pressureB = calcPressure(totalGasMassB, nodeB.currentTemperature, densityB)/tankMultB
+                val pressureB = calcPressure(totalGasMassB, nodeDataB.volume, nodeB.currentTemperature, densityB)/tankMultB
 
 
 
@@ -475,9 +475,8 @@ class DuctNetworkImpl(
     /**
      * Calculates pressure using the ideal gas law.
      */
-    private fun calcPressure(mass: Double, temp: Double, density: Double): Double {
-        if (mass == 0.0 || density == 0.0) return 0.0
-        var volume = mass / density
+    private fun calcPressure(mass: Double, volume: Double, temp: Double, density: Double): Double {
+        if (volume == 0.0 || density == 0.0) return 0.0
         val adjustedTemp = max(temp,0.001)
         val pressure: Double
         val molarMass = density * 22.4

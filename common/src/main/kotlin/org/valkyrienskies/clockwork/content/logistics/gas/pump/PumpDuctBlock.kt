@@ -54,7 +54,7 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
     }
 
     override fun createNode(pos: DuctNodePos, network: DuctNetwork): DuctNode {
-        return PumpDuctNode(pos, NodeBehaviorType.PUMP, network, mass = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0)
+        return PumpDuctNode(pos, NodeBehaviorType.PUMP, network, volume = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0)
     }
 
 

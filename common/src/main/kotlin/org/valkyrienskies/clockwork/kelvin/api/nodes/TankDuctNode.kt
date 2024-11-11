@@ -8,7 +8,7 @@ class TankDuctNode(
     override val behavior: NodeBehaviorType,
     override val network: DuctNetwork,
     override val nodeEdges: HashSet<DuctEdge> = HashSet(),
-    override val mass: Double,
+    override val volume: Double,
     override val maxPressure: Double,
     override val maxTemperature: Double,
     val size: Double = 1.0

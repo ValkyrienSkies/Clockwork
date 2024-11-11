@@ -25,9 +25,9 @@ interface IHeatableBlockEntity: IHaveGoggleInformation {
             found = true
         }
         if (ClockworkMod.getKelvin().getGasMassAt(this.getDuctNodePosition()).isNotEmpty()) {
-            tooltip.add(TextComponent("Gas Volumes:"))
+            tooltip.add(TextComponent("Gas Masses:"))
             for (entry in ClockworkMod.getKelvin().getGasMassAt(this.getDuctNodePosition()).entries) {
-                tooltip.add(TextComponent("${entry.key}: ${entry.value.roundToInt()} m^3"))
+                tooltip.add(TextComponent("${entry.key}: ${entry.value.roundToInt()} kg"))
             }
             found = true
         }

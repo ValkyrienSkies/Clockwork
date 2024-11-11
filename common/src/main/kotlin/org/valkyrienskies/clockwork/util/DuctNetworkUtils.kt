@@ -10,11 +10,11 @@ import org.valkyrienskies.clockwork.kelvin.api.nodes.PumpDuctNode
 
 object DuctNetworkUtils {
     fun createPipeNode(pos: DuctNodePos, network: DuctNetwork): PipeDuctNode {
-        return PipeDuctNode(pos, NodeBehaviorType.PIPE, network, mass = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0)
+        return PipeDuctNode(pos, NodeBehaviorType.PIPE, network, volume = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0)
     }
 
     fun createPumpNode(pos: DuctNodePos, network: DuctNetwork): PumpDuctNode {
-        return PumpDuctNode(pos, NodeBehaviorType.PUMP, network, mass = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0)
+        return PumpDuctNode(pos, NodeBehaviorType.PUMP, network, volume = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0)
     }
 
     fun createPipeEdge(nodeA: DuctNodePos, nodeB: DuctNodePos): PipeDuctEdge {

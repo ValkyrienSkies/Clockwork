@@ -8,7 +8,7 @@ class PipeDuctNode(
     override val behavior: NodeBehaviorType,
     override val network: DuctNetwork,
     override val nodeEdges: HashSet<DuctEdge> = HashSet(),
-    override val mass: Double,
+    override val volume: Double,
     override val maxPressure: Double,
     override val maxTemperature: Double
 ) : DuctNode {
@@ -23,7 +23,7 @@ class PipeDuctNode(
 
     companion object {
         fun DEFAULT(pos: DuctNodePos, network: DuctNetwork): PipeDuctNode {
-            return PipeDuctNode(pos, NodeBehaviorType.PIPE, network, mass = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0)
+            return PipeDuctNode(pos, NodeBehaviorType.PIPE, network, volume = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0)
         }
     }
 }
