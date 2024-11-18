@@ -173,5 +173,32 @@
       }
     ],
     "subtitle": "vs_clockwork.subtitle.doink"
+  },
+  "tick": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:tick",
+        "type": "file",
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "tock": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:tock",
+        "type": "file",
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "clock_song": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:clock_song",
+        "type": "file",
+        "attenuation_distance": 128
+      }
+    ]
   }
 }

@@ -108,6 +108,11 @@ object ClockworkPartials {
 
     val PUMP_COG: PartialModel = AllPartialModels.MECHANICAL_PUMP_COG
 
+    val HAND_SECOND: PartialModel = PartialModel(ClockworkMod.asResource("block/clock/hand_second"))
+    val HAND_MINUTE: PartialModel = PartialModel(ClockworkMod.asResource("block/clock/hand_minute"))
+    val HAND_HOUR: PartialModel = PartialModel(ClockworkMod.asResource("block/clock/hand_hour"))
+    val CLOCK_FRAME: PartialModel = PartialModel(ClockworkMod.asResource("block/clock/clock_ring"))
+
     private fun block(path: String): PartialModel {
         return PartialModel(ClockworkMod.asResource("block/$path"))
     }
