@@ -9,8 +9,10 @@ import java.util.EnumMap
  */
 interface DuctNetwork {
 
+    var disabled: Boolean
+
     val nodes: HashMap<DuctNodePos, DuctNode>
-    val edges: HashSet<DuctEdge>
+    val edges: HashMap<Pair<DuctNodePos, DuctNodePos>, DuctEdge>
 
     val nodeInfo: HashMap<DuctNodePos, DuctNodeInfo>
 
@@ -53,7 +55,10 @@ interface DuctNetwork {
     fun modPressure(pos: DuctNodePos, deltaPressure: Double)
     fun modGasVolume(pos: DuctNodePos, gasType: GasType, deltaVolume: Double)
 
+    fun modGasVolumeOfTemperature(pos: DuctNodePos, gasType: GasType, deltaVolume: Double, gasTemperature: Double)
     // the real meat
     fun tick(level: ServerLevel, subSteps: Int = 1)
+
+    fun dump()
 
 }

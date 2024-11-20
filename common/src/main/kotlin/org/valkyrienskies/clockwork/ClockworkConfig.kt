@@ -39,5 +39,8 @@ object ClockworkConfig {
 
         @JsonSchema(description = "Max Gravitron mass in 1000 kg")
         var maxGravitronMass = 256
+
+        @JsonSchema(description = "Force multiplier for balloons. Realism is 1.0, default is 10.0. Range: > 0.0", min = 0.0)
+        var balloonForceMult: Double = 10.0
     }
 }

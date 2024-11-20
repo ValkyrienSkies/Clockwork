@@ -29,7 +29,7 @@ open class StraightDuctBlock(properties: Properties) : RotatedPillarBlock(proper
         return AllShapes.FOUR_VOXEL_POLE.get(state.getValue(AXIS))
     }
 
-    override fun canConnectTo(self: BlockPos, other: BlockPos, level: BlockGetter): Boolean {
+    override fun canConnectTo(self: BlockPos, other: BlockPos, direction: Direction, level: BlockGetter): Boolean {
         val state = level.getBlockState(self)
 
         when (state.getValue(AXIS)) {
@@ -42,6 +42,7 @@ open class StraightDuctBlock(properties: Properties) : RotatedPillarBlock(proper
             Direction.Axis.Z -> {
                 if (other != self.relative(Direction.NORTH, 1) || other != self.relative(Direction.SOUTH, 1)) return false
             }
+            else -> {}
         }
 
         if (level.getBlockState(other).block is IDuct) {

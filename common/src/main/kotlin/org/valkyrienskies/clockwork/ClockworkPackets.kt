@@ -15,6 +15,11 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.Gravitro
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClearPacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctEdgeSyncPacket
+import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterClosePacket
+import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterScreenOpenPacket
+import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorPacket
+import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorPacket
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.UpdateFrequencySlotPacket
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonSyncPacket
 import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket
@@ -35,6 +40,8 @@ enum class ClockworkPackets(
     SEQUENCER_SEAT_DRIVING(SequencedSeatDrivingPacket::class.java, ::SequencedSeatDrivingPacket),
     UPDATE_ALT_METER(UpdateAltMeterPacket::class.java, ::UpdateAltMeterPacket),
     UPDATE_CHUTE_SLOT_PACKET(UpdateFrequencySlotPacket::class.java, ::UpdateFrequencySlotPacket),
+    CREATIVE_GENERATOR_PACKET(CreativeGeneratorPacket::class.java, ::CreativeGeneratorPacket),
+    FILTER_SCREEN_CLOSE_PACKET(FilterClosePacket::class.java, ::FilterClosePacket),
 
     GRAVITRON_GRAB_PACKET(GravitronGrabPacket::class.java, ::GravitronGrabPacket),
     GRAVITRON_DESTROY_PACKET(GravitronDestroyPacket::class.java, ::GravitronDestroyPacket),
@@ -46,12 +53,19 @@ enum class ClockworkPackets(
 
     SLICKERATTACHMENT(SlickerAttachmentSyncPacket::class.java, ::SlickerAttachmentSyncPacket),
     GRAVITRON_DIAL_PACKET(GravitronDialPacket::class.java, ::GravitronDialPacket),
+    FILTER_SCREEN_OPEN_PACKET(FilterScreenOpenPacket::class.java, ::FilterScreenOpenPacket),
 
     //SYNC_TEMPERATURE(TemperatureSyncPacket::class.java, ::TemperatureSyncPacket),
 
     PHYSICS_INFUSER(PhysicsInfuserSyncPacket::class.java, ::PhysicsInfuserSyncPacket),
     WANDER_WAND(WanderWandSelectionPacket::class.java, ::WanderWandSelectionPacket),
-    WANDER_WAND_CLEAR(WanderWandClearPacket::class.java, ::WanderWandClearPacket);
+    WANDER_WAND_CLEAR(WanderWandClearPacket::class.java, ::WanderWandClearPacket),
+
+    UPDATE_DUCT_EDGE(DuctEdgeSyncPacket::class.java, ::DuctEdgeSyncPacket),
+    AIR_COMPRESSOR_PACKET(AirCompressorPacket::class.java, ::AirCompressorPacket),
+
+
+    ;
 
     init {
         packetChannel.registerPacket(type as Class<CWPacket>, factory as Function<FriendlyByteBuf, CWPacket>)

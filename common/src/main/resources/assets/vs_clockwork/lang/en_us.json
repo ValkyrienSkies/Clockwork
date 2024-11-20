@@ -62,6 +62,9 @@
   "block.vs_clockwork.smooth_wanderlite_stairs": "Smooth Wanderlite Stairs",
   "item.vs_clockwork.smooth_wanderlite_stairs": "Smooth Wanderlite Stairs",
 
+  "block.vs_clockwork.clock": "Clock",
+  "item.vs_clockwork.clock": "Clock",
+
   "block.vs_clockwork.nyx": "Nyx",
   "item.vs_clockwork.nyx": "Nyx",
   "block.vs_clockwork.cobbled_nyx": "Cobbled Nyx",
@@ -96,6 +99,9 @@
   "vs_clockwork.subtitle.physwindup": "Windin' up...",
   "vs_clockwork.subtitle.boing": "Boioing!",
   "vs_clockwork.subtitle.doink": "Doink.",
+  "vs_clockwork.subtitle.tick": "Tick!",
+  "vs_clockwork.subtitle.tock": "Tock!",
+  "vs_clockwork.subtitle.clock_song": "Trailer moment.",
   "alt_meter.trigger_height": "Height",
   "sequenced_seat.operation.nothing": "None",
   "sequenced_seat.operation.distance": "Move",

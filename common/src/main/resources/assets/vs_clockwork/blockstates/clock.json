@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vs_clockwork:block/clock/clockback"
+    },
+    "facing=south": {
+      "model": "vs_clockwork:block/clock/clockback",
+      "y": 180
+    },
+    "facing=east": {
+      "model": "vs_clockwork:block/clock/clockback",
+      "y": 90
+    },
+    "facing=west": {
+      "model": "vs_clockwork:block/clock/clockback",
+      "y": 270
+    }
+  }
+}

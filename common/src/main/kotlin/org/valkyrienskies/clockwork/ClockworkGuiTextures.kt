@@ -21,6 +21,16 @@ enum class ClockworkGuiTextures(
     GRAVITRON_SELECTED("widgets", 0, 0, 22, 22),
     GYRO("gyro", 200, 212),
     ALT_METER("alt_meter", 173, 73),
+
+    CREATIVE_GAS_GENERATOR("creative_gas_generator", 173, 112),
+    CREATIVE_GAS_GENERATOR_FRAME("creative_gas_generator_frame", 173, 112),
+    CREATIVE_GAS_GENERATOR_ELEMENT("creative_gas_generator_tab", 128, 18),
+
+    GAS_FILTER_TAB("gas_filter_menu", 214, 104),
+    GAS_FILTER_FRAME("gas_filter_menu", 0,104,214, 49),
+    GAS_FILTER_ELEMENT("gas_filter_menu", 0,153,75, 18),
+
+
     COMMAND_SEAT("command_seat", 173, 159),
     WANDER_TOOL_BACKGROUND("overlay", 0, 0, 16, 16);
 

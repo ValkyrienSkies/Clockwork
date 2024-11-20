@@ -13,6 +13,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderW
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.CreativeGravitronItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItemRenderer
+import org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver.ScrewdriverItem
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import java.util.function.Supplier
@@ -105,6 +106,18 @@ object ClockworkItems {
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .register()
 
+    @JvmField
+    val SCREWDRIVER: ItemEntry<ScrewdriverItem> =
+        REGISTRATE.item<ScrewdriverItem>("screwdriver") { properties: Item.Properties? ->
+            ScrewdriverItem(properties!!)
+        }
+            .properties {
+                it.stacksTo(1)
+            }
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tag(AllTags.AllItemTags.WRENCH.tag)
+            .model(AssetLookup.existingItemModel())
+            .register()
 
     @JvmStatic
     fun register() {
