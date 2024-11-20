@@ -223,11 +223,9 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     fun obstructionChecker(location: Vec3): Boolean {
 
         val cannonToVertexResult = clip(getRealPos().add(0.0,0.5,0.0), getVertexOfParabola(location))
-        println("1 ${cannonToVertexResult.type} ${cannonToVertexResult.blockPos}")
         if (cannonToVertexResult.type==HitResult.Type.BLOCK) return false
 
         val vertexToChuteResult = clip(getVertexOfParabola(location), location.add(0.0,0.0,0.0))
-        println("2 ${vertexToChuteResult.type} ${vertexToChuteResult.blockPos} ${BlockPos(location.x,location.y,location.z)} $location")
         
         return !(vertexToChuteResult.type==HitResult.Type.MISS || vertexToChuteResult.blockPos != BlockPos(location.x,location.y,location.z))
     }
