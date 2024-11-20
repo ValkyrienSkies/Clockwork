@@ -381,7 +381,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
     }
 
     override fun getBlockEntityType(): BlockEntityType<out DuctBlockEntity> {
-        TODO()
+        return ClockworkBlockEntities.DUCT.get()
     }
 
     override fun onScrewdrived(state: BlockState, context: UseOnContext): InteractionResult {
