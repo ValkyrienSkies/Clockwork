@@ -48,6 +48,7 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.Deli
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotBehaviour
 import org.valkyrienskies.mod.common.getShipManagingPos
+import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.world.clipIncludeShips
 import java.util.*
 import kotlin.math.abs
@@ -182,7 +183,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             distance = getRealPos().distanceToSqr(realLocation)
 
 
-
+            println(realLocation)
             if ((obstructionChecker(realLocation) && abs(xTargetRotation-xRotation) < 1 && abs(yTargetRotation-yRotation)< 0.5) || fired) {
                 if (!fired) {
                     val pitch = Mth.randomBetween(soundRandom, 0.9f, 1.1f)
@@ -221,16 +222,14 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
     fun obstructionChecker(location: Vec3): Boolean {
 
-//        val cannonToVertexResult = clip(getRealPos(), getVertexOfParabola(realLocation))
-//        if (cannonToVertexResult.type==HitResult.Type.BLOCK) return false
-//        else {
-//
-//            val vertexToChuteResult = clip(getVertexOfParabola(location), realLocation)
-//            println(vertexToChuteResult.type)
-//            println(vertexToChuteResult.blockPos)
-//            if (vertexToChuteResult.type==HitResult.Type.MISS || vertexToChuteResult.blockPos!=chuteLocation) return false
-//        }
-        return true
+        val cannonToVertexResult = clip(getRealPos().add(0.0,0.5,0.0), getVertexOfParabola(location))
+        println("1 ${cannonToVertexResult.type} ${cannonToVertexResult.blockPos}")
+        if (cannonToVertexResult.type==HitResult.Type.BLOCK) return false
+
+        val vertexToChuteResult = clip(getVertexOfParabola(location), location.add(0.0,0.0,0.0))
+        println("2 ${vertexToChuteResult.type} ${vertexToChuteResult.blockPos} ${BlockPos(location.x,location.y,location.z)} $location")
+        
+        return !(vertexToChuteResult.type==HitResult.Type.MISS || vertexToChuteResult.blockPos != BlockPos(location.x,location.y,location.z))
     }
 
     fun clip(from: Vec3, to: Vec3): BlockHitResult {
