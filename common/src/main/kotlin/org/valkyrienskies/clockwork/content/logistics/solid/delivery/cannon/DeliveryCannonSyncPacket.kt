@@ -58,7 +58,7 @@ class DeliveryCannonSyncPacket : S2CCWPacket {
     override fun handle(context: ClientNetworkContext) {
         context.enqueueWork {
 
-            val be = Minecraft.getInstance().level?.getBlockEntity(pos) as DeliveryCannonBlockEntity
+            val be = Minecraft.getInstance().level?.getBlockEntity(pos) as DeliveryCannonBlockEntity? ?: return@enqueueWork
             be.currentStack = currentStack
             be.transportStack = transportStack
             be.realLocation = location
