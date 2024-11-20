@@ -29,6 +29,8 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlo
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingRenderer
+import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlockEntity
+import org.valkyrienskies.clockwork.content.curiosities.clock.ClockRenderer
 import org.valkyrienskies.clockwork.content.generic.ColorBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRenderer
@@ -382,6 +384,24 @@ object ClockworkBlockEntities {
             }
         }
         .validBlocks(ClockworkBlocks.SLICKER)
+        .register()
+
+    @JvmField
+    val CLOCK = ClockworkMod.REGISTRATE.blockEntity<ClockBlockEntity>("clock") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+        ClockBlockEntity(
+            type,
+            pos,
+            state
+        )
+    }
+        .validBlocks(ClockworkBlocks.CLOCK)
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in ClockBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                ClockRenderer(
+                    context!!
+                )
+            }
+        }
         .register()
 
     @JvmStatic

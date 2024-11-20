@@ -32,6 +32,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInf
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
+import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlock
@@ -538,6 +539,21 @@ object ClockworkBlocks {
         .item()
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
+        .register()
+
+    @JvmField
+    val CLOCK: BlockEntry<ClockBlock> = REGISTRATE.block<ClockBlock>(
+        "clock"
+    ) { properties: BlockBehaviour.Properties? ->
+        ClockBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.wooden() }
+        .addLayer { Supplier { RenderType.cutoutMipped() } }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .transform(customItemModel())
         .register()
 
     @JvmStatic

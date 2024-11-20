@@ -4,39 +4,36 @@
   "flip-v": true,
   "model": "vs_clockwork:models/block/clock/item.obj",
   "display": {
+    "thirdperson_righthand": {
+      "rotation": [75, 45, 0],
+      "translation": [0, 2.5, 0],
+      "scale": [0.375, 0.375, 0.375]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [75, 45, 0],
+      "translation": [0, 2.5, 0],
+      "scale": [0.375, 0.375, 0.375]
+    },
+    "firstperson_righthand": {
+      "rotation": [0, 45, 0],
+      "scale": [0.4, 0.4, 0.4]
+    },
+    "firstperson_lefthand": {
+      "rotation": [0, 225, 0],
+      "scale": [0.4, 0.4, 0.4]
+    },
+    "ground": {
+      "translation": [0, 3, 0],
+      "scale": [0.25, 0.25, 0.25]
+    },
     "gui": {
-      "rotation": [
-        30,
-        225,
-        0
-      ],
-      "translation": [
-        0,
-        0,
-        0
-      ],
-      "scale": [
-        0.4,
-        0.4,
-        0.4
-      ]
+      "rotation": [30, 225, 0],
+      "translation": [3.25, -1.5, 0],
+      "scale": [0.7, 0.7, 0.7]
     },
     "fixed": {
-      "rotation": [
-        90,
-        0,
-        0
-      ],
-      "translation": [
-        0,
-        0,
-        0
-      ],
-      "scale": [
-        0.4,
-        0.4,
-        0.4
-      ]
+      "translation": [0, 0, -5.25],
+      "scale": [0.79, 0.79, 0.79]
     }
   },
   "textures": {

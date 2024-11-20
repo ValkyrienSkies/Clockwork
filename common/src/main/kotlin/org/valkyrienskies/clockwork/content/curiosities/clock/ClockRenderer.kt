@@ -1,10 +1,10 @@
 package org.valkyrienskies.clockwork.content.curiosities.clock
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.blaze3d.vertex.VertexConsumer
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
+import com.simibubi.create.foundation.utility.AngleHelper
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
@@ -13,6 +13,8 @@ import net.minecraft.util.Mth
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.util.EaseHelper
+import org.valkyrienskies.mod.common.util.toJOMLD
+import org.valkyrienskies.mod.common.util.toMinecraft
 
 class ClockRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEntityRenderer<ClockBlockEntity>(context) {
 
@@ -36,27 +38,57 @@ class ClockRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEn
             blockEntity.trailerAnimProgress += 0.01
         }
 
-        val secondHandRotation = if (blockEntity.secondHandTargetRotation % 6.0 == 0.0) Mth.rotLerp(EaseHelper.easeOutElastic(partialTicks), currentSecondHandRotation.toFloat(), blockEntity.secondHandTargetRotation.toFloat()) else currentSecondHandRotation.toFloat()
-        val minuteHandRotation = Mth.rotLerp(partialTicks, currentMinuteHandRotation.toFloat(), blockEntity.minuteHandTargetRotation.toFloat())
-        val hourHandRotation = Mth.rotLerp(partialTicks, currentHourHandRotation.toFloat(), blockEntity.hourHandTargetRotation.toFloat())
+        val secondHandRotation = AngleHelper.rad(AngleHelper.angleLerp(partialTicks.toDouble(),
+            AngleHelper.deg(currentSecondHandRotation).toDouble(),
+            AngleHelper.deg(blockEntity.secondHandTargetRotation).toDouble()
+        ).toDouble())
+        val minuteHandRotation = AngleHelper.rad(AngleHelper.angleLerp(partialTicks.toDouble(),
+            AngleHelper.deg(currentMinuteHandRotation).toDouble(),
+            AngleHelper.deg(blockEntity.minuteHandTargetRotation).toDouble()
+        ).toDouble())
+        val hourHandRotation = AngleHelper.rad(AngleHelper.angleLerp(partialTicks.toDouble(),
+            AngleHelper.deg(currentHourHandRotation).toDouble(),
+            AngleHelper.deg(blockEntity.hourHandTargetRotation).toDouble()
+        ).toDouble())
 
-        val clockRing = CachedBufferer.partialFacing(ClockworkPartials.CLOCK_FRAME, blockEntity.blockState)
-        val secondHand = CachedBufferer.partialFacing(ClockworkPartials.HAND_SECOND, blockEntity.blockState)
-        val minuteHand = CachedBufferer.partialFacing(ClockworkPartials.HAND_MINUTE, blockEntity.blockState)
-        val hourHand = CachedBufferer.partialFacing(ClockworkPartials.HAND_HOUR, blockEntity.blockState)
+        val clockRing = CachedBufferer.partial(ClockworkPartials.CLOCK_FRAME, blockEntity.blockState)
+        val secondHand = CachedBufferer.partial(ClockworkPartials.HAND_SECOND, blockEntity.blockState)
+        val minuteHand = CachedBufferer.partial(ClockworkPartials.HAND_MINUTE, blockEntity.blockState)
+        val hourHand = CachedBufferer.partial(ClockworkPartials.HAND_HOUR, blockEntity.blockState)
 
-        val vb = buffer.getBuffer(RenderType.cutout())
+        val vb = buffer.getBuffer(RenderType.solid())
         val facing = blockEntity.blockState.getValue(BlockStateProperties.HORIZONTAL_FACING)
 
         ms.pushPose()
-        clockRing.renderInto(ms, vb)
-        secondHand.rotate(facing, secondHandRotation).light(light).overlay(overlay).renderInto(ms, vb)
-        minuteHand.rotate(facing, minuteHandRotation).light(light).overlay(overlay).renderInto(ms, vb)
-        hourHand.rotate(facing, hourHandRotation).light(light).overlay(overlay).renderInto(ms, vb)
+        clockRing.rotateCentered(
+            Direction.UP,
+            AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
+        )
+        clockRing.translate(0.5, 0.0, 0.5)
+        clockRing.light(light).overlay(overlay).renderInto(ms, vb)
+        ms.popPose()
+        ms.pushPose()
+        rotateHand(secondHand, secondHandRotation, facing).light(light).overlay(overlay).renderInto(ms, vb)
+        rotateHand(minuteHand, minuteHandRotation, facing).light(light).overlay(overlay).renderInto(ms, vb)
+        rotateHand(hourHand, hourHandRotation, facing).light(light).overlay(overlay).renderInto(ms, vb)
         ms.popPose()
 
         currentSecondHandRotation = secondHandRotation.toDouble()
         currentMinuteHandRotation = minuteHandRotation.toDouble()
         currentHourHandRotation = hourHandRotation.toDouble()
+    }
+
+    private fun rotateHand(buffer: SuperByteBuffer, angle: Float, facing: Direction): SuperByteBuffer {
+        val pivotX = 8 / 16f
+        val pivotY = 8 / 16f
+        val pivotZ = 14 / 16f
+        buffer.rotateCentered(
+            Direction.UP,
+            AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
+        )
+        buffer.translate(pivotX.toDouble(), pivotY.toDouble(), pivotZ.toDouble())
+        buffer.rotate(Direction.SOUTH, angle)
+        buffer.translate(-pivotX.toDouble(), -pivotY.toDouble(), -pivotZ.toDouble())
+        return buffer
     }
 }
