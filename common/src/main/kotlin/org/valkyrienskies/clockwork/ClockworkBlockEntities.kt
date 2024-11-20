@@ -47,6 +47,10 @@ import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctCogInstan
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankBlockEntity
 import java.util.function.BiFunction
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotRenderer
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer
 
 object ClockworkBlockEntities {
 
@@ -402,6 +406,46 @@ object ClockworkBlockEntities {
                 )
             }
         }
+        .register()
+
+    @JvmField
+    val DELIVERY_CANNON: BlockEntityEntry<DeliveryCannonBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<DeliveryCannonBlockEntity>(
+            "delivery_cannon"
+        ) { typeIn: BlockEntityType<DeliveryCannonBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
+            DeliveryCannonBlockEntity(
+                typeIn,
+                pos!!, state!!
+            )
+        }
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in DeliveryCannonBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                DeliveryCannonRenderer(
+                    context!!
+                )
+            }
+        }
+        .validBlocks(ClockworkBlocks.DELIVERY_CANNON)
+        .register()
+
+    @JvmField
+    val DELIVERY_CHUTE: BlockEntityEntry<DeliveryChuteBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<DeliveryChuteBlockEntity>(
+            "delivery_chute"
+        ) { typeIn: BlockEntityType<DeliveryChuteBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
+            DeliveryChuteBlockEntity(
+                typeIn,
+                pos!!, state!!
+            )
+        }
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in DeliveryChuteBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                FrequencySlotRenderer<DeliveryChuteBlockEntity>(
+                    context!!
+                )
+            }
+        }
+        .validBlocks(ClockworkBlocks.DELIVERY_CHUTE)
         .register()
 
     @JvmStatic

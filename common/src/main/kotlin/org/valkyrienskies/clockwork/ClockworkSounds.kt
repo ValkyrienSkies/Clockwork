@@ -103,6 +103,10 @@ object ClockworkSounds {
         .category(SoundSource.BLOCKS)
         .attenuationDistance(128)
         .build()
+    val THWOOM = create("thwoom").subtitle("Thwoomp!")
+        .category(SoundSource.BLOCKS)
+        .attenuationDistance(32)
+        .build()
 
     private val sounds: DeferredRegister<SoundEvent> =
         DeferredRegister.create(Registry.SOUND_EVENT, ClockworkMod.MOD_ID)

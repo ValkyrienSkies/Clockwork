@@ -200,5 +200,15 @@
         "attenuation_distance": 128
       }
     ]
+  },
+  "thwoom": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:thwoom",
+        "type": "file",
+        "attenuation_distance": 32
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.thwoom"
   }
 }
