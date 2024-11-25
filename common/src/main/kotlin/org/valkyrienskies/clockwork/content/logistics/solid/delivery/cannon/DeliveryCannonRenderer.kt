@@ -23,10 +23,7 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_s
 import org.valkyrienskies.clockwork.util.EaseHelper
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
-import kotlin.math.abs
-import kotlin.math.atan
-import kotlin.math.max
-import kotlin.math.min
+import kotlin.math.*
 
 class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): FrequencySlotRenderer<DeliveryCannonBlockEntity>(context) {
 
@@ -99,7 +96,6 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
 
 
             if (!be.didParticles) {
-                print("${lookDir}")
                 for (i in 0..9) {
                     val r: java.util.Random = be.level!!.getRandom()
                     val sX: Double = lookDir.x * .01f
@@ -233,13 +229,44 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
 
     companion object {
 
-        // This function solves a parabola using 2 points and the X of the vertex . Z is the value that gets fed into the resulting quadratic
-        fun parabola(x1: Double, y1: Double, x2: Double, y2: Double, m: Double, z:Double): Double {
-            val a = (y1-y2)/(x1*x1-x2*x2-2*m*x1+2*m*x2)
-            val b = -2*a*m
-            val c = y1-b*x1-a*x1*x1
+        // This function solves a parabola using 3 points. Z is the value that gets fed into the resulting quadratic
+        fun parabola(x1: Double, y1: Double, x2: Double, y2: Double, x3: Double, y3: Double,  z:Double): Double {
+            val denom = (x1 - x2) * (x1 - x3) * (x2 - x3)
+            val A = (x3 * (y2 - y1) + x2 * (y1 - y3) + x1 * (y3 - y2)) / denom
+            val B = (x3 * x3 * (y1 - y2) + x2 * x2 * (y3 - y1) + x1 * x1 * (y2 - y3)) / denom
+            val C = (x2 * x3 * (x2 - x3) * y1 + x3 * x1 * (x3 - x1) * y2 + x1 * x2 * (x1 - x2) * y3) / denom
 
-            return a*z*z+b*z+c
+
+            return A*z.pow(2) + B*z + C
+        }
+
+        fun getThirdPoint(startVec3: Vec3, endVec3: Vec3): Vec3 {
+            val lerped = startVec3.lerp(endVec3,0.5)
+            return Vec3(lerped.x, endVec3.y + 5, lerped.z)
+        }
+
+
+        fun getParabolaY(DBe: DeliveryCannonBlockEntity, vec: Vec3): Double {
+            val startVec3 = DBe.getRealPos()
+            val endVec3 = DBe.realLocation
+            val vertVec3 = getThirdPoint(DBe.getRealPos(), DBe.realLocation)
+
+            var sX = startVec3.x
+            var eX = endVec3.x
+            var vX = vertVec3.x
+            var iX = vec.x
+
+            // Picks an axis to use for the parabola.
+            if (abs(endVec3.x-startVec3.x) < abs(endVec3.z-startVec3.z)) {
+
+                sX = startVec3.z
+                eX = endVec3.z
+                vX = vertVec3.z
+                iX = vec.z
+            }
+
+            return parabola(sX,startVec3.y,eX,endVec3.y,vX,vertVec3.y, iX)
+
         }
 
         fun euler_angle(x: Double,y: Double): Double {
@@ -250,29 +277,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
             return eul
         }
 
-        fun get_delta(be: DeliveryCannonBlockEntity): Double {
-            val startVec = be.getRealPos()
-            val endVec = be.realLocation
 
-            val delta: Double
-            if (endVec.y > startVec.y) delta = min((endVec.y - startVec.y) / 30 + 0.51, 0.85)
-            else delta = max(0.49 - (startVec.y - endVec.y) / 30, 0.15)
-
-            return delta
-        }
-
-        fun getParabolaY(be: DeliveryCannonBlockEntity, input_vector: Vec3): Double {
-            val startVec = be.getRealPos()
-            val endVec = be.realLocation
-
-            val delta = get_delta(be)
-
-            val y: Double
-            if (abs(startVec.x-endVec.x)>abs(startVec.z-endVec.z)) y = parabola(startVec.x,startVec.y,endVec.x,endVec.y,startVec.lerp(endVec,delta).x,input_vector.x)
-            else y = parabola(startVec.z,startVec.y,endVec.z,endVec.y,startVec.lerp(endVec,delta).z,input_vector.z)
-
-            return y
-        }
 
         fun turn(currentRotation: Double, targetRotation: Double, turnSpeed: Double): Pair<Double, Boolean> {
 

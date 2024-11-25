@@ -43,7 +43,7 @@ import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.ActiveChutes
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.euler_angle
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.getParabolaY
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.get_delta
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.getThirdPoint
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.turn
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotBehaviour
@@ -139,7 +139,6 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
                 if (visitedChutes.size == chutes.size) visitedChutes = HashSet()
                 for (chute in chutes) {
-                    println(chute !in visitedChutes)
                     if (!roundRobin || chute !in visitedChutes) {
                         visitedChutes.add(chute)
                         if (startAiming(chute)) break
@@ -186,7 +185,6 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             distance = getRealPos().distanceToSqr(realLocation)
 
 
-            println(realLocation)
             if ((obstructionChecker(realLocation) && abs(xTargetRotation-xRotation) < 1 && abs(yTargetRotation-yRotation)< 0.5) || fired) {
                 if (!fired) {
                     val pitch = Mth.randomBetween(soundRandom, 0.9f, 1.1f)
@@ -292,8 +290,6 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         val startVec = getRealPos()
 
 
-        println(realLocation)
-        println(startVec)
         var dif = startVec.subtract(getVertexOfParabola(realLocation))
 
         val ship = level!!.getShipManagingPos(blockPos)
@@ -314,12 +310,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     }
 
     fun getVertexOfParabola(endVec: Vec3): Vec3 {
-        val startVec = getRealPos()
-
-        val delta = max(get_delta(this),0.01)
-        val y = getParabolaY(this, startVec.lerp(endVec,delta))
-
-        return Vec3(startVec.lerp(endVec,delta).x,y,startVec.lerp(endVec,delta).z)
+        return getThirdPoint(getRealPos(), endVec)
     }
 
     fun sync() {
