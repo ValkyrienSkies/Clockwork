@@ -13,7 +13,6 @@ import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.block.model.ItemTransforms
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
-import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.util.Mth
@@ -200,8 +199,8 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         new.popPose()
     }
 
-    fun rotateToAngle(buffer: SuperByteBuffer, angle: Double): SuperByteBuffer {
-        var buffer = buffer.translate(pivot);
+    fun rotateToAngle(superByteBuffer: SuperByteBuffer, angle: Double): SuperByteBuffer {
+        var buffer = superByteBuffer.translate(pivot);
         buffer = buffer.rotate(Direction.EAST,AngleHelper.rad(angle))
         buffer = buffer.translate(pivot.scale(-1.0))
         return buffer
@@ -213,8 +212,8 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         return buffer.rotateCentered(Direction.UP, ((-angle - 90.0) / 180.0 * Math.PI).toFloat())
     }
 
-    fun rotateAntenna(buffer: SuperByteBuffer, angle: Double): SuperByteBuffer {
-        var buffer = buffer.translate(antennaPivot);
+    fun rotateAntenna(superByteBuffer: SuperByteBuffer, angle: Double): SuperByteBuffer {
+        var buffer = superByteBuffer.translate(antennaPivot);
         buffer = buffer.rotate(Direction.WEST,AngleHelper.rad(angle))
         buffer = buffer.translate(antennaPivot.scale(-1.0))
         return buffer
@@ -244,11 +243,11 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         }
 
         fun euler_angle(x: Double,y: Double): Double {
-            var rad = atan(y/x);   // arcus tangent in radians
-            var deg = rad*180/Math.PI;  // converted to degrees
-            if (x<0) deg += 180;        // fixed mirrored angle of arctan
-            var eul = (270+deg)%360;    // folded to [0,360) domain
-            return eul;
+            val rad = atan(y/x)   // arcus tangent in radians
+            var deg = rad*180/Math.PI  // converted to degrees
+            if (x<0) deg += 180        // fixed mirrored angle of arctan
+            val eul = (270+deg)%360    // folded to [0,360) domain
+            return eul
         }
 
         fun get_delta(be: DeliveryCannonBlockEntity): Double {
@@ -275,10 +274,10 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
             return y
         }
 
-        fun turn(rotation: Double, targetRotation: Double, turnSpeed: Double): Pair<Double, Boolean> {
+        fun turn(currentRotation: Double, targetRotation: Double, turnSpeed: Double): Pair<Double, Boolean> {
 
             var shouldLerp = true
-            var rotation = rotation
+            var rotation = currentRotation
 
             if (360+rotation-targetRotation<abs(targetRotation-rotation)) {
 
