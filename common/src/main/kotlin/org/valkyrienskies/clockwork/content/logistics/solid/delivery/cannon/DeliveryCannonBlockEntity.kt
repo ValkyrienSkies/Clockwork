@@ -51,6 +51,7 @@ import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.world.clipIncludeShips
 import java.util.*
+import kotlin.collections.HashSet
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -104,7 +105,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
     var roundRobin = true
 
-    var visitedChutes = mutableListOf<BlockPos>()
+    var visitedChutes = HashSet<BlockPos>()
     var ponder = false
 
     init {
@@ -136,9 +137,11 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
             if (chutes.size>0) {
 
-                if (visitedChutes.size == chutes.size) visitedChutes = mutableListOf()
+                if (visitedChutes.size == chutes.size) visitedChutes = HashSet()
                 for (chute in chutes) {
+                    println(chute !in visitedChutes)
                     if (!roundRobin || chute !in visitedChutes) {
+                        visitedChutes.add(chute)
                         if (startAiming(chute)) break
                     }
 
@@ -251,7 +254,6 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             lastVelocity = getChuteVelocity()
 
             distance = getRealPos().distanceToSqr(realLocation)
-            visitedChutes.add(chuteLocation)
             return true
         }
 
