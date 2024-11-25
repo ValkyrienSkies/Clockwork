@@ -67,7 +67,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
 
         handleShootingAnim(be, partialTicks)
 
-        val lookDir = VecHelper.rotate(be.blockState.getValue(HorizontalDirectionalBlock.FACING).normal.toJOMLD().toMinecraft(), be.yRotation, be.xRotation, 0.0).normalize()
+        val lookDir = VecHelper.rotate(be.blockState.getValue(HorizontalDirectionalBlock.FACING).normal.toJOMLD().toMinecraft(), 0.0, -xCurrentRotation, yCurrentRotation).normalize()
 
         // X Axis rotation
         mount = rotateCentered(mount, xCurrentRotation)
@@ -100,6 +100,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
 
 
             if (!be.didParticles) {
+                print("${lookDir}")
                 for (i in 0..9) {
                     val r: java.util.Random = be.level!!.getRandom()
                     val sX: Double = lookDir.x * .01f
@@ -108,7 +109,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
                     val rX = r.nextFloat() - sX * 40f
                     val rY = r.nextFloat() - sY * 40f
                     val rZ = r.nextFloat() - sZ * 40f
-                    be.level!!.addParticle(ParticleTypes.CLOUD, be.getRealPos().x + (lookDir.x*-1.0) + rX, pivot.y + be.getRealPos().y + (lookDir.y*-2.0) + rY, be.getRealPos().z + (lookDir.z*-1.0) + rZ, sX, sY, sZ)
+                    be.level!!.addParticle(ParticleTypes.CLOUD, be.getRealPos().x - 0.5 - (lookDir.x*2.0) + rX, pivot.y + be.getRealPos().y + 1 + rY, be.getRealPos().z - 0.5 - (lookDir.z*2.0) + rZ, sX, sY, sZ)
                 }
                 be.didParticles = true
             }
