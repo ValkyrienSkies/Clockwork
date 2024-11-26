@@ -1,11 +1,12 @@
 package org.valkyrienskies.clockwork.util
 
+import net.minecraft.util.Mth
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.forces.DragController
 import org.valkyrienskies.clockwork.kelvin.api.GasType
+import org.valkyrienskies.clockwork.kelvin.impl.DuctNetworkImpl.Companion.idealGasConstant
 import java.util.*
-import kotlin.math.max
-import kotlin.math.pow
+import kotlin.math.*
 
 /**
  * Contains useful functions for features that need funny wind maths. Mainly drag and balloons.
@@ -153,13 +154,6 @@ object AerodynamicUtils {
         return pressure
     }
 
-    /**
-     * Calculates the flow of gas based off pressure differentia, pipe radius, and viscosity using Poiseuille's Law.
-     */
-    fun calculateFlow(pressureOne: Double, pressureTwo: Double, radius: Double, viscosity: Double, pumpPressure: Double = 0.0): Double {
-        return ((pressureOne - pressureTwo + pumpPressure) * radius.pow(4.0)) / ((8.0/Math.PI) * viscosity * (10.0/16.0))
-    }
-
     fun densityAverage(gasMasses: EnumMap<GasType, Double>): Double {
         val totalMass = gasMasses.values.sum()
 
@@ -196,9 +190,8 @@ object AerodynamicUtils {
         return density
     }
 
-    fun viscosityAverage(gasMasses: EnumMap<GasType, Double>): Double {
+    fun densityFromPressureAverage(gasMasses: EnumMap<GasType, Double>, temp: Double, pressure: Double): Double {
         val totalMass = gasMasses.values.sum()
-
         if (totalMass == 0.0) {
             return 0.0
         }
@@ -209,10 +202,43 @@ object AerodynamicUtils {
 
         gasMasses.keys.forEach {
             if (gasMasses[it] != 0.0 ) {
-                massPerGas[it] = gasMasses[it]!!
+                massPerGas[it] =  gasMasses[it]!!
             }
 
         }
+
+        for (gas in massPerGas.keys) {
+            gasWeight[gas] = massPerGas[gas]!! / totalMass
+        }
+
+        var density = 0.0
+
+        for (gas in gasWeight.keys) {
+            val molarMass = gas.density * 22.4
+            val specificGasConstant = idealGasConstant / molarMass
+            density += gasWeight[gas]!! * (pressure / (specificGasConstant * temp))
+        }
+
+        return density
+    }
+
+    fun dynamicViscosityAverage(gasMasses: EnumMap<GasType, Double>, temp: Double): Double {
+        val totalMass = gasMasses.values.sum()
+        if (totalMass == 0.0) {
+            return 0.0
+        }
+
+        val massPerGas = EnumMap<GasType, Double>(GasType::class.java)
+
+        val gasWeight = EnumMap<GasType, Double>(GasType::class.java)
+
+        gasMasses.keys.forEach {
+            if (gasMasses[it] != 0.0 ) {
+                massPerGas[it] =  gasMasses[it]!!
+            }
+
+        }
+
         for (gas in massPerGas.keys) {
             gasWeight[gas] = massPerGas[gas]!! / totalMass
         }
@@ -220,10 +246,52 @@ object AerodynamicUtils {
         var viscosity = 0.0
 
         for (gas in gasWeight.keys) {
-            viscosity += gasWeight[gas]!! * gas.viscosity
+            viscosity += gasWeight[gas]!! * (gas.viscosity * (temp / 273.15) * ((273.15 + gas.sutherlandConstant) / (temp + gas.sutherlandConstant)))
         }
 
         return viscosity
+    }
+
+    fun calculateFlow(pressureOne: Double, pressureTwo: Double, radius: Double, length: Double, densityA: Double, densityB: Double, viscosity: Double, pumpPressure: Double = 0.0, previousFlowRate: Double = 0.0): Double {
+        var flowRate = 0.0
+        if (densityA <= 0 && densityB <= 0) {
+            return flowRate
+        }
+        val density = if (pressureOne > pressureTwo) densityA else densityB
+        // -- constants
+        // (meters)
+        val pipeRoughness = 0.00012
+        val pipeDiameter = radius * 2.0
+
+        var pressureDrop = (pressureOne - pressureTwo + pumpPressure)
+
+        if (pressureOne <= 0.0001 && pumpPressure.absoluteValue > 0.0) {
+            pressureDrop = min(pressureDrop, 0.0)
+        }
+
+        if (pressureTwo <= 0.0001 && pumpPressure < 0.0) {
+            pressureDrop = max(pressureDrop, 0.0)
+        }
+
+        val finalPressureDrop = pressureDrop
+
+        val Re = max((density * previousFlowRate * pipeDiameter) / viscosity, 0.0001)
+
+        var f: Double = if (Re < 2000) {
+            64.0/Re
+        } else if (Re > 4000) {
+            0.25 / (Math.pow(Math.log10(((pipeRoughness / pipeDiameter) / 3.7) + (5.74 / Math.pow(Re, 0.9))), 2.0))
+        } else {
+            Mth.clampedLerp(64.0/Re, 0.25 / (Math.pow(Math.log10(((pipeRoughness / pipeDiameter) / 3.7) + (5.74 / Math.pow(Re, 0.9))), 2.0)),(Re-2000.0)/(4000.0-2000.0))
+        }
+
+        val flowSpeed = (2.0*finalPressureDrop.absoluteValue)/(f * (length/pipeDiameter) * density)
+        val sqrtFlowSpeed = sign(finalPressureDrop) * sqrt(flowSpeed)
+        val volumetricFlowRate = sqrtFlowSpeed * (Math.pow(Math.PI * radius, 2.0) / 4.0)
+
+        flowRate = volumetricFlowRate * density
+
+        return flowRate
     }
 
     fun specificHeatAverage(gasMasses: EnumMap<GasType, Double>): Double {

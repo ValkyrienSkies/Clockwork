@@ -1,7 +1,9 @@
-package org.valkyrienskies.clockwork.content.physicalities.ballooner
+package org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle
 
+import com.simibubi.create.content.kinetics.base.HorizontalKineticBlock
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntityType
@@ -9,13 +11,13 @@ import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.INodeBlock
 
-class BalloonerBlock(properties: Properties): Block(properties), IBE<BalloonerBlockEntity>, INodeBlock {
-    override fun getBlockEntityClass(): Class<BalloonerBlockEntity> {
-        return BalloonerBlockEntity::class.java
+class GasNozzleBlock(properties: Properties): HorizontalKineticBlock(properties), IBE<GasNozzleBlockEntity>, INodeBlock {
+    override fun getBlockEntityClass(): Class<GasNozzleBlockEntity> {
+        return GasNozzleBlockEntity::class.java
     }
 
-    override fun getBlockEntityType(): BlockEntityType<out BalloonerBlockEntity> {
-        return ClockworkBlockEntities.BALLOONER.get()
+    override fun getBlockEntityType(): BlockEntityType<out GasNozzleBlockEntity> {
+        return ClockworkBlockEntities.GAS_NOZZLE.get()
     }
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
@@ -26,5 +28,9 @@ class BalloonerBlock(properties: Properties): Block(properties), IBE<BalloonerBl
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
         _onRemove(state, level, pos, newState, isMoving)
         super.onRemove(state, level, pos, newState, isMoving)
+    }
+
+    override fun getRotationAxis(state: BlockState): Direction.Axis {
+        return state.getValue(HORIZONTAL_FACING).clockWise.axis
     }
 }

@@ -108,6 +108,9 @@ object ClockworkPartials {
 
     val PUMP_COG: PartialModel = AllPartialModels.MECHANICAL_PUMP_COG
 
+    val NOZZLE_DIAL: PartialModel = PartialModel(ClockworkMod.asResource("block/gas_nozzle/dial"))
+    val NOZZLE_AXIS: PartialModel = PartialModel(ClockworkMod.asResource("block/gas_nozzle/axis"))
+
     private fun block(path: String): PartialModel {
         return PartialModel(ClockworkMod.asResource("block/$path"))
     }

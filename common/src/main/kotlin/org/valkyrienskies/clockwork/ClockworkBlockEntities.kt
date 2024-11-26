@@ -2,10 +2,6 @@ package org.valkyrienskies.clockwork
 
 import com.jozufozu.flywheel.api.MaterialManager
 import com.jozufozu.flywheel.backend.instancing.blockentity.BlockEntityInstance
-import com.simibubi.create.AllBlocks
-import com.simibubi.create.Create
-import com.simibubi.create.content.fluids.pump.PumpBlockEntity
-import com.tterrag.registrate.builders.BlockEntityBuilder
 import com.tterrag.registrate.util.entry.BlockEntityEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer
@@ -44,7 +40,9 @@ import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlockEnti
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctCogInstance
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankBlockEntity
-import org.valkyrienskies.clockwork.content.physicalities.ballooner.BalloonerBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleInstance
+import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleRenderer
 import java.util.function.BiFunction
 
 object ClockworkBlockEntities {
@@ -350,15 +348,30 @@ object ClockworkBlockEntities {
         .register()
 
     @JvmField
-    val BALLOONER: BlockEntityEntry<BalloonerBlockEntity> = ClockworkMod.REGISTRATE
-        .blockEntity<BalloonerBlockEntity>("ballooner") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
-            BalloonerBlockEntity(
+    val GAS_NOZZLE: BlockEntityEntry<GasNozzleBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<GasNozzleBlockEntity>("gas_nozzle") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            GasNozzleBlockEntity(
                 type,
                 pos,
                 state
             )
         }
-        .validBlocks(ClockworkBlocks.BALLOONER)
+        .instance {
+            BiFunction<MaterialManager?, GasNozzleBlockEntity?, BlockEntityInstance<in GasNozzleBlockEntity?>> { materialManager: MaterialManager?, blockEntity: GasNozzleBlockEntity? ->
+                GasNozzleInstance(
+                    materialManager,
+                    blockEntity
+                )
+            }
+        }
+        .validBlocks(ClockworkBlocks.GAS_NOZZLE)
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in GasNozzleBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                GasNozzleRenderer(
+                    context
+                )
+            }
+        }
         .register()
 
     @JvmField

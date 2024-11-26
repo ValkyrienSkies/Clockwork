@@ -41,7 +41,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_ge
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankBlock
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlock
-import org.valkyrienskies.clockwork.content.physicalities.ballooner.BalloonerBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.WingBlock
@@ -345,9 +345,9 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val BALLOONER: BlockEntry<BalloonerBlock> =
-        REGISTRATE.block<BalloonerBlock>("ballooner") { properties: BlockBehaviour.Properties? ->
-            BalloonerBlock(properties!!)
+    val GAS_NOZZLE: BlockEntry<GasNozzleBlock> =
+        REGISTRATE.block<GasNozzleBlock>("gas_nozzle") { properties: BlockBehaviour.Properties? ->
+            GasNozzleBlock(properties!!)
         }
             .initialProperties { SharedProperties.stone() }
             .transform(TagGen.axeOrPickaxe())
@@ -356,7 +356,7 @@ object ClockworkBlocks {
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
-            .model(AssetLookup.customBlockItemModel("ballooner"))
+            .model(AssetLookup.customBlockItemModel("gas_nozzle"))
             .build()
             .register()
 
