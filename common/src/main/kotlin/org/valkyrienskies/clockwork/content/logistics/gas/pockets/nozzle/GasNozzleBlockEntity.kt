@@ -11,7 +11,9 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkAugmentations
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorPacket
 import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.kelvin.api.GasType
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.calcPressure
@@ -42,6 +44,8 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
 
     override fun tick() {
         super.tick()
+
+        pointer.tickChaser()
         if (level == null || level!!.isClientSide) return
 
         val serverLevel = level!! as ServerLevel
@@ -56,16 +60,21 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
             flowIntoPocket()
         }
 
+
     }
+
+
 
     override fun onSpeedChanged(previousSpeed: Float) {
         super.onSpeedChanged(previousSpeed)
         val speed = getSpeed()
-        pointer.chase((if (speed > 0) 1 else 0).toDouble(), getChaseSpeed().toDouble(), LerpedFloat.Chaser.LINEAR)
+        val target = (if (speed > 0) 1 else 0).toDouble()
+        pointer.chase(target, getChaseSpeed().toDouble(), LerpedFloat.Chaser.LINEAR)
+        ClockworkPackets.sendToNear(level, blockPos, 100, GasNozzlePacket(target, blockPos))
         sendData()
     }
 
-    private fun getChaseSpeed(): Float {
+    fun getChaseSpeed(): Float {
         return Mth.clamp(abs(getSpeed()) / 16f / 20f, 0f, 1f)
     }
 
