@@ -151,8 +151,15 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
         }
 
         for (gas in GasType.entries) {
-            ClockworkMod.getKelvin().modGasMass(blockPos.toJOMLD(), gas, newCurrentNodeMasses[gas]!! - currentNodeGasVolumes[gas]!!)
-            serverLevel.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("gas_" + gas.name.lowercase()), pocketRef.x, pocketRef.y, pocketRef.z, serverLevel.dimensionId, newPocketMasses[gas]!!)
+            if (newCurrentNodeMasses[gas] != null && currentNodeGasVolumes[gas] != null) {
+                ClockworkMod.getKelvin()
+                    .modGasMass(blockPos.toJOMLD(), gas, newCurrentNodeMasses[gas]!! - currentNodeGasVolumes[gas]!!)
+                serverLevel.shipObjectWorld.setAirComponentAugmentation(
+                    ClockworkAugmentations.getComponentAugmentation(
+                        "gas_" + gas.name.lowercase()
+                    ), pocketRef.x, pocketRef.y, pocketRef.z, serverLevel.dimensionId, newPocketMasses[gas]!!
+                )
+            }
         }
         ClockworkMod.getKelvin().modTemperature(blockPos.toJOMLD(), newCurrentNodeTemperature - currentNodeTemperature)
         serverLevel.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("temperature"), pocketRef.x, pocketRef.y, pocketRef.z, serverLevel.dimensionId, newPocketTemperature)
