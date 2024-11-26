@@ -5,6 +5,7 @@ import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.level.Level
+import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
@@ -32,5 +33,12 @@ class GasNozzleBlock(properties: Properties): HorizontalKineticBlock(properties)
 
     override fun getRotationAxis(state: BlockState): Direction.Axis {
         return state.getValue(HORIZONTAL_FACING).clockWise.axis
+    }
+
+    override fun hasShaftTowards(world: LevelReader, pos: BlockPos, state: BlockState, face: Direction): Boolean {
+        if (face.axis == state.getValue(HORIZONTAL_FACING).clockWise.axis) {
+            return true
+        }
+        return super.hasShaftTowards(world, pos, state, face)
     }
 }
