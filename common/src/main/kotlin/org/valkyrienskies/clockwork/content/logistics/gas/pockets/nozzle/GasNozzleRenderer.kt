@@ -6,6 +6,7 @@ import com.simibubi.create.AllPartialModels
 import com.simibubi.create.content.kinetics.base.HorizontalKineticBlock
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
+import com.simibubi.create.foundation.render.SuperByteBuffer
 import com.simibubi.create.foundation.utility.AngleHelper
 import com.simibubi.create.foundation.utility.AnimationTickHolder
 import net.minecraft.client.renderer.MultiBufferSource
@@ -14,6 +15,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.Direction
 import net.minecraft.core.Direction.Axis
 import net.minecraft.util.Mth
+import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkPartials
 
 class GasNozzleRenderer(context: BlockEntityRendererProvider.Context?) : KineticBlockEntityRenderer<GasNozzleBlockEntity>(
@@ -30,15 +32,17 @@ class GasNozzleRenderer(context: BlockEntityRendererProvider.Context?) : Kinetic
         super.renderSafe(be, partialTicks, ms, buffer, light, overlay)
 
         val blockState = be.blockState
-        val pointer = CachedBufferer.partial(ClockworkPartials.NOZZLE_DIAL, blockState)
+        var pointer = CachedBufferer.partial(ClockworkPartials.NOZZLE_DIAL, blockState)
         val facing = blockState.getValue(HorizontalKineticBlock.HORIZONTAL_FACING)
 
-        val pointerRotation = Mth.lerp(be.pointer.getValue(partialTicks), 0f, -90f)
+        val pointerRotation = Mth.DEG_TO_RAD * Mth.lerp(be.pointer.getValue(partialTicks), 225f, 135f)
 
-        pointer.centre()
-            .rotateCentered(Direction.UP, AngleHelper.rad(AngleHelper.horizontalAngle(facing).toDouble()))
-            .rotateCentered(facing, AngleHelper.rad(pointerRotation.toDouble()))
-            .unCentre()
+        val dialOffset = Vec3(0.0,-0.1,0.0)
+
+        rotateBufferTowards(pointer, facing.clockWise)
+            .translate(dialOffset)
+            .rotateCentered(Direction.NORTH, pointerRotation)
+            .translate(dialOffset.reverse())
             .light(light)
             .renderInto(ms, buffer.getBuffer(RenderType.solid()))
 
@@ -53,5 +57,9 @@ class GasNozzleRenderer(context: BlockEntityRendererProvider.Context?) : Kinetic
         val axis = CachedBufferer.partialFacing(ClockworkPartials.NOZZLE_AXIS, blockState, rotdir)
         kineticRotationTransform(axis, be, rotaxis, angle, light)
         axis.renderInto(ms, buffer.getBuffer(RenderType.solid()))
+    }
+
+    fun rotateBufferTowards(buffer: SuperByteBuffer, target: Direction): SuperByteBuffer {
+        return buffer.rotateCentered(Direction.UP, ((-target.toYRot() - 90) / 180 * Math.PI).toFloat())
     }
 }
