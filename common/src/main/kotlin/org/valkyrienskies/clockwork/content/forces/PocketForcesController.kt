@@ -236,6 +236,7 @@ class PocketForcesController: ShipForcesInducer {
                             if (newPocketTemperature.isNaN() || newPocketTemperature.isInfinite()) newPocketTemperature = 0.001
 
                             for (gas in GasType.entries) {
+                                if (newGasMasses[gas] != null)
                                 level.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("gas_" + gas.name.lowercase()), root.x(), root.y(), root.z(), level.dimensionId, newGasMasses[gas]!!)
                             }
                             level.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("temperature"), root.x(), root.y(), root.z(), level.dimensionId, newPocketTemperature)
