@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.util.DoubleAvgAugmentation
+import org.valkyrienskies.clockwork.util.DoubleAvgComponentAugmentation
 import org.valkyrienskies.core.api.world.connectivity.DoubleAugmentation
 import org.valkyrienskies.core.api.world.connectivity.DoubleComponentAugmentation
 import org.valkyrienskies.core.apigame.world.ServerShipWorldCore
@@ -8,16 +10,24 @@ object ClockworkAugmentations {
     private val augmentKeys: HashMap<String, DoubleAugmentation> = HashMap()
     private val componentAugmentKeys: HashMap<String, DoubleComponentAugmentation> = HashMap()
 
-    fun registerAugmentation(key: String, shipObjectWorld: ServerShipWorldCore) {
+    fun registerSumAugmentation(key: String, shipObjectWorld: ServerShipWorldCore) {
         augmentKeys[key] = shipObjectWorld.createDoubleSumAugmentation("clockwork", key)
+    }
+
+    fun registerAvgAugmentation(key: String, shipObjectWorld: ServerShipWorldCore) {
+        augmentKeys[key] = DoubleAvgAugmentation("clockwork:$key")
     }
 
     fun getAugmentation(key: String): DoubleAugmentation {
         return augmentKeys[key] ?: error("No augmentation found with key $key")
     }
 
-    fun registerComponentAugmentation(key: String, shipObjectWorld: ServerShipWorldCore) {
+    fun registerComponentSumAugmentation(key: String, shipObjectWorld: ServerShipWorldCore) {
         componentAugmentKeys[key] = shipObjectWorld.createDoubleSumComponentAugmentation("clockwork", key)
+    }
+
+    fun registerComponentAvgAugmentation(key: String, shipObjectWorld: ServerShipWorldCore) {
+        componentAugmentKeys[key] = DoubleAvgComponentAugmentation("clockwork:$key")
     }
 
     fun getComponentAugmentation(key: String): DoubleComponentAugmentation {

@@ -150,12 +150,18 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
             newPocketTemperature -= (deltaThermalEnergy) / (newPocketMasses.values.sum() * specificHeatAverage(newPocketMasses))
         }
 
+        var newPocketPressure = calcPressure(newPocketMasses.values.sum(), pocketVolume, newPocketTemperature, densityAverage(newPocketMasses))
+        if (newPocketPressure.isInfinite() || newPocketPressure.isNaN()) {
+            newPocketPressure = 0.0
+        }
+
         for (gas in GasType.entries) {
-            ClockworkMod.getKelvin().modGasMass(blockPos.toJOMLD(), gas, newCurrentNodeMasses[gas]!! - currentNodeGasVolumes[gas]!!)
+            ClockworkMod.getKelvin().modGasMass(blockPos.toJOMLD(), gas, -(transferredGasses[gas]?: 0.0))
             serverLevel.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("gas_" + gas.name.lowercase()), pocketRef.x, pocketRef.y, pocketRef.z, serverLevel.dimensionId, newPocketMasses[gas]!!)
         }
         ClockworkMod.getKelvin().modTemperature(blockPos.toJOMLD(), newCurrentNodeTemperature - currentNodeTemperature)
         serverLevel.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("temperature"), pocketRef.x, pocketRef.y, pocketRef.z, serverLevel.dimensionId, newPocketTemperature)
+        serverLevel.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("pressure"), pocketRef.x, pocketRef.y, pocketRef.z, serverLevel.dimensionId, newPocketPressure)
     }
 
     override fun getDuctNodePosition(): DuctNodePos {

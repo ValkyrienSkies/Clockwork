@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.Direction
+import net.minecraft.core.Direction.Axis
 import net.minecraft.util.Mth
 import org.valkyrienskies.clockwork.ClockworkPartials
 
@@ -35,8 +36,8 @@ class GasNozzleRenderer(context: BlockEntityRendererProvider.Context?) : Kinetic
         val pointerRotation = Mth.lerp(be.pointer.getValue(partialTicks), 0f, -90f)
 
         pointer.centre()
-            .rotateY(AngleHelper.horizontalAngle(facing).toDouble())
-            .rotateCentered(facing, (pointerRotation))
+            .rotateCentered(Direction.UP, AngleHelper.rad(AngleHelper.horizontalAngle(facing).toDouble()))
+            .rotateCentered(facing, AngleHelper.rad(pointerRotation.toDouble()))
             .unCentre()
             .light(light)
             .renderInto(ms, buffer.getBuffer(RenderType.solid()))
