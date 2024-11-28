@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.Direction
+import net.minecraft.core.Direction.Axis
 import net.minecraft.util.Mth
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkPartials

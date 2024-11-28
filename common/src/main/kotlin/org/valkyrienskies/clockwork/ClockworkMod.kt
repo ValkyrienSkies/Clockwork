@@ -4,7 +4,6 @@ import com.mojang.logging.LogUtils
 import com.simibubi.create.foundation.data.CreateRegistrate
 import dev.architectury.event.events.common.LifecycleEvent
 import dev.architectury.event.events.common.TickEvent
-import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
 import org.slf4j.LoggerFactory
@@ -15,7 +14,6 @@ import org.valkyrienskies.clockwork.content.forces.WanderShipControl
 import org.valkyrienskies.clockwork.kelvin.api.DuctNetwork
 import org.valkyrienskies.clockwork.kelvin.impl.DuctNetworkImpl
 import org.valkyrienskies.clockwork.platform.PlatformUtils
-import org.valkyrienskies.core.impl.config.VSConfigClass
 import org.valkyrienskies.core.impl.hooks.VSEvents
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.shipObjectWorld
@@ -44,7 +42,7 @@ object ClockworkMod {
         ClockworkPackets.init()
         ClockworkTags.init()
         ClockworkWorldgen.init()
-
+        ClockworkDamageSources.init()
         ValkyrienSkiesMod.vsCore.registerConfigLegacy("clockwork", ClockworkConfig::class.java)
 
         VSEvents.ShipLoadEvent.on { event ->
@@ -62,10 +60,14 @@ object ClockworkMod {
         }
 
         LifecycleEvent.SERVER_STARTED.register {
-            ClockworkAugmentations.registerComponentAugmentation("temperature", it.shipObjectWorld)
-            ClockworkAugmentations.registerComponentAugmentation("gas_air", it.shipObjectWorld)
-            ClockworkAugmentations.registerComponentAugmentation("gas_phlogiston", it.shipObjectWorld)
-            ClockworkAugmentations.registerComponentAugmentation("gas_helium", it.shipObjectWorld)
+            ClockworkAugmentations.registerComponentAvgAugmentation("temperature", it.shipObjectWorld)
+            ClockworkAugmentations.registerComponentAvgAugmentation("pressure", it.shipObjectWorld)
+            ClockworkAugmentations.registerComponentSumAugmentation("gas_air", it.shipObjectWorld)
+            ClockworkAugmentations.registerComponentSumAugmentation("gas_phlogiston", it.shipObjectWorld)
+            ClockworkAugmentations.registerComponentSumAugmentation("gas_helium", it.shipObjectWorld)
+            //todo: gas registry
+            ClockworkAugmentations.registerComponentSumAugmentation("airupdated", it.shipObjectWorld)
+            ClockworkAugmentations.registerSumAugmentation("sealed", it.shipObjectWorld)
         }
 
         TickEvent.SERVER_LEVEL_POST.register {

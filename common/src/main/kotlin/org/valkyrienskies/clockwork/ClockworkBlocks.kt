@@ -1,8 +1,10 @@
 package org.valkyrienskies.clockwork
 
 import com.simibubi.create.AllTags
+import com.simibubi.create.content.decoration.encasing.CasingBlock
 import com.simibubi.create.content.fluids.PipeAttachmentModel
 import com.simibubi.create.content.kinetics.BlockStressDefaults
+import com.simibubi.create.content.kinetics.simpleRelays.encased.EncasedShaftBlock
 import com.simibubi.create.foundation.data.*
 import com.simibubi.create.foundation.data.ModelGen.customItemModel
 import com.simibubi.create.foundation.data.TagGen.axeOrPickaxe
@@ -20,6 +22,7 @@ import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.SlabBlock
+import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.block.StairBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockBehaviour
@@ -36,6 +39,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInf
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
+import org.valkyrienskies.clockwork.content.kinetics.casing.ExtendedEncasedShaftBlock
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
@@ -582,6 +586,37 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
+    val BALLOON_CASING = REGISTRATE.block<CasingBlock>(
+        "balloon_casing"
+    ) { properties: BlockBehaviour.Properties? ->
+        CasingBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.wooden() }
+        .transform(BuilderTransformers.casing { ClockworkSpriteShifts.BALLOON_CASING })
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
+    val BALLOON_ENCASED_SHAFT = REGISTRATE.block<EncasedShaftBlock>(
+        "balloon_encased_shaft"
+    ) { properties: BlockBehaviour.Properties? ->
+        EncasedShaftBlock(
+            properties!!
+        ) { BALLOON_CASING.get() }
+    }
+        .initialProperties { SharedProperties.wooden() }
+        .transform(TagGen.axeOrPickaxe())
+        .transform(BuilderTransformers.encasedShaft("balloon") { ClockworkSpriteShifts.BALLOON_CASING })
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
     val CLOCK: BlockEntry<ClockBlock> = REGISTRATE.block<ClockBlock>(
         "clock"
     ) { properties: BlockBehaviour.Properties? ->
@@ -625,7 +660,6 @@ object ClockworkBlocks {
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .build()
             .register()
-
 
     @JvmStatic
     fun register() {

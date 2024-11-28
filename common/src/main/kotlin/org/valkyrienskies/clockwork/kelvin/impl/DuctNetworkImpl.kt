@@ -54,7 +54,7 @@ class DuctNetworkImpl(
     }
 
     override fun getTemperatureAt(node: DuctNodePos): Double {
-        return nodeInfo[node]?.currentTemperature ?: 0.0
+        return nodeInfo[node]?.currentTemperature ?: 0.0001
     }
 
     override fun getGasMassAt(node: DuctNodePos): EnumMap<GasType, Double> {
@@ -113,7 +113,8 @@ class DuctNetworkImpl(
     }
 
     override fun modTemperature(pos: DuctNodePos, deltaTemperature: Double) {
-        nodeInfo[pos]?.currentTemperature = nodeInfo[pos]?.currentTemperature?.plus(deltaTemperature) ?: 0.0
+        if (deltaTemperature.isNaN() || deltaTemperature.isInfinite()) nodeInfo[pos]?.currentTemperature = 0.0001
+        nodeInfo[pos]?.currentTemperature = max(nodeInfo[pos]?.currentTemperature?.plus(deltaTemperature) ?: 0.0001, 0.0001)
     }
 
     override fun modPressure(pos: DuctNodePos, deltaPressure: Double) {
@@ -133,7 +134,7 @@ class DuctNetworkImpl(
 
         val temp = (massInNode*specificHeatOfNode*tempInNode + deltaMass*gasTemperature*gasType.specificHeatCapacity) / (massInNode*specificHeatOfNode + deltaMass*gasType.specificHeatCapacity)
 
-        nodeInfo[pos]!!.currentTemperature = temp
+        nodeInfo[pos]!!.currentTemperature = max(temp, 0.0001)
 
         modGasMass(pos, gasType, deltaMass)
 
@@ -402,7 +403,7 @@ class DuctNetworkImpl(
                 nodeA.currentTemperature = max(nodeA.currentTemperature, 0.0001)
                 nodeB.currentTemperature = max(nodeB.currentTemperature, 0.0001)
 
-                edge.currentFlowRate = flowRate
+                edge.currentFlowRate = totalTransferredMass * flowRate.sign
             }
         }
 

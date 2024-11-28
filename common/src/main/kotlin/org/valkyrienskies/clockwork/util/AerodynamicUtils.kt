@@ -115,14 +115,147 @@ object AerodynamicUtils {
         }
     }
 
+    fun getAirPressureForY(y: Double, maxHeight: Double): Double {
+        val worldScale = 11000.0 / (maxHeight - 63.0)
+
+        val realAltitude = if ((y - 63.0) * worldScale >= 0) {
+            (y - 63.0) * worldScale
+        } else {
+            0.0
+        }
+
+        val layer = when {
+            realAltitude < 11000 -> 0
+            realAltitude < 20000 -> 1
+            realAltitude < 32000 -> 2
+            realAltitude < 47000 -> 3
+            realAltitude < 51000 -> 4
+            realAltitude < 71000 -> 5
+            else -> 6
+        }
+
+        val hb = when (layer) {
+            0 -> 0.0
+            1 -> 11000.0
+            2 -> 20000.0
+            3 -> 32000.0
+            4 -> 47000.0
+            5 -> 51000.0
+            6 -> 71000.0
+            else -> 0.0
+        }
+
+        val pb = when (layer) {
+            0 -> 101325.0
+            1 -> 22632.1
+            2 -> 5474.89
+            3 -> 868.02
+            4 -> 110.91
+            5 -> 66.94
+            6 -> 3.96
+            else -> 0.0
+        }
+
+        val Tb = when (layer) {
+            0 -> 288.15
+            1 -> 216.65
+            2 -> 216.65
+            3 -> 228.65
+            4 -> 270.65
+            5 -> 270.65
+            6 -> 214.65
+            else -> 0.0
+        }
+
+        val g0 = GRAVITATIONAL_ACCELERATION
+
+        val R = UNIVERSAL_GAS_CONSTANT
+
+        val M = AIR_MOLAR_MASS
+
+        val L = when (layer) {
+            0 -> 0.0065
+            1 -> 0.0
+            2 -> -0.001
+            3 -> -0.0028
+            4 -> 0.0
+            5 -> 0.0028
+            6 -> 0.002
+            else -> 0.0
+        }
+
+        return when (L != 0.0) {
+            true -> pb * Math.pow(1.0 - (L / Tb) * (realAltitude - hb), ((g0 * M) / (R * L)))
+            else -> pb * Math.exp((-g0 * M * (realAltitude - hb)) / (R * Tb))
+        }
+    }
+
+    fun getAirTemperatureForY(y: Double, maxHeight: Double): Double {
+        val worldScale = 11000.0 / (maxHeight - 63.0)
+
+        val realAltitude = if ((y - 63.0) * worldScale >= 0) {
+            (y - 63.0) * worldScale
+        } else {
+            0.0
+        }
+
+        val layer = when {
+            realAltitude < 11000 -> 0
+            realAltitude < 20000 -> 1
+            realAltitude < 32000 -> 2
+            realAltitude < 47000 -> 3
+            realAltitude < 51000 -> 4
+            realAltitude < 71000 -> 5
+            else -> 6
+        }
+
+        val hb = when (layer) {
+            0 -> 0.0
+            1 -> 11000.0
+            2 -> 20000.0
+            3 -> 32000.0
+            4 -> 47000.0
+            5 -> 51000.0
+            6 -> 71000.0
+            else -> 0.0
+        }
+
+        val Tb = when (layer) {
+            0 -> 288.15
+            1 -> 216.65
+            2 -> 216.65
+            3 -> 228.65
+            4 -> 270.65
+            5 -> 270.65
+            6 -> 214.65
+            else -> 0.0
+        }
+
+        val L = when (layer) {
+            0 -> 0.0065
+            1 -> 0.0
+            2 -> -0.001
+            3 -> -0.0028
+            4 -> 0.0
+            5 -> 0.0028
+            6 -> 0.002
+            else -> 0.0
+        }
+
+        return when (L != 0.0) {
+            true -> Tb + (L * (realAltitude - hb))
+            else -> Tb
+        }
+    }
+
     fun getDensityFromTemperature(volume: Double, mass: Double, temperature: Double, gasType: GasType): Double {
         if (volume == 0.0) return 0.0
 
-        var density = (mass/1000.0) / volume
+        var density = (mass) / volume
 
         if (temperature != 0.0) {
             val molarMass = gasType.density * 22.4
-            val pressure = calcPressure(mass/1000.0, volume, temperature, gasType)
+            val pressure = calcPressure(mass, volume, temperature, gasType)
             density = (molarMass * pressure) / (UNIVERSAL_GAS_CONSTANT * temperature)
         }
         return density
@@ -144,13 +277,16 @@ object AerodynamicUtils {
     /**
      * Calculates pressure using the ideal gas law. For use with the average of multiple gas types rather than one.
      */
-    fun calcPressure(mass: Double, volume: Double, temp: Double, density: Double): Double {
-        if (volume == 0.0 || density == 0.0) return 0.0
-        val adjustedTemp = max(temp,0.001)
+    fun calcPressure(mass: Double, volume: Double, temp: Double, standardDensity: Double): Double {
+        if (volume == 0.0 || mass == 0.0) return 0.0
+        val adjustedTemp = max(temp,0.0001)
         val pressure: Double
-        val molarMass = density * 22.4
+        val density: Double = mass / volume
+        val molarMass = standardDensity * 22.4
+        val specificGasConstant = (idealGasConstant / molarMass) * 1000.0
         val moles = mass / molarMass
-        pressure = (moles * UNIVERSAL_GAS_CONSTANT * adjustedTemp) / volume
+        pressure = (density * specificGasConstant * adjustedTemp)
+
         return pressure
     }
 
@@ -324,11 +460,46 @@ object AerodynamicUtils {
         return specificHeat
     }
 
+    //Returns an average Specific Gas Constant, Sutherland Constant, and Adiabatic Index for a given gas mixture
+    fun extraHeatInfoAverage(gasMasses: EnumMap<GasType, Double>): Triple<Double,Double,Double> {
+        val totalMass = gasMasses.values.sum()
+        if (totalMass == 0.0) {
+            return Triple(0.0,0.0,0.0)
+        }
+
+        val massPerGas = EnumMap<GasType, Double>(GasType::class.java)
+
+        val gasWeight = EnumMap<GasType, Double>(GasType::class.java)
+
+        gasMasses.keys.forEach {
+            if (gasMasses[it] != 0.0 ) {
+                massPerGas[it] =  gasMasses[it]!!
+            }
+
+        }
+
+        for (gas in massPerGas.keys) {
+            gasWeight[gas] = massPerGas[gas]!! / totalMass
+        }
+
+        var specificGasConstant = 0.0
+        var sutherlandConstant = 0.0
+        var adiabaticIndex = 0.0
+
+        for (gas in gasWeight.keys) {
+            specificGasConstant += gasWeight[gas]!! * (UNIVERSAL_GAS_CONSTANT / (gas.density * 22.4))
+            sutherlandConstant += gasWeight[gas]!! * gas.sutherlandConstant
+            adiabaticIndex += gasWeight[gas]!! * gas.adiabaticIndex
+        }
+
+        return Triple(specificGasConstant, sutherlandConstant, adiabaticIndex)
+    }
+
 
     // useful values
 
-    const val DRAG_COEFFICIENT = 3.15
+    const val DRAG_COEFFICIENT = 4.15
     const val GRAVITATIONAL_ACCELERATION = 9.80665
-    const val UNIVERSAL_GAS_CONSTANT = 8.3144598
+    const val UNIVERSAL_GAS_CONSTANT = 8.314
     const val AIR_MOLAR_MASS = 0.0289644
 }
