@@ -27,6 +27,7 @@ import org.valkyrienskies.clockwork.content.curiosities.WanderliteOreBlock
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock
+import org.valkyrienskies.clockwork.content.contraptions.phys.gas_thruster.GasThrusterBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlock
@@ -357,6 +358,22 @@ object ClockworkBlocks {
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .model(AssetLookup.customBlockItemModel("gas_nozzle"))
+            .build()
+            .register()
+
+    @JvmField
+    val GAS_THRUSTER: BlockEntry<GasThrusterBlock> =
+        REGISTRATE.block<GasThrusterBlock>("gas_thruster") { properties: BlockBehaviour.Properties? ->
+            GasThrusterBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.stone() }
+            .transform(TagGen.axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .model(AssetLookup.customBlockItemModel("gas_thruster"))
             .build()
             .register()
 

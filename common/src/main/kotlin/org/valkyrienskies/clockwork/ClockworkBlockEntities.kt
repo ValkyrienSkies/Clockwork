@@ -15,6 +15,7 @@ import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingRendere
 import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingRenderer
+import org.valkyrienskies.clockwork.content.contraptions.phys.gas_thruster.GasThruserBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
@@ -372,6 +373,18 @@ object ClockworkBlockEntities {
                 )
             }
         }
+        .register()
+
+    @JvmField
+    val GAS_THRUSTER: BlockEntityEntry<GasThruserBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<GasThruserBlockEntity>("gas_thruster") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            GasThruserBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .validBlocks(ClockworkBlocks.GAS_THRUSTER)
         .register()
 
     @JvmField
