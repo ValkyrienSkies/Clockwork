@@ -9,9 +9,8 @@ import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.ShipForcesInducer
 import org.valkyrienskies.mod.common.util.toJOMLD
 
-@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+
 class GasThrusterController : ShipForcesInducer {
-    @JsonIgnore
     val ThrusterData = HashMap<BlockPos, Vector3d>()
 
     override fun applyForces(physShip: PhysShip) {
