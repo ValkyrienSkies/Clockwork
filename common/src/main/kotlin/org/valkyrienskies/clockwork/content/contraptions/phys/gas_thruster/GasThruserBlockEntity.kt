@@ -11,10 +11,15 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.forces.GasThrusterController
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
 import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
+import org.valkyrienskies.clockwork.util.AerodynamicUtils
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOMLD
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 class GasThruserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : SmartBlockEntity(type, pos, state), IHeatableBlockEntity {
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) {
@@ -41,6 +46,9 @@ class GasThruserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bl
 
         val stpPressure = 100000 // TODO: Different height pressures + Different dimension pressures
         val gasPressure = node.network.getPressureAt(ductnodepos)
+        val temp = node.network.getTemperatureAt(ductnodepos)
+        val avgSpecificHeat = AerodynamicUtils.specificHeatAverage(node.network.getGasMassAt(ductnodepos))
+
 
         if (gasPressure<stpPressure) return
 
@@ -51,10 +59,13 @@ class GasThruserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bl
             flowrate += edge.currentFlowRate
         }
 
+        val maxMFR = (area * gasPressure / sqrt(temp)) * sqrt(avgSpecificHeat/AerodynamicUtils.UNIVERSAL_GAS_CONSTANT) * (avgSpecificHeat+1).pow(-(avgSpecificHeat+1)/(2*(avgSpecificHeat-1)))/2
+        flowrate = min(maxMFR, flowrate)
+
         for (gas in gasMasses) {
             velocity += flowrate/(gas.key.density*area)
 
-            node.network.modGasMass(ductnodepos, gas.key, -gas.value)
+            node.network.modGasMass(ductnodepos, gas.key, -max(flowrate*0.05, gas.value))
         }
 
         val thrust = flowrate * velocity + (gasPressure-stpPressure)*area
