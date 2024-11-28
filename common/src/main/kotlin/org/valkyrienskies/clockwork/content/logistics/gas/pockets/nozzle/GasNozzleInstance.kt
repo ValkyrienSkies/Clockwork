@@ -8,7 +8,8 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.level.block.Rotation
 import org.valkyrienskies.clockwork.ClockworkPartials
 
-class GasNozzleInstance(materialManager: MaterialManager?, blockEntity: GasNozzleBlockEntity?) : SingleRotatingInstance<GasNozzleBlockEntity>(
+class GasNozzleInstance(materialManager: MaterialManager?, blockEntity: GasNozzleBlockEntity?
+) : SingleRotatingInstance<GasNozzleBlockEntity>(
     materialManager, blockEntity
 ) {
 

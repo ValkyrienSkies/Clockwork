@@ -18,6 +18,7 @@ import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.SlabBlock
+import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.block.StairBlock
 import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.block.state.BlockState
@@ -32,6 +33,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInf
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
+import org.valkyrienskies.clockwork.content.kinetics.casing.ExtendedEncasedShaftBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlock
@@ -551,6 +553,20 @@ object ClockworkBlocks {
         )
     }
         .initialProperties { SharedProperties.netheriteMetal() }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
+    val BALLOON_CASING = REGISTRATE.block<ExtendedEncasedShaftBlock>(
+        "balloon_casing"
+    ) { properties: BlockBehaviour.Properties? ->
+        ExtendedEncasedShaftBlock.balloon(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.wooden() }
         .item()
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
