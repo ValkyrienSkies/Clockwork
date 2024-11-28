@@ -9,10 +9,12 @@ import com.simibubi.create.foundation.data.TagGen.axeOrPickaxe
 import com.tterrag.registrate.builders.BlockBuilder
 import com.tterrag.registrate.providers.DataGenContext
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider
+import com.tterrag.registrate.util.entry.BlockEntityEntry
 import com.tterrag.registrate.util.entry.BlockEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.resources.model.BakedModel
+import net.minecraft.core.BlockPos
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
@@ -20,6 +22,7 @@ import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.SlabBlock
 import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.block.StairBlock
+import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
@@ -34,6 +37,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
 import org.valkyrienskies.clockwork.content.kinetics.casing.ExtendedEncasedShaftBlock
+import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlock
@@ -42,6 +46,10 @@ import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlock
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlock
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
@@ -563,7 +571,7 @@ object ClockworkBlocks {
         "balloon_casing"
     ) { properties: BlockBehaviour.Properties? ->
         ExtendedEncasedShaftBlock.balloon(
-            properties!!
+          properties!!
         )
     }
         .initialProperties { SharedProperties.wooden() }
@@ -571,6 +579,51 @@ object ClockworkBlocks {
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
         .register()
+
+    @JvmField
+    val CLOCK: BlockEntry<ClockBlock> = REGISTRATE.block<ClockBlock>(
+        "clock"
+    ) { properties: BlockBehaviour.Properties? ->
+        ClockBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.wooden() }
+        .addLayer { Supplier { RenderType.cutoutMipped() } }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .transform(customItemModel())
+        .register()
+
+    @JvmField
+    val DELIVERY_CANNON: BlockEntry<DeliveryCannonBlock> =
+        REGISTRATE.block<DeliveryCannonBlock>("delivery_cannon") { properties: BlockBehaviour.Properties? ->
+            DeliveryCannonBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.wooden() }
+            .transform(TagGen.axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
+            .register()
+
+    @JvmField
+    val DELIVERY_CHUTE: BlockEntry<DeliveryChuteBlock> =
+        REGISTRATE.block<DeliveryChuteBlock>("delivery_chute") { properties: BlockBehaviour.Properties? ->
+            DeliveryChuteBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.wooden() }
+            .transform(TagGen.axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
+            .register()
 
     @JvmStatic
     fun register() {

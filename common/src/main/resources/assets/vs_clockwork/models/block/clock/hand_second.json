@@ -1,0 +1,30 @@
+{
+	"credit": "Made with Blockbench",
+	"parent": "block/block",
+	"texture_size": [64, 64],
+	"textures": {
+		"0": "vs_clockwork:block/clock"
+	},
+	"elements": [
+		{
+			"from": [7.75, 7, 14.475],
+			"to": [8.25, 14, 15.475],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 8, 15.05]},
+			"faces": {
+				"north": {"uv": [5, 5, 5.25, 6.5], "texture": "#0"},
+				"east": {"uv": [5, 5, 5.25, 6.5], "texture": "#0"},
+				"south": {"uv": [5, 5, 5.25, 6.5], "texture": "#0"},
+				"west": {"uv": [5, 5, 5.25, 6.5], "texture": "#0"},
+				"up": {"uv": [5, 5, 5.25, 5.25], "texture": "#0"}
+			}
+		}
+	],
+	"groups": [
+		{
+			"name": "second",
+			"origin": [8, 0, 8.05],
+			"color": 0,
+			"children": [0]
+		}
+	]
+}

@@ -25,6 +25,8 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlo
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingRenderer
+import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlockEntity
+import org.valkyrienskies.clockwork.content.curiosities.clock.ClockRenderer
 import org.valkyrienskies.clockwork.content.generic.ColorBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRenderer
@@ -44,6 +46,10 @@ import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozz
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleInstance
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleRenderer
 import java.util.function.BiFunction
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotRenderer
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer
 
 object ClockworkBlockEntities {
 
@@ -408,6 +414,64 @@ object ClockworkBlockEntities {
             }
         }
         .validBlocks(ClockworkBlocks.SLICKER)
+        .register()
+
+    @JvmField
+    val CLOCK = ClockworkMod.REGISTRATE.blockEntity<ClockBlockEntity>("clock") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+        ClockBlockEntity(
+            type,
+            pos,
+            state
+        )
+    }
+        .validBlocks(ClockworkBlocks.CLOCK)
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in ClockBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                ClockRenderer(
+                    context!!
+                )
+            }
+        }
+        .register()
+
+    @JvmField
+    val DELIVERY_CANNON: BlockEntityEntry<DeliveryCannonBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<DeliveryCannonBlockEntity>(
+            "delivery_cannon"
+        ) { typeIn: BlockEntityType<DeliveryCannonBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
+            DeliveryCannonBlockEntity(
+                typeIn,
+                pos!!, state!!
+            )
+        }
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in DeliveryCannonBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                DeliveryCannonRenderer(
+                    context!!
+                )
+            }
+        }
+        .validBlocks(ClockworkBlocks.DELIVERY_CANNON)
+        .register()
+
+    @JvmField
+    val DELIVERY_CHUTE: BlockEntityEntry<DeliveryChuteBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<DeliveryChuteBlockEntity>(
+            "delivery_chute"
+        ) { typeIn: BlockEntityType<DeliveryChuteBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
+            DeliveryChuteBlockEntity(
+                typeIn,
+                pos!!, state!!
+            )
+        }
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in DeliveryChuteBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                FrequencySlotRenderer<DeliveryChuteBlockEntity>(
+                    context!!
+                )
+            }
+        }
+        .validBlocks(ClockworkBlocks.DELIVERY_CHUTE)
         .register()
 
     @JvmStatic

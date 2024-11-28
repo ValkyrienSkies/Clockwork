@@ -87,4 +87,15 @@ public abstract class MixinEncasedFanTileEntity extends KineticBlockEntity {
             vs_clockwork$fanID = compound.getInt(ClockworkConstants.Nbt.FAN_ID);
         }
     }
+
+
+    @Inject(method = "remove", at = @At("HEAD"), remap = false)
+    private void vs_clockwork$injectRemove(CallbackInfo ci) {
+        if (level == null || level.isClientSide) {return;}
+        if (!vs_clockwork$alreadyAdded || vs_clockwork$fanID == null) {return;}
+        if (VSGameUtilsKt.getShipObjectManagingPos(level, getBlockPos()) == null) {return;}
+        LoadedServerShip ship = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, getBlockPos());
+        if (ship == null) {return;}
+        EncasedFanController.Companion.getOrCreate(ship).removeEncasedFan(vs_clockwork$fanID);
+    }
 }
