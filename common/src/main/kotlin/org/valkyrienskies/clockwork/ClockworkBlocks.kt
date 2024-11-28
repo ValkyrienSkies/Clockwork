@@ -1,8 +1,10 @@
 package org.valkyrienskies.clockwork
 
 import com.simibubi.create.AllTags
+import com.simibubi.create.content.decoration.encasing.CasingBlock
 import com.simibubi.create.content.fluids.PipeAttachmentModel
 import com.simibubi.create.content.kinetics.BlockStressDefaults
+import com.simibubi.create.content.kinetics.simpleRelays.encased.EncasedShaftBlock
 import com.simibubi.create.foundation.data.*
 import com.simibubi.create.foundation.data.ModelGen.customItemModel
 import com.simibubi.create.foundation.data.TagGen.axeOrPickaxe
@@ -567,14 +569,31 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val BALLOON_CASING = REGISTRATE.block<ExtendedEncasedShaftBlock>(
+    val BALLOON_CASING = REGISTRATE.block<CasingBlock>(
         "balloon_casing"
     ) { properties: BlockBehaviour.Properties? ->
-        ExtendedEncasedShaftBlock.balloon(
-          properties!!
+        CasingBlock(
+            properties!!
         )
     }
         .initialProperties { SharedProperties.wooden() }
+        .transform(BuilderTransformers.casing { ClockworkSpriteShifts.BALLOON_CASING })
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
+    val BALLOON_ENCASED_SHAFT = REGISTRATE.block<EncasedShaftBlock>(
+        "balloon_encased_shaft"
+    ) { properties: BlockBehaviour.Properties? ->
+        EncasedShaftBlock(
+            properties!!
+        ) { BALLOON_CASING.get() }
+    }
+        .initialProperties { SharedProperties.wooden() }
+        .transform(TagGen.axeOrPickaxe())
+        .transform(BuilderTransformers.encasedShaft("balloon") { ClockworkSpriteShifts.BALLOON_CASING })
         .item()
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
