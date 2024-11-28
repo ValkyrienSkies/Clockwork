@@ -20,6 +20,8 @@ import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterClosePack
 import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterScreenOpenPacket
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorPacket
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorPacket
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.UpdateFrequencySlotPacket
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonSyncPacket
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzlePacket
 import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket
 import org.valkyrienskies.clockwork.platform.SharedValues.packetChannel
@@ -38,6 +40,7 @@ enum class ClockworkPackets(
     UPDATE_SEAT_RULES(UpdateSeatRulesPacket::class.java, ::UpdateSeatRulesPacket),
     SEQUENCER_SEAT_DRIVING(SequencedSeatDrivingPacket::class.java, ::SequencedSeatDrivingPacket),
     UPDATE_ALT_METER(UpdateAltMeterPacket::class.java, ::UpdateAltMeterPacket),
+    UPDATE_CHUTE_SLOT_PACKET(UpdateFrequencySlotPacket::class.java, ::UpdateFrequencySlotPacket),
     CREATIVE_GENERATOR_PACKET(CreativeGeneratorPacket::class.java, ::CreativeGeneratorPacket),
     FILTER_SCREEN_CLOSE_PACKET(FilterClosePacket::class.java, ::FilterClosePacket),
 
@@ -47,6 +50,7 @@ enum class ClockworkPackets(
     // Server to Client
     COLORBLOCKENTITY(BlockEntityColorPacket::class.java, ::BlockEntityColorPacket),
     SYNCABLESTORAGE(SyncableStoragePacket::class.java, ::SyncableStoragePacket),
+    DELIVERY_CANNON_SYNC(DeliveryCannonSyncPacket::class.java, ::DeliveryCannonSyncPacket),
 
     SLICKERATTACHMENT(SlickerAttachmentSyncPacket::class.java, ::SlickerAttachmentSyncPacket),
     GRAVITRON_DIAL_PACKET(GravitronDialPacket::class.java, ::GravitronDialPacket),

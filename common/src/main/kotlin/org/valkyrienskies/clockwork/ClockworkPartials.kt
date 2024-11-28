@@ -111,6 +111,17 @@ object ClockworkPartials {
     val NOZZLE_DIAL: PartialModel = PartialModel(ClockworkMod.asResource("block/gas_nozzle/dial"))
     val NOZZLE_AXIS: PartialModel = PartialModel(ClockworkMod.asResource("block/gas_nozzle/axis"))
 
+    val HAND_SECOND: PartialModel = PartialModel(ClockworkMod.asResource("block/clock/hand_second"))
+    val HAND_MINUTE: PartialModel = PartialModel(ClockworkMod.asResource("block/clock/hand_minute"))
+    val HAND_HOUR: PartialModel = PartialModel(ClockworkMod.asResource("block/clock/hand_hour"))
+    val CLOCK_FRAME: PartialModel = PartialModel(ClockworkMod.asResource("block/clock/clock_ring"))
+    // region Delivery cannon
+    val CANNON_ANTENNA = PartialModel(ClockworkMod.asResource("block/delivery_cannon/antenna"))
+    val CANNON_BARREL = PartialModel(ClockworkMod.asResource("block/delivery_cannon/cannon_barrel"))
+    val CANNON_BASE = PartialModel(ClockworkMod.asResource("block/delivery_cannon/cannon_base"))
+    val CANNON_MOUNT = PartialModel(ClockworkMod.asResource("block/delivery_cannon/mount"))
+    // endregion
+
     private fun block(path: String): PartialModel {
         return PartialModel(ClockworkMod.asResource("block/$path"))
     }

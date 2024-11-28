@@ -44,7 +44,7 @@ object ClockworkMod {
         ClockworkPackets.init()
         ClockworkTags.init()
         ClockworkWorldgen.init()
-        ClockworkDamageSources.init()
+
         ValkyrienSkiesMod.vsCore.registerConfigLegacy("clockwork", ClockworkConfig::class.java)
 
         VSEvents.ShipLoadEvent.on { event ->

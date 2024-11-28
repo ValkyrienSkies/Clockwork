@@ -7,22 +7,28 @@ import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.content.logistics.depot.EjectorBlock
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
-import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour
+import com.simibubi.create.foundation.item.ItemHelper
 import com.simibubi.create.foundation.utility.AngleHelper
-import com.simibubi.create.foundation.utility.Lang
 import com.simibubi.create.foundation.utility.VecHelper
+import io.github.fabricators_of_create.porting_lib.transfer.StorageProvider
+import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.NonNullList
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
+import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.ActiveChutes
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotBehaviour
 import org.valkyrienskies.clockwork.util.blocktype.ISyncableStorage
 import org.valkyrienskies.clockwork.util.blocktype.SyncableStoragePacket
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
@@ -31,37 +37,35 @@ import org.valkyrienskies.mod.common.util.toJOMLD
 class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
     KineticBlockEntity(typeIn, pos, state), ISyncableStorage {
 
+    lateinit var capBelow: StorageProvider<ItemVariant>
+
     private var inventory: NonNullList<ItemStack> = NonNullList.withSize(1, ItemStack.EMPTY)
     private var previousInventory: NonNullList<ItemStack> = inventory
-    var id = 0
 
-    private lateinit var idBehavior: ScrollValueBehaviour
+
+    lateinit var frequencySlotBehaviour: FrequencySlotBehaviour
+
+    var isRecieving = false
+
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
+        frequencySlotBehaviour = FrequencySlotBehaviour(this,FrequencySlot())
 
-        idBehavior = ScrollValueBehaviour(
-            Lang.translateDirect("delivery.identifier"),
-            this,
-            ChuteSlot()
-        )
-            .between(1, 99)
-            .requiresWrench()
-            .withFormatter { i: Int -> if (i == 0) "*" else i.toString() }
-
-        behaviours.add(idBehavior)
+        behaviours.add(frequencySlotBehaviour)
         super.addBehaviours(behaviours)
     }
 
-    override fun tick() {
-        if (this.level == null) return
 
-        if (this.level!!.isClientSide) return
+
+
+
+
+    override fun tick() {
+        if (this.level == null || this.level!!.isClientSide) return
 
         if (!ActiveChutes.hasChute(this.worldPosition)) {
             ActiveChutes.addChute(this.worldPosition, this)
         }
-
-        id = idBehavior.value
 
         if (previousInventory != inventory) {
             ClockworkPackets.sendToNear(
@@ -72,11 +76,23 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
             )
         }
         previousInventory = inventory
+
+        if (!isEmpty) handleDownwardOutput(false)
+    }
+
+    override fun setLevel(level: Level) {
+        super.setLevel(level)
+        capBelow = StorageProvider.createForItems(level, worldPosition.below())
     }
 
     override fun remove() {
         ActiveChutes.removeChute(this.worldPosition)
         super.remove()
+    }
+
+    override fun destroy() {
+        ActiveChutes.removeChute(this.worldPosition)
+        super.destroy()
     }
 
     override fun sync(storage: NonNullList<ItemStack>) {
@@ -91,29 +107,39 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
         return 1
     }
 
-    private fun isOnShip(): Boolean {
+    override fun getBlockPositionFromISS(): BlockPos {
+        return worldPosition
+    }
+
+    fun isOnShip(): Boolean {
         if (this.level!!.isClientSide) return false
         return (this.level!! as ServerLevel).getShipObjectManagingPos(this.worldPosition) != null
     }
 
     fun getRealPos(): Vector3dc {
         return if (isOnShip()) {
-            (this.level!! as ServerLevel).getShipObjectManagingPos(this.worldPosition)!!.transform.shipToWorld.transformPosition(
-                this.worldPosition.toJOMLD()
-            )
+            (this.level!! as ServerLevel).getShipObjectManagingPos(this.worldPosition)!!.transform.shipToWorld.transformPosition(Vector3d(
+                worldPosition.x+0.5,worldPosition.y+0.95,worldPosition.z+0.5
+            ))
         } else {
-            this.worldPosition.toJOMLD()
+            Vector3d(worldPosition.x+0.5,worldPosition.y+0.95,worldPosition.z+0.5)
         }
     }
 
-    fun receiveItem(itemStack: ItemStack): Boolean {
+    fun getVelocity(): Vector3dc? {
+        return if (isOnShip()) {
+            (this.level!! as ServerLevel).getShipObjectManagingPos(this.worldPosition)!!.velocity
+        } else null
+    }
+
+    fun receiveItem(itemStack: ItemStack, simulate: Boolean): Boolean {
         if (inventory[0].isEmpty) {
-            inventory[0] = itemStack
+            if (!simulate) inventory[0] = itemStack
             return true
         } else {
             if (inventory[0].`is`(itemStack.item)) {
                 if (inventory[0].count + itemStack.count <= inventory[0].maxStackSize) {
-                    inventory[0].count += itemStack.count
+                    if (!simulate) inventory[0].count += itemStack.count
                     return true
                 }
             }
@@ -167,12 +193,41 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
         return true
     }
 
-    override fun getBlockPositionFromISS(): BlockPos {
-        return this.worldPosition
+    private fun grabCapability(side: Direction): Storage<ItemVariant>? {
+        if (level == null) return null
+        val provider: StorageProvider<ItemVariant> = capBelow
+        return provider[side.opposite]
     }
 
+    fun handleDownwardOutput(simulate: Boolean): Boolean {
 
-    private class ChuteSlot : ValueBoxTransform.Sided() {
+		if (level == null) return false
+		val inv  = grabCapability(Direction.DOWN);
+		if (!isEmpty) {
+            if (level!!.isClientSide && !isVirtual)
+                return false;
+
+
+            TransferUtil.getTransaction().use { t ->
+                val inserted = inv!!.insert(
+                    ItemVariant.of(getItem(0)),
+                    getItem(0).getCount().toLong(),
+                    t
+                )
+                if (inserted != 0L && !simulate) t.commit()
+                val held = getItem(0)
+                if (!simulate) {
+                    val newStack = held.copy()
+                    newStack.shrink(ItemHelper.truncateLong(inserted))
+                    setItem(0, newStack)
+                }
+                if (inserted != 0L) return true
+            }
+        }
+        return false
+   }
+
+    public class FrequencySlot : ValueBoxTransform.Sided() {
         override fun getLocalOffset(state: BlockState): Vec3 {
             return if (direction != Direction.UP) super.getLocalOffset(state) else Vec3(.5, 10.5 / 16f, .5).add(
                 VecHelper.rotate(
@@ -196,7 +251,7 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
         }
 
         override fun isSideActive(state: BlockState, direction: Direction): Boolean {
-            return (direction.axis === state.getValue(EjectorBlock.HORIZONTAL_FACING).axis || direction == Direction.UP)
+            return direction != Direction.UP && direction != Direction.DOWN
         }
 
         override fun getSouthLocation(): Vec3 {
