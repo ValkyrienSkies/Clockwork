@@ -40,7 +40,7 @@ interface DuctNetwork {
     /**
      * Returns the gas volumes at a node from the previous tick.
      */
-    fun getGasVolumesAt(node: DuctNodePos): EnumMap<GasType, Double>
+    fun getGasMassAt(node: DuctNodePos): EnumMap<GasType, Double>
 
     fun getEdgeBetween(from: DuctNodePos, to: DuctNodePos): DuctEdge?
     fun getNodeAt(pos: DuctNodePos): DuctNode?
@@ -53,9 +53,9 @@ interface DuctNetwork {
 
     fun modTemperature(pos: DuctNodePos, deltaTemperature: Double)
     fun modPressure(pos: DuctNodePos, deltaPressure: Double)
-    fun modGasVolume(pos: DuctNodePos, gasType: GasType, deltaVolume: Double)
+    fun modGasMass(pos: DuctNodePos, gasType: GasType, deltaMass: Double)
 
-    fun modGasVolumeOfTemperature(pos: DuctNodePos, gasType: GasType, deltaVolume: Double, gasTemperature: Double)
+    fun modGasMassOfTemperature(pos: DuctNodePos, gasType: GasType, deltaMass: Double, gasTemperature: Double)
     // the real meat
     fun tick(level: ServerLevel, subSteps: Int = 1)
 

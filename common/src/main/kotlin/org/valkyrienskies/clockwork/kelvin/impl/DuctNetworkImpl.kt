@@ -4,9 +4,11 @@ import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
 import net.minecraft.world.level.Explosion
+import org.valkyrienskies.clockwork.ClockworkDamageSources
 import org.valkyrienskies.clockwork.content.logistics.gas.GasHeatLevel
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.utilities.GasExplosionDamageCalculator
 import org.valkyrienskies.clockwork.kelvin.api.*
 import org.valkyrienskies.clockwork.kelvin.api.edges.ApertureEdge
 import org.valkyrienskies.clockwork.kelvin.api.edges.FilteredEdge
@@ -17,9 +19,7 @@ import org.valkyrienskies.mod.common.util.toMinecraft
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.HashSet
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.pow
+import kotlin.math.*
 
 class DuctNetworkImpl(
     override var disabled: Boolean = true,
@@ -49,15 +49,16 @@ class DuctNetworkImpl(
     }
 
     override fun getPressureAt(node: DuctNodePos): Double {
+        if (nodeInfo[node]?.currentPressure?.isNaN() == true) return 0.0
         return nodeInfo[node]?.currentPressure ?: 0.0
     }
 
     override fun getTemperatureAt(node: DuctNodePos): Double {
-        return nodeInfo[node]?.currentTemperature ?: 0.0
+        return nodeInfo[node]?.currentTemperature ?: 0.0001
     }
 
-    override fun getGasVolumesAt(node: DuctNodePos): EnumMap<GasType, Double> {
-        return nodeInfo[node]?.currentGasVolumes ?: EnumMap(GasType::class.java)
+    override fun getGasMassAt(node: DuctNodePos): EnumMap<GasType, Double> {
+        return nodeInfo[node]?.currentGasMasses ?: EnumMap(GasType::class.java)
     }
 
     override fun getEdgeBetween(from: DuctNodePos, to: DuctNodePos): DuctEdge? {
@@ -74,7 +75,7 @@ class DuctNetworkImpl(
             return
         }
         nodes[pos] = node
-        nodeInfo[pos] = DuctNodeInfo(node.behavior, 0.0, 0.0, EnumMap<GasType, Double>(GasType::class.java))
+        nodeInfo[pos] = DuctNodeInfo(node.behavior, 273.15, 0.0, EnumMap<GasType, Double>(GasType::class.java))
         KELVINLOGGER.logger.info("Added node at $pos")
     }
 
@@ -112,34 +113,30 @@ class DuctNetworkImpl(
     }
 
     override fun modTemperature(pos: DuctNodePos, deltaTemperature: Double) {
-        nodeInfo[pos]?.currentTemperature = nodeInfo[pos]?.currentTemperature?.plus(deltaTemperature) ?: 0.0
+        if (deltaTemperature.isNaN() || deltaTemperature.isInfinite()) nodeInfo[pos]?.currentTemperature = 0.0001
+        nodeInfo[pos]?.currentTemperature = max(nodeInfo[pos]?.currentTemperature?.plus(deltaTemperature) ?: 0.0001, 0.0001)
     }
 
     override fun modPressure(pos: DuctNodePos, deltaPressure: Double) {
         nodeInfo[pos]?.currentPressure = nodeInfo[pos]?.currentPressure?.plus(deltaPressure) ?: 0.0
     }
 
-    override fun modGasVolume(pos: DuctNodePos, gasType: GasType, deltaVolume: Double) {
-        nodeInfo[pos]?.currentGasVolumes?.put(gasType, nodeInfo[pos]?.currentGasVolumes?.get(gasType)?.plus(deltaVolume) ?: 0.0)
+    override fun modGasMass(pos: DuctNodePos, gasType: GasType, deltaMass: Double) {
+        nodeInfo[pos]?.currentGasMasses?.put(gasType, nodeInfo[pos]?.currentGasMasses?.get(gasType)?.plus(deltaMass) ?: 0.0)
     }
 
-    override fun modGasVolumeOfTemperature(pos: DuctNodePos, gasType: GasType, deltaVolume: Double, deltaTemperature: Double ) {
+    override fun modGasMassOfTemperature(pos: DuctNodePos, gasType: GasType, deltaMass: Double, gasTemperature: Double ) {
         var massInNode = 0.0
-        nodeInfo[pos]?.currentGasVolumes?.forEach { massInNode += it.value*it.key.density } ?: return
-        val specificHeatOfNode = specificHeatAverage(nodeInfo[pos]?.currentGasVolumes!!)
+        nodeInfo[pos]?.currentGasMasses?.forEach { massInNode += it.value } ?: return
+        val specificHeatOfNode = specificHeatAverage(nodeInfo[pos]?.currentGasMasses!!)
         val tempInNode = nodeInfo[pos]!!.currentTemperature
-        val energyInNode = massInNode * specificHeatOfNode * tempInNode
-
-        val deltaMass = deltaVolume * gasType.density
 
 
-        val temp = (massInNode*specificHeatOfNode*tempInNode + deltaMass*deltaTemperature*gasType.specificHeatCapacity) / (massInNode*specificHeatOfNode + deltaMass*gasType.specificHeatCapacity)
+        val temp = (massInNode*specificHeatOfNode*tempInNode + deltaMass*gasTemperature*gasType.specificHeatCapacity) / (massInNode*specificHeatOfNode + deltaMass*gasType.specificHeatCapacity)
 
-        // = (deltaVolume*gasType.density*gasType.specificHeatCapacity*gasTemperature + massInNode*specificHeatOfNode*)/(deltaVolume*gasType.specificHeatCapacity + massInNode*specificHeatOfNode)
+        nodeInfo[pos]!!.currentTemperature = max(temp, 0.0001)
 
-        nodeInfo[pos]!!.currentTemperature = temp
-
-        modGasVolume(pos, gasType, deltaVolume)
+        modGasMass(pos, gasType, deltaMass)
 
     }
 
@@ -171,11 +168,11 @@ class DuctNetworkImpl(
                 var madeNewB = false
 
                 if (nodeA == null) {
-                    nodeInfo[edge.nodeA] = DuctNodeInfo(nodes[edge.nodeA]!!.behavior,0.0, 0.0, EnumMap<GasType, Double>(GasType::class.java))
+                    nodeInfo[edge.nodeA] = DuctNodeInfo(nodes[edge.nodeA]!!.behavior,273.15, 0.0, EnumMap<GasType, Double>(GasType::class.java))
                     madeNewA = true
                 }
                 if (nodeB == null) {
-                    nodeInfo[edge.nodeB] = DuctNodeInfo(nodes[edge.nodeB]!!.behavior,0.0, 0.0, EnumMap<GasType, Double>(GasType::class.java))
+                    nodeInfo[edge.nodeB] = DuctNodeInfo(nodes[edge.nodeB]!!.behavior,273.15, 0.0, EnumMap<GasType, Double>(GasType::class.java))
                     madeNewB = true
                 }
 
@@ -186,17 +183,20 @@ class DuctNetworkImpl(
                 var totalGasMassA = 0.0
                 var totalGasMassB = 0.0
 
-                nodeA!!.currentGasVolumes.forEach { totalGasMassA += it.value }
-                nodeB!!.currentGasVolumes.forEach { totalGasMassB += it.value }
+                nodeA!!.currentGasMasses.forEach { totalGasMassA += it.value }
+                nodeB!!.currentGasMasses.forEach { totalGasMassB += it.value }
+
+                val heatCapacityA = specificHeatAverage(nodeA.currentGasMasses)
+                val heatCapacityB = specificHeatAverage(nodeB.currentGasMasses)
 
                 if (totalGasMassA == 0.0 && totalGasMassB == 0.0) {
                     continue
                 }
 
-                val densityA = densityAverage(nodeA.currentGasVolumes)
-                val densityB = densityAverage(nodeB.currentGasVolumes)
+                val densityA = densityAverage(nodeA.currentGasMasses)
+                val densityB = densityAverage(nodeB.currentGasMasses)
 
-                val tankMultA = if (nodeA.nodeType == NodeBehaviorType.TANK) (nodeDataB as TankDuctNode).size else 1.0
+                val tankMultA = if (nodeA.nodeType == NodeBehaviorType.TANK) (nodeDataA as TankDuctNode).size else 1.0
                 val tankMultB = if (nodeB.nodeType == NodeBehaviorType.TANK) (nodeDataB as TankDuctNode).size else 1.0
 
 
@@ -208,8 +208,8 @@ class DuctNetworkImpl(
 
 
 
-                val viscosityA = viscosityAverage(nodeA.currentGasVolumes)
-                val viscosityB = viscosityAverage(nodeB.currentGasVolumes)
+                val viscosityA = dynamicViscosityAverage(nodeA.currentGasMasses, nodeA.currentTemperature)
+                val viscosityB = dynamicViscosityAverage(nodeB.currentGasMasses, nodeB.currentTemperature)
 
 
 
@@ -231,6 +231,7 @@ class DuctNetworkImpl(
                 var pumpPressureA = 0.0
                 var pumpPressureB = 0.0
 
+                // Determines pump pressure based on target node
                 if (nodeDataA.behavior == NodeBehaviorType.PUMP) {
                     if (aTarget) pumpPressureA = (nodeDataA as PumpDuctNode).pumpPressure
                     else pumpPressureA = -(nodeDataA as PumpDuctNode).pumpPressure
@@ -248,7 +249,10 @@ class DuctNetworkImpl(
                     aperture = Math.max(edge.aperture, -edge.radius)
                 }
 
-                var flowRate = calculateFlow(pressureA, pressureB, edge.radius + aperture, viscosity, pumpPressure)
+                val pressureDependentDensityA = densityFromPressureAverage(nodeA.currentGasMasses, nodeA.currentTemperature, pressureA)
+                val pressureDependentDensityB = densityFromPressureAverage(nodeB.currentGasMasses, nodeB.currentTemperature, pressureB)
+
+                var flowRate = calculateFlow(pressureA, pressureB, edge.radius + aperture, edge.length, pressureDependentDensityA, pressureDependentDensityB, viscosity, pumpPressure, edge.currentFlowRate)
 
 
                 if (edge is OneWayEdge) {
@@ -264,14 +268,46 @@ class DuctNetworkImpl(
                     flowRate = 0.0
                 }
 
+                val aFlowOut = flowRate>0
+                val bFlowOut = flowRate<0
+
+                if (aFlowOut) {
+                    flowRate = flowRate.coerceAtMost(totalGasMassA)
+                }
+                if (bFlowOut) {
+                    flowRate = -flowRate.absoluteValue.coerceAtMost(totalGasMassB)
+                }
+
                 val flowRateA = -flowRate
                 val flowRateB = flowRate
 
-                val aFlowOut = flowRateA<0
-                val bFlowOut = flowRateB<0
+                var totalDeltaMassA = 0.0
+                var totalDeltaMassB = 0.0
+
+                val heatConductivityA = heatConductivityAverage(nodeA.currentGasMasses, pressureA, nodeA.currentTemperature)
+                val heatConductivityB = heatConductivityAverage(nodeB.currentGasMasses, pressureB, nodeB.currentTemperature)
+
+                val totalAvgHeatConductivity = (heatConductivityA + heatConductivityB) / 2.0
 
 
-                for (gas in GasType.values()) {
+                //Calculates passive heat transfer between nodes
+                val passiveHeatDelta = (totalAvgHeatConductivity * (Math.PI * edge.radius * 2.0) * ((nodeA.currentTemperature - nodeB.currentTemperature) / edge.length))
+                val passiveHeatLimit = ((totalGasMassA * heatCapacityA * nodeA.currentTemperature) + (totalGasMassB * heatCapacityB * nodeB.currentTemperature))/2.0
+
+                if (!passiveHeatDelta.isNaN() && passiveHeatLimit.isFinite()) {
+                    if (totalGasMassA >= 0.1 && totalGasMassB >= 0.1 && heatCapacityA >= 0.001 && heatCapacityB >= 0.001) {
+                        val deltaPassiveEnergy = Mth.clamp(passiveHeatDelta, -passiveHeatLimit, passiveHeatLimit) / subSteps.toDouble()
+                        nodeA.currentTemperature -= deltaPassiveEnergy / (totalGasMassA * heatCapacityA)
+                        nodeB.currentTemperature += deltaPassiveEnergy / (totalGasMassB * heatCapacityB)
+                    }
+                }
+
+                nodeA.currentTemperature = max(nodeA.currentTemperature, 0.0001)
+                nodeB.currentTemperature = max(nodeB.currentTemperature, 0.0001)
+
+                val transferredGasses = EnumMap<GasType, Double>(GasType::class.java)
+
+                for (gas in GasType.entries) {
                     if (flowRate == 0.0) {
                         continue
                     }
@@ -287,84 +323,95 @@ class DuctNetworkImpl(
                         }
                     }
 
-                    if (nodeA.currentGasVolumes[gas] == null) {
-                        nodeA.currentGasVolumes[gas] = 0.0
+                    if (nodeA.currentGasMasses[gas] == null) {
+                        nodeA.currentGasMasses[gas] = 0.0
                     }
-                    if (nodeB.currentGasVolumes[gas] == null) {
-                        nodeB.currentGasVolumes[gas] = 0.0
+                    if (nodeB.currentGasMasses[gas] == null) {
+                        nodeB.currentGasMasses[gas] = 0.0
                     }
 
 
+                    val massA = nodeA.currentGasMasses[gas]!!
+                    val massB = nodeB.currentGasMasses[gas]!!
 
 
-                    val volumeA = nodeA.currentGasVolumes[gas]!!
-                    val volumeB = nodeB.currentGasVolumes[gas]!!
-
-
-                    // This entire block is quite disgusting, but it serves a simple function.
-                    // It lets pumps intake the entire volume of the node behind it, and outtake its own volume into the targetNode
+                    // Calculate flow limit based on pump behavior:
+                    // - For pumps: Allow full extraction from source node when pumping in or out
+                    // - For normal pipes: Limit to half the mass difference between nodes
+                    // - For invalid pump configurations: No flow allowed
+                    // Plus extra code for tanks, so that their limit was bigger to compensate for the mass they store
 
                     val limit: Double
-                    if (aTarget && aFlowOut || bPump && !bTarget && aFlowOut) limit = volumeA
-                    else if (bTarget && bFlowOut || aPump && !aTarget && bFlowOut) limit = volumeB
-                    else if (!aPump && !bPump) limit = abs(volumeA/tankMultA-volumeB/tankMultB)/2.0
+                    if (aTarget && aFlowOut || bPump && !bTarget && aFlowOut) limit = massA
+                    else if (bTarget && bFlowOut || aPump && !aTarget && bFlowOut) limit = massB
+                    else if (!aPump && !bPump) limit = abs(massA/tankMultA-massB/tankMultB)/2.0
                     else limit = 0.0
+                    //KELVINLOGGER.logger.info("MassA: $massA, MassB: $massB, Limit: $limit")
 
 
 
-
-                    val deltaVolumeA = Mth.clamp(flowRateA, -limit, limit) / subSteps
-                    val deltaVolumeB = Mth.clamp(flowRateB, -limit, limit) / subSteps
-
+                    val deltaMassA = Mth.clamp(flowRateA, -(limit.coerceAtMost(massA)), limit.coerceAtMost(massB))
+                    val deltaMassB = Mth.clamp(flowRateB, -(limit.coerceAtMost(massB)), limit.coerceAtMost(massA))
 
 
-                    nodeA.currentGasVolumes[gas] = max(volumeA + deltaVolumeA, 0.0)
-                    nodeB.currentGasVolumes[gas] = max(volumeB + deltaVolumeB, 0.0)
 
+                    nodeA.currentGasMasses[gas] = max(massA + (deltaMassA/subSteps.toDouble()), 0.0)
+                    nodeB.currentGasMasses[gas] = max(massB + (deltaMassB/subSteps.toDouble()), 0.0)
 
+                    totalDeltaMassA += deltaMassA
+                    totalDeltaMassB += deltaMassB
+                    transferredGasses[gas] = deltaMassA
                 }
 
-                totalGasMassA = nodeA.currentGasVolumes.values.sum()
-                totalGasMassB = nodeB.currentGasVolumes.values.sum()
+                val totalTransferredMass = transferredGasses.values.sum()
 
-                val heatCapacityA = specificHeatAverage(nodeA.currentGasVolumes)
-                val heatCapacityB = specificHeatAverage(nodeB.currentGasVolumes)
+                val flowHeatCapacity = specificHeatAverage(transferredGasses)
 
+                val newTotalGasMassesA = nodeA.currentGasMasses.values.sum()
+                val newTotalGasMassesB = nodeB.currentGasMasses.values.sum()
+                val newHeatCapacityA = specificHeatAverage(nodeA.currentGasMasses)
+                val newHeatCapacityB = specificHeatAverage(nodeB.currentGasMasses)
 
-                edge.currentFlowRate = flowRate
-
-                var deltaThermalEnergy = if (flowRate > 0) {
-                    (totalGasMassA * heatCapacityA * (nodeA.currentTemperature - nodeB.currentTemperature))
-                } else if (flowRate < 0) {
-                    (totalGasMassB * heatCapacityB * (nodeB.currentTemperature - nodeA.currentTemperature))
+                var deltaThermalEnergy = if (flowRate > 0.0) {
+                    (totalTransferredMass * flowHeatCapacity * (nodeA.currentTemperature - nodeB.currentTemperature))
+                } else if (flowRate < 0.0) {
+                    (totalTransferredMass * flowHeatCapacity * (nodeB.currentTemperature - nodeA.currentTemperature))
                 } else {
                     0.0
                 }
 
-                val thermalLimit = abs((totalGasMassA*heatCapacityA*nodeA.currentTemperature)-(totalGasMassB*heatCapacityB*nodeB.currentTemperature))/2.0
-                deltaThermalEnergy = Mth.clamp(deltaThermalEnergy, -thermalLimit, thermalLimit)/subSteps.toDouble()
 
-
-                if (deltaThermalEnergy.isInfinite() || deltaThermalEnergy.isNaN()) return
-
-
-                if (flowRate > 0) {
-                    if (totalGasMassA > 0) nodeA.currentTemperature -= deltaThermalEnergy / (totalGasMassA * heatCapacityA)
-                    if (totalGasMassB > 0) nodeB.currentTemperature += deltaThermalEnergy / (totalGasMassB * heatCapacityB)
+                val thermalLimit = if (flowRate > 0) {
+                    totalGasMassA * heatCapacityA * nodeA.currentTemperature
+                } else if (flowRate < 0) {
+                    totalGasMassB * heatCapacityB * nodeB.currentTemperature
                 } else {
-                    if (totalGasMassA > 0) nodeA.currentTemperature += deltaThermalEnergy / (totalGasMassA * heatCapacityA)
-                    if (totalGasMassB > 0) nodeB.currentTemperature -= deltaThermalEnergy / (totalGasMassB * heatCapacityB)
+                    0.0
+                }
+                deltaThermalEnergy = Mth.clamp(deltaThermalEnergy, -thermalLimit, thermalLimit)
+
+                if (deltaThermalEnergy.isInfinite() || deltaThermalEnergy.isNaN()) continue
+
+                
+                //if (nodeA.currentTemperature > 300.0 || nodeB.currentTemperature > 300.0) KELVINLOGGER.logger.warn("High Temp! DeltaThermalEnergy: $deltaThermalEnergy, flowHeat: $flowHeatCapacity, ThermalLimit: $thermalLimit, totalGasMassA: $newTotalGasMassesA, totalGasMassB: $newTotalGasMassesB")
+                if (newTotalGasMassesA >= 0.0001 && newTotalGasMassesB >= 0.0001 && newHeatCapacityA >= 0.0001 && newHeatCapacityB >= 0.0001) {
+                    nodeA.currentTemperature += (deltaThermalEnergy / subSteps.toDouble()) / (newTotalGasMassesA * newHeatCapacityA)
+                    nodeB.currentTemperature -= (deltaThermalEnergy / subSteps.toDouble()) / (newTotalGasMassesB * newHeatCapacityB)
                 }
 
+                // Clamps temperature to prevent impossible values
+                nodeA.currentTemperature = max(nodeA.currentTemperature, 0.0001)
+                nodeB.currentTemperature = max(nodeB.currentTemperature, 0.0001)
 
-                nodeA.currentTemperature = max(nodeA.currentTemperature , 0.0)
-                nodeA.currentTemperature = max(nodeA.currentTemperature , 0.0)
+                edge.currentFlowRate = totalTransferredMass * flowRate.sign
             }
         }
 
         val nodesToSync = HashMap<DuctNodePos, GasHeatLevel>()
+        val explnodes = HashSet<DuctNodePos>()
 
-        for (nodePos in nodeInfo.keys) {
+        val nodeInfoToProcess = HashMap(nodeInfo)
+        for (nodePos in nodeInfoToProcess.keys) {
             if (nodeInfo[nodePos] == null || nodes[nodePos] == null) {
                 continue
             }
@@ -373,7 +420,8 @@ class DuctNetworkImpl(
             val info = nodeInfo[nodePos]!!
 
             if (info.currentPressure > node.maxPressure) {
-                level.explode(null, nodePos.x() + 0.5, nodePos.y() + 0.5, nodePos.z() + 0.5, 1f, Explosion.BlockInteraction.BREAK)
+                explnodes.add(nodePos)
+                KELVINLOGGER.logger.info("Node at $nodePos exploded due to overpressure. Pressure at time of failure: ${info.currentPressure}")
             }
 
 //            if (info.currentPressure < node.minPressure) {
@@ -381,7 +429,15 @@ class DuctNetworkImpl(
 //            }
             //copilot wrote this so im immortalizing it
 
-            //temperature control stuff
+
+            /** Update visual heat level of ducts based on temperature thresholds:
+            COOL:      < 20% of max temp
+            WARM:      20-40% of max temp
+            HOT:       40-60% of max temp
+            VERY_HOT:  60-80% of max temp  
+            SUPER_HOT: 80-100% of max temp
+            MOLTEN:    >= 100% of max temp
+            */ 
             if (info.currentTemperature < (node.maxTemperature/5) && info.previousTemperatureLevel != 0) {
                 info.previousTemperatureLevel = 0
                 if (level.getBlockState(BlockPos(nodePos.toMinecraft())).block is IHeatableBlock) {
@@ -420,28 +476,136 @@ class DuctNetworkImpl(
             if (state.block is DuctBlock) state.setValue(IHeatableBlock.GAS_HEAT_LEVEL, nodesToSync[node]!!)
             level.setBlockAndUpdate(BlockPos(node.toMinecraft()), state)
         }
+
+        explnodes.forEach {
+            level.explode(null, ClockworkDamageSources.GAS_EXPLOSION, GasExplosionDamageCalculator(),it.x() + 0.5, it.y() + 0.5, it.z() + 0.5, 1f, true, Explosion.BlockInteraction.BREAK)
+        }
     }
-
-
 
     /**
      * Calculates pressure using the ideal gas law.
      */
-    private fun calcPressure(mass: Double, volume: Double, temp: Double, density: Double): Double {
-        if (volume == 0.0 || density == 0.0) return 0.0
-        val adjustedTemp = max(temp,0.001)
+    private fun calcPressure(mass: Double, volume: Double, temp: Double, standardDensity: Double): Double {
+        if (volume == 0.0 || mass == 0.0) return 0.0
+        val adjustedTemp = max(temp,0.0001)
         val pressure: Double
-        val molarMass = density * 22.4
-        val moles = mass / molarMass
-        pressure = (moles * idealGasConstant * adjustedTemp) / volume
+        val density: Double = mass / volume
+        val molarMass = standardDensity * 22.4
+        val specificGasConstant = idealGasConstant / molarMass
+        pressure = (density * specificGasConstant * adjustedTemp)
+
         return pressure
     }
 
-    /**
-     * Calculates the flow of gas based off pressure differentia, pipe radius, and viscosity using Poiseuille's Law.
-     */
-    private fun calculateFlow(pressureOne: Double, pressureTwo: Double, radius: Double, viscosity: Double, pumpPressure: Double = 0.0): Double {
-        return ((pressureOne - pressureTwo + pumpPressure) * radius.pow(4.0)) / ((8.0/Math.PI) * viscosity * (10.0/16.0))
+    private fun densityFromPressureAverage(gasMasses: EnumMap<GasType, Double>, temp: Double, pressure: Double): Double {
+        val totalMass = gasMasses.values.sum()
+        if (totalMass == 0.0) {
+            return 0.0
+        }
+
+        val massPerGas = EnumMap<GasType, Double>(GasType::class.java)
+
+        val gasWeight = EnumMap<GasType, Double>(GasType::class.java)
+
+        gasMasses.keys.forEach {
+            if (gasMasses[it] != 0.0 ) {
+                massPerGas[it] =  gasMasses[it]!!
+            }
+
+        }
+
+        for (gas in massPerGas.keys) {
+            gasWeight[gas] = massPerGas[gas]!! / totalMass
+        }
+
+        var density = 0.0
+
+        for (gas in gasWeight.keys) {
+            val molarMass = gas.density * 22.4
+            val specificGasConstant = idealGasConstant / molarMass
+            density += gasWeight[gas]!! * (pressure / (specificGasConstant * temp))
+        }
+
+        return density
+    }
+
+    private fun dynamicViscosityAverage(gasMasses: EnumMap<GasType, Double>, temp: Double): Double {
+        val totalMass = gasMasses.values.sum()
+        if (totalMass == 0.0) {
+            return 0.0
+        }
+
+        val massPerGas = EnumMap<GasType, Double>(GasType::class.java)
+
+        val gasWeight = EnumMap<GasType, Double>(GasType::class.java)
+
+        gasMasses.keys.forEach {
+            if (gasMasses[it] != 0.0 ) {
+                massPerGas[it] =  gasMasses[it]!!
+            }
+
+        }
+
+        for (gas in massPerGas.keys) {
+            gasWeight[gas] = massPerGas[gas]!! / totalMass
+        }
+
+        var viscosity = 0.0
+
+        for (gas in gasWeight.keys) {
+            viscosity += gasWeight[gas]!! * (gas.viscosity * (temp / 273.15) * ((273.15 + gas.sutherlandConstant) / (temp + gas.sutherlandConstant)))
+        }
+
+        return viscosity
+    }
+
+//    /**
+//     * Calculates the flow of gas based off pressure differentia, pipe radius, and viscosity using Poiseuille's Law.
+//     */
+//    private fun calculateFlow(pressureOne: Double, pressureTwo: Double, radius: Double, viscosity: Double, pumpPressure: Double = 0.0): Double {
+//        return ((pressureOne - pressureTwo + pumpPressure) * radius.pow(4.0)) / ((8.0/Math.PI) * viscosity * (10.0/16.0))
+//    }
+
+    private fun calculateFlow(pressureOne: Double, pressureTwo: Double, radius: Double, length: Double, densityA: Double, densityB: Double, viscosity: Double, pumpPressure: Double = 0.0, previousFlowRate: Double = 0.0): Double {
+        var flowRate = 0.0
+        if (densityA <= 0 && densityB <= 0) {
+            return flowRate
+        }
+        val density = if (pressureOne > pressureTwo) densityA else densityB
+        // -- constants
+        // (meters)
+        val pipeRoughness = 0.00012
+        val pipeDiameter = radius * 2.0
+
+        var pressureDrop = (pressureOne - pressureTwo + pumpPressure)
+
+        if (pressureOne <= 0.0001 && pumpPressure.absoluteValue > 0.0) {
+            pressureDrop = min(pressureDrop, 0.0)
+        }
+
+        if (pressureTwo <= 0.0001 && pumpPressure < 0.0) {
+            pressureDrop = max(pressureDrop, 0.0)
+        }
+
+        val finalPressureDrop = pressureDrop
+
+        val Re = max((density * previousFlowRate * pipeDiameter) / viscosity, 0.0001)
+
+        var f: Double = if (Re < 2000) {
+            64.0/Re
+        } else if (Re > 4000) {
+            0.25 / (Math.pow(Math.log10(((pipeRoughness / pipeDiameter) / 3.7) + (5.74 / Math.pow(Re, 0.9))), 2.0))
+        } else {
+            Mth.clampedLerp(64.0/Re, 0.25 / (Math.pow(Math.log10(((pipeRoughness / pipeDiameter) / 3.7) + (5.74 / Math.pow(Re, 0.9))), 2.0)),(Re-2000.0)/(4000.0-2000.0))
+        }
+
+        val flowSpeed = (2.0*finalPressureDrop.absoluteValue)/(f * (length/pipeDiameter) * density)
+        val sqrtFlowSpeed = sign(finalPressureDrop) * sqrt(flowSpeed)
+        val volumetricFlowRate = sqrtFlowSpeed * (Math.pow(Math.PI * radius, 2.0) / 4.0)
+
+        flowRate = volumetricFlowRate * density
+
+        return flowRate
     }
 
     private fun densityAverage(gasMasses: EnumMap<GasType, Double>): Double {
@@ -538,6 +702,36 @@ class DuctNetworkImpl(
         }
 
         return specificHeat
+    }
+
+    private fun heatConductivityAverage(gasMasses: EnumMap<GasType, Double>, pressure: Double, temperature: Double): Double {
+        val totalMass = gasMasses.values.sum()
+        if (totalMass == 0.0) {
+            return 0.0
+        }
+
+        val massPerGas = EnumMap<GasType, Double>(GasType::class.java)
+
+        val gasWeight = EnumMap<GasType, Double>(GasType::class.java)
+
+        gasMasses.keys.forEach {
+            if (gasMasses[it] != 0.0 ) {
+                massPerGas[it] =  gasMasses[it]!!
+            }
+
+        }
+
+        for (gas in massPerGas.keys) {
+            gasWeight[gas] = massPerGas[gas]!! / totalMass
+        }
+
+        var heatConductivity = 0.0
+
+        for (gas in gasWeight.keys) {
+            heatConductivity += gasWeight[gas]!! * ((gas.thermalConductivity * (temperature/300.0)) * (1.0 + (0.0075 * (pressure/101325.0))))
+        }
+
+        return heatConductivity
     }
 
     override fun dump() {

@@ -44,6 +44,7 @@ interface INodeBlock : IDuct {
         }
     }
 
+    //TODO: Remove this
     fun _updateShape(state: BlockState,
                      direction: Direction,
                      neighborState: BlockState,

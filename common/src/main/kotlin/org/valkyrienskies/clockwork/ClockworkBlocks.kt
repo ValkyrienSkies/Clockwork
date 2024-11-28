@@ -20,6 +20,7 @@ import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.SlabBlock
+import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.block.StairBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockBehaviour
@@ -35,6 +36,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInf
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
+import org.valkyrienskies.clockwork.content.kinetics.casing.ExtendedEncasedShaftBlock
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
@@ -49,6 +51,7 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.Deli
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlock
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.WingBlock
@@ -351,6 +354,21 @@ object ClockworkBlocks {
         .transform(BlockStressDefaults.setImpact(4.0))
         .register()
 
+    @JvmField
+    val GAS_NOZZLE: BlockEntry<GasNozzleBlock> =
+        REGISTRATE.block<GasNozzleBlock>("gas_nozzle") { properties: BlockBehaviour.Properties? ->
+            GasNozzleBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.stone() }
+            .transform(TagGen.axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .model(AssetLookup.customBlockItemModel("gas_nozzle"))
+            .build()
+            .register()
 
     @JvmField
     val GOO_BLOCK = REGISTRATE.block<GooBlock>("goo_block") { properties: BlockBehaviour.Properties? ->
@@ -549,6 +567,20 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
+    val BALLOON_CASING = REGISTRATE.block<ExtendedEncasedShaftBlock>(
+        "balloon_casing"
+    ) { properties: BlockBehaviour.Properties? ->
+        ExtendedEncasedShaftBlock.balloon(
+          properties!!
+        )
+    }
+        .initialProperties { SharedProperties.wooden() }
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
     val CLOCK: BlockEntry<ClockBlock> = REGISTRATE.block<ClockBlock>(
         "clock"
     ) { properties: BlockBehaviour.Properties? ->
@@ -592,7 +624,6 @@ object ClockworkBlocks {
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .build()
             .register()
-
 
     @JvmStatic
     fun register() {

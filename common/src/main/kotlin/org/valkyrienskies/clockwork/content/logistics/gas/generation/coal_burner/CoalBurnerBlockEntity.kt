@@ -33,7 +33,7 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bl
 
         if (fuelTicks>0) {
             fuelTicks-=1
-            if (node.network.getTemperatureAt(blockPos.toJOMLD())<450.0) node.network.modTemperature(blockPos.toJOMLD(),30.0)
+            if (node.network.getTemperatureAt(blockPos.toJOMLD())<2000.0) node.network.modTemperature(blockPos.toJOMLD(),30.0)
 
             if (blockState.getValue(CoalBurnerBlock.LIT)==false) level!!.setBlock(blockPos,blockState.setValue(CoalBurnerBlock.LIT,true), 15)
         } else {
