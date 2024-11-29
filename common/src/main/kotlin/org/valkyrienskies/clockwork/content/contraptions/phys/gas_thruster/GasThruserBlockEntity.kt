@@ -13,7 +13,6 @@ import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
 import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.util.AerodynamicUtils
 import org.valkyrienskies.core.api.ships.ServerShip
-import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.math.max
@@ -44,13 +43,13 @@ class GasThruserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bl
 
         if (total == 0.0) return
 
-        val stpPressure = 100000 // TODO: Different height pressures + Different dimension pressures
+        val airPressure = AerodynamicUtils.getAirPressureForY(blockPos.y.toDouble(), 563.0)
         val gasPressure = node.network.getPressureAt(ductnodepos)
         val temp = node.network.getTemperatureAt(ductnodepos)
         val avgSpecificHeat = AerodynamicUtils.specificHeatAverage(node.network.getGasMassAt(ductnodepos))
 
 
-        if (gasPressure<stpPressure) return
+        if (gasPressure<airPressure) return
 
         var velocity = 0.0
         var flowrate = 0.0
@@ -59,7 +58,7 @@ class GasThruserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bl
             flowrate += edge.currentFlowRate
         }
 
-        val maxMFR = (area * gasPressure / sqrt(temp)) * sqrt(avgSpecificHeat/AerodynamicUtils.UNIVERSAL_GAS_CONSTANT) * (avgSpecificHeat+1).pow(-(avgSpecificHeat+1)/(2*(avgSpecificHeat-1)))/2
+        val maxMFR = (area * gasPressure / sqrt(temp)) * sqrt(avgSpecificHeat/AerodynamicUtils.UNIVERSAL_GAS_CONSTANT) * ((avgSpecificHeat+1)/2).pow(-(avgSpecificHeat+1)/(2*(avgSpecificHeat-1)))
         flowrate = min(maxMFR, flowrate)
 
         for (gas in gasMasses) {
@@ -68,7 +67,7 @@ class GasThruserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bl
             node.network.modGasMass(ductnodepos, gas.key, -max(flowrate*0.05, gas.value))
         }
 
-        val thrust = flowrate * velocity + (gasPressure-stpPressure)*area
+        val thrust = flowrate * velocity + (gasPressure-airPressure)*area
         val force = blockState.getValue(DirectionalBlock.FACING).normal.toJOMLD().mul(thrust)
         println(force)
         val serverLevel = level as ServerLevel? ?: return

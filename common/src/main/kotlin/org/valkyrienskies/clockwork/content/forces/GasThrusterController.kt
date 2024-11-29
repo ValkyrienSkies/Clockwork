@@ -9,15 +9,17 @@ import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.ShipForcesInducer
 import org.valkyrienskies.mod.common.util.toJOMLD
 
-
+@JsonAutoDetect( fieldVisibility = JsonAutoDetect.Visibility.NONE, getterVisibility = JsonAutoDetect.Visibility.NONE, isGetterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
 class GasThrusterController : ShipForcesInducer {
+    @JsonIgnore
     val ThrusterData = HashMap<BlockPos, Vector3d>()
 
     override fun applyForces(physShip: PhysShip) {
        for (thruster in ThrusterData) {
            if (thruster.value.length() == 0.0) continue
-           val pos = physShip.transform.worldToShip.transformPosition(thruster.key.toJOMLD())
+           val pos =  thruster.key.toJOMLD().add(0.5,0.5,0.5).sub(physShip.transform.positionInShip)
            val force = physShip.transform.worldToShip.transformDirection(thruster.value)
+
 
            physShip.applyRotDependentForceToPos(force, pos)
        }
