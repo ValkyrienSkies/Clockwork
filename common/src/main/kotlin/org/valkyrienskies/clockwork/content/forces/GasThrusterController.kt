@@ -1,24 +1,26 @@
 package org.valkyrienskies.clockwork.content.forces
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect
-import com.fasterxml.jackson.annotation.JsonIgnore
+import it.unimi.dsi.fastutil.Hash
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import net.minecraft.core.BlockPos
 import org.joml.Vector3d
+import org.valkyrienskies.clockwork.content.contraptions.phys.gas_thruster.GasThrusterData
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.ShipForcesInducer
 import org.valkyrienskies.mod.common.util.toJOMLD
 
-@JsonAutoDetect( fieldVisibility = JsonAutoDetect.Visibility.NONE, getterVisibility = JsonAutoDetect.Visibility.NONE, isGetterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
+@JsonAutoDetect( fieldVisibility = JsonAutoDetect.Visibility.ANY,)
 class GasThrusterController : ShipForcesInducer {
-    @JsonIgnore
-    val ThrusterData = HashMap<BlockPos, Vector3d>()
+    val thrusterData = Int2ObjectOpenHashMap<GasThrusterData>()
 
     override fun applyForces(physShip: PhysShip) {
-       for (thruster in ThrusterData) {
-           if (thruster.value.length() == 0.0) continue
-           val pos =  thruster.key.toJOMLD().add(0.5,0.5,0.5).sub(physShip.transform.positionInShip)
-           val force = physShip.transform.worldToShip.transformDirection(thruster.value)
+       for (thruster in thrusterData.values) {
+           if (thruster.position == null || thruster.force == null || thruster.force.length() == 0.0) continue
+           val pos =  thruster.position.add(0.5,0.5,0.5, Vector3d()).sub(physShip.transform.positionInShip)
+           val force = physShip.transform.worldToShip.transformDirection(Vector3d(thruster.force))
 
 
            physShip.applyRotDependentForceToPos(force, pos)
@@ -26,11 +28,12 @@ class GasThrusterController : ShipForcesInducer {
     }
 
     fun updateThruster(thrusterPos: BlockPos, force: Vector3d) {
-        ThrusterData[thrusterPos] = force
+        thrusterData.put(thrusterPos.hashCode(), GasThrusterData(thrusterPos.toJOMLD(), force))
     }
 
     fun deleteThruster(thrusterPos: BlockPos) {
-        ThrusterData.remove(thrusterPos)
+
+        thrusterData.remove(thrusterPos.hashCode())
     }
 
     companion object {
