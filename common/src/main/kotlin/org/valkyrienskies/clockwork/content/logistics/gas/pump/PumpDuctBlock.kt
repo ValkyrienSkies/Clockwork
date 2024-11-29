@@ -22,6 +22,7 @@ import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.GasHeatLevel
+import org.valkyrienskies.clockwork.content.logistics.gas.IEdgeBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock.Companion.DIR_TO_CONNECTION
@@ -34,8 +35,7 @@ import org.valkyrienskies.clockwork.kelvin.api.nodes.PumpDuctNode
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createEdgeType
 import org.valkyrienskies.mod.common.util.toJOMLD
 
-class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties), IBE<PumpDuctBlockEntity>,
-    ICogWheel {
+class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties), IBE<PumpDuctBlockEntity>, ICogWheel, IEdgeBlock {
 
     var edge: PumpDuctEdge? = null
 
@@ -122,16 +122,13 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
         edge = null
 
         edge = PumpDuctEdge(backPos.toJOMLD(), frontPos.toJOMLD(), frontPos.toJOMLD())
-        if (front.block is DuctBlock) {
-            front.setValue(DIR_TO_CONNECTION[facing.opposite]!!, DuctConnectionType.FORCED)
-        }
-        if (back.block is DuctBlock) {
-            front.setValue(DIR_TO_CONNECTION[facing]!!, DuctConnectionType.FORCED)
-        }
 
         ClockworkMod.getKelvin().addEdge(frontPos.toJOMLD(), backPos.toJOMLD(), edge!!)
     }
 
+    override fun connectedTo(pos: BlockPos): Boolean {
+        return edge == null || pos.toJOMLD() == edge!!.nodeA || pos.toJOMLD() == edge!!.nodeB
+    }
 
 
 }
