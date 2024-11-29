@@ -6,6 +6,7 @@ import com.simibubi.create.foundation.block.IBE
 import com.simibubi.create.foundation.utility.Iterate
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
@@ -14,7 +15,10 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.content.forces.GasThrusterController
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.INodeBlock
+import org.valkyrienskies.core.api.ships.ServerShip
+import org.valkyrienskies.mod.common.getShipObjectManagingPos
 
 
 class GasThrusterBlock(properties: Properties) : DirectionalBlock(properties), INodeBlock, IBE<GasThrusterBlockEntity> {
@@ -79,6 +83,13 @@ class GasThrusterBlock(properties: Properties) : DirectionalBlock(properties), I
 
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
         _onRemove(state, level, pos, newState, isMoving)
+
+        val serverLevel = level as ServerLevel? ?: return
+        val ship = serverLevel.getShipObjectManagingPos(pos) ?: return
+        val controller = GasThrusterController.getOrCreate(ship as ServerShip) ?: return
+        controller.deleteThruster(pos)
+
+
         super.onRemove(state, level, pos, newState, isMoving)
     }
 

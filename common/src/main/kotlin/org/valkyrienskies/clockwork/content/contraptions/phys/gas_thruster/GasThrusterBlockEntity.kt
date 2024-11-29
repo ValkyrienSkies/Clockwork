@@ -29,8 +29,6 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         return this.blockPos.toJOMLD()
     }
 
-    val area = 0.11045
-
     override fun tick() {
         super.tick()
 
@@ -58,16 +56,16 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             flowrate += edge.currentFlowRate
         }
 
-        val maxMFR = (area * gasPressure / sqrt(temp)) * sqrt(avgSpecificHeat/AerodynamicUtils.UNIVERSAL_GAS_CONSTANT) * ((avgSpecificHeat+1)/2).pow(-(avgSpecificHeat+1)/(2*(avgSpecificHeat-1)))
+        val maxMFR = (AerodynamicUtils.DUCT_AREA * gasPressure / sqrt(temp)) * sqrt(avgSpecificHeat/AerodynamicUtils.UNIVERSAL_GAS_CONSTANT) * ((avgSpecificHeat+1)/2).pow(-(avgSpecificHeat+1)/(2*(avgSpecificHeat-1)))
         flowrate = min(maxMFR, flowrate)
 
         for (gas in gasMasses) {
-            velocity += flowrate/(gas.key.density*area)
+            velocity += flowrate/(gas.key.density*AerodynamicUtils.DUCT_AREA)
 
             node.network.modGasMass(ductnodepos, gas.key, -max(flowrate*0.05, gas.value))
         }
 
-        val thrust = flowrate * velocity + (gasPressure-airPressure)*area
+        val thrust = flowrate * velocity + (gasPressure-airPressure)
         val force = blockState.getValue(DirectionalBlock.FACING).normal.toJOMLD().mul(thrust)
         println(force)
         val serverLevel = level as ServerLevel? ?: return
@@ -78,4 +76,6 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
 
     }
+
+
 }
