@@ -163,9 +163,9 @@ object ClockworkUtils {
     /**
      * Retrieves all components within a given chunk claim, using a key as reference.
      *
-     * Temporary implementation until it's properly indexed in VS Core.
+     * Deprecated implementation
      */
-    @Deprecated("Temporary. Will be replaced with proper implementation in VS Core.")
+    @Deprecated("Deprecated. Replaced with proper implementation in VS Core.")
     fun getAirComponentsInChunkClaim(claim: ChunkClaim, level: ServerLevel, referenceKey: DoubleComponentAugmentation): HashMap<Vector3i, Long> {
         val map = HashMap<Vector3i, Long>()
         level.shipObjectWorld.getFromEachAirComponentRoot(referenceKey, level.dimensionId).keys.forEach { pos ->
@@ -186,9 +186,9 @@ object ClockworkUtils {
     /**
      * Retrieves all components within a given chunk claim, using a key as reference.
      *
-     * Temporary implementation until it's properly indexed in VS Core.
+     * Deprecated implementation
      */
-    @Deprecated("Temporary. Will be replaced with proper implementation in VS Core.")
+    @Deprecated("Deprecated. Replaced with proper implementation in VS Core.")
     fun getSolidComponentsInChunkClaim(claim: ChunkClaim, level: ServerLevel, referenceKey: DoubleComponentAugmentation): HashMap<Vector3i, Long> {
         val map = HashMap<Vector3i, Long>()
         level.shipObjectWorld.getFromEachSolidComponentRoot(referenceKey, level.dimensionId).keys.forEach { pos ->
