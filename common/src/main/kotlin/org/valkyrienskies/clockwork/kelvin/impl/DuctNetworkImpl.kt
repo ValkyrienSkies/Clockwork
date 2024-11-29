@@ -10,9 +10,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.utilities.GasExplosionDamageCalculator
 import org.valkyrienskies.clockwork.kelvin.api.*
-import org.valkyrienskies.clockwork.kelvin.api.edges.ApertureEdge
-import org.valkyrienskies.clockwork.kelvin.api.edges.FilteredEdge
-import org.valkyrienskies.clockwork.kelvin.api.edges.OneWayEdge
+import org.valkyrienskies.clockwork.kelvin.api.edges.*
 import org.valkyrienskies.clockwork.kelvin.api.nodes.PumpDuctNode
 import org.valkyrienskies.clockwork.kelvin.api.nodes.TankDuctNode
 import org.valkyrienskies.mod.common.util.toMinecraft
@@ -199,49 +197,20 @@ class DuctNetworkImpl(
                 val tankMultA = if (nodeA.nodeType == NodeBehaviorType.TANK) (nodeDataA as TankDuctNode).size else 1.0
                 val tankMultB = if (nodeB.nodeType == NodeBehaviorType.TANK) (nodeDataB as TankDuctNode).size else 1.0
 
-
-
                 val pressureA = calcPressure(totalGasMassA, nodeDataA.volume, nodeA.currentTemperature, densityA)/tankMultA
-
                 val pressureB = calcPressure(totalGasMassB, nodeDataB.volume, nodeB.currentTemperature, densityB)/tankMultB
-
-
+                nodeA.currentPressure = pressureA
+                nodeB.currentPressure = pressureB
 
 
                 val viscosityA = dynamicViscosityAverage(nodeA.currentGasMasses, nodeA.currentTemperature)
                 val viscosityB = dynamicViscosityAverage(nodeB.currentGasMasses, nodeB.currentTemperature)
-
-
-
-
-
-                nodeA.currentPressure = pressureA
-
-                nodeB.currentPressure = pressureB
-
                 val viscosity = (viscosityA + viscosityB) / 2.0
 
-                val aPump = nodeA.nodeType==NodeBehaviorType.PUMP
-                val bPump = nodeB.nodeType==NodeBehaviorType.PUMP
 
-                val aTarget = aPump && (nodeDataA as PumpDuctNode).pumpTarget == nodeDataB.pos
-                val bTarget = bPump && (nodeDataB as PumpDuctNode).pumpTarget == nodeDataA.pos
-
-
-                var pumpPressureA = 0.0
-                var pumpPressureB = 0.0
-
-                // Determines pump pressure based on target node
-                if (nodeDataA.behavior == NodeBehaviorType.PUMP) {
-                    if (aTarget) pumpPressureA = (nodeDataA as PumpDuctNode).pumpPressure
-                    else pumpPressureA = -(nodeDataA as PumpDuctNode).pumpPressure
-                }
-                if (nodeDataB.behavior == NodeBehaviorType.PUMP) {
-                    if (bTarget) pumpPressureB = (nodeDataB as PumpDuctNode).pumpPressure
-                    else pumpPressureB = -(nodeDataB as PumpDuctNode).pumpPressure
-                }
-
-                val pumpPressure = pumpPressureA - pumpPressureB
+                var pumpPressure = 0.0
+                if (edge is PumpEdge && edge.target == edge.nodeB) pumpPressure = edge.pumpPressure
+                else if (edge is PumpEdge && edge.target == edge.nodeA) pumpPressure = -edge.pumpPressure
 
 
                 var aperture = 0.0
@@ -268,13 +237,12 @@ class DuctNetworkImpl(
                     flowRate = 0.0
                 }
 
-                val aFlowOut = flowRate>0
-                val bFlowOut = flowRate<0
 
-                if (aFlowOut) {
+
+                if (flowRate>0) {
                     flowRate = flowRate.coerceAtMost(totalGasMassA)
                 }
-                if (bFlowOut) {
+                if (flowRate<0) {
                     flowRate = -flowRate.absoluteValue.coerceAtMost(totalGasMassB)
                 }
 
@@ -322,6 +290,8 @@ class DuctNetworkImpl(
                             }
                         }
                     }
+                    if (edge is PumpEdge && ((flowRate < 0 && edge.target==edge.nodeB) || (flowRate > 0 && edge.target==edge.nodeA))) continue
+
 
                     if (nodeA.currentGasMasses[gas] == null) {
                         nodeA.currentGasMasses[gas] = 0.0
@@ -341,17 +311,17 @@ class DuctNetworkImpl(
                     // - For invalid pump configurations: No flow allowed
                     // Plus extra code for tanks, so that their limit was bigger to compensate for the mass they store
 
-                    val limit: Double
-                    if (aTarget && aFlowOut || bPump && !bTarget && aFlowOut) limit = massA
-                    else if (bTarget && bFlowOut || aPump && !aTarget && bFlowOut) limit = massB
-                    else if (!aPump && !bPump) limit = abs(massA/tankMultA-massB/tankMultB)/2.0
-                    else limit = 0.0
+//                    val limit: Double
+//                    if (aTarget && aFlowOut || bPump && !bTarget && aFlowOut) limit = massA
+//                    else if (bTarget && bFlowOut || aPump && !aTarget && bFlowOut) limit = massB
+//                    else if (!aPump && !bPump) limit = abs(massA/tankMultA-massB/tankMultB)/2.0
+//                    else limit = 0.0
                     //KELVINLOGGER.logger.info("MassA: $massA, MassB: $massB, Limit: $limit")
 
 
 
-                    val deltaMassA = Mth.clamp(flowRateA, -(limit.coerceAtMost(massA)), limit.coerceAtMost(massB))
-                    val deltaMassB = Mth.clamp(flowRateB, -(limit.coerceAtMost(massB)), limit.coerceAtMost(massA))
+                    val deltaMassA = Mth.clamp(flowRateA, -massA, massB)
+                    val deltaMassB = Mth.clamp(flowRateB, -massB, massA)
 
 
 
