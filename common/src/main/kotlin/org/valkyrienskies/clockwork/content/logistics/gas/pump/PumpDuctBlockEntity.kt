@@ -75,6 +75,7 @@ class PumpDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Bloc
 
     }
 
+
     companion object {
         const val maxPumpPressure: Double = 1023440.0
     }
@@ -87,4 +88,5 @@ class PumpDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Bloc
     override fun addToGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
         return super<IHeatableBlockEntity>.addToGoggleTooltip(tooltip, isPlayerSneaking)
     }
+
 }

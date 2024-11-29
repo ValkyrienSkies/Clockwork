@@ -1,13 +1,12 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.utilities
 
 import net.minecraft.core.BlockPos
-import net.minecraft.world.damagesource.DamageSource
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Explosion
 import net.minecraft.world.level.ExplosionDamageCalculator
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.material.FluidState
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.INodeBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
 import java.util.*
 
 class GasExplosionDamageCalculator : ExplosionDamageCalculator() {

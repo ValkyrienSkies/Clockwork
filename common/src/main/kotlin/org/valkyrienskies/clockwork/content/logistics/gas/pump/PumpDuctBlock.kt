@@ -24,7 +24,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock.Companion.DIR_TO_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.INodeBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
 import org.valkyrienskies.clockwork.kelvin.api.*
 import org.valkyrienskies.clockwork.kelvin.api.nodes.PumpDuctNode
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createEdgeType

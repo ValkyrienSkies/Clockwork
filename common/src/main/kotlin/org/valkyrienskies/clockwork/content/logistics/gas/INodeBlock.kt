@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content.logistics.gas.duct
+package org.valkyrienskies.clockwork.content.logistics.gas
 
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -6,6 +6,8 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 import org.valkyrienskies.clockwork.kelvin.api.DuctNetwork
 import org.valkyrienskies.clockwork.kelvin.api.DuctNode
 import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
@@ -31,17 +33,6 @@ interface INodeBlock : IDuct {
         }
     }
 
-    //TODO: Remove this
-    fun _updateShape(state: BlockState,
-                     direction: Direction,
-                     neighborState: BlockState,
-                     level: LevelAccessor,
-                     currentPos: BlockPos,
-                     neighborPos: BlockPos) {
-        if (neighborState.block is DuctBlock) {
-            //neighborState.block.updateShape(neighborState, direction.opposite, state, level, neighborPos, currentPos)
-        }
-    }
 
     fun createNode(pos: DuctNodePos, network: DuctNetwork): DuctNode {
         return PipeDuctNode.DEFAULT(pos, network)

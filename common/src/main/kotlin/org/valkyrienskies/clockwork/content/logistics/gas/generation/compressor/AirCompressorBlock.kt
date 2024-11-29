@@ -10,7 +10,7 @@ import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.INodeBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
 
 class AirCompressorBlock(properties: Properties?) : KineticBlock(properties), INodeBlock, IBE<AirCompressorBlockEntity> {
 
@@ -42,15 +42,4 @@ class AirCompressorBlock(properties: Properties?) : KineticBlock(properties), IN
         return face == Direction.DOWN
     }
 
-    override fun updateShape(
-        state: BlockState,
-        direction: Direction,
-        neighborState: BlockState,
-        level: LevelAccessor,
-        currentPos: BlockPos,
-        neighborPos: BlockPos
-    ): BlockState {
-        _updateShape(state, direction, neighborState, level, currentPos, neighborPos)
-        return super.updateShape(state, direction, neighborState, level, currentPos, neighborPos)
-    }
 }

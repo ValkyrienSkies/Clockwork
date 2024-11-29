@@ -9,9 +9,10 @@ import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.INodeBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
 
-class GasNozzleBlock(properties: Properties): HorizontalKineticBlock(properties), IBE<GasNozzleBlockEntity>, INodeBlock {
+class GasNozzleBlock(properties: Properties): HorizontalKineticBlock(properties), IBE<GasNozzleBlockEntity>,
+    INodeBlock {
     override fun getBlockEntityClass(): Class<GasNozzleBlockEntity> {
         return GasNozzleBlockEntity::class.java
     }
