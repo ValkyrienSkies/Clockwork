@@ -23,11 +23,7 @@ import net.minecraft.util.Mth
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
-import org.joml.AxisAngle4d
-import org.joml.Quaterniond
-import org.joml.Quaterniondc
-import org.joml.Vector3d
-import org.joml.Vector3dc
+import org.joml.*
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingCreateData
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingData
@@ -46,11 +42,13 @@ import org.valkyrienskies.core.apigame.constraints.VSHingeOrientationConstraint
 import org.valkyrienskies.core.impl.game.ships.ShipDataCommon
 import org.valkyrienskies.core.impl.game.ships.ShipTransformImpl.Companion.create
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
-import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
+import org.valkyrienskies.mod.common.assembly.AssemblyUtil
+import org.valkyrienskies.mod.common.assembly.ShipAssembler
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.isBlockInShipyard
 import org.valkyrienskies.mod.common.shipObjectWorld
+import org.valkyrienskies.mod.common.util.toBlockPos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import java.lang.Math
 import kotlin.math.sign
@@ -217,11 +215,19 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     private fun assemble() {
         if (level!!.getBlockState(worldPosition).block !is BearingBlock) return
+        val level = level as ServerLevel
+
         val direction = blockState.getValue(BearingBlock.FACING)
         val center = worldPosition.relative(direction)
+
+        // bearing data
+        val pos = worldPosition.toJOMLD()
+        val axis = direction.normal.toJOMLD()
+        val shipOn = level.getShipObjectManagingPos(worldPosition)
+
         val selection: DenseBlockPosSet?
         try {
-            selection = collectGlued(level!!, center)
+            selection = collectGlued(level, center)
             lastException = null
         } catch (e: AssemblyException) {
             lastException = e
@@ -229,26 +235,32 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             return
         }
         if (selection == null) return
-        val shiptraption = createNewShipWithBlocks(
-            center, selection,
-            (level as ServerLevel?)!!
-        )
+
+        //TODO redo this
+        val blocks = selection.map { it.toBlockPos() }
+        var bmin = blocks[0]
+        var bmax = blocks[0]
+        blocks.forEach {
+            bmin = AssemblyUtil.getMinCorner(bmin, it)
+            bmax = AssemblyUtil.getMaxCorner(bmax, it)
+        }
+        val previousCenter = Vector3d(AssemblyUtil.getMiddle(bmin, bmax))
+        val shiptraption = ShipAssembler.assembleToShip(level!!, blocks, true, 1.0, true)
+        val contraptionWorldPos = if (shipOn != null) {
+            val doubleVer = shipOn.shipToWorld.transformPosition(Vector3d(previousCenter)).floor()
+            Vector3i(doubleVer.x.toInt(), doubleVer.y.toInt(), doubleVer.z.toInt())
+        } else {
+            Vector3i(previousCenter.x.toInt(), previousCenter.y.toInt(), previousCenter.z.toInt())
+        }
+        val newCenter = shiptraption.worldToShip.transformPosition(Vector3d(contraptionWorldPos.x.toDouble(),contraptionWorldPos.y.toDouble(),contraptionWorldPos.z.toDouble()))
+
 
         // AllSoundEvents.CONTRAPTION_ASSEMBLE.playOnServer(level, worldPosition);
         ClockworkSounds.PHYSICS_INFUSER_LIGHTNING.playOnServer(level, worldPosition)
         shiptraptionID = shiptraption.id
-        if (level!!.isClientSide) {
-            return
-        }
-        // bearing data
-        val pos: Vector3dc = worldPosition.toJOMLD()
-        val axis: Vector3dc = direction.normal.toJOMLD()
-        val shipOn: Ship? = level.getShipObjectManagingPos(worldPosition)
-        var otherShipID: Long =
-            (level as ServerLevel).shipObjectWorld.dimensionToGroundBodyIdImmutable[level!!.dimensionId]!!.toLong()
-        if (shipOn != null) {
-            otherShipID = shipOn.id
-        }
+
+        val otherShipID = shipOn?.id ?: level.shipObjectWorld.dimensionToGroundBodyIdImmutable[level.dimensionId]!!.toLong()
+
         var veryUncoolFix = 1
         val rotationQuaternion: Quaterniond = when (direction) {
             Direction.DOWN -> {
@@ -300,24 +312,17 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         var posInWorld: Vector3dc? = shiptraption.transform.positionInWorld // posInOwnerShip;
         var rotInWorld: Quaterniondc = Quaterniond()
         var scaling: Vector3dc = Vector3d(1.0, 1.0, 1.0)
-        val shipChunkX = shiptraption.chunkClaim.xMiddle
-        val shipChunkZ = shiptraption.chunkClaim.zMiddle
-        val centerInShip: Vector3dc = Vector3d(
-            ((shipChunkX shl 4) + (center.x and 15)).toDouble(),
-            center.y.toDouble(),
-            ((shipChunkZ shl 4) + (center.z and 15)).toDouble()
-        )
         if (shipOn != null) {
+            var offset = center.toJOMLD().sub(previousCenter)
             scaling = shipOn.transform.shipToWorldScaling
-            val offset: Vector3dc = shiptraption.inertiaData.centerOfMassInShip.sub(centerInShip, Vector3d())
-            posInWorld =
-                shipOn.transform.shipToWorld.transformPosition(posInOwnerShip.add(offset, Vector3d()), Vector3d())
+            posInWorld = shipOn.transform.shipToWorld.transformPosition(posInOwnerShip.sub(offset, Vector3d()), Vector3d())
             rotInWorld = shipOn.transform.shipToWorldRotation
         }
         (shiptraption as ShipDataCommon).transform = create(
             posInWorld!!, shiptraption.inertiaData.centerOfMassInShip, rotInWorld, scaling
         )
-        val bearingPos: Vector3dc = centerInShip.add(0.5, 0.5, 0.5, Vector3d())
+        shiptraption.isStatic = true
+        val bearingPos = pos.add(0.5, 0.5, 0.5).sub(previousCenter).add(newCenter)
 
         val hingeOrientation: Quaterniondc = rotationQuaternion.mul(
             Quaterniond(AxisAngle4d(Math.toRadians(90.0), 0.0, 0.0, 1.0)),
@@ -358,12 +363,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         // Add rotation damping to make the hinge more stable
         // VSRotDampingConstraint perpendicularRotDampingConstraint = new VSRotDampingConstraint(shiptraptionID, otherShipID, 1e-10, hingeOrientation, hingeOrientation, 1e10, 1e-2, VSRotDampingAxes.ALL_AXES);
-        val firstAttachmentId: VSConstraintId =
-            (level as ServerLevel).shipObjectWorld.createNewConstraint(firstAttachment) ?: return
-        val hingeID: VSConstraintId =
-            (level as ServerLevel).shipObjectWorld.createNewConstraint(hingeConstraint) ?: return
-        val secondAttachmentID: VSConstraintId =
-            (level as ServerLevel).shipObjectWorld.createNewConstraint(secondAttachment) ?: return
+        val firstAttachmentId: VSConstraintId = (level as ServerLevel).shipObjectWorld.createNewConstraint(firstAttachment) ?: return
+        val hingeID: VSConstraintId = (level as ServerLevel).shipObjectWorld.createNewConstraint(hingeConstraint) ?: return
+        val secondAttachmentID: VSConstraintId = (level as ServerLevel).shipObjectWorld.createNewConstraint(secondAttachment) ?: return
         // Integer posDamperID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).createNewConstraint(posDampingConstraint);
         // Integer rotDamperID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).createNewConstraint(perpendicularRotDampingConstraint);
         val firstAttachmentConstraint = VSConstraintAndId(firstAttachmentId, firstAttachment)
@@ -371,6 +373,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val secondAttachmentConstraint = VSConstraintAndId(secondAttachmentID, secondAttachment)
         // VSConstraintAndId posDampingContraptionConstraint = new VSConstraintAndId(posDamperID, posDampingConstraint);
         // VSConstraintAndId rotDampingContraptionConstraint = new VSConstraintAndId(rotDamperID, perpendicularRotDampingConstraint);
+        println("FUIFUFUFUFU")
         val data = PhysBearingCreateData(
             pos,
             axis,
@@ -400,11 +403,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                     (level as ServerLevel).shipObjectWorld.allShips.getById(shiptraptionID)
                 if (ship != null) {
                     val controller: BearingController = BearingController.getOrCreate(ship)!!
-                    val attachID: Int = controller.bearingData[bearingID]!!.attachID ?: return
+                    val attachID: Int = controller.bearingData[bearingID]?.attachID ?: return
                     (level as ServerLevel).shipObjectWorld.removeConstraint(attachID)
-                    val hingeID: Int = controller.bearingData[bearingID]!!.hingeID ?: return
+                    val hingeID: Int = controller.bearingData[bearingID]?.hingeID ?: return
                     (level as ServerLevel).shipObjectWorld.removeConstraint(hingeID)
-                    val secondAttachId: Int? = controller.bearingData[bearingID]!!.secondAttachId
+                    val secondAttachId: Int? = controller.bearingData[bearingID]?.secondAttachId
                     if (secondAttachId != null) {
                         (level as ServerLevel).shipObjectWorld.removeConstraint(secondAttachId)
                     }

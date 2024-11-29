@@ -29,7 +29,7 @@ object FrequencySlotGlobals {
     fun tick() {
         val mc = Minecraft.getInstance()
         val target = mc.hitResult
-        if (mc.level == null || target == null || target !is BlockHitResult || mc.player!!.getItemInHand(InteractionHand.MAIN_HAND).descriptionId=="item.create.wrench") return
+        if (mc.level == null || target == null || target !is BlockHitResult || mc.player == null || mc.player!!.getItemInHand(InteractionHand.MAIN_HAND).descriptionId=="item.create.wrench") return
 
         val result = target
         val world = mc.level
