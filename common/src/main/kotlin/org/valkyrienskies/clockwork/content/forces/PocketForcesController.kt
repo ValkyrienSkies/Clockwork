@@ -22,12 +22,14 @@ import org.valkyrienskies.clockwork.util.AerodynamicUtils.densityAverage
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.densityFromPressureAverage
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.extraHeatInfoAverage
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.specificHeatAverage
-import org.valkyrienskies.clockwork.util.ClockworkUtils.getAirComponentsInChunkClaim
 import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
 import org.valkyrienskies.clockwork.util.PIDstance
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.ShipForcesInducer
+import org.valkyrienskies.core.util.x
+import org.valkyrienskies.core.util.y
+import org.valkyrienskies.core.util.z
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.shipObjectWorld
 import java.util.*
@@ -137,41 +139,43 @@ class PocketForcesController: ShipForcesInducer {
     fun gameTick(level: ServerLevel, ship: ServerShip) {
         val loadedShip = level.shipObjectWorld.loadedShips.getById(ship.id) ?: return
 
-        val roots = getAirComponentsInChunkClaim(loadedShip.chunkClaim, level, ClockworkAugmentations.getComponentAugmentation("temperature"))
-        for (root: Vector3i in roots.keys) {
+        val roots = level.shipObjectWorld.getFromEachAirComponent(ClockworkAugmentations.getComponentAugmentation("temperature"), level.dimensionId, loadedShip.chunkClaim)
+        for (r: Triple<Int, Int, Int> in roots.keys) {
+            val root = Vector3i(r.first,r.second,r.third)
             val gasMap = retrieveGasInfoFromPocket(root, level)
             val pressure = level.shipObjectWorld.getAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("pressure"), root.x(), root.y(), root.z(), level.dimensionId)
 
-            val componentSize = roots[root] ?: continue
+            val componentSize = roots[r] ?: continue
 
             val collectX = level.shipObjectWorld.collectAirAugmentation(level.shipObjectWorld.createDoubleSumAugmentation("core", "x"), root.x(), root.y(), root.z(), level.dimensionId)
             val collectY = level.shipObjectWorld.collectAirAugmentation(level.shipObjectWorld.createDoubleSumAugmentation("core", "y"), root.x(), root.y(), root.z(), level.dimensionId)
             val collectZ = level.shipObjectWorld.collectAirAugmentation(level.shipObjectWorld.createDoubleSumAugmentation("core", "z"), root.x(), root.y(), root.z(), level.dimensionId)
 
-            val center = Vector3d(collectX / componentSize.toDouble(), collectY / componentSize.toDouble(), collectZ / componentSize.toDouble())
+            val center = Vector3d(collectX / componentSize, collectY / componentSize, collectZ / componentSize)
 
             center.add(0.5, 0.5, 0.5)
 
-            pocketQueue.add(PocketForcesQueueable(root, center, componentSize, gasMap.first, gasMap.second, pressure))
+            pocketQueue.add(PocketForcesQueueable(root, center, componentSize.toLong(), gasMap.first, gasMap.second, pressure))
             gametickKnownPocketRoots.add(root)
             //ClockworkMod.LOGGER.info("Added pocket with root: ($root)")
         }
 
         for (root in gametickKnownPocketRoots) {
-            if (roots[root] != null) {
+            val r = Triple(root.x,root.y,root.z)
+            if (roots[r] != null) {
                 val rootYInWorld = ship.transform.shipToWorld.transformPosition(Vector3d(root.x().toDouble(), root.y().toDouble(), root.z().toDouble())).y + 0.5
                 val atmosphericDensityAtRoot = AerodynamicUtils.getAirDensityForY(rootYInWorld, max_height)
                 val atmosphericPressureAtRoot = AerodynamicUtils.getAirPressureForY(rootYInWorld, max_height)
                 val atmosphericTemperatureAtRoot = AerodynamicUtils.getAirTemperatureForY(rootYInWorld, max_height)
-                val requiredMassForDensity = atmosphericDensityAtRoot * roots[root]!!.toDouble()
-                if (level.shipObjectWorld.getAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("airupdated"), root.x(), root.y(), root.z(), level.dimensionId) < 1.0 && roots[root]!! > 0) {
+                val requiredMassForDensity = atmosphericDensityAtRoot * roots[r]!!.toDouble()
+                if (level.shipObjectWorld.getAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("airupdated"), root.x(), root.y(), root.z(), level.dimensionId) < 1.0 && roots[r]!! > 0) {
 
                     level.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("gas_air"), root.x(), root.y(), root.z(), level.dimensionId, requiredMassForDensity)
                     level.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("airupdated"), root.x(), root.y(), root.z(), level.dimensionId, 1.0)
                     //ClockworkMod.LOGGER.info("Removed pocket with root: ($root)")
                 }
                 val isSealed = level.shipObjectWorld.collectAirAugmentation(ClockworkAugmentations.getAugmentation("sealed"), root.x(), root.y(), root.z(), level.dimensionId) > 0.0
-                if (!isSealed && roots[root]!! > 0) {
+                if (!isSealed && roots[r]!! > 0) {
 
                     if (!pidstances.containsKey(root)) {
                         pidstances[root] = PIDstance(p = 0.5)
@@ -182,14 +186,14 @@ class PocketForcesController: ShipForcesInducer {
                     //leaking
                     var (gasMassesInternal, temperatureInternal) = retrieveGasInfoFromPocket(root, level)
                     temperatureInternal = max(temperatureInternal, 0.0001)
-                    val internalPressure = calcPressure(gasMassesInternal.values.sum(), roots[root]!!.toDouble(), temperatureInternal,
+                    val internalPressure = calcPressure(gasMassesInternal.values.sum(), roots[r]!!.toDouble(), temperatureInternal,
                         densityAverage(gasMassesInternal))
                     var internalDensity = densityFromPressureAverage(gasMassesInternal, temperatureInternal, internalPressure)
 
                     //if (internalDensity.absoluteValue < 0.001) static = true
 
                     val leakRate = ClockworkConfig.SERVER.pocketLeakageRate
-                    val leakOrificeSize = ((roots[root]!!.toDouble() * 2.0) / 3.0) * 0.1
+                    val leakOrificeSize = ((roots[r]!!.toDouble() * 2.0) / 3.0) * 0.1
 
                     val massInFlowRate: Double
                     val massOutFlowRate: Double
@@ -277,7 +281,7 @@ class PocketForcesController: ShipForcesInducer {
                         //                            (gasMassesInternal.values.sum() * temperatureInternal + totalDeltaMass * atmosphericTemperatureAtRoot) / (gasMassesInternal.values.sum() + totalDeltaMass)
                         //                        }
 
-                        val pretendSurfaceArea = 4 * Math.PI * (roots[root]!!.toDouble().pow(2.0 / 3.0))
+                        val pretendSurfaceArea = 4 * Math.PI * (roots[r]!!.toDouble().pow(2.0 / 3.0))
 
                         val pretendConductionCoefficient = 0.025
 
@@ -293,7 +297,7 @@ class PocketForcesController: ShipForcesInducer {
 
                         val newPocketTemperature = max(min(temperatureInternal + conduction, 5772.0), 0.0001)
 
-                        val newPocketPressure = calcPressure(newGasMasses.values.sum(), roots[root]!!.toDouble(), newPocketTemperature, densityAverage(newGasMasses))
+                        val newPocketPressure = calcPressure(newGasMasses.values.sum(), roots[r]!!.toDouble(), newPocketTemperature, densityAverage(newGasMasses))
                         if (!newPocketPressure.isNaN() && newPocketPressure.isFinite()) level.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("pressure"), root.x(), root.y(), root.z(), level.dimensionId, newPocketPressure)
                         if (!newPocketTemperature.isNaN() && newPocketTemperature.isFinite()) level.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("temperature"), root.x(), root.y(), root.z(), level.dimensionId, newPocketTemperature)
 
@@ -313,7 +317,7 @@ class PocketForcesController: ShipForcesInducer {
             }
         }
 
-        val toRemove = ArrayList(gametickKnownPocketRoots.filterNot { roots[it] != null })
+        val toRemove = ArrayList(gametickKnownPocketRoots.filterNot { roots[Triple(it.x,it.y,it.z)] != null })
         while (toRemove.isNotEmpty()) {
             val polled = toRemove.removeFirst()
             if (pocketsOnRemoval.containsKey(polled)) {
