@@ -6,7 +6,6 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelReader
-import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
@@ -23,11 +22,11 @@ class GasNozzleBlock(properties: Properties): HorizontalKineticBlock(properties)
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
         super.onPlace(state, level, pos, oldState, isMoving)
-        _onPlace(state, level, pos, oldState, isMoving)
+        nodePlace(state, level, pos, oldState, isMoving)
     }
 
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
-        _onRemove(state, level, pos, newState, isMoving)
+        nodeRemove(state, level, pos, newState, isMoving)
         super.onRemove(state, level, pos, newState, isMoving)
     }
 

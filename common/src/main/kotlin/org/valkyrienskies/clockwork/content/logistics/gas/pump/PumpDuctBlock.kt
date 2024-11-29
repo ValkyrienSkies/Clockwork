@@ -77,14 +77,14 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
         super.onPlace(state, level, pos, oldState, isMoving)
         val facing = state.getValue(BlockStateProperties.FACING)
 
-        _onPlace(state, level, pos, oldState, isMoving)
+        nodePlace(state, level, pos, oldState, isMoving)
 
         handleConnections(pos, facing,level)
         handleConnections(pos, facing.opposite,level)
     }
 
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
-        _onRemove(state, level, pos, newState, isMoving)
+        nodeRemove(state, level, pos, newState, isMoving)
         super.onRemove(state, level, pos, newState, isMoving)
     }
 

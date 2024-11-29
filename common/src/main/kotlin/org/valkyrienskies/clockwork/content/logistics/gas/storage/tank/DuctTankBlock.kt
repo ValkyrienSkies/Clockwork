@@ -22,26 +22,15 @@ class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE
         return TankDuctNode(pos, NodeBehaviorType.TANK, network, volume = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0, size = 9.0)
     }
 
-    override fun updateShape(
-        state: BlockState,
-        direction: Direction,
-        neighborState: BlockState,
-        level: LevelAccessor,
-        currentPos: BlockPos,
-        neighborPos: BlockPos
-    ): BlockState {
-        _updateShape(state, direction, neighborState, level, currentPos, neighborPos)
-        return super.updateShape(state, direction, neighborState, level, currentPos, neighborPos)
-    }
 
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
         super.onPlace(state, level, pos, oldState, isMoving)
-        _onPlace(state, level, pos, oldState, isMoving)
+        nodePlace(state, level, pos, oldState, isMoving)
     }
 
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
-        _onRemove(state, level, pos, newState, isMoving)
+        nodeRemove(state, level, pos, newState, isMoving)
         super.onRemove(state, level, pos, newState, isMoving)
     }
 
