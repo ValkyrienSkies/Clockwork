@@ -84,13 +84,14 @@ class GasThrusterBlock(properties: Properties) : DirectionalBlock(properties), I
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
         _onRemove(state, level, pos, newState, isMoving)
 
-        val serverLevel = level as ServerLevel? ?: return
-        val ship = serverLevel.getShipObjectManagingPos(pos) ?: return
-        val controller = GasThrusterController.getOrCreate(ship as ServerShip) ?: return
+        val serverLevel = level as ServerLevel? ?: return super.onRemove(state, level, pos, newState, isMoving)
+        val ship = serverLevel.getShipObjectManagingPos(pos) ?: return super.onRemove(state, level, pos, newState, isMoving)
+        val controller = ship.getAttachment(GasThrusterController::class.java) ?: return super.onRemove(state, level, pos, newState, isMoving)
+
         controller.deleteThruster(pos)
 
-
         super.onRemove(state, level, pos, newState, isMoving)
+
     }
 
     override fun getBlockEntityClass(): Class<GasThrusterBlockEntity> {
