@@ -130,5 +130,17 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
         return edge == null || pos.toJOMLD() == edge!!.nodeA || pos.toJOMLD() == edge!!.nodeB
     }
 
+    override fun tryConnectEdge(level: Level, pos: BlockPos) {
+        if (edge != null) return
+        handlePumpConnection(level, pos, level.getBlockState(pos))
+
+    }
+
+    override fun tryDisconnectEdge(level: Level, pos: BlockPos) {
+        if (edge == null) return
+        ClockworkMod.getKelvin().removeEdge(edge!!.nodeA, edge!!.nodeB)
+        edge = null
+    }
+
 
 }

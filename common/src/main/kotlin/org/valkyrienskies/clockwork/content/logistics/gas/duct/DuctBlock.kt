@@ -205,6 +205,12 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
                     } else {
                         ClockworkMod.getKelvin().removeEdge(pos.toJOMLD(), adjPos.toJOMLD())
                     }
+                } else if (adjState.block is IEdgeBlock) {
+                    if (newState.getValue(DIR_TO_CONNECTION[direction]!!).isConnected) {
+                        (adjState.block as IEdgeBlock).tryConnectEdge(world, pos)
+                    } else {
+                        (adjState.block as IEdgeBlock).tryDisconnectEdge(world, pos)
+                    }
                 }
 
             }
