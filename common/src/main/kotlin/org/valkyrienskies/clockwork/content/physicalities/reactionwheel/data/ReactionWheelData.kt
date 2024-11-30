@@ -12,6 +12,7 @@ class ReactionWheelData: ForceApplierData<ReactionWheelUpdateData> {
     override val position: Vector3ic?
     val direction: Vector3ic?
     var currentRPM: Double = 0.0
+    var previousRPM: Double = 0.0
 
 
     override fun updateData(data: ReactionWheelUpdateData) {
@@ -29,5 +30,9 @@ class ReactionWheelData: ForceApplierData<ReactionWheelUpdateData> {
     constructor() {
         this.position = null
         this.direction = null
+    }
+
+    fun pushRPM(rpm: Double) {
+        previousRPM = rpm
     }
 }

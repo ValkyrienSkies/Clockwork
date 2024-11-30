@@ -29,7 +29,7 @@ interface IForceApplierBE<U: ForceApplierUpdateData, D: ForceApplierData<U>, C: 
 
     fun newUpdateData(): U
 
-    fun removeApplier(clazz: Class<A>, level: Level, pos: BlockPos) {
+    fun removeApplier(clazz: Class<A>, level: Level?, pos: BlockPos) {
         if (level == null || level.isClientSide) return
         assert(level is ServerLevel)
 

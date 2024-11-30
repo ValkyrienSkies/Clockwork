@@ -30,8 +30,6 @@ class ReactionWheelBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
     var realSpeed: Double = 0.0
     var targetSpeed: Double = 0.0
 
-    val pendingMomentumConsumptionQueue = ConcurrentLinkedQueue<Double>()
-
     var reachedTarget = false
 
     override var physID: Int = -1
@@ -66,10 +64,15 @@ class ReactionWheelBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
         }
     }
 
-    fun calculateTargetSpeed(): Double {
-        if (pendingMomentumConsumptionQueue.isNotEmpty()) {
-            targetSpeed = pendingMomentumConsumptionQueue.poll()
+    private fun calculateTargetSpeed(): Double {
+        val ship = (level as ServerLevel).getShipObjectManagingPos(worldPosition)
+        val attachment = ReactionWheelController.getOrCreate(ship!!)
+        if (attachment != null && physID >= 0) {
+            if (attachment.pendingMomentumConsumptionQueue.isNotEmpty()) {
+                targetSpeed += attachment.pendingMomentumConsumptionQueue[physID]?.poll() ?: 0.0
+            }
         }
+
 
         return if (getSpeed() != 0f) {
             Mth.clamp(targetSpeed + (getSpeed().toDouble() / 20.0), -512.0, 512.0)
@@ -112,12 +115,12 @@ class ReactionWheelBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
     }
 
     override fun remove() {
-        removeApplier(ReactionWheelController::class.java, level!!, worldPosition)
+        removeApplier(ReactionWheelController::class.java, level, worldPosition)
         super.remove()
     }
 
     override fun destroy() {
-        removeApplier(ReactionWheelController::class.java, level!!, worldPosition)
+        removeApplier(ReactionWheelController::class.java, level, worldPosition)
         super.destroy()
     }
 
