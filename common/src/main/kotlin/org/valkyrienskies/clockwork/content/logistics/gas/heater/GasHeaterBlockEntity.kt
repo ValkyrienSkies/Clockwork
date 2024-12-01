@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.heater
 
+import com.simibubi.create.content.processing.basin.BasinBlockEntity
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock.HEAT_LEVEL
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock.HeatLevel
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
@@ -29,7 +30,7 @@ class GasHeaterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
 
 
 
-        if (level?.isClientSide != true) return
+        if (level?.isClientSide != false ) return
 
         val node = ClockworkMod.getKelvin().getNodeAt(getDuctNodePosition()) ?: return
         val temp = ClockworkMod.getKelvin().getTemperatureAt(getDuctNodePosition())
