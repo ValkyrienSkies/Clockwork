@@ -47,6 +47,6 @@ object ClockworkConfig {
         var pocketLeakageRate = 0.5
 
         @JsonSchema(description = "Effectiveness scalar for reaction wheels. Higher value means a single reaction wheel can better control an entire ship, regardless of its mass. Default value is 0.1.", min = 0.001, max = 1.0)
-        var reactionWheelEffectiveness = 0.1
+        var reactionWheelEffectiveness = 1.0
     }
 }

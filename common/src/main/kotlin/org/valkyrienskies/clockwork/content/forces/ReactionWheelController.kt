@@ -8,6 +8,7 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.Vector3ic
 import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.forces.data.ForceApplierCreateData
 import org.valkyrienskies.clockwork.content.forces.data.ForceApplierData
 import org.valkyrienskies.clockwork.content.forces.data.ForceApplierUpdateData
@@ -68,7 +69,7 @@ class ReactionWheelController(
         val wheelOmega = realAxis.mul(wheelSpeed, Vector3d())
         val wheelPreviousOmega = realAxis.mul(wheelPrevious, Vector3d())
 
-        val deltaWheelOmega = wheelOmega.sub(wheelPreviousOmega, Vector3d())
+        val deltaWheelOmega = wheelSpeed - wheelPrevious
 
         val wheelL: Vector3dc = wheelOmega.mul(wheelInertia)
         val wheelPreviousL: Vector3dc = wheelPreviousOmega.mul(wheelInertia)
@@ -80,11 +81,17 @@ class ReactionWheelController(
 
         val requiredChangeInWheel = deltaShipL.div(wheelInertia, Vector3d()).mul(-1.0, Vector3d()).length()
 
-        val actualChangeInWheel = Mth.clamp(Mth.clamp(requiredChangeInWheel, -(wheelL.length().absoluteValue / wheelInertia), (wheelL.length().absoluteValue / wheelInertia)), -512 + wheelSpeed, 512 - wheelSpeed)
+        val actualChangeInWheel = Mth.clamp(Mth.clamp(requiredChangeInWheel, -(wheelL.length().absoluteValue / wheelInertia), (wheelL.length().absoluteValue / wheelInertia)), -1024.0 - wheelSpeed, 1024.0 - wheelSpeed)
 
-        val leftoverShipL: Vector3dc = shipL.add(realAxis.mul((actualChangeInWheel + deltaWheelOmega.length()) * wheelInertia, Vector3d()), Vector3d())
+        val leftoverShipL: Vector3dc = shipL.sub(realAxis.mul((deltaWheelOmega + actualChangeInWheel) * 10.0 * wheelInertia, Vector3d()), Vector3d())
 
-        val torque = leftoverShipL.mul(-1.0, Vector3d())
+        val changeInShipL = shipL.sub(leftoverShipL, Vector3d())
+
+        val torque = changeInShipL.mul(1.0, Vector3d())
+
+        wheel.pushRPM(wheel.currentRPM)
+
+        //ClockworkMod.LOGGER.info("Torque: $torque, Delta Wheel Omega: $actualChangeInWheel")
 
         return torque to actualChangeInWheel
     }

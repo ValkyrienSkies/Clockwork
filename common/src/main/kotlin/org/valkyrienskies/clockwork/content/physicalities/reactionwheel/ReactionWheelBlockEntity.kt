@@ -53,7 +53,7 @@ class ReactionWheelBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
     override fun read(compound: CompoundTag, clientPacket: Boolean) {
         super.read(compound, clientPacket)
         if (clientPacket) {
-            clientSpeed.chase(compound.getDouble("ServerSpeed"), 1.0/64.0, LerpedFloat.Chaser.EXP)
+            clientSpeed.chase(compound.getDouble("ServerSpeed"), 1.0/20.0, LerpedFloat.Chaser.EXP)
         }
         if (compound.contains("PhysID")) {
             physID = compound.getInt("PhysID")
@@ -72,7 +72,7 @@ class ReactionWheelBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
         }
 
         return if (getSpeed() != 0f) {
-            Mth.clamp(targetSpeed + (getSpeed().toDouble() / 20.0), -512.0, 512.0)
+            Mth.clamp(targetSpeed + (getSpeed().toDouble() / 2.0), -1024.0, 1024.0)
         } else {
             targetSpeed
         }

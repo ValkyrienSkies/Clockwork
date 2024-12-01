@@ -18,37 +18,21 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.function.BiConsumer
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-class EncasedFanController : ShipForcesInducer {
-    val fanData: Int2ObjectOpenHashMap<EncasedFanData> = Int2ObjectOpenHashMap<EncasedFanData>()
-    private val fanUpdateData: ConcurrentHashMap<Int, EncasedFanUpdateData> =
-        ConcurrentHashMap<Int, EncasedFanUpdateData>()
-    private val createdFans: ConcurrentLinkedQueue<Pair<Int, EncasedFanCreateData>> =
-        ConcurrentLinkedQueue<Pair<Int, EncasedFanCreateData>>()
-    private val removedFans = ConcurrentLinkedQueue<Int>()
-    private var nextFanID = 0
+class EncasedFanController(
+    override val appliers: HashMap<Int, EncasedFanData> = HashMap(),
+    override val applierUpdateData: ConcurrentLinkedQueue<kotlin.Pair<Int, EncasedFanUpdateData>> = ConcurrentLinkedQueue(),
+    override val createdAppliers: ConcurrentLinkedQueue<kotlin.Pair<Int, EncasedFanCreateData>> = ConcurrentLinkedQueue(),
+    override val removedAppliers: ConcurrentLinkedQueue<Int> = ConcurrentLinkedQueue(),
+    override var nextApplierID: Int = 0
+) : MultiInstanceForceApplier<EncasedFanUpdateData, EncasedFanData, EncasedFanCreateData> {
+
     override fun applyForces(physShip: PhysShip) {
-        while (!createdFans.isEmpty()) {
-            val createData: Pair<Int, EncasedFanCreateData> = createdFans.remove()
-            fanData.put(
-                createData.left(), EncasedFanData(
-                    createData.right().fanPos,
-                    createData.right().fanDir,
-                    createData.right().fanSpeed
-                )
-            )
-        }
-        while (!removedFans.isEmpty()) {
-            fanData.remove(removedFans.remove() as Int)
-        }
-        fanUpdateData.forEach(BiConsumer<Int, EncasedFanUpdateData> forEach@{ id: Int?, data: EncasedFanUpdateData ->
-            val physData: EncasedFanData = fanData[id] ?: return@forEach
-            physData.fanSpeed = data.fanSpeed
-        })
-        fanUpdateData.clear()
-        for (physData in fanData.values) {
+        super.applyForces(physShip)
+
+        for (physData in appliers.values) {
             val force = computeForce(physData, physShip)
             val fanVector: Vector3dc =
-                physData.fanPos.add(0.5, 0.5, 0.5, Vector3d()).sub(physShip.transform.positionInShip)
+                Vector3d(physData.position).add(0.5, 0.5, 0.5, Vector3d()).sub(physShip.transform.positionInShip)
             physShip.applyRotDependentForceToPos(force, fanVector)
         }
     }
@@ -62,7 +46,7 @@ class EncasedFanController : ShipForcesInducer {
         var providedForce = Math.abs(speed) * 36.00875
         val airPress = airPressure(physShip.transform.positionInWorld)
         val fanPosRelCenterMass: Vector3dc = physShip.transform.shipToWorld.transformPosition(
-            physData.fanPos.add(0.5, 0.5, 0.5, Vector3d()),
+            Vector3d(physData.position).add(0.5, 0.5, 0.5, Vector3d()),
             Vector3d()
         ).sub(physShip.transform.positionInWorld, Vector3d())
         val worldVelAtFan: Vector3dc = physShip.omega.cross(fanPosRelCenterMass, Vector3d())
@@ -73,7 +57,7 @@ class EncasedFanController : ShipForcesInducer {
             factor = 0.0
         }
 
-        providedForce = providedForce * airPress * factor
+        providedForce *= airPress * factor
         return dir.mul(providedForce)
     }
 
@@ -93,20 +77,6 @@ class EncasedFanController : ShipForcesInducer {
 
     private fun exhaustVelocity(): Double {
         return 44.074
-    }
-
-    fun addEncasedFan(data: EncasedFanCreateData): Int {
-        val id = nextFanID++
-        createdFans.add(Pair.of<Int, EncasedFanCreateData>(id, data))
-        return id
-    }
-
-    fun removeEncasedFan(id: Int) {
-        removedFans.add(id)
-    }
-
-    fun updateEncasedFan(id: Int, data: EncasedFanUpdateData) {
-        fanUpdateData[id] = data
     }
 
     companion object {
