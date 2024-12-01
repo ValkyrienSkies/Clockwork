@@ -54,6 +54,7 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.Deli
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlock
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlock
+import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.WingBlock
@@ -144,6 +145,24 @@ object ClockworkBlocks {
         .item()
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .model(AssetLookup.customBlockItemModel("gyro"))
+        .build()
+        .register()
+
+    @JvmField
+    val REACTIONWHEEL: BlockEntry<ReactionWheelBlock> = REGISTRATE.block<ReactionWheelBlock>(
+        "reactionwheel"
+    ) { properties: BlockBehaviour.Properties? ->
+        ReactionWheelBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.stone() }
+        .transform(TagGen.axeOrPickaxe())
+        .addLayer { Supplier { RenderType.cutout() } }
+        .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .model(AssetLookup.customBlockItemModel("reactionwheel"))
         .build()
         .register()
 
