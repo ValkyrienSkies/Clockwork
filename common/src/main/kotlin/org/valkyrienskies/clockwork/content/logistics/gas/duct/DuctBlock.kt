@@ -35,6 +35,7 @@ import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver.IScrewdrivable
 import org.valkyrienskies.clockwork.content.logistics.gas.GasHeatLevel
+import org.valkyrienskies.clockwork.content.logistics.gas.IEdgeBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock.Companion.GAS_HEAT_LEVEL
 import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
@@ -204,6 +205,12 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
                     } else {
                         ClockworkMod.getKelvin().removeEdge(pos.toJOMLD(), adjPos.toJOMLD())
                     }
+                } else if (adjState.block is IEdgeBlock) {
+                    if (newState.getValue(DIR_TO_CONNECTION[direction]!!).isConnected) {
+                        (adjState.block as IEdgeBlock).tryConnectEdge(world, pos)
+                    } else {
+                        (adjState.block as IEdgeBlock).tryDisconnectEdge(world, pos)
+                    }
                 }
 
             }
@@ -339,6 +346,8 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         var forced = type == DuctConnectionType.FORCED
         var otherConnected = false
 
+        val isConnectedEdgeBlock = neighborState.block is IEdgeBlock && (neighborState.block as IEdgeBlock).connectedTo(currentPos)
+
         val canConnect = canConnectTo(currentPos, neighborPos, direction.getOpposite(), level as Level) && level.getBlockState(neighborPos).block is IDuct
 
         if (neighborState.block is DuctBlock)
@@ -351,7 +360,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         }
 
 
-        val finalConnection: DuctConnectionType = if (otherConnected && canConnect) {
+        val finalConnection: DuctConnectionType = if (otherConnected && canConnect || isConnectedEdgeBlock) {
             DuctConnectionType.SIDE
         } else if (forced) {
             DuctConnectionType.FORCED

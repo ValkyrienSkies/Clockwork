@@ -106,7 +106,7 @@ object ClockworkPartials {
     val COMPRESSOR_FABRIC: PartialModel = PartialModel(ClockworkMod.asResource("block/compressor/fabric"))
     val COMPRESSOR_TOP: PartialModel = PartialModel(ClockworkMod.asResource("block/compressor/top"))
 
-    val PUMP_COG: PartialModel = AllPartialModels.MECHANICAL_PUMP_COG
+    val PUMP_COG: PartialModel = PartialModel(ClockworkMod.asResource("block/pump/cog"))
 
     val NOZZLE_DIAL: PartialModel = PartialModel(ClockworkMod.asResource("block/gas_nozzle/dial"))
     val NOZZLE_AXIS: PartialModel = PartialModel(ClockworkMod.asResource("block/gas_nozzle/axis"))

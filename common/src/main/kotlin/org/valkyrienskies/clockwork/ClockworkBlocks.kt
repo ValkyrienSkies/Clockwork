@@ -371,6 +371,7 @@ object ClockworkBlocks {
         .addLayer { Supplier { RenderType.cutoutMipped() } }
         .item()
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .model(AssetLookup.customBlockItemModel("pump", "item"))
         .transform(customItemModel())
         .transform(BlockStressDefaults.setImpact(4.0))
         .register()
