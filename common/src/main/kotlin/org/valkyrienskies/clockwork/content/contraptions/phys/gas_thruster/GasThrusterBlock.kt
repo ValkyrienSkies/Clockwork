@@ -14,14 +14,15 @@ import net.minecraft.world.level.block.DirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
+import net.minecraft.world.level.block.state.properties.BooleanProperty
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.content.forces.GasThrusterController
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.INodeBlock
-import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 
 
 class GasThrusterBlock(properties: Properties) : DirectionalBlock(properties), INodeBlock, IBE<GasThrusterBlockEntity> {
+
 
     init {
         registerDefaultState(
@@ -36,7 +37,7 @@ class GasThrusterBlock(properties: Properties) : DirectionalBlock(properties), I
     }
 
 
-    override fun getStateForPlacement(context: BlockPlaceContext): BlockState {
+    override fun getStateForPlacement(context: BlockPlaceContext): BlockState? {
         val preferred: Direction? = getPreferredFacing(context)
         if (preferred == null || (context.player != null && context.player!!
                 .isShiftKeyDown)
@@ -101,6 +102,4 @@ class GasThrusterBlock(properties: Properties) : DirectionalBlock(properties), I
     override fun getBlockEntityType(): BlockEntityType<out GasThrusterBlockEntity> {
         return ClockworkBlockEntities.GAS_THRUSTER.get()
     }
-
-
 }
