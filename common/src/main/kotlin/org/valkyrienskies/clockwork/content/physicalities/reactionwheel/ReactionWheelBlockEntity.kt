@@ -15,17 +15,13 @@ import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.data.Rea
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.data.ReactionWheelData
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.data.ReactionWheelUpdateData
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
-import org.valkyrienskies.mod.common.shipObjectWorld
-import java.util.concurrent.ConcurrentLinkedQueue
-import kotlin.math.absoluteValue
-import kotlin.math.max
-import kotlin.math.sign
 
 class ReactionWheelBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KineticBlockEntity(typeIn, pos,
     state
 ), IForceApplierBE<ReactionWheelUpdateData, ReactionWheelData, ReactionWheelCreateData, ReactionWheelController> {
 
     val clientSpeed: LerpedFloat = LerpedFloat.linear()
+    var angle = 0.0
 
     var realSpeed: Double = 0.0
     var targetSpeed: Double = 0.0
@@ -66,13 +62,14 @@ class ReactionWheelBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
 
     private fun calculateTargetSpeed(): Double {
         val ship = (level as ServerLevel).getShipObjectManagingPos(worldPosition)
-        val attachment = ReactionWheelController.getOrCreate(ship!!)
-        if (attachment != null && physID >= 0) {
-            if (attachment.pendingMomentumConsumptionQueue.isNotEmpty()) {
-                targetSpeed += attachment.pendingMomentumConsumptionQueue[physID]?.poll() ?: 0.0
+        if (ship != null) {
+            val attachment = ReactionWheelController.getOrCreate(ship!!)
+            if (attachment != null && physID >= 0) {
+                if (attachment.pendingMomentumConsumptionQueue.isNotEmpty()) {
+                    targetSpeed = attachment.pendingMomentumConsumptionQueue[physID]?.poll() ?: 0.0
+                }
             }
         }
-
 
         return if (getSpeed() != 0f) {
             Mth.clamp(targetSpeed + (getSpeed().toDouble() / 20.0), -512.0, 512.0)
@@ -85,6 +82,8 @@ class ReactionWheelBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
         super.tick()
         if (level?.isClientSide == true) {
             clientSpeed.tickChaser()
+            angle += clientSpeed.getValue() * 3 / 10f
+            angle %= 360f
             return
         }
 
@@ -96,7 +95,7 @@ class ReactionWheelBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
 
         targetSpeed = calculateTargetSpeed()
 
-        realSpeed = Mth.lerp(0.05, realSpeed, targetSpeed)
+        realSpeed = Mth.lerp(0.1, realSpeed, targetSpeed)
 
         if (realSpeed != targetSpeed || !reachedTarget) {
             reachedTarget = Mth.equal(realSpeed, targetSpeed)
@@ -110,7 +109,7 @@ class ReactionWheelBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
             val ship = (level!! as ServerLevel).getShipObjectManagingPos(worldPosition)!!
             val attachment = ReactionWheelController.getOrCreate(ship)!!
 
-            tickData(attachment, !reachedTarget)
+            tickData(attachment, true)
         }
     }
 

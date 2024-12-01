@@ -50,6 +50,9 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.Deli
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotRenderer
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer
+import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelBlockEntity
+import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelInstance
+import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelRenderer
 
 object ClockworkBlockEntities {
 
@@ -146,6 +149,33 @@ object ClockworkBlockEntities {
             )
         }
         .validBlocks(ClockworkBlocks.ALT_METER)
+        .register()
+
+    @JvmField
+    val REACTIONWHEEL: BlockEntityEntry<ReactionWheelBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<ReactionWheelBlockEntity>(
+            "reactionwheel"
+        ) { typeIn: BlockEntityType<ReactionWheelBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
+            ReactionWheelBlockEntity(
+                typeIn!!,
+                pos!!, state!!
+            )
+        }
+        .instance { BiFunction<MaterialManager?, ReactionWheelBlockEntity?, BlockEntityInstance<in ReactionWheelBlockEntity?>> { materialManager: MaterialManager?, blockEntity: ReactionWheelBlockEntity? ->
+                ReactionWheelInstance(
+                    materialManager,
+                    blockEntity
+                )
+            }
+        }
+        .validBlocks(ClockworkBlocks.REACTIONWHEEL)
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in ReactionWheelBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                ReactionWheelRenderer(
+                    context!!
+                )
+            }
+        }
         .register()
 
     @JvmField

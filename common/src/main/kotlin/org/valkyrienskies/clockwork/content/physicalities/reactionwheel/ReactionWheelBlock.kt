@@ -12,6 +12,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
+import org.valkyrienskies.clockwork.ClockworkBlockEntities
 
 class ReactionWheelBlock(properties: Properties) : RotatedPillarKineticBlock(properties), IBE<ReactionWheelBlockEntity> {
 
@@ -33,11 +34,11 @@ class ReactionWheelBlock(properties: Properties) : RotatedPillarKineticBlock(pro
     }
 
     override fun getBlockEntityClass(): Class<ReactionWheelBlockEntity> {
-        TODO("Not yet implemented")
+        return ReactionWheelBlockEntity::class.java
     }
 
     override fun getBlockEntityType(): BlockEntityType<out ReactionWheelBlockEntity> {
-        TODO("Not yet implemented")
+        return ClockworkBlockEntities.REACTIONWHEEL.get()
     }
 
     override fun hasShaftTowards(world: LevelReader?, pos: BlockPos?, state: BlockState?, face: Direction): Boolean {
