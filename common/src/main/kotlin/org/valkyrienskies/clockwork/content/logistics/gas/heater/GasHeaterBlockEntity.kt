@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.heater
 
+import com.simibubi.create.content.fluids.tank.BoilerHeaters
 import com.simibubi.create.content.processing.basin.BasinBlockEntity
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock.HEAT_LEVEL
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock.HeatLevel
@@ -46,6 +47,8 @@ class GasHeaterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
             temp < 1500 -> HeatLevel.KINDLED
             else -> HeatLevel.SEETHING
         }
+
+
 
         if (state.getValue(HEAT_LEVEL) == heatLevel) return
 
