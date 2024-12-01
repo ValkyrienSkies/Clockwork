@@ -502,4 +502,6 @@ object AerodynamicUtils {
     const val GRAVITATIONAL_ACCELERATION = 9.80665
     const val UNIVERSAL_GAS_CONSTANT = 8.314
     const val AIR_MOLAR_MASS = 0.0289644
+    const val DUCT_RADIUS = 0.1875
+    const val DUCT_AREA = 0.11045
 }
