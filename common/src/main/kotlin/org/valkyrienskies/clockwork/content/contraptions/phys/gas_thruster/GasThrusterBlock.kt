@@ -17,7 +17,8 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BooleanProperty
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.content.forces.GasThrusterController
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.INodeBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
+
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 
 
@@ -78,12 +79,12 @@ class GasThrusterBlock(properties: Properties) : DirectionalBlock(properties), I
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
         super.onPlace(state, level, pos, oldState, isMoving)
-        _onPlace(state, level, pos, oldState, isMoving)
+        nodePlace(state, level, pos, oldState, isMoving)
 
     }
 
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
-        _onRemove(state, level, pos, newState, isMoving)
+        nodeRemove(state, level, pos, newState, isMoving)
 
         val serverLevel = level as ServerLevel? ?: return super.onRemove(state, level, pos, newState, isMoving)
         val ship = serverLevel.getShipObjectManagingPos(pos) ?: return super.onRemove(state, level, pos, newState, isMoving)
