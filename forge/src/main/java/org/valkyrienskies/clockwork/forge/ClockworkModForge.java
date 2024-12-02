@@ -13,6 +13,7 @@ import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLLoader;
 import org.valkyrienskies.clockwork.*;
@@ -44,7 +45,6 @@ public class ClockworkModForge {
         ClockworkEntities.register();
         ForgeClockworkEntities.register();
 
-        ClockworkMod.init();
         ClockworkParticles.init();
 
         //AllClockworkConfigs.register(modLoadingContext);
@@ -65,12 +65,21 @@ public class ClockworkModForge {
             ClockworkForgePeripheralProviders.register();
         }
 
+        modEventBus.addListener(ClockworkModForge::init);
+
         //todo fix forge vscore issue
-//        modLoadingContext.registerExtensionPoint(
-//                ConfigGuiHandler.ConfigGuiFactory.class,
-//                () -> new ConfigGuiHandler.ConfigGuiFactory((minecraft, screen) -> VSClothConfig.createConfigScreenFor(screen, ClockworkConfig.class))
-//        );
-        ClockworkBoilerHeaters.INSTANCE.init();
+        modLoadingContext.registerExtensionPoint(
+                ConfigGuiHandler.ConfigGuiFactory.class,
+                () -> new ConfigGuiHandler.ConfigGuiFactory((minecraft, screen) -> VSClothConfig.createConfigScreenFor(screen, ClockworkConfig.class))
+        );
+
+    }
+
+    public static void init(final FMLCommonSetupEvent event) {
+        event.enqueueWork(() -> {
+            ClockworkMod.init();
+            ClockworkShaders.INSTANCE.init();
+        });
     }
 
     private void onClientSetup(FMLClientSetupEvent event) {

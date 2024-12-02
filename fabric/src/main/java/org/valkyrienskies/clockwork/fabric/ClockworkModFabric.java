@@ -65,12 +65,12 @@ public class ClockworkModFabric implements ModInitializer {
     }
 
     public static class ModMenu implements ModMenuApi {
-//        @Override
-//        public ConfigScreenFactory<?> getModConfigScreenFactory() {
-//            return (parent) -> VSClothConfig.createConfigScreenFor(
-//                    parent,
-//                    ClockworkConfig.class
-//            );
-//        }
+        @Override
+        public ConfigScreenFactory<?> getModConfigScreenFactory() {
+            return (parent) -> VSClothConfig.createConfigScreenFor(
+                    parent,
+                    ClockworkConfig.class
+            );
+        }
     }
 }
