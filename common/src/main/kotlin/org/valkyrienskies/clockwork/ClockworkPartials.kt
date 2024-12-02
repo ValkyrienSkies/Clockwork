@@ -110,7 +110,7 @@ object ClockworkPartials {
 
     val NOZZLE_DIAL: PartialModel = PartialModel(ClockworkMod.asResource("block/gas_nozzle/dial"))
     val NOZZLE_AXIS: PartialModel = PartialModel(ClockworkMod.asResource("block/gas_nozzle/axis"))
-    
+
     val HAND_SECOND: PartialModel = PartialModel(ClockworkMod.asResource("block/clock/hand_second"))
     val HAND_MINUTE: PartialModel = PartialModel(ClockworkMod.asResource("block/clock/hand_minute"))
     val HAND_HOUR: PartialModel = PartialModel(ClockworkMod.asResource("block/clock/hand_hour"))
