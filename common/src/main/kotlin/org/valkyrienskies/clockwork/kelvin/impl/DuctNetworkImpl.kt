@@ -138,6 +138,24 @@ class DuctNetworkImpl(
 
     }
 
+    override fun getHeatEnergy(pos: DuctNodePos): Double {
+        return getTemperatureAt(pos) * specificHeatAverage(getGasMassAt(pos)) * getGasMassAt(pos).values.sum()
+    }
+
+    override fun modHeatEnergy(pos: DuctNodePos, deltaEnergy: Double) {
+        val energy = getHeatEnergy(pos)
+        val result = (energy+deltaEnergy).coerceAtLeast(0.001)
+        val gasMasses = getGasMassAt(pos)
+        val mass = gasMasses.values.sum()
+
+        if (mass < 0.001) return
+        val deltaTemp = result / (gasMasses.values.sum() * specificHeatAverage(gasMasses))
+        val temp = getTemperatureAt(pos)
+
+        modTemperature(pos, deltaTemp-temp)
+
+    }
+
     override fun tick(level: ServerLevel, subSteps: Int) {
         if (disabled) return
 

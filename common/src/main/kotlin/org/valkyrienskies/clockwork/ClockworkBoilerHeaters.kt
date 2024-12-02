@@ -18,13 +18,13 @@ object ClockworkBoilerHeaters {
     }
 
     fun init() {
-        registerHeater(ClockworkBlocks.GAS_HEATER.get(), Heater { level: Level?, pos: BlockPos?, state: BlockState ->
+        registerHeater(ClockworkBlocks.GAS_HEATER.get()) { level: Level?, pos: BlockPos?, state: BlockState ->
             val value = state.getValue(BlazeBurnerBlock.HEAT_LEVEL)
-            if (value == BlazeBurnerBlock.HeatLevel.NONE) 1f
-            if (value == BlazeBurnerBlock.HeatLevel.SEETHING) 2f
-            if (value.isAtLeast(BlazeBurnerBlock.HeatLevel.FADING)) 1f
+            if (value == BlazeBurnerBlock.HeatLevel.NONE)  return@registerHeater 1f
+            if (value == BlazeBurnerBlock.HeatLevel.SEETHING) return@registerHeater 2f
+            if (value.isAtLeast(BlazeBurnerBlock.HeatLevel.FADING)) return@registerHeater 1f
             0f
-            })
+        }
     }
 }
 

@@ -1,7 +1,5 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.heater
 
-import com.simibubi.create.content.fluids.tank.BoilerHeaters
-import com.simibubi.create.content.processing.basin.BasinBlockEntity
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock.HEAT_LEVEL
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock.HeatLevel
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
@@ -24,7 +22,7 @@ class GasHeaterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
         return blockPos.toJOMLD()
     }
 
-    val energyCostPerLevel = 1000
+    val heatLossPerLevel = 100.0
 
     override fun tick() {
         super.tick()
@@ -48,7 +46,8 @@ class GasHeaterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
             else -> HeatLevel.SEETHING
         }
 
-
+        val energyInHeater = node.network.getHeatEnergy(getDuctNodePosition())
+        node.network.modHeatEnergy(getDuctNodePosition(), -(heatLevel.ordinal * heatLossPerLevel).coerceAtMost(energyInHeater))
 
         if (state.getValue(HEAT_LEVEL) == heatLevel) return
 
