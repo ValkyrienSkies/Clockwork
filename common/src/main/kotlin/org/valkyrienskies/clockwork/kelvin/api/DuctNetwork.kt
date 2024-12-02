@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.kelvin.api
 
 import net.minecraft.server.level.ServerLevel
 import org.valkyrienskies.clockwork.kelvin.impl.DuctNodeInfo
+import org.valkyrienskies.core.impl.shadow.Du
 import java.util.EnumMap
 
 /**
@@ -56,6 +57,9 @@ interface DuctNetwork {
     fun modGasMass(pos: DuctNodePos, gasType: GasType, deltaMass: Double)
 
     fun modGasMassOfTemperature(pos: DuctNodePos, gasType: GasType, deltaMass: Double, gasTemperature: Double)
+    fun modHeatEnergy(pos: DuctNodePos, deltaEnergy: Double)
+    fun getHeatEnergy(pos: DuctNodePos): Double
+
     // the real meat
     fun tick(level: ServerLevel, subSteps: Int = 1)
 
