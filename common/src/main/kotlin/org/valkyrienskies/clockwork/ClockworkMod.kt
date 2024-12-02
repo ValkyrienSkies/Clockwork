@@ -44,7 +44,8 @@ object ClockworkMod {
         ClockworkWorldgen.init()
         ClockworkDamageSources.init()
         ClockworkBoilerHeaters.init()
-        ValkyrienSkiesMod.vsCore.registerConfigLegacy("clockwork", ClockworkConfig::class.java)
+
+        //ValkyrienSkiesMod.vsCore.registerConfigLegacy("clockwork", ClockworkConfig::class.java)
 
         VSEvents.ShipLoadEvent.on { event ->
             event.ship.setAttachment(PocketForcesController())

@@ -51,7 +51,7 @@ dependencies {
 
     // dependencies
     modImplementation("net.fabricmc.fabric-api:fabric-api:${fabric_api_version}")
-    include(annotationProcessor(implementation("com.github.LlamaLad7:MixinExtras:0.1.1")))
+    include(annotationProcessor(implementation("io.github.llamalad7:mixinextras-fabric:0.3.5")))
     include(modApi("dev.architectury:architectury-fabric:${rootProject.architectury_version}"))
 
     //VS2
