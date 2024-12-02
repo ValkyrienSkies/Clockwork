@@ -54,6 +54,8 @@ public class ClockworkModFabric implements ModInitializer {
 
         var gearwork = new ResourceLocation(ClockworkMod.MOD_ID, "gearwork");
         FabricLoader.getInstance().getModContainer(ClockworkMod.MOD_ID).ifPresent(container -> ResourceManagerHelper.registerBuiltinResourcePack(gearwork, container, "Clockwork: Gearwork", ResourcePackActivationType.NORMAL));
+
+        ClockworkBoilerHeaters.INSTANCE.init();
     }
 
     public static void registerServerEvents() {

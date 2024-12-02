@@ -43,7 +43,6 @@ object ClockworkMod {
         ClockworkTags.init()
         ClockworkWorldgen.init()
         ClockworkDamageSources.init()
-        ClockworkBoilerHeaters.init()
 
         //ValkyrienSkiesMod.vsCore.registerConfigLegacy("clockwork", ClockworkConfig::class.java)
 

@@ -44,6 +44,7 @@ public class ClockworkModForge {
         ClockworkEntities.register();
         ForgeClockworkEntities.register();
 
+        ClockworkMod.init();
         ClockworkParticles.init();
 
         //AllClockworkConfigs.register(modLoadingContext);
@@ -69,8 +70,7 @@ public class ClockworkModForge {
 //                ConfigGuiHandler.ConfigGuiFactory.class,
 //                () -> new ConfigGuiHandler.ConfigGuiFactory((minecraft, screen) -> VSClothConfig.createConfigScreenFor(screen, ClockworkConfig.class))
 //        );
-
-        ClockworkMod.init();
+        ClockworkBoilerHeaters.INSTANCE.init();
     }
 
     private void onClientSetup(FMLClientSetupEvent event) {
