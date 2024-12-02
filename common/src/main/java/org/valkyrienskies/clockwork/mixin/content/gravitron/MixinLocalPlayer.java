@@ -22,7 +22,7 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
         super(clientLevel, gameProfile);
     }
 
-    @Inject(method = "swing", at = @At("HEAD"), remap = false)
+    @Inject(method = "swing", at = @At("HEAD"))
     private void vs_clockwork$preSwing(final InteractionHand hand, final CallbackInfo ci) {
         final ItemStack itemStack = getItemInHand(hand);
         final Item item = itemStack.getItem();
