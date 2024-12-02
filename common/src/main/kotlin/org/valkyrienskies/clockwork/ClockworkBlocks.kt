@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.SlabBlock
 import net.minecraft.world.level.block.StairBlock
 import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.material.Material
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.client.render.WingBlockItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteOreBlock
@@ -375,7 +376,7 @@ object ClockworkBlocks {
         REGISTRATE.block<GasNozzleBlock>("gas_nozzle") { properties: BlockBehaviour.Properties? ->
             GasNozzleBlock(properties!!)
         }
-            .initialProperties { SharedProperties.stone() }
+            .initialProperties { Blocks.IRON_BLOCK }
             .transform(TagGen.axeOrPickaxe())
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
@@ -391,14 +392,13 @@ object ClockworkBlocks {
         REGISTRATE.block<GasHeaterBlock>("gas_heater") { properties: BlockBehaviour.Properties? ->
             GasHeaterBlock(properties!!)
         }
-            .initialProperties { SharedProperties.stone() }
+            .initialProperties { Blocks.IRON_BLOCK }
             .transform(TagGen.axeOrPickaxe())
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
-            .model(AssetLookup.customBlockItemModel("gas_heater","block"))
             .build()
             .register()
 
