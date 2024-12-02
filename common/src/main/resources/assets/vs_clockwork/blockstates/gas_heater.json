@@ -1,7 +1,20 @@
 {
   "variants": {
-    "": {
+    "facing=north": {
+      "model": "vs_clockwork:block/gas_heater/block",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vs_clockwork:block/gas_heater/block",
+      "y": 270
+    },
+    "facing=west": {
+      "model": "vs_clockwork:block/gas_heater/block",
+      "y": 180
+    },
+    "facing=east": {
       "model": "vs_clockwork:block/gas_heater/block"
+
     }
   }
 }
