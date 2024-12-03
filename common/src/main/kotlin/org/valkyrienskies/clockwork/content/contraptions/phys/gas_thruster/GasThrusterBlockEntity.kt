@@ -10,9 +10,10 @@ import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.forces.GasThrusterController
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
-import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.util.AerodynamicUtils
 import org.valkyrienskies.core.api.ships.ServerShip
+import org.valkyrienskies.kelvin.api.DuctNodePos
+import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.math.max
@@ -26,7 +27,10 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     }
 
     override fun getDuctNodePosition(): DuctNodePos {
-        return this.blockPos.toJOMLD()
+        if (level != null && !level!!.isClientSide()) {
+            return blockPos.toDuctNodePos(level!!.dimension().location())
+        }
+        return blockPos.toDuctNodePos()
     }
 
     override fun tick() {

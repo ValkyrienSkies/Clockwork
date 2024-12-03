@@ -2,21 +2,22 @@ package org.valkyrienskies.clockwork.content.logistics.gas.storage.tank
 
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
+import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
-import org.valkyrienskies.clockwork.kelvin.api.*
-import org.valkyrienskies.clockwork.kelvin.api.nodes.TankDuctNode
+import org.valkyrienskies.kelvin.api.*
+import org.valkyrienskies.kelvin.api.nodes.TankDuctNode
 
 
 class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE<DuctTankBlockEntity> {
 
 
 
-    override fun createNode(pos: DuctNodePos, network: DuctNetwork): DuctNode {
+    override fun createNode(pos: DuctNodePos, network: DuctNetwork<ServerLevel>): DuctNode {
         return TankDuctNode(pos, NodeBehaviorType.TANK, network, volume = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0, size = 9.0)
     }
 

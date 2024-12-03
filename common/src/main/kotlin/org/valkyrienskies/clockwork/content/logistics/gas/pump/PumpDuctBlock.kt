@@ -6,6 +6,7 @@ import com.simibubi.create.content.kinetics.simpleRelays.ICogWheel
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
@@ -21,26 +22,29 @@ import org.apache.commons.lang3.ObjectUtils.Null
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.content.logistics.gas.GasHeatLevel
-import org.valkyrienskies.clockwork.content.logistics.gas.IEdgeBlock
-import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock.Companion.DIR_TO_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctConnectionType
-import org.valkyrienskies.clockwork.kelvin.api.*
-import org.valkyrienskies.clockwork.kelvin.api.edges.PumpDuctEdge
-import org.valkyrienskies.clockwork.kelvin.api.nodes.PumpDuctNode
+import org.valkyrienskies.kelvin.api.*
+import org.valkyrienskies.kelvin.api.edges.PumpDuctEdge
+import org.valkyrienskies.kelvin.api.nodes.PumpDuctNode
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createEdgeType
+import org.valkyrienskies.kelvin.util.GasHeatLevel
+import org.valkyrienskies.kelvin.util.IEdgeBlock
+import org.valkyrienskies.kelvin.util.IHeatableBlock
+import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.util.toJOMLD
 
-class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties), IBE<PumpDuctBlockEntity>, ICogWheel, IEdgeBlock {
+class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties), IBE<PumpDuctBlockEntity>, ICogWheel,
+    IEdgeBlock {
 
     var edge: PumpDuctEdge? = null
 
     init {
-        registerDefaultState(super.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, false).setValue(IHeatableBlock.GAS_HEAT_LEVEL, GasHeatLevel.COOL))
+        registerDefaultState(super.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, false).setValue(
+            IHeatableBlock.GAS_HEAT_LEVEL, GasHeatLevel.COOL))
     }
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
@@ -105,6 +109,7 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
 
 
     fun handlePumpConnection(level: LevelAccessor, pos: BlockPos, state: BlockState) {
+        if (level !is ServerLevel) return
         val facing = state.getValue(BlockStateProperties.FACING)
 
         val frontPos = pos.relative(facing)
@@ -121,13 +126,13 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
         if (edge != null) ClockworkMod.getKelvin().removeEdge(edge!!.nodeA, edge!!.nodeB)
         edge = null
 
-        edge = PumpDuctEdge(backPos.toJOMLD(), frontPos.toJOMLD(), frontPos.toJOMLD())
+        edge = PumpDuctEdge(backPos.toDuctNodePos(level.dimension().location()), frontPos.toDuctNodePos(level.dimension().location()), frontPos.toDuctNodePos(level.dimension().location()))
 
-        ClockworkMod.getKelvin().addEdge(frontPos.toJOMLD(), backPos.toJOMLD(), edge!!)
+        ClockworkMod.getKelvin().addEdge(frontPos.toDuctNodePos(level.dimension().location()), backPos.toDuctNodePos(level.dimension().location()), edge!!)
     }
 
     override fun connectedTo(pos: BlockPos): Boolean {
-        return edge == null || pos.toJOMLD() == edge!!.nodeA || pos.toJOMLD() == edge!!.nodeB
+        return edge == null || pos.toDuctNodePos() == edge!!.nodeA || pos.toDuctNodePos() == edge!!.nodeB
     }
 
     override fun tryConnectEdge(level: Level, pos: BlockPos) {

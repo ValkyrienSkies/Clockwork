@@ -1,19 +1,20 @@
 package org.valkyrienskies.clockwork.util
 
-import org.valkyrienskies.clockwork.kelvin.api.*
-import org.valkyrienskies.clockwork.kelvin.api.edges.FilteredDuctEdge
-import org.valkyrienskies.clockwork.kelvin.api.edges.FilteredOneWayDuctEdge
-import org.valkyrienskies.clockwork.kelvin.api.edges.OneWayDuctEdge
-import org.valkyrienskies.clockwork.kelvin.api.edges.PipeDuctEdge
-import org.valkyrienskies.clockwork.kelvin.api.nodes.PipeDuctNode
-import org.valkyrienskies.clockwork.kelvin.api.nodes.PumpDuctNode
+import net.minecraft.server.level.ServerLevel
+import org.valkyrienskies.kelvin.api.*
+import org.valkyrienskies.kelvin.api.edges.FilteredDuctEdge
+import org.valkyrienskies.kelvin.api.edges.FilteredOneWayDuctEdge
+import org.valkyrienskies.kelvin.api.edges.OneWayDuctEdge
+import org.valkyrienskies.kelvin.api.edges.PipeDuctEdge
+import org.valkyrienskies.kelvin.api.nodes.PipeDuctNode
+import org.valkyrienskies.kelvin.api.nodes.PumpDuctNode
 
 object DuctNetworkUtils {
-    fun createPipeNode(pos: DuctNodePos, network: DuctNetwork): PipeDuctNode {
+    fun createPipeNode(pos: DuctNodePos, network: DuctNetwork<ServerLevel>): PipeDuctNode {
         return PipeDuctNode(pos, NodeBehaviorType.PIPE, network, volume = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0)
     }
 
-    fun createPumpNode(pos: DuctNodePos, network: DuctNetwork): PumpDuctNode {
+    fun createPumpNode(pos: DuctNodePos, network: DuctNetwork<ServerLevel>): PumpDuctNode {
         return PumpDuctNode(pos, NodeBehaviorType.PUMP, network, volume = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0)
     }
 

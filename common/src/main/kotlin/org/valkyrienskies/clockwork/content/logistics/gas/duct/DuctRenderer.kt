@@ -8,9 +8,9 @@ import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.Direction
 import org.valkyrienskies.clockwork.ClockworkPartials
-import org.valkyrienskies.clockwork.content.logistics.gas.GasHeatLevel
-import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock.Companion.DIR_TO_CONNECTION
+import org.valkyrienskies.kelvin.util.GasHeatLevel
+import org.valkyrienskies.kelvin.util.IHeatableBlock
 
 class DuctRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEntityRenderer<DuctBlockEntity>(context) {
     override fun renderSafe(

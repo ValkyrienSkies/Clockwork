@@ -33,11 +33,11 @@ include("fabric")
 //include("api")
 //include("impl")
 
-try {
-    val kelvin = file("../kelvin")
-    if (kelvin.isDirectory) {
-        includeBuild(kelvin)
-    }
-} catch (ignore: SecurityException) {}
+//try {
+//    val kelvin = file("../kelvin")
+//    if (kelvin.isDirectory) {
+//        includeBuild(kelvin)
+//    }
+//} catch (ignore: SecurityException) {}
 
 rootProject.name = "vs-clockwork-mod"

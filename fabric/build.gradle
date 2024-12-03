@@ -65,6 +65,12 @@ dependencies {
         exclude group: 'org.joml', module: ''
     }
 
+    //Kelvin
+
+    modImplementation("org.valkyrienskies.kelvin:kelvin-fabric:${rootProject.minecraft_version}-${rootProject.kelvin_version}") {
+        exclude group: 'org.joml', module: ''
+    }
+
     // Kotlin
     modImplementation("net.fabricmc:fabric-language-kotlin:${rootProject.fabric_language_kotlin_version}")
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10"

@@ -4,10 +4,10 @@ import dan200.computercraft.api.lua.LuaFunction
 import dan200.computercraft.api.peripheral.GenericPeripheral
 import dan200.computercraft.api.peripheral.PeripheralType
 import net.minecraft.resources.ResourceLocation
-import org.valkyrienskies.clockwork.ClockworkMod.Kelvin
 import org.valkyrienskies.clockwork.ClockworkMod.MOD_ID
+import org.valkyrienskies.clockwork.ClockworkMod.getKelvin
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
-import org.valkyrienskies.clockwork.kelvin.api.GasType
+import org.valkyrienskies.kelvin.api.GasType
 
 object GasHeatSource: GenericPeripheral {
     override fun id() = ResourceLocation(MOD_ID, "gasheat")
@@ -19,22 +19,22 @@ object GasHeatSource: GenericPeripheral {
     @LuaFunction
     @JvmStatic
     fun getGasMass(heatable: IHeatableBlockEntity): Map<Map<String, Any>, Double> =
-        Kelvin.getGasMassAt(heatable.getDuctNodePosition()).mapKeys { (gas, _) -> gas.toLua() }
+        getKelvin().getGasMassAt(heatable.getDuctNodePosition()).mapKeys { (gas, _) -> gas.toLua() }
 
     @LuaFunction
     @JvmStatic
     fun getHeatEnergy(heatable: IHeatableBlockEntity) =
-        Kelvin.getHeatEnergy(heatable.getDuctNodePosition())
+        getKelvin().getHeatEnergy(heatable.getDuctNodePosition())
 
     @LuaFunction
     @JvmStatic
     fun getPressure(heatable: IHeatableBlockEntity) =
-        Kelvin.getPressureAt(heatable.getDuctNodePosition())
+        getKelvin().getPressureAt(heatable.getDuctNodePosition())
 
     @LuaFunction
     @JvmStatic
     fun getTemperature(heatable: IHeatableBlockEntity) =
-        Kelvin.getTemperatureAt(heatable.getDuctNodePosition())
+        getKelvin().getTemperatureAt(heatable.getDuctNodePosition())
 
     fun GasType.toLua(): Map<String, Any> {
         return mapOf(

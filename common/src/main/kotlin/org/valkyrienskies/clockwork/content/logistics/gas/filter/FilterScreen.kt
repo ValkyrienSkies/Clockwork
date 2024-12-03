@@ -7,10 +7,11 @@ import com.simibubi.create.foundation.gui.widget.IconButton
 import com.simibubi.create.foundation.utility.Components
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
 import org.valkyrienskies.clockwork.ClockworkPackets
-import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
-import org.valkyrienskies.clockwork.kelvin.api.GasType
+import org.valkyrienskies.kelvin.api.DuctNodePos
+import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.clockwork.util.gui.GuiUtil
 import org.valkyrienskies.clockwork.util.gui.ScrollingFrame
+import org.valkyrienskies.kelvin.impl.GasTypeRegistry
 import kotlin.math.roundToInt
 
 class FilterScreen(private val nodeA: DuctNodePos, private val nodeB: DuctNodePos, private val filter: HashSet<GasType>, private var blacklist: Boolean) : AbstractSimiScreen()  {
@@ -45,7 +46,7 @@ class FilterScreen(private val nodeA: DuctNodePos, private val nodeB: DuctNodePo
         super.init()
 
         scrollingFrame = FilterScrolling(guiLeft+3, guiTop+20)
-        for (type in GasType.entries) {
+        for (type in GasTypeRegistry.GAS_TYPES.values) {
 
             val button = IconButton(0,0, AllIcons.I_ADD)
             button.withCallback<IconButton> { _, _ ->
