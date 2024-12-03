@@ -319,12 +319,14 @@ class BearingController : ShipForcesInducer {
         }
     }
 
-    fun canDisassemble(): Boolean {
-        return false
+    fun canDisassemble(id: Int?, tolerance: Int=2): Boolean {
+        val item = bearingData[id] ?: return false
+        if (abs(item.bearingAngle) > tolerance) return false
+        return true
     }
 
     fun setAligning(yn: Boolean, id: Int) {
-        bearingData[id]!!.setAligning(yn)
+        bearingData[id]?.setAligning(yn)
     }
 
     companion object {

@@ -21,6 +21,32 @@ data class Return(val newShip: ServerShip, val previousCenter: Vector3ic, val ne
 //TODO this is dumb but i'm not going to use ShipAssembler cuz it sucks
 object PhysBearingAssembler {
     @JvmStatic
+    fun moveBlocksFromTo(level: ServerLevel, blocks: List<BlockPos>, removeOriginal: Boolean, originCenter: BlockPos, toCenter: BlockPos) {
+        for (itPos in blocks) {
+            if (isValidShipBlock(level.getBlockState(itPos))) {
+                val relative: BlockPos = itPos.subtract(BlockPos(originCenter.x, originCenter.y, originCenter.z))
+                val shipPos: BlockPos = toCenter.offset(relative)
+                AssemblyUtil.copyBlock(level, itPos, shipPos)
+            }
+        }
+
+        // Remove original blocks
+        if (removeOriginal) {
+            for (itPos in blocks) {
+                if (isValidShipBlock(level.getBlockState(itPos))) {
+                    AssemblyUtil.removeBlock(level, itPos)
+                }
+            }
+        }
+
+        for (itPos in blocks) {
+            val relative: BlockPos = itPos.subtract(BlockPos(originCenter.x, originCenter.y, originCenter.z))
+            val shipPos: BlockPos = toCenter.offset(relative)
+            level.chunkSource.blockChanged(shipPos)
+        }
+    }
+
+    @JvmStatic
     fun assembleToShip(level: ServerLevel, blocks: List<BlockPos>, removeOriginal: Boolean, scale: Double = 1.0, shouldDisableSplitting: Boolean = false): Return {
         if (blocks.isEmpty()) { throw IllegalArgumentException("No blocks to assemble.") }
 
@@ -71,7 +97,6 @@ object PhysBearingAssembler {
         val newCenter = Vector3d(newCenterPos)
         val newCenterBP = newCenterPos.toBlockPos()
 
-        // Copy blocks and check if the center block got replaced (is default a stone block)
         for (itPos in blocks) {
             if (isValidShipBlock(level.getBlockState(itPos))) {
                 val relative: BlockPos = itPos.subtract(BlockPos(previousCenterBP.x(),previousCenterBP.y(),previousCenterBP.z()))

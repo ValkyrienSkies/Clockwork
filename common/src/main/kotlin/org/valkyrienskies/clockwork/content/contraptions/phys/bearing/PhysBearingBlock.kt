@@ -37,7 +37,7 @@ class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<P
             if (worldIn.isClientSide) return InteractionResult.SUCCESS
             withBlockEntityDo(worldIn, pos, Consumer withBlockEntityDo@{ te: PhysBearingBlockEntity ->
                 if (te.isRunning) {
-                    // te.disassemble();
+                    te.disassemble()
                     return@withBlockEntityDo
                 }
                 te.assembleNextTick = true
