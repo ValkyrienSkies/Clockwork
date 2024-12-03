@@ -63,7 +63,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     var assembleNextTick = false
     protected var clientAngleDiff = 0f
     protected var lastException: AssemblyException? = null
-    protected var disassembleWhenPossible = false //TODO implement
+    protected var disassembleWhenPossible = false
     private var prevAngle = 0f
     private var shiptraptionID = NO_SHIPTRAPTION_ID
     private var bearingID: Int? = null
@@ -157,12 +157,14 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     }
 
     fun getWingRotOffset(): Float {
-        return if (open) {
+        return if (isRunning && open) {
             openProgressMax.toDouble().toFloat()
         } else if (isRunning) {
             Mth.lerp(openProgress.toDouble(), 0.0, openProgressMax.toDouble()).toFloat()
+        } else if (!isRunning && open) {
+            Mth.lerp(openProgress.toDouble(), 1.0, openProgressMax.toDouble()).toFloat()
         } else {
-            0f
+            0.0f
         }
     }
 
@@ -387,12 +389,20 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             val ship = level.shipObjectWorld.allShips.getById(shiptraptionID)
             if (ship != null) {
                 val controller = BearingController.getOrCreate(ship)!!
-                if (!controller.canDisassemble(bearingID)) {
+                if (!controller.canDisassemble(bearingID, ship, level.getShipObjectManagingPos(worldPosition))) {
                     disassembleWhenPossible = true;
                     controller.setAligning(true, bearingID!!);
                 } else {
                     shipDisassemble();
                 }
+            } else {
+                bearingID = null
+                shiptraptionID = NO_SHIPTRAPTION_ID
+                isRunning = false
+                updateGeneratedRotation()
+                assembleNextTick = false
+                disassembleWhenPossible = false
+                sendData()
             }
             AllSoundEvents.CONTRAPTION_DISASSEMBLE.playOnServer(level, worldPosition)
         }
@@ -401,11 +411,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     private fun shipDisassemble() {
         if (shiptraptionID == NO_SHIPTRAPTION_ID || level!!.isClientSide || bearingID == null) { return }
         val level = level as ServerLevel
-        val subShip = level.shipObjectWorld.allShips.getById(shiptraptionID) ?: return
+        val subShip = level.shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return
         val mainShip = level.getShipObjectManagingPos(worldPosition)
 
         val controller: BearingController = BearingController.getOrCreate(subShip)!!
-        if (!controller.canDisassemble(bearingID)) { return }
+        if (!controller.canDisassemble(bearingID, subShip, mainShip)) { return }
         val curData = controller.bearingData[bearingID] ?: return
         val direction = blockState.getValue(BearingBlock.FACING)
         val inMain = worldPosition.relative(direction, 1)
@@ -549,7 +559,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         bearingController.updatePhysBearing(bearingID!!, data)
     }
 
-    private fun openingAnimationLogicMaybe() {
+    private fun runAnimationLogic() {
         if (inOutCorner < 1 && !cornerShrinking) {
             inOutCorner += 0.0075f
         } else if (inOutCorner >= 1) {
@@ -560,15 +570,24 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         } else if (inOutCorner <= 0) {
             cornerShrinking = false
         }
+
+
         if (isRunning && !open && !opening) {
             opening = true
         }
-        if (opening && isRunning && openProgress < 1) {
+        if (opening && isRunning && openProgress < 1.0f) {
             openProgress += 0.05f
-        } else if (openProgress >= 1) {
+        } else if (openProgress >= 1.0f) {
             opening = false
             open = true
             openProgress = 1f
+        }
+
+        if (open && !isRunning && openProgress > 0.0f) {
+            openProgress -= 0.05f
+        } else if (openProgress <= 0.0f) {
+            open = false
+            openProgress = 0.0f
         }
     }
 
@@ -580,7 +599,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             tryAssembleNextTick()
             tryRefresh()
         }
-        openingAnimationLogicMaybe()
+        runAnimationLogic()
         if (!isRunning) return
         if (shiptraptionID != NO_SHIPTRAPTION_ID) {
             val angularSpeed = angularSpeed
