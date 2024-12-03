@@ -10,6 +10,7 @@ import kotlin.math.roundToInt
 
 interface IHeatableBlockEntity: IHaveGoggleInformation {
     fun getDuctNodePosition(): DuctNodePos
+
     override fun addToGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
         tooltip.add(TextComponent("    Duct Info").withStyle(ChatFormatting.GRAY))
 

@@ -120,7 +120,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
 
     override fun createNode(pos: DuctNodePos, network: DuctNetwork): DuctNode {
-        return createPipeNode(pos, ClockworkMod.getKelvin())
+        return createPipeNode(pos, network)
     }
 
     override fun getPistonPushReaction(state: BlockState): PushReaction {
@@ -367,6 +367,8 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         } else {
             DuctConnectionType.NONE
         }
+
+        if (level.isClientSide) return finalConnection
 
         if (finalConnection.isConnected) {
             ClockworkMod.getKelvin().addEdge(currentPos.toJOMLD(), neighborPos.toJOMLD(), createPipeEdge(currentPos.toJOMLD(), neighborPos.toJOMLD()))

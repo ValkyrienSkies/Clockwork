@@ -5,14 +5,18 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
 import net.minecraft.world.level.Explosion
 import org.valkyrienskies.clockwork.ClockworkDamageSources
+import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.logistics.gas.GasHeatLevel
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.utilities.GasExplosionDamageCalculator
 import org.valkyrienskies.clockwork.kelvin.api.*
+import org.valkyrienskies.clockwork.kelvin.api.DuctNetwork.Companion.KELVINLOGGER
+import org.valkyrienskies.clockwork.kelvin.api.DuctNetwork.Companion.idealGasConstant
 import org.valkyrienskies.clockwork.kelvin.api.edges.*
 import org.valkyrienskies.clockwork.kelvin.api.nodes.PumpDuctNode
 import org.valkyrienskies.clockwork.kelvin.api.nodes.TankDuctNode
+import org.valkyrienskies.clockwork.kelvin.impl.client.ClientKelvinInfo
 import org.valkyrienskies.mod.common.util.toMinecraft
 import java.util.*
 import kotlin.collections.HashMap
@@ -25,7 +29,9 @@ class DuctNetworkImpl(
     override val edges: HashMap<Pair<DuctNodePos, DuctNodePos>, DuctEdge> = hashMapOf(),
     override val nodeInfo: HashMap<DuctNodePos, DuctNodeInfo> = hashMapOf(),
     override val unloadedNodes: HashSet<DuctNodePos> = hashSetOf()
-) : DuctNetwork {
+) : DuctNetwork<ServerLevel> {
+
+    var syncTimer = 200
 
     override fun markLoaded(pos: DuctNodePos) {
         if (!nodes.contains(pos)) {
@@ -158,6 +164,8 @@ class DuctNetworkImpl(
 
     override fun tick(level: ServerLevel, subSteps: Int) {
         if (disabled) return
+
+        syncTimer--
 
         val invalidEdges = edges.keys.filter { it.first !in nodes || it.second !in nodes }
         for (edge in invalidEdges) {
@@ -468,6 +476,12 @@ class DuctNetworkImpl(
         explnodes.forEach {
             level.explode(null, ClockworkDamageSources.GAS_EXPLOSION, GasExplosionDamageCalculator(),it.x() + 0.5, it.y() + 0.5, it.z() + 0.5, 1f, true, Explosion.BlockInteraction.BREAK)
         }
+
+        if (syncTimer <= 0) {
+            syncTimer = 200
+            val info = ClientKelvinInfo(HashMap(nodeInfo.filterNot { unloadedNodes.contains(it.key) }))
+            sync(level, info)
+        }
     }
 
     /**
@@ -738,9 +752,10 @@ class DuctNetworkImpl(
         KELVINLOGGER.logger.info("Dumped Kelvin information. Now get out!")
     }
 
-    companion object {
-        const val idealGasConstant = 8.314
+    fun sync (level: ServerLevel, info: ClientKelvinInfo) {
+        val players = level.players()
 
-        val KELVINLOGGER = logger("fart factory")
+        for (player in players) {
+        }
     }
 }
