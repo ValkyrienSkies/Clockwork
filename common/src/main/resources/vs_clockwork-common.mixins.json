@@ -7,6 +7,7 @@
     "MixinBlockStateInfoProvider",
     "MixinEntity",
     "MixinPlayer",
+    "MixinAssemblyUtil",
     "MixinToolboxHandler",
     "MixinWaterBlock",
     "accessors.FluidAccessor",

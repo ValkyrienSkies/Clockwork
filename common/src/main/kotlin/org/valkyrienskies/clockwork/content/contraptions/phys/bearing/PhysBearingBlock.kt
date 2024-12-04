@@ -20,7 +20,6 @@ import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import java.util.function.Consumer
 
 class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<PhysBearingBlockEntity> {
-
     override fun use(
         state: BlockState,
         worldIn: Level,
@@ -31,9 +30,8 @@ class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<P
     ): InteractionResult {
         if (!player.mayBuild()) return InteractionResult.FAIL
         if (player.isShiftKeyDown) return InteractionResult.FAIL
-        if (player.getItemInHand(handIn)
-                .isEmpty
-        ) {
+        if (handIn == InteractionHand.OFF_HAND) return InteractionResult.FAIL
+        if (player.getItemInHand(handIn).isEmpty) {
             if (worldIn.isClientSide) return InteractionResult.SUCCESS
             withBlockEntityDo(worldIn, pos, Consumer withBlockEntityDo@{ te: PhysBearingBlockEntity ->
                 if (te.isRunning) {

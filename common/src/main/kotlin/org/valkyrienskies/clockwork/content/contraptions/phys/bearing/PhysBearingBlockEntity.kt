@@ -25,6 +25,7 @@ import net.minecraft.world.level.block.state.BlockState
 import org.joml.*
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingCreateData
+import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingData
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingUpdateData
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.platform.api.ContraptionController
@@ -39,11 +40,9 @@ import org.valkyrienskies.core.apigame.constraints.VSConstraintId
 import org.valkyrienskies.core.apigame.constraints.VSHingeOrientationConstraint
 import org.valkyrienskies.core.impl.game.ships.ShipDataCommon
 import org.valkyrienskies.core.impl.game.ships.ShipTransformImpl.Companion.create
+import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
-import org.valkyrienskies.mod.common.dimensionId
-import org.valkyrienskies.mod.common.getShipObjectManagingPos
-import org.valkyrienskies.mod.common.isBlockInShipyard
-import org.valkyrienskies.mod.common.shipObjectWorld
+import org.valkyrienskies.mod.common.*
 import org.valkyrienskies.mod.common.util.SplittingDisablerAttachment
 import org.valkyrienskies.mod.common.util.toBlockPos
 import org.valkyrienskies.mod.common.util.toJOMLD
@@ -78,6 +77,10 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     private var inOutCorner = 0f
     private var cornerShrinking = false
 
+    private var ticks = 0
+    private var lastStateChanged = 0
+    private var cooldown = 20
+
     init {
         setLazyTickRate(3)
     }
@@ -97,9 +100,51 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     }
 
     override fun remove() {
-//        if (!level.isClientSide)
-//            disassemble();
+        if (!level!!.isClientSide) { destroy() }
         super.remove()
+    }
+
+    fun copyWrite(): CompoundTag {
+        val tag = saveWithId()
+        if (shiptraptionID == NO_SHIPTRAPTION_ID) return tag
+        val subship = (level as ServerLevel).shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return tag
+        val controller = BearingController.getOrCreate(subship)!!
+        val data = controller.bearingData[bearingID] ?: return tag
+
+        val mapper = VSJacksonUtil.dtoMapper
+
+        tag.putByteArray("data", mapper.writeValueAsBytes(data))
+        tag.putLong("oldPos", worldPosition.asLong())
+
+        return tag
+    }
+
+    fun copyRead(tag: CompoundTag) {
+        val level = level as ServerLevel
+        read(tag, false)
+        val subship = level.shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return
+        val mainId = level.getShipManagingPos(worldPosition)?.id ?: level.shipObjectWorld.dimensionToGroundBodyIdImmutable[level.dimensionId]!!
+
+        val mapper = VSJacksonUtil.dtoMapper
+
+        val data = mapper.readValue(tag.getByteArray("data"), PhysBearingData::class.java)
+        val oldPos = BlockPos.of(tag.getLong("oldPos")).toJOMLD()
+        val newPos = worldPosition.toJOMLD()
+
+        data.attachConstraint = data.attachConstraint?.let{it.copy(subship.id, mainId, localPos1 = it.localPos1 - oldPos + newPos)}
+        data.secondAttachConstraint = data.secondAttachConstraint?.let{it.copy(subship.id, mainId, localPos1 = it.localPos1 - oldPos + newPos)}
+        data.hingeConstraint = data.hingeConstraint?.copy(subship.id, mainId)
+
+        val controller = BearingController.getOrCreate(subship)!!
+        bearingID = controller.addPhysBearing(
+            PhysBearingCreateData(
+                data.bearingPosition!!, data.bearingAxis!!, data.bearingAngle, data.bearingRPM, data.locked, data.shiptraptionID,
+                VSConstraintAndId(-1, data.attachConstraint!!),
+                VSConstraintAndId(-1, data.hingeConstraint!!),
+                null, null,
+                VSConstraintAndId(-1, data.secondAttachConstraint!!)
+            )
+        )
     }
 
     public override fun write(compound: CompoundTag, clientPacket: Boolean) {
@@ -294,7 +339,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val posInOwnerShip = Vector3d(worldPos)
         val bearingPos = Vector3d(worldPos).sub(previousCenter).add(newCenter)
 
-        val posInWorld = shipOn?.transform?.shipToWorld?.transformPosition(posInOwnerShip, Vector3d()) ?: shiptraption.transform.positionInWorld // posInOwnerShip;
+        val posInWorld = shipOn?.transform?.shipToWorld?.transformPosition(posInOwnerShip - bearingPos + shiptraption.inertiaData.centerOfMassInShip + 0.5, Vector3d()) ?: shiptraption.transform.positionInWorld // posInOwnerShip;
         val rotInWorld = shipOn?.transform?.shipToWorldRotation ?: Quaterniond()
         val scaling    = shipOn?.transform?.shipToWorldScaling ?: Vector3d(1.0, 1.0, 1.0)
 
@@ -363,6 +408,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         bearingID = BearingController.getOrCreate(shiptraption)!!.addPhysBearing(data)
         isRunning = true
         bearingAngle = 0f
+        lastStateChanged = ticks
         sendData()
         updateGeneratedRotation()
     }
@@ -383,6 +429,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     fun disassemble() {
         if (!isRunning && shiptraptionID == NO_SHIPTRAPTION_ID) return
+        if (ticks - lastStateChanged <= cooldown) {return}
         bearingAngle = 0f
         if (shiptraptionID != NO_SHIPTRAPTION_ID) {
             val level = level as ServerLevel
@@ -447,11 +494,13 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         updateGeneratedRotation()
         assembleNextTick = false
         disassembleWhenPossible = false
+        lastStateChanged = ticks
         sendData()
     }
 
     private fun tryAssembleNextTick() {
         if (!assembleNextTick) {return}
+        if (ticks - lastStateChanged <= cooldown) {return}
         assembleNextTick = false
         if (!isRunning) {
             assemble()
@@ -594,6 +643,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     override fun tick() {
         super.tick()
         prevAngle = bearingAngle
+        ticks++
         if (level!!.isClientSide) clientAngleDiff /= 2f
         if (!level!!.isClientSide) {
             tryAssembleNextTick()
