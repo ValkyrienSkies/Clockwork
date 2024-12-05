@@ -27,16 +27,16 @@ interface IHeatableBlockEntity: IHaveGoggleInformation {
             tooltip.add(TextComponent("Last Synchronized: ${kelvin.queryTicksSinceLastSync()}..."))
         }
 
-        if (ClockworkMod.getKelvin().getTemperatureAt(this.getDuctNodePosition()) != 0.0) {
+        if (kelvin.getTemperatureAt(this.getDuctNodePosition()) != 0.0) {
             tooltip.add(TextComponent("Temperature: ${kelvin.getTemperatureAt(this.getDuctNodePosition()).toInt()} K").withStyle(ChatFormatting.GOLD))
             found = true
         }
-        if (ClockworkMod.getKelvin().getPressureAt(this.getDuctNodePosition()) != 0.0) {
+        if (kelvin.getPressureAt(this.getDuctNodePosition()) != 0.0) {
             tooltip.add(TextComponent("Pressure: ${(kelvin.getPressureAt(this.getDuctNodePosition())/1000.0).roundToInt()} KPa").withStyle(ChatFormatting.BLUE))
             found = true
         }
         //todo replace with gas icon overlay
-        if (ClockworkMod.getKelvin().getGasMassAt(this.getDuctNodePosition()).isNotEmpty()) {
+        if (kelvin.getGasMassAt(this.getDuctNodePosition()).isNotEmpty()) {
             tooltip.add(TextComponent("Gas Masses:"))
             for (entry in kelvin.getGasMassAt(this.getDuctNodePosition()).entries) {
                 tooltip.add(TextComponent("${entry.key.name}: ${entry.value.roundToInt()} kg"))
