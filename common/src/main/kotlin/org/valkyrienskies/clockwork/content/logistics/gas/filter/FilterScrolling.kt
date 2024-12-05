@@ -6,7 +6,7 @@ import com.simibubi.create.foundation.gui.widget.IconButton
 import com.simibubi.create.foundation.gui.widget.ScrollInput
 import net.minecraft.client.gui.Font
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
-import org.valkyrienskies.clockwork.kelvin.api.GasType
+import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.clockwork.util.gui.GuiUtil.withinRectangle
 import org.valkyrienskies.clockwork.util.gui.ScrollingFrame
 import kotlin.math.roundToInt

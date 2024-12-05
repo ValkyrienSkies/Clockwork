@@ -4,8 +4,8 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.block.state.properties.EnumProperty
-import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock.Companion.connectInDirection
+import org.valkyrienskies.kelvin.util.IHeatableBlock
 
 interface IDuct: IHeatableBlock {
     companion object {

@@ -21,6 +21,34 @@ if (project.hasProperty("CustomReleaseVersion")) {
     version = mod_version + '+' + gitRevision.substring(0, 10)
 }
 
+tasks.register("updateKelvin") {
+    File versionFile = null
+    File gradleProperties = file("gradle.properties")
+
+    try {
+        def kelvinBuild = gradle.includedBuild("kelvin")
+        versionFile = new File(kelvinBuild.projectDir, "common/build/version.txt")
+
+        inputs.file(versionFile)
+        outputs.file(gradleProperties)
+        dependsOn(kelvinBuild.task(":common:writeVersion"))
+
+        [':common', ':fabric', ':forge'].each {
+            dependsOn(kelvinBuild.task("${it}:publishToMavenLocal"))
+        }
+    } catch (UnknownDomainObjectException ignore) {}
+
+    onlyIf {
+        versionFile != null
+    }
+
+    doLast {
+        def kelvinVersion = versionFile.text
+        def newGradleProperties = gradleProperties.text.replaceFirst("(?m)^kelvin_version=.*", "kelvin_version=" + kelvinVersion)
+        gradleProperties.write(newGradleProperties)
+    }
+}
+
 architectury {
     minecraft = rootProject.minecraft_version
 }

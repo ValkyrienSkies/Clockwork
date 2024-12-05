@@ -9,8 +9,10 @@ import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
-import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
-import org.valkyrienskies.clockwork.kelvin.api.GasType
+import org.valkyrienskies.kelvin.api.DuctNodePos
+import org.valkyrienskies.kelvin.api.GasType
+import org.valkyrienskies.kelvin.impl.GasTypeRegistry
+import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.math.abs
 
@@ -27,9 +29,9 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, stat
         super.tick()
 
         if (level!!.isClientSide) return
-        val node = ClockworkMod.getKelvin().getNodeAt(blockPos.toJOMLD()) ?: return
+        val node = ClockworkMod.getKelvin().getNodeAt(blockPos.toDuctNodePos(level!!.dimension().location())) ?: return
         val speed = abs(getSpeed())
-        val currentAirVolume = node.network.getGasMassAt(blockPos.toJOMLD())[GasType.AIR]?: 0.0
+        val currentAirVolume = node.network.getGasMassAt(blockPos.toDuctNodePos(level!!.dimension().location()))[GasTypeRegistry.getGasType("kelvin", "air")]?: 0.0
 
 
         if (speed>0 && currentAirVolume<maxGas) {
@@ -37,7 +39,7 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, stat
             isOn = true
 
             val deltaVolume = Mth.clamp(maxGas-currentAirVolume,0.0001, baselineSpeed*speed)
-            node.network.modGasMassOfTemperature(getDuctNodePosition(),GasType.AIR, deltaVolume, 300.0)
+            node.network.modGasMassOfTemperature(getDuctNodePosition(),GasTypeRegistry.getGasType("kelvin", "air")!!, deltaVolume, 300.0)
         } else {
             if (isOn) syncOn(false)
             isOn = false
@@ -54,7 +56,10 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, stat
 
 
     override fun getDuctNodePosition(): DuctNodePos {
-        return this.blockPos.toJOMLD()
+        if (level != null) {
+            return blockPos.toDuctNodePos(level!!.dimension().location())
+        }
+        return blockPos.toDuctNodePos()
     }
 
 

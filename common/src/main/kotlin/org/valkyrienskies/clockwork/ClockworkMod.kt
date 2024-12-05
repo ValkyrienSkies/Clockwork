@@ -13,11 +13,10 @@ import org.valkyrienskies.clockwork.content.forces.DragController
 import org.valkyrienskies.clockwork.content.forces.PocketForcesController
 import org.valkyrienskies.core.api.ships.setAttachment
 import org.valkyrienskies.clockwork.content.forces.WanderShipControl
-import org.valkyrienskies.clockwork.kelvin.api.DuctNetwork
-import org.valkyrienskies.clockwork.kelvin.impl.DuctNetworkImpl
-import org.valkyrienskies.clockwork.kelvin.impl.client.ClientKelvinInfo
 import org.valkyrienskies.clockwork.platform.PlatformUtils
 import org.valkyrienskies.core.impl.hooks.VSEvents
+import org.valkyrienskies.kelvin.KelvinMod
+import org.valkyrienskies.kelvin.impl.DuctNetworkServer
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.shipObjectWorld
 
@@ -37,15 +36,12 @@ object ClockworkMod {
 
     val BASE_CREATIVE_TAB: CreativeModeTab = PlatformUtils.getCreativeTab()
 
-    val Kelvin: DuctNetworkImpl = DuctNetworkImpl()
-
     @JvmStatic
     fun init() {
         ClockworkContraptions.init()
         ClockworkPackets.init()
         ClockworkTags.init()
         ClockworkWorldgen.init()
-        ClockworkDamageSources.init()
 
         ValkyrienSkiesMod.vsCore.registerConfigLegacy("clockwork", ClockworkConfig::class.java)
 
@@ -53,14 +49,6 @@ object ClockworkMod {
             event.ship.setAttachment(PocketForcesController())
             event.ship.setAttachment(DragController())
             event.ship.setAttachment(WanderShipControl())
-        }
-
-        LifecycleEvent.SERVER_BEFORE_START.register {
-            Kelvin.disabled = false
-        }
-
-        LifecycleEvent.SERVER_STOPPED.register {
-            Kelvin.dump()
         }
 
         LifecycleEvent.SERVER_STARTED.register {
@@ -79,15 +67,11 @@ object ClockworkMod {
                 ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship)
                 ship.getAttachment(DragController::class.java)?.gameTick(ship, it)
             }
-            Kelvin.tick(it, ClockworkConfig.SERVER.kelvinSubSteps)
         }
     }
 
-    fun getKelvin(): DuctNetwork<ServerLevel> {
-        if (Kelvin.disabled) {
-            throw IllegalStateException("Attempted to access Kelvin from the wrong place!")
-        }
-        return Kelvin
+    fun getKelvin(): DuctNetworkServer {
+        return KelvinMod.getKelvin() as DuctNetworkServer
     }
 
     @JvmStatic

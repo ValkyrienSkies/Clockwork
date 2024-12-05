@@ -8,8 +8,9 @@ import dan200.computercraft.api.peripheral.PeripheralType
 import net.minecraft.resources.ResourceLocation
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkMod.MOD_ID
+import org.valkyrienskies.clockwork.ClockworkMod.getKelvin
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
-import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
+import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.kelvin.api.GasType
 import java.util.*
 import kotlin.jvm.Throws
@@ -25,22 +26,23 @@ object GasHeatSource: GenericPeripheral {
     @LuaFunction
     @JvmStatic
     fun getGasMass(heatable: IHeatableBlockEntity): Map<Map<String, Any>, Double> =
-        ClockworkMod.getKelvin().getGasMassAt(heatable.getDuctNodePosition()).mapKeys { (gas, _) -> gas.toLua() }
+        getKelvin().getGasMassAt(heatable.getDuctNodePosition()).mapKeys { (gas, _) -> gas.toLua() }
 
     @LuaFunction
     @JvmStatic
     fun getHeatEnergy(heatable: IHeatableBlockEntity) =
-        ClockworkMod.getKelvin().getHeatEnergy(heatable.getDuctNodePosition())
+        getKelvin().getHeatEnergy(heatable.getDuctNodePosition())
+
 
     @LuaFunction
     @JvmStatic
     fun getPressure(heatable: IHeatableBlockEntity) =
-        ClockworkMod.getKelvin().getPressureAt(heatable.getDuctNodePosition())
+        getKelvin().getPressureAt(heatable.getDuctNodePosition())
 
     @LuaFunction
     @JvmStatic
     fun getTemperature(heatable: IHeatableBlockEntity) =
-        ClockworkMod.getKelvin().getTemperatureAt(heatable.getDuctNodePosition())
+        getKelvin().getTemperatureAt(heatable.getDuctNodePosition())
 
     @LuaFunction
     @JvmStatic
@@ -101,7 +103,7 @@ object GasHeatSource: GenericPeripheral {
 
     @Throws(LuaException::class)
     private fun transferGas(origin: DuctNodePos, end: DuctNodePos, gas: GasType, amount: Optional<Double>) {
-        val kelvin = ClockworkMod.getKelvin()
+        val kelvin = getKelvin()
         val currentAmount = kelvin.getGasMassAt(origin).getOrDefault(gas, 0.0)
         val actualAmount = amount.getOrDefault(currentAmount)
 
@@ -118,7 +120,7 @@ object GasHeatSource: GenericPeripheral {
 
     @Throws(LuaException::class)
     private fun transferTemperature(origin: DuctNodePos, end: DuctNodePos, amount: Optional<Double>) {
-        val kelvin = ClockworkMod.getKelvin()
+        val kelvin = getKelvin()
         val currentAmount = kelvin.getTemperatureAt(origin)
         val actualAmount = amount.getOrDefault(currentAmount)
 
@@ -130,8 +132,6 @@ object GasHeatSource: GenericPeripheral {
         kelvin.modTemperature(origin, -actualAmount)
         kelvin.modTemperature(end, actualAmount)
     }
-
-
 
     private fun GasType.toLua(): Map<String, Any> {
         return mapOf(

@@ -43,6 +43,12 @@ dependencies {
         exclude group: 'org.joml', module: ''
     }
 
+    // Kelvin
+
+    modImplementation("org.valkyrienskies.kelvin:kelvin-common:${rootProject.minecraft_version}-${rootProject.kelvin_version}") {
+        exclude group: 'org.joml', module: ''
+    }
+
     implementation("org.joml:joml-primitives:1.10.0")
     implementation("org.joml:joml:1.10.4")
 

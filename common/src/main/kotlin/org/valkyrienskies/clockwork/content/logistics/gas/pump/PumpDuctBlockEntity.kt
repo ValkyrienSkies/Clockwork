@@ -10,10 +10,11 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
-import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
-import org.valkyrienskies.clockwork.kelvin.api.NodeBehaviorType
-import org.valkyrienskies.clockwork.kelvin.api.edges.PumpDuctEdge
-import org.valkyrienskies.clockwork.kelvin.api.nodes.PumpDuctNode
+import org.valkyrienskies.kelvin.api.DuctNodePos
+import org.valkyrienskies.kelvin.api.NodeBehaviorType
+import org.valkyrienskies.kelvin.api.edges.PumpDuctEdge
+import org.valkyrienskies.kelvin.api.nodes.PumpDuctNode
+import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.math.abs
 
@@ -32,7 +33,8 @@ class PumpDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Bloc
 
         val front = blockPos.relative(blockState.getValue(BlockStateProperties.FACING)).toJOMLD()
         val back = blockPos.relative(blockState.getValue(BlockStateProperties.FACING).opposite).toJOMLD()
-        val edge = ClockworkMod.getKelvin().getEdgeBetween(front, back)
+        if (level == null) return
+        val edge = ClockworkMod.getKelvin().getEdgeBetween(front.toDuctNodePos(level!!.dimension().location()), back.toDuctNodePos(level!!.dimension().location()))
 
         if (edge is PumpDuctEdge) {
 
