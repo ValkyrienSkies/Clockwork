@@ -34,9 +34,11 @@ class GasHeaterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
 
 
         if (level?.isClientSide != false ) return
+        val kelvin = ClockworkMod.getKelvin()
 
-        val node = ClockworkMod.getKelvin().getNodeAt(getDuctNodePosition()) ?: return
-        val temp = ClockworkMod.getKelvin().getTemperatureAt(getDuctNodePosition())
+
+        val node = kelvin.getNodeAt(getDuctNodePosition()) ?: return
+        val temp = kelvin.getTemperatureAt(getDuctNodePosition())
 
         var state = level!!.getBlockState(blockPos)
         if (state.block !is GasHeaterBlock) return
@@ -49,8 +51,8 @@ class GasHeaterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
             else -> HeatLevel.SEETHING
         }
 
-        val energyInHeater = node.network.getHeatEnergy(getDuctNodePosition())
-        node.network.modHeatEnergy(getDuctNodePosition(), -(heatLevel.ordinal * heatLossPerLevel).coerceAtMost(energyInHeater))
+        val energyInHeater = kelvin.getHeatEnergy(getDuctNodePosition())
+        kelvin.modHeatEnergy(getDuctNodePosition(), -(heatLevel.ordinal * heatLossPerLevel).coerceAtMost(energyInHeater))
 
         if (state.getValue(HEAT_LEVEL) == heatLevel) return
 

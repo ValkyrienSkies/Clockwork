@@ -20,7 +20,7 @@ interface INodeBlock : IDuct {
             if (state.isAir || state.block !is INodeBlock || oldState.`is`(state.block)) {
                 return
             }
-            ClockworkMod.getKelvin().addNode(pos.toDuctNodePos(level.dimension().location()), createNode(pos.toDuctNodePos(level.dimension().location()), ClockworkMod.getKelvin()))
+            ClockworkMod.getKelvin().addNode(pos.toDuctNodePos(level.dimension().location()), createNode(pos.toDuctNodePos(level.dimension().location())))
         }
     }
 
@@ -33,8 +33,8 @@ interface INodeBlock : IDuct {
     }
 
 
-    fun createNode(pos: DuctNodePos, network: DuctNetwork<ServerLevel>): DuctNode {
-        return PipeDuctNode.DEFAULT(pos, network)
+    fun createNode(pos: DuctNodePos): DuctNode {
+        return PipeDuctNode.DEFAULT(pos)
     }
     
 

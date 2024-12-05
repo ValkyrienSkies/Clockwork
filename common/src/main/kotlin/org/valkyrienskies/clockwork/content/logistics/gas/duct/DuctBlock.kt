@@ -121,8 +121,8 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
 
 
-    override fun createNode(pos: DuctNodePos, network: DuctNetwork<ServerLevel>): DuctNode {
-        return createPipeNode(pos, network)
+    override fun createNode(pos: DuctNodePos): DuctNode {
+        return createPipeNode(pos)
     }
 
     override fun getPistonPushReaction(state: BlockState): PushReaction {
