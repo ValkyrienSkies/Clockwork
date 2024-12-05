@@ -45,5 +45,6 @@ object ClockworkConstants {
         val ATTACHMENT_CONSTRAINT_ID: String = "AttachmentConstraintId"
         val ORIENTATION_CONSTRAINT: String = "OrientationConstraint"
         val ORIENTATION_CONSTRAINT_ID: String = "OrientationConstraintId"
+        val ORIGINAL_DIRECTION: String = "OriginalDirection"
     }
 }

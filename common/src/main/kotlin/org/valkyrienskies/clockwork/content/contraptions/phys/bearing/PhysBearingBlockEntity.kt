@@ -31,6 +31,7 @@ import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.platform.api.ContraptionController
 import org.valkyrienskies.clockwork.platform.api.ContraptionController.LockedMode
 import org.valkyrienskies.clockwork.util.ClockworkConstants
+import org.valkyrienskies.clockwork.util.ClockworkConstants.Nbt.ORIGINAL_DIRECTION
 import org.valkyrienskies.clockwork.util.GlueAssembler.collectGlued
 import org.valkyrienskies.core.api.ships.Ship
 import org.valkyrienskies.core.api.ships.getAttachment
@@ -47,6 +48,8 @@ import org.valkyrienskies.mod.common.util.SplittingDisablerAttachment
 import org.valkyrienskies.mod.common.util.toBlockPos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
+import org.valkyrienskies.mod.util.getVector3d
+import org.valkyrienskies.mod.util.putVector3d
 import java.lang.Math
 import kotlin.math.sign
 
@@ -117,6 +120,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         tag.putByteArray("data", mapper.writeValueAsBytes(data))
         tag.putLong("oldPos", worldPosition.asLong())
+        //to make it a bit more general
+        tag.putVector3d("oldShiptraptionCenter", data.bearingPosition!!)
+        tag.putVector3d("newShiptraptionCenter", data.bearingPosition!!)
 
         return tag
     }
@@ -133,9 +139,12 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val oldPos = BlockPos.of(tag.getLong("oldPos")).toJOMLD()
         val newPos = worldPosition.toJOMLD()
 
-        data.attachConstraint = data.attachConstraint?.let{it.copy(subship.id, mainId, localPos1 = it.localPos1 - oldPos + newPos)}
-        data.secondAttachConstraint = data.secondAttachConstraint?.let{it.copy(subship.id, mainId, localPos1 = it.localPos1 - oldPos + newPos)}
-        data.hingeConstraint = data.hingeConstraint?.copy(subship.id, mainId)
+        val oldSPos = tag.getVector3d("oldShiptraptionCenter")!!
+        val newSPos = tag.getVector3d("newShiptraptionCenter")!!
+
+        data.attachConstraint       = data.attachConstraint      ?.let{it.copy(subship.id, mainId, localPos0 = it.localPos0 - oldSPos + newSPos, localPos1 = it.localPos1 - oldPos + newPos)}
+        data.secondAttachConstraint = data.secondAttachConstraint?.let{it.copy(subship.id, mainId, localPos0 = it.localPos0 - oldSPos + newSPos, localPos1 = it.localPos1 - oldPos + newPos)}
+        data.hingeConstraint        = data.hingeConstraint?.copy(subship.id, mainId)
 
         val controller = BearingController.getOrCreate(subship)!!
         bearingID = controller.addPhysBearing(
@@ -159,7 +168,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             compound.putLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID, shiptraptionID)
         }
         if (originalDirection != null) {
-            compound.putInt("originalDirection", originalDirection!!.ordinal)
+            compound.putInt(ORIGINAL_DIRECTION, originalDirection!!.ordinal)
         }
         AssemblyException.write(compound, lastException)
         compound.putBoolean(ClockworkConstants.Nbt.OPEN, open)
@@ -182,8 +191,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (compound.contains(ClockworkConstants.Nbt.SHIPTRAPTION_ID)) {
             shiptraptionID = compound.getLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID)
         }
-        if (compound.contains("originalDirection")) {
-            originalDirection = Direction.entries[compound.getInt("originalDirection")]
+        if (compound.contains(ORIGINAL_DIRECTION)) {
+            originalDirection = Direction.entries[compound.getInt(ORIGINAL_DIRECTION)]
         }
         if (isRunning) {
             if (shiptraptionID == NO_SHIPTRAPTION_ID) {
