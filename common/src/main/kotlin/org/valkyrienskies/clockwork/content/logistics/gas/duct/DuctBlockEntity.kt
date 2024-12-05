@@ -46,11 +46,6 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
         ClockworkMod.getKelvin().markLoaded(this.blockPos.toDuctNodePos(level!!.dimension().location()))
     }
 
-    override fun onChunkUnloaded() {
-        super.onChunkUnloaded()
-        ClockworkMod.getKelvin().markUnloaded(this.blockPos.toDuctNodePos(level!!.dimension().location()))
-    }
-
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         super.read(tag, clientPacket)
         for (dir in Direction.values()) {

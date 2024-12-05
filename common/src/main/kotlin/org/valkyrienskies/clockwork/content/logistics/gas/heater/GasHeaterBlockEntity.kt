@@ -39,7 +39,6 @@ class GasHeaterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
         val temp = ClockworkMod.getKelvin().getTemperatureAt(getDuctNodePosition())
 
         var state = level!!.getBlockState(blockPos)
-        println("${state.hasProperty(HEAT_LEVEL)} ${state.getValue(HEAT_LEVEL)}")
         if (state.block !is GasHeaterBlock) return
 
         val heatLevel = when {
