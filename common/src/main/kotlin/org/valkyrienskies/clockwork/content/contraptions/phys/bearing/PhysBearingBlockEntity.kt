@@ -680,7 +680,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         runAnimationLogic()
         if (!isRunning) return
         if (shiptraptionID != NO_SHIPTRAPTION_ID) {
-            val angularSpeed = angularSpeed
+            val dir = originalDirection!!.normal
+            val angularSpeed = angularSpeed * if (dir.x > 0.5 || dir.y > 0.5 || dir.z > 0.5) 1 else -1
             val newAngle = bearingAngle + angularSpeed
             bearingAngle = (newAngle % 360)
         }

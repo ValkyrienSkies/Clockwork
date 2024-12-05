@@ -289,8 +289,7 @@ class BearingController : ShipForcesInducer {
         val relativeOmegaInPhysShip: Vector3dc = physShip.transform.worldToShip.transformDirection(actualRelativeOmega, Vector3d())
         val relativeOmegaInPhysShipParallelBearingAxis = data.bearingAxis.dot(relativeOmegaInPhysShip)
         val omegaErr = data.bearingRPM * (2 * Math.PI / 60) - relativeOmegaInPhysShipParallelBearingAxis
-        val torque = angleErr * torqueMassMultiplier * 50.0 + omegaErr * torqueMassMultiplier * 50.0
-
+        val torque = (angleErr + omegaErr) * torqueMassMultiplier * 50.0
         // return angularVelErrorAlongBearingAxis.mul(torqueMassMultiplier * 10.0, new Vector3d());
         return bearingAxisInGlobal.mul(torque, Vector3d())
     }
