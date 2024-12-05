@@ -54,23 +54,25 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     GeneratingKineticBlockEntity(type, pos, state), IBearingBlockEntity, IDisplayAssemblyExceptions,
     ContraptionController {
 
+    var isRunning = false
+    var bearingAngle = 0f
+    private var bearingID: Int? = null
+    private var shiptraptionID = NO_SHIPTRAPTION_ID
+    var lastException: AssemblyException? = null
+    var open = false
+    var originalDirection: Direction? = null
+
+
     var movementMode: ScrollOptionBehaviour<LockedMode>? = null
     var shouldRefresh = false
-    protected var bearingAngle = 0f
-    var isRunning = false
-        protected set
     var assembleNextTick = false
     protected var clientAngleDiff = 0f
-    protected var lastException: AssemblyException? = null
     protected var disassembleWhenPossible = false
     private var prevAngle = 0f
-    private var shiptraptionID = NO_SHIPTRAPTION_ID
-    private var bearingID: Int? = null
     var coreAngle = 0f
     var previousCoreAngle = 0f
 
 
-    var open = false
     var opening = false
     private var openProgress = 0f
     private var openProgressMax = 70f
@@ -156,6 +158,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (shiptraptionID != NO_SHIPTRAPTION_ID) {
             compound.putLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID, shiptraptionID)
         }
+        if (originalDirection != null) {
+            compound.putInt("originalDirection", originalDirection!!.ordinal)
+        }
         AssemblyException.write(compound, lastException)
         compound.putBoolean(ClockworkConstants.Nbt.OPEN, open)
         super.write(compound, clientPacket)
@@ -176,6 +181,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         }
         if (compound.contains(ClockworkConstants.Nbt.SHIPTRAPTION_ID)) {
             shiptraptionID = compound.getLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID)
+        }
+        if (compound.contains("originalDirection")) {
+            originalDirection = Direction.entries[compound.getInt("originalDirection")]
         }
         if (isRunning) {
             if (shiptraptionID == NO_SHIPTRAPTION_ID) {
@@ -339,7 +347,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val posInOwnerShip = Vector3d(worldPos)
         val bearingPos = Vector3d(worldPos).sub(previousCenter).add(newCenter)
 
-        val posInWorld = shipOn?.transform?.shipToWorld?.transformPosition(posInOwnerShip - bearingPos + shiptraption.inertiaData.centerOfMassInShip + 0.5, Vector3d()) ?: shiptraption.transform.positionInWorld // posInOwnerShip;
+        val posInWorld = shipOn?.transform?.shipToWorld?.transformPosition(
+        posInOwnerShip - bearingPos + shiptraption.inertiaData.centerOfMassInShip + 0.5, Vector3d()
+        ) ?: (worldPos - bearingPos + shiptraption.inertiaData.centerOfMassInShip + 0.5)
         val rotInWorld = shipOn?.transform?.shipToWorldRotation ?: Quaterniond()
         val scaling    = shipOn?.transform?.shipToWorldScaling ?: Vector3d(1.0, 1.0, 1.0)
 
@@ -409,6 +419,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         isRunning = true
         bearingAngle = 0f
         lastStateChanged = ticks
+        originalDirection = direction
         sendData()
         updateGeneratedRotation()
     }
@@ -437,8 +448,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             if (ship != null) {
                 val controller = BearingController.getOrCreate(ship)!!
                 if (!controller.canDisassemble(bearingID, ship, level.getShipObjectManagingPos(worldPosition))) {
-                    disassembleWhenPossible = true;
-                    controller.setAligning(true, bearingID!!);
+                    disassembleWhenPossible = !disassembleWhenPossible;
+                    controller.bearingData[bearingID]?.let { it.aligning = !it.aligning }
                 } else {
                     shipDisassemble();
                 }
@@ -464,13 +475,13 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val controller: BearingController = BearingController.getOrCreate(subShip)!!
         if (!controller.canDisassemble(bearingID, subShip, mainShip)) { return }
         val curData = controller.bearingData[bearingID] ?: return
-        val direction = blockState.getValue(BearingBlock.FACING)
+        val direction = originalDirection ?: blockState.getValue(BearingBlock.FACING)
         val inMain = worldPosition.relative(direction, 1)
         val inSubship = curData.bearingPosition!!.add(curData.bearingAxis!!, Vector3d())
 
         //todo this is stupid
         val aabb = subShip.shipAABB!!
-        val blocks = mutableListOf<BlockPos>()
+        var blocks = mutableListOf<BlockPos>()
         for (x in aabb.minX() until  aabb.maxX()) {
             for (z in aabb.minZ() until  aabb.maxZ()) {
                 for (y in aabb.minY() until  aabb.maxY()) {
@@ -506,6 +517,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             assemble()
         }
     }
+
     private fun tryRefresh() {
         if (!shouldRefresh) {return}
         val level = level as ServerLevel
