@@ -21,21 +21,23 @@ data class Return(val newShip: ServerShip, val previousCenter: Vector3ic, val ne
 //TODO this is dumb but i'm not going to use ShipAssembler cuz it sucks
 object PhysBearingAssembler {
     @JvmStatic
-    fun moveBlocksFromTo(level: ServerLevel, blocks: List<BlockPos>, removeOriginal: Boolean, originCenter: BlockPos, toCenter: BlockPos) {
+    fun moveBlocksFromTo(level: ServerLevel, blocks: List<BlockPos>, removeOriginal: Boolean, originCenter: BlockPos, toCenter: BlockPos): Boolean {
+        val blocks = blocks.filter { isValidShipBlock(level.getBlockState(it)) }
         for (itPos in blocks) {
-            if (isValidShipBlock(level.getBlockState(itPos))) {
-                val relative: BlockPos = itPos.subtract(BlockPos(originCenter.x, originCenter.y, originCenter.z))
-                val shipPos: BlockPos = toCenter.offset(relative)
-                AssemblyUtil.copyBlock(level, itPos, shipPos)
-            }
+            val relative: BlockPos = itPos.subtract(BlockPos(originCenter.x, originCenter.y, originCenter.z))
+            val shipPos: BlockPos = toCenter.offset(relative)
+            if (!level.getBlockState(shipPos).isAir) {return false}
         }
 
-        // Remove original blocks
+        for (itPos in blocks) {
+            val relative: BlockPos = itPos.subtract(BlockPos(originCenter.x, originCenter.y, originCenter.z))
+            val shipPos: BlockPos = toCenter.offset(relative)
+            AssemblyUtil.copyBlock(level, itPos, shipPos)
+        }
+
         if (removeOriginal) {
             for (itPos in blocks) {
-                if (isValidShipBlock(level.getBlockState(itPos))) {
-                    AssemblyUtil.removeBlock(level, itPos)
-                }
+                AssemblyUtil.removeBlock(level, itPos)
             }
         }
 
@@ -44,6 +46,8 @@ object PhysBearingAssembler {
             val shipPos: BlockPos = toCenter.offset(relative)
             level.chunkSource.blockChanged(shipPos)
         }
+
+        return true
     }
 
     @JvmStatic

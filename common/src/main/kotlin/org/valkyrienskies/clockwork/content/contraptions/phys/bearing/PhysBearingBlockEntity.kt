@@ -481,7 +481,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         //todo this is stupid
         val aabb = subShip.shipAABB!!
-        var blocks = mutableListOf<BlockPos>()
+        val blocks = mutableListOf<BlockPos>()
         for (x in aabb.minX() until  aabb.maxX()) {
             for (z in aabb.minZ() until  aabb.maxZ()) {
                 for (y in aabb.minY() until  aabb.maxY()) {
@@ -493,10 +493,17 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val subCouldSplit = subShip.getAttachment<SplittingDisablerAttachment>()?.let { if (it.canSplit()) { it.disableSplitting(); true } else {false} } ?: false
         val mainCouldSplit = mainShip?.getAttachment<SplittingDisablerAttachment>()?.let { if (it.canSplit()) { it.disableSplitting(); true } else {false} } ?: false
 
-        PhysBearingAssembler.moveBlocksFromTo(level, blocks, true, BlockPos(inSubship.toMinecraft()), inMain)
+        val hasMoved = PhysBearingAssembler.moveBlocksFromTo(level, blocks, true, BlockPos(inSubship.toMinecraft()), inMain)
 
         if (subCouldSplit) { subShip.getAttachment<SplittingDisablerAttachment>()?.enableSplitting() }
         if (mainCouldSplit) { mainShip?.getAttachment<SplittingDisablerAttachment>()?.enableSplitting() }
+
+        if (!hasMoved) {
+            curData.aligning = false
+            assembleNextTick = false
+            disassembleWhenPossible = false
+            return
+        }
 
         controller.removePhysBearing(bearingID!!);
         bearingID = null
