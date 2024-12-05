@@ -10,6 +10,7 @@ import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.Level
 import net.minecraft.world.phys.Vec3
+import org.joml.Vector3d
 import org.joml.Vector3i
 import org.joml.Vector3ic
 import org.joml.primitives.AABBi
@@ -108,6 +109,22 @@ object ClockworkUtils {
 
     fun readVector3i(buf: FriendlyByteBuf): Vector3ic {
         return Vector3i(buf.readInt(), buf.readInt(), buf.readInt())
+    }
+
+    fun CompoundTag.getVector3d(prefix: String): Vector3d? {
+        return if (
+            !this.contains(prefix + "x") ||
+            !this.contains(prefix + "y") ||
+            !this.contains(prefix + "z")
+        ) {
+            null
+        } else {
+            Vector3d(
+                this.getDouble(prefix + "x"),
+                this.getDouble(prefix + "y"),
+                this.getDouble(prefix + "z")
+            )
+        }
     }
 
     fun writeVector3i(buf: FriendlyByteBuf, vector3f: Vector3ic) {

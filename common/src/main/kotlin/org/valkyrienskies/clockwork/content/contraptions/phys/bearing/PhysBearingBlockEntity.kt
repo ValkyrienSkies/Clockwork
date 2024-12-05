@@ -32,6 +32,7 @@ import org.valkyrienskies.clockwork.platform.api.ContraptionController
 import org.valkyrienskies.clockwork.platform.api.ContraptionController.LockedMode
 import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.clockwork.util.ClockworkConstants.Nbt.ORIGINAL_DIRECTION
+import org.valkyrienskies.clockwork.util.ClockworkUtils.getVector3d
 import org.valkyrienskies.clockwork.util.GlueAssembler.collectGlued
 import org.valkyrienskies.core.api.ships.Ship
 import org.valkyrienskies.core.api.ships.getAttachment
@@ -48,7 +49,6 @@ import org.valkyrienskies.mod.common.util.SplittingDisablerAttachment
 import org.valkyrienskies.mod.common.util.toBlockPos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
-import org.valkyrienskies.mod.util.getVector3d
 import org.valkyrienskies.mod.util.putVector3d
 import java.lang.Math
 import kotlin.math.sign
