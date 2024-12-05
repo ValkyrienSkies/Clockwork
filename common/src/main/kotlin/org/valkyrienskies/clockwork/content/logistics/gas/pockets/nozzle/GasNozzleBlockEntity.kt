@@ -91,7 +91,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
     }
 
     fun getChaseSpeed(): Double {
-        return Mth.clamp(abs(getSpeed().toDouble()) / 16.0 / 20.0 / 10.0, 0.0, 1.0)
+        return Mth.clamp(abs(getSpeed().toDouble()) / 16.0 / 40.0, 0.0, 1.0)
     }
 
     private fun heatPocket() {

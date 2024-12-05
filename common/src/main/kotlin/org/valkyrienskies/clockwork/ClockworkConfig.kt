@@ -40,8 +40,8 @@ object ClockworkConfig {
         @JsonSchema(description = "Max Gravitron mass in 1000 kg")
         var maxGravitronMass = 256
 
-        @JsonSchema(description = "Force multiplier for balloons. Realism is 1.0, default is 100.0. Range: > 0.0", min = 0.0)
-        var balloonForceMult: Double = 100.0
+        @JsonSchema(description = "Force multiplier for balloons. Realism is 1.0, default is 1000.0. Range: > 0.0", min = 0.0)
+        var balloonForceMult: Double = 1000.0
 
         @JsonSchema(description = "Leakage rate of pockets. Determines how fast pressure in an unsealed pocket attempts to 'normalize'. Default is 0.5.", min = 0.0, max = 1.0)
         var pocketLeakageRate = 0.5
