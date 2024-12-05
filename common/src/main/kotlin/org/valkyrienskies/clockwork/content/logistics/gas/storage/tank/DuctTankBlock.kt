@@ -17,8 +17,8 @@ class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE
 
 
 
-    override fun createNode(pos: DuctNodePos, network: DuctNetwork<ServerLevel>): DuctNode {
-        return TankDuctNode(pos, NodeBehaviorType.TANK, network, volume = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0, size = 9.0)
+    override fun createNode(pos: DuctNodePos): DuctNode {
+        return TankDuctNode(pos, NodeBehaviorType.TANK, volume = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0, size = 9.0)
     }
 
 

@@ -6,7 +6,6 @@ import dan200.computercraft.api.peripheral.GenericPeripheral
 import dan200.computercraft.api.peripheral.IComputerAccess
 import dan200.computercraft.api.peripheral.PeripheralType
 import net.minecraft.resources.ResourceLocation
-import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkMod.MOD_ID
 import org.valkyrienskies.clockwork.ClockworkMod.getKelvin
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
@@ -26,8 +25,13 @@ object GasHeatSource: GenericPeripheral {
 
     @LuaFunction
     @JvmStatic
-    fun getGasMass(heatable: IHeatableBlockEntity): Map<Map<String, Any>, Double> =
-        getKelvin().getGasMassAt(heatable.getDuctNodePosition()).mapKeys { (gas, _) -> gas.toLua() }
+    fun getGasDetails(heatable: IHeatableBlockEntity, gasName: String): Map<String, Any> =
+        getGasOrThrow(gasName).toLua()
+
+    @LuaFunction
+    @JvmStatic
+    fun getGasMass(heatable: IHeatableBlockEntity): Map<String, Double> =
+        getKelvin().getGasMassAt(heatable.getDuctNodePosition()).mapKeys { (gas, _) -> gas.name }
 
     @LuaFunction
     @JvmStatic
@@ -96,7 +100,7 @@ object GasHeatSource: GenericPeripheral {
     @Throws(LuaException::class)
     private fun getGasOrThrow(gasName: String): GasType {
         try {
-            return GasTypeRegistry.getGasType("kelvin", gasName)!!
+            return GasTypeRegistry.getGasType(ResourceLocation.tryParse(gasName)!!)!!
         } catch (e: AssertionError) {
             throw LuaException("Gas `$gasName` does not exist!")
         }
@@ -142,7 +146,9 @@ object GasHeatSource: GenericPeripheral {
             "specificHeatCapacity" to this.specificHeatCapacity,
             "thermalConductivity" to this.thermalConductivity,
             "sutherlandConstant" to this.sutherlandConstant,
-            "adiabaticIndex" to this.adiabaticIndex
+            "adiabaticIndex" to this.adiabaticIndex,
+            "combustible" to this.combustible,
+            "calorificValue" to this.calorificValue
         )
     }
 }

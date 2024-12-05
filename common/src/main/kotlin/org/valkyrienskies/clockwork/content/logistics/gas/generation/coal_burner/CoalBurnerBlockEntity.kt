@@ -27,14 +27,15 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bl
     override fun tick() {
         super.tick()
         if (level!!.isClientSide) return
-        val node = ClockworkMod.getKelvin().getNodeAt(blockPos.toDuctNodePos(level!!.dimension().location())) ?: return
+        val kelvin = ClockworkMod.getKelvin()
+        val node = kelvin.getNodeAt(blockPos.toDuctNodePos(level!!.dimension().location())) ?: return
 
 
 
 
         if (fuelTicks>0) {
             fuelTicks-=1
-            if (node.network.getTemperatureAt(blockPos.toDuctNodePos(level!!.dimension().location()))<2000.0) node.network.modTemperature(blockPos.toDuctNodePos(level!!.dimension().location()),30.0)
+            if (kelvin.getTemperatureAt(blockPos.toDuctNodePos(level!!.dimension().location()))<2000.0) kelvin.modTemperature(blockPos.toDuctNodePos(level!!.dimension().location()),30.0)
 
             if (blockState.getValue(CoalBurnerBlock.LIT)==false) level!!.setBlock(blockPos,blockState.setValue(CoalBurnerBlock.LIT,true), 15)
         } else {

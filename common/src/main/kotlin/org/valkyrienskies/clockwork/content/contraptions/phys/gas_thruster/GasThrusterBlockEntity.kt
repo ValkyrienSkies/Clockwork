@@ -39,16 +39,17 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (level!!.isClientSide) return
 
         val ductnodepos = getDuctNodePosition()
-        val node = ClockworkMod.getKelvin().getNodeAt(ductnodepos) ?: return
-        val gasMasses = node.network.getGasMassAt(ductnodepos)
+        val kelvin = ClockworkMod.getKelvin()
+        val node = kelvin.getNodeAt(ductnodepos) ?: return
+        val gasMasses = kelvin.getGasMassAt(ductnodepos)
         val total = gasMasses.values.sum()
 
         if (total == 0.0) return
 
         val airPressure = AerodynamicUtils.getAirPressureForY(blockPos.y.toDouble(), 563.0)
-        val gasPressure = node.network.getPressureAt(ductnodepos)
-        val temp = node.network.getTemperatureAt(ductnodepos)
-        val avgSpecificHeat = AerodynamicUtils.specificHeatAverage(node.network.getGasMassAt(ductnodepos))
+        val gasPressure = kelvin.getPressureAt(ductnodepos)
+        val temp = kelvin.getTemperatureAt(ductnodepos)
+        val avgSpecificHeat = AerodynamicUtils.specificHeatAverage(kelvin.getGasMassAt(ductnodepos))
 
 
         if (gasPressure<airPressure) return
@@ -66,7 +67,7 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         for (gas in gasMasses) {
             velocity += flowrate/(gas.key.density*AerodynamicUtils.DUCT_AREA)
 
-            node.network.modGasMass(ductnodepos, gas.key, -max(flowrate*0.05, gas.value))
+            kelvin.modGasMass(ductnodepos, gas.key, -max(flowrate*0.05, gas.value))
         }
 
         val thrust = flowrate * velocity + (gasPressure-airPressure)
