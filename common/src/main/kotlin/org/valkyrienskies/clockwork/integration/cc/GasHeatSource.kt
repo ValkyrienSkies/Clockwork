@@ -11,7 +11,8 @@ import org.valkyrienskies.clockwork.ClockworkMod.MOD_ID
 import org.valkyrienskies.clockwork.ClockworkMod.getKelvin
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
 import org.valkyrienskies.kelvin.api.DuctNodePos
-import org.valkyrienskies.clockwork.kelvin.api.GasType
+import org.valkyrienskies.kelvin.api.GasType
+import org.valkyrienskies.kelvin.impl.GasTypeRegistry
 import java.util.*
 import kotlin.jvm.Throws
 import kotlin.jvm.optionals.getOrDefault
@@ -95,8 +96,8 @@ object GasHeatSource: GenericPeripheral {
     @Throws(LuaException::class)
     private fun getGasOrThrow(gasName: String): GasType {
         try {
-            return GasType.valueOf(gasName)
-        } catch (e: IllegalArgumentException) {
+            return GasTypeRegistry.getGasType("kelvin", gasName)!!
+        } catch (e: AssertionError) {
             throw LuaException("Gas `$gasName` does not exist!")
         }
     }
