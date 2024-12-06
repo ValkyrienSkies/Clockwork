@@ -17,6 +17,7 @@ import org.valkyrienskies.clockwork.platform.PlatformUtils
 import org.valkyrienskies.core.impl.hooks.VSEvents
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.impl.DuctNetworkServer
+import org.valkyrienskies.kelvin.impl.GasTypeRegistry
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.shipObjectWorld
 
@@ -54,9 +55,9 @@ object ClockworkMod {
         LifecycleEvent.SERVER_STARTED.register {
             ClockworkAugmentations.registerComponentAvgAugmentation("temperature", it.shipObjectWorld)
             ClockworkAugmentations.registerComponentAvgAugmentation("pressure", it.shipObjectWorld)
-            ClockworkAugmentations.registerComponentSumAugmentation("gas_air", it.shipObjectWorld)
-            ClockworkAugmentations.registerComponentSumAugmentation("gas_phlogiston", it.shipObjectWorld)
-            ClockworkAugmentations.registerComponentSumAugmentation("gas_helium", it.shipObjectWorld)
+            for (gas in GasTypeRegistry.GAS_TYPES.values) {
+                ClockworkAugmentations.registerComponentAvgAugmentation("gas_${gas.name.lowercase()}", it.shipObjectWorld)
+            }
             //todo: gas registry
             ClockworkAugmentations.registerComponentSumAugmentation("airupdated", it.shipObjectWorld)
             ClockworkAugmentations.registerSumAugmentation("sealed", it.shipObjectWorld)
@@ -68,6 +69,8 @@ object ClockworkMod {
                 ship.getAttachment(DragController::class.java)?.gameTick(ship, it)
             }
         }
+
+
     }
 
     fun getKelvin(): DuctNetworkServer {
