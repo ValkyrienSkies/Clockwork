@@ -36,6 +36,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInf
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
+import org.valkyrienskies.clockwork.content.curiosities.asteroid.asteroidBlock
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
@@ -679,6 +680,21 @@ object ClockworkBlocks {
     val DELIVERY_CHUTE: BlockEntry<DeliveryChuteBlock> =
         REGISTRATE.block<DeliveryChuteBlock>("delivery_chute") { properties: BlockBehaviour.Properties? ->
             DeliveryChuteBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.wooden() }
+            .transform(TagGen.axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
+            .register()
+
+    @JvmField
+    val ASTEROID: BlockEntry<asteroidBlock> =
+        REGISTRATE.block<asteroidBlock>("asteroid_block") { properties: BlockBehaviour.Properties? ->
+            asteroidBlock(properties!!)
         }
             .initialProperties { SharedProperties.wooden() }
             .transform(TagGen.axeOrPickaxe())
