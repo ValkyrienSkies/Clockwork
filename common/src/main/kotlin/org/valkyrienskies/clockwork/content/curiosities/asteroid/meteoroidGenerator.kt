@@ -34,12 +34,16 @@ object meteoroidGenerator {
         balls.add(center.toJOMLD())
 
         val noise = PerlinNoise.create(SingleThreadedRandomSource(level.seed), mutableListOf(1,1))
+        val resolution = 0.25
 
         for (x in min(center.x,center_2.x)-(2/threshold).toInt()..max(center.x,center_2.x) +(2/threshold).toInt()) {
             for (y in min(center.y,center_2.y)-(2/threshold).toInt()..max(center.y,center_2.y)+(2/threshold).toInt()) {
                 for (z in min(center.z,center_2.z)-(2/threshold).toInt()..max(center.z,center_2.z)+(2/threshold).toInt()) {
-                    val t = threshold - noise.getValue(x.toDouble(),y.toDouble(),z.toDouble())/100
-                    if (metaBall(t, balls as List<Vector3d>, BlockPos(x,y,z).toJOMLD()))  {
+                    val t = threshold - noise.getValue(x.toDouble()*resolution,y.toDouble()*resolution,z.toDouble()*resolution)/100
+                    val mb = metaBall(balls as List<Vector3d>, BlockPos(x,y,z).toJOMLD())
+                    if (mb > 2*t)  {
+                        level.setBlockAndUpdate(BlockPos(x,y,z), ClockworkBlocks.WANDERLITE_NYX_ORE.defaultState)
+                    } else if (mb > t) {
                         level.setBlockAndUpdate(BlockPos(x,y,z), Blocks.STONE.defaultBlockState())
                     }
 
@@ -49,14 +53,17 @@ object meteoroidGenerator {
 
 
 
+
+
     }
 
-    fun metaBall(threshold: Double, balls: List<Vector3d>, pos: Vector3d): Boolean {
+    fun metaBall(balls: List<Vector3d>, pos: Vector3d): Double {
         var sigma = 0.0
         for (ball in balls) {
             sigma += 1/ball.distance(pos)
         }
-        println(sigma)
-        return sigma > threshold
+        return sigma
     }
+
+
 }
