@@ -130,7 +130,7 @@ object ClockworkBlockEntities {
                 pos!!, state!!
             )
         }
-        .validBlocks(ClockworkBlocks.FLAP_BEARING)
+        .validBlocks(ClockworkBlocks.SMART_FLAP_BEARING, ClockworkBlocks.ANDESITE_FLAP_BEARING)
         .renderer {
             NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in FlapBearingBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
                 FlapBearingRenderer(

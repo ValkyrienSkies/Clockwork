@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork
 
 import com.mojang.logging.LogUtils
 import com.simibubi.create.foundation.data.CreateRegistrate
+import dev.architectury.event.events.common.InteractionEvent
 import dev.architectury.event.events.common.LifecycleEvent
 import dev.architectury.event.events.common.TickEvent
 import net.minecraft.resources.ResourceLocation
@@ -14,6 +15,7 @@ import org.valkyrienskies.clockwork.content.forces.PocketForcesController
 import org.valkyrienskies.core.api.ships.setAttachment
 import org.valkyrienskies.clockwork.content.forces.WanderShipControl
 import org.valkyrienskies.clockwork.platform.PlatformUtils
+import org.valkyrienskies.clockwork.util.DualLinkHandler
 import org.valkyrienskies.core.impl.hooks.VSEvents
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.impl.DuctNetworkServer
@@ -69,6 +71,10 @@ object ClockworkMod {
                 ship.getAttachment(DragController::class.java)?.gameTick(ship, it)
             }
         }
+
+        InteractionEvent.RIGHT_CLICK_BLOCK.register(InteractionEvent.RightClickBlock { player, hand, pos, face ->
+            DualLinkHandler.handler(player, hand, pos, face)
+        })
 
 
     }

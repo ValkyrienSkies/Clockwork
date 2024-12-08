@@ -96,8 +96,8 @@ object ClockworkBlocks {
             .register()
 
     @JvmField
-    val FLAP_BEARING: BlockEntry<FlapBearingBlock> =
-        REGISTRATE.block<FlapBearingBlock>("flap_bearing") { properties: BlockBehaviour.Properties? ->
+    val ANDESITE_FLAP_BEARING: BlockEntry<FlapBearingBlock> =
+        REGISTRATE.block<FlapBearingBlock>("andesite_flap_bearing") { properties: BlockBehaviour.Properties? ->
             FlapBearingBlock(properties)
         }
             .transform(TagGen.axeOrPickaxe())
@@ -109,7 +109,19 @@ object ClockworkBlocks {
             .build()
             .register()
 
-
+    @JvmField
+    val SMART_FLAP_BEARING: BlockEntry<FlapBearingBlock> =
+        REGISTRATE.block<FlapBearingBlock>("smart_flap_bearing") { properties: BlockBehaviour.Properties? ->
+            FlapBearingBlock(properties)
+        }
+            .transform(TagGen.axeOrPickaxe())
+            .transform(flapbearing())
+            .transform(BlockStressDefaults.setImpact(4.0))
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
+            .register()
 
     @JvmField
     val ALT_METER: BlockEntry<AltMeterBlock> =
@@ -123,7 +135,6 @@ object ClockworkBlocks {
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
-            .model(AssetLookup.customBlockItemModel("alt_meter"))
             .build()
             .register()
 
@@ -483,6 +494,9 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .item()
+        .properties {
+            it.fireResistant()
+        }
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
         .register()
@@ -511,6 +525,9 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .item()
+        .properties {
+            it.fireResistant()
+        }
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
         .register()
@@ -525,6 +542,9 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .item()
+        .properties {
+            it.fireResistant()
+        }
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
         .register()
