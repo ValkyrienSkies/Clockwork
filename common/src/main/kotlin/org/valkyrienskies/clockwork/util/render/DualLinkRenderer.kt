@@ -19,6 +19,7 @@ import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingLinkBehavior
+import org.valkyrienskies.clockwork.content.contraptions.flap.attached_frequency.SmartFlapBearingBehaviour
 
 object DualLinkRenderer {
 
@@ -32,36 +33,39 @@ object DualLinkRenderer {
         val result = target
         val pos = result.blockPos
 
-        val behaviour = BlockEntityBehaviour.get(world, pos, FlapBearingLinkBehavior.TYPE)
-            ?: return
 
-        val freq1: Component = Lang.translateDirect("logistics.firstFrequency")
-        val freq2: Component = Lang.translateDirect("logistics.secondFrequency")
 
-        for (first in Iterate.trueAndFalse) {
-            val bb = AABB(Vec3.ZERO, Vec3.ZERO).inflate(.25)
-            val label = if (first) freq1 else freq2
-            val hit = behaviour.testHit(first, target.getLocation())
-            val transform = if (first) behaviour.slotOne else behaviour.slotTwo
+        for (type in mutableListOf(SmartFlapBearingBehaviour.FRONT_TYPE, SmartFlapBearingBehaviour.BACK_TYPE)) {
+            val behaviour = BlockEntityBehaviour.get(world, pos, type) ?: return
 
-            val box = ValueBox(label, bb, pos).passive(!hit)
-            val empty = behaviour.networkKey[first]
-                .stack
-                .isEmpty
+            val freq1: Component = Lang.translateDirect("logistics.firstFrequency")
+            val freq2: Component = Lang.translateDirect("logistics.secondFrequency")
 
-            if (!empty) box.wideOutline()
+            for (first in Iterate.trueAndFalse) {
+                val bb = AABB(Vec3.ZERO, Vec3.ZERO).inflate(.25)
+                val label = if (first) freq1 else freq2
+                val hit = behaviour.testHit(first, target.getLocation())
+                val transform = if (first) behaviour.firstSlot else behaviour.secondSlot
 
-            CreateClient.OUTLINER.showValueBox(Pair.of(first, pos), box.transform(transform))
-                .highlightFace(result.direction)
+                val box = ValueBox(label, bb, pos).passive(!hit)
+                val empty = behaviour.networkKey[first]
+                    .stack
+                    .isEmpty
 
-            if (!hit) continue
+                if (!empty) box.wideOutline()
 
-            val tip: MutableList<MutableComponent> = ArrayList()
-            tip.add(label.copy())
-            tip.add(
-                Lang.translateDirect(if (empty) "logistics.filter.click_to_set" else "logistics.filter.click_to_replace")
-            )
-            CreateClient.VALUE_SETTINGS_HANDLER.showHoverTip(tip)
+                CreateClient.OUTLINER.showValueBox(Pair.of(first, pos), box.transform(transform))
+                    .highlightFace(result.direction)
+
+                if (!hit) continue
+
+                val tip: MutableList<MutableComponent> = ArrayList()
+                tip.add(label.copy())
+                tip.add(
+                    Lang.translateDirect(if (empty) "logistics.filter.click_to_set" else "logistics.filter.click_to_replace")
+                )
+                CreateClient.VALUE_SETTINGS_HANDLER.showHoverTip(tip)
+            }
         }
     }
 
@@ -78,17 +82,18 @@ object DualLinkRenderer {
                 .distanceToSqr(VecHelper.getCenterOf(be.blockPos)) > (max * max)
         ) return
 
-        val behaviour = be.getBehaviour(FlapBearingLinkBehavior.TYPE)
-            ?: return
+        for (type in mutableListOf(SmartFlapBearingBehaviour.FRONT_TYPE, SmartFlapBearingBehaviour.BACK_TYPE)) {
+            val behaviour = be.getBehaviour(type) ?: return
 
-        for (first in Iterate.trueAndFalse) {
-            val transform = if (first) behaviour.slotOne else behaviour.slotTwo
-            val stack = if (first) behaviour.networkKey.first.stack else behaviour.networkKey.second.stack
+            for (first in Iterate.trueAndFalse) {
+                val transform = if (first) behaviour.firstSlot else behaviour.secondSlot
+                val stack = if (first) behaviour.networkKey.first.stack else behaviour.networkKey.second.stack
 
-            ms.pushPose()
-            transform.transform(be.blockState, ms)
-            ValueBoxRenderer.renderItemIntoValueBox(stack, ms, buffer, light, overlay)
-            ms.popPose()
+                ms.pushPose()
+                transform.transform(be.blockState, ms)
+                ValueBoxRenderer.renderItemIntoValueBox(stack, ms, buffer, light, overlay)
+                ms.popPose()
+            }
         }
     }
 

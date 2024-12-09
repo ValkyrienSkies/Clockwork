@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.util
 
 import com.simibubi.create.AllItems
+import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.utility.RaycastHelper
 import dev.architectury.event.EventResult
@@ -12,18 +13,37 @@ import net.minecraft.sounds.SoundEvents
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.level.block.entity.BlockEntityType
+import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingLinkBehavior
+import org.valkyrienskies.clockwork.content.contraptions.flap.attached_frequency.SmartFlapBearingBehaviour
 import org.valkyrienskies.clockwork.platform.PlatformUtils
 
 object DualLinkHandler {
+
+    fun getFrontFacing(direction: Direction): Direction {
+        return when(direction) {
+            Direction.EAST -> Direction.NORTH
+            Direction.WEST -> Direction.NORTH
+            else -> Direction.EAST
+        }
+    }
+
     @JvmStatic
     fun handler(player: Player, hand: InteractionHand, pos: BlockPos, face: Direction): EventResult {
         val world = player.level
 
         if (player.isShiftKeyDown || player.isSpectator) return EventResult.pass()
+        if (!world.getBlockState(pos).hasProperty(BlockStateProperties.FACING)) return EventResult.pass()
 
-        val behaviour = BlockEntityBehaviour.get(world, pos, FlapBearingLinkBehavior.TYPE)
+        val facing = world.getBlockState(pos).getValue(BlockStateProperties.FACING)
+
+        val type: BehaviourType<SmartFlapBearingBehaviour>
+        if (face == getFrontFacing(facing)) type =  SmartFlapBearingBehaviour.FRONT_TYPE
+        else type = SmartFlapBearingBehaviour.BACK_TYPE
+
+        val behaviour = BlockEntityBehaviour.get(world, pos, type)
             ?: return EventResult.pass()
 
         val heldItem = player.getItemInHand(hand)
@@ -39,8 +59,8 @@ object DualLinkHandler {
             val localHit = ray.location
                 .subtract(Vec3.atLowerCornerOf(pos))
                 .add(Vec3.atLowerCornerOf(ray.direction.normal).scale(.25))
-            fakePlayerChoice = localHit.distanceToSqr(behaviour.slotOne.getLocalOffset(blockState)) > localHit
-                .distanceToSqr(behaviour.slotTwo.getLocalOffset(blockState))
+            fakePlayerChoice = localHit.distanceToSqr(behaviour.firstSlot.getLocalOffset(blockState)) > localHit
+                .distanceToSqr(behaviour.secondSlot.getLocalOffset(blockState))
         }
 
         for (first in mutableListOf(false, true)) {

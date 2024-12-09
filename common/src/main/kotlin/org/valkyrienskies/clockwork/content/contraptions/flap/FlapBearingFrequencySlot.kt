@@ -9,19 +9,17 @@ import net.minecraft.core.Direction
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
-import org.valkyrienskies.mod.common.util.toJOMLD
-import org.valkyrienskies.mod.common.util.toMinecraft
 
-class FlapBearingFrequencySlot(first: Boolean, val negative: Boolean) : ValueBoxTransform.Dual(first) {
+class FlapBearingFrequencySlot(first: Boolean, val front: Boolean) : ValueBoxTransform.Dual(first) {
 
     override fun getLocalOffset(state: BlockState): Vec3 {
         val facing = state.getValue(BlockStateProperties.FACING)
-        var location = if (negative) VecHelper.voxelSpace(-0.01, 6.0, 5.0) else VecHelper.voxelSpace(16.01, 6.0, 5.0)
+        var location = if (front) VecHelper.voxelSpace(-0.01, 6.0, 5.0) else VecHelper.voxelSpace(16.01, 6.0, 5.0)
 
         if (facing.axis
                 .isHorizontal
         ) {
-            location = if (negative) VecHelper.voxelSpace(-0.01, 5.0, 6.0) else VecHelper.voxelSpace(16.01, 5.0, 6.0)
+            location = if (front) VecHelper.voxelSpace(-0.01, 5.0, 6.0) else VecHelper.voxelSpace(16.01, 5.0, 6.0)
             if (isFirst) location = location.add(0.0, (6 / 16f).toDouble(), 0.0)
             return rotateHorizontally(state, location)
         }
@@ -47,7 +45,7 @@ class FlapBearingFrequencySlot(first: Boolean, val negative: Boolean) : ValueBox
             .rotateX(xRot.toDouble())
             .rotateY(yRot.toDouble())
 
-        if (negative) {
+        if (front) {
             //TransformStack.cast(ms).rotateY(-180.0)
         }
     }
