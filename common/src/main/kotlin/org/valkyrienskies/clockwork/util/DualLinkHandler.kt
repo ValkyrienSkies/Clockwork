@@ -39,6 +39,7 @@ object DualLinkHandler {
 
         val facing = world.getBlockState(pos).getValue(BlockStateProperties.FACING)
 
+
         val type: BehaviourType<SmartFlapBearingBehaviour>
         if (face == getFrontFacing(facing)) type =  SmartFlapBearingBehaviour.FRONT_TYPE
         else type = SmartFlapBearingBehaviour.BACK_TYPE

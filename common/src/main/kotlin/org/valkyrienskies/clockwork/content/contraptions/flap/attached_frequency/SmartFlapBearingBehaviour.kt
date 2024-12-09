@@ -127,6 +127,7 @@ open class SmartFlapBearingBehaviour(
     }
 
     fun setFrequency(first: Boolean, stack: ItemStack) {
+        println("setting")
         var stack = stack
         stack = stack.copy()
         stack.count = 1

@@ -85,8 +85,8 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
     }
 
     private fun createSmartFlap() {
-        val valueBoxes = ValueBoxTransform.Dual.makeSlots { first: Boolean -> FlapBearingFrequencySlot(first, false) }
-        val valueBoxesSecond = ValueBoxTransform.Dual.makeSlots { first: Boolean -> FlapBearingFrequencySlot(first, true) }
+        val valueBoxes = ValueBoxTransform.Dual.makeSlots { first: Boolean -> FlapBearingFrequencySlot(first, true) }
+        val valueBoxesSecond = ValueBoxTransform.Dual.makeSlots { first: Boolean -> FlapBearingFrequencySlot(first, false) }
 
         linkFirst = SmartFlapBearingBehaviour(this, valueBoxes, {setFirstSignal(it)}, true)
         linkSecond = SmartFlapBearingBehaviour(this, valueBoxesSecond, {setSecondSignal(it)},false)
