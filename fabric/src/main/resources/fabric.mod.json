@@ -3,7 +3,7 @@
   "id": "vs_clockwork",
   "version": "${version}",
   "name": "Clockwork: Create x Valkyrien Skies",
-  "description": "Create VS integration addon",
+  "description": "An over-the-top spin on Create, powered by Valkyrien Skies.",
   "authors": [
     "Potato"
   ],
@@ -13,7 +13,8 @@
     "Rubydesic",
     "Fluffy",
     "TechTastic",
-    "MrSterner"
+    "MrSterner",
+    "PriestOfFern"
   ],
   "contact": {
     "homepage": "https://valkyrienskies.org/",
@@ -40,6 +41,7 @@
   "depends": {
     "minecraft": ">=1.18.2",
     "valkyrienskies": ">=2.1.1-beta.3",
+    "kelvin": ">=0.1.1",
     "create": ">=${create_fabric_version}"
   }
 }

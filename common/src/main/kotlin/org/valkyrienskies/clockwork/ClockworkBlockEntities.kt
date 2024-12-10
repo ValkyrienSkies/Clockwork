@@ -67,7 +67,8 @@ object ClockworkBlockEntities {
                 type!!, pos!!, state!!
             )
         }
-        .validBlocks(ClockworkBlocks.PROPELLER_BEARING)
+        .validBlocks(ClockworkBlocks.JURYRIGGED_PROPELLER_BEARING)
+        .validBlocks(ClockworkBlocks.BRASS_PROPELLER_BEARING)
         .renderer {
             NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in PropellerBearingBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
                 PropellerBearingRenderer(

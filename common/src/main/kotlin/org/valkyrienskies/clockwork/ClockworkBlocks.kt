@@ -62,8 +62,21 @@ import java.util.function.Supplier
 object ClockworkBlocks {
 
     @JvmField
-    val PROPELLER_BEARING: BlockEntry<PropellerBearingBlock> =
-        REGISTRATE.block<PropellerBearingBlock>("propeller_bearing") { properties: BlockBehaviour.Properties? ->
+    val BRASS_PROPELLER_BEARING: BlockEntry<PropellerBearingBlock> =
+        REGISTRATE.block<PropellerBearingBlock>("brass_propeller_bearing") { properties: BlockBehaviour.Properties? ->
+            PropellerBearingBlock(properties!!)
+        }
+            .transform(TagGen.axeOrPickaxe())
+            .transform(BuilderTransformers.bearing("propeller", "gearbox"))
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
+            .register()
+
+    @JvmField
+    val JURYRIGGED_PROPELLER_BEARING: BlockEntry<PropellerBearingBlock> =
+        REGISTRATE.block<PropellerBearingBlock>("juryrigged_propeller_bearing") { properties: BlockBehaviour.Properties? ->
             PropellerBearingBlock(properties!!)
         }
             .transform(TagGen.axeOrPickaxe())
