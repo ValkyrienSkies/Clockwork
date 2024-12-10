@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content.contraptions.phys.gyro
+package org.valkyrienskies.clockwork.content.physicalities.gyro
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonIgnore

@@ -1,12 +1,13 @@
-package org.valkyrienskies.clockwork.content.contraptions.phys.gas_thruster
+package org.valkyrienskies.clockwork.content.physicalities.gas_thruster.data
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import org.joml.Vector3dc
 import org.joml.Vector3ic
+import org.valkyrienskies.clockwork.content.forces.data.ForceApplierData
 
 @JsonAutoDetect( fieldVisibility = JsonAutoDetect.Visibility.ANY,)
-class GasThrusterData {
-    val position: Vector3dc?
+class GasThrusterData: ForceApplierData<GasThrusterUpdateData> {
+    override val position: Vector3ic?
     val force: Vector3dc?
 
     // Default constructor for Jackson, should never be invoked manually
@@ -17,7 +18,7 @@ class GasThrusterData {
     }
 
     constructor(
-        position: Vector3dc?,
+        position: Vector3ic?,
         force: Vector3dc?
     ) {
         this.position = position

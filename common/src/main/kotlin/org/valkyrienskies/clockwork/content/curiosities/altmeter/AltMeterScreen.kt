@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content.contraptions.phys.altmeter
+package org.valkyrienskies.clockwork.content.curiosities.altmeter
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.gui.AbstractSimiScreen

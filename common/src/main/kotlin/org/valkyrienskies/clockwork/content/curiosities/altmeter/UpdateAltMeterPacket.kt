@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content.contraptions.phys.altmeter
+package org.valkyrienskies.clockwork.content.curiosities.altmeter
 
 import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf

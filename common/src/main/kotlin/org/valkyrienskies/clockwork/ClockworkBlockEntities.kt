@@ -12,12 +12,12 @@ import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.client.render.WingBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingRenderer
-import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlockEntity
+import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingRenderer
-import org.valkyrienskies.clockwork.content.contraptions.phys.gas_thruster.GasThrusterBlockEntity
-import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlockEntity
-import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlockEntityRenderer
+import org.valkyrienskies.clockwork.content.physicalities.gas_thruster.GasThrusterBlockEntity
+import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroBlockEntity
+import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlockEntity

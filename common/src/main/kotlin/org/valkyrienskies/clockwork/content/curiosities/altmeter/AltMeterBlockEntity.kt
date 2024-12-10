@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content.contraptions.phys.altmeter
+package org.valkyrienskies.clockwork.content.curiosities.altmeter
 
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour

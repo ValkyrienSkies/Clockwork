@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content.contraptions.phys.gas_thruster
+package org.valkyrienskies.clockwork.content.physicalities.gas_thruster
 
 import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock
 import com.simibubi.create.content.kinetics.base.IRotate
@@ -80,19 +80,6 @@ class GasThrusterBlock(properties: Properties) : DirectionalBlock(properties), I
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
         super.onPlace(state, level, pos, oldState, isMoving)
         nodePlace(state, level, pos, oldState, isMoving)
-
-    }
-
-    override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
-        nodeRemove(state, level, pos, newState, isMoving)
-
-        val serverLevel = level as ServerLevel? ?: return super.onRemove(state, level, pos, newState, isMoving)
-        val ship = serverLevel.getShipObjectManagingPos(pos) ?: return super.onRemove(state, level, pos, newState, isMoving)
-        val controller = ship.getAttachment(GasThrusterController::class.java) ?: return super.onRemove(state, level, pos, newState, isMoving)
-
-        controller.deleteThruster(pos)
-
-        super.onRemove(state, level, pos, newState, isMoving)
 
     }
 

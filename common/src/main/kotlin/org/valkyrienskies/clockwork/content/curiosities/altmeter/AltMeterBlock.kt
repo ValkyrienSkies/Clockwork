@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content.contraptions.phys.altmeter
+package org.valkyrienskies.clockwork.content.curiosities.altmeter
 
 import com.simibubi.create.foundation.block.IBE
 import com.simibubi.create.foundation.gui.ScreenOpener

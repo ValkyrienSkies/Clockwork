@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content.contraptions.phys.gyro
+package org.valkyrienskies.clockwork.content.physicalities.gyro
 
 import com.simibubi.create.content.kinetics.base.KineticBlock
 import com.simibubi.create.foundation.block.IBE

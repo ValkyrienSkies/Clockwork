@@ -28,10 +28,10 @@ import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.client.render.WingBlockItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteOreBlock
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock
-import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlock
+import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock
-import org.valkyrienskies.clockwork.content.contraptions.phys.gas_thruster.GasThrusterBlock
-import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlock
+import org.valkyrienskies.clockwork.content.physicalities.gas_thruster.GasThrusterBlock
+import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock
