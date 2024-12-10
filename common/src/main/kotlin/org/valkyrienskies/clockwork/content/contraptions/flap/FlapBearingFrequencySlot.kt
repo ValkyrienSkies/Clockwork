@@ -6,6 +6,7 @@ import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.utility.AngleHelper
 import com.simibubi.create.foundation.utility.VecHelper
 import net.minecraft.core.Direction
+import net.minecraft.core.Direction.Axis
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
@@ -16,17 +17,11 @@ class FlapBearingFrequencySlot(first: Boolean, val front: Boolean) : ValueBoxTra
         val facing = state.getValue(BlockStateProperties.FACING)
         var location = if (front) VecHelper.voxelSpace(-0.01, 6.0, 5.0) else VecHelper.voxelSpace(16.01, 6.0, 5.0)
 
-        if (facing.axis
-                .isHorizontal
-        ) {
-            location = if (front) VecHelper.voxelSpace(-0.01, 5.0, 6.0) else VecHelper.voxelSpace(16.01, 5.0, 6.0)
-            if (isFirst) location = location.add(0.0, (6 / 16f).toDouble(), 0.0)
-            return rotateHorizontally(state, location)
-        }
-
         if (isFirst) location = location.add(0.0, 0.0, (6 / 16f).toDouble())
-        location =
-            VecHelper.rotateCentered(location, (if (facing == Direction.DOWN) 180 else 0).toDouble(), Direction.Axis.X)
+        if (facing.axis != Axis.Y) location = location.add(VecHelper.rotate(VecHelper.voxelSpace(0.0, 0.0, -5.0), AngleHelper.horizontalAngle(facing).toDouble(), Axis.Y))
+
+
+
         return location
     }
 
@@ -45,8 +40,8 @@ class FlapBearingFrequencySlot(first: Boolean, val front: Boolean) : ValueBoxTra
             .rotateX(xRot.toDouble())
             .rotateY(yRot.toDouble())
 
-        if (front) {
-            //TransformStack.cast(ms).rotateY(-180.0)
+        if (!front) {
+            TransformStack.cast(ms).rotateY(-180.0)
         }
     }
 

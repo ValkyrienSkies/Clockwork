@@ -127,7 +127,7 @@ open class SmartFlapBearingBehaviour(
     }
 
     fun setFrequency(first: Boolean, stack: ItemStack) {
-        println("setting")
+        println("stack ${stack}")
         var stack = stack
         stack = stack.copy()
         stack.count = 1
@@ -167,7 +167,8 @@ open class SmartFlapBearingBehaviour(
     fun testHit(first: Boolean, hit: Vec3): Boolean {
         val state = blockEntity.blockState
         val localHit = hit.subtract(Vec3.atLowerCornerOf(blockEntity.blockPos))
-        return (if (first) firstSlot else secondSlot)!!.testHit(state, localHit)
+        val slot = (if (first) firstSlot else secondSlot)
+        return slot.testHit(state, localHit)
     }
 
     override fun isAlive(): Boolean {

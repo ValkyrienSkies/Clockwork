@@ -59,6 +59,7 @@ object DualLinkRenderer {
 
                 if (!hit) continue
 
+
                 val tip: MutableList<MutableComponent> = ArrayList()
                 tip.add(label.copy())
                 tip.add(

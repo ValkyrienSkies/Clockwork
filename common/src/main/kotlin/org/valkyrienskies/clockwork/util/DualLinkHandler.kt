@@ -32,7 +32,10 @@ object DualLinkHandler {
 
     @JvmStatic
     fun handler(player: Player, hand: InteractionHand, pos: BlockPos, face: Direction): EventResult {
+
         val world = player.level
+
+        println("c $world.isClientSide")
 
         if (player.isShiftKeyDown || player.isSpectator) return EventResult.pass()
         if (!world.getBlockState(pos).hasProperty(BlockStateProperties.FACING)) return EventResult.pass()
@@ -64,7 +67,9 @@ object DualLinkHandler {
                 .distanceToSqr(behaviour.secondSlot.getLocalOffset(blockState))
         }
 
+        println("${behaviour.firstSlot.getLocalOffset(world.getBlockState(pos))} ${ray.location.subtract(Vec3.atLowerCornerOf(pos))}")
         for (first in mutableListOf(false, true)) {
+
             if (behaviour.testHit(first, ray.location) || fakePlayer && fakePlayerChoice == first) {
                 if (!world.isClientSide()) behaviour.setFrequency(first, heldItem)
                 world.playSound(null, pos, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.BLOCKS, .25f, .1f)
