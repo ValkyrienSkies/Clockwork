@@ -20,23 +20,23 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.function.BiConsumer
+import kotlin.collections.HashMap
 import kotlin.math.sign
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-class PropellerController : ShipForcesInducer {
-    private val propellorPhysData: HashMap<Int, PropData> = HashMap<Int, PropData>()
-    private val propellorUpdatePhysData: ConcurrentHashMap<Int, PropUpdateData> =
-        ConcurrentHashMap<Int, PropUpdateData>()
-    private val createdProps: ConcurrentLinkedQueue<Pair<Int, PropCreateData>> =
-        ConcurrentLinkedQueue<Pair<Int, PropCreateData>>()
-    private val removedProps = ConcurrentLinkedQueue<Int>()
-    private var nextPropID = 0
+class PropellerController(
+    override val appliers: HashMap<Int, PropData> = HashMap(),
+    override val applierUpdateData: ConcurrentLinkedQueue<Pair<Int, PropUpdateData>> = ConcurrentLinkedQueue(),
+    override val createdAppliers: ConcurrentLinkedQueue<Pair<Int, PropCreateData>> = ConcurrentLinkedQueue(),
+    override val removedAppliers: ConcurrentLinkedQueue<Int> = ConcurrentLinkedQueue(),
+    override var nextApplierID: Int = 0
+) : MultiInstanceForceApplier<PropUpdateData, PropData, PropCreateData> {
 
     override fun applyForces(physShip: PhysShip) {
-        while (!createdProps.isEmpty()) {
+        while (!createdAppliers.isEmpty()) {
             val createData: Pair<Int, PropCreateData> = createdProps.remove()
             val propInertiaData = ShipInertiaDataImpl.newEmptyShipInertiaData()
-            for (i in createData.component2().propellorPositions) {
+            for (i in createData.component2().sailPositions) {
                 propInertiaData.onSetBlock(i.x(), i.y(), i.z(), 0.0, 100.0)
             }
             propellorPhysData[createData.component1()] = PropData(
