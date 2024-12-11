@@ -24,12 +24,12 @@ class GasThrusterController(
     override fun applyForces(physShip: PhysShip) {
         super.applyForces(physShip)
        for (thruster in appliers.values) {
-           if (thruster.position == null || thruster.force == null || thruster.force.length() == 0.0) continue
+           if (thruster.position == null || thruster.force == null || thruster.force!!.length() == 0.0) continue
            val pos =  Vector3d(thruster.position).add(0.5,0.5,0.5, Vector3d()).sub(physShip.transform.positionInShip)
            val force = thruster.force
 
 
-           physShip.applyRotDependentForceToPos(force, pos)
+           physShip.applyRotDependentForceToPos(force!!, pos)
        }
     }
 

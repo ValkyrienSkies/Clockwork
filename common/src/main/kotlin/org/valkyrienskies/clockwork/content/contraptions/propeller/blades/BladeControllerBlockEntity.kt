@@ -26,7 +26,22 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
 
         if (level?.isClientSide() == false) {
             val sLevel = level as ServerLevel
-
         }
+    }
+
+    fun insertBlade(blade: ItemStack): Boolean {
+        if (blades.size < 8) {
+            blades.add(blade)
+            return true
+        } else return false
+    }
+
+    fun removeBlade(index: Int): ItemStack {
+        return blades.removeAt(index)
+    }
+
+    fun removeBlade(): ItemStack {
+        if (blades.isEmpty()) return ItemStack.EMPTY
+        return blades.removeAt(blades.size - 1)
     }
 }

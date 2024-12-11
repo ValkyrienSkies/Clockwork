@@ -26,6 +26,8 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlo
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingRenderer
+import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeControllerBlockEntity
+import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeControllerRenderer
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockRenderer
 import org.valkyrienskies.clockwork.content.generic.ColorBlockEntity
@@ -72,6 +74,27 @@ object ClockworkBlockEntities {
         .renderer {
             NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in PropellerBearingBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
                 PropellerBearingRenderer(
+                    context!!
+                )
+            }
+        }
+        .register()
+
+    @JvmField
+    val BLADE_CONTROLLER: BlockEntityEntry<BladeControllerBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<BladeControllerBlockEntity>(
+            "blade_controller"
+        ) { type: BlockEntityType<BladeControllerBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
+            BladeControllerBlockEntity(
+                type!!,
+                pos!!,
+                state!!
+            )
+        }
+        .validBlocks(ClockworkBlocks.BLADE_CONTROLLER)
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in BladeControllerBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                BladeControllerRenderer(
                     context!!
                 )
             }
