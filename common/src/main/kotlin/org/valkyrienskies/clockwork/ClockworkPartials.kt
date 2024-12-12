@@ -39,10 +39,14 @@ object ClockworkPartials {
     val WING_SAIL_ITEM = item("wing/wing_sail")
     val WING_FRAME_ITEM = item("wing")
     val FLAP_FRAME_ITEM = item("flap")
-    val PROPELLER_PISTON_TOP_LEFT = block("propeller_bearing/pistontopl")
-    val PROPELLER_PISTON_TOP_RIGHT = block("propeller_bearing/pistontopr")
-    val PROPELLER_PISTON_BOTTOM_LEFT = block("propeller_bearing/pistonbotl")
-    val PROPELLER_PISTON_BOTTOM_RIGHT = block("propeller_bearing/pistonbotr")
+
+    val BLADE_BASE = block("blade_controller/blade/blade_base")
+    val BLADE_EXTENSION = block("blade_controller/blade/blade_extension")
+    val BLADE_TIP = block("blade_controller/blade/blade_tip")
+    val WIDEBLADE_BASE = block("blade_controller/blade/wideblade_base")
+    val WIDEBLADE_EXTENSION = block("blade_controller/blade/wideblade_extension")
+    val WIDEBLADE_TIP = block("blade_controller/blade/wideblade_tip")
+
     val PROPELLER_TOP = block("propeller_bearing/top")
 
     // region Gravitron

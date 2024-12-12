@@ -63,8 +63,6 @@ class FlapBearingBlock(properties: Properties?) :
 
     override fun newBlockEntity(p_153215_: BlockPos, p_153216_: BlockState): BlockEntity {
         val isSmart = this.descriptionId == "block.vs_clockwork.smart_flap_bearing"
-        println(this.descriptionId)
-        println(isSmart)
         val maxSize = if (isSmart) -1L else 16L
         return FlapBearingBlockEntity(blockEntityType, p_153215_, p_153216_, maxSize, isSmart)
     }

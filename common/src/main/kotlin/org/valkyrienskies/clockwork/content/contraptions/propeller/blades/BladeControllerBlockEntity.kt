@@ -14,6 +14,9 @@ import net.minecraft.world.level.block.state.BlockState
 class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : SmartBlockEntity(type, pos,
     state
 ) {
+
+    var previousBladeCount = 0
+
     var blades = mutableListOf<ItemStack>()
     var clientBladeAngle = LerpedFloat.linear()
         .chase(0.0, 0.5, LerpedFloat.Chaser.EXP)
@@ -30,7 +33,20 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
 
     override fun tick() {
         super.tick()
-        if (level?.isClientSide == true) clientBladeAngle.tickChaser()
+        if (level?.isClientSide == true) {
+            val angleBetweenBlades = 360.0 / blades.size.toDouble()
+
+            if (previousBladeCount != blades.size) {
+                for (i in blades.indices) {
+                    clientBladeRotation[i]!!.chase(angleBetweenBlades * i.toDouble(), 0.5, LerpedFloat.Chaser.EXP)
+                }
+            }
+
+            clientBladeAngle.tickChaser()
+            for (i in blades.indices) {
+                clientBladeRotation[i]?.tickChaser()
+            }
+        }
 
         if (level?.isClientSide() == false) {
             val sLevel = level as ServerLevel

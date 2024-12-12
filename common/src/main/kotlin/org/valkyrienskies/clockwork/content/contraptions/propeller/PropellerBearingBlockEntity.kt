@@ -22,7 +22,9 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.joml.Vector3ic
+import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkLang
+import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.contraption.PropellerContraption
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropCreateData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropData
@@ -36,6 +38,7 @@ import org.valkyrienskies.mod.common.util.toJOMLD
 class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState, val brass: Boolean = false) : KineticBlockEntity(type, pos, state), IBearingBlockEntity, IForceApplierBE<PropUpdateData, PropData, PropCreateData, PropellerController> {
 
     var sailPositions: MutableList<Vector3ic> = ArrayList()
+    var blades: MutableList<BladeData> = ArrayList()
     override var physID: Int = -1
 
     var propellerContraption: ControlledContraptionEntity? = null
@@ -63,11 +66,11 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
     lateinit var rotationDirection: ScrollOptionBehaviour<RotationDirection>
 
     override fun newCreateData(): PropCreateData {
-        return PropCreateData(worldPosition.toJOML(), blockState.getValue(BlockStateProperties.FACING).normal.toJOMLD(), angle, currentOmega, sailPositions, isInverted(), active, brass)
+        return PropCreateData(worldPosition.toJOML(), blockState.getValue(BlockStateProperties.FACING).normal.toJOMLD(), angle, currentOmega, sailPositions, isInverted(), active, brass, blades)
     }
 
     override fun newUpdateData(): PropUpdateData {
-        return PropUpdateData(currentOmega, angle, isInverted(), active)
+        return PropUpdateData(currentOmega, angle, isInverted(), active, blades)
     }
 
     fun shutDown() {
@@ -86,6 +89,21 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
             for ((key, value) in blocks) {
                 if (AllTags.AllBlockTags.WINDMILL_SAILS.matches(value.state)) {
                     sailPositions.add(key.toJOML())
+                }
+            }
+        }
+    }
+
+    fun getBlades() {
+        if (propellerContraption != null) {
+            val blocks = propellerContraption!!.contraption.blocks
+            for ((key, value) in blocks) {
+                if (value.state.`is`(ClockworkBlocks.BLADE_CONTROLLER.get())) {
+                    val shouldUpdate = value.nbt.getBoolean("ShouldUpdatePhys")
+                    if (shouldUpdate) {
+                        value.nbt.putBoolean("ShouldUpdatePhys", false)
+                        blades = BladeData.fromTag(value.nbt)
+                    }
                 }
             }
         }
@@ -115,7 +133,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
                 active = !overStressed && !stalled
                 updateSpinDir(currentOmega < 0)
                 val lastTargetOmega = targetOmega
-                targetOmega = rpmToOmega(this.getSpeed() * 2f)
+                targetOmega = convertToAngular(this.getSpeed() * 2f).toDouble()
 
                 if (lastTargetOmega != targetOmega) {
                     sendData()
@@ -142,6 +160,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
             if (level!!.getShipObjectManagingPos(blockPos) != null && physID != -1) {
                 val shipOn = (level as ServerLevel).getShipObjectManagingPos(blockPos)!!
                 val attachment = PropellerController.getOrCreate(shipOn)!!
+                getBlades()
                 tickData(attachment, true)
             }
         }
@@ -196,10 +215,12 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         angle = 0.0
         currentOmega = 0.0
 
-        targetOmega = rpmToOmega(this.getSpeed() * 2f)
+        targetOmega = convertToAngular(this.getSpeed() * 2f).toDouble()
 
         if (brass) {
             getSails()
+        } else {
+            getBlades()
         }
 
         if (!level!!.isClientSide) {

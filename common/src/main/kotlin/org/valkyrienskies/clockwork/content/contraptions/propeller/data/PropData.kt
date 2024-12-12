@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect
 import org.joml.Vector3dc
 import org.joml.Vector3i
 import org.joml.Vector3ic
+import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeData
 import org.valkyrienskies.clockwork.content.forces.data.ForceApplierData
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
@@ -17,12 +18,14 @@ class PropData: ForceApplierData<PropUpdateData> {
     var prevAngularMomentum: Vector3dc? = null
     var active: Boolean = false
     var brass: Boolean = false
+    var blades: List<BladeData> = listOf()
 
     override fun updateData(data: PropUpdateData) {
         bearingAngle = data.rotationAngle
         bearingSpeed = data.rotationSpeed
         inverted = data.inverted
         active = data.active
+        blades = data.blades
     }
 
     // Default constructor for Jackson, should never be invoked manually
@@ -34,16 +37,17 @@ class PropData: ForceApplierData<PropUpdateData> {
     }
 
     constructor(
-        bearingPos: Vector3ic?,
+        position: Vector3ic?,
         bearingAxis: Vector3dc?,
         bearingAngle: Double,
         bearingSpeed: Double,
         sailPositions: List<Vector3ic>?,
         inverted: Boolean,
         active: Boolean,
-        brass: Boolean
+        brass: Boolean,
+        blades: List<BladeData>
     ) {
-        this.position = bearingPos
+        this.position = position
         this.bearingAxis = bearingAxis
         this.bearingAngle = bearingAngle
         this.bearingSpeed = bearingSpeed
@@ -51,5 +55,6 @@ class PropData: ForceApplierData<PropUpdateData> {
         this.inverted = inverted
         this.active = active
         this.brass = brass
+        this.blades = blades
     }
 }

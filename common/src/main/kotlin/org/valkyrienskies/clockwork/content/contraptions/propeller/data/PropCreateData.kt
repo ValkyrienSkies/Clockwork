@@ -5,6 +5,7 @@ import org.joml.Vector3dc
 import org.joml.Vector3i
 import org.joml.Vector3ic
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity
+import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeData
 import org.valkyrienskies.clockwork.content.forces.data.ForceApplierCreateData
 import org.valkyrienskies.clockwork.content.generic.IForceApplierBE
 import org.valkyrienskies.mod.common.util.toJOML
@@ -18,7 +19,8 @@ data class PropCreateData(
     val sailPositions: List<Vector3ic>,
     val inverted: Boolean,
     val active: Boolean,
-    val brass: Boolean
+    val brass: Boolean,
+    val blades: List<BladeData> = listOf()
 
 ) : ForceApplierCreateData<PropData> {
     override fun fromCreateData(): PropData {
@@ -30,7 +32,8 @@ data class PropCreateData(
             sailPositions,
             inverted,
             active,
-            brass
+            brass,
+            blades
         )
     }
 

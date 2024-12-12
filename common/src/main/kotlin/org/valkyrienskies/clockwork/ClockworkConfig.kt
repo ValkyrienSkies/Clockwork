@@ -51,5 +51,8 @@ object ClockworkConfig {
 
         @JsonSchema(description = "Whether or not blade controllers consume the durability of the blades inside while rotating at high speeds.")
         var bladeControllerUsesDurability = false
+
+        @JsonSchema(description = "The substeps of blade force calculation. More steps means more \'accurate\' simulation, but also makes it significantly more performance heavy.")
+        var bladeIntegrationSteps = 10.0
     }
 }

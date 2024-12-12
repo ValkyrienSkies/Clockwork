@@ -46,6 +46,7 @@ class BladeControllerMovementBehaviour: MovementBehaviour {
                     newBlades.put("Blade$i", bladeList[i - 1].save(CompoundTag()))
                 }
                 blockEntityData.put("Blades", newBlades)
+                blockEntityData.putBoolean("ShouldUpdatePhys", true)
             }
         }
     }
