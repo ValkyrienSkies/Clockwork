@@ -63,10 +63,6 @@ class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
             }
         }
         ms.translate(-0.5, -0.5, -0.5)
-//        val pistonTopL = CachedBufferer.partial(ClockworkPartials.PROPELLER_PISTON_TOP_LEFT, te.blockState)
-//        val pistonTopR = CachedBufferer.partial(ClockworkPartials.PROPELLER_PISTON_TOP_RIGHT, te.blockState)
-//        val pistonBotL = CachedBufferer.partial(ClockworkPartials.PROPELLER_PISTON_BOTTOM_LEFT, te.blockState)
-//        val pistonBotR = CachedBufferer.partial(ClockworkPartials.PROPELLER_PISTON_BOTTOM_RIGHT, te.blockState)
         val interpolatedAngle: Float = bearingTe.getInterpolatedAngle(partialTicks - 1)
 
         kineticRotationTransform(
@@ -76,10 +72,6 @@ class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
             disgustingFix * (interpolatedAngle / 180 * Math.PI).toFloat(),
             light
         )
-//        shakeEngine(pistonTopL, te.rotspeed, partialTicks, facing, te, 1)
-//        shakeEngine(pistonTopR, te.rotspeed, partialTicks, facing, te, 2)
-//        shakeEngine(pistonBotL, te.rotspeed, partialTicks, facing, te, 3)
-//        shakeEngine(pistonBotR, te.rotspeed, partialTicks, facing, te, 4)
 
         if (facing.axis.isHorizontal) superBuffer.rotateCentered(
             Direction.UP, AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
@@ -88,28 +80,6 @@ class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
             Direction.UP,
             AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
         )
-//        pistonTopL.rotateCentered(
-//            Direction.UP, AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
-//        )
-//        pistonTopR.rotateCentered(
-//            Direction.UP, AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
-//        )
-//        pistonBotL.rotateCentered(
-//            Direction.UP, AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
-//        )
-//        pistonBotR.rotateCentered(
-//            Direction.UP, AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
-//        )
-//
-//        pistonTopL.rotateCentered(Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()))
-//        pistonTopR.rotateCentered(Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()))
-//        pistonBotR.rotateCentered(Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()))
-//        pistonBotL.rotateCentered(Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()))
-//
-//        pistonTopL.renderInto(ms, buffer.getBuffer(RenderType.cutoutMipped()))
-//        pistonTopR.renderInto(ms, buffer.getBuffer(RenderType.cutoutMipped()))
-//        pistonBotL.renderInto(ms, buffer.getBuffer(RenderType.cutoutMipped()))
-//        pistonBotR.renderInto(ms, buffer.getBuffer(RenderType.cutoutMipped()))
         superBuffer.renderInto(ms, buffer.getBuffer(RenderType.solid()))
 
 
@@ -120,82 +90,5 @@ class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
         return CachedBufferer.partialFacing(
             AllPartialModels.SHAFT_HALF, state, state.getValue(BearingBlock.FACING).opposite
         )
-    }
-
-    private fun shakeEngine(
-        buffer: SuperByteBuffer,
-        speed: Float,
-        partialTicks: Float,
-        facing: Direction,
-        te: PropellerBearingBlockEntity,
-        ordinal: Int
-    ): SuperByteBuffer {
-        // Clamp speed to be at most 48 (because of clipping issues)
-        var speed = speed
-        speed = Mth.clamp(speed, -48.0f, 48.0f)
-
-        val xSwitch = when (ordinal) {
-            1 -> 1
-            2 -> -1
-            3 -> 1
-            4 -> -1
-            else -> 1
-        }
-        val zSwitch = when (ordinal) {
-            1 -> 1
-            2 -> 1
-            3 -> -1
-            4 -> -1
-            else -> 1
-        }
-
-        val interpolatedHorizontalOffset =
-            te.getCornerHorizontalOffset(AnimationTickHolder.getPartialTicks() - 1, te, ordinal)
-        val verticalOffset = when (ordinal) {
-            1 -> 1.5 / 16.0
-            2 -> 1.5 / 16.0
-            3 -> 0.0
-            4 -> 0.0
-            else -> 0.0
-        }
-        val translate = when (facing) {
-            Direction.UP -> Vec3(
-                (interpolatedHorizontalOffset * xSwitch).toDouble(),
-                verticalOffset,
-                (interpolatedHorizontalOffset * zSwitch).toDouble()
-            )
-
-            Direction.NORTH -> Vec3(
-                (interpolatedHorizontalOffset * xSwitch).toDouble(),
-                (interpolatedHorizontalOffset * zSwitch).toDouble(),
-                verticalOffset
-            )
-
-            Direction.SOUTH -> Vec3(
-                (interpolatedHorizontalOffset * zSwitch).toDouble(),
-                (interpolatedHorizontalOffset * xSwitch).toDouble(),
-                verticalOffset
-            )
-
-            Direction.EAST -> Vec3(
-                verticalOffset,
-                (interpolatedHorizontalOffset * xSwitch).toDouble(),
-                (interpolatedHorizontalOffset * zSwitch).toDouble()
-            )
-
-            Direction.WEST -> Vec3(
-                verticalOffset,
-                (interpolatedHorizontalOffset * zSwitch).toDouble(),
-                (interpolatedHorizontalOffset * xSwitch).toDouble()
-            )
-
-            Direction.DOWN -> Vec3(
-                (interpolatedHorizontalOffset * xSwitch).toDouble(),
-                verticalOffset,
-                (interpolatedHorizontalOffset * zSwitch).toDouble()
-            )
-        }
-        buffer.translate(translate)
-        return buffer
     }
 }

@@ -305,14 +305,6 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         return Mth.lerp(pT.toDouble(), angle, angle + Math.toDegrees(renderedOmega)).toFloat()
     }
 
-    private fun rpmToOmega(rpm: Float): Double {
-        return (rpm * (2.0 * Math.PI)) / 60.0
-    }
-
-    private fun omegaToRPM(omega: Double): Float {
-        return ((omega * 60.0) / (2.0 * Math.PI)).toFloat()
-    }
-
     override fun isWoodenTop(): Boolean {
         return false
     }
@@ -369,6 +361,16 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         super.lazyTick()
         if (running && propellerContraption != null) {
             sendData()
+        }
+    }
+
+    companion object {
+        fun rpmToOmega(rpm: Float): Double {
+            return (rpm * (2.0 * Math.PI)) / 60.0
+        }
+
+        fun omegaToRPM(omega: Double): Float {
+            return ((omega * 60.0) / (2.0 * Math.PI)).toFloat()
         }
     }
 }

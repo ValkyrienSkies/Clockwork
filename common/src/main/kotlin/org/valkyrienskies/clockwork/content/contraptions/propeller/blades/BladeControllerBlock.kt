@@ -39,6 +39,10 @@ class BladeControllerBlock(properties: Properties) : DirectionalBlock(properties
         val blockEntity = level.getBlockEntity(pos) as BladeControllerBlockEntity?
             ?: return super.use(state, level, pos, player, hand, hit)
 
+        if (level.isClientSide) {
+            return super.use(state, level, pos, player, hand, hit)
+        }
+
         if (player.getItemInHand(hand).`is`(ClockworkItems.PROPELLER_BLADE.get()) || player.getItemInHand(hand).`is`(ClockworkItems.WIDE_PROPELLER_BLADE.get())) {
             val success = blockEntity.insertBlade(player.getItemInHand(hand))
             if (success) {
