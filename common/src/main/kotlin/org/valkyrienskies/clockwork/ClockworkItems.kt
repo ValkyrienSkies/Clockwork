@@ -89,21 +89,23 @@ object ClockworkItems {
 
     @JvmField
     val PROPELLER_BLADE: ItemEntry<SwordItem> = REGISTRATE.item<SwordItem>("propeller_blade") { properties: Item.Properties? ->
-        SwordItem(Tiers.WOOD, 2, 1.4f, properties!!)
+        SwordItem(Tiers.WOOD, 2, 0.4f, properties!!)
     }
         .properties {
             it.durability(100)
         }
+        .tag(ClockworkTags.AllItemTags.PROP_BLADE.tag)
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .register()
 
     @JvmField
     val WIDE_PROPELLER_BLADE: ItemEntry<SwordItem> = REGISTRATE.item<SwordItem>("wide_propeller_blade") { properties: Item.Properties? ->
-        SwordItem(Tiers.WOOD, 4, 1.2f, properties!!)
+        SwordItem(Tiers.WOOD, 4, 0.2f, properties!!)
     }
         .properties {
             it.durability(200)
         }
+        .tag(ClockworkTags.AllItemTags.PROP_BLADE.tag)
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .register()
 

@@ -204,6 +204,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
             return
         }
         if (contraption.blocks.isEmpty()) return
+        println("blocks not empty")
         val anchor = worldPosition.relative(direction)
         contraption.removeBlocksFromWorld(level, BlockPos.ZERO)
         propellerContraption = ControlledContraptionEntity.create(level, this, contraption)

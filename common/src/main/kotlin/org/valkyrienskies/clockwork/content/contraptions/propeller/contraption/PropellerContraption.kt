@@ -2,12 +2,10 @@ package org.valkyrienskies.clockwork.content.contraptions.propeller.contraption
 
 import com.simibubi.create.AllTags
 import com.simibubi.create.content.contraptions.AssemblyException
-import com.simibubi.create.content.contraptions.BlockMovementChecks
 import com.simibubi.create.content.contraptions.Contraption
 import com.simibubi.create.content.contraptions.ContraptionType
 import com.simibubi.create.content.contraptions.bearing.AnchoredLighter
 import com.simibubi.create.content.contraptions.render.ContraptionLighter
-import com.simibubi.create.foundation.utility.UniqueLinkedList
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.core.BlockPos
@@ -72,12 +70,19 @@ class PropellerContraption : Contraption {
         if (brass) return super.searchMovedStructure(world, pos.relative(direction, offset + 1), null)
 
         anchor = pos
+        if (bounds == null) bounds = AABB(BlockPos.ZERO)
+
         val propellerBlock = world.getBlockState(pos.relative(facing!!, offset + 1))
 
         if (propellerBlock.`is`(ClockworkBlocks.BLADE_CONTROLLER.get())) {
             val blockFacing = propellerBlock.getValue(BlockStateProperties.FACING)
 
-            return blockFacing == facing
+            if (blockFacing != facing) {
+                return false
+            }
+            val queue = LinkedList<BlockPos>()
+            queue.add(pos.relative(facing!!, offset + 1))
+            return moveBlock(world, facing, queue, HashSet())
         }
         throw notProp()
     }
@@ -132,6 +137,7 @@ class PropellerContraption : Contraption {
             }
             contraption.startMoving(world)
             contraption.expandBoundsAroundAxis(direction.axis)
+            println("assembly success")
             return contraption
         }
 

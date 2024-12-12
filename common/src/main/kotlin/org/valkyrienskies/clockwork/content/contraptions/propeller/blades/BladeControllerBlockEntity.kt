@@ -23,26 +23,33 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
     var clientBladeLength = LerpedFloat.linear()
         .chase(1.0, 0.5, LerpedFloat.Chaser.EXP)
 
+    var bladeCooldown = 0
+
     var clientBladeRotation = HashMap<Int, LerpedFloat>().withDefault { LerpedFloat.linear().chase(0.0, 0.5, LerpedFloat.Chaser.EXP) }
 
-    val bladeControlBehaviour = BladeControlBehaviour(this)
+    lateinit var bladeControlBehaviour: BladeControlBehaviour
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
+        bladeControlBehaviour = BladeControlBehaviour(this)
         behaviours.add(bladeControlBehaviour)
     }
 
     override fun tick() {
         super.tick()
+        if (bladeCooldown > 0) bladeCooldown--
         if (level?.isClientSide == true) {
             val angleBetweenBlades = 360.0 / blades.size.toDouble()
 
             if (previousBladeCount != blades.size) {
                 for (i in blades.indices) {
-                    clientBladeRotation[i]!!.chase(angleBetweenBlades * i.toDouble(), 0.5, LerpedFloat.Chaser.EXP)
+                    clientBladeRotation[i]?.chase(angleBetweenBlades * i.toDouble(), 0.5, LerpedFloat.Chaser.EXP) ?: run {
+                        clientBladeRotation[i] = LerpedFloat.linear().chase(angleBetweenBlades * i.toDouble(), 0.5, LerpedFloat.Chaser.EXP)
+                    }
                 }
             }
 
             clientBladeAngle.tickChaser()
+            clientBladeLength.tickChaser()
             for (i in blades.indices) {
                 clientBladeRotation[i]?.tickChaser()
             }
@@ -60,6 +67,10 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
     override fun destroy() {
         super.destroy()
         dropBlades()
+    }
+
+    override fun invalidate() {
+        super.invalidate()
     }
 
     fun dropBlades() {
@@ -89,6 +100,7 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
         for (i in 1 .. bladeCount) {
             blades.add(ItemStack.of(bladesTag.getCompound("Blade$i")))
         }
+        bladeCooldown = tag.getInt("BladeCooldown")
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
@@ -99,13 +111,15 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
             bladesTag.put("Blade$counter", it.save(CompoundTag()))
         }
         tag.put("Blades", bladesTag)
-        tag.putInt("BladeCount", blades.size)
+        tag.putInt("BladeCount", counter)
+        tag.putInt("BladeCooldown", bladeCooldown)
         super.write(tag, clientPacket)
     }
 
     fun insertBlade(blade: ItemStack): Boolean {
         if (blades.size < 8) {
             blades.add(blade)
+            bladeCooldown = 10
             sendData()
             return true
         } else return false
@@ -118,6 +132,7 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
     fun removeBlade(): ItemStack {
         if (blades.isEmpty()) return ItemStack.EMPTY
         val blade = blades.removeAt(blades.size - 1)
+        bladeCooldown = 10
         sendData()
         return blade
     }
