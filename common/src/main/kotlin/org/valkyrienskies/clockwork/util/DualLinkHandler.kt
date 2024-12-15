@@ -35,7 +35,6 @@ object DualLinkHandler {
 
         val world = player.level
 
-        println("c $world.isClientSide")
 
         if (player.isShiftKeyDown || player.isSpectator) return EventResult.pass()
         if (!world.getBlockState(pos).hasProperty(BlockStateProperties.FACING)) return EventResult.pass()
