@@ -1,11 +1,10 @@
-package org.valkyrienskies.clockwork.util
+package org.valkyrienskies.clockwork.content.contraptions.flap.dual_link
 
 import com.simibubi.create.AllItems
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.utility.RaycastHelper
 import dev.architectury.event.EventResult
-import io.github.fabricators_of_create.porting_lib.fake_players.FakePlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerPlayer
@@ -13,12 +12,8 @@ import net.minecraft.sounds.SoundEvents
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.player.Player
-import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
-import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingLinkBehavior
-import org.valkyrienskies.clockwork.content.contraptions.flap.attached_frequency.SmartFlapBearingBehaviour
-import org.valkyrienskies.clockwork.platform.PlatformUtils
 
 object DualLinkHandler {
 
@@ -43,9 +38,9 @@ object DualLinkHandler {
         val facing = world.getBlockState(pos).getValue(BlockStateProperties.FACING)
 
 
-        val type: BehaviourType<SmartFlapBearingBehaviour>
-        if (face == getFrontFacing(facing)) type =  SmartFlapBearingBehaviour.FRONT_TYPE
-        else type = SmartFlapBearingBehaviour.BACK_TYPE
+        val type: BehaviourType<DualLinkBehaviour>
+        if (face == getFrontFacing(facing)) type =  DualLinkBehaviour.FRONT_TYPE
+        else type = DualLinkBehaviour.BACK_TYPE
 
 
 

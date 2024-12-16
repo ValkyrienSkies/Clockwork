@@ -1,9 +1,8 @@
-package org.valkyrienskies.clockwork.content.contraptions.flap.attached_frequency
+package org.valkyrienskies.clockwork.content.contraptions.flap.dual_link
 
 import com.simibubi.create.Create
 import com.simibubi.create.content.equipment.clipboard.ClipboardCloneable
 import com.simibubi.create.content.redstone.link.IRedstoneLinkable
-import com.simibubi.create.content.redstone.link.LinkBehaviour
 import com.simibubi.create.content.redstone.link.RedstoneLinkNetworkHandler
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType
@@ -20,10 +19,9 @@ import net.minecraft.world.phys.Vec3
 import org.apache.commons.lang3.tuple.Pair
 import java.util.function.Function
 import java.util.function.IntConsumer
-import java.util.function.IntSupplier
 
 
-open class SmartFlapBearingBehaviour(
+open class DualLinkBehaviour(
     be: SmartBlockEntity?,
     slots: Pair<ValueBoxTransform, ValueBoxTransform?>,
     private val signalCallback: IntConsumer,
@@ -50,12 +48,12 @@ open class SmartFlapBearingBehaviour(
         textShift = Vec3.ZERO
     }
 
-    fun moveText(shift: Vec3): SmartFlapBearingBehaviour {
+    fun moveText(shift: Vec3): DualLinkBehaviour {
         textShift = shift
         return this
     }
 
-    fun copyItemsFrom(behaviour: SmartFlapBearingBehaviour?) {
+    fun copyItemsFrom(behaviour: DualLinkBehaviour?) {
         if (behaviour == null) return
         frequencyFirst = behaviour.frequencyFirst
         frequencyLast = behaviour.frequencyLast
@@ -158,7 +156,7 @@ open class SmartFlapBearingBehaviour(
     ) {
         var scale: Float = 1f
 
-        fun scale(scale: Float): SmartFlapBearingBehaviour.SlotPositioning {
+        fun scale(scale: Float): DualLinkBehaviour.SlotPositioning {
             this.scale = scale
             return this
         }
@@ -209,8 +207,8 @@ open class SmartFlapBearingBehaviour(
     }
 
     companion object {
-        val FRONT_TYPE: BehaviourType<SmartFlapBearingBehaviour> = BehaviourType()
-        val BACK_TYPE: BehaviourType<SmartFlapBearingBehaviour> = BehaviourType()
+        val FRONT_TYPE: BehaviourType<DualLinkBehaviour> = BehaviourType()
+        val BACK_TYPE: BehaviourType<DualLinkBehaviour> = BehaviourType()
 
 
     }

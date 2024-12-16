@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.util.render
+package org.valkyrienskies.clockwork.content.contraptions.flap.dual_link
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.datafixers.util.Pair
@@ -18,8 +18,6 @@ import net.minecraft.network.chat.MutableComponent
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
-import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingLinkBehavior
-import org.valkyrienskies.clockwork.content.contraptions.flap.attached_frequency.SmartFlapBearingBehaviour
 
 object DualLinkRenderer {
 
@@ -35,7 +33,7 @@ object DualLinkRenderer {
 
 
 
-        for (type in mutableListOf(SmartFlapBearingBehaviour.FRONT_TYPE, SmartFlapBearingBehaviour.BACK_TYPE)) {
+        for (type in mutableListOf(DualLinkBehaviour.FRONT_TYPE, DualLinkBehaviour.BACK_TYPE)) {
             val behaviour = BlockEntityBehaviour.get(world, pos, type) ?: return
 
             val freq1: Component = Lang.translateDirect("logistics.firstFrequency")
@@ -83,7 +81,7 @@ object DualLinkRenderer {
                 .distanceToSqr(VecHelper.getCenterOf(be.blockPos)) > (max * max)
         ) return
 
-        for (type in mutableListOf(SmartFlapBearingBehaviour.FRONT_TYPE, SmartFlapBearingBehaviour.BACK_TYPE)) {
+        for (type in mutableListOf(DualLinkBehaviour.FRONT_TYPE, DualLinkBehaviour.BACK_TYPE)) {
             val behaviour = be.getBehaviour(type) ?: return
 
             for (first in Iterate.trueAndFalse) {
