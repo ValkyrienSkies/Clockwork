@@ -25,7 +25,8 @@ object DualLinkHandler {
     fun getFrontFacing(direction: Direction): Direction {
         return when(direction) {
             Direction.EAST -> Direction.NORTH
-            Direction.WEST -> Direction.NORTH
+            Direction.WEST -> Direction.SOUTH
+            Direction.NORTH -> Direction.WEST
             else -> Direction.EAST
         }
     }
@@ -45,6 +46,8 @@ object DualLinkHandler {
         val type: BehaviourType<SmartFlapBearingBehaviour>
         if (face == getFrontFacing(facing)) type =  SmartFlapBearingBehaviour.FRONT_TYPE
         else type = SmartFlapBearingBehaviour.BACK_TYPE
+
+
 
         val behaviour = BlockEntityBehaviour.get(world, pos, type)
             ?: return EventResult.pass()
@@ -66,9 +69,9 @@ object DualLinkHandler {
                 .distanceToSqr(behaviour.secondSlot.getLocalOffset(blockState))
         }
 
-        println("${behaviour.firstSlot.getLocalOffset(world.getBlockState(pos))} ${ray.location.subtract(Vec3.atLowerCornerOf(pos))}")
-        for (first in mutableListOf(false, true)) {
 
+
+        for (first in mutableListOf(false, true)) {
             if (behaviour.testHit(first, ray.location) || fakePlayer && fakePlayerChoice == first) {
                 if (!world.isClientSide()) behaviour.setFrequency(first, heldItem)
                 world.playSound(null, pos, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.BLOCKS, .25f, .1f)
