@@ -22,6 +22,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.apache.commons.lang3.tuple.Pair
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkBehaviour
 import org.valkyrienskies.clockwork.content.contraptions.flap.contraption.FlapContraption
+import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.FlapBearingFrequencySlot
 import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.clockwork.util.blocktype.ConnectedWingAlike
 import java.util.function.BiFunction
@@ -63,25 +64,12 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
         super.addBehaviours(behaviours)
+        createSmartFlap()
+        behaviours.add(linkFirst!!)
+        behaviours.add(linkSecond!!)
     }
 
-    override fun initialize() {
-        super.initialize()
-        if (this.smart && linkFirst == null) {
-            createSmartFlap()
-            attachBehaviourLate(linkFirst!!)
-            attachBehaviourLate(linkSecond!!)
-        }
-    }
 
-    override fun addBehavioursDeferred(behaviours: MutableList<BlockEntityBehaviour>) {
-        super.addBehavioursDeferred(behaviours)
-        if (this.smart) {
-            createSmartFlap()
-            behaviours.add(linkFirst!!)
-            behaviours.add(linkSecond!!)
-        }
-    }
 
     private fun createSmartFlap() {
         val valueBoxes = ValueBoxTransform.Dual.makeSlots { first: Boolean -> FlapBearingFrequencySlot(first, true) }

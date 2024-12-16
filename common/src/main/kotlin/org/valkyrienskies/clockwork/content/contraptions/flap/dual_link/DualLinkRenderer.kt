@@ -46,9 +46,7 @@ object DualLinkRenderer {
                 val transform = if (first) behaviour.firstSlot else behaviour.secondSlot
 
                 val box = ValueBox(label, bb, pos).passive(!hit)
-                val empty = behaviour.networkKey[first]
-                    .stack
-                    .isEmpty
+                val empty = behaviour.networkKey[first].stack.isEmpty
 
                 if (!empty) box.wideOutline()
 

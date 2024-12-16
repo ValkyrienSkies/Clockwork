@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content.contraptions.flap
+package org.valkyrienskies.clockwork.content.contraptions.flap.dual_link
 
 import com.jozufozu.flywheel.util.transform.TransformStack
 import com.mojang.blaze3d.vertex.PoseStack
@@ -9,6 +9,7 @@ import net.minecraft.core.Direction.*
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
+import kotlin.math.E
 
 class FlapBearingFrequencySlot(first: Boolean, val front: Boolean) : ValueBoxTransform.Dual(first) {
 
@@ -28,22 +29,21 @@ class FlapBearingFrequencySlot(first: Boolean, val front: Boolean) : ValueBoxTra
 
     override fun rotate(state: BlockState, ms: PoseStack) {
         val facing = state.getValue(BlockStateProperties.FACING)
-        val xRot: Float
-        val yRot: Float
-        if (facing.axis.isVertical) {
-            yRot = 270f
-            xRot = AngleHelper.verticalAngle(facing)
-        } else {
-            yRot = AngleHelper.horizontalAngle(facing) + 270
-            xRot = 0f
-        }
-        TransformStack.cast(ms)
-            .rotateX(xRot.toDouble())
-            .rotateY(yRot.toDouble())
+        var xRot: Double
+        var yRot: Double
 
-        if (!front) {
-            TransformStack.cast(ms).rotateY(-180.0)
+        when (facing) {
+            UP, NORTH, SOUTH, DOWN -> {xRot = 0.0; yRot = 90.0}
+            else -> {xRot = 0.0; yRot = 180.0}
         }
+
+        if (front) yRot += 180.0
+
+        TransformStack.cast(ms)
+            .rotateX(xRot)
+            .rotateY(yRot)
+
+
     }
 
     override fun getScale(): Float {
