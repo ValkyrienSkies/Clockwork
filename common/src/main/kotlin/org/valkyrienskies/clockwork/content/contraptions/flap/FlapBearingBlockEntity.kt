@@ -118,7 +118,7 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         if (linkSignalOverride) {
             val signal = firstReceivedSignal - secondReceivedSignal
             firstDominant = signal > 0
-            println(signal)
+
             return abs(signal)
         }
 
@@ -156,12 +156,12 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
                 sendData()
             }
         }
+
+        println(linkSignalOverride)
         if (linkSignalOverride) {
             redstoneSideOne = firstDominant
             redstoneSideTwo = !firstDominant
-        }
-
-        if (redstonePos != null && !linkSignalOverride) {
+        } else if (redstonePos != null) {
             if (blockState.getValue<Direction>(BlockStateProperties.FACING) == Direction.UP || blockState.getValue<Direction>(
                     BlockStateProperties.FACING
                 ) == Direction.DOWN
