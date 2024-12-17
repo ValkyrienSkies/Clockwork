@@ -125,7 +125,6 @@ open class DualLinkBehaviour(
     }
 
     fun setFrequency(first: Boolean, stack: ItemStack) {
-        println("stack ${stack}")
         var stack = stack
         stack = stack.copy()
         stack.count = 1

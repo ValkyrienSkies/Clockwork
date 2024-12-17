@@ -68,9 +68,7 @@ object DualLinkHandler {
 
         for (first in mutableListOf(false, true)) {
             if (behaviour.testHit(first, ray.location) || fakePlayer && fakePlayerChoice == first) {
-                println("GOT $heldItem")
                 if (!world.isClientSide()) {
-                    println("SENT $heldItem")
                     behaviour.setFrequency(first, heldItem)
                 }
                 world.playSound(null, pos, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.BLOCKS, .25f, .1f)

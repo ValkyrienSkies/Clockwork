@@ -138,8 +138,6 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
     override fun tick() {
         super.tick()
 
-        println("be 1 ${linkFirst!!.networkKey.first.stack} ${linkFirst!!.networkKey.second.stack} ${level!!.isClientSide}")
-        println("be 2 ${linkSecond!!.networkKey.first.stack} ${linkSecond!!.networkKey.second.stack} ${level!!.isClientSide}")
 
 
 
