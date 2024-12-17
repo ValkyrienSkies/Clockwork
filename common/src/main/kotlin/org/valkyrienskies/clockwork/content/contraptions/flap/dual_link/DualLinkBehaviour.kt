@@ -100,11 +100,11 @@ open class DualLinkBehaviour(
     override fun write(nbt: CompoundTag, clientPacket: Boolean) {
         super.write(nbt, clientPacket)
         nbt.put(
-            "FrequencyFirst", frequencyFirst.stack
+            "FrequencyFirst$front", frequencyFirst.stack
                 .save(CompoundTag())
         )
         nbt.put(
-            "FrequencyLast", frequencyLast.stack
+            "FrequencyLast$front", frequencyLast.stack
                 .save(CompoundTag())
         )
         nbt.putLong(
@@ -120,8 +120,8 @@ open class DualLinkBehaviour(
         newPosition = positionInTag != positionKey
 
         super.read(nbt, clientPacket)
-        frequencyFirst = RedstoneLinkNetworkHandler.Frequency.of(ItemStack.of(nbt.getCompound("FrequencyFirst")))
-        frequencyLast = RedstoneLinkNetworkHandler.Frequency.of(ItemStack.of(nbt.getCompound("FrequencyLast")))
+        frequencyFirst = RedstoneLinkNetworkHandler.Frequency.of(ItemStack.of(nbt.getCompound("FrequencyFirst$front")))
+        frequencyLast = RedstoneLinkNetworkHandler.Frequency.of(ItemStack.of(nbt.getCompound("FrequencyLast$front")))
     }
 
     fun setFrequency(first: Boolean, stack: ItemStack) {
@@ -207,8 +207,8 @@ open class DualLinkBehaviour(
     }
 
     companion object {
-        val FRONT_TYPE: BehaviourType<DualLinkBehaviour> = BehaviourType()
-        val BACK_TYPE: BehaviourType<DualLinkBehaviour> = BehaviourType()
+        val FRONT_TYPE: BehaviourType<DualLinkBehaviour> = BehaviourType("front_flap_bearing_behaviour")
+        val BACK_TYPE: BehaviourType<DualLinkBehaviour> = BehaviourType("back_flap_bearing_behaviour")
 
 
     }

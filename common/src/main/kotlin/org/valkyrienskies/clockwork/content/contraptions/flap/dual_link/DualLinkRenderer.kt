@@ -80,11 +80,14 @@ object DualLinkRenderer {
         ) return
 
         for (type in mutableListOf(DualLinkBehaviour.FRONT_TYPE, DualLinkBehaviour.BACK_TYPE)) {
-            val behaviour = be.getBehaviour(type) ?: return
+            val behaviour = be.getBehaviour(type) ?: continue
+
 
             for (first in Iterate.trueAndFalse) {
                 val transform = if (first) behaviour.firstSlot else behaviour.secondSlot
                 val stack = if (first) behaviour.networkKey.first.stack else behaviour.networkKey.second.stack
+
+
 
                 ms.pushPose()
                 transform.transform(be.blockState, ms)
