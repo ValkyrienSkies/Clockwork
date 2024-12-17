@@ -33,11 +33,13 @@ class FlapBearingFrequencySlot(first: Boolean, val front: Boolean) : ValueBoxTra
         var yRot: Double
 
         when (facing) {
-            UP, NORTH, SOUTH, DOWN -> {xRot = 0.0; yRot = 90.0}
+            NORTH -> {xRot = 0.0; yRot = 90.0}
+            UP, DOWN, SOUTH -> {xRot = 0.0; yRot = -90.0}
+            EAST -> {xRot = 0.0; yRot = 0.0}
             else -> {xRot = 0.0; yRot = 180.0}
         }
 
-        if (front) yRot += 180.0
+        if (!front) yRot += 180.0
 
         TransformStack.cast(ms)
             .rotateX(xRot)
