@@ -1,14 +1,17 @@
 package org.valkyrienskies.clockwork.forge.integration.cc;
 
+import dan200.computercraft.api.ComputerCraftAPI;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
+import org.valkyrienskies.clockwork.integration.cc.GasHeatSource;
 
 public class ClockworkForgePeripheralProviders {
     public static void register() {
         //ComputerCraftAPI.registerPeripheralProvider(new ClockworkPeripheralProvider());
+        ComputerCraftAPI.registerGenericSource(GasHeatSource.INSTANCE);
     }
 /*
     public static class ClockworkPeripheralProvider implements IPeripheralProvider {

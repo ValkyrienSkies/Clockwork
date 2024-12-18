@@ -40,8 +40,6 @@ repositories {
     maven { url = "https://cursemaven.com" } // Forge Config API Port
     maven { url = "https://maven.cafeteria.dev/releases" } // Fake Player API
     //maven { url = "https://maven.jamieswhiteshirt.com/libs-release" } // Reach Entity Attributes
-
-
 }
 
 dependencies {
@@ -51,7 +49,7 @@ dependencies {
 
     // dependencies
     modImplementation("net.fabricmc.fabric-api:fabric-api:${fabric_api_version}")
-    include(annotationProcessor(implementation("com.github.LlamaLad7:MixinExtras:0.1.1")))
+    include(annotationProcessor(implementation("io.github.llamalad7:mixinextras-fabric:0.3.5")))
     include(modApi("dev.architectury:architectury-fabric:${rootProject.architectury_version}"))
 
     //VS2
@@ -64,6 +62,12 @@ dependencies {
         exclude group: 'org.joml', module: ''
     }
     implementation("org.valkyrienskies.core:api-game:${rootProject.vscore_version}") {
+        exclude group: 'org.joml', module: ''
+    }
+
+    //Kelvin
+
+    modImplementation("org.valkyrienskies.kelvin:kelvin-fabric:${rootProject.minecraft_version}-${rootProject.kelvin_version}") {
         exclude group: 'org.joml', module: ''
     }
 
@@ -92,7 +96,11 @@ dependencies {
     modLocalRuntime("com.moandjiezana.toml:toml4j:0.7.2")
 
     // CC Restitched
-    modCompileOnly("curse.maven:cc-restitched-462672:3622561")
+    modImplementation("me.shedaniel.cloth:cloth-config-fabric:6.5.133") {
+        exclude(group: "net.fabricmc.fabric-api")
+    }
+    modImplementation "me.shedaniel.cloth.api:cloth-utils-v1:2.0.54"
+    modImplementation("curse.maven:cc-restitched-462672:3838648")
 
     //JEI
     //modRuntimeOnly("mezz.jei:jei-${minecraft_version}-fabric:${jei_version_fabric}")

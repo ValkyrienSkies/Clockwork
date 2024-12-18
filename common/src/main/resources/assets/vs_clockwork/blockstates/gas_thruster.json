@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "vs_clockwork:block/gas_thruster/block",
+      "x": 90
+    },
+    "facing=east": {
+      "model": "vs_clockwork:block/gas_thruster/block",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "vs_clockwork:block/gas_thruster/block"
+    },
+    "facing=south": {
+      "model": "vs_clockwork:block/gas_thruster/block",
+      "y": 180
+    },
+    "facing=up": {
+      "model": "vs_clockwork:block/gas_thruster/block",
+      "x": 270
+    },
+    "facing=west": {
+      "model": "vs_clockwork:block/gas_thruster/block",
+      "y": 270
+    }
+  }
+}

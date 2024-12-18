@@ -3,9 +3,9 @@ package org.valkyrienskies.clockwork.util
 import net.minecraft.util.Mth
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.forces.DragController
-import org.valkyrienskies.clockwork.kelvin.api.GasType
-import org.valkyrienskies.clockwork.kelvin.impl.DuctNetworkImpl.Companion.idealGasConstant
-import java.util.*
+import org.valkyrienskies.kelvin.api.GasType
+import org.valkyrienskies.kelvin.api.DuctNetwork.Companion.idealGasConstant
+import kotlin.collections.HashMap
 import kotlin.math.*
 
 /**
@@ -290,16 +290,16 @@ object AerodynamicUtils {
         return pressure
     }
 
-    fun densityAverage(gasMasses: EnumMap<GasType, Double>): Double {
+    fun densityAverage(gasMasses: HashMap<GasType, Double>): Double {
         val totalMass = gasMasses.values.sum()
 
         if (totalMass == 0.0) {
             return 0.0
         }
 
-        val massPerGas = EnumMap<GasType, Double>(GasType::class.java)
+        val massPerGas = HashMap<GasType, Double>()
 
-        val gasWeight = EnumMap<GasType, Double>(GasType::class.java)
+        val gasWeight = HashMap<GasType, Double>()
 
         gasMasses.keys.forEach {
             if (gasMasses[it] != 0.0 ) {
@@ -326,15 +326,15 @@ object AerodynamicUtils {
         return density
     }
 
-    fun densityFromPressureAverage(gasMasses: EnumMap<GasType, Double>, temp: Double, pressure: Double): Double {
+    fun densityFromPressureAverage(gasMasses: HashMap<GasType, Double>, temp: Double, pressure: Double): Double {
         val totalMass = gasMasses.values.sum()
         if (totalMass == 0.0) {
             return 0.0
         }
 
-        val massPerGas = EnumMap<GasType, Double>(GasType::class.java)
+        val massPerGas = HashMap<GasType, Double>()
 
-        val gasWeight = EnumMap<GasType, Double>(GasType::class.java)
+        val gasWeight = HashMap<GasType, Double>()
 
         gasMasses.keys.forEach {
             if (gasMasses[it] != 0.0 ) {
@@ -358,15 +358,15 @@ object AerodynamicUtils {
         return density
     }
 
-    fun dynamicViscosityAverage(gasMasses: EnumMap<GasType, Double>, temp: Double): Double {
+    fun dynamicViscosityAverage(gasMasses: HashMap<GasType, Double>, temp: Double): Double {
         val totalMass = gasMasses.values.sum()
         if (totalMass == 0.0) {
             return 0.0
         }
 
-        val massPerGas = EnumMap<GasType, Double>(GasType::class.java)
+        val massPerGas = HashMap<GasType, Double>()
 
-        val gasWeight = EnumMap<GasType, Double>(GasType::class.java)
+        val gasWeight = HashMap<GasType, Double>()
 
         gasMasses.keys.forEach {
             if (gasMasses[it] != 0.0 ) {
@@ -430,15 +430,15 @@ object AerodynamicUtils {
         return flowRate
     }
 
-    fun specificHeatAverage(gasMasses: EnumMap<GasType, Double>): Double {
+    fun specificHeatAverage(gasMasses: HashMap<GasType, Double>): Double {
         val totalMass = gasMasses.values.sum()
         if (totalMass == 0.0) {
             return 0.0
         }
 
-        val massPerGas = EnumMap<GasType, Double>(GasType::class.java)
+        val massPerGas = HashMap<GasType, Double>()
 
-        val gasWeight = EnumMap<GasType, Double>(GasType::class.java)
+        val gasWeight = HashMap<GasType, Double>()
 
         gasMasses.keys.forEach {
             if (gasMasses[it] != 0.0 ) {
@@ -461,15 +461,15 @@ object AerodynamicUtils {
     }
 
     //Returns an average Specific Gas Constant, Sutherland Constant, and Adiabatic Index for a given gas mixture
-    fun extraHeatInfoAverage(gasMasses: EnumMap<GasType, Double>): Triple<Double,Double,Double> {
+    fun extraHeatInfoAverage(gasMasses: HashMap<GasType, Double>): Triple<Double,Double,Double> {
         val totalMass = gasMasses.values.sum()
         if (totalMass == 0.0) {
             return Triple(0.0,0.0,0.0)
         }
 
-        val massPerGas = EnumMap<GasType, Double>(GasType::class.java)
+        val massPerGas = HashMap<GasType, Double>()
 
-        val gasWeight = EnumMap<GasType, Double>(GasType::class.java)
+        val gasWeight = HashMap<GasType, Double>()
 
         gasMasses.keys.forEach {
             if (gasMasses[it] != 0.0 ) {
@@ -502,4 +502,6 @@ object AerodynamicUtils {
     const val GRAVITATIONAL_ACCELERATION = 9.80665
     const val UNIVERSAL_GAS_CONSTANT = 8.314
     const val AIR_MOLAR_MASS = 0.0289644
+    const val DUCT_RADIUS = 0.1875
+    const val DUCT_AREA = 0.11045
 }

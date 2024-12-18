@@ -5,8 +5,9 @@ import com.simibubi.create.foundation.gui.AbstractSimiScreen
 import com.simibubi.create.foundation.gui.widget.ScrollInput
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
 import org.valkyrienskies.clockwork.ClockworkPackets
-import org.valkyrienskies.clockwork.kelvin.api.GasType
+import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.clockwork.util.gui.ScrollingFrame
+import org.valkyrienskies.kelvin.impl.GasTypeRegistry
 
 class CreativeGeneratorScreen(private val be: CreativeGeneratorBlockEntity) : AbstractSimiScreen()  {
 
@@ -23,7 +24,7 @@ class CreativeGeneratorScreen(private val be: CreativeGeneratorBlockEntity) : Ab
         super.init()
 
         scrollingFrame = CreativeGeneratorScrolling(guiLeft+3, guiTop+16)
-        for (type in GasType.entries) {
+        for (type in GasTypeRegistry.GAS_TYPES.values) {
 
             val input = ScrollInput(0,0,51, 18)
             input.calling { state: Int -> be.gasValues[type] = state }

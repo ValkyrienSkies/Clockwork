@@ -63,10 +63,10 @@ class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
             }
         }
         ms.translate(-0.5, -0.5, -0.5)
-        val pistonTopL = CachedBufferer.partial(ClockworkPartials.PROPELLER_PISTON_TOP_LEFT, te.blockState)
-        val pistonTopR = CachedBufferer.partial(ClockworkPartials.PROPELLER_PISTON_TOP_RIGHT, te.blockState)
-        val pistonBotL = CachedBufferer.partial(ClockworkPartials.PROPELLER_PISTON_BOTTOM_LEFT, te.blockState)
-        val pistonBotR = CachedBufferer.partial(ClockworkPartials.PROPELLER_PISTON_BOTTOM_RIGHT, te.blockState)
+//        val pistonTopL = CachedBufferer.partial(ClockworkPartials.PROPELLER_PISTON_TOP_LEFT, te.blockState)
+//        val pistonTopR = CachedBufferer.partial(ClockworkPartials.PROPELLER_PISTON_TOP_RIGHT, te.blockState)
+//        val pistonBotL = CachedBufferer.partial(ClockworkPartials.PROPELLER_PISTON_BOTTOM_LEFT, te.blockState)
+//        val pistonBotR = CachedBufferer.partial(ClockworkPartials.PROPELLER_PISTON_BOTTOM_RIGHT, te.blockState)
         val interpolatedAngle: Float = bearingTe.getInterpolatedAngle(partialTicks - 1)
 
         kineticRotationTransform(
@@ -76,10 +76,10 @@ class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
             disgustingFix * (interpolatedAngle / 180 * Math.PI).toFloat(),
             light
         )
-        shakeEngine(pistonTopL, te.rotspeed, partialTicks, facing, te, 1)
-        shakeEngine(pistonTopR, te.rotspeed, partialTicks, facing, te, 2)
-        shakeEngine(pistonBotL, te.rotspeed, partialTicks, facing, te, 3)
-        shakeEngine(pistonBotR, te.rotspeed, partialTicks, facing, te, 4)
+//        shakeEngine(pistonTopL, te.rotspeed, partialTicks, facing, te, 1)
+//        shakeEngine(pistonTopR, te.rotspeed, partialTicks, facing, te, 2)
+//        shakeEngine(pistonBotL, te.rotspeed, partialTicks, facing, te, 3)
+//        shakeEngine(pistonBotR, te.rotspeed, partialTicks, facing, te, 4)
 
         if (facing.axis.isHorizontal) superBuffer.rotateCentered(
             Direction.UP, AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
@@ -88,28 +88,28 @@ class PropellerBearingRenderer(context: BlockEntityRendererProvider.Context) :
             Direction.UP,
             AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
         )
-        pistonTopL.rotateCentered(
-            Direction.UP, AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
-        )
-        pistonTopR.rotateCentered(
-            Direction.UP, AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
-        )
-        pistonBotL.rotateCentered(
-            Direction.UP, AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
-        )
-        pistonBotR.rotateCentered(
-            Direction.UP, AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
-        )
-
-        pistonTopL.rotateCentered(Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()))
-        pistonTopR.rotateCentered(Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()))
-        pistonBotR.rotateCentered(Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()))
-        pistonBotL.rotateCentered(Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()))
-
-        pistonTopL.renderInto(ms, buffer.getBuffer(RenderType.cutoutMipped()))
-        pistonTopR.renderInto(ms, buffer.getBuffer(RenderType.cutoutMipped()))
-        pistonBotL.renderInto(ms, buffer.getBuffer(RenderType.cutoutMipped()))
-        pistonBotR.renderInto(ms, buffer.getBuffer(RenderType.cutoutMipped()))
+//        pistonTopL.rotateCentered(
+//            Direction.UP, AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
+//        )
+//        pistonTopR.rotateCentered(
+//            Direction.UP, AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
+//        )
+//        pistonBotL.rotateCentered(
+//            Direction.UP, AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
+//        )
+//        pistonBotR.rotateCentered(
+//            Direction.UP, AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
+//        )
+//
+//        pistonTopL.rotateCentered(Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()))
+//        pistonTopR.rotateCentered(Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()))
+//        pistonBotR.rotateCentered(Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()))
+//        pistonBotL.rotateCentered(Direction.EAST, AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()))
+//
+//        pistonTopL.renderInto(ms, buffer.getBuffer(RenderType.cutoutMipped()))
+//        pistonTopR.renderInto(ms, buffer.getBuffer(RenderType.cutoutMipped()))
+//        pistonBotL.renderInto(ms, buffer.getBuffer(RenderType.cutoutMipped()))
+//        pistonBotR.renderInto(ms, buffer.getBuffer(RenderType.cutoutMipped()))
         superBuffer.renderInto(ms, buffer.getBuffer(RenderType.solid()))
 
 

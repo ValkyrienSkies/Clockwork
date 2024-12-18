@@ -16,8 +16,8 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorPacket
-import org.valkyrienskies.clockwork.kelvin.api.DuctNodePos
-import org.valkyrienskies.clockwork.kelvin.api.GasType
+import org.valkyrienskies.kelvin.api.DuctNodePos
+import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.clockwork.util.AerodynamicUtils
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.calcPressure
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.calculateFlow
@@ -27,6 +27,8 @@ import org.valkyrienskies.clockwork.util.AerodynamicUtils.dynamicViscosityAverag
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.specificHeatAverage
 import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
 import org.valkyrienskies.clockwork.util.PIDstance
+import org.valkyrienskies.kelvin.impl.GasTypeRegistry
+import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
@@ -83,13 +85,13 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
         super.onSpeedChanged(previousSpeed)
         val speed = getSpeed()
         val target = (if (speed > 0) 1 else 0).toDouble()
-        pointer.chase(target, getChaseSpeed().toDouble(), LerpedFloat.Chaser.LINEAR)
+        pointer.chase(target, getChaseSpeed(), LerpedFloat.Chaser.LINEAR)
         ClockworkPackets.sendToNear(level, blockPos, 100, GasNozzlePacket(target, blockPos))
         sendData()
     }
 
-    fun getChaseSpeed(): Float {
-        return Mth.clamp(abs(getSpeed()) / 16f / 20f / 10f, 0f, 1f)
+    fun getChaseSpeed(): Double {
+        return Mth.clamp(abs(getSpeed().toDouble()) / 16.0 / 40.0, 0.0, 1.0)
     }
 
     private fun heatPocket() {
@@ -101,6 +103,8 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
             blockPos.y + 0.5
         }
 
+        val dimension = serverLevel.dimension().location()
+
         val pocketRef = blockPos.above()
         val (pocketGasVolumes, pocketTemperature) = retrieveGasInfoFromPocket(pocketRef.toJOML(), serverLevel)
         val pocketVolume = serverLevel.shipObjectWorld.getAirComponentSize(pocketRef.x, pocketRef.y, pocketRef.z, serverLevel.dimensionId).toDouble()
@@ -109,14 +113,14 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
         val pocketAvgViscosity = dynamicViscosityAverage(pocketGasVolumes, pocketTemperature)
         val pocketPressure = serverLevel.shipObjectWorld.getAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("pressure"), pocketRef.x, pocketRef.y, pocketRef.z, serverLevel.dimensionId)
 
-        val currentNodeTemperature = ClockworkMod.getKelvin().getTemperatureAt(blockPos.toJOMLD())
-        val currentNodePressure = ClockworkMod.getKelvin().getPressureAt(blockPos.toJOMLD())
-        val currentNodeGasVolumes = ClockworkMod.getKelvin().getGasMassAt(blockPos.toJOMLD())
+        val currentNodeTemperature = ClockworkMod.getKelvin().getTemperatureAt(blockPos.toDuctNodePos(dimension))
+        val currentNodePressure = ClockworkMod.getKelvin().getPressureAt(blockPos.toDuctNodePos(dimension))
+        val currentNodeGasVolumes = ClockworkMod.getKelvin().getGasMassAt(blockPos.toDuctNodePos(dimension))
         val currentNodeTotalMass = currentNodeGasVolumes.values.sum()
         val currentNodeAvgViscosity = dynamicViscosityAverage(currentNodeGasVolumes, currentNodeTemperature)
         val currentNodeAvgSpecificHeat = specificHeatAverage(currentNodeGasVolumes)
 
-        val newNodeMasses = EnumMap<GasType, Double>(GasType::class.java)
+        val newNodeMasses = HashMap<GasType, Double>()
 
         if (currentNodeTotalMass <= 0.0001 || pocketTotalMass <= 0.0001 || pocketTemperature >= currentNodeTemperature) return
 
@@ -125,7 +129,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
         // Gas consumption
 
         val outputRateMult = pointer.value.toDouble()
-        val consumedGasses = EnumMap<GasType, Double>(GasType::class.java)
+        val consumedGasses = HashMap<GasType, Double>()
 
         val idealOutputEnergy = 100000.0 //100 kW * closed off valve amount
 
@@ -163,7 +167,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
 
         var newCurrentNodeTemperature = currentNodeTemperature - (actualOutputEnergy / (currentNodeTotalMass * currentNodeAvgSpecificHeat))
         if (newCurrentNodeTemperature <= 0.0001 || newCurrentNodeTemperature.isNaN() && newCurrentNodeTemperature.isInfinite()) newCurrentNodeTemperature = 0.0001
-        for (gas in GasType.entries) {
+        for (gas in GasTypeRegistry.GAS_TYPES.values) {
             val currentMass = currentNodeGasVolumes[gas] ?: 0.0
             val deltaMass = Mth.clamp(flowRate, 0.0, currentMass)
             newNodeMasses[gas] = max(currentMass - deltaMass, 0.0)
@@ -172,112 +176,18 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
 
         //apply stuff
 
-        for (gas in GasType.entries) {
-            ClockworkMod.getKelvin().modGasMass(blockPos.toJOMLD(), gas, -(consumedGasses[gas] ?: 0.0))
+        for (gas in GasTypeRegistry.GAS_TYPES.values) {
+            ClockworkMod.getKelvin().modGasMass(blockPos.toDuctNodePos(dimension), gas, -(consumedGasses[gas] ?: 0.0))
         }
-        ClockworkMod.getKelvin().modTemperature(blockPos.toJOMLD(), max(newCurrentNodeTemperature - currentNodeTemperature, -currentNodeTemperature))
+        ClockworkMod.getKelvin().modTemperature(blockPos.toDuctNodePos(dimension), max(newCurrentNodeTemperature - currentNodeTemperature, -currentNodeTemperature))
         serverLevel.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("temperature"), pocketRef.x, pocketRef.y, pocketRef.z, serverLevel.dimensionId, newPocketTemperature)
-    }
-
-    private fun flowIntoPocket() {
-        val serverLevel = level!! as ServerLevel
-
-        val currentNodeTemperature = ClockworkMod.getKelvin().getTemperatureAt(blockPos.toJOMLD())
-        val currentNodePressure = ClockworkMod.getKelvin().getPressureAt(blockPos.toJOMLD())
-        val currentNodeGasVolumes = ClockworkMod.getKelvin().getGasMassAt(blockPos.toJOMLD())
-        val currentNodeTotalMass = currentNodeGasVolumes.values.sum()
-        val currentNodeAvgViscosity = dynamicViscosityAverage(currentNodeGasVolumes, currentNodeTemperature)
-        val currentNodeAvgSpecificHeat = specificHeatAverage(currentNodeGasVolumes)
-
-
-        val pocketRef = blockPos.above()
-        val (pocketGasVolumes, pocketTemperature) = retrieveGasInfoFromPocket(pocketRef.toJOML(), serverLevel)
-        val pocketVolume = serverLevel.shipObjectWorld.getAirComponentSize(pocketRef.x, pocketRef.y, pocketRef.z, serverLevel.dimensionId).toDouble()
-        val pocketTotalMass = pocketGasVolumes.values.sum()
-        val pocketAvgDensity = densityAverage(pocketGasVolumes)
-        val pocketAvgViscosity = dynamicViscosityAverage(pocketGasVolumes, pocketTemperature)
-        val pocketPressure = serverLevel.shipObjectWorld.getAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("pressure"), pocketRef.x, pocketRef.y, pocketRef.z, serverLevel.dimensionId)
-
-        var newCurrentNodeTemperature: Double = currentNodeTemperature
-        var newPocketTemperature: Double = pocketTemperature
-        val newCurrentNodeMasses: EnumMap<GasType, Double> = EnumMap(GasType::class.java)
-        val newPocketMasses: EnumMap<GasType, Double> = EnumMap(GasType::class.java)
-
-        val realDensityNode = densityFromPressureAverage(currentNodeGasVolumes, currentNodeTemperature, currentNodePressure)
-        val realDensityPocket = densityFromPressureAverage(pocketGasVolumes, pocketTemperature, pocketPressure)
-        val viscosity = (currentNodeAvgViscosity + pocketAvgViscosity) / 2.0
-
-        var flow = calculateFlow(
-            currentNodePressure,
-            pocketPressure,
-            0.5 - (pointer.value/2.0),
-            0.5,
-            realDensityNode,
-            realDensityPocket,
-            viscosity
-        )
-
-        if (flow < 0) {
-            flow = 0.0
-        }
-
-        if (flow.isInfinite() || flow.isNaN()) flow = 0.0
-
-        var totalDeltaMass: Double = 0.0
-        val transferredGasses = EnumMap<GasType, Double>(GasType::class.java)
-        for (gas in GasType.entries) {
-            val currentMass = currentNodeGasVolumes[gas] ?: 0.0
-            val pocketMass = pocketGasVolumes[gas] ?: 0.0
-
-            val deltaMass = Mth.clamp(flow, 0.0, currentMass)
-            newCurrentNodeMasses[gas] = max(currentMass - deltaMass, 0.0)
-            newPocketMasses[gas] = max(pocketMass + deltaMass, 0.0)
-            totalDeltaMass += deltaMass
-            transferredGasses[gas] = deltaMass
-        }
-
-        val transferSpecificHeat = specificHeatAverage(transferredGasses)
-
-        var deltaThermalEnergy = if (flow > 0) {
-            (totalDeltaMass * transferSpecificHeat * (currentNodeTemperature - pocketTemperature))
-        } else {
-            0.0
-        }
-
-        val thermalLimit = if (flow > 0) {
-            currentNodeTotalMass * currentNodeAvgSpecificHeat * currentNodeTemperature
-        } else {
-            0.0
-        }
-        deltaThermalEnergy = Mth.clamp(deltaThermalEnergy, -thermalLimit, thermalLimit)
-
-        if (deltaThermalEnergy.isInfinite() || deltaThermalEnergy.isNaN()) deltaThermalEnergy = 0.0
-
-
-        //if (nodeA.currentTemperature > 300.0 || nodeB.currentTemperature > 300.0) KELVINLOGGER.logger.warn("High Temp! DeltaThermalEnergy: $deltaThermalEnergy, flowHeat: $flowHeatCapacity, ThermalLimit: $thermalLimit, totalGasMassA: $newTotalGasMassesA, totalGasMassB: $newTotalGasMassesB")
-        if (newCurrentNodeMasses.values.sum() >= 0.0001 && newPocketMasses.values.sum() >= 0.0001) {
-            newCurrentNodeTemperature -= (deltaThermalEnergy) / (newCurrentNodeMasses.values.sum() * specificHeatAverage(newCurrentNodeMasses))
-            newPocketTemperature += (deltaThermalEnergy) / (newPocketMasses.values.sum() * specificHeatAverage(newPocketMasses))
-        }
-
-        if (newPocketTemperature <= 0.0001) newPocketTemperature = 0.0001
-        if (newCurrentNodeTemperature <= 0.0001) newCurrentNodeTemperature = 0.0001
-
-        newPocketTemperature = min(Mth.clamp(newPocketTemperature, 0.0001, currentNodeTemperature), 5772.0)
-
-        //var newPocketPressure = calcPressure(newPocketMasses.values.sum(), pocketVolume, newPocketTemperature, densityAverage(newPocketMasses))
-
-        for (gas in GasType.entries) {
-            ClockworkMod.getKelvin().modGasMass(blockPos.toJOMLD(), gas, -(transferredGasses[gas]?: 0.0))
-            serverLevel.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("gas_" + gas.name.lowercase()), pocketRef.x, pocketRef.y, pocketRef.z, serverLevel.dimensionId, newPocketMasses[gas]!!)
-        }
-        ClockworkMod.getKelvin().modTemperature(blockPos.toJOMLD(), newCurrentNodeTemperature - currentNodeTemperature)
-        serverLevel.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("temperature"), pocketRef.x, pocketRef.y, pocketRef.z, serverLevel.dimensionId, newPocketTemperature)
-        //serverLevel.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("pressure"), pocketRef.x, pocketRef.y, pocketRef.z, serverLevel.dimensionId, newPocketPressure)
     }
 
     override fun getDuctNodePosition(): DuctNodePos {
-        return blockPos.toJOMLD()
+        if (level != null) {
+            return blockPos.toDuctNodePos(level!!.dimension().location())
+        }
+        return blockPos.toDuctNodePos()
     }
 
     override fun addToGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {

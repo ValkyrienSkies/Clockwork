@@ -6,7 +6,7 @@ import com.simibubi.create.AllPartialModels
 object ClockworkPartials {
 
     val BEARING_TOP_VSIFIED = block("vstop")
-    val BEARING_TOP_FLAP = block("flap_bearing/top")
+    val BEARING_TOP_FLAP = block("flap_bearing_top")
     val JOYSTICK = block("command_seat/joystick")
     val BUTTON_ONE = block("command_seat/buttonone")
     val BUTTON_TWO = block("command_seat/buttontwo")
@@ -106,11 +106,11 @@ object ClockworkPartials {
     val COMPRESSOR_FABRIC: PartialModel = PartialModel(ClockworkMod.asResource("block/compressor/fabric"))
     val COMPRESSOR_TOP: PartialModel = PartialModel(ClockworkMod.asResource("block/compressor/top"))
 
-    val PUMP_COG: PartialModel = AllPartialModels.MECHANICAL_PUMP_COG
+    val PUMP_COG: PartialModel = PartialModel(ClockworkMod.asResource("block/pump/cog"))
 
     val NOZZLE_DIAL: PartialModel = PartialModel(ClockworkMod.asResource("block/gas_nozzle/dial"))
     val NOZZLE_AXIS: PartialModel = PartialModel(ClockworkMod.asResource("block/gas_nozzle/axis"))
-    
+
     val HAND_SECOND: PartialModel = PartialModel(ClockworkMod.asResource("block/clock/hand_second"))
     val HAND_MINUTE: PartialModel = PartialModel(ClockworkMod.asResource("block/clock/hand_minute"))
     val HAND_HOUR: PartialModel = PartialModel(ClockworkMod.asResource("block/clock/hand_hour"))
@@ -121,6 +121,8 @@ object ClockworkPartials {
     val CANNON_BASE = PartialModel(ClockworkMod.asResource("block/delivery_cannon/cannon_base"))
     val CANNON_MOUNT = PartialModel(ClockworkMod.asResource("block/delivery_cannon/mount"))
     // endregion
+
+    val ALTIMETER_REDSTONE = PartialModel(ClockworkMod.asResource("block/alt_meter/redstone"))
 
     private fun block(path: String): PartialModel {
         return PartialModel(ClockworkMod.asResource("block/$path"))

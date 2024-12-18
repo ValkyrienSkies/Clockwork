@@ -28,8 +28,9 @@ import org.valkyrienskies.clockwork.ClockworkPackets
 object FrequencySlotGlobals {
     fun tick() {
         val mc = Minecraft.getInstance()
+        if (mc.level == null || mc.player == null || mc.player!!.getItemInHand(InteractionHand.MAIN_HAND).descriptionId=="item.create.wrench") return
         val target = mc.hitResult
-        if (mc.level == null || target == null || target !is BlockHitResult || mc.player == null || mc.player!!.getItemInHand(InteractionHand.MAIN_HAND).descriptionId=="item.create.wrench") return
+        if (target == null || target !is BlockHitResult) return
 
         val result = target
         val world = mc.level

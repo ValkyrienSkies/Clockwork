@@ -13,7 +13,7 @@ import org.valkyrienskies.clockwork.ClockworkAugmentations
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.utilities.PocketForcesQueueable
-import org.valkyrienskies.clockwork.kelvin.api.GasType
+import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.clockwork.util.AerodynamicUtils
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.GRAVITATIONAL_ACCELERATION
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.UNIVERSAL_GAS_CONSTANT
@@ -30,6 +30,7 @@ import org.valkyrienskies.core.api.ships.ShipForcesInducer
 import org.valkyrienskies.core.util.x
 import org.valkyrienskies.core.util.y
 import org.valkyrienskies.core.util.z
+import org.valkyrienskies.kelvin.impl.GasTypeRegistry
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.shipObjectWorld
 import java.util.*
@@ -48,7 +49,7 @@ class PocketForcesController: ShipForcesInducer {
     @JsonIgnore
     val pocketCenters: HashMap<Vector3ic, Vector3dc> = HashMap()
     @JsonIgnore
-    val gasMasses: HashMap<Vector3ic, EnumMap<GasType, Double>> = HashMap()
+    val gasMasses: HashMap<Vector3ic, HashMap<GasType, Double>> = HashMap()
     @JsonIgnore
     val temperatures: HashMap<Vector3ic, Double> = HashMap()
     @JsonIgnore
@@ -203,7 +204,7 @@ class PocketForcesController: ShipForcesInducer {
                     if (leakOrificeSize < 0.001 && leakOrificeSize != 0.0) static = true
 
                     if (leakOrificeSize != 0.0) {
-                        val newGasMasses = gasMassesInternal.clone() as EnumMap<GasType, Double>
+                        val newGasMasses = HashMap(gasMassesInternal)
 
                         val pressureDifference = internalPressure - atmosphericPressureAtRoot
                         val chokedFlow = (internalPressure/atmosphericPressureAtRoot > 1.89)
@@ -255,7 +256,7 @@ class PocketForcesController: ShipForcesInducer {
 
                         combinedMassFlowRate = (massInFlowRate + massOutFlowRate) / 20.0
 
-                        forEachGas@ for (gas in GasType.entries) {
+                        forEachGas@ for (gas in GasTypeRegistry.GAS_TYPES.values) {
                             if (gasMassesInternal.containsKey(gas)) {
                                 if (gasMassesInternal[gas]!! <= 0.0) {
                                     newGasMasses[gas] = 0.0
@@ -263,7 +264,7 @@ class PocketForcesController: ShipForcesInducer {
                                 }
                                 val limit: Double = gasMassesInternal[gas]!! / 2.0
 
-                                val deltaMass = Mth.clamp(combinedMassFlowRate, -limit, if (gas == GasType.AIR) requiredMassForDensity/2.0 else 0.0) * 0.1
+                                val deltaMass = Mth.clamp(combinedMassFlowRate, -limit, if (gas.name == "Air") requiredMassForDensity/2.0 else 0.0) * 0.1
 
                                 newGasMasses[gas] = gasMassesInternal[gas]!! + deltaMass
                                 newGasMasses[gas] = max(newGasMasses[gas]!!, 0.0)
@@ -304,7 +305,7 @@ class PocketForcesController: ShipForcesInducer {
 
                         //ClockworkMod.LOGGER.info("delta mass: $totalDeltaMass // pressure diff: $pressureDifference // temperature: $temperatureInternal // conduction: $conduction, // new temperature: $newPocketTemperature")
                         if (!static) {
-                            for (gas in GasType.entries) {
+                            for (gas in GasTypeRegistry.GAS_TYPES.values) {
                                 if (newGasMasses[gas] != null && newGasMasses[gas]!!.isFinite() && !newGasMasses[gas]!!.isNaN()) level.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("gas_" + gas.name.lowercase()), root.x(), root.y(), root.z(), level.dimensionId, newGasMasses[gas]!!)
                             }
                         } else {

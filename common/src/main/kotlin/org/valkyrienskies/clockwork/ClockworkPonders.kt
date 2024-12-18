@@ -37,7 +37,7 @@ object ClockworkPonders {
             .addStoryBoard(
                 "alt_meter", ::altMeter
             )
-        HELPER.forComponents(ClockworkBlocks.FLAP_BEARING, ClockworkBlocks.FLAP)
+        HELPER.forComponents(ClockworkBlocks.ANDESITE_FLAP_BEARING, ClockworkBlocks.FLAP)
             .addStoryBoard(
                 "flap_bearing", ::flap
             )
