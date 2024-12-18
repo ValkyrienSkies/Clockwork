@@ -21,6 +21,9 @@ class PhysBearingData {
     var attachConstraint: VSAttachmentConstraint? = null
 
     @JsonIgnore
+    var actualAngle = 0.0
+
+    @JsonIgnore
     var attachID: Int? = null
     var hingeConstraint: VSHingeOrientationConstraint? = null
     var angleConstraint: VSFixedOrientationConstraint? = null
