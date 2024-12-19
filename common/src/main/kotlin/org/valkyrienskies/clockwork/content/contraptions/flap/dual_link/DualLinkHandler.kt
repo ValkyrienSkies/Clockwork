@@ -17,6 +17,7 @@ import net.minecraft.world.phys.Vec3
 
 object DualLinkHandler {
 
+    @JvmStatic
     fun getFrontFacing(direction: Direction): Direction {
         return when(direction) {
             Direction.EAST -> Direction.NORTH

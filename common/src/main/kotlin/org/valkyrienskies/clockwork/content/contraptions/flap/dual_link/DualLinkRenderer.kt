@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.datafixers.util.Pair
 import com.simibubi.create.CreateClient
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
+import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBox
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxRenderer
@@ -15,9 +16,13 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
+import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
+import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock
+import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkHandler.getFrontFacing
 
 object DualLinkRenderer {
 
@@ -31,39 +36,46 @@ object DualLinkRenderer {
         val result = target
         val pos = result.blockPos
 
+        val state = world.getBlockState(result.blockPos)
+
+        if (state.block !is FlapBearingBlock) return
+
+        val type: BehaviourType<DualLinkBehaviour>
+        if (result.direction == getFrontFacing(state.getValue(BlockStateProperties.FACING))) type =  DualLinkBehaviour.FRONT_TYPE
+        else type = DualLinkBehaviour.BACK_TYPE
 
 
-        for (type in mutableListOf(DualLinkBehaviour.FRONT_TYPE, DualLinkBehaviour.BACK_TYPE)) {
-            val behaviour = BlockEntityBehaviour.get(world, pos, type) ?: return
 
-            val freq1: Component = Lang.translateDirect("logistics.firstFrequency")
-            val freq2: Component = Lang.translateDirect("logistics.secondFrequency")
+        val behaviour = BlockEntityBehaviour.get(world, pos, type) ?: return
 
-            for (first in Iterate.trueAndFalse) {
-                val bb = AABB(Vec3.ZERO, Vec3.ZERO).inflate(.25)
-                val label = if (first) freq1 else freq2
-                val hit = behaviour.testHit(first, target.getLocation())
-                val transform = if (first) behaviour.firstSlot else behaviour.secondSlot
+        val freq1: Component = Lang.translateDirect("logistics.firstFrequency")
+        val freq2: Component = Lang.translateDirect("logistics.secondFrequency")
 
-                val box = ValueBox(label, bb, pos).passive(!hit)
-                val empty = behaviour.networkKey[first].stack.isEmpty
+        for (first in Iterate.trueAndFalse) {
+            val bb = AABB(Vec3.ZERO, Vec3.ZERO).inflate(.25)
+            val label = if (first) freq1 else freq2
+            val hit = behaviour.testHit(first, target.getLocation())
+            val transform = if (first) behaviour.firstSlot else behaviour.secondSlot
 
-                if (!empty) box.wideOutline()
+            val box = ValueBox(label, bb, pos).passive(!hit)
+            val empty = behaviour.networkKey[first].stack.isEmpty
 
-                CreateClient.OUTLINER.showValueBox(Pair.of(first, pos), box.transform(transform))
-                    .highlightFace(result.direction)
+            if (!empty) box.wideOutline()
 
-                if (!hit) continue
+            CreateClient.OUTLINER.showValueBox(Pair.of(first, pos), box.transform(transform))
+                .highlightFace(result.direction)
+
+            if (!hit) continue
 
 
-                val tip: MutableList<MutableComponent> = ArrayList()
-                tip.add(label.copy())
-                tip.add(
-                    Lang.translateDirect(if (empty) "logistics.filter.click_to_set" else "logistics.filter.click_to_replace")
-                )
-                CreateClient.VALUE_SETTINGS_HANDLER.showHoverTip(tip)
-            }
+            val tip: MutableList<MutableComponent> = ArrayList()
+            tip.add(label.copy())
+            tip.add(
+                Lang.translateDirect(if (empty) "logistics.filter.click_to_set" else "logistics.filter.click_to_replace")
+            )
+            CreateClient.VALUE_SETTINGS_HANDLER.showHoverTip(tip)
         }
+
     }
 
     @JvmStatic
