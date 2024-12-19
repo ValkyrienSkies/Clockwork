@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content.contraptions.phys.bearing
+package org.valkyrienskies.clockwork.util
 
 import org.joml.Vector3d
 import org.joml.Vector3dc

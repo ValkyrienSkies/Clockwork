@@ -34,6 +34,9 @@ import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.clockwork.util.ClockworkConstants.Nbt.ORIGINAL_DIRECTION
 import org.valkyrienskies.clockwork.util.ClockworkUtils.getVector3d
 import org.valkyrienskies.clockwork.util.GlueAssembler.collectGlued
+import org.valkyrienskies.clockwork.util.compat.CopyableBlockEntity
+import org.valkyrienskies.clockwork.util.minus
+import org.valkyrienskies.clockwork.util.plus
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.Ship
 import org.valkyrienskies.core.api.ships.getAttachment
@@ -56,7 +59,7 @@ import kotlin.math.sign
 
 class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) :
     GeneratingKineticBlockEntity(type, pos, state), IBearingBlockEntity, IDisplayAssemblyExceptions,
-    ContraptionController {
+    ContraptionController, CopyableBlockEntity {
 
     var assembleNextTick = false
     var movementMode: ScrollOptionBehaviour<LockedMode>? = null
@@ -114,7 +117,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         super.remove()
     }
 
-    fun copyWrite(): CompoundTag {
+    override fun copyWrite(): CompoundTag {
         val tag = saveWithId()
         if (shiptraptionID == NO_SHIPTRAPTION_ID) return tag
         val subship = (level as ServerLevel).shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return tag
@@ -132,7 +135,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         return tag
     }
 
-    fun copyRead(tag: CompoundTag) {
+    override fun copyRead(tag: CompoundTag) {
         val level = level as ServerLevel
         read(tag, false)
         val subship = level.shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return
