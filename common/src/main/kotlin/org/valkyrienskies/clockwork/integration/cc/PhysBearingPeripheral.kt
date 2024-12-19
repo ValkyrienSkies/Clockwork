@@ -20,7 +20,7 @@ class PhysBearingPeripheral(private val level: ServerLevel, private val bpos: Bl
     @LuaFunction fun setUnlockedMode() {be.movementMode!!.setValue(ContraptionController.LockedMode.UNLOCKED.ordinal)}
 
     @LuaFunction fun setManualTargetAngleMode(state: Boolean) {be.manualTargetAngleChange = state}
-    @LuaFunction fun setAngle(angle: Double) {if (be.manualTargetAngleChange) {be.setAngle(angle.toFloat())} else {throw LuaException("Computer Control is not enabled")}}
+    @LuaFunction fun setAngle(angle: Double) {if (be.manualTargetAngleChange) {be.setAngle(angle.toFloat())} else {throw LuaException("Manual Target Angle mode is not enabled")}}
 
     @LuaFunction fun isBeingDisassembled() = be.disassembleWhenPossible
     @LuaFunction fun isActive() = be.isRunning

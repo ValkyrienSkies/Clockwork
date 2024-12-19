@@ -46,5 +46,10 @@ object ClockworkConstants {
         val ORIENTATION_CONSTRAINT: String = "OrientationConstraint"
         val ORIENTATION_CONSTRAINT_ID: String = "OrientationConstraintId"
         val ORIGINAL_DIRECTION: String = "OriginalDirection"
+        val MANUAL_TARGET_ANGLE_CHANGE: String = "ManualTargetAngleChange"
+        val DATA: String = "Data"
+        val OLD_POS: String = "OldPos"
+        val OLD_SHIPTRAPTION_CENTER: String = "OldShiptraptionCenter"
+        val NEW_SHIPTRAPTION_CENTER: String = "NewShiptraptionCenter"
     }
 }

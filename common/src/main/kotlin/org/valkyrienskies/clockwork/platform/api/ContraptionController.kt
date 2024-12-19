@@ -6,6 +6,7 @@ import com.simibubi.create.foundation.gui.AllIcons
 import org.valkyrienskies.core.api.ships.Ship
 
 interface ContraptionController : IControlContraption {
+    //TODO literally not used anywhere??????
     val isShipContraptionController: Boolean
     val connectedShip: Ship?
 
