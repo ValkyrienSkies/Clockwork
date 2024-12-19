@@ -115,6 +115,7 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         var power = 0
         linkSignalOverride = (firstReceivedSignal != 0 || secondReceivedSignal != 0)
 
+
         if (linkSignalOverride) {
             val signal = firstReceivedSignal - secondReceivedSignal
             firstDominant = signal > 0
@@ -132,6 +133,9 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         if (power == 0) {
             redstonePos = null
         }
+
+
+
         return power
     }
 
@@ -151,13 +155,13 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         }
         val changed = redstoneLevel
         redstoneLevel = getPower(level!!, worldPosition)
-        if (changed != redstoneLevel) {
+        if (changed != redstoneLevel || firstReceivedSignalChanged || secondReceivedSignalChanged) {
             if (!level!!.isClientSide) {
                 sendData()
             }
         }
 
-        println(linkSignalOverride)
+
         if (linkSignalOverride) {
             redstoneSideOne = firstDominant
             redstoneSideTwo = !firstDominant
