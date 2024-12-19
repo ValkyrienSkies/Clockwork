@@ -6,7 +6,6 @@ import com.simibubi.create.content.contraptions.ControlledContraptionEntity
 import com.simibubi.create.content.contraptions.bearing.BearingBlock
 import com.simibubi.create.content.contraptions.bearing.IBearingBlockEntity
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
-import com.simibubi.create.content.redstone.link.LinkBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.utility.AngleHelper
@@ -21,7 +20,9 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.apache.commons.lang3.tuple.Pair
+import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkBehaviour
 import org.valkyrienskies.clockwork.content.contraptions.flap.contraption.FlapContraption
+import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.FlapBearingFrequencySlot
 import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.clockwork.util.blocktype.ConnectedWingAlike
 import java.util.function.BiFunction
@@ -43,8 +44,8 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
     private var redstoneLevel = 0
     private var redstonePos: BlockPos? = null
 
-    private var linkFirst: LinkBehaviour? = null
-    private var linkSecond: FlapBearingLinkBehavior? = null
+    private var linkFirst: DualLinkBehaviour? = null
+    private var linkSecond: DualLinkBehaviour? = null
 
     var firstDominant = true
 
@@ -63,32 +64,19 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
         super.addBehaviours(behaviours)
+        createSmartFlap()
+        behaviours.add(linkFirst!!)
+        behaviours.add(linkSecond!!)
     }
 
-    override fun initialize() {
-        super.initialize()
-        if (this.smart && linkFirst == null) {
-            createSmartFlap()
-            attachBehaviourLate(linkFirst!!)
-            attachBehaviourLate(linkSecond!!)
-        }
-    }
 
-    override fun addBehavioursDeferred(behaviours: MutableList<BlockEntityBehaviour>) {
-        super.addBehavioursDeferred(behaviours)
-        if (this.smart) {
-            createSmartFlap()
-            behaviours.add(linkFirst!!)
-            behaviours.add(linkSecond!!)
-        }
-    }
 
     private fun createSmartFlap() {
-        val valueBoxes = ValueBoxTransform.Dual.makeSlots { first: Boolean -> FlapBearingFrequencySlot(first, false) }
-        val valueBoxesSecond = ValueBoxTransform.Dual.makeSlots { first: Boolean -> FlapBearingFrequencySlot(first, true) }
+        val valueBoxes = ValueBoxTransform.Dual.makeSlots { first: Boolean -> FlapBearingFrequencySlot(first, true) }
+        val valueBoxesSecond = ValueBoxTransform.Dual.makeSlots { first: Boolean -> FlapBearingFrequencySlot(first, false) }
 
-        linkFirst = LinkBehaviour.receiver(this, valueBoxes, {setFirstSignal(it)})
-        linkSecond = FlapBearingLinkBehavior(this, valueBoxesSecond, {setSecondSignal(it)},false)
+        linkFirst = DualLinkBehaviour(this, valueBoxes, {setFirstSignal(it)}, true)
+        linkSecond = DualLinkBehaviour(this, valueBoxesSecond, {setSecondSignal(it)},false)
     }
 
     fun setFirstSignal(power: Int) {
@@ -127,10 +115,11 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         var power = 0
         linkSignalOverride = (firstReceivedSignal != 0 || secondReceivedSignal != 0)
 
+
         if (linkSignalOverride) {
             val signal = firstReceivedSignal - secondReceivedSignal
             firstDominant = signal > 0
-            println(signal)
+
             return abs(signal)
         }
 
@@ -144,11 +133,18 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         if (power == 0) {
             redstonePos = null
         }
+
+
+
         return power
     }
 
     override fun tick() {
         super.tick()
+
+
+
+
         if (flap != null) {
             flap!!.tick()
         }
@@ -159,17 +155,17 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         }
         val changed = redstoneLevel
         redstoneLevel = getPower(level!!, worldPosition)
-        if (changed != redstoneLevel) {
+        if (changed != redstoneLevel || firstReceivedSignalChanged || secondReceivedSignalChanged) {
             if (!level!!.isClientSide) {
                 sendData()
             }
         }
+
+
         if (linkSignalOverride) {
             redstoneSideOne = firstDominant
             redstoneSideTwo = !firstDominant
-        }
-
-        if (redstonePos != null && !linkSignalOverride) {
+        } else if (redstonePos != null) {
             if (blockState.getValue<Direction>(BlockStateProperties.FACING) == Direction.UP || blockState.getValue<Direction>(
                     BlockStateProperties.FACING
                 ) == Direction.DOWN

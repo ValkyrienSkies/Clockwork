@@ -6,7 +6,6 @@ import com.simibubi.create.AllPartialModels
 import com.simibubi.create.content.contraptions.bearing.BearingBlock
 import com.simibubi.create.content.contraptions.bearing.IBearingBlockEntity
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
-import com.simibubi.create.content.kinetics.saw.SawRenderer
 import com.simibubi.create.content.redstone.link.LinkRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
@@ -19,7 +18,7 @@ import net.minecraft.util.Mth
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkPartials
-import org.valkyrienskies.clockwork.util.render.DualLinkRenderer
+import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkRenderer
 
 class FlapBearingRenderer(context: BlockEntityRendererProvider.Context) :
     KineticBlockEntityRenderer<FlapBearingBlockEntity>(context) {
