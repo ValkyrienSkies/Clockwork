@@ -75,6 +75,7 @@ object ClockworkBlocks {
             .transform(TagGen.axeOrPickaxe())
             .transform(BuilderTransformers.bearing("propeller", "gearbox"))
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .addLayer { Supplier { RenderType.cutout() } }
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .build()
@@ -88,6 +89,7 @@ object ClockworkBlocks {
             .transform(TagGen.axeOrPickaxe())
             .transform(BuilderTransformers.bearing("propeller", "gearbox"))
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .addLayer { Supplier { RenderType.cutout() } }
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .build()
@@ -100,6 +102,7 @@ object ClockworkBlocks {
         }
             .transform(TagGen.axeOrPickaxe())
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .addLayer { Supplier { RenderType.cutout() } }
             .onRegister(movementBehaviour(BladeControllerMovementBehaviour()))
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
@@ -135,6 +138,7 @@ object ClockworkBlocks {
             .transform(TagGen.axeOrPickaxe())
             .transform(flapbearing())
             .transform(BlockStressDefaults.setImpact(4.0))
+            .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
@@ -149,6 +153,7 @@ object ClockworkBlocks {
             .transform(TagGen.axeOrPickaxe())
             .transform(flapbearing())
             .transform(BlockStressDefaults.setImpact(4.0))
+            .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
@@ -288,7 +293,7 @@ object ClockworkBlocks {
                 axeOrPickaxe()
             )
 
-            .addLayer { Supplier { RenderType.cutoutMipped() } }
+            .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
@@ -483,6 +488,7 @@ object ClockworkBlocks {
         )
     }
         .initialProperties { SharedProperties.softMetal() }
+        .addLayer { Supplier { RenderType.cutout() } }
         .item()
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .transform(customItemModel())
