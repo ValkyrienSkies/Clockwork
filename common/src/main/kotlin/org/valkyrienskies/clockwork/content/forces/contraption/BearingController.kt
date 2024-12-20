@@ -11,6 +11,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearin
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingCreateData
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingData
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingUpdateData
+import org.valkyrienskies.clockwork.util.*
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.ShipForcesInducer
@@ -205,7 +206,7 @@ class BearingController : ShipForcesInducer {
         if (bearingAxisAfterRot.angleCos(data.bearingAxis) < 0.9961947 && bearingAxisAfterRot.angleCos(data.bearingAxis) > -0.9961947) {
             return Vector3d()
         }
-        val angularVelError: Vector3dc = idealRelativeOmega.sub(actualRelativeOmega, Vector3d())
+        val angularVelError = idealRelativeOmega - actualRelativeOmega * if (abs(data.bearingRPM) > 0.001) ClockworkConfig.SERVER.unlockedModeRotationResistanceMultiplier else 0.0
         val angularVelErrorAlongBearingAxis: Vector3dc = bearingAxisInGlobal.mul(bearingAxisInGlobal.dot(angularVelError), Vector3d())
         // Only apply torque on the bearing axis
         return angularVelErrorAlongBearingAxis.mul(torqueMassMultiplier * 10.0, Vector3d())

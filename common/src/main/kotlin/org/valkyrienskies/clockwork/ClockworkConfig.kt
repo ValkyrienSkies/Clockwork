@@ -51,5 +51,8 @@ object ClockworkConfig {
 
         @JsonSchema()
         var lockedModeBaseAngleErrorMultiplier = 1.0
+
+        @JsonSchema()
+        var unlockedModeRotationResistanceMultiplier = 1.0
     }
 }
