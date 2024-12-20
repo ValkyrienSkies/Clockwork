@@ -2,6 +2,8 @@ package org.valkyrienskies.clockwork
 
 import com.jozufozu.flywheel.api.MaterialManager
 import com.jozufozu.flywheel.backend.instancing.blockentity.BlockEntityInstance
+import com.simibubi.create.content.contraptions.bearing.BearingInstance
+import com.simibubi.create.content.contraptions.bearing.BearingRenderer
 import com.tterrag.registrate.util.entry.BlockEntityEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer
@@ -25,7 +27,6 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlockEn
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity
-import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingRenderer
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeControllerBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeControllerRenderer
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlockEntity
@@ -69,11 +70,18 @@ object ClockworkBlockEntities {
                 type!!, pos!!, state!!
             )
         }
+        .instance { BiFunction<MaterialManager?, PropellerBearingBlockEntity?, BlockEntityInstance<in PropellerBearingBlockEntity?>> { materialManager: MaterialManager?, blockEntity: PropellerBearingBlockEntity? ->
+                BearingInstance<PropellerBearingBlockEntity>(
+                    materialManager,
+                    blockEntity
+                )
+            }
+        }
         .validBlocks(ClockworkBlocks.JURYRIGGED_PROPELLER_BEARING)
         .validBlocks(ClockworkBlocks.BRASS_PROPELLER_BEARING)
         .renderer {
             NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in PropellerBearingBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
-                PropellerBearingRenderer(
+                BearingRenderer<PropellerBearingBlockEntity>(
                     context!!
                 )
             }

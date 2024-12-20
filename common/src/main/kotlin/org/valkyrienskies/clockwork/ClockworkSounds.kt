@@ -115,9 +115,17 @@ object ClockworkSounds {
         .category(SoundSource.BLOCKS)
         .attenuationDistance(32)
         .build()
-    val JUNK_PROPELLER_RATTLE = create("junk_propeller_rattle").subtitle("Jury-rigged propeller rattles")
+    val JUNK_RATTLE = create("junk_rattle").subtitle("Jury-rigged machinery rattles")
         .category(SoundSource.BLOCKS)
         .attenuationDistance(16)
+        .build()
+    val PROPELLER_START = create("propeller_start").subtitle("Propeller starting up")
+        .category(SoundSource.BLOCKS)
+        .attenuationDistance(32)
+        .build()
+    val PROPELLER_STOP = create("propeller_stop").subtitle("Propeller spinning down")
+        .category(SoundSource.BLOCKS)
+        .attenuationDistance(32)
         .build()
 
     private val sounds: DeferredRegister<SoundEvent> =

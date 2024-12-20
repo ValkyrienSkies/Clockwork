@@ -1,7 +1,9 @@
 package org.valkyrienskies.clockwork.content.contraptions.propeller.blades
 
+import com.jozufozu.flywheel.util.transform.TransformStack
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
+import com.simibubi.create.content.contraptions.render.ContraptionMatrices
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
@@ -29,7 +31,7 @@ class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : S
     ) {
         super.renderSafe(blockEntity, partialTicks, ms, buffer, light, overlay)
 
-        val blades = blockEntity.blades
+        val blades = blockEntity.getAllBlades()
         val bladeAngle = blockEntity.clientBladeAngle.getValue(partialTicks)
         val bladeLength = blockEntity.clientBladeLength.getValue(partialTicks)
 
@@ -41,12 +43,14 @@ class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : S
     }
 
     companion object {
-        fun renderShared(blades: List<ItemStack>, bladeAngle: Float, bladeLength: Float, blockState: BlockState, partialTicks: Float, ms: PoseStack, buffer: MultiBufferSource, bladeRotations: List<Float>) {
+        fun renderShared(blades: List<ItemStack>, bladeAngle: Float, bladeLength: Float, blockState: BlockState, partialTicks: Float, ms: PoseStack, buffer: MultiBufferSource, bladeRotations: List<Float>, contraption: Boolean = false, contraptionMatrices: ContraptionMatrices? = null) {
             val renderBuffer = buffer.getBuffer(RenderType.cutout())
 
             val facing = blockState.getValue(BlockStateProperties.FACING)
+            val msr = TransformStack.cast(ms)
 
-            ms.pushPose()
+            //ms.pushPose()
+            //msr.rotateCentered(Direction.UP, Math.toRadians(contraptionAngle.toDouble()).toFloat())
             for (i in blades.indices) {
                 val bladeRotation = if (bladeRotations.size - 1 >= i) bladeRotations[i] else continue
 
@@ -59,39 +63,21 @@ class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : S
                 val bladeBase = CachedBufferer.partial(bladeBasePartial, blockState)
                 val bladeExtension = CachedBufferer.partial(bladeExtensionPartial, blockState)
                 val bladeTip = CachedBufferer.partial(bladeTipPartial, blockState)
+                if (contraptionMatrices != null) {
+                    bladeBase.transform(contraptionMatrices.model)
+                    bladeExtension.transform(contraptionMatrices.model)
+                    bladeTip.transform(contraptionMatrices.model)
+                }
 
-                renderBlade(bladeBase, bladeExtension, bladeTip, bladeAngle, bladeLength, bladeRotation, ms, renderBuffer, facing)
+                renderBlade(bladeBase, bladeExtension, bladeTip, bladeAngle, bladeLength, bladeRotation, ms, renderBuffer, facing, contraption)
             }
-            ms.popPose()
+            //ms.popPose()
         }
 
-        fun renderBlade(bladeBase: SuperByteBuffer, bladeExtension: SuperByteBuffer, bladeTip: SuperByteBuffer, bladeAngle: Float, bladeLength: Float, bladeRotation: Float, ms: PoseStack, buffer: VertexConsumer, facing: Direction) {
+        fun renderBlade(bladeBase: SuperByteBuffer, bladeExtension: SuperByteBuffer, bladeTip: SuperByteBuffer, bladeAngle: Float, bladeLength: Float, bladeRotation: Float, ms: PoseStack, buffer: VertexConsumer, facing: Direction, contraption: Boolean) {
             // Render the blade here
             ms.pushPose()
             ms.translate(0.0, 0.0, 0.0)
-
-            //bladeBase.rotateZ(bladeAngle.toDouble())
-            //bladeExtension.rotateZ(bladeAngle.toDouble())
-            //bladeTip.rotateZ(bladeAngle.toDouble())
-            bladeBase.rotateCentered(Direction.UP, Math.toRadians(bladeRotation.toDouble()).toFloat())
-            bladeExtension.rotateCentered(Direction.UP, Math.toRadians(bladeRotation.toDouble()).toFloat())
-            bladeTip.rotateCentered(Direction.UP, Math.toRadians(bladeRotation.toDouble()).toFloat())
-
-            ms.popPose()
-            ms.pushPose()
-
-            bladeExtension.scale(1.0f, 1.0f, bladeLength)
-            bladeTip.translate(0.0, 0.0, -bladeLength.toDouble() + 1.0)
-
-            ms.popPose()
-            ms.pushPose()
-
-            bladeBase.translate(0.0, 0.0, -0.3)
-            bladeExtension.translate(0.0, 0.0, -0.3)
-            bladeTip.translate(0.0, 0.0, -0.3)
-
-            ms.popPose()
-            ms.pushPose()
 
             if (facing.axis.isHorizontal) {
                 bladeBase.rotateCentered(
@@ -119,6 +105,32 @@ class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : S
                 Direction.EAST,
                 AngleHelper.rad((-90.0 - AngleHelper.verticalAngle(facing)).toDouble())
             )
+
+            ms.popPose()
+            ms.pushPose()
+
+            bladeBase.rotateZ(bladeAngle.toDouble())
+            bladeExtension.rotateZ(bladeAngle.toDouble())
+            bladeTip.rotateZ(bladeAngle.toDouble())
+            bladeBase.rotateCentered(Direction.UP, Math.toRadians(bladeRotation.toDouble()).toFloat())
+            bladeExtension.rotateCentered(Direction.UP, Math.toRadians(bladeRotation.toDouble()).toFloat())
+            bladeTip.rotateCentered(Direction.UP, Math.toRadians(bladeRotation.toDouble()).toFloat())
+
+            ms.popPose()
+            ms.pushPose()
+
+            bladeExtension.scale(1.0f, 1.0f, bladeLength)
+            bladeTip.translate(0.0, 0.0, -bladeLength.toDouble() + 1.0)
+
+            ms.popPose()
+            ms.pushPose()
+
+            bladeBase.translate(0.0, 0.0, -0.3)
+            bladeExtension.translate(0.0, 0.0, -0.3)
+            bladeTip.translate(0.0, 0.0, -0.3)
+
+            ms.popPose()
+            ms.pushPose()
 
             bladeBase.renderInto(ms, buffer)
             bladeExtension.renderInto(ms, buffer)

@@ -7,10 +7,14 @@ import com.simibubi.create.content.contraptions.render.ContraptionMatrices
 import com.simibubi.create.foundation.utility.AnimationTickHolder
 import net.fabricmc.loader.impl.lib.sat4j.core.Vec
 import net.minecraft.client.renderer.MultiBufferSource
+import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.mod.common.util.toJOMLD
+import org.valkyrienskies.mod.common.util.toMinecraft
 
 class BladeControllerMovementBehaviour: MovementBehaviour {
 
@@ -79,6 +83,6 @@ class BladeControllerMovementBehaviour: MovementBehaviour {
             bladeRotations.add((360f / bladeCount.toFloat()) * i.toFloat())
         }
 
-        BladeControllerRenderer.renderShared(bladeList, bladeAngle.toFloat(), bladeLength.toFloat(), context.state, AnimationTickHolder.getPartialTicks(context.world), matrices.viewProjection, buffer, bladeRotations)
+        BladeControllerRenderer.renderShared(bladeList, bladeAngle.toFloat(), bladeLength.toFloat(), context.state, AnimationTickHolder.getPartialTicks(context.world), matrices.viewProjection, buffer, bladeRotations, true, matrices)
     }
 }

@@ -59,28 +59,22 @@ class BladeControllerBlock(properties: Properties) : DirectionalBlock(properties
             return super.use(state, level, pos, player, hand, hit)
         }
 
-        println("main hand item: ${player.mainHandItem}")
-
         if (player.mainHandItem.`is`(ClockworkItems.PROPELLER_BLADE.get()) || player.mainHandItem.`is`(ClockworkItems.WIDE_PROPELLER_BLADE.get())) {
             if (blockEntity.bladeCooldown > 0) {
-                println("Blade cooldown is greater than 0")
                 return InteractionResult.FAIL
             }
-            val success = blockEntity.insertBlade(player.mainHandItem)
-            println("success at inserting: $success")
+            val success = blockEntity.insertBlade(player.mainHandItem.copy())
             if (success) {
-                player.setItemInHand(hand, player.getItemInHand(InteractionHand.MAIN_HAND).copy().also { it.shrink(1) })
+                if (!player.isCreative) player.setItemInHand(hand, player.getItemInHand(InteractionHand.MAIN_HAND).copy().also { it.shrink(1) })
                 return InteractionResult.SUCCESS
             } else {
                 return InteractionResult.FAIL
             }
         } else if (player.mainHandItem.isEmpty) {
             if (blockEntity.bladeCooldown > 0) {
-                println("blade cooldown is greater than 0 removal")
                 return InteractionResult.FAIL
             }
             val blade = blockEntity.removeBlade()
-            println("blade removed: $blade")
             if (!blade.isEmpty) {
                 player.setItemInHand(InteractionHand.MAIN_HAND, blade)
                 return InteractionResult.SUCCESS

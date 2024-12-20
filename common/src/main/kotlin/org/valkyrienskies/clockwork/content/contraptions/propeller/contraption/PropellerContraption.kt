@@ -69,7 +69,7 @@ class PropellerContraption : Contraption {
     override fun searchMovedStructure(world: Level, pos: BlockPos, direction: Direction?): Boolean {
         if (brass) return super.searchMovedStructure(world, pos.relative(direction, offset + 1), null)
 
-        anchor = pos
+        anchor = pos.relative(facing!!, offset + 1)
         if (bounds == null) bounds = AABB(BlockPos.ZERO)
 
         val propellerBlock = world.getBlockState(pos.relative(facing!!, offset + 1))
@@ -137,7 +137,6 @@ class PropellerContraption : Contraption {
             }
             contraption.startMoving(world)
             contraption.expandBoundsAroundAxis(direction.axis)
-            println("assembly success")
             return contraption
         }
 
