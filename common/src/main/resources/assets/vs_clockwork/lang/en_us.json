@@ -16,6 +16,10 @@
   "item.vs_clockwork.smart_flap_bearing": "Smart Flap Bearing",
   "block.vs_clockwork.juryrigged_propeller_bearing": "Jury-rigged Propeller Bearing",
   "item.vs_clockwork.juryrigged_propeller_bearing": "Jury-rigged Propeller Bearing",
+  "block.vs_clockwork.blade_controller": "Blade Controller",
+  "item.vs_clockwork.blade_controller": "Blade Controller",
+  "item.vs_clockwork.propeller_blade": "Blade",
+  "item.vs_clockwork.wide_propeller_blade": "Wide Blade",
   "block.vs_clockwork.command_seat": "Command Seat",
   "item.vs_clockwork.command_seat": "Command Seat",
   "block.vs_clockwork.flap": "Flap",
@@ -130,6 +134,7 @@
   "item.vs_clockwork.stratodonut": "Stratodonut",
   "item.vs_clockwork.physics_infuser": "Physics Infuser",
   "item.vs_clockwork.wanderwand": "Wanderwand",
+
   "vs_clockwork.subtitle.physinitialize": "Physics Infuser Initialized",
   "vs_clockwork.subtitle.physfinish": "Physics Infused",
   "vs_clockwork.subtitle.zap": "Zap!",
@@ -139,6 +144,13 @@
   "vs_clockwork.subtitle.tick": "Tick!",
   "vs_clockwork.subtitle.tock": "Tock!",
   "vs_clockwork.subtitle.clock_song": "Trailer moment.",
+
+  "vs_clockwork.subtitle.propeller": "Propeller spins",
+  "vs_clockwork.subtitle.junk_propeller": "Jury-rigged propeller spins",
+  "vs_clockwork.subtitle.junk_rattle": "Jury-rigged machinery rattles",
+  "vs_clockwork.subtitle.propeller_start": "Propeller starting up",
+  "vs_clockwork.subtitle.propeller_stop": "Propeller spinning down",
+
   "alt_meter.trigger_height": "Height",
   "sequenced_seat.operation.nothing": "None",
   "sequenced_seat.operation.distance": "Move",

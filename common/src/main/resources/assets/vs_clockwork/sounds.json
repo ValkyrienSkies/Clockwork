@@ -210,5 +210,100 @@
       }
     ],
     "subtitle": "vs_clockwork.subtitle.thwoom"
+  },
+  "junk_propeller": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:junk_propeller",
+        "type": "file",
+        "stream": true,
+        "attenuation_distance": 32
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.junk_propeller"
+  },
+  "propeller": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:propeller",
+        "type": "file",
+        "stream": true,
+        "attenuation_distance": 32
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.propeller"
+  },
+  "junk_rattle": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:metal_creak_1",
+        "type": "file",
+        "stream": true,
+        "attenuation_distance": 16
+      },
+      {
+        "name": "vs_clockwork:metal_creak_2",
+        "type": "file",
+        "stream": true,
+        "attenuation_distance": 16
+      },
+      {
+        "name": "vs_clockwork:metal_creak_3",
+        "type": "file",
+        "stream": true,
+        "attenuation_distance": 16
+      },
+      {
+        "name": "vs_clockwork:metal_creak_4",
+        "type": "file",
+        "stream": true,
+        "attenuation_distance": 16
+      },
+      {
+        "name": "vs_clockwork:metal_creak_5",
+        "type": "file",
+        "stream": true,
+        "attenuation_distance": 16
+      },
+      {
+        "name": "vs_clockwork:metal_creak_6",
+        "type": "file",
+        "stream": true,
+        "attenuation_distance": 16
+      },
+      {
+        "name": "vs_clockwork:metal_creak_7",
+        "type": "file",
+        "stream": true,
+        "attenuation_distance": 16
+      },
+      {
+        "name": "vs_clockwork:metal_creak_8",
+        "type": "file",
+        "stream": true,
+        "attenuation_distance": 16
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.junk_rattle"
+  },
+  "propeller_start": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:junk_prop_start",
+        "type": "file",
+        "attenuation_distance": 32
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.propeller_start"
+  },
+  "propeller_stop": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:junk_prop_stop",
+        "type": "file",
+        "attenuation_distance": 32
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.propeller_stop"
   }
 }

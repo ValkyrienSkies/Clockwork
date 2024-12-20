@@ -7,6 +7,7 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.block.DirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.forces.GasThrusterController
 import org.valkyrienskies.clockwork.content.generic.IForceApplierBE
@@ -36,7 +37,7 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     }
 
     override fun newUpdateData(): GasThrusterUpdateData {
-        return GasThrusterUpdateData(newForce)
+        return GasThrusterUpdateData(blockState.getValue(BlockStateProperties.FACING).normal.toJOMLD().mul(newForce))
     }
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) {

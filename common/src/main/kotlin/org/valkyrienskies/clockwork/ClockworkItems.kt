@@ -5,6 +5,8 @@ import com.simibubi.create.foundation.data.AssetLookup
 import com.tterrag.registrate.util.entry.ItemEntry
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.Rarity
+import net.minecraft.world.item.SwordItem
+import net.minecraft.world.item.Tiers
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteCubeItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteItem
@@ -83,6 +85,29 @@ object ClockworkItems {
             .tag(AllTags.AllItemTags.WRENCH.tag)
             .model(AssetLookup.itemModelWithPartials())
             .register()
+
+
+    @JvmField
+    val PROPELLER_BLADE: ItemEntry<SwordItem> = REGISTRATE.item<SwordItem>("propeller_blade") { properties: Item.Properties? ->
+        SwordItem(Tiers.WOOD, 2, 0.4f, properties!!)
+    }
+        .properties {
+            it.durability(100)
+        }
+        .tag(ClockworkTags.AllItemTags.PROP_BLADE.tag)
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .register()
+
+    @JvmField
+    val WIDE_PROPELLER_BLADE: ItemEntry<SwordItem> = REGISTRATE.item<SwordItem>("wide_propeller_blade") { properties: Item.Properties? ->
+        SwordItem(Tiers.WOOD, 4, 0.2f, properties!!)
+    }
+        .properties {
+            it.durability(200)
+        }
+        .tag(ClockworkTags.AllItemTags.PROP_BLADE.tag)
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .register()
 
     @JvmField
     val WANDERWAND: ItemEntry<WanderWandItem> =

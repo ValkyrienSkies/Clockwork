@@ -8,7 +8,11 @@ import org.valkyrienskies.clockwork.content.forces.data.ForceApplierData
 @JsonAutoDetect( fieldVisibility = JsonAutoDetect.Visibility.ANY,)
 class GasThrusterData: ForceApplierData<GasThrusterUpdateData> {
     override val position: Vector3ic?
-    val force: Vector3dc?
+    var force: Vector3dc?
+
+    override fun updateData(data: GasThrusterUpdateData) {
+        force = data.force
+    }
 
     // Default constructor for Jackson, should never be invoked manually
     @Deprecated("")

@@ -7,9 +7,12 @@ import org.joml.Quaterniond
 import org.joml.Quaterniondc
 import org.joml.Vector3d
 import org.joml.Vector3dc
+import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropCreateData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropUpdateData
+import org.valkyrienskies.clockwork.util.AerodynamicUtils
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.ShipForcesInducer
@@ -20,59 +23,37 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.function.BiConsumer
+import kotlin.collections.HashMap
+import kotlin.math.pow
 import kotlin.math.sign
+import kotlin.math.sqrt
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-class PropellerController : ShipForcesInducer {
-    private val propellorPhysData: HashMap<Int, PropData> = HashMap<Int, PropData>()
-    private val propellorUpdatePhysData: ConcurrentHashMap<Int, PropUpdateData> =
-        ConcurrentHashMap<Int, PropUpdateData>()
-    private val createdProps: ConcurrentLinkedQueue<Pair<Int, PropCreateData>> =
-        ConcurrentLinkedQueue<Pair<Int, PropCreateData>>()
-    private val removedProps = ConcurrentLinkedQueue<Int>()
-    private var nextPropID = 0
+class PropellerController(
+    override val appliers: HashMap<Int, PropData> = HashMap(),
+    override val applierUpdateData: ConcurrentLinkedQueue<Pair<Int, PropUpdateData>> = ConcurrentLinkedQueue(),
+    override val createdAppliers: ConcurrentLinkedQueue<Pair<Int, PropCreateData>> = ConcurrentLinkedQueue(),
+    override val removedAppliers: ConcurrentLinkedQueue<Int> = ConcurrentLinkedQueue(),
+    override var nextApplierID: Int = 0
+) : MultiInstanceForceApplier<PropUpdateData, PropData, PropCreateData> {
 
     override fun applyForces(physShip: PhysShip) {
-        while (!createdProps.isEmpty()) {
-            val createData: Pair<Int, PropCreateData> = createdProps.remove()
-            val propInertiaData = ShipInertiaDataImpl.newEmptyShipInertiaData()
-            for (i in createData.component2().propellorPositions) {
-                propInertiaData.onSetBlock(i.x(), i.y(), i.z(), 0.0, 100.0)
-            }
-            propellorPhysData[createData.component1()] = PropData(
-                createData.component2().bearingPos,
-                createData.component2().bearingAxis,
-                createData.component2().bearingAngle,
-                createData.component2().bearingSpeed,
-                createData.component2().propellorPositions,
-                createData.component2().inverted,
-                createData.component2().overStressed
-            )
-        }
-        while (!removedProps.isEmpty()) {
-            propellorPhysData.remove(removedProps.remove() as Int)
-        }
-        propellorUpdatePhysData.forEach(
-            BiConsumer<Int, PropUpdateData> forEach@{ id: Int, data: PropUpdateData ->
-                val physData: PropData = propellorPhysData[id] ?: return@forEach
-                physData.bearingAngle = data.rotationAngle
-                physData.bearingSpeed = data.rotationSpeed
-                physData.inverted = data.inverted
-                physData.overStressed = data.overStressed
-            }
-        )
-        propellorUpdatePhysData.clear()
+        super.applyForces(physShip)
 
         // Propeller Thrust
         val netForce = Vector3d()
         val netTorque = Vector3d()
-        for (physData in propellorPhysData.values) {
-            if(!physData.overStressed) {
-                val forceTorque = computeForce(
-                    physShip.transform, physData, (physShip).velocity, physShip.omega, physShip
-                )
-                netForce.add(forceTorque.component1())
-                netTorque.add(forceTorque.component2())
+        for (physData in appliers.values) {
+            if(physData.active) {
+                val (force, torque) = if (physData.brass) {
+                    computeForce(
+                        physShip.transform, physData, (physShip).velocity, physShip.omega, physShip
+                    )
+                } else {
+                    computeBladeForce(physShip, physData)
+                }
+                netForce.add(force)
+                netTorque.add(torque)
             }
         }
         if (netForce.isFinite && netTorque.isFinite) {
@@ -82,6 +63,7 @@ class PropellerController : ShipForcesInducer {
         // Propeller Pushing
     }
 
+    //todo: redo this entire piece of shit
     private fun computeForce(
         physTransform: ShipTransform,
         physProp: PropData,
@@ -90,7 +72,7 @@ class PropellerController : ShipForcesInducer {
         physShip: PhysShip
     ): Pair<Vector3dc, Vector3dc> {
         val modifiedSpeed: Double = physProp.bearingSpeed * 1.5 //* 1.25, A little bit easier to generate force //TODO config?
-        val bearingVector: Vector3dc = Vector3d(physProp.bearingPos).add(0.5, 0.5, 0.5)
+        val bearingVector: Vector3dc = Vector3d(physProp.position).add(0.5, 0.5, 0.5)
         val axis: Vector3dc = physProp.bearingAxis!!.mul(sign(modifiedSpeed), Vector3d())
         val rotation: Quaterniondc = Quaterniond(AxisAngle4d(Math.toRadians(physProp.bearingAngle), axis))
         val angVel: Vector3dc = axis.mul(modifiedSpeed / 60.0 * (2.0 * Math.PI), Vector3d())
@@ -98,7 +80,7 @@ class PropellerController : ShipForcesInducer {
         val netForce = Vector3d()
         val netTorque = Vector3d()
 
-        for (pos in physProp.propellorPositions!!) {
+        for (pos in physProp.sailPositions!!) {
             val sailVector: Vector3dc = Vector3d(pos.x().toDouble(), pos.y().toDouble(), pos.z().toDouble())
                 .add(bearingVector)
             val diff: Vector3dc = sailVector.sub(bearingVector, Vector3d())
@@ -160,7 +142,7 @@ class PropellerController : ShipForcesInducer {
         // Add to convert from momentum relative to wheel into relative to ship
         val centerOfMassInShip = physShip.transform.positionInShip
         val r: Vector3dc =
-            Vector3d(centerOfMassInShip.add(physProp.bearingPos, Vector3d())).sub(physShip.transform.positionInShip)
+            Vector3d(centerOfMassInShip.add(Vector3d(physProp.position), Vector3d())).sub(physShip.transform.positionInShip)
                 .rotate(physShip.transform.shipToWorldRotation)
         val momentumModifier: Vector3dc = Vector3d(physShip.omega).cross(r).mul(physShip.mass)
         val angularMomentumRelShip: Vector3dc = Vector3d(angularMomentumRelProp).add(momentumModifier)
@@ -168,6 +150,64 @@ class PropellerController : ShipForcesInducer {
         val torque: Vector3dc = Vector3d(prevAngularMomentumRelShip).sub(angularMomentumRelShip).div(1 / 60.0)
         physProp.prevAngularMomentum = angularMomentumRelProp
         return torque
+    }
+
+    private fun computeBladeForce(physShip: PhysShip, physProp: PropData): Pair<Vector3dc, Vector3dc> {
+        val blades = physProp.blades
+        val bladeCount = blades.size
+        val angleBetweenBlades = 2 * Math.PI / bladeCount
+
+        val airDensityAtY = AerodynamicUtils.getAirDensityForY(physShip.transform.positionInWorld.y(), 563.0)
+        val airTemperatureAtY = AerodynamicUtils.getAirTemperatureForY(physShip.transform.positionInWorld.y(), 563.0)
+
+        val velocityTowardsPropellerDir = physShip.velocity.dot(physShip.transform.shipToWorld.transformDirection(physProp.bearingAxis!!, Vector3d()).normalize())
+
+        val netForce = Vector3d(physProp.bearingAxis).normalize()
+        val netTorque = Vector3d(physProp.bearingAxis).normalize()
+
+        var overallThrust = 0.0
+        var overallTorque = 0.0
+
+        for (i in blades.indices) {
+            val blade = blades[i]
+            val bladeAngle = Math.toRadians(physProp.bearingAngle) + (angleBetweenBlades * i.toDouble())
+            val bladePitch = Math.toRadians(blade.angle)
+            val bladeWidth = if (blade.wide) 0.375 else 0.25
+            val bladeLength = blade.length
+
+            val steps = ClockworkConfig.SERVER.bladeIntegrationSteps
+
+            val dr = bladeLength / steps
+            var bladeThrust = 0.0
+            var bladeTorque = 0.0
+
+            for (step in 0 until steps.toInt()) {
+                val r = step.toDouble() * dr
+
+                val effectiveVelocity = sqrt(velocityTowardsPropellerDir.pow(2.0) + (physProp.bearingSpeed * r).pow(2.0))
+
+                val angleOfAttack = bladePitch - bladeAngle
+
+                val liftCoefficient = 2.0 * Math.PI * angleOfAttack
+                val dragCoefficient = 0.01 * liftCoefficient
+
+                val dLift = 0.5 * airDensityAtY * effectiveVelocity.pow(2.0) * bladeWidth * dr * liftCoefficient
+                val dDrag = 0.5 * airDensityAtY * effectiveVelocity.pow(2.0) * bladeWidth * dr * dragCoefficient
+
+                val dThrust = dLift * Math.cos(bladeAngle) - dDrag * Math.sin(bladeAngle)
+                val dTorque = r * (dLift * Math.sin(bladeAngle) + dDrag * Math.cos(bladeAngle))
+
+                bladeThrust += dThrust
+                bladeTorque += dTorque
+            }
+            overallThrust += bladeThrust
+            overallTorque += bladeTorque
+        }
+
+        netForce.mul(overallThrust)
+        netTorque.mul(overallTorque)
+
+        return netForce to netTorque
     }
 
     private fun airPressure(pos: Vector3dc): Double {
@@ -185,44 +225,12 @@ class PropellerController : ShipForcesInducer {
         return Math.min(posRelBearing.cross(omega, Vector3d()).length() * 15, 40.0)
     }
 
-    fun addPropeller(data: PropCreateData): Int {
-        val id = nextPropID++
-        createdProps.add(Pair<Int, PropCreateData>(id, data))
-        return id
-    }
-
-    fun removePropeller(id: Int) {
-        removedProps.add(id)
-    }
-
-    fun updatePropeller(id: Int, data: PropUpdateData) {
-        propellorUpdatePhysData[id] = data
-    }
-
-    override fun equals(other: Any?): Boolean {
-        // self check
-        return if (this === other) {
-            true
-        } else if (other !is PropellerController) {
-            false
-        } else {
-            (propellorPhysData == other.propellorPhysData && propellorUpdatePhysData == other.propellorUpdatePhysData && areQueuesEqual<Pair<Int, PropCreateData>>(
-                createdProps,
-                other.createdProps
-            ) && areQueuesEqual<Int>(removedProps, other.removedProps) && nextPropID == other.nextPropID)
-        }
-    }
-
     companion object {
         fun getOrCreate(ship: ServerShip): PropellerController? {
             if (ship.getAttachment(PropellerController::class.java) == null) {
                 ship.saveAttachment(PropellerController::class.java, PropellerController())
             }
             return ship.getAttachment(PropellerController::class.java)
-        }
-
-        inline fun <reified T> areQueuesEqual(left: Queue<T>, right: Queue<T>): Boolean {
-            return left.toTypedArray().contentEquals(right.toTypedArray())
         }
     }
 }

@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork
 
+import com.simibubi.create.AllMovementBehaviours.movementBehaviour
 import com.simibubi.create.AllTags
 import com.simibubi.create.content.decoration.encasing.CasingBlock
 import com.simibubi.create.content.fluids.PipeAttachmentModel
@@ -36,6 +37,8 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInf
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
+import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeControllerBlock
+import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeControllerMovementBehaviour
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
@@ -82,6 +85,19 @@ object ClockworkBlocks {
             .transform(TagGen.axeOrPickaxe())
             .transform(BuilderTransformers.bearing("propeller", "gearbox"))
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
+            .register()
+
+    @JvmField
+    val BLADE_CONTROLLER: BlockEntry<BladeControllerBlock> =
+        REGISTRATE.block<BladeControllerBlock>("blade_controller") { properties: BlockBehaviour.Properties? ->
+            BladeControllerBlock(properties!!)
+        }
+            .transform(TagGen.axeOrPickaxe())
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .onRegister(movementBehaviour(BladeControllerMovementBehaviour()))
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .build()
