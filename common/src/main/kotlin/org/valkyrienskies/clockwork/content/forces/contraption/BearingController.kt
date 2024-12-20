@@ -6,6 +6,7 @@ import org.joml.Matrix3dc
 import org.joml.Quaterniondc
 import org.joml.Vector3d
 import org.joml.Vector3dc
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingCreateData
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingData
@@ -292,8 +293,8 @@ class BearingController : ShipForcesInducer {
             angleErr += 2 * Math.PI
         }
 
-        //rpm affects target angle
-        angleErr *= data.bearingRPM * (2 * Math.PI / 60)
+        //rpm makes angleErr correct faster, but it should also correct if no rpm is present
+        angleErr = angleErr * abs(data.bearingRPM) * (2 * 2 * Math.PI / 60) + angleErr * ClockworkConfig.SERVER.lockedModeBaseAngleErrorMultiplier
 
         // Derivative
         val relativeOmegaInPhysShip: Vector3dc = physShip.transform.worldToShip.transformDirection(actualRelativeOmega, Vector3d())

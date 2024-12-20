@@ -11,6 +11,7 @@ import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelReader
+import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
@@ -68,6 +69,21 @@ class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<P
 
     override fun hasShaftTowards(world: LevelReader, pos: BlockPos, state: BlockState, face: Direction): Boolean {
         return face == state.getValue(FACING).opposite
+    }
+
+    override fun neighborChanged(
+        state: BlockState,
+        level: Level,
+        pos: BlockPos,
+        block: Block,
+        fromPos: BlockPos,
+        isMoving: Boolean
+    ) {
+        super.neighborChanged(state, level, pos, block, fromPos, isMoving)
+        if (level.isClientSide) {return}
+        val blockEntity = level.getBlockEntity(pos)
+        if (blockEntity !is PhysBearingBlockEntity) {return}
+        blockEntity.manualTargetAngleChange = level.hasNeighborSignal(pos)
     }
 
     companion object {

@@ -51,5 +51,7 @@ object ClockworkConstants {
         val OLD_POS: String = "OldPos"
         val OLD_SHIPTRAPTION_CENTER: String = "OldShiptraptionCenter"
         val NEW_SHIPTRAPTION_CENTER: String = "NewShiptraptionCenter"
+        val SEQUENCED_ANGLE_LIMIT: String = "SequencedAngleLimit"
+        val SEQUENCED_ANGLE_PROGRESS: String = "SequencedAngleProgress"
     }
 }

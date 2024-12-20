@@ -8,6 +8,7 @@ import com.simibubi.create.content.contraptions.IDisplayAssemblyExceptions
 import com.simibubi.create.content.contraptions.bearing.BearingBlock
 import com.simibubi.create.content.contraptions.bearing.IBearingBlockEntity
 import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity
+import com.simibubi.create.content.kinetics.transmission.sequencer.SequencerInstructions
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour
 import com.simibubi.create.foundation.item.TooltipHelper
@@ -55,6 +56,7 @@ import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
 import org.valkyrienskies.mod.util.putVector3d
 import java.lang.Math
+import kotlin.math.sign
 
 class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) :
     GeneratingKineticBlockEntity(type, pos, state), IBearingBlockEntity, IDisplayAssemblyExceptions,
@@ -91,6 +93,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     private var ticks = 0
     private var lastStateChanged = 0
     private var cooldown = 20
+
+    private var sequencedAngleLimit = -1.0f
+    private var sequencedAngleProgress = 0f
 
     init {
         setLazyTickRate(3)
@@ -179,6 +184,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         AssemblyException.write(compound, lastException)
         compound.putBoolean(ClockworkConstants.Nbt.OPEN, open)
         compound.putBoolean(ClockworkConstants.Nbt.MANUAL_TARGET_ANGLE_CHANGE, manualTargetAngleChange)
+        compound.putFloat(ClockworkConstants.Nbt.SEQUENCED_ANGLE_LIMIT, sequencedAngleLimit)
+        compound.putFloat(ClockworkConstants.Nbt.SEQUENCED_ANGLE_PROGRESS, sequencedAngleProgress)
         super.write(compound, clientPacket)
     }
 
@@ -210,6 +217,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             shiptraptionID = NO_SHIPTRAPTION_ID
         }
         manualTargetAngleChange = compound.getBoolean(ClockworkConstants.Nbt.MANUAL_TARGET_ANGLE_CHANGE)
+        sequencedAngleLimit = compound.getFloat(ClockworkConstants.Nbt.SEQUENCED_ANGLE_LIMIT)
+        sequencedAngleProgress = compound.getFloat(ClockworkConstants.Nbt.SEQUENCED_ANGLE_PROGRESS)
         shouldRefresh = true
         super.read(compound, clientPacket)
         if (!clientPacket) return
@@ -508,6 +517,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         updateGeneratedRotation()
         assembleNextTick = false
         disassembleWhenPossible = false
+        sequencedAngleLimit = -1.0f
         sendData()
     }
 
@@ -637,7 +647,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     fun getActualAngularSpeed(): Float {
         val dir = originalDirection!!
-        return angularSpeed * if (dir == Direction.WEST || dir == Direction.NORTH || dir == Direction.DOWN) -1 else 1
+        return convertToAngular(getSpeed()) * if (dir == Direction.WEST || dir == Direction.NORTH || dir == Direction.DOWN) -1 else 1
     }
 
     override fun tick() {
@@ -653,7 +663,20 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (!isRunning) return
         if (shiptraptionID != NO_SHIPTRAPTION_ID && !manualTargetAngleChange) {
             val angularSpeed = getActualAngularSpeed()
-            val newAngle = targetAngle + angularSpeed
+            var diff = 0.0f
+
+            if (sequencedAngleLimit >= 0.0f) {
+                val sequencedAngleLimit = sequencedAngleLimit * angularSpeed.sign
+
+                sequencedAngleProgress += angularSpeed
+
+                if (angularSpeed > 0 && sequencedAngleProgress > sequencedAngleLimit
+                 || angularSpeed < 0 && sequencedAngleProgress < sequencedAngleLimit) {
+                    diff = sequencedAngleProgress - sequencedAngleLimit
+                    sequencedAngleProgress = sequencedAngleLimit
+                }
+            }
+            val newAngle = targetAngle + angularSpeed - diff
             targetAngle = (newAngle % 360)
         }
         if (!level!!.isClientSide) {
@@ -661,6 +684,17 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         }
         if (disassembleWhenPossible) {
             shipDisassemble()
+        }
+    }
+
+    override fun onSpeedChanged(previousSpeed: Float) {
+        super.onSpeedChanged(previousSpeed)
+
+        sequencedAngleLimit = -1.0f
+        sequencedAngleProgress = 0.0f
+
+        if (sequenceContext != null && sequenceContext.instruction == SequencerInstructions.TURN_ANGLE) {
+            sequencedAngleLimit = sequenceContext.getEffectiveValue(theoreticalSpeed.toDouble()).toFloat()
         }
     }
 
