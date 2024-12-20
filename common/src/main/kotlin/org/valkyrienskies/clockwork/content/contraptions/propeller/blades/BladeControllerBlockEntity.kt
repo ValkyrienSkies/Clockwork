@@ -56,8 +56,9 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
         this.angleController = AngleScrollValueBehaviour(TranslatableComponent("vs_clockwork.blade_controller.angle"), this, AngleControllerValueBoxTransform())
         this.lengthController = LengthScrollValueBehaviour(TranslatableComponent("vs_clockwork.blade_controller.length"), this, LengthControllerValueBoxTransform())
 
-        this.lengthController.withCallback{i -> this.updateBladeLength(i)};
         this.angleController.withCallback{i -> this.updateBladeAngle(i.toDouble())};
+        this.lengthController.withCallback{i -> this.updateBladeLength(i)};
+
 
         behaviours.add(this.lengthController)
         behaviours.add(this.angleController)
@@ -96,8 +97,6 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
 
     override fun tick() {
         super.tick()
-        bladeLength = 5
-        bladeAngle = 21.0
         if (bladeCooldown > 0) bladeCooldown--
         if (level?.isClientSide == true) {
             val angleBetweenBlades = 360.0 / this.getBladeCount().toDouble()

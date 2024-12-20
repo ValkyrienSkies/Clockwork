@@ -1,9 +1,7 @@
 package org.valkyrienskies.clockwork.content.curiosities
 
-import com.simibubi.create.content.materials.ExperienceBlock
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.core.Vec3i
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
@@ -11,29 +9,26 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
+import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
 import org.joml.Vector3d
 import org.joml.Vector3i
-import org.valkyrienskies.clockwork.ClockworkBlocks
-import org.valkyrienskies.clockwork.content.forces.WanderShipControl
-import org.valkyrienskies.core.api.ships.LoadedServerShip
-import org.valkyrienskies.core.api.ships.ServerShip
-import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
-import org.valkyrienskies.mod.common.*
 import org.valkyrienskies.mod.common.assembly.ShipAssembler
-import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
+import org.valkyrienskies.mod.common.getShipObjectManagingPos
+import org.valkyrienskies.mod.common.isBlockInShipyard
+import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft
 
-class WanderliteOreBlock(properties: Properties) : ExperienceBlock(properties), IWanderliteBlock {
-
+class GenericWanderliteBlock(properties: Properties): Block(properties), IWanderliteBlock {
     override fun use(state: BlockState,
                      level: Level,
                      pos: BlockPos,
                      player: Player,
                      hand: InteractionHand,
-                     hit: BlockHitResult): InteractionResult {
+                     hit: BlockHitResult
+    ): InteractionResult {
 
         if (level is ServerLevel && !isAlreadyShip(level, pos)) {
             shipifyBlock(level, pos)
@@ -75,7 +70,7 @@ class WanderliteOreBlock(properties: Properties) : ExperienceBlock(properties), 
         val realConnectedShip = level.shipObjectWorld.allShips.getById(connectedShip.id)
         if (realConnectedShip != null) {
             for (pos in list) {
-                addToShip(realConnectedShip, BlockPos(realConnectedShip.worldToShip.transformPosition(Vector3d(pos)).toMinecraft()), 1.0)
+                addToShip(realConnectedShip, BlockPos(realConnectedShip.worldToShip.transformPosition(Vector3d(pos)).toMinecraft()), 2.0)
             }
         }
     }
@@ -84,7 +79,7 @@ class WanderliteOreBlock(properties: Properties) : ExperienceBlock(properties), 
         if (level is ServerLevel) {
             val ship = level.getShipObjectManagingPos(pos)
             if (ship != null) {
-                addToShip(ship, pos, 1.0)
+                addToShip(ship, pos, 2.0)
             }
         }
         super.onPlace(state, level, pos, oldState, movedByPiston)

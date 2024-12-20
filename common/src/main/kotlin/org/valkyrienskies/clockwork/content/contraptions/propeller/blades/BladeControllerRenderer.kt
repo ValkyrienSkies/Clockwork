@@ -33,7 +33,7 @@ class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : S
 
         val blades = blockEntity.getAllBlades()
         val bladeAngle = blockEntity.clientBladeAngle.getValue(partialTicks)
-        val bladeLength = blockEntity.clientBladeLength.getValue(partialTicks)
+        val bladeLength = 1.0f //blockEntity.clientBladeLength.getValue(partialTicks)
 
         val blockState = blockEntity.blockState
 
@@ -69,7 +69,7 @@ class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : S
                     bladeTip.transform(contraptionMatrices.model)
                 }
 
-                renderBlade(bladeBase, bladeExtension, bladeTip, bladeAngle, bladeLength, bladeRotation, ms, renderBuffer, facing, contraption)
+                renderBlade(bladeBase, bladeExtension, bladeTip, bladeAngle, 1.0f, bladeRotation, ms, renderBuffer, facing, contraption)
             }
             //ms.popPose()
         }
@@ -78,6 +78,18 @@ class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : S
             // Render the blade here
             ms.pushPose()
             ms.translate(0.0, 0.0, 0.0)
+
+
+            bladeBase.rotateZ(bladeAngle.toDouble())
+            bladeExtension.rotateZ(bladeAngle.toDouble())
+            bladeTip.rotateZ(bladeAngle.toDouble())
+            bladeBase.rotateCentered(Direction.UP, Math.toRadians(bladeRotation.toDouble()).toFloat())
+            bladeExtension.rotateCentered(Direction.UP, Math.toRadians(bladeRotation.toDouble()).toFloat())
+            bladeTip.rotateCentered(Direction.UP, Math.toRadians(bladeRotation.toDouble()).toFloat())
+
+
+            ms.popPose()
+            ms.pushPose()
 
             if (facing.axis.isHorizontal) {
                 bladeBase.rotateCentered(
@@ -105,16 +117,6 @@ class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : S
                 Direction.EAST,
                 AngleHelper.rad((-90.0 - AngleHelper.verticalAngle(facing)).toDouble())
             )
-
-            ms.popPose()
-            ms.pushPose()
-
-            bladeBase.rotateZ(bladeAngle.toDouble())
-            bladeExtension.rotateZ(bladeAngle.toDouble())
-            bladeTip.rotateZ(bladeAngle.toDouble())
-            bladeBase.rotateCentered(Direction.UP, Math.toRadians(bladeRotation.toDouble()).toFloat())
-            bladeExtension.rotateCentered(Direction.UP, Math.toRadians(bladeRotation.toDouble()).toFloat())
-            bladeTip.rotateCentered(Direction.UP, Math.toRadians(bladeRotation.toDouble()).toFloat())
 
             ms.popPose()
             ms.pushPose()
