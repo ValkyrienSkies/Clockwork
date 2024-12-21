@@ -36,7 +36,6 @@ import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.clockwork.util.ClockworkConstants.Nbt.ORIGINAL_DIRECTION
 import org.valkyrienskies.clockwork.util.ClockworkUtils.getVector3d
 import org.valkyrienskies.clockwork.util.GlueAssembler.collectGlued
-import org.valkyrienskies.clockwork.util.compat.CopyableBlockEntity
 import org.valkyrienskies.clockwork.util.minus
 import org.valkyrienskies.clockwork.util.plus
 import org.valkyrienskies.clockwork.util.times
@@ -64,7 +63,7 @@ import kotlin.math.sign
 
 class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) :
     GeneratingKineticBlockEntity(type, pos, state), IBearingBlockEntity, IDisplayAssemblyExceptions,
-    ContraptionController, CopyableBlockEntity {
+    ContraptionController {
 
     var assembleNextTick = false
     var movementMode: ScrollOptionBehaviour<LockedMode>? = null
@@ -124,12 +123,31 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         super.remove()
     }
 
-    override fun copyWrite(): CompoundTag {
-        val tag = saveWithId()
-        if (shiptraptionID == NO_SHIPTRAPTION_ID) return tag
-        val subship = (level as ServerLevel).shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return tag
+    public override fun write(tag: CompoundTag, clientPacket: Boolean) {
+        super.write(tag, clientPacket)
+
+        tag.putBoolean(ClockworkConstants.Nbt.RUNNING, isRunning)
+        tag.putFloat(ClockworkConstants.Nbt.ANGLE, targetAngle)
+        if (bearingID != null) {
+            tag.putInt(ClockworkConstants.Nbt.BEARING_ID, bearingID!!)
+        }
+        if (shiptraptionID != NO_SHIPTRAPTION_ID) {
+            tag.putLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID, shiptraptionID)
+        }
+        if (originalDirection != null) {
+            tag.putInt(ORIGINAL_DIRECTION, originalDirection!!.ordinal)
+        }
+        AssemblyException.write(tag, lastException)
+        tag.putBoolean(ClockworkConstants.Nbt.OPEN, open)
+        tag.putBoolean(ClockworkConstants.Nbt.MANUAL_TARGET_ANGLE_CHANGE, manualTargetAngleChange)
+        tag.putFloat(ClockworkConstants.Nbt.SEQUENCED_ANGLE_LIMIT, sequencedAngleLimit)
+        tag.putFloat(ClockworkConstants.Nbt.SEQUENCED_ANGLE_PROGRESS, sequencedAngleProgress)
+
+
+        if (shiptraptionID == NO_SHIPTRAPTION_ID) return
+        val subship = (level as ServerLevel).shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return
         val controller = BearingController.getOrCreate(subship)!!
-        val data = controller.bearingData[bearingID] ?: return tag
+        val data = controller.bearingData[bearingID] ?: return
 
         val mapper = VSJacksonUtil.dtoMapper
 
@@ -138,22 +156,53 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         //to make it more general
         tag.putVector3d(ClockworkConstants.Nbt.OLD_SHIPTRAPTION_CENTER, data.bearingPosition!!)
         tag.putVector3d(ClockworkConstants.Nbt.NEW_SHIPTRAPTION_CENTER, data.bearingPosition!!)
-
-        return tag
     }
 
-    //TODO i've realized that all of this is actually redundant. It can be merged into base read/write,
-    // but it'll look ugly as it will need to always check if block was moved
-    override fun copyRead(tag: CompoundTag) {
+    override fun read(tag: CompoundTag, clientPacket: Boolean) {
+        if (wasMoved) {
+            super.read(tag, clientPacket)
+            return
+        }
+        val angleBefore = targetAngle
+        open = tag.getBoolean(ClockworkConstants.Nbt.OPEN)
+        isRunning = tag.getBoolean(ClockworkConstants.Nbt.RUNNING)
+        targetAngle = tag.getFloat(ClockworkConstants.Nbt.ANGLE)
+        lastException = AssemblyException.read(tag)
+        if (tag.contains(ClockworkConstants.Nbt.BEARING_ID)) {
+            bearingID = tag.getInt(ClockworkConstants.Nbt.BEARING_ID)
+        }
+        if (tag.contains(ClockworkConstants.Nbt.SHIPTRAPTION_ID)) {
+            shiptraptionID = tag.getLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID)
+        }
+        if (tag.contains(ORIGINAL_DIRECTION)) {
+            originalDirection = Direction.entries[tag.getInt(ORIGINAL_DIRECTION)]
+        }
+        if (isRunning) {
+            if (shiptraptionID == NO_SHIPTRAPTION_ID) {
+                clientAngleDiff = AngleHelper.getShortestAngleDiff(angleBefore.toDouble(), targetAngle.toDouble())
+                targetAngle = angleBefore
+            }
+        } else {
+            shiptraptionID = NO_SHIPTRAPTION_ID
+        }
+        manualTargetAngleChange = tag.getBoolean(ClockworkConstants.Nbt.MANUAL_TARGET_ANGLE_CHANGE)
+        sequencedAngleLimit = tag.getFloat(ClockworkConstants.Nbt.SEQUENCED_ANGLE_LIMIT)
+        sequencedAngleProgress = tag.getFloat(ClockworkConstants.Nbt.SEQUENCED_ANGLE_PROGRESS)
+        shouldRefresh = true
+        super.read(tag, clientPacket)
+
+        if (clientPacket) {return}
+
+        val oldPos = BlockPos.of(tag.getLong(ClockworkConstants.Nbt.OLD_POS)).toJOMLD()
+        if (oldPos == worldPosition) {return}
+
         val level = level as ServerLevel
-        read(tag, false)
         val subship = level.shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return
         val mainId = level.getShipManagingPos(worldPosition)?.id ?: level.shipObjectWorld.dimensionToGroundBodyIdImmutable[level.dimensionId]!!
 
         val mapper = VSJacksonUtil.dtoMapper
 
         val data = mapper.readValue(tag.getByteArray(ClockworkConstants.Nbt.DATA), PhysBearingData::class.java)
-        val oldPos = BlockPos.of(tag.getLong(ClockworkConstants.Nbt.OLD_POS)).toJOMLD()
         val newPos = worldPosition.toJOMLD()
 
         val oldSPos = tag.getVector3d(ClockworkConstants.Nbt.OLD_SHIPTRAPTION_CENTER)!!
@@ -173,61 +222,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 VSConstraintAndId(-1, data.secondAttachConstraint!!)
             )
         )
-    }
-
-    public override fun write(compound: CompoundTag, clientPacket: Boolean) {
-        compound.putBoolean(ClockworkConstants.Nbt.RUNNING, isRunning)
-        compound.putFloat(ClockworkConstants.Nbt.ANGLE, targetAngle)
-        if (bearingID != null) {
-            compound.putInt(ClockworkConstants.Nbt.BEARING_ID, bearingID!!)
-        }
-        if (shiptraptionID != NO_SHIPTRAPTION_ID) {
-            compound.putLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID, shiptraptionID)
-        }
-        if (originalDirection != null) {
-            compound.putInt(ORIGINAL_DIRECTION, originalDirection!!.ordinal)
-        }
-        AssemblyException.write(compound, lastException)
-        compound.putBoolean(ClockworkConstants.Nbt.OPEN, open)
-        compound.putBoolean(ClockworkConstants.Nbt.MANUAL_TARGET_ANGLE_CHANGE, manualTargetAngleChange)
-        compound.putFloat(ClockworkConstants.Nbt.SEQUENCED_ANGLE_LIMIT, sequencedAngleLimit)
-        compound.putFloat(ClockworkConstants.Nbt.SEQUENCED_ANGLE_PROGRESS, sequencedAngleProgress)
-        super.write(compound, clientPacket)
-    }
-
-    override fun read(compound: CompoundTag, clientPacket: Boolean) {
-        if (wasMoved) {
-            super.read(compound, clientPacket)
-            return
-        }
-        val angleBefore = targetAngle
-        open = compound.getBoolean(ClockworkConstants.Nbt.OPEN)
-        isRunning = compound.getBoolean(ClockworkConstants.Nbt.RUNNING)
-        targetAngle = compound.getFloat(ClockworkConstants.Nbt.ANGLE)
-        lastException = AssemblyException.read(compound)
-        if (compound.contains(ClockworkConstants.Nbt.BEARING_ID)) {
-            bearingID = compound.getInt(ClockworkConstants.Nbt.BEARING_ID)
-        }
-        if (compound.contains(ClockworkConstants.Nbt.SHIPTRAPTION_ID)) {
-            shiptraptionID = compound.getLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID)
-        }
-        if (compound.contains(ORIGINAL_DIRECTION)) {
-            originalDirection = Direction.entries[compound.getInt(ORIGINAL_DIRECTION)]
-        }
-        if (isRunning) {
-            if (shiptraptionID == NO_SHIPTRAPTION_ID) {
-                clientAngleDiff = AngleHelper.getShortestAngleDiff(angleBefore.toDouble(), targetAngle.toDouble())
-                targetAngle = angleBefore
-            }
-        } else {
-            shiptraptionID = NO_SHIPTRAPTION_ID
-        }
-        manualTargetAngleChange = compound.getBoolean(ClockworkConstants.Nbt.MANUAL_TARGET_ANGLE_CHANGE)
-        sequencedAngleLimit = compound.getFloat(ClockworkConstants.Nbt.SEQUENCED_ANGLE_LIMIT)
-        sequencedAngleProgress = compound.getFloat(ClockworkConstants.Nbt.SEQUENCED_ANGLE_PROGRESS)
-        shouldRefresh = true
-        super.read(compound, clientPacket)
-        if (!clientPacket) return
     }
 
     override fun getInterpolatedAngle(partialTicks: Float): Float {
