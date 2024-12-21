@@ -7,6 +7,7 @@ import com.simibubi.create.infrastructure.config.AllConfigs
 import com.tterrag.registrate.fabric.TriFunction
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
+import net.minecraft.data.models.blockstates.PropertyDispatch.QuadFunction
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.util.sound.SoundScape
 import org.valkyrienskies.core.api.ships.Ship
@@ -26,14 +27,14 @@ object ClockworkSoundScapes {
 
     const val SOUND_VOLUME_ARG_MAX: Int = 15
 
-    enum class AmbienceGroup(private val factory: TriFunction<Float, AmbienceGroup, Ship?, SoundScape>) {
-        RICKETY({ pitch: Float, group: AmbienceGroup, ship: Ship? -> rickety(pitch, group, ship) }),
-        PROPELLER({ pitch: Float, group: AmbienceGroup, ship: Ship? -> propeller(pitch, group, ship) }),
-        JURYRIGGED_PROPELLER({ pitch: Float, group: AmbienceGroup, ship: Ship? -> juryriggedPropeller(pitch, group, ship) }),
+    enum class AmbienceGroup(private val factory: QuadFunction<Float, AmbienceGroup, Ship?, BlockPos?, SoundScape>) {
+        RICKETY({ pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos? -> rickety(pitch, group, ship) }),
+        PROPELLER({ pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos? -> propeller(pitch, group, ship, pos) }),
+        JURYRIGGED_PROPELLER({ pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos? -> juryriggedPropeller(pitch, group, ship, pos) }),
         ;
 
-        fun instantiate(pitch: Float, ship: Ship?): SoundScape {
-            return factory.apply(pitch, this, ship)
+        fun instantiate(pitch: Float, ship: Ship?, pos: BlockPos?): SoundScape {
+            return factory.apply(pitch, this, ship, pos)
         }
     }
 
@@ -41,12 +42,12 @@ object ClockworkSoundScapes {
         return SoundScape(pitch, group, ship).repeating(ClockworkSounds.JUNK_RATTLE.mainEvent!!, 1.5f, 1f, 30)
     }
 
-    private fun propeller(pitch: Float, group: AmbienceGroup, ship: Ship?): SoundScape {
-        return SoundScape(pitch, group, ship).continuous(ClockworkSounds.PROPELLER.mainEvent!!, 2f, 1f, ship)
+    private fun propeller(pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos?): SoundScape {
+        return SoundScape(pitch, group, ship).continuous(ClockworkSounds.PROPELLER.mainEvent!!, 2f, 1f, ship, pos)
     }
 
-    private fun juryriggedPropeller(pitch: Float, group: AmbienceGroup, ship: Ship?): SoundScape {
-        return SoundScape(pitch, group, ship).continuous(ClockworkSounds.JUNK_PROPELLER.mainEvent!!, 4f, 1f, ship)
+    private fun juryriggedPropeller(pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos?): SoundScape {
+        return SoundScape(pitch, group, ship).continuous(ClockworkSounds.JUNK_PROPELLER.mainEvent!!, 4f, 1f, ship, pos)
             .repeating(ClockworkSounds.JUNK_RATTLE.mainEvent!!, 1.5f, 1f, 30)
     }
 
@@ -61,7 +62,6 @@ object ClockworkSoundScapes {
 
     fun play(group: AmbienceGroup, pos: BlockPos, pitch: Float) {
         if (!AllConfigs.client().enableAmbientSounds.get()) return
-        //val realPos = BlockPos(Minecraft.getInstance().player?.level?.toWorldCoordinates(pos.toJOMLD())?.toMinecraft() ?: Vec3.atLowerCornerOf(pos))
         if (!outOfRange(pos)) addSound(group, pos, pitch)
     }
 
@@ -94,6 +94,7 @@ object ClockworkSoundScapes {
 
     private fun addSound(group: AmbienceGroup, pos: BlockPos, pitch: Float) {
         val groupFromPitch = getGroupFromPitch(pitch)
+        val realPos = BlockPos(Minecraft.getInstance().player?.level?.toWorldCoordinates(pos.toJOMLD())?.toMinecraft() ?: Vec3.atLowerCornerOf(pos))
         val set = counter.computeIfAbsent(group) { ag: AmbienceGroup -> IdentityHashMap() }
             .computeIfAbsent(groupFromPitch) { pg: PitchGroup? -> HashSet() }
         set.add(pos)
@@ -103,7 +104,7 @@ object ClockworkSoundScapes {
         val pair: Pair<AmbienceGroup, PitchGroup> =
             Pair.of(group, groupFromPitch)
         activeSounds.computeIfAbsent(pair) {
-            val soundScape = group.instantiate(pitch, ship)
+            val soundScape = group.instantiate(pitch, ship, realPos)
             soundScape.play()
             soundScape
         }
