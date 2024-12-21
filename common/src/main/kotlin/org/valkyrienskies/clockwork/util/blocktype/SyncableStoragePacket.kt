@@ -41,6 +41,7 @@ class SyncableStoragePacket : S2CCWPacket {
         buffer.writeBlockPos(pos)
         val nbt = CompoundTag()
         ContainerHelper.saveAllItems(nbt, inventory)
+        nbt.putInt("size", inventorySize)
         buffer.writeNbt(nbt)
     }
 

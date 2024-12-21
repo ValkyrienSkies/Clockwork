@@ -2,20 +2,24 @@ package org.valkyrienskies.clockwork.forge;
 
 import com.simibubi.create.content.contraptions.chassis.StickerBlock;
 import com.simibubi.create.content.redstone.RoseQuartzLampBlock;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.ConfigGuiHandler;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLLoader;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.forge.integration.cc.ClockworkForgePeripheralProviders;
+import org.valkyrienskies.mod.compat.clothconfig.VSClothConfig;
 
 import static org.valkyrienskies.clockwork.ClockworkMod.MOD_ID;
 
@@ -42,11 +46,9 @@ public class ClockworkModForge {
 
         ClockworkParticles.init();
 
-        AllClockworkConfigs.register(modLoadingContext);
+        //AllClockworkConfigs.register(modLoadingContext);
 
         ClockworkSounds.register();
-
-        ClockworkMod.init();
         ClockworkPackets.init();
 
         ClockworkShaders.INSTANCE.init();
@@ -61,6 +63,22 @@ public class ClockworkModForge {
         if (FMLLoader.getLoadingModList().getModFileById("computercraft") != null) {
             ClockworkForgePeripheralProviders.register();
         }
+
+        modEventBus.addListener(ClockworkModForge::init);
+
+        //todo fix forge vscore issue
+        modLoadingContext.registerExtensionPoint(
+                ConfigGuiHandler.ConfigGuiFactory.class,
+                () -> new ConfigGuiHandler.ConfigGuiFactory((minecraft, screen) -> VSClothConfig.createConfigScreenFor(screen, ClockworkConfig.class))
+        );
+
+    }
+
+    public static void init(final FMLCommonSetupEvent event) {
+        event.enqueueWork(() -> {
+            ClockworkMod.init();
+            ClockworkShaders.INSTANCE.init();
+        });
     }
 
     private void onClientSetup(FMLClientSetupEvent event) {

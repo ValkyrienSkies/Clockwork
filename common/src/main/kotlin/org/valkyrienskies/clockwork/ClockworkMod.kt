@@ -3,20 +3,23 @@ package org.valkyrienskies.clockwork
 import com.mojang.logging.LogUtils
 import com.simibubi.create.foundation.data.CreateRegistrate
 import dev.architectury.event.events.client.ClientTickEvent
+import dev.architectury.event.events.common.InteractionEvent
+import dev.architectury.event.events.common.LifecycleEvent
 import dev.architectury.event.events.common.TickEvent
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
 import org.slf4j.LoggerFactory
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandEffectRenderer
+import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkHandler
 import org.valkyrienskies.clockwork.content.forces.DragController
 import org.valkyrienskies.clockwork.content.forces.PocketForcesController
 import org.valkyrienskies.core.api.ships.setAttachment
 import org.valkyrienskies.clockwork.content.forces.WanderShipControl
-import org.valkyrienskies.clockwork.kelvin.api.DuctNetwork
-import org.valkyrienskies.clockwork.kelvin.impl.DuctNetworkImpl
 import org.valkyrienskies.clockwork.platform.PlatformUtils
-import org.valkyrienskies.core.impl.config.VSConfigClass
 import org.valkyrienskies.core.impl.hooks.VSEvents
+import org.valkyrienskies.kelvin.KelvinMod
+import org.valkyrienskies.kelvin.impl.DuctNetworkServer
+import org.valkyrienskies.kelvin.impl.GasTypeRegistry
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.shipObjectWorld
 
@@ -35,10 +38,8 @@ object ClockworkMod {
     val LOGGER = LogUtils.getLogger()
 
     val BASE_CREATIVE_TAB: CreativeModeTab = PlatformUtils.getCreativeTab()
-
+    
     val Kelvin: DuctNetworkImpl = DuctNetworkImpl()
-
-
 
     @JvmStatic
     fun init() {
@@ -46,6 +47,7 @@ object ClockworkMod {
         ClockworkPackets.init()
         ClockworkTags.init()
         ClockworkWorldgen.init()
+
         ValkyrienSkiesMod.vsCore.registerConfigLegacy("clockwork", ClockworkConfig::class.java)
 
         VSEvents.ShipLoadEvent.on { event ->
@@ -54,17 +56,33 @@ object ClockworkMod {
             event.ship.setAttachment(WanderShipControl())
         }
 
+        LifecycleEvent.SERVER_STARTED.register {
+            ClockworkAugmentations.registerComponentAvgAugmentation("temperature", it.shipObjectWorld)
+            ClockworkAugmentations.registerComponentAvgAugmentation("pressure", it.shipObjectWorld)
+            for (gas in GasTypeRegistry.GAS_TYPES.values) {
+                ClockworkAugmentations.registerComponentAvgAugmentation("gas_${gas.name.lowercase()}", it.shipObjectWorld)
+            }
+            //todo: gas registry
+            ClockworkAugmentations.registerComponentSumAugmentation("airupdated", it.shipObjectWorld)
+            ClockworkAugmentations.registerSumAugmentation("sealed", it.shipObjectWorld)
+        }
+
         TickEvent.SERVER_LEVEL_POST.register {
             for (ship in it.shipObjectWorld.loadedShips) {
                 ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship)
                 ship.getAttachment(DragController::class.java)?.gameTick(ship, it)
             }
-            Kelvin.tick(it, ClockworkConfig.SERVER.kelvinSubSteps)
         }
+
+        InteractionEvent.RIGHT_CLICK_BLOCK.register(InteractionEvent.RightClickBlock { player, hand, pos, face ->
+            DualLinkHandler.handler(player, hand, pos, face)
+        })
+
+
     }
 
-    fun getKelvin(): DuctNetwork {
-        return Kelvin
+    fun getKelvin(): DuctNetworkServer {
+        return KelvinMod.getKelvin() as DuctNetworkServer
     }
 
     @JvmStatic

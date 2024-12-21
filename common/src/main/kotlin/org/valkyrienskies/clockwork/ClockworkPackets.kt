@@ -5,7 +5,7 @@ import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.level.Level
-import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.UpdateAltMeterPacket
+import org.valkyrienskies.clockwork.content.curiosities.altmeter.UpdateAltMeterPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerAttachmentSyncPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDestroyPacket
@@ -15,6 +15,14 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandSel
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandRenderUpdatePacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctEdgeSyncPacket
+import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterClosePacket
+import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterScreenOpenPacket
+import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorPacket
+import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorPacket
+import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzlePacket
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.UpdateFrequencySlotPacket
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonSyncPacket
 import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket
 import org.valkyrienskies.clockwork.effekseer.common.network.AddParticlePacket
 import org.valkyrienskies.clockwork.effekseer.common.network.EmitterTriggerPacket
@@ -35,6 +43,9 @@ enum class ClockworkPackets(
     UPDATE_SEAT_RULES(UpdateSeatRulesPacket::class.java, ::UpdateSeatRulesPacket),
     SEQUENCER_SEAT_DRIVING(SequencedSeatDrivingPacket::class.java, ::SequencedSeatDrivingPacket),
     UPDATE_ALT_METER(UpdateAltMeterPacket::class.java, ::UpdateAltMeterPacket),
+    UPDATE_CHUTE_SLOT_PACKET(UpdateFrequencySlotPacket::class.java, ::UpdateFrequencySlotPacket),
+    CREATIVE_GENERATOR_PACKET(CreativeGeneratorPacket::class.java, ::CreativeGeneratorPacket),
+    FILTER_SCREEN_CLOSE_PACKET(FilterClosePacket::class.java, ::FilterClosePacket),
 
     GRAVITRON_GRAB_PACKET(GravitronGrabPacket::class.java, ::GravitronGrabPacket),
     GRAVITRON_DESTROY_PACKET(GravitronDestroyPacket::class.java, ::GravitronDestroyPacket),
@@ -43,19 +54,27 @@ enum class ClockworkPackets(
     // Server to Client
     COLORBLOCKENTITY(BlockEntityColorPacket::class.java, ::BlockEntityColorPacket),
     SYNCABLESTORAGE(SyncableStoragePacket::class.java, ::SyncableStoragePacket),
+    DELIVERY_CANNON_SYNC(DeliveryCannonSyncPacket::class.java, ::DeliveryCannonSyncPacket),
 
     SLICKERATTACHMENT(SlickerAttachmentSyncPacket::class.java, ::SlickerAttachmentSyncPacket),
     GRAVITRON_DIAL_PACKET(GravitronDialPacket::class.java, ::GravitronDialPacket),
+    FILTER_SCREEN_OPEN_PACKET(FilterScreenOpenPacket::class.java, ::FilterScreenOpenPacket),
 
     //SYNC_TEMPERATURE(TemperatureSyncPacket::class.java, ::TemperatureSyncPacket),
 
     PHYSICS_INFUSER(PhysicsInfuserSyncPacket::class.java, ::PhysicsInfuserSyncPacket),
+
     WAND_RENDER_UPDATE_PACKET(WanderwandRenderUpdatePacket::class.java, ::WanderwandRenderUpdatePacket),
 
     //TEMPORARY
     ADD_PARTICLE(AddParticlePacket::class.java, ::AddParticlePacket),
     EMITTER_TRIGGER(EmitterTriggerPacket::class.java, ::EmitterTriggerPacket),
     UPDATE_EMITTER_PARAMETER(UpdateEmitterParameterPacket::class.java, ::UpdateEmitterParameterPacket)
+
+
+    UPDATE_DUCT_EDGE(DuctEdgeSyncPacket::class.java, ::DuctEdgeSyncPacket),
+    AIR_COMPRESSOR_PACKET(AirCompressorPacket::class.java, ::AirCompressorPacket),
+    GAS_NOZZLE_PACKET(GasNozzlePacket::class.java, ::GasNozzlePacket)
     ;
 
     init {

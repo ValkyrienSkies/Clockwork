@@ -3,8 +3,15 @@ package org.valkyrienskies.clockwork.content.forces
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import net.minecraft.core.BlockPos
 import org.joml.Vector3d
+import org.joml.Vector3i
+import org.valkyrienskies.clockwork.util.Vector3icKeyDeserializer
+import org.valkyrienskies.clockwork.util.Vector3icKeySerializer
 import org.valkyrienskies.core.api.ships.*
+import org.valkyrienskies.mod.common.util.toJOML
 
 @JsonAutoDetect(
     fieldVisibility = JsonAutoDetect.Visibility.ANY,
@@ -15,30 +22,27 @@ import org.valkyrienskies.core.api.ships.*
 @JsonIgnoreProperties(ignoreUnknown = true)
 class WanderShipControl : ShipForcesInducer {
 
-    @JsonIgnore
-    internal var ship: ServerShip? = null
-
-    var aurics = 0
-        set(v) {
-            field = v; deleteIfEmpty()
-        }
+    @JsonSerialize(keyUsing = Vector3icKeySerializer::class)
+    @JsonDeserialize(keyUsing = Vector3icKeyDeserializer::class)
+    val wanderBlocks: HashMap<Vector3i, Double> = HashMap()
 
     override fun applyForces(physShip: PhysShip) {
-        if (aurics < 1) {
-            ship?.saveAttachment<WanderShipControl>(null)
-            return
+        val meanPos: Vector3d = Vector3d()
+        for (blockPos in wanderBlocks.keys) {
+            meanPos.add(Vector3d(blockPos.x.toDouble(), blockPos.y.toDouble(), blockPos.z.toDouble()).sub(physShip.transform.positionInShip))
         }
-
-        val yForce = (aurics * 1.0)
-        val force =  Vector3d(0.0, yForce,0.0).mul(1100.0, Vector3d())
+        val sumForce: Double = wanderBlocks.values.sum()
+        val force =  Vector3d(0.0, sumForce,0.0).mul(1100.0, Vector3d())
 
         physShip.applyInvariantForce(force)
     }
 
-    fun deleteIfEmpty() {
-        if (aurics <= 0) {
-            ship?.saveAttachment<WanderShipControl>(null)
-        }
+    fun addBlock(blockPos: BlockPos, force: Double) {
+        wanderBlocks[blockPos.toJOML()] = force
+    }
+
+    fun removeBlock(blockPos: BlockPos) {
+        wanderBlocks.remove(blockPos.toJOML())
     }
 
     companion object {

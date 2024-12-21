@@ -14,14 +14,23 @@ import org.joml.Vector3i
 import org.joml.Vector3ic
 import org.joml.primitives.AABBi
 import org.joml.primitives.AABBic
+import org.valkyrienskies.clockwork.ClockworkAugmentations
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.SelectedAreaToolkit
+import org.valkyrienskies.clockwork.util.MathFunctions.chunkPos
+import org.valkyrienskies.clockwork.util.MathFunctions.toVector3i
+import org.valkyrienskies.core.api.ships.properties.ChunkClaim
+import org.valkyrienskies.core.api.world.connectivity.DoubleComponentAugmentation
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil.defaultMapper
+import org.valkyrienskies.kelvin.api.GasType
+import org.valkyrienskies.kelvin.impl.GasTypeRegistry
 import org.valkyrienskies.mod.common.BlockStateInfo
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.shipObjectWorld
 import java.io.IOException
 import java.util.*
 import java.util.stream.Collectors
+import kotlin.collections.HashMap
 
 
 object ClockworkUtils {
@@ -132,5 +141,67 @@ object ClockworkUtils {
         } catch (ignored: JsonProcessingException) {
         }
         return nbt
+    }
+
+    fun retrieveGasInfoFromPocket(pos: Vector3ic, level: ServerLevel): Pair<HashMap<GasType, Double>, Double> {
+        val gasMap = HashMap<GasType, Double>()
+        for (type in GasTypeRegistry.GAS_TYPES.values) {
+            val key = ClockworkAugmentations.getComponentAugmentation("gas_" + type.name.lowercase(Locale.getDefault()))
+            val gas = level.shipObjectWorld.getAirComponentAugmentation(key, pos.x(), pos.y(), pos.z(), level.dimensionId)
+            gasMap[type] = gas
+        }
+
+        val temperature = level.shipObjectWorld.getAirComponentAugmentation(
+            ClockworkAugmentations.getComponentAugmentation("temperature"),
+            pos.x(),
+            pos.y(),
+            pos.z(),
+            level.dimensionId
+        )
+
+        return Pair(gasMap, temperature)
+    }
+
+    /**
+     * Retrieves all components within a given chunk claim, using a key as reference.
+     *
+     * Deprecated implementation
+     */
+    @Deprecated("Deprecated. Replaced with proper implementation in VS Core.")
+    fun getAirComponentsInChunkClaim(claim: ChunkClaim, level: ServerLevel, referenceKey: DoubleComponentAugmentation): HashMap<Vector3i, Long> {
+        val map = HashMap<Vector3i, Long>()
+        level.shipObjectWorld.getFromEachAirComponentRoot(referenceKey, level.dimensionId).keys.forEach { pos ->
+            if (claim.contains(pos.chunkPos().x, pos.chunkPos().z)) {
+                map[pos.toVector3i()] = try {
+                    level.shipObjectWorld.getAirComponentSize(pos.first, pos.second, pos.third, level.dimensionId)
+                } catch (e: IllegalArgumentException) {
+                    -1
+                }
+                if (map[pos.toVector3i()] == -1L) {
+                    ClockworkMod.LOGGER.warn("Failed to get air component size at $pos")
+                }
+            }
+        }
+        return HashMap(map.filterNot { it.value == -1L })
+    }
+
+    /**
+     * Retrieves all components within a given chunk claim, using a key as reference.
+     *
+     * Deprecated implementation
+     */
+    @Deprecated("Deprecated. Replaced with proper implementation in VS Core.")
+    fun getSolidComponentsInChunkClaim(claim: ChunkClaim, level: ServerLevel, referenceKey: DoubleComponentAugmentation): HashMap<Vector3i, Long> {
+        val map = HashMap<Vector3i, Long>()
+        level.shipObjectWorld.getFromEachSolidComponentRoot(referenceKey, level.dimensionId).keys.forEach { pos ->
+            if (claim.contains(pos.chunkPos().x, pos.chunkPos().z)) {
+                map[pos.toVector3i()] = try {
+                    level.shipObjectWorld.getSolidComponentSize(pos.first, pos.second, pos.third, level.dimensionId)
+                } catch (e: IllegalArgumentException) {
+                    -1
+                }
+            }
+        }
+        return HashMap(map.filterNot { it.value == -1L })
     }
 }

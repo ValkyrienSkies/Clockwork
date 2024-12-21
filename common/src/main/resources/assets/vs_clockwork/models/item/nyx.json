@@ -1,5 +1,5 @@
 {
-  "parent": "vs_clockwork:block/nyx/nyx.json",
+  "parent": "vs_clockwork:block/nyx/nyx",
   "display": {
     "thirdperson_righthand": {
       "rotation": [75, 45, 0],

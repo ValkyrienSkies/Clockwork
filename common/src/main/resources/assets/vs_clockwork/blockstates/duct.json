@@ -1,3 +1,106 @@
 {
+  "multipart": [
+    {
+      "when": {
+        "OR": [
+          {"up": "true", "gas_heat_level": "cool"},
+          {"down": "true", "gas_heat_level": "cool"},
+          {"east": "true", "gas_heat_level": "cool"},
+          {"west": "true", "gas_heat_level": "cool"},
+          {"north": "true", "gas_heat_level": "cool"},
+          {"south": "true", "gas_heat_level": "cool"},
 
+          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "false|forced", "down": "false|forced", "gas_heat_level": "cool"}
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/duct/core/cool"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {"up": "true", "gas_heat_level": "warm"},
+          {"down": "true", "gas_heat_level": "warm"},
+          {"east": "true", "gas_heat_level": "warm"},
+          {"west": "true", "gas_heat_level": "warm"},
+          {"north": "true", "gas_heat_level": "warm"},
+          {"south": "true", "gas_heat_level": "warm"},
+
+          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "false|forced", "down": "false|forced", "gas_heat_level": "warm"}
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/duct/core/warm"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {"up": "true", "gas_heat_level": "hot"},
+          {"down": "true", "gas_heat_level": "hot"},
+          {"east": "true", "gas_heat_level": "hot"},
+          {"west": "true", "gas_heat_level": "hot"},
+          {"north": "true", "gas_heat_level": "hot"},
+          {"south": "true", "gas_heat_level": "hot"},
+
+          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "false|forced", "down": "false|forced", "gas_heat_level": "hot"}
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/duct/core/hot"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {"up": "true", "gas_heat_level": "very_hot"},
+          {"down": "true", "gas_heat_level": "very_hot"},
+          {"east": "true", "gas_heat_level": "very_hot"},
+          {"west": "true", "gas_heat_level": "very_hot"},
+          {"north": "true", "gas_heat_level": "very_hot"},
+          {"south": "true", "gas_heat_level": "very_hot"},
+
+          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "false|forced", "down": "false|forced", "gas_heat_level": "very_hot"}
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/duct/core/very_hot"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {"up": "true", "gas_heat_level": "super_hot"},
+          {"down": "true", "gas_heat_level": "super_hot"},
+          {"east": "true", "gas_heat_level": "super_hot"},
+          {"west": "true", "gas_heat_level": "super_hot"},
+          {"north": "true", "gas_heat_level": "super_hot"},
+          {"south": "true", "gas_heat_level": "super_hot"},
+
+          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "false|forced", "down": "false|forced", "gas_heat_level": "super_hot"}
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/duct/core/super_hot"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {"up": "true", "gas_heat_level": "molten"},
+          {"down": "true", "gas_heat_level": "molten"},
+          {"east": "true", "gas_heat_level": "molten"},
+          {"west": "true", "gas_heat_level": "molten"},
+          {"north": "true", "gas_heat_level": "molten"},
+          {"south": "true", "gas_heat_level": "molten"},
+
+          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "false|forced", "down": "false|forced", "gas_heat_level": "molten"}
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/duct/core/molten"
+      }
+    }
+  ]
 }

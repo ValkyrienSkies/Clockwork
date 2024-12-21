@@ -3,9 +3,9 @@
 	"parent": "block/block",
 	"texture_size": [64, 64],
 	"textures": {
-		"0": "vs_clockwork:delivery_chute",
-		"1": "vs_clockwork:cannon_barrel_largecheckers",
-		"particle": "vs_clockwork:delivery_chute"
+		"0": "vs_clockwork:block/delivery_chute",
+		"1": "vs_clockwork:block/cannon_barrel_largecheckers",
+		"particle": "vs_clockwork:block/delivery_chute"
 	},
 	"elements": [
 		{

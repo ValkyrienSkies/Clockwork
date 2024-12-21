@@ -1,22 +1,28 @@
 package org.valkyrienskies.clockwork.content.logistics.solid.delivery
 
+import com.simibubi.create.content.redstone.link.RedstoneLinkNetworkHandler.Frequency
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
-import org.joml.Vector3dc
+import net.minecraft.world.phys.Vec3
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
+import org.valkyrienskies.core.util.x
+import org.valkyrienskies.core.util.y
+import org.valkyrienskies.core.util.z
 import org.valkyrienskies.mod.common.util.toJOMLD
 
 object ActiveChutes {
-    private val actives: HashMap<BlockPos, DeliveryChuteBlockEntity> = HashMap()
-    private val unloaded: HashMap<BlockPos, DeliveryChuteBlockEntity> = HashMap()
+     val actives: HashMap<BlockPos, DeliveryChuteBlockEntity> = HashMap()
+     val unloaded: HashMap<BlockPos, DeliveryChuteBlockEntity> = HashMap()
+
+    val chutesToRemove: ArrayList<BlockPos> = ArrayList()
 
     fun addChute(pos: BlockPos, chute: DeliveryChuteBlockEntity) {
         actives[pos] = chute
     }
 
     fun removeChute(pos: BlockPos) {
-        actives.remove(pos)
-        unloaded.remove(pos)
+        chutesToRemove.add(pos)
     }
 
     private fun unloadChute(pos: BlockPos) {
@@ -49,56 +55,70 @@ object ActiveChutes {
         return closest
     }
 
-    fun getNearestChuteWithId(pos: BlockPos, maxDistance: Double, id: Int): BlockPos? {
-        var closest: BlockPos? = null
-        var closestDistance: Double = Double.MAX_VALUE
+    fun getSortedChuteWithFrequency(pos: Vec3, maxDistance: Double, frequency: Frequency): MutableList<BlockPos>{
+
+        var inRange = mutableListOf<BlockPos>()
+
         for (chute in actives.keys) {
             val realPos = actives[chute]!!.getRealPos()
-            val realBlockPos = BlockPos(realPos.x().toInt(), realPos.y().toInt(), realPos.z().toInt())
-            if (realBlockPos.closerThan(pos, maxDistance)) {
-                if (realPos.distance(pos.toJOMLD()) < closestDistance) {
-                    if (actives[chute]!!.id == id) {
-                        closest = chute
-                        closestDistance = chute.toJOMLD().distance(pos.toJOMLD())
-                    }
+            val realVec3 = Vec3(realPos.x,realPos.y,realPos.z)
+
+            if (realVec3.subtract(pos).length() < maxDistance) {
+                if (actives[chute]!!.frequencySlotBehaviour.frequency == frequency) {
+                    inRange.add(chute)
                 }
+
             }
         }
-        return closest
+
+        inRange.sortWith(compareBy { getChuteRealPos(it)!!.subtract(pos).length() })
+
+        return inRange
     }
+
+
 
     fun hasChute(pos: BlockPos): Boolean {
         return actives.containsKey(pos) || unloaded.containsKey(pos)
     }
 
-    fun getChuteRealPos(pos: BlockPos): Vector3dc? {
+    fun getChuteRealPos(pos: BlockPos): Vec3? {
         if (actives.containsKey(pos)) {
-            return actives[pos]!!.getRealPos()
+            val temp = actives[pos]!!.getRealPos()
+            return Vec3(temp.x,temp.y,temp.z)
         } else if (unloaded.containsKey(pos)) {
-            return unloaded[pos]!!.getRealPos()
+            val temp = unloaded[pos]!!.getRealPos()
+            return Vec3(temp.x,temp.y,temp.z)
         }
         return null
     }
 
     fun tick(level: ServerLevel) {
-        val toUnload: ArrayList<BlockPos> = ArrayList()
-        for (pos in actives.keys) {
-            if (!level.isLoaded(pos)) {
-                toUnload.add(pos)
-            }
-        }
-        for (pos in toUnload) {
-            unloadChute(pos)
-        }
 
-        val toLoad: ArrayList<BlockPos> = ArrayList()
-        for (pos in unloaded.keys) {
-            if (level.isLoaded(pos)) {
-                toLoad.add(pos)
-            }
+        for (pos in chutesToRemove) {
+            actives.remove(pos)
+            unloaded
         }
-        for (pos in toLoad) {
-            loadChute(pos)
-        }
+        chutesToRemove.clear()
+
+//        val toUnload: ArrayList<BlockPos> = ArrayList()
+//        for (pos in actives.keys) {
+//            if (!level.isLoaded(pos)) {
+//                toUnload.add(pos)
+//            }
+//        }
+//        for (pos in toUnload) {
+//            unloadChute(pos)
+//        }
+//
+//        val toLoad: ArrayList<BlockPos> = ArrayList()
+//        for (pos in unloaded.keys) {
+//            if (level.isLoaded(pos)) {
+//                toLoad.add(pos)
+//            }
+//        }
+//        for (pos in toLoad) {
+//            loadChute(pos)
+//        }
     }
 }

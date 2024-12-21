@@ -39,5 +39,20 @@ object ClockworkConfig {
 
         @JsonSchema(description = "Max Gravitron mass in 1000 kg")
         var maxGravitronMass = 256
+
+        @JsonSchema(description = "Force multiplier for balloons. Realism is 1.0, default is 1000.0. Range: > 0.0", min = 0.0)
+        var balloonForceMult: Double = 1000.0
+
+        @JsonSchema(description = "Leakage rate of pockets. Determines how fast pressure in an unsealed pocket attempts to 'normalize'. Default is 0.5.", min = 0.0, max = 1.0)
+        var pocketLeakageRate = 0.5
+
+        @JsonSchema(description = "Effectiveness scalar for reaction wheels. Higher value means a single reaction wheel can better control an entire ship, regardless of its mass. Default value is 0.1.", min = 0.001, max = 1.0)
+        var reactionWheelEffectiveness = 1.0
+
+        @JsonSchema(description = "Whether or not blade controllers consume the durability of the blades inside while rotating at high speeds.")
+        var bladeControllerUsesDurability = false
+
+        @JsonSchema(description = "The substeps of blade force calculation. More steps means more \'accurate\' simulation, but also makes it significantly more performance heavy.")
+        var bladeIntegrationSteps = 10.0
     }
 }

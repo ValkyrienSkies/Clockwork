@@ -15,7 +15,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.valkyrienskies.clockwork.content.forces.EncasedFanController;
+import org.valkyrienskies.clockwork.content.generic.IForceApplierBE;
 import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanCreateData;
+import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanData;
 import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanUpdateData;
 import org.valkyrienskies.clockwork.util.ClockworkConstants;
 import org.valkyrienskies.core.api.ships.LoadedServerShip;
@@ -23,13 +25,10 @@ import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.mod.common.util.VectorConversionsMCKt;
 
 @Mixin(EncasedFanBlockEntity.class)
-public abstract class MixinEncasedFanTileEntity extends KineticBlockEntity {
+public abstract class MixinEncasedFanTileEntity extends KineticBlockEntity implements IForceApplierBE<EncasedFanUpdateData, EncasedFanData, EncasedFanCreateData, EncasedFanController> {
 
 //    @Shadow(remap = false)
 //    LerpedFloat visualSpeed;
-
-    private Integer vs_clockwork$fanID = null;
-    private boolean vs_clockwork$alreadyAdded = false;
 
     public MixinEncasedFanTileEntity(BlockEntityType<?> typeIn, BlockPos pos, BlockState state) {
         super(typeIn, pos, state);
@@ -46,23 +45,9 @@ public abstract class MixinEncasedFanTileEntity extends KineticBlockEntity {
             }
         }
         if (ship != null) {
-            if (!vs_clockwork$alreadyAdded && vs_clockwork$fanID == null) {
-                Vector3dc pos = VectorConversionsMCKt.toJOMLD(worldPosition);
-                Vector3dc axis = VectorConversionsMCKt.toJOMLD(getBlockState().getValue(BlockStateProperties.FACING).getNormal());
-                final EncasedFanCreateData data = new EncasedFanCreateData(pos, axis, speed);
-                vs_clockwork$fanID = EncasedFanController.Companion.getOrCreate(ship).addEncasedFan(data);
-                vs_clockwork$alreadyAdded = true;
-            }
-            if (vs_clockwork$alreadyAdded && vs_clockwork$fanID != null) {
-                final EncasedFanUpdateData data = new EncasedFanUpdateData(speed);
-                EncasedFanController.Companion.getOrCreate(ship).updateEncasedFan(vs_clockwork$fanID, data);
-            }
-            if (this.isRemoved()) {
-                if (vs_clockwork$fanID != null) {
-                    EncasedFanController.Companion.getOrCreate(ship).removeEncasedFan(vs_clockwork$fanID);
-                    vs_clockwork$fanID = null;
-                    vs_clockwork$alreadyAdded = false;
-                }
+            EncasedFanController attachment = EncasedFanController.Companion.getOrCreate(ship);
+            if (attachment != null) {
+                tickData(attachment, true);
             }
         }
     }
@@ -74,17 +59,25 @@ public abstract class MixinEncasedFanTileEntity extends KineticBlockEntity {
 
     @Inject(method = "write", at = @At("TAIL"), remap = false)
     private void vs_clockwork$injectWrite(CompoundTag compound, boolean clientPacket, CallbackInfo ci) {
-        compound.putBoolean(ClockworkConstants.Nbt.ALREADY_ADDED, vs_clockwork$alreadyAdded);
-        if (vs_clockwork$fanID != null) {
-            compound.putInt(ClockworkConstants.Nbt.FAN_ID, vs_clockwork$fanID);
+        if (getPhysID() != -1.0) {
+            compound.putInt(ClockworkConstants.Nbt.FAN_ID, getPhysID());
         }
     }
 
     @Inject(method = "read", at = @At("TAIL"), remap = false)
     private void vs_clockwork$injectRead(CompoundTag compound, boolean clientPacket, CallbackInfo ci) {
-        vs_clockwork$alreadyAdded = compound.getBoolean(ClockworkConstants.Nbt.ALREADY_ADDED);
         if (compound.contains(ClockworkConstants.Nbt.FAN_ID)) {
-            vs_clockwork$fanID = compound.getInt(ClockworkConstants.Nbt.FAN_ID);
+            setPhysID(compound.getInt(ClockworkConstants.Nbt.FAN_ID));
         }
+    }
+
+
+    @Inject(method = "remove", at = @At("HEAD"), remap = false)
+    private void vs_clockwork$injectRemove(CallbackInfo ci) {
+        if (level == null || level.isClientSide) {return;}
+        if (VSGameUtilsKt.getShipObjectManagingPos(level, getBlockPos()) == null) {return;}
+        LoadedServerShip ship = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, getBlockPos());
+        if (ship == null) {return;}
+        removeApplier(EncasedFanController.class, level, getBlockPos());
     }
 }

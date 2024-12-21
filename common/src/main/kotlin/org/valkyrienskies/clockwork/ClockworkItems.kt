@@ -5,6 +5,8 @@ import com.simibubi.create.foundation.data.AssetLookup
 import com.tterrag.registrate.util.entry.ItemEntry
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.Rarity
+import net.minecraft.world.item.SwordItem
+import net.minecraft.world.item.Tiers
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteCubeItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteItem
@@ -13,6 +15,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.Creative
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItem
+import org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver.ScrewdriverItem
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import java.util.function.Supplier
@@ -83,6 +86,29 @@ object ClockworkItems {
             .model(AssetLookup.itemModelWithPartials())
             .register()
 
+
+    @JvmField
+    val PROPELLER_BLADE: ItemEntry<SwordItem> = REGISTRATE.item<SwordItem>("propeller_blade") { properties: Item.Properties? ->
+        SwordItem(Tiers.WOOD, 2, 0.4f, properties!!)
+    }
+        .properties {
+            it.durability(100)
+        }
+        .tag(ClockworkTags.AllItemTags.PROP_BLADE.tag)
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .register()
+
+    @JvmField
+    val WIDE_PROPELLER_BLADE: ItemEntry<SwordItem> = REGISTRATE.item<SwordItem>("wide_propeller_blade") { properties: Item.Properties? ->
+        SwordItem(Tiers.WOOD, 4, 0.2f, properties!!)
+    }
+        .properties {
+            it.durability(200)
+        }
+        .tag(ClockworkTags.AllItemTags.PROP_BLADE.tag)
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .register()
+
     @JvmField
     val WANDERWAND: ItemEntry<WanderwandItem> =
         REGISTRATE.item<WanderwandItem>("wanderwand") { properties: Item.Properties? ->
@@ -105,6 +131,18 @@ object ClockworkItems {
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .register()
 
+    @JvmField
+    val SCREWDRIVER: ItemEntry<ScrewdriverItem> =
+        REGISTRATE.item<ScrewdriverItem>("screwdriver") { properties: Item.Properties? ->
+            ScrewdriverItem(properties!!)
+        }
+            .properties {
+                it.stacksTo(1)
+            }
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tag(AllTags.AllItemTags.WRENCH.tag)
+            .model(AssetLookup.existingItemModel())
+            .register()
 
     @JvmStatic
     fun register() {

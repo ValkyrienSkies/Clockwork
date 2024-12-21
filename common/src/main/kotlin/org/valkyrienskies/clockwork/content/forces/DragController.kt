@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.content.forces
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect
+import com.fasterxml.jackson.annotation.JsonIgnore
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerLevel
 import org.joml.Vector3d
@@ -15,30 +17,40 @@ import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.ShipForcesInducer
 import org.valkyrienskies.core.util.expand
+import org.valkyrienskies.mod.common.util.settings
 import org.valkyrienskies.mod.common.util.toBlockPos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.util.logger
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
+import kotlin.collections.HashMap
 
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class DragController : ShipForcesInducer {
 
+    @JsonIgnore
     private val blockUpdateQueue = ConcurrentLinkedQueue<Pair<Vector3ic, Boolean>>()
+    @JsonIgnore
     private val aabbUpdateQueue = ConcurrentLinkedQueue<AABBic>()
 
     private val allBlocks = HashSet<Vector3ic>()
     private val exposedFaces : EnumMap<Direction, HashSet<Vector3ic>> = EnumMap(Direction::class.java)
     private val surfaceAreaByDirection = EnumMap<Direction, Double>(Direction::class.java)
 
+    @JsonIgnore
     private val sideTracker: SideProfileTracker = SideProfileTracker()
 
     private var bounds: AABBic? = null
 
+    @JsonIgnore
     private var shouldUpdate: Boolean = true
-
+    @JsonIgnore
     private var firstTimeUpdate: Boolean = true
-
+    @JsonIgnore
     private var max_height: Double = 563.0
+
+    @JsonIgnore
+    private var lodDetail: Int = 5
 
     override fun applyForces(physShip: PhysShip) {
         val impl = physShip
@@ -72,9 +84,10 @@ class DragController : ShipForcesInducer {
             if (drag.isFinite && dragPos.isFinite) {
                 physShip.applyInvariantForceToPos(drag, dragPos)
             }
-            if (rotDrag.isFinite) {
-                //dragLogger.info("Center of Pressure: $dragPos")
-                physShip.applyInvariantTorque(rotDrag)
+            for (rot in rotDrag) {
+                if (rot.value.isFinite) {
+                    physShip.applyInvariantForceToPos(rot.value, rot.key)
+                }
             }
         }
     }
@@ -248,31 +261,36 @@ class DragController : ShipForcesInducer {
         return motionNormal.mul(dragForce, Vector3d())
     }
 
-    private fun calculateRotationalDrag(ship: PhysShip): Vector3dc {
-//        val motionVector: Vector3dc = ship.poseVel.omega
-//        val motionNormal: Vector3dc = motionVector.normalize(Vector3d()).mul(-1.0)
-//
-//        val density = getAirDensityForY(ship.poseVel.pos.y())
-//
-//        var exposedArea = 0.0
-//
-//        for (dir in Direction.values()) {
-//            val surfaceArea = surfaceAreaByDirection[dir]?: continue
-//            val dot = motionNormal.dot(dir.normal.toJOMLD())
-//            if (dot > 0) {
-//                exposedArea += surfaceArea * dot
-//            }
-//        }
-//
-//        val dragForce = DRAG_COEFFICIENT * density * (motionVector.lengthSquared()/2.0) * exposedArea
-//
-//        return motionNormal.mul(dragForce, Vector3d())
+    private fun calculateRotationalDrag(ship: PhysShip): Map<Vector3dc, Vector3dc> {
+        val rotationVector: Vector3dc = ship.omega
 
-        //temporarily just *.99
-        var resistance = 0.02
+        val density = getAirDensityForY(ship.transform.positionInWorld.y(), max_height)
 
-        return ship.omega.mul(ship.momentOfInertia, Vector3d())
-            .mul(-resistance)
+        val totalDragForce: HashMap<Vector3dc, Vector3dc> = HashMap()
+        val centersOfPressure: EnumMap<Direction, Vector3d> = EnumMap(net.minecraft.core.Direction::class.java)
+
+        for ((dir, faces) in exposedFaces.entries) {
+            if (faces.isEmpty()) continue
+            val centerOfPressure: Vector3d = Vector3d()
+            faces.forEach {
+                centerOfPressure.add(it.x().toDouble(), it.y().toDouble(), it.z().toDouble()).add(0.5, 0.5, 0.5)
+                    .add(dir.normal.toJOMLD().mul(0.5, Vector3d()))
+            }
+            centerOfPressure.div(faces.size.toDouble())
+            centersOfPressure[dir] = centerOfPressure
+        }
+
+        for (dir in Direction.values()) {
+            val centerOfPressure = centersOfPressure[dir]?: continue
+            val distanceToCenter = centerOfPressure.sub(ship.transform.positionInShip)
+            val velocityVector : Vector3dc = rotationVector.cross(distanceToCenter, Vector3d())
+            val dot = velocityVector.normalize(Vector3d()).dot(dir.normal.toJOMLD())
+            if (dot < 0) continue
+            val dragForce = DRAG_COEFFICIENT * density * (velocityVector.lengthSquared()/2.0) * (surfaceAreaByDirection[dir]!! * dot)
+            totalDragForce[centerOfPressure] = velocityVector.normalize(Vector3d()).mul(-1.0).mul(dragForce, Vector3d())
+        }
+
+        return totalDragForce
     }
 
     private fun calculateDragPosition(ship: PhysShip): Vector3dc {

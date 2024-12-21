@@ -8,10 +8,12 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
+import org.valkyrienskies.clockwork.integration.cc.GasHeatSource;
 
 public class ClockworkFabricPeripheralProviders {
     public static void register() {
         ComputerCraftAPI.registerPeripheralProvider(new ClockworkPeripheralProvider());
+        ComputerCraftAPI.registerGenericSource(GasHeatSource.INSTANCE);
     }
 
     public static class ClockworkPeripheralProvider implements IPeripheralProvider {

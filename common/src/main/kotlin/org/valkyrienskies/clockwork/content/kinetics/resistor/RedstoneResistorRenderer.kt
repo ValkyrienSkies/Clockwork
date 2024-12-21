@@ -45,7 +45,6 @@ class RedstoneResistorRenderer(context: BlockEntityRendererProvider.Context?) :
             kineticRotationTransform(superByteBuffer, te, axis, angle, light)
             superByteBuffer.renderInto(ms, buffer.getBuffer(RenderType.solid()))
         }
-        val state = 0f
         val resistorState = te.blockState
         val vb = buffer.getBuffer(RenderType.solid())
         val color = Color.mixColors(0x2C0300, 0xCD0000, resistor.state / 15f)

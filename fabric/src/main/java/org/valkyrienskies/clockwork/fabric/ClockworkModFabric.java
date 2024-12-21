@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.fabric;
 
+import com.terraformersmc.modmenu.api.ConfigScreenFactory;
+import com.terraformersmc.modmenu.api.ModMenuApi;
 import io.github.fabricators_of_create.porting_lib.event.common.LivingEntityEvents;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -13,6 +15,7 @@ import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.content.events.ClockworkCommonEvents;
 import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.fabric.integration.cc.ClockworkFabricPeripheralProviders;
+import org.valkyrienskies.mod.compat.clothconfig.VSClothConfig;
 import org.valkyrienskies.mod.fabric.common.ValkyrienSkiesModFabric;
 
 public class ClockworkModFabric implements ModInitializer {
@@ -39,7 +42,7 @@ public class ClockworkModFabric implements ModInitializer {
 
         ClockworkMod.init();
         //FabricClockworkWorldgen.bootstrap();
-        AllClockworkConfigs.init();
+        //AllClockworkConfigs.init();
 
         ClockworkParticles.init();
         FabricClockworkSounds.init();
@@ -52,12 +55,22 @@ public class ClockworkModFabric implements ModInitializer {
         var gearwork = new ResourceLocation(ClockworkMod.MOD_ID, "gearwork");
         FabricLoader.getInstance().getModContainer(ClockworkMod.MOD_ID).ifPresent(container -> ResourceManagerHelper.registerBuiltinResourcePack(gearwork, container, "Clockwork: Gearwork", ResourcePackActivationType.NORMAL));
 
-
+        ClockworkBoilerHeaters.INSTANCE.init();
     }
 
     public static void registerServerEvents() {
         ServerTickEvents.START_WORLD_TICK.register(ClockworkCommonEvents.INSTANCE::onWorldTick);
         LivingEntityEvents.TICK.register(FabricClockworkCommonEvents::onLivingTick);
         AttackBlockCallback.EVENT.register(FabricClockworkCommonEvents::playerLeftClick);
+    }
+
+    public static class ModMenu implements ModMenuApi {
+        @Override
+        public ConfigScreenFactory<?> getModConfigScreenFactory() {
+            return (parent) -> VSClothConfig.createConfigScreenFor(
+                    parent,
+                    ClockworkConfig.class
+            );
+        }
     }
 }
