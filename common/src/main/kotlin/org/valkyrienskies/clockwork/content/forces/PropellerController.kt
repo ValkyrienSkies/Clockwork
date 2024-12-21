@@ -106,12 +106,16 @@ class PropellerController(
             val angleOfAttack = pretendPitch - inflowAngle
             val thrustCoefficient = (angleOfAttack * cos(inflowAngle)) - (0.1 * sin(inflowAngle))
 
-            val thrust = 0.5 * getAirDensityForY(sailPosWorld.y(), 563.0) * ((axialVelocity).pow(2.0) + (sailVel.length()).pow(2)) * thrustCoefficient
+            val q = 0.5 * getAirDensityForY(sailPosWorld.y(), 563.0) * ((axialVelocity).pow(2.0) + (sailVel.length()).pow(2.0))
 
-            val force = worldAxis.mul(thrust * 5000.0, Vector3d())
+            val thrust = q * thrustCoefficient
+
+            val force = worldAxis.mul(thrust, Vector3d())
             //            Vector3d force2 = force.mul(physProp.bearingSpeed, new Vector3d());
-
             val torque = sailPosRelShip.cross(force, Vector3d())
+
+            force.mul(6000.0)
+
             if (offsetFalloff > 0.0001) force.div(offsetFalloff)
             if (offsetFalloff > 0.0001) torque.div(offsetFalloff)
             if (force.isFinite) netForce.add(force)
