@@ -149,7 +149,7 @@ class EffekAssetLoader : SimplePreparableReloadListener<EffekAssetLoader.Prepara
         return null
     }
 
-    override fun apply(prep_: Preparations, manager: ResourceManager, profilerFiller: ProfilerFiller) {
+    override fun apply(prep_: Preparations?, manager: ResourceManager, profilerFiller: ProfilerFiller) {
         init()
         val prep = Preparations()
         for (effek in manager.listResources(

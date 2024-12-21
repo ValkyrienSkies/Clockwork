@@ -2,14 +2,12 @@ package org.valkyrienskies.clockwork
 
 import com.mojang.logging.LogUtils
 import com.simibubi.create.foundation.data.CreateRegistrate
-import dev.architectury.event.events.client.ClientTickEvent
 import dev.architectury.event.events.common.InteractionEvent
 import dev.architectury.event.events.common.LifecycleEvent
 import dev.architectury.event.events.common.TickEvent
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
 import org.slf4j.LoggerFactory
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandEffectRenderer
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkHandler
 import org.valkyrienskies.clockwork.content.forces.DragController
 import org.valkyrienskies.clockwork.content.forces.PocketForcesController
@@ -38,8 +36,6 @@ object ClockworkMod {
     val LOGGER = LogUtils.getLogger()
 
     val BASE_CREATIVE_TAB: CreativeModeTab = PlatformUtils.getCreativeTab()
-    
-    val Kelvin: DuctNetworkImpl = DuctNetworkImpl()
 
     @JvmStatic
     fun init() {

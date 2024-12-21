@@ -3,11 +3,12 @@ package org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.world.entity.player.Player
 import org.valkyrienskies.clockwork.platform.api.network.ClientNetworkContext
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket
 
 class AirCompressorPacket: S2CCWPacket {
-
+    override var player: Player? = null
 
     private val isOn: Boolean
     private val pos: BlockPos

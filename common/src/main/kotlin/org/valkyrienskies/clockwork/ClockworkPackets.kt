@@ -69,7 +69,7 @@ enum class ClockworkPackets(
     //TEMPORARY
     ADD_PARTICLE(AddParticlePacket::class.java, ::AddParticlePacket),
     EMITTER_TRIGGER(EmitterTriggerPacket::class.java, ::EmitterTriggerPacket),
-    UPDATE_EMITTER_PARAMETER(UpdateEmitterParameterPacket::class.java, ::UpdateEmitterParameterPacket)
+    UPDATE_EMITTER_PARAMETER(UpdateEmitterParameterPacket::class.java, ::UpdateEmitterParameterPacket),
 
 
     UPDATE_DUCT_EDGE(DuctEdgeSyncPacket::class.java, ::DuctEdgeSyncPacket),

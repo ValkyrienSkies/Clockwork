@@ -31,7 +31,7 @@ object EffekRenderer {
         if (INIT.compareAndExchange(false, true)) {
             return
         }
-        if (NativePlatform.isRunningOnUnsupportedPlatform) {
+        if (NativePlatform.isRunningOnUnsupportedPlatform()) {
             ClockworkMod.LOGGER.warn(
                 "AAAParticles [Clockwork Repackaged] is running on unsupported platform {}, Effekseer particles will not function!",
                 NativePlatform.current()
@@ -50,7 +50,7 @@ object EffekRenderer {
 
     @JvmStatic
     fun onRenderWorldLast(partialTick: Float, pose: PoseStack, projection: Matrix4f, camera: Camera) {
-        if (NativePlatform.isRunningOnUnsupportedPlatform) {
+        if (NativePlatform.isRunningOnUnsupportedPlatform()) {
             return
         }
         draw(ParticleEmitter.Type.WORLD, partialTick, pose, projection, camera)
@@ -64,7 +64,7 @@ object EffekRenderer {
         projection: Matrix4f,
         camera: Camera
     ) {
-        if (NativePlatform.isRunningOnUnsupportedPlatform) {
+        if (NativePlatform.isRunningOnUnsupportedPlatform()) {
             return
         }
         val type = when (hand) {

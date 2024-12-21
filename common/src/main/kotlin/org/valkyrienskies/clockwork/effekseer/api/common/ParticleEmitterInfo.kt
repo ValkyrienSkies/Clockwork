@@ -355,7 +355,7 @@ open class ParticleEmitterInfo : Cloneable {
 
     @ApiStatus.Internal
     fun spawnInWorld(level: Level, player: Player?) {
-        if (NativePlatform.isRunningOnUnsupportedPlatform) {
+        if (NativePlatform.isRunningOnUnsupportedPlatform()) {
             return
         }
         Optional.ofNullable(EffectRegistry.get(effek)).ifPresent { effek ->

@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork
 
-import com.jozufozu.flywheel.backend.Loader.ResourceReloadListener
 import com.simibubi.create.foundation.outliner.Outliner
 import dev.architectury.event.events.client.ClientTickEvent
 import dev.architectury.registry.ReloadListenerRegistry
@@ -19,8 +18,6 @@ import org.valkyrienskies.clockwork.effekseer.client.registry.EffectRegistry
 import java.io.IOException
 import java.util.*
 import dev.architectury.event.events.common.TickEvent
-import dev.architectury.registry.ReloadListenerRegistry
-import net.minecraft.server.packs.PackType
 import net.minecraft.server.packs.resources.ResourceManager
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.SecondScrollValueRenderer

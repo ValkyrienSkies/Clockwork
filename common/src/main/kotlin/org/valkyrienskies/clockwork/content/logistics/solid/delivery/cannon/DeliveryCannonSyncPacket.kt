@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft
 
 import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
@@ -13,6 +14,7 @@ import org.valkyrienskies.core.util.readVec3d
 import org.valkyrienskies.core.util.writeVec3d
 
 class DeliveryCannonSyncPacket : S2CCWPacket {
+    override var player: Player? = null
     private val currentStack: ItemStack
     private val transportStack: ItemStack
     private val location: Vec3
