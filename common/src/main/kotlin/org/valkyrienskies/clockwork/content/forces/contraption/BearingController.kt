@@ -6,14 +6,17 @@ import org.joml.Matrix3dc
 import org.joml.Quaterniondc
 import org.joml.Vector3d
 import org.joml.Vector3dc
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingCreateData
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingData
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingUpdateData
+import org.valkyrienskies.clockwork.util.*
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.ShipForcesInducer
 import org.valkyrienskies.core.api.ships.properties.ShipId
+import org.valkyrienskies.core.api.ships.properties.ShipTransform
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -105,12 +108,23 @@ class BearingController : ShipForcesInducer {
         physShip: PhysShip,
         otherPhysShip: PhysShip?
     ): Vector3dc {
-        val torque: Vector3dc
-        torque = if (data.locked) {
+        val prevRPM = data.bearingRPM
+        val prevAngle = data.bearingAngle
+        val prevLocked = data.locked
+        data.actualAngle = getAngle(data, physShip.transform, otherPhysShip?.transform)
+        if (data.aligning) {
+            data.bearingRPM = abs(prevRPM) * if (data.actualAngle > 0) -1 else 1
+            data.bearingAngle = 0.0
+            data.locked = true
+        }
+        val torque = if (data.locked) {
             computeLockedRotationalForce(data, physShip, otherPhysShip)
         } else {
             computeUnlockedRotationalForce(data, physShip, otherPhysShip)
         }
+        data.bearingRPM = prevRPM
+        data.bearingAngle = prevAngle
+        data.locked = prevLocked
         return torque
     }
 
@@ -192,7 +206,7 @@ class BearingController : ShipForcesInducer {
         if (bearingAxisAfterRot.angleCos(data.bearingAxis) < 0.9961947 && bearingAxisAfterRot.angleCos(data.bearingAxis) > -0.9961947) {
             return Vector3d()
         }
-        val angularVelError: Vector3dc = idealRelativeOmega.sub(actualRelativeOmega, Vector3d())
+        val angularVelError = idealRelativeOmega - actualRelativeOmega * if (abs(data.bearingRPM) > 0.001) ClockworkConfig.SERVER.unlockedModeRotationResistanceMultiplier else 0.0
         val angularVelErrorAlongBearingAxis: Vector3dc = bearingAxisInGlobal.mul(bearingAxisInGlobal.dot(angularVelError), Vector3d())
         // Only apply torque on the bearing axis
         return angularVelErrorAlongBearingAxis.mul(torqueMassMultiplier * 10.0, Vector3d())
@@ -263,11 +277,10 @@ class BearingController : ShipForcesInducer {
         if (bearingAxisAfterRot.angleCos(data.bearingAxis) < 0.9961947 && bearingAxisAfterRot.angleCos(data.bearingAxis) > -0.9961947) {
             return Vector3d()
         }
-        val perpAfterRotInPlane: Vector3dc =
-            perpAfterRot.sub(data.bearingAxis.mul(data.bearingAxis.dot(perpAfterRot), Vector3d()), Vector3d())
+        val perpAfterRotInPlane: Vector3dc = perpAfterRot.sub(data.bearingAxis.mul(data.bearingAxis.dot(perpAfterRot), Vector3d()), Vector3d())
         val angleBTShipInRadians = perpAfterRotInPlane.angle(perpendicularAxis)
         val crossOfYourMother: Vector3dc = perpAfterRotInPlane.cross(perpendicularAxis, Vector3d())
-        val angleWRespectToBearingAxis: Double = if (crossOfYourMother.lengthSquared() > 1e-12) {
+        val angleWRespectToBearingAxis: Double = if (crossOfYourMother.lengthSquared() > 0.0) {
             angleBTShipInRadians * sign(crossOfYourMother.dot(data.bearingAxis)) * -1
             // bro what do you expect me to do :sus:
         } else {
@@ -281,13 +294,15 @@ class BearingController : ShipForcesInducer {
             angleErr += 2 * Math.PI
         }
 
+        //rpm makes angleErr correct faster, but it should also correct if no rpm is present
+        angleErr = angleErr * abs(data.bearingRPM) * (2 * 2 * Math.PI / 60) + angleErr * ClockworkConfig.SERVER.lockedModeBaseAngleErrorMultiplier
+
         // Derivative
         val relativeOmegaInPhysShip: Vector3dc = physShip.transform.worldToShip.transformDirection(actualRelativeOmega, Vector3d())
         val relativeOmegaInPhysShipParallelBearingAxis = data.bearingAxis.dot(relativeOmegaInPhysShip)
-        val omegaErr = data.bearingRPM * (2 * Math.PI / 60) - relativeOmegaInPhysShipParallelBearingAxis
-        val torque = angleErr * torqueMassMultiplier * 50.0 + omegaErr * torqueMassMultiplier * 50.0
+        val omegaErr = -relativeOmegaInPhysShipParallelBearingAxis
 
-        // return angularVelErrorAlongBearingAxis.mul(torqueMassMultiplier * 10.0, new Vector3d());
+        val torque = (angleErr + omegaErr) * torqueMassMultiplier * 50.0
         return bearingAxisInGlobal.mul(torque, Vector3d())
     }
 
@@ -319,12 +334,46 @@ class BearingController : ShipForcesInducer {
         }
     }
 
-    fun canDisassemble(): Boolean {
-        return false
+    //TODO stupid code duplication
+    private fun getAngle(data: PhysBearingData, physShipTransform: ShipTransform, otherPhysShipTransform: ShipTransform?): Double {
+        val bearingAxisInGlobal = Vector3d(data.bearingAxis)
+        otherPhysShipTransform?.shipToWorldRotation?.transform(bearingAxisInGlobal)
+
+        // Only apply torque on the bearing axis
+        // Proportional
+        val perpendicularAxis: Vector3dc = if (abs(data.bearingAxis!!.x()) == 1.0) {
+            Vector3d(0.0, 1.0, 0.0)
+        } else if (abs(data.bearingAxis.y()) == 1.0) {
+            Vector3d(1.0, 0.0, 0.0)
+        } else if (abs(data.bearingAxis.z()) == 1.0) {
+            Vector3d(0.0, 1.0, 0.0)
+        } else {
+            throw RuntimeException("how the fuck did you mess this up g")
+        }
+        var perpAfterRot: Vector3dc = perpendicularAxis.rotate(physShipTransform.shipToWorldRotation, Vector3d())
+        perpAfterRot = otherPhysShipTransform?.shipToWorldRotation?.transformInverse(perpAfterRot, Vector3d()) ?: perpAfterRot
+
+        val perpAfterRotInPlane: Vector3dc = perpAfterRot.sub(data.bearingAxis.mul(data.bearingAxis.dot(perpAfterRot), Vector3d()), Vector3d())
+        val angleBTShipInRadians = perpAfterRotInPlane.angle(perpendicularAxis)
+        val crossOfYourMother: Vector3dc = perpAfterRotInPlane.cross(perpendicularAxis, Vector3d())
+        val angleWRespectToBearingAxis: Double = if (crossOfYourMother.lengthSquared() > 1e-12) {
+            angleBTShipInRadians * sign(crossOfYourMother.dot(data.bearingAxis)) * -1
+            // bro what do you expect me to do :sus:
+        } else {
+            0.0
+        }
+        return angleWRespectToBearingAxis
+    }
+
+    //tolerance is in degrees
+    fun canDisassemble(id: Int?, mainShip: ServerShip, otherShip: ServerShip?, tolerance: Int=5): Boolean {
+        val item = bearingData[id] ?: return false
+        if (abs(Math.toDegrees(getAngle(item, mainShip.transform, otherShip?.transform))) > tolerance) return false
+        return true
     }
 
     fun setAligning(yn: Boolean, id: Int) {
-        bearingData[id]!!.setAligning(yn)
+        bearingData[id]?.aligning = yn
     }
 
     companion object {

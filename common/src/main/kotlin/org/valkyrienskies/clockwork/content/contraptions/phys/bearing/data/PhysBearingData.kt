@@ -10,14 +10,18 @@ import org.valkyrienskies.core.apigame.constraints.VSHingeOrientationConstraint
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class PhysBearingData {
+    //pos of bearing in subship coordinates
     val bearingPosition: Vector3dc?
     val bearingAxis: Vector3dc?
     var bearingAngle = 0.0
     var bearingRPM = 0f
     var locked = false
     var shiptraptionID: Long
-    private var aligning = false
+    var aligning = false
     var attachConstraint: VSAttachmentConstraint? = null
+
+    @JsonIgnore
+    var actualAngle = 0.0
 
     @JsonIgnore
     var attachID: Int? = null
@@ -66,9 +70,5 @@ class PhysBearingData {
 
         secondAttachConstraint = secondAttachment?.vsConstraint as VSAttachmentConstraint?
         secondAttachId = secondAttachment?.constraintId
-    }
-
-    fun setAligning(yn: Boolean) {
-        aligning = yn
     }
 }
