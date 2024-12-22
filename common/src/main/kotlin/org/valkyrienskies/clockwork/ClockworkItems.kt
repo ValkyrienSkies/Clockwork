@@ -16,6 +16,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.Creative
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver.ScrewdriverItem
+import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftItem
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import java.util.function.Supplier
@@ -142,6 +143,14 @@ object ClockworkItems {
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .tag(AllTags.AllItemTags.WRENCH.tag)
             .model(AssetLookup.existingItemModel())
+            .register()
+
+    @JvmField
+    val UNIVERSAL_SHAFT_ITEM: ItemEntry<UniversalShaftItem> =
+        REGISTRATE.item<UniversalShaftItem>("universal_shaft_item") { properties: Item.Properties? ->
+            UniversalShaftItem(properties!!)
+        }
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .register()
 
     @JvmStatic

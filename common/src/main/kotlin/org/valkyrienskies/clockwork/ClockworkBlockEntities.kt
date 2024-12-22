@@ -36,6 +36,7 @@ import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBl
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRenderer
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRenderer
+import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlockEntity
@@ -560,6 +561,19 @@ object ClockworkBlockEntities {
             }
         }
         .validBlocks(ClockworkBlocks.DELIVERY_CHUTE)
+        .register()
+
+    @JvmField
+    val UNIVERSAL_SHAFT: BlockEntityEntry<UniversalShaftBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<UniversalShaftBlockEntity>(
+            "delivery_chute"
+        ) { typeIn: BlockEntityType<UniversalShaftBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
+            UniversalShaftBlockEntity(
+                typeIn,
+                pos!!, state!!
+            )
+        }
+        .validBlocks(ClockworkBlocks.UNIVERSAL_SHAFT)
         .register()
 
     @JvmStatic
