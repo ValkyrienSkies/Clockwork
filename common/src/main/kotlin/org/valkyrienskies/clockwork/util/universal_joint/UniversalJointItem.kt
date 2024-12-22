@@ -20,9 +20,9 @@ open class UniversalJointItem<T: IUniversalJoint>(properties: Properties) : Item
         val tBe = be as T
         if (firstSelect == null) firstSelect = tBe
         else {
-            //ClockworkPackets.sendToServer(UniversalJointItemPacket(firstSelect!!.pos,be.blockPos)) // I hate that I have to do this
-
-            firstSelect!!.tryConnect(context.level,be.blockPos)
+            if (firstSelect == tBe) return fail()
+            if (!firstSelect!!.tryConnect(context.level,be.blockPos)) return fail()
+            firstSelect = null
         }
         return InteractionResult.SUCCESS
     }

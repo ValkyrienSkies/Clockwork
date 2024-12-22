@@ -45,6 +45,7 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
 
     override fun disconnect() {
         super.disconnect()
+        connectedPos = null
         detachKinetics()
         sendData()
     }
@@ -88,6 +89,8 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
         if (compound.contains("otherPosX")) {
             connectedPos = BlockPos(compound.getInt("otherPosX"),compound.getInt("otherPosY"),compound.getInt("otherPosZ"))
 
+        } else {
+            connectedPos = null
         }
 
         super.read(compound, clientPacket)
