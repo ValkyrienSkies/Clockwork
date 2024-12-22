@@ -9,8 +9,9 @@ interface IUniversalJoint {
     var pos: BlockPos
 
     fun connectTo(other: IUniversalJoint) {
-        if (connectedJoint == null) return
+        if (connectedJoint != null) return
         connectedJoint = other
+
         other.connectTo(this)
 
     }

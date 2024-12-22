@@ -29,6 +29,7 @@ import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
 import org.valkyrienskies.clockwork.platform.api.network.CWPacket
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket
 import org.valkyrienskies.clockwork.util.blocktype.SyncableStoragePacket
+import org.valkyrienskies.clockwork.util.universal_joint.UniversalJointItemPacket
 import java.util.function.Function
 
 @Suppress("UNCHECKED_CAST")
@@ -64,8 +65,9 @@ enum class ClockworkPackets(
 
     UPDATE_DUCT_EDGE(DuctEdgeSyncPacket::class.java, ::DuctEdgeSyncPacket),
     AIR_COMPRESSOR_PACKET(AirCompressorPacket::class.java, ::AirCompressorPacket),
-    GAS_NOZZLE_PACKET(GasNozzlePacket::class.java, ::GasNozzlePacket)
+    GAS_NOZZLE_PACKET(GasNozzlePacket::class.java, ::GasNozzlePacket),
 
+    UNIVERSAL_JOINT_ITEM_PACKET(UniversalJointItemPacket::class.java, ::UniversalJointItemPacket)
 
     ;
 

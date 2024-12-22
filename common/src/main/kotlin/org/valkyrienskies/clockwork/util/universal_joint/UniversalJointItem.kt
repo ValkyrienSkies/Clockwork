@@ -4,28 +4,26 @@ import net.minecraft.world.InteractionResult
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.block.entity.BlockEntity
+import org.valkyrienskies.clockwork.ClockworkPackets
 
 open class UniversalJointItem<T: IUniversalJoint>(properties: Properties) : Item(properties) {
     var firstSelect: T? = null
 
     override fun useOn(context: UseOnContext): InteractionResult {
+        if (context.level.isClientSide) return InteractionResult.SUCCESS
 
         val be = context.level.getBlockEntity(context.clickedPos) ?: return fail()
 
         if (!isJoint(be)) return fail()
-        val tBe = be as T
 
+
+        val tBe = be as T
         if (firstSelect == null) firstSelect = tBe
         else {
-            println("l ${context.level.isClientSide}")
-            val res = firstSelect!!.tryConnect(context.level, be.blockPos)
-            firstSelect = null
+            //ClockworkPackets.sendToServer(UniversalJointItemPacket(firstSelect!!.pos,be.blockPos)) // I hate that I have to do this
 
-
-            if (res) return InteractionResult.SUCCESS
-            else InteractionResult.PASS
+            firstSelect!!.tryConnect(context.level,be.blockPos)
         }
-
         return InteractionResult.SUCCESS
     }
 
