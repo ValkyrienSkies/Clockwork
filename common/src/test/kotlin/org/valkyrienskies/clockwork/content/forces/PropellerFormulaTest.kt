@@ -52,7 +52,6 @@ class PropellerFormulaTest {
     fun testPropellerForces() {
 
         // do the math
-
         val modifiedSpeed: Double = (physProp.bearingSpeed * 10.0 / 3.0) * if (physProp.inverted) -1.0 else 1.0  //* 1.25, A little bit easier to generate force //TODO config?
         val bearingVector: Vector3dc = Vector3d(physProp.position).add(0.5, 0.5, 0.5)
         val axis: Vector3dc = physProp.bearingAxis!!.mul(sign(modifiedSpeed), Vector3d()).normalize()
@@ -80,7 +79,14 @@ class PropellerFormulaTest {
                 furthestTip.set(rotatedDiff)
             }
             val inflowAngle = atan(axialVelocity / sailVel.length())
-            val angleOfAttack = pretendPitch - inflowAngle
+            val optimalAngleOfAttack = 4.0
+            val optimalPitch = inflowAngle + optimalAngleOfAttack
+            physProp.currentBladePitch = if (physProp.brass) {
+                Mth.lerp(0.1, physProp.currentBladePitch, optimalPitch)
+            } else {
+                pretendPitch
+            }
+            val angleOfAttack = physProp.currentBladePitch - inflowAngle
             val thrustCoefficient = (angleOfAttack * cos(inflowAngle)) - (0.1 * sin(inflowAngle))
 
             val q = 0.5 * getAirDensityForY(sailPosWorld.y(), 563.0) * ((axialVelocity).pow(2.0) + (sailVel.length()).pow(2.0))
@@ -91,7 +97,7 @@ class PropellerFormulaTest {
             //            Vector3d force2 = force.mul(physProp.bearingSpeed, new Vector3d());
             val torque = sailPosRelShip.cross(force, Vector3d())
 
-            force.mul(6000.0)
+            force.mul(5000.0)
 
             if (offsetFalloff > 0.0001) force.div(offsetFalloff)
             if (offsetFalloff > 0.0001) torque.div(offsetFalloff)
