@@ -314,7 +314,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             }
             if (selection == null) return
 
-            val (shiptraption, previousCenterBP, newCenter, _) = PhysBearingAssembler.assembleToShip(level, selection.map { it.toBlockPos() }, true, 1.0, true)
+            val (shiptraption, previousCenterBP, newCenter, _) = PhysBearingAssembler.assembleToShip(level, selection, true, 1.0, true)
             val previousCenter = Vector3d(previousCenterBP)
 
             shiptraptionID = shiptraption.id
@@ -502,11 +502,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         //todo this is stupid
         val aabb = subShip.shipAABB!!
-        val blocks = mutableListOf<BlockPos>()
+        val blocks = DenseBlockPosSet()
         for (x in aabb.minX() until  aabb.maxX()) {
             for (z in aabb.minZ() until  aabb.maxZ()) {
                 for (y in aabb.minY() until  aabb.maxY()) {
-                    blocks.add(BlockPos(x, y, z))
+                    blocks.add(x, y, z)
                 }
             }
         }

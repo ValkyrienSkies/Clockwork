@@ -8,6 +8,7 @@ import org.joml.Vector3ic
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.getAttachment
 import org.valkyrienskies.core.impl.game.ShipTeleportDataImpl
+import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.mod.common.assembly.AssemblyUtil
 import org.valkyrienskies.mod.common.assembly.ShipAssembler.isValidShipBlock
 import org.valkyrienskies.mod.common.dimensionId
@@ -21,8 +22,8 @@ data class Return(val newShip: ServerShip, val previousCenter: Vector3ic, val ne
 //TODO this is dumb but i'm not going to use ShipAssembler cuz it sucks
 object PhysBearingAssembler {
     @JvmStatic
-    fun moveBlocksFromTo(level: ServerLevel, blocks: List<BlockPos>, removeOriginal: Boolean, originCenter: BlockPos, toCenter: BlockPos): Boolean {
-        val blocks = blocks.filter { isValidShipBlock(level.getBlockState(it)) }
+    fun moveBlocksFromTo(level: ServerLevel, blocks: DenseBlockPosSet, removeOriginal: Boolean, originCenter: BlockPos, toCenter: BlockPos): Boolean {
+        val blocks = blocks.filter { isValidShipBlock(level.getBlockState(it.toBlockPos())) }.map {it.toBlockPos()}
         for (itPos in blocks) {
             val relative: BlockPos = itPos.subtract(BlockPos(originCenter.x, originCenter.y, originCenter.z))
             val shipPos: BlockPos = toCenter.offset(relative)
@@ -51,10 +52,10 @@ object PhysBearingAssembler {
     }
 
     @JvmStatic
-    fun assembleToShip(level: ServerLevel, blocks: List<BlockPos>, removeOriginal: Boolean, scale: Double = 1.0, shouldDisableSplitting: Boolean = false): Return {
+    fun assembleToShip(level: ServerLevel, blocks: DenseBlockPosSet, removeOriginal: Boolean, scale: Double = 1.0, shouldDisableSplitting: Boolean = false): Return {
         if (blocks.isEmpty()) { throw IllegalArgumentException("No blocks to assemble.") }
 
-        val existingShip = level.getShipObjectManagingPos(blocks.find { !level.getBlockState(it).isAir } ?: throw IllegalArgumentException())
+        val existingShip = level.getShipObjectManagingPos(blocks.find { !level.getBlockState(it.toBlockPos()).isAir }?.toBlockPos() ?: throw IllegalArgumentException())
 
         var existingShipCouldSplit = true
         var structureCornerMin: BlockPos? = null
@@ -63,6 +64,7 @@ object PhysBearingAssembler {
 
         // Calculate bounds of the area containing all blocks adn check for solids and invalid blocks
         for (itPos in blocks) {
+            val itPos = itPos.toBlockPos()
             if (!isValidShipBlock(level.getBlockState(itPos))) {continue}
             if (structureCornerMin == null || structureCornerMax == null) {
                 structureCornerMin = itPos
@@ -102,6 +104,7 @@ object PhysBearingAssembler {
         val newCenterBP = newCenterPos.toBlockPos()
 
         for (itPos in blocks) {
+            val itPos = itPos.toBlockPos()
             if (isValidShipBlock(level.getBlockState(itPos))) {
                 val relative: BlockPos = itPos.subtract(BlockPos(previousCenterBP.x(),previousCenterBP.y(),previousCenterBP.z()))
                 val shipPos: BlockPos = newCenterBP.offset(relative)
@@ -112,6 +115,7 @@ object PhysBearingAssembler {
         // Remove original blocks
         if (removeOriginal) {
             for (itPos in blocks) {
+                val itPos = itPos.toBlockPos()
                 if (isValidShipBlock(level.getBlockState(itPos))) {
                     AssemblyUtil.removeBlock(level, itPos)
                 }
@@ -120,9 +124,10 @@ object PhysBearingAssembler {
 
         // Trigger updates on both contraptions
         for (itPos in blocks) {
+            val itPos = itPos.toBlockPos()
             val relative: BlockPos = itPos.subtract(BlockPos(previousCenterBP.x(),previousCenterBP.y(),previousCenterBP.z()))
             val shipPos: BlockPos = newCenterBP.offset(relative)
-            AssemblyUtil.updateBlock(level,itPos,shipPos,level.getBlockState(shipPos))
+            AssemblyUtil.updateBlock(level, itPos, shipPos, level.getBlockState(shipPos))
         }
 
         val shipCenterPos = newShip.inertiaData.centerOfMassInShip.add(0.5, 0.5, 0.5, Vector3d())
