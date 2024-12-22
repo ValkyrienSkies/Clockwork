@@ -53,7 +53,6 @@ import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3d
 import org.valkyrienskies.mod.common.*
 import org.valkyrienskies.mod.common.util.SplittingDisablerAttachment
-import org.valkyrienskies.mod.common.util.toBlockPos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
 import org.valkyrienskies.mod.common.world.clipIncludeShips
@@ -194,7 +193,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (clientPacket) {return}
 
         val oldPos = BlockPos.of(tag.getLong(ClockworkConstants.Nbt.OLD_POS)).toJOMLD()
-        if (oldPos == worldPosition) {return}
+        if (oldPos == worldPosition || level == null || level!!.isClientSide) {return}
 
         val level = level as ServerLevel
         val subship = level.shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return
@@ -503,9 +502,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         //todo this is stupid
         val aabb = subShip.shipAABB!!
         val blocks = DenseBlockPosSet()
-        for (x in aabb.minX() until  aabb.maxX()) {
-            for (z in aabb.minZ() until  aabb.maxZ()) {
-                for (y in aabb.minY() until  aabb.maxY()) {
+        for (x in aabb.minX() - 1 until  aabb.maxX() + 1) {
+            for (z in aabb.minZ() - 1 until  aabb.maxZ() + 1) {
+                for (y in aabb.minY() - 1 until  aabb.maxY() + 1) {
                     blocks.add(x, y, z)
                 }
             }

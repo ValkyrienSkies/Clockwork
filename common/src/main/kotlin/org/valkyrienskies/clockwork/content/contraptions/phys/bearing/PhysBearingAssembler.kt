@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.content.contraptions.phys.bearing
 
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.level.block.Blocks
 import org.joml.Vector3d
 import org.joml.Vector3i
 import org.joml.Vector3ic
@@ -16,10 +17,15 @@ import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.SplittingDisablerAttachment
 import org.valkyrienskies.mod.common.util.toBlockPos
+import org.valkyrienskies.mod.common.yRange
 
 data class Return(val newShip: ServerShip, val previousCenter: Vector3ic, val newCenter: Vector3d, val newCenterBP: BlockPos)
 
 //TODO this is dumb but i'm not going to use ShipAssembler cuz it sucks
+//Why does it suck? Mainly this because of this (https://github.com/ValkyrienSkies/Valkyrien-Skies-2/blob/93cc755c6325585ddf3fd90cfd414e8293474ecc/common/src/main/kotlin/org/valkyrienskies/mod/common/assembly/ShipAssembler.kt#L84)
+// it gets worldspace position of the new ship, then transforms it back to shipspace, why???????????????????????
+// doing some math to calculate center is simple and can be easily calculated outside of the function when you need it (and you do need it)
+// you can't get the center pos without knowing what value positionInShip has
 object PhysBearingAssembler {
     @JvmStatic
     fun moveBlocksFromTo(level: ServerLevel, blocks: DenseBlockPosSet, removeOriginal: Boolean, originCenter: BlockPos, toCenter: BlockPos): Boolean {
@@ -38,7 +44,9 @@ object PhysBearingAssembler {
 
         if (removeOriginal) {
             for (itPos in blocks) {
-                AssemblyUtil.removeBlock(level, itPos)
+                //AssemblyUtil.removeBlock has isMoving set to false which updates blocks on removal
+                level.removeBlockEntity(itPos)
+                level.getChunk(itPos).setBlockState(itPos, Blocks.AIR.defaultBlockState(), true)
             }
         }
 
@@ -97,7 +105,7 @@ object PhysBearingAssembler {
 
         val newCenterPos = Vector3i(
             newShip.chunkClaim.xMiddle*16-7,
-            128,
+            level.yRange.center,
             newShip.chunkClaim.zMiddle*16-7,
         )
         val newCenter = Vector3d(newCenterPos)
@@ -117,7 +125,9 @@ object PhysBearingAssembler {
             for (itPos in blocks) {
                 val itPos = itPos.toBlockPos()
                 if (isValidShipBlock(level.getBlockState(itPos))) {
-                    AssemblyUtil.removeBlock(level, itPos)
+                    //AssemblyUtil.removeBlock has isMoving set to false which updates blocks on removal
+                    level.removeBlockEntity(itPos)
+                    level.getChunk(itPos).setBlockState(itPos, Blocks.AIR.defaultBlockState(), true)
                 }
             }
         }
