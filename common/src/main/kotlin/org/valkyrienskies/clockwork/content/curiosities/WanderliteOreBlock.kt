@@ -13,15 +13,20 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
+import org.joml.Vector3d
 import org.joml.Vector3i
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.content.forces.WanderShipControl
+import org.valkyrienskies.core.api.ships.LoadedServerShip
+import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.mod.common.*
+import org.valkyrienskies.mod.common.assembly.ShipAssembler
 import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
 import org.valkyrienskies.mod.common.util.toJOML
+import org.valkyrienskies.mod.common.util.toMinecraft
 
-class WanderliteOreBlock(properties: Properties) : ExperienceBlock(properties) {
+class WanderliteOreBlock(properties: Properties) : ExperienceBlock(properties), IWanderliteBlock {
 
     override fun use(state: BlockState,
                      level: Level,
@@ -58,21 +63,28 @@ class WanderliteOreBlock(properties: Properties) : ExperienceBlock(properties) {
     }
 
     fun shipifyBlock(level: ServerLevel, blockPos: BlockPos)  {
-        val dense = DenseBlockPosSet()
+        val dense = ArrayList<BlockPos>()
         //dense.add(blockPos.x, blockPos.y, blockPos.z)
         var list: MutableSet<Vector3i> = mutableSetOf()
         collectBlockPositions(level, blockPos, 4, list)
-        dense.addAll(list)
+        for (pos in list) {
+            dense.add(BlockPos(pos.x, pos.y, pos.z))
+        }
 
-        val connectedShip = createNewShipWithBlocks(blockPos, dense, level)
-        WanderShipControl.getOrCreate(connectedShip)!!.aurics += dense.size
+        val connectedShip = ShipAssembler.assembleToShip(level, dense, true, shouldDisableSplitting = true)
+        val realConnectedShip = level.shipObjectWorld.allShips.getById(connectedShip.id)
+        if (realConnectedShip != null) {
+            for (pos in list) {
+                addToShip(realConnectedShip, BlockPos(realConnectedShip.worldToShip.transformPosition(Vector3d(pos)).toMinecraft()), 1.0)
+            }
+        }
     }
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, movedByPiston: Boolean) {
         if (level is ServerLevel) {
-            val ship = level.getShipManagingPos(pos)
+            val ship = level.getShipObjectManagingPos(pos)
             if (ship != null) {
-                WanderShipControl.getOrCreate(ship)!!.aurics ++
+                addToShip(ship, pos, 1.0)
             }
         }
         super.onPlace(state, level, pos, oldState, movedByPiston)
@@ -82,9 +94,9 @@ class WanderliteOreBlock(properties: Properties) : ExperienceBlock(properties) {
 
     override fun destroy(level: LevelAccessor, pos: BlockPos, state: BlockState) {
         if (level is ServerLevel) {
-            val ship = level.getShipManagingPos(pos)
+            val ship = level.getShipObjectManagingPos(pos)
             if (ship != null) {
-                WanderShipControl.getOrCreate(ship)!!.aurics --
+                removeFromShip(ship, pos)
             }
         }
         super.destroy(level, pos, state)

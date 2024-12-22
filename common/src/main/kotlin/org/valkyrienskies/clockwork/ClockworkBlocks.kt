@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork
 
+import com.simibubi.create.AllMovementBehaviours.movementBehaviour
 import com.simibubi.create.AllTags
 import com.simibubi.create.content.decoration.encasing.CasingBlock
 import com.simibubi.create.content.fluids.PipeAttachmentModel
@@ -36,6 +37,11 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInf
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
+import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeControllerBlock
+import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeControllerMovementBehaviour
+import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteBlock
+import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteSlab
+import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteStairs
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
@@ -69,6 +75,7 @@ object ClockworkBlocks {
             .transform(TagGen.axeOrPickaxe())
             .transform(BuilderTransformers.bearing("propeller", "gearbox"))
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .addLayer { Supplier { RenderType.cutout() } }
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .build()
@@ -82,6 +89,21 @@ object ClockworkBlocks {
             .transform(TagGen.axeOrPickaxe())
             .transform(BuilderTransformers.bearing("propeller", "gearbox"))
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .addLayer { Supplier { RenderType.cutout() } }
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
+            .register()
+
+    @JvmField
+    val BLADE_CONTROLLER: BlockEntry<BladeControllerBlock> =
+        REGISTRATE.block<BladeControllerBlock>("blade_controller") { properties: BlockBehaviour.Properties? ->
+            BladeControllerBlock(properties!!)
+        }
+            .transform(TagGen.axeOrPickaxe())
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .addLayer { Supplier { RenderType.cutout() } }
+            .onRegister(movementBehaviour(BladeControllerMovementBehaviour()))
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .build()
@@ -116,6 +138,7 @@ object ClockworkBlocks {
             .transform(TagGen.axeOrPickaxe())
             .transform(flapbearing())
             .transform(BlockStressDefaults.setImpact(4.0))
+            .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
@@ -130,6 +153,7 @@ object ClockworkBlocks {
             .transform(TagGen.axeOrPickaxe())
             .transform(flapbearing())
             .transform(BlockStressDefaults.setImpact(4.0))
+            .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
@@ -269,7 +293,7 @@ object ClockworkBlocks {
                 axeOrPickaxe()
             )
 
-            .addLayer { Supplier { RenderType.cutoutMipped() } }
+            .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
@@ -464,6 +488,7 @@ object ClockworkBlocks {
         )
     }
         .initialProperties { SharedProperties.softMetal() }
+        .addLayer { Supplier { RenderType.cutout() } }
         .item()
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .transform(customItemModel())
@@ -563,10 +588,10 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val WANDERLITE_BLOCK = REGISTRATE.block<Block>(
+    val WANDERLITE_BLOCK = REGISTRATE.block<GenericWanderliteBlock>(
         "wanderlite_block"
     ) { properties: BlockBehaviour.Properties? ->
-        Block(
+        GenericWanderliteBlock(
             properties!!
         )
     }
@@ -577,10 +602,10 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val CHISELED_WANDERLITE = REGISTRATE.block<Block>(
+    val CHISELED_WANDERLITE = REGISTRATE.block<GenericWanderliteBlock>(
         "chiseled_wanderlite"
     ) { properties: BlockBehaviour.Properties? ->
-        Block(
+        GenericWanderliteBlock(
             properties!!
         )
     }
@@ -591,10 +616,10 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val SMOOTH_WANDERLITE = REGISTRATE.block<Block>(
+    val SMOOTH_WANDERLITE = REGISTRATE.block<GenericWanderliteBlock>(
         "smooth_wanderlite"
     ) { properties: BlockBehaviour.Properties? ->
-        Block(
+        GenericWanderliteBlock(
             properties!!
         )
     }
@@ -605,10 +630,10 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val SMOOTH_WANDERLITE_SLAB = REGISTRATE.block<SlabBlock>(
+    val SMOOTH_WANDERLITE_SLAB = REGISTRATE.block<GenericWanderliteSlab>(
         "smooth_wanderlite_slab"
     ) { properties: BlockBehaviour.Properties? ->
-        SlabBlock(
+        GenericWanderliteSlab(
             properties!!
         )
     }
@@ -619,11 +644,10 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val SMOOTH_WANDERLITE_STAIRS = REGISTRATE.block<StairBlock>(
+    val SMOOTH_WANDERLITE_STAIRS = REGISTRATE.block<GenericWanderliteStairs>(
         "smooth_wanderlite_stairs"
     ) { properties: BlockBehaviour.Properties? ->
-        StairBlock(
-            SMOOTH_WANDERLITE.defaultState,
+        GenericWanderliteStairs(
             properties!!
         )
     }
@@ -634,10 +658,10 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val WANDERLITE_BRICKS = REGISTRATE.block<Block>(
+    val WANDERLITE_BRICKS = REGISTRATE.block<GenericWanderliteBlock>(
         "wanderlite_bricks"
     ) { properties: BlockBehaviour.Properties? ->
-        Block(
+        GenericWanderliteBlock(
             properties!!
         )
     }

@@ -498,7 +498,7 @@ object AerodynamicUtils {
 
     // useful values
 
-    const val DRAG_COEFFICIENT = 4.15
+    const val DRAG_COEFFICIENT = 2.18
     const val GRAVITATIONAL_ACCELERATION = 9.80665
     const val UNIVERSAL_GAS_CONSTANT = 8.314
     const val AIR_MOLAR_MASS = 0.0289644

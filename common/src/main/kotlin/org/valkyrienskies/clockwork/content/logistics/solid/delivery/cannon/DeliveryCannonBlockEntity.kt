@@ -4,7 +4,6 @@ import com.jozufozu.flywheel.util.transform.TransformStack
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.content.equipment.goggles.IHaveGoggleInformation
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
-import com.simibubi.create.content.logistics.depot.EjectorBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.INamedIconOptions
@@ -18,7 +17,6 @@ import com.simibubi.create.foundation.utility.VecHelper
 import io.github.fabricators_of_create.porting_lib.transfer.StorageProvider
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage
-import net.fabricmc.loader.impl.lib.sat4j.core.Vec
 import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -48,14 +46,12 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.Deli
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotBehaviour
 import org.valkyrienskies.mod.common.getShipManagingPos
-import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.world.clipIncludeShips
 import java.util.*
 import kotlin.collections.HashSet
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.round
 
 class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : KineticBlockEntity(type, pos, state), IHaveGoggleInformation {
 
@@ -185,7 +181,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             distance = getRealPos().distanceToSqr(realLocation)
 
 
-            if ((obstructionChecker(realLocation) && abs(xTargetRotation-xRotation) < 1 && abs(yTargetRotation-yRotation)< 0.5) || fired) {
+            if ((obstructionChecker(chuteLocation,realLocation) && abs(xTargetRotation-xRotation) < 1 && abs(yTargetRotation-yRotation)< 0.5) || fired) {
                 if (!fired) {
                     val pitch = Mth.randomBetween(soundRandom, 0.9f, 1.1f)
                     level!!.playSound(null, blockPos, ClockworkSounds.THWOOM.mainEvent!!, SoundSource.BLOCKS, 1f,pitch)
@@ -221,14 +217,17 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         if (!ponder) sync()
     }
 
-    fun obstructionChecker(location: Vec3): Boolean {
+    fun obstructionChecker(chuteBlockLocation: BlockPos, chuteRealLocation: Vec3): Boolean {
+        val vertex = getVertexOfParabola(chuteRealLocation)
 
-        val cannonToVertexResult = clip(getRealPos().add(0.0,0.5,0.0), getVertexOfParabola(location))
-        if (cannonToVertexResult.type==HitResult.Type.BLOCK) return false
+        val cannonToVertex = clip(getRealPos().add(0.0,0.5,0.0), vertex)
+        if (cannonToVertex.type != HitResult.Type.MISS) return false // returns if path to parabola vertex is obstructed
 
-        val vertexToChuteResult = clip(getVertexOfParabola(location), location.add(0.0,0.0,0.0))
-        
-        return !(vertexToChuteResult.type==HitResult.Type.MISS || vertexToChuteResult.blockPos != BlockPos(location.x,location.y,location.z))
+        val vertexToChute = clip(vertex, chuteRealLocation)
+        if (vertexToChute.type == HitResult.Type.MISS || vertexToChute.blockPos != chuteBlockLocation) return false
+
+        return true
+
     }
 
     fun clip(from: Vec3, to: Vec3): BlockHitResult {
@@ -241,7 +240,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         val be = level!!.getBlockEntity(chute) as DeliveryChuteBlockEntity
 
         val attempt = be.receiveItem(currentStack,true)
-        val obs = obstructionChecker(ActiveChutes.getChuteRealPos(chute)!!)
+        val obs = obstructionChecker(chute, ActiveChutes.getChuteRealPos(chute)!!)
 
         if (obs && attempt) {
             transportStack = currentStack.copy()
