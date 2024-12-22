@@ -33,4 +33,5 @@ class UniversalShaftBlock(properties: Properties?) : DirectionalKineticBlock(pro
     override fun hasShaftTowards(world: LevelReader, pos: BlockPos, state: BlockState, face: Direction): Boolean {
         return face == state.getValue(BlockStateProperties.FACING)
     }
+
 }

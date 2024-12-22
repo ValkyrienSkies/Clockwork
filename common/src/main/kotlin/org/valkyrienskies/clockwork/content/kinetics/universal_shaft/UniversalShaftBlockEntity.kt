@@ -46,6 +46,7 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
     override fun disconnect() {
         super.disconnect()
         detachKinetics()
+        sendData()
     }
 
     override fun connectTo(other: IUniversalJoint) {
@@ -90,5 +91,10 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
         }
 
         super.read(compound, clientPacket)
+    }
+
+    override fun remove() {
+        disconnect()
+        super.remove()
     }
 }
