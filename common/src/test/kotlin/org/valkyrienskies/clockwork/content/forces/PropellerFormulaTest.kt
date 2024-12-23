@@ -1,11 +1,16 @@
 package org.valkyrienskies.clockwork.content.forces
 
+import net.minecraft.core.Direction
 import net.minecraft.util.Mth
 import org.joml.*
 import org.junit.jupiter.api.Test
+import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropData
+import org.valkyrienskies.clockwork.util.AerodynamicUtils
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.getAirDensityForY
+import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.impl.game.ships.ShipTransformImpl
+import org.valkyrienskies.mod.common.util.toJOMLD
 import java.lang.Math
 import kotlin.math.*
 
@@ -30,6 +35,13 @@ class PropellerFormulaTest {
         Vector3i(0, -4, 0),
     )
 
+    val blades = listOf(
+        BladeData(wide = false, angle = 15.0, length = 4.0),
+        BladeData(wide = false, angle = 15.0, length = 4.0),
+        BladeData(wide = false, angle = 15.0, length = 4.0),
+        BladeData(wide = false, angle = 15.0, length = 4.0),
+    )
+
     val representativeOmega = 256.0 * 2.0 * 3.0 / 10.0
 
     val transform = ShipTransformImpl.create(Vector3d(0.0, 110.0, 0.0), Vector3d(0.0, 0.0, 0.0))
@@ -45,8 +57,10 @@ class PropellerFormulaTest {
         false,
         true,
         true,
-        listOf()
+        blades
     )
+
+    val dimensionId = "minecraft:overworld"
 
     @Test
     fun testPropellerForces() {
@@ -73,8 +87,9 @@ class PropellerFormulaTest {
             }
             val rotatedDiff: Vector3dc = rotation.transform(diff, Vector3d())
             val sailVel: Vector3dc = rotatedDiff.cross(angVel, Vector3d())
-            val sailPosWorld: Vector3dc = transform.shipToWorld.transformPosition(sailVector, Vector3d())
-            val sailPosRelShip: Vector3dc = sailVector.sub(transform.positionInShip, Vector3d())
+            val rotatedPos = rotatedDiff.add(bearingVector, Vector3d())
+            val sailPosWorld: Vector3dc = transform.shipToWorld.transformPosition(rotatedPos, Vector3d())
+            val sailPosRelShip: Vector3dc = rotatedPos.sub(transform.positionInShip, Vector3d())
             if (rotatedDiff.length() > furthestTip.length()) {
                 furthestTip.set(rotatedDiff)
             }
@@ -82,14 +97,14 @@ class PropellerFormulaTest {
             val optimalAngleOfAttack = 4.0
             val optimalPitch = inflowAngle + optimalAngleOfAttack
             physProp.currentBladePitch = if (physProp.brass) {
-                Mth.lerp(0.1, physProp.currentBladePitch, optimalPitch)
+                Mth.lerp(0.05, physProp.currentBladePitch, optimalPitch)
             } else {
                 pretendPitch
             }
             val angleOfAttack = physProp.currentBladePitch - inflowAngle
             val thrustCoefficient = (angleOfAttack * cos(inflowAngle)) - (0.1 * sin(inflowAngle))
 
-            val q = 0.5 * getAirDensityForY(sailPosWorld.y(), 563.0) * ((axialVelocity).pow(2.0) + (sailVel.length()).pow(2.0))
+            val q = 0.5 * getAirDensityForY(sailPosWorld.y(), dimensionId) * ((axialVelocity).pow(2.0) + (sailVel.length()).pow(2.0))
 
             val thrust = q * thrustCoefficient
 
@@ -112,7 +127,7 @@ class PropellerFormulaTest {
 
     @Test
     fun testOldPropellerForces() {
-        val modifiedSpeed: Double = (physProp.bearingSpeed * 10.0 / 3.0) * 1.5 //* 1.25, A little bit easier to generate force //TODO config?
+        val modifiedSpeed: Double = physProp.bearingSpeed * 1.5 //* 1.25, A little bit easier to generate force //TODO config?
         val bearingVector: Vector3dc = Vector3d(physProp.position).add(0.5, 0.5, 0.5)
         val axis: Vector3dc = physProp.bearingAxis!!.mul(sign(modifiedSpeed), Vector3d())
         val rotation: Quaterniondc = Quaterniond(AxisAngle4d(Math.toRadians(physProp.bearingAngle), axis))
@@ -158,6 +173,57 @@ class PropellerFormulaTest {
 
         println("Old net force: $netForce")
         println("Old net torque: $netTorque")
+    }
+
+    @Test
+    public fun testBladeForces() {
+        val blades = physProp.blades
+        val bladeCount = blades.size
+        val angleBetweenBlades = 2 * Math.PI / bladeCount
+
+        val airDensityAtY = AerodynamicUtils.getAirDensityForY(transform.positionInWorld.y(), dimensionId)
+        val airTemperatureAtY = AerodynamicUtils.getAirTemperatureForY(transform.positionInWorld.y(), dimensionId)
+
+        val clockwiseAxis: Vector3dc = if (physProp.bearingAxis == Direction.UP.normal.toJOMLD()) {
+            Direction.NORTH.normal.toJOMLD()
+        } else {
+            Direction.UP.normal.toJOMLD()
+        }
+
+        val velocityTowardsPropellerDir = velocity.dot(transform.shipToWorld.transformDirection(physProp.bearingAxis!!, Vector3d()).normalize())
+
+        val netForce = Vector3d()
+        val netTorque = Vector3d()
+
+        for (i in blades.indices) {
+            val blade = blades[i]
+            val bladeAngle = Math.toRadians(angleBetweenBlades * i.toDouble())
+            val bladePitch = Math.toRadians(blade.angle)
+            val bladeWidth = if (blade.wide) 0.375 else 0.25
+            val r = blade.length
+            val rotatedDist = clockwiseAxis.mul(r, Vector3d()).rotateAxis(bladeAngle, physProp.bearingAxis!!.x(), physProp.bearingAxis!!.y(), physProp.bearingAxis!!.z(), Vector3d())
+
+            val effectiveVelocity = sqrt(velocityTowardsPropellerDir.pow(2.0) + (physProp.bearingSpeed * r).pow(2.0))
+
+            val angleOfAttack = bladePitch - atan(velocityTowardsPropellerDir / (physProp.bearingSpeed * r))
+
+            val liftCoefficient = 2.0 * Math.PI * angleOfAttack
+            val dragCoefficient = 0.01 * liftCoefficient
+
+            val dLift = 0.5 * airDensityAtY * effectiveVelocity.pow(2.0) * bladeWidth * r * liftCoefficient
+            val dDrag = 0.5 * airDensityAtY * effectiveVelocity.pow(2.0) * bladeWidth * r * dragCoefficient
+
+            val dThrust = dLift * Math.cos(angleOfAttack) - dDrag * Math.sin(bladeAngle)
+
+            val force = Vector3d(physProp.bearingAxis).normalize().mul(dThrust, Vector3d())
+            val torque = rotatedDist.cross(force, Vector3d())
+
+            netForce.add(force.mul(10.0))
+            netTorque.add(torque)
+        }
+
+        println("Blade net force: $netForce")
+        println("Blade net torque: $netTorque")
     }
 
     // solely for testing purposes

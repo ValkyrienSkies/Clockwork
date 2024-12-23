@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.util
 import net.minecraft.util.Mth
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.forces.DragController
+import org.valkyrienskies.core.api.world.properties.DimensionId
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.api.DuctNetwork.Companion.idealGasConstant
 import kotlin.collections.HashMap
@@ -12,6 +13,21 @@ import kotlin.math.*
  * Contains useful functions for features that need funny wind maths. Mainly drag and balloons.
  */
 object AerodynamicUtils {
+
+    val dimensionMap: HashMap<DimensionId, Pair<Double, Double>> = HashMap()
+    const val DEFAULT_MAX = 562.0
+    const val DEFAULT_SEA_LEVEL = 62.0
+
+    fun getAtmosphereForDimension(id: DimensionId): Pair<Double, Double> {
+        return dimensionMap[id] ?: Pair(DEFAULT_MAX, DEFAULT_SEA_LEVEL)
+    }
+
+    init {
+        dimensionMap["minecraft:overworld"] = Pair(562.0, 62.0)
+        dimensionMap["minecraft:the_nether"] = Pair(256.0, 31.0)
+        dimensionMap["minecraft:the_end"] = Pair(-1.0, 0.0)
+    }
+
 
     /**
      * Returns the density of air at a Y value adapted to a real life altitude, where Y = 60 is sea level, and Y = 320 is the top of the Troposphere.
@@ -40,11 +56,15 @@ object AerodynamicUtils {
      * @return The air density at the given Y value, in kg/m^3.
      * @see <a href="https://en.wikipedia.org/wiki/Barometric_formula">Wikipedia source for krabber patter formuler</a>
      */
-    fun getAirDensityForY(y: Double, maxHeight: Double): Double {
-        val worldScale = 11000.0 / (maxHeight - 63.0)
+    fun getAirDensityForY(y: Double, dimension: DimensionId): Double {
+        val (maxHeight, seaLevel) = getAtmosphereForDimension(dimension)
+        if (maxHeight <= 0.0) {
+            return 0.0
+        }
+        val worldScale = 71000.0 / (maxHeight - seaLevel)
 
-        val realAltitude = if ((y - 63.0) * worldScale >= 0) {
-            (y - 63.0) * worldScale
+        val realAltitude = if ((y - seaLevel) * worldScale >= 0) {
+            (y - seaLevel) * worldScale
         } else {
             0.0
         }
@@ -58,6 +78,7 @@ object AerodynamicUtils {
             realAltitude < 71000 -> 5
             else -> 6
         }
+        //println("Height: $y, Real Altitude: $realAltitude, Layer: $layer")
 
         val hb = when (layer) {
             0 -> 0.0
@@ -115,11 +136,15 @@ object AerodynamicUtils {
         }
     }
 
-    fun getAirPressureForY(y: Double, maxHeight: Double): Double {
-        val worldScale = 11000.0 / (maxHeight - 63.0)
+    fun getAirPressureForY(y: Double, dimension: DimensionId): Double {
+        val (maxHeight, seaLevel) = getAtmosphereForDimension(dimension)
+        if (maxHeight <= 0.0) {
+            return 0.0
+        }
+        val worldScale = 71000.0 / (maxHeight - seaLevel)
 
-        val realAltitude = if ((y - 63.0) * worldScale >= 0) {
-            (y - 63.0) * worldScale
+        val realAltitude = if ((y - seaLevel) * worldScale >= 0) {
+            (y - seaLevel) * worldScale
         } else {
             0.0
         }
@@ -190,11 +215,15 @@ object AerodynamicUtils {
         }
     }
 
-    fun getAirTemperatureForY(y: Double, maxHeight: Double): Double {
-        val worldScale = 11000.0 / (maxHeight - 63.0)
+    fun getAirTemperatureForY(y: Double, dimension: DimensionId): Double {
+        val (maxHeight, seaLevel) = getAtmosphereForDimension(dimension)
+        if (maxHeight <= 0.0) {
+            return 0.0
+        }
+        val worldScale = 71000.0 / (maxHeight - seaLevel)
 
-        val realAltitude = if ((y - 63.0) * worldScale >= 0) {
-            (y - 63.0) * worldScale
+        val realAltitude = if ((y - seaLevel) * worldScale >= 0) {
+            (y - seaLevel) * worldScale
         } else {
             0.0
         }
@@ -243,7 +272,7 @@ object AerodynamicUtils {
         }
 
         return when (L != 0.0) {
-            true -> Tb + (L * (realAltitude - hb))
+            true -> Tb - ((realAltitude - hb) * L)
             else -> Tb
         }
     }

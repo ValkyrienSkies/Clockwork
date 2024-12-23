@@ -47,8 +47,8 @@ object ClockworkMod {
         ValkyrienSkiesMod.vsCore.registerConfigLegacy("clockwork", ClockworkConfig::class.java)
 
         VSEvents.ShipLoadEvent.on { event ->
-            event.ship.setAttachment(PocketForcesController())
-            event.ship.setAttachment(DragController())
+            event.ship.setAttachment(PocketForcesController(event.ship.chunkClaimDimension))
+            event.ship.setAttachment(DragController(event.ship.chunkClaimDimension))
             event.ship.setAttachment(WanderShipControl())
         }
 
