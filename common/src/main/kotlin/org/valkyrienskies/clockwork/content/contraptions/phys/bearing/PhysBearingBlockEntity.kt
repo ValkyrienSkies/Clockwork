@@ -552,7 +552,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         }
     }
 
-    private fun tryRefresh() {
+    //should be public cuz reasons
+    fun tryRefresh() {
         if (!shouldRefresh) {return}
         val level = level as ServerLevel
         val ship = level.shipObjectWorld.allShips.getById(shiptraptionID) ?: return
