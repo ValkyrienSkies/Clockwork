@@ -131,8 +131,14 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
         ClockworkMod.getKelvin().addEdge(frontPos.toDuctNodePos(level.dimension().location()), backPos.toDuctNodePos(level.dimension().location()), edge!!)
     }
 
-    override fun connectedTo(pos: BlockPos): Boolean {
-        return edge == null || pos.toDuctNodePos() == edge!!.nodeA || pos.toDuctNodePos() == edge!!.nodeB
+    override fun canConnectTo(level: Level, from: BlockPos,to: BlockPos): Boolean {
+        val state = level.getBlockState(from) ?: return false
+        val direction = state.getValue(BlockStateProperties.FACING)
+        val normalDir = Direction.fromNormal(from.subtract(to)) ?: return false
+
+        return direction.axis == normalDir.axis
+
+
     }
 
     override fun tryConnectEdge(level: Level, pos: BlockPos) {
