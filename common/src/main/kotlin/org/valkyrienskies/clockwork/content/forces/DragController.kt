@@ -16,6 +16,7 @@ import org.valkyrienskies.clockwork.util.SideProfileTracker
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.ShipForcesInducer
+import org.valkyrienskies.core.api.world.properties.DimensionId
 import org.valkyrienskies.core.util.expand
 import org.valkyrienskies.mod.common.util.settings
 import org.valkyrienskies.mod.common.util.toBlockPos
@@ -26,7 +27,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.collections.HashMap
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-class DragController : ShipForcesInducer {
+class DragController(var dimensionId: DimensionId) : ShipForcesInducer {
 
     @JsonIgnore
     private val blockUpdateQueue = ConcurrentLinkedQueue<Pair<Vector3ic, Boolean>>()
@@ -237,7 +238,7 @@ class DragController : ShipForcesInducer {
         val motionVector: Vector3dc = ship.velocity
         val motionNormal: Vector3dc = motionVector.normalize(Vector3d()).mul(-1.0)
 
-        val density = getAirDensityForY(ship.transform.positionInWorld.y(), max_height)
+        val density = getAirDensityForY(ship.transform.positionInWorld.y(), dimensionId)
 
         var exposedArea = 0.0
 
@@ -264,7 +265,7 @@ class DragController : ShipForcesInducer {
     private fun calculateRotationalDrag(ship: PhysShip): Map<Vector3dc, Vector3dc> {
         val rotationVector: Vector3dc = ship.omega
 
-        val density = getAirDensityForY(ship.transform.positionInWorld.y(), max_height)
+        val density = getAirDensityForY(ship.transform.positionInWorld.y(), dimensionId)
 
         val totalDragForce: HashMap<Vector3dc, Vector3dc> = HashMap()
         val centersOfPressure: EnumMap<Direction, Vector3d> = EnumMap(net.minecraft.core.Direction::class.java)
@@ -325,7 +326,7 @@ class DragController : ShipForcesInducer {
     companion object {
         fun getOrCreate(ship: ServerShip): DragController? {
             if (ship.getAttachment(DragController::class.java) == null) {
-                ship.saveAttachment(DragController::class.java, DragController())
+                ship.saveAttachment(DragController::class.java, DragController(ship.chunkClaimDimension))
             }
             return ship.getAttachment(DragController::class.java)
         }
