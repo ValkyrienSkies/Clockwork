@@ -132,7 +132,7 @@ class PropellerController(
             //            Vector3d force2 = force.mul(physProp.bearingSpeed, new Vector3d());
             val torque = sailPosRelShip.cross(force, Vector3d())
 
-            force.mul(5000.0)
+            //force.mul(5000.0)
 
             if (offsetFalloff > 0.0001) force.div(offsetFalloff)
             if (offsetFalloff > 0.0001) torque.div(offsetFalloff)
