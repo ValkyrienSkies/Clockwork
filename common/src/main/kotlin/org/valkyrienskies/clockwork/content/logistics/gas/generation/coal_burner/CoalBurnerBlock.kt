@@ -53,21 +53,22 @@ class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(prope
             if (be.storedFuelStack.isEmpty) {
                 be.storedFuelStack = item.copy()
                 if (!player.isCreative) player.setItemInHand(hand, ItemStack.EMPTY)
-            } else {
-                if (be.storedFuelStack.item.equals(item.item)) {
-                    if (be.storedFuelStack.count + item.count <= item.maxStackSize) {
-                        be.storedFuelStack = item.copy()
-                        if (!player.isCreative) player.setItemInHand(hand, ItemStack.EMPTY)
-                    } else {
-                        val copy = item.copy()
-                        copy.count = item.maxStackSize
-                        item.count = be.storedFuelStack.count + item.count - item.maxStackSize
-                        be.storedFuelStack = copy
+            } else if (be.storedFuelStack.item.equals(item.item)) {
+
+                if (be.storedFuelStack.count + item.count <= item.maxStackSize) {
+                    val copy = item.copy()
+                    copy.count += be.storedFuelStack.count
+                    be.storedFuelStack = copy
+                    if (!player.isCreative) player.setItemInHand(hand, ItemStack.EMPTY)
+                } else {
+                    val copy = item.copy()
+                    copy.count = item.maxStackSize
+                    be.storedFuelStack = copy
 
 
-                        if (!player.isCreative) player.setItemInHand(hand, item)
-                    }
+                    if (!player.isCreative) item.count = be.storedFuelStack.count + item.count - item.maxStackSize
                 }
+
             }
 
 
