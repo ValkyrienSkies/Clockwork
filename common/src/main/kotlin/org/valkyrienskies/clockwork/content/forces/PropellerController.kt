@@ -9,8 +9,6 @@ import org.joml.Quaterniond
 import org.joml.Quaterniondc
 import org.joml.Vector3d
 import org.joml.Vector3dc
-import org.valkyrienskies.clockwork.ClockworkConfig
-import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropCreateData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropUpdateData
@@ -18,16 +16,11 @@ import org.valkyrienskies.clockwork.util.AerodynamicUtils
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.getAirDensityForY
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
-import org.valkyrienskies.core.api.ships.ShipForcesInducer
 import org.valkyrienskies.core.api.ships.properties.ShipTransform
 import org.valkyrienskies.core.api.world.properties.DimensionId
-import org.valkyrienskies.core.impl.game.ships.ShipInertiaDataImpl
 import org.valkyrienskies.mod.common.util.toJOMLD
 import java.lang.Math
-import java.util.*
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.function.BiConsumer
 import kotlin.collections.HashMap
 import kotlin.math.*
 
@@ -132,7 +125,7 @@ class PropellerController(
             //            Vector3d force2 = force.mul(physProp.bearingSpeed, new Vector3d());
             val torque = sailPosRelShip.cross(force, Vector3d())
 
-            force.mul(2.0)
+            force.mul(50.0)
 
             if (offsetFalloff > 0.0001) force.div(offsetFalloff)
             if (offsetFalloff > 0.0001) torque.div(offsetFalloff)
