@@ -29,8 +29,10 @@ class WanderShipControl : ShipForcesInducer {
     override fun applyForces(physShip: PhysShip) {
         val meanPos: Vector3d = Vector3d()
         for (blockPos in wanderBlocks.keys) {
-            meanPos.add(Vector3d(blockPos.x.toDouble(), blockPos.y.toDouble(), blockPos.z.toDouble()).sub(physShip.transform.positionInShip))
+            meanPos.add(Vector3d(blockPos.x.toDouble() + 0.5, blockPos.y.toDouble() + 0.5, blockPos.z.toDouble() + 0.5))
         }
+        meanPos.div(wanderBlocks.size.toDouble())
+        meanPos.sub(physShip.transform.positionInShip)
         val sumForce: Double = wanderBlocks.values.sum()
         val force =  Vector3d(0.0, sumForce,0.0).mul(1100.0, Vector3d())
 

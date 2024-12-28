@@ -59,6 +59,8 @@ interface IWanderliteBlock {
         dense.add(blockPos.toJOML())
         dense = collectBlockPositions(level, blockPos, 4, dense)
 
+        createNewShipWithBlocks(blockPos, dense, level)
+
         for (pos in dense) {
             ClockworkUtils.wanderliteNodesToAdd[pos.toBlockPos()] = forceMult
             //addToShip(realConnectedShip, BlockPos(realConnectedShip.worldToShip.transformPosition(Vector3d(pos)).toMinecraft()), 2.0)

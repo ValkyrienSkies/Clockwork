@@ -71,7 +71,7 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
         val slevel = this.level as ServerLevel
 
         val myDir: Direction = blockState.getValue(DirectionalBlock.FACING)
-        val myDirNormal: Vector3d = Vec3.atLowerCornerOf(myDir.normal).toJOML()
+        val myDirNormal: Vector3d = Vec3.atLowerCornerOf(myDir.normal).toJOML().normalize()
 
         val shipAttached: Boolean = isAttachedToShipOrWorld(
             false, slevel,
@@ -106,6 +106,7 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
             if (!level!!.isClientSide) {
                 ClockworkSounds.BOING.playOnServer(slevel, BlockPos(level.toWorldCoordinates(worldPosition)), 0.35f, 0.75f)
                 removeConstraint(level as ServerLevel?, true)
+                shipStuck = false
             }
             waitForNoPower = true
         } else if (isBlockStateExtended() && !PlatformUtils.getExtraData(this).getCompound(ClockworkConstants.Nbt.CONDENSED_DATA).contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID) && !shipStuck && shipAttached && blockState.getValue(
@@ -144,8 +145,6 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
             if (!level!!.isClientSide) {
                 removeConstraint(level as ServerLevel?, true)
             }
-        } else {
-            throw RuntimeException("ERROR Couldn't try to clean up constraint!")
         }
     }
 

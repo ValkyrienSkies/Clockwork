@@ -144,11 +144,11 @@ class SlickerMovementBehavior : MovementBehaviour {
                 val tempQuat: Quaterniond = Vec3.atLowerCornerOf(structureTransform.applyWithoutOffset(context.localPos)).toJOML().rotationTo(
                             Vec3.atLowerCornerOf(context.localPos).toJOML(), Quaterniond())
                 quaterniond = Quaterniond()
-                tempQuat.mul(mapper.readValue(extraData.getByteArray(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT), VSFixedJoint::class.java).pose0.rot, quaterniond)
+                tempQuat.mul(mapper.readValue(extraData.getByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT), VSFixedJoint::class.java).pose0.rot, quaterniond)
             }
         }
         if (!extraData.isEmpty) {
-            if (extraData.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID) && extraData.contains(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT_ID)) {
+            if (extraData.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)) {
                 doUpdateConstraint(context, position, quaterniond)
             }
         }
@@ -168,7 +168,7 @@ class SlickerMovementBehavior : MovementBehaviour {
 
         val extraData: CompoundTag = context.blockEntityData.getCompound(ClockworkConstants.Nbt.CONDENSED_DATA)
 
-        if (extraData.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID) && extraData.contains(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT_ID)) {
+        if (extraData.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)) {
             var ship2Pos: Vector3d? = null
             var ship2Rot: Quaterniond? = null
 
@@ -197,9 +197,9 @@ class SlickerMovementBehavior : MovementBehaviour {
                 }
                 realShip1Pos.add(context.motion.toJOML())
 
-                if (distance < DISTANCE_BUFFER) {
-                    realShip1Pos.add(context.rotation.apply(Vec3.atLowerCornerOf(myDir.normal)).toJOML().mul(distance / -1 + DISTANCE_BUFFER))
-                }
+//                if (distance < DISTANCE_BUFFER) {
+//                    realShip1Pos.add(context.rotation.apply(Vec3.atLowerCornerOf(myDir.normal)).toJOML())
+//                }
             }
             if (realShip1Rot == null) {
                 realShip1Rot = Quaterniond(attachConstraint.pose0.rot)
@@ -262,13 +262,13 @@ class SlickerMovementBehavior : MovementBehaviour {
                 )
                 val ships: Iterator<Ship> = level.getShipsIntersecting(searchAABB).iterator()
                 var shipItr: Ship
-                val transformedSearchPos = Vector3d(searchPos)
+                val transformedSearchPos: Vector3dc = Vector3d(searchPos)
                 if (ships.hasNext()) {
                     do {
                         shipItr = ships.next()
                         if (shipItr === ship) continue
-                        shipItr.worldToShip.transformPosition(transformedSearchPos)
-                        val blockPos: BlockPos = BlockPos(transformedSearchPos.toMinecraft())
+                        val transformedPos = shipItr.worldToShip.transformPosition(transformedSearchPos, Vector3d())
+                        val blockPos: BlockPos = BlockPos(transformedPos.toMinecraft())
                         if (level.isBlockInShipyard(blockPos)) {
                             val blockState: BlockState = level.getBlockState(blockPos)
                             if (!blockState.isAir && blockState.isFaceSturdy(
@@ -318,10 +318,10 @@ class SlickerMovementBehavior : MovementBehaviour {
 
             removeConstraint(level, false, tag)
 
-            val adjustedDirNormal = Vector3d(myDirNormal).mul(distance, Vector3d())
+            val adjustedDirNormal = Vector3d(myDirNormal).normalize().mul(1.0, Vector3d())
 
             val ship1Pos = Vector3d(myPos).add(adjustedDirNormal, Vector3d())
-            var ship2ConstraintPos = Vector3d(ship1Pos)
+            val ship2ConstraintPos = Vector3d(ship1Pos)
 //            if (distance < DISTANCE_BUFFER) {
 //                ship1Pos.add(adjustedDirNormal.mul(distance / -1.0 + DISTANCE_BUFFER, ship1Pos))
 //            }
@@ -340,12 +340,16 @@ class SlickerMovementBehavior : MovementBehaviour {
             if (tag.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID) && 
                 tag.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT)
                 ) {
-                
+
+                val attachConstraintId = tag.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)
                 val attachConstraintData = tag.getByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT)
                 val attachConstraint = mapper.readValue(attachConstraintData, VSFixedJoint::class.java)
+
+                if ((level.shipObjectWorld.updateConstraint(attachConstraintId, attachConstraint))) return
+
                 adjustedDistance = 1.0
-                realShip1 = attachConstraint.shipId0?.let { level.shipObjectWorld.allShips.getById(it) }
-                realShip2 = attachConstraint.shipId1?.let { level.shipObjectWorld.allShips.getById(it) }
+                realShip1 = attachConstraint.shipId0?.let { level.shipObjectWorld.loadedShips.getById(it) }
+                realShip2 = attachConstraint.shipId1?.let { level.shipObjectWorld.loadedShips.getById(it) }
                 realShip1Pos = Vector3d(attachConstraint.pose0.pos)
                 realShip2Pos = Vector3d(attachConstraint.pose1.pos)
                 realShip1Rot = Quaterniond(attachConstraint.pose0.rot)
@@ -385,20 +389,20 @@ class SlickerMovementBehavior : MovementBehaviour {
             val ship2Id: Long
             val groundId: Long = level.shipObjectWorld.dimensionToGroundBodyIdImmutable[level.dimensionId]!!
             if (ship1Rot == null && ship1 == null) realShip1Rot = Quaterniond()
-            if (ship2Rot == null && ship2 == null) realShip1Rot = Quaterniond()
+            if (ship2Rot == null && ship2 == null) realShip2Rot = Quaterniond()
             var mass = 100.0
             if (ship1 != null) {
                 //ship1.shipToWorld.transformPosition(realShip2ConstraintPos)
                 ship1Id = ship1.id
                 if (realShip1Rot == null) realShip1Rot = ship1.transform.shipToWorldRotation as Quaterniond
-                mass = level.shipObjectWorld.allShips.getById(ship1Id)!!.inertiaData.mass
+                mass = level.shipObjectWorld.loadedShips.getById(ship1Id)!!.inertiaData.mass
             } else ship1Id = groundId
             if (ship2 != null) {
                 //ship2.worldToShip.transformPosition(realShip2ConstraintPos)
                 ship2Id = ship2.id
                 if (realShip2Rot == null) realShip2Rot = ship2.transform.shipToWorldRotation as Quaterniond
                 //ship2Rot.add(ship2.getTransform().getShipToWorldRotation());
-                mass = level.shipObjectWorld.allShips.getById(ship2Id)!!.inertiaData.mass
+                mass = level.shipObjectWorld.loadedShips.getById(ship2Id)!!.inertiaData.mass
             } else ship2Id = groundId
             if (ship2Pos != null) realShip2ConstraintPos = ship2Pos
             val ship1Rotation: Quaterniondc = realShip1Rot?: Quaterniond()
