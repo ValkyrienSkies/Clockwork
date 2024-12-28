@@ -120,8 +120,21 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             LockedMode::class.java, TextComponent("Locked or Unlocked"),
             this, movementModeSlot
         )
+        movementMode!!.withCallback{movementModeChanged(it)}
         movementMode!!.requiresWrench()
         behaviours.add(movementMode!!)
+    }
+
+    fun movementModeChanged(value: Int) {
+        if (level?.isClientSide == false) {
+            if (!level!!.isClientSide && attachmentConstraint != null) {
+                val sLevel = level as ServerLevel
+                sLevel.shipObjectWorld.updateConstraint(attachmentConstraint!!.jointId,
+                    VSRevoluteJoint(attachmentConstraint!!.joint.shipId0, attachmentConstraint!!.joint.pose0, attachmentConstraint!!.joint.shipId1, attachmentConstraint!!.joint.pose1, maxForceTorque = VSJointMaxForceTorque(1.0E10F, 1.0E10F),
+                        driveFreeSpin = movementMode!!.get() == LockedMode.UNLOCKED, driveVelocity = VSRevoluteJoint.VSRevoluteDriveVelocity(getSpeed() * 2f * PI.toFloat() / 60f, true)))
+            }
+            sendData()
+        }
     }
 
     override fun remove() {
@@ -396,7 +409,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val firstAttachment = VSRevoluteJoint(
             shiptraptionID, VSJointPose(bearingPos.fma(-extraDist, axis, Vector3d()), hingeOrientation),
             shipOnID, VSJointPose(posInOwnerShip.fma(-extraDist, axis, Vector3d()), hingeOrientation),
-            maxForceTorque = VSJointMaxForceTorque(1.0E10F, 1.0E10F),
+            maxForceTorque = VSJointMaxForceTorque(1.0E10F, 1.0E10F), driveFreeSpin = this.movementMode!!.get() == LockedMode.UNLOCKED,
+            driveVelocity = VSRevoluteJoint.VSRevoluteDriveVelocity(this.getSpeed() * 2f * PI.toFloat() / 60.0f, true)
         )
 
 //        val secondAttachment = VSAttachmentConstraint(
@@ -661,13 +675,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             }
             val newAngle = targetAngle + angularSpeed - diff
             targetAngle = (newAngle % 360)
-
-            if (!level!!.isClientSide && attachmentConstraint != null) {
-                val sLevel = level as ServerLevel
-                sLevel.shipObjectWorld.updateConstraint(attachmentConstraint!!.jointId,
-                    VSRevoluteJoint(attachmentConstraint!!.joint.shipId0, attachmentConstraint!!.joint.pose0, attachmentConstraint!!.joint.shipId1, attachmentConstraint!!.joint.pose1, maxForceTorque = VSJointMaxForceTorque(1.0E10F, 1.0E10F),
-                        driveFreeSpin = movementMode!!.get() == LockedMode.UNLOCKED, driveVelocity = VSRevoluteJoint.VSRevoluteDriveVelocity(getSpeed() * 2f * PI.toFloat() / 60f, true)))
-            }
         }
         if (!level!!.isClientSide) {
             tryUpdateData()
@@ -678,14 +685,22 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     }
 
     override fun onSpeedChanged(previousSpeed: Float) {
-        super.onSpeedChanged(previousSpeed)
-
         sequencedAngleLimit = -1.0f
         sequencedAngleProgress = 0.0f
 
         if (sequenceContext != null && sequenceContext.instruction == SequencerInstructions.TURN_ANGLE) {
             sequencedAngleLimit = sequenceContext.getEffectiveValue(theoreticalSpeed.toDouble()).toFloat()
         }
+
+        if (level != null && !level!!.isClientSide) {
+            if (!level!!.isClientSide && attachmentConstraint != null) {
+                val sLevel = level as ServerLevel
+                sLevel.shipObjectWorld.updateConstraint(attachmentConstraint!!.jointId,
+                    VSRevoluteJoint(attachmentConstraint!!.joint.shipId0, attachmentConstraint!!.joint.pose0, attachmentConstraint!!.joint.shipId1, attachmentConstraint!!.joint.pose1, maxForceTorque = VSJointMaxForceTorque(1.0E10F, 1.0E10F),
+                        driveFreeSpin = movementMode!!.get() == LockedMode.UNLOCKED, driveVelocity = VSRevoluteJoint.VSRevoluteDriveVelocity(getSpeed() * 2f * PI.toFloat() / 60f, true)))
+            }
+        }
+        super.onSpeedChanged(previousSpeed)
     }
 
     override fun lazyTick() {

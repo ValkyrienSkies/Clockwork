@@ -229,7 +229,7 @@ class SlickerMovementBehavior : MovementBehaviour {
 
         fun isAttachedToShipOrWorld(
             attach: Boolean,
-            level: ServerLevel,
+            level: ServerLevel?,
             myPosCentered: Vector3dc,
             myDirNormal: Vector3dc,
             compoundTag: CompoundTag
@@ -322,9 +322,9 @@ class SlickerMovementBehavior : MovementBehaviour {
 
             val ship1Pos = Vector3d(myPos).add(adjustedDirNormal, Vector3d())
             var ship2ConstraintPos = Vector3d(ship1Pos)
-            if (distance < DISTANCE_BUFFER) {
-                ship1Pos.add(adjustedDirNormal.mul(distance / -1.0 + DISTANCE_BUFFER, ship1Pos))
-            }
+//            if (distance < DISTANCE_BUFFER) {
+//                ship1Pos.add(adjustedDirNormal.mul(distance / -1.0 + DISTANCE_BUFFER, ship1Pos))
+//            }
             val ship2Pos: Vector3d? = null
             val ship1Rot: Quaterniond? = null
             val ship2Rot: Quaterniond? = null
@@ -388,13 +388,13 @@ class SlickerMovementBehavior : MovementBehaviour {
             if (ship2Rot == null && ship2 == null) realShip1Rot = Quaterniond()
             var mass = 100.0
             if (ship1 != null) {
-                ship1.shipToWorld.transformPosition(realShip2ConstraintPos)
+                //ship1.shipToWorld.transformPosition(realShip2ConstraintPos)
                 ship1Id = ship1.id
                 if (realShip1Rot == null) realShip1Rot = ship1.transform.shipToWorldRotation as Quaterniond
                 mass = level.shipObjectWorld.allShips.getById(ship1Id)!!.inertiaData.mass
             } else ship1Id = groundId
             if (ship2 != null) {
-                ship2.worldToShip.transformPosition(realShip2ConstraintPos)
+                //ship2.worldToShip.transformPosition(realShip2ConstraintPos)
                 ship2Id = ship2.id
                 if (realShip2Rot == null) realShip2Rot = ship2.transform.shipToWorldRotation as Quaterniond
                 //ship2Rot.add(ship2.getTransform().getShipToWorldRotation());

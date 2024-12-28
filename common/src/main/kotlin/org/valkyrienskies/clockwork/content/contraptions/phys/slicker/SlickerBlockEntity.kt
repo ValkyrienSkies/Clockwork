@@ -18,6 +18,7 @@ import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
+import org.valkyrienskies.clockwork.ClockworkParticles
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock.Companion.POWERED
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerMovementBehavior.Companion.isAttachedToShipOrWorld
@@ -26,6 +27,7 @@ import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.core.apigame.joints.VSFixedJoint
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
 import org.valkyrienskies.mod.common.shipObjectWorld
+import org.valkyrienskies.mod.common.toWorldCoordinates
 import org.valkyrienskies.mod.common.util.toJOML
 
 
@@ -71,36 +73,38 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
         val myDir: Direction = blockState.getValue(DirectionalBlock.FACING)
         val myDirNormal: Vector3d = Vec3.atLowerCornerOf(myDir.normal).toJOML()
 
-//        val shipAttached: Boolean = isAttachedToShipOrWorld(
-//            false, slevel,
-//                Vec3.atCenterOf(
-//                    blockPos
-//                ).toJOML(), myDirNormal, PlatformUtils.getExtraData(this)// this.extraCustomData
-//        ) //isAttachedToShipOrWorld(false);
+        val shipAttached: Boolean = isAttachedToShipOrWorld(
+            false, slevel,
+                Vec3.atCenterOf(
+                    blockPos
+                ).toJOML(), myDirNormal, PlatformUtils.getExtraData(this)// this.extraCustomData
+        ) //isAttachedToShipOrWorld(false);
 
-        val shipAttached = attachedShipId != -1L
+        //val shipAttached = attachedShipId != -1L
 
         if (isBlockStateExtended() && !shipStuck) {
             //Sticker extended with no ship related thing stuck to it
             waitForNoPower = false
-//            if (shipAttached) {
-//                //no sameworld block attached but there is a ship related thing near enough
-//                if (isAttachedToShipOrWorld(
-//                        true, slevel,
-//                            Vec3.atCenterOf(
-//                                blockPos
-//                            ).toJOML(), myDirNormal, PlatformUtils.getExtraData(this)
-//                    )
-//                ) {
-//                    shipStuck = true
-//                    ClockworkPackets.sendToNear(
-//                        slevel, blockPos, 128, SlickerAttachmentSyncPacket(this)
-//                    )
-//                }
-//            }
+            if (shipAttached) {
+                //no sameworld block attached but there is a ship related thing near enough
+                if (isAttachedToShipOrWorld(
+                        true, slevel,
+                            Vec3.atCenterOf(
+                                blockPos
+                            ).toJOML(), myDirNormal, PlatformUtils.getExtraData(this)
+                    )
+                ) {
+                    shipStuck = true
+                    ClockworkSounds.DOINK.playOnServer(slevel, BlockPos(level.toWorldCoordinates(worldPosition)), 0.35f, 0.75f)
+                    ClockworkPackets.sendToNear(
+                        slevel, blockPos, 128, SlickerAttachmentSyncPacket(this)
+                    )
+                }
+            }
         } else if (!isBlockStateExtended() && shipStuck) {
             //Sticker retracted with ship related thing stuck to it
             if (!level!!.isClientSide) {
+                ClockworkSounds.BOING.playOnServer(slevel, BlockPos(level.toWorldCoordinates(worldPosition)), 0.35f, 0.75f)
                 removeConstraint(level as ServerLevel?, true)
             }
             waitForNoPower = true
@@ -111,21 +115,22 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
             //Sticker extended with nothing attached and is powered but there is a ship thing in range
             waitForNoPower = false
 
-//            if (isAttachedToShipOrWorld(
-//                    true, slevel,
-//                        Vec3.atCenterOf(
-//                            blockPos
-//                        ).toJOML(), myDirNormal, PlatformUtils.getExtraData(this)
-//                )
-//            ) {
-//                //StickerParticleUtil().doBluperParticle(level, worldPosition, myDir)
-//                shipStuck = true
-//                ClockworkPackets.sendToNear(
-//                    slevel, blockPos, 128, SlickerAttachmentSyncPacket(this)
-//                )
-//            }
+            if (isAttachedToShipOrWorld(
+                    true, slevel,
+                        Vec3.atCenterOf(
+                            blockPos
+                        ).toJOML(), myDirNormal, PlatformUtils.getExtraData(this)
+                )
+            ) {
+                ClockworkSounds.DOINK.playOnServer(slevel, BlockPos(level.toWorldCoordinates(worldPosition)), 0.35f, 0.75f)
+                shipStuck = true
+                ClockworkPackets.sendToNear(
+                    slevel, blockPos, 128, SlickerAttachmentSyncPacket(this)
+                )
+            }
         }
         if (waitForNoPower && !blockState.getValue(POWERED)) {
+            if (shipStuck) ClockworkSounds.BOING.playOnServer(slevel, BlockPos(level.toWorldCoordinates(worldPosition)), 0.35f, 0.75f)
             waitForNoPower = false
             shipStuck = false
             ClockworkPackets.sendToNear(
