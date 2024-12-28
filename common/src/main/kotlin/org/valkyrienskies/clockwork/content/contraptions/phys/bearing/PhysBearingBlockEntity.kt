@@ -701,7 +701,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 val sLevel = level as ServerLevel
                 sLevel.shipObjectWorld.updateConstraint(attachmentConstraint!!.jointId,
                     VSRevoluteJoint(attachmentConstraint!!.joint.shipId0, attachmentConstraint!!.joint.pose0, attachmentConstraint!!.joint.shipId1, attachmentConstraint!!.joint.pose1, maxForceTorque = VSJointMaxForceTorque(1.0E10F, 1.0E10F),
-                        driveFreeSpin = (attachmentConstraint!! as VSRevoluteJoint).driveFreeSpin, driveVelocity = VSRevoluteJoint.VSRevoluteDriveVelocity(getSpeed() * 2f * PI.toFloat() / 60f, true)))
+                        driveFreeSpin = (attachmentConstraint!!.joint as VSRevoluteJoint).driveFreeSpin, driveVelocity = VSRevoluteJoint.VSRevoluteDriveVelocity(getSpeed() * 2f * PI.toFloat() / 60f, true)))
             }
         }
         super.onSpeedChanged(previousSpeed)
