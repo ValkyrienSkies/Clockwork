@@ -34,7 +34,7 @@ class WanderShipControl : ShipForcesInducer {
         val sumForce: Double = wanderBlocks.values.sum()
         val force =  Vector3d(0.0, sumForce,0.0).mul(1100.0, Vector3d())
 
-        physShip.applyInvariantForce(force)
+        physShip.applyInvariantForceToPos(meanPos, force)
     }
 
     fun addBlock(blockPos: BlockPos, force: Double) {

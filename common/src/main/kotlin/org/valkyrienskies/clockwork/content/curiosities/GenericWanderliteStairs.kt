@@ -22,7 +22,7 @@ import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft
 
-class GenericWanderliteStairs(properties: Properties): StairBlock(ClockworkBlocks.SMOOTH_WANDERLITE.defaultState, properties), IWanderliteBlock {
+class GenericWanderliteStairs(properties: Properties, override val forceMult: Double = 0.75): StairBlock(ClockworkBlocks.SMOOTH_WANDERLITE.defaultState, properties), IWanderliteBlock {
     override fun use(state: BlockState,
                      level: Level,
                      pos: BlockPos,
@@ -58,35 +58,25 @@ class GenericWanderliteStairs(properties: Properties): StairBlock(ClockworkBlock
         return level.isBlockInShipyard(blockPos.x, blockPos.y, blockPos.z)
     }
 
-    fun shipifyBlock(level: ServerLevel, blockPos: BlockPos)  {
-        val dense = ArrayList<BlockPos>()
-        //dense.add(blockPos.x, blockPos.y, blockPos.z)
-        var list: MutableSet<Vector3i> = mutableSetOf()
-        collectBlockPositions(level, blockPos, 4, list)
-        for (pos in list) {
-            dense.add(BlockPos(pos.x, pos.y, pos.z))
-        }
-
-        val connectedShip = ShipAssembler.assembleToShip(level, dense, true, shouldDisableSplitting = true)
-        val realConnectedShip = level.shipObjectWorld.loadedShips.getById(connectedShip.id)
-        if (realConnectedShip != null) {
-            for (pos in list) {
-                addToShip(realConnectedShip, BlockPos(realConnectedShip.worldToShip.transformPosition(Vector3d(pos)).toMinecraft()), 2.0)
-            }
-        }
-    }
-
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, movedByPiston: Boolean) {
         if (level is ServerLevel) {
             val ship = level.getShipObjectManagingPos(pos)
             if (ship != null) {
-                addToShip(ship, pos, 2.0)
+                addToShip(ship, pos, forceMult)
             }
         }
         super.onPlace(state, level, pos, oldState, movedByPiston)
     }
 
-
+    override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
+        if (level is ServerLevel) {
+            val ship = level.getShipObjectManagingPos(pos)
+            if (ship != null) {
+                removeFromShip(ship, pos)
+            }
+        }
+        super.onRemove(state, level, pos, newState, isMoving)
+    }
 
     override fun destroy(level: LevelAccessor, pos: BlockPos, state: BlockState) {
         if (level is ServerLevel) {
@@ -96,34 +86,6 @@ class GenericWanderliteStairs(properties: Properties): StairBlock(ClockworkBlock
             }
         }
         super.destroy(level, pos, state)
-    }
-
-    private fun collectBlockPositions(worldIn: Level, pos: BlockPos, depth: Int, collectedPositions: MutableSet<Vector3i>): Collection<Vector3i> {
-        // Base case: If the depth is 0, return an empty collection
-        if (depth == 0) {
-            return emptySet()
-        }
-
-        // Add the current position to the set
-        collectedPositions.add(pos.toJOML())
-
-        // Create a set to store block positions for the current iteration
-        val positionsInThisIteration = mutableSetOf<Vector3i>()
-
-        // Iterate through each direction
-        for (direction in Direction.values()) {
-            // Get the neighboring block position in the current direction
-            val neighborPos = pos.relative(direction)
-
-            // Check if the block position is valid and not already collected
-            if (worldIn.isInWorldBounds(neighborPos) && !collectedPositions.contains(neighborPos.toJOML()) && worldIn.getBlockState(neighborPos).block is WanderliteOreBlock) {
-                // Recursively collect block positions for the neighboring block
-                positionsInThisIteration.addAll(collectBlockPositions(worldIn, neighborPos, depth - 1, collectedPositions))
-            }
-        }
-
-        // Return the set of collected positions for this iteration
-        return positionsInThisIteration
     }
 
 }
