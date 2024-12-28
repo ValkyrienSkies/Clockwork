@@ -406,11 +406,13 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         ).normalize()
 
         val extraDist = 1.0
+        val realSpeed = if (getSpeed() > 0.0f) getRealisticAngularSpeed() else 0.0f
+        val newDriveVelocity = if (realSpeed != 0.0f) VSRevoluteJoint.VSRevoluteDriveVelocity(getRealisticAngularSpeed(), true) else null
         val firstAttachment = VSRevoluteJoint(
             shiptraptionID, VSJointPose(bearingPos.fma(-extraDist, axis, Vector3d()), hingeOrientation),
             shipOnID, VSJointPose(posInOwnerShip.fma(-extraDist, axis, Vector3d()), hingeOrientation),
             maxForceTorque = VSJointMaxForceTorque(1.0E10F, 1.0E10F), driveFreeSpin = this.movementMode!!.get() == LockedMode.UNLOCKED,
-            driveVelocity = VSRevoluteJoint.VSRevoluteDriveVelocity(this.getSpeed() * 2f * PI.toFloat() / 60.0f, true)
+            driveVelocity = newDriveVelocity
         )
 
 //        val secondAttachment = VSAttachmentConstraint(
@@ -699,9 +701,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (level != null && !level!!.isClientSide) {
             if (!level!!.isClientSide && attachmentConstraint != null) {
                 val sLevel = level as ServerLevel
+                val realSpeed = if (getSpeed() > 0.0f) getRealisticAngularSpeed() else 0.0f
+                val newDriveVelocity = if (realSpeed != 0.0f) VSRevoluteJoint.VSRevoluteDriveVelocity(getRealisticAngularSpeed(), true) else null
                 sLevel.shipObjectWorld.updateConstraint(attachmentConstraint!!.jointId,
                     VSRevoluteJoint(attachmentConstraint!!.joint.shipId0, attachmentConstraint!!.joint.pose0, attachmentConstraint!!.joint.shipId1, attachmentConstraint!!.joint.pose1, maxForceTorque = VSJointMaxForceTorque(1.0E10F, 1.0E10F),
-                        driveFreeSpin = (attachmentConstraint!!.joint as VSRevoluteJoint).driveFreeSpin, driveVelocity = VSRevoluteJoint.VSRevoluteDriveVelocity(getSpeed() * 2f * PI.toFloat() / 60f, true)))
+                        driveFreeSpin = (attachmentConstraint!!.joint as VSRevoluteJoint).driveFreeSpin, driveVelocity = newDriveVelocity))
             }
         }
         super.onSpeedChanged(previousSpeed)

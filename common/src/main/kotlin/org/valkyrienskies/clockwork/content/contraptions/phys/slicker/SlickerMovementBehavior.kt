@@ -316,7 +316,7 @@ class SlickerMovementBehavior : MovementBehaviour {
         fun doAttach(level: ServerLevel, ship1: Ship?, ship2: Ship?, myPos: Vector3dc, myDirNormal: Vector3dc, tag: CompoundTag, distance: Double) {
             if (ship1 == null && ship2 == null) return
 
-            removeConstraint(level, false, tag)
+            //removeConstraint(level, false, tag)
 
             val adjustedDirNormal = Vector3d(myDirNormal).normalize().mul(1.0, Vector3d())
 
@@ -381,7 +381,7 @@ class SlickerMovementBehavior : MovementBehaviour {
             ship2Rot: Quaterniond?,
             ship2Pos: Vector3d?
         ): VSFixedJoint? {
-            var realShip2ConstraintPos: Vector3d = ship2ConstraintPos
+            var realShip2ConstraintPos: Vector3dc = ship2ConstraintPos
             var realShip1Rot: Quaterniond? = ship1Rot
             var realShip2Rot: Quaterniond? = ship2Rot
             if (ship1 == null && ship2 == null) return null
@@ -392,13 +392,13 @@ class SlickerMovementBehavior : MovementBehaviour {
             if (ship2Rot == null && ship2 == null) realShip2Rot = Quaterniond()
             var mass = 100.0
             if (ship1 != null) {
-                //ship1.shipToWorld.transformPosition(realShip2ConstraintPos)
+                //realShip2ConstraintPos = ship1.shipToWorld.transformPosition(realShip2ConstraintPos, Vector3d())
                 ship1Id = ship1.id
                 if (realShip1Rot == null) realShip1Rot = ship1.transform.shipToWorldRotation as Quaterniond
                 mass = level.shipObjectWorld.loadedShips.getById(ship1Id)!!.inertiaData.mass
             } else ship1Id = groundId
             if (ship2 != null) {
-                //ship2.worldToShip.transformPosition(realShip2ConstraintPos)
+                realShip2ConstraintPos = ship2.worldToShip.transformPosition(level.toWorldCoordinates(Vector3d(realShip2ConstraintPos)), Vector3d())
                 ship2Id = ship2.id
                 if (realShip2Rot == null) realShip2Rot = ship2.transform.shipToWorldRotation as Quaterniond
                 //ship2Rot.add(ship2.getTransform().getShipToWorldRotation());
