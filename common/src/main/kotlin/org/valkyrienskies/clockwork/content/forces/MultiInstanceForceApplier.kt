@@ -51,7 +51,7 @@ interface MultiInstanceForceApplier<A: ForceApplierUpdateData, D: ForceApplierDa
     }
 
     companion object {
-        fun getOrCreate(ship: ServerShip): MultiInstanceForceApplier<*, *, *>? {
+        fun getOrCreate(ship: LoadedServerShip): MultiInstanceForceApplier<*, *, *>? {
             throw IllegalArgumentException("Invalid data type")
         }
     }

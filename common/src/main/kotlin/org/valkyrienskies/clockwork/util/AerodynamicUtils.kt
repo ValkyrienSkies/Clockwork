@@ -23,9 +23,9 @@ object AerodynamicUtils {
     }
 
     init {
-        dimensionMap["minecraft:overworld"] = Pair(562.0, 62.0)
-        dimensionMap["minecraft:the_nether"] = Pair(256.0, 31.0)
-        dimensionMap["minecraft:the_end"] = Pair(-1.0, 0.0)
+        dimensionMap["minecraft:dimension:minecraft:overworld"] = Pair(562.0, 62.0)
+        dimensionMap["minecraft:dimension:minecraft:the_nether"] = Pair(256.0, 31.0)
+        dimensionMap["minecraft:dimension:minecraft:the_end"] = Pair(-1.0, 0.0)
     }
 
 

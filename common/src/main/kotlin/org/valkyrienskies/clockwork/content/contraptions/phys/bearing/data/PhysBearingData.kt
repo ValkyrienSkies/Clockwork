@@ -3,10 +3,9 @@ package org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.joml.Vector3dc
-import org.valkyrienskies.core.apigame.constraints.VSAttachmentConstraint
-import org.valkyrienskies.core.apigame.constraints.VSConstraintAndId
-import org.valkyrienskies.core.apigame.constraints.VSFixedOrientationConstraint
-import org.valkyrienskies.core.apigame.constraints.VSHingeOrientationConstraint
+import org.valkyrienskies.core.apigame.joints.VSFixedJoint
+import org.valkyrienskies.core.apigame.joints.VSJointAndId
+import org.valkyrienskies.core.apigame.joints.VSRevoluteJoint
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class PhysBearingData {
@@ -18,20 +17,16 @@ class PhysBearingData {
     var locked = false
     var shiptraptionID: Long
     var aligning = false
-    var attachConstraint: VSAttachmentConstraint? = null
+    var attachConstraint: VSRevoluteJoint? = null
 
     @JsonIgnore
     var actualAngle = 0.0
 
     @JsonIgnore
     var attachID: Int? = null
-    var hingeConstraint: VSHingeOrientationConstraint? = null
-    var angleConstraint: VSFixedOrientationConstraint? = null
 
     @JsonIgnore
     var hingeID: Int? = null
-
-    var secondAttachConstraint: VSAttachmentConstraint? = null
 
     @JsonIgnore
     var secondAttachId: Int? = null
@@ -51,11 +46,7 @@ class PhysBearingData {
         bearingRPM: Float,
         locked: Boolean,
         shiptraptionID: Long,
-        constraintAndId: VSConstraintAndId,
-        hingeConstraintAndId: VSConstraintAndId,
-        posDampConstraintAndId: VSConstraintAndId?,
-        rotDampConstraintAndId: VSConstraintAndId?,
-        secondAttachment: VSConstraintAndId?,
+        constraintAndId: VSJointAndId,
     ) {
         this.bearingPosition = bearingPosition
         this.bearingAxis = bearingAxis
@@ -63,12 +54,7 @@ class PhysBearingData {
         this.bearingRPM = bearingRPM
         this.locked = locked
         this.shiptraptionID = shiptraptionID
-        attachConstraint = constraintAndId.vsConstraint as VSAttachmentConstraint
-        attachID = constraintAndId.constraintId
-        hingeConstraint = hingeConstraintAndId.vsConstraint as VSHingeOrientationConstraint
-        hingeID = hingeConstraintAndId.constraintId
-
-        secondAttachConstraint = secondAttachment?.vsConstraint as VSAttachmentConstraint?
-        secondAttachId = secondAttachment?.constraintId
+        attachConstraint = constraintAndId.joint as VSRevoluteJoint
+        attachID = constraintAndId.jointId
     }
 }

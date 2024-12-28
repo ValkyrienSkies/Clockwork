@@ -8,8 +8,10 @@ import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanC
 import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanData
 import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanUpdateData
 import org.valkyrienskies.clockwork.util.AerodynamicUtils
+import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
+import org.valkyrienskies.core.api.ships.setAttachment
 import org.valkyrienskies.core.api.world.properties.DimensionId
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.*
@@ -80,13 +82,15 @@ class EncasedFanController(
     }
 
     companion object {
-        fun getOrCreate(ship: ServerShip): EncasedFanController? {
+        fun getOrCreate(ship: LoadedServerShip): EncasedFanController? {
             if (ship.getAttachment(EncasedFanController::class.java) == null) {
                 val controller = EncasedFanController()
                 controller.setDimension(ship.chunkClaimDimension)
-                ship.saveAttachment(EncasedFanController::class.java, controller)
+                ship.setAttachment(controller)
             }
-            return ship.getAttachment(EncasedFanController::class.java)
+            val attachment = ship.getAttachment(EncasedFanController::class.java)
+            attachment!!.dimensionId = ship.chunkClaimDimension
+            return attachment
         }
     }
 }

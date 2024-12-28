@@ -6,7 +6,7 @@ import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.ServerShip
 
 interface IWanderliteBlock {
-    fun addToShip(ship: ServerShip, pos: BlockPos, force: Double) {
+    fun addToShip(ship: LoadedServerShip, pos: BlockPos, force: Double) {
         WanderShipControl.getOrCreate(ship)?.addBlock(pos, force)
     }
     fun removeFromShip(ship: LoadedServerShip, pos: BlockPos) {

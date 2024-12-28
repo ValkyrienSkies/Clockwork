@@ -6,10 +6,12 @@ import net.minecraft.world.level.block.Blocks
 import org.joml.Vector3d
 import org.joml.Vector3i
 import org.joml.Vector3ic
+import org.valkyrienskies.core.api.attachment.getAttachment
+import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.ServerShip
-import org.valkyrienskies.core.api.ships.getAttachment
 import org.valkyrienskies.core.impl.game.ShipTeleportDataImpl
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
+import org.valkyrienskies.mod.api.getShipById
 import org.valkyrienskies.mod.common.assembly.AssemblyUtil
 import org.valkyrienskies.mod.common.assembly.ShipAssembler.isValidShipBlock
 import org.valkyrienskies.mod.common.dimensionId
@@ -97,7 +99,7 @@ object PhysBearingAssembler {
 
         if (shouldDisableSplitting) {
             existingShip?.let {
-                existingShipCouldSplit = level.shipObjectWorld.loadedShips.getById(it.id)?.getAttachment<SplittingDisablerAttachment>()?.canSplit() ?: false
+                existingShipCouldSplit = level.shipObjectWorld.loadedShips.getById(it.id)?.let {it.getAttachment<SplittingDisablerAttachment>()?.canSplit()} ?: false
                 if (existingShipCouldSplit) {level.shipObjectWorld.loadedShips.getById(it.id)?.getAttachment<SplittingDisablerAttachment>()?.disableSplitting()}
             }
             level.shipObjectWorld.loadedShips.getById(newShip.id)?.getAttachment<SplittingDisablerAttachment>()?.disableSplitting()

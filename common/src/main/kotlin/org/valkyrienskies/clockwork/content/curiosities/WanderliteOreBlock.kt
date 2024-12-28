@@ -72,7 +72,7 @@ class WanderliteOreBlock(properties: Properties) : ExperienceBlock(properties), 
         }
 
         val connectedShip = ShipAssembler.assembleToShip(level, dense, true, shouldDisableSplitting = true)
-        val realConnectedShip = level.shipObjectWorld.allShips.getById(connectedShip.id)
+        val realConnectedShip = level.shipObjectWorld.loadedShips.getById(connectedShip.id)
         if (realConnectedShip != null) {
             for (pos in list) {
                 addToShip(realConnectedShip, BlockPos(realConnectedShip.worldToShip.transformPosition(Vector3d(pos)).toMinecraft()), 1.0)

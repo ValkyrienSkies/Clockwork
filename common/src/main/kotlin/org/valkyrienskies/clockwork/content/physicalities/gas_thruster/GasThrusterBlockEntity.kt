@@ -94,7 +94,7 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         newForce = force.length()
         val serverLevel = level as ServerLevel? ?: return
         val ship = serverLevel.getShipObjectManagingPos(blockPos) ?: return
-        val controller = GasThrusterController.getOrCreate(ship as ServerShip) ?: return
+        val controller = GasThrusterController.getOrCreate(ship) ?: return
         tickData(controller, newForce != prevForce)
     }
 

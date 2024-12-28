@@ -47,9 +47,9 @@ class WanderShipControl : ShipForcesInducer {
 
     companion object {
 
-        fun getOrCreate(ship: ServerShip): WanderShipControl? {
+        fun getOrCreate(ship: LoadedServerShip): WanderShipControl? {
             if (ship.getAttachment(WanderShipControl::class.java) == null) {
-                ship.saveAttachment(WanderShipControl::class.java, WanderShipControl())
+                ship.setAttachment(WanderShipControl())
             }
             return ship.getAttachment(WanderShipControl::class.java)
         }

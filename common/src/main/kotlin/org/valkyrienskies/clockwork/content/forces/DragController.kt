@@ -13,9 +13,7 @@ import org.joml.primitives.AABBic
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.DRAG_COEFFICIENT
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.getAirDensityForY
 import org.valkyrienskies.clockwork.util.SideProfileTracker
-import org.valkyrienskies.core.api.ships.PhysShip
-import org.valkyrienskies.core.api.ships.ServerShip
-import org.valkyrienskies.core.api.ships.ShipForcesInducer
+import org.valkyrienskies.core.api.ships.*
 import org.valkyrienskies.core.api.world.properties.DimensionId
 import org.valkyrienskies.core.util.expand
 import org.valkyrienskies.mod.common.util.settings
@@ -27,7 +25,10 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.collections.HashMap
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-class DragController(var dimensionId: DimensionId) : ShipForcesInducer {
+class DragController : ShipForcesInducer {
+
+    @JsonIgnore
+    var dimensionId: DimensionId = "minecraft:dimension:minecraft:overworld"
 
     @JsonIgnore
     private val blockUpdateQueue = ConcurrentLinkedQueue<Pair<Vector3ic, Boolean>>()
@@ -324,11 +325,15 @@ class DragController(var dimensionId: DimensionId) : ShipForcesInducer {
     }
 
     companion object {
-        fun getOrCreate(ship: ServerShip): DragController? {
+        fun getOrCreate(ship: LoadedServerShip): DragController? {
             if (ship.getAttachment(DragController::class.java) == null) {
-                ship.saveAttachment(DragController::class.java, DragController(ship.chunkClaimDimension))
+                val controller = DragController()
+                controller.dimensionId = ship.chunkClaimDimension
+                ship.setAttachment(controller)
             }
-            return ship.getAttachment(DragController::class.java)
+            val controller = ship.getAttachment(DragController::class.java)
+            controller!!.dimensionId = ship.chunkClaimDimension
+            return controller
         }
 
         private val dragLogger by logger("Drag Controller")

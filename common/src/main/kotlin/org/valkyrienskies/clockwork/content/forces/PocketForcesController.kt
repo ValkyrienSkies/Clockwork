@@ -25,9 +25,7 @@ import org.valkyrienskies.clockwork.util.AerodynamicUtils.extraHeatInfoAverage
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.specificHeatAverage
 import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
 import org.valkyrienskies.clockwork.util.PIDstance
-import org.valkyrienskies.core.api.ships.PhysShip
-import org.valkyrienskies.core.api.ships.ServerShip
-import org.valkyrienskies.core.api.ships.ShipForcesInducer
+import org.valkyrienskies.core.api.ships.*
 import org.valkyrienskies.core.api.world.properties.DimensionId
 import org.valkyrienskies.core.util.x
 import org.valkyrienskies.core.util.y
@@ -41,7 +39,11 @@ import kotlin.collections.HashMap
 import kotlin.math.*
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-class PocketForcesController(@JsonIgnore var dimensionId: DimensionId): ShipForcesInducer {
+class PocketForcesController: ShipForcesInducer {
+
+    @JsonIgnore
+    var dimensionId: DimensionId = "minecraft:dimension:minecraft:overworld"
+
     @JsonIgnore
     val gametickKnownPocketRoots: HashSet<Vector3ic> = HashSet()
     @JsonIgnore
@@ -343,11 +345,15 @@ class PocketForcesController(@JsonIgnore var dimensionId: DimensionId): ShipForc
     }
 
     companion object {
-        fun getOrCreate(ship: ServerShip): PocketForcesController? {
+        fun getOrCreate(ship: LoadedServerShip): PocketForcesController? {
             if (ship.getAttachment(PocketForcesController::class.java) == null) {
-                ship.saveAttachment(PocketForcesController::class.java, PocketForcesController(ship.chunkClaimDimension))
+                val controller = PocketForcesController()
+                controller.dimensionId = ship.chunkClaimDimension
+                ship.setAttachment(controller)
             }
-            return ship.getAttachment(PocketForcesController::class.java)
+            val controller = ship.getAttachment(PocketForcesController::class.java)
+            controller!!.dimensionId = ship.chunkClaimDimension
+            return controller
         }
     }
 }

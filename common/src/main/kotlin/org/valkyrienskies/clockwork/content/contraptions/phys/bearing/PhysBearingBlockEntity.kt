@@ -39,25 +39,27 @@ import org.valkyrienskies.clockwork.util.GlueAssembler.collectGlued
 import org.valkyrienskies.clockwork.util.minus
 import org.valkyrienskies.clockwork.util.plus
 import org.valkyrienskies.clockwork.util.times
+import org.valkyrienskies.core.api.attachment.getAttachment
+import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.Ship
-import org.valkyrienskies.core.api.ships.getAttachment
-import org.valkyrienskies.core.apigame.constraints.VSAttachmentConstraint
-import org.valkyrienskies.core.apigame.constraints.VSConstraintAndId
-import org.valkyrienskies.core.apigame.constraints.VSConstraintId
-import org.valkyrienskies.core.apigame.constraints.VSHingeOrientationConstraint
+import org.valkyrienskies.core.apigame.joints.*
+import org.valkyrienskies.core.impl.bodies.properties.BodyTransformVelocityImpl
+import org.valkyrienskies.core.impl.game.ships.ShipData
 import org.valkyrienskies.core.impl.game.ships.ShipDataCommon
 import org.valkyrienskies.core.impl.game.ships.ShipTransformImpl.Companion.create
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3d
 import org.valkyrienskies.mod.common.*
+import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
 import org.valkyrienskies.mod.common.util.SplittingDisablerAttachment
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
 import org.valkyrienskies.mod.common.world.clipIncludeShips
 import org.valkyrienskies.mod.util.putVector3d
 import java.lang.Math
+import kotlin.math.PI
 import kotlin.math.sign
 
 class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) :
@@ -98,6 +100,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     private var sequencedAngleLimit = -1.0f
     private var sequencedAngleProgress = 0f
+
+    var addToControllerNextTick = false
+    var createDataForNextTick: PhysBearingCreateData? = null
+
+    var attachmentConstraint : VSJointAndId? = null
 
     init {
         setLazyTickRate(3)
@@ -207,18 +214,13 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val oldSPos = tag.getVector3d(ClockworkConstants.Nbt.OLD_SHIPTRAPTION_CENTER)!!
         val newSPos = tag.getVector3d(ClockworkConstants.Nbt.NEW_SHIPTRAPTION_CENTER)!!
 
-        data.attachConstraint       = data.attachConstraint      ?.let{it.copy(subship.id, mainId, localPos0 = it.localPos0 - oldSPos + newSPos, localPos1 = it.localPos1 - oldPos + newPos)}
-        data.secondAttachConstraint = data.secondAttachConstraint?.let{it.copy(subship.id, mainId, localPos0 = it.localPos0 - oldSPos + newSPos, localPos1 = it.localPos1 - oldPos + newPos)}
-        data.hingeConstraint        = data.hingeConstraint?.copy(subship.id, mainId)
+        data.attachConstraint = data.attachConstraint?.let{it.copy(subship.id, pose0 = VSJointPose(it.pose0.pos - oldSPos + newSPos, it.pose0.rot), mainId, pose1 = VSJointPose(it.pose1.pos - oldPos + newPos, it.pose1.rot))}
 
         val controller = BearingController.getOrCreate(subship)!!
         bearingID = controller.addPhysBearing(
             PhysBearingCreateData(
                 data.bearingPosition!!, data.bearingAxis!!, data.bearingAngle, data.bearingRPM, data.locked, data.shiptraptionID,
-                VSConstraintAndId(-1, data.attachConstraint!!),
-                VSConstraintAndId(-1, data.hingeConstraint!!),
-                null, null,
-                VSConstraintAndId(-1, data.secondAttachConstraint!!)
+                VSJointAndId(-1, data.attachConstraint!!)
             )
         )
     }
@@ -298,10 +300,10 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 null
                 ), false, shipOn?.id)
 
-        val otherShip = level.getShipManagingPos(otherPos.blockPos)
+        val otherShip = level.getShipObjectManagingPos(otherPos.blockPos)
         val posInOwnerShip = Vector3d(worldPos)
 
-        val (bearingPos, shiptraption) = if (otherShip == null) {
+        val (bearingPos, shiptraption: ServerShip) = if (otherShip == null) {
             val selection: DenseBlockPosSet?
             try {
                 selection = collectGlued(level, attachPoint)
@@ -378,58 +380,45 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         }
 
         val posInWorld = shipOn?.transform?.shipToWorld?.transformPosition(
-            posInOwnerShip - bearingPos + shiptraption.inertiaData.centerOfMassInShip + 0.5, Vector3d()
-        ) ?: (worldPos - bearingPos + shiptraption.inertiaData.centerOfMassInShip + 0.5)
+            posInOwnerShip - bearingPos + shiptraption.inertiaData.centerOfMass + 0.5, Vector3d()
+        ) ?: (worldPos - bearingPos + shiptraption.inertiaData.centerOfMass + 0.5)
         val rotInWorld = shipOn?.transform?.shipToWorldRotation ?: Quaterniond()
         val scaling    = shipOn?.transform?.shipToWorldScaling ?: Vector3d(1.0, 1.0, 1.0)
 
-        (shiptraption as ShipDataCommon).transform = create(posInWorld, shiptraption.inertiaData.centerOfMassInShip, rotInWorld, scaling)
+        shiptraption.unsafeSetTransform(BodyTransformVelocityImpl(posInWorld, shiptraption.inertiaData.centerOfMass, rotInWorld, scaling, shiptraption.velocity, shiptraption.angularVelocity))
 
         val hingeOrientation: Quaterniondc = rotationQuaternion.mul(
             Quaterniond(AxisAngle4d(Math.toRadians(90.0), 0.0, 0.0, 1.0)),
             Quaterniond()
         ).normalize()
 
-        val hingeConstraint = VSHingeOrientationConstraint(
-            shiptraptionID, shipOnID,
-            1e-100,
-            hingeOrientation, hingeOrientation,
-            1e100
-        )
-
-        // TODO: Maybe change this based on ship size?
         val extraDist = 1.0
-        val firstAttachment = VSAttachmentConstraint(
-            shiptraptionID, shipOnID,
-            1e-100,
-            bearingPos.fma(-extraDist, axis, Vector3d()),
-            posInOwnerShip.fma(-extraDist, axis, Vector3d()),
-            1e100,
-            0.0
+        val firstAttachment = VSRevoluteJoint(
+            shiptraptionID, VSJointPose(bearingPos.fma(-extraDist, axis, Vector3d()), hingeOrientation),
+            shipOnID, VSJointPose(posInOwnerShip.fma(-extraDist, axis, Vector3d()), hingeOrientation),
+            maxForceTorque = VSJointMaxForceTorque(1.0E10F, 1.0E10F),
         )
 
-        val secondAttachment = VSAttachmentConstraint(
-            shiptraptionID, shipOnID,
-            1e-100,
-            bearingPos.fma(extraDist, axis, Vector3d()),
-            posInOwnerShip.fma(extraDist, axis, Vector3d()),
-            1e100,
-            0.0
-        )
+//        val secondAttachment = VSAttachmentConstraint(
+//            shiptraptionID, shipOnID,
+//            1e-100,
+//            bearingPos.fma(extraDist, axis, Vector3d()),
+//            posInOwnerShip.fma(extraDist, axis, Vector3d()),
+//            1e100,
+//            0.0
+//        )
 
         // Add position damping to make the hinge more stable
         // VSPosDampingConstraint posDampingConstraint = new VSPosDampingConstraint(shiptraptionID, otherShipID, 1e-10, posInBearingContraption, posInOwnerShip, 1e10, 1e-2);
 
         // Add rotation damping to make the hinge more stable
         // VSRotDampingConstraint perpendicularRotDampingConstraint = new VSRotDampingConstraint(shiptraptionID, otherShipID, 1e-10, hingeOrientation, hingeOrientation, 1e10, 1e-2, VSRotDampingAxes.ALL_AXES);
-        val firstAttachmentId: VSConstraintId = level.shipObjectWorld.createNewConstraint(firstAttachment) ?: return
-        val hingeID: VSConstraintId = level.shipObjectWorld.createNewConstraint(hingeConstraint) ?: return
-        val secondAttachmentID: VSConstraintId = level.shipObjectWorld.createNewConstraint(secondAttachment) ?: return
-        // Integer posDamperID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).createNewConstraint(posDampingConstraint);
-        // Integer rotDamperID = VSGameUtilsKt.getShipObjectWorld((ServerLevel) level).createNewConstraint(perpendicularRotDampingConstraint);
-        val firstAttachmentConstraint = VSConstraintAndId(firstAttachmentId, firstAttachment)
-        val hingeContraptionConstraint = VSConstraintAndId(hingeID, hingeConstraint)
-        val secondAttachmentConstraint = VSConstraintAndId(secondAttachmentID, secondAttachment)
+        val firstAttachmentId: VSJointId = level.shipObjectWorld.createNewConstraint(firstAttachment) ?: return
+
+        val firstAttachmentConstraint = VSJointAndId(firstAttachmentId, firstAttachment)
+
+        attachmentConstraint = firstAttachmentConstraint
+
         // VSConstraintAndId posDampingContraptionConstraint = new VSConstraintAndId(posDamperID, posDampingConstraint);
         // VSConstraintAndId rotDampingContraptionConstraint = new VSConstraintAndId(rotDamperID, perpendicularRotDampingConstraint);
         val data = PhysBearingCreateData(
@@ -439,17 +428,13 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             veryUncoolFix * getSpeed(),
             movementMode!!.get() == LockedMode.LOCKED,
             shiptraptionID,
-            firstAttachmentConstraint,
-            hingeContraptionConstraint,
-            null,
-            null,
-            secondAttachmentConstraint,
+            firstAttachmentConstraint
         )
-        bearingID = BearingController.getOrCreate(if(otherShip == null) shiptraption else level.shipObjectWorld.loadedShips.getById(shiptraptionID)!!)!!.addPhysBearing(data)
         isRunning = true
         targetAngle = 0f
         lastStateChanged = ticks
         originalDirection = direction
+        createDataForNextTick = data
         sendData()
         updateGeneratedRotation()
     }
@@ -459,12 +444,10 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (level == null || bearingID == null) return
         if (level.isClientSide || level !is ServerLevel) return
 
-        val ship = level.shipObjectWorld.allShips.getById(shiptraptionID) ?: return
+        val ship = level.shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return
         val controller: BearingController = BearingController.getOrCreate(ship)!!
 
         level.shipObjectWorld.removeConstraint(controller.bearingData[bearingID]?.attachID ?: return)
-        level.shipObjectWorld.removeConstraint(controller.bearingData[bearingID]?.hingeID ?: return)
-        level.shipObjectWorld.removeConstraint(controller.bearingData[bearingID]?.secondAttachId ?: return)
         controller.removePhysBearing(bearingID!!)
     }
 
@@ -474,7 +457,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         targetAngle = 0f
         if (shiptraptionID == NO_SHIPTRAPTION_ID) return
         val level = level as ServerLevel
-        val ship = level.shipObjectWorld.allShips.getById(shiptraptionID) ?: return resetState()
+        val ship = level.shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return resetState()
 
         val controller = BearingController.getOrCreate(ship)!!
         if (!controller.canDisassemble(bearingID, ship, level.getShipObjectManagingPos(worldPosition))) {
@@ -556,14 +539,12 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     fun tryRefresh() {
         if (!shouldRefresh) {return}
         val level = level as ServerLevel
-        val ship = level.shipObjectWorld.allShips.getById(shiptraptionID) ?: return
+        val ship = level.shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return
         if (bearingID == null) {return}
 
         val bearingData = BearingController.getOrCreate(ship)!!.bearingData[bearingID] ?: return
 
-        val (shipId00, _, compliance0, localPos01, localPos11, maxForce1, fixedDistance1) = bearingData.attachConstraint!!
-        val (shipId01, _, compliance1, localPos02, localPos12, maxForce2, fixedDistance2) = bearingData.secondAttachConstraint!!
-        val (shipId02, _, compliance2, localRot0, localRot1, maxTorque) = bearingData.hingeConstraint!!
+        val (shipId00, pose0, _, pose1, maxForceTorque) = bearingData.attachConstraint!!
 
         val shipOn = level.getShipObjectManagingPos(worldPosition)
         val shipOnID = shipOn?.id ?: level.shipObjectWorld.dimensionToGroundBodyIdImmutable[level.dimensionId]!!
@@ -575,25 +556,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             return
         }
 
-        val attachConstraint = VSAttachmentConstraint(
-            shipId00, shipOnID,
-            compliance0,
-            localPos01, localPos11, maxForce1, fixedDistance1
-        )
-        val hingeConstraint = VSHingeOrientationConstraint(
-            shipId02, shipOnID,
-            compliance2,
-            localRot0, localRot1, maxTorque
-        )
-        val secondAttachConstraint = VSAttachmentConstraint(
-            shipId01, shipOnID,
-            compliance1,
-            localPos02, localPos12, maxForce2, fixedDistance2
+        val attachConstraint = VSRevoluteJoint(
+            shipId00, pose0, shipOnID, pose1, maxForceTorque
         )
 
         var createdFirstAttachment = false
-        var createdSecondAttachment = false
-        var createdHinge = false
 
         level.shipObjectWorld.createNewConstraint(attachConstraint)?.let {
             BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.attachConstraint = attachConstraint
@@ -601,19 +568,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             createdFirstAttachment = true
         }
 
-        level.shipObjectWorld.createNewConstraint(secondAttachConstraint)?.let {
-            BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.secondAttachConstraint = secondAttachConstraint
-            BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.secondAttachId = it
-            createdSecondAttachment = true
-        }
-
-        level.shipObjectWorld.createNewConstraint(hingeConstraint)?.let {
-            BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.hingeConstraint = hingeConstraint
-            BearingController.getOrCreate(ship)!!.bearingData[bearingID]!!.attachID = it
-            createdHinge = true
-        }
-
-        if (createdHinge && createdFirstAttachment && createdSecondAttachment) {
+        if (createdFirstAttachment) {
             shouldRefresh = false
         }
     }
@@ -621,7 +576,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     private fun tryUpdateData() {
         if (shiptraptionID == NO_SHIPTRAPTION_ID) { return }
         val level = level as ServerLevel
-        val ship = level.shipObjectWorld.allShips.getById(shiptraptionID) ?: return
+        val ship = level.shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return
         val bearingController = BearingController.getOrCreate(ship)!!
         val bearingData = bearingController.bearingData[bearingID] ?: return
 
@@ -681,10 +636,15 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (!level!!.isClientSide) {
             tryAssembleNextTick()
             tryRefresh()
+            if (addToControllerNextTick && (level as ServerLevel).shipObjectWorld.loadedShips.getById(shiptraptionID) != null) {
+                addToControllerNextTick = false
+                bearingID = BearingController.getOrCreate((level as ServerLevel).shipObjectWorld.loadedShips.getById(shiptraptionID)!!)!!.addPhysBearing(createDataForNextTick!!)
+                createDataForNextTick = null
+            }
         }
         tickAnimationLogic()
         if (!isRunning) return
-        if (shiptraptionID != NO_SHIPTRAPTION_ID && !manualTargetAngleChange) {
+        if (shiptraptionID != NO_SHIPTRAPTION_ID) {
             val angularSpeed = getActualAngularSpeed()
             var diff = 0.0f
 
@@ -701,6 +661,13 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             }
             val newAngle = targetAngle + angularSpeed - diff
             targetAngle = (newAngle % 360)
+
+            if (!level!!.isClientSide && attachmentConstraint != null) {
+                val sLevel = level as ServerLevel
+                sLevel.shipObjectWorld.updateConstraint(attachmentConstraint!!.jointId,
+                    VSRevoluteJoint(attachmentConstraint!!.joint.shipId0, attachmentConstraint!!.joint.pose0, attachmentConstraint!!.joint.shipId1, attachmentConstraint!!.joint.pose1, maxForceTorque = VSJointMaxForceTorque(1.0E10F, 1.0E10F),
+                        driveFreeSpin = movementMode!!.get() == LockedMode.UNLOCKED, driveVelocity = VSRevoluteJoint.VSRevoluteDriveVelocity(getSpeed() * 2f * PI.toFloat() / 60f, true)))
+            }
         }
         if (!level!!.isClientSide) {
             tryUpdateData()
@@ -764,8 +731,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         get() = null
 
     fun getActualAngle(): Double? {
-        val ship = level.shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return null
-        val data = BearingController.getOrCreate(ship as ServerShip)!!.bearingData[bearingID] ?: return null
+        val ship = (level as ServerLevel).shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return null
+        val data = BearingController.getOrCreate(ship)!!.bearingData[bearingID] ?: return null
         return data.actualAngle
     }
 

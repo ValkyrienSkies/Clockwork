@@ -33,8 +33,9 @@ import org.valkyrienskies.clockwork.mixinduck.MixinAbstractContraptionEntityDuck
 import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.Ship
-import org.valkyrienskies.core.apigame.constraints.VSAttachmentConstraint
-import org.valkyrienskies.core.apigame.constraints.VSFixedOrientationConstraint
+import org.valkyrienskies.core.apigame.joints.VSFixedJoint
+import org.valkyrienskies.core.apigame.joints.VSJointMaxForceTorque
+import org.valkyrienskies.core.apigame.joints.VSJointPose
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
 import org.valkyrienskies.mod.common.*
 import org.valkyrienskies.mod.common.util.toJOML
@@ -143,7 +144,7 @@ class SlickerMovementBehavior : MovementBehaviour {
                 val tempQuat: Quaterniond = Vec3.atLowerCornerOf(structureTransform.applyWithoutOffset(context.localPos)).toJOML().rotationTo(
                             Vec3.atLowerCornerOf(context.localPos).toJOML(), Quaterniond())
                 quaterniond = Quaterniond()
-                tempQuat.mul(mapper.readValue(extraData.getByteArray(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT), VSFixedOrientationConstraint::class.java).localRot0, quaterniond)
+                tempQuat.mul(mapper.readValue(extraData.getByteArray(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT), VSFixedJoint::class.java).pose0.rot, quaterniond)
             }
         }
         if (!extraData.isEmpty) {
@@ -172,15 +173,13 @@ class SlickerMovementBehavior : MovementBehaviour {
             var ship2Rot: Quaterniond? = null
 
             val attachConstraintData = extraData.getByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT)
-            val attachConstraint = mapper.readValue(attachConstraintData, VSAttachmentConstraint::class.java)
-            val orientationConstraintData = extraData.getByteArray(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT)
-            val orientationConstraint = mapper.readValue(orientationConstraintData, VSFixedOrientationConstraint::class.java)
+            val attachConstraint = mapper.readValue(attachConstraintData, VSFixedJoint::class.java)
 
-            distance = attachConstraint.fixedDistance
-            ship1 = context.world.shipObjectWorld.allShips.getById(attachConstraint.shipId0)
-            ship2 = context.world.shipObjectWorld.allShips.getById(attachConstraint.shipId1)
-            ship2Pos = Vector3d(attachConstraint.localPos1)
-            ship2Rot = Quaterniond(orientationConstraint.localRot1)
+            distance = 1.0
+            ship1 = attachConstraint.shipId0?.let { context.world.shipObjectWorld.loadedShips.getById(it) }
+            ship2 = attachConstraint.shipId1?.let { context.world.shipObjectWorld.loadedShips.getById(it) }
+            ship2Pos = Vector3d(attachConstraint.pose1.pos)
+            ship2Rot = Quaterniond(attachConstraint.pose1.rot)
 
             if (ship1 == null && ship2 == null) return
 
@@ -192,7 +191,7 @@ class SlickerMovementBehavior : MovementBehaviour {
             }
 
             if (realShip1Pos == null) {
-                realShip1Pos = Vector3d(attachConstraint.localPos0)
+                realShip1Pos = Vector3d(attachConstraint.pose0.pos)
                 if (context.contraption is StabilizedContraption) {
                     realShip1Pos.add(Vec3.atLowerCornerOf((context.contraption as StabilizedContraption).facing.normal).toJOML().mul(0.125))
                 }
@@ -203,27 +202,23 @@ class SlickerMovementBehavior : MovementBehaviour {
                 }
             }
             if (realShip1Rot == null) {
-                realShip1Rot = Quaterniond(orientationConstraint.localRot0)
+                realShip1Rot = Quaterniond(attachConstraint.pose0.rot)
                 val rotationState = context.contraption.entity.rotationState
                 if (rotationState != null) {
                     realShip1Rot = Quaterniond().setFromNormalized(rotationState.asMatrix().asMatrix4f.toJOML()).mul(realShip1Rot)
                 }
             }
 
-            val constraintPair: Pair<VSAttachmentConstraint, VSFixedOrientationConstraint>? = makeConstraint(realShip1Pos, Vector3d(realShip1Pos), ship1, ship2, context.world as ServerLevel, realShip1Rot, ship2Rot, ship2Pos)
+            val constraintPair: VSFixedJoint? = makeConstraint(realShip1Pos, Vector3d(realShip1Pos), ship1, ship2, context.world as ServerLevel, realShip1Rot, ship2Rot, ship2Pos)
 
             if (constraintPair != null) {
-                val attachConstraint2 = constraintPair.first
-                val orientationConstraint2 = constraintPair.second
+                val attachConstraint2 = constraintPair
                 (context.world as ServerLevel).shipObjectWorld.updateConstraint(extraData.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID), attachConstraint2)
-                (context.world as ServerLevel).shipObjectWorld.updateConstraint(extraData.getInt(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT_ID), orientationConstraint2)
                 extraData.putInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID, extraData.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID))
                 extraData.putByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT, mapper.writeValueAsBytes(attachConstraint2))
-                extraData.putInt(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT_ID, extraData.getInt(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT_ID))
-                extraData.putByteArray(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT, mapper.writeValueAsBytes(orientationConstraint2))
                 extraData.putDouble(ClockworkConstants.Nbt.SHIP_SLICKER_DISTANCE, distance)
 
-                ClockworkMod.LOGGER.info("Updated constraint from ship ${attachConstraint2.shipId0} to ${attachConstraint2.shipId1} using points ${attachConstraint2.localPos0} && ${attachConstraint2.localPos1}")
+                ClockworkMod.LOGGER.info("Updated constraint from ship ${attachConstraint2.shipId0} to ${attachConstraint2.shipId1} using points ${attachConstraint2.pose0.pos} && ${attachConstraint2.pose1.pos}")
             }
         }
     }
@@ -343,40 +338,32 @@ class SlickerMovementBehavior : MovementBehaviour {
             var realShip2Rot = ship2Rot
 
             if (tag.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID) && 
-                tag.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT) && 
-                tag.contains(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT_ID) && 
-                tag.contains(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT)
+                tag.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT)
                 ) {
                 
                 val attachConstraintData = tag.getByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT)
-                val attachConstraint = mapper.readValue(attachConstraintData, VSAttachmentConstraint::class.java)
-                val orientationConstraintData = tag.getByteArray(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT)
-                val orientationConstraint = mapper.readValue(orientationConstraintData, VSFixedOrientationConstraint::class.java)
-                adjustedDistance = attachConstraint.fixedDistance
-                realShip1 = level.shipObjectWorld.allShips.getById(attachConstraint.shipId0)
-                realShip2 = level.shipObjectWorld.allShips.getById(attachConstraint.shipId1)
-                realShip1Pos = Vector3d(attachConstraint.localPos0)
-                realShip2Pos = Vector3d(attachConstraint.localPos1)
-                realShip1Rot = Quaterniond(orientationConstraint.localRot0)
-                realShip2Rot = Quaterniond(orientationConstraint.localRot1)
+                val attachConstraint = mapper.readValue(attachConstraintData, VSFixedJoint::class.java)
+                adjustedDistance = 1.0
+                realShip1 = attachConstraint.shipId0?.let { level.shipObjectWorld.allShips.getById(it) }
+                realShip2 = attachConstraint.shipId1?.let { level.shipObjectWorld.allShips.getById(it) }
+                realShip1Pos = Vector3d(attachConstraint.pose0.pos)
+                realShip2Pos = Vector3d(attachConstraint.pose1.pos)
+                realShip1Rot = Quaterniond(attachConstraint.pose0.rot)
+                realShip2Rot = Quaterniond(attachConstraint.pose1.rot)
             }
 
-            val constraintPair: Pair<VSAttachmentConstraint, VSFixedOrientationConstraint>? = makeConstraint(realShip1Pos, ship2ConstraintPos, realShip1, realShip2, level, realShip1Rot, realShip2Rot, realShip2Pos)
+            val constraintPair: VSFixedJoint? = makeConstraint(realShip1Pos, ship2ConstraintPos, realShip1, realShip2, level, realShip1Rot, realShip2Rot, realShip2Pos)
 
             if (constraintPair != null) {
-                val attachConstraint = constraintPair.first
-                val orientationConstraint = constraintPair.second
+                val attachConstraint = constraintPair
                 val attachConstraintId = level.shipObjectWorld.createNewConstraint(attachConstraint)
-                val orientationConstraintId = level.shipObjectWorld.createNewConstraint(orientationConstraint)
 
                 tag.putInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID, attachConstraintId ?: -1)
                 tag.putByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT, mapper.writeValueAsBytes(attachConstraint))
-                tag.putInt(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT_ID, orientationConstraintId ?: -1)
-                tag.putByteArray(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT, mapper.writeValueAsBytes(orientationConstraint))
 
                 tag.putDouble(ClockworkConstants.Nbt.SHIP_SLICKER_DISTANCE, adjustedDistance)
 
-                ClockworkMod.LOGGER.info("Attached to ship ${attachConstraint.shipId1} using points ${attachConstraint.localPos0} && ${attachConstraint.localPos1}")
+                ClockworkMod.LOGGER.info("Attached to ship ${attachConstraint.shipId1} using points ${attachConstraint.pose0.pos} && ${attachConstraint.pose1.pos}")
             }
         }
 
@@ -389,7 +376,7 @@ class SlickerMovementBehavior : MovementBehaviour {
             ship1Rot: Quaterniond?,
             ship2Rot: Quaterniond?,
             ship2Pos: Vector3d?
-        ): Pair<VSAttachmentConstraint, VSFixedOrientationConstraint>? {
+        ): VSFixedJoint? {
             var realShip2ConstraintPos: Vector3d = ship2ConstraintPos
             var realShip1Rot: Quaterniond? = ship1Rot
             var realShip2Rot: Quaterniond? = ship2Rot
@@ -417,26 +404,15 @@ class SlickerMovementBehavior : MovementBehaviour {
             val ship1Rotation: Quaterniondc = realShip1Rot?: Quaterniond()
             val ship2Rotation: Quaterniondc = realShip2Rot?: Quaterniond()
 
-            val attachConstraint = VSAttachmentConstraint(
+            val attachConstraint = VSFixedJoint(
                 ship1Id,
+                pose0 = VSJointPose(ship1ConstraintPos, ship1Rotation),
                 ship2Id,
-                1e-9 / mass,
-                ship1ConstraintPos,
-                realShip2ConstraintPos,
-                1e10,
-                ship1ConstraintPos.distance(ship2ConstraintPos)
+                pose1 = VSJointPose(realShip2ConstraintPos, ship2Rotation),
+                VSJointMaxForceTorque(1.0E10F, 1.0E10F)
             )
 
-            val orientationConstraint = VSFixedOrientationConstraint(
-                ship1Id,
-                ship2Id,
-                1e-9 / mass,
-                ship1Rotation,
-                ship2Rotation,
-                1e10
-            )
-
-            return (attachConstraint to orientationConstraint)
+            return (attachConstraint)
         }
 
 
@@ -447,14 +423,6 @@ class SlickerMovementBehavior : MovementBehaviour {
                 if (removeTags) {
                     compoundTag.remove(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)
                     compoundTag.remove(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT)
-                }
-            }
-            if (compoundTag.contains(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT_ID)) {
-                level.shipObjectWorld.removeConstraint(compoundTag.getInt(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT_ID))
-
-                if (removeTags) {
-                    compoundTag.remove(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT_ID)
-                    compoundTag.remove(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT)
                 }
             }
         }

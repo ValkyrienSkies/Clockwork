@@ -12,11 +12,10 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysB
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingData
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingUpdateData
 import org.valkyrienskies.clockwork.util.*
-import org.valkyrienskies.core.api.ships.PhysShip
-import org.valkyrienskies.core.api.ships.ServerShip
-import org.valkyrienskies.core.api.ships.ShipForcesInducer
+import org.valkyrienskies.core.api.ships.*
 import org.valkyrienskies.core.api.ships.properties.ShipId
 import org.valkyrienskies.core.api.ships.properties.ShipTransform
+import org.valkyrienskies.mod.api.vsApi
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -49,10 +48,6 @@ class BearingController : ShipForcesInducer {
                 createData.component2().locked,
                 createData.component2().shiptraptionID,
                 createData.component2().constraint,
-                createData.component2().hingeConstraint,
-                createData.component2().posDampConstraint,
-                createData.component2().rotDampConstraint,
-                createData.component2().secondAttachment,
             )
         }
         while (!removedBearings.isEmpty()) {
@@ -66,24 +61,24 @@ class BearingController : ShipForcesInducer {
         }
         bearingUpdateData.clear()
         for (data in bearingData.values) {
-            if (data.angleConstraint == null) {
-                val physShipBearingIsOnId = data.hingeConstraint!!.shipId1
-                if (physShipBearingIsOnId == PhysBearingBlockEntity.NO_SHIPTRAPTION_ID) {
-                    // Constraint connects to world
-                    val torque = computeRotationalForce(data, physShip, null)
-                    physShip.applyInvariantTorque(torque)
-                } else {
-                    val physShipBearingIsOn = lookupPhysShip.invoke(physShipBearingIsOnId)
-                    if (physShipBearingIsOn == null) {
-                        val torque = computeRotationalForce(data, physShip, null)
-                        physShip.applyInvariantTorque(torque)
-                    } else {
-                        val torque = computeRotationalForce(data, physShip, physShipBearingIsOn)
-                        physShip.applyInvariantTorque(torque)
-                        physShipBearingIsOn.applyInvariantTorque(torque.mul(-1.0, Vector3d()))
-                    }
-                }
-            }
+//            if (!data.locked) {
+//                val physShipBearingIsOnId = data.attachConstraint!!.shipId1
+//                if (physShipBearingIsOnId == PhysBearingBlockEntity.NO_SHIPTRAPTION_ID) {
+//                    // Constraint connects to world
+//                    val torque = computeRotationalForce(data, physShip, null)
+//                    physShip.applyInvariantTorque(torque)
+//                } else {
+//                    val physShipBearingIsOn = lookupPhysShip.invoke(physShipBearingIsOnId!!)
+//                    if (physShipBearingIsOn == null) {
+//                        val torque = computeRotationalForce(data, physShip, null)
+//                        physShip.applyInvariantTorque(torque)
+//                    } else {
+//                        val torque = computeRotationalForce(data, physShip, physShipBearingIsOn)
+//                        physShip.applyInvariantTorque(torque)
+//                        physShipBearingIsOn.applyInvariantTorque(torque.mul(-1.0, Vector3d()))
+//                    }
+//                }
+//            }
         }
     }
 
@@ -179,18 +174,18 @@ class BearingController : ShipForcesInducer {
         val torqueMassMultiplier: Double
         if (!physShip.isStatic) {
             if (otherPhysShip != null && !otherPhysShip.isStatic) {
-                val physShipInertia = getAngularInertia(physShip, data.attachConstraint!!.localPos0, bearingAxisInGlobal)
-                val otherShipInertia = getAngularInertia(otherPhysShip, data.attachConstraint!!.localPos1, bearingAxisInGlobal)
+                val physShipInertia = getAngularInertia(physShip, data.attachConstraint!!.pose0.pos, bearingAxisInGlobal)
+                val otherShipInertia = getAngularInertia(otherPhysShip, data.attachConstraint!!.pose1.pos, bearingAxisInGlobal)
                 torqueMassMultiplier = parallelOperator(physShipInertia, otherShipInertia)
                 // Sub otherPhysShip angularVel from actualRelativeOmega if otherPhysShip is not static
                 // TODO: What about static bodies that are moving?
                 actualRelativeOmega.sub(otherPhysShip.omega)
             } else {
-                torqueMassMultiplier = getAngularInertia(physShip, data.attachConstraint!!.localPos0, bearingAxisInGlobal)
+                torqueMassMultiplier = getAngularInertia(physShip, data.attachConstraint!!.pose0.pos, bearingAxisInGlobal)
             }
         } else if (otherPhysShip != null && !otherPhysShip.isStatic) {
             // Set it to be the inertia of otherPhysShip
-            torqueMassMultiplier = getAngularInertia(otherPhysShip, data.attachConstraint!!.localPos1, bearingAxisInGlobal)
+            torqueMassMultiplier = getAngularInertia(otherPhysShip, data.attachConstraint!!.pose1.pos, bearingAxisInGlobal)
             // Sub otherPhysShip angularVel from actualRelativeOmega if otherPhysShip is not static
             // TODO: What about static bodies that are moving?
             actualRelativeOmega.sub(otherPhysShip.omega)
@@ -233,21 +228,21 @@ class BearingController : ShipForcesInducer {
         if (!physShip.isStatic) {
             if (otherPhysShip != null && !otherPhysShip.isStatic) {
                 val physShipInertia =
-                    getAngularInertia(physShip, data.attachConstraint!!.localPos0, bearingAxisInGlobal)
+                    getAngularInertia(physShip, data.attachConstraint!!.pose0.pos, bearingAxisInGlobal)
                 val otherShipInertia =
-                    getAngularInertia(otherPhysShip, data.attachConstraint!!.localPos1, bearingAxisInGlobal)
+                    getAngularInertia(otherPhysShip, data.attachConstraint!!.pose1.pos, bearingAxisInGlobal)
                 torqueMassMultiplier = parallelOperator(physShipInertia, otherShipInertia)
                 // Sub otherPhysShip angularVel from actualRelativeOmega if otherPhysShip is not static
                 // TODO: What about static bodies that are moving?
                 actualRelativeOmega.sub(otherPhysShip.omega)
             } else {
                 torqueMassMultiplier =
-                    getAngularInertia(physShip, data.attachConstraint!!.localPos0, bearingAxisInGlobal)
+                    getAngularInertia(physShip, data.attachConstraint!!.pose0.pos, bearingAxisInGlobal)
             }
         } else if (otherPhysShip != null && !otherPhysShip.isStatic) {
             // Set it to be the inertia of otherPhysShip
             torqueMassMultiplier =
-                getAngularInertia(otherPhysShip, data.attachConstraint!!.localPos1, bearingAxisInGlobal)
+                getAngularInertia(otherPhysShip, data.attachConstraint!!.pose1.pos, bearingAxisInGlobal)
             // Sub otherPhysShip angularVel from actualRelativeOmega if otherPhysShip is not static
             // TODO: What about static bodies that are moving?
             actualRelativeOmega.sub(otherPhysShip.omega)
@@ -377,9 +372,9 @@ class BearingController : ShipForcesInducer {
     }
 
     companion object {
-        fun getOrCreate(ship: ServerShip): BearingController? {
+        fun getOrCreate(ship: LoadedServerShip): BearingController? {
             if (ship.getAttachment(BearingController::class.java) == null) {
-                ship.saveAttachment(BearingController::class.java, BearingController())
+                ship.setAttachment(BearingController())
             }
             return ship.getAttachment(BearingController::class.java)
         }
