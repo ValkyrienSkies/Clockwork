@@ -53,43 +53,43 @@ object ClockworkModClient {
             SecondScrollValueRenderer.tickSecond()
         })
 
-        WorldRenderEvents.AFTER_TRANSLUCENT.register(WorldRenderEvents.AfterTranslucent { context ->
-            if(!context.gameRenderer().minecraft.options.renderDebug) return@AfterTranslucent
-
-            context.world().shipObjectWorld.loadedShips.forEach { clientShip ->
-                val stack = context.matrixStack() ?: return@forEach
-                stack.pushPose()
-
-                // Render the chunk coordinates as text
-                val text: Component = Component.nullToEmpty("Slug: ${clientShip.slug} | Client Id: ${clientShip.id}")
-
-                // Use Minecraft's built-in text rendering method
-                val font: Font = Minecraft.getInstance().font
-                val xOffset: Float = -font.width(text) / 2f
-
-                // Rotate to match the ships position
-                val height = clientShip.renderAABB.maxY() - clientShip.renderAABB.minY()
-                val position = clientShip.renderTransform.positionInWorld
-                val cameraPos = context.camera().position
-                stack.translate(-cameraPos.x(), -cameraPos.y(), -cameraPos.z())
-                stack.translate(position.x(), position.y() + (height * 0.5), position.z())
-
-                // Apply rotations
-                val yawRotation = Quaternionf().rotateY(Math.toRadians(-context.camera().yRot.toDouble()).toFloat())
-                val pitchRotation = Quaternionf().rotateX(Math.toRadians(context.camera().xRot.toDouble()).toFloat())
-                val combinedRotation = yawRotation.mul(pitchRotation)
-                stack.mulPose(combinedRotation.toMinecraft())
-
-                val scale = -0.025f
-                stack.scale(scale,scale,scale)
-
-                context.consumers()?.let {
-                    font.drawInBatch(text.string, xOffset, 0f, 0xFFFFFF, false, stack.last().pose(), it, false, 0x000000, 0xFFFFFF, false)
-                }
-
-                stack.popPose()
-            }
-        })
+//        WorldRenderEvents.AFTER_TRANSLUCENT.register(WorldRenderEvents.AfterTranslucent { context ->
+//            if(!context.gameRenderer().minecraft.options.renderDebug) return@AfterTranslucent
+//
+//            context.world().shipObjectWorld.loadedShips.forEach { clientShip ->
+//                val stack = context.matrixStack() ?: return@forEach
+//                stack.pushPose()
+//
+//                // Render the chunk coordinates as text
+//                val text: Component = Component.nullToEmpty("Slug: ${clientShip.slug} | Client Id: ${clientShip.id}")
+//
+//                // Use Minecraft's built-in text rendering method
+//                val font: Font = Minecraft.getInstance().font
+//                val xOffset: Float = -font.width(text) / 2f
+//
+//                // Rotate to match the ships position
+//                val height = clientShip.renderAABB.maxY() - clientShip.renderAABB.minY()
+//                val position = clientShip.renderTransform.positionInWorld
+//                val cameraPos = context.camera().position
+//                stack.translate(-cameraPos.x(), -cameraPos.y(), -cameraPos.z())
+//                stack.translate(position.x(), position.y() + (height * 0.5), position.z())
+//
+//                // Apply rotations
+//                val yawRotation = Quaternionf().rotateY(Math.toRadians(-context.camera().yRot.toDouble()).toFloat())
+//                val pitchRotation = Quaternionf().rotateX(Math.toRadians(context.camera().xRot.toDouble()).toFloat())
+//                val combinedRotation = yawRotation.mul(pitchRotation)
+//                stack.mulPose(combinedRotation.toMinecraft())
+//
+//                val scale = -0.025f
+//                stack.scale(scale,scale,scale)
+//
+//                context.consumers()?.let {
+//                    font.drawInBatch(text.string, xOffset, 0f, 0xFFFFFF, false, stack.last().pose(), it, false, 0x000000, 0xFFFFFF, false)
+//                }
+//
+//                stack.popPose()
+//            }
+//        })
     }
 
     @JvmStatic
