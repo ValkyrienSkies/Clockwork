@@ -398,7 +398,7 @@ class SlickerMovementBehavior : MovementBehaviour {
                 mass = level.shipObjectWorld.loadedShips.getById(ship1Id)!!.inertiaData.mass
             } else ship1Id = groundId
             if (ship2 != null) {
-                realShip2ConstraintPos = ship2.worldToShip.transformPosition(level.toWorldCoordinates(Vector3d(realShip2ConstraintPos)), Vector3d())
+                realShip2ConstraintPos = ship2.worldToShip.transformPosition(level.toWorldCoordinates(Vector3d(ship1ConstraintPos)), Vector3d())
                 ship2Id = ship2.id
                 if (realShip2Rot == null) realShip2Rot = ship2.transform.shipToWorldRotation as Quaterniond
                 //ship2Rot.add(ship2.getTransform().getShipToWorldRotation());
@@ -410,9 +410,9 @@ class SlickerMovementBehavior : MovementBehaviour {
 
             val attachConstraint = VSFixedJoint(
                 ship1Id,
-                pose0 = VSJointPose(ship1ConstraintPos, ship1Rotation),
+                pose0 = VSJointPose(ship1ConstraintPos, Quaterniond()),
                 ship2Id,
-                pose1 = VSJointPose(realShip2ConstraintPos, ship2Rotation),
+                pose1 = VSJointPose(realShip2ConstraintPos, Quaterniond()),
                 VSJointMaxForceTorque(1.0E10F, 1.0E10F)
             )
 

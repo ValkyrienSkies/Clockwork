@@ -232,6 +232,9 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
         if (tag.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT)) {
             this.attachmentConstraintData = mapper.readValue(compound.getByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT), VSFixedJoint::class.java)
         }
+        if (tag.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)) {
+            this.attachmentConstraintId = compound.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)
+        }
         if (tag.contains(ClockworkConstants.Nbt.SHIP_SLICKER_DISTANCE)) {
             this.distance = compound.getDouble(ClockworkConstants.Nbt.SHIP_SLICKER_DISTANCE)
         }
