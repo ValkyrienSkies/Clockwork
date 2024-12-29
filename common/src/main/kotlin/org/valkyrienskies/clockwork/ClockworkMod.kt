@@ -10,7 +10,6 @@ import net.minecraft.world.item.CreativeModeTab
 import org.slf4j.LoggerFactory
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkHandler
 import org.valkyrienskies.clockwork.content.forces.*
-import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroShipControl
 import org.valkyrienskies.clockwork.platform.PlatformUtils
 import org.valkyrienskies.clockwork.util.ClockworkUtils
@@ -51,7 +50,6 @@ object ClockworkMod {
         vsApi.registerAttachment(DragController::class.java)
         vsApi.registerAttachment(WanderShipControl::class.java)
 
-        vsApi.registerAttachment(BearingController::class.java)
         vsApi.registerAttachment(GasThrusterController::class.java)
         vsApi.registerAttachment(PropellerController::class.java)
         vsApi.registerAttachment(ReactionWheelController::class.java)
