@@ -10,6 +10,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.util.Mth
 import net.minecraft.world.level.block.DirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
@@ -46,6 +47,16 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
 
     var shipStuck = false
     var waitForNoPower = false
+
+    var wasAttached = false
+
+    var shouldRenderDoink = false
+
+    var currentDoinkSize = 0.0
+    var currentDoinkTransparency = 1.0
+
+    var targetDoinkSize = 0.0
+    val targetDoinkTransparency = 0.0
 
     init {
         piston = LerpedFloat.linear()
@@ -184,6 +195,16 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
                 ), true
             )
             playSound(true)
+        }
+        if (shipStuck != wasAttached) {
+            shouldRenderDoink = true
+
+            targetDoinkSize = if (shipStuck) 2.0 else 0.0
+            currentDoinkTransparency = 1.0
+            wasAttached = shipStuck
+        }
+        if (shouldRenderDoink) {
+
         }
         if (!update) return
         update = false

@@ -19,16 +19,6 @@ class SlickerBlockEntityRenderer(context: BlockEntityRendererProvider.Context) :
     context
 ) {
 
-    var wasAttached = false
-
-    var shouldRenderDoink = false
-
-    var currentDoinkSize = 0.0
-    var currentDoinkTransparency = 1.0
-
-    var targetDoinkSize = 0.0
-    val targetDoinkTransparency = 0.0
-
     override fun renderSafe(
         blockEntity: SlickerBlockEntity?,
         partialTicks: Float,
@@ -43,8 +33,6 @@ class SlickerBlockEntityRenderer(context: BlockEntityRendererProvider.Context) :
 
         val blockState = blockEntity.blockState
         val facing = blockState.getValue(BlockStateProperties.FACING)
-
-        val attached = blockEntity.shipStuck
 
         matrices.pushPose()
         matrices.translate(0.5, 0.5, 0.5)
@@ -73,31 +61,18 @@ class SlickerBlockEntityRenderer(context: BlockEntityRendererProvider.Context) :
 
         goo.light(light).translate(0.0, gooOffset.toDouble()-(2.0/16.0), 0.0).renderInto(matrices, buffer.getBuffer(RenderType.translucent()))
 
-        if (attached != wasAttached) {
-            shouldRenderDoink = true
-
-            targetDoinkSize = if (attached) 2.0 else 0.0
-            currentDoinkTransparency = 1.0
-        }
-
-        if (shouldRenderDoink) {
+        if (blockEntity.shouldRenderDoink) {
             val doink = CachedBufferer.partial(ClockworkPartials.DOINK, blockState)
-            currentDoinkSize = Mth.lerp(partialTicks.toDouble(), currentDoinkSize, targetDoinkSize)
-            currentDoinkTransparency = Mth.lerp(partialTicks.toDouble()/2, currentDoinkTransparency, targetDoinkTransparency)
+            blockEntity.currentDoinkSize = Mth.lerp(partialTicks.toDouble(), blockEntity.currentDoinkSize, blockEntity.targetDoinkSize)
 
-            doink.light(light).scale(currentDoinkSize.toFloat()).color(
-                (1.0f * 255).toInt(),
-                (1.0f * 255).toInt(), (1.0f * 255).toInt(), (currentDoinkTransparency.toFloat() * 255).toInt()
-            ).renderInto(matrices, buffer.getBuffer(RenderType.translucent()))
+            doink.light(light).scale(blockEntity.currentDoinkSize.toFloat()).renderInto(matrices, buffer.getBuffer(RenderType.translucent()))
 
-            if (currentDoinkSize == targetDoinkSize && currentDoinkTransparency == targetDoinkTransparency) {
-                shouldRenderDoink = false
+            if (blockEntity.currentDoinkSize == blockEntity.targetDoinkSize) {
+                blockEntity.shouldRenderDoink = false
             }
         }
 
         matrices.popPose()
-
-        wasAttached = blockEntity.shipStuck
 
         super.renderSafe(blockEntity, partialTicks, matrices, buffer, light, overlay)
     }

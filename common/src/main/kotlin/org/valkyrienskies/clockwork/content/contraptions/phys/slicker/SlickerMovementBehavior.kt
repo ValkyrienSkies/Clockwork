@@ -58,7 +58,7 @@ class SlickerMovementBehavior : MovementBehaviour {
 
         var data: CompoundTag = context.blockEntityData.getCompound(ClockworkConstants.Nbt.CONDENSED_DATA)
 
-        if (!data.isEmpty && data.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT) && data.contains(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT)) {
+        if (!data.isEmpty && data.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT)) {
             if (!isStopped) {
                 doUpdateConstraint(context, null, null)
             }
@@ -410,9 +410,9 @@ class SlickerMovementBehavior : MovementBehaviour {
 
             val attachConstraint = VSFixedJoint(
                 ship1Id,
-                pose0 = VSJointPose(ship1ConstraintPos, Quaterniond()),
+                pose0 = VSJointPose(ship1ConstraintPos, ship1Rotation),
                 ship2Id,
-                pose1 = VSJointPose(realShip2ConstraintPos, Quaterniond()),
+                pose1 = VSJointPose(realShip2ConstraintPos, ship2Rotation),
                 VSJointMaxForceTorque(1.0E10F, 1.0E10F)
             )
 
