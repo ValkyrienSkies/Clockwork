@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.integration.cc
+package org.valkyrienskies.clockwork.integration.cc.peripherals
 
 import dan200.computercraft.api.lua.LuaException
 import dan200.computercraft.api.lua.LuaFunction

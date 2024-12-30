@@ -7,14 +7,18 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
-import org.valkyrienskies.clockwork.integration.cc.GasHeatSource;
+import org.valkyrienskies.clockwork.integration.cc.peripherals.generic.GasHeatMethods;
+import org.valkyrienskies.clockwork.integration.cc.apis.AerodynamicsAPI;
 
 import static org.valkyrienskies.clockwork.integration.cc.GetPeripheralCommonKt.getPeripheralCommon;
 
 public class ClockworkFabricPeripheralProviders {
     public static void register() {
         ComputerCraftAPI.registerPeripheralProvider(new ClockworkPeripheralProvider());
-        ComputerCraftAPI.registerGenericSource(GasHeatSource.INSTANCE);
+
+        ComputerCraftAPI.registerGenericSource(GasHeatMethods.INSTANCE);
+
+        ComputerCraftAPI.registerAPIFactory(computer -> AerodynamicsAPI.INSTANCE);
     }
 
     public static class ClockworkPeripheralProvider implements IPeripheralProvider {

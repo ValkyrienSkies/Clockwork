@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.integration.cc
+package org.valkyrienskies.clockwork.integration.cc.peripherals.generic
 
 import dan200.computercraft.api.lua.LuaException
 import dan200.computercraft.api.lua.LuaFunction
@@ -16,7 +16,7 @@ import java.util.*
 import kotlin.jvm.Throws
 import kotlin.jvm.optionals.getOrDefault
 
-object GasHeatSource: GenericPeripheral {
+object GasHeatMethods: GenericPeripheral {
     override fun id() =
         ResourceLocation(MOD_ID, "kelvin")
 
@@ -98,7 +98,7 @@ object GasHeatSource: GenericPeripheral {
     }
 
     @Throws(LuaException::class)
-    private fun getGasOrThrow(gasName: String): GasType {
+    fun getGasOrThrow(gasName: String): GasType {
         try {
             return GasTypeRegistry.getGasType(ResourceLocation.tryParse(gasName)!!)!!
         } catch (e: AssertionError) {

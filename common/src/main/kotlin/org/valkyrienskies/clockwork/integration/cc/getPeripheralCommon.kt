@@ -9,6 +9,7 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkBlocks
+import org.valkyrienskies.clockwork.integration.cc.peripherals.PhysBearingPeripheral
 
 private inline fun <T: Block> c(arg1: BlockState, arg2: BlockEntry<T>) = arg1.`is`(arg2.get())
 
