@@ -31,7 +31,7 @@ object AerodynamicsAPI: ILuaAPI {
         @LuaFunction
         get() = AerodynamicUtils.DUCT_RADIUS
 
-    val ductAera: Double
+    val ductArea: Double
         @LuaFunction
         get() = AerodynamicUtils.DUCT_AREA
 
