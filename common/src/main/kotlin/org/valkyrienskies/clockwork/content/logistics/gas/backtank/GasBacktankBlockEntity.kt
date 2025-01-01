@@ -30,24 +30,7 @@ class GasBacktankBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         return blockPos.toDuctNodePos()
     }
 
-    override fun write(tag: CompoundTag, clientPacket: Boolean) {
-        super.write(tag, clientPacket)
 
-
-        val gasStorageTag = CompoundTag()
-        saveGasToTag(gasStorageTag)
-        tag.put("GasStorageTag", gasStorageTag)
-
-    }
-
-    public fun saveGasToTag(tag: CompoundTag) {
-        val kelvin = ClockworkMod.getKelvin()
-        val masses = kelvin.getGasMassAt(getDuctNodePosition())
-
-        for ((type, mass) in masses) {
-            tag.putDouble(type.toString(), mass)
-        }
-    }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         super.read(tag, clientPacket)
