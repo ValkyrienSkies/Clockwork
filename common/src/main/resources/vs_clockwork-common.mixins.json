@@ -6,6 +6,7 @@
     "MixinAbstractContraptionEntity",
     "MixinBlockStateInfoProvider",
     "MixinEntity",
+    "MixinLivingEntity",
     "MixinPlayer",
     "MixinToolboxHandler",
     "MixinWaterBlock",

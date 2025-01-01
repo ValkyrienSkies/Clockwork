@@ -8,6 +8,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtUtils
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionHand
@@ -25,12 +26,15 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
 import org.valkyrienskies.kelvin.KelvinMod
+import org.valkyrienskies.kelvin.api.DuctNetwork
 import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.NodeBehaviorType
 import org.valkyrienskies.kelvin.api.nodes.TankDuctNode
+import org.valkyrienskies.kelvin.impl.GasTypeRegistry
 import org.valkyrienskies.kelvin.serialization.NodeNBTUtil
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import java.util.*
@@ -64,16 +68,17 @@ class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(prop
         super.onRemove(state, level, pos, newState, isMoving)
     }
 
-    override fun getCloneItemStack(blockGetter: BlockGetter?, pos: BlockPos?, state: BlockState?): ItemStack {
+    override fun getCloneItemStack(blockGetter: BlockGetter, pos: BlockPos, state: BlockState): ItemStack {
         var item = asItem()
         if (item is BacktankItem.BacktankBlockItem) item = item.actualItem
 
-        val blockEntityOptional: Optional<GasBacktankBlockEntity> = getBlockEntityOptional(blockGetter, pos)
+        val stack = ItemStack(item, 1)
+        val be = blockGetter.getBlockEntity(pos) ?: return stack
 
         val tag = CompoundTag()
         println(tag)
-        if (pos != null) NodeNBTUtil.serializeNodeServer(pos.toDuctNodePos(), tag)
-        val stack = ItemStack(item, 1)
+        NodeNBTUtil.serializeNodeServer(pos.toDuctNodePos(be.level!!.dimension().location()), tag)
+
         stack.tag = tag
 
         return stack
@@ -81,8 +86,8 @@ class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(prop
 
 
     override fun use(
-        state: BlockState?, world: Level, pos: BlockPos?, player: Player?, hand: InteractionHand?,
-        hit: BlockHitResult?
+        state: BlockState, world: Level, pos: BlockPos, player: Player, hand: InteractionHand,
+        hit: BlockHitResult
     ): InteractionResult {
         if (player == null) return InteractionResult.PASS
         if (player.isShiftKeyDown) return InteractionResult.PASS
@@ -108,8 +113,24 @@ class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(prop
         if (stack == null) return
         val tag = stack.getOrCreateTag()
         if (pos == null) return
-        println(tag)
-        NodeNBTUtil.deserializeNodeServer(pos.toDuctNodePos(), tag)
+        deserializeNode(pos.toDuctNodePos(worldIn.dimension().location()),tag)
+    }
+
+    fun deserializeNode(pos: DuctNodePos, tag: CompoundTag) {
+        val network = ClockworkMod.getKelvin()
+        val temperature = tag.getDouble("KelvinTemperature")
+
+
+        for (gasResourceLocation in tag.allKeys) {
+            if (gasResourceLocation == "KelvinTemperature") continue
+
+            val gasType = GasTypeRegistry.GAS_TYPES[ResourceLocation(gasResourceLocation)] ?: continue
+            // Extremely stupid fix. TODO: Figure out why this is needed
+            network.modGasMass(pos,gasType,tag.getDouble(gasResourceLocation))
+            network.modGasMass(pos,gasType,tag.getDouble(gasResourceLocation))
+
+        }
+        network.modTemperature(pos, temperature)
 
     }
 }

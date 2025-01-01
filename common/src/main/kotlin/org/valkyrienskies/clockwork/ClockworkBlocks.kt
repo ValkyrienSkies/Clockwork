@@ -767,9 +767,6 @@ object ClockworkBlocks {
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
-            .item()
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
-            .build()
             .register()
 
     @JvmStatic
