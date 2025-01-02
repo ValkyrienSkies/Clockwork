@@ -12,7 +12,7 @@ import org.valkyrienskies.clockwork.ClockworkItems;
 @Mixin(LivingEntity.class)
 public class MixinLivingEntity {
 
-    @Inject(method = "getEquipmentSlotForItem", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getEquipmentSlotForItem", at = @At("RETURN"), cancellable = true)
     private static void vs_clockwork$$getEquipmentSlotForItem(ItemStack item, CallbackInfoReturnable<EquipmentSlot> cir) {
         if (item.is(ClockworkItems.GAS_BANKTANK.get())) {
             cir.setReturnValue(EquipmentSlot.CHEST);
