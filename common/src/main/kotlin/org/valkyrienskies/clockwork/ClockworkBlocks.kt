@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork
 
+import com.simibubi.create.AllMovementBehaviours.movementBehaviour
 import com.simibubi.create.AllTags
 import com.simibubi.create.content.decoration.encasing.CasingBlock
 import com.simibubi.create.content.fluids.PipeAttachmentModel
@@ -28,14 +29,19 @@ import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.client.render.WingBlockItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteOreBlock
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock
-import org.valkyrienskies.clockwork.content.contraptions.phys.altmeter.AltMeterBlock
+import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock
-import org.valkyrienskies.clockwork.content.contraptions.phys.gas_thruster.GasThrusterBlock
-import org.valkyrienskies.clockwork.content.contraptions.phys.gyro.GyroBlock
+import org.valkyrienskies.clockwork.content.physicalities.gas_thruster.GasThrusterBlock
+import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
+import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeControllerBlock
+import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeControllerMovementBehaviour
+import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteBlock
+import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteSlab
+import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteStairs
 import org.valkyrienskies.clockwork.content.curiosities.asteroid.asteroidBlock
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
@@ -63,13 +69,42 @@ import java.util.function.Supplier
 object ClockworkBlocks {
 
     @JvmField
-    val PROPELLER_BEARING: BlockEntry<PropellerBearingBlock> =
-        REGISTRATE.block<PropellerBearingBlock>("propeller_bearing") { properties: BlockBehaviour.Properties? ->
+    val BRASS_PROPELLER_BEARING: BlockEntry<PropellerBearingBlock> =
+        REGISTRATE.block<PropellerBearingBlock>("brass_propeller_bearing") { properties: BlockBehaviour.Properties? ->
             PropellerBearingBlock(properties!!)
         }
             .transform(TagGen.axeOrPickaxe())
             .transform(BuilderTransformers.bearing("propeller", "gearbox"))
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .addLayer { Supplier { RenderType.cutout() } }
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
+            .register()
+
+    @JvmField
+    val JURYRIGGED_PROPELLER_BEARING: BlockEntry<PropellerBearingBlock> =
+        REGISTRATE.block<PropellerBearingBlock>("juryrigged_propeller_bearing") { properties: BlockBehaviour.Properties? ->
+            PropellerBearingBlock(properties!!)
+        }
+            .transform(TagGen.axeOrPickaxe())
+            .transform(BuilderTransformers.bearing("propeller", "gearbox"))
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .addLayer { Supplier { RenderType.cutout() } }
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
+            .register()
+
+    @JvmField
+    val BLADE_CONTROLLER: BlockEntry<BladeControllerBlock> =
+        REGISTRATE.block<BladeControllerBlock>("blade_controller") { properties: BlockBehaviour.Properties? ->
+            BladeControllerBlock(properties!!)
+        }
+            .transform(TagGen.axeOrPickaxe())
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .addLayer { Supplier { RenderType.cutout() } }
+            .onRegister(movementBehaviour(BladeControllerMovementBehaviour()))
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .build()
@@ -97,20 +132,34 @@ object ClockworkBlocks {
             .register()
 
     @JvmField
-    val FLAP_BEARING: BlockEntry<FlapBearingBlock> =
-        REGISTRATE.block<FlapBearingBlock>("flap_bearing") { properties: BlockBehaviour.Properties? ->
+    val ANDESITE_FLAP_BEARING: BlockEntry<FlapBearingBlock> =
+        REGISTRATE.block<FlapBearingBlock>("andesite_flap_bearing") { properties: BlockBehaviour.Properties? ->
             FlapBearingBlock(properties)
         }
             .transform(TagGen.axeOrPickaxe())
             .transform(flapbearing())
             .transform(BlockStressDefaults.setImpact(4.0))
+            .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .build()
             .register()
 
-
+    @JvmField
+    val SMART_FLAP_BEARING: BlockEntry<FlapBearingBlock> =
+        REGISTRATE.block<FlapBearingBlock>("smart_flap_bearing") { properties: BlockBehaviour.Properties? ->
+            FlapBearingBlock(properties)
+        }
+            .transform(TagGen.axeOrPickaxe())
+            .transform(flapbearing())
+            .transform(BlockStressDefaults.setImpact(4.0))
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
+            .register()
 
     @JvmField
     val ALT_METER: BlockEntry<AltMeterBlock> =
@@ -124,7 +173,6 @@ object ClockworkBlocks {
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
-            .model(AssetLookup.customBlockItemModel("alt_meter"))
             .build()
             .register()
 
@@ -246,7 +294,7 @@ object ClockworkBlocks {
                 axeOrPickaxe()
             )
 
-            .addLayer { Supplier { RenderType.cutoutMipped() } }
+            .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
@@ -441,6 +489,7 @@ object ClockworkBlocks {
         )
     }
         .initialProperties { SharedProperties.softMetal() }
+        .addLayer { Supplier { RenderType.cutout() } }
         .item()
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .transform(customItemModel())
@@ -484,6 +533,9 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .item()
+        .properties {
+            it.fireResistant()
+        }
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
         .register()
@@ -512,6 +564,9 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .item()
+        .properties {
+            it.fireResistant()
+        }
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
         .register()
@@ -526,15 +581,18 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .item()
+        .properties {
+            it.fireResistant()
+        }
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
         .register()
 
     @JvmField
-    val WANDERLITE_BLOCK = REGISTRATE.block<Block>(
+    val WANDERLITE_BLOCK = REGISTRATE.block<GenericWanderliteBlock>(
         "wanderlite_block"
     ) { properties: BlockBehaviour.Properties? ->
-        Block(
+        GenericWanderliteBlock(
             properties!!
         )
     }
@@ -545,10 +603,10 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val CHISELED_WANDERLITE = REGISTRATE.block<Block>(
+    val CHISELED_WANDERLITE = REGISTRATE.block<GenericWanderliteBlock>(
         "chiseled_wanderlite"
     ) { properties: BlockBehaviour.Properties? ->
-        Block(
+        GenericWanderliteBlock(
             properties!!
         )
     }
@@ -559,10 +617,10 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val SMOOTH_WANDERLITE = REGISTRATE.block<Block>(
+    val SMOOTH_WANDERLITE = REGISTRATE.block<GenericWanderliteBlock>(
         "smooth_wanderlite"
     ) { properties: BlockBehaviour.Properties? ->
-        Block(
+        GenericWanderliteBlock(
             properties!!
         )
     }
@@ -573,10 +631,10 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val SMOOTH_WANDERLITE_SLAB = REGISTRATE.block<SlabBlock>(
+    val SMOOTH_WANDERLITE_SLAB = REGISTRATE.block<GenericWanderliteSlab>(
         "smooth_wanderlite_slab"
     ) { properties: BlockBehaviour.Properties? ->
-        SlabBlock(
+        GenericWanderliteSlab(
             properties!!
         )
     }
@@ -587,11 +645,10 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val SMOOTH_WANDERLITE_STAIRS = REGISTRATE.block<StairBlock>(
+    val SMOOTH_WANDERLITE_STAIRS = REGISTRATE.block<GenericWanderliteStairs>(
         "smooth_wanderlite_stairs"
     ) { properties: BlockBehaviour.Properties? ->
-        StairBlock(
-            SMOOTH_WANDERLITE.defaultState,
+        GenericWanderliteStairs(
             properties!!
         )
     }
@@ -602,10 +659,10 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val WANDERLITE_BRICKS = REGISTRATE.block<Block>(
+    val WANDERLITE_BRICKS = REGISTRATE.block<GenericWanderliteBlock>(
         "wanderlite_bricks"
     ) { properties: BlockBehaviour.Properties? ->
-        Block(
+        GenericWanderliteBlock(
             properties!!
         )
     }

@@ -20,13 +20,13 @@ import org.valkyrienskies.clockwork.util.AerodynamicUtils.UNIVERSAL_GAS_CONSTANT
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.calcPressure
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.densityAverage
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.densityFromPressureAverage
+import org.valkyrienskies.clockwork.util.AerodynamicUtils.dimensionMap
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.extraHeatInfoAverage
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.specificHeatAverage
 import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
 import org.valkyrienskies.clockwork.util.PIDstance
-import org.valkyrienskies.core.api.ships.PhysShip
-import org.valkyrienskies.core.api.ships.ServerShip
-import org.valkyrienskies.core.api.ships.ShipForcesInducer
+import org.valkyrienskies.core.api.ships.*
+import org.valkyrienskies.core.api.world.properties.DimensionId
 import org.valkyrienskies.core.util.x
 import org.valkyrienskies.core.util.y
 import org.valkyrienskies.core.util.z
@@ -40,8 +40,10 @@ import kotlin.math.*
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class PocketForcesController: ShipForcesInducer {
+
     @JsonIgnore
-    private var max_height: Double = 563.0
+    var dimensionId: DimensionId = "minecraft:dimension:minecraft:overworld"
+
     @JsonIgnore
     val gametickKnownPocketRoots: HashSet<Vector3ic> = HashSet()
     @JsonIgnore
@@ -64,7 +66,6 @@ class PocketForcesController: ShipForcesInducer {
 
     @JsonIgnore
     private val pidstances = HashMap<Vector3ic, PIDstance>()
-
 
     // Todo: Implement serialization
 
@@ -107,6 +108,9 @@ class PocketForcesController: ShipForcesInducer {
         val physShipImpl = physShip
 
         var totalBuoyantForce = HashMap<Vector3ic, Double>()
+        if (dimensionMap[dimensionId] != null && dimensionMap[dimensionId]!!.first <= 0.0) {
+            return totalBuoyantForce
+        }
 
         pocketRoots.keys.forEach {
             if (pocketRoots[it]!! > 0) {
@@ -124,10 +128,10 @@ class PocketForcesController: ShipForcesInducer {
 //                            totalInternalDensity += density
 //                        }
 //                    }
-                    if (totalInternalDensity != 0.0) {
+                    if (totalInternalDensity != 0.0 && AerodynamicUtils.getAirDensityForY(physShip.transform.shipToWorld.transformPosition(pocketCenters[it], Vector3d()).y(), this.dimensionId) != 0.0) {
                         //ClockworkMod.LOGGER.info("Density at Y: " + AerodynamicUtils.getAirDensityForY(physShip.transform.positionInWorld.y(), max_height).toString())
                         //ClockworkMod.LOGGER.info("Internal Density: $totalInternalDensity")
-                        val buoyantForce = (pocketRoots[it]!!.toDouble() * (AerodynamicUtils.getAirDensityForY(physShip.transform.positionInWorld.y(), max_height) - totalInternalDensity) * GRAVITATIONAL_ACCELERATION) * ClockworkConfig.SERVER.balloonForceMult
+                        val buoyantForce = (pocketRoots[it]!!.toDouble() * (AerodynamicUtils.getAirDensityForY(physShip.transform.shipToWorld.transformPosition(pocketCenters[it], Vector3d()).y(), this.dimensionId) - totalInternalDensity) * GRAVITATIONAL_ACCELERATION) * ClockworkConfig.SERVER.balloonForceMult
                         totalBuoyantForce[it] = max(buoyantForce, 0.0)
                     }
                 }
@@ -165,9 +169,9 @@ class PocketForcesController: ShipForcesInducer {
             val r = Triple(root.x,root.y,root.z)
             if (roots[r] != null) {
                 val rootYInWorld = ship.transform.shipToWorld.transformPosition(Vector3d(root.x().toDouble(), root.y().toDouble(), root.z().toDouble())).y + 0.5
-                val atmosphericDensityAtRoot = AerodynamicUtils.getAirDensityForY(rootYInWorld, max_height)
-                val atmosphericPressureAtRoot = AerodynamicUtils.getAirPressureForY(rootYInWorld, max_height)
-                val atmosphericTemperatureAtRoot = AerodynamicUtils.getAirTemperatureForY(rootYInWorld, max_height)
+                val atmosphericDensityAtRoot = AerodynamicUtils.getAirDensityForY(rootYInWorld, level.dimensionId)
+                val atmosphericPressureAtRoot = AerodynamicUtils.getAirPressureForY(rootYInWorld, level.dimensionId)
+                val atmosphericTemperatureAtRoot = AerodynamicUtils.getAirTemperatureForY(rootYInWorld, level.dimensionId)
                 val requiredMassForDensity = atmosphericDensityAtRoot * roots[r]!!.toDouble()
                 if (level.shipObjectWorld.getAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("airupdated"), root.x(), root.y(), root.z(), level.dimensionId) < 1.0 && roots[r]!! > 0) {
 
@@ -207,7 +211,11 @@ class PocketForcesController: ShipForcesInducer {
                         val newGasMasses = HashMap(gasMassesInternal)
 
                         val pressureDifference = internalPressure - atmosphericPressureAtRoot
-                        val chokedFlow = (internalPressure/atmosphericPressureAtRoot > 1.89)
+                        val chokedFlow = if (atmosphericPressureAtRoot != 0.0) {
+                            (internalPressure/atmosphericPressureAtRoot > 1.89)
+                        } else {
+                            false
+                        }
                         val adjustment = pidstances[root]!!.control(requiredMassForDensity, gasMassesInternal.values.sum(), 0.75)
                         val (averageSpecificGasConstant, averageSutherlandConstant, averageAdiabaticIndex)  = extraHeatInfoAverage(gasMassesInternal)
                         if (pressureDifference >= 0.001 || pressureDifference <= -0.001 && !static) {
@@ -230,7 +238,7 @@ class PocketForcesController: ShipForcesInducer {
                                 massOutFlowRate = 0.0
                             }
                             // leaking in
-                            if (pressureDifference <= -0.0001) {
+                            if (pressureDifference <= -0.0001 && atmosphericDensityAtRoot != 0.0) {
                                 massInFlowRate = if (!chokedFlow) {
                                     (leakRate * leakOrificeSize * sqrt(2.0 * atmosphericDensityAtRoot * pressureDifference.absoluteValue))
                                 } else {
@@ -337,11 +345,15 @@ class PocketForcesController: ShipForcesInducer {
     }
 
     companion object {
-        fun getOrCreate(ship: ServerShip): PocketForcesController? {
+        fun getOrCreate(ship: LoadedServerShip): PocketForcesController? {
             if (ship.getAttachment(PocketForcesController::class.java) == null) {
-                ship.saveAttachment(PocketForcesController::class.java, PocketForcesController())
+                val controller = PocketForcesController()
+                controller.dimensionId = ship.chunkClaimDimension
+                ship.setAttachment(controller)
             }
-            return ship.getAttachment(PocketForcesController::class.java)
+            val controller = ship.getAttachment(PocketForcesController::class.java)
+            controller!!.dimensionId = ship.chunkClaimDimension
+            return controller
         }
     }
 }

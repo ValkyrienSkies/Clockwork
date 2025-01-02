@@ -18,6 +18,10 @@ repositories {
     maven { url = "https://maven.cafeteria.dev/releases" } // Fake Player API
 }
 
+sourceSets {
+    test.kotlin.srcDirs += "src/test/kotlin"
+}
+
 dependencies {
     modImplementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
     implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:0.3.5"))
@@ -57,9 +61,13 @@ dependencies {
     //modImplementation("maven.modrinth:cc-tweaked:${cc_version}")
 
     //modCompileOnlyApi("mezz.jei:jei-${minecraft_version}-common-api:${jei_version_fabric}")
-
+    var kotestVersion = "5.4.1"
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
+    testImplementation("io.kotest:kotest-property:$kotestVersion")
+    testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
+    testImplementation("io.mockk:mockk:1.12.5")
 
     modCompileOnly "me.shedaniel:RoughlyEnoughItems-api:${rei_version}"
 }

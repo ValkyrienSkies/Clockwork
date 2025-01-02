@@ -44,7 +44,7 @@ class CreativeGeneratorScrolling(x: Int, y: Int) : ScrollingFrame(x, y, 159, 64)
             if (visible) {
                 tab.render(ms, x, y)
                 AbstractSimiScreen.drawString(ms, font, gasType.name, x+5, y+5,0xFFFFFF)
-                AbstractSimiScreen.drawString(ms, font, input.state.toString()+" m^3", x+79, y+5,0xFFFFFF)
+                AbstractSimiScreen.drawString(ms, font, input.state.toString()+" kg", x+79, y+5,0xFFFFFF)
                 input.render(ms, mouseX, mouseY, partialTicks)
             }
 

@@ -30,6 +30,7 @@ class SlickerAttachmentSyncPacket : S2CCWPacket {
                 val ce =
                     Minecraft.getInstance().level!!.getBlockEntity(pos) as SlickerBlockEntity?
                 if (ce != null) {
+                    ce.wasAttached = ce.shipStuck
                     ce.shipStuck = stuck
                 }
             }

@@ -2,22 +2,22 @@ package org.valkyrienskies.clockwork
 
 import com.mojang.logging.LogUtils
 import com.simibubi.create.foundation.data.CreateRegistrate
+import dev.architectury.event.events.common.InteractionEvent
 import dev.architectury.event.events.common.LifecycleEvent
 import dev.architectury.event.events.common.TickEvent
 import net.minecraft.resources.ResourceLocation
-import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.item.CreativeModeTab
-import net.minecraft.world.level.Level
 import org.slf4j.LoggerFactory
-import org.valkyrienskies.clockwork.content.forces.DragController
-import org.valkyrienskies.clockwork.content.forces.PocketForcesController
-import org.valkyrienskies.core.api.ships.setAttachment
-import org.valkyrienskies.clockwork.content.forces.WanderShipControl
+import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkHandler
+import org.valkyrienskies.clockwork.content.forces.*
+import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroShipControl
 import org.valkyrienskies.clockwork.platform.PlatformUtils
+import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.core.impl.hooks.VSEvents
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.impl.DuctNetworkServer
 import org.valkyrienskies.kelvin.impl.GasTypeRegistry
+import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.shipObjectWorld
 
@@ -46,9 +46,25 @@ object ClockworkMod {
 
         ValkyrienSkiesMod.vsCore.registerConfigLegacy("clockwork", ClockworkConfig::class.java)
 
+        vsApi.registerAttachment(PocketForcesController::class.java)
+        vsApi.registerAttachment(DragController::class.java)
+        vsApi.registerAttachment(WanderShipControl::class.java)
+
+        vsApi.registerAttachment(GasThrusterController::class.java)
+        vsApi.registerAttachment(PropellerController::class.java)
+        vsApi.registerAttachment(ReactionWheelController::class.java)
+        vsApi.registerAttachment(EncasedFanController::class.java)
+        vsApi.registerAttachment(GyroShipControl::class.java)
+        vsApi.registerAttachment(GravitronController::class.java)
+
+
         VSEvents.ShipLoadEvent.on { event ->
-            event.ship.setAttachment(PocketForcesController())
-            event.ship.setAttachment(DragController())
+            val pocketController = PocketForcesController()
+            val dragController = DragController()
+            pocketController.dimensionId = event.ship.chunkClaimDimension
+            dragController.dimensionId = event.ship.chunkClaimDimension
+            event.ship.setAttachment(pocketController)
+            event.ship.setAttachment(dragController)
             event.ship.setAttachment(WanderShipControl())
         }
 
@@ -68,7 +84,12 @@ object ClockworkMod {
                 ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship)
                 ship.getAttachment(DragController::class.java)?.gameTick(ship, it)
             }
+            ClockworkUtils.tick(it)
         }
+
+        InteractionEvent.RIGHT_CLICK_BLOCK.register(InteractionEvent.RightClickBlock { player, hand, pos, face ->
+            DualLinkHandler.handler(player, hand, pos, face)
+        })
 
 
     }

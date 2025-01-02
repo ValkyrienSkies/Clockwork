@@ -3,6 +3,8 @@ package org.valkyrienskies.clockwork
 import net.minecraft.core.Registry
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.tags.TagKey
+import net.minecraft.world.item.Item
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
 
@@ -17,6 +19,7 @@ object ClockworkTags {
 
     fun init() {
         AllBlockTags.init()
+        AllItemTags.init()
     }
 
     enum class NameSpace constructor(
@@ -62,6 +65,47 @@ object ClockworkTags {
 
         fun matches(state: BlockState): Boolean {
             return state.`is`(tag)
+        }
+
+        companion object {
+            fun init() {}
+        }
+    }
+
+    enum class AllItemTags constructor(
+        namespace: NameSpace,
+        path: String?,
+        optional: Boolean = namespace.optionalDefault,
+        alwaysDatagen: Boolean = namespace.alwaysDatagenDefault
+    ) {
+        PROP_BLADE;
+
+        val tag: TagKey<Item>
+        val alwaysDatagen: Boolean
+
+        constructor(
+            namespace: NameSpace = NameSpace.MOD,
+            optional: Boolean = namespace.optionalDefault,
+            alwaysDatagen: Boolean = namespace.alwaysDatagenDefault
+        ) : this(namespace, null, optional, alwaysDatagen)
+
+        init {
+            val id = ResourceLocation(
+                namespace.id,
+                path ?: ClockworkLang.asId(name)
+            )
+            tag = optionalTag(Registry.ITEM, id)
+            this.alwaysDatagen = alwaysDatagen
+        }
+
+        @Suppress("deprecation")
+        fun matches(item: Item): Boolean {
+            return item.builtInRegistryHolder()
+                .`is`(tag)
+        }
+
+        fun matches(stack: ItemStack): Boolean {
+            return stack.`is`(tag)
         }
 
         companion object {

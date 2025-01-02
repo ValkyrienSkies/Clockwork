@@ -2,9 +2,17 @@ package org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burne
 
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
+import dev.architectury.registry.fuel.FuelRegistry
+import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.TextComponent
+import net.minecraft.world.Clearable
+import net.minecraft.world.InteractionResult
+import net.minecraft.world.entity.item.ItemEntity
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod
@@ -19,10 +27,12 @@ import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import java.util.*
 
-class CoalBurnerBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : SmartBlockEntity(type, pos, state), IHeatableBlockEntity {
+class CoalBurnerBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : SmartBlockEntity(type, pos, state), IHeatableBlockEntity, Clearable {
 
 
     var fuelTicks: Int = 0
+
+    var storedFuelStack: ItemStack = ItemStack.EMPTY
 
     override fun tick() {
         super.tick()
@@ -35,13 +45,21 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bl
 
         if (fuelTicks>0) {
             fuelTicks-=1
-            if (kelvin.getTemperatureAt(blockPos.toDuctNodePos(level!!.dimension().location()))<2000.0) kelvin.modTemperature(blockPos.toDuctNodePos(level!!.dimension().location()),30.0)
+            if (kelvin.getTemperatureAt(blockPos.toDuctNodePos(level!!.dimension().location()))<2000.0) kelvin.modHeatEnergy(blockPos.toDuctNodePos(level!!.dimension().location()),1000.0)
 
             if (blockState.getValue(CoalBurnerBlock.LIT)==false) level!!.setBlock(blockPos,blockState.setValue(CoalBurnerBlock.LIT,true), 15)
         } else {
-            if (blockState.getValue(CoalBurnerBlock.LIT)==true) level!!.setBlock(blockPos,blockState.setValue(CoalBurnerBlock.LIT,false), 15)
+            if (storedFuelStack.isEmpty and blockState.getValue(CoalBurnerBlock.LIT)) level!!.setBlock(blockPos,blockState.setValue(CoalBurnerBlock.LIT,false), 15)
+
+            if (!storedFuelStack.isEmpty) {
+                fuelTicks += FuelRegistry.get(storedFuelStack)
+                storedFuelStack.count -= 1
+                sendData()
+            }
+
         }
     }
+
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) {
         return
@@ -55,11 +73,35 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bl
     }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
+        storedFuelStack = ItemStack.of(tag)
         super.read(tag, clientPacket)
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
+        storedFuelStack.save(tag)
         super.write(tag, clientPacket)
     }
 
+    override fun destroy() {
+        val vec3d = blockPos.toJOMLD()
+
+        val ie = ItemEntity(level!!, vec3d.x, vec3d.y, vec3d.z, storedFuelStack)
+        level!!.addFreshEntity(ie)
+        super.destroy()
+    }
+
+    override fun clearContent() {
+        storedFuelStack = ItemStack.EMPTY
+    }
+
+    override fun addToGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
+        if (!storedFuelStack.isEmpty) {
+            tooltip.add(TextComponent("    Coal burner Info").withStyle(ChatFormatting.GRAY))
+            tooltip.add(TextComponent("Fuel: ").withStyle(ChatFormatting.GOLD)
+                .append(storedFuelStack.displayName)
+                .append((TextComponent("x ${storedFuelStack.count}")).withStyle(ChatFormatting.GOLD)))
+        }
+
+        return super.addToGoggleTooltip(tooltip, isPlayerSneaking)
+    }
 }

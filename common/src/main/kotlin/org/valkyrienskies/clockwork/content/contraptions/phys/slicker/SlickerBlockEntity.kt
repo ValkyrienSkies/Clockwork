@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.slicker
 
-import com.jozufozu.flywheel.backend.instancing.InstancedRenderDispatcher
 import com.simibubi.create.AllBlocks
 import com.simibubi.create.content.contraptions.chassis.StickerBlock
 import com.simibubi.create.content.contraptions.glue.SuperGlueItem
@@ -11,24 +10,25 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.util.Mth
 import net.minecraft.world.level.block.DirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
+import org.valkyrienskies.clockwork.ClockworkParticles
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock.Companion.POWERED
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerMovementBehavior.Companion.isAttachedToShipOrWorld
 import org.valkyrienskies.clockwork.platform.PlatformUtils
 import org.valkyrienskies.clockwork.util.ClockworkConstants
-import org.valkyrienskies.core.apigame.constraints.VSAttachmentConstraint
-import org.valkyrienskies.core.apigame.constraints.VSFixedOrientationConstraint
+import org.valkyrienskies.core.apigame.joints.VSFixedJoint
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
 import org.valkyrienskies.mod.common.shipObjectWorld
+import org.valkyrienskies.mod.common.toWorldCoordinates
 import org.valkyrienskies.mod.common.util.toJOML
 
 
@@ -40,15 +40,23 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
     var update = false
 
     var attachedShipId: Long = -1
-    var attachmentConstraintData: VSAttachmentConstraint? = null
-    var orientationConstraintData: VSFixedOrientationConstraint? = null
+    var attachmentConstraintData: VSFixedJoint? = null
     var attachmentConstraintId: Int = -1
-    var orientationConstraintId: Int = -1
 
     var distance = 0.0
 
     var shipStuck = false
     var waitForNoPower = false
+
+    var wasAttached = false
+
+    var shouldRenderDoink = false
+
+    var currentDoinkSize = 0.0
+    var currentDoinkTransparency = 1.0
+
+    var targetDoinkSize = 0.0
+    val targetDoinkTransparency = 0.0
 
     init {
         piston = LerpedFloat.linear()
@@ -57,16 +65,13 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
 
     private fun removeConstraint(level: ServerLevel?, removeTags: Boolean) {
         val extraData = PlatformUtils.getExtraData(this).getCompound(ClockworkConstants.Nbt.CONDENSED_DATA)
-        if (extraData.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT) && extraData.contains(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT)) {
+        if (extraData.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT)) {
             if (level != null) {
                 level.shipObjectWorld.removeConstraint(extraData.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID))
-                level.shipObjectWorld.removeConstraint(extraData.getInt(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT_ID))
             }
             if (removeTags) {
                 extraData.remove(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)
-                extraData.remove(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT_ID)
                 extraData.remove(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT)
-                extraData.remove(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT)
                 extraData.remove(ClockworkConstants.Nbt.SHIP_SLICKER_DISTANCE)
             }
         }
@@ -77,7 +82,7 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
         val slevel = this.level as ServerLevel
 
         val myDir: Direction = blockState.getValue(DirectionalBlock.FACING)
-        val myDirNormal: Vector3d = Vec3.atLowerCornerOf(myDir.normal).toJOML()
+        val myDirNormal: Vector3d = Vec3.atLowerCornerOf(myDir.normal).toJOML().normalize()
 
         val shipAttached: Boolean = isAttachedToShipOrWorld(
             false, slevel,
@@ -85,6 +90,8 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
                     blockPos
                 ).toJOML(), myDirNormal, PlatformUtils.getExtraData(this)// this.extraCustomData
         ) //isAttachedToShipOrWorld(false);
+
+        //val shipAttached = attachedShipId != -1L
 
         if (isBlockStateExtended() && !shipStuck) {
             //Sticker extended with no ship related thing stuck to it
@@ -99,6 +106,7 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
                     )
                 ) {
                     shipStuck = true
+                    ClockworkSounds.DOINK.playOnServer(slevel, BlockPos(level.toWorldCoordinates(worldPosition)), 0.35f, 0.75f)
                     ClockworkPackets.sendToNear(
                         slevel, blockPos, 128, SlickerAttachmentSyncPacket(this)
                     )
@@ -107,7 +115,9 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
         } else if (!isBlockStateExtended() && shipStuck) {
             //Sticker retracted with ship related thing stuck to it
             if (!level!!.isClientSide) {
+                ClockworkSounds.BOING.playOnServer(slevel, BlockPos(level.toWorldCoordinates(worldPosition)), 0.35f, 0.75f)
                 removeConstraint(level as ServerLevel?, true)
+                shipStuck = false
             }
             waitForNoPower = true
         } else if (isBlockStateExtended() && !PlatformUtils.getExtraData(this).getCompound(ClockworkConstants.Nbt.CONDENSED_DATA).contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID) && !shipStuck && shipAttached && blockState.getValue(
@@ -116,6 +126,7 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
         ) {
             //Sticker extended with nothing attached and is powered but there is a ship thing in range
             waitForNoPower = false
+
             if (isAttachedToShipOrWorld(
                     true, slevel,
                         Vec3.atCenterOf(
@@ -123,7 +134,7 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
                         ).toJOML(), myDirNormal, PlatformUtils.getExtraData(this)
                 )
             ) {
-                //StickerParticleUtil().doBluperParticle(level, worldPosition, myDir)
+                ClockworkSounds.DOINK.playOnServer(slevel, BlockPos(level.toWorldCoordinates(worldPosition)), 0.35f, 0.75f)
                 shipStuck = true
                 ClockworkPackets.sendToNear(
                     slevel, blockPos, 128, SlickerAttachmentSyncPacket(this)
@@ -131,6 +142,7 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
             }
         }
         if (waitForNoPower && !blockState.getValue(POWERED)) {
+            if (shipStuck) ClockworkSounds.BOING.playOnServer(slevel, BlockPos(level.toWorldCoordinates(worldPosition)), 0.35f, 0.75f)
             waitForNoPower = false
             shipStuck = false
             ClockworkPackets.sendToNear(
@@ -144,8 +156,6 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
             if (!level!!.isClientSide) {
                 removeConstraint(level as ServerLevel?, true)
             }
-        } else {
-            throw RuntimeException("ERROR Couldn't try to clean up constraint!")
         }
     }
 
@@ -186,6 +196,16 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
             )
             playSound(true)
         }
+        if (shipStuck != wasAttached) {
+            shouldRenderDoink = true
+
+            targetDoinkSize = if (shipStuck) 2.0 else 0.0
+            currentDoinkTransparency = 1.0
+            wasAttached = shipStuck
+        }
+        if (shouldRenderDoink) {
+
+        }
         if (!update) return
         update = false
         val target = if (isBlockStateExtended()) 2.0/16.0 else 0.0
@@ -211,14 +231,8 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
         if (this.attachmentConstraintData != null) {
             condensedTag.putByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT, mapper.writeValueAsBytes(this.attachmentConstraintData))
         }
-        if (this.orientationConstraintData != null) {
-            condensedTag.putByteArray(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT, mapper.writeValueAsBytes(this.orientationConstraintData))
-        }
         if (this.attachmentConstraintId != -1) {
             condensedTag.putInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID, this.attachmentConstraintId)
-        }
-        if (this.orientationConstraintId != -1) {
-            condensedTag.putInt(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT_ID, this.orientationConstraintId)
         }
         if (this.distance != 0.0) {
             condensedTag.putDouble(ClockworkConstants.Nbt.SHIP_SLICKER_DISTANCE, this.distance)
@@ -237,10 +251,10 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
             this.attachedShipId = compound.getLong(ClockworkConstants.Nbt.ATTACHED_SHIP)
         }
         if (tag.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT)) {
-            this.attachmentConstraintData = mapper.readValue(compound.getByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT), VSAttachmentConstraint::class.java)
+            this.attachmentConstraintData = mapper.readValue(compound.getByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT), VSFixedJoint::class.java)
         }
-        if (tag.contains(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT)) {
-            this.orientationConstraintData = mapper.readValue(compound.getByteArray(ClockworkConstants.Nbt.ORIENTATION_CONSTRAINT), VSFixedOrientationConstraint::class.java)
+        if (tag.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)) {
+            this.attachmentConstraintId = compound.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)
         }
         if (tag.contains(ClockworkConstants.Nbt.SHIP_SLICKER_DISTANCE)) {
             this.distance = compound.getDouble(ClockworkConstants.Nbt.SHIP_SLICKER_DISTANCE)

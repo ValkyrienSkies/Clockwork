@@ -350,7 +350,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         var forced = type == DuctConnectionType.FORCED
         var otherConnected = false
 
-        val isConnectedEdgeBlock = neighborState.block is IEdgeBlock && (neighborState.block as IEdgeBlock).connectedTo(currentPos)
+        val isConnectedEdgeBlock = neighborState.block is IEdgeBlock && (neighborState.block as IEdgeBlock).canConnectTo(level as Level,neighborPos,currentPos)
 
         val canConnect = canConnectTo(currentPos, neighborPos, direction.getOpposite(), level as Level) && level.getBlockState(neighborPos).block is IDuct
 
@@ -362,7 +362,6 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         } else if (neighborState.block is IDuct) {
             otherConnected =  (neighborState.block as IDuct).canConnectTo(neighborPos, currentPos, direction.opposite, level)
         }
-
 
         val finalConnection: DuctConnectionType = if (otherConnected && canConnect || isConnectedEdgeBlock) {
             DuctConnectionType.SIDE
@@ -387,6 +386,8 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
                 blockEntity.setEdgeType(direction, ConnectionType.NONE, clientPacket = false, silent = true)
             }
         }
+
+        println("d $direction $finalConnection")
 
         return finalConnection
     }

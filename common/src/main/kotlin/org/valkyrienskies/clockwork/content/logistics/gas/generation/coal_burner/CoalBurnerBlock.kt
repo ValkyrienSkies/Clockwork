@@ -41,10 +41,37 @@ class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(prope
         val be = level.getBlockEntity(pos) as CoalBurnerBlockEntity? ?: return  InteractionResult.PASS
         val item = player.getItemInHand(hand)
 
+        if (player.isShiftKeyDown) return InteractionResult.PASS
 
+
+        if (item == ItemStack.EMPTY && !be.storedFuelStack.isEmpty) {
+            player.setItemInHand(hand, be.storedFuelStack)
+            be.storedFuelStack = ItemStack.EMPTY
+            return InteractionResult.SUCCESS
+        }
         if (FuelRegistry.get(item)>0 && !player.isShiftKeyDown) {
-            be.fuelTicks+=FuelRegistry.get(item)*item.count
-            player.setItemInHand(hand, ItemStack.EMPTY)
+            if (be.storedFuelStack.isEmpty) {
+                be.storedFuelStack = item.copy()
+                if (!player.isCreative) player.setItemInHand(hand, ItemStack.EMPTY)
+            } else if (be.storedFuelStack.item.equals(item.item)) {
+
+                if (be.storedFuelStack.count + item.count <= item.maxStackSize) {
+                    val copy = item.copy()
+                    copy.count += be.storedFuelStack.count
+                    be.storedFuelStack = copy
+                    if (!player.isCreative) player.setItemInHand(hand, ItemStack.EMPTY)
+                } else {
+                    val copy = item.copy()
+                    copy.count = item.maxStackSize
+                    be.storedFuelStack = copy
+
+
+                    if (!player.isCreative) item.count = be.storedFuelStack.count + item.count - item.maxStackSize
+                }
+
+            }
+
+
             return InteractionResult.SUCCESS
         }
 
