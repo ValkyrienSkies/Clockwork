@@ -1,8 +1,11 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.backtank
 
 import com.simibubi.create.AllEnchantments
+import com.simibubi.create.AllItems
+import com.simibubi.create.content.equipment.armor.BacktankArmorLayer
 import com.simibubi.create.content.equipment.armor.BacktankBlockEntity
 import com.simibubi.create.content.equipment.armor.BacktankItem
+import com.simibubi.create.content.equipment.armor.BacktankRenderer
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -119,7 +122,6 @@ class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(prop
     fun deserializeNode(pos: DuctNodePos, tag: CompoundTag) {
         val network = ClockworkMod.getKelvin()
         val temperature = tag.getDouble("KelvinTemperature")
-
 
         for (gasResourceLocation in tag.allKeys) {
             if (gasResourceLocation == "KelvinTemperature") continue

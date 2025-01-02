@@ -1,26 +1,25 @@
 package org.valkyrienskies.clockwork
 
+import com.simibubi.create.content.equipment.armor.BacktankArmorLayer
+import com.simibubi.create.content.trains.schedule.TrainHatArmorLayer
 import com.simibubi.create.foundation.outliner.Outliner
 import dev.architectury.event.events.client.ClientTickEvent
 import dev.architectury.event.events.common.TickEvent
 import dev.architectury.registry.ReloadListenerRegistry
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents
-import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.Font
-import net.minecraft.network.chat.Component
+import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback
+import net.minecraft.client.renderer.entity.EntityRendererProvider
+import net.minecraft.client.renderer.entity.LivingEntityRenderer
 import net.minecraft.server.packs.PackType
 import net.minecraft.server.packs.resources.ResourceManager
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener
-import org.joml.Quaternionf
-import org.joml.Vector3f
-import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.SecondScrollValueRenderer
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotGlobals
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.LivingEntity
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkRenderer
+import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.SecondScrollValueRenderer
+import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankArmorLayer
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotGlobals
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.impl.client.DuctNetworkClient
-import org.valkyrienskies.mod.api.multiply
-import org.valkyrienskies.mod.common.shipObjectWorld
-import org.valkyrienskies.mod.common.util.toMinecraft
 
 
 object ClockworkModClient {
@@ -52,6 +51,11 @@ object ClockworkModClient {
             ClockworkSoundScapes.tick()
             SecondScrollValueRenderer.tickSecond()
         })
+
+
+        LivingEntityFeatureRendererRegistrationCallback.EVENT.register { entityType: EntityType<out LivingEntity>, livingEntityRenderer: LivingEntityRenderer<*, *>, registrationHelper: LivingEntityFeatureRendererRegistrationCallback.RegistrationHelper, context: EntityRendererProvider.Context ->
+            GasBacktankArmorLayer.registerOn(livingEntityRenderer, registrationHelper)
+        }
 
 //        WorldRenderEvents.AFTER_TRANSLUCENT.register(WorldRenderEvents.AfterTranslucent { context ->
 //            if(!context.gameRenderer().minecraft.options.renderDebug) return@AfterTranslucent
@@ -102,4 +106,16 @@ object ClockworkModClient {
             ClockworkSoundScapes.invalidateAll()
         }
     }
+
+    fun addEntityRendererLayers(
+        entityType: EntityType<out LivingEntity?>?,
+        entityRenderer: LivingEntityRenderer<*, *>?,
+        registrationHelper: LivingEntityFeatureRendererRegistrationCallback.RegistrationHelper?,
+        context: EntityRendererProvider.Context?
+    ) {
+        BacktankArmorLayer.registerOn(entityRenderer, registrationHelper)
+        TrainHatArmorLayer.registerOn(entityRenderer, registrationHelper)
+    }
+
+
 }
