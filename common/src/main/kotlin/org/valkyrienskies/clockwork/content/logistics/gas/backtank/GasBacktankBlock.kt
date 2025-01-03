@@ -1,16 +1,11 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.backtank
 
-import com.simibubi.create.AllEnchantments
-import com.simibubi.create.AllItems
-import com.simibubi.create.content.equipment.armor.BacktankArmorLayer
-import com.simibubi.create.content.equipment.armor.BacktankBlockEntity
 import com.simibubi.create.content.equipment.armor.BacktankItem
-import com.simibubi.create.content.equipment.armor.BacktankRenderer
+import com.simibubi.create.content.kinetics.base.HorizontalKineticBlock
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.nbt.NbtUtils
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.sounds.SoundSource
@@ -21,18 +16,19 @@ import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.enchantment.EnchantmentHelper
+import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
+import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
-import org.valkyrienskies.kelvin.KelvinMod
-import org.valkyrienskies.kelvin.api.DuctNetwork
 import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.NodeBehaviorType
@@ -41,9 +37,23 @@ import org.valkyrienskies.kelvin.impl.GasTypeRegistry
 import org.valkyrienskies.kelvin.serialization.NodeNBTUtil
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import java.util.*
-import java.util.function.Consumer
 
 class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(properties), IBE<GasBacktankBlockEntity>, INodeBlock {
+
+    init {
+        registerDefaultState(defaultBlockState().setValue(FACING, Direction.SOUTH))
+    }
+
+    override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block?, BlockState?>) {
+        builder.add(HorizontalKineticBlock.HORIZONTAL_FACING)
+        super.createBlockStateDefinition(builder)
+    }
+
+    override fun getStateForPlacement(context: BlockPlaceContext): BlockState {
+        return if (context.player!!.isShiftKeyDown) defaultBlockState().setValue(HorizontalKineticBlock.HORIZONTAL_FACING, context.horizontalDirection.opposite) else
+            defaultBlockState().setValue(HorizontalKineticBlock.HORIZONTAL_FACING, context.horizontalDirection)
+    }
+
     override fun getBlockEntityClass(): Class<GasBacktankBlockEntity> {
         return GasBacktankBlockEntity::class.java
     }
