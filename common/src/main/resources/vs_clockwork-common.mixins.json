@@ -4,8 +4,10 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "MixinAbstractContraptionEntity",
+    "MixinBacktankUtil",
     "MixinBlockStateInfoProvider",
     "MixinEntity",
+    "MixinLivingEntity",
     "MixinPlayer",
     "MixinToolboxHandler",
     "MixinWaterBlock",

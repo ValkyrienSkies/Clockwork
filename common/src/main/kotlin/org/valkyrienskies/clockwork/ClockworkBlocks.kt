@@ -16,6 +16,7 @@ import com.tterrag.registrate.util.entry.BlockEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.resources.model.BakedModel
+import net.minecraft.tags.BlockTags
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
@@ -42,7 +43,6 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeC
 import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteBlock
 import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteSlab
 import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteStairs
-import org.valkyrienskies.clockwork.content.curiosities.asteroid.asteroidBlock
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
@@ -353,6 +353,7 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .addLayer { Supplier { RenderType.cutout() } }
+        .properties { it.noOcclusion() }
         .item()
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
@@ -368,6 +369,7 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .addLayer { Supplier { RenderType.cutout() } }
+        .properties { it.noOcclusion() }
         .item()
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
@@ -383,6 +385,7 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .addLayer { Supplier { RenderType.cutout() } }
+        .properties { it.noOcclusion() }
         .item()
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
@@ -399,6 +402,7 @@ object ClockworkBlocks {
         .initialProperties { SharedProperties.netheriteMetal() }
         .addLayer { Supplier { RenderType.cutout() } }
         .transform(BlockStressDefaults.setImpact(4.0))
+        .properties { it.noOcclusion() }
         .item()
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
@@ -414,6 +418,7 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .addLayer { Supplier { RenderType.cutoutMipped() } }
+        .properties { it.noOcclusion() }
         .item()
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .model(AssetLookup.customBlockItemModel("pump", "item"))
@@ -430,6 +435,7 @@ object ClockworkBlocks {
             .transform(TagGen.axeOrPickaxe())
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
+            .properties { it.noOcclusion() }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
@@ -461,6 +467,7 @@ object ClockworkBlocks {
             .transform(TagGen.axeOrPickaxe())
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
+            .properties { it.noOcclusion() }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
@@ -761,6 +768,18 @@ object ClockworkBlocks {
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .build()
+            .register()
+
+    @JvmField
+    val GAS_BACKTANK: BlockEntry<GasBacktankBlock> =
+        REGISTRATE.block<GasBacktankBlock>("gas_backtank") { properties: BlockBehaviour.Properties? ->
+            GasBacktankBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.softMetal() }
+            .transform(TagGen.axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .register()
 
     @JvmStatic
