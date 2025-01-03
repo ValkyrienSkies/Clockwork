@@ -106,7 +106,6 @@ class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(prope
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
         builder.add(FACING, LIT)
 
-        println()
         super.createBlockStateDefinition(builder)
     }
 

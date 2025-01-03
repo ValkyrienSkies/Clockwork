@@ -387,7 +387,6 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
             }
         }
 
-        println("d $direction $finalConnection")
 
         return finalConnection
     }

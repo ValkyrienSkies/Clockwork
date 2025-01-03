@@ -36,6 +36,7 @@ import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBl
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRenderer
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRenderer
+import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlockEntity
@@ -560,6 +561,18 @@ object ClockworkBlockEntities {
             }
         }
         .validBlocks(ClockworkBlocks.DELIVERY_CHUTE)
+        .register()
+
+    @JvmField
+    val GAS_BACKTANK: BlockEntityEntry<GasBacktankBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<GasBacktankBlockEntity>("gas_backtank") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            GasBacktankBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .validBlocks(ClockworkBlocks.GAS_BACKTANK)
         .register()
 
     @JvmStatic
