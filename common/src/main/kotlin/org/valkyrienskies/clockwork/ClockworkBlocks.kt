@@ -16,16 +16,12 @@ import com.tterrag.registrate.util.entry.BlockEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.resources.model.BakedModel
-import net.minecraft.tags.BlockTags
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.level.block.SlabBlock
-import net.minecraft.world.level.block.StairBlock
 import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.level.material.Material
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.client.render.WingBlockItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteOreBlock
@@ -43,9 +39,11 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeC
 import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteBlock
 import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteSlab
 import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteStairs
+import org.valkyrienskies.clockwork.content.curiosities.asteroid.AsteroidBlock
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlock
@@ -756,9 +754,9 @@ object ClockworkBlocks {
             .register()
 
     @JvmField
-    val ASTEROID: BlockEntry<asteroidBlock> =
-        REGISTRATE.block<asteroidBlock>("asteroid_block") { properties: BlockBehaviour.Properties? ->
-            asteroidBlock(properties!!)
+    val ASTEROID: BlockEntry<AsteroidBlock> =
+        REGISTRATE.block<AsteroidBlock>("asteroid_block") { properties: BlockBehaviour.Properties? ->
+            AsteroidBlock(properties!!)
         }
             .initialProperties { SharedProperties.wooden() }
             .transform(TagGen.axeOrPickaxe())
