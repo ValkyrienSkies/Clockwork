@@ -10,6 +10,7 @@ import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
+import org.valkyrienskies.mod.common.assembly.ShipAssembler
 import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toBlockPos
@@ -26,25 +27,24 @@ interface IWanderliteBlock {
     fun removeFromShip(ship: LoadedServerShip, pos: BlockPos) {
         WanderShipControl.getOrCreate(ship)?.removeBlock(pos)
     }
-    fun collectBlockPositions(worldIn: Level, pos: BlockPos, depth: Int, collectedPositions: DenseBlockPosSet): DenseBlockPosSet {
+    fun collectBlockPositions(worldIn: Level, pos: BlockPos, depth: Int, collectedPositions: MutableList<BlockPos> = mutableListOf()): MutableList<BlockPos> {
         // Base case: If the depth is 0, return an empty collection
         if (depth == 0) {
-            return DenseBlockPosSet()
+            return mutableListOf()
         }
 
         // Add the current position to the set
-        collectedPositions.add(pos.toJOML())
+        collectedPositions.add(pos)
 
         // Create a set to store block positions for the current iteration
-        val positionsInThisIteration = DenseBlockPosSet()
+        val positionsInThisIteration = mutableListOf(pos)
 
         // Iterate through each direction
-        for (direction in Direction.values()) {
+        for (direction in Direction.entries) {
             // Get the neighboring block position in the current direction
             val neighborPos = pos.relative(direction)
-
             // Check if the block position is valid and not already collected
-            if (worldIn.isInWorldBounds(neighborPos) && !collectedPositions.contains(neighborPos.toJOML()) && worldIn.getBlockState(neighborPos).block is IWanderliteBlock) {
+            if (worldIn.isInWorldBounds(neighborPos) && !collectedPositions.contains(neighborPos) && worldIn.getBlockState(neighborPos).block is IWanderliteBlock) {
                 // Recursively collect block positions for the neighboring block
                 positionsInThisIteration.addAll(collectBlockPositions(worldIn, neighborPos, depth - 1, collectedPositions))
             }
@@ -55,14 +55,13 @@ interface IWanderliteBlock {
     }
 
     fun shipifyBlock(level: ServerLevel, blockPos: BlockPos)  {
-        var dense = DenseBlockPosSet()
-        dense.add(blockPos.toJOML())
-        dense = collectBlockPositions(level, blockPos, 4, dense)
+        val blockList = collectBlockPositions(level, blockPos, 4)
 
-        createNewShipWithBlocks(blockPos, dense, level)
+        println(blockList)
+        ShipAssembler.assembleToShip(level, blockList, true)
 
-        for (pos in dense) {
-            ClockworkUtils.wanderliteNodesToAdd[pos.toBlockPos()] = forceMult
+        for (pos in blockList) {
+            ClockworkUtils.wanderliteNodesToAdd[pos] = forceMult
             //addToShip(realConnectedShip, BlockPos(realConnectedShip.worldToShip.transformPosition(Vector3d(pos)).toMinecraft()), 2.0)
         }
 
