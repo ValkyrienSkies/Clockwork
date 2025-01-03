@@ -1,6 +1,8 @@
 package org.valkyrienskies.clockwork
 
+import com.simibubi.create.AllItems
 import com.simibubi.create.AllTags
+import com.simibubi.create.AllTags.AllItemTags
 import com.simibubi.create.foundation.data.AssetLookup
 import com.tterrag.registrate.util.entry.ItemEntry
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings
@@ -154,6 +156,7 @@ object ClockworkItems {
             properties.stacksTo(1)
         }
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tag(AllItemTags.PRESSURIZED_AIR_SOURCES.tag)
         .register()
 
     @JvmStatic

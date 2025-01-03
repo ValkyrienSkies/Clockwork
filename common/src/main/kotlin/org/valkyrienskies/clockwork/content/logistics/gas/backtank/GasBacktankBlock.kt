@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.backtank
 
 import com.simibubi.create.content.equipment.armor.BacktankItem
+import com.simibubi.create.content.equipment.armor.BacktankUtil
 import com.simibubi.create.content.kinetics.base.HorizontalKineticBlock
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
@@ -29,6 +30,7 @@ import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBackTankItem.Companion.AirKgsToAirTicks
 import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.NodeBehaviorType
@@ -40,8 +42,11 @@ import java.util.*
 
 class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(properties), IBE<GasBacktankBlockEntity>, INodeBlock {
 
+
+
     init {
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.SOUTH))
+
     }
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block?, BlockState?>) {
@@ -91,8 +96,9 @@ class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(prop
         val tag = CompoundTag()
         println(tag)
         NodeNBTUtil.serializeNodeServer(pos.toDuctNodePos(be.level!!.dimension().location()), tag)
-
+        tag.putFloat("Air",(tag.getDouble("kelvin:air")*AirKgsToAirTicks).toFloat())
         stack.tag = tag
+        println(tag)
 
         return stack
     }
@@ -134,7 +140,7 @@ class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(prop
         val temperature = tag.getDouble("KelvinTemperature")
 
         for (gasResourceLocation in tag.allKeys) {
-            if (gasResourceLocation == "KelvinTemperature") continue
+            if (":" !in gasResourceLocation) continue
 
             val gasType = GasTypeRegistry.GAS_TYPES[ResourceLocation(gasResourceLocation)] ?: continue
             // Extremely stupid fix. TODO: Figure out why this is needed
