@@ -59,6 +59,7 @@ object ClockworkMod {
         vsApi.registerAttachment(EncasedFanController::class.java)
         vsApi.registerAttachment(GyroShipControl::class.java)
         vsApi.registerAttachment(GravitronController::class.java)
+        vsApi.registerAttachment(SugarRocketController::class.java)
 
 
         VSEvents.ShipLoadEvent.on { event ->

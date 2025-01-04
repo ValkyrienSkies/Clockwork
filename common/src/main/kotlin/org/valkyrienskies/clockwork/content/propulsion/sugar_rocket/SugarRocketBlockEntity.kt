@@ -5,9 +5,14 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.utility.animation.LerpedFloat
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.block.DirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import org.valkyrienskies.clockwork.content.forces.SugarRocketController
+import org.valkyrienskies.core.api.attachment.getAttachment
+import org.valkyrienskies.mod.common.getShipObjectManagingPos
+import org.valkyrienskies.mod.common.util.GameTickForceApplier
 
 class SugarRocketBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?,
                              state: BlockState?
@@ -51,19 +56,35 @@ class SugarRocketBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?,
         }
     }
 
+    fun ignite(time: Int = burnTime, power: Int = burnPower) {
+        isBurning = true
+        burnTime = time
+        burnPower = power
+        val serverLevel = level as ServerLevel
+        val ship = serverLevel.getShipObjectManagingPos(worldPosition)
+        if (ship != null) {
+            SugarRocketController.getOrCreate(ship).addRocket(worldPosition, burnPower.toDouble() * 10000.0, blockState.getValue(DirectionalBlock.FACING))
+        }
+        sendData()
+    }
+
     fun burn() {
         burnProgress++
+        val serverLevel = level as ServerLevel
+
         if (burnProgress >= burnTime) {
             isBurning = false
             if (hasNextBlock) {
                 val nextBlock = level!!.getBlockEntity(worldPosition.relative(blockState.getValue(DirectionalBlock.FACING)))
                 if (nextBlock is SugarRocketBlockEntity) {
-                    nextBlock.burnTime = burnTime
-                    nextBlock.burnPower = burnPower
-                    nextBlock.isBurning = true
-                    level!!.destroyBlock(worldPosition, false)
+                    nextBlock.ignite(burnTime, burnPower)
                 }
             }
+            val ship = serverLevel.getShipObjectManagingPos(worldPosition)
+            if (ship != null) {
+                SugarRocketController.getOrCreate(ship).removeRocket(worldPosition)
+            }
+            level!!.destroyBlock(worldPosition, false)
         }
         sendData()
     }
