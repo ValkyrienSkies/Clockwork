@@ -13,6 +13,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Quaterniond
 import org.joml.Vector3d
+import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOMLD
@@ -31,7 +32,7 @@ class GyroBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockSt
     var previousCoreAngle = 0f
 
     var targetQuat: Quaterniond = Quaterniond(0.0,1.0,0.0,0.0)
-    private val ship: ServerShip? get() = (level as ServerLevel).getShipObjectManagingPos(this.blockPos)
+    private val ship: LoadedServerShip? get() = (level as ServerLevel).getShipObjectManagingPos(this.blockPos)
     private val control: GyroShipControl? get() = ship?.getAttachment(GyroShipControl::class.java)
 
     fun getInterpolatedCoreAngle(partialTicks: Float): Float {

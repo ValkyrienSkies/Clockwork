@@ -5,7 +5,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.joml.Quaterniond
 import org.joml.Vector3d
-import org.valkyrienskies.core.api.ships.*
+import org.valkyrienskies.core.api.attachment.getAttachment
+import org.valkyrienskies.core.api.attachment.removeAttachment
+import org.valkyrienskies.core.api.ships.LoadedServerShip
+import org.valkyrienskies.core.api.ships.PhysShip
+import org.valkyrienskies.core.api.ships.ServerTickListener
+import org.valkyrienskies.core.api.ships.ShipForcesInducer
 import kotlin.math.abs
 import kotlin.math.exp
 
@@ -33,7 +38,7 @@ class GyroShipControl : ShipForcesInducer, ServerTickListener {
         private set
 
     @JsonIgnore
-    internal var ship: ServerShip? = null
+    internal var ship: LoadedServerShip? = null
 
     internal var speed: Float = 0f
 
@@ -70,7 +75,7 @@ class GyroShipControl : ShipForcesInducer, ServerTickListener {
 
     private fun deleteIfEmpty() {
         if (gyros <= 0) {
-            ship?.saveAttachment<GyroShipControl>(null)
+            ship?.removeAttachment<GyroShipControl>()
         }
     }
 
@@ -92,10 +97,10 @@ class GyroShipControl : ShipForcesInducer, ServerTickListener {
     }
 
     companion object {
-        fun getOrCreate(ship: ServerShip): GyroShipControl {
+        fun getOrCreate(ship: LoadedServerShip): GyroShipControl {
             return ship.getAttachment<GyroShipControl>()
                 ?: GyroShipControl().also {
-                    ship.saveAttachment(it)
+                    ship.setAttachment(it)
                 }
         }
     }

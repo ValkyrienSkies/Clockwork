@@ -14,13 +14,16 @@ import org.valkyrienskies.mod.common.toWorldCoordinates
 
 class ContinuousSound(var soundEvent: SoundEvent, val soundSource: SoundSource, var sharedPitch: Float, var scape: SoundScape, var relativeVolume: Float, var ship: Ship? = null) : AbstractTickableSoundInstance(soundEvent, soundSource), VelocityTickableSoundInstance {
 
+    var originalPos: BlockPos = BlockPos(x, y, z)
+
     override val velocity: Vector3dc
         get() = this.ship?.velocity ?: Vector3d()
 
-    internal constructor(soundEvent: SoundEvent, scape: SoundScape, sharedPitch: Float, relativeVolume: Float, ship: Ship? = null) : this(soundEvent, SoundSource.AMBIENT, sharedPitch, scape, relativeVolume) {
+    internal constructor(soundEvent: SoundEvent, scape: SoundScape, sharedPitch: Float, relativeVolume: Float, ship: Ship? = null, originalPos: BlockPos? = null) : this(soundEvent, SoundSource.AMBIENT, sharedPitch, scape, relativeVolume) {
         this.looping = true
         this.delay = 0
         this.relative = false
+        this.originalPos = originalPos ?: BlockPos.ZERO
     }
 
     init {
@@ -48,8 +51,6 @@ class ContinuousSound(var soundEvent: SoundEvent, val soundSource: SoundSource, 
     override fun getZ(): Double {
         return scape.getMeanPos().z
     }
-
-    val originalPos: BlockPos = BlockPos(x, y, z)
 
     fun getNewPos(): BlockPos {
         if (ship == null) return originalPos

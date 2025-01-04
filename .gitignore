@@ -20,3 +20,4 @@ classes/
 /common/logs/latest.log
 /.architectury-transformer/debug.log
 /common/.architectury-transformer/debug.log
+/.kotlin/

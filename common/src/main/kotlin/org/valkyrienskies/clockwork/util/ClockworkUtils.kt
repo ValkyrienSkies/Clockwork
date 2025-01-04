@@ -10,6 +10,7 @@ import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.Level
 import net.minecraft.world.phys.Vec3
+import org.joml.Vector3d
 import org.joml.Vector3i
 import org.joml.Vector3ic
 import org.joml.primitives.AABBi
@@ -17,8 +18,10 @@ import org.joml.primitives.AABBic
 import org.valkyrienskies.clockwork.ClockworkAugmentations
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.SelectedAreaToolkit
+import org.valkyrienskies.clockwork.content.forces.WanderShipControl
 import org.valkyrienskies.clockwork.util.MathFunctions.chunkPos
 import org.valkyrienskies.clockwork.util.MathFunctions.toVector3i
+import org.valkyrienskies.core.api.attachment.getAttachment
 import org.valkyrienskies.core.api.ships.properties.ChunkClaim
 import org.valkyrienskies.core.api.world.connectivity.DoubleComponentAugmentation
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil.defaultMapper
@@ -26,6 +29,7 @@ import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.impl.GasTypeRegistry
 import org.valkyrienskies.mod.common.BlockStateInfo
 import org.valkyrienskies.mod.common.dimensionId
+import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
 import java.io.IOException
 import java.util.*
@@ -34,6 +38,21 @@ import kotlin.collections.HashMap
 
 
 object ClockworkUtils {
+
+    val wanderliteNodesToAdd: HashMap<BlockPos, Double> = HashMap()
+
+    @JvmStatic
+    fun tick(level: ServerLevel) {
+        val successfullyAdded = HashSet<BlockPos>()
+        wanderliteNodesToAdd.forEach { (pos, force) ->
+            val ship = level.getShipObjectManagingPos(BlockPos(pos.x, pos.y, pos.z))
+            if (ship != null) {
+                ship.getAttachment<WanderShipControl>()?.addBlock(pos, force) ?: return@forEach
+                successfullyAdded.add(pos)
+            }
+        }
+        successfullyAdded.forEach { wanderliteNodesToAdd.remove(it) }
+    }
 
     @JvmStatic
     fun updateBlockStateWeight(serverLevel: ServerLevel, blockPos: BlockPos, oldWeight: Double, newWeight: Double){
@@ -110,6 +129,22 @@ object ClockworkUtils {
 
     fun readVector3i(buf: FriendlyByteBuf): Vector3ic {
         return Vector3i(buf.readInt(), buf.readInt(), buf.readInt())
+    }
+
+    fun CompoundTag.getVector3d(prefix: String): Vector3d? {
+        return if (
+            !this.contains(prefix + "x") ||
+            !this.contains(prefix + "y") ||
+            !this.contains(prefix + "z")
+        ) {
+            null
+        } else {
+            Vector3d(
+                this.getDouble(prefix + "x"),
+                this.getDouble(prefix + "y"),
+                this.getDouble(prefix + "z")
+            )
+        }
     }
 
     fun writeVector3i(buf: FriendlyByteBuf, vector3f: Vector3ic) {

@@ -1,8 +1,11 @@
 package org.valkyrienskies.clockwork
 
+import com.simibubi.create.AllItems
 import com.simibubi.create.AllTags
+import com.simibubi.create.AllTags.AllItemTags
 import com.simibubi.create.foundation.data.AssetLookup
 import com.tterrag.registrate.util.entry.ItemEntry
+import net.fabricmc.fabric.api.item.v1.FabricItemSettings
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.Rarity
 import net.minecraft.world.item.SwordItem
@@ -17,6 +20,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.Gravitro
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver.ScrewdriverItem
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftItem
+import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBackTankItem
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import java.util.function.Supplier
@@ -144,6 +148,17 @@ object ClockworkItems {
             .tag(AllTags.AllItemTags.WRENCH.tag)
             .model(AssetLookup.existingItemModel())
             .register()
+
+    @JvmField
+    val GAS_BANKTANK: ItemEntry<GasBackTankItem> = REGISTRATE.item<GasBackTankItem>("gas_backtank") { properties: Item.Properties? ->
+        GasBackTankItem(ClockworkBlocks.GAS_BACKTANK.get(), properties!!)
+    }
+        .properties { properties: Item.Properties ->
+            properties.stacksTo(1)
+        }
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tag(AllItemTags.PRESSURIZED_AIR_SOURCES.tag)
+        .register()
 
     @JvmField
     val UNIVERSAL_SHAFT_ITEM: ItemEntry<UniversalShaftItem> =

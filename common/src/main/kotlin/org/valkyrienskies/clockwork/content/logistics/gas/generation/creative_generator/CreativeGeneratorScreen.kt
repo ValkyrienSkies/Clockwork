@@ -1,18 +1,18 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator
 
 import com.mojang.blaze3d.vertex.PoseStack
+import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour
 import com.simibubi.create.foundation.gui.AbstractSimiScreen
 import com.simibubi.create.foundation.gui.widget.ScrollInput
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
 import org.valkyrienskies.clockwork.ClockworkPackets
-import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.clockwork.util.gui.ScrollingFrame
 import org.valkyrienskies.kelvin.impl.GasTypeRegistry
 
 class CreativeGeneratorScreen(private val be: CreativeGeneratorBlockEntity) : AbstractSimiScreen()  {
 
-    private val background: ClockworkGuiTextures = ClockworkGuiTextures.CREATIVE_GAS_GENERATOR;
-    private val frame: ClockworkGuiTextures = ClockworkGuiTextures.CREATIVE_GAS_GENERATOR_FRAME;
+    private val background: ClockworkGuiTextures = ClockworkGuiTextures.CREATIVE_GAS_GENERATOR
+    private val frame: ClockworkGuiTextures = ClockworkGuiTextures.CREATIVE_GAS_GENERATOR_FRAME
 
     val scrollingElements: MutableList<ScrollingFrame.ScrollingElement> = mutableListOf()
     lateinit var scrollingFrame: CreativeGeneratorScrolling
@@ -28,7 +28,8 @@ class CreativeGeneratorScreen(private val be: CreativeGeneratorBlockEntity) : Ab
 
             val input = ScrollInput(0,0,51, 18)
             input.calling { state: Int -> be.gasValues[type] = state }
-            input.withRange(0,1000)
+            input.withRange(0,9999)
+            input.withStepFunction {  c: ScrollValueBehaviour.StepContext -> if (c.shift) 100 else 10  }
             input.state = be.gasValues[type] ?: 0
 
             scrollingElements.add(CreativeGeneratorScrolling.CreativeGeneratorScrollingElement(type, font, input))
@@ -38,7 +39,8 @@ class CreativeGeneratorScreen(private val be: CreativeGeneratorBlockEntity) : Ab
         addRenderableWidget(scrollingFrame)
 
         temperatureInput = ScrollInput(guiLeft + 82,guiTop + 89, 51, 18)
-        temperatureInput.withRange(0,4500)
+        temperatureInput.withRange(0,9999)
+        temperatureInput.withStepFunction {  c: ScrollValueBehaviour.StepContext -> if (c.shift) 100 else 10  }
         temperatureInput.calling { state: Int -> be.temperature = state.toDouble() }
         addRenderableWidget(temperatureInput)
     }

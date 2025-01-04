@@ -7,8 +7,10 @@ import org.joml.Vector3d
 import org.valkyrienskies.clockwork.content.physicalities.gas_thruster.data.GasThrusterCreateData
 import org.valkyrienskies.clockwork.content.physicalities.gas_thruster.data.GasThrusterData
 import org.valkyrienskies.clockwork.content.physicalities.gas_thruster.data.GasThrusterUpdateData
+import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
+import org.valkyrienskies.core.api.ships.setAttachment
 import org.valkyrienskies.mod.common.util.toJOMLD
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -34,9 +36,9 @@ class GasThrusterController(
     }
 
     companion object {
-        fun getOrCreate(ship: ServerShip): GasThrusterController? {
+        fun getOrCreate(ship: LoadedServerShip): GasThrusterController? {
             if (ship.getAttachment(GasThrusterController::class.java) == null) {
-                ship.saveAttachment(GasThrusterController::class.java, GasThrusterController())
+                ship.setAttachment(GasThrusterController())
             }
             return ship.getAttachment(GasThrusterController::class.java)
         }

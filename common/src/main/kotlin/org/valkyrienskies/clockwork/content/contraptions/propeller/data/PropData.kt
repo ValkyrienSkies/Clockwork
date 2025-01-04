@@ -20,6 +20,8 @@ class PropData: ForceApplierData<PropUpdateData> {
     var brass: Boolean = false
     var blades: List<BladeData> = listOf()
 
+    var currentBladePitch = 12.0
+
     override fun updateData(data: PropUpdateData) {
         bearingAngle = data.rotationAngle
         bearingSpeed = data.rotationSpeed

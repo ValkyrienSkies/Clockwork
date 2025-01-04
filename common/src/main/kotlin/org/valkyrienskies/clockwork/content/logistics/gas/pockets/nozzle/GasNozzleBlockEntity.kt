@@ -124,7 +124,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
 
         if (currentNodeTotalMass <= 0.0001 || pocketTotalMass <= 0.0001 || pocketTemperature >= currentNodeTemperature) return
 
-        val outsideAirTemp = AerodynamicUtils.getAirTemperatureForY(realY, 563.0)
+        val outsideAirTemp = AerodynamicUtils.getAirTemperatureForY(realY, serverLevel.dimensionId)
 
         // Gas consumption
 

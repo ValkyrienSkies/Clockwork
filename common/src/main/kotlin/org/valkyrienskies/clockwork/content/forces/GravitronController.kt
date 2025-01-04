@@ -1,14 +1,15 @@
-package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron
+package org.valkyrienskies.clockwork.content.forces
 
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3dc
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronForceInducerData
+import org.valkyrienskies.core.api.attachment.getAttachment
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ShipForcesInducer
-import org.valkyrienskies.core.api.ships.getAttachment
 
-class GravitronForceInducer : ShipForcesInducer {
+class GravitronController : ShipForcesInducer {
     var data: GravitronForceInducerData? = null
 
     override fun applyForces(physShip: PhysShip) {
@@ -60,9 +61,9 @@ class GravitronForceInducer : ShipForcesInducer {
     }
 
     companion object {
-        fun getOrCreate(ship: LoadedServerShip): GravitronForceInducer {
-            return ship.getAttachment<GravitronForceInducer>()
-                ?: GravitronForceInducer().also { ship.setAttachment(GravitronForceInducer::class.java, it) }
+        fun getOrCreate(ship: LoadedServerShip): GravitronController {
+            return ship.getAttachment<GravitronController>()
+                ?: GravitronController().also { ship.setAttachment(it) }
         }
     }
 }
