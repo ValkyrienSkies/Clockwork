@@ -37,7 +37,8 @@ object ClockworkTags {
         optional: Boolean = namespace.optionalDefault,
         alwaysDatagen: Boolean = namespace.alwaysDatagenDefault
     ) {
-        BALLOON_BLOCK;
+        BALLOON_BLOCK,
+        SENSOR_LENS;
 
         val tag: TagKey<Block>
         val alwaysDatagen: Boolean

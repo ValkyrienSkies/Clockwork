@@ -4,6 +4,7 @@ import com.simibubi.create.content.equipment.wrench.IWrenchable
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.tags.BlockTags
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
@@ -12,10 +13,7 @@ import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.ClipContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
-import net.minecraft.world.level.block.Block
-import net.minecraft.world.level.block.DirectionalBlock
-import net.minecraft.world.level.block.Mirror
-import net.minecraft.world.level.block.Rotation
+import net.minecraft.world.level.block.*
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
@@ -25,8 +23,10 @@ import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkSounds
+import org.valkyrienskies.clockwork.ClockworkTags
 import org.valkyrienskies.clockwork.content.curiosities.sensor.ISensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.ISensorBlock.Companion.POWER
+import org.valkyrienskies.mod.api.positionToShip
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.toWorldCoordinates
 import org.valkyrienskies.mod.common.util.toDoubles
@@ -77,25 +77,59 @@ class DistanceSensorBlock(properties: Properties?): DirectionalBlock(properties)
 
     override fun updatePower(state: BlockState, level: ServerLevel, pos: BlockPos, random: Random): Int {
         val adjacentState = level.getBlockState(pos.relative(state.getValue(FACING)))
+
+        var hasAdjacentLens = adjacentState.`is`(ClockworkTags.AllBlockTags.SENSOR_LENS.tag)
+        var spotWater = adjacentState.`is`(Blocks.BLUE_STAINED_GLASS)
+        var spotAllFluids = adjacentState.`is`(Blocks.RED_STAINED_GLASS)
+
         return if (!adjacentState.isAir && adjacentState.isViewBlocking(level, pos)) {
             0
         } else {
             val ship = level.getShipObjectManagingPos(pos)
+            val offsetModifier = if (hasAdjacentLens) 1 else 0
             var refPos = Vec3.atCenterOf(pos).add(state.getValue(FACING).normal.toDoubles().multiply(0.5, 0.5, 0.5))
+            if (offsetModifier == 1) {
+                refPos = refPos.add(state.getValue(FACING).normal.toDoubles())
+            }
             val distance = (state.getValue(MAX_DISTANCE) * 16) - 1
             var targetPos = Vec3.atCenterOf(pos.relative(state.getValue(FACING), distance))
+            if (offsetModifier == 1) {
+                targetPos = targetPos.add(state.getValue(FACING).normal.toDoubles())
+            }
             if (ship != null) {
                 refPos = ship.toWorldCoordinates(refPos)
                 targetPos = ship.toWorldCoordinates(targetPos)
             }
-            val clipContext = ClipContext(refPos, targetPos, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, null)
-            val castResult = level.clipIncludeShips(clipContext, true, ship?.id)
-            if (castResult.type == HitResult.Type.MISS) {
-                0
-            } else {
-                val dist = refPos.distanceTo(castResult.location)
-                min((dist / state.getValue(MAX_DISTANCE).toDouble()).toInt(), 15)
-            }
+            var shouldCast = true
+            var result = 0
+            do {
+                val fluidContext = if (spotAllFluids) ClipContext.Fluid.ANY else if (spotWater) ClipContext.Fluid.WATER else ClipContext.Fluid.NONE
+                val clipContext = ClipContext(refPos, targetPos, ClipContext.Block.COLLIDER, fluidContext, null)
+                val castResult = level.clipIncludeShips(clipContext, true, ship?.id)
+                if (castResult.type == HitResult.Type.MISS) {
+                    result = 15
+                    shouldCast = false
+                } else {
+                    if (level.getBlockState(castResult.blockPos).`is`(ClockworkTags.AllBlockTags.SENSOR_LENS.tag)) {
+                        if (level.getBlockState(castResult.blockPos).`is`(Blocks.BLUE_STAINED_GLASS)) {
+                            spotWater = true
+                        } else if (level.getBlockState(castResult.blockPos).`is`(Blocks.RED_STAINED_GLASS)) {
+                            spotAllFluids = true
+                        }
+                        refPos = ship?.positionToShip(castResult.location)?.add(state.getValue(FACING).normal.toDoubles()) ?: castResult.location.add(state.getValue(FACING).normal.toDoubles())
+                        targetPos = refPos.add(state.getValue(FACING).normal.toDoubles().scale(distance.toDouble()))
+                        if (ship != null) {
+                            refPos = ship.toWorldCoordinates(refPos)
+                            targetPos = ship.toWorldCoordinates(targetPos)
+                        }
+                    } else {
+                        val dist = refPos.distanceTo(castResult.location)
+                        result = min((dist / state.getValue(MAX_DISTANCE).toDouble()).toInt(), 15)
+                        shouldCast = false
+                    }
+                }
+            } while (shouldCast)
+            result
         }
     }
 
