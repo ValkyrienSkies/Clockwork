@@ -44,6 +44,8 @@ import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteBlock
 import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteSlab
 import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteStairs
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlock
+import org.valkyrienskies.clockwork.content.curiosities.sensor.distance.DistanceSensorBlock
+import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.GyroscopicSensorBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankBlock
@@ -177,6 +179,35 @@ object ClockworkBlocks {
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .build()
             .register()
+
+    @JvmField
+    val DISTANCE_SENSOR: BlockEntry<DistanceSensorBlock> =
+        REGISTRATE.block<DistanceSensorBlock>("distance_sensor") { properties: BlockBehaviour.Properties? ->
+            DistanceSensorBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.stone() }
+            .transform(TagGen.axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
+            .register()
+
+    @JvmField
+    val GYROSCOPIC_SENSOR: BlockEntry<GyroscopicSensorBlock> = REGISTRATE.block<GyroscopicSensorBlock>("gyroscopic_sensor") { properties: BlockBehaviour.Properties? ->
+        GyroscopicSensorBlock(properties!!)
+    }
+        .initialProperties { SharedProperties.stone() }
+        .transform(TagGen.axeOrPickaxe())
+        .properties { it.noOcclusion() }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
 
     @JvmField
     val GYRO: BlockEntry<GyroBlock> = REGISTRATE.block<GyroBlock>("gyro") { properties: BlockBehaviour.Properties? ->

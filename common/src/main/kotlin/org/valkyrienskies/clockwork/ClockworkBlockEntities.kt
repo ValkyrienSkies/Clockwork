@@ -29,6 +29,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlo
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeControllerBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeControllerRenderer
+import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterRenderer
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockRenderer
 import org.valkyrienskies.clockwork.content.generic.ColorBlockEntity
@@ -184,6 +185,13 @@ object ClockworkBlockEntities {
             )
         }
         .validBlocks(ClockworkBlocks.ALT_METER)
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in AltMeterBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                AltMeterRenderer(
+                    context
+                )
+            }
+        }
         .register()
 
     @JvmField
