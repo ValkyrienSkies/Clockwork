@@ -10,6 +10,7 @@ import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.BlockGetter
+import net.minecraft.world.level.ChunkPos
 import net.minecraft.world.level.ClipContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
@@ -24,6 +25,7 @@ import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import org.joml.Quaterniond
 import org.joml.Vector3d
+import org.joml.Vector3dc
 import org.joml.primitives.AABBd
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkSounds
@@ -41,6 +43,7 @@ import org.valkyrienskies.mod.common.util.toDoubles
 import org.valkyrienskies.mod.common.util.toMinecraft
 import org.valkyrienskies.mod.common.world.clipIncludeShips
 import java.util.*
+import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.math.min
 
@@ -92,62 +95,65 @@ class ImpactSensorBlock(properties: Properties?): DirectionalBlock(properties), 
 
     override fun updatePower(state: BlockState, level: ServerLevel, pos: BlockPos, random: Random): Int {
         val adjacentState = level.getBlockState(pos.relative(state.getValue(FACING)))
-
-        var hasAdjacentLens = adjacentState.`is`(ClockworkTags.AllBlockTags.SENSOR_LENS.tag)
-        var spotWater = adjacentState.`is`(Blocks.BLUE_STAINED_GLASS)
-        var spotAllFluids = adjacentState.`is`(Blocks.RED_STAINED_GLASS)
+        val ship = level.getShipObjectManagingPos(pos)
 
         return if (!adjacentState.isAir && adjacentState.isViewBlocking(level, pos)) {
             15
         } else {
-            val ship = level.getShipObjectManagingPos(pos)
-            val targetPos = if (ship != null) {
-                val prediction = state.getValue(PREDICTIVENESS)
+            val targetPositions = mutableSetOf<Vec3>()
+            targetPositions.add(level.toWorldCoordinates(Vec3.atCenterOf(pos.relative(state.getValue(DirectionalBlock.FACING)))))
+            val predictiveness = state.getValue(PREDICTIVENESS)
+            if (ship != null) {
                 val predictPos = Vec3.atCenterOf(pos).toJOML().sub(ship.transform.positionInShip)
-                if (prediction > 0) {
-                    val shipVel = ship.velocity
-                    val shipAngVel = ship.angularVelocity
+                if (predictiveness > 0) {
+                    for (prediction in 1..predictiveness) {
+                        val shipVel = ship.velocity
+                        val shipAngVel = ship.angularVelocity
 
-                    val shipPos = ship.transform.positionInWorld
-                    val shipRot = ship.transform.rotation
+                        val shipPos = ship.transform.positionInWorld
+                        val shipRot = ship.transform.rotation
 
-                    val predictivePos = shipPos.add(
-                        shipVel, Vector3d()
-                    )
-                    val deltaRot = Quaterniond().fromAxisAngleRad(shipAngVel.normalize(Vector3d()), shipAngVel.length() * (prediction.toDouble()/20.0))
-                    val predictiveRot = shipRot.mul(deltaRot, Quaterniond())
+                        val predictivePos = shipPos.add(
+                            shipVel, Vector3d()
+                        )
+                        val deltaRot = Quaterniond().fromAxisAngleRad(shipAngVel.normalize(Vector3d()), shipAngVel.length() * (prediction.toDouble()/20.0))
+                        val predictiveRot = shipRot.mul(deltaRot, Quaterniond())
 
-                    val rotatedPos = predictPos.rotate(predictiveRot, Vector3d())
-                    predictivePos.add(rotatedPos, Vector3d()).toMinecraft()
-                } else {
-                    level.toWorldCoordinates(Vec3.atCenterOf(pos.relative(state.getValue(DirectionalBlock.FACING))))
+                        val rotatedPos = predictPos.rotate(predictiveRot, Vector3d())
+
+                        targetPositions.add(predictivePos.add(rotatedPos, Vector3d()).toMinecraft())
+                    }
                 }
-            } else {
-                Vec3.atCenterOf(pos.relative(state.getValue(DirectionalBlock.FACING)))
             }
-            var found = false
-            val positions = level.transformToNearbyShipsAndWorld(targetPos.x, targetPos.y, targetPos.z, 1.5)
+            var found = 0
+            val positions = hashSetOf<Vector3dc>()
+
+            targetPositions.forEach { positions.addAll(level.transformToNearbyShipsAndWorld(it.x, it.y, it.z, 1.5)) }
 
             for (position in positions) {
+                val chunkPos = ChunkPos(BlockPos(position.toMinecraft()))
+                if (ship != null && ship.chunkClaim.contains(chunkPos.x, chunkPos.z)) {
+                    continue
+                }
                 if (!level.getBlockState(BlockPos(position.toMinecraft())).isAir) {
-                    found = true
-                    break
+                    found = max(
+                        min(max(16 - (level.toWorldCoordinates(position.toMinecraft()).distanceTo(level.toWorldCoordinates(Vec3.atCenterOf(pos))).absoluteValue * predictiveness.toDouble()).toInt(), 0), 15),
+                        found
+                    )
                 }
                 val searchAABB = AABB(BlockPos(position.toMinecraft())).inflate(1.0)
                 level.getBlockStates(searchAABB).forEach { state ->
-                    if (state.isAir) {
-                        found = true
+                    if (!state.isAir) {
+                        found = max(
+                            min(max(16 - (level.toWorldCoordinates(position.toMinecraft()).distanceTo(level.toWorldCoordinates(Vec3.atCenterOf(pos))).absoluteValue * predictiveness.toDouble()).toInt(), 0), 15),
+                            found
+                        )
                         return@forEach
                     }
                 }
-                if (found) {
-                    break
-                }
             }
 
-            if (found) {
-                15
-            } else 0
+            found
         }
     }
 
