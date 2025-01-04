@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.valve
 
+import com.simibubi.create.AllShapes
 import com.simibubi.create.content.kinetics.base.DirectionalAxisKineticBlock
 import com.simibubi.create.foundation.block.IBE
 import com.simibubi.create.foundation.utility.Iterate
@@ -7,10 +8,13 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.Direction.Axis
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.phys.shapes.CollisionContext
+import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
@@ -22,19 +26,9 @@ class ValveDuctBlock(properties: Properties?) : DirectionalAxisKineticBlock(prop
 
     var edge: ApertureDuctEdge? = null
 
-    fun getDuctAxis(state: BlockState): Axis {
-        check(state.block is ValveDuctBlock) { "Provided BlockState is for a different block." }
-        val facing = state.getValue(FACING)
-        var alongFirst = !state.getValue(AXIS_ALONG_FIRST_COORDINATE)
-        for (axis in Iterate.axes) {
-            if (axis === facing.axis) continue
-            if (!alongFirst) {
-                alongFirst = true
-                continue
-            }
-            return axis
-        }
-        throw IllegalStateException("Impossible axis.")
+
+    override fun getShape(state: BlockState, p_220053_2_: BlockGetter, p_220053_3_: BlockPos, p_220053_4_: CollisionContext): VoxelShape {
+        return AllShapes.FLUID_VALVE[getDuctAxis(state)]
     }
 
     override fun canConnectTo(level: Level, from: BlockPos,to: BlockPos): Boolean {
@@ -59,7 +53,6 @@ class ValveDuctBlock(properties: Properties?) : DirectionalAxisKineticBlock(prop
     }
 
     fun handleAperatureConnection(level: LevelAccessor, pos: BlockPos, state: BlockState) {
-        println(1)
         if (level !is ServerLevel) return
         val axis = getDuctAxis(state)
 
@@ -67,17 +60,14 @@ class ValveDuctBlock(properties: Properties?) : DirectionalAxisKineticBlock(prop
         val frontPos = pos.relative(axis, 1)
         val backPos = pos.relative(axis, -1)
 
-        println(2)
         val facing = Direction.fromNormal(frontPos.subtract(pos)) ?: return
 
 
         val front = level.getBlockState(frontPos)
         val back = level.getBlockState(backPos)
 
-        println(3)
         if (front.block !is INodeBlock || back.block !is INodeBlock) return
 
-        println(4)
         if (!(front.block as INodeBlock).canConnectTo(frontPos,pos,facing,level) ||
             !(back.block as INodeBlock).canConnectTo(backPos,pos,facing.opposite,level)) return
 
@@ -85,7 +75,7 @@ class ValveDuctBlock(properties: Properties?) : DirectionalAxisKineticBlock(prop
         edge = null
 
         edge = ApertureDuctEdge(ConnectionType.APERTURE,backPos.toDuctNodePos(level.dimension().location()), frontPos.toDuctNodePos(level.dimension().location()), aperture = 1.0)
-        println(5)
+
         ClockworkMod.getKelvin().addEdge(frontPos.toDuctNodePos(level.dimension().location()), backPos.toDuctNodePos(level.dimension().location()), edge!!)
     }
 
@@ -108,5 +98,22 @@ class ValveDuctBlock(properties: Properties?) : DirectionalAxisKineticBlock(prop
 
     override fun getBlockEntityType(): BlockEntityType<out ValveDuctBlockEntity> {
         return ClockworkBlockEntities.VALVE_DUCT.get()
+    }
+
+    companion object {
+        fun getDuctAxis(state: BlockState): Axis {
+            check(state.block is ValveDuctBlock) { "Provided BlockState is for a different block." }
+            val facing = state.getValue(FACING)
+            var alongFirst = !state.getValue(AXIS_ALONG_FIRST_COORDINATE)
+            for (axis in Iterate.axes) {
+                if (axis === facing.axis) continue
+                if (!alongFirst) {
+                    alongFirst = true
+                    continue
+                }
+                return axis
+            }
+            throw IllegalStateException("Impossible axis.")
+        }
     }
 }
