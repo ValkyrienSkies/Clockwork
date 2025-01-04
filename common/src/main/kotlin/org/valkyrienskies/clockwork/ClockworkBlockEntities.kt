@@ -4,6 +4,7 @@ import com.jozufozu.flywheel.api.MaterialManager
 import com.jozufozu.flywheel.backend.instancing.blockentity.BlockEntityInstance
 import com.simibubi.create.content.contraptions.bearing.BearingInstance
 import com.simibubi.create.content.contraptions.bearing.BearingRenderer
+import com.simibubi.create.content.kinetics.base.ShaftInstance
 import com.tterrag.registrate.util.entry.BlockEntityEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer
@@ -51,6 +52,8 @@ import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankB
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleInstance
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleRenderer
+import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctRenderer
 import java.util.function.BiFunction
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
@@ -360,6 +363,32 @@ object ClockworkBlockEntities {
         }
         .register()
 
+    @JvmField
+    val VALVE_DUCT: BlockEntityEntry<ValveDuctBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<ValveDuctBlockEntity>("valve_duct") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            ValveDuctBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .instance {
+            BiFunction<MaterialManager?, ValveDuctBlockEntity?, BlockEntityInstance<in ValveDuctBlockEntity?>> { materialManager: MaterialManager?, blockEntity: ValveDuctBlockEntity? ->
+                ShaftInstance(
+                    materialManager,
+                    blockEntity
+                )
+            }
+        }
+        .validBlocks(ClockworkBlocks.VALVE_DUCT)
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in ValveDuctBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                ValveDuctRenderer(
+                    context!!
+                )
+            }
+        }
+        .register()
 
 
 

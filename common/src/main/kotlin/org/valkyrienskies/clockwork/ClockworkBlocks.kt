@@ -55,6 +55,7 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.Deli
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlock
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctBlock
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
@@ -71,7 +72,7 @@ object ClockworkBlocks {
         REGISTRATE.block<PropellerBearingBlock>("brass_propeller_bearing") { properties: BlockBehaviour.Properties? ->
             PropellerBearingBlock(properties!!)
         }
-            .transform(TagGen.axeOrPickaxe())
+            .transform(axeOrPickaxe())
             .transform(BuilderTransformers.bearing("propeller", "gearbox"))
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .addLayer { Supplier { RenderType.cutout() } }
@@ -85,7 +86,7 @@ object ClockworkBlocks {
         REGISTRATE.block<PropellerBearingBlock>("juryrigged_propeller_bearing") { properties: BlockBehaviour.Properties? ->
             PropellerBearingBlock(properties!!)
         }
-            .transform(TagGen.axeOrPickaxe())
+            .transform(axeOrPickaxe())
             .transform(BuilderTransformers.bearing("propeller", "gearbox"))
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .addLayer { Supplier { RenderType.cutout() } }
@@ -99,7 +100,7 @@ object ClockworkBlocks {
         REGISTRATE.block<BladeControllerBlock>("blade_controller") { properties: BlockBehaviour.Properties? ->
             BladeControllerBlock(properties!!)
         }
-            .transform(TagGen.axeOrPickaxe())
+            .transform(axeOrPickaxe())
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .addLayer { Supplier { RenderType.cutout() } }
             .onRegister(movementBehaviour(BladeControllerMovementBehaviour()))
@@ -114,7 +115,7 @@ object ClockworkBlocks {
             PhysBearingBlock(properties!!)
         }
             .initialProperties { SharedProperties.stone() }
-            .transform(TagGen.axeOrPickaxe())
+            .transform(axeOrPickaxe())
             .properties {
                 it.lightLevel { state: BlockState? -> PhysBearingBlock.getLight(state) }
             }
@@ -134,7 +135,7 @@ object ClockworkBlocks {
         REGISTRATE.block<FlapBearingBlock>("andesite_flap_bearing") { properties: BlockBehaviour.Properties? ->
             FlapBearingBlock(properties)
         }
-            .transform(TagGen.axeOrPickaxe())
+            .transform(axeOrPickaxe())
             .transform(flapbearing())
             .transform(BlockStressDefaults.setImpact(4.0))
             .addLayer { Supplier { RenderType.cutout() } }
@@ -149,7 +150,7 @@ object ClockworkBlocks {
         REGISTRATE.block<FlapBearingBlock>("smart_flap_bearing") { properties: BlockBehaviour.Properties? ->
             FlapBearingBlock(properties)
         }
-            .transform(TagGen.axeOrPickaxe())
+            .transform(axeOrPickaxe())
             .transform(flapbearing())
             .transform(BlockStressDefaults.setImpact(4.0))
             .addLayer { Supplier { RenderType.cutout() } }
@@ -165,7 +166,7 @@ object ClockworkBlocks {
             AltMeterBlock(properties!!)
         }
             .initialProperties { SharedProperties.stone() }
-            .transform(TagGen.axeOrPickaxe())
+            .transform(axeOrPickaxe())
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
@@ -182,7 +183,7 @@ object ClockworkBlocks {
         .properties {
             it.noOcclusion()
         }
-        .transform(TagGen.axeOrPickaxe())
+        .transform(axeOrPickaxe())
         .addLayer { Supplier { RenderType.cutout() } }
         .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
         .item()
@@ -200,7 +201,7 @@ object ClockworkBlocks {
         )
     }
         .initialProperties { SharedProperties.stone() }
-        .transform(TagGen.axeOrPickaxe())
+        .transform(axeOrPickaxe())
         .addLayer { Supplier { RenderType.cutout() } }
         .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
         .item()
@@ -222,13 +223,13 @@ object ClockworkBlocks {
                 BlockStressDefaults.setNoImpact()
             )
             .transform<Block, RedstoneResistorBlock, CreateRegistrate, BlockBuilder<RedstoneResistorBlock, CreateRegistrate>>(
-                TagGen.axeOrPickaxe()
+                axeOrPickaxe()
             )
             .addLayer { Supplier { RenderType.cutoutMipped() } }
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .transform(
-                ModelGen.customItemModel<BlockItem, BlockBuilder<RedstoneResistorBlock, CreateRegistrate>>(
+                customItemModel<BlockItem, BlockBuilder<RedstoneResistorBlock, CreateRegistrate>>(
                     "redstone_resistor",
                     "item"
                 )
@@ -243,18 +244,18 @@ object ClockworkBlocks {
             .properties {
                 it.noOcclusion()
             }
-            .transform(TagGen.axeOrPickaxe())
+            .transform(axeOrPickaxe())
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
-            .transform(ModelGen.customItemModel("command_seat", "item"))
+            .transform(customItemModel("command_seat", "item"))
             .register()
 
     @JvmField
     val WING: BlockEntry<WingBlock> = REGISTRATE.block<WingBlock>("wing") { properties: BlockBehaviour.Properties? ->
         WingBlock(properties)
     }
-        .transform<Block, WingBlock, CreateRegistrate, BlockBuilder<WingBlock, CreateRegistrate>>(TagGen.axeOrPickaxe())
+        .transform<Block, WingBlock, CreateRegistrate, BlockBuilder<WingBlock, CreateRegistrate>>(axeOrPickaxe())
         .addLayer { Supplier { RenderType.cutoutMipped() } }
         .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
         .item { block: WingBlock?, properties: Item.Properties? ->
@@ -269,7 +270,7 @@ object ClockworkBlocks {
     val FLAP: BlockEntry<FlapBlock> = REGISTRATE.block<FlapBlock>("flap") { properties: BlockBehaviour.Properties? ->
         FlapBlock(properties)
     }
-        .transform(TagGen.axeOrPickaxe())
+        .transform(axeOrPickaxe())
         .addLayer { Supplier { RenderType.cutoutMipped() } }
         .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
         .item { block: FlapBlock?, properties: Item.Properties? ->
@@ -425,12 +426,27 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
+    val VALVE_DUCT: BlockEntry<ValveDuctBlock> =
+        REGISTRATE.block<ValveDuctBlock>("valve_duct") { properties: BlockBehaviour.Properties? ->
+            ValveDuctBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.netheriteMetal() }
+            .transform(axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
+            .register()
+
+    @JvmField
     val GAS_NOZZLE: BlockEntry<GasNozzleBlock> =
         REGISTRATE.block<GasNozzleBlock>("gas_nozzle") { properties: BlockBehaviour.Properties? ->
             GasNozzleBlock(properties!!)
         }
             .initialProperties { Blocks.IRON_BLOCK }
-            .transform(TagGen.axeOrPickaxe())
+            .transform(axeOrPickaxe())
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .properties { it.noOcclusion() }
@@ -447,7 +463,7 @@ object ClockworkBlocks {
             GasHeaterBlock(properties!!)
         }
             .initialProperties { Blocks.IRON_BLOCK }
-            .transform(TagGen.axeOrPickaxe())
+            .transform(axeOrPickaxe())
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
@@ -462,7 +478,7 @@ object ClockworkBlocks {
             GasThrusterBlock(properties!!)
         }
             .initialProperties { Blocks.IRON_BLOCK }
-            .transform(TagGen.axeOrPickaxe())
+            .transform(axeOrPickaxe())
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .properties { it.noOcclusion() }
@@ -701,7 +717,7 @@ object ClockworkBlocks {
         ) { BALLOON_CASING.get() }
     }
         .initialProperties { SharedProperties.wooden() }
-        .transform(TagGen.axeOrPickaxe())
+        .transform(axeOrPickaxe())
         .transform(BuilderTransformers.encasedShaft("balloon") { ClockworkSpriteShifts.BALLOON_CASING })
         .item()
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
@@ -729,7 +745,7 @@ object ClockworkBlocks {
             DeliveryCannonBlock(properties!!)
         }
             .initialProperties { SharedProperties.wooden() }
-            .transform(TagGen.axeOrPickaxe())
+            .transform(axeOrPickaxe())
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
@@ -744,7 +760,7 @@ object ClockworkBlocks {
             DeliveryChuteBlock(properties!!)
         }
             .initialProperties { SharedProperties.wooden() }
-            .transform(TagGen.axeOrPickaxe())
+            .transform(axeOrPickaxe())
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
@@ -774,11 +790,14 @@ object ClockworkBlocks {
             GasBacktankBlock(properties!!)
         }
             .initialProperties { SharedProperties.softMetal() }
-            .transform(TagGen.axeOrPickaxe())
+            .transform(axeOrPickaxe())
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .register()
+
+
+
 
     @JvmStatic
     fun register() {
