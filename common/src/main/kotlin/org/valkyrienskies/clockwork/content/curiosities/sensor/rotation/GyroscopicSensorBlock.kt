@@ -3,7 +3,7 @@ package org.valkyrienskies.clockwork.content.curiosities.sensor.rotation
 import com.simibubi.create.content.equipment.wrench.IWrenchable
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.core.Direction.Axis
+import net.minecraft.core.Direction.*
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.Mirror
 import net.minecraft.world.level.block.Rotation
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
+import net.minecraft.world.level.block.state.properties.BooleanProperty
 import net.minecraft.world.level.block.state.properties.EnumProperty
 import net.minecraft.world.phys.BlockHitResult
 import org.joml.Vector3d
@@ -25,27 +26,59 @@ import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.sensor.ISensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.ISensorBlock.Companion.POWER
+import org.valkyrienskies.mod.api.positionToShip
+import org.valkyrienskies.mod.api.toJOML
 import org.valkyrienskies.mod.api.toJOMLd
 import org.valkyrienskies.mod.api.transformDirection
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
+import org.valkyrienskies.mod.common.toWorldCoordinates
 import java.util.*
+import kotlin.math.absoluteValue
 
-class GyroscopicSensorBlock(properties: Properties) : DirectionalBlock(properties), ISensorBlock, IWrenchable {
+class GyroscopicSensorBlock(properties: Properties) : DirectionalBlock(properties), ISensorBlock {
 
     companion object {
         val REFERENCE_AXIS = EnumProperty.create("reference_axis", Axis::class.java)
+        val NEGATIVE = BooleanProperty.create("negative")
+
+        fun getOutputDirections(facing: Direction): Pair<Direction, Direction> {
+            val targetAxis = when (facing) {
+                UP, DOWN, NORTH, SOUTH -> Direction.Axis.X
+                else -> Direction.Axis.Z
+            }
+            val positive = get(AxisDirection.POSITIVE, targetAxis)
+            val negative = positive.opposite
+            return Pair(positive, negative)
+        }
     }
 
     init {
         this.registerDefaultState(
             ((this.stateDefinition.any() as BlockState).setValue<Direction, Direction>(
                 DirectionalBlock.FACING, Direction.SOUTH
-            ) as BlockState).setValue(POWER, 0).setValue(REFERENCE_AXIS, Direction.SOUTH.clockWise.axis) as BlockState
+            ) as BlockState).setValue(POWER, 0).setValue(REFERENCE_AXIS, Direction.SOUTH.clockWise.axis).setValue(
+                NEGATIVE, false) as BlockState
         )
     }
 
+    fun directionToLodefocus(state: BlockState, level: ServerLevel, pos: BlockPos): Vector3d {
+        val lodefocusPos = pos.relative(state.getValue(DirectionalBlock.FACING))
+        val lodefocusBlockEntity = level.getBlockEntity(lodefocusPos) as? LodefocusBlockEntity ?: return state.getValue(DirectionalBlock.FACING).normal.toJOMLd()
+        val targetPos = lodefocusBlockEntity.getWorldspaceTargetPosition()?.toJOMLd()
+            ?: return state.getValue(DirectionalBlock.FACING).normal.toJOMLd()
+        val worldPos = level.toWorldCoordinates(pos.toJOMLd())
+        return targetPos.sub(worldPos, Vector3d()).normalize()
+    }
+
+    override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
+        if (!level.isClientSide) {
+            level.scheduleTick(pos, this, 2)
+        }
+        super.onPlace(state, level, pos, oldState, isMoving)
+    }
+
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block?, BlockState?>) {
-        builder.add(DirectionalBlock.FACING, POWER, REFERENCE_AXIS)
+        builder.add(DirectionalBlock.FACING, POWER, REFERENCE_AXIS, NEGATIVE)
     }
 
     override fun rotate(state: BlockState, rotation: Rotation): BlockState {
@@ -61,8 +94,13 @@ class GyroscopicSensorBlock(properties: Properties) : DirectionalBlock(propertie
 
     override fun tick(state: BlockState, level: ServerLevel, pos: BlockPos, random: Random) {
         val power = this.updatePower(state, level, pos, random)
-        if (power != state.getValue(POWER)) {
-            level.setBlock(pos, state.setValue(POWER, power) as BlockState, 2)
+        val negative = power < 0
+        if (power.absoluteValue != state.getValue(POWER)) {
+            var newState = state.setValue(POWER, power.absoluteValue) as BlockState
+            if (negative != state.getValue(NEGATIVE)) {
+                newState = newState.setValue(NEGATIVE, negative) as BlockState
+            }
+            level.setBlock(pos, newState, 2)
             level.scheduleTick(pos, this, 2)
             level.updateNeighborsAt(pos, this)
         }
@@ -100,13 +138,21 @@ class GyroscopicSensorBlock(properties: Properties) : DirectionalBlock(propertie
         return true
     }
 
-    override fun getDirectSignal(state: BlockState, level: BlockGetter?, pos: BlockPos?, direction: Direction?): Int {
+    override fun getDirectSignal(state: BlockState, level: BlockGetter, pos: BlockPos, direction: Direction): Int {
         return state.getSignal(level, pos, direction)
     }
 
     override fun getSignal(state: BlockState, level: BlockGetter, pos: BlockPos, direction: Direction): Int {
-        if (state.getValue(POWER) != 0 && state.getValue(DirectionalBlock.FACING) == direction) {
-            return state.getValue(POWER)
+        if (state.getValue(POWER) != 0 && getOutputDirections(state.getValue(DirectionalBlock.FACING)).first.axis == direction.axis) {
+            if (state.getValue(NEGATIVE)) {
+                if (direction == getOutputDirections(state.getValue(DirectionalBlock.FACING)).second) {
+                    return state.getValue(POWER)
+                }
+            } else {
+                if (direction == getOutputDirections(state.getValue(DirectionalBlock.FACING)).first) {
+                    return state.getValue(POWER)
+                }
+            }
         }
         return 0
     }
@@ -117,13 +163,16 @@ class GyroscopicSensorBlock(properties: Properties) : DirectionalBlock(propertie
     }
 
     override fun updatePower(state: BlockState, level: ServerLevel, pos: BlockPos, random: Random): Int {
-        val originalDirection = state.getValue(DirectionalBlock.FACING)
+        val hasLodefocus = level.getBlockEntity(pos.relative(state.getValue(DirectionalBlock.FACING))) is LodefocusBlockEntity
+
+        val originalDirection = state.getValue(DirectionalBlock.FACING).normal.toJOMLd()
+        val targetDirection = if (!hasLodefocus) originalDirection else directionToLodefocus(state, level, pos)
         val referenceAxis = state.getValue(REFERENCE_AXIS)
         val ship = level.getShipObjectManagingPos(pos) ?: return 0
-        val referenceDir = Direction.get(Direction.AxisDirection.POSITIVE, referenceAxis)
+        val referenceDir = get(AxisDirection.POSITIVE, referenceAxis)
 
         val transformedDirection = ship.shipToWorld.transformDirection(originalDirection, Vector3d())
-        val difference = originalDirection.normal.toJOMLd().axialDistanceTo(transformedDirection, referenceDir.normal.toJOMLd())
+        val difference = targetDirection.axialDistanceTo(transformedDirection, referenceDir.normal.toJOMLd())
         return (difference * 15).toInt()
     }
 
@@ -153,26 +202,25 @@ class GyroscopicSensorBlock(properties: Properties) : DirectionalBlock(propertie
     }
 
     fun Vector3d.axialDistanceTo(rotated: Vector3d, axis: Vector3d): Double {
-        // Normalize the axis of rotation
         val axisNorm = axis.normalize(Vector3d())
 
-        // Project original and rotated onto the plane perpendicular to the axis
-        val originalProj = projectOntoPlane(this, axisNorm)
-        val rotatedProj = projectOntoPlane(rotated, axisNorm)
+        val originalProj = this.projectOntoPlane(axisNorm)
+        val rotatedProj = rotated.projectOntoPlane(axisNorm)
 
-        // Normalize the projections
         originalProj.normalize()
         rotatedProj.normalize()
 
-        // Compute the dot product of the projections
-        val dotProduct = originalProj.dot(rotatedProj)
+        val dot = originalProj.dot(rotatedProj)
+
+        val cross = originalProj.cross(rotatedProj, Vector3d())
+        val sign = cross.dot(axisNorm)
 
         // Normalize to [0, 1]
-        return (1.0 - dotProduct) / 2.0
+        return ((1.0 - dot) / 2.0) * if (sign > 0) 1.0 else if (sign < 0) -1.0 else 0.0
     }
 
-    fun projectOntoPlane(vector: Vector3d, axis: Vector3d): Vector3d {
-        val dotProduct = vector.dot(axis)
-        return vector.sub(Vector3d(axis).mul(dotProduct), Vector3d())
+    fun Vector3d.projectOntoPlane(axis: Vector3d): Vector3d {
+        val dotProduct = this.dot(axis)
+        return this.sub(Vector3d(axis).mul(dotProduct), Vector3d())
     }
 }

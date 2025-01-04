@@ -32,6 +32,8 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeC
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterRenderer
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockRenderer
+import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.LodefocusBlockEntity
+import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.LodefocusRenderer
 import org.valkyrienskies.clockwork.content.generic.ColorBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRenderer
@@ -188,6 +190,24 @@ object ClockworkBlockEntities {
         .renderer {
             NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in AltMeterBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
                 AltMeterRenderer(
+                    context
+                )
+            }
+        }
+        .register()
+
+    @JvmField
+    val LODEFOCUS = ClockworkMod.REGISTRATE.blockEntity<LodefocusBlockEntity>("lodefocus") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+        LodefocusBlockEntity(
+            type,
+            pos,
+            state
+        )
+    }
+        .validBlocks(ClockworkBlocks.LODEFOCUS)
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in LodefocusBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                LodefocusRenderer(
                     context
                 )
             }

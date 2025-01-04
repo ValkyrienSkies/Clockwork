@@ -24,6 +24,7 @@ import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.SlabBlock
 import net.minecraft.world.level.block.StairBlock
 import net.minecraft.world.level.block.state.BlockBehaviour
+import net.minecraft.world.level.block.state.BlockBehaviour.Properties
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.material.Material
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
@@ -45,7 +46,9 @@ import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteSlab
 import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteStairs
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.distance.DistanceSensorBlock
+import org.valkyrienskies.clockwork.content.curiosities.sensor.impact.ImpactSensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.GyroscopicSensorBlock
+import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.LodefocusBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankBlock
@@ -208,6 +211,36 @@ object ClockworkBlocks {
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()
         .register()
+
+    @JvmField
+    val LODEFOCUS: BlockEntry<LodefocusBlock> = REGISTRATE.block<LodefocusBlock>("lodefocus") { properties: BlockBehaviour.Properties? ->
+        LodefocusBlock(properties!!)
+    }
+        .initialProperties { Blocks.GLASS }
+        .transform(TagGen.axeOrPickaxe())
+        .properties { it.noOcclusion() ; it.lightLevel{ _ -> 1 } ; it.isViewBlocking{ _, _, _ -> false } }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+        .tag(ClockworkTags.AllBlockTags.SENSOR_LENS.tag)
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
+    val IMPACT_SENSOR: BlockEntry<ImpactSensorBlock> =
+        REGISTRATE.block<ImpactSensorBlock>("impact_sensor") { properties: BlockBehaviour.Properties? ->
+            ImpactSensorBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.stone() }
+            .transform(TagGen.axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
+            .register()
 
     @JvmField
     val GYRO: BlockEntry<GyroBlock> = REGISTRATE.block<GyroBlock>("gyro") { properties: BlockBehaviour.Properties? ->

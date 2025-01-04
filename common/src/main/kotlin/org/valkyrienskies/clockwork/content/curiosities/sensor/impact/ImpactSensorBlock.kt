@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content.curiosities.sensor.distance
+package org.valkyrienskies.clockwork.content.curiosities.sensor.impact
 
 import com.simibubi.create.content.equipment.wrench.IWrenchable
 import net.minecraft.core.BlockPos
@@ -18,17 +18,25 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.level.block.state.properties.IntegerProperty
+import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
+import org.joml.Quaterniond
+import org.joml.Vector3d
+import org.joml.primitives.AABBd
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.ClockworkTags
 import org.valkyrienskies.clockwork.content.curiosities.sensor.ISensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.ISensorBlock.Companion.POWER
+import org.valkyrienskies.mod.api.dimensionId
 import org.valkyrienskies.mod.api.positionToShip
+import org.valkyrienskies.mod.api.toJOML
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
+import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.toWorldCoordinates
+import org.valkyrienskies.mod.common.transformToNearbyShipsAndWorld
 import org.valkyrienskies.mod.common.util.toDoubles
 import org.valkyrienskies.mod.common.util.toMinecraft
 import org.valkyrienskies.mod.common.world.clipIncludeShips
@@ -36,29 +44,22 @@ import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 
-class DistanceSensorBlock(properties: Properties?): DirectionalBlock(properties), ISensorBlock {
+class ImpactSensorBlock(properties: Properties?): DirectionalBlock(properties), ISensorBlock, IWrenchable {
 
     companion object {
-        val MAX_DISTANCE = IntegerProperty.create("max_distance", 1, 4)
+        val PREDICTIVENESS = IntegerProperty.create("predictiveness", 0, 3)
     }
 
     init {
         this.registerDefaultState(
             ((this.stateDefinition.any() as BlockState).setValue<Direction, Direction>(
                 DirectionalBlock.FACING, Direction.SOUTH
-            ) as BlockState).setValue(POWER, 0).setValue(MAX_DISTANCE, 1) as BlockState
+            ) as BlockState).setValue(POWER, 0).setValue(PREDICTIVENESS, 1) as BlockState
         )
     }
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block?, BlockState?>) {
-        builder.add(DirectionalBlock.FACING, POWER, MAX_DISTANCE)
-    }
-
-    override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
-        if (!level.isClientSide) {
-            level.scheduleTick(pos, this, 2)
-        }
-        super.onPlace(state, level, pos, oldState, isMoving)
+        builder.add(DirectionalBlock.FACING, POWER, PREDICTIVENESS)
     }
 
     override fun rotate(state: BlockState, rotation: Rotation): BlockState {
@@ -82,6 +83,13 @@ class DistanceSensorBlock(properties: Properties?): DirectionalBlock(properties)
         this.updateNeighborsInFront(level, pos, state)
     }
 
+    override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
+        if (!level.isClientSide) {
+            level.scheduleTick(pos, this, 2)
+        }
+        super.onPlace(state, level, pos, oldState, isMoving)
+    }
+
     override fun updatePower(state: BlockState, level: ServerLevel, pos: BlockPos, random: Random): Int {
         val adjacentState = level.getBlockState(pos.relative(state.getValue(FACING)))
 
@@ -90,53 +98,56 @@ class DistanceSensorBlock(properties: Properties?): DirectionalBlock(properties)
         var spotAllFluids = adjacentState.`is`(Blocks.RED_STAINED_GLASS)
 
         return if (!adjacentState.isAir && adjacentState.isViewBlocking(level, pos)) {
-            0
+            15
         } else {
             val ship = level.getShipObjectManagingPos(pos)
-            val offsetModifier = if (hasAdjacentLens) 1 else 0
-            var refPos = Vec3.atCenterOf(pos).add(state.getValue(FACING).normal.toDoubles().multiply(0.5, 0.5, 0.5))
-            if (offsetModifier == 1) {
-                refPos = refPos.add(state.getValue(FACING).normal.toDoubles())
-            }
-            val distance = (state.getValue(MAX_DISTANCE) * 16) - 1
-            var targetPos = Vec3.atCenterOf(pos.relative(state.getValue(FACING), distance))
-            if (offsetModifier == 1) {
-                targetPos = targetPos.add(state.getValue(FACING).normal.toDoubles())
-            }
-            if (ship != null) {
-                refPos = ship.toWorldCoordinates(refPos)
-                targetPos = ship.toWorldCoordinates(targetPos)
-            }
-            var shouldCast = true
-            var result = 0
-            do {
-                val fluidContext = if (spotAllFluids) ClipContext.Fluid.ANY else if (spotWater) ClipContext.Fluid.WATER else ClipContext.Fluid.NONE
-                val clipContext = ClipContext(refPos, targetPos, ClipContext.Block.COLLIDER, fluidContext, null)
-                val castResult = level.clipIncludeShips(clipContext, true, ship?.id)
-                if (castResult.type == HitResult.Type.MISS) {
-                    result = 15
-                    shouldCast = false
+            val targetPos = if (ship != null) {
+                val prediction = state.getValue(PREDICTIVENESS)
+                val predictPos = Vec3.atCenterOf(pos).toJOML().sub(ship.transform.positionInShip)
+                if (prediction > 0) {
+                    val shipVel = ship.velocity
+                    val shipAngVel = ship.angularVelocity
+
+                    val shipPos = ship.transform.positionInWorld
+                    val shipRot = ship.transform.rotation
+
+                    val predictivePos = shipPos.add(
+                        shipVel, Vector3d()
+                    )
+                    val deltaRot = Quaterniond().fromAxisAngleRad(shipAngVel.normalize(Vector3d()), shipAngVel.length() * (prediction.toDouble()/20.0))
+                    val predictiveRot = shipRot.mul(deltaRot, Quaterniond())
+
+                    val rotatedPos = predictPos.rotate(predictiveRot, Vector3d())
+                    predictivePos.add(rotatedPos, Vector3d()).toMinecraft()
                 } else {
-                    if (level.getBlockState(castResult.blockPos).`is`(ClockworkTags.AllBlockTags.SENSOR_LENS.tag)) {
-                        if (level.getBlockState(castResult.blockPos).`is`(Blocks.BLUE_STAINED_GLASS)) {
-                            spotWater = true
-                        } else if (level.getBlockState(castResult.blockPos).`is`(Blocks.RED_STAINED_GLASS)) {
-                            spotAllFluids = true
-                        }
-                        refPos = ship?.positionToShip(castResult.location)?.add(state.getValue(FACING).normal.toDoubles()) ?: castResult.location.add(state.getValue(FACING).normal.toDoubles())
-                        targetPos = refPos.add(state.getValue(FACING).normal.toDoubles().scale(distance.toDouble()))
-                        if (ship != null) {
-                            refPos = ship.toWorldCoordinates(refPos)
-                            targetPos = ship.toWorldCoordinates(targetPos)
-                        }
-                    } else {
-                        val dist = refPos.distanceTo(castResult.location)
-                        result = min((dist / state.getValue(MAX_DISTANCE).toDouble()).toInt(), 15)
-                        shouldCast = false
+                    level.toWorldCoordinates(Vec3.atCenterOf(pos.relative(state.getValue(DirectionalBlock.FACING))))
+                }
+            } else {
+                Vec3.atCenterOf(pos.relative(state.getValue(DirectionalBlock.FACING)))
+            }
+            var found = false
+            val positions = level.transformToNearbyShipsAndWorld(targetPos.x, targetPos.y, targetPos.z, 1.5)
+
+            for (position in positions) {
+                if (!level.getBlockState(BlockPos(position.toMinecraft())).isAir) {
+                    found = true
+                    break
+                }
+                val searchAABB = AABB(BlockPos(position.toMinecraft())).inflate(1.0)
+                level.getBlockStates(searchAABB).forEach { state ->
+                    if (state.isAir) {
+                        found = true
+                        return@forEach
                     }
                 }
-            } while (shouldCast)
-            result
+                if (found) {
+                    break
+                }
+            }
+
+            if (found) {
+                15
+            } else 0
         }
     }
 
@@ -150,9 +161,9 @@ class DistanceSensorBlock(properties: Properties?): DirectionalBlock(properties)
     ): InteractionResult {
         if (!level.isClientSide) {
             if (player.getItemInHand(hand).`is`(ClockworkItems.SCREWDRIVER.get())) {
-                val currentMax = state.getValue(MAX_DISTANCE)
-                val nextMax = if (currentMax == 4) 1 else currentMax + 1
-                level.setBlock(pos, state.setValue(MAX_DISTANCE, nextMax) as BlockState, 2)
+                val currentMax = state.getValue(PREDICTIVENESS)
+                val nextMax = if (currentMax == 3) 0 else currentMax + 1
+                level.setBlock(pos, state.setValue(PREDICTIVENESS, nextMax) as BlockState, 2)
                 val pitch = level.random.nextFloat() * 0.2f + 0.9f
                 level.playSound(null, pos, ClockworkSounds.WELDER_WHIRR.mainEvent!!, player.soundSource, 1.0f, pitch)
                 level.scheduleTick(pos, this, 2)
