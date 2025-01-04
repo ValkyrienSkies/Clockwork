@@ -52,6 +52,10 @@ class SugarRocketBlock(properties: Properties) : DirectionalBlock(properties), I
         triggerPositions.addAll(getAxialPositions(pos, ignoreAxis))
         val referenceFacing = state.getValue(DirectionalBlock.FACING)
         val visited = mutableSetOf<BlockPos>()
+        val toTrigger = mutableListOf<BlockPos>()
+
+        var highestSugarPower = 0
+
         while (triggerPositions.isNotEmpty()) {
             val newpos = triggerPositions.poll()
             if (visited.contains(newpos)) {
@@ -63,11 +67,19 @@ class SugarRocketBlock(properties: Properties) : DirectionalBlock(properties), I
             if (referenceFacing != blockState.getValue(FACING)) {
                 continue
             }
-            withBlockEntityDo(level, newpos) { blockEntity ->
-                blockEntity.isBurning = true
+            if (blockEntity.burnPower > highestSugarPower) {
+                highestSugarPower = blockEntity.burnPower
             }
+            toTrigger.add(newpos)
             triggerPositions.addAll(getAxialPositions(newpos, ignoreAxis))
         }
+
+        for (triggerPos in toTrigger) {
+            withBlockEntityDo(level, triggerPos) { blockEntity ->
+                blockEntity.ignite(20 * highestSugarPower, highestSugarPower)
+            }
+        }
+
         return visited.size > 0
     }
 
