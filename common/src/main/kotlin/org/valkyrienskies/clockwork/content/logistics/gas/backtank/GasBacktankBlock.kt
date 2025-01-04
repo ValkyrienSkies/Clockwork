@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.backtank
 
+import com.simibubi.create.AllShapes
 import com.simibubi.create.content.equipment.armor.BacktankItem
-import com.simibubi.create.content.equipment.armor.BacktankUtil
 import com.simibubi.create.content.kinetics.base.HorizontalKineticBlock
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
@@ -26,8 +26,9 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.shapes.CollisionContext
+import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBackTankItem.Companion.AirKgsToAirTicks
@@ -46,7 +47,6 @@ class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(prop
 
     init {
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.SOUTH))
-
     }
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block?, BlockState?>) {
@@ -108,13 +108,12 @@ class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(prop
         state: BlockState, world: Level, pos: BlockPos, player: Player, hand: InteractionHand,
         hit: BlockHitResult
     ): InteractionResult {
-        if (player == null) return InteractionResult.PASS
         if (player.isShiftKeyDown) return InteractionResult.PASS
         if (player.mainHandItem.item is BlockItem) return InteractionResult.PASS
         if (!player.getItemBySlot(EquipmentSlot.CHEST).isEmpty) return InteractionResult.PASS
         if (!world.isClientSide) {
             world.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, .75f, 1f)
-            player.setItemInHand(hand,getCloneItemStack(world, pos, state))
+            player.setItemSlot(EquipmentSlot.CHEST,getCloneItemStack(world, pos, state))
             world.destroyBlock(pos, false)
         }
         return InteractionResult.SUCCESS
@@ -148,7 +147,18 @@ class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(prop
             network.modGasMass(pos,gasType,tag.getDouble(gasResourceLocation))
 
         }
-        network.modTemperature(pos, temperature)
+        network.nodeInfo[pos]!!.currentTemperature = temperature
 
     }
+
+    override fun getShape(
+        p_220053_1_: BlockState,
+        p_220053_2_: BlockGetter,
+        p_220053_3_: BlockPos,
+        p_220053_4_: CollisionContext
+    ): VoxelShape {
+        return AllShapes.BACKTANK
+    }
+
+
 }
