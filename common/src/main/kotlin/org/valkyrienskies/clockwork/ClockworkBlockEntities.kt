@@ -62,8 +62,31 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.Deli
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelBlockEntity
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelInstance
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelRenderer
+import org.valkyrienskies.clockwork.content.propulsion.sugar_rocket.SugarRocketBlockEntity
+import org.valkyrienskies.clockwork.content.propulsion.sugar_rocket.SugarRocketRenderer
 
 object ClockworkBlockEntities {
+
+    @JvmField
+    val SUGAR_ROCKET: BlockEntityEntry<SugarRocketBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<SugarRocketBlockEntity>(
+            "sugar_rocket"
+        ) { type: BlockEntityType<SugarRocketBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
+            SugarRocketBlockEntity(
+                type!!,
+                pos!!,
+                state!!
+            )
+        }
+        .validBlocks(ClockworkBlocks.SUGAR_ROCKET)
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in SugarRocketBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                SugarRocketRenderer(
+                    context!!
+                )
+            }
+        }
+        .register()
 
     @JvmField
     val PROPELLER_BEARING: BlockEntityEntry<PropellerBearingBlockEntity> = ClockworkMod.REGISTRATE

@@ -31,7 +31,7 @@ class AirCompressorRenderer(context: BlockEntityRendererProvider.Context?) : Kin
         light: Int,
         overlay: Int
     ) {
-        super.renderSafe(be, partialTicks, ms, buffer, light, overlay)
+        //super.renderSafe(be, partialTicks, ms, buffer, light, overlay)
 
         val vb = buffer!!.getBuffer(RenderType.cutoutMipped())
         val lightBelow = LevelRenderer.getLightColor(be!!.level, be.blockPos.below())

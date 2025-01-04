@@ -25,7 +25,16 @@ class LodefocusBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
 
     val inventory: NonNullList<ItemStack> = NonNullList.withSize(1, ItemStack.EMPTY)
 
+    var insertionCooldown = 0
+
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) {
+    }
+
+    override fun tick() {
+        super.tick()
+        if (insertionCooldown > 0) {
+            insertionCooldown--
+        }
     }
 
     fun getTargetPosition(): BlockPos? {
@@ -117,6 +126,7 @@ class LodefocusBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
                 }
             }
             inventory[slot] = stack
+            insertionCooldown = 10
         }
     }
 

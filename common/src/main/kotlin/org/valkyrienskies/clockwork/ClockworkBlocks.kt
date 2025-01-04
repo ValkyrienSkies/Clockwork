@@ -67,6 +67,7 @@ import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.Reaction
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.WingBlock
+import org.valkyrienskies.clockwork.content.propulsion.sugar_rocket.SugarRocketBlock
 import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork.flapbearing
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import java.util.function.Supplier
@@ -74,6 +75,21 @@ import javax.swing.text.html.HTML.Tag
 
 
 object ClockworkBlocks {
+
+    @JvmField
+    val SUGAR_ROCKET: BlockEntry<SugarRocketBlock> =
+        REGISTRATE.block<SugarRocketBlock>("sugar_rocket") { properties: BlockBehaviour.Properties? ->
+            SugarRocketBlock(properties!!)
+        }
+            .initialProperties(SharedProperties.BELT_MATERIAL)
+            .transform(TagGen.axeOrPickaxe())
+            .properties { it.instabreak().explosionResistance(0f) }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
+            .register()
 
     @JvmField
     val BRASS_PROPELLER_BEARING: BlockEntry<PropellerBearingBlock> =
