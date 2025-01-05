@@ -95,15 +95,15 @@ class GyroscopicSensorBlock(properties: Properties) : DirectionalBlock(propertie
     override fun tick(state: BlockState, level: ServerLevel, pos: BlockPos, random: Random) {
         val power = this.updatePower(state, level, pos, random)
         val negative = power < 0
-        if (power.absoluteValue != state.getValue(POWER)) {
+        if (power.absoluteValue != state.getValue(POWER) || negative != state.getValue(NEGATIVE)) {
             var newState = state.setValue(POWER, power.absoluteValue) as BlockState
             if (negative != state.getValue(NEGATIVE)) {
                 newState = newState.setValue(NEGATIVE, negative) as BlockState
             }
             level.setBlock(pos, newState, 2)
-            level.scheduleTick(pos, this, 2)
             level.updateNeighborsAt(pos, this)
         }
+        level.scheduleTick(pos, this, 2)
         this.updateNeighborsInFront(level, pos, state)
     }
 

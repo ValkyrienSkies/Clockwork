@@ -121,18 +121,20 @@ class ImpactSensorBlock(properties: Properties?): DirectionalBlock(properties), 
 
                         val rotatedPos = predictPos.rotate(predictiveRot, Vector3d())
 
-                        targetPositions.add(predictivePos.add(rotatedPos, Vector3d()).toMinecraft())
+                        val targetPos = level.toWorldCoordinates(predictivePos.add(rotatedPos, Vector3d()).toMinecraft())
+                        if (!targetPos.length().isNaN() && targetPos.length().isFinite()) targetPositions.add(targetPos)
                     }
                 }
             }
             var found = 0
             val positions = hashSetOf<Vector3dc>()
+            positions.add(targetPositions.first().toJOML())
 
             targetPositions.forEach { positions.addAll(level.transformToNearbyShipsAndWorld(it.x, it.y, it.z, 1.5)) }
 
             for (position in positions) {
-                val chunkPos = ChunkPos(BlockPos(position.toMinecraft()))
-                if (ship != null && ship.chunkClaim.contains(chunkPos.x, chunkPos.z)) {
+                val posShip = level.getShipObjectManagingPos(BlockPos(position.toMinecraft()))
+                if (posShip != null && ship != null && posShip.id == ship.id) {
                     continue
                 }
                 if (!level.getBlockState(BlockPos(position.toMinecraft())).isAir) {
@@ -150,6 +152,9 @@ class ImpactSensorBlock(properties: Properties?): DirectionalBlock(properties), 
                         )
                         return@forEach
                     }
+                }
+                if (found == 15) {
+                    break
                 }
             }
 
