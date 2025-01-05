@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.util.universal_joint
 
+import net.minecraft.Util
+import net.minecraft.network.chat.TextComponent
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.context.UseOnContext
@@ -18,8 +20,15 @@ open class UniversalJointItem<T: IUniversalJoint>(properties: Properties) : Item
 
 
         val tBe = be as T
-        if (firstSelect == null) firstSelect = tBe
+        if (firstSelect == null) {
+            firstSelect = tBe
+            context.player!!.sendMessage(TextComponent("First selected"), Util.NIL_UUID)
+        }
         else {
+
+
+
+            context.player!!.sendMessage(TextComponent("second selected"), Util.NIL_UUID)
             if (firstSelect == tBe) return fail()
             if (!firstSelect!!.tryConnect(context.level,be.blockPos)) return fail()
             firstSelect = null

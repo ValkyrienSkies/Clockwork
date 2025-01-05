@@ -57,6 +57,7 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.Deliv
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctBlock
+import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlock
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
@@ -800,6 +801,21 @@ object ClockworkBlocks {
             .build()
             .register()
 
+    @JvmField
+    val EXTENDON: BlockEntry<ExtendonBlock> =
+        REGISTRATE.block<ExtendonBlock>("extendon") { properties: BlockBehaviour.Properties? ->
+            ExtendonBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.netheriteMetal() }
+            .transform(axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
+            .register()
+
 
     @JvmField
     val GAS_BACKTANK: BlockEntry<GasBacktankBlock> =
@@ -812,6 +828,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .register()
+
 
 
 

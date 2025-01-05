@@ -60,6 +60,7 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.Deli
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotRenderer
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer
+import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelBlockEntity
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelInstance
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelRenderer
@@ -608,7 +609,7 @@ object ClockworkBlockEntities {
     @JvmField
     val UNIVERSAL_SHAFT: BlockEntityEntry<UniversalShaftBlockEntity> = ClockworkMod.REGISTRATE
         .blockEntity<UniversalShaftBlockEntity>(
-            "delivery_chute"
+            "universal_shaft"
         ) { typeIn: BlockEntityType<UniversalShaftBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
             UniversalShaftBlockEntity(
                 typeIn,
@@ -616,6 +617,19 @@ object ClockworkBlockEntities {
             )
         }
         .validBlocks(ClockworkBlocks.UNIVERSAL_SHAFT)
+        .register()
+
+    @JvmField
+    val EXTENDON: BlockEntityEntry<ExtendonBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<ExtendonBlockEntity>(
+            "extendon"
+        ) { typeIn: BlockEntityType<ExtendonBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
+            ExtendonBlockEntity(
+                typeIn,
+                pos!!, state!!
+            )
+        }
+        .validBlocks(ClockworkBlocks.EXTENDON)
         .register()
 
     @JvmStatic

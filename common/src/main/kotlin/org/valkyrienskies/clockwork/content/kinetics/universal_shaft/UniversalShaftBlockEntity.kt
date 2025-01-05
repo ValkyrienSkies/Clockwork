@@ -17,7 +17,6 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
 
     override fun onSpeedChanged(previousSpeed: Float) {
         super.onSpeedChanged(previousSpeed)
-        println("ns ${getSpeed()}")
     }
 
     // Custom Propagation

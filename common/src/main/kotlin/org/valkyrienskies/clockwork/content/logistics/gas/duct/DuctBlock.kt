@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.logistics.gas.duct
 import com.google.common.collect.ImmutableMap
 import com.simibubi.create.AllSoundEvents
 import com.simibubi.create.content.equipment.wrench.IWrenchable
+import com.simibubi.create.content.kinetics.simpleRelays.ShaftBlock
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -345,7 +346,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
     fun getConnectionType(state: BlockState, currentPos: BlockPos, neighborState: BlockState, neighborPos: BlockPos, direction: Direction, level: BlockGetter): DuctConnectionType {
 
-
+        
         val type: DuctConnectionType = state.getValue(DIR_TO_CONNECTION[direction]!!)
         var forced = type == DuctConnectionType.FORCED
         var otherConnected = false

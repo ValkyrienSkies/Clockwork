@@ -23,7 +23,6 @@ interface IUniversalJoint {
         val oJ = other as IUniversalJoint
         if (oJ.connectedJoint != null) return false
 
-        println("l2 ${level.isClientSide}")
 
         connectTo(other)
         return true

@@ -1,0 +1,236 @@
+package org.valkyrienskies.clockwork.content.physicalities.extendon
+
+import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
+import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.level.block.entity.BlockEntityType
+import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.properties.BlockStateProperties
+import org.joml.AxisAngle4d
+import org.joml.Quaterniond
+import org.joml.Vector3d
+import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
+import org.valkyrienskies.clockwork.util.universal_joint.IUniversalJoint
+import org.valkyrienskies.core.api.ships.properties.ShipId
+import org.valkyrienskies.core.apigame.joints.VSDistanceJoint
+import org.valkyrienskies.core.apigame.joints.VSJointAndId
+import org.valkyrienskies.core.apigame.joints.VSJointPose
+import org.valkyrienskies.kelvin.api.ConnectionType
+import org.valkyrienskies.kelvin.api.DuctEdge
+import org.valkyrienskies.kelvin.api.DuctNodePos
+import org.valkyrienskies.kelvin.api.edges.PipeDuctEdge
+import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
+import org.valkyrienskies.mod.common.getShipManagingPos
+import org.valkyrienskies.mod.common.shipObjectWorld
+import org.valkyrienskies.mod.common.util.toJOMLD
+import java.lang.IllegalStateException
+
+class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState?) : SmartBlockEntity(type, pos, state), IUniversalJoint, IHeatableBlockEntity {
+
+    override var connectedJoint: IUniversalJoint? = null
+    override var pos: BlockPos = pos
+
+    var connectedBe: ExtendonBlockEntity? = null
+    var edge: DuctEdge? = null
+
+    var joint: VSDistanceJoint? = null
+    var jointId: Int? = null
+
+    var main: Boolean = false
+
+    override fun tick() {
+        super.tick()
+
+        if (level!!.isClientSide) return
+
+        if (connectedBe == null || connectedJoint == null || joint == null || !main) return
+
+
+        val kelvin = ClockworkMod.getKelvin()
+        val serverLevel = level as ServerLevel
+
+        val pressure = kelvin.getPressureAt(getDuctNodePosition()) + kelvin.getPressureAt(connectedBe!!.getDuctNodePosition())
+        val distance = pressureToDistance(pressure)
+
+
+        val tempJoint = VSJointAndId(jointId!!, VSDistanceJoint(joint!!.shipId0, joint!!.pose0, joint!!.shipId1, joint!!.pose1, minDistance = distance, maxDistance = distance))
+
+        serverLevel.shipObjectWorld.updateConstraint(jointId!!, tempJoint.joint)
+        joint = tempJoint.joint as VSDistanceJoint
+    }
+
+
+
+    override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) { return }
+
+    override fun connectTo(other: IUniversalJoint) {
+        if (connectedJoint != null) return
+        val be = level?.getBlockEntity(other.pos) as? ExtendonBlockEntity ?: return
+
+        connectedBe = be
+        if (connectedBe!!.edge != null) edge = connectedBe!!.edge
+        else createEdge(blockPos.toDuctNodePos(level!!.dimension().location()), other.pos.toDuctNodePos(connectedBe!!.level!!.dimension().location()))
+
+        if (connectedBe!!.joint != null) {
+            joint = connectedBe!!.joint
+            jointId = connectedBe!!.jointId
+            main = true
+        } else createJoint()
+
+        super.connectTo(other)
+    }
+
+    override fun disconnect() {
+        if (connectedJoint == null) return
+
+        if (connectedBe!!.edge == null) edge = null
+        else removeEdge()
+
+        if (connectedBe!!.joint == null) {
+            joint = null
+            jointId = null
+        } else removeJoint()
+
+        connectedBe = null
+        main = false
+
+        super.disconnect()
+    }
+
+    private fun createEdge(nodeA: DuctNodePos, nodeB: DuctNodePos) {
+        val kelvin = ClockworkMod.getKelvin()
+        edge = PipeDuctEdge(nodeA = nodeA, nodeB = nodeB, type = ConnectionType.PIPE)
+        kelvin.addEdge(nodeA, nodeB, edge!!)
+    }
+
+    private fun removeEdge() {
+        val kelvin = ClockworkMod.getKelvin()
+        kelvin.removeEdge(edge!!.nodeA,edge!!.nodeB)
+        edge = null
+    }
+
+    private fun createJoint() {
+        val serverLevel = level as ServerLevel
+
+        if (connectedBe == null) throw IllegalStateException("Null connected block entity")
+
+        val shipId0 = getShipID()
+        val shipId1 = connectedBe!!.getShipID()
+        val pos0 = blockPos.toJOMLD()
+        val pos1 = connectedBe!!.blockPos.toJOMLD()
+        val quater0 = getQuaterniond(level!!.getBlockState(blockPos).getValue(BlockStateProperties.FACING))
+        val quater1 = getQuaterniond(level!!.getBlockState(connectedBe!!.blockPos).getValue(BlockStateProperties.FACING))
+
+        joint = VSDistanceJoint(pose0 = VSJointPose(pos0, quater0), pose1 = VSJointPose(pos1, quater1) , shipId0 = shipId0, shipId1 = shipId1,
+            minDistance = 0f, maxDistance = 1000f )
+        jointId = serverLevel.shipObjectWorld.createNewConstraint(joint!!)
+
+        main = true
+    }
+
+    private fun removeJoint() {
+        val serverLevel = level as ServerLevel
+
+        serverLevel.shipObjectWorld.removeConstraint(jointId!!)
+        joint = null
+        jointId = null
+
+        main = false
+    }
+
+
+
+    fun getShipID(): ShipId {
+        val ship = level.getShipManagingPos(blockPos)
+
+        if (ship == null) return -1L
+        else return ship.id
+    }
+
+    override fun write(compound: CompoundTag, clientPacket: Boolean) {
+        if (connectedJoint != null) {
+            compound.putInt("ConnectedPosX",connectedJoint!!.pos.x)
+            compound.putInt("ConnectedPosY",connectedJoint!!.pos.y)
+            compound.putInt("ConnectedPosZ",connectedJoint!!.pos.z)
+        }
+
+        super.write(compound, clientPacket)
+    }
+
+    override fun read(compound: CompoundTag, clientPacket: Boolean) {
+        if (compound.contains("ConnectedPosX")) {
+            connectedBe = level?.getBlockEntity(BlockPos(compound.getInt("otherPosX"),compound.getInt("otherPosY"),compound.getInt("otherPosZ"))) as? ExtendonBlockEntity
+            connectedJoint = connectedBe
+        }
+
+        super.read(compound, clientPacket)
+    }
+
+    companion object {
+        val force = 10000
+        val radius = 1
+
+        fun pressureToDistance(pressure: Double): Float {
+            val area = pressure / force
+            val height = area/(2 * Math.PI * radius) - radius
+
+            return (height + 0.5).toFloat()
+        }
+
+        fun getQuaterniond(direction: Direction): Quaterniond {
+            return when (direction) {
+                Direction.DOWN -> {
+                    Quaterniond(AxisAngle4d(Math.PI, Vector3d(1.0, 0.0, 0.0)))
+                }
+
+                Direction.NORTH -> {
+                    Quaterniond(AxisAngle4d(Math.PI, Vector3d(0.0, 1.0, 0.0))).mul(
+                        Quaterniond(
+                            AxisAngle4d(
+                                Math.PI / 2.0, Vector3d(1.0, 0.0, 0.0)
+                            )
+                        )
+                    ).normalize()
+                }
+
+                Direction.EAST -> {
+                    Quaterniond(AxisAngle4d(0.5 * Math.PI, Vector3d(0.0, 1.0, 0.0))).mul(
+                        Quaterniond(
+                            AxisAngle4d(
+                                Math.PI / 2.0, Vector3d(1.0, 0.0, 0.0)
+                            )
+                        )
+                    ).normalize()
+                }
+
+                Direction.SOUTH -> {
+                    Quaterniond(AxisAngle4d(Math.PI / 2.0, Vector3d(1.0, 0.0, 0.0))).normalize()
+                }
+
+                Direction.WEST -> {
+                    Quaterniond(AxisAngle4d(1.5 * Math.PI, Vector3d(0.0, 1.0, 0.0))).mul(
+                        Quaterniond(
+                            AxisAngle4d(
+                                Math.PI / 2.0, Vector3d(1.0, 0.0, 0.0)
+                            )
+                        )
+                    ).normalize()
+                }
+
+                else -> {
+                    // UP or null
+                    Quaterniond()
+                }
+            }
+        }
+    }
+
+    override fun getDuctNodePosition(): DuctNodePos {
+        return blockPos.toDuctNodePos(level!!.dimension().location())
+    }
+}

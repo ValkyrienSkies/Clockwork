@@ -21,6 +21,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.Gravitro
 import org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver.ScrewdriverItem
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftItem
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBackTankItem
+import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonHoseItem
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import java.util.function.Supplier
@@ -164,6 +165,14 @@ object ClockworkItems {
     val UNIVERSAL_SHAFT_ITEM: ItemEntry<UniversalShaftItem> =
         REGISTRATE.item<UniversalShaftItem>("universal_shaft_item") { properties: Item.Properties? ->
             UniversalShaftItem(properties!!)
+        }
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .register()
+
+    @JvmField
+    val EXTENDON_HOSE: ItemEntry<ExtendonHoseItem> =
+        REGISTRATE.item<ExtendonHoseItem>("extendon_hose") { properties: Item.Properties? ->
+            ExtendonHoseItem(properties!!)
         }
             .tab { ClockworkMod.BASE_CREATIVE_TAB }
             .register()
