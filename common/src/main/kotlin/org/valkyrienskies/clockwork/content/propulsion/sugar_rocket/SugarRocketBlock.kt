@@ -12,12 +12,14 @@ import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.Items
+import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.DirectionalBlock
 import net.minecraft.world.level.block.RenderShape
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 
@@ -32,6 +34,20 @@ class SugarRocketBlock(properties: Properties) : DirectionalBlock(properties), I
 
     override fun getRenderShape(pState: BlockState): RenderShape {
         return RenderShape.ENTITYBLOCK_ANIMATED
+    }
+
+    override fun getStateForPlacement(context: BlockPlaceContext): BlockState {
+        return this.defaultBlockState()
+            .setValue<Direction, Direction>(DirectionalBlock.FACING, context.nearestLookingDirection.opposite)
+    }
+
+    init {
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.UP))
+    }
+
+    override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
+        super.createBlockStateDefinition(builder)
+        builder.add(FACING)
     }
 
     fun getAxialPositions(pos: BlockPos, ignoreAxis: Direction.Axis): List<BlockPos> {
@@ -49,6 +65,7 @@ class SugarRocketBlock(properties: Properties) : DirectionalBlock(properties), I
     fun triggerAdjacent(level: ServerLevel, pos: BlockPos, state: BlockState): Boolean {
         var ignoreAxis = state.getValue(DirectionalBlock.FACING).axis
         val triggerPositions = UniqueLinkedList<BlockPos>()
+        triggerPositions.add(pos)
         triggerPositions.addAll(getAxialPositions(pos, ignoreAxis))
         val referenceFacing = state.getValue(DirectionalBlock.FACING)
         val visited = mutableSetOf<BlockPos>()
@@ -75,9 +92,11 @@ class SugarRocketBlock(properties: Properties) : DirectionalBlock(properties), I
         }
 
         for (triggerPos in toTrigger) {
-            withBlockEntityDo(level, triggerPos) { blockEntity ->
-                blockEntity.ignite(20 * highestSugarPower, highestSugarPower)
+            if (level.getBlockEntity(triggerPos) !is SugarRocketBlockEntity) {
+                continue
             }
+            val blockEntity = level.getBlockEntity(triggerPos) as SugarRocketBlockEntity
+            blockEntity.ignite(20 * highestSugarPower, highestSugarPower)
         }
 
         return visited.size > 0
@@ -102,9 +121,8 @@ class SugarRocketBlock(properties: Properties) : DirectionalBlock(properties), I
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
         super.onPlace(state, level, pos, oldState, isMoving)
         val hasNextBlock = level.getBlockEntity(pos.relative(state.getValue(DirectionalBlock.FACING))) is SugarRocketBlockEntity && level.getBlockState(pos.relative(state.getValue(DirectionalBlock.FACING))).getValue(DirectionalBlock.FACING) == state.getValue(DirectionalBlock.FACING)
-        withBlockEntityDo(level, pos) { blockEntity ->
-            blockEntity.hasNextBlock = hasNextBlock
-        }
+        val blockEntity = level.getBlockEntity(pos) as SugarRocketBlockEntity ?: return
+        blockEntity.hasNextBlock = hasNextBlock
     }
 
     override fun use(
@@ -118,11 +136,10 @@ class SugarRocketBlock(properties: Properties) : DirectionalBlock(properties), I
         if (!level.isClientSide) {
             val stack = player.getItemInHand(hand)
             if (stack.`is`(Items.SUGAR)) {
-                withBlockEntityDo(level, pos) { blockEntity ->
-                    if (blockEntity.sugarCooldown == 0) {
-                        blockEntity.addSugar(1)
-                        stack.shrink(1)
-                    }
+                val blockEntity = level.getBlockEntity(pos) as? SugarRocketBlockEntity ?: return InteractionResult.FAIL
+                if (blockEntity.sugarCooldown == 0) {
+                    blockEntity.addSugar(1)
+                    stack.shrink(1)
                 }
                 return InteractionResult.SUCCESS
             } else if (stack.`is`(Items.FLINT_AND_STEEL)) {

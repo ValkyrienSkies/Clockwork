@@ -22,10 +22,13 @@ class SugarRocketRenderer(context: BlockEntityRendererProvider.Context?) : Smart
     ) {
         super.renderSafe(blockEntity, partialTicks, ms, buffer, light, overlay)
 
+        val superByteBuffer = CachedBufferer.block(blockEntity.blockState)
+        val color = Color.mixColors(0xFFFFFF, 0x000000, blockEntity.clientBurnProgress.getValue(partialTicks))
         if (blockEntity.isBurning) {
-            val superByteBuffer = CachedBufferer.block(blockEntity.blockState)
-            val color = Color.mixColors(0xFFFFFF, 0x000000, blockEntity.clientBurnProgress.getValue(partialTicks))
-            superByteBuffer.light(15).overlay(overlay).color(color).renderInto(ms, buffer.getBuffer(RenderType.solid()))
+            superByteBuffer.light(light).hybridLight().color(color).renderInto(ms, buffer.getBuffer(RenderType.cutout()))
+        } else {
+            superByteBuffer.light(light).hybridLight().renderInto(ms, buffer.getBuffer(RenderType.cutout()))
         }
+
     }
 }
