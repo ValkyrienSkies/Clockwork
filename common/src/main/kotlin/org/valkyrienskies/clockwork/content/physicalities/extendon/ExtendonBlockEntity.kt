@@ -87,6 +87,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
             main = false
         } else createJoint()
 
+        sendData()
         super.connectTo(other)
     }
 
@@ -106,6 +107,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         connectedBe = null
         main = false
 
+        sendData()
         super.disconnect()
     }
 
@@ -137,7 +139,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
             minDistance = 0f, maxDistance = 1000f )
         distanceJointId = serverLevel.shipObjectWorld.createNewConstraint(distanceJoint!!)
 
-        val limit = VSD6Joint.LimitCone(Math.PI.toFloat(), Math.PI.toFloat())
+        val limit = VSD6Joint.LimitCone(Math.PI.toFloat()/4f, Math.PI.toFloat()/4f)
         val motions = EnumMap<D6Axis, D6Motion>(D6Axis::class.java)
 
         motions[D6Axis.X] = D6Motion.FREE
