@@ -7,12 +7,14 @@ import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.Direction
+import org.joml.Quaterniond
+import org.joml.Quaterniondc
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkPartials
+import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.util.toJOMLD
-import kotlin.math.atan2
-import kotlin.math.sqrt
+import kotlin.math.*
 
 class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlockEntityRenderer<ExtendonBlockEntity>(context) {
 
@@ -31,19 +33,22 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
         var axis1 = CachedBufferer.partial(ClockworkPartials.EXTENDON_AXIS1,be.blockState)
 
         if (be.connectedBe != null) {
-            val thisShip = be.level!!.getShipManagingPos(be.blockPos)
-            val thisPos = if (thisShip == null) be.blockPos.toJOMLD() else thisShip.transform.shipToWorld.transformPosition(be.blockPos.toJOMLD())
+            val thisShip = be.level!!.getShipManagingPos(be.blockPos) as ClientShip?
+            val thisPos = if (thisShip == null) be.blockPos.toJOMLD() else thisShip.renderTransform.shipToWorld.transformPosition(be.blockPos.toJOMLD())
 
-            val otherShip = be.level!!.getShipManagingPos(be.connectedBe!!.pos)
-            val otherPos = if (otherShip == null)be.connectedBe!!.pos.toJOMLD() else otherShip.transform.shipToWorld.transformPosition(be.connectedBe!!.pos.toJOMLD())
+            val otherShip = be.level!!.getShipManagingPos(be.connectedBe!!.pos) as ClientShip?
+            val otherPos = if (otherShip == null)be.connectedBe!!.pos.toJOMLD() else otherShip.renderTransform.shipToWorld.transformPosition(be.connectedBe!!.pos.toJOMLD())
+
+            var direction = otherPos.sub(thisPos)
+            if (thisShip != null) direction = thisShip.worldToShip.transformDirection(direction)
+            var anglePair = getEulerAngles(direction)
 
 
-            val anglePair = getEulerAngles(thisPos, otherPos)
 
-            axis0 = axis0.rotateCentered(Direction.UP, anglePair.first.toFloat())
-            axis1 = axis1.rotateCentered(Direction.UP, anglePair.first.toFloat())
+            axis0 = axis0.rotateCentered(Direction.UP, anglePair.second.toFloat())
+            axis1 = axis1.rotateCentered(Direction.UP, anglePair.second.toFloat())
 
-            axis1 = axis1.rotateCentered(Direction.WEST, anglePair.second.toFloat())
+            axis1 = axis1.rotateCentered(Direction.WEST, anglePair.first.toFloat())
         }
 
         axis0.light().renderInto(ms,vb)
@@ -55,9 +60,10 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
     }
 
     companion object {
-        fun getEulerAngles(position: Vector3d, target: Vector3d): Pair<Double, Double> {
+
+        fun getEulerAngles(direction: Vector3d): Pair<Double, Double> {
             // Calculate the direction vector from the position to the target
-            val direction = Vector3d(target.x - position.x, target.y - position.y, target.z - position.z)
+
 
             // Calculate yaw (rotation around the Y-axis)
             val yaw = atan2(direction.x, direction.z)
@@ -66,8 +72,9 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
             val pitch = atan2(direction.y, sqrt(direction.x * direction.x + direction.z * direction.z))
 
             // Return the angles in radians
-            return Pair(yaw, pitch-Math.PI/2)
+            return Pair(pitch + Math.PI*3/2, yaw)
         }
+
 
     }
 }
