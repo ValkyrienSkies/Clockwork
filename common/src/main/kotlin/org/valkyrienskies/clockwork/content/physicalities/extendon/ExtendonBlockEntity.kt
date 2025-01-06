@@ -51,7 +51,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
 
         if (level!!.isClientSide) return
 
-        if (connectedBe == null || connectedJoint == null || distanceJoint == null || !main) return
+        if (connectedBe == null || connectedJoint == null || distanceJoint == null || distanceJointId == null || !main) return
 
 
         val kelvin = ClockworkMod.getKelvin()
@@ -87,8 +87,9 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
             main = false
         } else createJoint()
 
-        sendData()
+
         super.connectTo(other)
+        sendData()
     }
 
     override fun disconnect() {
@@ -107,8 +108,9 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         connectedBe = null
         main = false
 
-        sendData()
+
         super.disconnect()
+        sendData()
     }
 
     private fun createEdge(nodeA: DuctNodePos, nodeB: DuctNodePos) {
@@ -180,18 +182,20 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
     }
 
     override fun write(compound: CompoundTag, clientPacket: Boolean) {
-        if (connectedJoint != null) {
-            compound.putInt("ConnectedPosX",connectedJoint!!.pos.x)
-            compound.putInt("ConnectedPosY",connectedJoint!!.pos.y)
-            compound.putInt("ConnectedPosZ",connectedJoint!!.pos.z)
+        if (connectedBe != null) {
+            compound.putInt("ConnectedPosX",connectedBe!!.pos.x)
+            compound.putInt("ConnectedPosY",connectedBe!!.pos.y)
+            compound.putInt("ConnectedPosZ",connectedBe!!.pos.z)
         }
 
         super.write(compound, clientPacket)
     }
 
     override fun read(compound: CompoundTag, clientPacket: Boolean) {
+
+
         if (compound.contains("ConnectedPosX")) {
-            connectedBe = level?.getBlockEntity(BlockPos(compound.getInt("otherPosX"),compound.getInt("otherPosY"),compound.getInt("otherPosZ"))) as? ExtendonBlockEntity
+            connectedBe = level?.getBlockEntity(BlockPos(compound.getInt("ConnectedPosX"),compound.getInt("ConnectedPosY"),compound.getInt("ConnectedPosZ"))) as? ExtendonBlockEntity
             connectedJoint = connectedBe
         }
 

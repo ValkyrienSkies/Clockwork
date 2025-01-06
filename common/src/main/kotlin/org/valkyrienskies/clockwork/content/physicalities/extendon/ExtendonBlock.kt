@@ -29,6 +29,8 @@ class ExtendonBlock(properties: Properties) : DirectionalBlock(properties), IBE<
 
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
         nodeRemove(state, level, pos, newState, isMoving)
+        (level.getBlockEntity(pos) as ExtendonBlockEntity?)?.disconnect()
+
         super.onRemove(state, level, pos, newState, isMoving)
     }
 
