@@ -39,7 +39,8 @@ import org.valkyrienskies.core.api.attachment.getAttachment
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.properties.ShipTransform
 import org.valkyrienskies.core.apigame.joints.*
-import org.valkyrienskies.core.impl.bodies.properties.BodyTransformVelocityImpl
+import org.valkyrienskies.core.impl.game.ships.ShipDataCommon
+
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3d
@@ -398,7 +399,16 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val rotInWorld = shipOn?.transform?.shipToWorldRotation ?: Quaterniond()
         val scaling    = shipOn?.transform?.shipToWorldScaling ?: Vector3d(1.0, 1.0, 1.0)
 
-        shiptraption.unsafeSetTransform(BodyTransformVelocityImpl(posInWorld, shiptraption.inertiaData.centerOfMass, rotInWorld, scaling, shiptraption.velocity, shiptraption.angularVelocity))
+        (shiptraption as ShipDataCommon).kinematics = org.valkyrienskies.core.impl.bodies.properties.BodyKinematicsFactory.create(
+            shiptraption.velocity,
+            shiptraption.angularVelocity,
+            posInWorld,
+            rotInWorld,
+            scaling,
+            shiptraption.transform.positionInShip
+
+
+        )
 
         val hingeOrientation: Quaterniondc = rotationQuaternion.mul(
             Quaterniond(AxisAngle4d(Math.toRadians(90.0), 0.0, 0.0, 1.0)),
