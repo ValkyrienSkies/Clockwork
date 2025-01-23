@@ -21,10 +21,9 @@ class RotatedAABBOutline(aabb: AABB) : AABBOutline(aabb) {
         // Translate to center, rotate, translate back
         ms.translate(center.x - camera.x, center.y - camera.y, center.z - camera.z)
         
-        // Apply rotations in ZYX order
-        ms.mulPose(Quaternion(rotationZ, 0f, 0f, true))
-        ms.mulPose(Quaternion(0f, rotationY, 0f, true))
-        ms.mulPose(Quaternion(rotationX, 0f, 0f, true))
+
+        ms.mulPose(Quaternion(rotationX, rotationY, rotationZ, false))
+
         
         ms.translate(-center.x + camera.x, -center.y + camera.y, -center.z + camera.z)
         

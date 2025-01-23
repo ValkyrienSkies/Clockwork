@@ -57,12 +57,12 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
 
             axis1 = axis1.rotateCentered(Direction.WEST, anglePair.first.toFloat())
 
-            val minX = minOf(thisPos.x, otherPos.x).toDouble()
-            val minY = minOf(thisPos.y, otherPos.y).toDouble()
-            val minZ = minOf(thisPos.z, otherPos.z).toDouble()
-            val maxX = maxOf(thisPos.x, otherPos.x).toDouble()
-            val maxY = maxOf(thisPos.y, otherPos.y).toDouble()
-            val maxZ = maxOf(thisPos.z, otherPos.z).toDouble()
+            val minX = thisPos.x - 0.25
+            val minY = thisPos.y - 0.25
+            val minZ = thisPos.z
+            val maxX = thisPos.x + 0.25
+            val maxY = thisPos.y + 0.25
+            val maxZ = thisPos.z + thisPos.distance(otherPos)
             
             val aabb = AABB(minX, minY, minZ, maxX, maxY, maxZ)
 
