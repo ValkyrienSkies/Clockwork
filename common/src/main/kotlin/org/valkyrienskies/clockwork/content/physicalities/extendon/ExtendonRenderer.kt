@@ -110,6 +110,7 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
     }
 }
 
+// TODO: MOVE THIS TO UTILS
 public fun Outliner.showCustomOutline(key: Any, outline: Outline) {
     this::class.java.getDeclaredMethod("addOutline", Any::class.java, Outline::class.java)
         .apply { isAccessible = true }
