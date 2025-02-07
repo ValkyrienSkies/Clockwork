@@ -18,12 +18,12 @@ class PhysBearingPeripheral(private val level: ServerLevel, private val bpos: Bl
 
     @LuaFunction fun setLockedMode() {be.movementMode!!.setValue(ContraptionController.LockedMode.LOCKED.ordinal)}
     @LuaFunction fun setUnlockedMode() {be.movementMode!!.setValue(ContraptionController.LockedMode.UNLOCKED.ordinal)}
-    @LuaFunction fun setAngle(angle: Double) {if (be.manualTargetAngleChange) {be.setAngle(angle.toFloat())} else {throw LuaException("Manual Target Angle mode is not enabled")}}
+//    @LuaFunction fun setAngle(angle: Double) {if (be.manualTargetAngleChange) {be.setAngle(angle.toFloat())} else {throw LuaException("Manual Target Angle mode is not enabled")}}
 
     @LuaFunction fun isBeingDisassembled() = be.disassembleWhenPossible
     @LuaFunction fun isActive() = be.isRunning
     @LuaFunction fun isInLockedMode() = be.movementMode!!.get() == ContraptionController.LockedMode.LOCKED
-    @LuaFunction fun isInComputerControlMode() = be.manualTargetAngleChange
+//    @LuaFunction fun isInComputerControlMode() = be.manualTargetAngleChange
 
     @LuaFunction fun getConnectedToShip() = be.shiptraptionID
     @LuaFunction fun getTargetAngle() = be.targetAngle
