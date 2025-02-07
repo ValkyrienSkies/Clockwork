@@ -22,8 +22,8 @@ class RotatedAABBOutline(aabb: AABB) : AABBOutline(aabb) {
         ms.translate(center.x - camera.x, center.y - camera.y, center.z - camera.z)
         
 
-        ms.mulPose(Quaternion(rotationX, rotationY, rotationZ, false))
-
+        ms.mulPose(Quaternion(rotationZ, rotationY, rotationX, false))
+        
         
         ms.translate(-center.x + camera.x, -center.y + camera.y, -center.z + camera.z)
         

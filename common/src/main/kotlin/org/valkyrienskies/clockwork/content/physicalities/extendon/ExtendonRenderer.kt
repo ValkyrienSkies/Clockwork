@@ -49,13 +49,13 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
 
             var direction = otherPos.sub(thisPos)
             if (thisShip != null) direction = thisShip.worldToShip.transformDirection(direction)
-            var anglePair = getEulerAngles(direction)
+            var angleTriple = getEulerAngles(direction)
 
 
-            axis0 = axis0.rotateCentered(Direction.UP, anglePair.second.toFloat())
-            axis1 = axis1.rotateCentered(Direction.UP, anglePair.second.toFloat())
+            axis0 = axis0.rotateCentered(Direction.UP, angleTriple.second.toFloat())
+            axis1 = axis1.rotateCentered(Direction.UP, angleTriple.second.toFloat())
 
-            axis1 = axis1.rotateCentered(Direction.WEST, anglePair.first.toFloat())
+            axis1 = axis1.rotateCentered(Direction.WEST, angleTriple.first.toFloat())
 
             val minX = thisPos.x - 0.25
             val minY = thisPos.y - 0.25
@@ -64,14 +64,18 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
             val maxY = thisPos.y + 0.25
             val maxZ = thisPos.z + thisPos.distance(otherPos)
             
+            println("$thisPos $otherPos ${thisPos.distance(otherPos)}")
+
             val aabb = AABB(minX, minY, minZ, maxX, maxY, maxZ)
 
             // Create and configure the outline
             val outline = RotatedAABBOutline(aabb)
-            outline.rotationX = anglePair.first.toFloat()
-            outline.rotationY = anglePair.second.toFloat()
+            outline.rotationX = angleTriple.first.toFloat()
+            outline.rotationY = angleTriple.second.toFloat()
+            outline.rotationZ = angleTriple.third.toFloat()
             
             
+
             if (!outliner.getOutlines().containsKey(be) || (outliner.getOutlines()[be]?.outline !is RotatedAABBOutline)) outliner.showCustomOutline(be, outline)
             else outliner.editCustomOutline(be, outline)
             
@@ -92,18 +96,21 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
 
     companion object {
 
-        fun getEulerAngles(direction: Vector3d): Pair<Double, Double> {
-            // Calculate the direction vector from the position to the target
-
-
+        fun getEulerAngles(direction: Vector3d): Triple<Double, Double, Double> {
             // Calculate yaw (rotation around the Y-axis)
             val yaw = atan2(direction.x, direction.z)
 
             // Calculate pitch (rotation around the X-axis)
             val pitch = atan2(direction.y, sqrt(direction.x * direction.x + direction.z * direction.z))
 
-            // Return the angles in radians
-            return Pair(pitch + Math.PI*3/2, yaw)
+            // Calculate roll (rotation around the Z-axis)
+            // For a direction vector, roll can be calculated using the cross product
+            val up = Vector3d(0.0, 1.0, 0.0)
+            val right = direction.cross(up, Vector3d())
+            val roll = atan2(right.y, right.x)
+
+            // Return the angles in radians (pitch, yaw, roll)
+            return Triple(pitch + Math.PI*3/2, yaw, roll)
         }
 
 
