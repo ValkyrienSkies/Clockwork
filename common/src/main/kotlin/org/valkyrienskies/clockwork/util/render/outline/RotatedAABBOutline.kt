@@ -1,32 +1,30 @@
 package org.valkyrienskies.clockwork.util.render.outline
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.math.Quaternion
 import com.simibubi.create.foundation.outliner.AABBOutline
 import com.simibubi.create.foundation.render.SuperRenderTypeBuffer
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
+import org.joml.Vector3dc
+import org.valkyrienskies.mod.common.util.toMinecraft
+import org.valkyrienskies.clockwork.util.*
 
-class RotatedAABBOutline(aabb: AABB) : AABBOutline(aabb) {
-    var rotationX: Float = 0f
-    var rotationY: Float = 0f
-    var rotationZ: Float = 0f
+class RotatedAABBOutline(aabb: AABB, var directon: Vector3dc) : AABBOutline(aabb) {
 
     override fun render(ms: PoseStack, buffer: SuperRenderTypeBuffer, camera: Vec3, pt: Float) {
         ms.pushPose()
-        
-        // Get the center of the AABB for rotation
-        val center = bb.center
-        
-        // Translate to center, rotate, translate back
-        ms.translate(center.x - camera.x, center.y - camera.y, center.z - camera.z)
-        
 
-        ms.mulPose(Quaternion(rotationZ, rotationY, rotationX, false))
-        
-        
-        ms.translate(-center.x + camera.x, -center.y + camera.y, -center.z + camera.z)
-        
+        val cx = bb.minX
+        val cy = bb.minY
+        val cz = bb.minZ
+
+        // Translate to center, rotate, translate back
+        ms.translate(cx - camera.x, cy - camera.y, cz - camera.z)
+
+        ms.mulPose(getHingeRotation(directon).toMinecraft())
+
+        ms.translate(-cx + camera.x, -cy + camera.y, -cz + camera.z)
+
         // Call parent render method
         super.render(ms, buffer, camera, pt)
         

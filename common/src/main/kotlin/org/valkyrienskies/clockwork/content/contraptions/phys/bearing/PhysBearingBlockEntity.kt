@@ -527,6 +527,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     fun tryRefresh() {
         if (!isRunning || !shouldRefresh || joint == null) {return}
         val level = level as ServerLevel
+        if (joint!!.joint !is VSRevoluteJoint) return
 
         val (shipId00, pose0, _, pose1, maxForceTorque) = joint!!.joint as VSRevoluteJoint
 

@@ -11,8 +11,6 @@ import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.Direction
 import net.minecraft.world.phys.AABB
-import org.joml.Quaterniond
-import org.joml.Quaterniondc
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.core.api.ships.ClientShip
@@ -20,6 +18,7 @@ import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.clockwork.util.render.outline.RotatedAABBOutline
 import kotlin.math.*
+import org.valkyrienskies.clockwork.util.*
 
 class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlockEntityRenderer<ExtendonBlockEntity>(context) {
 
@@ -42,39 +41,30 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
 
         if (be.connectedBe != null) {
             val thisShip = be.level!!.getShipManagingPos(be.blockPos) as ClientShip?
-            val thisPos = if (thisShip == null) be.blockPos.toJOMLD() else thisShip.renderTransform.shipToWorld.transformPosition(be.blockPos.toJOMLD())
+            val thisPos = if (thisShip == null) be.blockPos.toJOMLD()!! + 0.5 else thisShip.renderTransform.shipToWorld.transformPosition(be.blockPos.toJOMLD() + 0.5)!!
 
             val otherShip = be.level!!.getShipManagingPos(be.connectedBe!!.pos) as ClientShip?
-            val otherPos = if (otherShip == null)be.connectedBe!!.pos.toJOMLD() else otherShip.renderTransform.shipToWorld.transformPosition(be.connectedBe!!.pos.toJOMLD())
+            val otherPos = if (otherShip == null)be.connectedBe!!.pos.toJOMLD() + 0.5 else otherShip.renderTransform.shipToWorld.transformPosition(be.connectedBe!!.pos.toJOMLD() + 0.5)!!
 
-            var direction = otherPos.sub(thisPos)
-            if (thisShip != null) direction = thisShip.worldToShip.transformDirection(direction)
+            var direction = otherPos - thisPos
+
             var angleTriple = getEulerAngles(direction)
-
-
             axis0 = axis0.rotateCentered(Direction.UP, angleTriple.second.toFloat())
-            axis1 = axis1.rotateCentered(Direction.UP, angleTriple.second.toFloat())
 
+            axis1 = axis1.rotateCentered(Direction.UP, angleTriple.second.toFloat())
             axis1 = axis1.rotateCentered(Direction.WEST, angleTriple.first.toFloat())
 
             val minX = thisPos.x - 0.25
             val minY = thisPos.y - 0.25
-            val minZ = thisPos.z
-            val maxX = thisPos.x + 0.25
+            val minZ = thisPos.z - 0.25
+            val maxX = thisPos.x - 0.25 + thisPos.distance(otherPos)
             val maxY = thisPos.y + 0.25
-            val maxZ = thisPos.z + thisPos.distance(otherPos)
-            
-            println("$thisPos $otherPos ${thisPos.distance(otherPos)}")
+            val maxZ = thisPos.z + 0.25
 
             val aabb = AABB(minX, minY, minZ, maxX, maxY, maxZ)
 
             // Create and configure the outline
-            val outline = RotatedAABBOutline(aabb)
-            outline.rotationX = angleTriple.first.toFloat()
-            outline.rotationY = angleTriple.second.toFloat()
-            outline.rotationZ = angleTriple.third.toFloat()
-            
-            
+            val outline = RotatedAABBOutline(aabb, direction)
 
             if (!outliner.getOutlines().containsKey(be) || (outliner.getOutlines()[be]?.outline !is RotatedAABBOutline)) outliner.showCustomOutline(be, outline)
             else outliner.editCustomOutline(be, outline)
