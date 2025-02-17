@@ -186,6 +186,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
             compound.putInt("ConnectedPosX",connectedBe!!.pos.x)
             compound.putInt("ConnectedPosY",connectedBe!!.pos.y)
             compound.putInt("ConnectedPosZ",connectedBe!!.pos.z)
+            compound.putBoolean("IsMain", main)
         }
 
         super.write(compound, clientPacket)
@@ -197,6 +198,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         if (compound.contains("ConnectedPosX")) {
             connectedBe = level?.getBlockEntity(BlockPos(compound.getInt("ConnectedPosX"),compound.getInt("ConnectedPosY"),compound.getInt("ConnectedPosZ"))) as? ExtendonBlockEntity
             connectedJoint = connectedBe
+            main = compound.getBoolean("IsMain")
         }
 
         super.read(compound, clientPacket)

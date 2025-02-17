@@ -41,36 +41,44 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
 
         if (be.connectedBe != null) {
             val thisShip = be.level!!.getShipManagingPos(be.blockPos) as ClientShip?
-            val thisPos = if (thisShip == null) be.blockPos.toJOMLD()!! + 0.5 else thisShip.renderTransform.shipToWorld.transformPosition(be.blockPos.toJOMLD() + 0.5)!!
+            val thisPos = if (thisShip == null) be.blockPos.toJOMLD() + 0.5 else thisShip.renderTransform.shipToWorld.transformPosition(be.blockPos.toJOMLD() + 0.5)!!
 
             val otherShip = be.level!!.getShipManagingPos(be.connectedBe!!.pos) as ClientShip?
             val otherPos = if (otherShip == null)be.connectedBe!!.pos.toJOMLD() + 0.5 else otherShip.renderTransform.shipToWorld.transformPosition(be.connectedBe!!.pos.toJOMLD() + 0.5)!!
 
-            var direction = otherPos - thisPos
+            val direction = otherPos - thisPos
 
-            var angleTriple = getEulerAngles(direction)
-            axis0 = axis0.rotateCentered(Direction.UP, angleTriple.second.toFloat())
+            val angles = if (thisShip == null) getEulerAngles(direction) else getEulerAngles(thisShip.renderTransform.worldToShip.transformDirection(direction, Vector3d()))
 
-            axis1 = axis1.rotateCentered(Direction.UP, angleTriple.second.toFloat())
-            axis1 = axis1.rotateCentered(Direction.WEST, angleTriple.first.toFloat())
+            //Rotate Partials
+            axis0 = axis0.rotateCentered(Direction.UP, angles.second.toFloat())
 
-            val minX = thisPos.x - 0.25
-            val minY = thisPos.y - 0.25
-            val minZ = thisPos.z - 0.25
-            val maxX = thisPos.x - 0.25 + thisPos.distance(otherPos)
-            val maxY = thisPos.y + 0.25
-            val maxZ = thisPos.z + 0.25
+            axis1 = axis1.rotateCentered(Direction.UP, angles.second.toFloat())
+            axis1 = axis1.rotateCentered(Direction.WEST, angles.first.toFloat())
 
-            val aabb = AABB(minX, minY, minZ, maxX, maxY, maxZ)
 
-            // Create and configure the outline
-            val outline = RotatedAABBOutline(aabb, direction)
+            if (be.main) {
+                //Rotated AABB creation
+                val minX = thisPos.x - 0.25
+                val minY = thisPos.y - 0.25
+                val minZ = thisPos.z - 0.25
+                val maxX = thisPos.x - 0.25 + thisPos.distance(otherPos)
+                val maxY = thisPos.y + 0.25
+                val maxZ = thisPos.z + 0.25
 
-            if (!outliner.getOutlines().containsKey(be) || (outliner.getOutlines()[be]?.outline !is RotatedAABBOutline)) outliner.showCustomOutline(be, outline)
-            else outliner.editCustomOutline(be, outline)
-            
-            // Keep the outline alive for next frame
-            outliner.keep(be)
+                val aabb = AABB(minX, minY, minZ, maxX, maxY, maxZ)
+
+                // Create and configure the outline
+                val outline = RotatedAABBOutline(aabb, direction)
+
+                if (!outliner.getOutlines()
+                        .containsKey(be) || (outliner.getOutlines()[be]?.outline !is RotatedAABBOutline)
+                ) outliner.showCustomOutline(be, outline)
+                else outliner.editCustomOutline(be, outline)
+
+                // Keep the outline alive for next frame
+                outliner.keep(be)
+            }
         } else {
             // Remove outline if no connection
             outliner.remove(be)
@@ -122,3 +130,9 @@ public fun Outliner.editCustomOutline(key: Any, outline: Outline) {
         .let { it as MutableMap<Any, Outliner.OutlineEntry> }[key] = Outliner.OutlineEntry(outline)
 }
 
+public fun Outline.OutlineParams.disableFadeLineWidth() {
+    this::class.java.getDeclaredField("fadeLineWidth")
+        .apply { isAccessible = true }
+        .set(this, false)
+
+}

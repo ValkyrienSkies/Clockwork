@@ -6,10 +6,17 @@ import com.simibubi.create.foundation.render.SuperRenderTypeBuffer
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3dc
+import org.valkyrienskies.clockwork.content.physicalities.extendon.disableFadeLineWidth
 import org.valkyrienskies.mod.common.util.toMinecraft
 import org.valkyrienskies.clockwork.util.*
 
 class RotatedAABBOutline(aabb: AABB, var directon: Vector3dc) : AABBOutline(aabb) {
+
+    init {
+        params.disableCull()
+        params.disableLineNormals()
+        params.disableFadeLineWidth()
+    }
 
     override fun render(ms: PoseStack, buffer: SuperRenderTypeBuffer, camera: Vec3, pt: Float) {
         ms.pushPose()
