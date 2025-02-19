@@ -17,8 +17,11 @@ if (project.hasProperty("CustomReleaseVersion")) {
     version = project.property("CustomReleaseVersion").replaceFirst("^release/", "")
 } else {
     String gitRevision = "git rev-parse HEAD".execute().text.trim()
+    if (gitRevision.isEmpty()) {
+        gitRevision = 'unknown'
+    }
 
-    version = mod_version + '+' + gitRevision.substring(0, 10)
+    version = mod_version + '+' + (gitRevision.length() >= 10 ? gitRevision.substring(0, 10) : gitRevision)
 }
 
 tasks.register("updateKelvin") {
