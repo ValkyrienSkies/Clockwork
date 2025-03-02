@@ -14,14 +14,14 @@ import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
+import org.valkyrienskies.clockwork.util.AerodynamicUtils
 import org.valkyrienskies.clockwork.util.universal_joint.IUniversalJoint
 import org.valkyrienskies.core.api.ships.properties.ShipId
+import org.valkyrienskies.core.api.world.properties.DimensionId
 import org.valkyrienskies.core.apigame.joints.*
 import org.valkyrienskies.core.apigame.joints.VSD6Joint.D6Axis
 import org.valkyrienskies.core.apigame.joints.VSD6Joint.D6Motion
-import org.valkyrienskies.kelvin.api.ConnectionType
-import org.valkyrienskies.kelvin.api.DuctEdge
-import org.valkyrienskies.kelvin.api.DuctNodePos
+import org.valkyrienskies.kelvin.api.*
 import org.valkyrienskies.kelvin.api.edges.PipeDuctEdge
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.getShipManagingPos
@@ -29,6 +29,9 @@ import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOMLD
 import java.lang.IllegalStateException
 import java.util.EnumMap
+import org.valkyrienskies.kelvin.api.DuctNetwork.Companion.idealGasConstant
+import org.valkyrienskies.mod.api.dimensionId
+import kotlin.math.PI
 
 class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState?) : SmartBlockEntity(type, pos, state), IUniversalJoint, IHeatableBlockEntity {
 
@@ -57,13 +60,12 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         val kelvin = ClockworkMod.getKelvin()
         val serverLevel = level as ServerLevel
 
-        val pressure = kelvin.getPressureAt(getDuctNodePosition()) + kelvin.getPressureAt(connectedBe!!.getDuctNodePosition())
-        val distance = pressureToDistance(pressure)
+        val distance = gasToDistance(kelvin, getDuctNodePosition(), level.dimensionId!!)
 
 
         val tempJoint = VSJointAndId(distanceJointId!!, VSDistanceJoint(distanceJoint!!.shipId0, distanceJoint!!.pose0, distanceJoint!!.shipId1, distanceJoint!!.pose1, minDistance = distance, maxDistance = distance))
 
-        serverLevel.shipObjectWorld.updateConstraint(distanceJointId!!, tempJoint.joint)
+        if (distance >= 0.15) serverLevel.shipObjectWorld.updateConstraint(distanceJointId!!, tempJoint.joint)
         distanceJoint = tempJoint.joint as VSDistanceJoint
     }
 
@@ -205,14 +207,24 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
     }
 
     companion object {
-        val force = 10000
-        val radius = 1
 
-        fun pressureToDistance(pressure: Double): Float {
-            val area = pressure / force
-            val height = area/(2 * Math.PI * radius) - radius
+        // Calculates volume of cylinder via Ideal Gas Law, and then calculates said cylinder's height
+        // Doesn't account for the elastic force of the hose, because doing so would require solving a cubic polynomial
+        fun gasToDistance(network: DuctNetwork<*>, pos: DuctNodePos, dimensionId: DimensionId): Float {
+            var moles = 0.0
+            for (gas in network.getGasMassAt(pos)) moles +=  gas.value / ( gas.key.density * 22.4)
 
-            return (height + 0.5).toFloat()
+            if (moles < 0.01) return 0f
+
+            val pressure = AerodynamicUtils.getAirPressureForY(pos.y, dimensionId)
+            val temperature = network.getTemperatureAt(pos)
+
+            val volume = temperature*idealGasConstant*moles/pressure
+            val height = 4 * volume / PI
+
+            println("m $moles, p $pressure, t $temperature, v $volume, d $height ")
+
+            return height.toFloat()
         }
 
         fun getQuaterniond(direction: Direction): Quaterniond {
