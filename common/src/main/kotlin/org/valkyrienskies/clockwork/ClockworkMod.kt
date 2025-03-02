@@ -5,6 +5,9 @@ import com.simibubi.create.foundation.data.CreateRegistrate
 import dev.architectury.event.events.common.InteractionEvent
 import dev.architectury.event.events.common.LifecycleEvent
 import dev.architectury.event.events.common.TickEvent
+import dev.architectury.registry.client.rendering.ColorHandlerRegistry
+import net.minecraft.client.color.block.BlockColor
+import net.minecraft.client.color.block.BlockTintCache
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
 import org.slf4j.LoggerFactory
@@ -56,6 +59,7 @@ object ClockworkMod {
         vsApi.registerAttachment(EncasedFanController::class.java)
         vsApi.registerAttachment(GyroShipControl::class.java)
         vsApi.registerAttachment(GravitronController::class.java)
+        vsApi.registerAttachment(SugarRocketController::class.java)
 
 
         VSEvents.ShipLoadEvent.on { event ->
@@ -90,7 +94,6 @@ object ClockworkMod {
         InteractionEvent.RIGHT_CLICK_BLOCK.register(InteractionEvent.RightClickBlock { player, hand, pos, face ->
             DualLinkHandler.handler(player, hand, pos, face)
         })
-
 
     }
 
