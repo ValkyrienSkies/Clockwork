@@ -126,6 +126,11 @@ object ClockworkPartials {
     val CANNON_BARREL = PartialModel(ClockworkMod.asResource("block/delivery_cannon/cannon_barrel"))
     val CANNON_BASE = PartialModel(ClockworkMod.asResource("block/delivery_cannon/cannon_base"))
     val CANNON_MOUNT = PartialModel(ClockworkMod.asResource("block/delivery_cannon/mount"))
+    // region Extendon
+    val EXTENDON_AXIS0 = PartialModel(ClockworkMod.asResource("block/extendon/axis0"))
+    val EXTENDON_AXIS1 = PartialModel(ClockworkMod.asResource("block/extendon/axis1"))
+    val EXTENDON_HOSE = PartialModel(ClockworkMod.asResource("block/extendon/hose"))
+
     // endregion
 
     val ALTIMETER_REDSTONE = PartialModel(ClockworkMod.asResource("block/alt_meter/redstone"))

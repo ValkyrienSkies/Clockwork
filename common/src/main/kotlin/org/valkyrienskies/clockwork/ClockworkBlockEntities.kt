@@ -40,6 +40,7 @@ import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBl
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRenderer
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRenderer
+import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctRenderer
@@ -62,6 +63,8 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.Deli
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotRenderer
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer
+import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity
+import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonRenderer
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelBlockEntity
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelInstance
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelRenderer
@@ -653,6 +656,39 @@ object ClockworkBlockEntities {
             )
         }
         .validBlocks(ClockworkBlocks.GAS_BACKTANK)
+        .register()
+
+    @JvmField
+    val UNIVERSAL_SHAFT: BlockEntityEntry<UniversalShaftBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<UniversalShaftBlockEntity>(
+            "universal_shaft"
+        ) { typeIn: BlockEntityType<UniversalShaftBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
+            UniversalShaftBlockEntity(
+                typeIn,
+                pos!!, state!!
+            )
+        }
+        .validBlocks(ClockworkBlocks.UNIVERSAL_SHAFT)
+        .register()
+
+    @JvmField
+    val EXTENDON: BlockEntityEntry<ExtendonBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<ExtendonBlockEntity>(
+            "extendon"
+        ) { typeIn: BlockEntityType<ExtendonBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
+            ExtendonBlockEntity(
+                typeIn,
+                pos!!, state!!
+            )
+        }
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in ExtendonBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                ExtendonRenderer(
+                    context!!
+                )
+            }
+        }
+        .validBlocks(ClockworkBlocks.EXTENDON)
         .register()
 
     @JvmStatic

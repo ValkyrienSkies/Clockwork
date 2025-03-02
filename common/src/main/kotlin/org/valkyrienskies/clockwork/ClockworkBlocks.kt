@@ -48,6 +48,7 @@ import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.Gyroscop
 import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.LodefocusBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
+import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
@@ -61,6 +62,7 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.Deliv
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctBlock
+import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlock
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
@@ -865,6 +867,37 @@ object ClockworkBlocks {
             .register()
 
     @JvmField
+    val UNIVERSAL_SHAFT: BlockEntry<UniversalShaftBlock> =
+        REGISTRATE.block<UniversalShaftBlock>("universal_shaft") { properties: BlockBehaviour.Properties? ->
+            UniversalShaftBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.wooden() }
+            .transform(TagGen.axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
+            .register()
+
+    @JvmField
+    val EXTENDON: BlockEntry<ExtendonBlock> =
+        REGISTRATE.block<ExtendonBlock>("extendon") { properties: BlockBehaviour.Properties? ->
+            ExtendonBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.netheriteMetal() }
+            .transform(axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
+            .register()
+
+
+    @JvmField
     val GAS_BACKTANK: BlockEntry<GasBacktankBlock> =
         REGISTRATE.block<GasBacktankBlock>("gas_backtank") { properties: BlockBehaviour.Properties? ->
             GasBacktankBlock(properties!!)
@@ -875,6 +908,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .register()
+
 
 
 
