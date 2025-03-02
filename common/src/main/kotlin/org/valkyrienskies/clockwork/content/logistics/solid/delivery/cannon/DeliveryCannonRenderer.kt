@@ -45,7 +45,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         var mount = CachedBufferer.partial(ClockworkPartials.CANNON_MOUNT,be.blockState)
         var barrel = CachedBufferer.partial(ClockworkPartials.CANNON_BARREL,be.blockState)
 
-        val mult = if(be.gunPowderTicks>0) 3 else 1
+        val mult = if (Minecraft.getInstance().isPaused) 0 else if(be.gunPowderTicks>0) 3 else 1
 
         val xResult = turn(be.xLastRotation, be.xTargetRotation, 1.0*mult)
         val yResult = turn(be.yLastRotation, be.yTargetRotation, 0.75*mult)
@@ -92,7 +92,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         if (!be.transportStack.isEmpty && be.maxProgress > 0) {
 
 
-            be.clientProgress=min(be.clientProgress+partialTicks.toDouble()/3.0,be.maxProgress)
+            if (!Minecraft.getInstance().isPaused) be.clientProgress=min(be.clientProgress+partialTicks.toDouble()/3.0,be.maxProgress)
 
 
             if (!be.didParticles) {
