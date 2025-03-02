@@ -1,0 +1,181 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "facing": "north",
+        "reference_axis": "x"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "reference_axis": "x"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "reference_axis": "x"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "reference_axis": "x"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "reference_axis": "x"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "reference_axis": "x"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "reference_axis": "y"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block2"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "reference_axis": "y"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block2",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "reference_axis": "y"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block2",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "reference_axis": "y"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block2",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "reference_axis": "y"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block2",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "reference_axis": "y"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block2",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "reference_axis": "z"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block3"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "reference_axis": "z"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block3",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "reference_axis": "z"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block3",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "reference_axis": "z"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block3",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "reference_axis": "z"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block3",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "reference_axis": "z"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block3",
+        "x": 90
+      }
+    }
+  ]
+}

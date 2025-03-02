@@ -81,7 +81,8 @@ class AltMeterBlock(properties: Properties) : Block(properties), IBE<AltMeterBlo
 
     override fun getSignal(state: BlockState, level: BlockGetter, pos: BlockPos, direction: Direction): Int {
         return if (state.getValue(POWERED)) {
-            15
+            (level.getBlockEntity(pos) as? AltMeterBlockEntity)?.getSignalPower()
+                ?: return 15
         } else 0
     }
 
