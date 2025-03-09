@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
+
 plugins {
     // Needed for Forge+Fabric
     id "architectury-plugin" version "3.4.146"
@@ -137,9 +139,11 @@ allprojects {
         options.release = 17
     }
 
-    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile).configureEach {
+    tasks.withType(KotlinJvmCompile).configureEach {
         kotlinOptions {
             jvmTarget = "17"
+            freeCompilerArgs += "-Xjvm-default=all"
+
         }
     }
 

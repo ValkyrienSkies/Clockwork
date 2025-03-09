@@ -97,6 +97,7 @@ object ClockworkMod {
 
     }
 
+    @JvmStatic
     fun getKelvin(): DuctNetworkServer {
         return KelvinMod.getKelvin() as DuctNetworkServer
     }
