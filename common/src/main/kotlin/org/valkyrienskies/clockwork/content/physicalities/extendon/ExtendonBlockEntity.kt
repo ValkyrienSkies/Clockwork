@@ -52,6 +52,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
     override fun tick() {
         super.tick()
 
+
         if (level!!.isClientSide) return
 
         if (connectedBe == null || connectedJoint == null || distanceJoint == null || distanceJointId == null || !main) return
@@ -98,14 +99,14 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         if (connectedJoint == null) return
 
         if (connectedBe!!.edge == null) edge = null
-        else removeEdge()
+        else if (edge != null) removeEdge()
 
         if (connectedBe!!.distanceJoint == null) {
             distanceJoint = null
             distanceJointId = null
             sphericalJoint = null
             sphericalJointId = null
-        } else removeJoint()
+        } else if (distanceJointId != null) removeJoint()
 
         connectedBe = null
         main = false
@@ -201,7 +202,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
             connectedBe = level?.getBlockEntity(BlockPos(compound.getInt("ConnectedPosX"),compound.getInt("ConnectedPosY"),compound.getInt("ConnectedPosZ"))) as? ExtendonBlockEntity
             connectedJoint = connectedBe
             main = compound.getBoolean("IsMain")
-        }
+        } else disconnect()
 
         super.read(compound, clientPacket)
     }

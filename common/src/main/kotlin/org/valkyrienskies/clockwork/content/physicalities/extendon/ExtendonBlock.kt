@@ -6,6 +6,10 @@ import com.simibubi.create.foundation.block.IBE
 import com.simibubi.create.foundation.utility.Iterate
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.InteractionResult
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
@@ -13,6 +17,7 @@ import net.minecraft.world.level.block.DirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
+import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
 
@@ -84,5 +89,20 @@ class ExtendonBlock(properties: Properties) : DirectionalBlock(properties), IBE<
 
     override fun getBlockEntityType(): BlockEntityType<out ExtendonBlockEntity> {
         return ClockworkBlockEntities.EXTENDON.get()
+    }
+
+    override fun use(
+        state: BlockState,
+        level: Level,
+        pos: BlockPos,
+        player: Player,
+        hand: InteractionHand,
+        hit: BlockHitResult
+    ): InteractionResult {
+
+        val be = level.getBlockEntity(pos) as? ExtendonBlockEntity? ?: return super.use(state, level, pos, player, hand, hit)
+        if (player.getItemInHand(hand) == ItemStack.EMPTY) be.disconnect()
+
+        return super.use(state, level, pos, player, hand, hit)
     }
 }
