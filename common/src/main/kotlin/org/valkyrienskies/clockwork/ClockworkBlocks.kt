@@ -125,6 +125,7 @@ object ClockworkBlocks {
         }
             .transform(axeOrPickaxe())
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .onRegister(movementBehaviour(BladeControllerMovementBehaviour()))
             .item()

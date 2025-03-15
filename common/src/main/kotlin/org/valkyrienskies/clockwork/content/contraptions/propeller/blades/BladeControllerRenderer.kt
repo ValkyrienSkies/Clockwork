@@ -83,9 +83,7 @@ class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : S
             bladeBase.rotateZ(bladeAngle.toDouble())
             bladeExtension.rotateZ(bladeAngle.toDouble())
             bladeTip.rotateZ(bladeAngle.toDouble())
-            bladeBase.rotateCentered(Direction.UP, Math.toRadians(bladeRotation.toDouble()).toFloat())
-            bladeExtension.rotateCentered(Direction.UP, Math.toRadians(bladeRotation.toDouble()).toFloat())
-            bladeTip.rotateCentered(Direction.UP, Math.toRadians(bladeRotation.toDouble()).toFloat())
+
 
 
             ms.popPose()
@@ -117,6 +115,10 @@ class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : S
                 Direction.EAST,
                 AngleHelper.rad((-90.0 - AngleHelper.verticalAngle(facing)).toDouble())
             )
+
+            bladeBase.rotateCentered(Direction.UP, Math.toRadians(bladeRotation.toDouble()).toFloat())
+            bladeExtension.rotateCentered(Direction.UP, Math.toRadians(bladeRotation.toDouble()).toFloat())
+            bladeTip.rotateCentered(Direction.UP, Math.toRadians(bladeRotation.toDouble()).toFloat())
 
             ms.popPose()
             ms.pushPose()
