@@ -65,7 +65,7 @@ enum class ClockworkPackets(
 
     UPDATE_DUCT_EDGE(DuctEdgeSyncPacket::class.java, ::DuctEdgeSyncPacket),
     AIR_COMPRESSOR_PACKET(AirCompressorPacket::class.java, ::AirCompressorPacket),
-    GAS_NOZZLE_PACKET(GasNozzlePacket::class.java, ::GasNozzlePacket),
+
 
     UNIVERSAL_JOINT_ITEM_PACKET(UniversalJointItemPacket::class.java, ::UniversalJointItemPacket)
 

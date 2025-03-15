@@ -5,6 +5,7 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.utility.animation.LerpedFloat
 import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.TextComponent
 import net.minecraft.server.level.ServerLevel
@@ -13,16 +14,11 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkAugmentations
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
-import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorPacket
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.clockwork.util.AerodynamicUtils
-import org.valkyrienskies.clockwork.util.AerodynamicUtils.calcPressure
-import org.valkyrienskies.clockwork.util.AerodynamicUtils.calculateFlow
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.densityAverage
-import org.valkyrienskies.clockwork.util.AerodynamicUtils.densityFromPressureAverage
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.dynamicViscosityAverage
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.specificHeatAverage
 import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
@@ -37,20 +33,38 @@ import org.valkyrienskies.mod.common.util.toJOMLD
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.min
 
 class GasNozzleBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?): KineticBlockEntity(type, pos, state), IHeatableBlockEntity {
 
     var hasPocket = false
+    var pointerSpeed = 0.0
+
     val pointer: LerpedFloat = LerpedFloat.linear()
         .startWithValue(0.5)
-        .chase(0.5, 0.0, LerpedFloat.Chaser.LINEAR)
+        .chase(0.5, pointerSpeed, LerpedFloat.Chaser.LINEAR)
 
     var currentIdealOutput: Double = 0.0
+
+
 
     val pid = PIDstance()
 
     var clientPocketTemperature: Double = 0.0
+
+    override fun write(tag: CompoundTag, clientPacket: Boolean) {
+        super.write(tag, clientPacket)
+        tag.putDouble("pointer_target",pointer.chaseTarget.toDouble())
+        tag.putDouble("pointer_speed",pointerSpeed)
+    }
+
+    override fun read(tag: CompoundTag, clientPacket: Boolean) {
+        super.read(tag, clientPacket)
+
+        val target = tag.getDouble("pointer_target")
+        pointerSpeed = tag.getDouble("pointer_speed")
+
+        pointer.chase(target, pointerSpeed, LerpedFloat.Chaser.LINEAR)
+    }
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) {
         return
@@ -85,8 +99,8 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
         super.onSpeedChanged(previousSpeed)
         val speed = getSpeed()
         val target = (if (speed > 0) 1 else 0).toDouble()
-        pointer.chase(target, getChaseSpeed(), LerpedFloat.Chaser.LINEAR)
-        ClockworkPackets.sendToNear(level, blockPos, 100, GasNozzlePacket(target, blockPos))
+        pointerSpeed = getChaseSpeed()
+        pointer.chase(target, pointerSpeed, LerpedFloat.Chaser.LINEAR)
         sendData()
     }
 
