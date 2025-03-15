@@ -20,7 +20,6 @@ import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterClosePack
 import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterScreenOpenPacket
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorPacket
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorPacket
-import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzlePacket
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.UpdateFrequencySlotPacket
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonSyncPacket
 import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket
