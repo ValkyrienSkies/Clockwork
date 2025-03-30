@@ -15,6 +15,9 @@ import net.minecraft.core.Direction
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
+import net.minecraft.world.phys.Vec3
+import org.joml.Vector3d
+import org.joml.Vector3f
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkPartials
 
@@ -33,7 +36,7 @@ class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : S
 
         val blades = blockEntity.getAllBlades()
         val bladeAngle = blockEntity.clientBladeAngle.getValue(partialTicks)
-        val bladeLength = 1.0f //blockEntity.clientBladeLength.getValue(partialTicks)
+        val bladeLength = 1.0f // blockEntity.clientBladeLength.getValue(partialTicks)
 
         val blockState = blockEntity.blockState
 
@@ -69,9 +72,15 @@ class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : S
                     bladeTip.transform(contraptionMatrices.model)
                 }
 
-                renderBlade(bladeBase, bladeExtension, bladeTip, bladeAngle, 1.0f, bladeRotation, ms, renderBuffer, facing, contraption)
+                renderBlade(bladeBase, bladeExtension, bladeTip, bladeAngle, bladeLength, bladeRotation, ms, renderBuffer, facing, contraption)
             }
             //ms.popPose()
+        }
+
+        fun rotateByPivot(buffer: SuperByteBuffer, pivot: Vec3, rotation: Double) {
+            buffer.translate(pivot)
+            buffer.rotateZ(rotation)
+            buffer.translateBack(pivot)
         }
 
         fun renderBlade(bladeBase: SuperByteBuffer, bladeExtension: SuperByteBuffer, bladeTip: SuperByteBuffer, bladeAngle: Float, bladeLength: Float, bladeRotation: Float, ms: PoseStack, buffer: VertexConsumer, facing: Direction, contraption: Boolean) {
@@ -79,10 +88,9 @@ class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : S
             ms.pushPose()
             ms.translate(0.0, 0.0, 0.0)
 
+            val pivot = Vec3(0.5,0.5,0.5)
 
-            bladeBase.rotateZ(bladeAngle.toDouble())
-            bladeExtension.rotateZ(bladeAngle.toDouble())
-            bladeTip.rotateZ(bladeAngle.toDouble())
+
 
 
 
@@ -119,6 +127,10 @@ class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : S
             bladeBase.rotateCentered(Direction.UP, Math.toRadians(bladeRotation.toDouble()).toFloat())
             bladeExtension.rotateCentered(Direction.UP, Math.toRadians(bladeRotation.toDouble()).toFloat())
             bladeTip.rotateCentered(Direction.UP, Math.toRadians(bladeRotation.toDouble()).toFloat())
+
+            rotateByPivot(bladeBase, pivot, bladeAngle.toDouble())
+            rotateByPivot(bladeExtension, pivot, bladeAngle.toDouble())
+            rotateByPivot(bladeTip, pivot, bladeAngle.toDouble())
 
             ms.popPose()
             ms.pushPose()
