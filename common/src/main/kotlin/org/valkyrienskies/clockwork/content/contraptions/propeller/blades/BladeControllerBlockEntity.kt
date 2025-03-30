@@ -36,7 +36,7 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
     var blades: NonNullList<ItemStack> = NonNullList.withSize(8, ItemStack.EMPTY)
 
     var bladeAngle: Double = 0.0
-    var bladeLength: Int = 5
+    var bladeLength: Int = 1
 
     var clientBladeAngle = LerpedFloat.angular()
         .chase(bladeAngle, 0.5, LerpedFloat.Chaser.EXP)

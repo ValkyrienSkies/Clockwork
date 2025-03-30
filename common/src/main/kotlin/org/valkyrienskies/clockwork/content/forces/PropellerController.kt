@@ -50,13 +50,9 @@ class PropellerController(
         // Propeller Thrust
         for (physData in appliers.values) {
             if(physData.active) {
-                val (force, torque) = if (physData.brass) {
-                    computeForce(
-                        physShip.transform, physData, (physShip).velocity, physShip.omega, physShip
-                    )
-                } else {
-                    computeBladeForce(physShip, physData)
-                }
+                val (force, torque) = if (physData.brass) computeForce(physShip.transform, physData, (physShip).velocity, physShip.omega, physShip)
+                else computeBladeForce(physShip, physData)
+
                 if (force.isFinite && torque.isFinite) {
                     if (physData.brass) {
                         physShip.applyInvariantForce(force)
@@ -228,7 +224,7 @@ class PropellerController(
             val force = worldAxis.mul(dThrust, Vector3d())
             val torque = rotatedDist.cross(force, Vector3d())
 
-            netForce.add(force.mul(10.0))
+            netForce.add(force.mul(50.0))
             netTorque.add(torque)
         }
 
