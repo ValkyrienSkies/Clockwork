@@ -15,6 +15,10 @@ import kotlin.math.abs
 import kotlin.math.max
 
 class AngleScrollValueBehaviour(label: Component, be: SmartBlockEntity, slot: ValueBoxTransform) : ScrollValueBehaviour(label, be, slot) {
+
+
+
+
     override fun getType(): BehaviourType<*> {
         return super.getType()
     }
