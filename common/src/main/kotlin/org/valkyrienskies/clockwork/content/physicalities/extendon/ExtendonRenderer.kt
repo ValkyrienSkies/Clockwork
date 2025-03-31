@@ -98,7 +98,7 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
 
         //==========
 
-        var radius = (9f / 2f) / 16f
+        var radius = 13f / 16f / 2f
 
         var minU = 0f
         var maxU = 1f
