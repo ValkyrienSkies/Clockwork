@@ -1,26 +1,40 @@
 package org.valkyrienskies.clockwork.content.physicalities.extendon
 
+import com.jozufozu.flywheel.util.transform.TransformStack
+import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
+import com.mojang.blaze3d.vertex.Tesselator
+import com.mojang.blaze3d.vertex.VertexConsumer
+import com.mojang.blaze3d.vertex.VertexFormat
+import com.mojang.math.Matrix3f
+import com.mojang.math.Matrix4f
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.outliner.Outliner
 import com.simibubi.create.foundation.outliner.Outline
-import com.simibubi.create.CreateClient
+import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.GameRenderer
+import net.minecraft.client.renderer.LightTexture
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
+import net.minecraft.client.renderer.texture.OverlayTexture
+import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.world.phys.AABB
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.level.LightLayer
 import org.joml.Vector3d
+import org.lwjgl.opengl.GL11
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.util.toJOMLD
-import org.valkyrienskies.clockwork.util.render.outline.RotatedAABBOutline
 import kotlin.math.*
 import org.valkyrienskies.clockwork.util.*
 
 class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlockEntityRenderer<ExtendonBlockEntity>(context) {
+    override fun shouldRenderOffScreen(blockEntity: ExtendonBlockEntity) = true
 
     override fun renderSafe(
         be: ExtendonBlockEntity,
@@ -30,10 +44,6 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
         light: Int,
         overlay: Int
     ) {
-
-
-        val outliner = CreateClient.OUTLINER
-
         val vb = buffer.getBuffer(RenderType.cutout())
 
         var axis0 = CachedBufferer.partial(ClockworkPartials.EXTENDON_AXIS0,be.blockState)
@@ -56,43 +66,142 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
             axis1 = axis1.rotateCentered(Direction.UP, angles.second.toFloat())
             axis1 = axis1.rotateCentered(Direction.WEST, angles.first.toFloat())
 
-
             if (be.main) {
-                //Rotated AABB creation
-                val minX = thisPos.x - 0.25
-                val minY = thisPos.y - 0.25
-                val minZ = thisPos.z - 0.25
-                val maxX = thisPos.x - 0.25 + thisPos.distance(otherPos)
-                val maxY = thisPos.y + 0.25
-                val maxZ = thisPos.z + 0.25
-
-                val aabb = AABB(minX, minY, minZ, maxX, maxY, maxZ)
-
-                // Create and configure the outline
-                val outline = RotatedAABBOutline(aabb, direction)
-
-                if (!outliner.getOutlines()
-                        .containsKey(be) || (outliner.getOutlines()[be]?.outline !is RotatedAABBOutline)
-                ) outliner.showCustomOutline(be, outline)
-                else outliner.editCustomOutline(be, outline)
-
-                // Keep the outline alive for next frame
-                outliner.keep(be)
+                renderTubes(direction.length().toFloat(), ms, angles, be.blockPos, be.connectedBe!!.blockPos)
             }
-        } else {
-            // Remove outline if no connection
-            outliner.remove(be)
         }
 
         axis0.light().renderInto(ms,vb)
         axis1.light().renderInto(ms,vb)
 
-
-
         super.renderSafe(be, partialTicks, ms, buffer, light, overlay)
     }
 
+    fun renderTubes(length: Float,
+                    ms: PoseStack,
+                    angles: Triple<Double, Double, Double>,
+                    pos1: BlockPos, pos2: BlockPos,
+                    ) {
+        val (pitch, yaw, roll) = angles
+        val level = Minecraft.getInstance().level!!
+
+        ms.pushPose();
+        var chain = TransformStack.cast(ms)
+        chain.centre();
+
+        chain.rotateYRadians(yaw)
+        chain.rotateXRadians(-pitch)
+        chain.rotateYRadians(PI / 4.0)
+
+        chain.translate(0.5, 8 / 16.0, 0.5)
+        chain.unCentre()
+
+        //==========
+
+        var radius = 13f / 16f / 2f
+
+        var minU = 0f
+        var maxU = 1f
+        var minV = 0f
+        var maxV = length / (15f/16f)
+
+        var light1 = LightTexture.pack(
+            level.getBrightness(LightLayer.BLOCK, pos1),
+            level.getBrightness(LightLayer.SKY, pos1)
+        )
+        var light2 = LightTexture.pack(
+            level.getBrightness(LightLayer.BLOCK, pos2),
+            level.getBrightness(LightLayer.SKY, pos2)
+        )
+
+        //stupidity
+        val tesselator = Tesselator.getInstance()
+        val buf = tesselator.builder
+
+        RenderSystem.disableBlend()
+        RenderSystem.disableCull()
+        RenderSystem.enableDepthTest()
+        RenderSystem.depthFunc(GL11.GL_LEQUAL)
+        RenderSystem.depthMask(true)
+        RenderSystem.setShader(GameRenderer::getRendertypeTranslucentShader)
+        RenderSystem.setShaderTexture(0, texture)
+
+        Minecraft.getInstance().gameRenderer.lightTexture().turnOnLightLayer()
+
+        buf.begin(VertexFormat.Mode.QUADS, GameRenderer.getRendertypeTranslucentShader()!!.vertexFormat)
+
+        renderPart(buf, ms, length,
+            0f, radius, -radius, 0f,
+            radius, 0f, 0f, -radius,
+            minU, maxU, minV, maxV,
+            light1, light2
+        )
+
+        tesselator.end()
+
+        RenderSystem.enableBlend()
+        RenderSystem.enableCull()
+
+        //==========
+
+        ms.popPose()
+    }
+
+    fun renderPart(
+        buf: VertexConsumer,
+        poseStack: PoseStack,
+        maxY: Float,
+        x0: Float, x1: Float, x2: Float, x3: Float,
+        z0: Float, z1: Float, z2: Float, z3: Float,
+        minU: Float, maxU: Float,
+        minV: Float, maxV: Float,
+        light1: Int, light2: Int
+    ) {
+        val pose = poseStack.last()
+        val matrix = pose.pose()
+        val normal = pose.normal()
+
+        renderQuad(buf, matrix, normal, 0f, maxY, x0, x2, z0, z2, minU, maxU, minV, maxV, light1, light2)
+        renderQuad(buf, matrix, normal, 0f, maxY, x1, x0, z1, z0, minU, maxU, minV, maxV, light1, light2)
+        renderQuad(buf, matrix, normal, 0f, maxY, x3, x1, z3, z1, minU, maxU, minV, maxV, light1, light2)
+        renderQuad(buf, matrix, normal, 0f, maxY, x2, x3, z2, z3, minU, maxU, minV, maxV, light1, light2)
+    }
+
+    fun renderQuad(
+        buf: VertexConsumer,
+        matrix: Matrix4f,
+        normal: Matrix3f,
+        minY: Float, maxY: Float,
+        minX: Float, maxX: Float,
+        minZ: Float, maxZ: Float,
+        minU: Float, maxU: Float,
+        minV: Float, maxV: Float,
+        light1: Int, light2: Int
+    ) {
+        addVertex(buf, matrix, normal, minX, maxY, minZ, maxU, minV, light2)
+        addVertex(buf, matrix, normal, minX, minY, minZ, maxU, maxV, light1)
+        addVertex(buf, matrix, normal, maxX, minY, maxZ, minU, maxV, light1)
+        addVertex(buf, matrix, normal, maxX, maxY, maxZ, minU, minV, light2)
+    }
+
+    fun addVertex(
+        buf: VertexConsumer,
+        matrix: Matrix4f,
+        normal: Matrix3f,
+        x: Float, y: Float, z: Float,
+        u: Float, v: Float,
+        light: Int,
+    ) = buf
+        .vertex(matrix, x, y, z)
+        .color(255, 255, 255, 255)
+        .uv(u, v)
+        .overlayCoords(OverlayTexture.NO_OVERLAY)
+        .uv2(light)
+        .normal(normal, 0f, 1f, 0f)
+        .endVertex()
+
     companion object {
+        val texture = ResourceLocation(ClockworkMod.MOD_ID, "textures/block/hose.png")
 
         fun getEulerAngles(direction: Vector3d): Triple<Double, Double, Double> {
             // Calculate yaw (rotation around the Y-axis)
@@ -110,8 +219,6 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
             // Return the angles in radians (pitch, yaw, roll)
             return Triple(pitch + Math.PI*3/2, yaw, roll)
         }
-
-
     }
 }
 
