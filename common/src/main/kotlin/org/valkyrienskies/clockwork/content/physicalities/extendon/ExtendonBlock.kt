@@ -9,7 +9,6 @@ import net.minecraft.core.Direction
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
-import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
@@ -101,7 +100,7 @@ class ExtendonBlock(properties: Properties) : DirectionalBlock(properties), IBE<
     ): InteractionResult {
 
         val be = level.getBlockEntity(pos) as? ExtendonBlockEntity? ?: return super.use(state, level, pos, player, hand, hit)
-        if (player.getItemInHand(hand) == ItemStack.EMPTY) be.disconnect()
+        if (player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty) be.disconnect()
 
         return super.use(state, level, pos, player, hand, hit)
     }
