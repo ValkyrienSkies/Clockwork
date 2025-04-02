@@ -223,7 +223,6 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
             val volume = temperature*idealGasConstant*moles/pressure
             val height = 4 * volume / PI
 
-            println("m $moles, p $pressure, t $temperature, v $volume, d $height ")
 
             return height.toFloat()
         }
