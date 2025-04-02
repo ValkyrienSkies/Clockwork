@@ -36,5 +36,6 @@ interface IForceApplierBE<U: ForceApplierUpdateData, D: ForceApplierData<U>, C: 
         val ship = (level as ServerLevel).getShipObjectManagingPos(pos) ?: return
         val attachment = ship.getAttachment(clazz) ?: return
         attachment.removeApplier(physID)
+        physID = -1
     }
 }
