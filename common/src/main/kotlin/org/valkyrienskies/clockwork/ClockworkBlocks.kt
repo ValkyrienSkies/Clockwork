@@ -572,6 +572,34 @@ object ClockworkBlocks {
             .register()
 
     @JvmField
+    val EXTENDON: BlockEntry<ExtendonBlock> =
+        REGISTRATE.block<ExtendonBlock>("extendon") { properties: BlockBehaviour.Properties? ->
+            ExtendonBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.netheriteMetal() }
+            .transform(axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
+            .register()
+
+
+    @JvmField
+    val GAS_BACKTANK: BlockEntry<GasBacktankBlock> =
+        REGISTRATE.block<GasBacktankBlock>("gas_backtank") { properties: BlockBehaviour.Properties? ->
+            GasBacktankBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.softMetal() }
+            .transform(axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .register()
+
+    @JvmField
     val GOO_BLOCK = REGISTRATE.block<GooBlock>("goo_block") { properties: BlockBehaviour.Properties? ->
         GooBlock(
             properties!!
@@ -882,33 +910,7 @@ object ClockworkBlocks {
             .build()
             .register()
 
-    @JvmField
-    val EXTENDON: BlockEntry<ExtendonBlock> =
-        REGISTRATE.block<ExtendonBlock>("extendon") { properties: BlockBehaviour.Properties? ->
-            ExtendonBlock(properties!!)
-        }
-            .initialProperties { SharedProperties.netheriteMetal() }
-            .transform(axeOrPickaxe())
-            .properties { it.noOcclusion() }
-            .addLayer { Supplier { RenderType.cutout() } }
-            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
-            .item()
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
-            .build()
-            .register()
 
-
-    @JvmField
-    val GAS_BACKTANK: BlockEntry<GasBacktankBlock> =
-        REGISTRATE.block<GasBacktankBlock>("gas_backtank") { properties: BlockBehaviour.Properties? ->
-            GasBacktankBlock(properties!!)
-        }
-            .initialProperties { SharedProperties.softMetal() }
-            .transform(axeOrPickaxe())
-            .properties { it.noOcclusion() }
-            .addLayer { Supplier { RenderType.cutout() } }
-            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
-            .register()
 
 
 
