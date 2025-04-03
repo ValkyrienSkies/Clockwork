@@ -10,13 +10,15 @@ import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.HitResult
+import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronState.Companion.getState
 import org.valkyrienskies.clockwork.content.forces.GooController
-import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.mod.api.getShipManagingBlock
+import org.valkyrienskies.mod.api.toMinecraft
 import org.valkyrienskies.mod.common.shipObjectWorld
+import org.valkyrienskies.mod.common.toWorldCoordinates
 import org.valkyrienskies.mod.common.util.toDoubles
+import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.world.clipIncludeShips
 import java.util.*
 
@@ -42,16 +44,30 @@ class GooBlock(properties: Properties) : Block(properties.noOcclusion()), IBE<Go
         val ship = level.getShipManagingBlock(pos)
         for (direction in Direction.entries) {
             if (!level.getBlockState(pos.offset(direction.normal)).isAir) continue
-            val vec3Pos = pos.toDoubles().add(0.5,0.5,0.5)
 
-            val context = ClipContext(vec3Pos.add(direction.normal.toDoubles().scale(0.75)), vec3Pos.add(direction.normal.toDoubles()), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, null)
+            val transformedDirection = ship?.transform?.shipToWorld?.transformDirection(direction.normal.toJOMLD())?.toMinecraft()
+                ?: direction.normal.toDoubles()
+
+            val clipStartPos: Vec3
+            if (ship == null) clipStartPos = pos.toDoubles().add(0.5,0.5,0.5).add(transformedDirection.scale(0.5))
+            else clipStartPos = ship.toWorldCoordinates(pos.toDoubles().add(0.5,0.5,0.5).add(transformedDirection.scale(0.5)))
+
+            val clipEndPos = clipStartPos.add(transformedDirection.scale(0.75))
+
+            val context = ClipContext(clipStartPos, clipEndPos, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, null)
             val clip = level.clipIncludeShips(context, false, ship?.id)
             if (clip.type == HitResult.Type.MISS) continue
+
+            if (ship != null)  {
+                val loadedShip = level.shipObjectWorld.loadedShips.getById(ship.id) ?: continue
+                GooController.getOrCreate(loadedShip)?.addCollision(clip.blockPos)
+            }
+
             val clipShip = level.getShipManagingBlock(clip.blockPos) ?: continue
             // Have to do this, since type cast to loaded ship is impossible
             val loadedClipShip = level.shipObjectWorld.loadedShips.getById(clipShip.id) ?: continue
             GooController.getOrCreate(loadedClipShip)?.addCollision(pos)
-            if (ship != null) GooController.getOrCreate(loadedClipShip)?.addCollision(clip.blockPos)
+
         }
 
         level.scheduleTick(pos, this, 1)
