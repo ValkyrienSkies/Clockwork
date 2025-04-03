@@ -60,6 +60,7 @@ object ClockworkMod {
         vsApi.registerAttachment(GyroShipControl::class.java)
         vsApi.registerAttachment(GravitronController::class.java)
         vsApi.registerAttachment(SugarRocketController::class.java)
+        vsApi.registerAttachment(GooController::class.java)
 
 
         VSEvents.ShipLoadEvent.on { event ->

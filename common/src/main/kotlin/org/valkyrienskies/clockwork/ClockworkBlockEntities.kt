@@ -23,8 +23,8 @@ import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroBlockEntity
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer
-import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlockEntity
-import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlockEntityRenderer
+import org.valkyrienskies.clockwork.content.physicalities.goo_block.GooBlockEntity
+import org.valkyrienskies.clockwork.content.physicalities.goo_block.GooBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity

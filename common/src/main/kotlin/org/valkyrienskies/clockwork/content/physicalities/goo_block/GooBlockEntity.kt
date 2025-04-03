@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content.contraptions.phys.slicker
+package org.valkyrienskies.clockwork.content.physicalities.goo_block
 
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
@@ -8,4 +8,6 @@ import net.minecraft.world.level.block.state.BlockState
 
 class GooBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : SmartBlockEntity(type, pos, state) {
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {}
+
+
 }

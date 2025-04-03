@@ -21,7 +21,6 @@ import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockBehaviour
-import net.minecraft.world.level.block.state.BlockBehaviour.Properties
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.client.render.WingBlockItemRenderer
@@ -32,7 +31,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearin
 import org.valkyrienskies.clockwork.content.physicalities.gas_thruster.GasThrusterBlock
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlock
-import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlock
+import org.valkyrienskies.clockwork.content.physicalities.goo_block.GooBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeControllerBlock
