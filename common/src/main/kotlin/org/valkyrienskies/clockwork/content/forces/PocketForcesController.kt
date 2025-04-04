@@ -41,7 +41,6 @@ import kotlin.math.*
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class PocketForcesController: ShipForcesInducer {
 
-    @JsonIgnore
     var dimensionId: DimensionId = "minecraft:dimension:minecraft:overworld"
 
     @JsonIgnore

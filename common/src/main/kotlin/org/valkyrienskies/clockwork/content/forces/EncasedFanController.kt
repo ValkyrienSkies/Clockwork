@@ -25,8 +25,7 @@ class EncasedFanController(
     override var nextApplierID: Int = 0
 ) : MultiInstanceForceApplier<EncasedFanUpdateData, EncasedFanData, EncasedFanCreateData> {
 
-    @JsonIgnore
-    var dimensionId: DimensionId = "minecraft:overworld"
+    var dimensionId: DimensionId = "minecraft:dimension:minecraft:overworld"
 
     override fun applyForces(physShip: PhysShip) {
         super.applyForces(physShip)

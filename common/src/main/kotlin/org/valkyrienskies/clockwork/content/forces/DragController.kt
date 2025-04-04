@@ -27,7 +27,6 @@ import kotlin.collections.HashMap
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class DragController : ShipForcesInducer {
 
-    @JsonIgnore
     var dimensionId: DimensionId = "minecraft:dimension:minecraft:overworld"
 
     @JsonIgnore
