@@ -67,7 +67,14 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
             axis1 = axis1.rotateCentered(Direction.WEST, angles.first.toFloat())
 
             if (be.main) {
-                renderTubes(direction.length().toFloat(), ms, angles, be.blockPos, be.connectedBe!!.blockPos)
+                val mainScale  = thisShip ?.transform?.scaling?.get(0) ?: 1.0
+                val otherScale = otherShip?.transform?.scaling?.get(0) ?: 1.0
+
+                val tubeRadiusMultiplier = if (otherScale < mainScale) (otherScale / mainScale).toFloat() else 1f
+                val tubeLengthMultiplier = (1.0 / mainScale).toFloat()
+                val tubeTextureMultiplier = if (otherScale > mainScale) 1f else (otherScale / mainScale).toFloat()
+
+                renderTubes(direction.length().toFloat() * tubeLengthMultiplier, ms, angles, be.blockPos, be.connectedBe!!.blockPos, tubeRadiusMultiplier, tubeTextureMultiplier)
             }
         }
 
@@ -81,6 +88,8 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
                     ms: PoseStack,
                     angles: Triple<Double, Double, Double>,
                     pos1: BlockPos, pos2: BlockPos,
+                    tubeRadiusScale: Float,
+                    tubeLengthScale: Float,
                     ) {
         val (pitch, yaw, roll) = angles
         val level = Minecraft.getInstance().level!!
@@ -98,12 +107,12 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
 
         //==========
 
-        var radius = 13f / 16f / 2f
+        var radius = 13f / 16f / 2f * tubeRadiusScale
 
         var minU = 0f
         var maxU = 1f
         var minV = 0f
-        var maxV = length / (15f/16f)
+        var maxV = length / (15f/16f) / tubeLengthScale
 
         var light1 = LightTexture.pack(
             level.getBrightness(LightLayer.BLOCK, pos1),
