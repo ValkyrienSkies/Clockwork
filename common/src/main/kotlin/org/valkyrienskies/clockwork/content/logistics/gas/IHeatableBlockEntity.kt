@@ -39,7 +39,7 @@ interface IHeatableBlockEntity: IHaveGoggleInformation {
         if (kelvin.getGasMassAt(this.getDuctNodePosition()).isNotEmpty()) {
             tooltip.add(TextComponent("Gas Masses:"))
             for (entry in kelvin.getGasMassAt(this.getDuctNodePosition()).entries) {
-                tooltip.add(TextComponent("${entry.key.name}: ${entry.value.roundToInt()} kg"))
+                if (entry.value > 0) tooltip.add(TextComponent("${entry.key.name}: ${entry.value.roundToInt()} kg"))
             }
             found = true
         }
