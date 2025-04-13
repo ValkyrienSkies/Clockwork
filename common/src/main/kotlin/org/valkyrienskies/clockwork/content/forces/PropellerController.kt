@@ -38,8 +38,7 @@ class PropellerController(
     override var nextApplierID: Int = 0
 ) : MultiInstanceForceApplier<PropUpdateData, PropData, PropCreateData> {
 
-    @JsonIgnore
-    var dimensionId: DimensionId = "minecraft:overworld"
+    var dimensionId: DimensionId = "minecraft:dimension:minecraft:overworld"
 
     var ticksSinceLastUpdate = 0
 

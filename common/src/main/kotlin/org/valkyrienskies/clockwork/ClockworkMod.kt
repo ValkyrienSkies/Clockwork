@@ -61,6 +61,21 @@ object ClockworkMod {
         vsApi.registerAttachment(GravitronController::class.java)
         vsApi.registerAttachment(SugarRocketController::class.java)
 
+        //TODO remove when attachment bug is fixed
+        VSEvents.shipLoadEvent.on { (ship) ->
+            PocketForcesController.getOrCreate(ship)
+            DragController.getOrCreate(ship)
+            WanderShipControl.getOrCreate(ship)
+
+            GasThrusterController.getOrCreate(ship)
+            PropellerController.getOrCreate(ship)
+            ReactionWheelController.getOrCreate(ship)
+            EncasedFanController.getOrCreate(ship)
+            GyroShipControl.getOrCreate(ship)
+            GravitronController.getOrCreate(ship)
+            SugarRocketController.getOrCreate(ship)
+        }
+
 
         VSEvents.ShipLoadEvent.on { event ->
             val pocketController = PocketForcesController()

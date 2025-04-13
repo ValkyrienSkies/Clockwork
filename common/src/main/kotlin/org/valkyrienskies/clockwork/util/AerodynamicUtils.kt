@@ -1,32 +1,73 @@
 package org.valkyrienskies.clockwork.util
 
+import com.google.gson.Gson
+import com.google.gson.JsonElement
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.server.packs.resources.ResourceManager
+import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener
 import net.minecraft.util.Mth
+import net.minecraft.util.profiling.ProfilerFiller
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.content.forces.DragController
+import org.valkyrienskies.clockwork.util.AerodynamicUtils.Parameters
+import org.valkyrienskies.clockwork.util.AerodynamicUtils.dimensionMap
 import org.valkyrienskies.core.api.world.properties.DimensionId
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.api.DuctNetwork.Companion.idealGasConstant
 import kotlin.collections.HashMap
 import kotlin.math.*
 
+object AtmosphereParametersResolver: SimpleJsonResourceReloadListener(Gson(), "atmosphere_parameters") {
+    override fun apply(
+        objects: Map<ResourceLocation?, JsonElement?>,
+        resourceManager: ResourceManager,
+        profiler: ProfilerFiller
+    ) {
+        val temp = hashMapOf<String, Parameters>()
+
+        objects.forEach { (key, value) ->
+            if (key == null || value == null) {return@forEach}
+            try {
+                if (value.isJsonArray) {
+                    value.asJsonArray.forEach { parse(it, temp) }
+                } else if (value.isJsonObject) {
+                    parse(value, temp)
+                } else throw IllegalArgumentException()
+            } catch (e: Exception) {
+                ClockworkMod.LOGGER.error(e.stackTraceToString())
+            }
+        }
+
+        dimensionMap = temp
+    }
+
+    //TODO add dimensionId verification somehow?
+    private fun parse(element: JsonElement, map: MutableMap<String, Parameters>) {
+        val maxYPos = element.asJsonObject["maxYPos"]?.asDouble ?: throw NoSuchElementException("Parameter \"maxYPos\" wasn't filled")
+        val seaLevel = element.asJsonObject["seaLevel"]?.asDouble ?: throw NoSuchElementException("Parameter \"seaLevel\" wasn't filled")
+        val dimensionId = element.asJsonObject["dimensionId"]?.asString ?: throw NoSuchElementException("Parameter \"dimensionId\" wasn't filled")
+        val priority = element.asJsonObject["priority"]?.asInt ?: 0
+
+        map.getOrPut(dimensionId) { Parameters(maxYPos, seaLevel, priority) }.also {
+            if (it.priority < priority) {
+                map[dimensionId] = Parameters(maxYPos, seaLevel, priority)
+            }
+        }
+    }
+}
+
 /**
  * Contains useful functions for features that need funny wind maths. Mainly drag and balloons.
  */
 object AerodynamicUtils {
+    data class Parameters(val maxY: Double, val seaLevel: Double, val priority: Int = -1)
 
-    val dimensionMap: HashMap<DimensionId, Pair<Double, Double>> = HashMap()
+    var dimensionMap: HashMap<DimensionId, Parameters> = HashMap()
     const val DEFAULT_MAX = 562.0
     const val DEFAULT_SEA_LEVEL = 62.0
 
-    fun getAtmosphereForDimension(id: DimensionId): Pair<Double, Double> {
-        return dimensionMap[id] ?: Pair(DEFAULT_MAX, DEFAULT_SEA_LEVEL)
-    }
+    val defaultParameters = Parameters(DEFAULT_MAX, DEFAULT_SEA_LEVEL)
 
-    init {
-        dimensionMap["minecraft:dimension:minecraft:overworld"] = Pair(562.0, 62.0)
-        dimensionMap["minecraft:dimension:minecraft:the_nether"] = Pair(256.0, 31.0)
-        dimensionMap["minecraft:dimension:minecraft:the_end"] = Pair(-1.0, 0.0)
-    }
+    fun getAtmosphereForDimension(id: DimensionId) = dimensionMap[id] ?: defaultParameters
 
 
     /**
