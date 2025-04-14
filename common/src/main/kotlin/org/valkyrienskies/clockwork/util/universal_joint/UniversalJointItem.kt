@@ -31,6 +31,7 @@ open class UniversalJointItem<T: IUniversalJoint>(properties: Properties) : Item
             context.player!!.sendMessage(TextComponent("second selected"), Util.NIL_UUID)
             if (firstSelect == tBe) return fail()
             if (!firstSelect!!.tryConnect(context.level,be.blockPos)) return fail()
+            context.itemInHand.count -= 1
             firstSelect = null
         }
         return InteractionResult.SUCCESS

@@ -9,6 +9,7 @@ import net.minecraft.core.Direction
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
@@ -18,6 +19,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
 
 class ExtendonBlock(properties: Properties) : DirectionalBlock(properties), IBE<ExtendonBlockEntity>, INodeBlock {
@@ -99,8 +101,14 @@ class ExtendonBlock(properties: Properties) : DirectionalBlock(properties), IBE<
         hit: BlockHitResult
     ): InteractionResult {
 
+        if (level.isClientSide) return super.use(state, level, pos, player, hand, hit)
+
         val be = level.getBlockEntity(pos) as? ExtendonBlockEntity? ?: return super.use(state, level, pos, player, hand, hit)
-        if (player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty) be.disconnect()
+        if (player.getItemInHand(InteractionHand.MAIN_HAND).item !is BlockItem && be.connectedJoint != null) {
+            be.disconnect()
+            if (!player.isCreative) player.addItem(ClockworkItems.EXTENDON_HOSE.asStack())
+            return InteractionResult.SUCCESS
+        }
 
         return super.use(state, level, pos, player, hand, hit)
     }
