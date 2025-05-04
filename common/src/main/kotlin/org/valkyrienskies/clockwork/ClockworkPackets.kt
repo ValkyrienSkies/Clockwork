@@ -18,7 +18,6 @@ import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRu
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctEdgeSyncPacket
 import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterClosePacket
 import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterScreenOpenPacket
-import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorPacket
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorPacket
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.UpdateFrequencySlotPacket
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonSyncPacket
@@ -63,7 +62,6 @@ enum class ClockworkPackets(
     WANDER_WAND_CLEAR(WanderWandClearPacket::class.java, ::WanderWandClearPacket),
 
     UPDATE_DUCT_EDGE(DuctEdgeSyncPacket::class.java, ::DuctEdgeSyncPacket),
-    AIR_COMPRESSOR_PACKET(AirCompressorPacket::class.java, ::AirCompressorPacket),
 
 
     UNIVERSAL_JOINT_ITEM_PACKET(UniversalJointItemPacket::class.java, ::UniversalJointItemPacket)
