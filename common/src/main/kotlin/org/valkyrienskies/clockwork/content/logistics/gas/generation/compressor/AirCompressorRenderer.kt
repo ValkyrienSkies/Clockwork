@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor
 
 import com.mojang.blaze3d.vertex.PoseStack
+import com.simibubi.create.AllSoundEvents
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
 import com.simibubi.create.foundation.particle.AirParticleData
 import com.simibubi.create.foundation.render.CachedBufferer
@@ -14,6 +15,7 @@ import net.minecraft.util.Mth
 import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.util.EaseHelper
+import org.valkyrienskies.mod.common.util.toDoubles
 
 class AirCompressorRenderer(context: BlockEntityRendererProvider.Context?) : KineticBlockEntityRenderer<AirCompressorBlockEntity>(context) {
 
@@ -102,6 +104,10 @@ class AirCompressorRenderer(context: BlockEntityRendererProvider.Context?) : Kin
         if (be.clientSize >= 1.0f && !be.clientParticles) {
             be.clientParticles = true
             spawnAirBurstParticles(be.blockPos, level)
+
+            val pitch = be.speed / 256f + level.random.nextFloat() + 0.25f
+            AllSoundEvents.STEAM.playAt(level, be.blockPos.toDoubles(), 0.4f, pitch, true)
+
         }
 
         // Reset particle flag when fully deflated
