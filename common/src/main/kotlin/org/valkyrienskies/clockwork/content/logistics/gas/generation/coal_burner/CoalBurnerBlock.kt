@@ -4,12 +4,16 @@ import com.simibubi.create.foundation.block.IBE
 import dev.architectury.registry.fuel.FuelRegistry
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.core.particles.ParticleTypes
+import net.minecraft.sounds.SoundEvents
+import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.Level
+import net.minecraft.world.level.block.AbstractFurnaceBlock
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
@@ -19,6 +23,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
+import java.util.*
 
 
 class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(properties), INodeBlock, IBE<CoalBurnerBlockEntity> {
@@ -117,6 +122,27 @@ class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(prope
             FACING, ctx .horizontalDirection
                 .opposite
         )
+    }
+
+    override fun animateTick(state: BlockState, level: Level, pos: BlockPos, random: Random) {
+        if (state.getValue(AbstractFurnaceBlock.LIT) as Boolean) {
+            val d = pos.x.toDouble() + 0.5
+            val e = pos.y.toDouble() + 0.25
+            val f = pos.z.toDouble() + 0.5
+            if (random.nextDouble() < 0.1) {
+                level.playLocalSound(d, e, f, SoundEvents.FURNACE_FIRE_CRACKLE, SoundSource.BLOCKS, 1.0f, 1.0f, false)
+            }
+
+            val direction = state.getValue(AbstractFurnaceBlock.FACING) as Direction
+            val axis = direction.axis
+            val g = 0.52
+            val h = random.nextDouble() * 0.6 - 0.3
+            val i = if (axis === Direction.Axis.X) direction.stepX.toDouble() * 0.52 else h
+            val j = random.nextDouble() * 6.0 / 16.0
+            val k = if (axis === Direction.Axis.Z) direction.stepZ.toDouble() * 0.52 else h
+            level.addParticle(ParticleTypes.SMOKE, d + i, e + j, f + k, 0.0, 0.0, 0.0)
+            level.addParticle(ParticleTypes.FLAME, d + i, e + j, f + k, 0.0, 0.0, 0.0)
+        }
     }
 
     companion object {
