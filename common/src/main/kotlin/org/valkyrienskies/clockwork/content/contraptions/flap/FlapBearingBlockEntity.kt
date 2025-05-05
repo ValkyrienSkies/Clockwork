@@ -3,273 +3,179 @@ package org.valkyrienskies.clockwork.content.contraptions.flap
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity
 import com.simibubi.create.content.contraptions.AssemblyException
 import com.simibubi.create.content.contraptions.ControlledContraptionEntity
+import com.simibubi.create.content.contraptions.IDisplayAssemblyExceptions
 import com.simibubi.create.content.contraptions.bearing.BearingBlock
 import com.simibubi.create.content.contraptions.bearing.IBearingBlockEntity
+import com.simibubi.create.content.contraptions.bearing.MechanicalBearingBlockEntity
+import com.simibubi.create.content.kinetics.base.DirectionalAxisKineticBlock
+import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
-import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
-import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
-import com.simibubi.create.foundation.utility.AngleHelper
 import com.simibubi.create.foundation.utility.Iterate
 import com.simibubi.create.foundation.utility.ServerSpeedProvider
+import com.simibubi.create.foundation.utility.animation.LerpedFloat
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.core.Direction.Axis
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.util.Mth
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
-import org.apache.commons.lang3.tuple.Pair
-import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkBehaviour
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.contraptions.flap.contraption.FlapContraption
-import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.FlapBearingFrequencySlot
-import org.valkyrienskies.clockwork.util.ClockworkConstants
-import org.valkyrienskies.clockwork.util.blocktype.ConnectedWingAlike
-import java.util.function.BiFunction
-import kotlin.math.abs
+import org.valkyrienskies.core.impl.shadow.Ax
 import kotlin.math.max
 
-class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState, val maxSize: Long = 16, val smart: Boolean = false) :
-    KineticBlockEntity(type, pos, state), IBearingBlockEntity {
-    var redstoneSideOne = false
-    var redstoneSideTwo = false
-    protected var bearingAngle = 0f
-    protected var clientAngleDiff = 0f
+class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState, val maxSize: Long = 16) :
+    KineticBlockEntity(type, pos, state), IBearingBlockEntity, IDisplayAssemblyExceptions {
+
     var isRunning = false
-        protected set
+        private set
     var assembleNextTick = false
-    protected var lastException: AssemblyException? = null
-    protected var flap: ControlledContraptionEntity? = null
-    private var prevForcedAngle = 0f
-    private var redstoneLevel = 0
+
+    var movedContraption: ControlledContraptionEntity? = null
+    var lastException: AssemblyException? = null
+
+    private var bearingAngle = LerpedFloat.linear()
+    private val chaser = LerpedFloat.Chaser.LINEAR
+
+    private var lastPower: Int = 0
+    private var currentPower: Int = 0
+
+
+
     private var redstonePos: BlockPos? = null
 
-    private var linkFirst: DualLinkBehaviour? = null
-    private var linkSecond: DualLinkBehaviour? = null
-
-    var firstDominant = true
-
-    var firstReceivedSignal = 0
-    var secondReceivedSignal = 0
-
-    var linkSignalOverride = false
-
-    var firstReceivedSignalChanged = false
-    var secondReceivedSignalChanged = false
-
-    var lastFlapDir = Direction.UP
-
-    var targetOffset = 0f
-    var currentOffset = 0f
-
-    override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
-        super.addBehaviours(behaviours)
-        createSmartFlap()
-        behaviours.add(linkFirst!!)
-        behaviours.add(linkSecond!!)
-    }
-
-
-
-    private fun createSmartFlap() {
-        val valueBoxes = ValueBoxTransform.Dual.makeSlots { first: Boolean -> FlapBearingFrequencySlot(first, true) }
-        val valueBoxesSecond = ValueBoxTransform.Dual.makeSlots { first: Boolean -> FlapBearingFrequencySlot(first, false) }
-
-        linkFirst = DualLinkBehaviour(this, valueBoxes, {setFirstSignal(it)}, true)
-        linkSecond = DualLinkBehaviour(this, valueBoxesSecond, {setSecondSignal(it)},false)
-    }
-
-    fun setFirstSignal(power: Int) {
-        if (firstReceivedSignal != power) firstReceivedSignalChanged = true
-        firstReceivedSignal = power
-    }
-
-    fun setSecondSignal(power: Int) {
-        if (secondReceivedSignal != power) secondReceivedSignalChanged = true
-        secondReceivedSignal = power
-    }
-
-    fun makeSlots(firstLink: Boolean, factory: BiFunction<Boolean, Boolean, out FlapBearingFrequencySlot>): Pair<ValueBoxTransform, ValueBoxTransform> {
-        return Pair.of(factory.apply(true, firstLink), factory.apply(false, firstLink))
-    }
-
-    fun getSideValue(state: BlockState): Direction {
-        val facing = state.getValue(BlockStateProperties.FACING)
-
-        return when (facing) {
-            Direction.UP -> Direction.EAST
-            Direction.DOWN -> Direction.WEST
-            Direction.NORTH -> Direction.EAST
-            Direction.SOUTH -> Direction.WEST
-            Direction.WEST -> Direction.NORTH
-            Direction.EAST -> Direction.SOUTH
-            else -> Direction.EAST
+    val angularSpeed: Double
+        get() {
+            var speed = Math.abs(getSpeed() * 3 / 10f)
+            //if (level!!.isClientSide) speed *= ServerSpeedProvider.get()
+            return speed.toDouble()
         }
-    }
-
-    fun isFlap(): Boolean {
-        return true
-    }
-
-    private fun getPower(worldIn: Level, pos: BlockPos): Int {
-        var power = 0
-        linkSignalOverride = (firstReceivedSignal != 0 || secondReceivedSignal != 0)
-
-
-        if (linkSignalOverride) {
-            val signal = firstReceivedSignal - secondReceivedSignal
-            firstDominant = signal > 0
-
-            return abs(signal)
-        }
-
-        for (direction in Iterate.directions) {
-            power = max(worldIn.getSignal(pos.relative(direction), direction), power)
-            if (power != 0) {
-                redstonePos = pos.relative(direction)
-                break
-            }
-        }
-        if (power == 0) {
-            redstonePos = null
-        }
-
-
-
-        return power
-    }
 
     override fun tick() {
         super.tick()
 
+        bearingAngle.tickChaser()
+        if (isRunning) applyRotations()
 
+        println("${isRunning} ${level?.isClientSide} ${bearingAngle.value} ${bearingAngle.chaseTarget} ${angularSpeed}")
 
+        if (level?.isClientSide != false) return
 
-        if (flap != null) {
-            flap!!.tick()
-        }
-        if (level == null) return
-        if (level!!.isClientSide) {
-            prevForcedAngle = bearingAngle
-            clientAngleDiff /= 2f
-        }
-        val changed = redstoneLevel
-        redstoneLevel = getPower(level!!, worldPosition)
-        if (changed != redstoneLevel || firstReceivedSignalChanged || secondReceivedSignalChanged) {
-            if (!level!!.isClientSide) {
-                sendData()
-            }
-        }
-
-
-        if (linkSignalOverride) {
-            redstoneSideOne = firstDominant
-            redstoneSideTwo = !firstDominant
-        } else if (redstonePos != null) {
-            if (blockState.getValue<Direction>(BlockStateProperties.FACING) == Direction.UP || blockState.getValue<Direction>(
-                    BlockStateProperties.FACING
-                ) == Direction.DOWN
-            ) {
-                redstoneSideOne = redstonePos == worldPosition.relative(Direction.EAST, 1)
-                redstoneSideTwo = redstonePos == worldPosition.relative(Direction.WEST, 1)
-            } else if (blockState.getValue<Direction>(BlockStateProperties.FACING) == Direction.NORTH || blockState.getValue<Direction>(
-                    BlockStateProperties.FACING
-                ) == Direction.SOUTH
-            ) {
-                redstoneSideOne = redstonePos == worldPosition.relative(Direction.EAST, 1)
-                redstoneSideTwo = redstonePos == worldPosition.relative(Direction.WEST, 1)
-            } else if (blockState.getValue<Direction>(BlockStateProperties.FACING) == Direction.EAST || blockState.getValue<Direction>(
-                    BlockStateProperties.FACING
-                ) == Direction.WEST
-            ) {
-                redstoneSideOne = redstonePos == worldPosition.relative(Direction.NORTH, 1)
-                redstoneSideTwo = redstonePos == worldPosition.relative(Direction.SOUTH, 1)
-            }
-        }
-
-        if (level!!.isClientSide) {
-            val facingFlapState = level!!.getBlockState(worldPosition.relative(blockState.getValue(BlockStateProperties.FACING)))
-            if (facingFlapState.block is ConnectedWingAlike) {
-                lastFlapDir = facingFlapState.getValue(BlockStateProperties.FACING)
-            }
-        }
-
-        if (!level!!.isClientSide && assembleNextTick) {
+        movedContraption?.tick()
+        if (assembleNextTick) {
             assembleNextTick = false
-            if (isRunning) {
-                val canDisassemble = true
-                if (speed == 0f && (canDisassemble || flap == null || flap!!.contraption.blocks.isEmpty())) {
-                    if (flap != null) flap!!.contraption.stop(level)
-                    disassemble()
-                }
-                return
-            } else assemble()
-            return
+            assemble()
         }
 
-        if (!(flap != null && flap!!.isStalled)) {
-            val testSpeed = angularSpeed / 2f
-            val newAngle = bearingAngle + flapSpeed
-            bearingAngle = newAngle % 360
-        }
-        if (!isRunning) return
-        applyRotations()
+        lastPower = currentPower
+        currentPower = getPower()
+
+        bearingAngle.chase(currentPower * 22.5 / 15, angularSpeed, chaser)
+
+        if (lastPower != currentPower) sendData()
+
+
+
     }
 
-    public override fun write(compound: CompoundTag, clientPacket: Boolean) {
-        compound.putBoolean(ClockworkConstants.Nbt.RUNNING, isRunning)
-        compound.putFloat(ClockworkConstants.Nbt.ANGLE, bearingAngle)
-        AssemblyException.write(compound, lastException)
-        super.write(compound, clientPacket)
+    override fun read(tag: CompoundTag, clientPacket: Boolean) {
+        super.read(tag, clientPacket)
+
+        bearingAngle.setValue(tag.getFloat("BearingAngle").toDouble())
+        bearingAngle.chase(tag.getFloat("TargetAngle").toDouble(), angularSpeed, chaser)
+        isRunning = tag.getBoolean("IsRunning")
+
     }
 
-    override fun read(compound: CompoundTag, clientPacket: Boolean) {
-        val angleBefore = bearingAngle
-        isRunning = compound.getBoolean(ClockworkConstants.Nbt.RUNNING)
-        bearingAngle = compound.getFloat(ClockworkConstants.Nbt.ANGLE)
-        lastException = AssemblyException.read(compound)
-        super.read(compound, clientPacket)
-        if (!clientPacket) return
-        if (isRunning) {
-            clientAngleDiff = AngleHelper.getShortestAngleDiff(angleBefore.toDouble(), bearingAngle.toDouble())
-            bearingAngle = angleBefore
-        } else {
-            flap = null
+    override fun write(tag: CompoundTag, clientPacket: Boolean) {
+        super.write(tag, clientPacket)
+        tag.putFloat("BearingAngle",bearingAngle.value)
+        tag.putFloat("TargetAngle",bearingAngle.chaseTarget)
+        tag.putBoolean("IsRunning",isRunning)
+    }
+
+    private fun getPowerDirection(): Direction {
+        if (!blockState.hasProperty(DirectionalAxisKineticBlock.FACING) || !blockState.hasProperty(DirectionalAxisKineticBlock.AXIS_ALONG_FIRST_COORDINATE)) {
+            ClockworkMod.LOGGER.error("Flap bearing block lacks FACING or AXIS_ALONG_FIRST_COORDINATE. Did the blockstate build incorrectly?")
+            return Direction.UP
         }
+
+        val facing = blockState.getValue(DirectionalAxisKineticBlock.FACING)
+        val axis = blockState.getValue(DirectionalAxisKineticBlock.AXIS_ALONG_FIRST_COORDINATE)
+
+        return when  {
+            facing.axis == Axis.Z -> Direction.EAST
+            axis == false -> Direction.EAST
+
+            else -> Direction.SOUTH
+        }
+    }
+
+    private fun getPower(): Int {
+        var power = 0
+
+        val powerDirection = getPowerDirection()
+
+        power += level!!.getSignal(blockPos.relative(powerDirection), powerDirection)
+        power -= level!!.getSignal(blockPos.relative(powerDirection.opposite), powerDirection.opposite)
+
+        return power
     }
 
     fun assemble() {
-        if (level!!.getBlockState(worldPosition)
-                .block !is FlapBearingBlock
-        ) return
-        val direction = blockState.getValue<Direction>(BlockStateProperties.FACING)
+        if (level!!.getBlockState(worldPosition).block !is FlapBearingBlock) return
+        val direction = blockState.getValue(BlockStateProperties.FACING)
         val contraption: FlapContraption?
         try {
             contraption = FlapContraption.assembleFlap(level!!, worldPosition, direction)
             lastException = null
         } catch (e: AssemblyException) {
             lastException = e
-            sendData()
-            return
+            return sendData()
         }
+
         if (contraption == null) return
         if (contraption.blocks.isEmpty()) return
         if (contraption.blocks.size > maxSize && maxSize != -1L) {
             lastException = AssemblyException.structureTooLarge()
-            sendData()
-            return
+            return sendData()
         }
         val anchor = worldPosition.relative(direction)
         contraption.removeBlocksFromWorld(level, BlockPos.ZERO)
-        flap = ControlledContraptionEntity.create(level, this, contraption)
-        flap!!.setPos(anchor.x.toDouble(), anchor.y.toDouble(), anchor.z.toDouble())
-        flap!!.rotationAxis = direction.axis
-        level!!.addFreshEntity(flap!!)
+        movedContraption = ControlledContraptionEntity.create(level, this, contraption)
+        movedContraption!!.setPos(anchor.x.toDouble(), anchor.y.toDouble(), anchor.z.toDouble())
+        movedContraption!!.rotationAxis = direction.axis
+        level!!.addFreshEntity(movedContraption!!)
 
         // Run
         isRunning = true
-        bearingAngle = 0f
+        bearingAngle.setValue(0.0)
         sendData()
+    }
+
+    fun disassemble() {
+        if (!isRunning && movedContraption == null) return
+
+        bearingAngle.setValue(0.0)
+        applyRotations()
+
+        if (movedContraption != null) movedContraption!!.disassemble()
+
+        movedContraption = null
+        isRunning = false
+        sendData()
+    }
+
+    protected fun applyRotations() {
+        var axis: Axis = Axis.X
+        if (blockState.hasProperty(BlockStateProperties.FACING)) axis = blockState.getValue(BlockStateProperties.FACING).axis
+
+        if (movedContraption != null) {
+            movedContraption!!.setAngle(bearingAngle.value)
+            movedContraption!!.rotationAxis = axis
+        }
     }
 
     override fun remove() {
@@ -277,110 +183,44 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         super.remove()
     }
 
-    fun disassemble() {
-        if (!isRunning && flap == null) return
-        bearingAngle = 0f
-        applyRotations()
-        if (flap != null) {
-            flap!!.disassemble()
-        }
-        flap = null
-        isRunning = false
-        sendData()
+    override fun lazyTick() {
+        super.lazyTick()
+        if (movedContraption != null && level?.isClientSide != false) sendData()
     }
 
-    protected fun applyRotations() {
-        val blockState = blockState
-        var axis: Direction.Axis? = Direction.Axis.X
-        if (blockState.hasProperty<Direction>(BlockStateProperties.FACING)) axis =
-            blockState.getValue<Direction>(BlockStateProperties.FACING)
-                .axis
-        if (flap != null) {
-            flap!!.setAngle(bearingAngle)
-            flap!!.rotationAxis = axis
-        }
-    }
 
     override fun attach(contraption: ControlledContraptionEntity) {
-        val blockState = blockState
         if (contraption.contraption !is FlapContraption) return
         if (!blockState.hasProperty(BearingBlock.FACING)) return
-        flap = contraption
+        movedContraption = contraption
         setChanged()
         val anchor = worldPosition.relative(blockState.getValue(BearingBlock.FACING))
-        flap!!.setPos(anchor.x.toDouble(), anchor.y.toDouble(), anchor.z.toDouble())
+        movedContraption!!.setPos(anchor.x.toDouble(), anchor.y.toDouble(), anchor.z.toDouble())
         if (!level!!.isClientSide) {
             isRunning = true
             sendData()
         }
     }
 
-    override fun lazyTick() {
-        super.lazyTick()
-        if (flap != null && !level!!.isClientSide) sendData()
-    }
 
-    val flapSpeed: Float
-        get() {
-            var speed = angularSpeed / 2f
-            val flapTarget = getFlapTarget(redstoneSideOne, redstoneSideTwo)
-            if (speed != 0f) {
-                val shortestAngleDiff = AngleHelper.getShortestAngleDiff(bearingAngle.toDouble(), flapTarget.toDouble())
-                speed = if (shortestAngleDiff < 0) {
-                    Math.max(speed, shortestAngleDiff)
-                } else {
-                    Math.min(-speed, shortestAngleDiff)
-                }
-            }
-            return speed + clientAngleDiff / 3f
-        }
-
-    protected fun getFlapTarget(negativeActivated: Boolean, positiveActivated: Boolean): Float {
-        if (flap == null || flap!!.isStalled) return 0f
-        if (negativeActivated && !positiveActivated) {
-            return (-22.5f * (redstoneLevel.toFloat() / 15f))
-        }
-        if (positiveActivated && !negativeActivated) {
-            return (22.5f * (redstoneLevel.toFloat() / 15f))
-        }
-        return if (negativeActivated && positiveActivated) {
-            0f
-        } else 0f
-    }
-
-    override fun setAngle(forcedAngle: Float) {
-        bearingAngle = forcedAngle
-    }
-
-    val angularSpeed: Float
-        get() {
-            var speed = -Math.abs(getSpeed() * 3 / 10f)
-            if (level!!.isClientSide) speed *= ServerSpeedProvider.get()
-            return speed
-        }
 
     override fun getInterpolatedAngle(partialTicks: Float): Float {
-        var partialTicks = partialTicks
-        if (isVirtual) return Mth.lerp(partialTicks, prevForcedAngle, bearingAngle)
-        if (flap == null || flap!!.isStalled) partialTicks = 0f
-        return Mth.lerp(partialTicks, bearingAngle, bearingAngle + flapSpeed)
-    }
-
-    override fun isWoodenTop(): Boolean {
-        return false
-    }
-
-    override fun isAttachedTo(contraption: AbstractContraptionEntity): Boolean {
-        return if (contraption.contraption !is FlapContraption) false else flap === contraption
-    }
-
-    override fun onStall() {
-        if (!level!!.isClientSide) sendData()
+        println("INTERP ANGLE ${bearingAngle.getValue(partialTicks)}")
+        return bearingAngle.getValue(partialTicks)
     }
 
     override fun onSpeedChanged(prevSpeed: Float) {
         super.onSpeedChanged(prevSpeed)
         assembleNextTick = true
+    }
+
+    override fun setAngle(forcedAngle: Float) {
+        bearingAngle.setValue(forcedAngle.toDouble())
+        bearingAngle.updateChaseTarget(forcedAngle)
+    }
+
+    override fun onStall() {
+        if (level?.isClientSide != false) sendData()
     }
 
     override fun isValid(): Boolean {
@@ -389,5 +229,17 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
 
     override fun getBlockPosition(): BlockPos {
         return worldPosition
+    }
+
+    override fun isWoodenTop(): Boolean {
+        return false
+    }
+
+    override fun isAttachedTo(contraption: AbstractContraptionEntity?): Boolean {
+        return movedContraption == contraption
+    }
+
+    override fun getLastAssemblyException(): AssemblyException? {
+        return lastException
     }
 }
