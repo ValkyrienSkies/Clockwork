@@ -27,6 +27,7 @@ import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.client.render.WingBlockItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteOreBlock
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock
+import org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap.SmartFlapBearingBlock
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock
 import org.valkyrienskies.clockwork.content.physicalities.gas_thruster.GasThrusterBlock
@@ -170,9 +171,9 @@ object ClockworkBlocks {
             .register()
 
     @JvmField
-    val SMART_FLAP_BEARING: BlockEntry<FlapBearingBlock> =
-        REGISTRATE.block<FlapBearingBlock>("smart_flap_bearing") { properties: BlockBehaviour.Properties? ->
-            FlapBearingBlock(properties)
+    val SMART_FLAP_BEARING: BlockEntry<SmartFlapBearingBlock> =
+        REGISTRATE.block<SmartFlapBearingBlock>("smart_flap_bearing") { properties: BlockBehaviour.Properties? ->
+            SmartFlapBearingBlock(properties)
         }
             .transform(axeOrPickaxe())
             .transform(flapbearing())

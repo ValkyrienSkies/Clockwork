@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkRenderer
+import org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap.SmartFlapBearingBlockEntity
 
 class FlapBearingRenderer(context: BlockEntityRendererProvider.Context) :
     KineticBlockEntityRenderer<FlapBearingBlockEntity>(context) {
@@ -31,9 +32,6 @@ class FlapBearingRenderer(context: BlockEntityRendererProvider.Context) :
     ) {
         // if (Backend.canUseInstancing(te.getLevel())) return;
         super.renderSafe(te, partialTicks, ms, buffer, light, overlay)
-        LinkRenderer.renderOnBlockEntity(te, partialTicks, ms, buffer, light, overlay)
-        DualLinkRenderer.renderOnBlockEntity(te, partialTicks, ms, buffer, light, overlay)
-
 
         val facing = te.blockState.getValue(BlockStateProperties.FACING)
         val axisAlong = te.blockState.getValue(DirectionalAxisKineticBlock.AXIS_ALONG_FIRST_COORDINATE)
@@ -61,6 +59,12 @@ class FlapBearingRenderer(context: BlockEntityRendererProvider.Context) :
 
         renderRotatingBuffer(te, getRotatedModel(te, te.blockState), ms,
             buffer.getBuffer(RenderType.solid()), light)
+
+
+
+        if (te !is SmartFlapBearingBlockEntity) return
+        LinkRenderer.renderOnBlockEntity(te, partialTicks, ms, buffer, light, overlay)
+        DualLinkRenderer.renderOnBlockEntity(te, partialTicks, ms, buffer, light, overlay)
     }
 
     override fun getRotatedModel(te: FlapBearingBlockEntity, state: BlockState): SuperByteBuffer {

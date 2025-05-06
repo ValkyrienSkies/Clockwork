@@ -5,7 +5,6 @@ import com.simibubi.create.content.contraptions.StructureTransform
 import com.simibubi.create.content.contraptions.bearing.BearingBlock
 import com.simibubi.create.content.kinetics.base.DirectionalAxisKineticBlock
 import com.simibubi.create.foundation.block.IBE
-import com.simibubi.create.foundation.utility.Iterate
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.InteractionHand
@@ -22,7 +21,7 @@ import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import java.util.function.Consumer
 
-class FlapBearingBlock(properties: Properties?) : BearingBlock(properties), IBE<FlapBearingBlockEntity>,
+open class FlapBearingBlock(properties: Properties?) : BearingBlock(properties), IBE<FlapBearingBlockEntity>,
     ITransformableBlock {
 
 
@@ -85,10 +84,6 @@ class FlapBearingBlock(properties: Properties?) : BearingBlock(properties), IBE<
             .setValue(DirectionalAxisKineticBlock.AXIS_ALONG_FIRST_COORDINATE, alongFirst)
     }
 
-    override fun getBlockEntityType(): BlockEntityType<out FlapBearingBlockEntity> {
-        return ClockworkBlockEntities.FLAP_BEARING.get()
-    }
-
 
     override fun onWrenched(state: BlockState, context: UseOnContext): InteractionResult {
         val resultType = super.onWrenched(state, context)
@@ -119,5 +114,9 @@ class FlapBearingBlock(properties: Properties?) : BearingBlock(properties), IBE<
 
     override fun getBlockEntityClass(): Class<FlapBearingBlockEntity> {
         return FlapBearingBlockEntity::class.java
+    }
+
+    override fun getBlockEntityType(): BlockEntityType<out FlapBearingBlockEntity> {
+        return ClockworkBlockEntities.FLAP_BEARING.get()
     }
 }

@@ -8,6 +8,7 @@ import com.simibubi.create.content.contraptions.bearing.BearingBlock
 import com.simibubi.create.content.contraptions.bearing.IBearingBlockEntity
 import com.simibubi.create.content.kinetics.base.DirectionalAxisKineticBlock
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
+import com.simibubi.create.foundation.utility.ServerSpeedProvider
 import com.simibubi.create.foundation.utility.animation.LerpedFloat
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -19,7 +20,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.contraptions.flap.contraption.FlapContraption
 
-class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState, val maxSize: Long = 16) :
+open class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState, val maxSize: Long = 16) :
     KineticBlockEntity(type, pos, state), IBearingBlockEntity, IDisplayAssemblyExceptions {
 
     var isRunning = false
@@ -36,11 +37,10 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
     private var currentPower: Int = 0
 
 
-
     val angularSpeed: Double
         get() {
-            val speed = Math.abs(getSpeed() * 3 / 10f)
-            //if (level!!.isClientSide) speed *= ServerSpeedProvider.get()
+            var speed = Math.abs(getSpeed() * 3 / 10f)
+            if (level!!.isClientSide) speed *= ServerSpeedProvider.get()
             return speed.toDouble()
         }
 
@@ -63,17 +63,16 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         bearingAngle.chase(currentPower * 22.5 / 15, angularSpeed, chaser)
 
         if (lastPower != currentPower) sendData()
-
-
-
     }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         super.read(tag, clientPacket)
 
         bearingAngle.setValue(tag.getFloat("BearingAngle").toDouble())
-        bearingAngle.chase(tag.getFloat("TargetAngle").toDouble(), angularSpeed, chaser)
+        bearingAngle.chase(tag.getFloat("TargetAngle").toDouble(), tag.getDouble("AngularSpeed"), chaser)
         isRunning = tag.getBoolean("IsRunning")
+
+        lastException = AssemblyException.read(tag)
 
     }
 
@@ -82,6 +81,9 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         tag.putFloat("BearingAngle",bearingAngle.value)
         tag.putFloat("TargetAngle",bearingAngle.chaseTarget)
         tag.putBoolean("IsRunning",isRunning)
+        tag.putDouble("AngularSpeed",angularSpeed)
+
+        AssemblyException.write(tag,lastAssemblyException)
     }
 
     private fun getPowerDirection(): Direction {
@@ -101,7 +103,7 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         }
     }
 
-    private fun getPower(): Int {
+    open protected fun getPower(): Int {
         var power = 0
 
         val powerDirection = getPowerDirection()
@@ -157,13 +159,14 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
     }
 
     protected fun applyRotations() {
+        if (movedContraption == null) return
+
         var axis: Axis = Axis.X
         if (blockState.hasProperty(BlockStateProperties.FACING)) axis = blockState.getValue(BlockStateProperties.FACING).axis
 
-        if (movedContraption != null) {
-            movedContraption!!.setAngle(bearingAngle.value)
-            movedContraption!!.rotationAxis = axis
-        }
+        movedContraption!!.setAngle(bearingAngle.value)
+        movedContraption!!.rotationAxis = axis
+
     }
 
     override fun remove() {
