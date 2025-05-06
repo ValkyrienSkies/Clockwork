@@ -6,25 +6,18 @@ import com.simibubi.create.content.contraptions.ControlledContraptionEntity
 import com.simibubi.create.content.contraptions.IDisplayAssemblyExceptions
 import com.simibubi.create.content.contraptions.bearing.BearingBlock
 import com.simibubi.create.content.contraptions.bearing.IBearingBlockEntity
-import com.simibubi.create.content.contraptions.bearing.MechanicalBearingBlockEntity
 import com.simibubi.create.content.kinetics.base.DirectionalAxisKineticBlock
-import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
-import com.simibubi.create.foundation.utility.Iterate
-import com.simibubi.create.foundation.utility.ServerSpeedProvider
 import com.simibubi.create.foundation.utility.animation.LerpedFloat
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.Direction.Axis
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.contraptions.flap.contraption.FlapContraption
-import org.valkyrienskies.core.impl.shadow.Ax
-import kotlin.math.max
 
 class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState, val maxSize: Long = 16) :
     KineticBlockEntity(type, pos, state), IBearingBlockEntity, IDisplayAssemblyExceptions {
@@ -44,11 +37,9 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
 
 
 
-    private var redstonePos: BlockPos? = null
-
     val angularSpeed: Double
         get() {
-            var speed = Math.abs(getSpeed() * 3 / 10f)
+            val speed = Math.abs(getSpeed() * 3 / 10f)
             //if (level!!.isClientSide) speed *= ServerSpeedProvider.get()
             return speed.toDouble()
         }
@@ -58,9 +49,6 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
 
         bearingAngle.tickChaser()
         if (isRunning) applyRotations()
-
-        println("${isRunning} ${level?.isClientSide} ${bearingAngle.value} ${bearingAngle.chaseTarget} ${angularSpeed}")
-
         if (level?.isClientSide != false) return
 
         movedContraption?.tick()
@@ -99,17 +87,17 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
     private fun getPowerDirection(): Direction {
         if (!blockState.hasProperty(DirectionalAxisKineticBlock.FACING) || !blockState.hasProperty(DirectionalAxisKineticBlock.AXIS_ALONG_FIRST_COORDINATE)) {
             ClockworkMod.LOGGER.error("Flap bearing block lacks FACING or AXIS_ALONG_FIRST_COORDINATE. Did the blockstate build incorrectly?")
-            return Direction.UP
+            return Direction.UP // return UP, which is more or less redstone-less
         }
 
         val facing = blockState.getValue(DirectionalAxisKineticBlock.FACING)
-        val axis = blockState.getValue(DirectionalAxisKineticBlock.AXIS_ALONG_FIRST_COORDINATE)
+        val axisAlong = blockState.getValue(DirectionalAxisKineticBlock.AXIS_ALONG_FIRST_COORDINATE)
 
         return when  {
-            facing.axis == Axis.Z -> Direction.EAST
-            axis == false -> Direction.EAST
+            facing.axis == Axis.Z -> Direction.WEST
+            axisAlong == false -> Direction.WEST
 
-            else -> Direction.SOUTH
+            else -> Direction.NORTH
         }
     }
 
@@ -205,7 +193,6 @@ class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
 
 
     override fun getInterpolatedAngle(partialTicks: Float): Float {
-        println("INTERP ANGLE ${bearingAngle.getValue(partialTicks)}")
         return bearingAngle.getValue(partialTicks)
     }
 
