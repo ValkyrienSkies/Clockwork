@@ -45,7 +45,4 @@ class SmartFlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, stat
         secondReceivedSignal = power
     }
 
-
-
-
 }

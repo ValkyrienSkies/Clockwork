@@ -6,7 +6,6 @@ import com.simibubi.create.AllPartialModels
 import com.simibubi.create.content.contraptions.bearing.BearingBlock
 import com.simibubi.create.content.kinetics.base.DirectionalAxisKineticBlock
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
-import com.simibubi.create.content.redstone.link.LinkRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
 import com.simibubi.create.foundation.utility.AngleHelper
@@ -63,7 +62,6 @@ class FlapBearingRenderer(context: BlockEntityRendererProvider.Context) :
 
 
         if (te !is SmartFlapBearingBlockEntity) return
-        LinkRenderer.renderOnBlockEntity(te, partialTicks, ms, buffer, light, overlay)
         DualLinkRenderer.renderOnBlockEntity(te, partialTicks, ms, buffer, light, overlay)
     }
 

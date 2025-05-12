@@ -1,51 +1,37 @@
 {
   "variants": {
     "axis_along_first=false,facing=down": {
-      "model": "vs_clockwork:block/smart_flap_bearing/block_horizontal",
+      "model": "vs_clockwork:block/smart_flap_bearing/block",
+      "x": 270
+    },
+    "axis_along_first=true,facing=down": {
+      "model": "vs_clockwork:block/smart_flap_bearing/block",
       "x": 270,
       "y": 90
     },
-    "axis_along_first=true,facing=down": {
-      "model": "vs_clockwork:block/smart_flap_bearing/block_horizontal",
-      "x": 270
-    },
     "axis_along_first=false,facing=up": {
-      "model": "vs_clockwork:block/smart_flap_bearing/block_horizontal",
+      "model": "vs_clockwork:block/smart_flap_bearing/block",
+      "x": 90
+
+    },
+    "axis_along_first=true,facing=up": {
+      "model": "vs_clockwork:block/smart_flap_bearing/block",
       "x": 90,
       "y": 90
     },
-    "axis_along_first=true,facing=up": {
-      "model": "vs_clockwork:block/smart_flap_bearing/block_horizontal",
-      "x": 90
-    },
-    "axis_along_first=false,facing=north": {
-      "model": "vs_clockwork:block/smart_flap_bearing/block_vertical",
+    "facing=north": {
+      "model": "vs_clockwork:block/smart_flap_bearing/block",
       "y": 180
     },
-    "axis_along_first=true,facing=north": {
-      "model": "vs_clockwork:block/smart_flap_bearing/block_horizontal",
-      "y": 180
+    "facing=south": {
+      "model": "vs_clockwork:block/smart_flap_bearing/block"
     },
-    "axis_along_first=false,facing=south": {
-      "model": "vs_clockwork:block/smart_flap_bearing/block_vertical"
-    },
-    "axis_along_first=true,facing=south": {
-      "model": "vs_clockwork:block/smart_flap_bearing/block_horizontal"
-    },
-    "axis_along_first=false,facing=west": {
-      "model": "vs_clockwork:block/smart_flap_bearing/block_horizontal",
+    "facing=west": {
+      "model": "vs_clockwork:block/smart_flap_bearing/block",
       "y": 90
     },
-    "axis_along_first=true,facing=west": {
-      "model": "vs_clockwork:block/smart_flap_bearing/block_vertical",
-      "y": 90
-    },
-    "axis_along_first=false,facing=east": {
-      "model": "vs_clockwork:block/smart_flap_bearing/block_horizontal",
-      "y": 270
-    },
-    "axis_along_first=true,facing=east": {
-      "model": "vs_clockwork:block/smart_flap_bearing/block_vertical",
+    "facing=east": {
+      "model": "vs_clockwork:block/smart_flap_bearing/block",
       "y": 270
     }
   }
