@@ -16,8 +16,6 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
-import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
@@ -41,7 +39,7 @@ object DualLinkRenderer {
         if (state.block !is FlapBearingBlock) return
 
         val type: BehaviourType<DualLinkBehaviour>
-        if (result.direction == getFrontFacing(state.getValue(BlockStateProperties.FACING))) type =  DualLinkBehaviour.FRONT_TYPE
+        if (result.direction == getFrontFacing(state)) type =  DualLinkBehaviour.FRONT_TYPE
         else type = DualLinkBehaviour.BACK_TYPE
 
 
