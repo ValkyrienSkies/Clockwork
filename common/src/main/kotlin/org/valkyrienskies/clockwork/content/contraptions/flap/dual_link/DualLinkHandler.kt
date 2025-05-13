@@ -21,6 +21,8 @@ object DualLinkHandler {
 
     @JvmStatic
     fun getFrontFacing(state: BlockState): Direction {
+
+
         val direction = state.getValue(BlockStateProperties.FACING)
         val axis_along = state.getValue(DirectionalAxisKineticBlock.AXIS_ALONG_FIRST_COORDINATE)
 
@@ -44,9 +46,10 @@ object DualLinkHandler {
 
 
         if (player.isShiftKeyDown || player.isSpectator) return EventResult.pass()
-        if (!world.getBlockState(pos).hasProperty(BlockStateProperties.FACING)) return EventResult.pass()
 
         val state = world.getBlockState(pos)
+
+        if (!state.hasProperty(BlockStateProperties.FACING) || !state.hasProperty(DirectionalAxisKineticBlock.AXIS_ALONG_FIRST_COORDINATE)) return EventResult.pass()
 
 
         val type: BehaviourType<DualLinkBehaviour>
