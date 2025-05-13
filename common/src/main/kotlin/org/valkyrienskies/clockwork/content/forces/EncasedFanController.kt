@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.joml.Vector3d
 import org.joml.Vector3dc
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanCreateData
 import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanData
 import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanUpdateData
@@ -71,7 +72,7 @@ class EncasedFanController(
 
         val dThrust = dLift * Math.cos(inflowAngle) - dDrag * Math.sin(inflowAngle)
 
-        netForce.mul(dThrust * 40.0)
+        netForce.mul(dThrust * ClockworkConfig.SERVER.encasedFanForceMul)
 
         return netForce
     }

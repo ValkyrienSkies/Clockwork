@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.DirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Vector3d
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.content.forces.SugarRocketController
 import org.valkyrienskies.core.api.attachment.getAttachment
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
@@ -105,7 +106,7 @@ class SugarRocketBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?,
 
         val ship = serverLevel.getShipObjectManagingPos(worldPosition)
         if (ship != null) {
-            SugarRocketController.getOrCreate(ship).addRocket(worldPosition, burnPower.toDouble() * 10000.0, blockState.getValue(DirectionalBlock.FACING))
+            SugarRocketController.getOrCreate(ship).addRocket(worldPosition, burnPower.toDouble() * ClockworkConfig.SERVER.sugarRocketBlockThrust, blockState.getValue(DirectionalBlock.FACING))
         }
         sendData()
     }
