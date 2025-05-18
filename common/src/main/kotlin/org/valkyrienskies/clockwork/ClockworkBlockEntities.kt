@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.client.render.WingBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingRenderer
+import org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap.SmartFlapBearingBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingRenderer
@@ -195,9 +196,29 @@ object ClockworkBlockEntities {
                 pos!!, state!!
             )
         }
-        .validBlocks(ClockworkBlocks.SMART_FLAP_BEARING, ClockworkBlocks.ANDESITE_FLAP_BEARING)
+        .validBlocks(ClockworkBlocks.ANDESITE_FLAP_BEARING)
         .renderer {
             NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in FlapBearingBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                FlapBearingRenderer(
+                    context!!
+                )
+            }
+        }
+        .register()
+
+    @JvmField
+    val SMART_FLAP_BEARING: BlockEntityEntry<SmartFlapBearingBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<SmartFlapBearingBlockEntity>(
+            "smart_flap_bearing"
+        ) { type: BlockEntityType<SmartFlapBearingBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
+            SmartFlapBearingBlockEntity(
+                type,
+                pos!!, state!!
+            )
+        }
+        .validBlocks(ClockworkBlocks.SMART_FLAP_BEARING)
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in SmartFlapBearingBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
                 FlapBearingRenderer(
                     context!!
                 )

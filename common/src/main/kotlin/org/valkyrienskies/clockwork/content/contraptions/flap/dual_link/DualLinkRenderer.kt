@@ -13,16 +13,19 @@ import com.simibubi.create.foundation.utility.Lang
 import com.simibubi.create.foundation.utility.VecHelper
 import com.simibubi.create.infrastructure.config.AllConfigs
 import net.minecraft.client.Minecraft
+import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
-import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkHandler.getFrontFacing
+import org.valkyrienskies.core.api.ships.ClientShip
+import org.valkyrienskies.mod.api.getShipManagingBlock
+import org.valkyrienskies.mod.api.toJOML
+import org.valkyrienskies.mod.api.toMinecraft
 
 object DualLinkRenderer {
 
@@ -41,7 +44,7 @@ object DualLinkRenderer {
         if (state.block !is FlapBearingBlock) return
 
         val type: BehaviourType<DualLinkBehaviour>
-        if (result.direction == getFrontFacing(state.getValue(BlockStateProperties.FACING))) type =  DualLinkBehaviour.FRONT_TYPE
+        if (result.direction == getFrontFacing(state)) type =  DualLinkBehaviour.FRONT_TYPE
         else type = DualLinkBehaviour.BACK_TYPE
 
 
@@ -86,10 +89,14 @@ object DualLinkRenderer {
         if (be == null || be.isRemoved) return
 
         val cameraEntity = Minecraft.getInstance().cameraEntity
+        var bePos = VecHelper.getCenterOf(be.blockPos)
+
+        val ship = (be.level as ClientLevel).getShipManagingBlock(be.blockPos)
+        if (ship != null) bePos = (ship as ClientShip).renderTransform.shipToWorld.transformPosition(bePos.toJOML()).toMinecraft()
+
         val max = AllConfigs.client().filterItemRenderDistance.f
         if (!be.isVirtual && cameraEntity != null && cameraEntity.position()
-                .distanceToSqr(VecHelper.getCenterOf(be.blockPos)) > (max * max)
-        ) return
+                .distanceToSqr(bePos) > (max * max)) return
 
         for (type in mutableListOf(DualLinkBehaviour.FRONT_TYPE, DualLinkBehaviour.BACK_TYPE)) {
             val behaviour = be.getBehaviour(type) ?: continue

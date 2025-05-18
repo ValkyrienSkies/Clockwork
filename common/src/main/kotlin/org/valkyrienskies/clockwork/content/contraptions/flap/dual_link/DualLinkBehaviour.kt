@@ -17,6 +17,9 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
 import org.apache.commons.lang3.tuple.Pair
+import org.valkyrienskies.mod.api.toJOML
+import org.valkyrienskies.mod.api.toMinecraft
+import org.valkyrienskies.mod.common.getShipManagingPos
 import java.util.function.Function
 import java.util.function.IntConsumer
 
@@ -161,9 +164,29 @@ open class DualLinkBehaviour(
         }
     }
 
+
+
     fun testHit(first: Boolean, hit: Vec3): Boolean {
         val state = blockEntity.blockState
-        val localHit = hit.subtract(Vec3.atLowerCornerOf(blockEntity.blockPos))
+
+        var pos1 = hit
+        var pos2 = Vec3.atLowerCornerOf(blockEntity.blockPos)
+
+        // Transforms positions for VS2
+        val level = blockEntity.level
+        if (level != null) {
+            val ship1 = level.getShipManagingPos(pos1)
+            val ship2 = level.getShipManagingPos(pos2)
+            if (ship1 != null && ship2 == null) {
+                pos2 = ship1.worldToShip.transformPosition(pos2.toJOML()).toMinecraft()
+
+            } else if (ship1 == null && ship2 != null) {
+                pos1 = ship2.worldToShip.transformPosition(pos1.toJOML()).toMinecraft()
+            }
+        }
+
+        val localHit = pos1.subtract(pos2)
+
         val slot = (if (first) firstSlot else secondSlot)
         return slot.testHit(state, localHit)
     }
