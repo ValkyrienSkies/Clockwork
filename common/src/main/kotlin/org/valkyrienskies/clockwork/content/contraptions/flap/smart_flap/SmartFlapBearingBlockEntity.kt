@@ -3,8 +3,10 @@ package org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkBehaviour
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.FlapBearingFrequencySlot
@@ -19,6 +21,13 @@ class SmartFlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, stat
 
     override fun getPower(): Int {
         if (firstReceivedSignal == 0 && secondReceivedSignal == 0) return super.getPower()
+        if (!blockState.hasProperty(BlockStateProperties.FACING)) return 0
+
+        // This needs to be done, otherwise flap contraption will turn the wrong way
+        val facing = blockState.getValue(BlockStateProperties.FACING)
+        if (facing == Direction.EAST || facing == Direction.SOUTH) return secondReceivedSignal-firstReceivedSignal
+
+
         return firstReceivedSignal-secondReceivedSignal
     }
 
