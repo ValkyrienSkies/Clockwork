@@ -128,25 +128,25 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val level = level as ServerLevel
 
         val curAngle = Math.toRadians(targetAngle.toDouble()).toFloat()
-//        val PI = Math.PI.toFloat()
+        val PI = Math.PI.toFloat()
 
-//        val prevAngle = curAngle.nextDown().let { angle ->
-//            when {
-//                (angle >=  PI - 2e-2f) -> 2f * (-PI + 2e-2f) + angle
-//                (angle <= -PI + 2e-2f) -> 2f * ( PI - 2e-2f) + angle
-//                else -> angle
-//            }
-//        }
-//        val nextAngle = curAngle.nextUp().let { angle ->
-//            when {
-//                (angle >=  PI - 2e-2f) -> 2f * (-PI + 2e-2f) + angle
-//                (angle <= -PI + 2e-2f) -> 2f * ( PI - 2e-2f) + angle
-//                else -> angle
-//            }
-//        }
+        val prevAngle = curAngle.nextDown().let { angle ->
+            when {
+                (angle >=  PI) -> 2f * (-PI) + angle
+                (angle <= -PI) -> 2f * ( PI) + angle
+                else -> angle
+            }
+        }
+        val nextAngle = curAngle.nextUp().let { angle ->
+            when {
+                (angle >=  PI) -> 2f * (-PI) + angle
+                (angle <= -PI) -> 2f * ( PI) + angle
+                else -> angle
+            }
+        }
 
-        val prevAngle = curAngle
-        val nextAngle = curAngle.nextUp()
+//        val prevAngle = curAngle
+//        val nextAngle = curAngle.nextUp()
 
         var angleLimit = if (movementMode!!.get() == LockedMode.FOLLOW_ANGLE) {
             VSD6Joint.AngularLimitPair(prevAngle, nextAngle)
@@ -155,8 +155,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         joint = VSJointAndId(joint!!.jointId, VSRevoluteJoint(
             joint!!.joint.shipId0, joint!!.joint.pose0,
             joint!!.joint.shipId1, joint!!.joint.pose1,
-            driveFreeSpin = movementMode!!.get() == LockedMode.UNLOCKED || true,
-            driveVelocity = driveVelocity,
+            driveFreeSpin = movementMode!!.get() == LockedMode.LOCKED,
+            driveVelocity = if (movementMode!!.get() == LockedMode.FOLLOW_ANGLE) null else driveVelocity,
             angularLimitPair = angleLimit
         ))
 
