@@ -130,23 +130,44 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val curAngle = Math.toRadians(targetAngle.toDouble()).toFloat()
         val PI = Math.PI.toFloat()
 
-        val prevAngle = curAngle.nextDown().let { angle ->
+        var prevAngle = curAngle.let { angle ->
             when {
-                (angle >=  PI) -> 2f * (-PI) + angle
-                (angle <= -PI) -> 2f * ( PI) + angle
+                (angle >=  6.28288f) -> -6.28288f
+                (angle <= -6.28288f) ->  6.28288f
                 else -> angle
             }
         }
-        val nextAngle = curAngle.nextUp().let { angle ->
+        var nextAngle = curAngle.nextUp().let { angle ->
             when {
-                (angle >=  PI) -> 2f * (-PI) + angle
-                (angle <= -PI) -> 2f * ( PI) + angle
+                (angle >=  6.28288f) -> -6.28288f
+                (angle <= -6.28288f) ->  6.28288f
                 else -> angle
             }
         }
 
-//        val prevAngle = curAngle
-//        val nextAngle = curAngle.nextUp()
+        if (prevAngle.nextUp() != nextAngle.nextUp()) {
+            if (nextAngle < prevAngle) {
+                prevAngle = nextAngle
+                nextAngle = nextAngle.nextUp()
+            } else {
+                nextAngle = prevAngle
+                prevAngle = prevAngle.nextDown()
+            }
+        }
+
+//        var prevAngle = curAngle
+//        var nextAngle = curAngle.nextUp()
+
+//        var prevAngle = (2f*PI).nextDown()
+//        var nextAngle = (2f*PI)
+//
+//        for (i in 0 until 512 + 128) {
+//            prevAngle = prevAngle.nextDown()
+//            nextAngle = nextAngle.nextDown()
+//        }
+
+        println("$prevAngle $nextAngle")
+        println("${Math.toDegrees(prevAngle.toDouble())} ${Math.toDegrees(nextAngle.toDouble())}")
 
         var angleLimit = if (movementMode!!.get() == LockedMode.FOLLOW_ANGLE) {
             VSD6Joint.AngularLimitPair(prevAngle, nextAngle)
@@ -598,7 +619,13 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 }
             }
             val newAngle = targetAngle + angularSpeed - diff
-            targetAngle = (newAngle % 360)
+            if (newAngle >= 360f) {
+                targetAngle = -360f
+            } else if (newAngle <= -360f) {
+                targetAngle = 360f
+            } else {
+                targetAngle = newAngle
+            }
         } else {
             targetAngle = 0f
         }
