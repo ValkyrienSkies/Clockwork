@@ -22,8 +22,11 @@ if (project.hasProperty("CustomReleaseVersion")) {
     version = project.property("CustomReleaseVersion").replaceFirst("^release/", "")
 } else {
     String gitRevision = "git rev-parse HEAD".execute().text.trim()
+    if (gitRevision.isEmpty()) {
+        gitRevision = 'unknown'
+    }
 
-    version = minecraft_version + '-'+ mod_version + '-' + "forge" + '-' + gitRevision.substring(0, 10)
+    version = minecraft_version + '-'+ mod_version + '-' + "forge" + '-' + (gitRevision.length() >= 10 ? gitRevision.substring(0, 10) : gitRevision)
 }
 
 architectury {

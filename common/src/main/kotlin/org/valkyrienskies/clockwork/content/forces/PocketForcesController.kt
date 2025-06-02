@@ -41,7 +41,6 @@ import kotlin.math.*
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class PocketForcesController: ShipForcesInducer {
 
-    @JsonIgnore
     var dimensionId: DimensionId = "minecraft:dimension:minecraft:overworld"
 
     @JsonIgnore
@@ -108,7 +107,7 @@ class PocketForcesController: ShipForcesInducer {
         val physShipImpl = physShip
 
         var totalBuoyantForce = HashMap<Vector3ic, Double>()
-        if (dimensionMap[dimensionId] != null && dimensionMap[dimensionId]!!.first <= 0.0) {
+        if (dimensionMap[dimensionId] != null && dimensionMap[dimensionId]!!.maxY <= 0.0) {
             return totalBuoyantForce
         }
 

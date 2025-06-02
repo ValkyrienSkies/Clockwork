@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
+
 plugins {
     // Needed for Forge+Fabric
     id "architectury-plugin" version "3.4.146"
@@ -17,8 +19,11 @@ if (project.hasProperty("CustomReleaseVersion")) {
     version = project.property("CustomReleaseVersion").replaceFirst("^release/", "")
 } else {
     String gitRevision = "git rev-parse HEAD".execute().text.trim()
+    if (gitRevision.isEmpty()) {
+        gitRevision = 'unknown'
+    }
 
-    version = mod_version + '+' + gitRevision.substring(0, 10)
+    version = mod_version + '+' + (gitRevision.length() >= 10 ? gitRevision.substring(0, 10) : gitRevision)
 }
 
 tasks.register("updateKelvin") {
@@ -134,9 +139,11 @@ allprojects {
         options.release = 17
     }
 
-    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile).configureEach {
+    tasks.withType(KotlinJvmCompile).configureEach {
         kotlinOptions {
             jvmTarget = "17"
+            freeCompilerArgs += "-Xjvm-default=all"
+
         }
     }
 

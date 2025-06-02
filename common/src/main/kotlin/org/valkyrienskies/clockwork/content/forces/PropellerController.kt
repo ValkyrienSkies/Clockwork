@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.content.forces
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect
-import com.fasterxml.jackson.annotation.JsonIgnore
 import net.minecraft.core.Direction
 import net.minecraft.util.Mth
 import org.joml.AxisAngle4d
@@ -10,7 +9,6 @@ import org.joml.Quaterniondc
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkConfig
-import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropCreateData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropUpdateData
@@ -19,13 +17,10 @@ import org.valkyrienskies.clockwork.util.AerodynamicUtils.getAirDensityForY
 import org.valkyrienskies.core.api.ships.*
 import org.valkyrienskies.core.api.ships.properties.ShipTransform
 import org.valkyrienskies.core.api.world.properties.DimensionId
-import org.valkyrienskies.core.impl.game.ships.ShipInertiaDataImpl
 import org.valkyrienskies.mod.common.util.toJOMLD
 import java.lang.Math
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.function.BiConsumer
 import kotlin.collections.HashMap
 import kotlin.math.*
 
@@ -38,8 +33,7 @@ class PropellerController(
     override var nextApplierID: Int = 0
 ) : MultiInstanceForceApplier<PropUpdateData, PropData, PropCreateData> {
 
-    @JsonIgnore
-    var dimensionId: DimensionId = "minecraft:overworld"
+    var dimensionId: DimensionId = "minecraft:dimension:minecraft:overworld"
 
     var ticksSinceLastUpdate = 0
 
@@ -50,13 +44,9 @@ class PropellerController(
         // Propeller Thrust
         for (physData in appliers.values) {
             if(physData.active) {
-                val (force, torque) = if (physData.brass) {
-                    computeForce(
-                        physShip.transform, physData, (physShip).velocity, physShip.omega, physShip
-                    )
-                } else {
-                    computeBladeForce(physShip, physData)
-                }
+                val (force, torque) = if (physData.brass) computeForce(physShip.transform, physData, (physShip).velocity, physShip.omega, physShip)
+                else computeBladeForce(physShip, physData)
+
                 if (force.isFinite && torque.isFinite) {
                     if (physData.brass) {
                         physShip.applyInvariantForce(force)
@@ -130,7 +120,7 @@ class PropellerController(
             //            Vector3d force2 = force.mul(physProp.bearingSpeed, new Vector3d());
             val torque = sailPosRelShip.cross(force, Vector3d())
 
-            force.mul(500.0)
+            force.mul(ClockworkConfig.SERVER.forceMulPerSailInPropeller)
 
             if (offsetFalloff > 0.0001) force.div(offsetFalloff)
             if (offsetFalloff > 0.0001) torque.div(offsetFalloff)
@@ -228,7 +218,7 @@ class PropellerController(
             val force = worldAxis.mul(dThrust, Vector3d())
             val torque = rotatedDist.cross(force, Vector3d())
 
-            netForce.add(force.mul(10.0))
+            netForce.add(force.mul(50.0))
             netTorque.add(torque)
         }
 

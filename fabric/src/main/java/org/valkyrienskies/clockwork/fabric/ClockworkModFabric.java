@@ -11,9 +11,7 @@ import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.ResourceLocation;
 import org.valkyrienskies.clockwork.*;
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer;
 import org.valkyrienskies.clockwork.content.events.ClockworkCommonEvents;
-import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.fabric.integration.cc.ClockworkFabricPeripheralProviders;
 import org.valkyrienskies.mod.compat.clothconfig.VSClothConfig;
 import org.valkyrienskies.mod.fabric.common.ValkyrienSkiesModFabric;
@@ -39,6 +37,8 @@ public class ClockworkModFabric implements ModInitializer {
         FabricClockworkSounds.prepare();
 
         ClockworkMod.INSTANCE.getREGISTRATE().register();
+
+        RegisterResourceManagers.INSTANCE.init();
 
         ClockworkMod.init();
         //FabricClockworkWorldgen.bootstrap();

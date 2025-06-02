@@ -5,6 +5,9 @@ import com.simibubi.create.foundation.data.CreateRegistrate
 import dev.architectury.event.events.common.InteractionEvent
 import dev.architectury.event.events.common.LifecycleEvent
 import dev.architectury.event.events.common.TickEvent
+import dev.architectury.registry.client.rendering.ColorHandlerRegistry
+import net.minecraft.client.color.block.BlockColor
+import net.minecraft.client.color.block.BlockTintCache
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
 import org.slf4j.LoggerFactory
@@ -56,6 +59,22 @@ object ClockworkMod {
         vsApi.registerAttachment(EncasedFanController::class.java)
         vsApi.registerAttachment(GyroShipControl::class.java)
         vsApi.registerAttachment(GravitronController::class.java)
+        vsApi.registerAttachment(SugarRocketController::class.java)
+
+        //TODO remove when attachment bug is fixed
+        VSEvents.shipLoadEvent.on { (ship) ->
+            PocketForcesController.getOrCreate(ship)
+            DragController.getOrCreate(ship)
+            WanderShipControl.getOrCreate(ship)
+
+            GasThrusterController.getOrCreate(ship)
+            PropellerController.getOrCreate(ship)
+            ReactionWheelController.getOrCreate(ship)
+            EncasedFanController.getOrCreate(ship)
+            GyroShipControl.getOrCreate(ship)
+            GravitronController.getOrCreate(ship)
+            SugarRocketController.getOrCreate(ship)
+        }
 
 
         VSEvents.ShipLoadEvent.on { event ->
@@ -91,9 +110,9 @@ object ClockworkMod {
             DualLinkHandler.handler(player, hand, pos, face)
         })
 
-
     }
 
+    @JvmStatic
     fun getKelvin(): DuctNetworkServer {
         return KelvinMod.getKelvin() as DuctNetworkServer
     }

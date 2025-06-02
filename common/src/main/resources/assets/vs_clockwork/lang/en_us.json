@@ -56,6 +56,12 @@
   "block.vs_clockwork.slicker": "Slicker",
   "item.vs_clockwork.slicker": "Slicker",
 
+  "block.vs_clockwork.distance_sensor": "Peepotron",
+  "item.vs_clockwork.distance_sensor": "Peepotron",
+  "block.vs_clockwork.gyroscopic_sensor": "Spinotron",
+  "item.vs_clockwork.gyroscopic_sensor": "Spinotron",
+
+
   "block.vs_clockwork.wanderlite_block": "Block of Wanderlite",
   "item.vs_clockwork.wanderlite_block": "Block of Wanderlite",
   "block.vs_clockwork.wanderlite_bricks": "Wanderlite Bricks",

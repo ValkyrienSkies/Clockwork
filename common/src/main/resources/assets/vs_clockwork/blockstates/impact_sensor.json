@@ -1,0 +1,240 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "facing": "north",
+        "predictiveness": "0"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "predictiveness": "0"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "predictiveness": "0"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "predictiveness": "0"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "predictiveness": "0"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "predictiveness": "0"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "predictiveness": "1"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block2"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "predictiveness": "1"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block2",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "predictiveness": "1"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block2",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "predictiveness": "1"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block2",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "predictiveness": "1"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block2",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "predictiveness": "1"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block2",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "predictiveness": "2"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block3"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "predictiveness": "2"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block3",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "predictiveness": "2"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block3",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "predictiveness": "2"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block3",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "predictiveness": "2"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block3",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "predictiveness": "2"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block3",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "predictiveness": "3"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block4"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "predictiveness": "3"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block4",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "predictiveness": "3"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block4",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "predictiveness": "3"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block4",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "predictiveness": "3"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block4",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "predictiveness": "3"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/distance_sensor/block4",
+        "x": 90
+      }
+    }
+  ]
+}

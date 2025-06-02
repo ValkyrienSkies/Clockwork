@@ -55,10 +55,19 @@ object ClockworkConfig {
         @JsonSchema(description = "The substeps of blade force calculation. More steps means more \'accurate\' simulation, but also makes it significantly more performance heavy.")
         var bladeIntegrationSteps = 10.0
 
-        @JsonSchema()
-        var lockedModeBaseAngleErrorMultiplier = 1.0
+        @JsonSchema(min = 0.0)
+        var forceMulPerSailInPropeller = 500.0
 
-        @JsonSchema()
-        var unlockedModeRotationResistanceMultiplier = 1.0
+        @JsonSchema(min = 0.0)
+        var encasedFanForceMul = 40.0
+
+        @JsonSchema(min = 0.0)
+        var wanderOreForce = 1100.0
+
+        @JsonSchema(min = 0.0)
+        var gasThrusterForceMul = 2.0
+
+        @JsonSchema(min = 0.0)
+        var sugarRocketBlockThrust = 10000.0
     }
 }

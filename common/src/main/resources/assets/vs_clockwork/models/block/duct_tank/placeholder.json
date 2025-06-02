@@ -1,0 +1,7 @@
+{
+	"parent": "minecraft:block/cube_all",
+	"textures": {
+		"all": "vs_clockwork:block/duct_tank_placeholder",
+		"particle": "vs_clockwork:block/duct_tank_placeholder"
+	}
+}

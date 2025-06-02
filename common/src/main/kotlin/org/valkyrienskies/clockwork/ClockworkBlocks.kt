@@ -21,6 +21,7 @@ import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockBehaviour
+import net.minecraft.world.level.block.state.BlockBehaviour.Properties
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.client.render.WingBlockItemRenderer
@@ -41,8 +42,13 @@ import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteSlab
 import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteStairs
 import org.valkyrienskies.clockwork.content.curiosities.asteroid.AsteroidBlock
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlock
+import org.valkyrienskies.clockwork.content.curiosities.sensor.distance.DistanceSensorBlock
+import org.valkyrienskies.clockwork.content.curiosities.sensor.impact.ImpactSensorBlock
+import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.GyroscopicSensorBlock
+import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.LodefocusBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
+import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
@@ -56,16 +62,33 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.Deliv
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctBlock
+import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlock
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.WingBlock
+import org.valkyrienskies.clockwork.content.propulsion.sugar_rocket.SugarRocketBlock
 import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork.flapbearing
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import java.util.function.Supplier
 
 
 object ClockworkBlocks {
+
+    @JvmField
+    val SUGAR_ROCKET: BlockEntry<SugarRocketBlock> =
+        REGISTRATE.block<SugarRocketBlock>("sugar_rocket") { properties: BlockBehaviour.Properties? ->
+            SugarRocketBlock(properties!!)
+        }
+            .initialProperties(SharedProperties.BELT_MATERIAL)
+            .transform(TagGen.axeOrPickaxe())
+            .properties { it.instabreak().explosionResistance(0f) }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
+            .register()
 
     @JvmField
     val BRASS_PROPELLER_BEARING: BlockEntry<PropellerBearingBlock> =
@@ -102,6 +125,7 @@ object ClockworkBlocks {
         }
             .transform(axeOrPickaxe())
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .onRegister(movementBehaviour(BladeControllerMovementBehaviour()))
             .item()
@@ -167,6 +191,65 @@ object ClockworkBlocks {
         }
             .initialProperties { SharedProperties.stone() }
             .transform(axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
+            .register()
+
+    @JvmField
+    val DISTANCE_SENSOR: BlockEntry<DistanceSensorBlock> =
+        REGISTRATE.block<DistanceSensorBlock>("distance_sensor") { properties: BlockBehaviour.Properties? ->
+            DistanceSensorBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.stone() }
+            .transform(TagGen.axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
+            .register()
+
+    @JvmField
+    val GYROSCOPIC_SENSOR: BlockEntry<GyroscopicSensorBlock> = REGISTRATE.block<GyroscopicSensorBlock>("gyroscopic_sensor") { properties: BlockBehaviour.Properties? ->
+        GyroscopicSensorBlock(properties!!)
+    }
+        .initialProperties { SharedProperties.stone() }
+        .transform(TagGen.axeOrPickaxe())
+        .properties { it.noOcclusion() }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
+    val LODEFOCUS: BlockEntry<LodefocusBlock> = REGISTRATE.block<LodefocusBlock>("lodefocus") { properties: BlockBehaviour.Properties? ->
+        LodefocusBlock(properties!!)
+    }
+        .initialProperties { Blocks.GLASS }
+        .transform(TagGen.axeOrPickaxe())
+        .properties { it.noOcclusion() ; it.lightLevel{ _ -> 1 } ; it.isViewBlocking{ _, _, _ -> false } }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+        .tag(ClockworkTags.AllBlockTags.SENSOR_LENS.tag)
+        .item()
+        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .build()
+        .register()
+
+    @JvmField
+    val IMPACT_SENSOR: BlockEntry<ImpactSensorBlock> =
+        REGISTRATE.block<ImpactSensorBlock>("impact_sensor") { properties: BlockBehaviour.Properties? ->
+            ImpactSensorBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.stone() }
+            .transform(TagGen.axeOrPickaxe())
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
@@ -489,6 +572,34 @@ object ClockworkBlocks {
             .register()
 
     @JvmField
+    val EXTENDON: BlockEntry<ExtendonBlock> =
+        REGISTRATE.block<ExtendonBlock>("extendon") { properties: BlockBehaviour.Properties? ->
+            ExtendonBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.netheriteMetal() }
+            .transform(axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
+            .register()
+
+
+    @JvmField
+    val GAS_BACKTANK: BlockEntry<GasBacktankBlock> =
+        REGISTRATE.block<GasBacktankBlock>("gas_backtank") { properties: BlockBehaviour.Properties? ->
+            GasBacktankBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.softMetal() }
+            .transform(axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .register()
+
+    @JvmField
     val GOO_BLOCK = REGISTRATE.block<GooBlock>("goo_block") { properties: BlockBehaviour.Properties? ->
         GooBlock(
             properties!!
@@ -785,16 +896,22 @@ object ClockworkBlocks {
             .register()
 
     @JvmField
-    val GAS_BACKTANK: BlockEntry<GasBacktankBlock> =
-        REGISTRATE.block<GasBacktankBlock>("gas_backtank") { properties: BlockBehaviour.Properties? ->
-            GasBacktankBlock(properties!!)
+    val UNIVERSAL_SHAFT: BlockEntry<UniversalShaftBlock> =
+        REGISTRATE.block<UniversalShaftBlock>("universal_shaft") { properties: BlockBehaviour.Properties? ->
+            UniversalShaftBlock(properties!!)
         }
-            .initialProperties { SharedProperties.softMetal() }
-            .transform(axeOrPickaxe())
+            .initialProperties { SharedProperties.wooden() }
+            .transform(TagGen.axeOrPickaxe())
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .build()
             .register()
+
+
+
 
 
 

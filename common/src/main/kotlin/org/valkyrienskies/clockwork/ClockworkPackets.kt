@@ -18,9 +18,7 @@ import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRu
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctEdgeSyncPacket
 import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterClosePacket
 import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterScreenOpenPacket
-import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorPacket
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorPacket
-import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzlePacket
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.UpdateFrequencySlotPacket
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonSyncPacket
 import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket
@@ -29,6 +27,7 @@ import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
 import org.valkyrienskies.clockwork.platform.api.network.CWPacket
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket
 import org.valkyrienskies.clockwork.util.blocktype.SyncableStoragePacket
+import org.valkyrienskies.clockwork.util.universal_joint.UniversalJointItemPacket
 import java.util.function.Function
 
 @Suppress("UNCHECKED_CAST")
@@ -63,9 +62,9 @@ enum class ClockworkPackets(
     WANDER_WAND_CLEAR(WanderWandClearPacket::class.java, ::WanderWandClearPacket),
 
     UPDATE_DUCT_EDGE(DuctEdgeSyncPacket::class.java, ::DuctEdgeSyncPacket),
-    AIR_COMPRESSOR_PACKET(AirCompressorPacket::class.java, ::AirCompressorPacket),
-    GAS_NOZZLE_PACKET(GasNozzlePacket::class.java, ::GasNozzlePacket)
 
+
+    UNIVERSAL_JOINT_ITEM_PACKET(UniversalJointItemPacket::class.java, ::UniversalJointItemPacket)
 
     ;
 

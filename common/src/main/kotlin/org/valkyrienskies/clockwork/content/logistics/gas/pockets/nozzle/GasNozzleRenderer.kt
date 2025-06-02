@@ -29,7 +29,7 @@ class GasNozzleRenderer(context: BlockEntityRendererProvider.Context?) : Kinetic
         light: Int,
         overlay: Int
     ) {
-        super.renderSafe(be, partialTicks, ms, buffer, light, overlay)
+        //super.renderSafe(be, partialTicks, ms, buffer, light, overlay)
 
         val blockState = be.blockState
         var pointer = CachedBufferer.partial(ClockworkPartials.NOZZLE_DIAL, blockState)

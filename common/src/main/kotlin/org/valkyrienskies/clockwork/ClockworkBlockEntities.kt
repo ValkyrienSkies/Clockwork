@@ -30,13 +30,17 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlo
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeControllerBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeControllerRenderer
+import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterRenderer
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockRenderer
+import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.LodefocusBlockEntity
+import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.LodefocusRenderer
 import org.valkyrienskies.clockwork.content.generic.ColorBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRenderer
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRenderer
+import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctRenderer
@@ -59,11 +63,36 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.Deli
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotRenderer
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer
+import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity
+import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonRenderer
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelBlockEntity
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelInstance
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelRenderer
+import org.valkyrienskies.clockwork.content.propulsion.sugar_rocket.SugarRocketBlockEntity
+import org.valkyrienskies.clockwork.content.propulsion.sugar_rocket.SugarRocketRenderer
 
 object ClockworkBlockEntities {
+
+    @JvmField
+    val SUGAR_ROCKET: BlockEntityEntry<SugarRocketBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<SugarRocketBlockEntity>(
+            "sugar_rocket"
+        ) { type: BlockEntityType<SugarRocketBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
+            SugarRocketBlockEntity(
+                type!!,
+                pos!!,
+                state!!
+            )
+        }
+        .validBlocks(ClockworkBlocks.SUGAR_ROCKET)
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in SugarRocketBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                SugarRocketRenderer(
+                    context!!
+                )
+            }
+        }
+        .register()
 
     @JvmField
     val PROPELLER_BEARING: BlockEntityEntry<PropellerBearingBlockEntity> = ClockworkMod.REGISTRATE
@@ -187,6 +216,31 @@ object ClockworkBlockEntities {
             )
         }
         .validBlocks(ClockworkBlocks.ALT_METER)
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in AltMeterBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                AltMeterRenderer(
+                    context
+                )
+            }
+        }
+        .register()
+
+    @JvmField
+    val LODEFOCUS = ClockworkMod.REGISTRATE.blockEntity<LodefocusBlockEntity>("lodefocus") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+        LodefocusBlockEntity(
+            type,
+            pos,
+            state
+        )
+    }
+        .validBlocks(ClockworkBlocks.LODEFOCUS)
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in LodefocusBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                LodefocusRenderer(
+                    context
+                )
+            }
+        }
         .register()
 
     @JvmField
@@ -602,6 +656,39 @@ object ClockworkBlockEntities {
             )
         }
         .validBlocks(ClockworkBlocks.GAS_BACKTANK)
+        .register()
+
+    @JvmField
+    val UNIVERSAL_SHAFT: BlockEntityEntry<UniversalShaftBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<UniversalShaftBlockEntity>(
+            "universal_shaft"
+        ) { typeIn: BlockEntityType<UniversalShaftBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
+            UniversalShaftBlockEntity(
+                typeIn,
+                pos!!, state!!
+            )
+        }
+        .validBlocks(ClockworkBlocks.UNIVERSAL_SHAFT)
+        .register()
+
+    @JvmField
+    val EXTENDON: BlockEntityEntry<ExtendonBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<ExtendonBlockEntity>(
+            "extendon"
+        ) { typeIn: BlockEntityType<ExtendonBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
+            ExtendonBlockEntity(
+                typeIn,
+                pos!!, state!!
+            )
+        }
+        .renderer {
+            NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in ExtendonBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
+                ExtendonRenderer(
+                    context!!
+                )
+            }
+        }
+        .validBlocks(ClockworkBlocks.EXTENDON)
         .register()
 
     @JvmStatic

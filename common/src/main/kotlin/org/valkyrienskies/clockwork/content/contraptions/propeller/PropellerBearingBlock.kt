@@ -36,9 +36,7 @@ class PropellerBearingBlock(properties: Properties) : BearingBlock(properties), 
     ): InteractionResult {
         if (!player.mayBuild()) return InteractionResult.FAIL
         if (player.isShiftKeyDown) return InteractionResult.FAIL
-        if (player.getItemInHand(handIn)
-                .isEmpty
-        ) {
+        if (player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty) {
             if (!worldIn.isClientSide) {
                 withBlockEntityDo(
                     worldIn,
