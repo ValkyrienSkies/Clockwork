@@ -29,6 +29,7 @@ import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingData
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingUpdateData
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
+import org.valkyrienskies.clockwork.content.forces.contraption.BearingController.Companion.getAngle
 import org.valkyrienskies.clockwork.platform.api.ContraptionController
 import org.valkyrienskies.clockwork.platform.api.ContraptionController.LockedMode
 import org.valkyrienskies.clockwork.util.ClockworkConstants
@@ -40,7 +41,6 @@ import org.valkyrienskies.clockwork.util.plus
 import org.valkyrienskies.clockwork.util.times
 import org.valkyrienskies.core.api.attachment.getAttachment
 import org.valkyrienskies.core.api.ships.ServerShip
-import org.valkyrienskies.core.api.ships.properties.ShipTransform
 import org.valkyrienskies.core.apigame.joints.*
 import org.valkyrienskies.core.impl.bodies.properties.BodyTransformFactory
 
@@ -62,6 +62,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     var assembleNextTick = false
     var movementMode: ScrollOptionBehaviour<LockedMode>? = null
+    var stopTargetAngleChange = false
     var isRunning = false
         private set
     var shiptraptionID = NO_SHIPTRAPTION_ID
@@ -110,10 +111,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         setLazyTickRate(3)
     }
 
-    override fun isWoodenTop(): Boolean {
-        return false
-    }
-
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
         super.addBehaviours(behaviours)
         movementMode = ScrollOptionBehaviour(
@@ -130,6 +127,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     ) {
         val level = level as ServerLevel
 
+        //TODO this didn't work but i don't want to delete it yet in case i have an epiphany or smth
 //        val curAngle = Math.toRadians(targetAngle.toDouble()).toFloat()
 //        val PI = Math.PI.toFloat()
 //
@@ -208,6 +206,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         tag.putBoolean(ClockworkConstants.Nbt.RUNNING, isRunning)
         tag.putFloat(ClockworkConstants.Nbt.ANGLE, targetAngle)
+        tag.putBoolean("stopTargetAngleChange", stopTargetAngleChange)
         if (shiptraptionID != NO_SHIPTRAPTION_ID) {
             tag.putLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID, shiptraptionID)
         }
@@ -243,6 +242,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         open = tag.getBoolean(ClockworkConstants.Nbt.OPEN)
         isRunning = tag.getBoolean(ClockworkConstants.Nbt.RUNNING)
         targetAngle = tag.getFloat(ClockworkConstants.Nbt.ANGLE)
+        stopTargetAngleChange = tag.getBoolean("stopTargetAngleChange")
         lastException = AssemblyException.read(tag)
         if (tag.contains(ClockworkConstants.Nbt.SHIPTRAPTION_ID)) {
             shiptraptionID = tag.getLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID)
@@ -266,42 +266,45 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         aligning = tag.getBoolean("aligning")
 
         val mapper = VSJacksonUtil.dtoMapper
-        this@PhysBearingBlockEntity.joint = if (tag.contains("constraint")) {mapper.readValue(tag.getByteArray("constraint"), VSJointAndId::class.java)} else {null}
+        this.joint = if (tag.contains("constraint")) {mapper.readValue(tag.getByteArray("constraint"), VSJointAndId::class.java)} else {null}
 
         super.read(tag, clientPacket)
-
         if (clientPacket) {return}
 
-        shouldRefresh = true
-        val oldPos = BlockPos.of(tag.getLong(ClockworkConstants.Nbt.OLD_POS)).toJOMLD()
-        if (oldPos == worldPosition || level == null || level!!.isClientSide) {return}
+        val level = level as? ServerLevel ?: return
 
-        val level = level as ServerLevel
-        val subship = level.shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return
+        shouldRefresh = true
+        var joint = this.joint?.joint as VSRevoluteJoint?
         val mainId = level.getShipManagingPos(worldPosition)?.id ?: level.shipObjectWorld.dimensionToGroundBodyIdImmutable[level.dimensionId]!!
+
+        //TODO is this fine or dumb?
+        val makeData = { joint: VSRevoluteJoint? -> PhysBearingData(
+            bearingAxis.get(Vector3d()),
+            Math.toRadians(targetAngle.toDouble()),
+            getRealisticAngularSpeed(),
+            movementMode!!.get() == LockedMode.FOLLOW_ANGLE,
+            aligning,
+            if (level.shipObjectWorld.dimensionToGroundBodyIdImmutable.values.contains(mainId)) {-1L} else {mainId},
+            joint?.pose1?.pos?.get(Vector3d()) ?: Vector3d(),
+            joint?.pose0?.pos?.get(Vector3d()) ?: Vector3d()
+        ) }
+
+        controllerCreationData = makeData(joint)
+
+        val oldPos = BlockPos.of(tag.getLong(ClockworkConstants.Nbt.OLD_POS)).toJOMLD()
+        if (oldPos == worldPosition) {return}
+
+        val subship = level.shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return
 
         val newPos = worldPosition.toJOMLD()
 
         val oldSPos = tag.getVector3d(ClockworkConstants.Nbt.OLD_SHIPTRAPTION_CENTER)!!
         val newSPos = tag.getVector3d(ClockworkConstants.Nbt.NEW_SHIPTRAPTION_CENTER)!!
 
-        var joint = this.joint?.joint as VSRevoluteJoint?
         joint = joint?.let{it.copy(subship.id, pose0 = VSJointPose(it.pose0.pos - oldSPos + newSPos, it.pose0.rot), mainId, pose1 = VSJointPose(it.pose1.pos - oldPos + newPos, it.pose1.rot))}
         this.joint = this.joint?.let{VSJointAndId(it.jointId, joint!!)}
 
-        val controller = BearingController.getOrCreate(subship)!!
-        bearingID = controller.addPhysBearing(
-            PhysBearingData(
-                bearingAxis.get(Vector3d()),
-                Math.toRadians(targetAngle.toDouble()),
-                getRealisticAngularSpeed(),
-                movementMode!!.get() == LockedMode.FOLLOW_ANGLE,
-                aligning,
-                if (level.shipObjectWorld.dimensionToGroundBodyIdImmutable.values.contains(mainId)) {-1L} else {mainId},
-                joint?.pose1?.pos?.get(Vector3d()) ?: Vector3d(),
-                joint?.pose0?.pos?.get(Vector3d()) ?: Vector3d()
-            )
-        )
+        controllerCreationData = makeData(joint)
     }
 
     override fun getInterpolatedAngle(partialTicks: Float): Float {
@@ -311,16 +314,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         return Mth.lerp(partialTicks, targetAngle, targetAngle + angularSpeed)
     }
 
-    fun getWingRotOffset(): Float {
-        return if (isRunning && open) {
-            openProgressMax.toDouble().toFloat()
-        } else if (isRunning) {
-            Mth.lerp(openProgress.toDouble(), 0.0, openProgressMax.toDouble()).toFloat()
-        } else if (!isRunning && open) {
-            Mth.lerp(openProgress.toDouble(), 1.0, openProgressMax.toDouble()).toFloat()
-        } else {
-            0.0f
-        }
+    fun getWingRotOffset(): Float = when {
+         isRunning && open -> openProgressMax.toDouble().toFloat()
+         isRunning         -> Mth.lerp(openProgress.toDouble(), 0.0, openProgressMax.toDouble()).toFloat()
+        !isRunning && open -> Mth.lerp(openProgress.toDouble(), 1.0, openProgressMax.toDouble()).toFloat()
+        else -> 0.0f
     }
 
     fun getInterpolatedCoreAngle(partialTicks: Float): Float {
@@ -346,14 +344,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             }
             return speed
         }
-
-    override fun getLastAssemblyException(): AssemblyException? {
-        return lastException
-    }
-
-    override fun getBlockPosition(): BlockPos {
-        return worldPosition
-    }
 
     private fun getHingeRotation(localDirection: Direction): Quaterniond {
         val rotationQuaternion: Quaterniond = when (localDirection) {
@@ -551,12 +541,10 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val aabb = subShip.shipAABB!!
         val blocks = DenseBlockPosSet()
         for (x in aabb.minX() - 1 until  aabb.maxX() + 1) {
-            for (z in aabb.minZ() - 1 until  aabb.maxZ() + 1) {
-                for (y in aabb.minY() - 1 until  aabb.maxY() + 1) {
-                    blocks.add(x, y, z)
-                }
-            }
-        }
+        for (z in aabb.minZ() - 1 until  aabb.maxZ() + 1) {
+        for (y in aabb.minY() - 1 until  aabb.maxY() + 1) {
+            blocks.add(x, y, z)
+        } } }
 
         val subCouldSplit = subShip.getAttachment<SplittingDisablerAttachment>()?.let { if (it.canSplit()) { it.disableSplitting(); true } else {false} } ?: false
         val mainCouldSplit = mainShip?.getAttachment<SplittingDisablerAttachment>()?.let { if (it.canSplit()) { it.disableSplitting(); true } else {false} } ?: false
@@ -573,6 +561,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             return
         }
         BearingController.getOrCreate(subShip)!!.removePhysBearing(bearingID)
+
+        aligning = false
+        targetAngle = 0f
 
         lastStateChanged = ticks
         resetState()
@@ -595,9 +586,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (!assembleNextTick) {return}
         if (ticks - lastStateChanged <= cooldown) {return}
         assembleNextTick = false
-        if (!isRunning) {
-            assemble()
-        }
+        if (!isRunning) {assemble()}
     }
 
     //should be public cuz reasons
@@ -618,10 +607,10 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             return
         }
 
-        val attachConstraint = VSRevoluteJoint(shipId00, pose0, shipOnID, pose1, maxForceTorque)
+        val joint = VSRevoluteJoint(shipId00, pose0, shipOnID, pose1, maxForceTorque)
 
-        level.shipObjectWorld.createNewConstraint(attachConstraint)?.let {
-            joint = VSJointAndId(it, attachConstraint)
+        level.shipObjectWorld.createNewConstraint(joint)?.let {
+            this.joint = VSJointAndId(it, joint)
             shouldRefresh = false
         }
     }
@@ -704,7 +693,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         }
         tickAnimationLogic()
         if (!isRunning) return
-        if (shiptraptionID != NO_SHIPTRAPTION_ID) {
+        if (shiptraptionID == NO_SHIPTRAPTION_ID) {
+            targetAngle = 0f
+        } else if (!stopTargetAngleChange) {
             val angularSpeed = getActualAngularSpeed()
             var diff = 0.0f
 
@@ -720,15 +711,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 }
             }
             val newAngle = targetAngle + angularSpeed - diff
-            if (newAngle >= 360f) {
-                targetAngle = 0f
-            } else if (newAngle < 0f) {
-                targetAngle = 360f
-            } else {
-                targetAngle = newAngle
+            targetAngle = when {
+                newAngle >= 360f -> 0f
+                newAngle < 0f -> 360f
+                else -> newAngle
             }
-        } else {
-            targetAngle = 0f
         }
         if (!level!!.isClientSide) {
             tryUpdateData()
@@ -760,35 +747,16 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (shiptraptionID != NO_SHIPTRAPTION_ID && !level!!.isClientSide) sendData()
     }
 
-    override fun attach(contraption: ControlledContraptionEntity) {}
-
-    override fun onStall() {
-        if (!level!!.isClientSide) sendData()
-    }
-
-    override fun isValid(): Boolean {
-        return !isRemoved
-    }
-
-    override fun isAttachedTo(contraption: AbstractContraptionEntity): Boolean {
-        return false
-    }
-
     override fun addToTooltip(tooltip: List<Component>, isPlayerSneaking: Boolean): Boolean {
         if (super.addToTooltip(tooltip, isPlayerSneaking)) return true
         if (isPlayerSneaking) return false
         if (getSpeed() == 0f) return false
         if (isRunning) return false
-        val state = blockState
-        if (state.block !is BearingBlock) return false
-        val attachedState = level!!.getBlockState(worldPosition.relative(state.getValue(BearingBlock.FACING)))
+        if (blockState.block !is BearingBlock) return false
+        val attachedState = level!!.getBlockState(worldPosition.relative(blockState.getValue(BearingBlock.FACING)))
         if (attachedState.material.isReplaceable) return false
         TooltipHelper.addHint(tooltip, "hint.empty_bearing")
         return true
-    }
-
-    override fun setAngle(forcedAngle: Float) {
-        targetAngle = forcedAngle
     }
 
     fun getActualAngle(): Double? {
@@ -798,6 +766,15 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         return getAngle(bearingAxis, shiptraption.transform, mainShip?.transform)
     }
 
+    override fun attach(contraption: ControlledContraptionEntity) {}
+    override fun onStall() { if (!level!!.isClientSide) sendData() }
+    override fun isValid(): Boolean = !isRemoved
+    override fun isAttachedTo(contraption: AbstractContraptionEntity): Boolean = false
+    override fun setAngle(forcedAngle: Float) { targetAngle = forcedAngle }
+    override fun getLastAssemblyException(): AssemblyException? = lastException
+    override fun getBlockPosition(): BlockPos = worldPosition
+    override fun isWoodenTop(): Boolean = false
+
     companion object {
         const val NO_SHIPTRAPTION_ID: Long = -1
 
@@ -806,37 +783,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         fun canDisassemble(bearingAxis: Vector3d, mainShip: ServerShip, otherShip: ServerShip?, tolerance: Int=5): Boolean {
             if (abs(Math.toDegrees(getAngle(bearingAxis, mainShip.transform, otherShip?.transform))) > tolerance) return false
             return true
-        }
-
-        @JvmStatic
-        fun getAngle(bearingAxis: Vector3d, physShipTransform: ShipTransform, otherPhysShipTransform: ShipTransform?): Double {
-            val bearingAxisInGlobal = Vector3d(bearingAxis)
-            otherPhysShipTransform?.shipToWorldRotation?.transform(bearingAxisInGlobal)
-
-            // Only apply torque on the bearing axis
-            // Proportional
-            val perpendicularAxis: Vector3dc = if (abs(bearingAxis.x()) == 1.0) {
-                Vector3d(0.0, 1.0, 0.0)
-            } else if (abs(bearingAxis.y()) == 1.0) {
-                Vector3d(1.0, 0.0, 0.0)
-            } else if (abs(bearingAxis.z()) == 1.0) {
-                Vector3d(0.0, 1.0, 0.0)
-            } else {
-                throw RuntimeException("how the fuck did you mess this up g")
-            }
-            var perpAfterRot: Vector3dc = perpendicularAxis.rotate(physShipTransform.shipToWorldRotation, Vector3d())
-            perpAfterRot = otherPhysShipTransform?.shipToWorldRotation?.transformInverse(perpAfterRot, Vector3d()) ?: perpAfterRot
-
-            val perpAfterRotInPlane: Vector3dc = perpAfterRot.sub(bearingAxis.mul(bearingAxis.dot(perpAfterRot), Vector3d()), Vector3d())
-            val angleBTShipInRadians = perpAfterRotInPlane.angle(perpendicularAxis)
-            val crossOfYourMother: Vector3dc = perpAfterRotInPlane.cross(perpendicularAxis, Vector3d())
-            val angleWRespectToBearingAxis: Double = if (crossOfYourMother.lengthSquared() > 1e-12) {
-                angleBTShipInRadians * sign(crossOfYourMother.dot(bearingAxis)) * -1
-                // bro what do you expect me to do :sus:
-            } else {
-                0.0
-            }
-            return angleWRespectToBearingAxis
         }
     }
 }

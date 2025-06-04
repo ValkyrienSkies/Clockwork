@@ -31,6 +31,7 @@ class BearingController : ShipForcesInducer {
     private val createdBearings = ConcurrentLinkedQueue<Pair<Int, PhysBearingData>>()
     private val removedBearings = ConcurrentLinkedQueue<Int>()
     private var nextBearingID = 0
+
     override fun applyForces(physShip: PhysShip) {
         // Do nothing, actual work is in applyForcesAndLookupPhysShips()
     }
@@ -74,7 +75,7 @@ class BearingController : ShipForcesInducer {
     ): Vector3dc {
         val prevRPM = data.angularSpeed
         val prevAngle = data.bearingAngle
-        data.actualAngle = getAngle(data, physShip.transform, otherPhysShip?.transform)
+        data.actualAngle = getAngle(data.bearingAxis!!, physShip.transform, otherPhysShip?.transform)
         if (data.aligning) {
             data.angularSpeed = abs(prevRPM) * if (data.actualAngle > 0) -1 else 1
             data.bearingAngle = 0.0
@@ -199,8 +200,8 @@ class BearingController : ShipForcesInducer {
         val relativeOmegaInPhysShipParallelBearingAxis = data.bearingAxis.dot(relativeOmegaInPhysShip)
         val omegaErr = -relativeOmegaInPhysShipParallelBearingAxis
 
-        val torque = angleErr * torqueMassMultiplier * ClockworkConfig.SERVER.angleFollowingAngleErrorMultiplier
-                   + omegaErr * torqueMassMultiplier * ClockworkConfig.SERVER.angleFollowingOmegaErrorMultiplier
+        val torque = angleErr * torqueMassMultiplier * ClockworkConfig.SERVER.angleFollowingAngleErrorMultiplier +
+                     omegaErr * torqueMassMultiplier * ClockworkConfig.SERVER.angleFollowingOmegaErrorMultiplier
         return bearingAxisInGlobal.mul(torque, Vector3d())
     }
 
@@ -210,71 +211,38 @@ class BearingController : ShipForcesInducer {
         return id
     }
 
-    fun removePhysBearing(id: Int) {
-        removedBearings.add(id)
-    }
-
-    fun updatePhysBearing(id: Int, data: PhysBearingUpdateData) {
-        bearingUpdateData[id] = data
-    }
-
-    override fun equals(other: Any?): Boolean {
-        // self check
-        return if (this === other) {
-            true
-        } else if (other !is BearingController) {
-            false
-        } else {
-            (bearingData == other.bearingData && bearingUpdateData == other.bearingUpdateData && areQueuesEqual(
-                createdBearings,
-                other.createdBearings
-            ) && areQueuesEqual(removedBearings, other.removedBearings) && nextBearingID == other.nextBearingID)
-        }
-    }
-
-    //TODO stupid code duplication
-    private fun getAngle(data: PhysBearingData, physShipTransform: ShipTransform, otherPhysShipTransform: ShipTransform?): Double {
-        val bearingAxisInGlobal = Vector3d(data.bearingAxis)
-        otherPhysShipTransform?.shipToWorldRotation?.transform(bearingAxisInGlobal)
-
-        // Only apply torque on the bearing axis
-        // Proportional
-        val perpendicularAxis: Vector3dc = if (abs(data.bearingAxis!!.x()) == 1.0) {
-            Vector3d(0.0, 1.0, 0.0)
-        } else if (abs(data.bearingAxis.y()) == 1.0) {
-            Vector3d(1.0, 0.0, 0.0)
-        } else if (abs(data.bearingAxis.z()) == 1.0) {
-            Vector3d(0.0, 1.0, 0.0)
-        } else {
-            throw RuntimeException("how the fuck did you mess this up g")
-        }
-        var perpAfterRot: Vector3dc = perpendicularAxis.rotate(physShipTransform.shipToWorldRotation, Vector3d())
-        perpAfterRot = otherPhysShipTransform?.shipToWorldRotation?.transformInverse(perpAfterRot, Vector3d()) ?: perpAfterRot
-
-        val perpAfterRotInPlane: Vector3dc = perpAfterRot.sub(data.bearingAxis.mul(data.bearingAxis.dot(perpAfterRot), Vector3d()), Vector3d())
-        val angleBTShipInRadians = perpAfterRotInPlane.angle(perpendicularAxis)
-        val crossOfYourMother: Vector3dc = perpAfterRotInPlane.cross(perpendicularAxis, Vector3d())
-        val angleWRespectToBearingAxis: Double = if (crossOfYourMother.lengthSquared() > 1e-12) {
-            angleBTShipInRadians * sign(crossOfYourMother.dot(data.bearingAxis)) * -1
-            // bro what do you expect me to do :sus:
-        } else {
-            0.0
-        }
-        return angleWRespectToBearingAxis
-    }
-
-    //tolerance is in degrees
-    fun canDisassemble(id: Int?, mainShip: ServerShip, otherShip: ServerShip?, tolerance: Int=5): Boolean {
-        val item = bearingData[id] ?: return false
-        if (abs(Math.toDegrees(getAngle(item, mainShip.transform, otherShip?.transform))) > tolerance) return false
-        return true
-    }
-
-    fun setAligning(yn: Boolean, id: Int) {
-        bearingData[id]?.aligning = yn
-    }
+    fun removePhysBearing(id: Int) { removedBearings.add(id) }
+    fun updatePhysBearing(id: Int, data: PhysBearingUpdateData) { bearingUpdateData[id] = data }
 
     companion object {
+        @JvmStatic
+        fun getAngle(bearingAxis: Vector3dc, physShipTransform: ShipTransform, otherPhysShipTransform: ShipTransform?): Double {
+            val bearingAxisInGlobal = bearingAxis.get(Vector3d())
+            otherPhysShipTransform?.shipToWorldRotation?.transform(bearingAxisInGlobal)
+
+            // Only apply torque on the bearing axis
+            // Proportional
+            val perpendicularAxis = when {
+                abs(bearingAxis.x()) == 1.0 -> Vector3d(0.0, 1.0, 0.0)
+                abs(bearingAxis.y()) == 1.0 -> Vector3d(1.0, 0.0, 0.0)
+                abs(bearingAxis.z()) == 1.0 -> Vector3d(0.0, 1.0, 0.0)
+                else -> throw RuntimeException("incorrect data")
+            }
+            var perpAfterRot: Vector3dc = perpendicularAxis.rotate(physShipTransform.shipToWorldRotation, Vector3d())
+            perpAfterRot = otherPhysShipTransform?.shipToWorldRotation?.transformInverse(perpAfterRot, Vector3d()) ?: perpAfterRot
+
+            val perpAfterRotInPlane: Vector3dc = perpAfterRot.sub(bearingAxis.mul(bearingAxis.dot(perpAfterRot), Vector3d()), Vector3d())
+            val angleBTShipInRadians = perpAfterRotInPlane.angle(perpendicularAxis)
+            val crossOfYourMother: Vector3dc = perpAfterRotInPlane.cross(perpendicularAxis, Vector3d())
+            val angleWRespectToBearingAxis: Double = if (crossOfYourMother.lengthSquared() > 1e-12) {
+                angleBTShipInRadians * sign(crossOfYourMother.dot(bearingAxis)) * -1
+                // bro what do you expect me to do :sus:
+            } else {
+                0.0
+            }
+            return angleWRespectToBearingAxis
+        }
+
         @OptIn(VsBeta::class)
         fun getOrCreate(ship: LoadedServerShip): BearingController? {
             if (ship.getAttachment(BearingController::class.java) == null) {
