@@ -21,6 +21,20 @@ class VirtualDuctNetwork(
         TODO("Not yet implemented")
     }
 
+    override fun createGasParticle(
+        level: PonderWorld,
+        gasType: GasType,
+        pos: DuctNodePos,
+        x: Double,
+        y: Double,
+        z: Double,
+        xSpeed: Double,
+        ySpeed: Double,
+        zSpeed: Double
+    ) {
+        TODO("Not yet implemented")
+    }
+
     override fun dump() {
         disabled = true
         edges.clear()
