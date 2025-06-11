@@ -11,7 +11,7 @@ import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.clockwork.util.gui.GuiUtil
 import org.valkyrienskies.clockwork.util.gui.ScrollingFrame
-import org.valkyrienskies.kelvin.impl.GasTypeRegistry
+import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import kotlin.math.roundToInt
 
 class FilterScreen(private val nodeA: DuctNodePos, private val nodeB: DuctNodePos, private val filter: HashSet<GasType>, private var blacklist: Boolean) : AbstractSimiScreen()  {

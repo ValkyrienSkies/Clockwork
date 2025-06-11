@@ -7,7 +7,7 @@ import net.minecraft.resources.ResourceLocation
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
 import org.valkyrienskies.clockwork.platform.api.network.ServerNetworkContext
 import org.valkyrienskies.kelvin.api.GasType
-import org.valkyrienskies.kelvin.impl.GasTypeRegistry
+import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import java.util.*
 import kotlin.collections.HashMap
 

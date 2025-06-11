@@ -12,7 +12,7 @@ import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket
 import org.valkyrienskies.clockwork.platform.api.network.ServerNetworkContext
 import org.valkyrienskies.core.util.readVec3d
 import org.valkyrienskies.core.util.writeVec3d
-import org.valkyrienskies.kelvin.impl.GasTypeRegistry
+import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3d

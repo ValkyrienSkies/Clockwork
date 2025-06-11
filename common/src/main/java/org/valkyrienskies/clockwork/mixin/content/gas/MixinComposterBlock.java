@@ -25,7 +25,7 @@ import org.valkyrienskies.kelvin.api.*;
 import org.valkyrienskies.kelvin.api.nodes.PipeDuctNode;
 import org.valkyrienskies.kelvin.api.nodes.TankDuctNode;
 import org.valkyrienskies.kelvin.impl.DuctNetworkServer;
-import org.valkyrienskies.kelvin.impl.GasTypeRegistry;
+import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry;
 import org.valkyrienskies.kelvin.util.KelvinExtensions;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 

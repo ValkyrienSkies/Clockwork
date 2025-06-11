@@ -36,7 +36,7 @@ import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.NodeBehaviorType
 import org.valkyrienskies.kelvin.api.nodes.TankDuctNode
-import org.valkyrienskies.kelvin.impl.GasTypeRegistry
+import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.serialization.NodeNBTUtil
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import java.util.*

@@ -11,7 +11,7 @@ import org.valkyrienskies.clockwork.ClockworkMod.getKelvin
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.GasType
-import org.valkyrienskies.kelvin.impl.GasTypeRegistry
+import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import java.util.*
 import kotlin.jvm.Throws
 import kotlin.jvm.optionals.getOrDefault

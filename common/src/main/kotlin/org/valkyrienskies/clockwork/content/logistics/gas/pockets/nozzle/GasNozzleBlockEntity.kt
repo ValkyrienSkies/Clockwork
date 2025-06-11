@@ -23,7 +23,7 @@ import org.valkyrienskies.clockwork.util.AerodynamicUtils.dynamicViscosityAverag
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.specificHeatAverage
 import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
 import org.valkyrienskies.clockwork.util.PIDstance
-import org.valkyrienskies.kelvin.impl.GasTypeRegistry
+import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.getShipObjectManagingPos

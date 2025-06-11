@@ -26,7 +26,7 @@ import org.valkyrienskies.core.api.ships.properties.ChunkClaim
 import org.valkyrienskies.core.api.world.connectivity.DoubleComponentAugmentation
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil.defaultMapper
 import org.valkyrienskies.kelvin.api.GasType
-import org.valkyrienskies.kelvin.impl.GasTypeRegistry
+import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.mod.common.BlockStateInfo
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
