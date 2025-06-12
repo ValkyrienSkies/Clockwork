@@ -147,8 +147,6 @@ object GasHeatSource: GenericPeripheral {
             "thermalConductivity" to this.thermalConductivity,
             "sutherlandConstant" to this.sutherlandConstant,
             "adiabaticIndex" to this.adiabaticIndex,
-            "combustible" to this.combustible,
-            "calorificValue" to this.calorificValue
         )
     }
 }
