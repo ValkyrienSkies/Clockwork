@@ -83,42 +83,45 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         return blockPos.toDuctNodePos()
     }
 
+    fun clientTick() {
+        if (gasMassFlow.isEmpty()) return
+
+        val ductNetwork = KelvinMod.KelvinClient
+        for ((gas,mass) in gasMassFlow) {
+            val particleCount = mass/massPerParticle
+            val direction = blockState.getValue(BlockStateProperties.FACING)
+            val speed = direction.normal.toJOMLD().mul(-abs(velocity/1000))
+
+            fun random() = Random.nextDouble(-0.35,0.35)
+            val position = blockPos.toJOMLD().add(0.5, 0.5, 0.5)
+
+
+            for (count in 1..particleCount.toInt()) {
+                ductNetwork.createGasParticle(level as ClientLevel, gas, blockPos.toDuctNodePos(level!!.dimension().location()),
+                    position.x+random(), position.y+random(), position.z+random(), speed.x, speed.y, speed.z)
+            }
+        }
+    }
+
+    fun clearMassFlow() {
+        if (gasMassFlow.isEmpty()) return
+        gasMassFlow.clear()
+        velocity = 0.0
+        sendData()
+    }
+
     override fun tick() {
         super.tick()
 
 
-        if (level!!.isClientSide) {
-
-            if (gasMassFlow.isEmpty()) return
-
-            val ductNetwork = KelvinMod.KelvinClient
-            for ((gas,mass) in gasMassFlow) {
-                val particleCount = mass/massPerParticle
-                val direction = blockState.getValue(BlockStateProperties.FACING)
-                val speed = direction.normal.toJOMLD().mul(-abs(velocity/1000))
-
-                println(velocity)
-                fun random() = Random.nextDouble(-0.35,0.35)
-                val position = blockPos.toJOMLD().add(0.5 + random(), 0.5 + random(), 0.5 + random())
-
-                for (count in 1..particleCount.toInt()) {
-                    ductNetwork.createGasParticle(level as ClientLevel, gas, blockPos.toDuctNodePos(level!!.dimension().location()),
-                        position.x, position.y, position.z, speed.x, speed.y, speed.z)
-                }
-
-
-            }
-
-            return
-        }
+        if (level!!.isClientSide) return clientTick()
 
         val ductnodepos = getDuctNodePosition()
         val kelvin = ClockworkMod.getKelvin()
-        val node = kelvin.getNodeAt(ductnodepos) ?: return
+        val node = kelvin.getNodeAt(ductnodepos) ?: return clearMassFlow()
         val gasMasses = kelvin.getGasMassAt(ductnodepos)
-        val total = gasMasses.values.sum()
 
-        if (total == 0.0) return
+        if (gasMasses.values.sum() == 0.0) return clearMassFlow()
 
         val airPressure = AerodynamicUtils.getAirPressureForY(blockPos.y.toDouble(), level.dimensionId!!)
         val gasPressure = kelvin.getPressureAt(ductnodepos)
@@ -126,7 +129,7 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val avgSpecificHeat = AerodynamicUtils.specificHeatAverage(kelvin.getGasMassAt(ductnodepos))
 
 
-        if (gasPressure<airPressure) return
+        if (gasPressure<airPressure) return clearMassFlow()
 
         velocity = 0.0
 
@@ -151,7 +154,7 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val thrust = flowRate * velocity + (gasPressure-airPressure)
         val force = blockState.getValue(DirectionalBlock.FACING).normal.toJOMLD().mul(thrust)
         newForce = force.length()
-        val serverLevel = level as ServerLevel? ?: return
+        val serverLevel = level as? ServerLevel ?: return
         val ship = serverLevel.getShipObjectManagingPos(blockPos) ?: return
         val controller = GasThrusterController.getOrCreate(ship) ?: return
         tickData(controller, newForce != prevForce)
