@@ -14,7 +14,7 @@
         ]
       },
       "apply": {
-        "model": "vs_clockwork:block/duct/core/cool"
+        "model": "vs_clockwork:block/duct/core"
       }
     },
     {
@@ -31,7 +31,7 @@
         ]
       },
       "apply": {
-        "model": "vs_clockwork:block/duct/core/warm"
+        "model": "vs_clockwork:block/duct/core"
       }
     },
     {
@@ -48,7 +48,7 @@
         ]
       },
       "apply": {
-        "model": "vs_clockwork:block/duct/core/hot"
+        "model": "vs_clockwork:block/duct/core"
       }
     },
     {
@@ -65,7 +65,7 @@
         ]
       },
       "apply": {
-        "model": "vs_clockwork:block/duct/core/very_hot"
+        "model": "vs_clockwork:block/duct/core"
       }
     },
     {
@@ -82,7 +82,7 @@
         ]
       },
       "apply": {
-        "model": "vs_clockwork:block/duct/core/super_hot"
+        "model": "vs_clockwork:block/duct/core"
       }
     },
     {
@@ -99,7 +99,7 @@
         ]
       },
       "apply": {
-        "model": "vs_clockwork:block/duct/core/molten"
+        "model": "vs_clockwork:block/duct/core"
       }
     }
   ]

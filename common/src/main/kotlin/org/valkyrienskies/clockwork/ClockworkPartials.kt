@@ -84,21 +84,21 @@ object ClockworkPartials {
     val BOING = block("boing")
 
     //PIPE DEATH
-    val DUCT_CORE: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/core/cool"))
+    val DUCT_CORE: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/core"))
     val DUCT_CORE_WARM: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/core/warm"))
     val DUCT_CORE_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/core/hot"))
     val DUCT_CORE_VERY_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/core/very_hot"))
     val DUCT_CORE_SUPER_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/core/super_hot"))
     val DUCT_CORE_MOLTEN: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/core/molten"))
 
-    val DUCT_CONN: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/connection/cool"))
+    val DUCT_CONN: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/connection"))
     val DUCT_CONN_WARM: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/connection/warm"))
     val DUCT_CONN_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/connection/hot"))
     val DUCT_CONN_VERY_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/connection/very_hot"))
     val DUCT_CONN_SUPER_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/connection/super_hot"))
     val DUCT_CONN_MOLTEN: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/connection/molten"))
 
-    val DUCT_RIM: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/rim/cool"))
+    val DUCT_RIM: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/rim"))
     val DUCT_RIM_WARM: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/rim/warm"))
     val DUCT_RIM_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/rim/hot"))
     val DUCT_RIM_VERY_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/rim/very_hot"))
