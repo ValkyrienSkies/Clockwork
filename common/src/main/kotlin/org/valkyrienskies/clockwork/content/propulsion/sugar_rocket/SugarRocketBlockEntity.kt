@@ -94,6 +94,15 @@ class SugarRocketBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?,
         }
     }
 
+    fun induceIgnition() {
+        if (this.level == null || this.level!!.isClientSide) return
+        if (isBurning) return
+        val slevel = this.level!! as ServerLevel
+        val block = slevel.getBlockState(worldPosition).block
+        if (block !is SugarRocketBlock) return
+        block.triggerAdjacent(slevel, worldPosition, slevel.getBlockState(worldPosition))
+    }
+
     fun ignite(time: Int = burnTime, power: Int = burnPower) {
         isBurning = true
         burnTime = time

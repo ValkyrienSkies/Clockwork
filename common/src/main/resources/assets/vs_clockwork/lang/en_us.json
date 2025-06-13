@@ -141,6 +141,9 @@
   "item.vs_clockwork.physics_infuser": "Physics Infuser",
   "item.vs_clockwork.wanderwand": "Wanderwand",
 
+  "item.vs_clockwork.sugar_rocket": "Sugar Rocket",
+  "block.vs_clockwork.sugar_rocket": "Sugar Rocket",
+
   "vs_clockwork.subtitle.physinitialize": "Physics Infuser Initialized",
   "vs_clockwork.subtitle.physfinish": "Physics Infused",
   "vs_clockwork.subtitle.zap": "Zap!",

@@ -11,6 +11,8 @@ import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.entity.projectile.Fireball
+import net.minecraft.world.entity.projectile.Projectile
 import net.minecraft.world.item.Items
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.Level
@@ -60,6 +62,14 @@ class SugarRocketBlock(properties: Properties) : DirectionalBlock(properties), I
             list.add(pos.relative(Direction.get(Direction.AxisDirection.NEGATIVE, axis)))
         }
         return list
+    }
+
+    override fun onProjectileHit(level: Level, state: BlockState, hit: BlockHitResult, projectile: Projectile) {
+        super.onProjectileHit(level, state, hit, projectile)
+        if ((projectile.isOnFire || projectile is Fireball) && !projectile.isInWaterOrRain) {
+            if (level.isClientSide) return
+            triggerAdjacent(level as ServerLevel, hit.blockPos, state)
+        }
     }
 
     fun triggerAdjacent(level: ServerLevel, pos: BlockPos, state: BlockState): Boolean {

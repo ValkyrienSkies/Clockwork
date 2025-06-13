@@ -16,6 +16,8 @@
     "content.fan.MixinEncasedFanTileEntity",
     "content.gas.MixinBacktankUtil",
     "content.gas.MixinComposterBlock",
+    "content.sugar_rocket.MixinFireBlock",
+    "content.sugar_rocket.MixinFireCharge",
     "content.universal_joint.MixinRotationPropagator",
     "content.wing.MixinAbstractCauldronBlock"
   ],
