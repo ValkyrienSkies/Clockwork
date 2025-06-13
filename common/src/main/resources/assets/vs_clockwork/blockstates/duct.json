@@ -3,14 +3,30 @@
     {
       "when": {
         "OR": [
-          {"up": "true", "gas_heat_level": "cool"},
-          {"down": "true", "gas_heat_level": "cool"},
-          {"east": "true", "gas_heat_level": "cool"},
-          {"west": "true", "gas_heat_level": "cool"},
-          {"north": "true", "gas_heat_level": "cool"},
-          {"south": "true", "gas_heat_level": "cool"},
+          {"up": "true", "down":  "false|forced", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
+          {"up": "false|forced", "down":  "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
+          {"east": "true", "west": "false|forced", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
+          {"north": "true", "south": "false|forced", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
+          {"west": "true", "east": "false|forced", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
+          {"north": "false|forced", "south": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
 
-          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "false|forced", "down": "false|forced", "gas_heat_level": "cool"}
+          {"south": "true", "north":  "true", "east": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
+          {"south": "true", "north":  "true", "west": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
+          {"south": "true", "north":  "true", "up": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
+          {"south": "true", "north":  "true", "down": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
+
+          {"up": "true", "down":  "true", "east": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
+          {"up": "true", "down":  "true", "west": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
+          {"up": "true", "down":  "true", "north": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
+          {"up": "true", "down":  "true", "south": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
+
+          {"east": "true", "west": "true", "north": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
+          {"east": "true", "west": "true", "south": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
+          {"north": "true", "south": "true", "up": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
+          {"north": "true", "south": "true", "down":  "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
+
+          {"north": "true", "east": "true", "south": "true", "west": "true","up": "true", "down": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
+          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "false|forced", "down": "false|forced", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"}
         ]
       },
       "apply": {
@@ -20,86 +36,33 @@
     {
       "when": {
         "OR": [
-          {"up": "true", "gas_heat_level": "warm"},
-          {"down": "true", "gas_heat_level": "warm"},
-          {"east": "true", "gas_heat_level": "warm"},
-          {"west": "true", "gas_heat_level": "warm"},
-          {"north": "true", "gas_heat_level": "warm"},
-          {"south": "true", "gas_heat_level": "warm"},
-
-          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "false|forced", "down": "false|forced", "gas_heat_level": "warm"}
+          {"north": "true", "east": "false|forced", "south": "true", "west": "false|forced","up": "false|forced", "down": "false|forced", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"}
         ]
       },
       "apply": {
-        "model": "vs_clockwork:block/duct/core"
+        "model": "vs_clockwork:block/duct/core_straight"
       }
     },
     {
       "when": {
         "OR": [
-          {"up": "true", "gas_heat_level": "hot"},
-          {"down": "true", "gas_heat_level": "hot"},
-          {"east": "true", "gas_heat_level": "hot"},
-          {"west": "true", "gas_heat_level": "hot"},
-          {"north": "true", "gas_heat_level": "hot"},
-          {"south": "true", "gas_heat_level": "hot"},
-
-          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "false|forced", "down": "false|forced", "gas_heat_level": "hot"}
+          {"north": "false|forced", "east": "true", "south": "false|forced", "west": "true","up": "false|forced", "down": "false|forced", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"}
         ]
       },
       "apply": {
-        "model": "vs_clockwork:block/duct/core"
+        "model": "vs_clockwork:block/duct/core_straight",
+        "y": 90
       }
     },
     {
       "when": {
         "OR": [
-          {"up": "true", "gas_heat_level": "very_hot"},
-          {"down": "true", "gas_heat_level": "very_hot"},
-          {"east": "true", "gas_heat_level": "very_hot"},
-          {"west": "true", "gas_heat_level": "very_hot"},
-          {"north": "true", "gas_heat_level": "very_hot"},
-          {"south": "true", "gas_heat_level": "very_hot"},
-
-          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "false|forced", "down": "false|forced", "gas_heat_level": "very_hot"}
+          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "true", "down": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"}
         ]
       },
       "apply": {
-        "model": "vs_clockwork:block/duct/core"
-      }
-    },
-    {
-      "when": {
-        "OR": [
-          {"up": "true", "gas_heat_level": "super_hot"},
-          {"down": "true", "gas_heat_level": "super_hot"},
-          {"east": "true", "gas_heat_level": "super_hot"},
-          {"west": "true", "gas_heat_level": "super_hot"},
-          {"north": "true", "gas_heat_level": "super_hot"},
-          {"south": "true", "gas_heat_level": "super_hot"},
-
-          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "false|forced", "down": "false|forced", "gas_heat_level": "super_hot"}
-        ]
-      },
-      "apply": {
-        "model": "vs_clockwork:block/duct/core"
-      }
-    },
-    {
-      "when": {
-        "OR": [
-          {"up": "true", "gas_heat_level": "molten"},
-          {"down": "true", "gas_heat_level": "molten"},
-          {"east": "true", "gas_heat_level": "molten"},
-          {"west": "true", "gas_heat_level": "molten"},
-          {"north": "true", "gas_heat_level": "molten"},
-          {"south": "true", "gas_heat_level": "molten"},
-
-          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "false|forced", "down": "false|forced", "gas_heat_level": "molten"}
-        ]
-      },
-      "apply": {
-        "model": "vs_clockwork:block/duct/core"
+        "model": "vs_clockwork:block/duct/core_straight",
+        "x": 90
       }
     }
   ]
