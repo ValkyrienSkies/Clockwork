@@ -97,6 +97,7 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
 
             for (count in 1..particleCount.toInt()) {
+                println("creating particle")
                 ductNetwork.createGasParticle(level as ClientLevel, gas, blockPos.toDuctNodePos(level!!.dimension().location()),
                     position.x+random(), position.y+random(), position.z+random(), speed.x, speed.y, speed.z)
             }
