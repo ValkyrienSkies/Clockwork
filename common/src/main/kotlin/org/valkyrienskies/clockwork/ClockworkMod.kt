@@ -1,16 +1,10 @@
 package org.valkyrienskies.clockwork
 
 import com.mojang.logging.LogUtils
-import com.simibubi.create.AllParticleTypes
 import com.simibubi.create.foundation.data.CreateRegistrate
-import com.simibubi.create.foundation.particle.AirParticle
-import com.simibubi.create.foundation.particle.AirParticleData
 import dev.architectury.event.events.common.InteractionEvent
 import dev.architectury.event.events.common.LifecycleEvent
 import dev.architectury.event.events.common.TickEvent
-import dev.architectury.registry.client.rendering.ColorHandlerRegistry
-import net.minecraft.client.color.block.BlockColor
-import net.minecraft.client.color.block.BlockTintCache
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
 import org.slf4j.LoggerFactory
@@ -22,8 +16,6 @@ import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.core.impl.hooks.VSEvents
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.impl.DuctNetworkServer
-import org.valkyrienskies.kelvin.impl.client.particle.DefaultGasParticlePicker
-import org.valkyrienskies.kelvin.impl.registry.GasParticlePickerRegistry
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod
@@ -115,8 +107,6 @@ object ClockworkMod {
             DualLinkHandler.handler(player, hand, pos, face)
         })
 
-        //TODO do this proper
-        GasParticlePickerRegistry.PARTICLE_PICKERS[ResourceLocation("kelvin:air")] = DefaultGasParticlePicker(AirParticleData(0.1f,0.1f))
     }
 
     @JvmStatic
