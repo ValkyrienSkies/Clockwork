@@ -84,20 +84,19 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     }
 
     fun clientTick() {
-        if (gasMassFlow.isEmpty()) return
+        if (gasMassFlow.isEmpty() || velocity == 0.0) return
 
         val ductNetwork = KelvinMod.KelvinClient
         for ((gas,mass) in gasMassFlow) {
             val particleCount = mass/massPerParticle
             val direction = blockState.getValue(BlockStateProperties.FACING)
-            val speed = direction.normal.toJOMLD().mul(-abs(velocity/1000))
+            val speed = direction.normal.toJOMLD().mul(-cbrt(abs(velocity))/50)
 
             fun random() = Random.nextDouble(-0.35,0.35)
             val position = blockPos.toJOMLD().add(0.5, 0.5, 0.5)
 
 
             for (count in 1..particleCount.toInt()) {
-                println("creating particle")
                 ductNetwork.createGasParticle(level as ClientLevel, gas, blockPos.toDuctNodePos(level!!.dimension().location()),
                     position.x+random(), position.y+random(), position.z+random(), speed.x, speed.y, speed.z)
             }
