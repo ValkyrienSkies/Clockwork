@@ -47,7 +47,7 @@ class GasThrusterBlock(properties: Properties) : DirectionalBlock(properties), I
             return defaultBlockState().setValue(
                 DirectionalKineticBlock.FACING, if (context.player != null && context.player!!
                         .isShiftKeyDown
-                ) nearestLookingDirection else nearestLookingDirection.opposite
+                ) nearestLookingDirection.opposite else nearestLookingDirection
             )
         }
         return defaultBlockState().setValue(DirectionalKineticBlock.FACING, preferred.opposite)
