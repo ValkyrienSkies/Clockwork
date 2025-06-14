@@ -1,10 +1,8 @@
 package org.valkyrienskies.clockwork
 
-import com.simibubi.create.foundation.sound.SoundScapes
 import com.simibubi.create.foundation.utility.AnimationTickHolder
 import com.simibubi.create.foundation.utility.Pair
 import com.simibubi.create.infrastructure.config.AllConfigs
-import com.tterrag.registrate.fabric.TriFunction
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.data.models.blockstates.PropertyDispatch.QuadFunction
@@ -16,7 +14,6 @@ import org.valkyrienskies.mod.common.toWorldCoordinates
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
 import java.util.*
-import java.util.function.BiFunction
 import java.util.function.Consumer
 
 object ClockworkSoundScapes {
@@ -31,12 +28,15 @@ object ClockworkSoundScapes {
         RICKETY({ pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos? -> rickety(pitch, group, ship) }),
         PROPELLER({ pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos? -> propeller(pitch, group, ship, pos) }),
         JURYRIGGED_PROPELLER({ pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos? -> juryriggedPropeller(pitch, group, ship, pos) }),
+        THRUSTER({ pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos? -> thruster(pitch, group, ship, pos) }),
         ;
 
         fun instantiate(pitch: Float, ship: Ship?, pos: BlockPos?): SoundScape {
             return factory.apply(pitch, this, ship, pos)
         }
     }
+
+
 
     private fun rickety(pitch: Float, group: AmbienceGroup, ship: Ship?): SoundScape {
         return SoundScape(pitch, group, ship).repeating(ClockworkSounds.JUNK_RATTLE.mainEvent!!, 1.5f, 1f, 30)
@@ -49,6 +49,10 @@ object ClockworkSoundScapes {
     private fun juryriggedPropeller(pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos?): SoundScape {
         return SoundScape(pitch, group, ship).continuous(ClockworkSounds.JUNK_PROPELLER.mainEvent!!, 4f, 1f, ship, pos)
             .repeating(ClockworkSounds.JUNK_RATTLE.mainEvent!!, 1.5f, 1f, 30)
+    }
+
+    private fun thruster(pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos?): SoundScape {
+        return SoundScape(pitch, group, ship).repeating(ClockworkSounds.THRUSTER.mainEvent!!, 1.5f, 1f, 30)
     }
 
     enum class PitchGroup {

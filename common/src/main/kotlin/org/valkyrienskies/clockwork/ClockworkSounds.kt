@@ -18,7 +18,6 @@ import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.platform.api.DeferredRegister
 import java.io.IOException
 import java.nio.file.Path
-import java.util.concurrent.CompletableFuture
 import java.util.function.Supplier
 
 object ClockworkSounds {
@@ -124,6 +123,10 @@ object ClockworkSounds {
         .attenuationDistance(32)
         .build()
     val PROPELLER_STOP = create("propeller_stop").subtitle("Propeller spinning down")
+        .category(SoundSource.BLOCKS)
+        .attenuationDistance(32)
+        .build()
+    val THRUSTER = create("thruster").subtitle("Gas thruster roar")
         .category(SoundSource.BLOCKS)
         .attenuationDistance(32)
         .build()

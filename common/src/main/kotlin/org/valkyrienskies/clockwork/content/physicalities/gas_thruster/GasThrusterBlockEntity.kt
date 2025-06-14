@@ -12,6 +12,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.ClockworkSoundScapes
 import org.valkyrienskies.clockwork.content.forces.GasThrusterController
 import org.valkyrienskies.clockwork.content.generic.IForceApplierBE
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
@@ -86,11 +87,18 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     fun clientTick() {
         if (gasMassFlow.isEmpty() || velocity == 0.0) return
 
+        // Handle audio
+        val pitch = 1f
+        val scape = ClockworkSoundScapes.AmbienceGroup.THRUSTER
+        ClockworkSoundScapes.play(scape, this.worldPosition, pitch)
+
+        // Handle particles
         val ductNetwork = KelvinMod.KelvinClient
         for ((gas,mass) in gasMassFlow) {
             val particleCount = mass/massPerParticle
             val direction = blockState.getValue(BlockStateProperties.FACING)
             val speed = direction.normal.toJOMLD().mul(-cbrt(abs(velocity))/50)
+
 
             fun random() = Random.nextDouble(-0.35,0.35)
             val position = blockPos.toJOMLD().add(0.5, 0.5, 0.5)
