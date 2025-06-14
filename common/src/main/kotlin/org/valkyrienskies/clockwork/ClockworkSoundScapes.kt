@@ -52,7 +52,7 @@ object ClockworkSoundScapes {
     }
 
     private fun thruster(pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos?): SoundScape {
-        return SoundScape(pitch, group, ship).repeating(ClockworkSounds.THRUSTER.mainEvent!!, 1.5f, 1f, 30)
+        return SoundScape(pitch, group, ship).repeating(ClockworkSounds.THRUSTER.mainEvent!!, 3f, 1f, 0)
     }
 
     enum class PitchGroup {

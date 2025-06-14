@@ -305,5 +305,15 @@
       }
     ],
     "subtitle": "vs_clockwork.subtitle.propeller_stop"
+  },
+  "thruster": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:thruster",
+        "type": "file",
+        "attenuation_distance": 32
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.thruster"
   }
 }
