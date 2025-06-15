@@ -5,8 +5,10 @@ import com.simibubi.create.AllSoundEvents
 import com.simibubi.create.content.equipment.wrench.IWrenchable
 import com.simibubi.create.content.kinetics.simpleRelays.ShaftBlock
 import com.simibubi.create.foundation.block.IBE
+import net.minecraft.Util
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.network.chat.TextComponent
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.sounds.SoundEvent
@@ -409,14 +411,13 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
             val changeDirection = getUseDirection(direction, context.clickedPos, hitPos)
             val connected = state.getValue(DIR_TO_CONNECTION[changeDirection]!!) == DuctConnectionType.SIDE
 
-            if (connected) {
-                playScrewSound(context.level, context.clickedPos)
-            } else {
-                return InteractionResult.SUCCESS
-            }
+            if (!connected) return InteractionResult.SUCCESS
+            playScrewSound(context.level, context.clickedPos)
+
             val dimension = context.level.dimension().location()
             val foundEdge = ClockworkMod.getKelvin().getEdgeBetween(context.clickedPos.toDuctNodePos(dimension), context.clickedPos.relative(changeDirection).toDuctNodePos(dimension))
 
+            println(foundEdge?.type)
             foundEdge?.interact(context.player as ServerPlayer)
 
             return InteractionResult.SUCCESS
@@ -425,35 +426,33 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
     }
 
     override fun onSneakScrewdrived(state: BlockState, context: UseOnContext): InteractionResult {
-        if (!context.level.isClientSide) {
-            val direction = context.clickedFace
+        val direction = context.clickedFace
 
-            val hitPos = context.clickLocation
+        val hitPos = context.clickLocation
 
-            val changeDirection = getUseDirection(direction, context.clickedPos, hitPos)
-            val connected = state.getValue(DIR_TO_CONNECTION[changeDirection]!!) == DuctConnectionType.SIDE
+        val changeDirection = getUseDirection(direction, context.clickedPos, hitPos)
+        val connected = state.getValue(DIR_TO_CONNECTION[changeDirection]!!) == DuctConnectionType.SIDE
 
-            if (connected) {
-                playScrewSound(context.level, context.clickedPos)
-            } else {
-                return InteractionResult.SUCCESS
+        if (!connected) return InteractionResult.FAIL
+        if (context.level.isClientSide) return InteractionResult.SUCCESS
+
+
+        playScrewSound(context.level, context.clickedPos)
+        withBlockEntityDo(context.level, context.clickedPos) { blockEntity ->
+            val type = blockEntity.cycleEdgeType(changeDirection)
+            println(type.name)
+            if (context.level.getBlockEntity(context.clickedPos.relative(changeDirection)) is DuctBlockEntity) {
+                (context.level.getBlockEntity(context.clickedPos.relative(changeDirection)) as DuctBlockEntity).setEdgeType(
+                    changeDirection.opposite,
+                    type,
+                    clientPacket = false,
+                    silent = true
+                )
             }
-
-            withBlockEntityDo(context.level, context.clickedPos) { blockEntity ->
-                val type = blockEntity.cycleEdgeType(changeDirection)
-                if (context.level.getBlockEntity(context.clickedPos.relative(changeDirection)) is DuctBlockEntity) {
-                    (context.level.getBlockEntity(context.clickedPos.relative(changeDirection)) as DuctBlockEntity).setEdgeType(
-                        changeDirection.opposite,
-                        type,
-                        clientPacket = false,
-                        silent = true
-                    )
-                }
-            }
-
-            return InteractionResult.SUCCESS
         }
+
         return InteractionResult.SUCCESS
+
     }
 
     companion object {

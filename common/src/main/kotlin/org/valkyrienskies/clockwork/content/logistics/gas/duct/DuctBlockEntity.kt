@@ -82,9 +82,8 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
     }
 
     fun cycleEdgeType(dir: Direction): ConnectionType {
-        if (this.level?.isClientSide != false) {
-            return ConnectionType.NONE
-        }
+        if (this.level?.isClientSide != false) return ConnectionType.NONE
+
         val currentType = this.DIR_TO_CONNECTION_TYPE[dir]!!
 
         if (currentType == ConnectionType.NONE) return ConnectionType.NONE
