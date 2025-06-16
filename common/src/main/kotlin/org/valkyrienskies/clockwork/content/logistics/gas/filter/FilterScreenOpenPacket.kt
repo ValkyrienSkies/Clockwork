@@ -1,7 +1,9 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.filter
 
 import com.simibubi.create.foundation.gui.ScreenOpener
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.resources.ResourceLocation
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.GasType
@@ -24,10 +26,11 @@ class FilterScreenOpenPacket(private val nodeA: DuctNodePos, private val nodeB: 
     constructor(buffer: FriendlyByteBuf) : this(
         buffer.readVec3d().toDuctNodePos(buffer.readResourceLocation()),
         buffer.readVec3d().toDuctNodePos(buffer.readResourceLocation()),
-        buffer.readVarIntArray().let {
+        buffer.readUtf().let {
             val set = HashSet<GasType>()
-            for (i in it) {
-                set.add(GasTypeRegistry.GAS_TYPES.values.toList()[i])
+            for (str in it.split(" ")) {
+                val type = GasTypeRegistry.getGasType(ResourceLocation(str.trim())) ?: continue
+                set.add(type)
             }
             set
         },
@@ -43,16 +46,15 @@ class FilterScreenOpenPacket(private val nodeA: DuctNodePos, private val nodeB: 
     }
 
     override fun write(buffer: FriendlyByteBuf) {
-        val arr = IntArray(filter.size)
-        for ((i, gas) in filter.withIndex()) {
-            arr[i] = GasTypeRegistry.GAS_TYPES.values.toList().indexOf(gas)
-        }
+
+        var tag = ""
+        for (gas in filter) tag += gas.resourceLocation.toString() + " "
 
         buffer.writeVec3d(nodeA.toMinecraft().toVector3d())
         buffer.writeResourceLocation(nodeA.dimensionId)
         buffer.writeVec3d(nodeB.toMinecraft().toVector3d())
         buffer.writeResourceLocation(nodeB.dimensionId)
-        buffer.writeVarIntArray(arr)
+        buffer.writeUtf(tag)
         buffer.writeBoolean(blacklist)
 
     }

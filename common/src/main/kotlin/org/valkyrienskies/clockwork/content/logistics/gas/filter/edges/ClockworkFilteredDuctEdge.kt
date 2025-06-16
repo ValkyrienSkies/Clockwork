@@ -19,7 +19,7 @@ class ClockworkFilteredDuctEdge(
 ) : FilteredEdge {
 
     override fun interact(player: ServerPlayer): Boolean {
-        ClockworkPackets.sendTo(FilterScreenOpenPacket(nodeA, nodeA, filter, blacklist), player)
+        ClockworkPackets.sendTo(FilterScreenOpenPacket(nodeA, nodeB, filter, blacklist), player)
         return true
     }
 }

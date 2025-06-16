@@ -417,7 +417,6 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
             val dimension = context.level.dimension().location()
             val foundEdge = ClockworkMod.getKelvin().getEdgeBetween(context.clickedPos.toDuctNodePos(dimension), context.clickedPos.relative(changeDirection).toDuctNodePos(dimension))
 
-            println(foundEdge?.type)
             foundEdge?.interact(context.player as ServerPlayer)
 
             return InteractionResult.SUCCESS
@@ -440,7 +439,6 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         playScrewSound(context.level, context.clickedPos)
         withBlockEntityDo(context.level, context.clickedPos) { blockEntity ->
             val type = blockEntity.cycleEdgeType(changeDirection)
-            println(type.name)
             if (context.level.getBlockEntity(context.clickedPos.relative(changeDirection)) is DuctBlockEntity) {
                 (context.level.getBlockEntity(context.clickedPos.relative(changeDirection)) as DuctBlockEntity).setEdgeType(
                     changeDirection.opposite,
