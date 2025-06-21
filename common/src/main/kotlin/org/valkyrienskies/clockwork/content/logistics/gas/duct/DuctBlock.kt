@@ -3,13 +3,9 @@ package org.valkyrienskies.clockwork.content.logistics.gas.duct
 import com.google.common.collect.ImmutableMap
 import com.simibubi.create.AllSoundEvents
 import com.simibubi.create.content.equipment.wrench.IWrenchable
-import com.simibubi.create.content.kinetics.simpleRelays.ShaftBlock
 import com.simibubi.create.foundation.block.IBE
-import net.minecraft.Util
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.network.chat.TextComponent
-import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundSource
@@ -38,6 +34,7 @@ import org.joml.Vector2f
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver.IScrewdrivable
+import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.DOWN_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.EAST_CONNECTION
@@ -46,7 +43,6 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.S
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.UP_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.WEST_CONNECTION
 import org.valkyrienskies.kelvin.api.ConnectionType
-import org.valkyrienskies.kelvin.api.DuctNetwork
 import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createPipeEdge
@@ -58,7 +54,6 @@ import org.valkyrienskies.kelvin.util.IEdgeBlock
 import org.valkyrienskies.kelvin.util.IHeatableBlock
 import org.valkyrienskies.kelvin.util.IHeatableBlock.Companion.GAS_HEAT_LEVEL
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
-import org.valkyrienskies.mod.common.util.toJOMLD
 
 
 class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, IBE<DuctBlockEntity>, SimpleWaterloggedBlock, IWrenchable,
@@ -115,6 +110,9 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
         super.onPlace(state, level, pos, oldState, isMoving)
         nodePlace(state, level, pos, oldState, isMoving)
+
+        level.setBlockAndUpdate(pos, this.getConnectedState(level, state, pos) ?: return)
+
     }
 
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
@@ -157,67 +155,66 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
 
     fun onConnectionUpdate(
-        world: Level,
+        level: Level,
         state: BlockState,
         newState: BlockState,
         pos: BlockPos
     ) {
-        if (world.isClientSide) return
+        if (level.isClientSide) return
 
-        val dimension = world.dimension().location()
+        val blockEntity = level.getBlockEntity(pos) as? DuctBlockEntity ?: return
+        val ductNodePos = blockEntity.getDuctNodePosition()
 
-        for (direction in Direction.values()) {
+        for (direction in Direction.entries) {
             if (state.getValue(DIR_TO_CONNECTION[direction]!!) != newState.getValue(DIR_TO_CONNECTION[direction]!!)) {
                 val adjPos = pos.relative(direction)
-                val adjState = world.getBlockState(adjPos)
+                val adjState = level.getBlockState(adjPos)
+
+                // Handle IEdgeBlocks
+                if (adjState.block is IEdgeBlock) {
+                    if (newState.getValue(DIR_TO_CONNECTION[direction]!!).isConnected) {
+                        (adjState.block as IEdgeBlock).tryConnectEdge(level, pos)
+                    } else {
+                        (adjState.block as IEdgeBlock).tryDisconnectEdge(level, pos)
+                    }
+                }
+
+                // Get this after handle IEdgeBlocks, since IEdgeBlocks don't have nodePos
+                val adjDuctNodePos = (level.getBlockEntity(adjPos) as? IHeatableBlockEntity)?.getDuctNodePosition() ?: continue
+
+
                 if (adjState.block is DuctBlock) {
                     if (newState.getValue(DIR_TO_CONNECTION[direction]!!).isConnected && adjState.getValue(DIR_TO_CONNECTION[direction.opposite]!!).isConnected) {
-                        ClockworkMod.getKelvin().addEdge(pos.toDuctNodePos(dimension), adjPos.toDuctNodePos(dimension), createPipeEdge(pos.toDuctNodePos(dimension), adjPos.toDuctNodePos(dimension)))
-                        withBlockEntityDo(world, pos) { blockEntity ->
-                            blockEntity.setEdgeType(direction, ConnectionType.PIPE, clientPacket = false, silent = true)
-                            if (world.getBlockEntity(adjPos) is DuctBlockEntity) {
-                                (world.getBlockEntity(adjPos) as DuctBlockEntity).setEdgeType(
-                                    direction.opposite,
-                                    ConnectionType.PIPE,
-                                    clientPacket = false,
-                                    silent = true
-                                )
-                            }
-                        }
+                        ClockworkMod.getKelvin().addEdge(ductNodePos, adjDuctNodePos, createPipeEdge(ductNodePos, adjDuctNodePos))
+
+                        blockEntity.setEdgeType(direction, ConnectionType.PIPE, clientPacket = false, silent = true)
+                        if (level.getBlockEntity(adjPos) is DuctBlockEntity)
+                            (level.getBlockEntity(adjPos) as DuctBlockEntity).setEdgeType(
+                                direction.opposite,
+                                ConnectionType.PIPE,
+                                clientPacket = false,
+                                silent = true
+                            )
+
                     } else {
-                        ClockworkMod.getKelvin().removeEdge(pos.toDuctNodePos(dimension), adjPos.toDuctNodePos(dimension))
-                        withBlockEntityDo(world, pos) { blockEntity ->
-                            blockEntity.setEdgeType(direction, ConnectionType.NONE, clientPacket = false, silent = true)
-                            if (world.getBlockEntity(adjPos) is DuctBlockEntity) {
-                                (world.getBlockEntity(adjPos) as DuctBlockEntity).setEdgeType(
-                                    direction.opposite,
-                                    ConnectionType.NONE,
-                                    clientPacket = false,
-                                    silent = true
-                                )
-                            }
-                        }
-                    }
-                } else if (adjState.block is IAxisAlignedDuct) {
-                    if (direction.axis == (adjState.block as IAxisAlignedDuct).getAxis(adjState)) {
-                        if (newState.getValue(DIR_TO_CONNECTION[direction]!!).isConnected && (adjState.block as IAxisAlignedDuct).canConnectTo(adjPos, pos, direction.opposite, world)) {
-                            ClockworkMod.getKelvin().addEdge(pos.toDuctNodePos(dimension), adjPos.toDuctNodePos(dimension), createPipeEdge(pos.toDuctNodePos(dimension), adjPos.toDuctNodePos(dimension)))
-                        } else {
-                            ClockworkMod.getKelvin().removeEdge(pos.toDuctNodePos(dimension), adjPos.toDuctNodePos(dimension))
-                        }
+                        ClockworkMod.getKelvin().removeEdge(ductNodePos, adjDuctNodePos)
+
+                        blockEntity.setEdgeType(direction, ConnectionType.NONE, clientPacket = false, silent = true)
+                        if (level.getBlockEntity(adjPos) is DuctBlockEntity)
+                            (level.getBlockEntity(adjPos) as DuctBlockEntity).setEdgeType(
+                                direction.opposite,
+                                ConnectionType.NONE,
+                                clientPacket = false,
+                                silent = true
+                            )
+
+
                     }
                 } else if (adjState.block is IDuct) {
-                    if (newState.getValue(DIR_TO_CONNECTION[direction]!!).isConnected && (adjState.block as IDuct).canConnectTo(adjPos, pos, direction.opposite, world)) {
-                        ClockworkMod.getKelvin().addEdge(pos.toDuctNodePos(dimension), adjPos.toDuctNodePos(dimension), createPipeEdge(pos.toDuctNodePos(dimension), adjPos.toDuctNodePos(dimension)))
-                    } else {
-                        ClockworkMod.getKelvin().removeEdge(pos.toDuctNodePos(dimension), adjPos.toDuctNodePos(dimension))
-                    }
-                } else if (adjState.block is IEdgeBlock) {
-                    if (newState.getValue(DIR_TO_CONNECTION[direction]!!).isConnected) {
-                        (adjState.block as IEdgeBlock).tryConnectEdge(world, pos)
-                    } else {
-                        (adjState.block as IEdgeBlock).tryDisconnectEdge(world, pos)
-                    }
+                    if (newState.getValue(DIR_TO_CONNECTION[direction]!!).isConnected && (adjState.block as IDuct).canConnectTo(adjPos, pos, direction.opposite, level))
+                        ClockworkMod.getKelvin().addEdge(ductNodePos, adjDuctNodePos, createPipeEdge(ductNodePos, adjDuctNodePos))
+                    else ClockworkMod.getKelvin().removeEdge(ductNodePos, adjDuctNodePos)
+
                 }
 
             }
@@ -296,18 +293,9 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         return shapes[state]!!
     }
 
-
-
     override fun getRenderShape(state: BlockState): RenderShape {
         return RenderShape.MODEL
     }
-
-    override fun getStateForPlacement(ctx: BlockPlaceContext): BlockState? {
-        val level: Level = ctx.level
-        val pos: BlockPos = ctx.clickedPos
-        return this.getConnectedState(level, this.defaultBlockState(), pos)
-    }
-
 
     override fun updateShape(
         state: BlockState,
@@ -323,7 +311,6 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         }
 
         val finalConnection = getConnectionType(state,currentPos,neighborState,neighborPos,direction,level)
-
 
         return state.setValue(DIR_TO_CONNECTION.get(direction)!!, finalConnection)
     }
@@ -341,9 +328,6 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
             )
         }
         return state.setValue(BlockStateProperties.WATERLOGGED, level.getFluidState(pos).type === Fluids.WATER)
-
-
-
     }
 
     fun getConnectionType(state: BlockState, currentPos: BlockPos, neighborState: BlockState, neighborPos: BlockPos, direction: Direction, level: BlockGetter): DuctConnectionType {
@@ -374,20 +358,18 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
             DuctConnectionType.NONE
         }
 
-        if (level.isClientSide) return finalConnection
+        if (level.isClientSide || isConnectedEdgeBlock) return finalConnection
 
-        val dimension = level.dimension().location()
+        val blockEntity = level.getBlockEntity(currentPos) as? DuctBlockEntity ?: return finalConnection
+        val ductNodePos = blockEntity.getDuctNodePosition()
+        val neighborDuctNodePos = (level.getBlockEntity(neighborPos) as? IHeatableBlockEntity)?.getDuctNodePosition() ?: return finalConnection
 
         if (finalConnection.isConnected) {
-            ClockworkMod.getKelvin().addEdge(currentPos.toDuctNodePos(dimension), neighborPos.toDuctNodePos(dimension), createPipeEdge(currentPos.toDuctNodePos(dimension), neighborPos.toDuctNodePos(dimension)))
-            withBlockEntityDo(level, currentPos) { blockEntity ->
-                blockEntity.setEdgeType(direction, ConnectionType.PIPE, clientPacket = false, silent = true)
-            }
+            ClockworkMod.getKelvin().addEdge(ductNodePos, neighborDuctNodePos, createPipeEdge(ductNodePos, neighborDuctNodePos))
+            blockEntity.setEdgeType(direction, ConnectionType.PIPE, clientPacket = false, silent = true)
         } else {
-            ClockworkMod.getKelvin().removeEdge(currentPos.toDuctNodePos(dimension), neighborPos.toDuctNodePos(dimension))
-            withBlockEntityDo(level, currentPos) { blockEntity ->
-                blockEntity.setEdgeType(direction, ConnectionType.NONE, clientPacket = false, silent = true)
-            }
+            ClockworkMod.getKelvin().removeEdge(ductNodePos, neighborDuctNodePos)
+            blockEntity.setEdgeType(direction, ConnectionType.NONE, clientPacket = false, silent = true)
         }
 
 
