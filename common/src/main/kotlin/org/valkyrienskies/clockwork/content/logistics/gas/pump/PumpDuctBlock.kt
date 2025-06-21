@@ -22,6 +22,7 @@ import org.apache.commons.lang3.ObjectUtils.Null
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock.Companion.DIR_TO_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
@@ -126,9 +127,12 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
         if (edge != null) ClockworkMod.getKelvin().removeEdge(edge!!.nodeA, edge!!.nodeB)
         edge = null
 
-        edge = PumpDuctEdge(backPos.toDuctNodePos(level.dimension().location()), frontPos.toDuctNodePos(level.dimension().location()), frontPos.toDuctNodePos(level.dimension().location()))
+        val backDuctPos = (level.getBlockEntity(backPos) as? IHeatableBlockEntity)?.getDuctNodePosition() ?: return
+        val frontDuctPos = (level.getBlockEntity(frontPos) as? IHeatableBlockEntity)?.getDuctNodePosition() ?: return
 
-        ClockworkMod.getKelvin().addEdge(frontPos.toDuctNodePos(level.dimension().location()), backPos.toDuctNodePos(level.dimension().location()), edge!!)
+        edge = PumpDuctEdge(backDuctPos, frontDuctPos, frontDuctPos)
+
+        ClockworkMod.getKelvin().addEdge(frontDuctPos, backDuctPos, edge!!)
     }
 
     override fun canConnectTo(level: Level, from: BlockPos,to: BlockPos): Boolean {

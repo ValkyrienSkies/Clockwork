@@ -17,6 +17,7 @@ import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
 import org.valkyrienskies.kelvin.api.ConnectionType
 import org.valkyrienskies.kelvin.api.edges.ApertureDuctEdge
@@ -74,9 +75,12 @@ class ValveDuctBlock(properties: Properties?) : DirectionalAxisKineticBlock(prop
         if (edge != null) ClockworkMod.getKelvin().removeEdge(edge!!.nodeA, edge!!.nodeB)
         edge = null
 
-        edge = ApertureDuctEdge(ConnectionType.APERTURE,backPos.toDuctNodePos(level.dimension().location()), frontPos.toDuctNodePos(level.dimension().location()), aperture = 1.0)
+        val backDuctPos = (level.getBlockEntity(backPos) as? IHeatableBlockEntity)?.getDuctNodePosition() ?: return
+        val frontDuctPos = (level.getBlockEntity(frontPos) as? IHeatableBlockEntity)?.getDuctNodePosition() ?: return
 
-        ClockworkMod.getKelvin().addEdge(frontPos.toDuctNodePos(level.dimension().location()), backPos.toDuctNodePos(level.dimension().location()), edge!!)
+        edge = ApertureDuctEdge(ConnectionType.APERTURE,backDuctPos, frontDuctPos, aperture = 1.0)
+
+        ClockworkMod.getKelvin().addEdge(frontDuctPos, backDuctPos, edge!!)
     }
 
     override fun updateShape(
