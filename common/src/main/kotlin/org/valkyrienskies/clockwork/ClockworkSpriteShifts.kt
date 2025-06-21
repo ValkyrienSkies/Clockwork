@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork
 
+import com.simibubi.create.AllSpriteShifts
 import com.simibubi.create.foundation.block.connected.AllCTTypes
 import com.simibubi.create.foundation.block.connected.CTSpriteShiftEntry
 import com.simibubi.create.foundation.block.connected.CTSpriteShifter
@@ -9,6 +10,12 @@ import com.simibubi.create.foundation.block.render.SpriteShifter
 
 object ClockworkSpriteShifts {
     val BALLOON_CASING = omni("balloon_casing")
+
+
+
+    val DUCT_TANK: CTSpriteShiftEntry = getCT(AllCTTypes.RECTANGLE, "duct_tank")
+    val DUCT_TANK_TOP: CTSpriteShiftEntry = getCT(AllCTTypes.RECTANGLE, "duct_tank_top")
+
 
     //
     private fun omni(name: String): CTSpriteShiftEntry {
