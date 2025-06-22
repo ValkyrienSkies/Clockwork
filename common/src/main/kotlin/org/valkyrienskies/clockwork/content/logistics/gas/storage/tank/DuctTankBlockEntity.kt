@@ -44,9 +44,9 @@ class DuctTankBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bloc
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
 
-        if (tag.contains("Controller")) controller = NbtUtils.readBlockPos(tag.getCompound("Controller"))
-        if (tag.contains("Height")) height = tag.getInt("Height")
-        if (tag.contains("Width")) width = tag.getInt("Width")
+        if (tag.contains("Controller")) controllerCT = NbtUtils.readBlockPos(tag.getCompound("Controller"))
+        if (tag.contains("Height")) heightCT = tag.getInt("Height")
+        if (tag.contains("Width")) widthCT = tag.getInt("Width")
         super.read(tag, clientPacket)
     }
 
@@ -71,9 +71,7 @@ class DuctTankBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bloc
     }
 
     override fun getDuctNodePosition(): DuctNodePos {
-        if (level != null) return blockPos.toDuctNodePos(level!!.dimension().location())
-
-        return blockPos.toDuctNodePos()
+        return controller!!.toDuctNodePos(level!!.dimension().location())
     }
 
     override fun getController(): BlockPos? {
@@ -91,8 +89,12 @@ class DuctTankBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bloc
     }
 
     override fun setController(pos: BlockPos?) {
+        if (level?.isClientSide != false) return
+
         controllerCT = pos
         notifyUpdate()
+
+        if (isController) (blockState.block as? DuctTankBlock)?.nodePlace(blockState, level!!, blockPos, blockState, false)
     }
 
     override fun removeController(keepContents: Boolean) {
@@ -102,6 +104,7 @@ class DuctTankBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bloc
         queueConnectivityUpdate()
         notifyMultiUpdated()
 
+        if (isController) (blockState.block as? DuctTankBlock)?.nodeRemove(blockState, level!!, blockPos, blockState, false)
     }
 
     override fun getLastKnownPos(): BlockPos {
