@@ -8,6 +8,7 @@ import dev.architectury.event.events.client.ClientTickEvent
 import dev.architectury.event.events.common.TickEvent
 import dev.architectury.registry.ReloadListenerRegistry
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents
 import net.minecraft.client.renderer.entity.EntityRendererProvider
 import net.minecraft.client.renderer.entity.LivingEntityRenderer
 import net.minecraft.server.packs.PackType
@@ -15,6 +16,7 @@ import net.minecraft.server.packs.resources.ResourceManager
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.LivingEntity
+import org.valkyrienskies.clockwork.client.render.debug.KelvinNodeRenderer
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkRenderer
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.SecondScrollValueRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankArmorLayer
@@ -61,9 +63,15 @@ object ClockworkModClient {
             GasBacktankArmorLayer.registerOn(livingEntityRenderer, registrationHelper)
         }
 
-//        WorldRenderEvents.AFTER_TRANSLUCENT.register(WorldRenderEvents.AfterTranslucent { context ->
-//            if(!context.gameRenderer().minecraft.options.renderDebug) return@AfterTranslucent
-//
+        WorldRenderEvents.AFTER_TRANSLUCENT.register(WorldRenderEvents.AfterTranslucent { context ->
+            if(!context.gameRenderer().minecraft.options.renderDebug) return@AfterTranslucent
+
+            val cameraPos = context.camera().position
+            val stack = context.matrixStack()
+            //stack.translate(-cameraPos.x(), -cameraPos.y(), -cameraPos.z())
+
+            KelvinNodeRenderer.render(context)
+
 //            context.world().shipObjectWorld.loadedShips.forEach { clientShip ->
 //                val stack = context.matrixStack() ?: return@forEach
 //                stack.pushPose()
@@ -97,7 +105,7 @@ object ClockworkModClient {
 //
 //                stack.popPose()
 //            }
-//        })
+        })
     }
 
     @JvmStatic
