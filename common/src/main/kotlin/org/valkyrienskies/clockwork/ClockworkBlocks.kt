@@ -2,10 +2,17 @@ package org.valkyrienskies.clockwork
 
 import com.simibubi.create.AllMovementBehaviours.movementBehaviour
 import com.simibubi.create.AllTags
+import com.simibubi.create.Create
 import com.simibubi.create.content.decoration.encasing.CasingBlock
 import com.simibubi.create.content.fluids.PipeAttachmentModel
+import com.simibubi.create.content.fluids.tank.FluidTankBlock
+import com.simibubi.create.content.fluids.tank.FluidTankGenerator
+import com.simibubi.create.content.fluids.tank.FluidTankItem
+import com.simibubi.create.content.fluids.tank.FluidTankModel
 import com.simibubi.create.content.kinetics.BlockStressDefaults
 import com.simibubi.create.content.kinetics.simpleRelays.encased.EncasedShaftBlock
+import com.simibubi.create.content.redstone.displayLink.AllDisplayBehaviours
+import com.simibubi.create.content.redstone.displayLink.source.BoilerDisplaySource
 import com.simibubi.create.foundation.data.*
 import com.simibubi.create.foundation.data.ModelGen.customItemModel
 import com.simibubi.create.foundation.data.TagGen.axeOrPickaxe
@@ -13,11 +20,14 @@ import com.tterrag.registrate.builders.BlockBuilder
 import com.tterrag.registrate.providers.DataGenContext
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider
 import com.tterrag.registrate.util.entry.BlockEntry
+import com.tterrag.registrate.util.nullness.NonNullBiFunction
 import com.tterrag.registrate.util.nullness.NonNullFunction
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.resources.model.BakedModel
+import net.minecraft.core.BlockPos
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
+import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockBehaviour
@@ -25,13 +35,9 @@ import net.minecraft.world.level.block.state.BlockBehaviour.Properties
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.client.render.WingBlockItemRenderer
-import org.valkyrienskies.clockwork.content.curiosities.WanderliteOreBlock
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap.SmartFlapBearingBlock
-import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock
-import org.valkyrienskies.clockwork.content.physicalities.gas_thruster.GasThrusterBlock
-import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.GooBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock
@@ -41,6 +47,8 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeC
 import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteBlock
 import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteSlab
 import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteStairs
+import org.valkyrienskies.clockwork.content.curiosities.WanderliteOreBlock
+import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterBlock
 import org.valkyrienskies.clockwork.content.curiosities.asteroid.AsteroidBlock
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.distance.DistanceSensorBlock
@@ -51,19 +59,22 @@ import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBl
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankBlock
-import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.heater.GasHeaterBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankBlock
-import org.valkyrienskies.clockwork.content.logistics.gas.heater.GasHeaterBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankModel
+import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlock
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlock
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlock
-import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlock
-import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctBlock
 import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlock
+import org.valkyrienskies.clockwork.content.physicalities.gas_thruster.GasThrusterBlock
+import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroBlock
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
@@ -458,6 +469,7 @@ object ClockworkBlocks {
         .build()
         .register()
 
+
     @JvmField
     val DUCT_TANK: BlockEntry<DuctTankBlock> = REGISTRATE.block<DuctTankBlock>(
         "duct_tank"
@@ -469,6 +481,7 @@ object ClockworkBlocks {
         .initialProperties { SharedProperties.netheriteMetal() }
         .addLayer { Supplier { RenderType.cutout() } }
         .properties { it.noOcclusion() }
+        .onRegister(ClockworkRegistrate.blockModel { NonNullFunction<BakedModel, BakedModel> { originalModel: BakedModel -> DuctTankModel(originalModel) } })
         .item()
         .tab { ClockworkMod.BASE_CREATIVE_TAB }
         .build()

@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork
 import com.simibubi.create.content.equipment.armor.BacktankArmorLayer
 import com.simibubi.create.content.trains.schedule.TrainHatArmorLayer
 import com.simibubi.create.foundation.outliner.Outliner
+import com.simibubi.create.foundation.utility.ModelSwapper
 import dev.architectury.event.events.client.ClientTickEvent
 import dev.architectury.event.events.common.TickEvent
 import dev.architectury.registry.ReloadListenerRegistry
@@ -33,16 +34,21 @@ object ClockworkModClient {
     @JvmStatic
     val RESOURCE_RELOAD_LISTENER: ResourceManagerReloadListener = ClockworkReloadListener()
 
+    @JvmField
+    val MODEL_SWAPPER: ModelSwapper = ModelSwapper()
+
     @JvmStatic
     fun initClient() {
         ClockworkPonders.init()
         ClockworkSoundScapes.init()
         SecondScrollValueRenderer.init()
 
+        MODEL_SWAPPER.registerListeners()
+
         ReloadListenerRegistry.register(PackType.CLIENT_RESOURCES, RESOURCE_RELOAD_LISTENER)
 
         // This is really stupid, but it's how create does it, so ¯\_(ツ)_/¯
-        TickEvent.PLAYER_POST.register() {
+        TickEvent.PLAYER_POST.register {
             FrequencySlotGlobals.tick()
         }
 

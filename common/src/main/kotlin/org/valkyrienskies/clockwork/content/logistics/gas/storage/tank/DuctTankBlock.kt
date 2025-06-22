@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.storage.tank
 
+import com.simibubi.create.AllBlocks
+import com.simibubi.create.api.connectivity.ConnectivityHandler
 import com.simibubi.create.content.fluids.tank.FluidTankBlock
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
@@ -39,11 +41,16 @@ class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
         super.onPlace(state, level, pos, oldState, isMoving)
         nodePlace(state, level, pos, oldState, isMoving)
-        (level.getBlockEntity(pos) as? DuctTankBlockEntity)?.updateConnectivity()
+        (level.getBlockEntity(pos) as? DuctTankBlockEntity)?.queueConnectivityUpdate()
     }
 
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
         nodeRemove(state, level, pos, newState, isMoving)
+
+
+        val blockEntity = (level.getBlockEntity(pos) as? DuctTankBlockEntity) ?: return super.onRemove(state, level, pos, newState, isMoving)
+        //ConnectivityHandler.splitMulti(blockEntity)
+
         super.onRemove(state, level, pos, newState, isMoving)
     }
 

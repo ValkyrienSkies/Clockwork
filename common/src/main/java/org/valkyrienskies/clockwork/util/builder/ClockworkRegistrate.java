@@ -12,6 +12,8 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.level.block.Block;
+import org.valkyrienskies.clockwork.ClockworkModClient;
 import org.valkyrienskies.clockwork.platform.CWItem;
 import org.valkyrienskies.clockwork.platform.PlatformUtils;
 import org.valkyrienskies.clockwork.platform.SharedValues;
@@ -34,6 +36,18 @@ public class ClockworkRegistrate {
             onClient(() -> () -> customRenderedBlockItem(b, supplier));
             return b.build();
         };
+    }
+
+    public static <T extends Block> NonNullConsumer<? super T> blockModel(
+            Supplier<NonNullFunction<BakedModel, ? extends BakedModel>> func) {
+        return entry -> onClient(() -> () -> registerBlockModel(entry, func));
+    }
+
+    @Environment(EnvType.CLIENT)
+    private static void registerBlockModel(Block entry,
+                                           Supplier<NonNullFunction<BakedModel, ? extends BakedModel>> func) {
+        ClockworkModClient.MODEL_SWAPPER.getCustomBlockModels()
+                .register(RegisteredObjects.getKeyOrThrow(entry), func.get());
     }
 
     protected static void onClient(Supplier<Runnable> toRun) {
