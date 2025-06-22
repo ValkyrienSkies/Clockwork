@@ -34,7 +34,6 @@ class DuctTankBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bloc
         super.tick()
 
         if (level!!.isClientSide) return
-
         if (updateConnectivity) updateConnectivity()
     }
 

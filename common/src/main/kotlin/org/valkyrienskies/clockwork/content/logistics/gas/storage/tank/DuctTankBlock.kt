@@ -4,6 +4,8 @@ import com.simibubi.create.api.connectivity.ConnectivityHandler
 import com.simibubi.create.content.fluids.tank.FluidTankBlock
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
+import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntityType
@@ -36,13 +38,17 @@ class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE
     }
 
     override fun nodePlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
-        if (!level.isClientSide) return
-        if (state.isAir || state.block !is INodeBlock || oldState.`is`(state.block)) return
+        if (level.isClientSide) return
+        if (state.isAir || state.block !is INodeBlock) return
 
         withBlockEntityDo(level, pos) { blockEntity ->
             val size = blockEntity.width.squared() * blockEntity.height
             ClockworkMod.getKelvin().addNode(blockEntity.getDuctNodePosition(), createTankNode(blockEntity.getDuctNodePosition(), size.toDouble()))
         }
+    }
+
+    override fun nodeRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
+        if (!level.isClientSide) ClockworkMod.getKelvin().removeNode(pos.toDuctNodePos(level.dimension().location()))
 
     }
 
@@ -83,5 +89,8 @@ class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE
         val BOTTOM: BooleanProperty = BooleanProperty.create("bottom")
     }
 
+    override fun canConnectTo(self: BlockPos, other: BlockPos, direction: Direction, level: BlockGetter): Boolean {
+        return true
+    }
 
 }
