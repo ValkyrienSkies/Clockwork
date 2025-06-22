@@ -46,7 +46,7 @@ public class ClockworkRegistrate {
     @Environment(EnvType.CLIENT)
     private static void registerBlockModel(Block entry,
                                            Supplier<NonNullFunction<BakedModel, ? extends BakedModel>> func) {
-        ClockworkModClient.MODEL_SWAPPER.getCustomBlockModels()
+        CreateClient.MODEL_SWAPPER.getCustomBlockModels()
                 .register(RegisteredObjects.getKeyOrThrow(entry), func.get());
     }
 

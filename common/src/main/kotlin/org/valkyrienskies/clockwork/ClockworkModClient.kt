@@ -34,8 +34,6 @@ object ClockworkModClient {
     @JvmStatic
     val RESOURCE_RELOAD_LISTENER: ResourceManagerReloadListener = ClockworkReloadListener()
 
-    @JvmField
-    val MODEL_SWAPPER: ModelSwapper = ModelSwapper()
 
     @JvmStatic
     fun initClient() {
@@ -43,7 +41,7 @@ object ClockworkModClient {
         ClockworkSoundScapes.init()
         SecondScrollValueRenderer.init()
 
-        MODEL_SWAPPER.registerListeners()
+
 
         ReloadListenerRegistry.register(PackType.CLIENT_RESOURCES, RESOURCE_RELOAD_LISTENER)
 
