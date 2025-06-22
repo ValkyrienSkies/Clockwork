@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.storage.tank
 
-import com.simibubi.create.AllBlocks
 import com.simibubi.create.api.connectivity.ConnectivityHandler
 import com.simibubi.create.content.fluids.tank.FluidTankBlock
 import com.simibubi.create.foundation.block.IBE
@@ -24,8 +23,8 @@ class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE
 
     init {
         registerDefaultState(
-            defaultBlockState().setValue(FluidTankBlock.TOP, true)
-                .setValue(FluidTankBlock.BOTTOM, true))
+            defaultBlockState().setValue(TOP, true)
+                .setValue(BOTTOM, true))
     }
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
@@ -47,11 +46,11 @@ class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
         nodeRemove(state, level, pos, newState, isMoving)
 
-
-        val blockEntity = (level.getBlockEntity(pos) as? DuctTankBlockEntity) ?: return super.onRemove(state, level, pos, newState, isMoving)
-        //ConnectivityHandler.splitMulti(blockEntity)
-
-        super.onRemove(state, level, pos, newState, isMoving)
+        if (state.hasBlockEntity() && (state.block !== newState.block || !newState.hasBlockEntity())) {
+            val blockEntity = (level.getBlockEntity(pos) as? DuctTankBlockEntity) ?: return super.onRemove(state, level, pos, newState, isMoving)
+            super.onRemove(state, level, pos, newState, isMoving)
+            ConnectivityHandler.splitMulti(blockEntity)
+        }
     }
 
 

@@ -5,6 +5,7 @@ import com.simibubi.create.content.fluids.tank.FluidTankBlock
 import com.simibubi.create.foundation.blockEntity.IMultiBlockEntityContainer
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
+import io.github.fabricators_of_create.porting_lib.util.Constants.BlockFlags
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
@@ -31,6 +32,7 @@ class DuctTankBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bloc
 
     override fun tick() {
         super.tick()
+
         if (level!!.isClientSide) return
 
         if (updateConnectivity) updateConnectivity()
@@ -43,13 +45,16 @@ class DuctTankBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bloc
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
 
         if (tag.contains("Controller")) controller = NbtUtils.readBlockPos(tag.getCompound("Controller"))
-
+        if (tag.contains("Height")) height = tag.getInt("Height")
+        if (tag.contains("Width")) width = tag.getInt("Width")
         super.read(tag, clientPacket)
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
 
-        if (controller != null) tag.put("Controller", NbtUtils.writeBlockPos(controller))
+        tag.putInt("Height", height)
+        tag.putInt("Width", width)
+        if (controller != null) tag.put("Controller", NbtUtils.writeBlockPos(controller!!))
         super.write(tag, clientPacket)
     }
 
@@ -60,23 +65,24 @@ class DuctTankBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bloc
     fun updateConnectivity() {
         if (level!!.isClientSide) return
         if (!isController) return
+
+        updateConnectivity = false
         ConnectivityHandler.formMulti(this)
     }
 
     override fun getDuctNodePosition(): DuctNodePos {
-        if (level != null) {
-            return blockPos.toDuctNodePos(level!!.dimension().location())
-        }
+        if (level != null) return blockPos.toDuctNodePos(level!!.dimension().location())
+
         return blockPos.toDuctNodePos()
     }
 
     override fun getController(): BlockPos? {
-        return if (isController()) blockPos else controllerCT
+        return if (isController) blockPos else controllerCT
     }
 
-    // This is hideously stupid, but intelliJ won't let me do it in a normal way, so... ¯\_(ツ)_/¯
+    // This is hideously stupid, but intelliJ won't let me do it in a normal way, so...
     override fun <T> getControllerBE(): T? where T : BlockEntity?, T : IMultiBlockEntityContainer? {
-        if (isController()) return this as T
+        if (isController) return this as T
         return level?.getBlockEntity(controllerCT!!) as? T
     }
 
@@ -86,8 +92,7 @@ class DuctTankBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bloc
 
     override fun setController(pos: BlockPos?) {
         controllerCT = pos
-        queueConnectivityUpdate()
-        sendData()
+        notifyUpdate()
     }
 
     override fun removeController(keepContents: Boolean) {
@@ -95,7 +100,8 @@ class DuctTankBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bloc
         heightCT = 1
         widthCT = 1
         queueConnectivityUpdate()
-        sendData()
+        notifyMultiUpdated()
+
     }
 
     override fun getLastKnownPos(): BlockPos {
@@ -109,14 +115,14 @@ class DuctTankBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bloc
     override fun notifyMultiUpdated() {
         var state = blockState
         if (blockState.block is DuctTankBlock) { // safety
-            state = state.setValue(FluidTankBlock.BOTTOM, controller!!.y == blockPos.y)
-            state = state.setValue(FluidTankBlock.TOP, controller!!.y + height - 1 == blockPos.y)
-            level!!.setBlockAndUpdate(blockPos, state)
-            //level!!.setBlock(blockPos, state, 6)
+            state = state.setValue(DuctTankBlock.BOTTOM, controller!!.y == blockPos.y)
+            state = state.setValue(DuctTankBlock.TOP, controller!!.y + height - 1 == blockPos.y)
+            level!!.setBlock(blockPos, state, BlockFlags.DEFAULT_AND_RERENDER)
+
         }
-        setChanged()
-        sendData()
+        notifyUpdate()
     }
+
 
     override fun getMainConnectionAxis(): Direction.Axis { return Direction.Axis.Y }
 
@@ -134,7 +140,6 @@ class DuctTankBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bloc
 
     override fun setHeight(height: Int) {
         this.heightCT = height
-        sendData()
     }
 
     override fun getWidth(): Int {
@@ -143,7 +148,6 @@ class DuctTankBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bloc
 
     override fun setWidth(width: Int) {
         this.widthCT = width
-        sendData()
     }
 
 }
