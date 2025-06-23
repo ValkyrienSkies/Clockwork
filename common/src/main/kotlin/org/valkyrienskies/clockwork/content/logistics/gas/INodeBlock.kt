@@ -36,11 +36,6 @@ interface INodeBlock {
     }
 
     fun canConnectTo(self: BlockPos, other: BlockPos, direction: Direction, level: BlockGetter): Boolean {
-        if (self.distSqr(other) > 1.0) return false
-        val selfState = level.getBlockState(self)
-        val otherState = level.getBlockState(other)
-
-
         return true
     }
 
