@@ -7,11 +7,13 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
+import net.minecraft.world.InteractionResult
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
 import org.valkyrienskies.kelvin.api.ConnectionType
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.nodes.PipeDuctNode
@@ -87,13 +89,15 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
         val currentType = this.DIR_TO_CONNECTION_TYPE[dir]!!
 
         if (currentType == ConnectionType.NONE) return ConnectionType.NONE
+        val otherDuctNodePos = (level!!.getBlockEntity(blockPos.relative(dir)) as? IHeatableBlockEntity)?.getDuctNodePosition() ?: return ConnectionType.NONE
+
 
         val nextType = currentType.nextScrewdrivable()
-        setEdgeType(dir, nextType, false)
+        setEdgeType(dir, otherDuctNodePos, nextType, false)
         return nextType
     }
 
-    fun setEdgeType(dir: Direction, edgeType: ConnectionType, clientPacket: Boolean, silent: Boolean = false) {
+    fun setEdgeType(dir: Direction, otherDuctNodePos: DuctNodePos, edgeType: ConnectionType, clientPacket: Boolean, silent: Boolean = false) {
         if (this.level?.isClientSide != false && !clientPacket) {
             return
         }
@@ -102,11 +106,12 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
         if (!clientPacket) {
             syncEdge(dir)
             if (previousType != edgeType && !silent) {
-                val dimension = level!!.dimension().location()
-                ClockworkMod.getKelvin().removeEdge(this.blockPos.toDuctNodePos(dimension), this.blockPos.relative(dir).toDuctNodePos(dimension))
+
+
+                ClockworkMod.getKelvin().removeEdge(getDuctNodePosition(), otherDuctNodePos)
                 if (edgeType != ConnectionType.NONE) {
-                    val newEdge = createEdgeType(this.blockPos.toDuctNodePos(dimension), this.blockPos.relative(dir).toDuctNodePos(dimension), edgeType)
-                    ClockworkMod.getKelvin().addEdge(this.blockPos.toDuctNodePos(dimension), this.blockPos.relative(dir).toDuctNodePos(dimension), newEdge)
+                    val newEdge = createEdgeType(getDuctNodePosition(), otherDuctNodePos, edgeType)
+                    ClockworkMod.getKelvin().addEdge(getDuctNodePosition(), otherDuctNodePos, newEdge)
                 }
             }
         }

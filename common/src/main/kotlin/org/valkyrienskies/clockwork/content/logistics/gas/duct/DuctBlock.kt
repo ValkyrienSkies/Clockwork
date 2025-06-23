@@ -187,10 +187,11 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
                     if (newState.getValue(DIR_TO_CONNECTION[direction]!!).isConnected && adjState.getValue(DIR_TO_CONNECTION[direction.opposite]!!).isConnected) {
                         ClockworkMod.getKelvin().addEdge(ductNodePos, adjDuctNodePos, createPipeEdge(ductNodePos, adjDuctNodePos))
 
-                        blockEntity.setEdgeType(direction, ConnectionType.PIPE, clientPacket = false, silent = true)
+                        blockEntity.setEdgeType(direction, adjDuctNodePos, ConnectionType.PIPE, clientPacket = false, silent = true)
                         if (level.getBlockEntity(adjPos) is DuctBlockEntity)
                             (level.getBlockEntity(adjPos) as DuctBlockEntity).setEdgeType(
                                 direction.opposite,
+                                adjDuctNodePos,
                                 ConnectionType.PIPE,
                                 clientPacket = false,
                                 silent = true
@@ -199,10 +200,11 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
                     } else {
                         ClockworkMod.getKelvin().removeEdge(ductNodePos, adjDuctNodePos)
 
-                        blockEntity.setEdgeType(direction, ConnectionType.NONE, clientPacket = false, silent = true)
+                        blockEntity.setEdgeType(direction, adjDuctNodePos, ConnectionType.NONE, clientPacket = false, silent = true)
                         if (level.getBlockEntity(adjPos) is DuctBlockEntity)
                             (level.getBlockEntity(adjPos) as DuctBlockEntity).setEdgeType(
                                 direction.opposite,
+                                adjDuctNodePos,
                                 ConnectionType.NONE,
                                 clientPacket = false,
                                 silent = true
@@ -366,10 +368,10 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
         if (finalConnection.isConnected) {
             ClockworkMod.getKelvin().addEdge(ductNodePos, neighborDuctNodePos, createPipeEdge(ductNodePos, neighborDuctNodePos))
-            blockEntity.setEdgeType(direction, ConnectionType.PIPE, clientPacket = false, silent = true)
+            blockEntity.setEdgeType(direction, neighborDuctNodePos, ConnectionType.PIPE, clientPacket = false, silent = true)
         } else {
             ClockworkMod.getKelvin().removeEdge(ductNodePos, neighborDuctNodePos)
-            blockEntity.setEdgeType(direction, ConnectionType.NONE, clientPacket = false, silent = true)
+            blockEntity.setEdgeType(direction, neighborDuctNodePos, ConnectionType.NONE, clientPacket = false, silent = true)
         }
 
 
@@ -417,6 +419,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         if (!connected) return InteractionResult.FAIL
         if (context.level.isClientSide) return InteractionResult.SUCCESS
 
+        val otherDuctNodePos = (context.level.getBlockEntity(context.clickedPos.relative(changeDirection.opposite)) as? IHeatableBlockEntity)?.getDuctNodePosition() ?: return InteractionResult.FAIL
 
         playScrewSound(context.level, context.clickedPos)
         withBlockEntityDo(context.level, context.clickedPos) { blockEntity ->
@@ -424,6 +427,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
             if (context.level.getBlockEntity(context.clickedPos.relative(changeDirection)) is DuctBlockEntity) {
                 (context.level.getBlockEntity(context.clickedPos.relative(changeDirection)) as DuctBlockEntity).setEdgeType(
                     changeDirection.opposite,
+                    otherDuctNodePos,
                     type,
                     clientPacket = false,
                     silent = true

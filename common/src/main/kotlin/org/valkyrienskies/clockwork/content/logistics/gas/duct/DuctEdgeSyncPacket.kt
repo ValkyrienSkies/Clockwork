@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
+import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
 import org.valkyrienskies.kelvin.api.ConnectionType
 import org.valkyrienskies.clockwork.platform.api.network.ClientNetworkContext
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket
@@ -41,7 +42,8 @@ class DuctEdgeSyncPacket : S2CCWPacket {
             ) {
                 val ce =
                     Minecraft.getInstance().level!!.getBlockEntity(pos) as DuctBlockEntity?
-                ce?.setEdgeType(direction, type, true)
+                val be = Minecraft.getInstance().level!!.getBlockEntity(pos.relative(direction)) as IHeatableBlockEntity?: return@enqueueWork
+                ce?.setEdgeType(direction, be.getDuctNodePosition(),type, true)
             }
         }
         context.setPacketHandled(true)
