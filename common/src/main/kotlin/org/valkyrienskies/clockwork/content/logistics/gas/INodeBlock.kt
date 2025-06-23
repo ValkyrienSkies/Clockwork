@@ -1,19 +1,17 @@
 package org.valkyrienskies.clockwork.content.logistics.gas
 
 import net.minecraft.core.BlockPos
-import net.minecraft.server.level.ServerLevel
+import net.minecraft.core.Direction
+import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
-import org.valkyrienskies.kelvin.api.DuctNetwork
 import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.nodes.PipeDuctNode
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
-import org.valkyrienskies.mod.common.util.toJOMLD
 
-interface INodeBlock : IDuct {
+interface INodeBlock {
 
     fun nodePlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
         if (!level.isClientSide) {
@@ -36,7 +34,14 @@ interface INodeBlock : IDuct {
     fun createNode(pos: DuctNodePos): DuctNode {
         return PipeDuctNode.DEFAULT(pos)
     }
-    
 
+    fun canConnectTo(self: BlockPos, other: BlockPos, direction: Direction, level: BlockGetter): Boolean {
+        if (self.distSqr(other) > 1.0) return false
+        val selfState = level.getBlockState(self)
+        val otherState = level.getBlockState(other)
+
+
+        return true
+    }
 
 }

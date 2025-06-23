@@ -4,7 +4,7 @@ import com.simibubi.create.foundation.utility.Lang
 import net.minecraft.util.StringRepresentable
 
 enum class DuctConnectionType(private val stringName: String): StringRepresentable {
-    SIDE("true"), FORCED("forced"), NONE("false");
+    SIDE("true"), FORCED_OFF("forced"), NONE("false");
 
     val isConnected: Boolean
         get() = this == SIDE
