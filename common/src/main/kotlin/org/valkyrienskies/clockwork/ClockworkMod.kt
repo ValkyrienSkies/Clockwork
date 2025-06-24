@@ -10,6 +10,7 @@ import net.minecraft.world.item.CreativeModeTab
 import org.slf4j.LoggerFactory
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkHandler
 import org.valkyrienskies.clockwork.content.forces.*
+import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroShipControl
 import org.valkyrienskies.clockwork.platform.PlatformUtils
 import org.valkyrienskies.clockwork.util.ClockworkUtils
@@ -57,13 +58,14 @@ object ClockworkMod {
         vsApi.registerAttachment(GyroShipControl::class.java)
         vsApi.registerAttachment(GravitronController::class.java)
         vsApi.registerAttachment(SugarRocketController::class.java)
+        vsApi.registerAttachment(BearingController::class.java) { useTransientSerializer() }
 
-        //TODO remove when attachment bug is fixed
         VSEvents.shipLoadEvent.on { (ship) ->
             PocketForcesController.getOrCreate(ship)
             DragController.getOrCreate(ship)
             WanderShipControl.getOrCreate(ship)
 
+            //TODO remove when attachment bug is fixed
             GasThrusterController.getOrCreate(ship)
             PropellerController.getOrCreate(ship)
             ReactionWheelController.getOrCreate(ship)
@@ -71,17 +73,7 @@ object ClockworkMod {
             GyroShipControl.getOrCreate(ship)
             GravitronController.getOrCreate(ship)
             SugarRocketController.getOrCreate(ship)
-        }
-
-
-        VSEvents.ShipLoadEvent.on { event ->
-            val pocketController = PocketForcesController()
-            val dragController = DragController()
-            pocketController.dimensionId = event.ship.chunkClaimDimension
-            dragController.dimensionId = event.ship.chunkClaimDimension
-            event.ship.setAttachment(pocketController)
-            event.ship.setAttachment(dragController)
-            event.ship.setAttachment(WanderShipControl())
+            BearingController.getOrCreate(ship)
         }
 
         LifecycleEvent.SERVER_STARTED.register {
