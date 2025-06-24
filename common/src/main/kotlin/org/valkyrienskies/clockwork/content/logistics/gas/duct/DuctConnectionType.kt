@@ -4,10 +4,10 @@ import com.simibubi.create.foundation.utility.Lang
 import net.minecraft.util.StringRepresentable
 
 enum class DuctConnectionType(private val stringName: String): StringRepresentable {
-    SIDE("true"), FORCED_OFF("forced"), NONE("false");
+    SIDE("true"), FORCED_OFF("forced"), TEMP_ON("temp"), NONE("false");
 
     val isConnected: Boolean
-        get() = this == SIDE
+        get() = this == SIDE || this == TEMP_ON
 
     fun canBeChanged(): Boolean {
         return this == SIDE || this == NONE

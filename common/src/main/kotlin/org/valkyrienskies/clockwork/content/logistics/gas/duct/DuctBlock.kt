@@ -4,12 +4,14 @@ import com.google.common.collect.ImmutableMap
 import com.simibubi.create.AllSoundEvents
 import com.simibubi.create.content.equipment.wrench.IWrenchable
 import com.simibubi.create.foundation.block.IBE
+import io.github.fabricators_of_create.porting_lib.util.Constants
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionResult
+import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
@@ -29,6 +31,7 @@ import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
+import org.apache.commons.lang3.BooleanUtils.xor
 import org.joml.Vector2f
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkMod
@@ -133,15 +136,23 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
             val hitPos = context.clickLocation
 
             val changeDirection = getUseDirection(direction, context.clickedPos, hitPos)
-            val connected = state.getValue(DIR_TO_CONNECTION[changeDirection]!!).isConnected
+            val value = state.getValue(DIR_TO_CONNECTION[changeDirection]!!)
 
-            val newValue = if (connected) DuctConnectionType.FORCED_OFF else DuctConnectionType.SIDE
+
+
+            var newValue = when(value) {
+                DuctConnectionType.FORCED_OFF -> DuctConnectionType.TEMP_ON
+                DuctConnectionType.SIDE -> DuctConnectionType.FORCED_OFF
+                else -> DuctConnectionType.SIDE
+            }
+
+            if (newValue == DuctConnectionType.TEMP_ON && context.level.getBlockState(context.clickedPos.relative(changeDirection)).block !is DuctBlock)
+                newValue = DuctConnectionType.SIDE
+
             val newState = state.setValue(DIR_TO_CONNECTION[changeDirection]!!, newValue)
-
             context.level.setBlockAndUpdate(context.clickedPos, newState)
-            context.level.playSound(null, context.clickedPos, connectionChangeSound(), SoundSource.BLOCKS, 1f, 1f)
-            onConnectionUpdate(context.level, state, newState, context.clickedPos)
 
+            context.level.playSound(null, context.clickedPos, connectionChangeSound(), SoundSource.BLOCKS, 1f, 1f)
             return InteractionResult.SUCCESS
         }
         return InteractionResult.SUCCESS
@@ -161,7 +172,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
                 val adjPos = pos.relative(direction)
                 val adjState = level.getBlockState(adjPos)
 
-                updateConnection(newState, pos, adjState, adjPos, direction, level)
+                getConnection(newState, pos, adjState, adjPos, direction, level)
             }
         }
     }
@@ -232,52 +243,63 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         return RenderShape.MODEL
     }
 
-    override fun updateShape(
-        state: BlockState,
-        direction: Direction,
-        neighborState: BlockState,
-        level: LevelAccessor,
-        currentPos: BlockPos,
-        neighborPos: BlockPos
-    ): BlockState {
+    override fun updateShape(state: BlockState, direction: Direction, neighborState: BlockState, level: LevelAccessor, currentPos: BlockPos, neighborPos: BlockPos): BlockState {
         if (state.getValue(BlockStateProperties.WATERLOGGED)) level.scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickDelay(level))
 
-
-        val finalConnection = updateConnection(state,currentPos,neighborState,neighborPos,direction,level)
-
-        return state.setValue(DIR_TO_CONNECTION.get(direction)!!, finalConnection)
+        return state
     }
 
+    override fun getStateForPlacement(context: BlockPlaceContext): BlockState? {
+        return super.getStateForPlacement(context)
+    }
 
+    override fun neighborChanged(state: BlockState, level: Level, pos: BlockPos, block: Block, fromPos: BlockPos, isMoving: Boolean) {
+        val neighborState = level.getBlockState(fromPos)
+
+
+        val direction = Direction.fromNormal(fromPos.subtract(pos))
+        if (neighborState.block is INodeBlock || neighborState.block is IEdgeBlock) {
+            val finalConnection = getConnection(state,pos,neighborState,fromPos,direction!!,level)
+            val newState = state.setValue(DIR_TO_CONNECTION[direction]!!, finalConnection)
+            level.setBlockAndUpdate(pos, newState)
+        } else if ((block is INodeBlock || block is IEdgeBlock) && state.getValue(DIR_TO_CONNECTION[direction]!!) != DuctConnectionType.FORCED_OFF) {
+            val newState = state.setValue(DIR_TO_CONNECTION[direction]!!, DuctConnectionType.NONE)
+            level.setBlockAndUpdate(pos, newState)
+        }
+
+        super.neighborChanged(state, level, pos, block, fromPos, isMoving)
+    }
 
     protected fun getConnectedState(level: BlockGetter, state: BlockState, pos: BlockPos): BlockState? {
         var state = state
         for (direction in Direction.entries) {
             val adjPos = pos.relative(direction)
-            val connectionType = updateConnection(state,pos,level.getBlockState(adjPos),adjPos,direction,level)
+            val connectionType = getConnection(state,pos,level.getBlockState(adjPos),adjPos,direction,level)
             state = state.setValue(DIR_TO_CONNECTION[direction]!!, connectionType)
         }
         return state.setValue(BlockStateProperties.WATERLOGGED, level.getFluidState(pos).type === Fluids.WATER)
     }
 
-    fun updateConnection(state: BlockState, currentPos: BlockPos, neighborState: BlockState, neighborPos: BlockPos, direction: Direction, level: BlockGetter): DuctConnectionType {
+    fun getConnection(state: BlockState, currentPos: BlockPos, neighborState: BlockState, neighborPos: BlockPos, direction: Direction, level: BlockGetter): DuctConnectionType {
 
         
         val type: DuctConnectionType = state.getValue(DIR_TO_CONNECTION[direction]!!)
         var forced = type == DuctConnectionType.FORCED_OFF
+        var temp = type == DuctConnectionType.TEMP_ON
         var otherConnected = false
 
         val isConnectedEdgeBlock = neighborState.block is IEdgeBlock && (neighborState.block as IEdgeBlock).canConnectTo(level as Level,neighborPos,currentPos)
-
-
         if (neighborState.block is DuctBlock) {
-            forced = forced || neighborState.getValue(DIR_TO_CONNECTION[direction.opposite]!!) == DuctConnectionType.FORCED_OFF
-            otherConnected = neighborState.getValue(DIR_TO_CONNECTION[direction.opposite]!!).canBeChanged()
+            val neighborValue = neighborState.getValue(DIR_TO_CONNECTION[direction.opposite]!!)
+            forced = forced || neighborValue == DuctConnectionType.FORCED_OFF
+            temp = xor(temp, neighborValue == DuctConnectionType.TEMP_ON)
+            otherConnected = neighborValue.canBeChanged()
         } else if (neighborState.block is INodeBlock)
             otherConnected = (neighborState.block as INodeBlock).canConnectTo(neighborPos, currentPos, direction.opposite, level)
 
 
         val finalConnection: DuctConnectionType = when {
+            temp -> DuctConnectionType.TEMP_ON
             forced -> DuctConnectionType.FORCED_OFF
             otherConnected || isConnectedEdgeBlock -> DuctConnectionType.SIDE
             else -> DuctConnectionType.NONE
