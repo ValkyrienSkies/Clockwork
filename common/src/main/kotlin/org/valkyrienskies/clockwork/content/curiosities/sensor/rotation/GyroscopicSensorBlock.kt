@@ -187,8 +187,6 @@ class GyroscopicSensorBlock(properties: Properties) : DirectionalBlock(propertie
         val transformedDirection = ship.shipToWorld.transformDirection(originalDirection, Vector3d())
         val difference = targetDirection.axialDistanceTo(transformedDirection, referenceDir)
 
-        println(difference)
-
         return Mth.clamp((difference * 15).roundToInt(), -15, 15)
     }
 
@@ -232,8 +230,6 @@ class GyroscopicSensorBlock(properties: Properties) : DirectionalBlock(propertie
         val sign = cross.dot(axisNorm)
 
         val mul = if (sign > 0.0) 1.0 else if (sign < 0.0) -1.0 else 0.0
-
-        println("mul: $mul")
 
         return (acos(dot) / Math.PI) * mul
     }
