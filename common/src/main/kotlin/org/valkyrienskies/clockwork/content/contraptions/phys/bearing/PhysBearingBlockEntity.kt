@@ -106,6 +106,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     private var controllerCreationData: PhysBearingData? = null
     private var controllerUpdateData: PhysBearingUpdateData? = null
+    private var loadingFn: ((ServerLevel) -> Unit)? = null
 
     init {
         setLazyTickRate(3)
@@ -122,78 +123,35 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         behaviours.add(movementMode!!)
     }
 
-    private fun updateDrive(
-        driveVelocity: VSRevoluteJoint.VSRevoluteDriveVelocity? = null
-    ) {
-        val level = level as ServerLevel
-
-        //TODO this didn't work but i don't want to delete it yet in case i have an epiphany or smth
-//        val curAngle = Math.toRadians(targetAngle.toDouble()).toFloat()
-//        val PI = Math.PI.toFloat()
-//
-//        var prevAngle = curAngle.let { angle ->
-//            when {
-//                (angle >=  6.28288f) -> -6.28288f
-//                (angle <= -6.28288f) ->  6.28288f
-//                else -> angle
-//            }
-//        }
-//        var nextAngle = curAngle.nextUp().let { angle ->
-//            when {
-//                (angle >=  6.28288f) -> -6.28288f
-//                (angle <= -6.28288f) ->  6.28288f
-//                else -> angle
-//            }
-//        }
-//
-//        if (prevAngle.nextUp() != nextAngle.nextUp()) {
-//            if (nextAngle < prevAngle) {
-//                prevAngle = nextAngle
-//                nextAngle = nextAngle.nextUp()
-//            } else {
-//                nextAngle = prevAngle
-//                prevAngle = prevAngle.nextDown()
-//            }
-//        }
-
-//        var prevAngle = curAngle
-//        var nextAngle = curAngle.nextUp()
-
-//        var prevAngle = (2f*PI).nextDown()
-//        var nextAngle = (2f*PI)
-//
-//        for (i in 0 until 512 + 128) {
-//            prevAngle = prevAngle.nextDown()
-//            nextAngle = nextAngle.nextDown()
-//        }
-
-//        println("$prevAngle $nextAngle")
-//        println("${Math.toDegrees(prevAngle.toDouble())} ${Math.toDegrees(nextAngle.toDouble())}")
-//
-//        var angleLimit = if (movementMode!!.get() == LockedMode.FOLLOW_ANGLE) {
-//            VSD6Joint.AngularLimitPair(prevAngle, nextAngle)
-//        } else {null}
+    private fun updateDrive(driveVelocity: VSRevoluteJoint.VSRevoluteDriveVelocity? = null) {
+        val driveVelocity = if (
+        // unlocked needs driveVelocity to be null with no speed to spin freely for some reason
+               movementMode?.get() != LockedMode.LOCKED && (driveVelocity?.velocity == 0.0f || driveVelocity == null)
+            || movementMode?.get() == LockedMode.FOLLOW_ANGLE
+            || aligning
+            ) {
+            null
+        } else driveVelocity ?: VSRevoluteJoint.VSRevoluteDriveVelocity(0f)
 
         joint = VSJointAndId(joint!!.jointId, VSRevoluteJoint(
             joint!!.joint.shipId0, joint!!.joint.pose0,
             joint!!.joint.shipId1, joint!!.joint.pose1,
-            driveFreeSpin = movementMode!!.get() == LockedMode.LOCKED,
-            driveVelocity = if (movementMode!!.get() == LockedMode.FOLLOW_ANGLE) null else driveVelocity,
-//            angularLimitPair = angleLimit
+            driveFreeSpin = movementMode!!.get() != LockedMode.LOCKED,
+            driveVelocity = driveVelocity,
         ))
 
         controllerUpdateData = PhysBearingUpdateData(
-            Math.toRadians(targetAngle.toDouble()), getRealisticAngularSpeed(), movementMode!!.get() == LockedMode.FOLLOW_ANGLE
+            Math.toRadians(targetAngle.toDouble()),
+            getRealisticAngularSpeed(),
+            movementMode!!.get() == LockedMode.FOLLOW_ANGLE || aligning
         )
 
-        level.shipObjectWorld.updateConstraint(joint!!.jointId, joint!!.joint)
+        (level as ServerLevel).shipObjectWorld.updateConstraint(joint!!.jointId, joint!!.joint)
     }
 
     private fun movementModeChanged(value: Int) {
         if (level == null || level!!.isClientSide) {return}
         sendData()
-        if (joint == null) {return}
-        updateDrive((joint!!.joint as VSRevoluteJoint).driveVelocity)
     }
 
     override fun remove() {
@@ -231,6 +189,41 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         //to make it more general
         tag.putVector3d(ClockworkConstants.Nbt.OLD_SHIPTRAPTION_CENTER, bearingPos)
         tag.putVector3d(ClockworkConstants.Nbt.NEW_SHIPTRAPTION_CENTER, bearingPos)
+    }
+
+    private fun loadTheRest(tag: CompoundTag, level: ServerLevel) {
+        shouldRefresh = true
+        var joint = this.joint?.joint as VSRevoluteJoint?
+        val mainId = level.getShipManagingPos(worldPosition)?.id ?: level.shipObjectWorld.dimensionToGroundBodyIdImmutable[level.dimensionId]!!
+
+        //TODO is this fine or dumb?
+        val makeData = { joint: VSRevoluteJoint? -> PhysBearingData(
+            bearingAxis.get(Vector3d()),
+            Math.toRadians(targetAngle.toDouble()),
+            getRealisticAngularSpeed(),
+            movementMode!!.get() == LockedMode.FOLLOW_ANGLE,
+            aligning,
+            if (level.shipObjectWorld.dimensionToGroundBodyIdImmutable.values.contains(mainId)) {-1L} else {mainId},
+            joint?.pose1?.pos?.get(Vector3d()) ?: Vector3d(),
+            joint?.pose0?.pos?.get(Vector3d()) ?: Vector3d()
+        ) }
+
+        controllerCreationData = makeData(joint)
+
+        val oldPos = BlockPos.of(tag.getLong(ClockworkConstants.Nbt.OLD_POS)).toJOMLD()
+        if (oldPos == worldPosition) {return}
+
+        val subship = level.shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return
+
+        val newPos = worldPosition.toJOMLD()
+
+        val oldSPos = tag.getVector3d(ClockworkConstants.Nbt.OLD_SHIPTRAPTION_CENTER)!!
+        val newSPos = tag.getVector3d(ClockworkConstants.Nbt.NEW_SHIPTRAPTION_CENTER)!!
+
+        joint = joint?.let{it.copy(subship.id, pose0 = VSJointPose(it.pose0.pos - oldSPos + newSPos, it.pose0.rot), mainId, pose1 = VSJointPose(it.pose1.pos - oldPos + newPos, it.pose1.rot))}
+        this.joint = this.joint?.let{VSJointAndId(it.jointId, joint!!)}
+
+        controllerCreationData = makeData(joint)
     }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
@@ -271,40 +264,12 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         super.read(tag, clientPacket)
         if (clientPacket) {return}
 
+        // may not have level on read so i have to do this
+        loadingFn = { level -> loadTheRest(tag, level) }
+
         val level = level as? ServerLevel ?: return
-
-        shouldRefresh = true
-        var joint = this.joint?.joint as VSRevoluteJoint?
-        val mainId = level.getShipManagingPos(worldPosition)?.id ?: level.shipObjectWorld.dimensionToGroundBodyIdImmutable[level.dimensionId]!!
-
-        //TODO is this fine or dumb?
-        val makeData = { joint: VSRevoluteJoint? -> PhysBearingData(
-            bearingAxis.get(Vector3d()),
-            Math.toRadians(targetAngle.toDouble()),
-            getRealisticAngularSpeed(),
-            movementMode!!.get() == LockedMode.FOLLOW_ANGLE,
-            aligning,
-            if (level.shipObjectWorld.dimensionToGroundBodyIdImmutable.values.contains(mainId)) {-1L} else {mainId},
-            joint?.pose1?.pos?.get(Vector3d()) ?: Vector3d(),
-            joint?.pose0?.pos?.get(Vector3d()) ?: Vector3d()
-        ) }
-
-        controllerCreationData = makeData(joint)
-
-        val oldPos = BlockPos.of(tag.getLong(ClockworkConstants.Nbt.OLD_POS)).toJOMLD()
-        if (oldPos == worldPosition) {return}
-
-        val subship = level.shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return
-
-        val newPos = worldPosition.toJOMLD()
-
-        val oldSPos = tag.getVector3d(ClockworkConstants.Nbt.OLD_SHIPTRAPTION_CENTER)!!
-        val newSPos = tag.getVector3d(ClockworkConstants.Nbt.NEW_SHIPTRAPTION_CENTER)!!
-
-        joint = joint?.let{it.copy(subship.id, pose0 = VSJointPose(it.pose0.pos - oldSPos + newSPos, it.pose0.rot), mainId, pose1 = VSJointPose(it.pose1.pos - oldPos + newPos, it.pose1.rot))}
-        this.joint = this.joint?.let{VSJointAndId(it.jointId, joint!!)}
-
-        controllerCreationData = makeData(joint)
+        loadingFn!!(level)
+        loadingFn = null
     }
 
     override fun getInterpolatedAngle(partialTicks: Float): Float {
@@ -617,7 +582,16 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     private fun tryUpdateData() {
         if (shiptraptionID == NO_SHIPTRAPTION_ID) {return}
-        if (!(lastSpeed != getSpeed() || lastMode != movementMode?.get()) && movementMode!!.get() != LockedMode.FOLLOW_ANGLE) {return}
+        if (   (lastSpeed == getSpeed() && lastMode == movementMode?.get())
+            && (movementMode!!.get() != LockedMode.FOLLOW_ANGLE && !aligning)
+        ) {return}
+
+        if (lastMode != movementMode?.get() && movementMode?.get() == LockedMode.FOLLOW_ANGLE) {
+            val shipOn = level!!.getShipObjectManagingPos(blockPos)?.transform
+            val shiptraption = level!!.shipObjectWorld.allShips.getById(shiptraptionID)!!.transform
+
+            targetAngle = Math.toDegrees(getAngle(bearingAxis, shiptraption, shipOn)).toFloat()
+        }
 
         lastSpeed = getSpeed()
         lastMode = movementMode!!.get()
@@ -675,6 +649,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         ticks++
         if (level!!.isClientSide) clientAngleDiff /= 2f
         if (!level!!.isClientSide) {
+            loadingFn?.also {
+                it(level as ServerLevel)
+                loadingFn = null
+            }
+
             val subShip = (level as ServerLevel).shipObjectWorld.loadedShips.getById(shiptraptionID)
             controllerCreationData?.also {
                 bearingID = BearingController
@@ -696,7 +675,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (shiptraptionID == NO_SHIPTRAPTION_ID) {
             targetAngle = 0f
         } else if (!stopTargetAngleChange) {
-            val angularSpeed = getActualAngularSpeed()
+            val angularSpeed = -getActualAngularSpeed()
             var diff = 0.0f
 
             if (sequencedAngleLimit >= 0.0f) {
