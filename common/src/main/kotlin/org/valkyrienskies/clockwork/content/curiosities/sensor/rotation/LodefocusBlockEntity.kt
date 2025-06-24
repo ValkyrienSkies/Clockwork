@@ -17,6 +17,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import org.valkyrienskies.clockwork.util.ClockworkUtils.getVector3d
 import org.valkyrienskies.mod.common.toWorldCoordinates
 
 class LodefocusBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : SmartBlockEntity(type, pos,
@@ -46,17 +47,16 @@ class LodefocusBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
         if (tag == null || !tag.contains(TAG_LODESTONE_TRACKED)) {
             return null
         }
-        val x = tag.getInt("LodestoneX")
-        val y = tag.getInt("LodestoneY")
-        val z = tag.getInt("LodestoneZ")
+        val pos = tag.getCompound("LodestonePos")
+        val x = pos.getInt("X")
+        val y = pos.getInt("Y")
+        val z = pos.getInt("Z")
         return BlockPos(x, y, z)
     }
 
     fun getWorldspaceTargetPosition(): BlockPos? {
         val targetPosition = getTargetPosition()
-        if (targetPosition == null) {
-            return null
-        }
+        if (targetPosition == null) return null
         if (this.level == null) return targetPosition
         return BlockPos(this.level!!.toWorldCoordinates(targetPosition))
     }

@@ -76,13 +76,13 @@ subprojects {
         maven { url = "https://maven.shedaniel.me/" } // Cloth Config, REI
         maven { url = "https://maven.parchmentmc.org" } // Parchment mappings
         maven { url = "https://maven.quiltmc.org/repository/release" } // Quilt Mappings
-        maven { // Flywheel
-            url = "https://maven.tterrag.com/"
-            content {
-                // need to be specific here due to version overlaps
-                includeGroup("com.jozufozu.flywheel")
-            }
-        }
+//        maven { // Flywheel
+//            url = "https://maven.tterrag.com/"
+//            content {
+//                // need to be specific here due to version overlaps
+//                includeGroup("com.jozufozu.flywheel")
+//            }
+//        }
         maven {
             url = "https://maven.realrobotix.me/createbigcannons/" // Create Big Cannons
             content {
