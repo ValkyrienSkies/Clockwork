@@ -34,6 +34,7 @@ import org.valkyrienskies.mod.api.transformDirection
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.toWorldCoordinates
 import java.util.*
+import kotlin.math.abs
 import kotlin.math.absoluteValue
 import kotlin.math.acos
 import kotlin.math.min
@@ -185,9 +186,14 @@ class GyroscopicSensorBlock(properties: Properties) : DirectionalBlock(propertie
         val referenceDir = ship.shipToWorld.transformDirection(get(AxisDirection.POSITIVE, referenceAxis))
 
         val transformedDirection = ship.shipToWorld.transformDirection(originalDirection, Vector3d())
+        if(!transformedDirection.isFinite) return 0
+
         val difference = targetDirection.axialDistanceTo(transformedDirection, referenceDir)
 
-        return Mth.clamp((difference * 15).roundToInt(), -15, 15)
+        if(difference.isNaN()) return 0
+        if((difference * 15.0).isNaN()) return 0
+
+        return Mth.clamp((difference * 15.0).roundToInt(), -15, 15)
     }
 
     override fun use(
@@ -231,6 +237,7 @@ class GyroscopicSensorBlock(properties: Properties) : DirectionalBlock(propertie
 
         val mul = if (sign > 0.0) 1.0 else if (sign < 0.0) -1.0 else 0.0
 
+        if(abs(dot) > 1.0) return 0.0
         return (acos(dot) / Math.PI) * mul
     }
 
