@@ -10,7 +10,7 @@ enum class DuctConnectionType(private val stringName: String): StringRepresentab
         get() = this == SIDE || this == TEMP_ON
 
     fun canBeChanged(): Boolean {
-        return this == SIDE || this == NONE
+        return this.isConnected || this == NONE
     }
 
     override fun getSerializedName(): String {

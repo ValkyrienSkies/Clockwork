@@ -292,18 +292,22 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         if (neighborState.block is DuctBlock) {
             val neighborValue = neighborState.getValue(DIR_TO_CONNECTION[direction.opposite]!!)
             forced = forced || neighborValue == DuctConnectionType.FORCED_OFF
-            temp = xor(temp, neighborValue == DuctConnectionType.TEMP_ON)
+            temp = temp || neighborValue == DuctConnectionType.TEMP_ON
             otherConnected = neighborValue.canBeChanged()
         } else if (neighborState.block is INodeBlock)
             otherConnected = (neighborState.block as INodeBlock).canConnectTo(neighborPos, currentPos, direction.opposite, level)
 
+        otherConnected = otherConnected || isConnectedEdgeBlock
 
+        // May God please forgive me for writing this
         val finalConnection: DuctConnectionType = when {
-            temp -> DuctConnectionType.TEMP_ON
+            temp && (!otherConnected || forced) -> DuctConnectionType.TEMP_ON
             forced -> DuctConnectionType.FORCED_OFF
-            otherConnected || isConnectedEdgeBlock -> DuctConnectionType.SIDE
+            otherConnected  -> DuctConnectionType.SIDE
             else -> DuctConnectionType.NONE
         }
+
+        println("$temp $otherConnected $finalConnection")
 
         if ((level as? Level)?.isClientSide != false || isConnectedEdgeBlock) return finalConnection
 
@@ -312,6 +316,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
         val connectionType = if (finalConnection.isConnected) ConnectionType.PIPE else ConnectionType.NONE
         blockEntity.setEdgeType(direction, neighborDuctNodePos, connectionType, clientPacket = false, silent = false)
+
 
         return finalConnection
     }
