@@ -63,7 +63,6 @@ class GasBacktankArmorLayer<T : LivingEntity?, M : EntityModel<T>?>(renderer: Re
         ) {
             if (entityRenderer !is LivingEntityRenderer<*, *>) return
             if (entityRenderer.model !is HumanoidModel<*>) return
-            println("registered")
             val layer: GasBacktankArmorLayer<*, *> = GasBacktankArmorLayer(entityRenderer)
             helper.register(layer)
         }
