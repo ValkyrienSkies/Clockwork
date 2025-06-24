@@ -88,12 +88,10 @@ class DuctTankBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bloc
     }
 
     override fun setController(pos: BlockPos?) {
-        if (level?.isClientSide != false) return
-
         controllerCT = pos
         notifyUpdate()
 
-        if (isController) (blockState.block as? DuctTankBlock)?.nodePlace(blockState, level!!, blockPos, blockState, false)
+
     }
 
     override fun removeController(keepContents: Boolean) {
@@ -103,7 +101,10 @@ class DuctTankBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bloc
         queueConnectivityUpdate()
         notifyMultiUpdated()
 
-        if (isController) (blockState.block as? DuctTankBlock)?.nodeRemove(blockState, level!!, blockPos, blockState, false)
+        if (isController) {
+            println("Removed node")
+            (blockState.block as? DuctTankBlock)?.nodeRemove(blockState, level!!, blockPos, blockState, false)
+        }
     }
 
     override fun getLastKnownPos(): BlockPos {
@@ -119,8 +120,11 @@ class DuctTankBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bloc
         if (blockState.block is DuctTankBlock) { // safety
             state = state.setValue(DuctTankBlock.BOTTOM, controller!!.y == blockPos.y)
             state = state.setValue(DuctTankBlock.TOP, controller!!.y + height - 1 == blockPos.y)
-            level!!.setBlock(blockPos, state, BlockFlags.DEFAULT_AND_RERENDER)
+            level!!.setBlock(blockPos, state,23)
 
+            if (isController)  {
+                (blockState.block as? DuctTankBlock)?.nodePlace(blockState, level!!, blockPos, blockState, false)
+            }
         }
         notifyUpdate()
     }
