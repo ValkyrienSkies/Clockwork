@@ -102,7 +102,6 @@ class DuctTankBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bloc
         notifyMultiUpdated()
 
         if (isController) {
-            println("Removed node")
             (blockState.block as? DuctTankBlock)?.nodeRemove(blockState, level!!, blockPos, blockState, false)
         }
     }
@@ -122,9 +121,12 @@ class DuctTankBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bloc
             state = state.setValue(DuctTankBlock.TOP, controller!!.y + height - 1 == blockPos.y)
             level!!.setBlock(blockPos, state,23)
 
-            if (isController)  {
+            if (isController) {
+                (blockState.block as? DuctTankBlock)?.nodeRemove(blockState, level!!, blockPos, blockState, false)
                 (blockState.block as? DuctTankBlock)?.nodePlace(blockState, level!!, blockPos, blockState, false)
             }
+
+
         }
         notifyUpdate()
     }

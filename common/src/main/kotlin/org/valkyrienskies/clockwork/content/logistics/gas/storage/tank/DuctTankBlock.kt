@@ -42,7 +42,8 @@ class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE
         if (state.isAir || state.block !is INodeBlock) return
 
         withBlockEntityDo(level, pos) { blockEntity ->
-            val size = blockEntity.width.squared() * blockEntity.height
+            val size = 3 * blockEntity.width.squared() * blockEntity.height
+            println(size)
             ClockworkMod.getKelvin().addNode(blockEntity.getDuctNodePosition(), createTankNode(blockEntity.getDuctNodePosition(), size.toDouble()))
         }
     }
