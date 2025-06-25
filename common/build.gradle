@@ -14,6 +14,7 @@ repositories {
     maven { url = "https://api.modrinth.com/maven" } // LazyDFU
     maven { url = "https://maven.terraformersmc.com/releases/" } // Mod Menu
     maven { url = "https://mvn.devos.one/snapshots/" }
+    maven { url = "https://mvn.devos.one/releases/" }
     maven { url = "https://cursemaven.com" } // Forge Config API Port
     maven { url = "https://maven.cafeteria.dev/releases" } // Fake Player API
 }
@@ -36,7 +37,7 @@ dependencies {
 
 
     // VS2
-    modApi("org.valkyrienskies:valkyrienskies-118-common:${rootProject.vs2_version}")
+    modApi("org.valkyrienskies:valkyrienskies-120-common:${rootProject.vs2_version}")
     implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") {
         exclude group: 'org.joml', module: ''
     }
@@ -57,8 +58,8 @@ dependencies {
     implementation("org.joml:joml:1.10.4")
 
 
-    modCompileOnly("curse.maven:cc-restitched-462672:3838648")
-    //modImplementation("maven.modrinth:cc-tweaked:${cc_version}")
+    modCompileOnlyApi("cc.tweaked:cc-tweaked-${minecraft_version}-common-api:$cc_version")
+    modCompileOnly("cc.tweaked:cc-tweaked-${minecraft_version}-common:$cc_version")
 
     //modCompileOnlyApi("mezz.jei:jei-${minecraft_version}-common-api:${jei_version_fabric}")
     var kotestVersion = "5.4.1"
@@ -68,6 +69,4 @@ dependencies {
     testImplementation("io.kotest:kotest-property:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.mockk:mockk:1.12.5")
-
-    modCompileOnly "me.shedaniel:RoughlyEnoughItems-api:${rei_version}"
 }

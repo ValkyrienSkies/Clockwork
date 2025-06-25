@@ -10,8 +10,8 @@ import org.valkyrienskies.clockwork.content.propulsion.sugar_rocket.SugarRocketD
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ShipForcesInducer
-import org.valkyrienskies.mod.api.toJOMLd
 import org.valkyrienskies.mod.common.util.toJOML
+import org.valkyrienskies.mod.common.util.toJOMLD
 import java.util.concurrent.ConcurrentLinkedQueue
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
@@ -39,7 +39,7 @@ class SugarRocketController : ShipForcesInducer {
     }
 
     fun addRocket(pos: BlockPos, force: Double, direction: Direction) {
-        newRockets.add(Pair(pos.toJOML(), direction.normal.toJOMLd().mul(force * 10)))
+        newRockets.add(Pair(pos.toJOML(), direction.normal.toJOMLD().mul(force * 10)))
     }
 
     fun removeRocket(pos: BlockPos) {

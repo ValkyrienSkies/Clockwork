@@ -19,6 +19,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.util.ClockworkUtils.getVector3d
 import org.valkyrienskies.mod.common.toWorldCoordinates
+import java.util.Random
 
 class LodefocusBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : SmartBlockEntity(type, pos,
     state
@@ -58,7 +59,7 @@ class LodefocusBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
         val targetPosition = getTargetPosition()
         if (targetPosition == null) return null
         if (this.level == null) return targetPosition
-        return BlockPos(this.level!!.toWorldCoordinates(targetPosition))
+        return BlockPos.containing(this.level!!.toWorldCoordinates(targetPosition))
     }
 
     fun dropCompass() {
@@ -66,9 +67,10 @@ class LodefocusBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
             val oldItem = inventory[0]
             if (level != null && !level!!.isClientSide) {
                 val sLevel = level as ServerLevel
-                val launchX = sLevel.random.nextDouble(0.0, 0.5)
-                val launchY = sLevel.random.nextDouble(0.0, 1.5)
-                val launchZ = sLevel.random.nextDouble(0.0, 0.5)
+                val random = Random()
+                val launchX = random.nextDouble(0.0, 0.5)
+                val launchY = random.nextDouble(0.0, 1.5)
+                val launchZ = random.nextDouble(0.0, 0.5)
                 val worldPos = sLevel.toWorldCoordinates(worldPosition)
                 val itemEntity = ItemEntity(sLevel, worldPos.x, worldPos.y, worldPos.z, oldItem, launchX, launchY, launchZ)
                 sLevel.addFreshEntity(itemEntity)
@@ -116,9 +118,10 @@ class LodefocusBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
                 val oldItem = inventory[slot]
                 if (level != null && !level!!.isClientSide) {
                     val sLevel = level as ServerLevel
-                    val launchX = sLevel.random.nextDouble(0.0, 0.5)
-                    val launchY = sLevel.random.nextDouble(0.0, 1.5)
-                    val launchZ = sLevel.random.nextDouble(0.0, 0.5)
+                    val random = Random()
+                    val launchX = random.nextDouble(0.0, 0.5)
+                    val launchY = random.nextDouble(0.0, 1.5)
+                    val launchZ = random.nextDouble(0.0, 0.5)
                     val worldPos = sLevel.toWorldCoordinates(worldPosition)
                     val itemEntity = ItemEntity(sLevel, worldPos.x, worldPos.y, worldPos.z, oldItem, launchX, launchY, launchZ)
                     sLevel.addFreshEntity(itemEntity)

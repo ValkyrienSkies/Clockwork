@@ -11,6 +11,7 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext
 import net.minecraft.client.resources.model.BakedModel
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.util.RandomSource
 import net.minecraft.world.level.BlockAndTintGetter
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkSpriteShifts
@@ -22,7 +23,13 @@ class DuctTankModel private constructor(originalModel: BakedModel, side: CTSprit
 
     constructor(originalModel: BakedModel) : this(originalModel, ClockworkSpriteShifts.DUCT_TANK, ClockworkSpriteShifts.DUCT_TANK_TOP, AllSpriteShifts.FLUID_TANK_INNER)
 
-    override fun emitBlockQuads(blockView: BlockAndTintGetter, state: BlockState, pos: BlockPos, randomSupplier: Supplier<Random>, context: RenderContext) {
+    override fun emitBlockQuads(
+        blockView: BlockAndTintGetter,
+        state: BlockState,
+        pos: BlockPos,
+        randomSupplier: Supplier<RandomSource>,
+        context: RenderContext
+    ) {
         val cullData = CullData()
         for (d in Iterate.horizontalDirections) cullData.setCulled(d, ConnectivityHandler.isConnected<DuctTankBlockEntity>(blockView, pos, pos.relative(d)))
 

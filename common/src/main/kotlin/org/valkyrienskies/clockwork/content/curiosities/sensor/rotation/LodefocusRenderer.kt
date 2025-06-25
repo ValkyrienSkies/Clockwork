@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork.content.curiosities.sensor.rotation
 
 import com.jozufozu.flywheel.util.transform.TransformStack
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.math.Vector3f
 import com.simibubi.create.content.kinetics.belt.BeltHelper
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
 import com.simibubi.create.foundation.utility.VecHelper
@@ -11,9 +10,13 @@ import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.block.model.ItemTransforms
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.util.Mth
+import net.minecraft.util.RandomSource
+import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.phys.Vec3
+import org.joml.AxisAngle4f
+import org.joml.Quaternionf
 import java.util.*
 
 class LodefocusRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlockEntityRenderer<LodefocusBlockEntity>(
@@ -50,7 +53,7 @@ class LodefocusRenderer(context: BlockEntityRendererProvider.Context?) : SmartBl
 
     fun renderItem(
         ms: PoseStack, buffer: MultiBufferSource?, light: Int, overlay: Int, itemStack: ItemStack,
-        angle: Int, r: Random, itemPosition: Vec3
+        angle: Int, r: RandomSource, itemPosition: Vec3
     ) {
         val itemRenderer = Minecraft.getInstance()
             .itemRenderer
@@ -70,7 +73,7 @@ class LodefocusRenderer(context: BlockEntityRendererProvider.Context?) : SmartBl
                 val vectorForOffset = itemPosition
                 val diff = vectorForOffset.subtract(positionVec)
                 val yRot = (Mth.atan2(diff.x, diff.z) + Math.PI).toFloat()
-                ms.mulPose(Vector3f.YP.rotation(yRot))
+                ms.mulPose(Quaternionf(AxisAngle4f(yRot, 0f, 1f, 0f)))
             }
             ms.translate(0.0, 3 / 32.0, (-1 / 16f).toDouble())
         }
@@ -85,7 +88,7 @@ class LodefocusRenderer(context: BlockEntityRendererProvider.Context?) : SmartBl
             ms.scale(.5f, .5f, .5f)
             itemRenderer.render(
                 itemStack,
-                ItemTransforms.TransformType.FIXED,
+                ItemDisplayContext.FIXED,
                 false,
                 ms,
                 buffer,

@@ -6,8 +6,6 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.Tesselator
 import com.mojang.blaze3d.vertex.VertexConsumer
 import com.mojang.blaze3d.vertex.VertexFormat
-import com.mojang.math.Matrix3f
-import com.mojang.math.Matrix4f
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.outliner.Outliner
@@ -23,6 +21,8 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.LightLayer
+import org.joml.Matrix3f
+import org.joml.Matrix4f
 import org.joml.Vector3d
 import org.lwjgl.opengl.GL11
 import org.valkyrienskies.clockwork.ClockworkMod

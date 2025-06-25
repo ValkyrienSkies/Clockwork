@@ -5,6 +5,7 @@ import com.simibubi.create.foundation.gui.AbstractSimiScreen
 import com.simibubi.create.foundation.gui.widget.IconButton
 import com.simibubi.create.foundation.gui.widget.ScrollInput
 import net.minecraft.client.gui.Font
+import net.minecraft.client.gui.GuiGraphics
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.clockwork.util.gui.GuiUtil.withinRectangle
@@ -34,7 +35,7 @@ class FilterScrolling(x: Int, y: Int) : ScrollingFrame(x, y, 206, 47) {
         override val height = button.height.toDouble()
 
 
-        override fun renderElement(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float, visible: Boolean, scroll: Double) {
+        override fun renderElement(ms: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float, visible: Boolean, scroll: Double) {
 
             val tab = ClockworkGuiTextures.GAS_FILTER_ELEMENT
 
@@ -45,7 +46,7 @@ class FilterScrolling(x: Int, y: Int) : ScrollingFrame(x, y, 206, 47) {
 
             if (visible) {
                 tab.render(ms, x, y)
-                AbstractSimiScreen.drawString(ms, font, gasType.name, x+5, y+5,0xFFFFFF)
+                ms.drawString(font, gasType.name, x+5, y+5,0xFFFFFF)
 
                 button.render(ms, mouseX, (mouseY-scroll).roundToInt(), partialTicks)
             }

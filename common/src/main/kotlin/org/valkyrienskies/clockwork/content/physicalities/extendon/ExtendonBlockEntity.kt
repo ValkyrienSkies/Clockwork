@@ -30,7 +30,7 @@ import org.valkyrienskies.mod.common.util.toJOMLD
 import java.lang.IllegalStateException
 import java.util.EnumMap
 import org.valkyrienskies.kelvin.api.DuctNetwork.Companion.idealGasConstant
-import org.valkyrienskies.mod.api.dimensionId
+import org.valkyrienskies.mod.common.dimensionId
 import kotlin.math.PI
 
 class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState?) : SmartBlockEntity(type, pos, state), IUniversalJoint, IHeatableBlockEntity {
@@ -61,7 +61,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         val kelvin = ClockworkMod.getKelvin()
         val serverLevel = level as ServerLevel
 
-        val distance = gasToDistance(kelvin, getDuctNodePosition(), level.dimensionId!!)
+        val distance = gasToDistance(kelvin, getDuctNodePosition(), level!!.dimensionId)
 
 
         val tempJoint = VSJointAndId(distanceJointId!!, VSDistanceJoint(distanceJoint!!.shipId0, distanceJoint!!.pose0, distanceJoint!!.shipId1, distanceJoint!!.pose1, minDistance = distance, maxDistance = distance))

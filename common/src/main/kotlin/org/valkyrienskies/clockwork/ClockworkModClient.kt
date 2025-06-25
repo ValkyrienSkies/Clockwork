@@ -59,18 +59,18 @@ object ClockworkModClient {
         })
 
 
-        LivingEntityFeatureRendererRegistrationCallback.EVENT.register { entityType: EntityType<out LivingEntity>, livingEntityRenderer: LivingEntityRenderer<*, *>, registrationHelper: LivingEntityFeatureRendererRegistrationCallback.RegistrationHelper, context: EntityRendererProvider.Context ->
-            GasBacktankArmorLayer.registerOn(livingEntityRenderer, registrationHelper)
-        }
+//        EntityFeatu.EVENT.register { entityType: EntityType<out LivingEntity>, livingEntityRenderer: LivingEntityRenderer<*, *>, registrationHelper: LivingEntityFeatureRendererRegistrationCallback.RegistrationHelper, context: EntityRendererProvider.Context ->
+//            GasBacktankArmorLayer.registerOn(livingEntityRenderer, registrationHelper)
+//        }
 
-        WorldRenderEvents.AFTER_TRANSLUCENT.register(WorldRenderEvents.AfterTranslucent { context ->
-            if(!context.gameRenderer().minecraft.options.renderDebug) return@AfterTranslucent
-
-            val cameraPos = context.camera().position
-            val stack = context.matrixStack()
-            //stack.translate(-cameraPos.x(), -cameraPos.y(), -cameraPos.z())
-
-            KelvinNodeRenderer.render(context)
+//        RenderEvent.AFTER_TRANSLUCENT.register(WorldRenderEvents.AfterTranslucent { context ->
+//            if(!context.gameRenderer().minecraft.options.renderDebug) return@AfterTranslucent
+//
+//            val cameraPos = context.camera().position
+//            val stack = context.matrixStack()
+//            //stack.translate(-cameraPos.x(), -cameraPos.y(), -cameraPos.z())
+//
+//            KelvinNodeRenderer.render(context)
 
 //            context.world().shipObjectWorld.loadedShips.forEach { clientShip ->
 //                val stack = context.matrixStack() ?: return@forEach
@@ -105,7 +105,7 @@ object ClockworkModClient {
 //
 //                stack.popPose()
 //            }
-        })
+//        })
     }
 
     @JvmStatic

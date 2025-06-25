@@ -7,7 +7,6 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.TextComponent
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod
@@ -65,9 +64,9 @@ class GasHeaterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
     }
 
     override fun addToGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
-        tooltip.add(TextComponent("    Heater Info").withStyle(ChatFormatting.GRAY))
-        tooltip.add(TextComponent("Heat Level: ${level!!.getBlockState(blockPos).getValue(HEAT_LEVEL).name}").withStyle(ChatFormatting.YELLOW))
-        tooltip.add(TextComponent.EMPTY)
+        tooltip.add(Component.literal("    Heater Info").withStyle(ChatFormatting.GRAY))
+        tooltip.add(Component.literal("Heat Level: ${level!!.getBlockState(blockPos).getValue(HEAT_LEVEL).name}").withStyle(ChatFormatting.YELLOW))
+        tooltip.add(Component.empty())
 
         return super.addToGoggleTooltip(tooltip, isPlayerSneaking)
     }

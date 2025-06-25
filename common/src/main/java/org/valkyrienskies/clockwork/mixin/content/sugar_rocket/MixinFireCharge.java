@@ -16,8 +16,8 @@ public class MixinFireCharge {
 
     @Inject(method = "onHitBlock", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/SmallFireball;getOwner()Lnet/minecraft/world/entity/Entity;", shift = At.Shift.AFTER), cancellable = true)
     void preOnHitBlock(BlockHitResult result, CallbackInfo ci) {
-        if (((SmallFireball) (Object) this).level != null) {
-            Level level = ((SmallFireball) (Object) this).level;
+        if (((SmallFireball) (Object) this).level() != null) {
+            Level level = ((SmallFireball) (Object) this).level();
             if (!level.isClientSide) {
                 ServerLevel serverLevel = (ServerLevel) level;
                 if (serverLevel.getBlockState(result.getBlockPos()).is(ClockworkBlocks.SUGAR_ROCKET.get())) {

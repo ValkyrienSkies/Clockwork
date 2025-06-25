@@ -112,9 +112,9 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
             for ((key, value) in blocks) {
                 if (value.state.`is`(ClockworkBlocks.BLADE_CONTROLLER.get())) {
                     val shouldUpdate = true
-                    if (shouldUpdate) {
-                        value.nbt.putBoolean("ShouldUpdatePhys", false)
-                        blades = BladeData.fromTag(value.nbt)
+                    if (shouldUpdate && value.nbt != null) {
+                        value.nbt!!.putBoolean("ShouldUpdatePhys", false)
+                        blades = BladeData.fromTag(value.nbt!!)
                     }
                 }
             }

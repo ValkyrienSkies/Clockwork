@@ -8,7 +8,6 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.TextComponent
 import net.minecraft.world.Clearable
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.item.ItemEntity
@@ -104,10 +103,10 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bl
 
     override fun addToGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
         if (!storedFuelStack.isEmpty) {
-            tooltip.add(TextComponent("    Coal burner Info").withStyle(ChatFormatting.GRAY))
-            tooltip.add(TextComponent("Fuel: ").withStyle(ChatFormatting.GOLD)
+            tooltip.add(Component.literal("    Coal burner Info").withStyle(ChatFormatting.GRAY))
+            tooltip.add(Component.literal("Fuel: ").withStyle(ChatFormatting.GOLD)
                 .append(storedFuelStack.displayName)
-                .append((TextComponent("x ${storedFuelStack.count}")).withStyle(ChatFormatting.GOLD)))
+                .append((Component.literal("x ${storedFuelStack.count}")).withStyle(ChatFormatting.GOLD)))
         }
 
         return super.addToGoggleTooltip(tooltip, isPlayerSneaking)

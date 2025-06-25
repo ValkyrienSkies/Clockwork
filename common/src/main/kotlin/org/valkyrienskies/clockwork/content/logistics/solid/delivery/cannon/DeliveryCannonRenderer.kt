@@ -3,7 +3,6 @@ package org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon
 import com.jozufozu.flywheel.util.transform.TransformStack
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
-import com.mojang.math.Vector3f
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
 import com.simibubi.create.foundation.utility.AngleHelper
@@ -16,13 +15,17 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.Direction
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.util.Mth
+import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.phys.Vec3
+import org.joml.AxisAngle4f
+import org.joml.Quaternionf
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotRenderer
 import org.valkyrienskies.clockwork.util.EaseHelper
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
+import java.util.Random
 import kotlin.math.*
 
 class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): FrequencySlotRenderer<DeliveryCannonBlockEntity>(context) {
@@ -97,7 +100,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
 
             if (!be.didParticles) {
                 for (i in 0..9) {
-                    val r: java.util.Random = be.level!!.getRandom()
+                    val r = Random()
                     val sX: Double = lookDir.x * .01f
                     val sY: Double = (lookDir.y + 1) * .01f
                     val sZ: Double = lookDir.z * .01f
@@ -168,8 +171,8 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         new.pushPose()
         if (be.ponder) msr.translate(launchedItemPos.subtract(be.getRealPos()).add(0.5,1.25,0.5))
         else {
-            msr.multiply(Vector3f.XP.rotationDegrees(cam.getXRot()))
-            msr.multiply(Vector3f.YP.rotationDegrees(cam.getYRot() + 180.0f))
+            msr.multiply(Quaternionf(AxisAngle4f(AngleHelper.rad(cam.xRot.toDouble()), 1f, 0f, 0f)))
+            msr.multiply(Quaternionf(AxisAngle4f(AngleHelper.rad(cam.yRot + 180.0), 0f, 1f, 0f)))
             msr.translate(-cam.position.x,-cam.position.y,-cam.position.z)
             msr.translate(launchedItemPos.x,launchedItemPos.y+0.25,launchedItemPos.z)
         }
@@ -185,11 +188,12 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
             .itemRenderer
             .renderStatic(
                 be.transportStack,
-                ItemTransforms.TransformType.GROUND,
+                ItemDisplayContext.GROUND,
                 light,
                 overlay,
                 new,
                 buffer,
+                be.level,
                 0
             )
         new.popPose()

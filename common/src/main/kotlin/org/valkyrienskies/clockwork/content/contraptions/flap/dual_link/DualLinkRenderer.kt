@@ -24,8 +24,8 @@ import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkHandler.getFrontFacing
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.mod.api.getShipManagingBlock
-import org.valkyrienskies.mod.api.toJOML
-import org.valkyrienskies.mod.api.toMinecraft
+import org.valkyrienskies.mod.common.util.toJOML
+import org.valkyrienskies.mod.common.util.toMinecraft
 
 object DualLinkRenderer {
 

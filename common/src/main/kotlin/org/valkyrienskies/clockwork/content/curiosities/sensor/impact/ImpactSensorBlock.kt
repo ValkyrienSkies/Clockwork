@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.tags.BlockTags
+import net.minecraft.util.RandomSource
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
@@ -32,14 +33,12 @@ import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.ClockworkTags
 import org.valkyrienskies.clockwork.content.curiosities.sensor.ISensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.ISensorBlock.Companion.POWER
-import org.valkyrienskies.mod.api.dimensionId
-import org.valkyrienskies.mod.api.positionToShip
-import org.valkyrienskies.mod.api.toJOML
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.toWorldCoordinates
 import org.valkyrienskies.mod.common.transformToNearbyShipsAndWorld
 import org.valkyrienskies.mod.common.util.toDoubles
+import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft
 import org.valkyrienskies.mod.common.world.clipIncludeShips
 import java.util.*
@@ -47,6 +46,7 @@ import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.math.min
 
+//todo use collision events
 class ImpactSensorBlock(properties: Properties?): DirectionalBlock(properties), ISensorBlock, IWrenchable {
 
     companion object {
@@ -76,8 +76,8 @@ class ImpactSensorBlock(properties: Properties?): DirectionalBlock(properties), 
         return state.rotate(mirror.getRotation(state.getValue(DirectionalBlock.FACING)))
     }
 
-    override fun tick(state: BlockState, level: ServerLevel, pos: BlockPos, random: Random) {
-        val power = this.updatePower(state, level, pos, random)
+    override fun tick(state: BlockState, level: ServerLevel, pos: BlockPos, random: RandomSource) {
+        val power = this.updatePower(state, level, pos, Random())
         if (power != state.getValue(POWER)) {
             level.setBlock(pos, state.setValue(POWER, power) as BlockState, 2)
             level.updateNeighborsAt(pos, this)
@@ -133,17 +133,17 @@ class ImpactSensorBlock(properties: Properties?): DirectionalBlock(properties), 
             targetPositions.forEach { positions.addAll(level.transformToNearbyShipsAndWorld(it.x, it.y, it.z, 1.5)) }
 
             for (position in positions) {
-                val posShip = level.getShipObjectManagingPos(BlockPos(position.toMinecraft()))
+                val posShip = level.getShipObjectManagingPos(BlockPos.containing(position.toMinecraft()))
                 if (posShip != null && ship != null && posShip.id == ship.id) {
                     continue
                 }
-                if (!level.getBlockState(BlockPos(position.toMinecraft())).isAir) {
+                if (!level.getBlockState(BlockPos.containing(position.toMinecraft())).isAir) {
                     found = max(
                         min(max(16 - (level.toWorldCoordinates(position.toMinecraft()).distanceTo(level.toWorldCoordinates(Vec3.atCenterOf(pos))).absoluteValue * predictiveness.toDouble()).toInt(), 0), 15),
                         found
                     )
                 }
-                val searchAABB = AABB(BlockPos(position.toMinecraft())).inflate(1.0)
+                val searchAABB = AABB(BlockPos.containing(position.toMinecraft())).inflate(1.0)
                 level.getBlockStates(searchAABB).forEach { state ->
                     if (!state.isAir) {
                         found = max(

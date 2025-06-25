@@ -34,7 +34,6 @@ protected constructor(properties: Properties, private val casing: BlockEntry<Cas
         return this
     }
 
-    override fun fillItemCategory(pTab: CreativeModeTab, pItems: NonNullList<ItemStack>) {}
     override fun onSneakWrenched(state: BlockState, context: UseOnContext): InteractionResult {
         if (context.level.isClientSide) return InteractionResult.SUCCESS
         context.level

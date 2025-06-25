@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllKeys
 import com.simibubi.create.foundation.utility.Components
 import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.chat.Component
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
@@ -44,7 +45,7 @@ class GravitronSelectionScreen(private val tools: List<ToolType>, private val ca
         selection = (selection + tools.size) % tools.size
     }
 
-    private fun draw(poseStack: PoseStack, partialTicks: Float) {
+    private fun draw(poseStack: GuiGraphics, partialTicks: Float) {
         val mainWindow = minecraft!!.window
         if (!initialized) {
             init(minecraft!!, mainWindow.guiScaledWidth, mainWindow.guiScaledHeight)
@@ -53,15 +54,14 @@ class GravitronSelectionScreen(private val tools: List<ToolType>, private val ca
         val x = (mainWindow.guiScaledWidth - w) / 2 + 15
         val y = mainWindow.guiScaledHeight - h - 75
 
-        poseStack.pushPose()
-        poseStack.translate(0.0, 20.0 - yOffset, (if (focus) 100.0 else 0.0))
+        poseStack.pose().pushPose()
+        poseStack.pose().translate(0.0, 20.0 - yOffset, (if (focus) 100.0 else 0.0))
 
 
         val gray = ClockworkGuiTextures.WANDER_TOOL_BACKGROUND
         RenderSystem.enableBlend()
         RenderSystem.setShaderColor(1f, 1f, 1f, if (focus) 7 / 8f else 1 / 2f)
-        RenderSystem.setShaderTexture(0, gray.location)
-        blit(poseStack,
+        poseStack.blit(gray.location,
             x - 15,
             y,
             gray.startX.toFloat(),
@@ -79,9 +79,7 @@ class GravitronSelectionScreen(private val tools: List<ToolType>, private val ca
         if (toolTipAlpha > 0.25f) {
             RenderSystem.setShaderColor(.7f, .7f, .8f, toolTipAlpha)
 
-            RenderSystem.setShaderTexture(0, gray.location)
-            blit(
-                poseStack,
+            poseStack.blit(gray.location,
                 x - 15,
                 y + 33,
                 gray.startX.toFloat(),
@@ -94,16 +92,16 @@ class GravitronSelectionScreen(private val tools: List<ToolType>, private val ca
             RenderSystem.setShaderColor(1f, 1f, 1f, 1f)
 
             if (toolTip.size > 0) {
-                drawString(poseStack, font, toolTip[0], x - 10, y + 38, 0xEEEEEE + stringAlphaComponent)
+                poseStack.drawString(font, toolTip[0], x - 10, y + 38, 0xEEEEEE + stringAlphaComponent)
             }
             if (toolTip.size > 1) {
-                drawString(poseStack, font, toolTip[1], x - 10, y + 50, 0xDDCCFF + stringAlphaComponent)
+                poseStack.drawString(font, toolTip[1], x - 10, y + 50, 0xDDCCFF + stringAlphaComponent)
             }
             if (toolTip.size > 2) {
-                drawString(poseStack, font, toolTip[2], x - 10, y + 60, 0xDDCCFF + stringAlphaComponent)
+                poseStack.drawString(font, toolTip[2], x - 10, y + 60, 0xDDCCFF + stringAlphaComponent)
             }
             if (toolTip.size > 3) {
-                drawString(poseStack, font, toolTip[3], x - 10, y + 72, 0xCCCCDD + stringAlphaComponent)
+                poseStack.drawString(font, toolTip[3], x - 10, y + 72, 0xCCCCDD + stringAlphaComponent)
             }
         }
 
@@ -112,7 +110,7 @@ class GravitronSelectionScreen(private val tools: List<ToolType>, private val ca
         val keyName = AllKeys.TOOL_MENU.boundKey
         val width = minecraft!!.window.guiScaledWidth
         if (!focus) {
-            drawCenteredString(poseStack,
+            poseStack.drawCenteredString(
                 minecraft!!.font,
                 ClockworkLang.translateDirect(holdToFocus, keyName),
                 width / 2,
@@ -120,7 +118,7 @@ class GravitronSelectionScreen(private val tools: List<ToolType>, private val ca
                 0xDDCCFF
             )
         } else {
-            drawCenteredString(poseStack,
+            poseStack.drawCenteredString(
                 minecraft!!.font,
                 ClockworkLang.translateDirect("gui.toolmenu.cycle"),
                 width / 2,
@@ -131,13 +129,13 @@ class GravitronSelectionScreen(private val tools: List<ToolType>, private val ca
 
         for (i in tools.indices) {
             RenderSystem.enableBlend()
-            poseStack.pushPose()
+            poseStack.pose().pushPose()
 
             var alpha = if (focus) 1f else .2f
             if (i == selection) {
-                poseStack.translate(0.0, -10.0, 0.0)
+                poseStack.pose().translate(0.0, -10.0, 0.0)
                 RenderSystem.setShaderColor(1f, 1f, 1f, 1f)
-                drawCenteredString(poseStack,
+                poseStack.drawCenteredString(
                     minecraft!!.font,
                     tools[i].getDisplayName().getString(),
                     x + i * 50 + 24,
@@ -151,11 +149,11 @@ class GravitronSelectionScreen(private val tools: List<ToolType>, private val ca
             RenderSystem.setShaderColor(1f, 1f, 1f, alpha)
             tools[i].icon.render(poseStack, x + i * 50 + 16, y + 11)
 
-            poseStack.popPose()
+            poseStack.pose().popPose()
         }
 
         RenderSystem.disableBlend()
-        poseStack.popPose()
+        poseStack.pose().popPose()
     }
 
     fun update() {
@@ -166,7 +164,7 @@ class GravitronSelectionScreen(private val tools: List<ToolType>, private val ca
         }
     }
 
-    fun renderPassive(poseStack: PoseStack, partialTicks: Float) {
+    fun renderPassive(poseStack: GuiGraphics, partialTicks: Float) {
         draw(poseStack, partialTicks)
     }
 

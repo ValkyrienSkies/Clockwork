@@ -7,7 +7,6 @@ import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.TextComponent
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
 import net.minecraft.world.level.block.entity.BlockEntityType
@@ -207,10 +206,10 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
     override fun addToGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
         super<IHeatableBlockEntity>.addToGoggleTooltip(tooltip, isPlayerSneaking)
         if (!hasPocket) {
-            tooltip.add(TextComponent("Missing pocket.").withStyle(ChatFormatting.GRAY).withStyle(ChatFormatting.ITALIC))
+            tooltip.add(Component.literal("Missing pocket.").withStyle(ChatFormatting.GRAY).withStyle(ChatFormatting.ITALIC))
             return false
         } else {
-            tooltip.add(TextComponent("Pocket Temperature: $clientPocketTemperature").withStyle(ChatFormatting.RED))
+            tooltip.add(Component.literal("Pocket Temperature: $clientPocketTemperature").withStyle(ChatFormatting.RED))
         }
         return super<KineticBlockEntity>.addToGoggleTooltip(tooltip, isPlayerSneaking)
     }

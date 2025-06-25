@@ -1,14 +1,13 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.bearing
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.math.Quaternion
-import com.mojang.math.Vector3f
 import com.simibubi.create.content.kinetics.base.IRotate
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
 import com.simibubi.create.content.kinetics.clock.CuckooClockBlockEntity
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
+import com.simibubi.create.foundation.utility.AngleHelper
 import com.simibubi.create.foundation.utility.AnimationTickHolder
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
@@ -17,6 +16,9 @@ import net.minecraft.core.Direction
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
+import org.joml.AxisAngle4f
+import org.joml.Quaternionf
+import org.joml.Vector3f
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.util.render.RenderUtil
 import org.valkyrienskies.clockwork.util.render.TransformData
@@ -40,21 +42,21 @@ class PhysBearingRenderer(context: BlockEntityRendererProvider.Context) : Kineti
 
         matrices.pushPose()
         matrices.translate(0.5, 0.5, 0.5)
-        matrices.mulPose(Quaternion.fromXYZ(0.0f, Math.toRadians(-180.0).toFloat(), 0.0f))
+        matrices.mulPose(Quaternionf().rotateXYZ(0.0f, Math.toRadians(-180.0).toFloat(), 0.0f))
 
         when (facing) {
-            Direction.SOUTH -> matrices.mulPose(Vector3f.XP.rotationDegrees(270f))
+            Direction.SOUTH -> matrices.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(270.0), 1f, 0f, 0f)))
             Direction.WEST -> {
-                matrices.mulPose(Vector3f.ZP.rotationDegrees(270f))
-                matrices.mulPose(Vector3f.YP.rotationDegrees(90f))
+                matrices.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(270.0), 0f, 0f, 1f)))
+                matrices.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(90.0), 0f, 1f, 0f)))
             }
-            Direction.NORTH -> matrices.mulPose(Vector3f.XP.rotationDegrees(90f))
+            Direction.NORTH -> matrices.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(90.0), 1f, 0f, 0f)))
             Direction.EAST -> {
-                matrices.mulPose(Vector3f.ZP.rotationDegrees(90f))
-                matrices.mulPose(Vector3f.YP.rotationDegrees(90f))
+                matrices.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(90.0), 0f, 0f, 1f)))
+                matrices.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(90.0), 0f, 1f, 0f)))
             }
-            Direction.UP -> matrices.mulPose(Vector3f.XP.rotationDegrees(0f))
-            Direction.DOWN -> matrices.mulPose(Vector3f.XN.rotationDegrees(180f))
+            Direction.UP -> matrices.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(0.0), 1f, 0f, 0f)))
+            Direction.DOWN -> matrices.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(180.0), -1f, 0f, 0f)))
         }
 
         matrices.translate(-0.5, -0.5, -0.5)

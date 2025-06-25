@@ -14,7 +14,7 @@ import com.simibubi.create.foundation.utility.AngleHelper
 import com.simibubi.create.foundation.utility.Components
 import com.simibubi.create.foundation.utility.Lang
 import com.simibubi.create.foundation.utility.VecHelper
-import io.github.fabricators_of_create.porting_lib.transfer.StorageProvider
+import io.github.fabricators_of_create.porting_lib.util.StorageProvider
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage
 import net.minecraft.ChatFormatting
@@ -24,6 +24,7 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
 import net.minecraft.sounds.SoundSource
 import net.minecraft.util.Mth
+import net.minecraft.util.RandomSource
 import net.minecraft.world.entity.item.ItemEntity
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.ClipContext
@@ -59,7 +60,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     lateinit var frequencySlotBehaviour: FrequencySlotBehaviour
     lateinit var distributionModeBehaviour: ScrollOptionBehaviour<DistributionMode>
 
-    val soundRandom = Random()
+    val soundRandom = RandomSource.create()
 
     var currentStack: ItemStack = ItemStack.EMPTY
 

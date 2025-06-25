@@ -7,10 +7,11 @@ import net.minecraft.ChatFormatting
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Style
-import net.minecraft.network.chat.TextComponent
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.util.Mth
+import net.minecraft.util.RandomSource
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.Entity
@@ -45,7 +46,7 @@ class WanderWandItem(properties: Properties) : CWItem(properties) {
     var firstPos: Vector3ic? = null
     var secondPos: Vector3ic? = null
     var shouldRenderOutlines = false
-    private val soundRandom = Random()
+    private val soundRandom = RandomSource.create()
     private var soundTickCounter = 0f
 
     //ANIMATION
@@ -153,7 +154,7 @@ class WanderWandItem(properties: Properties) : CWItem(properties) {
         if (this.firstPos == null) {
             this.firstPos = pos
             player.displayClientMessage(
-                TextComponent("First Position Selected!").withStyle(
+                Component.literal("First Position Selected!").withStyle(
                     Style.EMPTY.withColor(
                         ChatFormatting.DARK_PURPLE
                     )
@@ -174,7 +175,7 @@ class WanderWandItem(properties: Properties) : CWItem(properties) {
             this.secondPos = pos
             if (this.firstPos!!.distance(secondPos) > 500) {
                 player.displayClientMessage(
-                    TextComponent("Area Too Large!").withStyle(
+                    Component.literal("Area Too Large!").withStyle(
                         Style.EMPTY.withColor(
                             ChatFormatting.DARK_PURPLE
                         )
@@ -199,7 +200,7 @@ class WanderWandItem(properties: Properties) : CWItem(properties) {
                 for (aabb in setAabb) {
                     if (area.maxX == aabb.maxX && area.maxY == aabb.maxY && area.maxZ == aabb.maxZ && area.minX == aabb.minX && area.minY == aabb.minY && area.minZ == aabb.minZ) {
                         player.displayClientMessage(
-                            TextComponent("Area Already Exists.").withStyle(
+                            Component.literal("Area Already Exists.").withStyle(
                                 Style.EMPTY.withColor(
                                     ChatFormatting.DARK_PURPLE
                                 )
@@ -212,7 +213,7 @@ class WanderWandItem(properties: Properties) : CWItem(properties) {
 
             if (this.selectedArea.selectedAreas.size >= 150) {
                 player.displayClientMessage(
-                    TextComponent("This Designator is at selection capacity.").withStyle(
+                    Component.literal("This Designator is at selection capacity.").withStyle(
                         Style.EMPTY.withColor(
                             ChatFormatting.DARK_PURPLE
                         )
@@ -233,7 +234,7 @@ class WanderWandItem(properties: Properties) : CWItem(properties) {
 
             if (this.selectedArea.selectionClusters.size >= 20) {
                 player.displayClientMessage(
-                    TextComponent("This Designator is at cluster capacity.").withStyle(
+                    Component.literal("This Designator is at cluster capacity.").withStyle(
                         Style.EMPTY.withColor(
                             ChatFormatting.DARK_PURPLE
                         )
@@ -257,7 +258,7 @@ class WanderWandItem(properties: Properties) : CWItem(properties) {
             compoundTag.putByteArray("selectedData", getMapper().writeValueAsBytes(toSerialize(this.selectedArea)))
             stack.tag = compoundTag
             player.displayClientMessage(
-                TextComponent("Area Designated!").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE)),
+                Component.literal("Area Designated!").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_PURPLE)),
                 true
             )
             world.playSound(
@@ -296,7 +297,7 @@ class WanderWandItem(properties: Properties) : CWItem(properties) {
 
         @JvmStatic
         fun onAttack(player: Player): Boolean {
-            val hitResult = getPlayerPOVHitResult(player.level, player, ClipContext.Fluid.NONE)
+            val hitResult = getPlayerPOVHitResult(player.level(), player, ClipContext.Fluid.NONE)
             val pos: Vector3ic = hitResult.blockPos.toJOML()
 
             if (player.getItemInHand(InteractionHand.MAIN_HAND).item is WanderWandItem) {
@@ -311,7 +312,7 @@ class WanderWandItem(properties: Properties) : CWItem(properties) {
                     item.selectedArea.dumpCluster(aabBic)
                 }
 
-                if (player.level.isClientSide) {
+                if (player.level().isClientSide) {
                     SharedValues.auricHandler.discard()
                 }
 
@@ -324,7 +325,7 @@ class WanderWandItem(properties: Properties) : CWItem(properties) {
 
                 val pitch = Mth.randomBetween(item.soundRandom, 0.8f, 1.2f)
                 item.selectedArea.dumpCluster(hitCluster)
-                player.level.playSound(
+                player.level().playSound(
                     null,
                     player,
                     ClockworkSounds.DESIGNATOR_DUMP_CLUSTER.mainEvent!!,

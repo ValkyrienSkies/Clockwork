@@ -6,10 +6,6 @@ import net.minecraft.world.phys.Vec3
 import org.joml.Vector2f
 import org.joml.Vector3i
 import org.joml.Vector3ic
-import org.lwjgl.system.CallbackI.Z
-
-
-
 
 object MathFunctions {
     fun removeAxis(axis: Direction.Axis, vec: Vec3): Vector2f {

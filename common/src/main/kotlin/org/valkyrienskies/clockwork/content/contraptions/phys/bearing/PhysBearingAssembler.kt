@@ -11,7 +11,6 @@ import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.impl.game.ShipTeleportDataImpl
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
-import org.valkyrienskies.mod.api.getShipById
 import org.valkyrienskies.mod.common.assembly.AssemblyUtil
 import org.valkyrienskies.mod.common.assembly.ShipAssembler.isValidShipBlock
 import org.valkyrienskies.mod.common.dimensionId

@@ -27,7 +27,7 @@ import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
-import org.valkyrienskies.mod.api.dimensionId
+import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toJOMLD
@@ -134,7 +134,7 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         if (gasMasses.values.sum() == 0.0) return clearMassFlow()
 
-        val airPressure = AerodynamicUtils.getAirPressureForY(blockPos.y.toDouble(), level.dimensionId!!)
+        val airPressure = AerodynamicUtils.getAirPressureForY(blockPos.y.toDouble(), level!!.dimensionId)
         val gasPressure = kelvin.getPressureAt(ductnodepos)
         val temp = kelvin.getTemperatureAt(ductnodepos)
         val avgSpecificHeat = AerodynamicUtils.specificHeatAverage(kelvin.getGasMassAt(ductnodepos))

@@ -138,7 +138,8 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
     override fun canConnectTo(level: Level, from: BlockPos,to: BlockPos): Boolean {
         val state = level.getBlockState(from) ?: return false
         val direction = state.getValue(BlockStateProperties.FACING)
-        val normalDir = Direction.fromNormal(from.subtract(to)) ?: return false
+        val awful = from.subtract(to)
+        val normalDir = Direction.fromDelta(awful.x, awful.y, awful.z) ?: return false
 
         return direction.axis == normalDir.axis
 

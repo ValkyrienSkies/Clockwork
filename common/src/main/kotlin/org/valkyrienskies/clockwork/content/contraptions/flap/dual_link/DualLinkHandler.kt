@@ -42,7 +42,7 @@ object DualLinkHandler {
     @JvmStatic
     fun handler(player: Player, hand: InteractionHand, pos: BlockPos, face: Direction): EventResult {
 
-        val world = player.level
+        val world = player.level()
 
 
         if (player.isShiftKeyDown || player.isSpectator) return EventResult.pass()

@@ -12,7 +12,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.NonNullList
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.network.chat.TranslatableComponent
+import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.ContainerHelper
 import net.minecraft.world.entity.item.ItemEntity
@@ -53,7 +53,7 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
 
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
-        this.angleController = AngleScrollValueBehaviour(TranslatableComponent("vs_clockwork.blade_controller.angle"), this, AngleControllerValueBoxTransform())
+        this.angleController = AngleScrollValueBehaviour(Component.translatable("vs_clockwork.blade_controller.angle"), this, AngleControllerValueBoxTransform())
         this.angleController.between(-180,180) // Should do this in controller class, but due to certain questionable create coding decisions, we're doing it here
         //TODO: Figure out how to make lengthController work
         //this.lengthController = LengthScrollValueBehaviour(TranslatableComponent("vs_clockwork.blade_controller.length"), this, LengthControllerValueBoxTransform())

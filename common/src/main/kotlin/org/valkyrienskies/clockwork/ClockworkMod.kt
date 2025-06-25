@@ -5,6 +5,11 @@ import com.simibubi.create.foundation.data.CreateRegistrate
 import dev.architectury.event.events.common.InteractionEvent
 import dev.architectury.event.events.common.LifecycleEvent
 import dev.architectury.event.events.common.TickEvent
+import dev.architectury.registry.registries.DeferredRegister
+import net.minecraft.core.Registry
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.core.registries.Registries
+import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
 import org.slf4j.LoggerFactory
@@ -21,6 +26,8 @@ import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.shipObjectWorld
+import org.valkyrienskies.mod.common.vsCore
+import java.util.function.Supplier
 
 object ClockworkMod {
     const val MOD_ID = "vs_clockwork"
@@ -36,7 +43,14 @@ object ClockworkMod {
     val MIXIN_LOGGER = LoggerFactory.getLogger("ClockworkMixins")
     val LOGGER = LogUtils.getLogger()
 
+    private val TAB_REGISTER: DeferredRegister<CreativeModeTab> =
+    DeferredRegister.create(MOD_ID, Registries.CREATIVE_MODE_TAB);
+
     val BASE_CREATIVE_TAB: CreativeModeTab = PlatformUtils.getCreativeTab()
+    val BASE_CREATIVE_TABINFO: ResourceKey<CreativeModeTab> = ResourceKey.create(
+        Registries.CREATIVE_MODE_TAB,
+        ResourceLocation(MOD_ID, "base")
+    )
 
     @JvmStatic
     fun init() {
@@ -47,18 +61,18 @@ object ClockworkMod {
 
         ValkyrienSkiesMod.vsCore.registerConfigLegacy("clockwork", ClockworkConfig::class.java)
 
-        vsApi.registerAttachment(PocketForcesController::class.java)
-        vsApi.registerAttachment(DragController::class.java)
-        vsApi.registerAttachment(WanderShipControl::class.java)
+        vsCore.registerAttachment(PocketForcesController::class.java)
+        vsCore.registerAttachment(DragController::class.java)
+        vsCore.registerAttachment(WanderShipControl::class.java)
 
-        vsApi.registerAttachment(GasThrusterController::class.java)
-        vsApi.registerAttachment(PropellerController::class.java)
-        vsApi.registerAttachment(ReactionWheelController::class.java)
-        vsApi.registerAttachment(EncasedFanController::class.java)
-        vsApi.registerAttachment(GyroShipControl::class.java)
-        vsApi.registerAttachment(GravitronController::class.java)
-        vsApi.registerAttachment(SugarRocketController::class.java)
-        vsApi.registerAttachment(BearingController::class.java) { useTransientSerializer() }
+        vsCore.registerAttachment(GasThrusterController::class.java)
+        vsCore.registerAttachment(PropellerController::class.java)
+        vsCore.registerAttachment(ReactionWheelController::class.java)
+        vsCore.registerAttachment(EncasedFanController::class.java)
+        vsCore.registerAttachment(GyroShipControl::class.java)
+        vsCore.registerAttachment(GravitronController::class.java)
+        vsCore.registerAttachment(SugarRocketController::class.java)
+        vsCore.registerAttachment(BearingController::class.java) { useTransientSerializer() }
 
         VSEvents.shipLoadEvent.on { (ship) ->
             PocketForcesController.getOrCreate(ship)

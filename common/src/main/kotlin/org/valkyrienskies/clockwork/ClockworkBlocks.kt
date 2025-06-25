@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork
 
+import com.simibubi.create.AllBlocks
 import com.simibubi.create.AllMovementBehaviours.movementBehaviour
 import com.simibubi.create.AllTags
 import com.simibubi.create.Create
@@ -10,6 +11,7 @@ import com.simibubi.create.content.fluids.tank.FluidTankGenerator
 import com.simibubi.create.content.fluids.tank.FluidTankItem
 import com.simibubi.create.content.fluids.tank.FluidTankModel
 import com.simibubi.create.content.kinetics.BlockStressDefaults
+import com.simibubi.create.content.kinetics.belt.BeltBlock
 import com.simibubi.create.content.kinetics.simpleRelays.encased.EncasedShaftBlock
 import com.simibubi.create.content.redstone.displayLink.AllDisplayBehaviours
 import com.simibubi.create.content.redstone.displayLink.source.BoilerDisplaySource
@@ -92,13 +94,13 @@ object ClockworkBlocks {
         REGISTRATE.block<SugarRocketBlock>("sugar_rocket") { properties: BlockBehaviour.Properties? ->
             SugarRocketBlock(properties!!)
         }
-            .initialProperties(SharedProperties.BELT_MATERIAL)
+            .initialProperties(AllBlocks.BELT)
             .transform(TagGen.axeOrPickaxe())
             .properties { it.instabreak().explosionResistance(0f) }
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -112,7 +114,7 @@ object ClockworkBlocks {
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .addLayer { Supplier { RenderType.cutout() } }
             .item()
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -126,7 +128,7 @@ object ClockworkBlocks {
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .addLayer { Supplier { RenderType.cutout() } }
             .item()
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -141,7 +143,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .onRegister(movementBehaviour(BladeControllerMovementBehaviour()))
             .item()
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -161,7 +163,7 @@ object ClockworkBlocks {
             }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .model(AssetLookup.customBlockItemModel("phys_bearing"))
             .build()
             .register()
@@ -177,7 +179,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -192,7 +194,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -207,7 +209,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -222,7 +224,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -236,7 +238,7 @@ object ClockworkBlocks {
         .addLayer { Supplier { RenderType.cutout() } }
         .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .build()
         .register()
 
@@ -251,7 +253,7 @@ object ClockworkBlocks {
         .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
         .tag(ClockworkTags.AllBlockTags.SENSOR_LENS.tag)
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .build()
         .register()
 
@@ -266,7 +268,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -282,7 +284,7 @@ object ClockworkBlocks {
         .addLayer { Supplier { RenderType.cutout() } }
         .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .model(AssetLookup.customBlockItemModel("gyro"))
         .build()
         .register()
@@ -300,7 +302,7 @@ object ClockworkBlocks {
         .addLayer { Supplier { RenderType.cutout() } }
         .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .model(AssetLookup.customBlockItemModel("reactionwheel"))
         .build()
         .register()
@@ -322,7 +324,7 @@ object ClockworkBlocks {
             )
             .addLayer { Supplier { RenderType.cutoutMipped() } }
             .item()
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .transform(
                 customItemModel<BlockItem, BlockBuilder<RedstoneResistorBlock, CreateRegistrate>>(
                     "redstone_resistor",
@@ -342,7 +344,7 @@ object ClockworkBlocks {
             .transform(axeOrPickaxe())
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .transform(customItemModel("command_seat", "item"))
             .register()
 
@@ -356,7 +358,7 @@ object ClockworkBlocks {
         .item { block: WingBlock?, properties: Item.Properties? ->
             DyedWingBlockItem(block, properties)
         }
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .transform(ClockworkRegistrate.customRenderedBlockItem<DyedWingBlockItem, BlockBuilder<WingBlock, CreateRegistrate>> { Supplier { WingBlockItemRenderer(
             ClockworkPartials.WING_FRAME_ITEM) } })
         .register()
@@ -374,7 +376,7 @@ object ClockworkBlocks {
                 properties
             )
         }
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .transform(ClockworkRegistrate.customRenderedBlockItem { Supplier { WingBlockItemRenderer(
             ClockworkPartials.FLAP_FRAME_ITEM) } })
         .register()
@@ -391,7 +393,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .transform(customItemModel("physics_infuser", "item"))
             .register()
 
@@ -412,7 +414,7 @@ object ClockworkBlocks {
 //            }
 //        })
 //        .item()
-//        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+//        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
 //        .transform(customItemModel())
 //        .register()
 
@@ -433,7 +435,7 @@ object ClockworkBlocks {
             }
         })
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .transform(customItemModel())
         .register()
 
@@ -449,7 +451,7 @@ object ClockworkBlocks {
         .addLayer { Supplier { RenderType.cutout() } }
         .properties { it.noOcclusion() }
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .build()
         .register()
 
@@ -465,7 +467,7 @@ object ClockworkBlocks {
         .addLayer { Supplier { RenderType.cutout() } }
         .properties { it.noOcclusion() }
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .build()
         .register()
 
@@ -483,7 +485,7 @@ object ClockworkBlocks {
         .properties { it.noOcclusion() }
         .onRegister(ClockworkRegistrate.blockModel { NonNullFunction<BakedModel, BakedModel> { originalModel: BakedModel -> DuctTankModel(originalModel) } })
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .build()
         .register()
 
@@ -500,7 +502,7 @@ object ClockworkBlocks {
         .transform(BlockStressDefaults.setImpact(4.0))
         .properties { it.noOcclusion() }
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .build()
         .register()
 
@@ -516,7 +518,7 @@ object ClockworkBlocks {
         .addLayer { Supplier { RenderType.cutoutMipped() } }
         .properties { it.noOcclusion() }
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .model(AssetLookup.customBlockItemModel("pump", "item"))
         .transform(customItemModel())
         .transform(BlockStressDefaults.setImpact(4.0))
@@ -533,7 +535,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -549,7 +551,7 @@ object ClockworkBlocks {
             .properties { it.noOcclusion() }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .model(AssetLookup.customBlockItemModel("gas_nozzle"))
             .build()
             .register()
@@ -565,7 +567,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -581,7 +583,7 @@ object ClockworkBlocks {
             .properties { it.noOcclusion() }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -596,7 +598,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -622,7 +624,7 @@ object ClockworkBlocks {
         .initialProperties { Blocks.HONEY_BLOCK }
         .addLayer { Supplier { RenderType.cutout() } }
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .build()
         .register()
 
@@ -637,7 +639,7 @@ object ClockworkBlocks {
         .initialProperties { SharedProperties.softMetal() }
         .addLayer { Supplier { RenderType.cutout() } }
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .transform(customItemModel())
         .register()
 
@@ -651,7 +653,7 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .build()
         .register()
 
@@ -665,7 +667,7 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .build()
         .register()
 
@@ -682,7 +684,7 @@ object ClockworkBlocks {
         .properties {
             it.fireResistant()
         }
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .build()
         .register()
 
@@ -696,7 +698,7 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.wooden() }
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .build()
         .register()
 
@@ -713,7 +715,7 @@ object ClockworkBlocks {
         .properties {
             it.fireResistant()
         }
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .build()
         .register()
 
@@ -730,7 +732,7 @@ object ClockworkBlocks {
         .properties {
             it.fireResistant()
         }
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .build()
         .register()
 
@@ -744,7 +746,7 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .build()
         .register()
 
@@ -758,7 +760,7 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .build()
         .register()
 
@@ -772,7 +774,7 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .build()
         .register()
 
@@ -786,7 +788,7 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .build()
         .register()
 
@@ -800,7 +802,7 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .build()
         .register()
 
@@ -814,7 +816,7 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .build()
         .register()
 
@@ -829,7 +831,7 @@ object ClockworkBlocks {
         .initialProperties { SharedProperties.wooden() }
         .transform(BuilderTransformers.casing { ClockworkSpriteShifts.BALLOON_CASING })
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .build()
         .register()
 
@@ -845,7 +847,7 @@ object ClockworkBlocks {
         .transform(axeOrPickaxe())
         .transform(BuilderTransformers.encasedShaft("balloon") { ClockworkSpriteShifts.BALLOON_CASING })
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .build()
         .register()
 
@@ -860,7 +862,7 @@ object ClockworkBlocks {
         .initialProperties { SharedProperties.wooden() }
         .addLayer { Supplier { RenderType.cutoutMipped() } }
         .item()
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .transform(customItemModel())
         .register()
 
@@ -875,7 +877,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -890,7 +892,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -905,7 +907,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -920,7 +922,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
             .register()
 

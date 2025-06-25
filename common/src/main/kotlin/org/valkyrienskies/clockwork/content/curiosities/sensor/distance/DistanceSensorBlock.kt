@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.tags.BlockTags
+import net.minecraft.util.RandomSource
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
@@ -26,10 +27,10 @@ import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.ClockworkTags
 import org.valkyrienskies.clockwork.content.curiosities.sensor.ISensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.ISensorBlock.Companion.POWER
-import org.valkyrienskies.mod.api.positionToShip
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.toWorldCoordinates
 import org.valkyrienskies.mod.common.util.toDoubles
+import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft
 import org.valkyrienskies.mod.common.world.clipIncludeShips
 import java.util.*
@@ -72,8 +73,8 @@ class DistanceSensorBlock(properties: Properties?): DirectionalBlock(properties)
         return state.rotate(mirror.getRotation(state.getValue(DirectionalBlock.FACING)))
     }
 
-    override fun tick(state: BlockState, level: ServerLevel, pos: BlockPos, random: Random) {
-        val power = this.updatePower(state, level, pos, random)
+    override fun tick(state: BlockState, level: ServerLevel, pos: BlockPos, random: RandomSource) {
+        val power = this.updatePower(state, level, pos, Random())
         if (power != state.getValue(POWER)) {
             level.setBlock(pos, state.setValue(POWER, power) as BlockState, 2)
             level.updateNeighborsAt(pos, this)
@@ -123,7 +124,7 @@ class DistanceSensorBlock(properties: Properties?): DirectionalBlock(properties)
                         } else if (level.getBlockState(castResult.blockPos).`is`(Blocks.RED_STAINED_GLASS)) {
                             spotAllFluids = true
                         }
-                        refPos = ship?.positionToShip(castResult.location)?.add(state.getValue(FACING).normal.toDoubles()) ?: castResult.location.add(state.getValue(FACING).normal.toDoubles())
+                        refPos = ship?.worldToShip?.transformPosition(castResult.location.toJOML())?.add(state.getValue(FACING).normal.toDoubles().toJOML())?.toMinecraft() ?: castResult.location.add(state.getValue(FACING).normal.toDoubles())
                         targetPos = refPos.add(state.getValue(FACING).normal.toDoubles().scale(distance.toDouble()))
                         if (ship != null) {
                             refPos = ship.toWorldCoordinates(refPos)

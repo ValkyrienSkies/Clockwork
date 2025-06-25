@@ -28,7 +28,7 @@ abstract class GravitronToolBase : IGravitronTool {
         val player = Minecraft.getInstance().player
 
         val trace = RaycastHelper.rayTraceRange(
-            player!!.level, player, 15.0
+            player!!.level(), player, 15.0
         )
         if (trace == null || trace.type != HitResult.Type.BLOCK) {
             return

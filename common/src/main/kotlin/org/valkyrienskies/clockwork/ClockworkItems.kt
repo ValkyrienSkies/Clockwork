@@ -39,7 +39,7 @@ object ClockworkItems {
                 it.stacksTo(1)
                 it.rarity(Rarity.UNCOMMON)
             }
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .transform(ClockworkRegistrate.customRenderedItem { Supplier { GravitronItemRenderer() } })
             .tag(AllTags.AllItemTags.WRENCH.tag)
             .model(AssetLookup.itemModelWithPartials())
@@ -54,7 +54,7 @@ object ClockworkItems {
                 it.stacksTo(1)
                 it.rarity(Rarity.UNCOMMON)
             }
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .tag(AllTags.AllItemTags.WRENCH.tag)
             .register()
 
@@ -64,7 +64,7 @@ object ClockworkItems {
             WanderliteItem(properties!!)
         }
             .transform(ClockworkRegistrate.customRenderedItem { Supplier { WanderliteCubeItemRenderer(false) } })
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .register()
 
     @JvmField
@@ -73,7 +73,7 @@ object ClockworkItems {
             WanderliteItem(properties!!)
         }
             .transform(ClockworkRegistrate.customRenderedItem { Supplier { WanderliteCubeItemRenderer(true) } })
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .register()
 
 
@@ -86,7 +86,7 @@ object ClockworkItems {
                 it.stacksTo(1)
                 it.rarity(Rarity.UNCOMMON)
             }
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .transform(ClockworkRegistrate.customRenderedItem { Supplier { WanderWandItemRenderer() } })
             .tag(AllTags.AllItemTags.WRENCH.tag)
             .model(AssetLookup.itemModelWithPartials())
@@ -101,7 +101,7 @@ object ClockworkItems {
             it.durability(100)
         }
         .tag(ClockworkTags.AllItemTags.PROP_BLADE.tag)
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .register()
 
     @JvmField
@@ -112,7 +112,7 @@ object ClockworkItems {
             it.durability(200)
         }
         .tag(ClockworkTags.AllItemTags.PROP_BLADE.tag)
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .register()
 
     @JvmField
@@ -124,7 +124,7 @@ object ClockworkItems {
                 it.stacksTo(1)
                 it.rarity(Rarity.UNCOMMON)
             }
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .transform(ClockworkRegistrate.customRenderedItem { Supplier { WanderWandItemRenderer() } })
             .tag(AllTags.AllItemTags.WRENCH.tag)
             .model(AssetLookup.itemModelWithPartials())
@@ -134,7 +134,7 @@ object ClockworkItems {
     val WANDERLITE_CRYSTAL: ItemEntry<Item> = REGISTRATE.item<Item>("wanderlite_crystal") { properties: Item.Properties? ->
         Item(properties!!)
     }
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .register()
 
     @JvmField
@@ -145,7 +145,7 @@ object ClockworkItems {
             .properties {
                 it.stacksTo(1)
             }
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .tag(AllTags.AllItemTags.WRENCH.tag)
             .model(AssetLookup.existingItemModel())
             .register()
@@ -157,7 +157,7 @@ object ClockworkItems {
         .properties { properties: Item.Properties ->
             properties.stacksTo(1)
         }
-        .tab { ClockworkMod.BASE_CREATIVE_TAB }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .tag(AllItemTags.PRESSURIZED_AIR_SOURCES.tag)
         .register()
 
@@ -166,7 +166,7 @@ object ClockworkItems {
         REGISTRATE.item<UniversalShaftItem>("universal_shaft_item") { properties: Item.Properties? ->
             UniversalShaftItem(properties!!)
         }
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .register()
 
     @JvmField
@@ -174,7 +174,7 @@ object ClockworkItems {
         REGISTRATE.item<ExtendonHoseItem>("extendon_hose") { properties: Item.Properties? ->
             ExtendonHoseItem(properties!!)
         }
-            .tab { ClockworkMod.BASE_CREATIVE_TAB }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .register()
 
     @JvmStatic

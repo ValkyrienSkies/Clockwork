@@ -4,9 +4,9 @@ buildscript {
     }
     dependencies {
         // Make sure this version matches the one included in Kotlin for Forge
-        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10'
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22'
         // OPTIONAL Gradle plugin for Kotlin Serialization
-        classpath 'org.jetbrains.kotlin:kotlin-serialization:1.6.10'
+        classpath 'org.jetbrains.kotlin:kotlin-serialization:1.9.22'
     }
 }
 
@@ -64,10 +64,10 @@ dependencies {
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 
     include(modApi("dev.architectury:architectury-forge:${rootProject.architectury_version}"))
-    implementation(include((("io.github.llamalad7:mixinextras-forge:0.2.1"))))
+    implementation(include((("io.github.llamalad7:mixinextras-forge:0.3.5"))))
 
     //VS2
-    modApi("org.valkyrienskies:valkyrienskies-118-forge:${rootProject.vs2_version}") { transitive = false }
+    modApi("org.valkyrienskies:valkyrienskies-120-forge:${rootProject.vs2_version}") { transitive = false }
     implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}")
 
     modImplementation("org.valkyrienskies.kelvin:kelvin-forge:${rootProject.minecraft_version}-${rootProject.kelvin_version}") {
@@ -84,10 +84,13 @@ dependencies {
     compileOnly("org.joml:joml-primitives:1.10.0")
 
     // Add Kotlin for Forge.
-    implementation 'thedarkcolour:kotlinforforge:3.12.0'
+    implementation 'thedarkcolour:kotlinforforge:4.11.0'
 
     // CC Tweaked
-    modImplementation("curse.maven:cctweaked-282001:4630521")
+    modCompileOnly("cc.tweaked:cc-tweaked-$minecraft_version-core-api:$cc_version")
+    modCompileOnly("cc.tweaked:cc-tweaked-$minecraft_version-forge-api:$cc_version")
+    modRuntimeOnly("cc.tweaked:cc-tweaked-$minecraft_version-forge:$cc_version")
+
 
     //modRuntimeOnly "me.shedaniel:RoughlyEnoughItems-forge:${rei_version}"
 

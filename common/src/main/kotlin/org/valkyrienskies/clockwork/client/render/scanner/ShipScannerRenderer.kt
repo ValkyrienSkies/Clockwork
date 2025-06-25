@@ -7,13 +7,13 @@ import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.platform.TextureUtil
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.*
-import com.mojang.math.Matrix4f
-import com.mojang.math.Vector3f
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.ShaderInstance
 import net.minecraft.world.phys.Vec3
+import org.joml.Matrix4f
+import org.joml.Vector3f
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL30
 import org.valkyrienskies.clockwork.ClockworkMod
@@ -40,14 +40,14 @@ class ShipScannerRenderer : ScannerRenderer {
     // --------------------------------------------------------------------- //
     // State of the scanner, set when triggering a ping.
     private var currentStart: Long = 0
-    private var currentCenter: Vec3? = null
+    private var currentCenter: Vector3f? = null
     private var currentBlockEntity: PhysicsInfuserBlockEntity? = null
     private var ship: ClientShip? = null
 
     // --------------------------------------------------------------------- //
     override fun ping(ship: ClientShip?, pos: Vec3?, te: PhysicsInfuserBlockEntity) {
         currentStart = System.currentTimeMillis()
-        currentCenter = pos
+        currentCenter = Vector3f(pos!!.x.toFloat(), pos.y.toFloat(), pos.z.toFloat())
         currentBlockEntity = te
         if (ship == null) return
         ClockworkMod.LOGGER.info("Pinging ship: " + ship.id) // TODO implment it actualy using a ship
@@ -59,7 +59,7 @@ class ShipScannerRenderer : ScannerRenderer {
         adjustedDuration = if (currentBlockEntity != null) {
             currentBlockEntity!!.scanGrowthDuration
         } else {
-            PhysicsInfuserRenderer.Companion.SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance / 12
+            PhysicsInfuserRenderer.Companion.SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance().get() / 12
         }
         val shouldRender = currentStart > 0 && adjustedDuration > (System.currentTimeMillis() - currentStart).toInt()
         if (shouldRender) {
@@ -148,7 +148,7 @@ class ShipScannerRenderer : ScannerRenderer {
     private fun updateShaderUniforms(shader: ShaderInstance, viewMatrix: Matrix4f) {
         val invertedViewMatrix = Matrix4f(viewMatrix)
         invertedViewMatrix.invert()
-        val invertedProjectionMatrix = com.mojang.math.Matrix4f(RenderSystem.getProjectionMatrix())
+        val invertedProjectionMatrix = Matrix4f(RenderSystem.getProjectionMatrix())
         invertedProjectionMatrix.invert()
         val cameraPosition = Minecraft.getInstance().gameRenderer.mainCamera.position
         val adjustedDuration: Int
@@ -158,14 +158,14 @@ class ShipScannerRenderer : ScannerRenderer {
             radius = currentBlockEntity!!.computeRadius(currentStart, adjustedDuration.toFloat())
         } else {
             adjustedDuration =
-                PhysicsInfuserRenderer.SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance / 12
+                PhysicsInfuserRenderer.SCAN_GROWTH_DURATION * Minecraft.getInstance().options.renderDistance().get() / 12
             radius = 0f
         }
         shader.setSampler("depthTex", depthCopyDepthBuffer)
         shader.safeGetUniform("center").set(Vector3f(currentCenter!!))
         shader.safeGetUniform("invViewMat").set(invertedViewMatrix)
         shader.safeGetUniform("invProjMat").set(invertedProjectionMatrix)
-        shader.safeGetUniform("pos").set(Vector3f(cameraPosition))
+        shader.safeGetUniform("pos").set(Vector3f(cameraPosition.x.toFloat(), cameraPosition.y.toFloat(), cameraPosition.z.toFloat()))
         shader.safeGetUniform("radius").set(radius)
     }
 

@@ -98,7 +98,7 @@ object ClockworkSoundScapes {
 
     private fun addSound(group: AmbienceGroup, pos: BlockPos, pitch: Float) {
         val groupFromPitch = getGroupFromPitch(pitch)
-        val realPos = BlockPos(Minecraft.getInstance().player?.level?.toWorldCoordinates(pos.toJOMLD())?.toMinecraft() ?: Vec3.atLowerCornerOf(pos))
+        val realPos = BlockPos.containing(Minecraft.getInstance().player?.level()?.toWorldCoordinates(pos.toJOMLD())?.toMinecraft() ?: Vec3.atLowerCornerOf(pos))
         val set = counter.computeIfAbsent(group) { ag: AmbienceGroup -> IdentityHashMap() }
             .computeIfAbsent(groupFromPitch) { pg: PitchGroup? -> HashSet() }
         set.add(pos)
@@ -121,14 +121,14 @@ object ClockworkSoundScapes {
     }
 
     private fun outOfRange(pos: BlockPos): Boolean {
-        return !getCameraPos().closerThan(BlockPos(Minecraft.getInstance().player?.level?.toWorldCoordinates(pos.toJOMLD())?.toMinecraft() ?: Vec3.atLowerCornerOf(pos)), MAX_AMBIENT_SOURCE_DISTANCE.toDouble())
+        return !getCameraPos().closerThan(BlockPos.containing(Minecraft.getInstance().player?.level()?.toWorldCoordinates(pos.toJOMLD())?.toMinecraft() ?: Vec3.atLowerCornerOf(pos)), MAX_AMBIENT_SOURCE_DISTANCE.toDouble())
     }
 
     private fun getCameraPos(): BlockPos {
         val renderViewEntity = Minecraft.getInstance().cameraEntity
             ?: return BlockPos.ZERO
-        val playerLocation = renderViewEntity.level.toWorldCoordinates(renderViewEntity.blockPosition().toJOMLD());
-        return BlockPos(playerLocation.toMinecraft())
+        val playerLocation = renderViewEntity.level().toWorldCoordinates(renderViewEntity.blockPosition().toJOMLD());
+        return BlockPos.containing(playerLocation.toMinecraft())
     }
 
     fun getSoundCount(group: AmbienceGroup?, pitchGroup: PitchGroup?): Int {

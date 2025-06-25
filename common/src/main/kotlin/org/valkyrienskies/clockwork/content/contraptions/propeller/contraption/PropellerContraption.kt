@@ -11,7 +11,7 @@ import net.fabricmc.api.Environment
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.network.chat.TranslatableComponent
+import net.minecraft.network.chat.Component
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
@@ -142,7 +142,7 @@ class PropellerContraption : Contraption {
 
         @JvmStatic
         fun notProp(): AssemblyException  {
-            return AssemblyException(TranslatableComponent("contraptions.propeller.not_prop"))
+            return AssemblyException(Component.translatable("contraptions.propeller.not_prop"))
         }
     }
 }

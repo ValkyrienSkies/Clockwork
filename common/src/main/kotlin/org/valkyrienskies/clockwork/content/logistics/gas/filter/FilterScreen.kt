@@ -5,6 +5,7 @@ import com.simibubi.create.foundation.gui.AbstractSimiScreen
 import com.simibubi.create.foundation.gui.AllIcons
 import com.simibubi.create.foundation.gui.widget.IconButton
 import com.simibubi.create.foundation.utility.Components
+import net.minecraft.client.gui.GuiGraphics
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.kelvin.api.DuctNodePos
@@ -81,14 +82,14 @@ class FilterScreen(private val nodeA: DuctNodePos, private val nodeB: DuctNodePo
     }
 
 
-    override fun renderWindowBackground(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
+    override fun renderWindowBackground(ms: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
         frame.render(ms,guiLeft, guiTop+20)
 
     }
 
-    override fun renderWindow(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) { }
+    override fun renderWindow(ms: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) { }
 
-    override fun renderWindowForeground(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
+    override fun renderWindowForeground(ms: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
         tab.render(ms, guiLeft, guiTop)
         blacklistToggle.render(ms, mouseX, mouseY, partialTicks )
 

@@ -17,8 +17,7 @@ import kotlin.jvm.Throws
 import kotlin.jvm.optionals.getOrDefault
 
 object GasHeatSource: GenericPeripheral {
-    override fun id() =
-        ResourceLocation(MOD_ID, "kelvin")
+    override fun id() = "$MOD_ID:kelvin"
 
     override fun getType(): PeripheralType =
         PeripheralType.ofAdditional("kelvin")

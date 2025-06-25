@@ -205,7 +205,7 @@ class SlickerMovementBehavior : MovementBehaviour {
                 realShip1Rot = Quaterniond(attachConstraint.pose0.rot)
                 val rotationState = context.contraption.entity.rotationState
                 if (rotationState != null) {
-                    realShip1Rot = Quaterniond().setFromNormalized(rotationState.asMatrix().asMatrix4f.toJOML()).mul(realShip1Rot)
+                    realShip1Rot = Quaterniond().setFromNormalized(rotationState.asMatrix().asMatrix4f).mul(realShip1Rot)
                 }
             }
 
@@ -241,7 +241,7 @@ class SlickerMovementBehavior : MovementBehaviour {
             val tempDirNormal: Vector3d = myDirNormal.mul(.75, Vector3d())
             val searchPos: Vector3d = Vector3d(myPosCentered).add(tempDirNormal)
             ship?.shipToWorld?.transformPosition(searchPos, searchPos)
-            var searchBlockPos: BlockPos = BlockPos(searchPos.toMinecraft())
+            var searchBlockPos: BlockPos = BlockPos.containing(searchPos.toMinecraft())
             val worldBlockState: BlockState = level.getBlockState(searchBlockPos)
             var distance = 0.0
             if (!worldBlockState.isAir) {
@@ -268,7 +268,7 @@ class SlickerMovementBehavior : MovementBehaviour {
                         shipItr = ships.next()
                         if (shipItr === ship) continue
                         val transformedPos = shipItr.worldToShip.transformPosition(transformedSearchPos, Vector3d())
-                        val blockPos: BlockPos = BlockPos(transformedPos.toMinecraft())
+                        val blockPos: BlockPos = BlockPos.containing(transformedPos.toMinecraft())
                         if (level.isBlockInShipyard(blockPos)) {
                             val blockState: BlockState = level.getBlockState(blockPos)
                             if (!blockState.isAir && blockState.isFaceSturdy(
@@ -278,7 +278,7 @@ class SlickerMovementBehavior : MovementBehaviour {
                                     SupportType.RIGID
                                 )
                             ) {
-                                searchBlockPos = BlockPos(
+                                searchBlockPos = BlockPos.containing(
                                     shipItr.shipToWorld.transformPosition(
                                         blockPos.x.toDouble(),
                                         blockPos.y.toDouble(),

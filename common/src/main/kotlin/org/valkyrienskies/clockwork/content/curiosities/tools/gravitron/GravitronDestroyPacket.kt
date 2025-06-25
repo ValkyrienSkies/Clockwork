@@ -29,7 +29,7 @@ class GravitronDestroyPacket : C2SCWPacket {
     override fun handle(context: ServerNetworkContext) {
         context.enqueueWork {
             val serverPlayer = context.sender
-            val serverLevel = serverPlayer.getLevel()
+            val serverLevel = serverPlayer.serverLevel()
 
             val ship = serverLevel.getShipManagingPos(clickedPos!!)
             if (ship != null) {

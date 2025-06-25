@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.forge;
 
 import com.google.common.base.Suppliers;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.features.OreFeatures;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Blocks;
@@ -26,14 +27,14 @@ import static org.valkyrienskies.clockwork.ClockworkMod.MOD_ID;
 public class ForgeClockworkWorldgen {
 
     public static final DeferredRegister<ConfiguredFeature<?, ?>> CONFIGURED_FEATURES
-            = DeferredRegister.create(Registry.CONFIGURED_FEATURE_REGISTRY, MOD_ID);
+            = DeferredRegister.create(Registries.CONFIGURED_FEATURE, MOD_ID);
     public static final DeferredRegister<PlacedFeature> PLACED_FEATURES
-            = DeferredRegister.create(Registry.PLACED_FEATURE_REGISTRY, MOD_ID);
+            = DeferredRegister.create(Registries.PLACED_FEATURE, MOD_ID);
 
     //CONFIGURED
     private static final Supplier<List<OreConfiguration.TargetBlockState>> REPLACEMENTS = Suppliers.memoize(() ->
             List.of(
-                    OreConfiguration.target(OreFeatures.DEEPSLATE_ORE_REPLACEABLES, ClockworkBlocks.WANDERLITE_DEEPSLATE_ORE.getDefaultState()),
+                    OreConfiguration.target(new TagMatchTest(BlockTags.DEEPSLATE_ORE_REPLACEABLES), ClockworkBlocks.WANDERLITE_DEEPSLATE_ORE.getDefaultState()),
                     OreConfiguration.target(new BlockMatchTest(Blocks.END_STONE), ClockworkBlocks.WANDERLITE_END_ORE.getDefaultState())
             )
     );

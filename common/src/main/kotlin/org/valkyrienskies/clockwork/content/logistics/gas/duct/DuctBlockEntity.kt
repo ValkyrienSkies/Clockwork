@@ -40,14 +40,6 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
         super.addBehavioursDeferred(behaviours)
     }
 
-    override fun onLoad() {
-        super.onLoad()
-        if (this.level?.isClientSide != false) {
-            return
-        }
-        ClockworkMod.getKelvin().markLoaded(this.blockPos.toDuctNodePos(level!!.dimension().location()))
-    }
-
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         super.read(tag, clientPacket)
         for (dir in Direction.values()) {
@@ -55,6 +47,10 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
                 this.DIR_TO_CONNECTION_TYPE[dir] = ConnectionType.values()[tag.getInt("connectionType${dir.name}")]
             }
         }
+        if (this.level?.isClientSide != false) {
+            return
+        }
+        ClockworkMod.getKelvin().markLoaded(this.blockPos.toDuctNodePos(level!!.dimension().location()))
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {

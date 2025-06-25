@@ -18,7 +18,6 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.TextComponent
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
 import net.minecraft.world.level.ClipContext
@@ -115,7 +114,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
         super.addBehaviours(behaviours)
         movementMode = ScrollOptionBehaviour(
-            LockedMode::class.java, TextComponent("Locked or Unlocked"),
+            LockedMode::class.java, Component.translatableWithFallback("vs_clockwork:locked_mode", "Locked or Unlocked"),
             this, movementModeSlot
         )
         movementMode!!.withCallback{movementModeChanged(it)}
@@ -514,7 +513,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val subCouldSplit = subShip.getAttachment<SplittingDisablerAttachment>()?.let { if (it.canSplit()) { it.disableSplitting(); true } else {false} } ?: false
         val mainCouldSplit = mainShip?.getAttachment<SplittingDisablerAttachment>()?.let { if (it.canSplit()) { it.disableSplitting(); true } else {false} } ?: false
 
-        val hasMoved = PhysBearingAssembler.moveBlocksFromTo(level, blocks, true, BlockPos(inSubship.toMinecraft()), inMain)
+        val hasMoved = PhysBearingAssembler.moveBlocksFromTo(level, blocks, true, BlockPos.containing(inSubship.toMinecraft()), inMain)
 
         if (subCouldSplit) { subShip.getAttachment<SplittingDisablerAttachment>()?.enableSplitting() }
         if (mainCouldSplit) { mainShip?.getAttachment<SplittingDisablerAttachment>()?.enableSplitting() }
@@ -733,7 +732,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (isRunning) return false
         if (blockState.block !is BearingBlock) return false
         val attachedState = level!!.getBlockState(worldPosition.relative(blockState.getValue(BearingBlock.FACING)))
-        if (attachedState.material.isReplaceable) return false
+        if (attachedState.canBeReplaced()) return false
         TooltipHelper.addHint(tooltip, "hint.empty_bearing")
         return true
     }

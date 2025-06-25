@@ -26,8 +26,8 @@ class UniversalJointItemPacket: C2SCWPacket { // I hate that this exists
 
     override fun handle(context: ServerNetworkContext) {
         context.enqueueWork {
-            val uj = context.sender.level.getBlockEntity(pos) as? IUniversalJoint ?: return@enqueueWork
-            uj.tryConnect(context.sender.level,connectTo)
+            val uj = context.sender.level().getBlockEntity(pos) as? IUniversalJoint ?: return@enqueueWork
+            uj.tryConnect(context.sender.level(),connectTo)
         }
         context.setPacketHandled(true)
     }

@@ -6,6 +6,7 @@ import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.util.RandomSource
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
@@ -26,7 +27,7 @@ open class RedstoneResistorBlock(properties: Properties) : AbstractEncasedShaftB
         if (reAttachNextTick) worldIn.scheduleTick(pos, this, 0, TickPriority.EXTREMELY_HIGH)
     }
 
-    override fun tick(state: BlockState, level: ServerLevel, pos: BlockPos, random: Random) {
+    override fun tick(state: BlockState, level: ServerLevel, pos: BlockPos, random: RandomSource) {
         val te = level.getBlockEntity(pos)
         if (te == null || te !is KineticBlockEntity) return
         RotationPropagator.handleAdded(level, pos, te)

@@ -114,7 +114,8 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
     ) {
         val neighborState = level.getBlockState(fromPos)
 
-        val direction = Direction.fromNormal(fromPos.subtract(pos))
+        val awful = fromPos.subtract(pos)
+        val direction = Direction.fromDelta(awful.x, awful.y, awful.z)
         if (neighborState.block is INodeBlock || neighborState.block is IEdgeBlock) {
             val finalConnection = getConnection(state, pos, neighborState, fromPos, direction!!, level)
             val newState = state.setValue(DIR_TO_CONNECTION[direction]!!, finalConnection)
@@ -243,11 +244,6 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
     override fun createNode(pos: DuctNodePos): DuctNode {
         return createPipeNode(pos)
-    }
-
-    //TODO: Remember why this is a thing
-    override fun getPistonPushReaction(state: BlockState): PushReaction {
-        return PushReaction.DESTROY
     }
 
     override fun canBeReplaced(state: BlockState, fluid: Fluid): Boolean {

@@ -3,7 +3,6 @@ package org.valkyrienskies.clockwork.forge;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.ConfigGuiHandler;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
@@ -14,10 +13,10 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLLoader;
 import org.valkyrienskies.clockwork.*;
-import org.valkyrienskies.clockwork.forge.integration.cc.ClockworkForgePeripheralProviders;
 import org.valkyrienskies.clockwork.util.AtmosphereParametersResolver;
 import org.valkyrienskies.mod.compat.clothconfig.VSClothConfig;
 
+import static net.minecraftforge.common.MinecraftForge.EVENT_BUS;
 import static org.valkyrienskies.clockwork.ClockworkMod.MOD_ID;
 
 @Mod(MOD_ID)
@@ -36,7 +35,7 @@ public class ClockworkModForge {
         ClockworkBlockEntities.register();
         ForgeClockworkBlockEntities.register();
 
-        ForgeClockworkFluids.register();
+        //ForgeClockworkFluids.register();
 
         ClockworkEntities.register();
         ForgeClockworkEntities.register();
@@ -50,25 +49,22 @@ public class ClockworkModForge {
 
         ClockworkShaders.INSTANCE.init();
 
+        //todo: fix this you fucking moron
         //ForgeClockworkWorldgen.CONFIGURED_FEATURES.register(modEventBus);
         //ForgeClockworkWorldgen.PLACED_FEATURES.register(modEventBus);
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClockworkModForgeClient.onCtorClient(modEventBus));
 
         modEventBus.addListener(this::onClientSetup);
-        modEventBus.addListener(this::registerResourceManagers);
-
-        if (FMLLoader.getLoadingModList().getModFileById("computercraft") != null) {
-            ClockworkForgePeripheralProviders.register();
-        }
+        EVENT_BUS.addListener(this::registerResourceManagers);
 
         modEventBus.addListener(ClockworkModForge::init);
 
-        //todo fix forge vscore issue
-        modLoadingContext.registerExtensionPoint(
-                ConfigGuiHandler.ConfigGuiFactory.class,
-                () -> new ConfigGuiHandler.ConfigGuiFactory((minecraft, screen) -> VSClothConfig.createConfigScreenFor(screen, ClockworkConfig.class))
-        );
+//        //todo fix forge vscore issue
+//        modLoadingContext.registerExtensionPoint(
+//                ConfigGuiHandler.ConfigGuiFactory.class,
+//                () -> new ConfigGuiHandler.ConfigGuiFactory((minecraft, screen) -> VSClothConfig.createConfigScreenFor(screen, ClockworkConfig.class))
+//        );
 
     }
 

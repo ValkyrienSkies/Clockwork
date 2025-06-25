@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour
 import com.simibubi.create.foundation.gui.AbstractSimiScreen
 import com.simibubi.create.foundation.gui.widget.ScrollInput
+import net.minecraft.client.gui.GuiGraphics
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.util.gui.ScrollingFrame
@@ -46,19 +47,19 @@ class CreativeGeneratorScreen(private val be: CreativeGeneratorBlockEntity) : Ab
     }
 
 
-    override fun renderWindowBackground(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
+    override fun renderWindowBackground(ms: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
 
         frame.render(ms,guiLeft, guiTop)
 
     }
 
-    override fun renderWindow(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) { }
+    override fun renderWindow(ms: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) { }
 
-    override fun renderWindowForeground(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
+    override fun renderWindowForeground(ms: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
         background.render(ms, guiLeft, guiTop)
 
-        drawString(ms, font, "Temperature", guiLeft+8, guiTop+93,0xFFFFFF)
-        drawString(ms, font, be.temperature.toInt().toString()+" K", guiLeft+82, guiTop+93,0xFFFFFF)
+        ms.drawString(font, "Temperature", guiLeft+8, guiTop+93,0xFFFFFF)
+        ms.drawString(font, be.temperature.toInt().toString()+" K", guiLeft+82, guiTop+93,0xFFFFFF)
     }
 
     override fun onClose() {

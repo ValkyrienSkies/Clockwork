@@ -7,6 +7,7 @@ import net.minecraft.core.Direction
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.sounds.SoundSource
+import net.minecraft.util.RandomSource
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
@@ -124,7 +125,7 @@ class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(prope
         )
     }
 
-    override fun animateTick(state: BlockState, level: Level, pos: BlockPos, random: Random) {
+    override fun animateTick(state: BlockState, level: Level, pos: BlockPos, random: RandomSource) {
         if (state.getValue(AbstractFurnaceBlock.LIT) as Boolean) {
             val d = pos.x.toDouble() + 0.5
             val e = pos.y.toDouble() + 0.25

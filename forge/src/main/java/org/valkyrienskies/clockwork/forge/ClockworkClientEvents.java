@@ -8,7 +8,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
+import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -19,6 +21,11 @@ import static com.jozufozu.flywheel.backend.Backend.isGameActive;
 @Mod.EventBusSubscriber(Dist.CLIENT)
 public class ClockworkClientEvents {
 
+    @SubscribeEvent
+    public static void onRegisterGuiOverlays(RegisterGuiOverlaysEvent event) {
+        event.registerAbove(VanillaGuiOverlay.HOTBAR.id(), "Gravitron",
+                ClockworkModForgeClient.GRAVITRON_HANDLER.getOverlayRenderer());
+    }
 
     @SubscribeEvent
     public static void onRenderWorld(RenderLevelStageEvent event) {
@@ -58,7 +65,7 @@ public class ClockworkClientEvents {
     }
 
     @SubscribeEvent
-    public static void onKeyInput(InputEvent.KeyInputEvent event) {
+    public static void onKeyInput(InputEvent.Key event) {
         if (Minecraft.getInstance().screen != null) {
             return;
         }
@@ -70,7 +77,7 @@ public class ClockworkClientEvents {
     }
 
     @SubscribeEvent
-    public static void onMouseScrolled(InputEvent.MouseScrollEvent event) {
+    public static void onMouseScrolled(InputEvent.MouseScrollingEvent event) {
         if (Minecraft.getInstance().screen != null) {
             return;
         }
@@ -81,7 +88,7 @@ public class ClockworkClientEvents {
     }
 
     @SubscribeEvent
-    public static void onMouseInput(InputEvent.RawMouseEvent event) {
+    public static void onMouseInput(InputEvent.MouseButton event) {
         if (Minecraft.getInstance().screen != null) {
             return;
         }

@@ -6,14 +6,14 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.Tesselator
 import com.mojang.blaze3d.vertex.VertexFormat
-import com.mojang.math.Matrix4f
-import com.mojang.math.Vector3f
 import dev.architectury.platform.Platform
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.world.phys.Vec3
+import org.joml.Matrix4f
 import org.joml.Vector3d
+import org.joml.Vector3f
 import org.lwjgl.opengl.GL11
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
@@ -21,7 +21,6 @@ import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.api.ConnectionType
 import org.valkyrienskies.kelvin.api.DuctEdge
 import org.valkyrienskies.kelvin.api.edges.PipeDuctEdge
-import org.valkyrienskies.mod.api.multiply
 
 object KelvinNodeRenderer {
     fun render(context: WorldRenderContext) {

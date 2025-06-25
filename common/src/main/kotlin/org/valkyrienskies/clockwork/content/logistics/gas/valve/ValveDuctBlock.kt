@@ -34,7 +34,8 @@ class ValveDuctBlock(properties: Properties?) : DirectionalAxisKineticBlock(prop
 
     override fun canConnectTo(level: Level, from: BlockPos,to: BlockPos): Boolean {
         val state = level.getBlockState(from) ?: return false
-        val direction = Direction.fromNormal(to.subtract(from)) ?: return false
+        val awful = to.subtract(from)
+        val direction = Direction.fromDelta(awful.x, awful.y, awful.z) ?: return false
 
         return direction.axis == getDuctAxis(state)
 
@@ -61,7 +62,8 @@ class ValveDuctBlock(properties: Properties?) : DirectionalAxisKineticBlock(prop
         val frontPos = pos.relative(axis, 1)
         val backPos = pos.relative(axis, -1)
 
-        val facing = Direction.fromNormal(frontPos.subtract(pos)) ?: return
+        val awful = frontPos.subtract(pos)
+        val facing = Direction.fromDelta(awful.x, awful.y, awful.z) ?: return
 
 
         val front = level.getBlockState(frontPos)

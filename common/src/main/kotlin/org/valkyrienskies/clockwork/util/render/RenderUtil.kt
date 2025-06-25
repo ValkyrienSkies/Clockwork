@@ -2,14 +2,16 @@ package org.valkyrienskies.clockwork.util.render
 
 import com.jozufozu.flywheel.core.PartialModel
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.math.Vector3f
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
 import com.simibubi.create.foundation.render.SuperByteBuffer
+import com.simibubi.create.foundation.utility.AngleHelper
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.core.Direction
 import net.minecraft.world.level.block.state.BlockState
+import org.joml.AxisAngle4f
+import org.joml.Quaternionf
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
@@ -54,9 +56,9 @@ object RenderUtil {
         matrices.translate(-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)))
 
         matrices.translate(-modelCorrection.x().toDouble(), -modelCorrection.y().toDouble(), -modelCorrection.z().toDouble())
-        matrices.mulPose(Vector3f.YP.rotationDegrees(rotationVec.y()))
-        matrices.mulPose(Vector3f.XP.rotationDegrees(rotationVec.x()))
-        matrices.mulPose(Vector3f.ZP.rotationDegrees(rotationVec.z()))
+        Quaternionf(AxisAngle4f(AngleHelper.rad(rotationVec.y().toDouble()), 0f, 1f, 0f))
+        Quaternionf(AxisAngle4f(AngleHelper.rad(rotationVec.x().toDouble()), 1f, 0f, 0f))
+        Quaternionf(AxisAngle4f(AngleHelper.rad(rotationVec.z().toDouble()), 0f, 0f, 1f))
         matrices.translate(modelCorrection.x().toDouble(), modelCorrection.y().toDouble(), modelCorrection.z().toDouble())
         renderer.render(model.get(), renderType, light)
 

@@ -6,6 +6,7 @@ import net.minecraft.core.Direction
 import net.minecraft.core.Direction.*
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
+import net.minecraft.util.RandomSource
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
@@ -27,12 +28,9 @@ import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.sensor.ISensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.ISensorBlock.Companion.POWER
-import org.valkyrienskies.mod.api.positionToShip
-import org.valkyrienskies.mod.api.toJOML
-import org.valkyrienskies.mod.api.toJOMLd
-import org.valkyrienskies.mod.api.transformDirection
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.toWorldCoordinates
+import org.valkyrienskies.mod.common.util.toJOMLD
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.absoluteValue
@@ -72,12 +70,12 @@ class GyroscopicSensorBlock(properties: Properties) : DirectionalBlock(propertie
 
         val lodefocusBlockEntity = level.getBlockEntity(lodefocusPos) as? LodefocusBlockEntity ?: return state.getValue(
             FACING
-        ).normal.toJOMLd()
+        ).normal.toJOMLD()
 
-        val targetPos = lodefocusBlockEntity.getWorldspaceTargetPosition()?.toJOMLd()
-            ?: return state.getValue(FACING).normal.toJOMLd()
+        val targetPos = lodefocusBlockEntity.getWorldspaceTargetPosition()?.toJOMLD()
+            ?: return state.getValue(FACING).normal.toJOMLD()
 
-        val worldPos = level.toWorldCoordinates(pos.toJOMLd())
+        val worldPos = level.toWorldCoordinates(pos.toJOMLD())
 
         return targetPos.sub(worldPos, Vector3d()).normalize()
     }
@@ -104,8 +102,8 @@ class GyroscopicSensorBlock(properties: Properties) : DirectionalBlock(propertie
         return state.rotate(mirror.getRotation(state.getValue(FACING)))
     }
 
-    override fun tick(state: BlockState, level: ServerLevel, pos: BlockPos, random: Random) {
-        val power = this.updatePower(state, level, pos, random)
+    override fun tick(state: BlockState, level: ServerLevel, pos: BlockPos, random: RandomSource) {
+        val power = this.updatePower(state, level, pos, Random())
         val negative = power < 0
         if (power.absoluteValue != state.getValue(POWER) || negative != state.getValue(NEGATIVE)) {
             var newState = state.setValue(POWER, power.absoluteValue) as BlockState
@@ -177,13 +175,13 @@ class GyroscopicSensorBlock(properties: Properties) : DirectionalBlock(propertie
     override fun updatePower(state: BlockState, level: ServerLevel, pos: BlockPos, random: Random): Int {
         val hasLodefocus = level.getBlockEntity(pos.relative(state.getValue(FACING))) is LodefocusBlockEntity
 
-        val originalDirection = state.getValue(FACING).normal.toJOMLd()
+        val originalDirection = state.getValue(FACING).normal.toJOMLD()
         val targetDirection = if (!hasLodefocus) originalDirection else directionToLodefocus(state, level, pos)
 
         val ship = level.getShipObjectManagingPos(pos) ?: return 0
 
         val referenceAxis = state.getValue(REFERENCE_AXIS)
-        val referenceDir = ship.shipToWorld.transformDirection(get(AxisDirection.POSITIVE, referenceAxis))
+        val referenceDir = ship.shipToWorld.transformDirection(get(AxisDirection.POSITIVE, referenceAxis).normal.toJOMLD())
 
         val transformedDirection = ship.shipToWorld.transformDirection(originalDirection, Vector3d())
         if(!transformedDirection.isFinite) return 0

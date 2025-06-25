@@ -2,13 +2,15 @@ package org.valkyrienskies.clockwork.platform.fabric;
 
 
 import com.jamieswhiteshirt.reachentityattributes.ReachEntityAttributes;
+import com.simibubi.create.AllCreativeModeTabs;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import com.tterrag.registrate.fabric.EnvExecutor;
 import net.fabricmc.api.EnvType;
-import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder;
+import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BucketItem;
@@ -20,6 +22,7 @@ import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.fabric.ClockworkModFabric;
 import org.valkyrienskies.clockwork.fabric.FabricClockworkFluids;
 import org.valkyrienskies.clockwork.util.blocktype.LiquidFuelType;
+
 
 import java.util.function.Supplier;
 
@@ -48,10 +51,10 @@ public class PlatformUtilsImpl {
 
 
     public static CompoundTag getExtraData(SmartBlockEntity be) {
-        return be.getExtraCustomData();
+        return be.getCustomData();
     }
 
     public static CreativeModeTab getCreativeTab() {
-        return FabricItemGroupBuilder.build(ClockworkMod.asResource("vs_clockwork"), () -> new ItemStack(ClockworkBlocks.PHYSICS_INFUSER.get()));
+        return FabricItemGroup.builder().title(Component.translatableWithFallback("vs_clockwork:creative_mode_tab", "VS: Clockwork")).build();
     }
 }

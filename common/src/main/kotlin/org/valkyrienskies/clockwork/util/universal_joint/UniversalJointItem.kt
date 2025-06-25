@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.util.universal_joint
 
 import net.minecraft.Util
-import net.minecraft.network.chat.TextComponent
+import net.minecraft.network.chat.Component
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.context.UseOnContext
@@ -22,13 +22,13 @@ open class UniversalJointItem<T: IUniversalJoint>(properties: Properties) : Item
         val tBe = be as T
         if (firstSelect == null) {
             firstSelect = tBe
-            context.player!!.sendMessage(TextComponent("First selected"), Util.NIL_UUID)
+            context.player!!.sendSystemMessage(Component.literal("First selected"))
         }
         else {
 
 
 
-            context.player!!.sendMessage(TextComponent("second selected"), Util.NIL_UUID)
+            context.player!!.sendSystemMessage(Component.literal("second selected"))
             if (firstSelect == tBe) return fail()
             if (!firstSelect!!.tryConnect(context.level,be.blockPos)) return fail()
             context.itemInHand.count -= 1

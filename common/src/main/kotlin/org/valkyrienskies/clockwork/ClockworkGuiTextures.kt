@@ -7,7 +7,8 @@ import com.simibubi.create.foundation.gui.element.ScreenElement
 import com.simibubi.create.foundation.utility.Color
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.gui.GuiComponent
+import net.minecraft.client.gui.Gui
+import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.resources.ResourceLocation
 
 enum class ClockworkGuiTextures(
@@ -64,19 +65,12 @@ enum class ClockworkGuiTextures(
     }
 
     @Environment(EnvType.CLIENT)
-    override fun render(ms: PoseStack, x: Int, y: Int) {
-        bind()
-        GuiComponent.blit(ms, x, y, 0, startX.toFloat(), startY.toFloat(), width, height, 256, 256)
+    override fun render(ms: GuiGraphics, x: Int, y: Int) {
+        ms.blit(location, x, y, 0, startX.toFloat(), startY.toFloat(), width, height, 256, 256)
     }
 
     @Environment(EnvType.CLIENT)
-    fun render(ms: PoseStack, x: Int, y: Int, component: GuiComponent) {
-        bind()
-        component.blit(ms, x, y, startX, startY, width, height)
-    }
-
-    @Environment(EnvType.CLIENT)
-    fun render(ms: PoseStack?, x: Int, y: Int, c: Color?) {
+    fun render(ms: GuiGraphics?, x: Int, y: Int, c: Color?) {
         bind()
         UIRenderHelper.drawColoredTexture(ms, c, x, y, startX, startY, width, height)
     }

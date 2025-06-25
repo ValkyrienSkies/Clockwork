@@ -6,6 +6,7 @@ import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRendere
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.block.model.ItemTransforms
+import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import org.joml.Vector3f
 import org.valkyrienskies.clockwork.util.render.RenderUtil
@@ -16,7 +17,7 @@ class WanderliteCubeItemRenderer(val renderMatrix: Boolean) : CustomRenderedItem
             stack: ItemStack,
             model: CustomRenderedItemModel?,
             renderer: PartialItemModelRenderer?,
-            transformType: ItemTransforms.TransformType?,
+            transformType: ItemDisplayContext,
             ms: PoseStack,
             buffer: MultiBufferSource,
             light: Int,

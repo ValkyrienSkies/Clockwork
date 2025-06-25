@@ -81,9 +81,9 @@ class GyroBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
 
         //TODO this also eed to rotate with ship rotation to make sense, also maybe invert tilt to make more sense
         wheel.translate(0.45,0.0,0.45)
-        wheel.multiply(com.mojang.math.Vector3f.ZN, be.targetQuat.x() * 45)
+        wheel.multiply(Vector3f(0f, 0f, -1f), be.targetQuat.x() * 45)
         //wheel.multiply(com.mojang.math.Vector3f.YP, be.targetQuat.y() * 45)
-        wheel.multiply(com.mojang.math.Vector3f.XP, be.targetQuat.z() * 45)
+        wheel.multiply(Vector3f(1f, 0f, 0f), be.targetQuat.z() * 45)
         wheel.translate(-0.45,0.0,-0.45)
 
         kineticRotationTransform(wheel, be, getRotationAxisOf(be), AngleHelper.rad(angle.toDouble()), light)

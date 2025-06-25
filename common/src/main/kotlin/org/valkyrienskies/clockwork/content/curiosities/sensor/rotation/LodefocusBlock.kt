@@ -15,11 +15,7 @@ import net.minecraft.world.level.material.PushReaction
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 
-class LodefocusBlock(properties: Properties) : Block(properties), IBE<LodefocusBlockEntity> {
-    override fun getPistonPushReaction(state: BlockState): PushReaction {
-        return PushReaction.NORMAL
-    }
-
+class LodefocusBlock(properties: Properties) : Block(properties.pushReaction(PushReaction.NORMAL)), IBE<LodefocusBlockEntity> {
     override fun getBlockEntityClass(): Class<LodefocusBlockEntity> {
         return LodefocusBlockEntity::class.java
     }

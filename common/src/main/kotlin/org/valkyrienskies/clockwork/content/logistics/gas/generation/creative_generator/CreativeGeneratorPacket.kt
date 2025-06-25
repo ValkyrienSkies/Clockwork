@@ -31,7 +31,7 @@ class CreativeGeneratorPacket(var gasValues: HashMap<GasType, Int>, var temperat
 
     override fun handle(context: ServerNetworkContext) {
         context.enqueueWork {
-            val be = context.sender.level.getBlockEntity(blockPos) ?: return@enqueueWork
+            val be = context.sender.level().getBlockEntity(blockPos) ?: return@enqueueWork
             val cBe = be as CreativeGeneratorBlockEntity
             cBe.gasValues = gasValues
             cBe.temperature = temperature

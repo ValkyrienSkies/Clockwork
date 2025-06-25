@@ -23,9 +23,6 @@ public class ForgeClockworkEventBus {
                 return;
             }
             IModFile modFile = modFileInfo.getFile();
-            event.addRepositorySource((consumer, constructor) -> {
-                consumer.accept(Pack.create(ClockworkMod.asResource("gearwork").toString(), false, () -> new ModFilePackResources("Clockwork: Gearwork", modFile, "resourcepacks/gearwork"), constructor, Pack.Position.TOP, PackSource.DEFAULT));
-            });
         }
     }
 }

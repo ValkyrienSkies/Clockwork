@@ -106,7 +106,7 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
                     )
                 ) {
                     shipStuck = true
-                    ClockworkSounds.DOINK.playOnServer(slevel, BlockPos(level.toWorldCoordinates(worldPosition)), 0.35f, 0.75f)
+                    ClockworkSounds.DOINK.playOnServer(slevel, BlockPos.containing(level.toWorldCoordinates(worldPosition)), 0.35f, 0.75f)
                     ClockworkPackets.sendToNear(
                         slevel, blockPos, 128, SlickerAttachmentSyncPacket(this)
                     )
@@ -115,7 +115,7 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
         } else if (!isBlockStateExtended() && shipStuck) {
             //Sticker retracted with ship related thing stuck to it
             if (!level!!.isClientSide) {
-                ClockworkSounds.BOING.playOnServer(slevel, BlockPos(level.toWorldCoordinates(worldPosition)), 0.35f, 0.75f)
+                ClockworkSounds.BOING.playOnServer(slevel, BlockPos.containing(level.toWorldCoordinates(worldPosition)), 0.35f, 0.75f)
                 removeConstraint(level as ServerLevel?, true)
                 shipStuck = false
             }
@@ -134,7 +134,7 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
                         ).toJOML(), myDirNormal, PlatformUtils.getExtraData(this)
                 )
             ) {
-                ClockworkSounds.DOINK.playOnServer(slevel, BlockPos(level.toWorldCoordinates(worldPosition)), 0.35f, 0.75f)
+                ClockworkSounds.DOINK.playOnServer(slevel, BlockPos.containing(level.toWorldCoordinates(worldPosition)), 0.35f, 0.75f)
                 shipStuck = true
                 ClockworkPackets.sendToNear(
                     slevel, blockPos, 128, SlickerAttachmentSyncPacket(this)
@@ -142,7 +142,7 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
             }
         }
         if (waitForNoPower && !blockState.getValue(POWERED)) {
-            if (shipStuck) ClockworkSounds.BOING.playOnServer(slevel, BlockPos(level.toWorldCoordinates(worldPosition)), 0.35f, 0.75f)
+            if (shipStuck) ClockworkSounds.BOING.playOnServer(slevel, BlockPos.containing(level.toWorldCoordinates(worldPosition)), 0.35f, 0.75f)
             waitForNoPower = false
             shipStuck = false
             ClockworkPackets.sendToNear(

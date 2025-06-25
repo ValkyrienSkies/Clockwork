@@ -13,9 +13,12 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.NonNullList
 import net.minecraft.core.Registry
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.core.registries.Registries
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
+import net.minecraft.util.RandomSource
 import net.minecraft.world.ContainerHelper
 import net.minecraft.world.WorldlyContainer
 import net.minecraft.world.entity.Entity
@@ -254,7 +257,7 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
                 val range = pulseRange
                 return SCAN_GROWTH_DURATION * range.toInt() / 12
             }
-            return SCAN_GROWTH_DURATION * (Minecraft.getInstance().options.renderDistance / 12)
+            return SCAN_GROWTH_DURATION * (Minecraft.getInstance().options.renderDistance().get() / 12)
         }
 
     fun computeRadius(start: Long, duration: Float): Float {
@@ -294,7 +297,7 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
                     selection.run loop@{
                         selection.forEach { x, y, z ->
                             val it =serverLevel.getBlockState(BlockPos(x, y, z))
-                            if (!it.isAir && !ClockworkConfig.SERVER.blockBlacklist.contains(Registry.BLOCK.getKey(it.block).toString())) {
+                            if (!it.isAir && !ClockworkConfig.SERVER.blockBlacklist.contains(BuiltInRegistries.BLOCK.getKey(it.block).toString())) {
                                 bl = true
                                 return@loop
                             }
@@ -433,7 +436,7 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             ClockworkSounds.PHYSICS_INFUSER_WINDUP.playAt(world, location, 0.5f, 1f, false)
         }
 
-        fun playZapSound(world: Level, location: Vec3, rand: Random) {
+        fun playZapSound(world: Level, location: Vec3, rand: RandomSource) {
             val pitch = 0.6f + rand.nextFloat() * 0.4f
             ClockworkSounds.PHYSICS_INFUSER_LIGHTNING.playAt(world, location, 0.5f, 1f, false)
         }

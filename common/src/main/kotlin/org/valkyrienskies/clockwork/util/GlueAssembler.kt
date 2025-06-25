@@ -6,7 +6,8 @@ import com.simibubi.create.foundation.utility.UniqueLinkedList
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.Registry
-import net.minecraft.network.chat.TextComponent
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
@@ -29,7 +30,7 @@ object GlueAssembler {
         frontier.add(pos)
         for (limit in 100000 downTo 1) {
             if (frontier.isEmpty()) {
-                if (result.isEmpty()) throw AssemblyException(TextComponent("No blocks found!"))
+                if (result.isEmpty()) throw AssemblyException(Component.literal("No blocks found!"))
                 return result
             }
             visitBlock(level, frontier, result, toRemove)
@@ -62,6 +63,6 @@ object GlueAssembler {
     }
 
     private fun isAllowed(state: BlockState): Boolean {
-        return !ClockworkConfig.SERVER.blockBlacklist.contains(Registry.BLOCK.getKey(state.block).toString())
+        return !ClockworkConfig.SERVER.blockBlacklist.contains(BuiltInRegistries.BLOCK.getKey(state.block).toString())
     }
 }

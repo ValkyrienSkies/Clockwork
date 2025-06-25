@@ -1,17 +1,20 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.math.Vector3f
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer
+import com.simibubi.create.foundation.utility.AngleHelper
 import com.simibubi.create.foundation.utility.AnimationTickHolder
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.block.model.ItemTransforms
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.HumanoidArm
+import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
+import org.joml.AxisAngle4f
+import org.joml.Quaternionf
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
@@ -25,7 +28,7 @@ open class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
         stack: ItemStack,
         model: CustomRenderedItemModel,
         renderer: PartialItemModelRenderer,
-        transformType: ItemTransforms.TransformType,
+        transformType: ItemDisplayContext,
         ms: PoseStack,
         buffer: MultiBufferSource,
         light: Int,
@@ -67,10 +70,10 @@ open class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
         renderer.render(ClockworkPartials.GRAV_PRONG_LEFT_THREE.get(), light)
         renderer.render(ClockworkPartials.GRAV_PRONG_RIGHT_THREE.get(), light)
 
-        ms.mulPose(Vector3f.XP.rotationDegrees(45f))
+        ms.mulPose(Quaternionf(AxisAngle4f(45f, 1f, 0f, 0f)))
         ms.translate(0.0, -0.300, 0.125)
         renderer.render(ClockworkPartials.GRAV_PRONG_TOP_ONE.get(), light)
-        ms.mulPose(Vector3f.XP.rotationDegrees(-15f))
+        ms.mulPose(Quaternionf(AxisAngle4f(Math.toRadians(-15.0).toFloat(), 1f, 0f, 0f)))
         ms.translate(0.0, 0.125, 0.025)
         renderer.render(ClockworkPartials.GRAV_PRONG_TOP_TWO.get(), light)
         renderer.render(ClockworkPartials.GRAV_PRONG_TOP_THREE.get(), light)
@@ -80,7 +83,7 @@ open class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
 
         matrices.pushPose()
 
-        matrices.mulPose(Vector3f.XN.rotationDegrees(22.5f))
+        matrices.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(22.5), -1f, 0f, 0f)))
         matrices.translate(0.275,0.2275,-0.115)
         matrices.pushPose()
         val x = -7.9/16
@@ -88,7 +91,7 @@ open class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
         val z = -22.0/16
 
         matrices.translate(x,y,y)
-        matrices.mulPose(Vector3f.ZN.rotationDegrees(angle - 180 + 10))
+        matrices.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(angle - 180.0 + 10.0), 0f, 0f, -1f)))
         matrices.translate(-x,-y,-z)
 
         matrices.pushPose()

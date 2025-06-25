@@ -23,6 +23,7 @@ import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.toWorldCoordinates
 import org.valkyrienskies.mod.common.util.GameTickForceApplier
 import org.valkyrienskies.mod.common.util.toJOMLD
+import java.util.Random
 
 class SugarRocketBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?,
                              state: BlockState?
@@ -73,18 +74,19 @@ class SugarRocketBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?,
                 }
                 val fireVelocity = realDirection.mul(burnPower.toDouble() * 0.5, Vector3d())
                 val smokeVelocity = realDirection.mul(burnPower.toDouble(), Vector3d())
+                val random = Random()
                 for (i in 0..4) {
-                    val fireRandomX = clientLevel.random.nextDouble(-0.15, 0.15)
-                    val fireRandomY = clientLevel.random.nextDouble(-0.15, 0.15)
-                    val fireRandomZ = clientLevel.random.nextDouble(-0.15, 0.15)
+                    val fireRandomX = random.nextDouble(-0.15, 0.15)
+                    val fireRandomY = random.nextDouble(-0.15, 0.15)
+                    val fireRandomZ = random.nextDouble(-0.15, 0.15)
                     val thisFireVelocity = Vector3d(fireVelocity.x + fireRandomX, fireVelocity.y + fireRandomY, fireVelocity.z + fireRandomZ)
                     clientLevel.addParticle(ParticleTypes.FLAME, realWorldPosition.x, realWorldPosition.y, realWorldPosition.z, thisFireVelocity.x, thisFireVelocity.y, thisFireVelocity.z)
                 }
 
                 for (j in 0..12) {
-                    val sparkRandomX = clientLevel.random.nextDouble(-0.5, 0.5)
-                    val sparkRandomY = clientLevel.random.nextDouble(-0.5, 0.5)
-                    val sparkRandomZ = clientLevel.random.nextDouble(-0.5, 0.5)
+                    val sparkRandomX = random.nextDouble(-0.5, 0.5)
+                    val sparkRandomY = random.nextDouble(-0.5, 0.5)
+                    val sparkRandomZ = random.nextDouble(-0.5, 0.5)
                     val thisSparkVelocity = Vector3d(fireVelocity.x + sparkRandomX, fireVelocity.y + sparkRandomY, fireVelocity.z + sparkRandomZ)
                     clientLevel.addParticle(ParticleTypes.SMALL_FLAME, realWorldPosition.x, realWorldPosition.y, realWorldPosition.z, thisSparkVelocity.x, thisSparkVelocity.y, thisSparkVelocity.z)
                 }
