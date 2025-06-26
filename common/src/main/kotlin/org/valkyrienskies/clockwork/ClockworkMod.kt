@@ -123,4 +123,10 @@ object ClockworkMod {
     fun asResource(path: String): ResourceLocation {
         return ResourceLocation(MOD_ID, path)
     }
+
+    @JvmStatic
+    fun registerTab() {
+        TAB_REGISTER.register(BASE_CREATIVE_TABINFO.location()) { BASE_CREATIVE_TAB }
+        TAB_REGISTER.register()
+    }
 }

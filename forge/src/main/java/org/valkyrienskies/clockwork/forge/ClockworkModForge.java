@@ -30,6 +30,8 @@ public class ClockworkModForge {
 
         ClockworkMod.INSTANCE.getREGISTRATE().registerEventListeners(modEventBus);
 
+        ClockworkMod.registerTab();
+
         ClockworkBlocks.register();
         ClockworkItems.register();
         ClockworkBlockEntities.register();
