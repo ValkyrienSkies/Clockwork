@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.backtank
 
 import com.mojang.blaze3d.vertex.PoseStack
+import com.simibubi.create.content.equipment.armor.BacktankArmorLayer
 import com.simibubi.create.foundation.render.CachedBufferer
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback
 import net.minecraft.client.model.EntityModel
@@ -15,7 +16,7 @@ import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.Pose
 import org.valkyrienskies.clockwork.ClockworkBlocks
 
-class GasBacktankArmorLayer<T : LivingEntity?, M : EntityModel<T>?>(renderer: RenderLayerParent<T, M>?) : RenderLayer<T, M>(renderer!!) {
+open class GasBacktankArmorLayer<T : LivingEntity?, M : EntityModel<T>?>(renderer: RenderLayerParent<T, M>?) : RenderLayer<T, M>(renderer!!) {
 
     override fun render(
         ms: PoseStack,
@@ -57,6 +58,7 @@ class GasBacktankArmorLayer<T : LivingEntity?, M : EntityModel<T>?>(renderer: Re
 
     companion object {
 
+        @JvmStatic
         fun registerOn(
             entityRenderer: EntityRenderer<*>?,
             helper: LivingEntityFeatureRendererRegistrationCallback.RegistrationHelper
@@ -66,5 +68,7 @@ class GasBacktankArmorLayer<T : LivingEntity?, M : EntityModel<T>?>(renderer: Re
             val layer: GasBacktankArmorLayer<*, *> = GasBacktankArmorLayer(entityRenderer)
             helper.register(layer)
         }
+
+
     }
 }

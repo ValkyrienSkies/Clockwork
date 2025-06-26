@@ -2,13 +2,21 @@ package org.valkyrienskies.clockwork.fabric;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.simibubi.create.content.equipment.armor.BacktankArmorLayer;
+import com.simibubi.create.content.trains.schedule.TrainHatArmorLayer;
 import com.simibubi.create.foundation.render.SuperRenderTypeBuffer;
 import com.simibubi.create.foundation.utility.AnimationTickHolder;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 import org.valkyrienskies.clockwork.ClockworkModClient;
+import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankArmorLayer;
 
 import static com.jozufozu.flywheel.backend.Backend.isGameActive;
 
@@ -31,6 +39,7 @@ public class FabricClockworkClientEvents {
     public static void register() {
         ClientTickEvents.END_CLIENT_TICK.register(FabricClockworkClientEvents::onTick);
         ClientTickEvents.START_CLIENT_TICK.register(FabricClockworkClientEvents::onTickStart);
+        LivingEntityFeatureRendererRegistrationCallback.EVENT.register(FabricClockworkClientEvents::addEntityRendererLayers);
     }
 
     public static void onRenderWorld(WorldRenderContext worldRenderContext) {
@@ -46,5 +55,10 @@ public class FabricClockworkClientEvents {
         buffer.draw();
         RenderSystem.enableCull();
         ms.popPose();
+    }
+
+    public static void addEntityRendererLayers(EntityType<? extends LivingEntity> entityType, LivingEntityRenderer<?, ?> entityRenderer,
+                                               LivingEntityFeatureRendererRegistrationCallback.RegistrationHelper registrationHelper, EntityRendererProvider.Context context) {
+        GasBacktankArmorLayer.registerOn(entityRenderer, registrationHelper);
     }
 }

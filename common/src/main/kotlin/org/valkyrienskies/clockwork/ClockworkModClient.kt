@@ -7,6 +7,7 @@ import com.simibubi.create.foundation.utility.ModelSwapper
 import dev.architectury.event.events.client.ClientTickEvent
 import dev.architectury.event.events.common.TickEvent
 import dev.architectury.registry.ReloadListenerRegistry
+import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRenderEvents
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents
 import net.minecraft.client.renderer.entity.EntityRendererProvider
@@ -58,10 +59,6 @@ object ClockworkModClient {
             SecondScrollValueRenderer.tickSecond()
         })
 
-
-//        EntityFeatu.EVENT.register { entityType: EntityType<out LivingEntity>, livingEntityRenderer: LivingEntityRenderer<*, *>, registrationHelper: LivingEntityFeatureRendererRegistrationCallback.RegistrationHelper, context: EntityRendererProvider.Context ->
-//            GasBacktankArmorLayer.registerOn(livingEntityRenderer, registrationHelper)
-//        }
 
 //        RenderEvent.AFTER_TRANSLUCENT.register(WorldRenderEvents.AfterTranslucent { context ->
 //            if(!context.gameRenderer().minecraft.options.renderDebug) return@AfterTranslucent

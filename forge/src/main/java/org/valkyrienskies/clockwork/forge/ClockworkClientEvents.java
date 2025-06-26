@@ -2,11 +2,15 @@ package org.valkyrienskies.clockwork.forge;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.simibubi.create.content.equipment.armor.BacktankArmorLayer;
+import com.simibubi.create.content.trains.schedule.TrainHatArmorLayer;
 import com.simibubi.create.foundation.render.SuperRenderTypeBuffer;
 import com.simibubi.create.foundation.utility.AnimationTickHolder;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
@@ -15,6 +19,8 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.valkyrienskies.clockwork.ClockworkModClient;
+import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankArmorLayer;
+import org.valkyrienskies.clockwork.forge.content.logistics.gas.backtank.ForgeGasBacktankArmorLayer;
 
 import static com.jozufozu.flywheel.backend.Backend.isGameActive;
 
@@ -99,6 +105,13 @@ public class ClockworkClientEvents {
         if (ClockworkModForgeClient.GRAVITRON_HANDLER.onMouseInput(button, pressed)) {
             event.setCanceled(true);
         }
+    }
+
+    @SubscribeEvent
+    public static void addEntityRendererLayers(EntityRenderersEvent.AddLayers event) {
+        EntityRenderDispatcher dispatcher = Minecraft.getInstance()
+                .getEntityRenderDispatcher();
+        ForgeGasBacktankArmorLayer.registerOnAll(dispatcher);
     }
 
 }
