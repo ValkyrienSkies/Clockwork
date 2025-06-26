@@ -40,7 +40,6 @@ public class ClockworkModFabric implements ModInitializer {
         RegisterResourceManagers.INSTANCE.init();
 
         ClockworkMod.init();
-        FabricClockworkWorldgen.bootstrap();
         //AllClockworkConfigs.init();
 
         ClockworkParticles.init();

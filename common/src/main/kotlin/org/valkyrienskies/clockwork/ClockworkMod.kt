@@ -57,7 +57,6 @@ object ClockworkMod {
         ClockworkContraptions.init()
         ClockworkPackets.init()
         ClockworkTags.init()
-        ClockworkWorldgen.init()
 
         ValkyrienSkiesMod.vsCore.registerConfigLegacy("clockwork", ClockworkConfig::class.java)
 
