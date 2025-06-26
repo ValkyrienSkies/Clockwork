@@ -74,6 +74,16 @@ commands:
           paths:
             - .gradle
 
+  publish_to_maven:
+    executor: java_large
+    steps:
+      # Checkout repo
+      - checkout_and_cache
+      # Run build
+      - run:
+          name: "Build"
+          command: "./gradlew build publish --no-daemon --stacktrace"
+
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
@@ -138,3 +148,11 @@ workflows:
           context:
             - curse_publishing
             - valkyrien_maven
+      - publish_to_maven:
+          filters:
+            branches:
+              only:
+                - /.*\/main/
+          context:
+            - valkyrien_maven
+            - github_maven
