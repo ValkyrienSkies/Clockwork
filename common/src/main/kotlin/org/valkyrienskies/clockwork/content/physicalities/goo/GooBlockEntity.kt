@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content.contraptions.phys.slicker
+package org.valkyrienskies.clockwork.content.physicalities.goo
 
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour

@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork
 
+import com.google.common.eventbus.Subscribe
 import com.mojang.logging.LogUtils
 import com.simibubi.create.foundation.data.CreateRegistrate
 import dev.architectury.event.events.common.InteractionEvent
@@ -20,10 +21,13 @@ import org.valkyrienskies.clockwork.content.forces.*
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroShipControl
 import org.valkyrienskies.clockwork.util.ClockworkUtils
+import org.valkyrienskies.core.api.VsBeta
+import org.valkyrienskies.core.api.events.CollisionEvent
 import org.valkyrienskies.core.impl.hooks.VSEvents
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.impl.DuctNetworkServer
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
+import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.vsCore
@@ -52,6 +56,7 @@ object ClockworkMod {
 
     val BASE_CREATIVE_TABINFO: ResourceKey<CreativeModeTab> = BASE_CREATIVE_TAB.key
 
+    @OptIn(VsBeta::class)
     @JvmStatic
     fun init() {
         ClockworkContraptions.init()
@@ -113,6 +118,9 @@ object ClockworkMod {
             DualLinkHandler.handler(player, hand, pos, face)
         })
 
+        vsApi.collisionStartEvent.on {event: CollisionEvent ->
+            println("123")
+        }
     }
 
     @JvmStatic
