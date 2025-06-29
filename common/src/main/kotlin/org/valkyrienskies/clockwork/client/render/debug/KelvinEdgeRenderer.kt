@@ -7,27 +7,26 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.Tesselator
 import com.mojang.blaze3d.vertex.VertexFormat
 import dev.architectury.platform.Platform
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
+import net.minecraft.client.Camera
 import net.minecraft.client.Minecraft
+import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.client.renderer.GameRenderer
-import net.minecraft.world.phys.Vec3
+import net.minecraft.core.BlockPos
 import org.joml.Matrix4f
 import org.joml.Vector3d
 import org.joml.Vector3f
-import org.lwjgl.opengl.GL11
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
-import org.valkyrienskies.kelvin.KelvinMod
-import org.valkyrienskies.kelvin.api.ConnectionType
-import org.valkyrienskies.kelvin.api.DuctEdge
+import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.kelvin.api.edges.PipeDuctEdge
+import org.valkyrienskies.mod.api.vsApi
 
-object KelvinNodeRenderer {
-    fun render(context: WorldRenderContext) {
+object KelvinEdgeRenderer {
+
+    @JvmStatic
+    fun render(level: ClientLevel, poseStack: PoseStack, camera: Camera) {
         val network = if (Minecraft.getInstance().isLocalServer && Platform.isFabric()) ClockworkMod.getKelvin() else ClockworkModClient.getKelvin()
 
-        val poseStack = context.matrixStack()
-        val camera = context.camera()
         val cameraPos = camera.position
 
         poseStack.pushPose()
@@ -52,11 +51,24 @@ object KelvinNodeRenderer {
         val g = 255
 
 
+
+
         for (edge in network.edges) {
+
+
+            var firstPosition = Vector3d(edge.key.first.x+0.5, edge.key.first.y+0.5, edge.key.first.z+0.5)
+            val firstShip = vsApi.getShipManagingBlock(level, BlockPos(edge.key.first.x.toInt(), edge.key.first.y.toInt(), edge.key.first.z.toInt()))
+            if (firstShip != null) firstPosition = (firstShip as ClientShip).renderTransform.shipToWorld.transformPosition(firstPosition)
+
+            var secondPosition = Vector3d(edge.key.second.x+0.5, edge.key.second.y+0.5, edge.key.second.z+0.5)
+            val secondShip = vsApi.getShipManagingBlock(level, BlockPos(edge.key.second.x.toInt(), edge.key.second.y.toInt(), edge.key.second.z.toInt()))
+            if (secondShip != null) secondPosition = (secondShip as ClientShip).renderTransform.shipToWorld.transformPosition(secondPosition)
+
             val b = if (edge.value is PipeDuctEdge) 0 else 255
 
-            val A = Vector3f((edge.key.first.x+0.5).toFloat(), (edge.key.first.y+0.5).toFloat(), (edge.key.first.z+0.5).toFloat())
-            val B = Vector3f((edge.key.second.x+0.5).toFloat(), (edge.key.second.y.toFloat()+0.5).toFloat(), (edge.key.second.z.toFloat()+0.5).toFloat())
+            val A = Vector3f(firstPosition.x.toFloat(), firstPosition.y.toFloat(), firstPosition.z.toFloat())
+            val B = Vector3f(secondPosition.x.toFloat(), secondPosition.y.toFloat(), secondPosition.z.toFloat())
+
             renderLine(matrix, buf, A, B, r, g, b)
         }
 
