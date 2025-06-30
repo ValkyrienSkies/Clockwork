@@ -13,7 +13,6 @@ interface IUniversalJoint {
         connectedJoint = other
 
         other.connectTo(this)
-
     }
 
     fun tryConnect(level: Level, blockPos: BlockPos): Boolean {
@@ -35,9 +34,7 @@ interface IUniversalJoint {
         temp!!.disconnect()
     }
 
-
     fun isThisJoint(be: BlockEntity): Boolean {
         return (be is IUniversalJoint)
     }
-
 }

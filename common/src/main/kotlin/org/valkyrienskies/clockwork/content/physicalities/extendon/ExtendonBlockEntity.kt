@@ -49,11 +49,18 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
 
     var main: Boolean = false
 
+    var loadFn: (() -> Unit)? = null
+
     override fun tick() {
         super.tick()
 
 
         if (level!!.isClientSide) return
+
+        loadFn?.also {
+            it.invoke()
+            loadFn = null
+        }
 
         if (connectedBe == null || connectedJoint == null || distanceJoint == null || distanceJointId == null || !main) return
 
@@ -76,9 +83,8 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
 
     override fun connectTo(other: IUniversalJoint) {
         if (connectedJoint != null) return
-        val be = level?.getBlockEntity(other.pos) as? ExtendonBlockEntity ?: return
 
-        connectedBe = be
+        connectedBe = other as? ExtendonBlockEntity ?: return
         if (connectedBe!!.edge != null) edge = connectedBe!!.edge
         else createEdge(blockPos.toDuctNodePos(level!!.dimension().location()), other.pos.toDuctNodePos(connectedBe!!.level!!.dimension().location()))
 
@@ -166,6 +172,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         val serverLevel = level as ServerLevel
 
         serverLevel.shipObjectWorld.removeConstraint(distanceJointId!!)
+        serverLevel.shipObjectWorld.removeConstraint(sphericalJointId!!)
         distanceJoint = null
         distanceJointId = null
 
@@ -174,7 +181,6 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
 
         main = false
     }
-
 
 
     fun getShipID(): ShipId {
@@ -196,11 +202,21 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
     }
 
     override fun read(compound: CompoundTag, clientPacket: Boolean) {
-
-
         if (compound.contains("ConnectedPosX")) {
-            connectedBe = level?.getBlockEntity(BlockPos(compound.getInt("ConnectedPosX"),compound.getInt("ConnectedPosY"),compound.getInt("ConnectedPosZ"))) as? ExtendonBlockEntity
-            connectedJoint = connectedBe
+            val bpos = BlockPos(compound.getInt("ConnectedPosX"),compound.getInt("ConnectedPosY"),compound.getInt("ConnectedPosZ"))
+            if (!clientPacket) {
+                loadFn = {
+                    (level!!.getBlockEntity(bpos) as? ExtendonBlockEntity)?.also {
+                        it.disconnect()
+                        connectTo(it)
+                    }
+                }
+            } else {
+                connectedBe = level?.getBlockEntity(BlockPos(compound.getInt("ConnectedPosX"),compound.getInt("ConnectedPosY"),compound.getInt("ConnectedPosZ"))) as? ExtendonBlockEntity
+                connectedJoint = connectedBe
+                connectedBe?.connectedJoint = this
+                connectedBe?.connectedBe = this
+            }
             main = compound.getBoolean("IsMain")
         } else disconnect()
 
@@ -208,7 +224,6 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
     }
 
     companion object {
-
         // Calculates volume of cylinder via Ideal Gas Law, and then calculates said cylinder's height
         // Doesn't account for the elastic force of the hose, because doing so would require solving a cubic polynomial
         fun gasToDistance(network: DuctNetwork<*>, pos: DuctNodePos, dimensionId: DimensionId): Float {

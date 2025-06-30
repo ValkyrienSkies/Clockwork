@@ -20,10 +20,10 @@ import org.valkyrienskies.clockwork.content.forces.*
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroShipControl
 import org.valkyrienskies.clockwork.util.ClockworkUtils
-import org.valkyrienskies.core.impl.hooks.VSEvents
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.impl.DuctNetworkServer
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
+import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.vsCore
@@ -70,11 +70,11 @@ object ClockworkMod {
         vsCore.registerAttachment(ReactionWheelController::class.java)
         vsCore.registerAttachment(EncasedFanController::class.java)
         vsCore.registerAttachment(GyroShipControl::class.java)
-        vsCore.registerAttachment(GravitronController::class.java)
         vsCore.registerAttachment(SugarRocketController::class.java)
+        vsCore.registerAttachment(GravitronController::class.java) { useTransientSerializer() }
         vsCore.registerAttachment(BearingController::class.java) { useTransientSerializer() }
 
-        VSEvents.shipLoadEvent.on { (ship) ->
+        vsApi.shipLoadEvent.on { event -> val ship = event.ship;
             PocketForcesController.getOrCreate(ship)
             DragController.getOrCreate(ship)
             WanderShipControl.getOrCreate(ship)
