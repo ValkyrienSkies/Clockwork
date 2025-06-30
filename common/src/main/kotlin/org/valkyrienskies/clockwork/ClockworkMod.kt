@@ -1,13 +1,16 @@
 package org.valkyrienskies.clockwork
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.logging.LogUtils
 import com.simibubi.create.foundation.data.CreateRegistrate
+import dev.architectury.event.events.common.CommandRegistrationEvent
 import dev.architectury.event.events.common.InteractionEvent
 import dev.architectury.event.events.common.LifecycleEvent
 import dev.architectury.event.events.common.TickEvent
 import dev.architectury.registry.CreativeTabRegistry
 import dev.architectury.registry.registries.DeferredRegister
 import dev.architectury.registry.registries.RegistrySupplier
+import net.minecraft.commands.CommandSourceStack
 import net.minecraft.core.registries.Registries
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceKey
@@ -113,6 +116,16 @@ object ClockworkMod {
             DualLinkHandler.handler(player, hand, pos, face)
         })
 
+        //TODO remove when VS commands return
+        CommandRegistrationEvent.EVENT.register { dispatcher, context, idk ->
+            dispatcher.register(LiteralArgumentBuilder.literal<CommandSourceStack>("clockwork-remove-all-ships").executes {
+                val level = it.source.level!!
+                level.shipObjectWorld.allShips
+                    .map { it }
+                    .forEach { level.shipObjectWorld.deleteShip(it) }
+                0
+            })
+        }
     }
 
     @JvmStatic
