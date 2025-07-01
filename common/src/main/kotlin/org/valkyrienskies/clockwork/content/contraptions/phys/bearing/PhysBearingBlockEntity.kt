@@ -192,7 +192,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     private fun loadTheRest(tag: CompoundTag, level: ServerLevel) {
         shouldRefresh = true
-        var joint = this.joint?.joint as VSRevoluteJoint?
+        var joint = this.joint?.joint as? VSRevoluteJoint ?: return
         val mainId = level.getShipManagingPos(worldPosition)?.id ?: level.shipObjectWorld.dimensionToGroundBodyIdImmutable[level.dimensionId]!!
 
         //TODO is this fine or dumb?
@@ -219,8 +219,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val oldSPos = tag.getVector3d(ClockworkConstants.Nbt.OLD_SHIPTRAPTION_CENTER)!!
         val newSPos = tag.getVector3d(ClockworkConstants.Nbt.NEW_SHIPTRAPTION_CENTER)!!
 
-        joint = joint?.let{it.copy(subship.id, pose0 = VSJointPose(it.pose0.pos - oldSPos + newSPos, it.pose0.rot), mainId, pose1 = VSJointPose(it.pose1.pos - oldPos + newPos, it.pose1.rot))}
-        this.joint = this.joint?.let{VSJointAndId(it.jointId, joint!!)}
+        joint = joint.let{it.copy(subship.id, pose0 = VSJointPose(it.pose0.pos - oldSPos + newSPos, it.pose0.rot), mainId, pose1 = VSJointPose(it.pose1.pos - oldPos + newPos, it.pose1.rot))}
+        this.joint = this.joint?.let{VSJointAndId(it.jointId, joint)}
 
         controllerCreationData = makeData(joint)
     }

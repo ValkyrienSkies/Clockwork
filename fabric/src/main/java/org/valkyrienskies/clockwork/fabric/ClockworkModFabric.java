@@ -22,7 +22,6 @@ public class ClockworkModFabric implements ModInitializer {
         new ValkyrienSkiesModFabric().onInitialize();
 
         ClockworkTags.INSTANCE.init();
-        ClockworkMod.registerTab();
         ClockworkBlocks.register();
         ClockworkItems.register();
 

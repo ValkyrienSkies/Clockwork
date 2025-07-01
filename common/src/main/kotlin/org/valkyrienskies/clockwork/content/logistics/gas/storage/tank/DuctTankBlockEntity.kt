@@ -91,20 +91,28 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     override fun setController(pos: BlockPos?) {
         controllerCT = pos
         notifyUpdate()
-
-
+        setChanged()
+        sendData()
     }
 
     override fun removeController(keepContents: Boolean) {
+        if (level!!.isClientSide) {return}
         controllerCT = null
         heightCT = 1
         widthCT = 1
         queueConnectivityUpdate()
         notifyMultiUpdated()
 
+        var state = blockState
+        state = state.setValue(DuctTankBlock.LARGE, false)
+        level!!.setBlock(worldPosition, state, 22)
+
         if (isController) {
             (blockState.block as? DuctTankBlock)?.nodeRemove(blockState, level!!, blockPos, blockState, false)
         }
+
+        setChanged()
+        sendData()
     }
 
     override fun getLastKnownPos(): BlockPos {
@@ -117,21 +125,20 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
 
     override fun notifyMultiUpdated() {
         var state = blockState
-        if (blockState.block is DuctTankBlock) { // safety
+        if (state.block is DuctTankBlock) { // safety
             state = state.setValue(DuctTankBlock.BOTTOM, controller!!.y == blockPos.y)
             state = state.setValue(DuctTankBlock.TOP, controller!!.y + height - 1 == blockPos.y)
+            state = state.setValue(DuctTankBlock.LARGE, width > 1)
             level!!.setBlock(blockPos, state,23)
 
             if (isController) {
                 (blockState.block as? DuctTankBlock)?.nodeRemove(blockState, level!!, blockPos, blockState, false)
                 (blockState.block as? DuctTankBlock)?.nodePlace(blockState, level!!, blockPos, blockState, false)
             }
-
-
         }
+        setChanged()
         notifyUpdate()
     }
-
 
     override fun getMainConnectionAxis(): Direction.Axis { return Direction.Axis.Y }
 
@@ -139,24 +146,9 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         return if (longAxis === Direction.Axis.Y) maxHeight else maxWidth
     }
 
-    override fun getMaxWidth(): Int {
-        return 3
-    }
-
-    override fun getHeight(): Int {
-        return heightCT
-    }
-
-    override fun setHeight(height: Int) {
-        this.heightCT = height
-    }
-
-    override fun getWidth(): Int {
-        return widthCT
-    }
-
-    override fun setWidth(width: Int) {
-        this.widthCT = width
-    }
-
+    override fun getMaxWidth(): Int = 3
+    override fun getHeight(): Int = heightCT
+    override fun setHeight(height: Int) { this.heightCT = height }
+    override fun getWidth(): Int = widthCT
+    override fun setWidth(width: Int) { this.widthCT = width }
 }

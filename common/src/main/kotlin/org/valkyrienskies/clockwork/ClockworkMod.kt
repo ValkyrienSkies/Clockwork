@@ -1,25 +1,28 @@
 package org.valkyrienskies.clockwork
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.logging.LogUtils
 import com.simibubi.create.foundation.data.CreateRegistrate
+import dev.architectury.event.events.common.CommandRegistrationEvent
 import dev.architectury.event.events.common.InteractionEvent
 import dev.architectury.event.events.common.LifecycleEvent
 import dev.architectury.event.events.common.TickEvent
+import dev.architectury.registry.CreativeTabRegistry
 import dev.architectury.registry.registries.DeferredRegister
-import net.minecraft.core.Registry
-import net.minecraft.core.registries.BuiltInRegistries
+import dev.architectury.registry.registries.RegistrySupplier
+import net.minecraft.commands.CommandSourceStack
 import net.minecraft.core.registries.Registries
+import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
+import net.minecraft.world.item.ItemStack
 import org.slf4j.LoggerFactory
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkHandler
 import org.valkyrienskies.clockwork.content.forces.*
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroShipControl
-import org.valkyrienskies.clockwork.platform.PlatformUtils
 import org.valkyrienskies.clockwork.util.ClockworkUtils
-import org.valkyrienskies.core.impl.hooks.VSEvents
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.impl.DuctNetworkServer
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
@@ -27,7 +30,6 @@ import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.vsCore
-import java.util.function.Supplier
 
 object ClockworkMod {
     const val MOD_ID = "vs_clockwork"
@@ -43,20 +45,22 @@ object ClockworkMod {
     val MIXIN_LOGGER = LoggerFactory.getLogger("ClockworkMixins")
     val LOGGER = LogUtils.getLogger()
 
-    private val TAB_REGISTER: DeferredRegister<CreativeModeTab> =
-    DeferredRegister.create(MOD_ID, Registries.CREATIVE_MODE_TAB);
+    private val TAB_REGISTRY = DeferredRegister.create(MOD_ID, Registries.CREATIVE_MODE_TAB)
 
-    val BASE_CREATIVE_TAB: CreativeModeTab = PlatformUtils.getCreativeTab()
-    val BASE_CREATIVE_TABINFO: ResourceKey<CreativeModeTab> = ResourceKey.create(
-        Registries.CREATIVE_MODE_TAB,
-        ResourceLocation(MOD_ID, "base")
-    )
+    val BASE_CREATIVE_TAB: RegistrySupplier<CreativeModeTab> = TAB_REGISTRY.register("example_tab") {
+        CreativeTabRegistry.create(Component.translatable("itemGroup.vs_clockwork")) {
+            ItemStack(ClockworkBlocks.PHYSICS_INFUSER.asItem())
+        }
+    }
+
+    val BASE_CREATIVE_TABINFO: ResourceKey<CreativeModeTab> = BASE_CREATIVE_TAB.key
 
     @JvmStatic
     fun init() {
         ClockworkContraptions.init()
         ClockworkPackets.init()
         ClockworkTags.init()
+        TAB_REGISTRY.register()
 
         ValkyrienSkiesMod.vsCore.registerConfigLegacy("clockwork", ClockworkConfig::class.java)
 
@@ -69,11 +73,11 @@ object ClockworkMod {
         vsCore.registerAttachment(ReactionWheelController::class.java)
         vsCore.registerAttachment(EncasedFanController::class.java)
         vsCore.registerAttachment(GyroShipControl::class.java)
-        vsCore.registerAttachment(GravitronController::class.java)
         vsCore.registerAttachment(SugarRocketController::class.java)
+        vsCore.registerAttachment(GravitronController::class.java) { useTransientSerializer() }
         vsCore.registerAttachment(BearingController::class.java) { useTransientSerializer() }
 
-        VSEvents.shipLoadEvent.on { (ship) ->
+        vsApi.shipLoadEvent.on { event -> val ship = event.ship;
             PocketForcesController.getOrCreate(ship)
             DragController.getOrCreate(ship)
             WanderShipControl.getOrCreate(ship)
@@ -87,6 +91,11 @@ object ClockworkMod {
             GravitronController.getOrCreate(ship)
             SugarRocketController.getOrCreate(ship)
             BearingController.getOrCreate(ship)
+        }
+
+        LifecycleEvent.SETUP.register {
+            LOGGER.info("REGISTERING WANDERLITE")
+            ClockworkWorldgen.register()
         }
 
         LifecycleEvent.SERVER_STARTED.register {
@@ -112,6 +121,16 @@ object ClockworkMod {
             DualLinkHandler.handler(player, hand, pos, face)
         })
 
+        //TODO remove when VS commands return
+        CommandRegistrationEvent.EVENT.register { dispatcher, context, idk ->
+            dispatcher.register(LiteralArgumentBuilder.literal<CommandSourceStack>("clockwork-remove-all-ships").executes {
+                val level = it.source.level!!
+                level.shipObjectWorld.allShips
+                    .map { it }
+                    .forEach { level.shipObjectWorld.deleteShip(it) }
+                0
+            })
+        }
     }
 
     @JvmStatic
@@ -124,9 +143,4 @@ object ClockworkMod {
         return ResourceLocation(MOD_ID, path)
     }
 
-    @JvmStatic
-    fun registerTab() {
-        TAB_REGISTER.register(BASE_CREATIVE_TABINFO.location()) { BASE_CREATIVE_TAB }
-        TAB_REGISTER.register()
-    }
 }

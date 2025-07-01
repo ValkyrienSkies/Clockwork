@@ -17,7 +17,6 @@ import net.minecraft.server.packs.resources.ResourceManager
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.LivingEntity
-import org.valkyrienskies.clockwork.client.render.debug.KelvinNodeRenderer
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkRenderer
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.SecondScrollValueRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankArmorLayer
