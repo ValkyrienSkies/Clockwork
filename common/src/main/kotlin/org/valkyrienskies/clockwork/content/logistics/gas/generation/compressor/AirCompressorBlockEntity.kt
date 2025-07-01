@@ -9,13 +9,14 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
+import org.valkyrienskies.clockwork.util.KNodeKineticBlockEntity
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import kotlin.math.abs
 
-class AirCompressorBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : KineticBlockEntity(typeIn, pos, state), IHeatableBlockEntity {
+class AirCompressorBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeKineticBlockEntity(typeIn, pos, state) {
     var isActivated: Boolean = false
         private set
 
@@ -64,18 +65,10 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, stat
         super.write(tag, clientPacket)
     }
 
-
-    override fun addToGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
-        return super<IHeatableBlockEntity>.addToGoggleTooltip(tooltip, isPlayerSneaking)
-    }
-
-
     override fun getDuctNodePosition(): DuctNodePos {
         if (level != null) {
             return blockPos.toDuctNodePos(level!!.dimension().location())
         }
         return blockPos.toDuctNodePos()
     }
-
-
 }

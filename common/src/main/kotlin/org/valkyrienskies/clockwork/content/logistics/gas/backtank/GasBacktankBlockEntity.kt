@@ -14,12 +14,13 @@ import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
+import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.kelvin.api.DuctNetwork
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 
-class GasBacktankBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : SmartBlockEntity(type, pos, state), IHeatableBlockEntity {
+class GasBacktankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state) {
 
 
 

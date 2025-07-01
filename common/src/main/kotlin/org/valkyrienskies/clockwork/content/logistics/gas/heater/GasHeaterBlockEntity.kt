@@ -11,11 +11,12 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
+import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.util.toJOMLD
 
-class GasHeaterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : SmartBlockEntity(type, pos, state), IHeatableBlockEntity {
+class GasHeaterBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state) {
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) { }
 
     override fun getDuctNodePosition(): DuctNodePos {

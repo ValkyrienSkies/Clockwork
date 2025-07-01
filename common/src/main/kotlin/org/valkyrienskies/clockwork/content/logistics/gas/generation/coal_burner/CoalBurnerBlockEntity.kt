@@ -22,11 +22,12 @@ import org.valkyrienskies.kelvin.api.ConnectionType
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createEdgeType
+import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import java.util.*
 
-class CoalBurnerBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : SmartBlockEntity(type, pos, state), IHeatableBlockEntity, Clearable {
+class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), Clearable {
 
 
     var fuelTicks: Int = 0

@@ -20,12 +20,13 @@ import org.valkyrienskies.kelvin.api.nodes.PipeDuctNode
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createEdgeType
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createPipeEdge
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createPipeNode
+import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import java.time.Clock
 import java.util.*
 
-class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : SmartBlockEntity(type, pos, state), IHeatableBlockEntity {
+class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state) {
 
     val DIR_TO_CONNECTION_TYPE: EnumMap<Direction, ConnectionType> = EnumMap(Direction::class.java)
 
