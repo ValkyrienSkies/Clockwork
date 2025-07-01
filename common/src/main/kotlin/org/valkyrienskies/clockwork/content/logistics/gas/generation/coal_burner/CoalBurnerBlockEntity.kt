@@ -102,9 +102,9 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
         storedFuelStack = ItemStack.EMPTY
     }
 
-    override fun addToGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
+    override fun addToGoggleTooltip(tooltip: List<Component>?, isPlayerSneaking: Boolean): Boolean {
         if (!storedFuelStack.isEmpty) {
-            tooltip.add(Component.literal("    Coal burner Info").withStyle(ChatFormatting.GRAY))
+            (tooltip as MutableList).add(Component.literal("    Coal burner Info").withStyle(ChatFormatting.GRAY))
             tooltip.add(Component.literal("Fuel: ").withStyle(ChatFormatting.GOLD)
                 .append(storedFuelStack.displayName)
                 .append((Component.literal("x ${storedFuelStack.count}")).withStyle(ChatFormatting.GOLD)))

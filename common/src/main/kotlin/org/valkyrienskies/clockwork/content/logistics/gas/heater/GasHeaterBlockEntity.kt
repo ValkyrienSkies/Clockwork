@@ -64,8 +64,8 @@ class GasHeaterBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         notifyUpdate()
     }
 
-    override fun addToGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
-        tooltip.add(Component.literal("    Heater Info").withStyle(ChatFormatting.GRAY))
+    override fun addToGoggleTooltip(tooltip: List<Component>?, isPlayerSneaking: Boolean): Boolean {
+        (tooltip as MutableList).add(Component.literal("    Heater Info").withStyle(ChatFormatting.GRAY))
         tooltip.add(Component.literal("Heat Level: ${level!!.getBlockState(blockPos).getValue(HEAT_LEVEL).name}").withStyle(ChatFormatting.YELLOW))
         tooltip.add(Component.empty())
 
