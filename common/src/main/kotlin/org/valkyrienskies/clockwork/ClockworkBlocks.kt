@@ -473,8 +473,8 @@ object ClockworkBlocks {
         .initialProperties { SharedProperties.netheriteMetal() }
         .addLayer { Supplier { RenderType.cutout() } }
         .properties { it.noOcclusion() }
-        .onRegister(connectedTextures({DuctTankCTBehaviour()}))
-//        .onRegister(ClockworkRegistrate.blockModel { NonNullFunction<BakedModel, BakedModel> { originalModel: BakedModel -> DuctTankModel(originalModel) } })
+        .onRegister(connectedTextures { DuctTankCTBehaviour() })
+        .onRegister(ClockworkRegistrate.blockModel { NonNullFunction<BakedModel, BakedModel> { originalModel: BakedModel -> DuctTankModel(originalModel) } })
         .item()
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .build()

@@ -8,7 +8,6 @@ import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkSpriteShifts
 
 class DuctTankCTBehaviour: ConnectedTextureBehaviour.Base() {
-    //TODO doesn't really work
     override fun getShift(
         state: BlockState,
         direction: Direction,
