@@ -93,6 +93,11 @@ object ClockworkMod {
             BearingController.getOrCreate(ship)
         }
 
+        LifecycleEvent.SETUP.register {
+            LOGGER.info("REGISTERING WANDERLITE")
+            ClockworkWorldgen.register()
+        }
+
         LifecycleEvent.SERVER_STARTED.register {
             ClockworkAugmentations.registerComponentAvgAugmentation("temperature", it.shipObjectWorld)
             ClockworkAugmentations.registerComponentAvgAugmentation("pressure", it.shipObjectWorld)
