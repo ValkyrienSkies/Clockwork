@@ -208,7 +208,6 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         val bool = super.addToGoggleTooltip(tooltip, isPlayerSneaking)
         if (!hasPocket) {
             (tooltip as MutableList?)?.add(Component.literal("Missing pocket.").withStyle(ChatFormatting.GRAY).withStyle(ChatFormatting.ITALIC))
-            return false
         } else {
             (tooltip as MutableList?)?.add(Component.literal("Pocket Temperature: $clientPocketTemperature").withStyle(ChatFormatting.RED))
         }

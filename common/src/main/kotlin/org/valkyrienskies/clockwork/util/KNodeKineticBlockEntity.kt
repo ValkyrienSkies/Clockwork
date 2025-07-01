@@ -46,7 +46,7 @@ abstract class KNodeKineticBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos
         tooltip: List<Component>?,
         isPlayerSneaking: Boolean
     ): Boolean {
-        (this as IHeatableBlockEntity).addToGoggleTooltip(tooltip as MutableList? ?: mutableListOf(), isPlayerSneaking)
+        this.heatableGoggleTooltip(tooltip as MutableList? ?: mutableListOf(), isPlayerSneaking)
         return super<KineticBlockEntity>.addToGoggleTooltip(tooltip, isPlayerSneaking)
     }
 

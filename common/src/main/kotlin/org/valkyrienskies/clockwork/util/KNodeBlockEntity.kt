@@ -1,8 +1,10 @@
 package org.valkyrienskies.clockwork.util
 
+import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkPackets
@@ -27,6 +29,13 @@ abstract class KNodeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
 
     override fun setLazyTickRate(slowTickRate: Int) {
         super.setLazyTickRate(10)
+    }
+
+    override fun addToGoggleTooltip(
+        tooltip: List<Component>?,
+        isPlayerSneaking: Boolean
+    ): Boolean {
+        return this.heatableGoggleTooltip(tooltip as MutableList? ?: mutableListOf(), isPlayerSneaking)
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
