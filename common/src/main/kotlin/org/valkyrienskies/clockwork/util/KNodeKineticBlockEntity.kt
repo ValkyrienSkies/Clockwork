@@ -28,14 +28,14 @@ abstract class KNodeKineticBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos
         super.setLazyTickRate(10)
     }
 
-    override fun write(tag: CompoundTag?, clientPacket: Boolean) {
+    override fun write(tag: CompoundTag, clientPacket: Boolean) {
         if (tag != null) {
             saveData(tag, this.getDuctNodePosition())
         }
         super.write(tag, clientPacket)
     }
 
-    override fun read(tag: CompoundTag?, clientPacket: Boolean) {
+    override fun read(tag: CompoundTag, clientPacket: Boolean) {
         super.read(tag, clientPacket)
         if (tag != null) {
             loadData(tag, this.getDuctNodePosition())

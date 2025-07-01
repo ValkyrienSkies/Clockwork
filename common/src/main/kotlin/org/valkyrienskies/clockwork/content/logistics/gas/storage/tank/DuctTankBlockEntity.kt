@@ -74,6 +74,11 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         return controller!!.toDuctNodePos(level!!.dimension().location())
     }
 
+    override fun lazyTick() {
+        if (!isController) return
+        super.lazyTick()
+    }
+
     override fun getController(): BlockPos? {
         return if (isController) blockPos else controllerCT
     }
