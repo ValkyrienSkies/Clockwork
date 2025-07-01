@@ -28,10 +28,6 @@ class GasBacktankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Blo
         return
     }
 
-    override fun getDuctNodePosition(): DuctNodePos {
-        return blockPos.toDuctNodePos()
-    }
-
 
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {

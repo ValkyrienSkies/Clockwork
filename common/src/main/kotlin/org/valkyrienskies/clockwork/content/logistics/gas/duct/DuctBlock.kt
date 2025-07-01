@@ -167,7 +167,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
     }
 
 
-    protected fun getConnectedState(level: BlockGetter, state: BlockState, pos: BlockPos): BlockState? {
+    fun getConnectedState(level: BlockGetter, state: BlockState, pos: BlockPos): BlockState? {
         var state = state
         for (direction in Direction.entries) {
             val adjPos = pos.relative(direction)
@@ -222,8 +222,10 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         val neighborDuctNodePos = (level.getBlockEntity(neighborPos) as? IHeatableBlockEntity)?.getDuctNodePosition()
             ?: return finalConnection
 
-        val connectionType = if (finalConnection.isConnected) ConnectionType.PIPE else ConnectionType.NONE
-        blockEntity.setEdgeType(direction, neighborDuctNodePos, connectionType, clientPacket = false, silent = false)
+        val storedType = blockEntity.DIR_TO_CONNECTION_TYPE[direction] ?: ConnectionType.PIPE
+        val connectionType = if (finalConnection.isConnected) (if (storedType != ConnectionType.NONE) storedType else ConnectionType.PIPE) else ConnectionType.NONE
+
+        blockEntity.setEdgeType(direction, neighborDuctNodePos, connectionType, clientPacket = false, silent = false, forced = true)
 
 
         return finalConnection
@@ -235,6 +237,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
         level.setBlockAndUpdate(pos, this.getConnectedState(level, state, pos) ?: return)
 
+        println("placed duct at $pos in ${level.dimension().location()}")
     }
 
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {

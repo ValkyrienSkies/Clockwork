@@ -30,6 +30,8 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
 
     val DIR_TO_CONNECTION_TYPE: EnumMap<Direction, ConnectionType> = EnumMap(Direction::class.java)
 
+    var shouldUpdateEdges = false
+
     init {
         for (dir in Direction.values()) {
             this.DIR_TO_CONNECTION_TYPE[dir] = ConnectionType.NONE
@@ -46,12 +48,13 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
         for (dir in Direction.values()) {
             if (tag.contains("connectionType${dir.name}")) {
                 this.DIR_TO_CONNECTION_TYPE[dir] = ConnectionType.values()[tag.getInt("connectionType${dir.name}")]
+                if (!clientPacket) shouldUpdateEdges = true
             }
         }
-        if (this.level?.isClientSide != false) {
+        if (clientPacket) {
             return
         }
-        ClockworkMod.getKelvin().markLoaded(this.blockPos.toDuctNodePos(level!!.dimension().location()))
+        if (level != null) ClockworkMod.getKelvin().markLoaded(this.blockPos.toDuctNodePos(level!!.dimension().location()))
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
@@ -94,7 +97,7 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
         return nextType
     }
 
-    fun setEdgeType(dir: Direction, otherDuctNodePos: DuctNodePos, edgeType: ConnectionType, clientPacket: Boolean, silent: Boolean = false) {
+    fun setEdgeType(dir: Direction, otherDuctNodePos: DuctNodePos, edgeType: ConnectionType, clientPacket: Boolean, silent: Boolean = false, forced: Boolean = false) {
         if (this.level?.isClientSide != false && !clientPacket) {
             return
         }
@@ -102,9 +105,8 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
         this.DIR_TO_CONNECTION_TYPE[dir] = edgeType
         if (!clientPacket) {
             syncEdge(dir)
-            if (previousType != edgeType && !silent) {
-
-
+            println("SETTING EDGE TYPE: ${this.getDuctNodePosition()} to $otherDuctNodePos with $edgeType")
+            if ((previousType != edgeType && !silent) || forced) {
                 ClockworkMod.getKelvin().removeEdge(getDuctNodePosition(), otherDuctNodePos)
                 if (edgeType != ConnectionType.NONE) {
                     val newEdge = createEdgeType(getDuctNodePosition(), otherDuctNodePos, edgeType)

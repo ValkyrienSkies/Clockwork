@@ -30,7 +30,7 @@ class KNodeSyncPacket: S2CCWPacket {
             ) {
                 val ce =
                     Minecraft.getInstance().level!!.getBlockEntity(pos.toMinecraft()) as IHeatableBlockEntity?
-                ce?.loadData(nodeInfo, pos)
+                ce?.loadData(nodeInfo, pos, true)
             }
         }
         context.setPacketHandled(true)

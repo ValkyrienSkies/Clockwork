@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BooleanProperty
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
 import org.valkyrienskies.core.util.squared
 import org.valkyrienskies.kelvin.KelvinMod.KELVINLOGGER
@@ -39,7 +40,7 @@ class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE
     }
 
     override fun nodePlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
-        if (level.isClientSide) return
+        if (level.isClientSide) return //withBlockEntityDo(level, pos) { be -> ClockworkModClient.getKelvin().addNode(be.getDuctNodePosition(), createTankNode(be.getDuctNodePosition(), -1.0)) }
         if (state.isAir || state.block !is INodeBlock) return
 
         withBlockEntityDo(level, pos) { blockEntity ->
@@ -50,7 +51,11 @@ class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE
     }
 
     override fun nodeRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
-        if (!level.isClientSide) ClockworkMod.getKelvin().removeNode(pos.toDuctNodePos(level.dimension().location()))
+        if (!level.isClientSide) {
+            ClockworkMod.getKelvin().removeNode(pos.toDuctNodePos(level.dimension().location()))
+        } else {
+            ClockworkModClient.getKelvin().removeNode(pos.toDuctNodePos(level.dimension().location()))
+        }
     }
 
     override fun createNode(pos: DuctNodePos): DuctNode {
@@ -59,7 +64,7 @@ class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE
     }
 
     fun createTankNode(pos: DuctNodePos, size: Double): DuctNode {
-        return TankDuctNode(pos, NodeBehaviorType.TANK, volume = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0, size = size)
+        return TankDuctNode(pos, NodeBehaviorType.TANK, volume = 0.52, maxPressure = 16375049.0, maxTemperature = 1478.0, size = size)
     }
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
