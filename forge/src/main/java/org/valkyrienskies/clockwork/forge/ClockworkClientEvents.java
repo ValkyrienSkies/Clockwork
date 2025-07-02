@@ -19,6 +19,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.valkyrienskies.clockwork.ClockworkModClient;
+import org.valkyrienskies.clockwork.client.render.debug.KelvinEdgeRenderer;
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankArmorLayer;
 import org.valkyrienskies.clockwork.forge.content.logistics.gas.backtank.ForgeGasBacktankArmorLayer;
 
@@ -39,7 +40,13 @@ public class ClockworkClientEvents {
             return;
         }
 
+
+
         PoseStack ms = event.getPoseStack();
+
+        assert Minecraft.getInstance().level != null;
+        KelvinEdgeRenderer.render(Minecraft.getInstance().level, event.getPoseStack(), event.getCamera());
+
         ms.pushPose();
         SuperRenderTypeBuffer buffer = SuperRenderTypeBuffer.getInstance();
         float partialTicks = AnimationTickHolder.getPartialTicks();

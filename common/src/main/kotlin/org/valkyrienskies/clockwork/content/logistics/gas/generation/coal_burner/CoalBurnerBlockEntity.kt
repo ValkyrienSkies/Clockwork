@@ -22,11 +22,12 @@ import org.valkyrienskies.kelvin.api.ConnectionType
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createEdgeType
+import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import java.util.*
 
-class CoalBurnerBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : SmartBlockEntity(type, pos, state), IHeatableBlockEntity, Clearable {
+class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), Clearable {
 
 
     var fuelTicks: Int = 0
@@ -101,9 +102,9 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bl
         storedFuelStack = ItemStack.EMPTY
     }
 
-    override fun addToGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
+    override fun addToGoggleTooltip(tooltip: List<Component>?, isPlayerSneaking: Boolean): Boolean {
         if (!storedFuelStack.isEmpty) {
-            tooltip.add(Component.literal("    Coal burner Info").withStyle(ChatFormatting.GRAY))
+            (tooltip as MutableList).add(Component.literal("    Coal burner Info").withStyle(ChatFormatting.GRAY))
             tooltip.add(Component.literal("Fuel: ").withStyle(ChatFormatting.GOLD)
                 .append(storedFuelStack.displayName)
                 .append((Component.literal("x ${storedFuelStack.count}")).withStyle(ChatFormatting.GOLD)))

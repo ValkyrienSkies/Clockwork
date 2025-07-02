@@ -68,5 +68,6 @@ public class ClockworkModFabricClient implements ClientModInitializer {
             Window window = Minecraft.getInstance().getWindow();
             GRAVITRON_HANDLER.render(graphics, partialTicks, window.getWidth(), window.getHeight());
         });
+
     }
 }

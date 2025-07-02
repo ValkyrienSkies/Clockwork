@@ -18,6 +18,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.valkyrienskies.clockwork.ClockworkMod;
+import org.valkyrienskies.clockwork.ClockworkModClient;
 import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock;
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct;
 import org.valkyrienskies.clockwork.util.Vector3dUtilsKt;
@@ -93,6 +94,8 @@ public class MixinComposterBlock extends Block implements INodeBlock {
                 return;
             }
             ClockworkMod.getKelvin().addNode(KelvinExtensions.INSTANCE.toDuctNodePos(pos, level.dimension().location()), createNode(KelvinExtensions.INSTANCE.toDuctNodePos(pos, level.dimension().location())));
+        } else {
+            //ClockworkModClient.getKelvin().addNode(KelvinExtensions.INSTANCE.toDuctNodePos(pos, level.dimension().location()), createNode(KelvinExtensions.INSTANCE.toDuctNodePos(pos, level.dimension().location())));
         }
     }
 
@@ -102,6 +105,8 @@ public class MixinComposterBlock extends Block implements INodeBlock {
             if (newState.isAir() || !(newState.getBlock() instanceof INodeBlock)) {
                 ClockworkMod.getKelvin().removeNode(KelvinExtensions.INSTANCE.toDuctNodePos(pos, level.dimension().location()));
             }
+        } else {
+            ClockworkModClient.getKelvin().removeNode(KelvinExtensions.INSTANCE.toDuctNodePos(pos, level.dimension().location()));
         }
     }
 

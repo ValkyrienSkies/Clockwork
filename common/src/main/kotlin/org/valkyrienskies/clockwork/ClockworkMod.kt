@@ -1,14 +1,16 @@
 package org.valkyrienskies.clockwork
 
-import com.google.common.eventbus.Subscribe
+import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.logging.LogUtils
 import com.simibubi.create.foundation.data.CreateRegistrate
+import dev.architectury.event.events.common.CommandRegistrationEvent
 import dev.architectury.event.events.common.InteractionEvent
 import dev.architectury.event.events.common.LifecycleEvent
 import dev.architectury.event.events.common.TickEvent
 import dev.architectury.registry.CreativeTabRegistry
 import dev.architectury.registry.registries.DeferredRegister
 import dev.architectury.registry.registries.RegistrySupplier
+import net.minecraft.commands.CommandSourceStack
 import net.minecraft.core.registries.Registries
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceKey
@@ -21,9 +23,6 @@ import org.valkyrienskies.clockwork.content.forces.*
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroShipControl
 import org.valkyrienskies.clockwork.util.ClockworkUtils
-import org.valkyrienskies.core.api.VsBeta
-import org.valkyrienskies.core.api.events.CollisionEvent
-import org.valkyrienskies.core.impl.hooks.VSEvents
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.impl.DuctNetworkServer
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
@@ -56,7 +55,6 @@ object ClockworkMod {
 
     val BASE_CREATIVE_TABINFO: ResourceKey<CreativeModeTab> = BASE_CREATIVE_TAB.key
 
-    @OptIn(VsBeta::class)
     @JvmStatic
     fun init() {
         ClockworkContraptions.init()
@@ -75,11 +73,11 @@ object ClockworkMod {
         vsCore.registerAttachment(ReactionWheelController::class.java)
         vsCore.registerAttachment(EncasedFanController::class.java)
         vsCore.registerAttachment(GyroShipControl::class.java)
-        vsCore.registerAttachment(GravitronController::class.java)
         vsCore.registerAttachment(SugarRocketController::class.java)
+        vsCore.registerAttachment(GravitronController::class.java) { useTransientSerializer() }
         vsCore.registerAttachment(BearingController::class.java) { useTransientSerializer() }
 
-        VSEvents.shipLoadEvent.on { (ship) ->
+        vsApi.shipLoadEvent.on { event -> val ship = event.ship;
             PocketForcesController.getOrCreate(ship)
             DragController.getOrCreate(ship)
             WanderShipControl.getOrCreate(ship)
@@ -93,6 +91,11 @@ object ClockworkMod {
             GravitronController.getOrCreate(ship)
             SugarRocketController.getOrCreate(ship)
             BearingController.getOrCreate(ship)
+        }
+
+        LifecycleEvent.SETUP.register {
+            LOGGER.info("REGISTERING WANDERLITE")
+            ClockworkWorldgen.register()
         }
 
         LifecycleEvent.SERVER_STARTED.register {
@@ -118,8 +121,15 @@ object ClockworkMod {
             DualLinkHandler.handler(player, hand, pos, face)
         })
 
-        vsApi.collisionStartEvent.on {event: CollisionEvent ->
-            println("123")
+        //TODO remove when VS commands return
+        CommandRegistrationEvent.EVENT.register { dispatcher, context, idk ->
+            dispatcher.register(LiteralArgumentBuilder.literal<CommandSourceStack>("clockwork-remove-all-ships").executes {
+                val level = it.source.level!!
+                level.shipObjectWorld.allShips
+                    .map { it }
+                    .forEach { level.shipObjectWorld.deleteShip(it) }
+                0
+            })
         }
     }
 

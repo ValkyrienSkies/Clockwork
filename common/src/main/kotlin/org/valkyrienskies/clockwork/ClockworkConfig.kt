@@ -13,6 +13,9 @@ object ClockworkConfig {
     class Client {
         @JsonSchema(description = "Enable debug rendering")
         var debugRender = false
+
+        @JsonSchema(description = "Enable rendering particles for DuctBlock")
+        var renderDuctParticles = true
     }
 
     class Server {

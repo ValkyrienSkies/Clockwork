@@ -1,12 +1,10 @@
 package org.valkyrienskies.clockwork.util.universal_joint
 
-import net.minecraft.Util
 import net.minecraft.network.chat.Component
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.block.entity.BlockEntity
-import org.valkyrienskies.clockwork.ClockworkPackets
 
 open class UniversalJointItem<T: IUniversalJoint>(properties: Properties) : Item(properties) {
     var firstSelect: T? = null
@@ -25,9 +23,6 @@ open class UniversalJointItem<T: IUniversalJoint>(properties: Properties) : Item
             context.player!!.sendSystemMessage(Component.literal("First selected"))
         }
         else {
-
-
-
             context.player!!.sendSystemMessage(Component.literal("second selected"))
             if (firstSelect == tBe) return fail()
             if (!firstSelect!!.tryConnect(context.level,be.blockPos)) return fail()

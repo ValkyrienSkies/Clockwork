@@ -16,6 +16,13 @@
         },
         "plateau": 30
       }
+    },
+    {
+      "type": "minecraft:count",
+      "count": 100
+    },
+    {
+      "type": "minecraft:biome"
     }
   ]
 }
