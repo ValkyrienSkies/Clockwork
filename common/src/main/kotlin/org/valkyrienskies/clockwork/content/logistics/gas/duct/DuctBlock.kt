@@ -4,11 +4,13 @@ import com.google.common.collect.ImmutableMap
 import com.simibubi.create.AllSoundEvents
 import com.simibubi.create.content.equipment.wrench.IWrenchable
 import com.simibubi.create.foundation.block.IBE
+import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundSource
+import net.minecraft.util.RandomSource
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.item.context.UseOnContext
@@ -31,8 +33,11 @@ import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.joml.Vector2f
+import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver.IScrewdrivable
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
@@ -53,6 +58,7 @@ import org.valkyrienskies.kelvin.util.IEdgeBlock
 import org.valkyrienskies.kelvin.util.IHeatableBlock
 import org.valkyrienskies.kelvin.util.IHeatableBlock.Companion.GAS_HEAT_LEVEL
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
+import kotlin.math.abs
 
 
 class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, IBE<DuctBlockEntity>,
@@ -400,6 +406,22 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         }
 
         return InteractionResult.SUCCESS
+
+    }
+
+    override fun animateTick(state: BlockState, level: Level, pos: BlockPos, random: RandomSource) {
+        if (!ClockworkConfig.CLIENT.renderDuctParticles) return
+        val be = level.getBlockEntity(pos) as? DuctBlockEntity ?: return
+
+        val network = ClockworkModClient.getKelvin()
+        val ductNodePos = be.getDuctNodePosition()
+
+        val node = network.nodeInfo.get(ductNodePos) ?: return
+        if (node.currentPressure - node.previousPressure < 1000) return
+
+        val largestGas = node.currentGasMasses.maxBy { (_, amount) -> amount }.key
+        val speed = Vector3d(random.nextDouble()-0.5, random.nextDouble()-0.5, random.nextDouble()-0.5).mul(0.1)
+        network.createGasParticle(level as ClientLevel, largestGas, ductNodePos, pos.x + 0.5, pos.y + 0.5, pos.z + 0.5, speed.x, speed.y, speed.z)
 
     }
 
