@@ -19,10 +19,12 @@ import net.minecraft.world.item.CreativeModeTab
 import net.minecraft.world.item.ItemStack
 import org.slf4j.LoggerFactory
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkHandler
+import org.valkyrienskies.clockwork.content.events.CollisionSoundEffectHandler
 import org.valkyrienskies.clockwork.content.forces.*
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroShipControl
 import org.valkyrienskies.clockwork.util.ClockworkUtils
+import org.valkyrienskies.core.api.events.CollisionEvent
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.impl.DuctNetworkServer
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
@@ -115,6 +117,7 @@ object ClockworkMod {
                 ship.getAttachment(DragController::class.java)?.gameTick(ship, it)
             }
             ClockworkUtils.tick(it)
+            CollisionSoundEffectHandler.tick(it)
         }
 
         InteractionEvent.RIGHT_CLICK_BLOCK.register(InteractionEvent.RightClickBlock { player, hand, pos, face ->
@@ -131,6 +134,8 @@ object ClockworkMod {
                 0
             })
         }
+
+        vsCore.collisionStartEvent.on(CollisionSoundEffectHandler::onCollide)
     }
 
     @JvmStatic

@@ -18,6 +18,8 @@ import org.joml.Vector3f
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.core.api.ships.ClientShip
+import org.valkyrienskies.kelvin.api.DuctEdge
+import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.edges.PipeDuctEdge
 import org.valkyrienskies.mod.api.vsApi
 
@@ -52,8 +54,8 @@ object KelvinEdgeRenderer {
 
 
 
-
-        for (edge in network.edges) {
+        val edges = network.edges.clone() as HashMap<Pair<DuctNodePos, DuctNodePos>, DuctEdge>
+        for (edge in edges) {
 
 
             var firstPosition = Vector3d(edge.key.first.x+0.5, edge.key.first.y+0.5, edge.key.first.z+0.5)
