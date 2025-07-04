@@ -54,8 +54,8 @@ object KelvinEdgeRenderer {
         val g = 255
 
         // We clone edges to prevent concurrentModification
-        val edges = network.edges.clone()
-        for (edge in edges as HashMap<Pair<DuctNodePos, DuctNodePos>, DuctEdge>) {
+        val edges = HashMap(network.edges)
+        for (edge in edges) {
 
 
             var firstPosition = Vector3d(edge.key.first.x+0.5, edge.key.first.y+0.5, edge.key.first.z+0.5)
