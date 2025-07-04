@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column_horizontal",
+  "textures": {
+    "end": "vs_clockwork:block/gas_engine_front",
+    "side": "vs_clockwork:block/gas_engine_side"
+  }
+}

@@ -51,6 +51,7 @@ import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSea
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.engine.GasEngineBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorBlock
@@ -544,6 +545,22 @@ object ClockworkBlocks {
             .item()
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .model(AssetLookup.customBlockItemModel("gas_nozzle"))
+            .build()
+            .register()
+
+    @JvmField
+    val GAS_ENGINE: BlockEntry<GasEngineBlock> =
+        REGISTRATE.block<GasEngineBlock>("gas_engine") { properties: BlockBehaviour.Properties? ->
+            GasEngineBlock(properties!!)
+        }
+            .initialProperties { Blocks.IRON_BLOCK }
+            .transform(axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .properties { it.noOcclusion() }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
             .register()
 
