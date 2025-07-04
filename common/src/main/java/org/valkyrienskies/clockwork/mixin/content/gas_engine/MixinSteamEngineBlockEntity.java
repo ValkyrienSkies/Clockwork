@@ -26,6 +26,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.valkyrienskies.clockwork.ClockworkBlocks;
+import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.content.logistics.gas.engine.GasEngineBlock;
 import org.valkyrienskies.clockwork.content.logistics.gas.engine.GasEngineBlockEntity;
 
@@ -48,13 +49,11 @@ public abstract class MixinSteamEngineBlockEntity extends SmartBlockEntity {
     @Inject(method = "tick", at = @At("RETURN"), remap = false)
     private void vs_clockwork$tick(CallbackInfo ci) {
         FluidTankBlockEntity tank = getTank();
-        System.out.println(tank);
         if (tank != null) return;
 
         PoweredShaftBlockEntity shaft = getShaft();
         GasEngineBlockEntity engine = getEngine();
 
-        System.out.println("A");
         if (engine == null || shaft == null) {
             if (level.isClientSide())
                 return;
@@ -77,8 +76,7 @@ public abstract class MixinSteamEngineBlockEntity extends SmartBlockEntity {
         if (shaftState.getBlock()instanceof IRotate ir)
             targetAxis = ir.getRotationAxis(shaftState);
         boolean verticalTarget = targetAxis == Direction.Axis.Y;
-//
-        System.out.println("B");
+
         BlockState blockState = getBlockState();
         if (!AllBlocks.STEAM_ENGINE.has(blockState)) return;
 
@@ -88,7 +86,7 @@ public abstract class MixinSteamEngineBlockEntity extends SmartBlockEntity {
 
         float efficiency = Mth.clamp(engine.getEngineEfficiency(), 0, 1);
         if (efficiency > 0) award(AllAdvancements.STEAM_ENGINE);
-        System.out.println(efficiency);
+
         int conveyedSpeedLevel =
                 efficiency == 0 ? 1 : verticalTarget ? 1 : (int) GeneratingKineticBlockEntity.convertToDirection(1, facing);
         if (targetAxis == Direction.Axis.Z)
@@ -111,6 +109,13 @@ public abstract class MixinSteamEngineBlockEntity extends SmartBlockEntity {
         //EnvExecutor.runWhenOn(EnvType.CLIENT, () -> this::spawnParticles);
 
     }
+
+    // Prevent shaft from updating (due to no tank) if there's a gas engine
+    @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/kinetics/steamEngine/PoweredShaftBlockEntity;update(Lnet/minecraft/core/BlockPos;IF)V"), remap = false, cancellable = true)
+    private void cancelShaftUpdate(CallbackInfo ci) {
+        if (getEngine() != null) ci.cancel();
+    }
+
 
     @Shadow public abstract PoweredShaftBlockEntity getShaft();
 

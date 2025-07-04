@@ -16,10 +16,7 @@ public class MixinSteamEngineBlock {
 
     @Inject(method = "canAttach", at = @At("RETURN"), cancellable = true)
     private static void vs_clockwork$canAttach(LevelReader pReader, BlockPos pPos, Direction pDirection, CallbackInfoReturnable<Boolean> cir) {
-        BlockPos blockpos = pPos.relative(pDirection);
-        if (pReader.getBlockState(blockpos).getBlock() instanceof GasEngineBlock) {
-            cir.setReturnValue(Boolean.TRUE);
-        }
-        cir.setReturnValue(cir.getReturnValue());
+        if (pReader.getBlockState(pPos.relative(pDirection)).getBlock() instanceof GasEngineBlock) cir.setReturnValue(Boolean.TRUE);
+        else cir.setReturnValue(cir.getReturnValue());
     }
 }
