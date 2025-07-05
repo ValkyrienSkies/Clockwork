@@ -40,4 +40,13 @@ class GasEngineBlock(properties: Properties) : RotatedPillarBlock(properties), I
         if (direction.axis != level.getBlockState(self).getValue(AXIS)) return false
         return super.canConnectTo(self, other, direction, level)
     }
+
+    companion object {
+        @JvmStatic
+        fun updateEngineState(level: Level, pos: BlockPos, isRemoved: Boolean) {
+            val blockEntity = level.getBlockEntity(pos) as? GasEngineBlockEntity ?: return
+            blockEntity.attachedEngines += if (isRemoved) -1 else 1
+            if (blockEntity.attachedEngines < 0) blockEntity.attachedEngines = 0
+        }
+    }
 }

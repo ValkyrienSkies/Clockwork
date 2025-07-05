@@ -13,12 +13,14 @@ import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour;
 import com.tterrag.registrate.fabric.EnvExecutor;
 import net.fabricmc.api.EnvType;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import org.joml.Vector3d;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -84,7 +86,7 @@ public abstract class MixinSteamEngineBlockEntity extends SmartBlockEntity {
         if (facing.getAxis() == Direction.Axis.Y)
             facing = blockState.getValue(SteamEngineBlock.FACING);
 
-        float efficiency = Mth.clamp(engine.getEngineEfficiency(), 0, 1);
+        float efficiency = engine.getEngineEfficiency();
         if (efficiency > 0) award(AllAdvancements.STEAM_ENGINE);
 
         int conveyedSpeedLevel =
@@ -105,8 +107,10 @@ public abstract class MixinSteamEngineBlockEntity extends SmartBlockEntity {
         shaft.update(worldPosition, conveyedSpeedLevel, efficiency);
 
         if (!level.isClientSide) return;
+        engine.spawnParticles( (ClientLevel) level,
+                new Vector3d(getBlockPos().getX() + 0.5, getBlockPos().getY() + 0.5, getBlockPos().getZ() + 0.5),
+                new Vector3d(0.0,0.0,0.0));
 
-        //EnvExecutor.runWhenOn(EnvType.CLIENT, () -> this::spawnParticles);
 
     }
 
