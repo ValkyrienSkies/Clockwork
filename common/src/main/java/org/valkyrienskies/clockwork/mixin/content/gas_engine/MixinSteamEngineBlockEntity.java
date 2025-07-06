@@ -11,12 +11,9 @@ import com.simibubi.create.content.kinetics.steamEngine.SteamEngineBlockEntity;
 import com.simibubi.create.foundation.advancement.AllAdvancements;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour;
-import com.tterrag.registrate.fabric.EnvExecutor;
-import net.fabricmc.api.EnvType;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -27,9 +24,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.valkyrienskies.clockwork.ClockworkBlocks;
-import org.valkyrienskies.clockwork.ClockworkMod;
-import org.valkyrienskies.clockwork.content.logistics.gas.engine.GasEngineBlock;
 import org.valkyrienskies.clockwork.content.logistics.gas.engine.GasEngineBlockEntity;
 
 import java.lang.ref.WeakReference;
@@ -40,6 +34,9 @@ public abstract class MixinSteamEngineBlockEntity extends SmartBlockEntity {
     @Unique
     public WeakReference<GasEngineBlockEntity> gasSource = new WeakReference<>(null);
 
+    @Unique
+    private boolean generating = false;
+
     @Shadow
     protected ScrollOptionBehaviour<WindmillBearingBlockEntity.RotationDirection> movementDirection;
 
@@ -48,10 +45,10 @@ public abstract class MixinSteamEngineBlockEntity extends SmartBlockEntity {
     }
 
 
-    @Inject(method = "tick", at = @At("RETURN"), remap = false)
+    @Inject(method = "tick", at = @At("HEAD"), remap = false)
     private void vs_clockwork$tick(CallbackInfo ci) {
         FluidTankBlockEntity tank = getTank();
-        if (tank != null) return;
+        if (tank != null)  return;
 
         PoweredShaftBlockEntity shaft = getShaft();
         GasEngineBlockEntity engine = getEngine();
@@ -89,6 +86,7 @@ public abstract class MixinSteamEngineBlockEntity extends SmartBlockEntity {
         float efficiency = engine.getEngineEfficiency();
         if (efficiency > 0) award(AllAdvancements.STEAM_ENGINE);
 
+
         int conveyedSpeedLevel =
                 efficiency == 0 ? 1 : verticalTarget ? 1 : (int) GeneratingKineticBlockEntity.convertToDirection(1, facing);
         if (targetAxis == Direction.Axis.Z)
@@ -104,18 +102,20 @@ public abstract class MixinSteamEngineBlockEntity extends SmartBlockEntity {
             conveyedSpeedLevel *= -1;
         }
 
+        System.out.println(efficiency + " " + conveyedSpeedLevel);
         shaft.update(worldPosition, conveyedSpeedLevel, efficiency);
 
         if (!level.isClientSide) return;
-        engine.spawnParticles( (ClientLevel) level,
-                new Vector3d(getBlockPos().getX() + 0.5, getBlockPos().getY() + 0.5, getBlockPos().getZ() + 0.5),
+
+        if (level.random.nextDouble() < 0.1) engine.spawnParticles( (ClientLevel) level,
+                new Vector3d(getBlockPos().getX() + level.random.nextDouble(), getBlockPos().getY() + level.random.nextDouble(), getBlockPos().getZ() + level.random.nextDouble()),
                 new Vector3d(0.0,0.0,0.0));
 
 
     }
 
     // Prevent shaft from updating (due to no tank) if there's a gas engine
-    @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/kinetics/steamEngine/PoweredShaftBlockEntity;update(Lnet/minecraft/core/BlockPos;IF)V"), remap = false, cancellable = true)
+    @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;isLoaded(Lnet/minecraft/core/BlockPos;)Z"), remap = false, cancellable = true)
     private void cancelShaftUpdate(CallbackInfo ci) {
         if (getEngine() != null) ci.cancel();
     }
@@ -124,6 +124,8 @@ public abstract class MixinSteamEngineBlockEntity extends SmartBlockEntity {
     @Shadow public abstract PoweredShaftBlockEntity getShaft();
 
     @Shadow public abstract FluidTankBlockEntity getTank();
+
+    @Shadow private float prevAngle;
 
     @Unique
     public GasEngineBlockEntity getEngine() {

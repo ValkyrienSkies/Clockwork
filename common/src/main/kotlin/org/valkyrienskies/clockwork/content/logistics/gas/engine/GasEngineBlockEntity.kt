@@ -4,6 +4,7 @@ import com.simibubi.create.content.kinetics.steamEngine.SteamEngineBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Vector3dc
@@ -21,36 +22,43 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
 
     override fun tick() {
-        if (level?.isClientSide != false) return
-
         val network = KelvinMod.getKelvin()
         val temperature = network.getTemperatureAt(getDuctNodePosition())
         totalEfficiency = tempToEfficiency(temperature)
 
+        if (level!!.isClientSide) return super.tick()
         network.modHeatEnergy(getDuctNodePosition(), -heatLoss)
         super.tick()
     }
 
     fun getEngineEfficiency(): Float {
-        val value = if (attachedEngines == 0) 0f else totalEfficiency / attachedEngines
-        println(attachedEngines)
-        return value
+        return if (attachedEngines == 0) 0f else totalEfficiency / attachedEngines
     }
 
     fun spawnParticles(level: ClientLevel, pos: Vector3dc, speed: Vector3dc) {
         KelvinParticleHelper.spawnParticleWithRatio(level, getDuctNodePosition(), pos, speed)
     }
 
+    override fun write(tag: CompoundTag, clientPacket: Boolean) {
+        tag.putInt("AttachedEngines", attachedEngines)
+        tag.putFloat("TotalEfficiency",totalEfficiency)
+    }
+
+    override fun read(tag: CompoundTag, clientPacket: Boolean) {
+        attachedEngines = tag.getInt("AttachedEngines")
+        totalEfficiency = tag.getFloat("TotalEfficiency")
+    }
+
     companion object {
         fun tempToEfficiency(temperature: Double): Float {
-            return when {
+            return 0.5f * when {
                 temperature < 350 -> 0.0f
                 temperature < 700 -> 1.0f
                 temperature < 1050 -> 2.0f
                 temperature < 1400 -> 3.0f
                 temperature < 1750 -> 4.0f
                 temperature < 2100 -> 5.0f
-                else -> 5.0f
+                else -> 6.0f
             }
         }
     }
