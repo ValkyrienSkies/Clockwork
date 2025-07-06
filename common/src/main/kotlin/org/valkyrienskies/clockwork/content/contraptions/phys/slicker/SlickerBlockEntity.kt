@@ -25,6 +25,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlo
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerMovementBehavior.Companion.isAttachedToShipOrWorld
 import org.valkyrienskies.clockwork.platform.PlatformUtils
 import org.valkyrienskies.clockwork.util.ClockworkConstants
+import org.valkyrienskies.clockwork.util.gtfa
 import org.valkyrienskies.core.apigame.joints.VSFixedJoint
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
 import org.valkyrienskies.mod.common.shipObjectWorld
@@ -67,7 +68,7 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
         val extraData = PlatformUtils.getExtraData(this).getCompound(ClockworkConstants.Nbt.CONDENSED_DATA)
         if (extraData.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT)) {
             if (level != null) {
-                level.shipObjectWorld.removeConstraint(extraData.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID))
+                level.gtfa.removeJoint(extraData.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID))
             }
             if (removeTags) {
                 extraData.remove(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)

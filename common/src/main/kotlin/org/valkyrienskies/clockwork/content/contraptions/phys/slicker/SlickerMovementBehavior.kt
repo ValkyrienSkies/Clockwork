@@ -31,17 +31,19 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.mixin.accessors.IMixinPistonContraption
 import org.valkyrienskies.clockwork.mixinduck.MixinAbstractContraptionEntityDuck
 import org.valkyrienskies.clockwork.util.ClockworkConstants
+import org.valkyrienskies.clockwork.util.gtfa
+import org.valkyrienskies.clockwork.util.updateJoint
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.Ship
 import org.valkyrienskies.core.apigame.joints.VSFixedJoint
 import org.valkyrienskies.core.apigame.joints.VSJointMaxForceTorque
 import org.valkyrienskies.core.apigame.joints.VSJointPose
+import org.valkyrienskies.core.apigame.world.PhysLevelCore
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
 import org.valkyrienskies.mod.common.*
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
-import org.valkyrienskies.mod.mixin.mod_compat.create.blockentity.IMixinMechanicalBearingTileEntity
 import org.valkyrienskies.mod.mixinducks.mod_compat.create.IMixinControlledContraptionEntity
 
 
@@ -100,8 +102,8 @@ class SlickerMovementBehavior : MovementBehaviour {
                     ((context.contraption.entity as IMixinControlledContraptionEntity).grabController() as LinearActuatorBlockEntity).assembleNextTick
             }
             if (context.contraption is BearingContraption || context.contraption is StabilizedContraption) {
-                result =
-                    ((context.contraption.entity as IMixinControlledContraptionEntity).grabController() as IMixinMechanicalBearingTileEntity).isAssembleNextTick
+//                result =
+//                    ((context.contraption.entity as IMixinControlledContraptionEntity).grabController() as IMixinMechanicalBearingTileEntity).isAssembleNextTick
             }
         }
         return result
@@ -213,7 +215,7 @@ class SlickerMovementBehavior : MovementBehaviour {
 
             if (constraintPair != null) {
                 val attachConstraint2 = constraintPair
-                (context.world as ServerLevel).shipObjectWorld.updateConstraint(extraData.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID), attachConstraint2)
+                (context.world as ServerLevel).gtfa.updateJoint(extraData.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID), attachConstraint2)
                 extraData.putInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID, extraData.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID))
                 extraData.putByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT, mapper.writeValueAsBytes(attachConstraint2))
                 extraData.putDouble(ClockworkConstants.Nbt.SHIP_SLICKER_DISTANCE, distance)
@@ -345,7 +347,7 @@ class SlickerMovementBehavior : MovementBehaviour {
                 val attachConstraintData = tag.getByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT)
                 val attachConstraint = mapper.readValue(attachConstraintData, VSFixedJoint::class.java)
 
-                if ((level.shipObjectWorld.updateConstraint(attachConstraintId, attachConstraint))) return
+                level.gtfa.updateJoint(attachConstraintId, attachConstraint)
 
                 adjustedDistance = 1.0
                 realShip1 = attachConstraint.shipId0?.let { level.shipObjectWorld.loadedShips.getById(it) }
@@ -358,17 +360,18 @@ class SlickerMovementBehavior : MovementBehaviour {
 
             val constraintPair: VSFixedJoint? = makeConstraint(realShip1Pos, ship2ConstraintPos, realShip1, realShip2, level, realShip1Rot, realShip2Rot, realShip2Pos)
 
-            if (constraintPair != null) {
-                val attachConstraint = constraintPair
-                val attachConstraintId = level.shipObjectWorld.createNewConstraint(attachConstraint)
-
-                tag.putInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID, attachConstraintId ?: -1)
-                tag.putByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT, mapper.writeValueAsBytes(attachConstraint))
-
-                tag.putDouble(ClockworkConstants.Nbt.SHIP_SLICKER_DISTANCE, adjustedDistance)
-
-                ClockworkMod.LOGGER.info("Attached to ship ${attachConstraint.shipId1} using points ${attachConstraint.pose0.pos} && ${attachConstraint.pose1.pos}")
-            }
+            //TODO
+//            if (constraintPair != null) {
+//                val attachConstraint = constraintPair
+//                val attachConstraintId = level.shipObjectWorld.createNewConstraint(attachConstraint)
+//
+//                tag.putInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID, attachConstraintId ?: -1)
+//                tag.putByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT, mapper.writeValueAsBytes(attachConstraint))
+//
+//                tag.putDouble(ClockworkConstants.Nbt.SHIP_SLICKER_DISTANCE, adjustedDistance)
+//
+//                ClockworkMod.LOGGER.info("Attached to ship ${attachConstraint.shipId1} using points ${attachConstraint.pose0.pos} && ${attachConstraint.pose1.pos}")
+//            }
         }
 
         private fun makeConstraint(
@@ -422,7 +425,7 @@ class SlickerMovementBehavior : MovementBehaviour {
 
         fun removeConstraint(level: ServerLevel, removeTags: Boolean, compoundTag: CompoundTag) {
             if (compoundTag.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)) {
-                level.shipObjectWorld.removeConstraint(compoundTag.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID))
+                level.gtfa.removeJoint(compoundTag.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID))
 
                 if (removeTags) {
                     compoundTag.remove(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)

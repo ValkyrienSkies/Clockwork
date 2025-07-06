@@ -14,6 +14,7 @@ import org.valkyrienskies.clockwork.util.AerodynamicUtils.DRAG_COEFFICIENT
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.getAirDensityForY
 import org.valkyrienskies.clockwork.util.SideProfileTracker
 import org.valkyrienskies.core.api.ships.*
+import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.api.world.properties.DimensionId
 import org.valkyrienskies.core.util.expand
 import org.valkyrienskies.mod.common.util.settings
@@ -25,7 +26,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.collections.HashMap
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-class DragController : ShipForcesInducer {
+class DragController : ShipPhysicsListener {
 
     var dimensionId: DimensionId = "minecraft:dimension:minecraft:overworld"
 
@@ -53,7 +54,7 @@ class DragController : ShipForcesInducer {
     @JsonIgnore
     private var lodDetail: Int = 5
 
-    override fun applyForces(physShip: PhysShip) {
+    override fun physTick(physShip: PhysShip, physLevel: PhysLevel) {
         val impl = physShip
         if (blockUpdateQueue.isNotEmpty()) {
             val posair = blockUpdateQueue.poll()

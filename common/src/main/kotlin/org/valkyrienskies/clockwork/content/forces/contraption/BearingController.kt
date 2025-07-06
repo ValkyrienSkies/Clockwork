@@ -14,6 +14,7 @@ import org.valkyrienskies.core.api.VsBeta
 import org.valkyrienskies.core.api.ships.*
 import org.valkyrienskies.core.api.ships.properties.ShipId
 import org.valkyrienskies.core.api.ships.properties.ShipTransform
+import org.valkyrienskies.core.api.world.PhysLevel
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -21,7 +22,7 @@ import kotlin.math.abs
 import kotlin.math.sign
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-class BearingController : ShipForcesInducer {
+class BearingController : ShipPhysicsListener {
     val bearingData = HashMap<Int, PhysBearingData>()
 
     @JsonIgnore
@@ -32,12 +33,8 @@ class BearingController : ShipForcesInducer {
     private val removedBearings = ConcurrentLinkedQueue<Int>()
     private var nextBearingID = 0
 
-    override fun applyForces(physShip: PhysShip) {
-        // Do nothing, actual work is in applyForcesAndLookupPhysShips()
-    }
-
     //attachment from subship moves iteslf
-    override fun applyForcesAndLookupPhysShips(physShip: PhysShip, lookupPhysShip: (ShipId) -> PhysShip?) {
+    override fun physTick(physShip: PhysShip, physLevel: PhysLevel) {
         while (!createdBearings.isEmpty()) { createdBearings.remove().also { (id, data) -> bearingData[id] = data } }
         while (!removedBearings.isEmpty()) { bearingData.remove(removedBearings.remove()) }
         bearingUpdateData.forEach { (id: Int, data: PhysBearingUpdateData) ->
@@ -56,7 +53,7 @@ class BearingController : ShipForcesInducer {
                 physShip.applyInvariantTorque(torque)
                 continue
             }
-            val physShipBearingIsOn = lookupPhysShip.invoke(physShipBearingIsOnId)
+            val physShipBearingIsOn = physLevel.getShipById(physShipBearingIsOnId)
             if (physShipBearingIsOn == null) {
                 val torque = computeRotationalForce(data, physShip, null)
                 physShip.applyInvariantTorque(torque)
