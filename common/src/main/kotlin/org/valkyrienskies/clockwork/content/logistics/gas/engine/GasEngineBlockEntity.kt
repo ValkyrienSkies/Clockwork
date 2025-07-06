@@ -11,23 +11,25 @@ import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.KelvinParticleHelper
 import org.valkyrienskies.kelvin.KelvinMod
+import org.valkyrienskies.kelvin.api.DuctNetwork
 
 class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState): KNodeBlockEntity(type, pos, state) {
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) { return }
 
-    val heatLoss get() = totalEfficiency * 1000.0
+    val heatLoss get() = totalEfficiency * 100.0
 
     var attachedEngines = 0
     var totalEfficiency = 0.0f
 
 
     override fun tick() {
+        if (level!!.isClientSide) return super.tick()
+
         val network = KelvinMod.getKelvin()
         val temperature = network.getTemperatureAt(getDuctNodePosition())
         totalEfficiency = tempToEfficiency(temperature)
 
-        if (level!!.isClientSide) return super.tick()
-        network.modHeatEnergy(getDuctNodePosition(), -heatLoss)
+        network.modHeatEnergy(getDuctNodePosition(), -heatLoss*totalEfficiency)
         super.tick()
     }
 
@@ -42,11 +44,15 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
         tag.putInt("AttachedEngines", attachedEngines)
         tag.putFloat("TotalEfficiency",totalEfficiency)
+
+        super.write(tag, clientPacket)
     }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         attachedEngines = tag.getInt("AttachedEngines")
         totalEfficiency = tag.getFloat("TotalEfficiency")
+
+        super.read(tag, clientPacket)
     }
 
     companion object {
