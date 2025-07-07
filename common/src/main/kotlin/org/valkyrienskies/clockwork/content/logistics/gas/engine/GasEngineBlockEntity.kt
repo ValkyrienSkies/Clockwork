@@ -21,15 +21,18 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     var attachedEngines = 0
     var totalEfficiency = 0.0f
 
+    override fun lazyTick() {
+        super.lazyTick()
 
-    override fun tick() {
-        if (level!!.isClientSide) return super.tick()
-
+        if (level!!.isClientSide) return
         val network = KelvinMod.getKelvin()
         val temperature = network.getTemperatureAt(getDuctNodePosition())
         totalEfficiency = tempToEfficiency(temperature)
+    }
 
-        network.modHeatEnergy(getDuctNodePosition(), -heatLoss*totalEfficiency)
+    override fun tick() {
+        if (level!!.isClientSide) return super.tick()
+        KelvinMod.getKelvin().modHeatEnergy(getDuctNodePosition(), -heatLoss*totalEfficiency)
         super.tick()
     }
 
