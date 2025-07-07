@@ -17,6 +17,9 @@ import kotlin.math.floor
 import kotlin.random.Random
 
 class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state) {
+
+    val MASS_PER_EXHAUST = 5
+
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) {
         return
     }
@@ -37,7 +40,7 @@ class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
             val random = level!!.random
 
             println(gasses.values.sum().toInt())
-            for (i in 1..floor(gasses.values.sum()/10).toInt()) {
+            for (i in 1..floor(gasses.values.sum()/MASS_PER_EXHAUST).toInt()) {
                 KelvinParticleHelper.spawnParticleWithRatio(level as ClientLevel, getDuctNodePosition(),
                     blockPos.toJOMLD().add(randomPos(0.3, random), randomPos(0.3, random), randomPos(0.3, random)),
                     facing.normal.toJOMLD().mul(0.1))

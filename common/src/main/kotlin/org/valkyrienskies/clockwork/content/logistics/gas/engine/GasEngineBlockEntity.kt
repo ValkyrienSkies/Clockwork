@@ -12,6 +12,7 @@ import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.KelvinParticleHelper
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.api.DuctNetwork
+import kotlin.math.min
 
 class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState): KNodeBlockEntity(type, pos, state) {
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) { return }
@@ -37,7 +38,7 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     }
 
     fun getEngineEfficiency(): Float {
-        return if (attachedEngines == 0) 0f else totalEfficiency / attachedEngines
+        return if (attachedEngines == 0) 0f else min(totalEfficiency / attachedEngines, 1f)
     }
 
     fun spawnParticles(level: ClientLevel, pos: Vector3dc, speed: Vector3dc) {
@@ -60,15 +61,7 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
     companion object {
         fun tempToEfficiency(temperature: Double): Float {
-            return 0.5f * when {
-                temperature < 350 -> 0.0f
-                temperature < 700 -> 1.0f
-                temperature < 1050 -> 2.0f
-                temperature < 1400 -> 3.0f
-                temperature < 1750 -> 4.0f
-                temperature < 2100 -> 5.0f
-                else -> 6.0f
-            }
+            return (temperature / 700).toFloat()
         }
     }
 }
