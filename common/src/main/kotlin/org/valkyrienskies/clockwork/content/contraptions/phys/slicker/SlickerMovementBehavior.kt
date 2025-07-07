@@ -7,7 +7,6 @@ import com.simibubi.create.content.contraptions.bearing.BearingContraption
 import com.simibubi.create.content.contraptions.bearing.StabilizedContraption
 import com.simibubi.create.content.contraptions.behaviour.MovementBehaviour
 import com.simibubi.create.content.contraptions.behaviour.MovementContext
-import com.simibubi.create.content.contraptions.chassis.StickerBlock
 import com.simibubi.create.content.contraptions.gantry.GantryContraption
 import com.simibubi.create.content.contraptions.piston.LinearActuatorBlockEntity
 import com.simibubi.create.content.contraptions.piston.PistonContraption
@@ -31,14 +30,13 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.mixin.accessors.IMixinPistonContraption
 import org.valkyrienskies.clockwork.mixinduck.MixinAbstractContraptionEntityDuck
 import org.valkyrienskies.clockwork.util.ClockworkConstants
-import org.valkyrienskies.clockwork.util.gtfa
+import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.clockwork.util.updateJoint
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.Ship
 import org.valkyrienskies.core.apigame.joints.VSFixedJoint
 import org.valkyrienskies.core.apigame.joints.VSJointMaxForceTorque
 import org.valkyrienskies.core.apigame.joints.VSJointPose
-import org.valkyrienskies.core.apigame.world.PhysLevelCore
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
 import org.valkyrienskies.mod.common.*
 import org.valkyrienskies.mod.common.util.toJOML
@@ -215,7 +213,7 @@ class SlickerMovementBehavior : MovementBehaviour {
 
             if (constraintPair != null) {
                 val attachConstraint2 = constraintPair
-                (context.world as ServerLevel).gtfa.updateJoint(extraData.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID), attachConstraint2)
+                (context.world as ServerLevel).gtpa.updateJoint(extraData.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID), attachConstraint2)
                 extraData.putInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID, extraData.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID))
                 extraData.putByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT, mapper.writeValueAsBytes(attachConstraint2))
                 extraData.putDouble(ClockworkConstants.Nbt.SHIP_SLICKER_DISTANCE, distance)
@@ -347,7 +345,7 @@ class SlickerMovementBehavior : MovementBehaviour {
                 val attachConstraintData = tag.getByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT)
                 val attachConstraint = mapper.readValue(attachConstraintData, VSFixedJoint::class.java)
 
-                level.gtfa.updateJoint(attachConstraintId, attachConstraint)
+                level.gtpa.updateJoint(attachConstraintId, attachConstraint)
 
                 adjustedDistance = 1.0
                 realShip1 = attachConstraint.shipId0?.let { level.shipObjectWorld.loadedShips.getById(it) }
@@ -425,7 +423,7 @@ class SlickerMovementBehavior : MovementBehaviour {
 
         fun removeConstraint(level: ServerLevel, removeTags: Boolean, compoundTag: CompoundTag) {
             if (compoundTag.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)) {
-                level.gtfa.removeJoint(compoundTag.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID))
+                level.gtpa.removeJoint(compoundTag.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID))
 
                 if (removeTags) {
                     compoundTag.remove(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)

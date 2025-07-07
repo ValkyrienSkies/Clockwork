@@ -15,7 +15,7 @@ import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
 import org.valkyrienskies.clockwork.util.AerodynamicUtils
-import org.valkyrienskies.clockwork.util.gtfa
+import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.clockwork.util.universal_joint.IUniversalJoint
 import org.valkyrienskies.clockwork.util.updateJoint
 import org.valkyrienskies.core.api.ships.properties.ShipId
@@ -27,7 +27,6 @@ import org.valkyrienskies.kelvin.api.*
 import org.valkyrienskies.kelvin.api.edges.PipeDuctEdge
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.getShipManagingPos
-import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOMLD
 import java.util.EnumMap
 import org.valkyrienskies.kelvin.api.DuctNetwork.Companion.idealGasConstant
@@ -74,7 +73,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
 
         val tempJoint = VSJointAndId(distanceJointId!!, VSDistanceJoint(distanceJoint!!.shipId0, distanceJoint!!.pose0, distanceJoint!!.shipId1, distanceJoint!!.pose1, minDistance = distance, maxDistance = distance))
 
-        if (distance >= 0.15) serverLevel.gtfa.updateJoint(distanceJointId!!, tempJoint.joint)
+        if (distance >= 0.15) serverLevel.gtpa.updateJoint(distanceJointId!!, tempJoint.joint)
         distanceJoint = tempJoint.joint as VSDistanceJoint
     }
 
@@ -149,7 +148,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
 
         distanceJoint = VSDistanceJoint(pose0 = VSJointPose(pos0, quater0), pose1 = VSJointPose(pos1, quater1) , shipId0 = shipId0, shipId1 = shipId1,
             minDistance = 0f, maxDistance = 1000f )
-        level.gtfa.addJoint(distanceJoint!!) { distanceJointId = it; it }
+        level.gtpa.addJoint(distanceJoint!!) { distanceJointId = it }
 
         val limit = VSD6Joint.LimitCone(Math.PI.toFloat()/4f, Math.PI.toFloat()/4f)
         val motions = EnumMap<D6Axis, D6Motion>(D6Axis::class.java)
@@ -164,7 +163,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
 
 
         sphericalJoint = VSD6Joint(pose0 = VSJointPose(pos0, quater0), pose1 = VSJointPose(pos1, quater1) , shipId0 = shipId0, shipId1 = shipId1, swingLimit = limit, motions = motions  )
-        level.gtfa.addJoint(sphericalJoint!!) { sphericalJointId = it; it }
+        level.gtpa.addJoint(sphericalJoint!!) { sphericalJointId = it }
 
         main = true
     }
@@ -172,8 +171,8 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
     private fun removeJoint() {
         val level = level as ServerLevel
 
-        level.gtfa.removeJoint(distanceJointId!!)
-        level.gtfa.removeJoint(sphericalJointId!!)
+        level.gtpa.removeJoint(distanceJointId!!)
+        level.gtpa.removeJoint(sphericalJointId!!)
         distanceJoint = null
         distanceJointId = null
 

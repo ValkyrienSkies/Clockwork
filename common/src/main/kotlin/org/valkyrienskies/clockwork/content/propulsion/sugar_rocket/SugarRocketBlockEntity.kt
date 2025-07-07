@@ -4,8 +4,6 @@ import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.utility.animation.LerpedFloat
 import net.minecraft.client.multiplayer.ClientLevel
-import net.minecraft.client.particle.LargeSmokeParticle
-import net.minecraft.client.particle.Particle
 import net.minecraft.core.BlockPos
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.nbt.CompoundTag
@@ -18,10 +16,8 @@ import net.minecraft.world.level.block.state.BlockState
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.content.forces.SugarRocketController
-import org.valkyrienskies.core.api.attachment.getAttachment
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.toWorldCoordinates
-import org.valkyrienskies.mod.common.util.GameTickForceApplier
 import org.valkyrienskies.mod.common.util.toJOMLD
 import java.util.Random
 

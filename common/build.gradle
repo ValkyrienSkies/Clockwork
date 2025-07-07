@@ -38,7 +38,7 @@ dependencies {
 
     // VS2
     modApi("org.valkyrienskies:valkyrienskies-120-common:${rootProject.vs2_version}") {
-        exclude group: "com.simibubi", module: ""
+        exclude group: "com.simibubi"
     }
     implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") {
         exclude group: 'org.joml', module: ''

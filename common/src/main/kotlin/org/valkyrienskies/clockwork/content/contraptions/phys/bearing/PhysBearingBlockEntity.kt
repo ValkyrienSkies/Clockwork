@@ -35,7 +35,7 @@ import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.clockwork.util.ClockworkConstants.Nbt.ORIGINAL_DIRECTION
 import org.valkyrienskies.clockwork.util.ClockworkUtils.getVector3d
 import org.valkyrienskies.clockwork.util.GlueAssembler.collectGlued
-import org.valkyrienskies.clockwork.util.gtfa
+import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.clockwork.util.updateJoint
 import org.valkyrienskies.clockwork.util.minus
 import org.valkyrienskies.clockwork.util.plus
@@ -147,7 +147,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             movementMode!!.get() == LockedMode.FOLLOW_ANGLE || aligning
         )
 
-        (level as ServerLevel).gtfa.updateJoint(joint!!.jointId, joint!!.joint)
+        (level as ServerLevel).gtpa.updateJoint(joint!!.jointId, joint!!.joint)
     }
 
     private fun movementModeChanged(value: Int) {
@@ -440,7 +440,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             angularLimitPair = angle
         )
 
-        level.gtfa.addJoint(joint) {id ->
+        level.gtpa.addJoint(joint) { id ->
             this.joint = VSJointAndId(id, joint)
             this.bearingPos = bearingPos
             bearingAxis = axis
@@ -459,8 +459,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 joint.pose1.pos.get(Vector3d()),
                 joint.pose0.pos.get(Vector3d())
             )
-
-            id
         }
 
         sendData()
@@ -474,7 +472,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val ship = level.shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return
         BearingController.getOrCreate(ship)!!.removePhysBearing(bearingID)
 
-        joint?.let { level.gtfa.removeJoint(it.jointId) }
+        joint?.let { level.gtpa.removeJoint(it.jointId) }
     }
 
     fun disassemble() {
@@ -578,10 +576,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         val joint = VSRevoluteJoint(shipId00, pose0, shipOnID, pose1, maxForceTorque)
 
-        level.gtfa.addJoint(joint) { id ->
-            this.joint = VSJointAndId(id, joint)
-            id
-        }
+        level.gtpa.addJoint(joint) { id -> this.joint = VSJointAndId(id, joint) }
     }
 
     private fun tryUpdateData() {
