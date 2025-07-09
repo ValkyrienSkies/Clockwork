@@ -102,12 +102,11 @@ public abstract class MixinSteamEngineBlockEntity extends SmartBlockEntity {
             conveyedSpeedLevel *= -1;
         }
 
-        System.out.println(efficiency + " " + conveyedSpeedLevel);
         shaft.update(worldPosition, conveyedSpeedLevel, efficiency);
 
         if (!level.isClientSide) return;
 
-        if (efficiency > 0 && level.random.nextDouble() < 0.1) engine.spawnParticles( (ClientLevel) level,
+        if (efficiency > 0) engine.spawnParticles( (ClientLevel) level,
                 new Vector3d(getBlockPos().getX() + level.random.nextDouble(), getBlockPos().getY() + level.random.nextDouble(), getBlockPos().getZ() + level.random.nextDouble()),
                 new Vector3d(0.0,0.0,0.0));
 
@@ -115,7 +114,7 @@ public abstract class MixinSteamEngineBlockEntity extends SmartBlockEntity {
     }
 
     // Prevent shaft from updating (due to no tank) if there's a gas engine
-    @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;isLoaded(Lnet/minecraft/core/BlockPos;)Z"), remap = false, cancellable = true)
+    @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;isLoaded(Lnet/minecraft/core/BlockPos;)Z"), cancellable = true)
     private void cancelShaftUpdate(CallbackInfo ci) {
         if (getEngine() != null) ci.cancel();
     }
