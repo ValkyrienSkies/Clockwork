@@ -149,9 +149,11 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
         // I really didn't want to add TEMP_ON, but I had to, due to `neighborChanged()` getting called whenever a block is set.
         // Otherwise, I'd be able to update both ducts at once to set them both to SIDE
+        //todo: handle leaking in kelvin
         var newValue = when (value) {
             DuctConnectionType.FORCED_OFF -> DuctConnectionType.TEMP_ON
             DuctConnectionType.SIDE -> DuctConnectionType.FORCED_OFF
+            DuctConnectionType.LEAK -> DuctConnectionType.NONE
             else -> DuctConnectionType.SIDE
         }
 
@@ -195,6 +197,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         val type: DuctConnectionType = state.getValue(DIR_TO_CONNECTION[direction]!!)
         var forced = type == DuctConnectionType.FORCED_OFF
         var temp = type == DuctConnectionType.TEMP_ON
+        var leak = type == DuctConnectionType.LEAK
         var otherConnected = false
 
         val isConnectedEdgeBlock =
@@ -219,6 +222,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
             temp && (!otherConnected || forced) -> DuctConnectionType.TEMP_ON
             forced -> DuctConnectionType.FORCED_OFF
             otherConnected -> DuctConnectionType.SIDE
+            !otherConnected && leak -> DuctConnectionType.LEAK
             else -> DuctConnectionType.NONE
         }
 
@@ -243,7 +247,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
         level.setBlockAndUpdate(pos, this.getConnectedState(level, state, pos) ?: return)
 
-        println("placed duct at $pos in ${level.dimension().location()}")
+        //println("placed duct at $pos in ${level.dimension().location()}")
     }
 
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
@@ -359,6 +363,17 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
             val changeDirection = getUseDirection(direction, context.clickedPos, hitPos)
             val connected = state.getValue(DIR_TO_CONNECTION[changeDirection]!!) == DuctConnectionType.SIDE
+            val leaking = state.getValue(DIR_TO_CONNECTION[changeDirection]!!) == DuctConnectionType.LEAK
+
+            if (leaking) {
+                //todo: handle leaking in kelvin
+                playScrewSound(context.level, context.clickedPos)
+                context.level.setBlockAndUpdate(
+                    context.clickedPos,
+                    state.setValue(DIR_TO_CONNECTION[changeDirection]!!, DuctConnectionType.NONE)
+                )
+                return InteractionResult.SUCCESS
+            }
 
             if (!connected) return InteractionResult.SUCCESS
             playScrewSound(context.level, context.clickedPos)

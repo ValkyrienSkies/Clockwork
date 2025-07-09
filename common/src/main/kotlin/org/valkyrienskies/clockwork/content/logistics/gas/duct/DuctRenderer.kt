@@ -27,6 +27,8 @@ class DuctRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEnt
 
         val rim = ClockworkPartials.DUCT_RIM
 
+        val leak = ClockworkPartials.DUCT_LEAK
+
         val vertexConsumer = buffer.getBuffer(RenderType.cutout())
 
         for (dir in Direction.values()) {
@@ -44,6 +46,9 @@ class DuctRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEnt
                         }
                     }
                 }
+            } else if (blockEntity.blockState.getValue(DIR_TO_CONNECTION[dir]!!) == DuctConnectionType.LEAK) {
+                val dirLeak = CachedBufferer.partialFacing(leak, blockEntity.blockState, dir.opposite)
+                dirLeak.light(light).overlay(overlay).renderInto(ms, vertexConsumer)
             }
         }
     }
