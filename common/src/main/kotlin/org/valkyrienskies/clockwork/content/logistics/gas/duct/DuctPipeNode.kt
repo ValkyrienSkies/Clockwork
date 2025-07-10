@@ -19,14 +19,5 @@ class DuctPipeNode(pos: DuctNodePos, volume: Double, maxPressure: Double, maxTem
         return leak
     }
 
-    override fun leakFromPos(level: Level, fromPos: DuctNodePos) {
-        val state = level.getBlockState(pos.toMinecraft())
-        if (state.block !is DuctBlock) return
-        val sub = pos.toMinecraft().subtract(fromPos.toMinecraft())
-        val direction = Direction.fromDelta(sub.x, sub.y, sub.z) ?: return
-        state.setValue(DuctBlock.DIR_TO_CONNECTION[direction]!!, DuctConnectionType.LEAK)
-        level.setBlockAndUpdate(pos.toMinecraft(), state)
-        println("Updated leak at ${pos.toMinecraft()}")
-    }
 
 }
