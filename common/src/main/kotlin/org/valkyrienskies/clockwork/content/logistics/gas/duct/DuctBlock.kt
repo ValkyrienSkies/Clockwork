@@ -15,6 +15,7 @@ import net.minecraft.world.InteractionResult
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.BlockGetter
+import net.minecraft.world.level.Explosion
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.Block
@@ -27,7 +28,6 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.level.block.state.properties.EnumProperty
 import net.minecraft.world.level.material.Fluid
 import net.minecraft.world.level.material.Fluids
-import net.minecraft.world.level.material.PushReaction
 import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.Shapes
@@ -45,7 +45,6 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.N
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.SOUTH_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.UP_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.WEST_CONNECTION
-import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createPipeNode
 import org.valkyrienskies.clockwork.util.MathFunctions.isWithin
 import org.valkyrienskies.clockwork.util.MathFunctions.removeAxis
 import org.valkyrienskies.kelvin.api.ConnectionType
@@ -55,7 +54,6 @@ import org.valkyrienskies.kelvin.util.IEdgeBlock
 import org.valkyrienskies.kelvin.util.INodeBlock
 import org.valkyrienskies.kelvin.util.INodeBlockEntity
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
-import kotlin.math.abs
 
 
 class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, IBE<DuctBlockEntity>,
@@ -115,13 +113,14 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
     ) {
         val neighborState = level.getBlockState(fromPos)
 
-        val awful = fromPos.subtract(pos)
-        val direction = Direction.fromDelta(awful.x, awful.y, awful.z)
+        val delta = fromPos.subtract(pos)
+        val direction = Direction.fromDelta(delta.x, delta.y, delta.z)
         if (neighborState.block is INodeBlock || neighborState.block is IEdgeBlock) {
             val finalConnection = getConnection(state, pos, neighborState, fromPos, direction!!, level)
             val newState = state.setValue(DIR_TO_CONNECTION[direction]!!, finalConnection)
             level.setBlockAndUpdate(pos, newState)
-        } else if ((block is INodeBlock || block is IEdgeBlock) && state.getValue(DIR_TO_CONNECTION[direction]!!) != DuctConnectionType.FORCED_OFF) {
+        } // If neighbor was an INode or IEdge and then turned into something else, set ConnectionType to None
+        else if ((block is INodeBlock || block is IEdgeBlock) && state.getValue(DIR_TO_CONNECTION[direction]!!) != DuctConnectionType.FORCED_OFF) {
             val newState = state.setValue(DIR_TO_CONNECTION[direction]!!, DuctConnectionType.NONE)
             level.setBlockAndUpdate(pos, newState)
         }
@@ -144,7 +143,6 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
         // I really didn't want to add TEMP_ON, but I had to, due to `neighborChanged()` getting called whenever a block is set.
         // Otherwise, I'd be able to update both ducts at once to set them both to SIDE
-        //todo: handle leaking in kelvin
         var newValue = when (value) {
             DuctConnectionType.FORCED_OFF -> DuctConnectionType.TEMP_ON
             DuctConnectionType.SIDE -> DuctConnectionType.FORCED_OFF
@@ -212,12 +210,12 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
         otherConnected = otherConnected || isConnectedEdgeBlock
 
-        // May God please forgive me for writing this
+        println(leak)
         val finalConnection: DuctConnectionType = when {
             temp && (!otherConnected || forced) -> DuctConnectionType.TEMP_ON
+            leak -> DuctConnectionType.LEAK
             forced -> DuctConnectionType.FORCED_OFF
             otherConnected -> DuctConnectionType.SIDE
-            !otherConnected && leak -> DuctConnectionType.LEAK
             else -> DuctConnectionType.NONE
         }
 
@@ -251,7 +249,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
     }
 
     override fun createNode(pos: DuctNodePos): DuctNode {
-        return createPipeNode(pos)
+        return  DuctPipeNode(pos = pos, volume = 0.1, maxPressure = 16375049.0, maxTemperature = 1478.0)
     }
 
     override fun canBeReplaced(state: BlockState, fluid: Fluid): Boolean {
@@ -361,7 +359,6 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
             val leaking = state.getValue(DIR_TO_CONNECTION[changeDirection]!!) == DuctConnectionType.LEAK
 
             if (leaking) {
-                //todo: handle leaking in kelvin
                 playScrewSound(context.level, context.clickedPos)
                 context.level.setBlockAndUpdate(
                     context.clickedPos,
@@ -433,6 +430,17 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         val speed = Vector3d(random.nextDouble()-0.5, random.nextDouble()-0.5, random.nextDouble()-0.5).mul(0.1)
         network.createGasParticle(level as ClientLevel, largestGas, ductNodePos, pos.x + 0.5, pos.y + 0.5, pos.z + 0.5, speed.x, speed.y, speed.z)
 
+    }
+
+    override fun wasExploded(level: Level, pos: BlockPos, explosion: Explosion) {
+        Direction.entries.forEach {
+            val state = level.getBlockState(pos.relative(it))
+            if (state.block is IDuct) {
+                val newState = state.setValue(DIR_TO_CONNECTION[it.opposite]!!, DuctConnectionType.LEAK)
+                level.setBlockAndUpdate(pos.relative(it), newState)
+                println("updated exploded at ${pos.relative(it)}")
+            }
+        }
     }
 
     companion object {
