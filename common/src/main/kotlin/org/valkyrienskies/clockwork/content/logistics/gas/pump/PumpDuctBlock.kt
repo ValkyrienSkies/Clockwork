@@ -18,38 +18,20 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.level.material.Fluids
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
-import org.apache.commons.lang3.ObjectUtils.Null
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock.Companion.DIR_TO_CONNECTION
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
-import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctConnectionType
-import org.valkyrienskies.kelvin.api.*
 import org.valkyrienskies.kelvin.api.edges.PumpDuctEdge
-import org.valkyrienskies.kelvin.api.nodes.PumpDuctNode
-import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createEdgeType
-import org.valkyrienskies.kelvin.util.GasHeatLevel
 import org.valkyrienskies.kelvin.util.IEdgeBlock
-import org.valkyrienskies.kelvin.util.IHeatableBlock
-import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
-import org.valkyrienskies.mod.common.util.toJOMLD
+import org.valkyrienskies.kelvin.util.INodeBlock
+import org.valkyrienskies.kelvin.util.INodeBlockEntity
 
 class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties), IBE<PumpDuctBlockEntity>, ICogWheel,
     IEdgeBlock {
 
     var edge: PumpDuctEdge? = null
 
-    init {
-        registerDefaultState(super.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, false).setValue(
-            IHeatableBlock.GAS_HEAT_LEVEL, GasHeatLevel.COOL))
-    }
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
-        builder.add(IHeatableBlock.GAS_HEAT_LEVEL)
         builder.add(BlockStateProperties.WATERLOGGED)
         super.createBlockStateDefinition(builder)
     }
@@ -127,8 +109,8 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
         if (edge != null) ClockworkMod.getKelvin().removeEdge(edge!!.nodeA, edge!!.nodeB)
         edge = null
 
-        val backDuctPos = (level.getBlockEntity(backPos) as? IHeatableBlockEntity)?.getDuctNodePosition() ?: return
-        val frontDuctPos = (level.getBlockEntity(frontPos) as? IHeatableBlockEntity)?.getDuctNodePosition() ?: return
+        val backDuctPos = (level.getBlockEntity(backPos) as? INodeBlockEntity)?.getDuctNodePosition() ?: return
+        val frontDuctPos = (level.getBlockEntity(frontPos) as? INodeBlockEntity)?.getDuctNodePosition() ?: return
 
         edge = PumpDuctEdge(backDuctPos, frontDuctPos, frontDuctPos)
 

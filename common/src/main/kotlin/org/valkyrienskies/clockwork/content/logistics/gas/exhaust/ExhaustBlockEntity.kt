@@ -7,14 +7,11 @@ import net.minecraft.util.RandomSource
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
-import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.KelvinParticleHelper
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.math.floor
-import kotlin.random.Random
 
 class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state) {
 

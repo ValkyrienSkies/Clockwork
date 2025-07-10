@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.engine
 
-import com.simibubi.create.content.kinetics.steamEngine.SteamEngineBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
@@ -11,7 +10,6 @@ import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.KelvinParticleHelper
 import org.valkyrienskies.kelvin.KelvinMod
-import org.valkyrienskies.kelvin.api.DuctNetwork
 import kotlin.math.min
 
 class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState): KNodeBlockEntity(type, pos, state) {

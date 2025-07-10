@@ -1,27 +1,24 @@
 package org.valkyrienskies.clockwork.content.physicalities.gas_thruster
 
-import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerLevel
-import net.minecraft.sounds.SoundSource
 import net.minecraft.world.level.block.DirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkSoundScapes
-import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.forces.GasThrusterController
 import org.valkyrienskies.clockwork.content.generic.IForceApplierBE
-import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
 import org.valkyrienskies.clockwork.content.physicalities.gas_thruster.data.GasThrusterCreateData
 import org.valkyrienskies.clockwork.content.physicalities.gas_thruster.data.GasThrusterData
 import org.valkyrienskies.clockwork.content.physicalities.gas_thruster.data.GasThrusterUpdateData
 import org.valkyrienskies.clockwork.util.AerodynamicUtils
+import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.GasType
@@ -34,7 +31,7 @@ import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.math.*
 import kotlin.random.Random
 
-class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : SmartBlockEntity(type, pos, state), IHeatableBlockEntity, IForceApplierBE<GasThrusterUpdateData, GasThrusterData, GasThrusterCreateData, GasThrusterController> {
+class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), IForceApplierBE<GasThrusterUpdateData, GasThrusterData, GasThrusterCreateData, GasThrusterController> {
 
     override var physID: Int = -1
     var newForce = 0.0

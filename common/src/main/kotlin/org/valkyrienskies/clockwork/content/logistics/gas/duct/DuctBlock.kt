@@ -39,8 +39,6 @@ import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver.IScrewdrivable
-import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
-import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.DOWN_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.EAST_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.NORTH_CONNECTION
@@ -53,17 +51,16 @@ import org.valkyrienskies.clockwork.util.MathFunctions.removeAxis
 import org.valkyrienskies.kelvin.api.ConnectionType
 import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
-import org.valkyrienskies.kelvin.util.GasHeatLevel
 import org.valkyrienskies.kelvin.util.IEdgeBlock
-import org.valkyrienskies.kelvin.util.IHeatableBlock
-import org.valkyrienskies.kelvin.util.IHeatableBlock.Companion.GAS_HEAT_LEVEL
+import org.valkyrienskies.kelvin.util.INodeBlock
+import org.valkyrienskies.kelvin.util.INodeBlockEntity
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import kotlin.math.abs
 
 
 class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, IBE<DuctBlockEntity>,
     SimpleWaterloggedBlock, IWrenchable,
-    IScrewdrivable, IHeatableBlock {
+    IScrewdrivable {
 
     //credit to NEEPMeat for the pipe implementation idea :3dsmile:
 
@@ -87,7 +84,6 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
                 .setValue(WEST_CONNECTION, DuctConnectionType.NONE)
                 .setValue(UP_CONNECTION, DuctConnectionType.NONE)
                 .setValue(DOWN_CONNECTION, DuctConnectionType.NONE)
-                .setValue(GAS_HEAT_LEVEL, GasHeatLevel.COOL)
         )
 
         for (state: BlockState in this.stateDefinition.possibleStates) {
@@ -103,7 +99,6 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
             WEST_CONNECTION,
             UP_CONNECTION,
             DOWN_CONNECTION,
-            GAS_HEAT_LEVEL,
             BlockStateProperties.WATERLOGGED
         )
 
@@ -229,7 +224,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         if ((level as? Level)?.isClientSide != false || isConnectedEdgeBlock) return finalConnection
 
         val blockEntity = level.getBlockEntity(currentPos) as? DuctBlockEntity ?: return finalConnection
-        val neighborDuctNodePos = (level.getBlockEntity(neighborPos) as? IHeatableBlockEntity)?.getDuctNodePosition()
+        val neighborDuctNodePos = (level.getBlockEntity(neighborPos) as? INodeBlockEntity)?.getDuctNodePosition()
             ?: return finalConnection
 
         val storedType = blockEntity.DIR_TO_CONNECTION_TYPE[direction] ?: ConnectionType.PIPE
@@ -403,7 +398,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         if (context.level.isClientSide) return InteractionResult.SUCCESS
 
         val otherDuctNodePos =
-            (context.level.getBlockEntity(context.clickedPos.relative(changeDirection.opposite)) as? IHeatableBlockEntity)?.getDuctNodePosition()
+            (context.level.getBlockEntity(context.clickedPos.relative(changeDirection.opposite)) as? INodeBlockEntity)?.getDuctNodePosition()
                 ?: return InteractionResult.FAIL
 
         playScrewSound(context.level, context.clickedPos)

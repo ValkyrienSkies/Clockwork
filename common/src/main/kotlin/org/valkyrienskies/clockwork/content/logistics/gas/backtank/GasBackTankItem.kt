@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.backtank
 
-import com.simibubi.create.content.equipment.armor.BacktankItem
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.LivingEntity
@@ -9,7 +8,6 @@ import net.minecraft.world.item.Equipable
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
-import java.util.*
 
 class GasBackTankItem(block: Block, properties: Properties) : BlockItem(block, properties), Equipable {
 

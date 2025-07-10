@@ -1,29 +1,19 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.duct
 
-import com.simibubi.create.content.equipment.goggles.IHaveGoggleInformation
-import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.network.chat.Component
-import net.minecraft.world.InteractionResult
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
-import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
-import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
 import org.valkyrienskies.kelvin.api.ConnectionType
 import org.valkyrienskies.kelvin.api.DuctNodePos
-import org.valkyrienskies.kelvin.api.nodes.PipeDuctNode
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createEdgeType
-import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createPipeEdge
-import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createPipeNode
 import org.valkyrienskies.clockwork.util.KNodeBlockEntity
+import org.valkyrienskies.kelvin.util.INodeBlockEntity
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
-import org.valkyrienskies.mod.common.util.toJOMLD
-import java.time.Clock
 import java.util.*
 
 class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state) {
@@ -89,7 +79,7 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
         val currentType = this.DIR_TO_CONNECTION_TYPE[dir]!!
 
         if (currentType == ConnectionType.NONE) return ConnectionType.NONE
-        val otherDuctNodePos = (level!!.getBlockEntity(blockPos.relative(dir)) as? IHeatableBlockEntity)?.getDuctNodePosition() ?: return ConnectionType.NONE
+        val otherDuctNodePos = (level!!.getBlockEntity(blockPos.relative(dir)) as? INodeBlockEntity)?.getDuctNodePosition() ?: return ConnectionType.NONE
 
 
         val nextType = currentType.nextScrewdrivable()

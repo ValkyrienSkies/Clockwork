@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.physicalities.extendon
 
-import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -13,8 +12,8 @@ import org.joml.AxisAngle4d
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
 import org.valkyrienskies.clockwork.util.AerodynamicUtils
+import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.universal_joint.IUniversalJoint
 import org.valkyrienskies.core.api.ships.properties.ShipId
 import org.valkyrienskies.core.api.world.properties.DimensionId
@@ -32,7 +31,7 @@ import org.valkyrienskies.kelvin.api.DuctNetwork.Companion.idealGasConstant
 import org.valkyrienskies.mod.common.dimensionId
 import kotlin.math.PI
 
-class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState?) : SmartBlockEntity(type, pos, state), IUniversalJoint, IHeatableBlockEntity {
+class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), IUniversalJoint {
 
     override var connectedJoint: IUniversalJoint? = null
     override var pos: BlockPos = pos

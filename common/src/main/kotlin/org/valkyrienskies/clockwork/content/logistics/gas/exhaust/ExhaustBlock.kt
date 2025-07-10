@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.exhaust
 
-import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -14,10 +13,8 @@ import net.minecraft.world.level.block.Rotation
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
-import net.minecraft.world.phys.shapes.CollisionContext
-import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
+import org.valkyrienskies.kelvin.util.INodeBlock
 
 class ExhaustBlock(properties: Properties) : DirectionalBlock(properties), IBE<ExhaustBlockEntity>, INodeBlock {
 

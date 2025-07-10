@@ -17,11 +17,11 @@ import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
-import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
 import org.valkyrienskies.kelvin.api.ConnectionType
 import org.valkyrienskies.kelvin.api.edges.ApertureDuctEdge
 import org.valkyrienskies.kelvin.util.IEdgeBlock
+import org.valkyrienskies.kelvin.util.INodeBlock
+import org.valkyrienskies.kelvin.util.INodeBlockEntity
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 class ValveDuctBlock(properties: Properties?) : DirectionalAxisKineticBlock(properties), IEdgeBlock, IBE<ValveDuctBlockEntity> {
 
@@ -77,8 +77,8 @@ class ValveDuctBlock(properties: Properties?) : DirectionalAxisKineticBlock(prop
         if (edge != null) ClockworkMod.getKelvin().removeEdge(edge!!.nodeA, edge!!.nodeB)
         edge = null
 
-        val backDuctPos = (level.getBlockEntity(backPos) as? IHeatableBlockEntity)?.getDuctNodePosition() ?: return
-        val frontDuctPos = (level.getBlockEntity(frontPos) as? IHeatableBlockEntity)?.getDuctNodePosition() ?: return
+        val backDuctPos = (level.getBlockEntity(backPos) as? INodeBlockEntity)?.getDuctNodePosition() ?: return
+        val frontDuctPos = (level.getBlockEntity(frontPos) as? INodeBlockEntity)?.getDuctNodePosition() ?: return
 
         edge = ApertureDuctEdge(ConnectionType.APERTURE,backDuctPos, frontDuctPos, aperture = 1.0)
 
