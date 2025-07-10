@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.duct
 
-import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.level.Level
 import org.valkyrienskies.kelvin.api.DuctNodePos

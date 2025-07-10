@@ -38,6 +38,7 @@ import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
+import org.valkyrienskies.clockwork.ClockworkSoundScapes
 import org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver.IScrewdrivable
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.DOWN_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.EAST_CONNECTION
@@ -45,15 +46,18 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.N
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.SOUTH_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.UP_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.WEST_CONNECTION
+import org.valkyrienskies.clockwork.util.KelvinParticleHelper
 import org.valkyrienskies.clockwork.util.MathFunctions.isWithin
 import org.valkyrienskies.clockwork.util.MathFunctions.removeAxis
 import org.valkyrienskies.kelvin.api.ConnectionType
 import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
+import org.valkyrienskies.kelvin.api.nodes.PipeDuctNode
 import org.valkyrienskies.kelvin.util.IEdgeBlock
 import org.valkyrienskies.kelvin.util.INodeBlock
 import org.valkyrienskies.kelvin.util.INodeBlockEntity
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
+import org.valkyrienskies.mod.common.util.toJOMLD
 
 
 class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, IBE<DuctBlockEntity>,
@@ -210,7 +214,6 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
         otherConnected = otherConnected || isConnectedEdgeBlock
 
-        println(leak)
         val finalConnection: DuctConnectionType = when {
             temp && (!otherConnected || forced) -> DuctConnectionType.TEMP_ON
             leak -> DuctConnectionType.LEAK
@@ -294,7 +297,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
     fun getShapeForState(state: BlockState): VoxelShape {
         var shape: VoxelShape = getCenterShape()
-        for (direction in Direction.values()) {
+        for (direction in Direction.entries) {
             if (state.getValue(DIR_TO_CONNECTION[direction]!!) === DuctConnectionType.SIDE) {
                 shape = Shapes.or(shape, DIR_SHAPES[direction]!!)
             }
@@ -416,19 +419,46 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
     }
 
+    fun randomPos(deviation: Double, random: RandomSource): Double {
+        return (0.5-deviation/2.0)+random.nextDouble()*deviation
+    }
+
     override fun animateTick(state: BlockState, level: Level, pos: BlockPos, random: RandomSource) {
-        if (!ClockworkConfig.CLIENT.renderDuctParticles) return
+
         val be = level.getBlockEntity(pos) as? DuctBlockEntity ?: return
+        val ductNodePos = be.getDuctNodePosition()
+        val pressure = ClockworkModClient.getKelvin().getPressureAt(ductNodePos)
+        if (pressure < 1000) return
+
+        // Handle hissing sound
+        val maxPressure = 16375049.0
+        if (pressure > 0.7 * maxPressure) {
+            val pitch = 2 * pressure / maxPressure
+            val scape = ClockworkSoundScapes.AmbienceGroup.GAS_HISS
+            ClockworkSoundScapes.play(scape, pos, pitch.toFloat())
+        }
+
+        // Handle leaking particles
+        for (dir in Direction.entries) {
+            if (state.getValue(DIR_TO_CONNECTION[dir]!!) != DuctConnectionType.LEAK) continue
+            val normal = dir.normal.toJOMLD()
+            val speed = normal.add(Vector3d(random.nextDouble()-0.5, random.nextDouble()-0.5, random.nextDouble()-0.5)).mul(0.1)
+            val position = pos.toJOMLD().add(Vector3d(0.5+normal.x, 0.5+normal.y, 0.5+normal.z))
+
+            for (i in 0..5)
+            KelvinParticleHelper.spawnParticleWithRatio(level as ClientLevel, ductNodePos, position, speed )
+        }
+
+
+        // Handle gas movement particles
+        if (!ClockworkConfig.CLIENT.renderDuctParticles) return
 
         val network = ClockworkModClient.getKelvin()
-        val ductNodePos = be.getDuctNodePosition()
-
         val node = network.nodeInfo.get(ductNodePos) ?: return
-        if (node.currentPressure - node.previousPressure < 1000) return
+        if (node.currentPressure - node.previousPressure < 250) return
 
-        val largestGas = node.currentGasMasses.maxBy { (_, amount) -> amount }.key
         val speed = Vector3d(random.nextDouble()-0.5, random.nextDouble()-0.5, random.nextDouble()-0.5).mul(0.1)
-        network.createGasParticle(level as ClientLevel, largestGas, ductNodePos, pos.x + 0.5, pos.y + 0.5, pos.z + 0.5, speed.x, speed.y, speed.z)
+        KelvinParticleHelper.spawnParticleWithRatio(level as ClientLevel, ductNodePos, pos.toJOMLD().add(Vector3d(0.5, 0.5, 0.5)), speed )
 
     }
 

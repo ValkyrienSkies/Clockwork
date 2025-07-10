@@ -131,6 +131,10 @@ object ClockworkSounds {
         .category(SoundSource.BLOCKS)
         .attenuationDistance(32)
         .build()
+    val GAS_HISS = create("gas_hiss").subtitle("Hissing gas")
+        .category(SoundSource.BLOCKS)
+        .attenuationDistance(32)
+        .build()
 
     private val sounds: DeferredRegister<SoundEvent> =
         DeferredRegister.create(BuiltInRegistries.SOUND_EVENT, ClockworkMod.MOD_ID)
