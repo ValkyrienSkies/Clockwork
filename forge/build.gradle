@@ -55,6 +55,7 @@ repositories {
         }
         maven { url = "https://jitpack.io/" }
         maven { url = "https://cursemaven.com" }
+        maven { url = "https://modmaven.dev" } // Mod Maven. It has flywheel
     }
 }
 

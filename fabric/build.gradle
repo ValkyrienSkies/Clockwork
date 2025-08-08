@@ -43,6 +43,7 @@ repositories {
     // Create Fabric, Porting Lib, Forge Tags, Milk Lib, Registrate Fabric
     maven { url = "https://cursemaven.com" } // Forge Config API Port
     maven { url = "https://maven.cafeteria.dev/releases" } // Fake Player API
+    maven { url = "https://modmaven.dev" } // Mod Maven. It has flywheel
     //maven { url = "https://maven.jamieswhiteshirt.com/libs-release" } // Reach Entity Attributes
 }
 
