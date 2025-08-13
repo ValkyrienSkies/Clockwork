@@ -51,6 +51,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.generation.steam_generator.SteamGeneratorBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.heater.GasHeaterBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctCogInstance
@@ -561,6 +562,18 @@ object ClockworkBlockEntities {
             )
         }
         .validBlocks(ClockworkBlocks.GAS_THRUSTER)
+        .register()
+
+    @JvmField
+    val STEAM_GENERATOR: BlockEntityEntry<SteamGeneratorBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<SteamGeneratorBlockEntity>("steam_generator") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            SteamGeneratorBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .validBlocks(ClockworkBlocks.STEAM_GENERATOR)
         .register()
 
     @JvmField
