@@ -124,6 +124,7 @@ public abstract class MixinSteamEngineBlockEntity extends SmartBlockEntity {
 
     @Shadow public abstract FluidTankBlockEntity getTank();
 
+    @Shadow private float prevAngle;
 
     @Unique
     public GasEngineBlockEntity getEngine() {
