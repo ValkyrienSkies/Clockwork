@@ -34,12 +34,9 @@ class DuctRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEnt
             val dirRim = CachedBufferer.partialFacing(rim, blockEntity.blockState, dir.opposite)
             if (blockEntity.blockState.getValue(DIR_TO_CONNECTION[dir]!!).isConnected) {
                 if (blockEntity.level != null) {
-                    when (blockEntity.level!!.getBlockState(blockEntity.blockPos.relative(dir)).block) {
-                        else -> {
-                            dirConnection.light(light).overlay(overlay).renderInto(ms, vertexConsumer)
-                            dirRim.light(light).overlay(overlay).renderInto(ms, vertexConsumer)
-                        }
-                    }
+                    dirConnection.light(light).overlay(overlay).renderInto(ms, vertexConsumer)
+                    if (blockEntity.level!!.getBlockState(blockEntity.blockPos.relative(dir)).block !is IDuct)
+                        dirRim.light(light).overlay(overlay).renderInto(ms, vertexConsumer)
                 }
             } else if (blockEntity.blockState.getValue(DIR_TO_CONNECTION[dir]!!) == DuctConnectionType.LEAK) {
                 val dirLeak = CachedBufferer.partialFacing(leak, blockEntity.blockState, dir.opposite)

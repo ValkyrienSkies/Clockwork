@@ -5,6 +5,7 @@ import com.simibubi.create.content.kinetics.steamEngine.SteamEngineBlock
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.Block
@@ -14,9 +15,10 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.AttachFace
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 import org.valkyrienskies.kelvin.util.INodeBlock
 
-class SteamGeneratorBlock(properties: Properties) : FaceAttachedHorizontalDirectionalBlock(properties), INodeBlock, IBE<SteamGeneratorBlockEntity> {
+class SteamGeneratorBlock(properties: Properties) : FaceAttachedHorizontalDirectionalBlock(properties), IBE<SteamGeneratorBlockEntity>, IDuct {
 
     init { registerDefaultState(defaultBlockState().setValue(FACE, AttachFace.FLOOR).setValue(FACING, Direction.NORTH)) }
 
@@ -32,16 +34,13 @@ class SteamGeneratorBlock(properties: Properties) : FaceAttachedHorizontalDirect
 
     override fun onPlace(pState: BlockState, pLevel: Level, pPos: BlockPos, pOldState: BlockState, pIsMoving: Boolean) {
         FluidTankBlock.updateBoilerState(pState, pLevel, pPos.relative(SteamEngineBlock.getFacing(pState).opposite))
-
+        nodePlace(pState, pLevel, pPos, pOldState, pIsMoving)
     }
 
-    override fun onRemove(
-        pState: BlockState,
-        pLevel: Level,
-        pPos: BlockPos,
-        pNewState: BlockState,
-        pIsMoving: Boolean
-    ) {
+
+
+    override fun onRemove(pState: BlockState, pLevel: Level, pPos: BlockPos, pNewState: BlockState, pIsMoving: Boolean) {
+        nodeRemove(pState, pLevel, pPos, pNewState, pIsMoving)
         if (pState.hasBlockEntity() && (!pState.`is`(pNewState.getBlock()) || !pNewState.hasBlockEntity())) pLevel.removeBlockEntity(pPos)
         FluidTankBlock.updateBoilerState(pState, pLevel, pPos.relative(SteamEngineBlock.getFacing(pState).getOpposite()))
 
@@ -53,6 +52,12 @@ class SteamGeneratorBlock(properties: Properties) : FaceAttachedHorizontalDirect
 
     override fun getBlockEntityType(): BlockEntityType<out SteamGeneratorBlockEntity> {
         return ClockworkBlockEntities.STEAM_GENERATOR.get()
+    }
+
+    override fun canConnectTo(self: BlockPos, other: BlockPos, direction: Direction, level: BlockGetter): Boolean {
+        if (direction != getFacing(level.getBlockState(self))) return false
+
+        return super<IDuct>.canConnectTo(self, other, direction, level)
     }
 
     companion object {

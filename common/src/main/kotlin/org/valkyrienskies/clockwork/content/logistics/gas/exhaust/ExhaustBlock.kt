@@ -14,9 +14,9 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import org.valkyrienskies.kelvin.util.INodeBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 
-class ExhaustBlock(properties: Properties) : DirectionalBlock(properties), IBE<ExhaustBlockEntity>, INodeBlock {
+class ExhaustBlock(properties: Properties) : DirectionalBlock(properties), IBE<ExhaustBlockEntity>, IDuct {
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block?, BlockState?>) {
         builder.add(FACING)
