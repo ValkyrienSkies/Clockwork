@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.events
 
 import kotlinx.coroutines.MainScope
+import net.fabricmc.loader.impl.lib.sat4j.core.Vec
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
@@ -15,6 +16,9 @@ import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.shipObjectWorld
 import java.util.concurrent.ConcurrentLinkedQueue
+import kotlin.math.abs
+import kotlin.math.exp
+import kotlin.math.hypot
 import kotlin.math.log
 import kotlin.math.pow
 
@@ -30,27 +34,14 @@ object CollisionSoundEffectHandler {
 
 
 
-    // This may be stupid
     private fun getValidState(level: ServerLevel, pos: Vector3dc): BlockState {
-        if (!level.getBlockState(BlockPos.containing(pos.x(), pos.y(), pos.z())).isAir) return level.getBlockState(BlockPos.containing(pos.x(), pos.y(), pos.z()))
+        return level.getBlockState(BlockPos.containing(pos.x(), pos.y(), pos.z()))
 
-        for (x in -1..1) {
-            for (y in -1..1) {
-                for (z in -1..1) {
-                    val newPos = Vector3d(pos.x()+x* CHECK_DISTANCE, pos.y()+y* CHECK_DISTANCE, pos.z()+z* CHECK_DISTANCE)
-
-                    val state = level.getBlockState(BlockPos.containing(pos.x(), pos.y(), pos.z()))
-                    if (!state.isAir) return state
-                }
-            }
-        }
-
-        return level.getBlockState(pos.toMinecraft())
     }
 
     private fun calculateVolume(velocitySquared: Double, mass: Double): Float {
-        val energy = log(mass*velocitySquared/2, 10.0)
-        return energy.toFloat()
+        val energy = exp(mass*velocitySquared.pow(0.083))
+        return energy.toFloat() / 100f
     }
 
     fun tick(level: ServerLevel) {
@@ -61,8 +52,10 @@ object CollisionSoundEffectHandler {
             if (event.dimensionId != level.dimensionId) continue
             collisionQueue.remove()
 
-            var posA = event.contactPoints.first().position
-            var posB = event.contactPoints.first().position
+            val contact = event.contactPoints.first()
+
+            var posA = contact.position.add(contact.normal.mul(abs(contact.separation.toDouble()), Vector3d()),Vector3d())
+            var posB = contact.position.sub(contact.normal.mul(abs(contact.separation.toDouble()), Vector3d()),Vector3d())
 
             var mass = 0.0
 
@@ -84,11 +77,12 @@ object CollisionSoundEffectHandler {
             val stateA = getValidState(level, posA)
             val stateB = getValidState(level, posB)
 
-            println("$stateA $stateB ${event.contactPoints.first().separation}")
 
-            val pos = event.contactPoints.first().position
 
-            val volume = calculateVolume(event.contactPoints.first().velocity.lengthSquared(), mass)
+            val pos = contact.position
+
+            val volume = calculateVolume(contact.velocity.lengthSquared(), mass)
+            println("$stateA $stateB ${contact.separation} ${contact.velocity.lengthSquared()} ${volume}")
 
             level.playSound(null, pos.x(), pos.y(), pos.z(), stateA.soundType.hitSound, SoundSource.BLOCKS, volume, 1f)
             level.playSound(null, pos.x(), pos.y(), pos.z(), stateB.soundType.hitSound, SoundSource.BLOCKS, volume, 1f)
