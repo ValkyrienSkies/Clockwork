@@ -82,7 +82,7 @@ object CollisionSoundEffectHandler {
             val pos = contact.position
 
             val volume = calculateVolume(contact.velocity.lengthSquared(), mass)
-            println("$stateA $stateB ${contact.separation} ${contact.velocity.lengthSquared()} ${volume}")
+            //println("$stateA $stateB ${contact.separation} ${contact.velocity.lengthSquared()} ${volume}")
 
             level.playSound(null, pos.x(), pos.y(), pos.z(), stateA.soundType.hitSound, SoundSource.BLOCKS, volume, 1f)
             level.playSound(null, pos.x(), pos.y(), pos.z(), stateB.soundType.hitSound, SoundSource.BLOCKS, volume, 1f)
