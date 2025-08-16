@@ -2,8 +2,6 @@ package org.valkyrienskies.clockwork.fabric;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.simibubi.create.content.equipment.armor.BacktankArmorLayer;
-import com.simibubi.create.content.trains.schedule.TrainHatArmorLayer;
 import com.simibubi.create.foundation.render.SuperRenderTypeBuffer;
 import com.simibubi.create.foundation.utility.AnimationTickHolder;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;

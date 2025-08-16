@@ -29,6 +29,7 @@ object ClockworkSoundScapes {
         PROPELLER({ pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos? -> propeller(pitch, group, ship, pos) }),
         JURYRIGGED_PROPELLER({ pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos? -> juryriggedPropeller(pitch, group, ship, pos) }),
         THRUSTER({ pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos? -> thruster(pitch, group, ship, pos) }),
+        GAS_HISS({ pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos? -> gasHiss(pitch, group, ship, pos) })
         ;
 
         fun instantiate(pitch: Float, ship: Ship?, pos: BlockPos?): SoundScape {
@@ -53,6 +54,10 @@ object ClockworkSoundScapes {
 
     private fun thruster(pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos?): SoundScape {
         return SoundScape(pitch, group, ship).repeating(ClockworkSounds.THRUSTER.mainEvent!!, 3f, 1f, 0)
+    }
+
+    private fun gasHiss(pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos?): SoundScape {
+        return SoundScape(pitch, group, ship).repeating(ClockworkSounds.GAS_HISS.mainEvent!!, 3f, 1f, 0)
     }
 
     enum class PitchGroup {

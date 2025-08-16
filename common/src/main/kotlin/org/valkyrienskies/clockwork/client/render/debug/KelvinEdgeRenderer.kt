@@ -22,6 +22,7 @@ import org.valkyrienskies.kelvin.api.DuctEdge
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.edges.PipeDuctEdge
 import org.valkyrienskies.mod.api.vsApi
+import java.util.HashMap
 
 object KelvinEdgeRenderer {
 
@@ -52,9 +53,8 @@ object KelvinEdgeRenderer {
         val r = 0
         val g = 255
 
-
-
-        val edges = network.edges.clone() as HashMap<Pair<DuctNodePos, DuctNodePos>, DuctEdge>
+        // We clone edges to prevent concurrentModification
+        val edges = HashMap(network.edges)
         for (edge in edges) {
 
 

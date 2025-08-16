@@ -1,9 +1,7 @@
 package org.valkyrienskies.clockwork.util
 
-import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
 import net.minecraft.world.level.block.Blocks
@@ -11,21 +9,17 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
-import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
-import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.IClockworkNodeBE
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
-import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createEdgeType
 import org.valkyrienskies.kelvin.KelvinMod
-import org.valkyrienskies.kelvin.api.ConnectionType
 import org.valkyrienskies.kelvin.api.DuctNodePos
+import org.valkyrienskies.kelvin.util.INodeBlock
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.toWorldCoordinates
 import kotlin.math.abs
 
-abstract class KNodeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : SmartBlockEntity(type, pos,
-    state
-), IHeatableBlockEntity {
+abstract class KNodeBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : SmartBlockEntity(type, pos, state), IClockworkNodeBE {
 
     var dataToLoad: CompoundTag? = null
 

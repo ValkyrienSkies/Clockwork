@@ -14,9 +14,7 @@ public class MixinLivingEntity {
 
     @Inject(method = "getEquipmentSlotForItem", at = @At("RETURN"), cancellable = true)
     private static void vs_clockwork$$getEquipmentSlotForItem(ItemStack item, CallbackInfoReturnable<EquipmentSlot> cir) {
-        if (item.is(ClockworkItems.GAS_BANKTANK.get())) {
-            cir.setReturnValue(EquipmentSlot.CHEST);
-        }
-        cir.setReturnValue(cir.getReturnValue());
+        if (item.is(ClockworkItems.GAS_BANKTANK.get())) cir.setReturnValue(EquipmentSlot.CHEST);
+        else cir.setReturnValue(cir.getReturnValue());
     }
 }

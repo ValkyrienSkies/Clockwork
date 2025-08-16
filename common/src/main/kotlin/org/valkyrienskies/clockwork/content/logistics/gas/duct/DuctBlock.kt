@@ -15,6 +15,7 @@ import net.minecraft.world.InteractionResult
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.BlockGetter
+import net.minecraft.world.level.Explosion
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.Block
@@ -27,7 +28,6 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.level.block.state.properties.EnumProperty
 import net.minecraft.world.level.material.Fluid
 import net.minecraft.world.level.material.Fluids
-import net.minecraft.world.level.material.PushReaction
 import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.Shapes
@@ -38,32 +38,31 @@ import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
+import org.valkyrienskies.clockwork.ClockworkSoundScapes
 import org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver.IScrewdrivable
-import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
-import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.DOWN_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.EAST_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.NORTH_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.SOUTH_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.UP_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.WEST_CONNECTION
-import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createPipeNode
+import org.valkyrienskies.clockwork.util.KelvinParticleHelper
 import org.valkyrienskies.clockwork.util.MathFunctions.isWithin
 import org.valkyrienskies.clockwork.util.MathFunctions.removeAxis
 import org.valkyrienskies.kelvin.api.ConnectionType
 import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
-import org.valkyrienskies.kelvin.util.GasHeatLevel
+import org.valkyrienskies.kelvin.api.nodes.PipeDuctNode
 import org.valkyrienskies.kelvin.util.IEdgeBlock
-import org.valkyrienskies.kelvin.util.IHeatableBlock
-import org.valkyrienskies.kelvin.util.IHeatableBlock.Companion.GAS_HEAT_LEVEL
+import org.valkyrienskies.kelvin.util.INodeBlock
+import org.valkyrienskies.kelvin.util.INodeBlockEntity
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
-import kotlin.math.abs
+import org.valkyrienskies.mod.common.util.toJOMLD
 
 
 class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, IBE<DuctBlockEntity>,
     SimpleWaterloggedBlock, IWrenchable,
-    IScrewdrivable, IHeatableBlock {
+    IScrewdrivable {
 
     //credit to NEEPMeat for the pipe implementation idea :3dsmile:
 
@@ -87,7 +86,6 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
                 .setValue(WEST_CONNECTION, DuctConnectionType.NONE)
                 .setValue(UP_CONNECTION, DuctConnectionType.NONE)
                 .setValue(DOWN_CONNECTION, DuctConnectionType.NONE)
-                .setValue(GAS_HEAT_LEVEL, GasHeatLevel.COOL)
         )
 
         for (state: BlockState in this.stateDefinition.possibleStates) {
@@ -103,7 +101,6 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
             WEST_CONNECTION,
             UP_CONNECTION,
             DOWN_CONNECTION,
-            GAS_HEAT_LEVEL,
             BlockStateProperties.WATERLOGGED
         )
 
@@ -120,13 +117,14 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
     ) {
         val neighborState = level.getBlockState(fromPos)
 
-        val awful = fromPos.subtract(pos)
-        val direction = Direction.fromDelta(awful.x, awful.y, awful.z)
+        val delta = fromPos.subtract(pos)
+        val direction = Direction.fromDelta(delta.x, delta.y, delta.z)
         if (neighborState.block is INodeBlock || neighborState.block is IEdgeBlock) {
             val finalConnection = getConnection(state, pos, neighborState, fromPos, direction!!, level)
             val newState = state.setValue(DIR_TO_CONNECTION[direction]!!, finalConnection)
             level.setBlockAndUpdate(pos, newState)
-        } else if ((block is INodeBlock || block is IEdgeBlock) && state.getValue(DIR_TO_CONNECTION[direction]!!) != DuctConnectionType.FORCED_OFF) {
+        } // If neighbor was an INode or IEdge and then turned into something else, set ConnectionType to None
+        else if ((block is INodeBlock || block is IEdgeBlock) && state.getValue(DIR_TO_CONNECTION[direction]!!) != DuctConnectionType.FORCED_OFF) {
             val newState = state.setValue(DIR_TO_CONNECTION[direction]!!, DuctConnectionType.NONE)
             level.setBlockAndUpdate(pos, newState)
         }
@@ -152,6 +150,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         var newValue = when (value) {
             DuctConnectionType.FORCED_OFF -> DuctConnectionType.TEMP_ON
             DuctConnectionType.SIDE -> DuctConnectionType.FORCED_OFF
+            DuctConnectionType.LEAK -> DuctConnectionType.NONE
             else -> DuctConnectionType.SIDE
         }
 
@@ -195,6 +194,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         val type: DuctConnectionType = state.getValue(DIR_TO_CONNECTION[direction]!!)
         var forced = type == DuctConnectionType.FORCED_OFF
         var temp = type == DuctConnectionType.TEMP_ON
+        var leak = type == DuctConnectionType.LEAK
         var otherConnected = false
 
         val isConnectedEdgeBlock =
@@ -214,9 +214,9 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
         otherConnected = otherConnected || isConnectedEdgeBlock
 
-        // May God please forgive me for writing this
         val finalConnection: DuctConnectionType = when {
             temp && (!otherConnected || forced) -> DuctConnectionType.TEMP_ON
+            leak -> DuctConnectionType.LEAK
             forced -> DuctConnectionType.FORCED_OFF
             otherConnected -> DuctConnectionType.SIDE
             else -> DuctConnectionType.NONE
@@ -225,7 +225,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         if ((level as? Level)?.isClientSide != false || isConnectedEdgeBlock) return finalConnection
 
         val blockEntity = level.getBlockEntity(currentPos) as? DuctBlockEntity ?: return finalConnection
-        val neighborDuctNodePos = (level.getBlockEntity(neighborPos) as? IHeatableBlockEntity)?.getDuctNodePosition()
+        val neighborDuctNodePos = (level.getBlockEntity(neighborPos) as? INodeBlockEntity)?.getDuctNodePosition()
             ?: return finalConnection
 
         val storedType = blockEntity.DIR_TO_CONNECTION_TYPE[direction] ?: ConnectionType.PIPE
@@ -243,7 +243,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
         level.setBlockAndUpdate(pos, this.getConnectedState(level, state, pos) ?: return)
 
-        println("placed duct at $pos in ${level.dimension().location()}")
+        //println("placed duct at $pos in ${level.dimension().location()}")
     }
 
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
@@ -252,7 +252,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
     }
 
     override fun createNode(pos: DuctNodePos): DuctNode {
-        return createPipeNode(pos)
+        return  DuctPipeNode(pos = pos, volume = 0.1, maxPressure = 16375049.0, maxTemperature = 1478.0)
     }
 
     override fun canBeReplaced(state: BlockState, fluid: Fluid): Boolean {
@@ -297,7 +297,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
     fun getShapeForState(state: BlockState): VoxelShape {
         var shape: VoxelShape = getCenterShape()
-        for (direction in Direction.values()) {
+        for (direction in Direction.entries) {
             if (state.getValue(DIR_TO_CONNECTION[direction]!!) === DuctConnectionType.SIDE) {
                 shape = Shapes.or(shape, DIR_SHAPES[direction]!!)
             }
@@ -359,6 +359,16 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
             val changeDirection = getUseDirection(direction, context.clickedPos, hitPos)
             val connected = state.getValue(DIR_TO_CONNECTION[changeDirection]!!) == DuctConnectionType.SIDE
+            val leaking = state.getValue(DIR_TO_CONNECTION[changeDirection]!!) == DuctConnectionType.LEAK
+
+            if (leaking) {
+                playScrewSound(context.level, context.clickedPos)
+                context.level.setBlockAndUpdate(
+                    context.clickedPos,
+                    state.setValue(DIR_TO_CONNECTION[changeDirection]!!, DuctConnectionType.NONE)
+                )
+                return InteractionResult.SUCCESS
+            }
 
             if (!connected) return InteractionResult.SUCCESS
             playScrewSound(context.level, context.clickedPos)
@@ -388,7 +398,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         if (context.level.isClientSide) return InteractionResult.SUCCESS
 
         val otherDuctNodePos =
-            (context.level.getBlockEntity(context.clickedPos.relative(changeDirection.opposite)) as? IHeatableBlockEntity)?.getDuctNodePosition()
+            (context.level.getBlockEntity(context.clickedPos.relative(changeDirection.opposite)) as? INodeBlockEntity)?.getDuctNodePosition()
                 ?: return InteractionResult.FAIL
 
         playScrewSound(context.level, context.clickedPos)
@@ -409,20 +419,58 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
     }
 
+    fun randomPos(deviation: Double, random: RandomSource): Double {
+        return (0.5-deviation/2.0)+random.nextDouble()*deviation
+    }
+
     override fun animateTick(state: BlockState, level: Level, pos: BlockPos, random: RandomSource) {
-        if (!ClockworkConfig.CLIENT.renderDuctParticles) return
+
         val be = level.getBlockEntity(pos) as? DuctBlockEntity ?: return
+        val ductNodePos = be.getDuctNodePosition()
+        val pressure = ClockworkModClient.getKelvin().getPressureAt(ductNodePos)
+        if (pressure < 1000) return
+
+        // Handle hissing sound
+        val maxPressure = 16375049.0
+        if (pressure > 0.7 * maxPressure) {
+            val pitch = 2 * pressure / maxPressure
+            val scape = ClockworkSoundScapes.AmbienceGroup.GAS_HISS
+            ClockworkSoundScapes.play(scape, pos, pitch.toFloat())
+        }
+
+        // Handle leaking particles
+        for (dir in Direction.entries) {
+            if (state.getValue(DIR_TO_CONNECTION[dir]!!) != DuctConnectionType.LEAK) continue
+            val normal = dir.normal.toJOMLD()
+            val speed = normal.add(Vector3d(random.nextDouble()-0.5, random.nextDouble()-0.5, random.nextDouble()-0.5)).mul(0.1)
+            val position = pos.toJOMLD().add(Vector3d(0.5+normal.x, 0.5+normal.y, 0.5+normal.z))
+
+            for (i in 0..5)
+            KelvinParticleHelper.spawnParticleWithRatio(level as ClientLevel, ductNodePos, position, speed )
+        }
+
+
+        // Handle gas movement particles
+        if (!ClockworkConfig.CLIENT.renderDuctParticles) return
 
         val network = ClockworkModClient.getKelvin()
-        val ductNodePos = be.getDuctNodePosition()
-
         val node = network.nodeInfo.get(ductNodePos) ?: return
-        if (node.currentPressure - node.previousPressure < 1000) return
+        if (node.currentPressure - node.previousPressure < 250) return
 
-        val largestGas = node.currentGasMasses.maxBy { (_, amount) -> amount }.key
         val speed = Vector3d(random.nextDouble()-0.5, random.nextDouble()-0.5, random.nextDouble()-0.5).mul(0.1)
-        network.createGasParticle(level as ClientLevel, largestGas, ductNodePos, pos.x + 0.5, pos.y + 0.5, pos.z + 0.5, speed.x, speed.y, speed.z)
+        KelvinParticleHelper.spawnParticleWithRatio(level as ClientLevel, ductNodePos, pos.toJOMLD().add(Vector3d(0.5, 0.5, 0.5)), speed )
 
+    }
+
+    override fun wasExploded(level: Level, pos: BlockPos, explosion: Explosion) {
+        Direction.entries.forEach {
+            val state = level.getBlockState(pos.relative(it))
+            if (state.block is DuctBlock) {
+                val newState = state.setValue(DIR_TO_CONNECTION[it.opposite]!!, DuctConnectionType.LEAK)
+                level.setBlockAndUpdate(pos.relative(it), newState)
+                println("updated exploded at ${pos.relative(it)}")
+            }
+        }
     }
 
     companion object {

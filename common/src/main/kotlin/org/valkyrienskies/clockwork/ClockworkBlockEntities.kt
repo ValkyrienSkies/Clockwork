@@ -45,10 +45,13 @@ import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalSh
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctRenderer
+import org.valkyrienskies.clockwork.content.logistics.gas.engine.GasEngineBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.exhaust.ExhaustBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.generation.steam_generator.SteamGeneratorBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.heater.GasHeaterBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctCogInstance
@@ -559,6 +562,42 @@ object ClockworkBlockEntities {
             )
         }
         .validBlocks(ClockworkBlocks.GAS_THRUSTER)
+        .register()
+
+    @JvmField
+    val STEAM_GENERATOR: BlockEntityEntry<SteamGeneratorBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<SteamGeneratorBlockEntity>("steam_generator") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            SteamGeneratorBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .validBlocks(ClockworkBlocks.STEAM_GENERATOR)
+        .register()
+
+    @JvmField
+    val GAS_ENGINE: BlockEntityEntry<GasEngineBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<GasEngineBlockEntity>("gas_engine") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            GasEngineBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .validBlocks(ClockworkBlocks.GAS_ENGINE)
+        .register()
+
+    @JvmField
+    val EXHAUST: BlockEntityEntry<ExhaustBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<ExhaustBlockEntity>("exhaust") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            ExhaustBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .validBlocks(ClockworkBlocks.EXHAUST)
         .register()
 
     @JvmField

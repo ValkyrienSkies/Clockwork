@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.backtank
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.content.equipment.armor.BacktankArmorLayer
 import com.simibubi.create.foundation.render.CachedBufferer
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback
 import net.minecraft.client.model.EntityModel

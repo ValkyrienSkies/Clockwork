@@ -51,9 +51,12 @@ import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSea
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.engine.GasEngineBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.exhaust.ExhaustBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.generation.steam_generator.SteamGeneratorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.heater.GasHeaterBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlock
@@ -544,6 +547,54 @@ object ClockworkBlocks {
             .item()
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .model(AssetLookup.customBlockItemModel("gas_nozzle"))
+            .build()
+            .register()
+
+    @JvmField
+    val STEAM_GENERATOR: BlockEntry<SteamGeneratorBlock> =
+        REGISTRATE.block<SteamGeneratorBlock>("steam_generator") { properties: BlockBehaviour.Properties? ->
+            SteamGeneratorBlock(properties!!)
+        }
+            .initialProperties { Blocks.IRON_BLOCK }
+            .transform(axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .properties { it.noOcclusion() }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .build()
+            .register()
+
+    @JvmField
+    val GAS_ENGINE: BlockEntry<GasEngineBlock> =
+        REGISTRATE.block<GasEngineBlock>("gas_engine") { properties: BlockBehaviour.Properties? ->
+            GasEngineBlock(properties!!)
+        }
+            .initialProperties { Blocks.IRON_BLOCK }
+            .transform(axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .properties { it.noOcclusion() }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .build()
+            .register()
+
+    @JvmField
+    val EXHAUST: BlockEntry<ExhaustBlock> =
+        REGISTRATE.block<ExhaustBlock>("exhaust") { properties: BlockBehaviour.Properties? ->
+            ExhaustBlock(properties!!)
+        }
+            .initialProperties { Blocks.IRON_BLOCK }
+            .transform(axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .properties { it.noOcclusion() }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
             .register()
 

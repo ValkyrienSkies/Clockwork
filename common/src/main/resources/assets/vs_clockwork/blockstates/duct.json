@@ -3,30 +3,30 @@
     {
       "when": {
         "OR": [
-          {"up": "true", "down":  "false|forced", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
-          {"up": "false|forced", "down":  "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
-          {"east": "true", "west": "false|forced", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
-          {"north": "true", "south": "false|forced", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
-          {"west": "true", "east": "false|forced", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
-          {"north": "false|forced", "south": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
+          {"up": "true|leak", "down":  "false|forced" },
+          {"up": "false|forced", "down":  "true|leak" },
+          {"east": "true|leak", "west": "false|forced" },
+          {"north": "true|leak", "south": "false|forced" },
+          {"west": "true|leak", "east": "false|forced" },
+          {"north": "false|forced", "south": "true|leak" },
 
-          {"south": "true", "north":  "true", "east": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
-          {"south": "true", "north":  "true", "west": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
-          {"south": "true", "north":  "true", "up": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
-          {"south": "true", "north":  "true", "down": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
+          {"south": "true|leak", "north":  "true|leak", "east": "true" },
+          {"south": "true|leak", "north":  "true|leak", "west": "true" },
+          {"south": "true|leak", "north":  "true|leak", "up": "true" },
+          {"south": "true|leak", "north":  "true|leak", "down": "true" },
 
-          {"up": "true", "down":  "true", "east": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
-          {"up": "true", "down":  "true", "west": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
-          {"up": "true", "down":  "true", "north": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
-          {"up": "true", "down":  "true", "south": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
+          {"up": "true|leak", "down":  "true|leak", "east": "true|leak" },
+          {"up": "true|leak", "down":  "true|leak", "west": "true|leak" },
+          {"up": "true|leak", "down":  "true|leak", "north": "true|leak" },
+          {"up": "true|leak", "down":  "true|leak", "south": "true|leak" },
 
-          {"east": "true", "west": "true", "north": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
-          {"east": "true", "west": "true", "south": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
-          {"north": "true", "south": "true", "up": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
-          {"north": "true", "south": "true", "down":  "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
+          {"east": "true|leak", "west": "true|leak", "north": "true|leak" },
+          {"east": "true|leak", "west": "true|leak", "south": "true|leak" },
+          {"north": "true|leak", "south": "true|leak", "up": "true|leak" },
+          {"north": "true|leak", "south": "true|leak", "down":  "true|leak" },
 
-          {"north": "true", "east": "true", "south": "true", "west": "true","up": "true", "down": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"},
-          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "false|forced", "down": "false|forced", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"}
+          {"north": "true|leak", "east": "true|leak", "south": "true|leak", "west": "true|leak","up": "true|leak", "down": "true|leak" },
+          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "false|forced", "down": "false|forced" }
         ]
       },
       "apply": {
@@ -36,7 +36,7 @@
     {
       "when": {
         "OR": [
-          {"north": "true", "east": "false|forced", "south": "true", "west": "false|forced","up": "false|forced", "down": "false|forced", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"}
+          {"north": "true|leak", "east": "false|forced", "south": "true|leak", "west": "false|forced","up": "false|forced", "down": "false|forced" }
         ]
       },
       "apply": {
@@ -46,7 +46,7 @@
     {
       "when": {
         "OR": [
-          {"north": "false|forced", "east": "true", "south": "false|forced", "west": "true","up": "false|forced", "down": "false|forced", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"}
+          {"north": "false|forced", "east": "true|leak", "south": "false|forced", "west": "true|leak","up": "false|forced", "down": "false|forced" }
         ]
       },
       "apply": {
@@ -57,7 +57,7 @@
     {
       "when": {
         "OR": [
-          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "true", "down": "true", "gas_heat_level": "cool|warm|hot|very_hot|super_hot|molten"}
+          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "true|leak", "down": "true|leak" }
         ]
       },
       "apply": {

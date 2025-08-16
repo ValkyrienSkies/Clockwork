@@ -42,7 +42,10 @@ open class ScrollingFrame(x: Int, y: Int, w: Int, h: Int): AbstractSimiWidget(x,
     override fun renderWidget(ms: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
         currentScroll += Mth.clamp(scroll-currentScroll,-partialTicks*scrollLerpSpeed, partialTicks*scrollLerpSpeed)
 
-        ms.pose().translate(0.0,currentScroll,0.0)
+        val pose = ms.pose()
+
+        pose.pushPose()
+        pose.translate(0.0,currentScroll,0.0)
 
         var pastHeight = 0.0
         val frameY = y+currentScroll
@@ -59,11 +62,12 @@ open class ScrollingFrame(x: Int, y: Int, w: Int, h: Int): AbstractSimiWidget(x,
             pastHeight+=element.height+padding
         }
         minScroll = -max(pastHeight-height,0.0)
+        pose.popPose()
 
     }
 
 
-    abstract class ScrollingElement() {
+    abstract class ScrollingElement {
         open val height: Double = 0.0
         var x: Int = 0
         var y: Int = 0

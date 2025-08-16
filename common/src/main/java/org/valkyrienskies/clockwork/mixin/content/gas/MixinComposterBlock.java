@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.mixin.content.gas;
 
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
@@ -11,7 +12,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.ComposterBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Vector3d;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,20 +19,14 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.ClockworkModClient;
-import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock;
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct;
-import org.valkyrienskies.clockwork.util.Vector3dUtilsKt;
 import org.valkyrienskies.kelvin.KelvinMod;
 import org.valkyrienskies.kelvin.api.*;
 import org.valkyrienskies.kelvin.api.nodes.PipeDuctNode;
-import org.valkyrienskies.kelvin.api.nodes.TankDuctNode;
-import org.valkyrienskies.kelvin.impl.DuctNetworkServer;
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry;
+import org.valkyrienskies.kelvin.util.INodeBlock;
 import org.valkyrienskies.kelvin.util.KelvinExtensions;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
-
 import java.util.HashSet;
-import java.util.Random;
 
 @Mixin(ComposterBlock.class)
 public class MixinComposterBlock extends Block implements INodeBlock {
@@ -110,4 +104,13 @@ public class MixinComposterBlock extends Block implements INodeBlock {
         }
     }
 
+    @Override
+    public void nodeAddClient(@NotNull BlockState blockState, @NotNull ClientLevel clientLevel, @NotNull BlockPos blockPos) {
+
+    }
+
+    @Override
+    public void nodeRemoveClient(@NotNull BlockState blockState, @NotNull ClientLevel clientLevel, @NotNull BlockPos blockPos) {
+
+    }
 }

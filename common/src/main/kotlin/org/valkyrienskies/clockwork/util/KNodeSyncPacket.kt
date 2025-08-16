@@ -3,10 +3,10 @@ package org.valkyrienskies.clockwork.util
 import net.minecraft.client.Minecraft
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
-import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
 import org.valkyrienskies.clockwork.platform.api.network.ClientNetworkContext
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket
 import org.valkyrienskies.kelvin.api.DuctNodePos
+import org.valkyrienskies.kelvin.util.INodeBlockEntity
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
 
 class KNodeSyncPacket: S2CCWPacket {
@@ -26,10 +26,10 @@ class KNodeSyncPacket: S2CCWPacket {
         context.enqueueWork {
             if (Minecraft.getInstance().level != null && Minecraft.getInstance().level!!.getBlockEntity(
                     pos.toMinecraft()
-                ) is IHeatableBlockEntity
+                ) is INodeBlockEntity
             ) {
                 val ce =
-                    Minecraft.getInstance().level!!.getBlockEntity(pos.toMinecraft()) as IHeatableBlockEntity?
+                    Minecraft.getInstance().level!!.getBlockEntity(pos.toMinecraft()) as INodeBlockEntity?
                 ce?.loadData(nodeInfo, pos, true)
             }
         }

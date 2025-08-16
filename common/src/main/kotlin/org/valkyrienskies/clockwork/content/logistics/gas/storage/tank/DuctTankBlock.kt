@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.storage.tank
 
 import com.simibubi.create.api.connectivity.ConnectivityHandler
-import com.simibubi.create.content.fluids.tank.FluidTankBlock
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -15,13 +14,13 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
-import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
 import org.valkyrienskies.core.util.squared
 import org.valkyrienskies.kelvin.KelvinMod.KELVINLOGGER
 import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.NodeBehaviorType
 import org.valkyrienskies.kelvin.api.nodes.TankDuctNode
+import org.valkyrienskies.kelvin.util.INodeBlock
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 
 

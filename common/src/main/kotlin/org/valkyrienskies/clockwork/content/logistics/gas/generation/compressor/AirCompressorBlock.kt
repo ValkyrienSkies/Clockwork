@@ -5,12 +5,11 @@ import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.level.Level
-import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
+import org.valkyrienskies.kelvin.util.INodeBlock
 
 class AirCompressorBlock(properties: Properties?) : KineticBlock(properties), INodeBlock, IBE<AirCompressorBlockEntity> {
 
