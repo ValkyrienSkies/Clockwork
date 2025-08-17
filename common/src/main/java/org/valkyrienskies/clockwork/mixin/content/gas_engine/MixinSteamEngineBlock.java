@@ -19,7 +19,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.engine.GasEngineBlock;
 @Mixin(SteamEngineBlock.class)
 public class MixinSteamEngineBlock {
 
-    @Inject(method = "canAttach", at = @At("RETURN"), cancellable = true, remap = false)
+    @Inject(method = "canAttach", at = @At("RETURN"), cancellable = true)
     private static void vs_clockwork$canAttach(LevelReader pReader, BlockPos pPos, Direction pDirection, CallbackInfoReturnable<Boolean> cir) {
         if (pReader.getBlockState(pPos.relative(pDirection)).getBlock() instanceof GasEngineBlock) cir.setReturnValue(Boolean.TRUE);
         else cir.setReturnValue(cir.getReturnValue());
