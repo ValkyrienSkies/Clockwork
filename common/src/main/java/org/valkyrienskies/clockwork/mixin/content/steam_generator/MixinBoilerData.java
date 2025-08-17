@@ -23,7 +23,7 @@ public class MixinBoilerData {
     @Shadow
     public int attachedEngines;
 
-    @WrapOperation(method = "evaluate", at = @At(value = "INVOKE", target = "Lnet/minecraft/core/BlockPos;offset(III)Lnet/minecraft/core/BlockPos;"), remap = false)
+    @WrapOperation(method = "evaluate", at = @At(value = "INVOKE", target = "Lnet/minecraft/core/BlockPos;offset(III)Lnet/minecraft/core/BlockPos;"))
     public BlockPos checkForSteamGenerators(BlockPos instance, int dx, int dy, int dz, Operation<BlockPos> original, @Local Level level) {
         final BlockPos pos = original.call(instance, dx, dy, dz);
 
