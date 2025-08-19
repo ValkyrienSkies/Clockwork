@@ -18,6 +18,7 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
 import net.minecraft.world.item.ItemStack
 import org.slf4j.LoggerFactory
+import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketRenderer
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkHandler
 import org.valkyrienskies.clockwork.content.events.CollisionSoundEffectHandler
 import org.valkyrienskies.clockwork.content.forces.*
@@ -114,7 +115,9 @@ object ClockworkMod {
                 ship.getAttachment(DragController::class.java)?.gameTick(ship, it)
             }
             ClockworkUtils.tick(it)
+            AirpocketRenderer.tick(it)
             CollisionSoundEffectHandler.tick(it)
+
         }
 
         InteractionEvent.RIGHT_CLICK_BLOCK.register(InteractionEvent.RightClickBlock { player, hand, pos, face ->
