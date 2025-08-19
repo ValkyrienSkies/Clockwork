@@ -33,7 +33,7 @@ import org.valkyrienskies.kelvin.api.DuctNetwork.Companion.idealGasConstant
 import org.valkyrienskies.mod.common.dimensionId
 import kotlin.math.PI
 
-class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState?) : KNodeBlockEntity(type, pos, state), IUniversalJoint {
+class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), IUniversalJoint {
 
     override var connectedJoint: IUniversalJoint? = null
     override var pos: BlockPos = pos
