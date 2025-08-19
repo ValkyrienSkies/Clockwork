@@ -26,6 +26,7 @@ import org.valkyrienskies.clockwork.platform.SharedValues.packetChannel
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
 import org.valkyrienskies.clockwork.platform.api.network.CWPacket
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket
+import org.valkyrienskies.clockwork.util.KNodeSyncPacket
 import org.valkyrienskies.clockwork.util.blocktype.SyncableStoragePacket
 import org.valkyrienskies.clockwork.util.universal_joint.UniversalJointItemPacket
 import java.util.function.Function
@@ -63,6 +64,7 @@ enum class ClockworkPackets(
 
     UPDATE_DUCT_EDGE(DuctEdgeSyncPacket::class.java, ::DuctEdgeSyncPacket),
 
+    NODE_SYNC(KNodeSyncPacket::class.java, ::KNodeSyncPacket),
 
     UNIVERSAL_JOINT_ITEM_PACKET(UniversalJointItemPacket::class.java, ::UniversalJointItemPacket)
 

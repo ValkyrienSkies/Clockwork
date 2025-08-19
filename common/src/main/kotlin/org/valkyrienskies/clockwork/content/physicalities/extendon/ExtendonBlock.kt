@@ -20,7 +20,7 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkItems
-import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
+import org.valkyrienskies.kelvin.util.INodeBlock
 
 class ExtendonBlock(properties: Properties) : DirectionalBlock(properties), IBE<ExtendonBlockEntity>, INodeBlock {
     init {

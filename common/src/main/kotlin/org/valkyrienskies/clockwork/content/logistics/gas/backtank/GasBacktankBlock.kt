@@ -30,7 +30,6 @@ import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBackTankItem.Companion.AirKgsToAirTicks
 import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
@@ -38,10 +37,12 @@ import org.valkyrienskies.kelvin.api.NodeBehaviorType
 import org.valkyrienskies.kelvin.api.nodes.TankDuctNode
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.serialization.NodeNBTUtil
+import org.valkyrienskies.kelvin.util.INodeBlock
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import java.util.*
 
-class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(properties), IBE<GasBacktankBlockEntity>, INodeBlock {
+class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(properties), IBE<GasBacktankBlockEntity>,
+    INodeBlock {
 
 
 
@@ -94,11 +95,9 @@ class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(prop
         val be = blockGetter.getBlockEntity(pos) ?: return stack
 
         val tag = CompoundTag()
-        println(tag)
         NodeNBTUtil.serializeNodeServer(pos.toDuctNodePos(be.level!!.dimension().location()), tag)
         tag.putFloat("Air",(tag.getDouble("kelvin:air")*AirKgsToAirTicks).toFloat())
         stack.tag = tag
-        println(tag)
 
         return stack
     }

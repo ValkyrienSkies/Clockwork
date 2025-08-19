@@ -1,12 +1,7 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.duct
 
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.block.state.properties.EnumProperty
-import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock.Companion.connectInDirection
-import org.valkyrienskies.kelvin.util.IHeatableBlock
+import org.valkyrienskies.kelvin.util.INodeBlock
 
 interface IDuct: INodeBlock {
     companion object {

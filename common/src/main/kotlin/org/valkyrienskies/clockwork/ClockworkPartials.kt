@@ -104,6 +104,8 @@ object ClockworkPartials {
     val DUCT_RIM_VERY_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/rim/very_hot"))
     val DUCT_RIM_SUPER_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/rim/super_hot"))
     val DUCT_RIM_MOLTEN: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/rim/molten"))
+
+    val DUCT_LEAK: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/leak"))
     //END OF PIPE DEATH
 
     val VALVE_DUCT_POINTER: PartialModel = PartialModel(ClockworkMod.asResource("block/valve_duct/pointer"))

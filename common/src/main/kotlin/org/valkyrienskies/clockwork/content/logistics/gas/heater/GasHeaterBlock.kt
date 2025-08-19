@@ -16,9 +16,10 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
+import org.valkyrienskies.kelvin.util.INodeBlock
 
-class GasHeaterBlock(properties: Properties) : HorizontalDirectionalBlock(properties), IBE<GasHeaterBlockEntity>, INodeBlock {
+class GasHeaterBlock(properties: Properties) : HorizontalDirectionalBlock(properties), IBE<GasHeaterBlockEntity>,
+    INodeBlock {
 
     init {
         registerDefaultState(defaultBlockState().setValue(HEAT_LEVEL, HeatLevel.NONE).setValue(FACING, Direction.NORTH))

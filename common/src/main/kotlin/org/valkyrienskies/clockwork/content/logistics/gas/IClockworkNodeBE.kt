@@ -7,14 +7,13 @@ import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
-import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.impl.client.DuctNetworkClient
+import org.valkyrienskies.kelvin.util.INodeBlockEntity
 import kotlin.math.roundToInt
 
-interface IHeatableBlockEntity: IHaveGoggleInformation {
-    fun getDuctNodePosition(): DuctNodePos
+interface IClockworkNodeBE: INodeBlockEntity, IHaveGoggleInformation {
 
-    override fun addToGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
+    fun heatableGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
         tooltip.add(Component.literal("    Duct Info").withStyle(ChatFormatting.GRAY))
 
 
@@ -49,5 +48,4 @@ interface IHeatableBlockEntity: IHaveGoggleInformation {
 
         return found
     }
-
 }

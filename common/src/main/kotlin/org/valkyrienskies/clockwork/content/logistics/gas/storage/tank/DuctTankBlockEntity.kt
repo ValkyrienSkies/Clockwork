@@ -1,11 +1,8 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.storage.tank
 
 import com.simibubi.create.api.connectivity.ConnectivityHandler
-import com.simibubi.create.content.fluids.tank.FluidTankBlock
 import com.simibubi.create.foundation.blockEntity.IMultiBlockEntityContainer
-import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
-import io.github.fabricators_of_create.porting_lib.util.Constants.BlockFlags
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
@@ -13,11 +10,11 @@ import net.minecraft.nbt.NbtUtils
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
-import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
+import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 
-class DuctTankBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : SmartBlockEntity(type, pos, state), IHeatableBlockEntity,
+class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state),
     IMultiBlockEntityContainer {
 
     protected val maxHeight = 5
@@ -71,6 +68,11 @@ class DuctTankBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bloc
 
     override fun getDuctNodePosition(): DuctNodePos {
         return controller!!.toDuctNodePos(level!!.dimension().location())
+    }
+
+    override fun lazyTick() {
+        if (!isController) return
+        super.lazyTick()
     }
 
     override fun getController(): BlockPos? {

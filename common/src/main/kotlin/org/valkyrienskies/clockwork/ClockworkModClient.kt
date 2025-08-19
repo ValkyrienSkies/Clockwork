@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork
 
 import com.simibubi.create.content.equipment.armor.BacktankArmorLayer
-import com.simibubi.create.content.trains.schedule.TrainHatArmorLayer
 import com.simibubi.create.foundation.outliner.Outliner
 import com.simibubi.create.foundation.utility.ModelSwapper
 import dev.architectury.event.events.client.ClientTickEvent
@@ -122,7 +121,6 @@ object ClockworkModClient {
         context: EntityRendererProvider.Context?
     ) {
         BacktankArmorLayer.registerOn(entityRenderer, registrationHelper)
-        TrainHatArmorLayer.registerOn(entityRenderer, registrationHelper)
     }
 
 

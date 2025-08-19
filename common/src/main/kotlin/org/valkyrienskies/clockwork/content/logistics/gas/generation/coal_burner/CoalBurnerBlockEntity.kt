@@ -1,32 +1,23 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner
 
-import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import dev.architectury.registry.fuel.FuelRegistry
 import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
 import net.minecraft.world.Clearable
-import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.item.ItemEntity
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.ClockworkPackets
-import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctEdgeSyncPacket
-import org.valkyrienskies.kelvin.api.ConnectionType
 import org.valkyrienskies.kelvin.api.DuctNodePos
-import org.valkyrienskies.kelvin.api.GasType
-import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createEdgeType
+import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.util.toJOMLD
-import java.util.*
 
-class CoalBurnerBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : SmartBlockEntity(type, pos, state), IHeatableBlockEntity, Clearable {
+class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), Clearable {
 
 
     var fuelTicks: Int = 0
@@ -74,7 +65,6 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bl
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         val subTag = tag.get("StoredFuelStack") as CompoundTag
         storedFuelStack = ItemStack.of(subTag)
-        println("$storedFuelStack   $subTag")
 
         super.read(tag, clientPacket)
     }
@@ -85,7 +75,6 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bl
         val subTag = CompoundTag()
         storedFuelStack.save(subTag)
         tag.put("StoredFuelStack", subTag)
-        println("$storedFuelStack   $subTag")
         super.write(tag, clientPacket)
     }
 
@@ -101,9 +90,9 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Bl
         storedFuelStack = ItemStack.EMPTY
     }
 
-    override fun addToGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
+    override fun addToGoggleTooltip(tooltip: List<Component>?, isPlayerSneaking: Boolean): Boolean {
         if (!storedFuelStack.isEmpty) {
-            tooltip.add(Component.literal("    Coal burner Info").withStyle(ChatFormatting.GRAY))
+            (tooltip as MutableList).add(Component.literal("    Coal burner Info").withStyle(ChatFormatting.GRAY))
             tooltip.add(Component.literal("Fuel: ").withStyle(ChatFormatting.GOLD)
                 .append(storedFuelStack.displayName)
                 .append((Component.literal("x ${storedFuelStack.count}")).withStyle(ChatFormatting.GOLD)))

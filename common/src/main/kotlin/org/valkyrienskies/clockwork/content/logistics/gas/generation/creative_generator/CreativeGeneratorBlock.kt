@@ -15,7 +15,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
+import org.valkyrienskies.kelvin.util.INodeBlock
 
 
 class CreativeGeneratorBlock(properties: Properties) : Block(properties), INodeBlock, IBE<CreativeGeneratorBlockEntity> {

@@ -13,7 +13,6 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkAugmentations
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.clockwork.util.AerodynamicUtils
@@ -21,6 +20,7 @@ import org.valkyrienskies.clockwork.util.AerodynamicUtils.densityAverage
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.dynamicViscosityAverage
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.specificHeatAverage
 import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
+import org.valkyrienskies.clockwork.util.KNodeKineticBlockEntity
 import org.valkyrienskies.clockwork.util.PIDstance
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
@@ -33,7 +33,7 @@ import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
 
-class GasNozzleBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?): KineticBlockEntity(type, pos, state), IHeatableBlockEntity {
+class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState): KNodeKineticBlockEntity(type, pos, state) {
 
     var hasPocket = false
     var pointerSpeed = 0.0
@@ -203,14 +203,13 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
         return blockPos.toDuctNodePos()
     }
 
-    override fun addToGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
-        super<IHeatableBlockEntity>.addToGoggleTooltip(tooltip, isPlayerSneaking)
+    override fun addToGoggleTooltip(tooltip: List<Component>?, isPlayerSneaking: Boolean): Boolean {
+        val bool = super.addToGoggleTooltip(tooltip, isPlayerSneaking)
         if (!hasPocket) {
-            tooltip.add(Component.literal("Missing pocket.").withStyle(ChatFormatting.GRAY).withStyle(ChatFormatting.ITALIC))
-            return false
+            (tooltip as MutableList?)?.add(Component.literal("Missing pocket.").withStyle(ChatFormatting.GRAY).withStyle(ChatFormatting.ITALIC))
         } else {
-            tooltip.add(Component.literal("Pocket Temperature: $clientPocketTemperature").withStyle(ChatFormatting.RED))
+            (tooltip as MutableList?)?.add(Component.literal("Pocket Temperature: $clientPocketTemperature").withStyle(ChatFormatting.RED))
         }
-        return super<KineticBlockEntity>.addToGoggleTooltip(tooltip, isPlayerSneaking)
+        return bool
     }
 }
