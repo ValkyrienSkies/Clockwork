@@ -36,7 +36,7 @@ class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
             val facing = level!!.getBlockState(blockPos).getValue(BlockStateProperties.FACING)
             val random = level!!.random
 
-            println(gasses.values.sum().toInt())
+
             for (i in 1..floor(gasses.values.sum()/MASS_PER_EXHAUST).toInt()) {
                 KelvinParticleHelper.spawnParticleWithRatio(level as ClientLevel, getDuctNodePosition(),
                     blockPos.toJOMLD().add(randomPos(0.3, random), randomPos(0.3, random), randomPos(0.3, random)),

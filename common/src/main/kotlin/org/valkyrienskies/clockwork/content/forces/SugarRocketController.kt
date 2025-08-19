@@ -25,12 +25,12 @@ class SugarRocketController : ShipForcesInducer {
         while (newRockets.isNotEmpty()) {
             val rocket = newRockets.poll()
             burningRockets.add(SugarRocketData(rocket.first, rocket.second))
-            println("added rocket at ${rocket.first} with force ${rocket.second}")
+            //println("added rocket at ${rocket.first} with force ${rocket.second}")
         }
         while (removedRockets.isNotEmpty()) {
             val rocket = removedRockets.poll()
             burningRockets.removeIf {data -> data.position == rocket}
-            println("removed rocket at $rocket")
+            //println("removed rocket at $rocket")
         }
         burningRockets.forEach { data ->
             val shipPos = Vector3d(data.position).add(0.5, 0.5, 0.5, Vector3d()).sub(physShip.transform.positionInShip)

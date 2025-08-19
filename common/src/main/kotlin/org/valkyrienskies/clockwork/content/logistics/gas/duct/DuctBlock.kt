@@ -468,7 +468,6 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
             if (state.block is DuctBlock) {
                 val newState = state.setValue(DIR_TO_CONNECTION[it.opposite]!!, DuctConnectionType.LEAK)
                 level.setBlockAndUpdate(pos.relative(it), newState)
-                println("updated exploded at ${pos.relative(it)}")
             }
         }
     }

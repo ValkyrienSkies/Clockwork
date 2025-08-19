@@ -53,7 +53,7 @@ class GasHeaterBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
         if (state.getValue(HEAT_LEVEL) == heatLevel) return
 
-        println(heatLevel)
+
 
 
         state = state.setValue(HEAT_LEVEL, heatLevel)

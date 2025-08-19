@@ -65,7 +65,6 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         val subTag = tag.get("StoredFuelStack") as CompoundTag
         storedFuelStack = ItemStack.of(subTag)
-        println("$storedFuelStack   $subTag")
 
         super.read(tag, clientPacket)
     }
@@ -76,7 +75,6 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
         val subTag = CompoundTag()
         storedFuelStack.save(subTag)
         tag.put("StoredFuelStack", subTag)
-        println("$storedFuelStack   $subTag")
         super.write(tag, clientPacket)
     }
 
