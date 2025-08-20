@@ -26,7 +26,9 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         if (level!!.isClientSide) return
         val network = KelvinMod.getKelvin()
         val temperature = network.getTemperatureAt(getDuctNodePosition())
+
         totalEfficiency = tempToEfficiency(temperature)
+        println("${totalEfficiency} ${temperature}")
     }
 
     override fun tick() {
@@ -59,7 +61,7 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
     companion object {
         fun tempToEfficiency(temperature: Double): Float {
-            return (temperature / 700).toFloat()
+            return (temperature.toInt() - 80).floorDiv(290) / 4f
         }
     }
 }
