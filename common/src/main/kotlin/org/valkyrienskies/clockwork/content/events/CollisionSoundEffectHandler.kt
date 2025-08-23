@@ -10,6 +10,8 @@ import net.minecraft.sounds.SoundSource
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Vector3d
 import org.joml.Vector3dc
+import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.core.api.VsBeta
 import org.valkyrienskies.core.api.events.CollisionEvent
 import org.valkyrienskies.core.util.squared
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
@@ -22,17 +24,14 @@ import kotlin.math.hypot
 import kotlin.math.log
 import kotlin.math.pow
 
+@OptIn(VsBeta::class)
 object CollisionSoundEffectHandler {
-
-    val CHECK_DISTANCE = 0.1
 
     val collisionQueue = ConcurrentLinkedQueue<CollisionEvent>()
 
     fun onCollide(event: CollisionEvent) {
-        collisionQueue.add(event)
+        if (ClockworkConfig.SERVER.collisionSoundEffects) collisionQueue.add(event)
     }
-
-
 
     private fun getValidState(level: ServerLevel, pos: Vector3dc): BlockState {
         return level.getBlockState(BlockPos.containing(pos.x(), pos.y(), pos.z()))
@@ -47,7 +46,11 @@ object CollisionSoundEffectHandler {
     fun tick(level: ServerLevel) {
         val groundId = level.shipObjectWorld.dimensionToGroundBodyIdImmutable[level.dimensionId]
 
+        if (collisionQueue.size > ClockworkConfig.SERVER.collisionSoundEffectMax) collisionQueue.clear()
+
         while (!collisionQueue.isEmpty()) {
+            if (collisionQueue.isNotEmpty()) println("Collision Queue size: ${collisionQueue.size}")
+
             val event = collisionQueue.first()
             if (event.dimensionId != level.dimensionId) continue
             collisionQueue.remove()
