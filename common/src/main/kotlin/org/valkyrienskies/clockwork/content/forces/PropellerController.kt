@@ -16,6 +16,7 @@ import org.valkyrienskies.clockwork.util.AerodynamicUtils
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.getAirDensityForY
 import org.valkyrienskies.core.api.ships.*
 import org.valkyrienskies.core.api.ships.properties.ShipTransform
+import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.api.world.properties.DimensionId
 import org.valkyrienskies.mod.common.util.toJOMLD
 import java.lang.Math
@@ -37,9 +38,9 @@ class PropellerController(
 
     var ticksSinceLastUpdate = 0
 
-    override fun applyForces(physShip: PhysShip) {
+    override fun physTick(physShip: PhysShip, physLevel: PhysLevel) {
         if (applierUpdateData.isNotEmpty()) ticksSinceLastUpdate = 0
-        super.applyForces(physShip)
+        super.physTick(physShip, physLevel)
 
         // Propeller Thrust
         for (physData in appliers.values) {

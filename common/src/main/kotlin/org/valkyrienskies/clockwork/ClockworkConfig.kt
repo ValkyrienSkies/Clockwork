@@ -40,6 +40,12 @@ object ClockworkConfig {
             "minecraft:flowing_lava"
         )
 
+        @JsonSchema(description = "Enable collision sound effects")
+        var collisionSoundEffects = false
+
+        @JsonSchema(description = "Max collision events per tick. Dumps collision event queue if amount is bigger. Default is 100", min = 1.0)
+        var collisionSoundEffectMax = 100
+
         @JsonSchema(description = "Max Gravitron mass in 1000 kg")
         var maxGravitronMass = 256
 

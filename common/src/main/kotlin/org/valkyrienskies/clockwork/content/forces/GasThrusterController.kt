@@ -12,6 +12,7 @@ import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.setAttachment
+import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.mod.common.util.toJOMLD
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -24,16 +25,16 @@ class GasThrusterController(
     override var nextApplierID: Int = 0
 ) : MultiInstanceForceApplier<GasThrusterUpdateData, GasThrusterData, GasThrusterCreateData> {
 
-    override fun applyForces(physShip: PhysShip) {
-        super.applyForces(physShip)
-       for (thruster in appliers.values) {
+    override fun physTick(physShip: PhysShip, physLevel: PhysLevel) {
+        super.physTick(physShip, physLevel)
+        for (thruster in appliers.values) {
            if (thruster.position == null || thruster.force == null || thruster.force!!.length() == 0.0) continue
            val pos =  Vector3d(thruster.position).add(0.5,0.5,0.5, Vector3d()).sub(physShip.transform.positionInShip)
            val force = thruster.force!!.mul(ClockworkConfig.SERVER.gasThrusterForceMul, Vector3d())
 
 
            physShip.applyRotDependentForceToPos(force!!, pos)
-       }
+        }
     }
 
     companion object {

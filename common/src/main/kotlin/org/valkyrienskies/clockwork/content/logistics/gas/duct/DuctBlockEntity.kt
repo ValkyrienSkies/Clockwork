@@ -95,7 +95,7 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
         this.DIR_TO_CONNECTION_TYPE[dir] = edgeType
         if (!clientPacket) {
             syncEdge(dir)
-            println("SETTING EDGE TYPE: ${this.getDuctNodePosition()} to $otherDuctNodePos with $edgeType")
+            //println("SETTING EDGE TYPE: ${this.getDuctNodePosition()} to $otherDuctNodePos with $edgeType")
             if ((previousType != edgeType && !silent) || forced) {
                 ClockworkMod.getKelvin().removeEdge(getDuctNodePosition(), otherDuctNodePos)
                 if (edgeType != ConnectionType.NONE) {

@@ -57,7 +57,9 @@ dependencies {
     include(modApi("dev.architectury:architectury-fabric:${rootProject.architectury_version}"))
 
     //VS2
-    modApi("org.valkyrienskies:valkyrienskies-120-fabric:${rootProject.vs2_version}")
+    modApi("org.valkyrienskies:valkyrienskies-120-fabric:${rootProject.vs2_version}") {
+        exclude group: "com.simibubi"
+    }
     implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") {
         exclude group: 'org.joml', module: ''
     }

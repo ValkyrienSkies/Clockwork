@@ -24,7 +24,7 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
         target: KineticBlockEntity, stateFrom: BlockState, stateTo: BlockState, diff: BlockPos,
         connectedViaAxes: Boolean, connectedViaCogs: Boolean
     ): Float {
-        println("${target.blockPos} $connectedPos")
+
         if (connectedJoint == null || target.blockPos != connectedPos) return 0f
         return 1f
     }

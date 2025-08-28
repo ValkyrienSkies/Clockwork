@@ -9,28 +9,29 @@ import org.joml.Vector3i
 import org.valkyrienskies.clockwork.content.propulsion.sugar_rocket.SugarRocketData
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
-import org.valkyrienskies.core.api.ships.ShipForcesInducer
+import org.valkyrienskies.core.api.ships.ShipPhysicsListener
+import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toJOMLD
 import java.util.concurrent.ConcurrentLinkedQueue
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-class SugarRocketController : ShipForcesInducer {
+class SugarRocketController : ShipPhysicsListener {
 
     val newRockets = ConcurrentLinkedQueue<Pair<Vector3i, Vector3d>>()
     val removedRockets = ConcurrentLinkedQueue<Vector3i>()
     val burningRockets: HashSet<SugarRocketData> = HashSet() // Used instead of HashMap for auto Serialization
 
-    override fun applyForces(physShip: PhysShip) {
+    override fun physTick(physShip: PhysShip, physLevel: PhysLevel) {
         while (newRockets.isNotEmpty()) {
             val rocket = newRockets.poll()
             burningRockets.add(SugarRocketData(rocket.first, rocket.second))
-            println("added rocket at ${rocket.first} with force ${rocket.second}")
+            //println("added rocket at ${rocket.first} with force ${rocket.second}")
         }
         while (removedRockets.isNotEmpty()) {
             val rocket = removedRockets.poll()
             burningRockets.removeIf {data -> data.position == rocket}
-            println("removed rocket at $rocket")
+            //println("removed rocket at $rocket")
         }
         burningRockets.forEach { data ->
             val shipPos = Vector3d(data.position).add(0.5, 0.5, 0.5, Vector3d()).sub(physShip.transform.positionInShip)

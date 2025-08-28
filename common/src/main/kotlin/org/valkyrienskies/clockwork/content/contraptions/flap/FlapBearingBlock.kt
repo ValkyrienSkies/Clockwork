@@ -77,7 +77,7 @@ open class FlapBearingBlock(properties: Properties?) : BearingBlock(properties),
         if (faceAxis.isHorizontal) alongFirst = faceAxis === Direction.Axis.Z
         else alongFirst = getAxisAlignmentForPlacement(context)
 
-        println(alongFirst)
+
 
         return defaultBlockState()
             .setValue(FACING, facing)

@@ -57,7 +57,6 @@ interface IWanderliteBlock {
     fun shipifyBlock(level: ServerLevel, blockPos: BlockPos)  {
         val blockList = collectBlockPositions(level, blockPos, 4)
 
-        println(blockList)
         ShipAssembler.assembleToShip(level, blockList, true)
 
         for (pos in blockList) {

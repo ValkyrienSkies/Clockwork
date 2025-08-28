@@ -13,6 +13,7 @@ import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.setAttachment
+import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.api.world.properties.DimensionId
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.*
@@ -28,8 +29,8 @@ class EncasedFanController(
 
     var dimensionId: DimensionId = "minecraft:dimension:minecraft:overworld"
 
-    override fun applyForces(physShip: PhysShip) {
-        super.applyForces(physShip)
+    override fun physTick(physShip: PhysShip, physLevel: PhysLevel) {
+        super.physTick(physShip, physLevel)
 
         for (physData in appliers.values) {
             val force = computeForce(physData, physShip)

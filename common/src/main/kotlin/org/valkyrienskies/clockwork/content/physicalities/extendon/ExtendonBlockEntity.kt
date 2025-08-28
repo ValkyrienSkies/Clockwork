@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.physicalities.extendon
 
+import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -14,7 +15,9 @@ import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.util.AerodynamicUtils
 import org.valkyrienskies.clockwork.util.KNodeBlockEntity
+import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.clockwork.util.universal_joint.IUniversalJoint
+import org.valkyrienskies.clockwork.util.updateJoint
 import org.valkyrienskies.core.api.ships.properties.ShipId
 import org.valkyrienskies.core.api.world.properties.DimensionId
 import org.valkyrienskies.core.apigame.joints.*
@@ -24,7 +27,6 @@ import org.valkyrienskies.kelvin.api.*
 import org.valkyrienskies.kelvin.api.edges.PipeDuctEdge
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.getShipManagingPos
-import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOMLD
 import java.util.EnumMap
 import org.valkyrienskies.kelvin.api.DuctNetwork.Companion.idealGasConstant
@@ -71,7 +73,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
 
         val tempJoint = VSJointAndId(distanceJointId!!, VSDistanceJoint(distanceJoint!!.shipId0, distanceJoint!!.pose0, distanceJoint!!.shipId1, distanceJoint!!.pose1, minDistance = distance, maxDistance = distance))
 
-        if (distance >= 0.15) serverLevel.shipObjectWorld.updateConstraint(distanceJointId!!, tempJoint.joint)
+        if (distance >= 0.15) serverLevel.gtpa.updateJoint(distanceJointId!!, tempJoint.joint)
         distanceJoint = tempJoint.joint as VSDistanceJoint
     }
 
@@ -133,7 +135,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
     }
 
     private fun createJoint() {
-        val serverLevel = level as ServerLevel
+        val level = level as ServerLevel
 
         if (connectedBe == null) throw IllegalStateException("Null connected block entity")
 
@@ -141,12 +143,12 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         val shipId1 = connectedBe!!.getShipID()
         val pos0 = blockPos.toJOMLD()
         val pos1 = connectedBe!!.blockPos.toJOMLD()
-        val quater0 = getQuaterniond(level!!.getBlockState(blockPos).getValue(BlockStateProperties.FACING))
-        val quater1 =getQuaterniond(level!!.getBlockState(connectedBe!!.blockPos).getValue(BlockStateProperties.FACING))
+        val quater0 = getQuaterniond(level.getBlockState(blockPos).getValue(BlockStateProperties.FACING))
+        val quater1 = getQuaterniond(level.getBlockState(connectedBe!!.blockPos).getValue(BlockStateProperties.FACING))
 
         distanceJoint = VSDistanceJoint(pose0 = VSJointPose(pos0, quater0), pose1 = VSJointPose(pos1, quater1) , shipId0 = shipId0, shipId1 = shipId1,
             minDistance = 0f, maxDistance = 1000f )
-        distanceJointId = serverLevel.shipObjectWorld.createNewConstraint(distanceJoint!!)
+        level.gtpa.addJoint(distanceJoint!!) { distanceJointId = it }
 
         val limit = VSD6Joint.LimitCone(Math.PI.toFloat()/4f, Math.PI.toFloat()/4f)
         val motions = EnumMap<D6Axis, D6Motion>(D6Axis::class.java)
@@ -161,16 +163,16 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
 
 
         sphericalJoint = VSD6Joint(pose0 = VSJointPose(pos0, quater0), pose1 = VSJointPose(pos1, quater1) , shipId0 = shipId0, shipId1 = shipId1, swingLimit = limit, motions = motions  )
-        sphericalJointId = serverLevel.shipObjectWorld.createNewConstraint(sphericalJoint!!)
+        level.gtpa.addJoint(sphericalJoint!!) { sphericalJointId = it }
 
         main = true
     }
 
     private fun removeJoint() {
-        val serverLevel = level as ServerLevel
+        val level = level as ServerLevel
 
-        serverLevel.shipObjectWorld.removeConstraint(distanceJointId!!)
-        serverLevel.shipObjectWorld.removeConstraint(sphericalJointId!!)
+        level.gtpa.removeJoint(distanceJointId!!)
+        level.gtpa.removeJoint(sphericalJointId!!)
         distanceJoint = null
         distanceJointId = null
 
@@ -288,7 +290,4 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         }
     }
 
-    override fun getDuctNodePosition(): DuctNodePos {
-        return blockPos.toDuctNodePos(level!!.dimension().location())
-    }
 }
