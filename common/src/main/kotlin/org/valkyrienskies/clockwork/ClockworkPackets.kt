@@ -5,6 +5,7 @@ import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.level.Level
+import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketSyncPacket
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.UpdateAltMeterPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerAttachmentSyncPacket
@@ -66,7 +67,8 @@ enum class ClockworkPackets(
 
     NODE_SYNC(KNodeSyncPacket::class.java, ::KNodeSyncPacket),
 
-    UNIVERSAL_JOINT_ITEM_PACKET(UniversalJointItemPacket::class.java, ::UniversalJointItemPacket)
+    UNIVERSAL_JOINT_ITEM_PACKET(UniversalJointItemPacket::class.java, ::UniversalJointItemPacket),
+    AIRPOCKET_SYNC_PACKET(AirpocketSyncPacket::class.java, ::AirpocketSyncPacket)
 
     ;
 
