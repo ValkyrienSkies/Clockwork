@@ -20,6 +20,7 @@ class AirpocketSyncPacket: C2SCWPacket {
         val nodes = mutableSetOf<BlockPos>()
         val amount = buffer.readInt()
 
+        println("AMOUNT: $amount")
         for (x in 1..amount)
             nodes.add(buffer.readBlockPos())
 
