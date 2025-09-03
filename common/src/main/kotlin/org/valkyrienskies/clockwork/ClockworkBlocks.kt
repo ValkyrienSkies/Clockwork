@@ -103,7 +103,7 @@ object ClockworkBlocks {
             PropellerBearingBlock(properties!!)
         }
             .transform(axeOrPickaxe())
-            .transform(BuilderTransformers.bearing("propeller", "gearbox"))
+            //.transform(BuilderTransformers.bearing("propeller", "gearbox"))
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .addLayer { Supplier { RenderType.cutout() } }
             .item()
@@ -117,7 +117,7 @@ object ClockworkBlocks {
             PropellerBearingBlock(properties!!)
         }
             .transform(axeOrPickaxe())
-            .transform(BuilderTransformers.bearing("propeller", "gearbox"))
+            //.transform(BuilderTransformers.bearing("propeller", "gearbox"))
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .addLayer { Supplier { RenderType.cutout() } }
             .item()
@@ -167,7 +167,7 @@ object ClockworkBlocks {
             FlapBearingBlock(properties)
         }
             .transform(axeOrPickaxe())
-            .transform(flapbearing())
+            //.transform(flapbearing())
             .transform(BlockStressDefaults.setImpact(4.0))
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
@@ -182,7 +182,7 @@ object ClockworkBlocks {
             SmartFlapBearingBlock(properties)
         }
             .transform(axeOrPickaxe())
-            .transform(flapbearing())
+            //.transform(flapbearing())
             .transform(BlockStressDefaults.setImpact(4.0))
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)

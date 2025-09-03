@@ -5,7 +5,9 @@ import com.simibubi.create.content.contraptions.AssemblyException
 import com.simibubi.create.content.contraptions.ControlledContraptionEntity
 import com.simibubi.create.content.contraptions.IDisplayAssemblyExceptions
 import com.simibubi.create.content.contraptions.bearing.BearingBlock
+import com.simibubi.create.content.contraptions.bearing.ClockworkBearingBlockEntity
 import com.simibubi.create.content.contraptions.bearing.IBearingBlockEntity
+import com.simibubi.create.content.contraptions.bearing.MechanicalBearingBlockEntity
 import com.simibubi.create.content.kinetics.base.DirectionalAxisKineticBlock
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.foundation.utility.ServerSpeedProvider
@@ -49,6 +51,8 @@ open class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, stat
 
         bearingAngle.tickChaser()
         if (isRunning) applyRotations()
+
+        //println("${level?.isClientSide} ${ movedContraption?.getAngle(0f) }")
         if (level?.isClientSide != false) return
 
         movedContraption?.tick()
@@ -61,6 +65,8 @@ open class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, stat
         currentPower = getPower()
 
         bearingAngle.chase(currentPower * 22.5 / 15, angularSpeed, chaser)
+
+
 
         if (lastPower != currentPower) sendData()
     }
@@ -176,7 +182,7 @@ open class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, stat
 
     override fun lazyTick() {
         super.lazyTick()
-        if (movedContraption != null && level?.isClientSide != false) sendData()
+        if (movedContraption != null && level?.isClientSide == false) sendData()
     }
 
 
