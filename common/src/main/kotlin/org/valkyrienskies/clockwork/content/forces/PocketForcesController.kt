@@ -26,6 +26,7 @@ import org.valkyrienskies.clockwork.util.AerodynamicUtils.specificHeatAverage
 import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
 import org.valkyrienskies.clockwork.util.PIDstance
 import org.valkyrienskies.core.api.ships.*
+import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.api.world.properties.DimensionId
 import org.valkyrienskies.core.util.x
 import org.valkyrienskies.core.util.y
@@ -39,7 +40,7 @@ import kotlin.collections.HashMap
 import kotlin.math.*
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-class PocketForcesController: ShipForcesInducer {
+class PocketForcesController: ShipPhysicsListener {
 
     var dimensionId: DimensionId = "minecraft:dimension:minecraft:overworld"
 
@@ -68,7 +69,7 @@ class PocketForcesController: ShipForcesInducer {
 
     // Todo: Implement serialization
 
-    override fun applyForces(physShip: PhysShip) {
+    override fun physTick(physShip: PhysShip, physLevel: PhysLevel) {
         val physShipImpl = physShip
 
         while (pocketQueue.isNotEmpty()) {

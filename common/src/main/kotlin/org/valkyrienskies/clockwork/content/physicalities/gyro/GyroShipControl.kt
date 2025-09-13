@@ -10,7 +10,8 @@ import org.valkyrienskies.core.api.attachment.removeAttachment
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerTickListener
-import org.valkyrienskies.core.api.ships.ShipForcesInducer
+import org.valkyrienskies.core.api.ships.ShipPhysicsListener
+import org.valkyrienskies.core.api.world.PhysLevel
 import kotlin.math.abs
 import kotlin.math.exp
 
@@ -21,7 +22,7 @@ import kotlin.math.exp
     setterVisibility = JsonAutoDetect.Visibility.NONE
 )
 @JsonIgnoreProperties(ignoreUnknown = true)
-class GyroShipControl : ShipForcesInducer, ServerTickListener {
+class GyroShipControl : ShipPhysicsListener, ServerTickListener {
 
     private var targetRotation = Quaterniond()
     private var targetStrength = 1.0f
@@ -42,12 +43,10 @@ class GyroShipControl : ShipForcesInducer, ServerTickListener {
 
     internal var speed: Float = 0f
 
-    override fun applyForces(physShip: PhysShip) {
+    override fun physTick(physShip: PhysShip, physLevel: PhysLevel) {
         if (gyros < 1) {
             return
         }
-
-        physShip as PhysShip
 
         val rotDif = targetRotation
             .mul(physShip.transform.shipToWorldRotation.invert(Quaterniond()), Quaterniond())

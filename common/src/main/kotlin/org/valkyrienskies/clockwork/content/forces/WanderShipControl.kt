@@ -12,6 +12,7 @@ import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.util.Vector3icKeyDeserializer
 import org.valkyrienskies.clockwork.util.Vector3icKeySerializer
 import org.valkyrienskies.core.api.ships.*
+import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.mod.common.util.toJOML
 import java.util.concurrent.ConcurrentHashMap
 
@@ -22,13 +23,13 @@ import java.util.concurrent.ConcurrentHashMap
     setterVisibility = JsonAutoDetect.Visibility.NONE
 )
 @JsonIgnoreProperties(ignoreUnknown = true)
-class WanderShipControl : ShipForcesInducer {
+class WanderShipControl : ShipPhysicsListener {
 
     @JsonSerialize(keyUsing = Vector3icKeySerializer::class)
     @JsonDeserialize(keyUsing = Vector3icKeyDeserializer::class)
     val wanderBlocks: ConcurrentHashMap<Vector3i, Double> = ConcurrentHashMap()
 
-    override fun applyForces(physShip: PhysShip) {
+    override fun physTick(physShip: PhysShip, physLevel: PhysLevel) {
         val meanPos: Vector3d = Vector3d()
         for (blockPos in wanderBlocks.keys) {
             meanPos.add(Vector3d(blockPos.x.toDouble() + 0.5, blockPos.y.toDouble() + 0.5, blockPos.z.toDouble() + 0.5))

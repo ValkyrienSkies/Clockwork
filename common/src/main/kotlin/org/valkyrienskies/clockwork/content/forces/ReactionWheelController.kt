@@ -15,6 +15,7 @@ import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.setAttachment
+import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -36,8 +37,8 @@ class ReactionWheelController(
     @JsonIgnore
     val pendingMomentumConsumptionQueue = HashMap<Int, ConcurrentLinkedQueue<Double>>()
 
-    override fun applyForces(physShip: PhysShip) {
-        super.applyForces(physShip)
+    override fun physTick(physShip: PhysShip, physLevel: PhysLevel) {
+        super.physTick(physShip, physLevel)
 
         for (wheelID in appliers.keys) {
             val (torque, deltaWheelOmega) = conserveMomentum(physShip as PhysShipImpl, appliers[wheelID]!!)

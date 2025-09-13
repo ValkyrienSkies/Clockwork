@@ -9,19 +9,20 @@ import org.joml.Vector3i
 import org.valkyrienskies.clockwork.content.propulsion.sugar_rocket.SugarRocketData
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
-import org.valkyrienskies.core.api.ships.ShipForcesInducer
+import org.valkyrienskies.core.api.ships.ShipPhysicsListener
+import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toJOMLD
 import java.util.concurrent.ConcurrentLinkedQueue
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-class SugarRocketController : ShipForcesInducer {
+class SugarRocketController : ShipPhysicsListener {
 
     val newRockets = ConcurrentLinkedQueue<Pair<Vector3i, Vector3d>>()
     val removedRockets = ConcurrentLinkedQueue<Vector3i>()
     val burningRockets: HashSet<SugarRocketData> = HashSet() // Used instead of HashMap for auto Serialization
 
-    override fun applyForces(physShip: PhysShip) {
+    override fun physTick(physShip: PhysShip, physLevel: PhysLevel) {
         while (newRockets.isNotEmpty()) {
             val rocket = newRockets.poll()
             burningRockets.add(SugarRocketData(rocket.first, rocket.second))

@@ -24,6 +24,7 @@ import org.valkyrienskies.clockwork.content.forces.*
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroShipControl
 import org.valkyrienskies.clockwork.util.ClockworkUtils
+import org.valkyrienskies.core.api.VsBeta
 import org.valkyrienskies.core.api.events.CollisionEvent
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.impl.DuctNetworkServer
@@ -57,6 +58,7 @@ object ClockworkMod {
 
     val BASE_CREATIVE_TABINFO: ResourceKey<CreativeModeTab> = BASE_CREATIVE_TAB.key
 
+    @OptIn(VsBeta::class)
     @JvmStatic
     fun init() {
         ClockworkContraptions.init()
@@ -132,7 +134,7 @@ object ClockworkMod {
             })
         }
 
-        vsCore.collisionStartEvent.on(CollisionSoundEffectHandler::onCollide)
+        vsApi.collisionStartEvent.on(CollisionSoundEffectHandler::onCollide)
     }
 
     @JvmStatic
