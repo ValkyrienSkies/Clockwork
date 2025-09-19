@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.duct
 
+import com.jozufozu.flywheel.core.PartialModel
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
 import com.simibubi.create.foundation.render.CachedBufferer
@@ -7,8 +8,12 @@ import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.Direction
+import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock.Companion.DIR_TO_CONNECTION
+import org.valkyrienskies.core.impl.shadow.ke
+import org.valkyrienskies.kelvin.api.ConnectionType
 
 class DuctRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEntityRenderer<DuctBlockEntity>(context) {
     override fun renderSafe(
@@ -29,6 +34,8 @@ class DuctRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEnt
 
         val vertexConsumer = buffer.getBuffer(RenderType.cutout())
 
+        val kelvin = ClockworkModClient.getKelvin()
+
         for (dir in Direction.values()) {
             val dirConnection = CachedBufferer.partialFacing(connection, blockEntity.blockState, dir.opposite)
             val dirRim = CachedBufferer.partialFacing(rim, blockEntity.blockState, dir.opposite)
@@ -42,6 +49,28 @@ class DuctRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEnt
                 val dirLeak = CachedBufferer.partialFacing(leak, blockEntity.blockState, dir.opposite)
                 dirLeak.light(light).overlay(overlay).renderInto(ms, vertexConsumer)
             }
+
+            val dirBe = blockEntity.level?.getBlockEntity(blockEntity.blockPos.relative(dir))
+            if (dirBe !is DuctBlockEntity) continue
+
+            val edge = blockEntity.DIR_TO_CONNECTION_TYPE[dir]
+            if (edge == null) continue
+
+            val partial: PartialModel
+
+            when (edge) {
+                ConnectionType.FILTERED -> partial = ClockworkPartials.DUCT_SMART
+                else -> continue
+            }
+
+            CachedBufferer.partialFacing(partial, blockEntity.blockState, dir.opposite)
+                .light(light).overlay(overlay).renderInto(ms, vertexConsumer)
+
+
         }
+
+
+
+
     }
 }

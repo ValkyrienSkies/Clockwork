@@ -28,6 +28,8 @@ object KelvinEdgeRenderer {
 
     @JvmStatic
     fun render(level: ClientLevel, poseStack: PoseStack, camera: Camera) {
+        if (!Minecraft.getInstance().options.renderDebug) return
+
         val network = if (Minecraft.getInstance().isLocalServer && Platform.isFabric()) ClockworkMod.getKelvin() else ClockworkModClient.getKelvin()
 
         val cameraPos = camera.position

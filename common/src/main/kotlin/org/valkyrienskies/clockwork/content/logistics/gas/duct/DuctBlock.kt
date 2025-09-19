@@ -397,9 +397,12 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         if (!connected) return InteractionResult.FAIL
         if (context.level.isClientSide) return InteractionResult.SUCCESS
 
+
         val otherDuctNodePos =
-            (context.level.getBlockEntity(context.clickedPos.relative(changeDirection.opposite)) as? INodeBlockEntity)?.getDuctNodePosition()
+            (context.level.getBlockEntity(context.clickedPos.relative(changeDirection)) as? INodeBlockEntity)?.getDuctNodePosition()
                 ?: return InteractionResult.FAIL
+
+
 
         playScrewSound(context.level, context.clickedPos)
         withBlockEntityDo(context.level, context.clickedPos) { blockEntity ->
