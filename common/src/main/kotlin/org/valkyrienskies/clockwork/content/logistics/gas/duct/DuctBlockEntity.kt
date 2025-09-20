@@ -86,9 +86,8 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
     }
 
     fun setEdgeType(dir: Direction, otherDuctNodePos: DuctNodePos, edgeType: DuctEdgeType, clientPacket: Boolean, silent: Boolean = false, forced: Boolean = false) {
-        if (this.level?.isClientSide != false && !clientPacket) {
-            return
-        }
+        if (this.level?.isClientSide != false && !clientPacket) return
+
         val previousType = this.DIR_TO_CONNECTION_TYPE[dir]!!
         this.DIR_TO_CONNECTION_TYPE[dir] = edgeType
         if (!clientPacket) {

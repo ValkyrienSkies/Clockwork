@@ -44,6 +44,7 @@ open class ScrollingFrame(x: Int, y: Int, w: Int, h: Int): AbstractSimiWidget(x,
 
         val pose = ms.pose()
 
+        ms.enableScissor(x,y, x+width, y+height)
         pose.pushPose()
         pose.translate(0.0,currentScroll,0.0)
 
@@ -62,7 +63,10 @@ open class ScrollingFrame(x: Int, y: Int, w: Int, h: Int): AbstractSimiWidget(x,
             pastHeight+=element.height+padding
         }
         minScroll = -max(pastHeight-height,0.0)
+
+
         pose.popPose()
+        ms.disableScissor()
 
     }
 

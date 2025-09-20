@@ -17,6 +17,7 @@ class FilterScrolling(x: Int, y: Int) : ScrollingFrame(x, y, 206, 47) {
     override var scrollSpeed: Double = 4.0
 
 
+
     override fun onClick(mouseX: Double, mouseY: Double) {
 
         for (element in scrollingElements) {
@@ -43,11 +44,9 @@ class FilterScrolling(x: Int, y: Int) : ScrollingFrame(x, y, 206, 47) {
             button.y = y-1
             button.visible = visible
 
-
             if (visible) {
                 tab.render(ms, x, y)
                 ms.drawString(font, gasType.name, x+5, y+5,0xFFFFFF)
-
                 button.render(ms, mouseX, (mouseY-scroll).roundToInt(), partialTicks)
             }
 
