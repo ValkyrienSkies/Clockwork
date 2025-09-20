@@ -16,15 +16,17 @@ import org.valkyrienskies.kelvin.api.DuctNodePos
 enum class DuctEdgeType {
     NONE,
     PIPE,
-    ONEWAY,
+    ONEWAY_FORWARD,
+    ONEWAY_BACKWARD,
     FILTERED,
     SMART
     ;
 
     fun nextScrewdrivable(): DuctEdgeType {
         return when (this) {
-            PIPE -> ONEWAY
-            ONEWAY -> FILTERED
+            PIPE -> ONEWAY_FORWARD
+            ONEWAY_FORWARD -> ONEWAY_BACKWARD
+            ONEWAY_BACKWARD -> FILTERED
             FILTERED -> SMART
             SMART -> PIPE
             else -> PIPE
@@ -35,7 +37,8 @@ enum class DuctEdgeType {
         fun createEdgeType(nodeA: DuctNodePos, nodeB: DuctNodePos, type: DuctEdgeType): DuctEdge {
             return when (type) {
                 PIPE -> createPipeEdge(nodeA, nodeB)
-                ONEWAY -> createOneWayEdge(nodeA, nodeB)
+                ONEWAY_FORWARD -> createOneWayEdge(nodeA, nodeB)
+                ONEWAY_BACKWARD -> createOneWayEdge(nodeB, nodeA)
                 FILTERED -> createFilteredEdge(nodeA, nodeB)
                 SMART -> createSmartEdge(nodeA, nodeB)
                 else -> throw IllegalArgumentException("Unsupported edge type: $type")

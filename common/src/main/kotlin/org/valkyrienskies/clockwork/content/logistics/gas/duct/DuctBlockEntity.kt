@@ -19,6 +19,8 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
 
     val DIR_TO_CONNECTION_TYPE: EnumMap<Direction, DuctEdgeType> = EnumMap(Direction::class.java)
 
+
+
     var shouldUpdateEdges = false
 
     init {
@@ -116,6 +118,7 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
                 ClockworkMod.getKelvin().removeEdge(getDuctNodePosition(), otherDuctNodePos)
                 if (edgeType != DuctEdgeType.NONE) {
                     val newEdge = DuctEdgeType.createEdgeType(getDuctNodePosition(), otherDuctNodePos, edgeType)
+
                     ClockworkMod.getKelvin().addEdge(getDuctNodePosition(), otherDuctNodePos, newEdge)
                 }
             }
