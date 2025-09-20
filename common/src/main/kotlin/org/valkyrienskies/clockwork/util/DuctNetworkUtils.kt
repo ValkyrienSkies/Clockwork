@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.util
 
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.edges.ClockworkSmartEdge
+import org.valkyrienskies.clockwork.content.logistics.gas.smart.ClockworkSmartEdge
 import org.valkyrienskies.clockwork.content.logistics.gas.filter.edges.ClockworkFilteredDuctEdge
 import org.valkyrienskies.kelvin.api.*
 import org.valkyrienskies.kelvin.api.edges.FilteredOneWayDuctEdge

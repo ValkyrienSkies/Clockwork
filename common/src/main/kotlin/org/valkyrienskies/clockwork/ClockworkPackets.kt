@@ -19,6 +19,8 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctEdgeSyncPacke
 import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterClosePacket
 import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterScreenOpenPacket
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorPacket
+import org.valkyrienskies.clockwork.content.logistics.gas.smart.SmartScreenClosePacket
+import org.valkyrienskies.clockwork.content.logistics.gas.smart.SmartScreenOpenPacket
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.UpdateFrequencySlotPacket
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonSyncPacket
 import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket
@@ -42,7 +44,6 @@ enum class ClockworkPackets(
     UPDATE_ALT_METER(UpdateAltMeterPacket::class.java, ::UpdateAltMeterPacket),
     UPDATE_CHUTE_SLOT_PACKET(UpdateFrequencySlotPacket::class.java, ::UpdateFrequencySlotPacket),
     CREATIVE_GENERATOR_PACKET(CreativeGeneratorPacket::class.java, ::CreativeGeneratorPacket),
-    FILTER_SCREEN_CLOSE_PACKET(FilterClosePacket::class.java, ::FilterClosePacket),
 
     GRAVITRON_GRAB_PACKET(GravitronGrabPacket::class.java, ::GravitronGrabPacket),
     GRAVITRON_DESTROY_PACKET(GravitronDestroyPacket::class.java, ::GravitronDestroyPacket),
@@ -54,7 +55,11 @@ enum class ClockworkPackets(
 
     SLICKERATTACHMENT(SlickerAttachmentSyncPacket::class.java, ::SlickerAttachmentSyncPacket),
     GRAVITRON_DIAL_PACKET(GravitronDialPacket::class.java, ::GravitronDialPacket),
+
     FILTER_SCREEN_OPEN_PACKET(FilterScreenOpenPacket::class.java, ::FilterScreenOpenPacket),
+    FILTER_SCREEN_CLOSE_PACKET(FilterClosePacket::class.java, ::FilterClosePacket),
+    SMART_SCREEN_OPEN_PACKET(SmartScreenOpenPacket::class.java, ::SmartScreenOpenPacket),
+    SMART_SCREEN_CLOSE_PACKET(SmartScreenClosePacket::class.java, ::SmartScreenClosePacket),
 
     //SYNC_TEMPERATURE(TemperatureSyncPacket::class.java, ::TemperatureSyncPacket),
 

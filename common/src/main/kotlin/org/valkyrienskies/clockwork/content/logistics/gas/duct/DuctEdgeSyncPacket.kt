@@ -40,9 +40,8 @@ class DuctEdgeSyncPacket : S2CCWPacket {
                     pos
                 ) is DuctBlockEntity
             ) {
-                val ce =
-                    Minecraft.getInstance().level!!.getBlockEntity(pos) as DuctBlockEntity?
-                val be = Minecraft.getInstance().level!!.getBlockEntity(pos.relative(direction)) as INodeBlockEntity?: return@enqueueWork
+                val ce = Minecraft.getInstance().level!!.getBlockEntity(pos) as DuctBlockEntity?
+                val be = Minecraft.getInstance().level!!.getBlockEntity(pos.relative(direction)) as? INodeBlockEntity ?: return@enqueueWork
                 ce?.setEdgeType(direction, be.getDuctNodePosition(),type, true)
             }
         }

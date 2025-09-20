@@ -1,5 +1,11 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.duct
 
+import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.Tag
+import net.minecraft.world.level.Level
+import org.valkyrienskies.clockwork.content.logistics.gas.filter.edges.ClockworkFilteredDuctEdge
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createFilteredEdge
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createOneWayEdge
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createPipeEdge

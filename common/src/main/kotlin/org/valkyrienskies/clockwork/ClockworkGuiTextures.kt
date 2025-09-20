@@ -31,6 +31,8 @@ enum class ClockworkGuiTextures(
     GAS_FILTER_FRAME("gas_filter_menu", 0,104,214, 49),
     GAS_FILTER_ELEMENT("gas_filter_menu", 0,153,75, 18),
 
+    SMART_DUCT_BG("smart_duct", 0,0,165, 73),
+
 
     COMMAND_SEAT("command_seat", 173, 159),
     WANDER_TOOL_BACKGROUND("overlay", 0, 0, 16, 16);

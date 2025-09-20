@@ -10,6 +10,7 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.util.KNodeBlockEntity
+import org.valkyrienskies.core.impl.shadow.ke
 import org.valkyrienskies.kelvin.util.INodeBlockEntity
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import java.util.*
@@ -37,6 +38,15 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
             if (tag.contains("DuctEdgeType${dir.name}")) {
                 this.DIR_TO_CONNECTION_TYPE[dir] = DuctEdgeType.values()[tag.getInt("DuctEdgeType${dir.name}")]
                 if (!clientPacket) shouldUpdateEdges = true
+
+                if (clientPacket) continue
+                val neighborDuct = level?.getBlockEntity(blockPos) as? DuctBlockEntity ?: continue
+                val serializedEdge = tag.get("DuctEdgeType${dir.name}") as? CompoundTag ?: continue
+
+                val kelvin = ClockworkMod.getKelvin()
+                val edge = kelvin.getEdgeBetween(getDuctNodePosition(), neighborDuct.getDuctNodePosition()) ?: continue
+
+                edge.deserialize(serializedEdge)
             }
         }
         if (clientPacket) {
@@ -49,6 +59,15 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
         for (dir in Direction.values()) {
             if (this.DIR_TO_CONNECTION_TYPE[dir] != null) {
                 tag.putInt("DuctEdgeType${dir.name}", this.DIR_TO_CONNECTION_TYPE[dir]!!.ordinal)
+
+                if (clientPacket) continue
+                val neighborDuct = level?.getBlockEntity(blockPos) as? DuctBlockEntity ?: continue
+
+                val kelvin = ClockworkMod.getKelvin()
+                val edge = kelvin.getEdgeBetween(getDuctNodePosition(), neighborDuct.getDuctNodePosition()) ?: continue
+
+                val serializedEdge = edge.serialize(tag)
+                tag.put("DuctEdge${dir.name}", serializedEdge)
             }
         }
         super.write(tag, clientPacket)
