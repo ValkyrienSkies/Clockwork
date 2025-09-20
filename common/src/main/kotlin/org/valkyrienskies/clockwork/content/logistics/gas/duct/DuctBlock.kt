@@ -228,8 +228,8 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         val neighborDuctNodePos = (level.getBlockEntity(neighborPos) as? INodeBlockEntity)?.getDuctNodePosition()
             ?: return finalConnection
 
-        val storedType = blockEntity.DIR_TO_CONNECTION_TYPE[direction] ?: ConnectionType.PIPE
-        val connectionType = if (finalConnection.isConnected) (if (storedType != ConnectionType.NONE) storedType else ConnectionType.PIPE) else ConnectionType.NONE
+        val storedType = blockEntity.DIR_TO_CONNECTION_TYPE[direction] ?: DuctEdgeType.PIPE
+        val connectionType = if (finalConnection.isConnected) (if (storedType != DuctEdgeType.NONE) storedType else DuctEdgeType.PIPE) else DuctEdgeType.NONE
 
         blockEntity.setEdgeType(direction, neighborDuctNodePos, connectionType, clientPacket = false, silent = false, forced = true)
 

@@ -8,9 +8,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
-import org.valkyrienskies.kelvin.api.ConnectionType
 import org.valkyrienskies.kelvin.api.DuctNodePos
-import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createEdgeType
 import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.kelvin.util.INodeBlockEntity
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
@@ -18,13 +16,13 @@ import java.util.*
 
 class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state) {
 
-    val DIR_TO_CONNECTION_TYPE: EnumMap<Direction, ConnectionType> = EnumMap(Direction::class.java)
+    val DIR_TO_CONNECTION_TYPE: EnumMap<Direction, DuctEdgeType> = EnumMap(Direction::class.java)
 
     var shouldUpdateEdges = false
 
     init {
         for (dir in Direction.values()) {
-            this.DIR_TO_CONNECTION_TYPE[dir] = ConnectionType.NONE
+            this.DIR_TO_CONNECTION_TYPE[dir] = DuctEdgeType.NONE
         }
     }
 
@@ -36,8 +34,8 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         super.read(tag, clientPacket)
         for (dir in Direction.values()) {
-            if (tag.contains("connectionType${dir.name}")) {
-                this.DIR_TO_CONNECTION_TYPE[dir] = ConnectionType.values()[tag.getInt("connectionType${dir.name}")]
+            if (tag.contains("DuctEdgeType${dir.name}")) {
+                this.DIR_TO_CONNECTION_TYPE[dir] = DuctEdgeType.values()[tag.getInt("DuctEdgeType${dir.name}")]
                 if (!clientPacket) shouldUpdateEdges = true
             }
         }
@@ -50,7 +48,7 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
         for (dir in Direction.values()) {
             if (this.DIR_TO_CONNECTION_TYPE[dir] != null) {
-                tag.putInt("connectionType${dir.name}", this.DIR_TO_CONNECTION_TYPE[dir]!!.ordinal)
+                tag.putInt("DuctEdgeType${dir.name}", this.DIR_TO_CONNECTION_TYPE[dir]!!.ordinal)
             }
         }
         super.write(tag, clientPacket)
@@ -73,13 +71,13 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
         return blockPos.toDuctNodePos()
     }
 
-    fun cycleEdgeType(dir: Direction): ConnectionType {
-        if (this.level?.isClientSide != false) return ConnectionType.NONE
+    fun cycleEdgeType(dir: Direction): DuctEdgeType {
+        if (this.level?.isClientSide != false) return DuctEdgeType.NONE
 
         val currentType = this.DIR_TO_CONNECTION_TYPE[dir]!!
 
-        if (currentType == ConnectionType.NONE) return ConnectionType.NONE
-        val otherDuctNodePos = (level!!.getBlockEntity(blockPos.relative(dir)) as? INodeBlockEntity)?.getDuctNodePosition() ?: return ConnectionType.NONE
+        if (currentType == DuctEdgeType.NONE) return DuctEdgeType.NONE
+        val otherDuctNodePos = (level!!.getBlockEntity(blockPos.relative(dir)) as? INodeBlockEntity)?.getDuctNodePosition() ?: return DuctEdgeType.NONE
 
 
         val nextType = currentType.nextScrewdrivable()
@@ -87,7 +85,7 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
         return nextType
     }
 
-    fun setEdgeType(dir: Direction, otherDuctNodePos: DuctNodePos, edgeType: ConnectionType, clientPacket: Boolean, silent: Boolean = false, forced: Boolean = false) {
+    fun setEdgeType(dir: Direction, otherDuctNodePos: DuctNodePos, edgeType: DuctEdgeType, clientPacket: Boolean, silent: Boolean = false, forced: Boolean = false) {
         if (this.level?.isClientSide != false && !clientPacket) {
             return
         }
@@ -98,8 +96,8 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
             //println("SETTING EDGE TYPE: ${this.getDuctNodePosition()} to $otherDuctNodePos with $edgeType")
             if ((previousType != edgeType && !silent) || forced) {
                 ClockworkMod.getKelvin().removeEdge(getDuctNodePosition(), otherDuctNodePos)
-                if (edgeType != ConnectionType.NONE) {
-                    val newEdge = createEdgeType(getDuctNodePosition(), otherDuctNodePos, edgeType)
+                if (edgeType != DuctEdgeType.NONE) {
+                    val newEdge = DuctEdgeType.createEdgeType(getDuctNodePosition(), otherDuctNodePos, edgeType)
                     ClockworkMod.getKelvin().addEdge(getDuctNodePosition(), otherDuctNodePos, newEdge)
                 }
             }
@@ -110,7 +108,7 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
         if (this.level?.isClientSide != false) {
             return
         }
-        this.DIR_TO_CONNECTION_TYPE[dir] = ConnectionType.NONE
+        this.DIR_TO_CONNECTION_TYPE[dir] = DuctEdgeType.NONE
         syncEdge(dir)
     }
 

@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.util
 
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.edges.ClockworkSmartEdge
 import org.valkyrienskies.clockwork.content.logistics.gas.filter.edges.ClockworkFilteredDuctEdge
 import org.valkyrienskies.kelvin.api.*
 import org.valkyrienskies.kelvin.api.edges.FilteredOneWayDuctEdge
@@ -29,17 +30,8 @@ object DuctNetworkUtils {
         return ClockworkFilteredDuctEdge(ConnectionType.FILTERED, nodeA, nodeB, radius = 0.3125, length = 0.375, currentFlowRate = 0.0)
     }
 
-    fun createFilteredOneWayEdge(nodeA: DuctNodePos, nodeB: DuctNodePos): FilteredOneWayDuctEdge {
-        return FilteredOneWayDuctEdge(ConnectionType.FILTERED_ONEWAY, nodeA, nodeB, radius = 0.3125, length = 0.375, currentFlowRate = 0.0)
+    fun createSmartEdge(nodeA: DuctNodePos, nodeB: DuctNodePos): ClockworkSmartEdge {
+        return ClockworkSmartEdge(ConnectionType.PIPE, nodeA, nodeB, radius = 0.3125, length = 0.375, currentFlowRate = 0.0)
     }
 
-    fun createEdgeType(nodeA: DuctNodePos, nodeB: DuctNodePos, type: ConnectionType): DuctEdge {
-        return when (type) {
-            ConnectionType.PIPE -> createPipeEdge(nodeA, nodeB)
-            ConnectionType.ONEWAY -> createOneWayEdge(nodeA, nodeB)
-            ConnectionType.FILTERED -> createFilteredEdge(nodeA, nodeB)
-            ConnectionType.FILTERED_ONEWAY -> createFilteredOneWayEdge(nodeA, nodeB)
-            else -> throw IllegalArgumentException("Unsupported edge type: $type")
-        }
-    }
 }

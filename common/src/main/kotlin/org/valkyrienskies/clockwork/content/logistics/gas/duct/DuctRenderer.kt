@@ -59,7 +59,9 @@ class DuctRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEnt
             val partial: PartialModel
 
             when (edge) {
-                ConnectionType.FILTERED -> partial = ClockworkPartials.DUCT_SMART
+                DuctEdgeType.FILTERED -> partial = ClockworkPartials.DUCT_SMART
+                DuctEdgeType.SMART -> partial = ClockworkPartials.DUCT_COPPER
+
                 else -> continue
             }
 

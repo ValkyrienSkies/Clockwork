@@ -14,9 +14,9 @@ class DuctEdgeSyncPacket : S2CCWPacket {
 
     val pos: BlockPos
     val direction: Direction
-    val type: ConnectionType
+    val type: DuctEdgeType
 
-    constructor(pos: BlockPos, direction: Direction, type: ConnectionType) {
+    constructor(pos: BlockPos, direction: Direction, type: DuctEdgeType) {
         this.pos = pos
         this.direction = direction
         this.type = type
@@ -25,7 +25,7 @@ class DuctEdgeSyncPacket : S2CCWPacket {
     constructor(buffer: FriendlyByteBuf) {
         this.pos = buffer.readBlockPos()
         this.direction = buffer.readEnum(Direction::class.java)
-        this.type = buffer.readEnum(ConnectionType::class.java)
+        this.type = buffer.readEnum(DuctEdgeType::class.java)
     }
 
     override fun write(buffer: FriendlyByteBuf) {
