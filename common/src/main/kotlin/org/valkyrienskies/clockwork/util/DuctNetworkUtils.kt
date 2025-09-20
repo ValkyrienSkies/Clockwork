@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.util
 import org.valkyrienskies.clockwork.content.logistics.gas.smart.ClockworkSmartEdge
 import org.valkyrienskies.clockwork.content.logistics.gas.filter.edges.ClockworkFilteredDuctEdge
 import org.valkyrienskies.clockwork.content.logistics.gas.oneway.ClockworkOnewayDuct
+import org.valkyrienskies.core.util.squared
 import org.valkyrienskies.kelvin.api.*
 import org.valkyrienskies.kelvin.api.edges.FilteredOneWayDuctEdge
 import org.valkyrienskies.kelvin.api.edges.OneWayDuctEdge
@@ -35,4 +36,7 @@ object DuctNetworkUtils {
         return ClockworkSmartEdge(ConnectionType.PIPE, nodeA, nodeB, radius = 0.3125, length = 0.375, currentFlowRate = 0.0)
     }
 
+    fun DuctNodePos.magnitudeSqr(): Double {
+        return this.x.squared() + this.y.squared() + this.z.squared()
+    }
 }

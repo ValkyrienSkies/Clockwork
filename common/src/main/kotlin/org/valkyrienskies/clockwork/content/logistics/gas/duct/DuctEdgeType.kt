@@ -33,6 +33,10 @@ enum class DuctEdgeType {
         }
     }
 
+    fun isOneWay(): Boolean {
+        return this == ONEWAY_BACKWARD || this == ONEWAY_FORWARD
+    }
+
     companion object {
         fun createEdgeType(nodeA: DuctNodePos, nodeB: DuctNodePos, type: DuctEdgeType): DuctEdge {
             return when (type) {

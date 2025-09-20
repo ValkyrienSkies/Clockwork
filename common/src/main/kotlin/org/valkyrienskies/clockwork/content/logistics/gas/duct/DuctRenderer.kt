@@ -61,8 +61,11 @@ class DuctRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEnt
             when (edge) {
                 DuctEdgeType.FILTERED -> partial = ClockworkPartials.DUCT_SMART
                 DuctEdgeType.SMART -> partial = ClockworkPartials.DUCT_COPPER
-                DuctEdgeType.ONEWAY_FORWARD -> partial = ClockworkPartials.DUCT_ONEWAY_FORWARD
-                DuctEdgeType.ONEWAY_BACKWARD -> partial = ClockworkPartials.DUCT_ONEWAY_BACKWARD
+                // Edge directionality is enforced by axis direction for oneways
+                DuctEdgeType.ONEWAY_BACKWARD ->
+                    partial = if (dir.axisDirection.step == 1) ClockworkPartials.DUCT_ONEWAY_FORWARD else ClockworkPartials.DUCT_ONEWAY_BACKWARD
+                DuctEdgeType.ONEWAY_FORWARD ->
+                    partial = if (dir.axisDirection.step == -1) ClockworkPartials.DUCT_ONEWAY_FORWARD else ClockworkPartials.DUCT_ONEWAY_BACKWARD
                 else -> continue
             }
 
