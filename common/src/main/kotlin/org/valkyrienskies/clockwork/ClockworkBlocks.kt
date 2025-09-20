@@ -53,6 +53,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankBl
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.engine.GasEngineBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.exhaust.ExhaustBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.gas_crafter.GasCrafterBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorBlock
@@ -570,6 +571,22 @@ object ClockworkBlocks {
     val GAS_ENGINE: BlockEntry<GasEngineBlock> =
         REGISTRATE.block<GasEngineBlock>("gas_engine") { properties: BlockBehaviour.Properties? ->
             GasEngineBlock(properties!!)
+        }
+            .initialProperties { Blocks.IRON_BLOCK }
+            .transform(axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .properties { it.noOcclusion() }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .build()
+            .register()
+
+    @JvmField
+    val GAS_CRAFTER: BlockEntry<GasCrafterBlock> =
+        REGISTRATE.block("gas_crafter") { properties: BlockBehaviour.Properties? ->
+            GasCrafterBlock(properties!!)
         }
             .initialProperties { Blocks.IRON_BLOCK }
             .transform(axeOrPickaxe())

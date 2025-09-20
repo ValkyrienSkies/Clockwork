@@ -47,6 +47,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.engine.GasEngineBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.exhaust.ExhaustBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.gas_crafter.GasCrafterBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorRenderer
@@ -586,6 +587,18 @@ object ClockworkBlockEntities {
             )
         }
         .validBlocks(ClockworkBlocks.GAS_ENGINE)
+        .register()
+
+    @JvmField
+    val GAS_CRAFTER: BlockEntityEntry<GasCrafterBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<GasCrafterBlockEntity>("gas_crafter") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            GasCrafterBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .validBlocks(ClockworkBlocks.GAS_CRAFTER)
         .register()
 
     @JvmField
