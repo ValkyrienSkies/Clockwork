@@ -64,7 +64,7 @@ dependencies {
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 
     include(modApi("dev.architectury:architectury-forge:${rootProject.architectury_version}"))
-    implementation(include((("io.github.llamalad7:mixinextras-forge:0.3.5"))))
+    implementation(include((("io.github.llamalad7:mixinextras-forge:0.4.1"))))
 
     //VS2
     modApi("org.valkyrienskies:valkyrienskies-120-forge:${rootProject.vs2_version}") { transitive = false }
