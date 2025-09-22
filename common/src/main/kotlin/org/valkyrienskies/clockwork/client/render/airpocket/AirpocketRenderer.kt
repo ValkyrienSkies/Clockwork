@@ -55,9 +55,9 @@ object AirpocketRenderer {
     val buffer = Minecraft.getInstance().renderBuffers().bufferSource()
 
     inline fun AABBic.forEachBlock(fn: (Int, Int, Int) -> Unit) {
-        for (x in minX() .. maxX()) {
-            for (y in minY() .. maxY()) {
-                for (z in minZ() .. maxZ()) {
+        for (x in minX() .. maxX()-1) {
+            for (y in minY() .. maxY()-1) {
+                for (z in minZ() .. maxZ()-1) {
                     fn(x, y, z)
                 }
             }
@@ -68,7 +68,7 @@ object AirpocketRenderer {
     @JvmStatic
     fun getEveryNode(level: ServerLevel, ship: Ship): MutableSet<BlockPos> {
         val nodes = mutableSetOf<BlockPos>()
-        ship.shipAABB!!.forEachBlock { x,y,z -> nodes.add(BlockPos(x,y,z)) }
+        ship.shipAABB!!.forEachBlock { x,y,z -> if (level.getBlockState(BlockPos(x,y,z)).isAir && level.shipObjectWorld.isIsolatedAir(x,y,z,level.dimensionId) == ConnectionStatus.CONNECTED) nodes.add(BlockPos(x,y,z)) }
         println("\ngot nodes: $nodes")
         return nodes
     }
@@ -82,10 +82,10 @@ object AirpocketRenderer {
         //println("$a $sA    $b $sB")
         //
         // val light = 0
-        buffer.vertex(matrix, sA.x, sA.y, sA.z).endVertex()
-        buffer.vertex(matrix, sB.x, sB.y, sB.z).endVertex()
-        buffer.vertex(matrix, sC.x, sC.y, sC.z).endVertex()
-        buffer.vertex(matrix, sD.x, sD.y, sD.z).endVertex()
+        buffer.vertex(matrix, sA.x, sA.y, sA.z).color(0,255,0,10).endVertex()
+        buffer.vertex(matrix, sB.x, sB.y, sB.z).color(0,255,0,10).endVertex()
+        buffer.vertex(matrix, sC.x, sC.y, sC.z).color(0,255,0,10).endVertex()
+        buffer.vertex(matrix, sD.x, sD.y, sD.z).color(0,255,0,10).endVertex()
     }
 
     fun renderCube(buffer: VertexConsumer, matrix: Matrix4f, ship: ClientShip, pos: BlockPos) {
@@ -114,7 +114,7 @@ object AirpocketRenderer {
         val matrix = poseStack.last().pose()
 
 
-        val waterBuffer = buffer.getBuffer(RenderType.waterMask())
+        val waterBuffer = buffer.getBuffer(RenderType.debugQuads())
 
         for (node in Nodes) {
             val ship = level.getShipManagingPos(node) as? ClientShip ?: continue
