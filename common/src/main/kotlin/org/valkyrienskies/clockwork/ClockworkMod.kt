@@ -17,15 +17,18 @@ import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.crafting.RecipeSerializer
+import net.minecraft.world.item.crafting.RecipeType
 import org.slf4j.LoggerFactory
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkHandler
+import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.BladeRecipeSerializer
+import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.CraftingTableBladeRecipe
 import org.valkyrienskies.clockwork.content.events.CollisionSoundEffectHandler
 import org.valkyrienskies.clockwork.content.forces.*
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroShipControl
 import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.core.api.VsBeta
-import org.valkyrienskies.core.api.events.CollisionEvent
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.impl.DuctNetworkServer
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
@@ -33,6 +36,7 @@ import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.vsCore
+
 
 object ClockworkMod {
     const val MOD_ID = "vs_clockwork"
@@ -58,13 +62,34 @@ object ClockworkMod {
 
     val BASE_CREATIVE_TABINFO: ResourceKey<CreativeModeTab> = BASE_CREATIVE_TAB.key
 
+
+    val RECIPE_SERIALIZERS: DeferredRegister<RecipeSerializer<*>?> =
+        DeferredRegister.create(MOD_ID, Registries.RECIPE_SERIALIZER)
+    val BLADE_SERIALIZER: RegistrySupplier<RecipeSerializer<CraftingTableBladeRecipe>> = RECIPE_SERIALIZERS.register("blade_crafting_serializer", ::BladeRecipeSerializer)
+
+
+
+    val RECIPE_TYPES: DeferredRegister<RecipeType<*>?> =
+        DeferredRegister.create(MOD_ID, Registries.RECIPE_TYPE)
+
+    val BLADE_RECIPE: RegistrySupplier<RecipeType<CraftingTableBladeRecipe>> = RECIPE_TYPES.register("blade_crafting_recipe") { CraftingTableBladeRecipe.BladeRecipeType }
+
     @OptIn(VsBeta::class)
     @JvmStatic
     fun init() {
         ClockworkContraptions.init()
         ClockworkPackets.init()
         ClockworkTags.init()
+        RECIPE_SERIALIZERS.register()
         TAB_REGISTRY.register()
+        RECIPE_TYPES.register()
+
+        BLADE_RECIPE.listen({ type ->
+            println("Registered recipe serializer!")
+        })
+        BLADE_SERIALIZER.listen({ type ->
+            println("Registered recipe type!")
+        })
 
         ValkyrienSkiesMod.vsCore.registerConfigLegacy("clockwork", ClockworkConfig::class.java)
 

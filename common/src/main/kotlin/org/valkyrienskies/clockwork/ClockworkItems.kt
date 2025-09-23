@@ -11,6 +11,7 @@ import net.minecraft.world.item.Rarity
 import net.minecraft.world.item.SwordItem
 import net.minecraft.world.item.Tiers
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
+import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.BladeItem
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteCubeItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItemRenderer
@@ -94,8 +95,8 @@ object ClockworkItems {
 
 
     @JvmField
-    val PROPELLER_BLADE: ItemEntry<SwordItem> = REGISTRATE.item<SwordItem>("propeller_blade") { properties: Item.Properties? ->
-        SwordItem(Tiers.WOOD, 2, 0.4f, properties!!)
+    val PROPELLER_BLADE: ItemEntry<BladeItem> = REGISTRATE.item("propeller_blade") { properties: Item.Properties? ->
+        BladeItem(Tiers.WOOD, 2, 0.4f, properties!!)
     }
         .properties {
             it.durability(100)
@@ -105,8 +106,8 @@ object ClockworkItems {
         .register()
 
     @JvmField
-    val WIDE_PROPELLER_BLADE: ItemEntry<SwordItem> = REGISTRATE.item<SwordItem>("wide_propeller_blade") { properties: Item.Properties? ->
-        SwordItem(Tiers.WOOD, 4, 0.2f, properties!!)
+    val WIDE_PROPELLER_BLADE: ItemEntry<BladeItem> = REGISTRATE.item("wide_propeller_blade") { properties: Item.Properties? ->
+        BladeItem(Tiers.WOOD, 4, 0.2f, properties!!)
     }
         .properties {
             it.durability(200)
