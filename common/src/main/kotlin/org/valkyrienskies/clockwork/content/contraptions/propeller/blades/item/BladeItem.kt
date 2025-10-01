@@ -26,4 +26,5 @@ class BladeItem(tier: Tier, attackDamageModifier: Int, attackSpeedModifier: Floa
     }
 
 
+
 }
