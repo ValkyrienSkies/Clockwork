@@ -44,11 +44,7 @@ class CraftingTableBladeRecipe(id: ResourceLocation, category: CraftingBookCateg
     ): ItemStack? {
         var length = 0.0
 
-        println(container.items.first())
-        container.items.forEach { length += it.tag?.getDouble("BladeLength") ?: 0.0
-            println(it.tag?.getDouble("BladeLength"))
-            println(length)
-        }
+        container.items.forEach { length += it.tag?.getDouble("BladeLength") ?: 0.0 }
 
         val newItem = container.items.first().copy()
         newItem.tag!!.putDouble("BladeLength", length)
@@ -65,13 +61,6 @@ class CraftingTableBladeRecipe(id: ResourceLocation, category: CraftingBookCateg
     override fun getSerializer(): RecipeSerializer<*>? {
         return ClockworkRecipes.BLADE_RECIPE_SERIALIZER.get()
 
-    }
-//    override fun getType(): RecipeType<*>? {
-//        return ClockworkRecipes.BLADE_RECIPE_TYPE.get()
-//    }
-
-    override fun getIngredients(): NonNullList<Ingredient?>? {
-        return super.getIngredients()
     }
 
 }

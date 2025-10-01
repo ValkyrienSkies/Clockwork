@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item
 
+import com.simibubi.create.content.equipment.armor.BacktankItem
 import io.github.fabricators_of_create.porting_lib.tool.mixin.SwordItemMixin
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.item.ItemStack
@@ -17,10 +18,12 @@ class BladeItem(tier: Tier, attackDamageModifier: Int, attackSpeedModifier: Floa
         super.inventoryTick(stack, level, entity, slotId, isSelected)
     }
 
-//    override fun getDefaultInstance(): ItemStack {
-//        val instance = super.getDefaultInstance()
-//        instance.orCreateTag.putDouble("BladeLength",1.0)
-//        println(instance.tag?.getDouble("BladeLength"))
-//        return instance
-//    }
+    override fun getDefaultInstance(): ItemStack {
+        val instance = super.getDefaultInstance()
+        instance.orCreateTag.putDouble("BladeLength",1.0)
+        println(instance.tag?.getDouble("BladeLength"))
+        return instance
+    }
+
+
 }

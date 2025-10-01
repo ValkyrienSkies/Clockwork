@@ -23,7 +23,7 @@ object SharedValues {
 
     @ExpectPlatform
     @JvmStatic
-    fun customRenderedRegisterer(): BiConsumer<CWItem, CustomRenderedItemModelRenderer> {
+    fun customRenderedRegisterer(): BiConsumer<Item, CustomRenderedItemModelRenderer> {
         throw AssertionError()
     }
 

@@ -12,9 +12,9 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import org.valkyrienskies.clockwork.ClockworkModClient;
-import org.valkyrienskies.clockwork.platform.CWItem;
 import org.valkyrienskies.clockwork.platform.PlatformUtils;
 import org.valkyrienskies.clockwork.platform.SharedValues;
 
@@ -22,7 +22,7 @@ import java.util.function.Supplier;
 
 public class ClockworkRegistrate {
 
-    public static <T extends CWItem, P> NonNullUnaryOperator<ItemBuilder<T, P>> customRenderedItem(
+    public static <T extends Item, P> NonNullUnaryOperator<ItemBuilder<T, P>> customRenderedItem(
             Supplier<Supplier<CustomRenderedItemModelRenderer>> supplier) {
         return b -> {
             onClient(() -> () -> customRenderedItem(b, supplier));
@@ -55,7 +55,7 @@ public class ClockworkRegistrate {
     }
 
     @Environment(EnvType.CLIENT)
-    private static <T extends CWItem, P> void customRenderedItem(ItemBuilder<T, P> b, Supplier<Supplier<CustomRenderedItemModelRenderer>> supplier) {
+    private static <T extends Item, P> void customRenderedItem(ItemBuilder<T, P> b, Supplier<Supplier<CustomRenderedItemModelRenderer>> supplier) {
         b.onRegister(new CustomRendererRegistrationHelper(supplier));
     }
 
@@ -66,7 +66,7 @@ public class ClockworkRegistrate {
     }
 
     @Environment(EnvType.CLIENT)
-    private static void registerItemModel(CWItem entry,
+    private static void registerItemModel(Item entry,
                                           Supplier<NonNullFunction<BakedModel, ? extends BakedModel>> func) {
         CreateClient.MODEL_SWAPPER.getCustomItemModels()
                 .register(RegisteredObjects.getKeyOrThrow(entry), func.get());
@@ -79,9 +79,9 @@ public class ClockworkRegistrate {
     }
 
     @Environment(EnvType.CLIENT)
-    private record CustomRendererRegistrationHelper(Supplier<Supplier<CustomRenderedItemModelRenderer>> supplier) implements NonNullConsumer<CWItem> {
+    private record CustomRendererRegistrationHelper(Supplier<Supplier<CustomRenderedItemModelRenderer>> supplier) implements NonNullConsumer<Item> {
         @Override
-        public void accept(CWItem entry) {
+        public void accept(Item entry) {
             CustomRenderedItemModelRenderer renderer = supplier.get().get();
             SharedValues.customRenderedRegisterer().accept(entry, renderer);
             CustomRenderedItems.register(entry);

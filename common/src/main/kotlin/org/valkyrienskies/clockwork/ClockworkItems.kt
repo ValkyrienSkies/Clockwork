@@ -12,6 +12,7 @@ import net.minecraft.world.item.SwordItem
 import net.minecraft.world.item.Tiers
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.BladeItem
+import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.BladeItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteCubeItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItemRenderer
@@ -101,6 +102,7 @@ object ClockworkItems {
         .properties {
             it.durability(100)
         }
+        .transform(ClockworkRegistrate.customRenderedItem { Supplier { BladeItemRenderer() } })
         .tag(ClockworkTags.AllItemTags.PROP_BLADE.tag)
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .register()
@@ -112,6 +114,7 @@ object ClockworkItems {
         .properties {
             it.durability(200)
         }
+        .transform(ClockworkRegistrate.customRenderedItem { Supplier { BladeItemRenderer() } })
         .tag(ClockworkTags.AllItemTags.PROP_BLADE.tag)
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .register()
