@@ -62,34 +62,15 @@ object ClockworkMod {
 
     val BASE_CREATIVE_TABINFO: ResourceKey<CreativeModeTab> = BASE_CREATIVE_TAB.key
 
-
-    val RECIPE_SERIALIZERS: DeferredRegister<RecipeSerializer<*>?> =
-        DeferredRegister.create(MOD_ID, Registries.RECIPE_SERIALIZER)
-    val BLADE_SERIALIZER: RegistrySupplier<RecipeSerializer<CraftingTableBladeRecipe>> = RECIPE_SERIALIZERS.register("blade_crafting_serializer", ::BladeRecipeSerializer)
-
-
-
-    val RECIPE_TYPES: DeferredRegister<RecipeType<*>?> =
-        DeferredRegister.create(MOD_ID, Registries.RECIPE_TYPE)
-
-    val BLADE_RECIPE: RegistrySupplier<RecipeType<CraftingTableBladeRecipe>> = RECIPE_TYPES.register("blade_crafting_recipe") { CraftingTableBladeRecipe.BladeRecipeType }
-
     @OptIn(VsBeta::class)
     @JvmStatic
     fun init() {
         ClockworkContraptions.init()
         ClockworkPackets.init()
         ClockworkTags.init()
-        RECIPE_SERIALIZERS.register()
+        ClockworkRecipes.init()
         TAB_REGISTRY.register()
-        RECIPE_TYPES.register()
 
-        BLADE_RECIPE.listen({ type ->
-            println("Registered recipe serializer!")
-        })
-        BLADE_SERIALIZER.listen({ type ->
-            println("Registered recipe type!")
-        })
 
         ValkyrienSkiesMod.vsCore.registerConfigLegacy("clockwork", ClockworkConfig::class.java)
 

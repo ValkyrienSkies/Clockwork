@@ -1,29 +1,35 @@
 package org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item
 
+import net.minecraft.core.NonNullList
 import net.minecraft.core.RegistryAccess
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.inventory.CraftingContainer
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.crafting.CraftingBookCategory
+import net.minecraft.world.item.crafting.CraftingRecipe
 import net.minecraft.world.item.crafting.CustomRecipe
+import net.minecraft.world.item.crafting.Ingredient
 import net.minecraft.world.item.crafting.RecipeSerializer
 import net.minecraft.world.item.crafting.RecipeType
 import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkMod.MOD_ID
+import org.valkyrienskies.clockwork.ClockworkRecipes
 
 class CraftingTableBladeRecipe(id: ResourceLocation, category: CraftingBookCategory) : CustomRecipe(id, category) {
 
-    override fun getType(): RecipeType<*>? {
-        return BladeRecipeType
+    init {
+        println(id)
+        println(category)
     }
 
     override fun matches(
         container: CraftingContainer,
         level: Level
     ): Boolean {
-        println(container.items.toString())
+        println("matches")
+        ClockworkMod.LOGGER.info("PLEEEEEEEEEEASE")
 
         if (container.items.count() != 2) return false
         if (container.items.first().item !is BladeItem) return false
@@ -47,7 +53,6 @@ class CraftingTableBladeRecipe(id: ResourceLocation, category: CraftingBookCateg
         val newItem = container.items.first().copy()
         newItem.tag!!.putDouble("BladeLength", length)
 
-        ClockworkMod.LOGGER.info("hello?")
 
         return newItem
     }
@@ -57,12 +62,15 @@ class CraftingTableBladeRecipe(id: ResourceLocation, category: CraftingBookCateg
     }
 
     override fun getSerializer(): RecipeSerializer<*>? {
-        return ClockworkMod.BLADE_SERIALIZER.get()
+        return ClockworkRecipes.BLADE_RECIPE_SERIALIZER.get()
+
+    }
+    override fun getType(): RecipeType<*>? {
+        return ClockworkRecipes.BLADE_RECIPE_TYPE.get()
     }
 
-    object BladeRecipeType: RecipeType<CraftingTableBladeRecipe> {
-        override fun toString(): String {
-            return "$MOD_ID:blade_crafting_recipe"
-        }
+    override fun getIngredients(): NonNullList<Ingredient?>? {
+        return super.getIngredients()
     }
+
 }
