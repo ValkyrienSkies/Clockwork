@@ -36,13 +36,9 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
     var blades: NonNullList<ItemStack> = NonNullList.withSize(8, ItemStack.EMPTY)
 
     var bladeAngle: Double = 0.0
-    var bladeLength: Int = 1
 
     var clientBladeAngle = LerpedFloat.angular()
         .chase(bladeAngle, 0.5, LerpedFloat.Chaser.EXP)
-    var clientBladeLength = LerpedFloat.linear()
-        .chase(bladeLength.toDouble(), 0.5, LerpedFloat.Chaser.EXP)
-
     var bladeCooldown = 0
 
     lateinit var angleController: AngleScrollValueBehaviour
@@ -59,7 +55,7 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
         //this.lengthController = LengthScrollValueBehaviour(TranslatableComponent("vs_clockwork.blade_controller.length"), this, LengthControllerValueBoxTransform())
 
         this.angleController.withCallback{i -> this.updateBladeAngle(i.toDouble())};
-        //this.lengthController.withCallback{i -> this.updateBladeLength(i)};
+
 
 
         //behaviours.add(this.lengthController)
@@ -75,14 +71,6 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
         }
     }
 
-    fun updateBladeLength(length: Int) {
-        if (level == null || level!!.isClientSide) {
-            return
-        } else {
-            this.bladeLength = length
-            notifyUpdate()
-        }
-    }
 
     fun getAllBlades(): List<ItemStack> {
         val list = ArrayList<ItemStack>()
@@ -113,7 +101,6 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
             }
 
             clientBladeAngle.tickChaser()
-            clientBladeLength.tickChaser()
             for (i in blades.indices) {
                 clientBladeRotation[i]?.tickChaser()
             }
@@ -172,18 +159,13 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
         ContainerHelper.loadAllItems(bladesTag, this.blades)
         this.bladeCooldown = tag.getInt("BladeCooldown")
         this.bladeAngle = tag.getDouble("BladeAngle")
-        this.bladeLength = tag.getInt("BladeLength")
 
         if (tag.contains("ScrollValue")) {
             bladeAngle = tag.getDouble("ScrollValue")
         }
-        if (tag.contains("ScrollValueLength")) {
-            bladeLength = tag.getInt("ScrollValueLength")
-        }
 
         if (clientPacket || this.level?.isClientSide == true) {
             this.clientBladeAngle.updateChaseTarget(this.bladeAngle.toFloat())
-            this.clientBladeLength.updateChaseTarget(this.bladeLength.toFloat())
         }
     }
 
@@ -194,7 +176,6 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
         tag.putInt("BladeCount", this.getBladeCount())
         tag.putInt("BladeCooldown", this.bladeCooldown)
         tag.putDouble("BladeAngle", this.bladeAngle)
-        tag.putInt("BladeLength", this.bladeLength)
         super.write(tag, clientPacket)
     }
 

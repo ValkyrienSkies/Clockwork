@@ -19,6 +19,7 @@ import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.valkyrienskies.clockwork.ClockworkItems
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPartials
 
 class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlockEntityRenderer<BladeControllerBlockEntity>(
@@ -36,17 +37,17 @@ class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : S
 
         val blades = blockEntity.getAllBlades()
         val bladeAngle = blockEntity.clientBladeAngle.getValue(partialTicks)
-        val bladeLength = 1.0f // blockEntity.clientBladeLength.getValue(partialTicks)
+
 
         val blockState = blockEntity.blockState
 
         val bladeRotations = blockEntity.clientBladeRotation.map { it.value.getValue(partialTicks) }
 
-        renderShared(blades, bladeAngle, bladeLength, blockState, partialTicks, ms, buffer, bladeRotations)
+        renderShared(blades, bladeAngle, blockState, partialTicks, ms, buffer, bladeRotations)
     }
 
     companion object {
-        fun renderShared(blades: List<ItemStack>, bladeAngle: Float, bladeLength: Float, blockState: BlockState, partialTicks: Float, ms: PoseStack, buffer: MultiBufferSource, bladeRotations: List<Float>, contraption: Boolean = false, contraptionMatrices: ContraptionMatrices? = null) {
+        fun renderShared(blades: List<ItemStack>, bladeAngle: Float, blockState: BlockState, partialTicks: Float, ms: PoseStack, buffer: MultiBufferSource, bladeRotations: List<Float>, contraption: Boolean = false, contraptionMatrices: ContraptionMatrices? = null) {
             val renderBuffer = buffer.getBuffer(RenderType.cutout())
 
             val facing = blockState.getValue(BlockStateProperties.FACING)
@@ -56,6 +57,7 @@ class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : S
             //msr.rotateCentered(Direction.UP, Math.toRadians(contraptionAngle.toDouble()).toFloat())
             for (i in blades.indices) {
                 val bladeRotation = if (bladeRotations.size - 1 >= i) bladeRotations[i] else continue
+                val bladeLength = blades[i].tag?.getDouble("BladeLength")?.toFloat() ?: 1f
 
                 val wide = blades[i].`is`(ClockworkItems.WIDE_PROPELLER_BLADE.get())
 
@@ -134,6 +136,9 @@ class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : S
 
             ms.popPose()
             ms.pushPose()
+
+            bladeExtension.translate(0.0,0.0,(bladeLength-1)*0.3)
+            bladeTip.translate(0.0,0.0,(bladeLength-1)*0.5)
 
             bladeExtension.scale(1.0f, 1.0f, bladeLength)
             bladeTip.translate(0.0, 0.0, -bladeLength.toDouble() + 1.0)
