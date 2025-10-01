@@ -28,10 +28,10 @@ class CraftingTableBladeRecipe(id: ResourceLocation, category: CraftingBookCateg
         container: CraftingContainer,
         level: Level
     ): Boolean {
-        println("matches")
-        ClockworkMod.LOGGER.info("PLEEEEEEEEEEASE")
 
-        if (container.items.count() != 2) return false
+        val amount = container.items.sumBy { if (it.isEmpty) 0 else 1 }
+
+        if (amount != 2) return false
         if (container.items.first().item !is BladeItem) return false
         if (!ItemStack.isSameItem(container.items[0],container.items[1])) return false
 
@@ -58,6 +58,7 @@ class CraftingTableBladeRecipe(id: ResourceLocation, category: CraftingBookCateg
     }
 
     override fun canCraftInDimensions(width: Int, height: Int): Boolean {
+        println(width)
         return width*height >= 2
     }
 
@@ -65,9 +66,9 @@ class CraftingTableBladeRecipe(id: ResourceLocation, category: CraftingBookCateg
         return ClockworkRecipes.BLADE_RECIPE_SERIALIZER.get()
 
     }
-    override fun getType(): RecipeType<*>? {
-        return ClockworkRecipes.BLADE_RECIPE_TYPE.get()
-    }
+//    override fun getType(): RecipeType<*>? {
+//        return ClockworkRecipes.BLADE_RECIPE_TYPE.get()
+//    }
 
     override fun getIngredients(): NonNullList<Ingredient?>? {
         return super.getIngredients()
