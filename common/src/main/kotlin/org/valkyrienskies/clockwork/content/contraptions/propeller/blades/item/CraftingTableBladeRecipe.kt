@@ -1,41 +1,37 @@
 package org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item
 
-import net.minecraft.core.NonNullList
 import net.minecraft.core.RegistryAccess
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.inventory.CraftingContainer
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.crafting.CraftingBookCategory
-import net.minecraft.world.item.crafting.CraftingRecipe
 import net.minecraft.world.item.crafting.CustomRecipe
-import net.minecraft.world.item.crafting.Ingredient
 import net.minecraft.world.item.crafting.RecipeSerializer
-import net.minecraft.world.item.crafting.RecipeType
 import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.ClockworkItems
-import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.ClockworkMod.MOD_ID
 import org.valkyrienskies.clockwork.ClockworkRecipes
 
 class CraftingTableBladeRecipe(id: ResourceLocation, category: CraftingBookCategory) : CustomRecipe(id, category) {
-
-    init {
-        println(id)
-        println(category)
-    }
 
     override fun matches(
         container: CraftingContainer,
         level: Level
     ): Boolean {
 
-        val amount = container.items.sumBy { if (it.isEmpty) 0 else 1 }
+        var isWide = false
+        var numBlades = 0
+        for (item in container.items) {
+            if (item.isEmpty) continue
+            if (item.item !is BladeItem) return false
 
-        if (amount != 2) return false
-        if (container.items.first().item !is BladeItem) return false
-        if (!ItemStack.isSameItem(container.items[0],container.items[1])) return false
+            if (item.`is`(ClockworkItems.WIDE_PROPELLER_BLADE.get()) && !isWide) {
+                if (numBlades > 0) return false
+                isWide = true
+            } else if (item.`is`(ClockworkItems.PROPELLER_BLADE.get()) && isWide) return  false
 
-        return true
+            numBlades++
+        }
+        return numBlades >= 2
     }
 
     override fun assemble(
@@ -44,14 +40,22 @@ class CraftingTableBladeRecipe(id: ResourceLocation, category: CraftingBookCateg
     ): ItemStack? {
         var length = 0.0
 
-        container.items.forEach { length += it.tag?.getDouble("BladeLength") ?: 0.0 }
+        val newItem = ItemStack(container.items.first().item)
 
-        val newItem = container.items.first().copy()
-        newItem.tag!!.putDouble("BladeLength", length)
+        if (container.containerSize == 0) return ItemStack.EMPTY
+
+        for (i in 0..container.containerSize) {
+            val item = container.getItem(i)
+            length += item.tag?.getDouble("BladeLength") ?: 0.0
+        }
+
+        newItem.orCreateTag.putDouble("BladeLength", length)
 
 
         return newItem
     }
+
+
 
     override fun canCraftInDimensions(width: Int, height: Int): Boolean {
         println(width)
@@ -59,8 +63,7 @@ class CraftingTableBladeRecipe(id: ResourceLocation, category: CraftingBookCateg
     }
 
     override fun getSerializer(): RecipeSerializer<*>? {
-        return ClockworkRecipes.BLADE_RECIPE_SERIALIZER.get()
+        return ClockworkRecipes.BLADE_CRAFTING_SERIALIZER.get()
 
     }
-
 }

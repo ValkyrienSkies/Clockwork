@@ -1,13 +1,11 @@
 package org.valkyrienskies.clockwork
 
 import dev.architectury.registry.registries.DeferredRegister
-import dev.architectury.registry.registries.RegistrySupplier
 import net.minecraft.core.registries.Registries
 import net.minecraft.world.item.crafting.RecipeSerializer
 import net.minecraft.world.item.crafting.RecipeType
 import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer
 import org.valkyrienskies.clockwork.ClockworkMod.MOD_ID
-import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.BladeRecipeSerializer
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.CraftingTableBladeRecipe
 
 object ClockworkRecipes {
@@ -15,7 +13,11 @@ object ClockworkRecipes {
     val RECIPE_SERIALIZERS: DeferredRegister<RecipeSerializer<*>?> = DeferredRegister.create(MOD_ID, Registries.RECIPE_SERIALIZER)
     val RECIPE_TYPES: DeferredRegister<RecipeType<*>> = DeferredRegister.create(MOD_ID, Registries.RECIPE_TYPE)
 
-    val BLADE_RECIPE_SERIALIZER = RECIPE_SERIALIZERS.register("blade_crafting") {
+    val BLADE_CRAFTING_SERIALIZER = RECIPE_SERIALIZERS.register("blade_crafting") {
+        SimpleCraftingRecipeSerializer(::CraftingTableBladeRecipe)
+    }
+
+    val BLADE_CUTTING_SERIALIZER = RECIPE_SERIALIZERS.register("blade_cutting") {
         SimpleCraftingRecipeSerializer(::CraftingTableBladeRecipe)
     }
 
