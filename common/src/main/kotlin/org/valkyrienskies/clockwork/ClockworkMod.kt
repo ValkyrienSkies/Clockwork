@@ -13,6 +13,7 @@ import dev.architectury.registry.registries.RegistrySupplier
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.core.registries.Registries
 import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.OutgoingChatMessage
 import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
@@ -26,11 +27,13 @@ import org.valkyrienskies.clockwork.content.events.CollisionSoundEffectHandler
 import org.valkyrienskies.clockwork.content.forces.*
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroShipControl
+import org.valkyrienskies.clockwork.util.AerodynamicUtils
 import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.core.api.VsBeta
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.impl.DuctNetworkServer
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
+import org.valkyrienskies.mod.api.dimensionId
 import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.shipObjectWorld
@@ -120,6 +123,7 @@ object ClockworkMod {
                 ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship)
                 ship.getAttachment(DragController::class.java)?.gameTick(ship, it)
             }
+
             ClockworkUtils.tick(it)
             CollisionSoundEffectHandler.tick(it)
         }
@@ -135,6 +139,17 @@ object ClockworkMod {
                 level.shipObjectWorld.allShips
                     .map { it }
                     .forEach { level.shipObjectWorld.deleteShip(it) }
+                0
+            })
+            dispatcher.register(LiteralArgumentBuilder.literal<CommandSourceStack>("get-air-values").executes {
+                val level = it.source.level!!
+                val player = it.source.player!!
+
+                val density = AerodynamicUtils.getAirDensityForY(player.position().y(),level.dimensionId)
+                val temperature = AerodynamicUtils.getAirTemperatureForY(player.position().y(),level.dimensionId)
+
+                player.sendSystemMessage(Component.literal("At y: ${player.position().y} density: $density temperature: $temperature"))
+
                 0
             })
         }
