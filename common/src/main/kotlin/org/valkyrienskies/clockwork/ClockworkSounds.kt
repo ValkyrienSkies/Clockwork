@@ -135,6 +135,10 @@ object ClockworkSounds {
         .category(SoundSource.BLOCKS)
         .attenuationDistance(32)
         .build()
+    val WANDERLUST = create("wanderlust").subtitle("'Wanderlust' plays")
+        .category(SoundSource.RECORDS)
+        .attenuationDistance(32)
+        .build()
 
     private val sounds: DeferredRegister<SoundEvent> =
         DeferredRegister.create(BuiltInRegistries.SOUND_EVENT, ClockworkMod.MOD_ID)

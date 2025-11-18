@@ -5,9 +5,11 @@ import com.simibubi.create.AllTags
 import com.simibubi.create.AllTags.AllItemTags
 import com.simibubi.create.foundation.data.AssetLookup
 import com.tterrag.registrate.util.entry.ItemEntry
+import dev.architectury.core.item.ArchitecturyRecordItem
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.Rarity
+import net.minecraft.world.item.RecordItem
 import net.minecraft.world.item.SwordItem
 import net.minecraft.world.item.Tiers
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
@@ -30,7 +32,14 @@ import java.util.function.Supplier
 
 object ClockworkItems {
 
-
+    @JvmField
+    val WANDERLUST_DISC: ItemEntry<RecordItem> =
+        REGISTRATE.item<RecordItem>("music_disc_wanderlust") { properties: Item.Properties? ->
+            RecordItem(7, ClockworkSounds.WANDERLUST.mainEvent!!, properties!!, 84)
+        }
+            .properties { it.rarity(Rarity.EPIC) }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .register()
 
     @JvmField
     val GRAVITRON: ItemEntry<GravitronItem> =

@@ -56,6 +56,9 @@
   "block.vs_clockwork.slicker": "Slicker",
   "item.vs_clockwork.slicker": "Slicker",
 
+  "item.vs_clockwork.music_disc_wanderlust": "Repaired Music Disc",
+  "item.minecraft.music_disc_wanderlust.desc": "Tomato - wanderlust",
+
   "block.vs_clockwork.distance_sensor": "Peepotron",
   "item.vs_clockwork.distance_sensor": "Peepotron",
   "block.vs_clockwork.gyroscopic_sensor": "Spinotron",

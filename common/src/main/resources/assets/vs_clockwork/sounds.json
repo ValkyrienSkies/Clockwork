@@ -325,5 +325,13 @@
       }
     ],
     "subtitle": "vs_clockwork.subtitle.gas_hiss"
+  },
+  "wanderlust": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:wanderlust",
+        "stream": true
+      }
+    ]
   }
 }
