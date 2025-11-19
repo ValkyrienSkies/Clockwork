@@ -10,7 +10,6 @@ import com.simibubi.create.foundation.data.*
 import com.simibubi.create.foundation.data.CreateRegistrate.connectedTextures
 import com.simibubi.create.foundation.data.ModelGen.customItemModel
 import com.simibubi.create.foundation.data.TagGen.axeOrPickaxe
-import com.simibubi.create.infrastructure.config.CStress
 import com.tterrag.registrate.builders.BlockBuilder
 import com.tterrag.registrate.providers.DataGenContext
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider
@@ -169,7 +168,7 @@ object ClockworkBlocks {
         }
             .transform(axeOrPickaxe())
             //.transform(flapbearing())
-            .transform(CStress.setImpact(4.0))
+            .transform(ClockworkStress.setImpact(4.0))
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
@@ -184,7 +183,7 @@ object ClockworkBlocks {
         }
             .transform(axeOrPickaxe())
             //.transform(flapbearing())
-            .transform(CStress.setImpact(4.0))
+            .transform(ClockworkStress.setImpact(4.0))
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
@@ -311,7 +310,7 @@ object ClockworkBlocks {
                 it.noOcclusion()
             }
             .transform<Block, RedstoneResistorBlock, CreateRegistrate, BlockBuilder<RedstoneResistorBlock, CreateRegistrate>>(
-                CStress.setNoImpact()
+                ClockworkStress.setNoImpact()
             )
             .transform<Block, RedstoneResistorBlock, CreateRegistrate, BlockBuilder<RedstoneResistorBlock, CreateRegistrate>>(
                 axeOrPickaxe()
@@ -495,7 +494,7 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .addLayer { Supplier { RenderType.cutout() } }
-        .transform(CStress.setImpact(4.0))
+        .transform(ClockworkStress.setImpact(4.0))
         .properties { it.noOcclusion() }
         .item()
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
@@ -517,7 +516,7 @@ object ClockworkBlocks {
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .model(AssetLookup.customBlockItemModel("pump", "item"))
         .transform(customItemModel())
-        .transform(CStress.setImpact(4.0))
+        .transform(ClockworkStress.setImpact(4.0))
         .register()
 
     @JvmField

@@ -4,7 +4,6 @@ import com.simibubi.create.api.stress.BlockStressValues
 import com.simibubi.create.content.kinetics.base.IRotate
 import com.simibubi.create.content.kinetics.base.RotatedPillarKineticBlock
 import com.simibubi.create.foundation.data.SharedProperties
-import com.simibubi.create.infrastructure.config.CStress
 import com.tterrag.registrate.builders.BlockBuilder
 import com.tterrag.registrate.providers.DataGenContext
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider
@@ -17,16 +16,17 @@ import net.minecraft.world.level.ItemLike
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockBehaviour
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.ClockworkStress
 import java.util.function.Supplier
 
 object BuilderTransformersClockwork {
-    private fun <B : RotatedPillarKineticBlock?, P> encasedBase(
+    private fun <B : RotatedPillarKineticBlock, P> encasedBase(
         b: BlockBuilder<B, P>,
         drop: Supplier<ItemLike>
     ): BlockBuilder<B, P> {
         return b.initialProperties { SharedProperties.stone() }
             .properties(BlockBehaviour.Properties::noOcclusion)
-            .transform(CStress.setNoImpact())
+            .transform(ClockworkStress.setNoImpact<B, P>())
             .loot { p, lb -> p.dropOther(lb, drop.get()) }
     }
 
