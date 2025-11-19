@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.filter
 
-import com.simibubi.create.foundation.gui.ScreenOpener
+import net.createmod.catnip.gui.ScreenOpener
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.resources.ResourceLocation

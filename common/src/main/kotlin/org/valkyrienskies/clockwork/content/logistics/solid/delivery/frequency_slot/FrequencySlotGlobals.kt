@@ -6,8 +6,8 @@ import com.simibubi.create.CreateClient
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBox
 import com.simibubi.create.foundation.utility.AdventureUtil
-import com.simibubi.create.foundation.utility.Lang
 import com.simibubi.create.foundation.utility.RaycastHelper
+import net.createmod.catnip.outliner.Outliner
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
@@ -22,6 +22,8 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
+import org.valkyrienskies.clockwork.ClockworkLang
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
 
 
@@ -41,7 +43,7 @@ object FrequencySlotGlobals {
             ?: return
 
 
-        val label: Component = Lang.translateDirect("logistics.firstFrequency")
+        val label: Component = ClockworkLang.translateDirect("logistics.firstFrequency")
 
 
         val bb = AABB(Vec3.ZERO, Vec3.ZERO).inflate(.25)
@@ -55,7 +57,7 @@ object FrequencySlotGlobals {
 
         if (!empty) box.wideOutline()
 
-        CreateClient.OUTLINER.showValueBox(Pair.of(true, pos), box.transform(behaviour.slot))
+        Outliner.getInstance().showOutline(Pair.of(true, pos), box.transform(behaviour.slot))
             .highlightFace(result.direction)
 
         if (!hit) return
@@ -63,7 +65,7 @@ object FrequencySlotGlobals {
         val tip: MutableList<MutableComponent> = ArrayList()
         tip.add(label.copy())
         tip.add(
-            Lang.translateDirect(if (empty) "logistics.filter.click_to_set" else "logistics.filter.click_to_replace")
+            ClockworkLang.translateDirect(if (empty) "logistics.filter.click_to_set" else "logistics.filter.click_to_replace")
         )
         CreateClient.VALUE_SETTINGS_HANDLER.showHoverTip(tip)
 

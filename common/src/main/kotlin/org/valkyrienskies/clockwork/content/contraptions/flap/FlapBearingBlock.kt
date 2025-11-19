@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.content.contraptions.flap
 
-import com.simibubi.create.content.contraptions.ITransformableBlock
+import com.simibubi.create.api.contraption.transformable.TransformableBlock
 import com.simibubi.create.content.contraptions.StructureTransform
 import com.simibubi.create.content.contraptions.bearing.BearingBlock
 import com.simibubi.create.content.kinetics.base.DirectionalAxisKineticBlock
@@ -22,7 +22,7 @@ import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import java.util.function.Consumer
 
 open class FlapBearingBlock(properties: Properties?) : BearingBlock(properties), IBE<FlapBearingBlockEntity>,
-    ITransformableBlock {
+    TransformableBlock {
 
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block?, BlockState?>) {

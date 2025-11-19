@@ -1,9 +1,10 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.duct
 
-import com.jozufozu.flywheel.core.PartialModel
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
-import com.simibubi.create.foundation.render.CachedBufferer
+import dev.engine_room.flywheel.lib.model.baked.PartialModel
+import net.createmod.catnip.render.CachedBuffers
+import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
@@ -37,17 +38,17 @@ class DuctRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEnt
         val kelvin = ClockworkModClient.getKelvin()
 
         for (dir in Direction.values()) {
-            val dirConnection = CachedBufferer.partialFacing(connection, blockEntity.blockState, dir.opposite)
-            val dirRim = CachedBufferer.partialFacing(rim, blockEntity.blockState, dir.opposite)
+            val dirConnection = CachedBuffers.partialFacing(connection, blockEntity.blockState, dir.opposite)
+            val dirRim = CachedBuffers.partialFacing(rim, blockEntity.blockState, dir.opposite)
             if (blockEntity.blockState.getValue(DIR_TO_CONNECTION[dir]!!).isConnected) {
                 if (blockEntity.level != null) {
-                    dirConnection.light(light).overlay(overlay).renderInto(ms, vertexConsumer)
+                    dirConnection.light<SuperByteBuffer>(light).overlay<SuperByteBuffer>(overlay).renderInto(ms, vertexConsumer)
                     if (blockEntity.level!!.getBlockState(blockEntity.blockPos.relative(dir)).block !is IDuct)
-                        dirRim.light(light).overlay(overlay).renderInto(ms, vertexConsumer)
+                        dirRim.light<SuperByteBuffer>(light).overlay<SuperByteBuffer>(overlay).renderInto(ms, vertexConsumer)
                 }
             } else if (blockEntity.blockState.getValue(DIR_TO_CONNECTION[dir]!!) == DuctConnectionType.LEAK) {
-                val dirLeak = CachedBufferer.partialFacing(leak, blockEntity.blockState, dir.opposite)
-                dirLeak.light(light).overlay(overlay).renderInto(ms, vertexConsumer)
+                val dirLeak = CachedBuffers.partialFacing(leak, blockEntity.blockState, dir.opposite)
+                dirLeak.light<SuperByteBuffer>(light).overlay<SuperByteBuffer>(overlay).renderInto(ms, vertexConsumer)
             }
 
             val dirBe = blockEntity.level?.getBlockEntity(blockEntity.blockPos.relative(dir))
@@ -69,8 +70,8 @@ class DuctRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEnt
                 else -> continue
             }
 
-            CachedBufferer.partialFacing(partial, blockEntity.blockState, dir.opposite)
-                .light(light).overlay(overlay).renderInto(ms, vertexConsumer)
+            CachedBuffers.partialFacing(partial, blockEntity.blockState, dir.opposite)
+                .light<SuperByteBuffer>(light).overlay<SuperByteBuffer>(overlay).renderInto(ms, vertexConsumer)
 
 
         }

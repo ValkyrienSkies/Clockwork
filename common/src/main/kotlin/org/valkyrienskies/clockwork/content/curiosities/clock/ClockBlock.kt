@@ -4,7 +4,7 @@ import com.simibubi.create.AllShapes
 import com.simibubi.create.content.kinetics.base.HorizontalKineticBlock
 import com.simibubi.create.content.kinetics.base.IRotate
 import com.simibubi.create.foundation.block.IBE
-import com.simibubi.create.foundation.utility.Iterate
+import net.createmod.catnip.data.Iterate
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.item.context.BlockPlaceContext

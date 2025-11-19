@@ -4,8 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer
-import com.simibubi.create.foundation.utility.AngleHelper
-import com.simibubi.create.foundation.utility.AnimationTickHolder
+import net.createmod.catnip.math.AngleHelper
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.block.model.ItemTransforms

@@ -1,10 +1,8 @@
 package org.valkyrienskies.clockwork.content.contraptions.flap.contraption
 
+import com.simibubi.create.api.contraption.ContraptionType
 import com.simibubi.create.content.contraptions.AssemblyException
 import com.simibubi.create.content.contraptions.Contraption
-import com.simibubi.create.content.contraptions.ContraptionType
-import com.simibubi.create.content.contraptions.bearing.AnchoredLighter
-import com.simibubi.create.content.contraptions.render.ContraptionLighter
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.core.BlockPos
@@ -49,7 +47,7 @@ class FlapContraption : Contraption() {
     }
 
     override fun getType(): ContraptionType {
-        return ClockworkContraptions.FLAP
+        return ClockworkContraptions.FLAP.value()
     }
 
     override fun isAnchoringBlockAt(pos: BlockPos): Boolean {
@@ -60,10 +58,10 @@ class FlapContraption : Contraption() {
         return if (BlockPos.ZERO == localPos || BlockPos.ZERO == localPos.relative(facing)) false else facing.axis === this.facing!!.axis
     }
 
-    @Environment(EnvType.CLIENT)
-    override fun makeLighter(): ContraptionLighter<*> {
-        return AnchoredLighter(this)
-    }
+//    @Environment(EnvType.CLIENT)
+//    override fun makeLighter(): ContraptionLighter<*> {
+//        return AnchoredLighter(this)
+//    }
 
     companion object {
         @Throws(AssemblyException::class)

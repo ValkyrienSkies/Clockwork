@@ -3,7 +3,7 @@ package org.valkyrienskies.clockwork.content.physicalities.extendon
 import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock
 import com.simibubi.create.content.kinetics.base.IRotate
 import com.simibubi.create.foundation.block.IBE
-import com.simibubi.create.foundation.utility.Iterate
+import net.createmod.catnip.data.Iterate
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.InteractionHand

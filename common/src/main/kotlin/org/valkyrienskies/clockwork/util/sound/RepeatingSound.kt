@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.util.sound
 
-import com.simibubi.create.foundation.utility.AnimationTickHolder
+import net.createmod.catnip.animation.AnimationTickHolder
 import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance
 import net.minecraft.sounds.SoundEvent

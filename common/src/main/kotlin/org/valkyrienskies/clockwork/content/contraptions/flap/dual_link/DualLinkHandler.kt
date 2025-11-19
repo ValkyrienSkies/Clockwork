@@ -74,8 +74,8 @@ object DualLinkHandler {
             val localHit = ray.location
                 .subtract(Vec3.atLowerCornerOf(pos))
                 .add(Vec3.atLowerCornerOf(ray.direction.normal).scale(.25))
-            fakePlayerChoice = localHit.distanceToSqr(behaviour.firstSlot.getLocalOffset(blockState)) > localHit
-                .distanceToSqr(behaviour.secondSlot.getLocalOffset(blockState))
+            fakePlayerChoice = localHit.distanceToSqr(behaviour.firstSlot.getLocalOffset(world, pos, blockState)) > localHit
+                .distanceToSqr(behaviour.secondSlot.getLocalOffset(world, pos, blockState))
         }
 
 

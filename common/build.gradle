@@ -46,7 +46,7 @@ dependencies {
     implementation("org.valkyrienskies.core:impl:${rootProject.vscore_version}") {
         exclude group: 'org.joml', module: ''
     }
-    implementation("org.valkyrienskies.core:api-game:${rootProject.vscore_version}") {
+    implementation("org.valkyrienskies.core:internal:${rootProject.vscore_version}") {
         exclude group: 'org.joml', module: ''
     }
 

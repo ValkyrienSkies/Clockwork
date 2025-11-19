@@ -1,11 +1,11 @@
 package org.valkyrienskies.clockwork.content.curiosities.altmeter
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.foundation.gui.AbstractSimiScreen
 import com.simibubi.create.foundation.gui.AllIcons
-import com.simibubi.create.foundation.gui.widget.AbstractSimiWidget
 import com.simibubi.create.foundation.gui.widget.IconButton
 import com.simibubi.create.foundation.gui.widget.ScrollInput
+import net.createmod.catnip.gui.AbstractSimiScreen
+import net.createmod.catnip.gui.widget.AbstractSimiWidget
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.network.chat.Component
 import org.valkyrienskies.clockwork.ClockworkGuiTextures

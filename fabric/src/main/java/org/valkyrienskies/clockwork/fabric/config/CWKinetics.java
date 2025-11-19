@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.fabric.config;
 
-import com.simibubi.create.foundation.config.ConfigBase;
+import net.createmod.catnip.config.ConfigBase;
 
 public class CWKinetics extends ConfigBase {
 
@@ -8,7 +8,7 @@ public class CWKinetics extends ConfigBase {
 
     public final ConfigInt balloonRange = i(4096, 1, "balloonRange", Comments.balloonRange);
 
-    public final CWStress stressValues = nested(1, CWStress::new, Comments.stress);
+    //public final CWStress stressValues = nested(1, CWStress::new, Comments.stress);
 
 
     @Override

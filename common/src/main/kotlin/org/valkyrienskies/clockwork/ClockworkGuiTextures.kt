@@ -2,9 +2,9 @@ package org.valkyrienskies.clockwork
 
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.foundation.gui.UIRenderHelper
-import com.simibubi.create.foundation.gui.element.ScreenElement
-import com.simibubi.create.foundation.utility.Color
+import net.createmod.catnip.gui.UIRenderHelper
+import net.createmod.catnip.gui.element.ScreenElement
+import net.createmod.catnip.theme.Color
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.gui.Gui

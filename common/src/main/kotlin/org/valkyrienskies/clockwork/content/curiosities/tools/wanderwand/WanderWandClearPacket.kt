@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand
 
-import com.simibubi.create.foundation.outliner.Outliner
+import net.createmod.catnip.outliner.Outliner
 import net.minecraft.client.Minecraft
 import net.minecraft.network.FriendlyByteBuf
 import org.joml.Vector3ic

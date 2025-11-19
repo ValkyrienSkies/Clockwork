@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.duct
 
-import com.simibubi.create.foundation.utility.Lang
+import net.createmod.catnip.lang.Lang
 import net.minecraft.util.StringRepresentable
 
 enum class DuctConnectionType(private val stringName: String): StringRepresentable {

@@ -1,13 +1,13 @@
 package org.valkyrienskies.clockwork.content.contraptions.propeller.blades
 
-import com.jozufozu.flywheel.util.transform.TransformStack
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
 import com.simibubi.create.content.contraptions.render.ContraptionMatrices
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
-import com.simibubi.create.foundation.render.CachedBufferer
-import com.simibubi.create.foundation.render.SuperByteBuffer
-import com.simibubi.create.foundation.utility.AngleHelper
+import dev.engine_room.flywheel.lib.transform.TransformStack
+import net.createmod.catnip.math.AngleHelper
+import net.createmod.catnip.render.CachedBuffers
+import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
@@ -51,7 +51,7 @@ class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : S
             val renderBuffer = buffer.getBuffer(RenderType.cutout())
 
             val facing = blockState.getValue(BlockStateProperties.FACING)
-            val msr = TransformStack.cast(ms)
+            val msr = TransformStack.of(ms)
 
             //ms.pushPose()
             //msr.rotateCentered(Direction.UP, Math.toRadians(contraptionAngle.toDouble()).toFloat())
@@ -65,9 +65,9 @@ class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : S
                 val bladeExtensionPartial = if (wide) ClockworkPartials.WIDEBLADE_EXTENSION else ClockworkPartials.BLADE_EXTENSION
                 val bladeTipPartial = if (wide) ClockworkPartials.WIDEBLADE_TIP else ClockworkPartials.BLADE_TIP
 
-                val bladeBase = CachedBufferer.partial(bladeBasePartial, blockState)
-                val bladeExtension = CachedBufferer.partial(bladeExtensionPartial, blockState)
-                val bladeTip = CachedBufferer.partial(bladeTipPartial, blockState)
+                val bladeBase = CachedBuffers.partial(bladeBasePartial, blockState)
+                val bladeExtension = CachedBuffers.partial(bladeExtensionPartial, blockState)
+                val bladeTip = CachedBuffers.partial(bladeTipPartial, blockState)
                 if (contraptionMatrices != null) {
                     bladeBase.transform(contraptionMatrices.model)
                     bladeExtension.transform(contraptionMatrices.model)
@@ -81,7 +81,7 @@ class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : S
 
         fun rotateByPivot(buffer: SuperByteBuffer, pivot: Vec3, rotation: Double) {
             buffer.translate(pivot)
-            buffer.rotateZ(rotation)
+            buffer.rotateZDegrees(rotation.toFloat())
             buffer.translateBack(pivot)
         }
 
@@ -101,34 +101,34 @@ class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : S
 
             if (facing.axis.isHorizontal) {
                 bladeBase.rotateCentered(
-                    Direction.UP,
-                    AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
+                    AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble()),
+                    Direction.UP
                 )
                 bladeExtension.rotateCentered(
-                    Direction.UP,
-                    AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
+                    AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble()),
+                    Direction.UP
                 )
                 bladeTip.rotateCentered(
-                    Direction.UP,
-                    AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble())
+                    AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble()),
+                    Direction.UP
                 )
             }
             bladeBase.rotateCentered(
-                Direction.EAST,
-                AngleHelper.rad((-90.0 - AngleHelper.verticalAngle(facing)).toDouble())
+                AngleHelper.rad((-90.0 - AngleHelper.verticalAngle(facing)).toDouble()),
+                Direction.EAST
             )
             bladeExtension.rotateCentered(
-                Direction.EAST,
-                AngleHelper.rad((-90.0 - AngleHelper.verticalAngle(facing)).toDouble())
+                AngleHelper.rad((-90.0 - AngleHelper.verticalAngle(facing)).toDouble()),
+                Direction.EAST
             )
             bladeTip.rotateCentered(
-                Direction.EAST,
-                AngleHelper.rad((-90.0 - AngleHelper.verticalAngle(facing)).toDouble())
+                AngleHelper.rad((-90.0 - AngleHelper.verticalAngle(facing)).toDouble()),
+                Direction.EAST
             )
 
-            bladeBase.rotateCentered(Direction.UP, Math.toRadians(bladeRotation.toDouble()).toFloat())
-            bladeExtension.rotateCentered(Direction.UP, Math.toRadians(bladeRotation.toDouble()).toFloat())
-            bladeTip.rotateCentered(Direction.UP, Math.toRadians(bladeRotation.toDouble()).toFloat())
+            bladeBase.rotateCentered(Math.toRadians(bladeRotation.toDouble()).toFloat(), Direction.UP)
+            bladeExtension.rotateCentered(Math.toRadians(bladeRotation.toDouble()).toFloat(), Direction.UP)
+            bladeTip.rotateCentered(Math.toRadians(bladeRotation.toDouble()).toFloat(), Direction.UP)
 
             rotateByPivot(bladeBase, pivot, bladeAngle.toDouble())
             rotateByPivot(bladeExtension, pivot, bladeAngle.toDouble())

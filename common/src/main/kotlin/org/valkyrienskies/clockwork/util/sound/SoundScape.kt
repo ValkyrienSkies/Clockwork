@@ -1,8 +1,8 @@
 package org.valkyrienskies.clockwork.util.sound
 
-import com.simibubi.create.foundation.utility.AnimationTickHolder
-import com.simibubi.create.foundation.utility.VecHelper
 import com.simibubi.create.infrastructure.config.AllConfigs
+import net.createmod.catnip.animation.AnimationTickHolder
+import net.createmod.catnip.math.VecHelper
 import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.sounds.SoundInstance
 import net.minecraft.core.BlockPos

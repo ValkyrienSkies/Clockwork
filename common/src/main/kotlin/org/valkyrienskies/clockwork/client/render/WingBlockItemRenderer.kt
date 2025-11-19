@@ -1,11 +1,12 @@
 package org.valkyrienskies.clockwork.client.render
 
-import com.jozufozu.flywheel.core.PartialModel
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer
-import com.simibubi.create.foundation.render.CachedBufferer
+import dev.engine_room.flywheel.lib.model.baked.PartialModel
+import net.createmod.catnip.render.CachedBuffers
+import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.block.model.ItemTransform
@@ -37,15 +38,14 @@ class WingBlockItemRenderer(var wingFrameItem: PartialModel) : CustomRenderedIte
 
     private fun renderInventory(stack: ItemStack, buffer: MultiBufferSource, ms: PoseStack, light: Int) {
         val vb = buffer.getBuffer(RenderType.cutout())
-        val frame = CachedBufferer.partial(wingFrameItem, ClockworkBlocks.WING.defaultState).light(light)
-            .translate(0.0, 0.0, -1.0)
-        val sail = CachedBufferer.partial(WING_SAIL_ITEM, ClockworkBlocks.WING.defaultState).light(light)
-            .translate(0.0, 0.0, -1.0)
+        val frame = CachedBuffers.partial(wingFrameItem, ClockworkBlocks.WING.defaultState).light<SuperByteBuffer>(light).translate(0.0, 0.0, -1.0)
+
+        val sail = CachedBuffers.partial(WING_SAIL_ITEM, ClockworkBlocks.WING.defaultState).light<SuperByteBuffer>(light).translate(0.0, 0.0, -1.0)
 
         if (stack.hasTag()) {
             val tag = stack.getOrCreateTag()
             val color = tag.getInt("Clockwork\$color")
-            sail.color(color)
+            sail.color<SuperByteBuffer>(color)
         }
 
         frame.renderInto(ms, vb)
@@ -54,15 +54,15 @@ class WingBlockItemRenderer(var wingFrameItem: PartialModel) : CustomRenderedIte
 
     private fun renderFirstPerson(stack: ItemStack, buffer: MultiBufferSource, ms: PoseStack, light: Int) {
         val vb = buffer.getBuffer(RenderType.cutout())
-        val frame = CachedBufferer.partial(wingFrameItem, ClockworkBlocks.WING.defaultState)
-            .light(light).translate(-0.5, -0.5, -0.5)
-        val sail = CachedBufferer.partial(WING_SAIL_ITEM, ClockworkBlocks.WING.defaultState)
-            .light(light).translate(-0.5, -0.5, -0.5)
+        val frame = CachedBuffers.partial(wingFrameItem, ClockworkBlocks.WING.defaultState)
+            .light<SuperByteBuffer>(light).translate(-0.5, -0.5, -0.5)
+        val sail = CachedBuffers.partial(WING_SAIL_ITEM, ClockworkBlocks.WING.defaultState)
+            .light<SuperByteBuffer>(light).translate(-0.5, -0.5, -0.5)
 
         if (stack.hasTag()) {
             val tag = stack.getOrCreateTag()
             val color = tag.getInt("Clockwork\$color")
-            sail.color(color)
+            sail.color<SuperByteBuffer>(color)
         }
 
         frame.renderInto(ms, vb)

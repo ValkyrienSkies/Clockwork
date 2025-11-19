@@ -1,11 +1,11 @@
 package org.valkyrienskies.clockwork
 
 import com.simibubi.create.content.equipment.armor.BacktankArmorLayer
-import com.simibubi.create.foundation.outliner.Outliner
-import com.simibubi.create.foundation.utility.ModelSwapper
 import dev.architectury.event.events.client.ClientTickEvent
 import dev.architectury.event.events.common.TickEvent
 import dev.architectury.registry.ReloadListenerRegistry
+import net.createmod.catnip.outliner.Outliner
+import net.createmod.ponder.foundation.PonderIndex
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRenderEvents
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents
@@ -38,11 +38,9 @@ object ClockworkModClient {
 
     @JvmStatic
     fun initClient() {
-        ClockworkPonders.init()
+        PonderIndex.addPlugin(ClockworkPonderPlugin())
         ClockworkSoundScapes.init()
         SecondScrollValueRenderer.init()
-
-
 
         ReloadListenerRegistry.register(PackType.CLIENT_RESOURCES, RESOURCE_RELOAD_LISTENER)
 

@@ -5,9 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer
-import com.simibubi.create.foundation.render.CachedBufferer
-import com.simibubi.create.foundation.render.SuperByteBuffer
-import com.simibubi.create.foundation.utility.AngleHelper
+import dev.engine_room.flywheel.lib.model.baked.PartialModel
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.resources.model.BakedModel
 import net.minecraft.core.Direction
@@ -36,9 +34,9 @@ class BladeItemRenderer: CustomRenderedItemModelRenderer() {
 
         val wide = ClockworkItems.WIDE_PROPELLER_BLADE.asStack().`is`(stack.item)
 
-        val bladeBasePartial = if (wide) ClockworkPartials.WIDEBLADE_BASE else ClockworkPartials.BLADE_BASE
-        val bladeExtensionPartial = if (wide) ClockworkPartials.WIDEBLADE_EXTENSION else ClockworkPartials.BLADE_EXTENSION
-        val bladeTipPartial = if (wide) ClockworkPartials.WIDEBLADE_TIP else ClockworkPartials.BLADE_TIP
+        val bladeBasePartial: PartialModel = if (wide) ClockworkPartials.WIDEBLADE_BASE else ClockworkPartials.BLADE_BASE
+        val bladeExtensionPartial: PartialModel = if (wide) ClockworkPartials.WIDEBLADE_EXTENSION else ClockworkPartials.BLADE_EXTENSION
+        val bladeTipPartial: PartialModel = if (wide) ClockworkPartials.WIDEBLADE_TIP else ClockworkPartials.BLADE_TIP
 
         val bladeBase = bladeBasePartial.get()
         val bladeExtension =  bladeExtensionPartial.get()

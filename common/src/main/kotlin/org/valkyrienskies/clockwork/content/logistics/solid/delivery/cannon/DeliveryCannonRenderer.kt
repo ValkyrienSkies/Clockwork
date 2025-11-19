@@ -1,12 +1,12 @@
 package org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon
 
-import com.jozufozu.flywheel.util.transform.TransformStack
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
-import com.simibubi.create.foundation.render.CachedBufferer
-import com.simibubi.create.foundation.render.SuperByteBuffer
-import com.simibubi.create.foundation.utility.AngleHelper
-import com.simibubi.create.foundation.utility.VecHelper
+import dev.engine_room.flywheel.lib.transform.TransformStack
+import net.createmod.catnip.math.AngleHelper
+import net.createmod.catnip.math.VecHelper
+import net.createmod.catnip.render.CachedBuffers
+import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
@@ -43,10 +43,10 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
     ) {
         super.renderSafe(be, partialTicks, ms, buffer, light, overlay)
 
-        var antenna = CachedBufferer.partial(ClockworkPartials.CANNON_ANTENNA,be.blockState)
-        var base = CachedBufferer.partial(ClockworkPartials.CANNON_BASE,be.blockState)
-        var mount = CachedBufferer.partial(ClockworkPartials.CANNON_MOUNT,be.blockState)
-        var barrel = CachedBufferer.partial(ClockworkPartials.CANNON_BARREL,be.blockState)
+        var antenna = CachedBuffers.partial(ClockworkPartials.CANNON_ANTENNA,be.blockState)
+        var base = CachedBuffers.partial(ClockworkPartials.CANNON_BASE,be.blockState)
+        var mount = CachedBuffers.partial(ClockworkPartials.CANNON_MOUNT,be.blockState)
+        var barrel = CachedBuffers.partial(ClockworkPartials.CANNON_BARREL,be.blockState)
 
         val mult = if (Minecraft.getInstance().isPaused) 0 else if(be.gunPowderTicks>0) 3 else 1
 
@@ -165,14 +165,14 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         if (be.ponder) new = ms
         else new = PoseStack()
 
-        val msr = TransformStack.cast(new)
+        val msr = TransformStack.of(new)
         val cam = Minecraft.getInstance().gameRenderer.mainCamera
 
         new.pushPose()
         if (be.ponder) msr.translate(launchedItemPos.subtract(be.getRealPos()).add(0.5,1.25,0.5))
         else {
-            msr.multiply(Quaternionf(AxisAngle4f(AngleHelper.rad(cam.xRot.toDouble()), 1f, 0f, 0f)))
-            msr.multiply(Quaternionf(AxisAngle4f(AngleHelper.rad(cam.yRot + 180.0), 0f, 1f, 0f)))
+            msr.rotate(Quaternionf(AxisAngle4f(AngleHelper.rad(cam.xRot.toDouble()), 1f, 0f, 0f)))
+            msr.rotate(Quaternionf(AxisAngle4f(AngleHelper.rad(cam.yRot + 180.0), 0f, 1f, 0f)))
             msr.translate(-cam.position.x,-cam.position.y,-cam.position.z)
             msr.translate(launchedItemPos.x,launchedItemPos.y+0.25,launchedItemPos.z)
         }
@@ -181,8 +181,8 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
 
         val itemRotOffset = VecHelper.voxelSpace(0.0, 3.0, 0.0)
         msr.translate(itemRotOffset)
-        msr.rotateY(be.itemRotation*3)
-        msr.rotateX(be.itemRotation*3)
+        msr.rotateYDegrees(be.itemRotation.toFloat()*3f)
+        msr.rotateXDegrees(be.itemRotation.toFloat()*3f)
         msr.translateBack(itemRotOffset)
         Minecraft.getInstance()
             .itemRenderer
@@ -201,7 +201,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
 
     fun rotateToAngle(superByteBuffer: SuperByteBuffer, angle: Double): SuperByteBuffer {
         var buffer = superByteBuffer.translate(pivot);
-        buffer = buffer.rotate(Direction.EAST,AngleHelper.rad(angle))
+        buffer = buffer.rotate(AngleHelper.rad(angle), Direction.EAST)
         buffer = buffer.translate(pivot.scale(-1.0))
         return buffer
     }
@@ -209,21 +209,21 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
     // doing it like this is easier than using AngleHelper.rad()
     fun rotateCentered(buffer: SuperByteBuffer, angle: Double): SuperByteBuffer {
 
-        return buffer.rotateCentered(Direction.UP, ((-angle - 90.0) / 180.0 * Math.PI).toFloat())
+        return buffer.rotateCentered(((-angle - 90.0) / 180.0 * Math.PI).toFloat(), Direction.UP)
     }
 
     fun rotateAntenna(superByteBuffer: SuperByteBuffer, angle: Double): SuperByteBuffer {
         var buffer = superByteBuffer.translate(antennaPivot);
-        buffer = buffer.rotate(Direction.WEST,AngleHelper.rad(angle))
+        buffer = buffer.rotate(AngleHelper.rad(angle), Direction.WEST)
         buffer = buffer.translate(antennaPivot.scale(-1.0))
         return buffer
     }
 
     fun render(mount: SuperByteBuffer, base: SuperByteBuffer, barrel: SuperByteBuffer, antenna: SuperByteBuffer, ms: PoseStack, vb: VertexConsumer, light: Int) {
-        mount.light(light).renderInto(ms,vb)
-        base.light(light).renderInto(ms,vb)
-        barrel.light(light).renderInto(ms,vb)
-        antenna.light(light).renderInto(ms,vb)
+        mount.light<SuperByteBuffer>(light).renderInto(ms,vb)
+        base.light<SuperByteBuffer>(light).renderInto(ms,vb)
+        barrel.light<SuperByteBuffer>(light).renderInto(ms,vb)
+        antenna.light<SuperByteBuffer>(light).renderInto(ms,vb)
     }
 
 

@@ -2,8 +2,9 @@ package org.valkyrienskies.clockwork.content.contraptions.phys.slicker
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
-import com.simibubi.create.foundation.render.CachedBufferer
-import com.simibubi.create.foundation.utility.AngleHelper
+import net.createmod.catnip.math.AngleHelper
+import net.createmod.catnip.render.CachedBuffers
+import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
@@ -56,17 +57,17 @@ class SlickerBlockEntityRenderer(context: BlockEntityRendererProvider.Context) :
 
         matrices.translate(-0.5, -0.5, -0.5)
 
-        val goo = CachedBufferer.partial(ClockworkPartials.GOO, blockState)
+        val goo = CachedBuffers.partial(ClockworkPartials.GOO, blockState)
 
         val gooOffset = blockEntity.piston?.getValue(partialTicks) ?: 0.0f
 
-        goo.light(light).translate(0.0, gooOffset.toDouble()-(2.0/16.0), 0.0).renderInto(matrices, buffer.getBuffer(RenderType.translucent()))
+        goo.light<SuperByteBuffer>(light).translate(0.0, gooOffset.toDouble()-(2.0/16.0), 0.0).renderInto(matrices, buffer.getBuffer(RenderType.translucent()))
 
         if (blockEntity.shouldRenderDoink) {
-            val doink = CachedBufferer.partial(ClockworkPartials.DOINK, blockState)
+            val doink = CachedBuffers.partial(ClockworkPartials.DOINK, blockState)
             blockEntity.currentDoinkSize = Mth.lerp(partialTicks.toDouble(), blockEntity.currentDoinkSize, blockEntity.targetDoinkSize)
 
-            doink.light(light).scale(blockEntity.currentDoinkSize.toFloat()).renderInto(matrices, buffer.getBuffer(RenderType.translucent()))
+            doink.light<SuperByteBuffer>(light).scale(blockEntity.currentDoinkSize.toFloat()).renderInto(matrices, buffer.getBuffer(RenderType.translucent()))
 
             if (blockEntity.currentDoinkSize == blockEntity.targetDoinkSize) {
                 blockEntity.shouldRenderDoink = false

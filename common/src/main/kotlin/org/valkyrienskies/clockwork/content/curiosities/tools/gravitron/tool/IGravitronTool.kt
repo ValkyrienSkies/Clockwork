@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.foundation.render.SuperRenderTypeBuffer
+import net.createmod.catnip.render.SuperRenderTypeBuffer
 import net.minecraft.world.phys.Vec3
 
 interface IGravitronTool {

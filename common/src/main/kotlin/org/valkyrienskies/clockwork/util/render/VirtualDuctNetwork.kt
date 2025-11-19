@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.util.render
 
-import com.simibubi.create.foundation.ponder.PonderWorld
+import net.createmod.ponder.api.level.PonderLevel
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.player.Player
 import org.valkyrienskies.kelvin.api.*
@@ -16,13 +16,13 @@ class VirtualDuctNetwork(
     override val nodesByChunk: HashMap<KelvinChunkPos, HashSet<DuctNodePos>> = HashMap(),
     override val nodesInDimension: HashMap<ResourceLocation, HashSet<DuctNodePos>> = HashMap(),
     override val unloadedNodes: HashSet<DuctNodePos> = HashSet(),
-) : DuctNetwork<PonderWorld> {
+) : DuctNetwork<PonderLevel> {
     override fun addNode(pos: DuctNodePos, node: DuctNode) {
         TODO("Not yet implemented")
     }
 
     override fun createGasParticle(
-        level: PonderWorld,
+        level: PonderLevel,
         gasType: GasType,
         pos: DuctNodePos,
         x: Double,
@@ -93,10 +93,10 @@ class VirtualDuctNetwork(
         TODO("Not yet implemented")
     }
 
-    override fun tick(level: PonderWorld, subSteps: Int) {
+    override fun tick(level: PonderLevel, subSteps: Int) {
         TODO("Not yet implemented")
     }
 
-    override fun sync(level: PonderWorld?, info: ClientKelvinInfo, chunkFlag: Boolean, player: Player?) {
+    override fun sync(level: PonderLevel?, info: ClientKelvinInfo, chunkFlag: Boolean, player: Player?) {
     }
 }

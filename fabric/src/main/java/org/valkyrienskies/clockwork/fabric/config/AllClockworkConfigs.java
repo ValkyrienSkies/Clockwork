@@ -1,9 +1,7 @@
 package org.valkyrienskies.clockwork.fabric.config;
 
-
-import com.simibubi.create.content.kinetics.BlockStressValues;
-import com.simibubi.create.foundation.config.ConfigBase;
 import fuzs.forgeconfigapiport.impl.ForgeConfigAPIPort;
+import net.createmod.catnip.config.ConfigBase;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.config.ModConfig;
 import org.apache.commons.lang3.tuple.Pair;

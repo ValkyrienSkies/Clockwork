@@ -1,10 +1,10 @@
 package org.valkyrienskies.clockwork.content.contraptions.propeller.blades
 
-import com.jozufozu.flywheel.core.virtual.VirtualRenderWorld
-import com.simibubi.create.content.contraptions.behaviour.MovementBehaviour
+import com.simibubi.create.api.behaviour.movement.MovementBehaviour
 import com.simibubi.create.content.contraptions.behaviour.MovementContext
 import com.simibubi.create.content.contraptions.render.ContraptionMatrices
-import com.simibubi.create.foundation.utility.AnimationTickHolder
+import com.simibubi.create.foundation.virtualWorld.VirtualRenderWorld
+import net.createmod.catnip.animation.AnimationTickHolder
 import net.fabricmc.loader.impl.lib.sat4j.core.Vec
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.core.Direction

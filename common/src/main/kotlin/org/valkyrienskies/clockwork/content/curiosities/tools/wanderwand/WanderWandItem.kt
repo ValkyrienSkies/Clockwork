@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.simibubi.create.foundation.outliner.Outliner
 import net.minecraft.ChatFormatting
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos

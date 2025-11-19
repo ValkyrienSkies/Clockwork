@@ -1,14 +1,14 @@
 package org.valkyrienskies.clockwork.content.contraptions.flap
 
-import com.jozufozu.flywheel.core.PartialModel
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllPartialModels
 import com.simibubi.create.content.contraptions.bearing.BearingBlock
 import com.simibubi.create.content.kinetics.base.DirectionalAxisKineticBlock
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
-import com.simibubi.create.foundation.render.CachedBufferer
-import com.simibubi.create.foundation.render.SuperByteBuffer
-import com.simibubi.create.foundation.utility.AngleHelper
+import dev.engine_room.flywheel.lib.model.baked.PartialModel
+import net.createmod.catnip.math.AngleHelper
+import net.createmod.catnip.render.CachedBuffers
+import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
@@ -37,23 +37,23 @@ class FlapBearingRenderer(context: BlockEntityRendererProvider.Context) :
         val interpolatedAngle = te.getInterpolatedAngle(partialTicks)
 
         val top: PartialModel = ClockworkPartials.BEARING_TOP_FLAP
-        val superBuffer = CachedBufferer.partial(top, te.blockState)
+        val superBuffer = CachedBuffers.partial(top, te.blockState)
 
 
 
         kineticRotationTransform(superBuffer, te, facing.axis, AngleHelper.rad(interpolatedAngle.toDouble()), light)
         if (facing.axis.isHorizontal)
             superBuffer.rotateCentered(
-                Direction.UP,
-                AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble()))
+                AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble()),
+                Direction.UP,)
         else if (!axisAlong) superBuffer.rotateCentered(
-            Direction.UP,
-            AngleHelper.rad(90.0))
+            AngleHelper.rad(90.0),
+            Direction.UP)
 
 
         superBuffer.rotateCentered(
-            Direction.EAST,
-            AngleHelper.rad((-90.0 - AngleHelper.verticalAngle(facing))))
+            AngleHelper.rad((-90.0 - AngleHelper.verticalAngle(facing))),
+            Direction.EAST)
         superBuffer.renderInto(ms, buffer.getBuffer(RenderType.solid()))
 
         renderRotatingBuffer(te, getRotatedModel(te, te.blockState), ms,
@@ -66,7 +66,7 @@ class FlapBearingRenderer(context: BlockEntityRendererProvider.Context) :
     }
 
     override fun getRotatedModel(te: FlapBearingBlockEntity, state: BlockState): SuperByteBuffer {
-        return CachedBufferer.partialFacing(
+        return CachedBuffers.partialFacing(
             AllPartialModels.SHAFT_HALF, state, state.getValue(BearingBlock.FACING).opposite
         )
     }

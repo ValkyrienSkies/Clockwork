@@ -1,7 +1,8 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.backtank
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.foundation.render.CachedBufferer
+import net.createmod.catnip.render.CachedBuffers
+import net.createmod.catnip.render.SuperByteBuffer
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback
 import net.minecraft.client.model.EntityModel
 import net.minecraft.client.model.HumanoidModel
@@ -38,7 +39,7 @@ open class GasBacktankArmorLayer<T : LivingEntity?, M : EntityModel<T>?>(rendere
         val renderType = Sheets.cutoutBlockSheet()
         val renderedState = ClockworkBlocks.GAS_BACKTANK.defaultState
             //.setValue(BacktankBlock.HORIZONTAL_FACING, Direction.SOUTH)
-        val backtank = CachedBufferer.block(renderedState)
+        val backtank = CachedBuffers.block(renderedState)
 
 
         ms.pushPose()
@@ -47,8 +48,8 @@ open class GasBacktankArmorLayer<T : LivingEntity?, M : EntityModel<T>?>(rendere
         ms.translate((-1 / 2f).toDouble(), (10 / 16f).toDouble(), 1.0)
         ms.scale(1f, -1f, -1f)
 
-        backtank.forEntityRender()
-            .light(light)
+        backtank
+            .light<SuperByteBuffer>(light)
             .renderInto(ms, buffer.getBuffer(renderType))
 
 

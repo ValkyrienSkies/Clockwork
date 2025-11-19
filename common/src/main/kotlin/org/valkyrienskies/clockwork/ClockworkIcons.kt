@@ -3,7 +3,7 @@ package org.valkyrienskies.clockwork
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.gui.AllIcons
-import com.simibubi.create.foundation.gui.element.ScreenElement
+import net.createmod.catnip.gui.element.ScreenElement
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.gui.GuiGraphics

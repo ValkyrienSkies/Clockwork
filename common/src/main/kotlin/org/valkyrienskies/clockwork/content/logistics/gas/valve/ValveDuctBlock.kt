@@ -3,7 +3,7 @@ package org.valkyrienskies.clockwork.content.logistics.gas.valve
 import com.simibubi.create.AllShapes
 import com.simibubi.create.content.kinetics.base.DirectionalAxisKineticBlock
 import com.simibubi.create.foundation.block.IBE
-import com.simibubi.create.foundation.utility.Iterate
+import net.createmod.catnip.data.Iterate
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.Direction.Axis

@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.filter
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.foundation.gui.AbstractSimiScreen
 import com.simibubi.create.foundation.gui.widget.IconButton
 import com.simibubi.create.foundation.gui.widget.ScrollInput
 import net.minecraft.client.gui.Font

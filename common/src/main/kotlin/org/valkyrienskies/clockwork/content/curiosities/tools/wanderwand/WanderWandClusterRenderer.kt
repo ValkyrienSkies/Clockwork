@@ -3,8 +3,8 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllSpecialTextures
-import com.simibubi.create.foundation.utility.Color
 import com.simibubi.create.foundation.utility.RaycastHelper
+import net.createmod.catnip.theme.Color
 import net.minecraft.client.Minecraft
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
@@ -79,11 +79,11 @@ class WanderWandClusterRenderer {
                         var foundCluster = false
                         for (cluster in clusters) {
                             val range = 10.0
-                            val tempOrigin: Vector3dc = RaycastHelper.getTraceOrigin(localPlayer).toJOML()
+                            val tempOrigin: Vector3dc = localPlayer.eyePosition.toJOML()
                             val tempTarget: Vector3dc = RaycastHelper.getTraceTarget(
                                 localPlayer,
                                 range,
-                                RaycastHelper.getTraceOrigin(localPlayer)
+                                localPlayer.eyePosition
                             ).toJOML()
                             val traceOrigin: Vector3fc =
                                 Vector3f(tempOrigin.x().toFloat(), tempOrigin.y().toFloat(), tempOrigin.z().toFloat())

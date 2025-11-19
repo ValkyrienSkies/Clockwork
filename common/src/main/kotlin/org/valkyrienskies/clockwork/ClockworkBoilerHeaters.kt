@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork
 
+import com.simibubi.create.api.boiler.BoilerHeater
 import com.simibubi.create.content.fluids.tank.BoilerHeaters
-import com.simibubi.create.content.fluids.tank.BoilerHeaters.Heater
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock.HeatLevel
 import net.minecraft.core.BlockPos
@@ -14,8 +14,8 @@ object ClockworkBoilerHeaters {
 
 
 
-    fun registerHeater(block: Block, heater: Heater) {
-        BoilerHeaters.registerHeater(block, heater)
+    fun registerHeater(block: Block, heater: BoilerHeater) {
+        BoilerHeater.REGISTRY.register(block, heater)
     }
 
     fun init() {

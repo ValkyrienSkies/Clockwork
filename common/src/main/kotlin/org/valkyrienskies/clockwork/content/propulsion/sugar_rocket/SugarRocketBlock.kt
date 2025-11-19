@@ -2,7 +2,7 @@ package org.valkyrienskies.clockwork.content.propulsion.sugar_rocket
 
 import com.simibubi.create.content.equipment.wrench.IWrenchable
 import com.simibubi.create.foundation.block.IBE
-import com.simibubi.create.foundation.utility.UniqueLinkedList
+import net.createmod.catnip.data.UniqueLinkedList
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerLevel

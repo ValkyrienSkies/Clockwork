@@ -3,11 +3,12 @@ package org.valkyrienskies.clockwork.util.builder;
 import com.simibubi.create.CreateClient;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer;
 import com.simibubi.create.foundation.item.render.CustomRenderedItems;
-import com.simibubi.create.foundation.utility.RegisteredObjects;
 import com.tterrag.registrate.builders.ItemBuilder;
 import com.tterrag.registrate.util.nullness.NonNullConsumer;
 import com.tterrag.registrate.util.nullness.NonNullFunction;
 import com.tterrag.registrate.util.nullness.NonNullUnaryOperator;
+import net.createmod.catnip.platform.CatnipServices;
+import net.createmod.catnip.platform.services.RegisteredObjectsHelper;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.resources.model.BakedModel;
@@ -47,7 +48,7 @@ public class ClockworkRegistrate {
     private static void registerBlockModel(Block entry,
                                            Supplier<NonNullFunction<BakedModel, ? extends BakedModel>> func) {
         CreateClient.MODEL_SWAPPER.getCustomBlockModels()
-                .register(RegisteredObjects.getKeyOrThrow(entry), func.get());
+                .register(CatnipServices.REGISTRIES.getKeyOrThrow(entry), func.get());
     }
 
     protected static void onClient(Supplier<Runnable> toRun) {
@@ -69,13 +70,13 @@ public class ClockworkRegistrate {
     private static void registerItemModel(Item entry,
                                           Supplier<NonNullFunction<BakedModel, ? extends BakedModel>> func) {
         CreateClient.MODEL_SWAPPER.getCustomItemModels()
-                .register(RegisteredObjects.getKeyOrThrow(entry), func.get());
+                .register(CatnipServices.REGISTRIES.getKeyOrThrow(entry), func.get());
     }
 
     @Environment(EnvType.CLIENT)
     private static void registerCustomRenderedBlockItem(BlockItem entry, Supplier<NonNullFunction<BakedModel, ? extends BakedModel>> func) {
         CreateClient.MODEL_SWAPPER.getCustomItemModels()
-                .register(RegisteredObjects.getKeyOrThrow(entry), func.get());
+                .register(CatnipServices.REGISTRIES.getKeyOrThrow(entry), func.get());
     }
 
     @Environment(EnvType.CLIENT)

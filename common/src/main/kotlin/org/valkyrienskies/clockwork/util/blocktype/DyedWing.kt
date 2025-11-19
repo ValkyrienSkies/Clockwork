@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.util.blocktype
 
 import com.simibubi.create.foundation.block.IBE
-import com.simibubi.create.foundation.utility.Color
+import net.createmod.catnip.theme.Color
 import net.minecraft.core.BlockPos
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult

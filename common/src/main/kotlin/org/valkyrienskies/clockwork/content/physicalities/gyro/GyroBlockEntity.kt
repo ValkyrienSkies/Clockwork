@@ -1,8 +1,7 @@
 package org.valkyrienskies.clockwork.content.physicalities.gyro
 
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
-import com.simibubi.create.foundation.utility.Iterate
-import com.simibubi.create.foundation.utility.animation.LerpedFloat
+import net.createmod.catnip.animation.LerpedFloat
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag

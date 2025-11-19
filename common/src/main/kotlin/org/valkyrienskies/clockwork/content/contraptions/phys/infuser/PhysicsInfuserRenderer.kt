@@ -3,7 +3,7 @@ package org.valkyrienskies.clockwork.content.contraptions.phys.infuser
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
-import com.simibubi.create.foundation.utility.AnimationTickHolder
+import net.createmod.catnip.animation.AnimationTickHolder
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.renderer.MultiBufferSource
@@ -42,7 +42,7 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
                 val data = TransformData(Vector3f(0f, coreOffset, 0f), Vector3f(0f, interpolatedAngle, 0f))
                 val outerData = TransformData(Vector3f(0f, coreOffset, 0f), Vector3f(0f, interpolatedAngle, 0f))
 
-                RenderUtil.renderCubeMatrix(ms, buffer, blockState, innerData, data, outerData, 1.5f, light)
+                RenderUtil.renderCubeMatrix(ms, buffer, blockState, innerData, data, outerData, 1.5f, light,overlay)
             }
 
             if (infuser.animationType === PhysicsInfuserBlockEntity.Animation.IDLE) {
@@ -53,7 +53,7 @@ class PhysicsInfuserRenderer(context: BlockEntityRendererProvider.Context?) :
                 val data = TransformData(Vector3f(0f, 0f, 0f), Vector3f(0f, interpolatedAngle, 0f))
                 val outerData = TransformData(Vector3f(0f, 0f, 0f), Vector3f(0f, interpolatedAngle, 0f))
 
-                RenderUtil.renderCubeMatrix(ms, buffer, blockState, innerData, data, outerData,1.5f, light)
+                RenderUtil.renderCubeMatrix(ms, buffer, blockState, innerData, data, outerData,1.5f, light,overlay)
             }
         }
     }

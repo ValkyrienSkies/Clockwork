@@ -4,8 +4,8 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllPartialModels
 import com.simibubi.create.content.fluids.pump.PumpBlockEntity
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
-import com.simibubi.create.foundation.render.CachedBufferer
-import com.simibubi.create.foundation.render.SuperByteBuffer
+import net.createmod.catnip.render.CachedBuffers
+import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.world.level.block.state.BlockState
@@ -26,6 +26,6 @@ class PumpDuctRenderer(context: BlockEntityRendererProvider.Context) : KineticBl
     }
 
     override fun getRotatedModel(be: PumpDuctBlockEntity?, state: BlockState?): SuperByteBuffer {
-        return CachedBufferer.partialFacing(ClockworkPartials.PUMP_COG, state)
+        return CachedBuffers.partialFacing(ClockworkPartials.PUMP_COG, state)
     }
 }

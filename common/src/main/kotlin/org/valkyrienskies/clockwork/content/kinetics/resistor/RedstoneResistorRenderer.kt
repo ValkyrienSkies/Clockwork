@@ -4,11 +4,11 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllPartialModels
 import com.simibubi.create.content.kinetics.base.IRotate
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
-import com.simibubi.create.foundation.render.CachedBufferer
-import com.simibubi.create.foundation.render.SuperByteBuffer
-import com.simibubi.create.foundation.utility.AnimationTickHolder
-import com.simibubi.create.foundation.utility.Color
-import com.simibubi.create.foundation.utility.Iterate
+import net.createmod.catnip.animation.AnimationTickHolder
+import net.createmod.catnip.data.Iterate
+import net.createmod.catnip.render.CachedBuffers
+import net.createmod.catnip.render.SuperByteBuffer
+import net.createmod.catnip.theme.Color
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
@@ -41,7 +41,7 @@ class RedstoneResistorRenderer(context: BlockEntityRendererProvider.Context?) :
             angle *= modifier
             angle += offset
             angle = angle / 180f * Math.PI.toFloat()
-            val superByteBuffer = CachedBufferer.partialFacing(AllPartialModels.SHAFT_HALF, te.blockState, direction)
+            val superByteBuffer = CachedBuffers.partialFacing(AllPartialModels.SHAFT_HALF, te.blockState, direction)
             kineticRotationTransform(superByteBuffer, te, axis, angle, light)
             superByteBuffer.renderInto(ms, buffer.getBuffer(RenderType.solid()))
         }
@@ -49,9 +49,9 @@ class RedstoneResistorRenderer(context: BlockEntityRendererProvider.Context?) :
         val vb = buffer.getBuffer(RenderType.solid())
         val color = Color.mixColors(0x2C0300, 0xCD0000, resistor.state / 15f)
         val indicator =
-            transform(CachedBufferer.partial(ClockworkPartials.RESISTOR_INDICATOR, resistorState), resistorState)
-        indicator.light(light)
-            .color(color)
+            transform(CachedBuffers.partial(ClockworkPartials.RESISTOR_INDICATOR, resistorState), resistorState)
+        indicator.light<SuperByteBuffer>(light)
+            .color<SuperByteBuffer>(color)
             .renderInto(ms, vb)
     }
 
@@ -59,9 +59,9 @@ class RedstoneResistorRenderer(context: BlockEntityRendererProvider.Context?) :
         var buffer = buffer
         val axis = resistorState.getValue<Direction.Axis>(BlockStateProperties.AXIS)
         return when (axis) {
-            Direction.Axis.X -> buffer.rotateCentered(Direction.NORTH, Math.toRadians(90.0).toFloat())
+            Direction.Axis.X -> buffer.rotateCentered(Math.toRadians(90.0).toFloat(), Direction.NORTH)
             Direction.Axis.Y -> buffer
-            Direction.Axis.Z -> buffer.rotateCentered(Direction.EAST, Math.toRadians(90.0).toFloat())
+            Direction.Axis.Z -> buffer.rotateCentered(Math.toRadians(90.0).toFloat(), Direction.EAST)
         }.also {
             buffer = it
         }

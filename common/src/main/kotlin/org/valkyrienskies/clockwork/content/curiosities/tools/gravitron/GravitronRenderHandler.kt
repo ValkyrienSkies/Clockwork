@@ -2,7 +2,7 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.content.equipment.zapper.ShootableGadgetRenderHandler
-import com.simibubi.create.foundation.utility.AngleHelper
+import net.createmod.catnip.math.AngleHelper
 import net.minecraft.client.Minecraft
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.item.ItemStack

@@ -2,7 +2,7 @@ package org.valkyrienskies.clockwork.util
 
 import com.simibubi.create.content.contraptions.AssemblyException
 import com.simibubi.create.content.contraptions.glue.SuperGlueEntity
-import com.simibubi.create.foundation.utility.UniqueLinkedList
+import net.createmod.catnip.data.UniqueLinkedList
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.Registry

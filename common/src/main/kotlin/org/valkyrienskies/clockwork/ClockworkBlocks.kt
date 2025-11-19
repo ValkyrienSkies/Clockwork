@@ -1,16 +1,16 @@
 package org.valkyrienskies.clockwork
 
 import com.simibubi.create.AllBlocks
-import com.simibubi.create.AllMovementBehaviours.movementBehaviour
 import com.simibubi.create.AllTags
+import com.simibubi.create.api.behaviour.movement.MovementBehaviour.movementBehaviour
 import com.simibubi.create.content.decoration.encasing.CasingBlock
 import com.simibubi.create.content.fluids.PipeAttachmentModel
-import com.simibubi.create.content.kinetics.BlockStressDefaults
 import com.simibubi.create.content.kinetics.simpleRelays.encased.EncasedShaftBlock
 import com.simibubi.create.foundation.data.*
 import com.simibubi.create.foundation.data.CreateRegistrate.connectedTextures
 import com.simibubi.create.foundation.data.ModelGen.customItemModel
 import com.simibubi.create.foundation.data.TagGen.axeOrPickaxe
+import com.simibubi.create.infrastructure.config.CStress
 import com.tterrag.registrate.builders.BlockBuilder
 import com.tterrag.registrate.providers.DataGenContext
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider
@@ -169,7 +169,7 @@ object ClockworkBlocks {
         }
             .transform(axeOrPickaxe())
             //.transform(flapbearing())
-            .transform(BlockStressDefaults.setImpact(4.0))
+            .transform(CStress.setImpact(4.0))
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
@@ -184,7 +184,7 @@ object ClockworkBlocks {
         }
             .transform(axeOrPickaxe())
             //.transform(flapbearing())
-            .transform(BlockStressDefaults.setImpact(4.0))
+            .transform(CStress.setImpact(4.0))
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
@@ -311,7 +311,7 @@ object ClockworkBlocks {
                 it.noOcclusion()
             }
             .transform<Block, RedstoneResistorBlock, CreateRegistrate, BlockBuilder<RedstoneResistorBlock, CreateRegistrate>>(
-                BlockStressDefaults.setNoImpact()
+                CStress.setNoImpact()
             )
             .transform<Block, RedstoneResistorBlock, CreateRegistrate, BlockBuilder<RedstoneResistorBlock, CreateRegistrate>>(
                 axeOrPickaxe()
@@ -424,7 +424,8 @@ object ClockworkBlocks {
         .onRegister(CreateRegistrate.blockModel {
             NonNullFunction<BakedModel?, BakedModel> { template: BakedModel? ->
                 PipeAttachmentModel(
-                    template
+                    template,
+                    false
                 )
             }
         })
@@ -494,7 +495,7 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .addLayer { Supplier { RenderType.cutout() } }
-        .transform(BlockStressDefaults.setImpact(4.0))
+        .transform(CStress.setImpact(4.0))
         .properties { it.noOcclusion() }
         .item()
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
@@ -516,7 +517,7 @@ object ClockworkBlocks {
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .model(AssetLookup.customBlockItemModel("pump", "item"))
         .transform(customItemModel())
-        .transform(BlockStressDefaults.setImpact(4.0))
+        .transform(CStress.setImpact(4.0))
         .register()
 
     @JvmField

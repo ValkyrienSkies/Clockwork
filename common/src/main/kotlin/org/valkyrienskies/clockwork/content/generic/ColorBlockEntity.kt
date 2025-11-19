@@ -1,8 +1,8 @@
 package org.valkyrienskies.clockwork.content.generic
 
-import com.simibubi.create.content.schematics.SchematicWorld
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
+import net.createmod.catnip.levelWrappers.SchematicLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.level.block.entity.BlockEntityType
@@ -40,7 +40,7 @@ class ColorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockSt
 
     override fun setChanged() {
         super.setChanged()
-        if (getLevel() != null && !getLevel()!!.isClientSide() && getLevel() !is SchematicWorld) {
+        if (getLevel() != null && !getLevel()!!.isClientSide() && getLevel() !is SchematicLevel) {
             ClockworkPackets.sendToNear(getLevel(), blockPos, 64, BlockEntityColorPacket(this))
         }
     }

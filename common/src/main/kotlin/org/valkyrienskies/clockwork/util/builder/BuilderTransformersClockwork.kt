@@ -1,8 +1,10 @@
 package org.valkyrienskies.clockwork.util.builder
 
-import com.simibubi.create.content.kinetics.BlockStressDefaults
+import com.simibubi.create.api.stress.BlockStressValues
+import com.simibubi.create.content.kinetics.base.IRotate
 import com.simibubi.create.content.kinetics.base.RotatedPillarKineticBlock
 import com.simibubi.create.foundation.data.SharedProperties
+import com.simibubi.create.infrastructure.config.CStress
 import com.tterrag.registrate.builders.BlockBuilder
 import com.tterrag.registrate.providers.DataGenContext
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider
@@ -24,7 +26,7 @@ object BuilderTransformersClockwork {
     ): BlockBuilder<B, P> {
         return b.initialProperties { SharedProperties.stone() }
             .properties(BlockBehaviour.Properties::noOcclusion)
-            .transform(BlockStressDefaults.setNoImpact())
+            .transform(CStress.setNoImpact())
             .loot { p, lb -> p.dropOther(lb, drop.get()) }
     }
 

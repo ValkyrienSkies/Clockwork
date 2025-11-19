@@ -126,7 +126,7 @@ open class GravitronHandler {
         if (!active) {
             return
         }
-        if (key != AllKeys.TOOL_MENU.boundCode) {
+        if (!AllKeys.TOOL_MENU.doesModifierAndCodeMatch(key)) {
             return
         }
 

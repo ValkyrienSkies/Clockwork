@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.forge.content.events;
 
-import com.simibubi.create.foundation.ModFilePackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;

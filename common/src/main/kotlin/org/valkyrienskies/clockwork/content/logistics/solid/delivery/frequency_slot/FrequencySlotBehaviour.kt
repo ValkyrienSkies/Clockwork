@@ -73,7 +73,7 @@ class FrequencySlotBehaviour(be: SmartBlockEntity?, val slot: ValueBoxTransform)
     fun testHit( hit: Vec3): Boolean {
         val state = blockEntity.blockState
         val localHit = subtract(hit,Vec3.atLowerCornerOf(blockEntity.blockPos))
-        return slot.testHit(state, localHit)
+        return slot.testHit(blockEntity.level, blockEntity.blockPos, state, localHit)
     }
 
     private fun subtract(instance: Vec3, vec: Vec3): Vec3 {

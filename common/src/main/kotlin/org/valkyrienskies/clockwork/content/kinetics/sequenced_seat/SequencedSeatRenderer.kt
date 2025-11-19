@@ -3,9 +3,9 @@ package org.valkyrienskies.clockwork.content.kinetics.sequenced_seat
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllPartialModels
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
-import com.simibubi.create.foundation.render.CachedBufferer
-import com.simibubi.create.foundation.render.SuperByteBuffer
-import com.simibubi.create.foundation.utility.AnimationTickHolder
+import net.createmod.catnip.animation.AnimationTickHolder
+import net.createmod.catnip.render.CachedBuffers
+import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
@@ -33,10 +33,10 @@ class SequencedSeatRenderer(context: BlockEntityRendererProvider.Context) :
         renderRotatingBuffer(te, getRotatedModel(te, te.blockState), ms,
             buffer.getBuffer(RenderType.solid()), light)
 
-        val time = AnimationTickHolder.getRenderTime(te.level)
+        val time = AnimationTickHolder.getRenderTime(te.level!!)
         for (hDir in Direction.Plane.HORIZONTAL) {
 
-            val shaft = CachedBufferer.partialFacing(AllPartialModels.SHAFT_HALF, te.blockState, hDir)
+            val shaft = CachedBuffers.partialFacing(AllPartialModels.SHAFT_HALF, te.blockState, hDir)
             /*
             val speedMod = te.getRotationSpeedModifier(hDir)
             var angle = 0.0f
@@ -54,7 +54,7 @@ class SequencedSeatRenderer(context: BlockEntityRendererProvider.Context) :
     }
 
     override fun getRotatedModel(te: SequencedSeatBlockEntity, state: BlockState): SuperByteBuffer {
-        return CachedBufferer.partialFacing(
+        return CachedBuffers.partialFacing(
             AllPartialModels.SHAFT_HALF, state, Direction.DOWN
         )
     }

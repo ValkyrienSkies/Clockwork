@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.util.render
 
-import com.simibubi.create.foundation.utility.Color
+import net.createmod.catnip.theme.Color
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.Vector4ic

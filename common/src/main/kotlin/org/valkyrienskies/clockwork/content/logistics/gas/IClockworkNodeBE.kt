@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.gas
 
-import com.simibubi.create.content.equipment.goggles.IHaveGoggleInformation
+import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation
 import dev.architectury.platform.Platform
 import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft

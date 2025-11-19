@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute
 
-import com.jozufozu.flywheel.util.transform.TransformStack
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllBlocks
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
@@ -8,10 +7,11 @@ import com.simibubi.create.content.logistics.depot.EjectorBlock
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.item.ItemHelper
-import com.simibubi.create.foundation.utility.AngleHelper
-import com.simibubi.create.foundation.utility.VecHelper
+import dev.engine_room.flywheel.lib.transform.TransformStack
 import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil
 import io.github.fabricators_of_create.porting_lib.util.StorageProvider
+import net.createmod.catnip.math.AngleHelper
+import net.createmod.catnip.math.VecHelper
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage
 import net.minecraft.core.BlockPos
@@ -21,6 +21,7 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.Level
+import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
@@ -228,22 +229,22 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
    }
 
     public class FrequencySlot : ValueBoxTransform.Sided() {
-        override fun getLocalOffset(state: BlockState): Vec3 {
-            return if (direction != Direction.UP) super.getLocalOffset(state) else Vec3(.5, 10.5 / 16f, .5).add(
+        override fun getLocalOffset(level: LevelAccessor, pos: BlockPos, state: BlockState): Vec3 {
+            return if (direction != Direction.UP) super.getLocalOffset(level, pos, state) else Vec3(.5, 10.5 / 16f, .5).add(
                 VecHelper.rotate(
                     VecHelper.voxelSpace(0.0, 0.0, -5.0), angle(state).toDouble(), Direction.Axis.Y
                 )
             )
         }
 
-        override fun rotate(state: BlockState, ms: PoseStack) {
+        override fun rotate(level: LevelAccessor, pos: BlockPos, state: BlockState, ms: PoseStack) {
             if (direction != Direction.UP) {
-                super.rotate(state, ms)
+                super.rotate(level, pos, state, ms)
                 return
             }
-            TransformStack.cast(ms)
-                .rotateY(angle(state).toDouble())
-                .rotateX(90.0)
+            TransformStack.of(ms)
+                .rotateYDegrees(angle(state))
+                .rotateXDegrees(90.0f)
         }
 
         private fun angle(state: BlockState): Float {

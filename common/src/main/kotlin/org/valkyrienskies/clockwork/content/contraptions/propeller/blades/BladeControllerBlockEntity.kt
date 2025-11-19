@@ -1,13 +1,13 @@
 package org.valkyrienskies.clockwork.content.contraptions.propeller.blades
 
-import com.jozufozu.flywheel.util.transform.TransformStack
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
-import com.simibubi.create.foundation.utility.AngleHelper
-import com.simibubi.create.foundation.utility.VecHelper
-import com.simibubi.create.foundation.utility.animation.LerpedFloat
+import dev.engine_room.flywheel.lib.transform.TransformStack
+import net.createmod.catnip.animation.LerpedFloat
+import net.createmod.catnip.math.AngleHelper
+import net.createmod.catnip.math.VecHelper
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.NonNullList
@@ -18,6 +18,7 @@ import net.minecraft.world.ContainerHelper
 import net.minecraft.world.entity.item.ItemEntity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
@@ -312,18 +313,18 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
             return VecHelper.voxelSpace(4.0, 8.0, 18.5)
         }
 
-        override fun getLocalOffset(state: BlockState): Vec3 {
-            return super.getLocalOffset(state)
+        override fun getLocalOffset(level: LevelAccessor, pos: BlockPos, state: BlockState): Vec3 {
+            return super.getLocalOffset(level, pos, state)
                 .add(
                     Vec3.atLowerCornerOf(state.getValue(BlockStateProperties.FACING).normal)
                         .scale((-2 / 16f).toDouble())
                 )
         }
 
-        override fun rotate(state: BlockState, ms: PoseStack?) {
-            if (!side.axis.isHorizontal) TransformStack.cast(ms)
-                .rotateY((AngleHelper.horizontalAngle(state.getValue(BlockStateProperties.FACING)) + 180).toDouble())
-            super.rotate(state, ms)
+        override fun rotate(level: LevelAccessor, pos: BlockPos, state: BlockState, ms: PoseStack) {
+            if (!side.axis.isHorizontal) TransformStack.of(ms)
+                .rotateYDegrees((AngleHelper.horizontalAngle(state.getValue(BlockStateProperties.FACING)) + 180))
+            super.rotate(level, pos, state, ms)
         }
 
         override fun isSideActive(state: BlockState, direction: Direction): Boolean {
@@ -337,18 +338,18 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
             return VecHelper.voxelSpace(12.0, 8.0, 18.5)
         }
 
-        override fun getLocalOffset(state: BlockState): Vec3 {
-            return super.getLocalOffset(state)
+        override fun getLocalOffset(level: LevelAccessor, pos: BlockPos, state: BlockState): Vec3 {
+            return super.getLocalOffset(level, pos, state)
                 .add(
                     Vec3.atLowerCornerOf(state.getValue(BlockStateProperties.FACING).normal)
                         .scale((-2 / 16f).toDouble())
                 )
         }
 
-        override fun rotate(state: BlockState, ms: PoseStack?) {
-            if (!side.axis.isHorizontal) TransformStack.cast(ms)
-                .rotateY((AngleHelper.horizontalAngle(state.getValue(BlockStateProperties.FACING)) + 180).toDouble())
-            super.rotate(state, ms)
+        override fun rotate(level: LevelAccessor, pos: BlockPos, state: BlockState, ms: PoseStack) {
+            if (!side.axis.isHorizontal) TransformStack.of(ms)
+                .rotateYDegrees((AngleHelper.horizontalAngle(state.getValue(BlockStateProperties.FACING)) + 180))
+            super.rotate(level, pos, state, ms)
         }
 
         override fun isSideActive(state: BlockState, direction: Direction): Boolean {
