@@ -894,21 +894,21 @@ object ClockworkBlocks {
         .build()
         .register()
 
-    @JvmField
-    val BALLOON_ENCASED_SHAFT = REGISTRATE.block<EncasedShaftBlock>(
-        "balloon_encased_shaft"
-    ) { properties: BlockBehaviour.Properties? ->
-        EncasedShaftBlock(
-            properties!!
-        ) { BALLOON_CASING.get() }
-    }
-        .initialProperties { SharedProperties.wooden() }
-        .transform(axeOrPickaxe())
-        .transform(BuilderTransformers.encasedShaft("balloon") { ClockworkSpriteShifts.BALLOON_CASING })
-        .item()
-        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
-        .build()
-        .register()
+//    @JvmField
+//    val BALLOON_ENCASED_SHAFT = REGISTRATE.block<EncasedShaftBlock>(
+//        "balloon_encased_shaft"
+//    ) { properties: BlockBehaviour.Properties? ->
+//        EncasedShaftBlock(
+//            properties!!
+//        ) { BALLOON_CASING.get() }
+//    }
+//        .initialProperties { SharedProperties.wooden() }
+//        .transform(axeOrPickaxe())
+//        .transform(BuilderTransformers.encasedShaft("balloon") { ClockworkSpriteShifts.BALLOON_CASING })
+//        .item()
+//        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+//        .build()
+//        .register()
 
     @JvmField
     val CLOCK: BlockEntry<ClockBlock> = REGISTRATE.block<ClockBlock>(
