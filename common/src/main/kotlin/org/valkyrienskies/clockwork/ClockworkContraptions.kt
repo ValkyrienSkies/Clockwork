@@ -14,10 +14,10 @@ import net.minecraft.core.Registry
 
 object ClockworkContraptions {
     val FLAP = register(
-        ClockworkMod.asResource("flap").toString()
+        "flap"
     ) { FlapContraption() }
     val PROPELLER = register(
-        ClockworkMod.asResource("propeller").toString()
+        "propeller"
     ) { PropellerContraption() }
 
     private fun register(name: String, factory: Supplier<out Contraption>): Holder.Reference<ContraptionType> {
