@@ -27,6 +27,6 @@ object ClockworkContraptions {
         return Registry.registerForHolder(CreateBuiltInRegistries.CONTRAPTION_TYPE, ClockworkMod.asResource(name), type)
     }
 
-
+    @JvmStatic
     fun init() {}
 }

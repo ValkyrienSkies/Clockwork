@@ -32,6 +32,8 @@ public class ClockworkModFabric implements ModInitializer {
         FabricClockworkEntities.register();
         FabricClockworkFluids.register();
 
+        ClockworkContraptions.init();
+
         ClockworkSounds.register();
         FabricClockworkSounds.prepare();
 

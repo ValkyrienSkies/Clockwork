@@ -67,7 +67,6 @@ object ClockworkMod {
     @OptIn(VsBeta::class)
     @JvmStatic
     fun init() {
-        ClockworkContraptions.init()
         ClockworkPackets.init()
         ClockworkTags.init()
         ClockworkRecipes.init()

@@ -11,6 +11,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.registries.RegisterEvent;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.util.AtmosphereParametersResolver;
 
@@ -29,6 +30,8 @@ public class ClockworkModForge {
         ClockworkItems.register();
         ClockworkBlockEntities.register();
         ForgeClockworkBlockEntities.register();
+
+        modEventBus.addListener(this::onRegister);
 
         ClockworkEntities.register();
         ForgeClockworkEntities.register();
@@ -60,6 +63,10 @@ public class ClockworkModForge {
 //                () -> new ConfigGuiHandler.ConfigGuiFactory((minecraft, screen) -> VSClothConfig.createConfigScreenFor(screen, ClockworkConfig.class))
 //        );
 
+    }
+
+    private void onRegister(RegisterEvent evt) {
+        ClockworkContraptions.init();
     }
 
     private void registerResourceManagers(AddReloadListenerEvent event) {
