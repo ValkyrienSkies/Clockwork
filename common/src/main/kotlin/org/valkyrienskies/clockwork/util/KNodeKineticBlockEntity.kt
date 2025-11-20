@@ -22,24 +22,36 @@ abstract class KNodeKineticBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos
     override fun lazyTick() {
         super.lazyTick()
         if (level?.isClientSide != false) return
+        //if (this.dataToLoad != null) println(this.dataToLoad)
         if (this.dataToLoad != null && KelvinMod.getKelvinByPlatform()!!.getNodeAt(this.getDuctNodePosition()) != null) {
             loadData(this.dataToLoad!!, this.getDuctNodePosition())
+            //println("Loaded data for ${this.getDuctNodePosition()} from ${this.blockPos} at ${this.level!!.dimension()}")
+            //println(this.dataToLoad)
             this.dataToLoad = null
         } else if (this.dataToLoad != null) {
             if (this.level != null) {
                 val nodeBlock: INodeBlock? = this.level!!.getBlockState(this.blockPos).block as? INodeBlock
                 nodeBlock?.nodePlace(this.blockState, this.level!!, this.blockPos, Blocks.AIR.defaultBlockState(), false)
-                //if (nodeBlock is DuctBlock) {
-                //    level!!.setBlockAndUpdate(this.blockPos, nodeBlock.getConnectedState(this.level!!, this.blockState, this.blockPos)!!)
-                //}
-                return
+                if (this is DuctBlockEntity) {
+                    this.level!!.setBlockAndUpdate(
+                        this.blockPos,
+                        (this.blockState.block as DuctBlock).getConnectedState(this.level!!, this.blockState, this.blockPos) ?: this.blockState
+                    )
+                }
+                ClockworkMod.getKelvin().markLoaded(this.getDuctNodePosition())
+            }
+            return
+        }
+        if (this.level != null && ClockworkMod.getKelvin().getNodeAt(this.getDuctNodePosition()) != null) {
+            val pressureDiff = abs(ClockworkMod.getKelvin().getPressureAt(this.getDuctNodePosition()) - (ClockworkMod.getKelvin().nodeInfo[this.getDuctNodePosition()]?.previousPressure ?: 0.0))
+            if (pressureDiff > 0.01) {
+                this.setChanged()
+                val tag = CompoundTag()
+                this.saveData(tag, this.getDuctNodePosition())
+                ClockworkPackets.sendToNear(this.level, BlockPos.containing(level.toWorldCoordinates(this.worldPosition)), 30,
+                    KNodeSyncPacket(this.getDuctNodePosition(), tag))
             }
         }
-        val tag = CompoundTag()
-        this.saveData(tag, this.getDuctNodePosition())
-
-        ClockworkPackets.sendToNear(this.level, BlockPos.containing(level.toWorldCoordinates(this.worldPosition)), 30,
-            KNodeSyncPacket(this.getDuctNodePosition(), tag))
     }
 
     override fun setLazyTickRate(slowTickRate: Int) {
