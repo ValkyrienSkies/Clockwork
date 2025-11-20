@@ -1,9 +1,10 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.foundation.render.SuperRenderTypeBuffer
 import com.simibubi.create.foundation.utility.RaycastHelper
+import net.createmod.catnip.render.SuperRenderTypeBuffer
 import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.core.BlockPos
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
@@ -32,7 +33,7 @@ abstract class WanderwandToolBase : IWanderwandTool {
         val player = Minecraft.getInstance().player
 
         val trace = RaycastHelper.rayTraceRange(
-            player!!.level, player, 15.0
+            player!!.level(), player, 15.0
         )
         if (trace == null || trace.type != HitResult.Type.BLOCK) {
             return
@@ -59,10 +60,10 @@ abstract class WanderwandToolBase : IWanderwandTool {
         wanderwandHandler = SharedValues.wanderwandHandler
     }
 
-    override fun renderTool(ms: PoseStack?, buffer: SuperRenderTypeBuffer?, camera: Vec3?) {
+    override fun renderTool(ms: GuiGraphics?, buffer: SuperRenderTypeBuffer?, camera: Vec3?) {
     }
 
-    override fun renderOverlay(poseStack: PoseStack, partialTicks: Float, width: Int, height: Int) {
+    override fun renderOverlay(poseStack: GuiGraphics, partialTicks: Float, width: Int, height: Int) {
     }
 
     companion object {

@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron
 
 import com.mojang.blaze3d.vertex.PoseStack
+import com.mojang.math.Axis
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer
@@ -17,6 +18,7 @@ import org.joml.Quaternionf
 import org.joml.AxisAngle4d
 import org.joml.Quaterniond
 import org.joml.Vector3d
+import org.joml.Vector3f
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 
@@ -83,7 +85,7 @@ open class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
 
         //ms.translate(8.7559/16f, 4.0858/16f, 0.0)
         ms.translate(-7.7016/16f,-8.3536/16f,-1.6978/16f)
-        ms.mulPose(Vector3f.ZN.rotationDegrees(135f))
+        ms.mulPose(Axis.ZN.rotationDegrees(135f))
         ms.pushPose()
         //ms.translate(7.7016/16f, 8.3536/16f, -1.6978/16f)
         //val rotatedVector2: Vector3d = Vector3d(7.7016/16f, 8.3536/16f, 1.6978/16f).rotate(Quaterniond(AxisAngle4d(Math.toRadians(135.0) ,0.0, 0.0, -1.0)))
@@ -107,14 +109,14 @@ open class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
         ms.pushPose()
         ms.pushPose()
         ms.translate(-7.7016/16f,-8.3536/16f,-1.6978/16f)
-        ms.mulPose(Vector3f.XP.rotationDegrees(45f))
+        ms.mulPose(Axis.XP.rotationDegrees(45f))
         ms.translate(7.7016/16f,8.3536/16f,1.6978/16f)
         //ms.translate(0.0, -0.300, 0.125)
         renderer.render(ClockworkPartials.GRAV_PRONG_TOP_ONE.get(), light)
         ms.popPose()
         ms.pushPose()
         ms.translate(-7.6944, -8.4963, 0.9806)
-        ms.mulPose(Vector3f.XP.rotationDegrees(-15f))
+        ms.mulPose(Axis.XP.rotationDegrees(-15f))
         ms.translate(7.6944, 8.4963, -0.9806)
         //ms.translate(0.0, 0.125, 0.025)
         renderer.render(ClockworkPartials.GRAV_PRONG_TOP_TWO.get(), light)

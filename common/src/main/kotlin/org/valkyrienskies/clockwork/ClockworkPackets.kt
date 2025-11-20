@@ -24,9 +24,6 @@ import org.valkyrienskies.clockwork.content.logistics.gas.smart.SmartScreenOpenP
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.UpdateFrequencySlotPacket
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonSyncPacket
 import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket
-import org.valkyrienskies.clockwork.effekseer.common.network.AddParticlePacket
-import org.valkyrienskies.clockwork.effekseer.common.network.EmitterTriggerPacket
-import org.valkyrienskies.clockwork.effekseer.common.network.UpdateEmitterParameterPacket
 import org.valkyrienskies.clockwork.platform.SharedValues.packetChannel
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
 import org.valkyrienskies.clockwork.platform.api.network.CWPacket
@@ -70,12 +67,6 @@ enum class ClockworkPackets(
     PHYSICS_INFUSER(PhysicsInfuserSyncPacket::class.java, ::PhysicsInfuserSyncPacket),
 
     WAND_RENDER_UPDATE_PACKET(WanderwandRenderUpdatePacket::class.java, ::WanderwandRenderUpdatePacket),
-
-    //TEMPORARY
-    ADD_PARTICLE(AddParticlePacket::class.java, ::AddParticlePacket),
-    EMITTER_TRIGGER(EmitterTriggerPacket::class.java, ::EmitterTriggerPacket),
-    UPDATE_EMITTER_PARAMETER(UpdateEmitterParameterPacket::class.java, ::UpdateEmitterParameterPacket),
-
 
     UPDATE_DUCT_EDGE(DuctEdgeSyncPacket::class.java, ::DuctEdgeSyncPacket),
 

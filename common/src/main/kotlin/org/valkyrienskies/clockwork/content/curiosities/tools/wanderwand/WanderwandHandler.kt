@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllKeys
 import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.entity.player.Player
@@ -65,7 +66,7 @@ open class WanderwandHandler {
         active = true
     }
 
-    fun render(poseStack: PoseStack, partialTicks: Float, width: Int, height: Int) {
+    fun render(poseStack: GuiGraphics, partialTicks: Float, width: Int, height: Int) {
         if (Minecraft.getInstance().options.hideGui || !active) {
             return
         }
@@ -127,7 +128,7 @@ open class WanderwandHandler {
         if (!active) {
             return
         }
-        if (key != AllKeys.TOOL_MENU.boundCode) {
+        if (!AllKeys.TOOL_MENU.doesModifierAndCodeMatch(key)) {
             return
         }
 

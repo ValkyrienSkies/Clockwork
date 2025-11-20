@@ -1,11 +1,10 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.foundation.render.SuperRenderTypeBuffer
 import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
+import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Style
-import net.minecraft.network.chat.TextComponent
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandSelectionPacket
@@ -22,7 +21,7 @@ class DeselectTool(): SelectionToolBase() {
             if (Minecraft.getInstance().player != null) {
 
                 if (lastClickedPos == null) {
-                    val message = TextComponent("Selected Corner One: $clickedPos")
+                    val message = Component.literal("Selected Corner One: $clickedPos")
 
                     message.setStyle(Style.EMPTY.withColor(ChatFormatting.LIGHT_PURPLE).withItalic(true))
 
@@ -30,7 +29,7 @@ class DeselectTool(): SelectionToolBase() {
                     ClockworkPackets.sendToServer(WandSelectionPacket(clickedPos!!, null, ToolType.DESELECT, false))
                     return true
                 }
-                val message = TextComponent("Selection subtracted! ($lastClickedPos -> $clickedPos)")
+                val message = Component.literal("Selection subtracted! ($lastClickedPos -> $clickedPos)")
 
                 message.setStyle(Style.EMPTY.withColor(ChatFormatting.LIGHT_PURPLE).withBold(true))
 

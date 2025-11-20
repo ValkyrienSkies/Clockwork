@@ -1,7 +1,8 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.foundation.render.SuperRenderTypeBuffer
+import net.createmod.catnip.render.SuperRenderTypeBuffer
+import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.world.phys.Vec3
 
 interface IWanderwandTool {
@@ -29,10 +30,10 @@ interface IWanderwandTool {
     /**
      * Override to render extra stuff on the specific tool selected
      */
-    fun renderTool(ms: PoseStack?, buffer: SuperRenderTypeBuffer?, camera: Vec3?)
+    fun renderTool(ms: GuiGraphics?, buffer: SuperRenderTypeBuffer?, camera: Vec3?)
 
     /**
      * Override to render extra stuff at hotbar slot when specific tool selected
      */
-    fun renderOverlay(poseStack: PoseStack, partialTicks: Float, width: Int, height: Int)
+    fun renderOverlay(poseStack: GuiGraphics, partialTicks: Float, width: Int, height: Int)
 }

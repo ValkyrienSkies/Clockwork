@@ -2,10 +2,9 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand
 
 import com.jamieswhiteshirt.reachentityattributes.ReachEntityAttributes
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.math.Quaternion
 import com.simibubi.create.AllSpecialTextures
-import com.simibubi.create.foundation.render.SuperRenderTypeBuffer
 import com.simibubi.create.foundation.utility.RaycastHelper
+import net.createmod.catnip.render.SuperRenderTypeBuffer
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.Minecraft
@@ -15,8 +14,10 @@ import net.minecraft.client.renderer.texture.OverlayTexture
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.util.RandomSource
 import net.minecraft.world.level.ClipContext
 import net.minecraft.world.phys.Vec3
+import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool.ToolType
@@ -66,7 +67,7 @@ class WanderwandEffectRenderer {
 
 
             val range = (client.gameMode?.getPickRange()?.toDouble()?.plus(1)) ?: 5.0
-            val traceOrigin = RaycastHelper.getTraceOrigin(player)
+            val traceOrigin = player.eyePosition
             val traceTarget = RaycastHelper.getTraceTarget(player, range, traceOrigin)
 
             val clipContext: ClipContext = ClipContext(
@@ -81,7 +82,7 @@ class WanderwandEffectRenderer {
 
             val rawTargetPos = hit.blockPos.toJOMLD().add(0.5, 0.5, 0.5).add(hit.direction.normal.toJOMLD().mul(0.5)).toMinecraft()
             val targetPos = lastTargetPos.lerp(rawTargetPos, partialTicks.toDouble() * 2.0)
-            val targetRotation = Quaternion.ONE
+            val targetRotation = Quaternionf()
             targetRotation.mul(hit.direction.rotation)
             targetRotation.mul(selectionDir!!.rotation)
             targetRotation.normalize()
@@ -103,7 +104,7 @@ class WanderwandEffectRenderer {
                     level, blockRenderDispatcher.getBlockModel(blockState), blockState, blockPos, ms,
                     buffer.getBuffer(
                         ItemBlockRenderTypes.getMovingBlockRenderType(blockState)
-                    ), true, Random(), blockState.getSeed(blockPos), OverlayTexture.NO_OVERLAY
+                    ), true, level.random, blockState.getSeed(blockPos), OverlayTexture.NO_OVERLAY
                 )
                 ms.translate(
                     -(targetRenderPos.x - camera.x),

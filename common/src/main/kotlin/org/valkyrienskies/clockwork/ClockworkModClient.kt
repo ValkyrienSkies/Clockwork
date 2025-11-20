@@ -15,13 +15,7 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.packs.PackType
 import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandEffectRenderer
-import org.valkyrienskies.clockwork.effekseer.api.client.effekseer.ParticleEmitter
-import org.valkyrienskies.clockwork.effekseer.api.common.DynamicParameter
-import org.valkyrienskies.clockwork.effekseer.api.common.ParticleEmitterInfo
-import org.valkyrienskies.clockwork.effekseer.client.installer.JarExtractor
 import org.valkyrienskies.clockwork.platform.NativePlatform
-import org.valkyrienskies.clockwork.effekseer.client.loader.EffekAssetLoader
-import org.valkyrienskies.clockwork.effekseer.client.registry.EffectRegistry
 import java.io.IOException
 import java.util.*
 import dev.architectury.event.events.common.TickEvent

@@ -59,6 +59,7 @@ dependencies {
     //VS2
     modApi("org.valkyrienskies:valkyrienskies-120-fabric:${rootProject.vs2_version}") {
         exclude group: "com.simibubi"
+        exclude group: "me.jellysquid"
     }
     implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") {
         exclude group: 'org.joml', module: ''
@@ -84,6 +85,7 @@ dependencies {
     // Create - dependencies are added transitively
     modImplementation("com.simibubi.create:create-fabric-${minecraft_version}:${create_fabric_version}") {
         exclude group: 'com.github.AlphaMode', module: 'fakeconfigtoml'
+        exclude group: "me.jellysquid"
     }
 
 

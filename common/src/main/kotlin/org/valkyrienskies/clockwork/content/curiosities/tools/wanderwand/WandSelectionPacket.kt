@@ -33,8 +33,8 @@ class WandSelectionPacket : C2SCWPacket {
     override fun handle(context: ServerNetworkContext) {
         context.enqueueWork {
             val serverPlayer = context.sender
-            if (serverPlayer.level is ServerLevel) {
-                val serverLevel = serverPlayer.getLevel() as ServerLevel
+            if (serverPlayer.level() is ServerLevel) {
+                val serverLevel = serverPlayer.level() as ServerLevel
                 val stack = serverPlayer.mainHandItem
                 val bl = stack.`is`(ClockworkItems.WANDERWAND.get().asItem())
                 if (bl) {
