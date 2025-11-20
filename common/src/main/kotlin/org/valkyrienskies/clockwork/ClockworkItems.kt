@@ -7,6 +7,7 @@ import com.simibubi.create.foundation.data.AssetLookup
 import com.tterrag.registrate.util.entry.ItemEntry
 import dev.architectury.core.item.ArchitecturyRecordItem
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings
+import net.minecraft.tags.ItemTags
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.Rarity
 import net.minecraft.world.item.RecordItem
@@ -39,6 +40,7 @@ object ClockworkItems {
         }
             .properties { it.rarity(Rarity.EPIC) }
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .tag(ItemTags.MUSIC_DISCS)
             .register()
 
     @JvmField

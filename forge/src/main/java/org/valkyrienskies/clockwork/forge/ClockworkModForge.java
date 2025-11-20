@@ -25,7 +25,7 @@ public class ClockworkModForge {
 
         EventBuses.registerModEventBus(MOD_ID, modEventBus);
         ClockworkMod.INSTANCE.getREGISTRATE().registerEventListeners(modEventBus);
-
+        ClockworkSounds.register();
         ClockworkBlocks.register();
         ClockworkItems.register();
         ClockworkBlockEntities.register();
@@ -40,7 +40,7 @@ public class ClockworkModForge {
 
         //AllClockworkConfigs.register(modLoadingContext);
 
-        ClockworkSounds.register();
+
         ClockworkPackets.init();
 
         ClockworkShaders.INSTANCE.init();

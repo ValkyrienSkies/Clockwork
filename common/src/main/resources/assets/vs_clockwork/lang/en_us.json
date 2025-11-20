@@ -57,7 +57,9 @@
   "item.vs_clockwork.slicker": "Slicker",
 
   "item.vs_clockwork.music_disc_wanderlust": "Repaired Music Disc",
-  "item.minecraft.music_disc_wanderlust.desc": "Tomato - wanderlust",
+  "item.vs_clockwork.music_disc_wanderlust.desc": "Tomato - wanderlust",
+  "item.vs_clockwork.music_disc_wanderlust.lore1": "You've restored this disc using a material not from this plane.",
+  "item.vs_clockwork.music_disc_wanderlust.lore2": "It holds together once more, but something about it feels... different.",
 
   "block.vs_clockwork.distance_sensor": "Peepotron",
   "item.vs_clockwork.distance_sensor": "Peepotron",

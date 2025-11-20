@@ -22,6 +22,7 @@ public class ClockworkModFabric implements ModInitializer {
         new ValkyrienSkiesModFabric().onInitialize();
 
         ClockworkTags.INSTANCE.init();
+        ClockworkSounds.register();
         ClockworkBlocks.register();
         ClockworkItems.register();
 
@@ -34,7 +35,7 @@ public class ClockworkModFabric implements ModInitializer {
 
         ClockworkContraptions.init();
 
-        ClockworkSounds.register();
+
         FabricClockworkSounds.prepare();
 
         ClockworkMod.INSTANCE.getREGISTRATE().register();
