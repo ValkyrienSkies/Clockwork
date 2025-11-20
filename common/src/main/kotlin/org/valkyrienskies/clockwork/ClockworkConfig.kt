@@ -88,6 +88,9 @@ object ClockworkConfig {
         @JsonSchema(min = 0.0)
         var sugarRocketBlockThrust = 10000.0
 
+        @JsonSchema(descripition = "The lazytick rate for Kelvin node block entity updates")
+        var kelvinNodeBlockEntityLazyTickRate = 10
+
         @JsonSchema(description = "The amount of air (in kg) that the air compressor produces per tick at sea level and 1 rpm")
         var airCompressorSpeed = 0.1
 

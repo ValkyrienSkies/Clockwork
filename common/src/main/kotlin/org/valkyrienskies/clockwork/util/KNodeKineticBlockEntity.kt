@@ -7,13 +7,18 @@ import net.minecraft.network.chat.Component
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.logistics.gas.IClockworkNodeBE
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.util.INodeBlock
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.toWorldCoordinates
+import kotlin.math.abs
 
 abstract class KNodeKineticBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KineticBlockEntity(typeIn, pos, state), IClockworkNodeBE {
 
@@ -32,12 +37,6 @@ abstract class KNodeKineticBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos
             if (this.level != null) {
                 val nodeBlock: INodeBlock? = this.level!!.getBlockState(this.blockPos).block as? INodeBlock
                 nodeBlock?.nodePlace(this.blockState, this.level!!, this.blockPos, Blocks.AIR.defaultBlockState(), false)
-                if (this is DuctBlockEntity) {
-                    this.level!!.setBlockAndUpdate(
-                        this.blockPos,
-                        (this.blockState.block as DuctBlock).getConnectedState(this.level!!, this.blockState, this.blockPos) ?: this.blockState
-                    )
-                }
                 ClockworkMod.getKelvin().markLoaded(this.getDuctNodePosition())
             }
             return
@@ -55,7 +54,7 @@ abstract class KNodeKineticBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos
     }
 
     override fun setLazyTickRate(slowTickRate: Int) {
-        super.setLazyTickRate(10)
+        super.setLazyTickRate(ClockworkConfig.SERVER.kelvinNodeBlockEntityLazyTickRate)
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
