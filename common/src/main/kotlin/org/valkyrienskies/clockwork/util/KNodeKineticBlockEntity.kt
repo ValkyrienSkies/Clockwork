@@ -27,20 +27,19 @@ abstract class KNodeKineticBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos
     override fun lazyTick() {
         super.lazyTick()
         if (level?.isClientSide != false) return
-        //if (this.dataToLoad != null) println(this.dataToLoad)
+        if (this.dataToLoad != null) println(this.dataToLoad)
         if (this.dataToLoad != null && KelvinMod.getKelvinByPlatform()!!.getNodeAt(this.getDuctNodePosition()) != null) {
             loadData(this.dataToLoad!!, this.getDuctNodePosition())
             //println("Loaded data for ${this.getDuctNodePosition()} from ${this.blockPos} at ${this.level!!.dimension()}")
             //println(this.dataToLoad)
             this.dataToLoad = null
         } else if (this.dataToLoad != null) {
-            if (this.level != null) {
-                val nodeBlock: INodeBlock? = this.level!!.getBlockState(this.blockPos).block as? INodeBlock
-                nodeBlock?.nodePlace(this.blockState, this.level!!, this.blockPos, Blocks.AIR.defaultBlockState(), false)
-                ClockworkMod.getKelvin().markLoaded(this.getDuctNodePosition())
-            }
+            val nodeBlock: INodeBlock? = this.level!!.getBlockState(this.blockPos).block as? INodeBlock
+            nodeBlock?.nodePlace(this.blockState, this.level!!, this.blockPos, Blocks.AIR.defaultBlockState(), false)
+            ClockworkMod.getKelvin().markLoaded(this.getDuctNodePosition())
             return
         }
+
         if (this.level != null && ClockworkMod.getKelvin().getNodeAt(this.getDuctNodePosition()) != null) {
             val pressureDiff = abs(ClockworkMod.getKelvin().getPressureAt(this.getDuctNodePosition()) - (ClockworkMod.getKelvin().nodeInfo[this.getDuctNodePosition()]?.previousPressure ?: 0.0))
             if (pressureDiff > 0.01) {
@@ -58,7 +57,7 @@ abstract class KNodeKineticBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
-        if (ensureNodeExists()) {
+        if (ensureNodeExists() && !clientPacket) {
             saveData(tag, this.getDuctNodePosition(), clientPacket)
         }
         super.write(tag, clientPacket)
@@ -66,19 +65,12 @@ abstract class KNodeKineticBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         super.read(tag, clientPacket)
-        if (ensureNodeExists()) {
+        if (ensureNodeExists() && !clientPacket) {
+            //if (!clientPacket) println("node exists, loading")
             loadData(tag, this.getDuctNodePosition(), clientPacket)
         } else {
             if (!clientPacket) dataToLoad = tag
         }
-    }
-
-    override fun addToGoggleTooltip(
-        tooltip: List<Component>?,
-        isPlayerSneaking: Boolean
-    ): Boolean {
-        this.heatableGoggleTooltip(tooltip as MutableList? ?: mutableListOf(), isPlayerSneaking)
-        return super<KineticBlockEntity>.addToGoggleTooltip(tooltip, isPlayerSneaking)
     }
 
     override fun getDuctNodePosition(): DuctNodePos {
@@ -87,4 +79,14 @@ abstract class KNodeKineticBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos
         }
         return blockPos.toDuctNodePos()
     }
+
+    override fun addToGoggleTooltip(
+        tooltip: List<Component>?,
+        isPlayerSneaking: Boolean
+    ): Boolean {
+        this.heatableGoggleTooltip(tooltip as MutableList? ?: mutableListOf(), isPlayerSneaking)
+        super<KineticBlockEntity>.addToGoggleTooltip(tooltip, isPlayerSneaking)
+        return true
+    }
+
 }

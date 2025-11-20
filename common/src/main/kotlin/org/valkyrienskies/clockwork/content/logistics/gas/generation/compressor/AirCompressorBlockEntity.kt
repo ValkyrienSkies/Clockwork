@@ -57,8 +57,6 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
 
         val pressure = kelvin.getPressureAt(getDuctNodePosition())
         val speed = abs(getSpeed())
-        val currentAirVolume = kelvin.getGasMassAt(blockPos.toDuctNodePos(level!!.dimension().location()))[airGas]?: 0.0
-
 
         if (speed>0 && pressure< ClockworkConfig.SERVER.airCompressorMaxPressure) {
             if (!isActivated) {
@@ -70,8 +68,6 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
             val heliumShare = max(0.0, (ClockworkConfig.SERVER.airCompressorHeliumAirDensity - getAirDensity())) / ClockworkConfig.SERVER.airCompressorHeliumAirDensity
             val deltaVolume = ClockworkConfig.SERVER.airCompressorSpeed*speed
 
-
-
             kelvin.modGasMassOfTemperature(getDuctNodePosition(),airGas, (1-heliumShare)*deltaVolume, getAirTemperature())
             kelvin.modGasMassOfTemperature(getDuctNodePosition(),heliumGas, heliumShare*deltaVolume, getAirTemperature())
         } else if (isActivated) {
@@ -80,6 +76,9 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
         }
     }
 
+    override fun remove() {
+        super.remove()
+    }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         isActivated = tag.getBoolean("isActivated")
@@ -91,10 +90,4 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
         super.write(tag, clientPacket)
     }
 
-    override fun getDuctNodePosition(): DuctNodePos {
-        if (level != null) {
-            return blockPos.toDuctNodePos(level!!.dimension().location())
-        }
-        return blockPos.toDuctNodePos()
-    }
 }
