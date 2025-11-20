@@ -120,6 +120,17 @@ allprojects {
     version = rootProject.version
     group = rootProject.maven_group
 
+    // Copied from VS oddities. Forces arch to use the right version (which it doesn't for some reason on some machines)
+    configurations.configureEach {
+        resolutionStrategy.force "org.lwjgl:lwjgl-stb:3.3.1"
+        resolutionStrategy.force "org.lwjgl:lwjgl-opengl:3.3.1"
+        resolutionStrategy.force "org.lwjgl:lwjgl-openal:3.3.1"
+        resolutionStrategy.force "org.lwjgl:lwjgl-tinyfd:3.3.1"
+        resolutionStrategy.force "org.lwjgl:lwjgl-jemalloc:3.3.1"
+        resolutionStrategy.force "org.lwjgl:lwjgl-glfw:3.3.1"
+        resolutionStrategy.force "org.lwjgl:lwjgl:3.3.1"
+    }
+
     repositories {
         mavenLocal()
         maven {

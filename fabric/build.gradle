@@ -87,8 +87,8 @@ dependencies {
     }
 
 
-    modImplementation("maven.modrinth:sodium:${sodium_version}")
-    modRuntimeOnly("maven.modrinth:indium:${indium_version}")
+    //modRuntimeOnly("maven.modrinth:sodium:${sodium_version}")
+    //modRuntimeOnly("maven.modrinth:indium:${indium_version}")
 
     modImplementation("com.terraformersmc:modmenu:${modmenu_version}")
 
