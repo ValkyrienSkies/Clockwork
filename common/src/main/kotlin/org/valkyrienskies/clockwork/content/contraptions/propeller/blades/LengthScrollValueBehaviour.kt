@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.*
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour
-import com.simibubi.create.foundation.utility.Components
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Player
@@ -29,7 +28,7 @@ class LengthScrollValueBehaviour(label: Component, be: SmartBlockEntity, slot: V
 
     override fun createBoard(player: Player?, hitResult: BlockHitResult?): ValueSettingsBoard {
         return ValueSettingsBoard(
-            label, max, 1, ImmutableList.of<Component>(Components.literal("Length")),
+            label, max, 1, ImmutableList.of<Component>(Component.literal("Length")),
             ValueSettingsFormatter { obj: ValueSettingsBehaviour.ValueSettings -> obj.format() });
     }
 

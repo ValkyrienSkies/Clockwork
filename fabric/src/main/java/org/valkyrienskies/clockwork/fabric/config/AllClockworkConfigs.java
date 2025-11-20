@@ -1,10 +1,7 @@
 package org.valkyrienskies.clockwork.fabric.config;
 
-
-import com.simibubi.create.content.kinetics.BlockStressValues;
-import com.simibubi.create.foundation.config.ConfigBase;
-import net.minecraftforge.api.ModLoadingContext;
-import net.minecraftforge.api.fml.event.config.ModConfigEvent;
+import fuzs.forgeconfigapiport.impl.ForgeConfigAPIPort;
+import net.createmod.catnip.config.ConfigBase;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.config.ModConfig;
 import org.apache.commons.lang3.tuple.Pair;
@@ -43,13 +40,13 @@ public class AllClockworkConfigs {
         COMMON = init(CWCommon::new, ModConfig.Type.COMMON);
         SERVER = init(CWServer::new, ModConfig.Type.SERVER);
 
-        for (Map.Entry<ModConfig.Type, ConfigBase> pair : CONFIGS.entrySet())
-            ModLoadingContext.registerConfig(ClockworkMod.MOD_ID, pair.getKey(), pair.getValue().specification);
-
-        BlockStressValues.registerProvider(ClockworkMod.MOD_ID, SERVER.kinetics.stressValues);
-
-        ModConfigEvent.LOADING.register(AllClockworkConfigs::onLoad);
-        ModConfigEvent.RELOADING.register(AllClockworkConfigs::onReload);
+//        for (Map.Entry<ModConfig.Type, ConfigBase> pair : CONFIGS.entrySet())
+//            ForgeConfigAPIPort.LOGGER.registerConfig(ClockworkMod.MOD_ID, pair.getKey(), pair.getValue().specification);
+//
+//        BlockStressValues.registerProvider(ClockworkMod.MOD_ID, SERVER.kinetics.stressValues);
+//
+//        ModConfigEvent.LOADING.register(AllClockworkConfigs::onLoad);
+//        ModConfigEvent.RELOADING.register(AllClockworkConfigs::onReload);
     }
 
     public static void onLoad(ModConfig modConfig) {

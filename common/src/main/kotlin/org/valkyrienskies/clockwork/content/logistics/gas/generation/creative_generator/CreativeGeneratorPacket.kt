@@ -7,7 +7,7 @@ import net.minecraft.resources.ResourceLocation
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
 import org.valkyrienskies.clockwork.platform.api.network.ServerNetworkContext
 import org.valkyrienskies.kelvin.api.GasType
-import org.valkyrienskies.kelvin.impl.GasTypeRegistry
+import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import java.util.*
 import kotlin.collections.HashMap
 
@@ -31,7 +31,7 @@ class CreativeGeneratorPacket(var gasValues: HashMap<GasType, Int>, var temperat
 
     override fun handle(context: ServerNetworkContext) {
         context.enqueueWork {
-            val be = context.sender.level.getBlockEntity(blockPos) ?: return@enqueueWork
+            val be = context.sender.level().getBlockEntity(blockPos) ?: return@enqueueWork
             val cBe = be as CreativeGeneratorBlockEntity
             cBe.gasValues = gasValues
             cBe.temperature = temperature

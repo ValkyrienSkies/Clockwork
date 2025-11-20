@@ -1,23 +1,24 @@
 package org.valkyrienskies.clockwork.content.contraptions.propeller.blades
 
-import com.jozufozu.flywheel.util.transform.TransformStack
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
-import com.simibubi.create.foundation.utility.AngleHelper
-import com.simibubi.create.foundation.utility.VecHelper
-import com.simibubi.create.foundation.utility.animation.LerpedFloat
+import dev.engine_room.flywheel.lib.transform.TransformStack
+import net.createmod.catnip.animation.LerpedFloat
+import net.createmod.catnip.math.AngleHelper
+import net.createmod.catnip.math.VecHelper
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.NonNullList
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.network.chat.TranslatableComponent
+import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.ContainerHelper
 import net.minecraft.world.entity.item.ItemEntity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
@@ -36,13 +37,9 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
     var blades: NonNullList<ItemStack> = NonNullList.withSize(8, ItemStack.EMPTY)
 
     var bladeAngle: Double = 0.0
-    var bladeLength: Int = 1
 
     var clientBladeAngle = LerpedFloat.angular()
         .chase(bladeAngle, 0.5, LerpedFloat.Chaser.EXP)
-    var clientBladeLength = LerpedFloat.linear()
-        .chase(bladeLength.toDouble(), 0.5, LerpedFloat.Chaser.EXP)
-
     var bladeCooldown = 0
 
     lateinit var angleController: AngleScrollValueBehaviour
@@ -53,14 +50,16 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
 
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
-        this.angleController = AngleScrollValueBehaviour(TranslatableComponent("vs_clockwork.blade_controller.angle"), this, AngleControllerValueBoxTransform())
-        this.lengthController = LengthScrollValueBehaviour(TranslatableComponent("vs_clockwork.blade_controller.length"), this, LengthControllerValueBoxTransform())
+        this.angleController = AngleScrollValueBehaviour(Component.translatable("vs_clockwork.blade_controller.angle"), this, AngleControllerValueBoxTransform())
+        this.angleController.between(-180,180) // Should do this in controller class, but due to certain questionable create coding decisions, we're doing it here
+        //TODO: Figure out how to make lengthController work
+        //this.lengthController = LengthScrollValueBehaviour(TranslatableComponent("vs_clockwork.blade_controller.length"), this, LengthControllerValueBoxTransform())
 
         this.angleController.withCallback{i -> this.updateBladeAngle(i.toDouble())};
-        this.lengthController.withCallback{i -> this.updateBladeLength(i)};
 
 
-        behaviours.add(this.lengthController)
+
+        //behaviours.add(this.lengthController)
         behaviours.add(this.angleController)
     }
 
@@ -73,14 +72,6 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
         }
     }
 
-    fun updateBladeLength(length: Int) {
-        if (level == null || level!!.isClientSide) {
-            return
-        } else {
-            this.bladeLength = length
-            notifyUpdate()
-        }
-    }
 
     fun getAllBlades(): List<ItemStack> {
         val list = ArrayList<ItemStack>()
@@ -111,7 +102,6 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
             }
 
             clientBladeAngle.tickChaser()
-            clientBladeLength.tickChaser()
             for (i in blades.indices) {
                 clientBladeRotation[i]?.tickChaser()
             }
@@ -170,18 +160,13 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
         ContainerHelper.loadAllItems(bladesTag, this.blades)
         this.bladeCooldown = tag.getInt("BladeCooldown")
         this.bladeAngle = tag.getDouble("BladeAngle")
-        this.bladeLength = tag.getInt("BladeLength")
 
         if (tag.contains("ScrollValue")) {
             bladeAngle = tag.getDouble("ScrollValue")
         }
-        if (tag.contains("ScrollValueLength")) {
-            bladeLength = tag.getInt("ScrollValueLength")
-        }
 
         if (clientPacket || this.level?.isClientSide == true) {
             this.clientBladeAngle.updateChaseTarget(this.bladeAngle.toFloat())
-            this.clientBladeLength.updateChaseTarget(this.bladeLength.toFloat())
         }
     }
 
@@ -192,7 +177,6 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
         tag.putInt("BladeCount", this.getBladeCount())
         tag.putInt("BladeCooldown", this.bladeCooldown)
         tag.putDouble("BladeAngle", this.bladeAngle)
-        tag.putInt("BladeLength", this.bladeLength)
         super.write(tag, clientPacket)
     }
 
@@ -329,18 +313,18 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
             return VecHelper.voxelSpace(4.0, 8.0, 18.5)
         }
 
-        override fun getLocalOffset(state: BlockState): Vec3 {
-            return super.getLocalOffset(state)
+        override fun getLocalOffset(level: LevelAccessor, pos: BlockPos, state: BlockState): Vec3 {
+            return super.getLocalOffset(level, pos, state)
                 .add(
                     Vec3.atLowerCornerOf(state.getValue(BlockStateProperties.FACING).normal)
                         .scale((-2 / 16f).toDouble())
                 )
         }
 
-        override fun rotate(state: BlockState, ms: PoseStack?) {
-            if (!side.axis.isHorizontal) TransformStack.cast(ms)
-                .rotateY((AngleHelper.horizontalAngle(state.getValue(BlockStateProperties.FACING)) + 180).toDouble())
-            super.rotate(state, ms)
+        override fun rotate(level: LevelAccessor, pos: BlockPos, state: BlockState, ms: PoseStack) {
+            if (!side.axis.isHorizontal) TransformStack.of(ms)
+                .rotateYDegrees((AngleHelper.horizontalAngle(state.getValue(BlockStateProperties.FACING)) + 180))
+            super.rotate(level, pos, state, ms)
         }
 
         override fun isSideActive(state: BlockState, direction: Direction): Boolean {
@@ -354,18 +338,18 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
             return VecHelper.voxelSpace(12.0, 8.0, 18.5)
         }
 
-        override fun getLocalOffset(state: BlockState): Vec3 {
-            return super.getLocalOffset(state)
+        override fun getLocalOffset(level: LevelAccessor, pos: BlockPos, state: BlockState): Vec3 {
+            return super.getLocalOffset(level, pos, state)
                 .add(
                     Vec3.atLowerCornerOf(state.getValue(BlockStateProperties.FACING).normal)
                         .scale((-2 / 16f).toDouble())
                 )
         }
 
-        override fun rotate(state: BlockState, ms: PoseStack?) {
-            if (!side.axis.isHorizontal) TransformStack.cast(ms)
-                .rotateY((AngleHelper.horizontalAngle(state.getValue(BlockStateProperties.FACING)) + 180).toDouble())
-            super.rotate(state, ms)
+        override fun rotate(level: LevelAccessor, pos: BlockPos, state: BlockState, ms: PoseStack) {
+            if (!side.axis.isHorizontal) TransformStack.of(ms)
+                .rotateYDegrees((AngleHelper.horizontalAngle(state.getValue(BlockStateProperties.FACING)) + 180))
+            super.rotate(level, pos, state, ms)
         }
 
         override fun isSideActive(state: BlockState, direction: Direction): Boolean {

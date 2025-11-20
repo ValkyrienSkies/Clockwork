@@ -1,8 +1,10 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.filter
 
-import com.simibubi.create.foundation.gui.ScreenOpener
+import net.createmod.catnip.gui.ScreenOpener
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.world.entity.player.Player
+import net.minecraft.resources.ResourceLocation
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.GasType
@@ -13,7 +15,7 @@ import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket
 import org.valkyrienskies.clockwork.platform.api.network.ServerNetworkContext
 import org.valkyrienskies.core.util.readVec3d
 import org.valkyrienskies.core.util.writeVec3d
-import org.valkyrienskies.kelvin.impl.GasTypeRegistry
+import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3d
@@ -27,10 +29,11 @@ class FilterScreenOpenPacket(private val nodeA: DuctNodePos, private val nodeB: 
     constructor(buffer: FriendlyByteBuf) : this(
         buffer.readVec3d().toDuctNodePos(buffer.readResourceLocation()),
         buffer.readVec3d().toDuctNodePos(buffer.readResourceLocation()),
-        buffer.readVarIntArray().let {
+        buffer.readUtf().let {
             val set = HashSet<GasType>()
-            for (i in it) {
-                set.add(GasTypeRegistry.GAS_TYPES.values.toList()[i])
+            for (str in it.split(" ")) {
+                val type = GasTypeRegistry.getGasType(ResourceLocation(str.trim())) ?: continue
+                set.add(type)
             }
             set
         },
@@ -46,16 +49,15 @@ class FilterScreenOpenPacket(private val nodeA: DuctNodePos, private val nodeB: 
     }
 
     override fun write(buffer: FriendlyByteBuf) {
-        val arr = IntArray(filter.size)
-        for ((i, gas) in filter.withIndex()) {
-            arr[i] = GasTypeRegistry.GAS_TYPES.values.toList().indexOf(gas)
-        }
+
+        var tag = ""
+        for (gas in filter) tag += gas.resourceLocation.toString() + " "
 
         buffer.writeVec3d(nodeA.toMinecraft().toVector3d())
         buffer.writeResourceLocation(nodeA.dimensionId)
         buffer.writeVec3d(nodeB.toMinecraft().toVector3d())
         buffer.writeResourceLocation(nodeB.dimensionId)
-        buffer.writeVarIntArray(arr)
+        buffer.writeUtf(tag)
         buffer.writeBoolean(blacklist)
 
     }

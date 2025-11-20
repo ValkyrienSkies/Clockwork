@@ -3,7 +3,7 @@ package org.valkyrienskies.clockwork.content.physicalities.gas_thruster
 import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock
 import com.simibubi.create.content.kinetics.base.IRotate
 import com.simibubi.create.foundation.block.IBE
-import com.simibubi.create.foundation.utility.Iterate
+import net.createmod.catnip.data.Iterate
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerLevel
@@ -17,7 +17,7 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BooleanProperty
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.content.forces.GasThrusterController
-import org.valkyrienskies.clockwork.content.logistics.gas.INodeBlock
+import org.valkyrienskies.kelvin.util.INodeBlock
 
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 
@@ -47,7 +47,7 @@ class GasThrusterBlock(properties: Properties) : DirectionalBlock(properties), I
             return defaultBlockState().setValue(
                 DirectionalKineticBlock.FACING, if (context.player != null && context.player!!
                         .isShiftKeyDown
-                ) nearestLookingDirection else nearestLookingDirection.opposite
+                ) nearestLookingDirection.opposite else nearestLookingDirection
             )
         }
         return defaultBlockState().setValue(DirectionalKineticBlock.FACING, preferred.opposite)

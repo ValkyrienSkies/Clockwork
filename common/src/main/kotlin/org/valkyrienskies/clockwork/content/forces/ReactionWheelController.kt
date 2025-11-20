@@ -8,15 +8,14 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.Vector3ic
 import org.valkyrienskies.clockwork.ClockworkConfig
-import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.content.forces.data.ForceApplierCreateData
-import org.valkyrienskies.clockwork.content.forces.data.ForceApplierData
-import org.valkyrienskies.clockwork.content.forces.data.ForceApplierUpdateData
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.data.ReactionWheelCreateData
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.data.ReactionWheelData
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.data.ReactionWheelUpdateData
+import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
+import org.valkyrienskies.core.api.ships.setAttachment
+import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -38,8 +37,8 @@ class ReactionWheelController(
     @JsonIgnore
     val pendingMomentumConsumptionQueue = HashMap<Int, ConcurrentLinkedQueue<Double>>()
 
-    override fun applyForces(physShip: PhysShip) {
-        super.applyForces(physShip)
+    override fun physTick(physShip: PhysShip, physLevel: PhysLevel) {
+        super.physTick(physShip, physLevel)
 
         for (wheelID in appliers.keys) {
             val (torque, deltaWheelOmega) = conserveMomentum(physShip as PhysShipImpl, appliers[wheelID]!!)
@@ -97,9 +96,9 @@ class ReactionWheelController(
     }
 
     companion object {
-        fun getOrCreate(ship: ServerShip): ReactionWheelController? {
+        fun getOrCreate(ship: LoadedServerShip): ReactionWheelController? {
             if (ship.getAttachment(ReactionWheelController::class.java) == null) {
-                ship.saveAttachment(ReactionWheelController::class.java, ReactionWheelController())
+                ship.setAttachment(ReactionWheelController())
             }
             return ship.getAttachment(ReactionWheelController::class.java)
         }

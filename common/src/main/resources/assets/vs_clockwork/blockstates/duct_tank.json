@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "bottom=false,top=true": {
+      "model": "vs_clockwork:block/duct_tank/block_top"
+    },
+    "bottom=true,top=false": {
+      "model": "vs_clockwork:block/duct_tank/block_bottom"
+    },
+    "bottom=false,top=false": {
+      "model": "vs_clockwork:block/duct_tank/block_middle"
+    },
+    "bottom=true,top=true": {
+      "model": "vs_clockwork:block/duct_tank/block_single"
+    }
+  }
+}

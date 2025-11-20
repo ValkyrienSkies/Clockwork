@@ -4,8 +4,7 @@ import com.google.common.collect.ImmutableList
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.*
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour
-import com.simibubi.create.foundation.utility.Components
-import com.simibubi.create.foundation.utility.Lang
+import com.simibubi.create.foundation.utility.CreateLang
 import net.minecraft.ChatFormatting
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
@@ -15,15 +14,19 @@ import kotlin.math.abs
 import kotlin.math.max
 
 class AngleScrollValueBehaviour(label: Component, be: SmartBlockEntity, slot: ValueBoxTransform) : ScrollValueBehaviour(label, be, slot) {
+
+
+
+
     override fun getType(): BehaviourType<*> {
         return super.getType()
     }
 
     override fun createBoard(player: Player?, hitResult: BlockHitResult?): ValueSettingsBoard {
         val rows = ImmutableList.of<Component>(
-            Components.literal("\u27f3")
+            Component.literal("\u27f3")
                 .withStyle(ChatFormatting.BOLD),
-            Components.literal("\u27f2")
+            Component.literal("\u27f2")
                 .withStyle(ChatFormatting.BOLD)
         )
         val formatter = ValueSettingsFormatter { settings: ValueSettingsBehaviour.ValueSettings ->
@@ -49,9 +52,9 @@ class AngleScrollValueBehaviour(label: Component, be: SmartBlockEntity, slot: Va
     }
 
     fun formatSettings(settings: ValueSettingsBehaviour.ValueSettings): MutableComponent {
-        return Lang.number(max(1.0, abs(settings.value().toDouble())))
+        return CreateLang.number(max(1.0, abs(settings.value().toDouble())))
             .add(
-                Lang.text(if (settings.row() == 0) "\u27f3" else "\u27f2")
+                CreateLang.text(if (settings.row() == 0) "\u27f3" else "\u27f2")
                     .style(ChatFormatting.BOLD)
             )
             .component()

@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.platform
 
+import com.simibubi.create.AllCreativeModeTabs.TabInfo
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType
 import dev.architectury.injectables.annotations.ExpectPlatform

@@ -13,6 +13,9 @@ object ClockworkConfig {
     class Client {
         @JsonSchema(description = "Enable debug rendering")
         var debugRender = false
+
+        @JsonSchema(description = "Enable rendering particles for DuctBlock")
+        var renderDuctParticles = true
     }
 
     class Server {
@@ -37,6 +40,12 @@ object ClockworkConfig {
             "minecraft:flowing_lava"
         )
 
+        @JsonSchema(description = "Enable collision sound effects")
+        var collisionSoundEffects = false
+
+        @JsonSchema(description = "Max collision events per tick. Dumps collision event queue if amount is bigger. Default is 100", min = 1.0)
+        var collisionSoundEffectMax = 100
+
         @JsonSchema(description = "Max Gravitron mass in 1000 kg")
         var maxGravitronMass = 256
 
@@ -54,5 +63,41 @@ object ClockworkConfig {
 
         @JsonSchema(description = "The substeps of blade force calculation. More steps means more \'accurate\' simulation, but also makes it significantly more performance heavy.")
         var bladeIntegrationSteps = 10.0
+
+        @JsonSchema(description = "Force multiplier when no rpm is given")
+        var angleFollowingBaseAngleErrorMultiplier = 2.0
+
+        @JsonSchema()
+        var angleFollowingAngleErrorMultiplier = 50.0
+
+        @JsonSchema()
+        var angleFollowingOmegaErrorMultiplier = 10.0
+
+        @JsonSchema(min = 0.0)
+        var forceMulPerSailInPropeller = 500.0
+
+        @JsonSchema(min = 0.0)
+        var encasedFanForceMul = 40.0
+
+        @JsonSchema(min = 0.0)
+        var wanderOreForce = 1100.0
+
+        @JsonSchema(min = 0.0)
+        var gasThrusterForceMul = 2.0
+
+        @JsonSchema(min = 0.0)
+        var sugarRocketBlockThrust = 10000.0
+
+        @JsonSchema(description = "The lazytick rate for Kelvin node block entity updates")
+        var kelvinNodeBlockEntityLazyTickRate = 10
+
+        @JsonSchema(description = "The amount of air (in kg) that the air compressor produces per tick at sea level and 1 rpm")
+        var airCompressorSpeed = 0.1
+
+        @JsonSchema(description = "The max amount of pressure that the air compressor will generate air for. In Pa")
+        var airCompressorMaxPressure = 1000000.0
+
+        @JsonSchema(description = "Air density at which the air compressor will start generating helium. Setting it to 0 or even a negative number should just disable helium generation")
+        var airCompressorHeliumAirDensity = 0.3
     }
 }

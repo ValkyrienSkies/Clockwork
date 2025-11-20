@@ -1,15 +1,17 @@
 package org.valkyrienskies.clockwork.util.render
 
-import com.jozufozu.flywheel.core.PartialModel
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.math.Vector3f
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer
-import com.simibubi.create.foundation.render.CachedBufferer
-import com.simibubi.create.foundation.render.SuperByteBuffer
+import dev.engine_room.flywheel.lib.model.baked.PartialModel
+import net.createmod.catnip.math.AngleHelper
+import net.createmod.catnip.render.CachedBuffers
+import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.core.Direction
 import net.minecraft.world.level.block.state.BlockState
+import org.joml.AxisAngle4f
+import org.joml.Quaternionf
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
@@ -54,9 +56,9 @@ object RenderUtil {
         matrices.translate(-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)))
 
         matrices.translate(-modelCorrection.x().toDouble(), -modelCorrection.y().toDouble(), -modelCorrection.z().toDouble())
-        matrices.mulPose(Vector3f.YP.rotationDegrees(rotationVec.y()))
-        matrices.mulPose(Vector3f.XP.rotationDegrees(rotationVec.x()))
-        matrices.mulPose(Vector3f.ZP.rotationDegrees(rotationVec.z()))
+        Quaternionf(AxisAngle4f(AngleHelper.rad(rotationVec.y().toDouble()), 0f, 1f, 0f))
+        Quaternionf(AxisAngle4f(AngleHelper.rad(rotationVec.x().toDouble()), 1f, 0f, 0f))
+        Quaternionf(AxisAngle4f(AngleHelper.rad(rotationVec.z().toDouble()), 0f, 0f, 1f))
         matrices.translate(modelCorrection.x().toDouble(), modelCorrection.y().toDouble(), modelCorrection.z().toDouble())
         renderer.render(model.get(), renderType, light)
 
@@ -66,23 +68,23 @@ object RenderUtil {
     }
 
     /**
-     * Renders three cubes making up the Core with the CachedBufferer using a BlockState.
+     * Renders three cubes making up the Core with the CachedBuffers using a BlockState.
      * @param innerData Data for inner cube offset and rotation
      * @param data Data for middle cube offset and rotation
      * @param outerData Data for outer cube offset and rotation
      */
-    fun renderCubeMatrix(matrices: PoseStack, buffer: MultiBufferSource, blockState: BlockState, innerData: TransformData, data: TransformData, outerData: TransformData, scale: Float, light: Int){
+    fun renderCubeMatrix(matrices: PoseStack, buffer: MultiBufferSource, blockState: BlockState, innerData: TransformData, data: TransformData, outerData: TransformData, scale: Float, light: Int, overlay: Int){
         val crystal_inner_buffer = buffer.getBuffer(RenderType.endPortal())
-        val crystal_inner = CachedBufferer.partial(ClockworkPartials.CRYSTAL_INNER, blockState)
-        renderAndTransform(crystal_inner, scale, innerData.offset, innerData.rotation).light(light).color(255,255,255, 255).overlay().disableDiffuse().renderInto(matrices, crystal_inner_buffer)
+        val crystal_inner = CachedBuffers.partial(ClockworkPartials.CRYSTAL_INNER, blockState)
+        renderAndTransform(crystal_inner, scale, innerData.offset, innerData.rotation).light<SuperByteBuffer>(light).color<SuperByteBuffer>(255,255,255, 255).overlay<SuperByteBuffer>(overlay).disableDiffuse<SuperByteBuffer>().renderInto(matrices, crystal_inner_buffer)
 
         val crystal_buffer = buffer.getBuffer(ClockworkRenderTypes.CRYSTAL.apply(CRYSTAL_MATRIX))
-        val crystal = CachedBufferer.partial(ClockworkPartials.CRYSTAL, blockState)
-        renderAndTransform(crystal, scale, data.offset, data.rotation).light(light).color(255,255,255, 255).overlay().disableDiffuse().renderInto(matrices, crystal_buffer)
+        val crystal = CachedBuffers.partial(ClockworkPartials.CRYSTAL, blockState)
+        renderAndTransform(crystal, scale, data.offset, data.rotation).light<SuperByteBuffer>(light).color<SuperByteBuffer>(255,255,255, 255).overlay<SuperByteBuffer>(overlay).disableDiffuse<SuperByteBuffer>().renderInto(matrices, crystal_buffer)
 
         val crystal_outer_buffer = buffer.getBuffer(RenderType.entityTranslucent(PURPLE_HUE))
-        val crystal_outer = CachedBufferer.partial(ClockworkPartials.CRYSTAL_OUTER, blockState)
-        renderAndTransform(crystal_outer, scale, outerData.offset, outerData.rotation).light(light).color(255,255,255, 255).overlay().renderInto(matrices, crystal_outer_buffer)
+        val crystal_outer = CachedBuffers.partial(ClockworkPartials.CRYSTAL_OUTER, blockState)
+        renderAndTransform(crystal_outer, scale, outerData.offset, outerData.rotation).light<SuperByteBuffer>(light).color<SuperByteBuffer>(255,255,255, 255).overlay<SuperByteBuffer>(overlay).renderInto(matrices, crystal_outer_buffer)
     }
 
     /**
@@ -95,13 +97,13 @@ object RenderUtil {
         buffer.scale(scale)
         buffer.translate(-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)))
         //Y
-        buffer.translateY((coreOffset.y * 2).toDouble()).rotateCentered(Direction.UP, (coreRotation.y / 180 * Math.PI).toFloat())
+        buffer.translateY((coreOffset.y * 2)).rotateCentered((coreRotation.y / 180 * Math.PI).toFloat(), Direction.UP)
         //Z
-        buffer.translateY((coreOffset.z * 2).toDouble()).rotateCentered(Direction.NORTH, (coreRotation.z / 180 * Math.PI).toFloat())
+        buffer.translateY((coreOffset.z * 2)).rotateCentered((coreRotation.z / 180 * Math.PI).toFloat(), Direction.NORTH)
         //X
-        buffer.translateY((coreOffset.x * 2).toDouble()).rotateCentered(Direction.EAST, (coreRotation.x / 180 * Math.PI).toFloat())
+        buffer.translateY((coreOffset.x * 2)).rotateCentered((coreRotation.x / 180 * Math.PI).toFloat(), Direction.EAST)
 
-        buffer.translateY(-(4.5 / 16.0))
+        buffer.translateY((-(4.5 / 16.0)).toFloat())
         return buffer
     }
 }

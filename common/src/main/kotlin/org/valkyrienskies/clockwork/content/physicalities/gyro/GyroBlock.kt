@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork.content.physicalities.gyro
 
 import com.simibubi.create.content.kinetics.base.KineticBlock
 import com.simibubi.create.foundation.block.IBE
-import com.simibubi.create.foundation.gui.ScreenOpener
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.player.LocalPlayer
@@ -19,12 +18,11 @@ import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.RenderShape
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkShapes
-import org.valkyrienskies.core.api.ships.getAttachment
+import org.valkyrienskies.core.api.attachment.getAttachment
 import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 
@@ -56,7 +54,7 @@ class GyroBlock(properties: Properties) : KineticBlock(properties), IBE<GyroBloc
         if (level.isClientSide) return
         level as ServerLevel
 
-        val ship = level.getShipObjectManagingPos(pos) ?: level.getShipManagingPos(pos) ?: return
+        val ship = level.getShipObjectManagingPos(pos) ?: return
         GyroShipControl.getOrCreate(ship).gyros += 1
     }
 
@@ -66,8 +64,10 @@ class GyroBlock(properties: Properties) : KineticBlock(properties), IBE<GyroBloc
         if (level.isClientSide) return
         level as ServerLevel
 
-        level.getShipManagingPos(pos)?.getAttachment<GyroShipControl>()?.let { control ->
-            control.gyros -= 1
+        level.getShipObjectManagingPos(pos)?.let {
+            it.getAttachment<GyroShipControl>()?.let { control ->
+                control.gyros -= 1
+            }
         }
     }
 

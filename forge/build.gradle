@@ -4,9 +4,9 @@ buildscript {
     }
     dependencies {
         // Make sure this version matches the one included in Kotlin for Forge
-        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10'
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22'
         // OPTIONAL Gradle plugin for Kotlin Serialization
-        classpath 'org.jetbrains.kotlin:kotlin-serialization:1.6.10'
+        classpath 'org.jetbrains.kotlin:kotlin-serialization:1.9.22'
     }
 }
 
@@ -22,8 +22,11 @@ if (project.hasProperty("CustomReleaseVersion")) {
     version = project.property("CustomReleaseVersion").replaceFirst("^release/", "")
 } else {
     String gitRevision = "git rev-parse HEAD".execute().text.trim()
+    if (gitRevision.isEmpty()) {
+        gitRevision = 'unknown'
+    }
 
-    version = minecraft_version + '-'+ mod_version + '-' + "forge" + '-' + gitRevision.substring(0, 10)
+    version = minecraft_version + '-'+ mod_version + '-' + "forge" + '-' + (gitRevision.length() >= 10 ? gitRevision.substring(0, 10) : gitRevision)
 }
 
 architectury {
@@ -61,11 +64,20 @@ dependencies {
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 
     include(modApi("dev.architectury:architectury-forge:${rootProject.architectury_version}"))
-    implementation(include((("io.github.llamalad7:mixinextras-forge:0.2.1"))))
+    implementation(include((("io.github.llamalad7:mixinextras-forge:0.4.1"))))
 
     //VS2
-    modApi("org.valkyrienskies:valkyrienskies-118-forge:${rootProject.vs2_version}") { transitive = false }
-    implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}")
+    modApi("org.valkyrienskies:valkyrienskies-120-forge:${rootProject.vs2_version}") { transitive = false }
+    implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") {
+        exclude group: 'org.joml', module: ''
+    }
+    implementation("org.valkyrienskies.core:util:${rootProject.vscore_version}") {
+        exclude group: 'org.joml', module: ''
+    }
+    implementation("org.valkyrienskies.core:internal:${rootProject.vscore_version}") {
+        exclude group: 'org.joml', module: ''
+    }
+
 
     modImplementation("org.valkyrienskies.kelvin:kelvin-forge:${rootProject.minecraft_version}-${rootProject.kelvin_version}") {
         exclude group: 'org.joml', module: ''
@@ -74,17 +86,23 @@ dependencies {
     // Create and its dependencies
     modImplementation("com.simibubi.create:create-${minecraft_version}:${create_forge_version}:slim") { transitive = false }
     modImplementation("com.tterrag.registrate:Registrate:${registrate_forge_version}")
-    modImplementation("com.jozufozu.flywheel:flywheel-forge-${flywheel_forge_minecraft_version}:${flywheel_forge_version}")
+    modImplementation("net.createmod.ponder:Ponder-Forge-${minecraft_version}:${ponder_version}")
+    modImplementation("curse.maven:vanillin-965702:6446560")
+    modCompileOnly("dev.engine-room.flywheel:flywheel-forge-api-${minecraft_version}:${flywheel_forge_version}")
+    modRuntimeOnly("dev.engine-room.flywheel:flywheel-forge-${minecraft_version}:${flywheel_forge_version}")
 
     // JOML
     compileOnly("org.joml:joml:1.10.4")
     compileOnly("org.joml:joml-primitives:1.10.0")
 
     // Add Kotlin for Forge.
-    implementation 'thedarkcolour:kotlinforforge:3.12.0'
+    implementation 'thedarkcolour:kotlinforforge:4.11.0'
 
     // CC Tweaked
-    modImplementation("curse.maven:cctweaked-282001:4630521")
+    modCompileOnly("cc.tweaked:cc-tweaked-$minecraft_version-core-api:$cc_version")
+    modCompileOnly("cc.tweaked:cc-tweaked-$minecraft_version-forge-api:$cc_version")
+    modRuntimeOnly("cc.tweaked:cc-tweaked-$minecraft_version-forge:$cc_version")
+
 
     //modRuntimeOnly "me.shedaniel:RoughlyEnoughItems-forge:${rei_version}"
 

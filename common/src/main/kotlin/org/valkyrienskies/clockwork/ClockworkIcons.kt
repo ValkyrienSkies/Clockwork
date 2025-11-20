@@ -3,10 +3,10 @@ package org.valkyrienskies.clockwork
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.gui.AllIcons
-import com.simibubi.create.foundation.gui.element.ScreenElement
+import net.createmod.catnip.gui.element.ScreenElement
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.gui.GuiComponent
+import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.resources.ResourceLocation
 
 class ClockworkIcons(x: Int, y: Int) : ScreenElement {
@@ -69,9 +69,9 @@ class ClockworkIcons(x: Int, y: Int) : ScreenElement {
     }
 
     @Environment(EnvType.CLIENT)
-    override fun render(matrixStack: PoseStack, x: Int, y: Int) {
+    override fun render(matrixStack: GuiGraphics, x: Int, y: Int) {
         bind()
-        GuiComponent.blit(matrixStack, x, y, 0, iconX.toFloat(), iconY.toFloat(), 16, 16, 256, 256)
+        matrixStack.blit(ICON_ATLAS, x, y, 0, iconX.toFloat(), iconY.toFloat(), 16, 16, 256, 256)
     }
 
 }

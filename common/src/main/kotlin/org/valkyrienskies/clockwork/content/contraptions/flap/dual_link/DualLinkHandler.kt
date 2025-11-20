@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.contraptions.flap.dual_link
 
 import com.simibubi.create.AllItems
+import com.simibubi.create.content.kinetics.base.DirectionalAxisKineticBlock
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.utility.RaycastHelper
@@ -12,35 +13,47 @@ import net.minecraft.sounds.SoundEvents
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
 
 object DualLinkHandler {
 
     @JvmStatic
-    fun getFrontFacing(direction: Direction): Direction {
-        return when(direction) {
+    fun getFrontFacing(state: BlockState): Direction {
+
+
+        val direction = state.getValue(BlockStateProperties.FACING)
+        val axis_along = state.getValue(DirectionalAxisKineticBlock.AXIS_ALONG_FIRST_COORDINATE)
+
+
+        var original_direction = when(direction) {
             Direction.EAST -> Direction.NORTH
             Direction.WEST -> Direction.SOUTH
             Direction.NORTH -> Direction.WEST
             else -> Direction.EAST
         }
+
+        if (direction.axis.isVertical && axis_along) original_direction = original_direction.clockWise
+
+        return original_direction
     }
 
     @JvmStatic
     fun handler(player: Player, hand: InteractionHand, pos: BlockPos, face: Direction): EventResult {
 
-        val world = player.level
+        val world = player.level()
 
 
         if (player.isShiftKeyDown || player.isSpectator) return EventResult.pass()
-        if (!world.getBlockState(pos).hasProperty(BlockStateProperties.FACING)) return EventResult.pass()
 
-        val facing = world.getBlockState(pos).getValue(BlockStateProperties.FACING)
+        val state = world.getBlockState(pos)
+
+        if (!state.hasProperty(BlockStateProperties.FACING) || !state.hasProperty(DirectionalAxisKineticBlock.AXIS_ALONG_FIRST_COORDINATE)) return EventResult.pass()
 
 
         val type: BehaviourType<DualLinkBehaviour>
-        if (face == getFrontFacing(facing)) type =  DualLinkBehaviour.FRONT_TYPE
+        if (face == getFrontFacing(state)) type =  DualLinkBehaviour.FRONT_TYPE
         else type = DualLinkBehaviour.BACK_TYPE
 
 
@@ -61,8 +74,8 @@ object DualLinkHandler {
             val localHit = ray.location
                 .subtract(Vec3.atLowerCornerOf(pos))
                 .add(Vec3.atLowerCornerOf(ray.direction.normal).scale(.25))
-            fakePlayerChoice = localHit.distanceToSqr(behaviour.firstSlot.getLocalOffset(blockState)) > localHit
-                .distanceToSqr(behaviour.secondSlot.getLocalOffset(blockState))
+            fakePlayerChoice = localHit.distanceToSqr(behaviour.firstSlot.getLocalOffset(world, pos, blockState)) > localHit
+                .distanceToSqr(behaviour.secondSlot.getLocalOffset(world, pos, blockState))
         }
 
 

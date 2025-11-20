@@ -1,0 +1,15 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "vs_clockwork:block/gas_engine/block",
+      "y": 90
+    },
+    "axis=y": {
+      "model": "vs_clockwork:block/gas_engine/block",
+      "x": 90
+    },
+    "axis=z": {
+      "model": "vs_clockwork:block/gas_engine/block"
+    }
+  }
+}

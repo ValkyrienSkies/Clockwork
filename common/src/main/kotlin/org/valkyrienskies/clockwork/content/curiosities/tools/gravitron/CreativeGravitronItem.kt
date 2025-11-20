@@ -8,6 +8,7 @@ import net.minecraft.client.model.HumanoidModel
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Registry
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.Entity
@@ -93,7 +94,7 @@ class CreativeGravitronItem(properties: Properties) : CWItem(properties), Custom
                         val serverLevel = level
                         val it = serverLevel.getBlockState(BlockPos(x, y, z))
                         if (!it.isAir && !ClockworkConfig.SERVER.blockBlacklist.contains(
-                                Registry.BLOCK.getKey(it.block).toString())) {
+                                BuiltInRegistries.BLOCK.getKey(it.block).toString())) {
 
                             val connectedShip = createNewShipWithBlocks(blockPos, selection, serverLevel)
 

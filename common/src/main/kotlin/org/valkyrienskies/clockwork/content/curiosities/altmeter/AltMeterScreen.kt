@@ -1,14 +1,13 @@
 package org.valkyrienskies.clockwork.content.curiosities.altmeter
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.foundation.gui.AbstractSimiScreen
 import com.simibubi.create.foundation.gui.AllIcons
-import com.simibubi.create.foundation.gui.widget.AbstractSimiWidget
 import com.simibubi.create.foundation.gui.widget.IconButton
 import com.simibubi.create.foundation.gui.widget.ScrollInput
+import net.createmod.catnip.gui.AbstractSimiScreen
+import net.createmod.catnip.gui.widget.AbstractSimiWidget
+import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.TextComponent
-import net.minecraft.network.chat.TranslatableComponent
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
 import org.valkyrienskies.clockwork.ClockworkPackets
 import kotlin.math.roundToInt
@@ -52,26 +51,26 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
         ClockworkPackets.sendToServer(UpdateAltMeterPacket(triggerHeight.toDouble(), be.blockPos))
     }
 
-    override fun renderWindow(poseStack: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
+    override fun renderWindow(poseStack: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
         val x = guiLeft
         val y = guiTop
 
         background.render(poseStack, x, y)
-        drawCenteredString(poseStack, font, title, x + (background.width - 8) / 2, y + 3, 0xFFFFFF)
+        poseStack.drawCenteredString(font, title, x + (background.width - 8) / 2, y + 3, 0xFFFFFF)
         drawRuleList(poseStack, x, y, partialTicks)
     }
 
 
-    private fun drawRuleList(poseStack: PoseStack, x: Int, y: Int, partialTicks: Float) {
+    private fun drawRuleList(poseStack: GuiGraphics, x: Int, y: Int, partialTicks: Float) {
         val ruleX = x + 38 - 7
         val ruleY = y + 18 + 2
 
         val icon = AllIcons.I_PRIORITY_VERY_HIGH
 
         val heightStr = triggerHeight.toString()
-        val valueComponent: Component = TextComponent("$heightStr m")
+        val valueComponent: Component = Component.literal("$heightStr m")
 
-        drawCenteredString(poseStack,
+        poseStack.drawCenteredString(
             font,
             valueComponent,
             ruleX + 62 - 12 + INPUT_VALUE_WIDTH / 2,
@@ -81,7 +80,7 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
         icon.render(poseStack, ruleX + 1, ruleY + 1)
 
         val nameComponent: Component = TRIGGER_HEIGHT_COMPONENT
-        drawString(poseStack,
+        poseStack.drawString(
             font,
             nameComponent,
             ruleX + 16,
@@ -95,6 +94,6 @@ class AltMeterScreen(private val be: AltMeterBlockEntity) : AbstractSimiScreen()
         private const val INPUT_VALUE_WIDTH = 46
         private const val MAX_HEIGHT = 1024
         private const val MIN_HEIGHT = -1024
-        private val TRIGGER_HEIGHT_COMPONENT = TranslatableComponent("alt_meter.trigger_height")
+        private val TRIGGER_HEIGHT_COMPONENT = Component.translatable("alt_meter.trigger_height")
     }
 }

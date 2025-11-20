@@ -1,8 +1,8 @@
 package org.valkyrienskies.clockwork.util.gui
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.foundation.gui.AbstractSimiScreen
-import com.simibubi.create.foundation.gui.widget.AbstractSimiWidget
+import net.createmod.catnip.gui.widget.AbstractSimiWidget
+import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.components.AbstractWidget
 import net.minecraft.client.gui.narration.NarrationElementOutput
 import net.minecraft.network.chat.Component
@@ -38,10 +38,14 @@ open class ScrollingFrame(x: Int, y: Int, w: Int, h: Int): AbstractSimiWidget(x,
 
     }
 
-    override fun renderButton(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
+    override fun renderWidget(ms: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
         currentScroll += Mth.clamp(scroll-currentScroll,-partialTicks*scrollLerpSpeed, partialTicks*scrollLerpSpeed)
 
-        ms.translate(0.0,currentScroll,0.0)
+        val pose = ms.pose()
+
+        ms.enableScissor(x,y, x+width, y+height)
+        pose.pushPose()
+        pose.translate(0.0,currentScroll,0.0)
 
         var pastHeight = 0.0
         val frameY = y+currentScroll
@@ -59,15 +63,19 @@ open class ScrollingFrame(x: Int, y: Int, w: Int, h: Int): AbstractSimiWidget(x,
         }
         minScroll = -max(pastHeight-height,0.0)
 
+
+        pose.popPose()
+        ms.disableScissor()
+
     }
 
 
-    abstract class ScrollingElement() {
+    abstract class ScrollingElement {
         open val height: Double = 0.0
         var x: Int = 0
         var y: Int = 0
 
-        abstract fun renderElement(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float, visible: Boolean, scroll: Double)
+        abstract fun renderElement(ms: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float, visible: Boolean, scroll: Double)
     }
 
 }

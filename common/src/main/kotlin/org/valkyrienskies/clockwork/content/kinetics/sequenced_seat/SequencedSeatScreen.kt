@@ -1,13 +1,14 @@
 package org.valkyrienskies.clockwork.content.kinetics.sequenced_seat
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.foundation.gui.AbstractSimiScreen
 import com.simibubi.create.foundation.gui.AllIcons
-import com.simibubi.create.foundation.gui.element.GuiGameElement
-import com.simibubi.create.foundation.gui.widget.AbstractSimiWidget
 import com.simibubi.create.foundation.gui.widget.IconButton
 import com.simibubi.create.foundation.gui.widget.ScrollInput
 import com.simibubi.create.foundation.gui.widget.SelectionScrollInput
+import net.createmod.catnip.gui.AbstractSimiScreen
+import net.createmod.catnip.gui.element.GuiGameElement
+import net.createmod.catnip.gui.widget.AbstractSimiWidget
+import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.network.chat.Component
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.Rotation
@@ -45,12 +46,12 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
         ClockworkPackets.sendToServer(UpdateSeatRulesPacket(be))
     }
 
-    override fun renderWindow(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
+    override fun renderWindow(ms: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
         val x = guiLeft
         val y = guiTop
 
         background.render(ms, x, y)
-        drawCenteredString(ms, font, title, x + (background.width - 8) / 2, y + 3, 0xFFFFFF)
+        ms.drawCenteredString(font, title, x + (background.width - 8) / 2, y + 3, 0xFFFFFF)
         drawRuleList(ms, x, y, partialTicks)
         GuiGameElement.of(renderedItem)
             .at<GuiGameElement.GuiRenderBuilder>(
@@ -61,7 +62,7 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
             .render(ms)
     }
 
-    private fun drawRuleList(ms: PoseStack, x: Int, y: Int, partialTicks: Float) {
+    private fun drawRuleList(ms: GuiGraphics, x: Int, y: Int, partialTicks: Float) {
         val list = currentList()
         for (i in 0 until SequencedSeatRuleList.MAX_RULES) {
             val rule = list.getRule(i)
@@ -73,8 +74,7 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
                 if (operation !== SequencedSeatOperation.NOTHING) {
                     valueInputs[i]!!.visible = true
                     drawInputField(ruleX, ruleY, ms, partialTicks, 0)
-                    drawCenteredString(
-                        ms,
+                    ms.drawCenteredString(
                         font,
                         rule.value!!.asComponent(),
                         ruleX + 62 + INPUT_VALUE_WIDTH / 2,
@@ -86,8 +86,7 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
                     drawInputField(ruleX, ruleY, ms, partialTicks, 1)
                 }
                 operation.icon.render(ms, ruleX + 1, ruleY + 1)
-                drawString(
-                    ms,
+                ms.drawString(
                     font,
                     operation.asComponent(),
                     ruleX + 16,
@@ -103,14 +102,12 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
     }
 
 
-    private fun drawInputField(x: Int, y: Int, ms: PoseStack, partialTicks: Float, i: Int) {
-        background.bind()
-        blit(
-            ms, x - 2, y,
+    private fun drawInputField(x: Int, y: Int, ms: GuiGraphics, partialTicks: Float, i: Int) {
+        ms.blit(background.location, x - 2, y,
             INPUT_FIELDS_X,
             INPUT_FIELDS_Y + i * (INPUT_FIELDS_HEIGHT + INPUT_FIELDS_MARGIN),
             INPUT_FIELDS_WIDTH,
-            INPUT_FIELDS_HEIGHT
+            INPUT_FIELDS_HEIGHT,
         )
     }
 
@@ -290,11 +287,10 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
             })
         }
 
-        override fun renderButton(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
+        override fun renderWidget(ms: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
             isHovered =
                 rotation == currentShaft || mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height
-            background.bind()
-            blit(ms, x, y, if (isHovered) 17 + blitX else blitX, blitY, width, height) }
+            ms.blit(background.location, x, y, if (isHovered) 17 + blitX else blitX, blitY, width, height) }
     }
 
     inner class KeyButton(
@@ -329,11 +325,10 @@ class SequencedSeatScreen(private val be: SequencedSeatBlockEntity) : AbstractSi
             )
         }
 
-        override fun renderButton(ms: PoseStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
+        override fun renderWidget(ms: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
             isHovered =
                 isKeySelected(key, index) || mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height
-            background.bind()
-            blit(ms, x, y, if (isHovered) 17 + blitX else blitX, blitY, width, height)}
+            ms.blit(background.location, x, y, if (isHovered) 17 + blitX else blitX, blitY, width, height)}
 
 
     }

@@ -1,9 +1,11 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
+
 plugins {
     // Needed for Forge+Fabric
     id "architectury-plugin" version "3.4.146"
     id "dev.architectury.loom" version "1.3.355" apply false
     // Kotlin
-    id "org.jetbrains.kotlin.jvm" version "1.9.10" apply false
+    id "org.jetbrains.kotlin.jvm" version "2.0.0" apply false
     id "io.github.juuxel.loom-vineflower" version "1.+" apply false // Quiltflower, a better decompiler
     id "io.github.p03w.machete" version "1.+" // automatic jar compressing on build
 
@@ -17,8 +19,11 @@ if (project.hasProperty("CustomReleaseVersion")) {
     version = project.property("CustomReleaseVersion").replaceFirst("^release/", "")
 } else {
     String gitRevision = "git rev-parse HEAD".execute().text.trim()
+    if (gitRevision.isEmpty()) {
+        gitRevision = 'unknown'
+    }
 
-    version = mod_version + '+' + gitRevision.substring(0, 10)
+    version = mod_version + '+' + (gitRevision.length() >= 10 ? gitRevision.substring(0, 10) : gitRevision)
 }
 
 tasks.register("updateKelvin") {
@@ -68,15 +73,21 @@ subprojects {
             url = "https://dvs1.progwml6.com/files/maven/"
         }
         mavenCentral()
+        maven {
+            name "createmod maven"
+            url "https://maven.createmod.net/"
+        }
+        maven {
+            url "https://maven.squiddev.cc"
+            content {
+                includeGroup("cc.tweaked")
+            }
+        }
         maven { url = "https://maven.shedaniel.me/" } // Cloth Config, REI
         maven { url = "https://maven.parchmentmc.org" } // Parchment mappings
         maven { url = "https://maven.quiltmc.org/repository/release" } // Quilt Mappings
         maven { // Flywheel
             url = "https://maven.tterrag.com/"
-            content {
-                // need to be specific here due to version overlaps
-                includeGroup("com.jozufozu.flywheel")
-            }
         }
         maven {
             url = "https://maven.realrobotix.me/createbigcannons/" // Create Big Cannons
@@ -109,6 +120,17 @@ allprojects {
     version = rootProject.version
     group = rootProject.maven_group
 
+    // Copied from VS oddities. Forces arch to use the right version (which it doesn't for some reason on some machines)
+    configurations.configureEach {
+        resolutionStrategy.force "org.lwjgl:lwjgl-stb:3.3.1"
+        resolutionStrategy.force "org.lwjgl:lwjgl-opengl:3.3.1"
+        resolutionStrategy.force "org.lwjgl:lwjgl-openal:3.3.1"
+        resolutionStrategy.force "org.lwjgl:lwjgl-tinyfd:3.3.1"
+        resolutionStrategy.force "org.lwjgl:lwjgl-jemalloc:3.3.1"
+        resolutionStrategy.force "org.lwjgl:lwjgl-glfw:3.3.1"
+        resolutionStrategy.force "org.lwjgl:lwjgl:3.3.1"
+    }
+
     repositories {
         mavenLocal()
         maven {
@@ -134,9 +156,11 @@ allprojects {
         options.release = 17
     }
 
-    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile).configureEach {
+    tasks.withType(KotlinJvmCompile).configureEach {
         kotlinOptions {
             jvmTarget = "17"
+            freeCompilerArgs += "-Xjvm-default=all"
+
         }
     }
 

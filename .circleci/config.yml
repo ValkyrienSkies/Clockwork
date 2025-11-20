@@ -88,7 +88,15 @@ jobs:
           command: "./gradlew build --no-daemon --stacktrace"
       - save_artifacts
       - save_gradle_cache
-
+  publish_to_maven:
+    executor: java_large
+    steps:
+      # Checkout repo
+      - checkout_and_cache
+      # Run build
+      - run:
+          name: "Build"
+          command: "./gradlew build publish --no-daemon --stacktrace"
   deploy_to_curse:
     executor: java_large
     steps:
@@ -138,3 +146,11 @@ workflows:
           context:
             - curse_publishing
             - valkyrien_maven
+      - publish_to_maven:
+          filters:
+            branches:
+              only:
+                - /.*\/main/
+          context:
+            - valkyrien_maven
+            - github_maven

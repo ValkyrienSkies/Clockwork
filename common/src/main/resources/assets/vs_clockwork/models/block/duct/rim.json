@@ -1,0 +1,38 @@
+{
+	"credit": "Made with Blockbench",
+	"texture_size": [32, 32],
+	"textures": {
+		"0": "vs_clockwork:block/duct",
+		"particle": "vs_clockwork:block/duct"
+	},
+	"elements": [
+		{
+			"name": "rim",
+			"from": [2.875, 2.875, -0.125],
+			"to": [13.125, 13.125, 2.125],
+			"rotation": {"angle": 0, "axis": "x", "origin": [8, 8, 1]},
+			"faces": {
+				"north": {"uv": [10, 0, 5, 5], "texture": "#0"},
+				"east": {"uv": [5, 5, 10, 6], "rotation": 90, "texture": "#0"},
+				"west": {"uv": [5, 5, 10, 6], "rotation": 270, "texture": "#0"},
+				"up": {"uv": [5, 5, 10, 6], "texture": "#0"},
+				"down": {"uv": [5, 5, 10, 6], "rotation": 180, "texture": "#0"}
+			}
+		}
+	],
+	"groups": [
+		{
+			"name": "connections",
+			"origin": [8, 8, 8],
+			"color": 0,
+			"children": [
+				{
+					"name": "up",
+					"origin": [7, 17, 7],
+					"color": 0,
+					"children": [0]
+				}
+			]
+		}
+	]
+}

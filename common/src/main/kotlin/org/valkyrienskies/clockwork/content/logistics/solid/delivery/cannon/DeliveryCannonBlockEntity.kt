@@ -1,24 +1,22 @@
 package org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon
 
-import com.jozufozu.flywheel.util.transform.TransformStack
 import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.content.equipment.goggles.IHaveGoggleInformation
+import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
-import com.simibubi.create.content.logistics.depot.EjectorBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.INamedIconOptions
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour
 import com.simibubi.create.foundation.gui.AllIcons
 import com.simibubi.create.foundation.item.ItemHelper
-import com.simibubi.create.foundation.utility.AngleHelper
-import com.simibubi.create.foundation.utility.Components
-import com.simibubi.create.foundation.utility.Lang
-import com.simibubi.create.foundation.utility.VecHelper
-import io.github.fabricators_of_create.porting_lib.transfer.StorageProvider
+import com.simibubi.create.foundation.utility.CreateLang
+import dev.engine_room.flywheel.lib.transform.TransformStack
+import io.github.fabricators_of_create.porting_lib.util.StorageProvider
+import net.createmod.catnip.lang.Lang
+import net.createmod.catnip.math.AngleHelper
+import net.createmod.catnip.math.VecHelper
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage
-import net.fabricmc.loader.impl.lib.sat4j.core.Vec
 import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -26,10 +24,12 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
 import net.minecraft.sounds.SoundSource
 import net.minecraft.util.Mth
+import net.minecraft.util.RandomSource
 import net.minecraft.world.entity.item.ItemEntity
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.ClipContext
 import net.minecraft.world.level.Level
+import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
@@ -38,6 +38,7 @@ import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkBlocks
+import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.ActiveChutes
@@ -48,14 +49,12 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.Deli
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotBehaviour
 import org.valkyrienskies.mod.common.getShipManagingPos
-import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.world.clipIncludeShips
 import java.util.*
 import kotlin.collections.HashSet
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.round
 
 class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : KineticBlockEntity(type, pos, state), IHaveGoggleInformation {
 
@@ -63,7 +62,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     lateinit var frequencySlotBehaviour: FrequencySlotBehaviour
     lateinit var distributionModeBehaviour: ScrollOptionBehaviour<DistributionMode>
 
-    val soundRandom = Random()
+    val soundRandom = RandomSource.create()
 
     var currentStack: ItemStack = ItemStack.EMPTY
 
@@ -185,7 +184,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             distance = getRealPos().distanceToSqr(realLocation)
 
 
-            if ((obstructionChecker(realLocation) && abs(xTargetRotation-xRotation) < 1 && abs(yTargetRotation-yRotation)< 0.5) || fired) {
+            if ((obstructionChecker(chuteLocation,realLocation) && abs(xTargetRotation-xRotation) < 1 && abs(yTargetRotation-yRotation)< 0.5) || fired) {
                 if (!fired) {
                     val pitch = Mth.randomBetween(soundRandom, 0.9f, 1.1f)
                     level!!.playSound(null, blockPos, ClockworkSounds.THWOOM.mainEvent!!, SoundSource.BLOCKS, 1f,pitch)
@@ -221,14 +220,17 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         if (!ponder) sync()
     }
 
-    fun obstructionChecker(location: Vec3): Boolean {
+    fun obstructionChecker(chuteBlockLocation: BlockPos, chuteRealLocation: Vec3): Boolean {
+        val vertex = getVertexOfParabola(chuteRealLocation)
 
-        val cannonToVertexResult = clip(getRealPos().add(0.0,0.5,0.0), getVertexOfParabola(location))
-        if (cannonToVertexResult.type==HitResult.Type.BLOCK) return false
+        val cannonToVertex = clip(getRealPos().add(0.0,0.5,0.0), vertex)
+        if (cannonToVertex.type != HitResult.Type.MISS) return false // returns if path to parabola vertex is obstructed
 
-        val vertexToChuteResult = clip(getVertexOfParabola(location), location.add(0.0,0.0,0.0))
-        
-        return !(vertexToChuteResult.type==HitResult.Type.MISS || vertexToChuteResult.blockPos != BlockPos(location.x,location.y,location.z))
+        val vertexToChute = clip(vertex, chuteRealLocation)
+        if (vertexToChute.type == HitResult.Type.MISS || vertexToChute.blockPos != chuteBlockLocation) return false
+
+        return true
+
     }
 
     fun clip(from: Vec3, to: Vec3): BlockHitResult {
@@ -241,7 +243,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         val be = level!!.getBlockEntity(chute) as DeliveryChuteBlockEntity
 
         val attempt = be.receiveItem(currentStack,true)
-        val obs = obstructionChecker(ActiveChutes.getChuteRealPos(chute)!!)
+        val obs = obstructionChecker(chute, ActiveChutes.getChuteRealPos(chute)!!)
 
         if (obs && attempt) {
             transportStack = currentStack.copy()
@@ -324,7 +326,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         behaviours.add(frequencySlotBehaviour)
 
         distributionModeBehaviour = ScrollOptionBehaviour<DistributionMode>(
-            DistributionMode::class.java, Lang.translateDirect("contraptions.movement_mode"),
+            DistributionMode::class.java, CreateLang.translateDirect("contraptions.movement_mode"),
             this, FrequencySlot()
         )
         distributionModeBehaviour.withCallback { t: Int? -> roundRobin = t==0 }
@@ -396,11 +398,11 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
         var shouldShow = false
 
-        tooltip.add(Components.literal("     Delivery Cannon Information").withStyle(ChatFormatting.WHITE))
+        tooltip.add(Component.literal("     Delivery Cannon Information").withStyle(ChatFormatting.WHITE))
         if (!currentStack.isEmpty) {
-            Lang.translate(
+            ClockworkLang.translate(
                 "tooltip.chute.contains",
-                Components.translatable(currentStack.getDescriptionId()).string,
+                Component.translatable(currentStack.getDescriptionId()).string,
                 currentStack.getCount()
             )
                 .style(ChatFormatting.GREEN)
@@ -409,7 +411,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         }
         if (gunPowderTicks>0) {
 
-            tooltip.add(Components.literal((gunPowderTicks/1200).toString() + "m " + (gunPowderTicks/20%60).toString() + "s of gunpowder left")
+            tooltip.add(Component.literal((gunPowderTicks/1200).toString() + "m " + (gunPowderTicks/20%60).toString() + "s of gunpowder left")
                 .withStyle(ChatFormatting.GOLD))
 
             shouldShow = true
@@ -421,22 +423,22 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
 
     public class FrequencySlot : ValueBoxTransform.Sided() {
-        override fun getLocalOffset(state: BlockState): Vec3 {
-            return if (direction != Direction.UP) super.getLocalOffset(state) else Vec3(.5, 10.5 / 16f, .5).add(
+        override fun getLocalOffset(level: LevelAccessor, pos: BlockPos, state: BlockState): Vec3 {
+            return if (direction != Direction.UP) super.getLocalOffset(level, pos, state) else Vec3(.5, 10.5 / 16f, .5).add(
                 VecHelper.rotate(
                     VecHelper.voxelSpace(0.0, 0.0, -5.0), angle(state).toDouble(), Direction.Axis.Y
                 )
             )
         }
 
-        override fun rotate(state: BlockState, ms: PoseStack) {
+        override fun rotate(level: LevelAccessor, pos: BlockPos, state: BlockState, ms: PoseStack) {
             if (direction != Direction.UP) {
-                super.rotate(state, ms)
+                super.rotate(level, pos, state, ms)
                 return
             }
-            TransformStack.cast(ms)
-                .rotateY(angle(state).toDouble())
-                .rotateX(90.0)
+            TransformStack.of(ms)
+                .rotateYDegrees(angle(state))
+                .rotateXDegrees(90.0f)
         }
 
         private fun angle(state: BlockState): Float {

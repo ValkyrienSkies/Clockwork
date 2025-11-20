@@ -6,18 +6,19 @@ import org.valkyrienskies.clockwork.content.forces.data.ForceApplierUpdateData
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
-import org.valkyrienskies.core.api.ships.ShipForcesInducer
+import org.valkyrienskies.core.api.ships.ShipPhysicsListener
+import org.valkyrienskies.core.api.world.PhysLevel
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 
-interface MultiInstanceForceApplier<A: ForceApplierUpdateData, D: ForceApplierData<A>, C: ForceApplierCreateData<D>>: ShipForcesInducer {
+interface MultiInstanceForceApplier<A: ForceApplierUpdateData, D: ForceApplierData<A>, C: ForceApplierCreateData<D>>: ShipPhysicsListener {
     val appliers: HashMap<Int, D>
     val applierUpdateData: ConcurrentLinkedQueue<Pair<Int, A>>
     val createdAppliers: ConcurrentLinkedQueue<Pair<Int, C>>
     val removedAppliers: ConcurrentLinkedQueue<Int>
     var nextApplierID: Int
 
-    override fun applyForces(physShip: PhysShip) {
+    override fun physTick(physShip: PhysShip, physLevel: PhysLevel) {
         pollChanges()
     }
 
@@ -51,7 +52,7 @@ interface MultiInstanceForceApplier<A: ForceApplierUpdateData, D: ForceApplierDa
     }
 
     companion object {
-        fun getOrCreate(ship: ServerShip): MultiInstanceForceApplier<*, *, *>? {
+        fun getOrCreate(ship: LoadedServerShip): MultiInstanceForceApplier<*, *, *>? {
             throw IllegalArgumentException("Invalid data type")
         }
     }

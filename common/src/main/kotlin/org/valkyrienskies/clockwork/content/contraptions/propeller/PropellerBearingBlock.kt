@@ -2,8 +2,8 @@ package org.valkyrienskies.clockwork.content.contraptions.propeller
 
 import com.simibubi.create.content.contraptions.bearing.BearingBlock
 import com.simibubi.create.foundation.block.IBE
-import com.simibubi.create.foundation.utility.Couple
-import com.simibubi.create.foundation.utility.Lang
+import net.createmod.catnip.data.Couple
+import net.createmod.catnip.lang.Lang
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.util.StringRepresentable
@@ -36,9 +36,7 @@ class PropellerBearingBlock(properties: Properties) : BearingBlock(properties), 
     ): InteractionResult {
         if (!player.mayBuild()) return InteractionResult.FAIL
         if (player.isShiftKeyDown) return InteractionResult.FAIL
-        if (player.getItemInHand(handIn)
-                .isEmpty
-        ) {
+        if (player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty) {
             if (!worldIn.isClientSide) {
                 withBlockEntityDo(
                     worldIn,

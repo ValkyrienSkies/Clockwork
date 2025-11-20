@@ -1,14 +1,16 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand
 
-import com.jozufozu.flywheel.util.AnimationTickHolder
-import com.jozufozu.flywheel.util.transform.TransformStack
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer
+import dev.engine_room.flywheel.lib.transform.PoseTransformStack
+import dev.engine_room.flywheel.lib.transform.TransformStack
+import net.createmod.catnip.animation.AnimationTickHolder
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.block.model.ItemTransforms
 import net.minecraft.util.Mth
+import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import org.joml.Vector3f
 import org.valkyrienskies.clockwork.ClockworkItems
@@ -27,7 +29,7 @@ class WanderwandItemRenderer() : CustomRenderedItemModelRenderer() {
         stack: ItemStack,
         model: CustomRenderedItemModel?,
         renderer: PartialItemModelRenderer?,
-        transformType: ItemTransforms.TransformType?,
+        transformType: ItemDisplayContext,
         ms: PoseStack,
         buffer: MultiBufferSource,
         light: Int,
@@ -40,7 +42,7 @@ class WanderwandItemRenderer() : CustomRenderedItemModelRenderer() {
         }
 
         if (stack.`is`(ClockworkItems.WANDERWAND.get())) {
-            val stacker = TransformStack.cast(ms)
+            val stacker = TransformStack.of(ms)
             ms.pushPose()
             renderer!!.renderSolid(model!!.originalModel, light)
             val ww: WanderwandItem = stack.item as WanderwandItem
@@ -56,7 +58,7 @@ class WanderwandItemRenderer() : CustomRenderedItemModelRenderer() {
 
     private fun animateIdle(
         ms: PoseStack,
-        stacker: TransformStack,
+        stacker: PoseTransformStack,
         light: Int,
         progress: Float,
         renderer: PartialItemModelRenderer
@@ -69,7 +71,7 @@ class WanderwandItemRenderer() : CustomRenderedItemModelRenderer() {
         val innerData = TransformData(Vector3f(0f, 0f, 0f), Vector3f(i, i, 0f))
         val data = TransformData(Vector3f(0f, 0f, 0f), Vector3f(0f, i, 0f))
         val heightAlt = 6f / 16f + sin(easeInOutSine(progress).toDouble()).toFloat() / 16f
-        stacker.translateY((heightAlt * 0.05f).toDouble())
+        stacker.translateY((heightAlt * 0.05f))
         ms.translate(0.0,heightAlt + 0.5,0.0)
         ms.pushPose()
         RenderUtil.renderCubeMatrix(ms, renderer, innerData, data, 1.5f, light)

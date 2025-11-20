@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllKeys
 import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.entity.player.Player
@@ -62,7 +63,7 @@ open class GravitronHandler {
         selectionScreen!!.update()
     }
 
-    fun render(poseStack: PoseStack, partialTicks: Float, width: Int, height: Int) {
+    fun render(poseStack: GuiGraphics, partialTicks: Float, width: Int, height: Int) {
         if (Minecraft.getInstance().options.hideGui || !active) {
             return
         }
@@ -72,7 +73,7 @@ open class GravitronHandler {
             overlay!!.renderWanderlite(poseStack, activeHotbarSlot, partialTicks)
         }
 
-        currentTool!!.tool.renderOverlay(poseStack, partialTicks, width, height)
+        currentTool!!.tool.renderOverlay(poseStack.pose(), partialTicks, width, height)
         selectionScreen!!.renderPassive(poseStack, partialTicks)
     }
 
@@ -128,7 +129,7 @@ open class GravitronHandler {
         if (!active) {
             return
         }
-        if (key != AllKeys.TOOL_MENU.boundCode) {
+        if (!AllKeys.TOOL_MENU.doesModifierAndCodeMatch(key)) {
             return
         }
 

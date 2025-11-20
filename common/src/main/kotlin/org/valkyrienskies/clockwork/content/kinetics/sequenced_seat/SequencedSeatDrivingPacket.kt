@@ -20,7 +20,7 @@ class SequencedSeatDrivingPacket : C2SCWPacket {
 
     override fun handle(context: ServerNetworkContext) {
         context.enqueueWork {
-            val level = context.sender.level
+            val level = context.sender.level()
             val entity = level.getEntity(seatId)
             if (entity is SequencedSeatEntity && context.sender == entity.firstPassenger) {
                 val be = level.getBlockEntity(entity.blockPosition())

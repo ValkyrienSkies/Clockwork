@@ -1,17 +1,74 @@
 package org.valkyrienskies.clockwork.util
 
+import com.google.gson.Gson
+import com.google.gson.JsonElement
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.server.packs.resources.ResourceManager
+import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener
 import net.minecraft.util.Mth
+import net.minecraft.util.profiling.ProfilerFiller
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.content.forces.DragController
+import org.valkyrienskies.clockwork.util.AerodynamicUtils.Parameters
+import org.valkyrienskies.clockwork.util.AerodynamicUtils.dimensionMap
+import org.valkyrienskies.core.api.world.properties.DimensionId
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.api.DuctNetwork.Companion.idealGasConstant
 import kotlin.collections.HashMap
 import kotlin.math.*
 
+object AtmosphereParametersResolver: SimpleJsonResourceReloadListener(Gson(), "atmosphere_parameters") {
+    override fun apply(
+        objects: Map<ResourceLocation?, JsonElement?>,
+        resourceManager: ResourceManager,
+        profiler: ProfilerFiller
+    ) {
+        val temp = hashMapOf<String, Parameters>()
+
+        objects.forEach { (key, value) ->
+            if (key == null || value == null) {return@forEach}
+            try {
+                if (value.isJsonArray) {
+                    value.asJsonArray.forEach { parse(it, temp) }
+                } else if (value.isJsonObject) {
+                    parse(value, temp)
+                } else throw IllegalArgumentException()
+            } catch (e: Exception) {
+                ClockworkMod.LOGGER.error(e.stackTraceToString())
+            }
+        }
+
+        dimensionMap = temp
+    }
+
+    //TODO add dimensionId verification somehow?
+    private fun parse(element: JsonElement, map: MutableMap<String, Parameters>) {
+        val maxYPos = element.asJsonObject["maxYPos"]?.asDouble ?: throw NoSuchElementException("Parameter \"maxYPos\" wasn't filled")
+        val seaLevel = element.asJsonObject["seaLevel"]?.asDouble ?: throw NoSuchElementException("Parameter \"seaLevel\" wasn't filled")
+        val dimensionId = element.asJsonObject["dimensionId"]?.asString ?: throw NoSuchElementException("Parameter \"dimensionId\" wasn't filled")
+        val priority = element.asJsonObject["priority"]?.asInt ?: 0
+
+        map.getOrPut(dimensionId) { Parameters(maxYPos, seaLevel, priority) }.also {
+            if (it.priority < priority) {
+                map[dimensionId] = Parameters(maxYPos, seaLevel, priority)
+            }
+        }
+    }
+}
+
 /**
  * Contains useful functions for features that need funny wind maths. Mainly drag and balloons.
  */
 object AerodynamicUtils {
+    data class Parameters(val maxY: Double, val seaLevel: Double, val priority: Int = -1)
+
+    var dimensionMap: HashMap<DimensionId, Parameters> = HashMap()
+    const val DEFAULT_MAX = 562.0
+    const val DEFAULT_SEA_LEVEL = 62.0
+
+    val defaultParameters = Parameters(DEFAULT_MAX, DEFAULT_SEA_LEVEL)
+
+    fun getAtmosphereForDimension(id: DimensionId) = dimensionMap[id] ?: defaultParameters
+
 
     /**
      * Returns the density of air at a Y value adapted to a real life altitude, where Y = 60 is sea level, and Y = 320 is the top of the Troposphere.
@@ -40,11 +97,15 @@ object AerodynamicUtils {
      * @return The air density at the given Y value, in kg/m^3.
      * @see <a href="https://en.wikipedia.org/wiki/Barometric_formula">Wikipedia source for krabber patter formuler</a>
      */
-    fun getAirDensityForY(y: Double, maxHeight: Double): Double {
-        val worldScale = 11000.0 / (maxHeight - 63.0)
+    fun getAirDensityForY(y: Double, dimension: DimensionId): Double {
+        val (maxHeight, seaLevel) = getAtmosphereForDimension(dimension)
+        if (maxHeight <= 0.0) {
+            return 0.0
+        }
+        val worldScale = 71000.0 / (maxHeight - seaLevel)
 
-        val realAltitude = if ((y - 63.0) * worldScale >= 0) {
-            (y - 63.0) * worldScale
+        val realAltitude = if ((y - seaLevel) * worldScale >= 0) {
+            (y - seaLevel) * worldScale
         } else {
             0.0
         }
@@ -58,6 +119,7 @@ object AerodynamicUtils {
             realAltitude < 71000 -> 5
             else -> 6
         }
+        //println("Height: $y, Real Altitude: $realAltitude, Layer: $layer")
 
         val hb = when (layer) {
             0 -> 0.0
@@ -115,11 +177,15 @@ object AerodynamicUtils {
         }
     }
 
-    fun getAirPressureForY(y: Double, maxHeight: Double): Double {
-        val worldScale = 11000.0 / (maxHeight - 63.0)
+    fun getAirPressureForY(y: Double, dimension: DimensionId): Double {
+        val (maxHeight, seaLevel) = getAtmosphereForDimension(dimension)
+        if (maxHeight <= 0.0) {
+            return 0.0
+        }
+        val worldScale = 71000.0 / (maxHeight - seaLevel)
 
-        val realAltitude = if ((y - 63.0) * worldScale >= 0) {
-            (y - 63.0) * worldScale
+        val realAltitude = if ((y - seaLevel) * worldScale >= 0) {
+            (y - seaLevel) * worldScale
         } else {
             0.0
         }
@@ -190,11 +256,15 @@ object AerodynamicUtils {
         }
     }
 
-    fun getAirTemperatureForY(y: Double, maxHeight: Double): Double {
-        val worldScale = 11000.0 / (maxHeight - 63.0)
+    fun getAirTemperatureForY(y: Double, dimension: DimensionId): Double {
+        val (maxHeight, seaLevel) = getAtmosphereForDimension(dimension)
+        if (maxHeight <= 0.0) {
+            return 0.0
+        }
+        val worldScale = 71000.0 / (maxHeight - seaLevel)
 
-        val realAltitude = if ((y - 63.0) * worldScale >= 0) {
-            (y - 63.0) * worldScale
+        val realAltitude = if ((y - seaLevel) * worldScale >= 0) {
+            (y - seaLevel) * worldScale
         } else {
             0.0
         }
@@ -243,7 +313,7 @@ object AerodynamicUtils {
         }
 
         return when (L != 0.0) {
-            true -> Tb + (L * (realAltitude - hb))
+            true -> Tb - ((realAltitude - hb) * L)
             else -> Tb
         }
     }
@@ -498,7 +568,7 @@ object AerodynamicUtils {
 
     // useful values
 
-    const val DRAG_COEFFICIENT = 4.15
+    const val DRAG_COEFFICIENT = 2.18
     const val GRAVITATIONAL_ACCELERATION = 9.80665
     const val UNIVERSAL_GAS_CONSTANT = 8.314
     const val AIR_MOLAR_MASS = 0.0289644

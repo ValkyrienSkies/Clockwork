@@ -2,7 +2,7 @@ package org.valkyrienskies.clockwork.fabric;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
-import io.github.fabricators_of_create.porting_lib.event.common.LivingEntityEvents;
+import io.github.fabricators_of_create.porting_lib.entity.events.LivingEntityEvents;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
@@ -13,8 +13,6 @@ import net.minecraft.resources.ResourceLocation;
 import org.valkyrienskies.clockwork.*;
 //import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer;
 import org.valkyrienskies.clockwork.content.events.ClockworkCommonEvents;
-import org.valkyrienskies.clockwork.fabric.config.AllClockworkConfigs;
-import org.valkyrienskies.clockwork.fabric.integration.cc.ClockworkFabricPeripheralProviders;
 import org.valkyrienskies.mod.compat.clothconfig.VSClothConfig;
 import org.valkyrienskies.mod.fabric.common.ValkyrienSkiesModFabric;
 
@@ -25,6 +23,7 @@ public class ClockworkModFabric implements ModInitializer {
         new ValkyrienSkiesModFabric().onInitialize();
 
         ClockworkTags.INSTANCE.init();
+        ClockworkSounds.register();
         ClockworkBlocks.register();
         ClockworkItems.register();
 
@@ -35,32 +34,28 @@ public class ClockworkModFabric implements ModInitializer {
         FabricClockworkEntities.register();
         FabricClockworkFluids.register();
 
-        ClockworkSounds.register();
+        ClockworkContraptions.init();
+
+
         FabricClockworkSounds.prepare();
 
         ClockworkMod.INSTANCE.getREGISTRATE().register();
 
+        RegisterResourceManagers.INSTANCE.init();
+
         ClockworkMod.init();
-        //FabricClockworkWorldgen.bootstrap();
         //AllClockworkConfigs.init();
 
         ClockworkParticles.init();
         FabricClockworkSounds.init();
         registerServerEvents();
 
-        if (FabricLoader.getInstance().isModLoaded("computercraft")) {
-            ClockworkFabricPeripheralProviders.register();
-        }
-
-        var gearwork = new ResourceLocation(ClockworkMod.MOD_ID, "gearwork");
-        FabricLoader.getInstance().getModContainer(ClockworkMod.MOD_ID).ifPresent(container -> ResourceManagerHelper.registerBuiltinResourcePack(gearwork, container, "Clockwork: Gearwork", ResourcePackActivationType.NORMAL));
-
         ClockworkBoilerHeaters.INSTANCE.init();
     }
 
     public static void registerServerEvents() {
         ServerTickEvents.START_WORLD_TICK.register(ClockworkCommonEvents.INSTANCE::onWorldTick);
-        LivingEntityEvents.TICK.register(FabricClockworkCommonEvents::onLivingTick);
+        LivingEntityEvents.LivingTickEvent.TICK.register(FabricClockworkCommonEvents::onLivingTick);
         AttackBlockCallback.EVENT.register(FabricClockworkCommonEvents::playerLeftClick);
     }
 

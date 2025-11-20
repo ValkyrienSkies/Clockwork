@@ -12,8 +12,8 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.INamedIconOptions
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour
 import com.simibubi.create.foundation.gui.AllIcons
-import com.simibubi.create.foundation.utility.Lang
 import com.simibubi.create.foundation.utility.ServerSpeedProvider
+import net.createmod.catnip.lang.Lang
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
@@ -112,9 +112,9 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
             for ((key, value) in blocks) {
                 if (value.state.`is`(ClockworkBlocks.BLADE_CONTROLLER.get())) {
                     val shouldUpdate = true
-                    if (shouldUpdate) {
-                        value.nbt.putBoolean("ShouldUpdatePhys", false)
-                        blades = BladeData.fromTag(value.nbt)
+                    if (shouldUpdate && value.nbt != null) {
+                        value.nbt!!.putBoolean("ShouldUpdatePhys", false)
+                        blades = BladeData.fromTag(value.nbt!!)
                     }
                 }
             }

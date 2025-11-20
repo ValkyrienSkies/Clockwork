@@ -2,12 +2,13 @@ package org.valkyrienskies.clockwork
 
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.foundation.gui.UIRenderHelper
-import com.simibubi.create.foundation.gui.element.ScreenElement
-import com.simibubi.create.foundation.utility.Color
+import net.createmod.catnip.gui.UIRenderHelper
+import net.createmod.catnip.gui.element.ScreenElement
+import net.createmod.catnip.theme.Color
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.gui.GuiComponent
+import net.minecraft.client.gui.Gui
+import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.resources.ResourceLocation
 
 enum class ClockworkGuiTextures(
@@ -31,6 +32,8 @@ enum class ClockworkGuiTextures(
     GAS_FILTER_TAB("gas_filter_menu", 214, 104),
     GAS_FILTER_FRAME("gas_filter_menu", 0,104,214, 49),
     GAS_FILTER_ELEMENT("gas_filter_menu", 0,153,75, 18),
+
+    SMART_DUCT_BG("smart_duct", 0,0,165, 73),
 
 
     COMMAND_SEAT("command_seat", 173, 159),
@@ -66,19 +69,12 @@ enum class ClockworkGuiTextures(
     }
 
     @Environment(EnvType.CLIENT)
-    override fun render(ms: PoseStack, x: Int, y: Int) {
-        bind()
-        GuiComponent.blit(ms, x, y, 0, startX.toFloat(), startY.toFloat(), width, height, 256, 256)
+    override fun render(ms: GuiGraphics, x: Int, y: Int) {
+        ms.blit(location, x, y, 0, startX.toFloat(), startY.toFloat(), width, height, 256, 256)
     }
 
     @Environment(EnvType.CLIENT)
-    fun render(ms: PoseStack, x: Int, y: Int, component: GuiComponent) {
-        bind()
-        component.blit(ms, x, y, startX, startY, width, height)
-    }
-
-    @Environment(EnvType.CLIENT)
-    fun render(ms: PoseStack?, x: Int, y: Int, c: Color?) {
+    fun render(ms: GuiGraphics?, x: Int, y: Int, c: Color?) {
         bind()
         UIRenderHelper.drawColoredTexture(ms, c, x, y, startX, startY, width, height)
     }

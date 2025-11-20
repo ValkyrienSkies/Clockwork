@@ -1,12 +1,10 @@
 package org.valkyrienskies.clockwork
 
-import com.simibubi.create.foundation.sound.SoundScapes
-import com.simibubi.create.foundation.utility.AnimationTickHolder
-import com.simibubi.create.foundation.utility.Pair
 import com.simibubi.create.infrastructure.config.AllConfigs
-import com.tterrag.registrate.fabric.TriFunction
+import net.createmod.catnip.animation.AnimationTickHolder
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
+import net.minecraft.data.models.blockstates.PropertyDispatch.QuadFunction
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.util.sound.SoundScape
 import org.valkyrienskies.core.api.ships.Ship
@@ -15,7 +13,6 @@ import org.valkyrienskies.mod.common.toWorldCoordinates
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
 import java.util.*
-import java.util.function.BiFunction
 import java.util.function.Consumer
 
 object ClockworkSoundScapes {
@@ -26,28 +23,40 @@ object ClockworkSoundScapes {
 
     const val SOUND_VOLUME_ARG_MAX: Int = 15
 
-    enum class AmbienceGroup(private val factory: TriFunction<Float, AmbienceGroup, Ship?, SoundScape>) {
-        RICKETY({ pitch: Float, group: AmbienceGroup, ship: Ship? -> rickety(pitch, group, ship) }),
-        PROPELLER({ pitch: Float, group: AmbienceGroup, ship: Ship? -> propeller(pitch, group, ship) }),
-        JURYRIGGED_PROPELLER({ pitch: Float, group: AmbienceGroup, ship: Ship? -> juryriggedPropeller(pitch, group, ship) }),
+    enum class AmbienceGroup(private val factory: QuadFunction<Float, AmbienceGroup, Ship?, BlockPos?, SoundScape>) {
+        RICKETY({ pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos? -> rickety(pitch, group, ship) }),
+        PROPELLER({ pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos? -> propeller(pitch, group, ship, pos) }),
+        JURYRIGGED_PROPELLER({ pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos? -> juryriggedPropeller(pitch, group, ship, pos) }),
+        THRUSTER({ pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos? -> thruster(pitch, group, ship, pos) }),
+        GAS_HISS({ pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos? -> gasHiss(pitch, group, ship, pos) })
         ;
 
-        fun instantiate(pitch: Float, ship: Ship?): SoundScape {
-            return factory.apply(pitch, this, ship)
+        fun instantiate(pitch: Float, ship: Ship?, pos: BlockPos?): SoundScape {
+            return factory.apply(pitch, this, ship, pos)
         }
     }
+
+
 
     private fun rickety(pitch: Float, group: AmbienceGroup, ship: Ship?): SoundScape {
         return SoundScape(pitch, group, ship).repeating(ClockworkSounds.JUNK_RATTLE.mainEvent!!, 1.5f, 1f, 30)
     }
 
-    private fun propeller(pitch: Float, group: AmbienceGroup, ship: Ship?): SoundScape {
-        return SoundScape(pitch, group, ship).continuous(ClockworkSounds.PROPELLER.mainEvent!!, 2f, 1f, ship)
+    private fun propeller(pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos?): SoundScape {
+        return SoundScape(pitch, group, ship).continuous(ClockworkSounds.PROPELLER.mainEvent!!, 2f, 1f, ship, pos)
     }
 
-    private fun juryriggedPropeller(pitch: Float, group: AmbienceGroup, ship: Ship?): SoundScape {
-        return SoundScape(pitch, group, ship).continuous(ClockworkSounds.JUNK_PROPELLER.mainEvent!!, 4f, 1f, ship)
+    private fun juryriggedPropeller(pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos?): SoundScape {
+        return SoundScape(pitch, group, ship).continuous(ClockworkSounds.JUNK_PROPELLER.mainEvent!!, 4f, 1f, ship, pos)
             .repeating(ClockworkSounds.JUNK_RATTLE.mainEvent!!, 1.5f, 1f, 30)
+    }
+
+    private fun thruster(pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos?): SoundScape {
+        return SoundScape(pitch, group, ship).repeating(ClockworkSounds.THRUSTER.mainEvent!!, 3f, 1f, 0)
+    }
+
+    private fun gasHiss(pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos?): SoundScape {
+        return SoundScape(pitch, group, ship).repeating(ClockworkSounds.GAS_HISS.mainEvent!!, 3f, 1f, 0)
     }
 
     enum class PitchGroup {
@@ -61,7 +70,6 @@ object ClockworkSoundScapes {
 
     fun play(group: AmbienceGroup, pos: BlockPos, pitch: Float) {
         if (!AllConfigs.client().enableAmbientSounds.get()) return
-        //val realPos = BlockPos(Minecraft.getInstance().player?.level?.toWorldCoordinates(pos.toJOMLD())?.toMinecraft() ?: Vec3.atLowerCornerOf(pos))
         if (!outOfRange(pos)) addSound(group, pos, pitch)
     }
 
@@ -94,6 +102,7 @@ object ClockworkSoundScapes {
 
     private fun addSound(group: AmbienceGroup, pos: BlockPos, pitch: Float) {
         val groupFromPitch = getGroupFromPitch(pitch)
+        val realPos = BlockPos.containing(Minecraft.getInstance().player?.level()?.toWorldCoordinates(pos.toJOMLD())?.toMinecraft() ?: Vec3.atLowerCornerOf(pos))
         val set = counter.computeIfAbsent(group) { ag: AmbienceGroup -> IdentityHashMap() }
             .computeIfAbsent(groupFromPitch) { pg: PitchGroup? -> HashSet() }
         set.add(pos)
@@ -101,9 +110,9 @@ object ClockworkSoundScapes {
         val ship = Minecraft.getInstance().level?.getShipManagingPos(pos)
 
         val pair: Pair<AmbienceGroup, PitchGroup> =
-            Pair.of(group, groupFromPitch)
+            Pair(group, groupFromPitch)
         activeSounds.computeIfAbsent(pair) {
-            val soundScape = group.instantiate(pitch, ship)
+            val soundScape = group.instantiate(pitch, ship, realPos)
             soundScape.play()
             soundScape
         }
@@ -116,14 +125,14 @@ object ClockworkSoundScapes {
     }
 
     private fun outOfRange(pos: BlockPos): Boolean {
-        return !getCameraPos().closerThan(BlockPos(Minecraft.getInstance().player?.level?.toWorldCoordinates(pos.toJOMLD())?.toMinecraft() ?: Vec3.atLowerCornerOf(pos)), MAX_AMBIENT_SOURCE_DISTANCE.toDouble())
+        return !getCameraPos().closerThan(BlockPos.containing(Minecraft.getInstance().player?.level()?.toWorldCoordinates(pos.toJOMLD())?.toMinecraft() ?: Vec3.atLowerCornerOf(pos)), MAX_AMBIENT_SOURCE_DISTANCE.toDouble())
     }
 
     private fun getCameraPos(): BlockPos {
         val renderViewEntity = Minecraft.getInstance().cameraEntity
             ?: return BlockPos.ZERO
-        val playerLocation = renderViewEntity.level.toWorldCoordinates(renderViewEntity.blockPosition().toJOMLD());
-        return BlockPos(playerLocation.toMinecraft())
+        val playerLocation = renderViewEntity.level().toWorldCoordinates(renderViewEntity.blockPosition().toJOMLD());
+        return BlockPos.containing(playerLocation.toMinecraft())
     }
 
     fun getSoundCount(group: AmbienceGroup?, pitchGroup: PitchGroup?): Int {

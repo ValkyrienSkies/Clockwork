@@ -8,21 +8,26 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBox
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxRenderer
-import com.simibubi.create.foundation.utility.Iterate
-import com.simibubi.create.foundation.utility.Lang
-import com.simibubi.create.foundation.utility.VecHelper
+import com.simibubi.create.foundation.utility.CreateLang
 import com.simibubi.create.infrastructure.config.AllConfigs
+import net.createmod.catnip.data.Iterate
+import net.createmod.catnip.lang.Lang
+import net.createmod.catnip.math.VecHelper
+import net.createmod.catnip.outliner.Outliner
 import net.minecraft.client.Minecraft
+import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
-import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkHandler.getFrontFacing
+import org.valkyrienskies.core.api.ships.ClientShip
+import org.valkyrienskies.mod.api.getShipManagingBlock
+import org.valkyrienskies.mod.common.util.toJOML
+import org.valkyrienskies.mod.common.util.toMinecraft
 
 object DualLinkRenderer {
 
@@ -41,15 +46,15 @@ object DualLinkRenderer {
         if (state.block !is FlapBearingBlock) return
 
         val type: BehaviourType<DualLinkBehaviour>
-        if (result.direction == getFrontFacing(state.getValue(BlockStateProperties.FACING))) type =  DualLinkBehaviour.FRONT_TYPE
+        if (result.direction == getFrontFacing(state)) type =  DualLinkBehaviour.FRONT_TYPE
         else type = DualLinkBehaviour.BACK_TYPE
 
 
 
         val behaviour = BlockEntityBehaviour.get(world, pos, type) ?: return
 
-        val freq1: Component = Lang.translateDirect("logistics.firstFrequency")
-        val freq2: Component = Lang.translateDirect("logistics.secondFrequency")
+        val freq1: Component = CreateLang.translateDirect("logistics.firstFrequency")
+        val freq2: Component = CreateLang.translateDirect("logistics.secondFrequency")
 
         for (first in Iterate.trueAndFalse) {
             val bb = AABB(Vec3.ZERO, Vec3.ZERO).inflate(.25)
@@ -62,7 +67,7 @@ object DualLinkRenderer {
 
             if (!empty) box.wideOutline()
 
-            CreateClient.OUTLINER.showValueBox(Pair.of(first, pos), box.transform(transform))
+            Outliner.getInstance().showOutline(Pair.of(first, pos), box.transform(transform))
                 .highlightFace(result.direction)
 
             if (!hit) continue
@@ -71,7 +76,7 @@ object DualLinkRenderer {
             val tip: MutableList<MutableComponent> = ArrayList()
             tip.add(label.copy())
             tip.add(
-                Lang.translateDirect(if (empty) "logistics.filter.click_to_set" else "logistics.filter.click_to_replace")
+                CreateLang.translateDirect(if (empty) "logistics.filter.click_to_set" else "logistics.filter.click_to_replace")
             )
             CreateClient.VALUE_SETTINGS_HANDLER.showHoverTip(tip)
         }
@@ -86,10 +91,14 @@ object DualLinkRenderer {
         if (be == null || be.isRemoved) return
 
         val cameraEntity = Minecraft.getInstance().cameraEntity
+        var bePos = VecHelper.getCenterOf(be.blockPos)
+
+        val ship = (be.level as ClientLevel).getShipManagingBlock(be.blockPos)
+        if (ship != null) bePos = (ship as ClientShip).renderTransform.shipToWorld.transformPosition(bePos.toJOML()).toMinecraft()
+
         val max = AllConfigs.client().filterItemRenderDistance.f
         if (!be.isVirtual && cameraEntity != null && cameraEntity.position()
-                .distanceToSqr(VecHelper.getCenterOf(be.blockPos)) > (max * max)
-        ) return
+                .distanceToSqr(bePos) > (max * max)) return
 
         for (type in mutableListOf(DualLinkBehaviour.FRONT_TYPE, DualLinkBehaviour.BACK_TYPE)) {
             val behaviour = be.getBehaviour(type) ?: continue
@@ -102,7 +111,7 @@ object DualLinkRenderer {
 
 
                 ms.pushPose()
-                transform.transform(be.blockState, ms)
+                transform.transform(be.level, be.blockPos, be.blockState, ms)
                 ValueBoxRenderer.renderItemIntoValueBox(stack, ms, buffer, light, overlay)
                 ms.popPose()
             }

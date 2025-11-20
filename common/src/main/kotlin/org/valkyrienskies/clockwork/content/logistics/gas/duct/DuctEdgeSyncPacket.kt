@@ -9,14 +9,15 @@ import net.minecraft.world.entity.player.Player
 import org.valkyrienskies.kelvin.api.ConnectionType
 import org.valkyrienskies.clockwork.platform.api.network.ClientNetworkContext
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket
+import org.valkyrienskies.kelvin.util.INodeBlockEntity
 
 class DuctEdgeSyncPacket : S2CCWPacket {
     override var player: Player? = null
     val pos: BlockPos
     val direction: Direction
-    val type: ConnectionType
+    val type: DuctEdgeType
 
-    constructor(pos: BlockPos, direction: Direction, type: ConnectionType) {
+    constructor(pos: BlockPos, direction: Direction, type: DuctEdgeType) {
         this.pos = pos
         this.direction = direction
         this.type = type
@@ -25,7 +26,7 @@ class DuctEdgeSyncPacket : S2CCWPacket {
     constructor(buffer: FriendlyByteBuf) {
         this.pos = buffer.readBlockPos()
         this.direction = buffer.readEnum(Direction::class.java)
-        this.type = buffer.readEnum(ConnectionType::class.java)
+        this.type = buffer.readEnum(DuctEdgeType::class.java)
     }
 
     override fun write(buffer: FriendlyByteBuf) {
@@ -40,9 +41,9 @@ class DuctEdgeSyncPacket : S2CCWPacket {
                     pos
                 ) is DuctBlockEntity
             ) {
-                val ce =
-                    Minecraft.getInstance().level!!.getBlockEntity(pos) as DuctBlockEntity?
-                ce?.setEdgeType(direction, type, true)
+                val ce = Minecraft.getInstance().level!!.getBlockEntity(pos) as DuctBlockEntity?
+                val be = Minecraft.getInstance().level!!.getBlockEntity(pos.relative(direction)) as? INodeBlockEntity ?: return@enqueueWork
+                ce?.setEdgeType(direction, be.getDuctNodePosition(),type, true)
             }
         }
         context.setPacketHandled(true)

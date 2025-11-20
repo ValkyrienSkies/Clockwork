@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.util.blocktype
 
-import com.simibubi.create.foundation.utility.Lang
+import net.createmod.catnip.lang.Lang
 import net.minecraft.util.StringRepresentable
 
 enum class LiquidFuelType : StringRepresentable {

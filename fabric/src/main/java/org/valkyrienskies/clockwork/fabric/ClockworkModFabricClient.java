@@ -3,9 +3,7 @@ package org.valkyrienskies.clockwork.fabric;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import io.github.fabricators_of_create.porting_lib.event.client.KeyInputCallback;
-import io.github.fabricators_of_create.porting_lib.event.client.MouseButtonCallback;
-import io.github.fabricators_of_create.porting_lib.event.client.MouseScrolledCallback;
-import io.github.fabricators_of_create.porting_lib.event.client.RegisterShadersCallback;
+import io.github.fabricators_of_create.porting_lib.event.client.MouseInputEvents;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -49,12 +47,12 @@ public class ClockworkModFabricClient implements ClientModInitializer {
 
         KeyInputCallback.EVENT.register(FabricClockworkInputEvents::onKeyInput);
 
-        MouseScrolledCallback.EVENT.register(FabricClockworkInputEvents::onMouseScrolled);
-        MouseButtonCallback.EVENT.register(FabricClockworkInputEvents::onMouseInput);
+        //todo move to archi
+        MouseInputEvents.BEFORE_SCROLL.register(FabricClockworkInputEvents::onMouseScrolled);
+        MouseInputEvents.BEFORE_BUTTON.register(FabricClockworkInputEvents::onMouseInput);
 
         BlockRenderLayerMap.INSTANCE.putBlock(ClockworkBlocks.GOO_BLOCK.get(), RenderType.translucent());
-        BlockRenderLayerMap.INSTANCE.putItem(ClockworkBlocks.GOO_BLOCK.get().asItem(), RenderType.translucent());
-        BlockRenderLayerMap.INSTANCE.putItem(ClockworkBlocks.SLICKER.get().asItem(), RenderType.translucent());
+        BlockRenderLayerMap.INSTANCE.putBlock(ClockworkBlocks.SLICKER.get(), RenderType.translucent());
     }
 
 //    private void registerShaders(ResourceManager resourceManager, RegisterShadersCallback.ShaderRegistry shaderRegistry) throws IOException {
@@ -73,5 +71,6 @@ public class ClockworkModFabricClient implements ClientModInitializer {
             Window window = Minecraft.getInstance().getWindow();
             GRAVITRON_HANDLER.render(graphics, partialTicks, window.getWidth(), window.getHeight());
         });
+
     }
 }

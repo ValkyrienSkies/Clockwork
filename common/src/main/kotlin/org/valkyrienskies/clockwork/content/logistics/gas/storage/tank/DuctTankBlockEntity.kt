@@ -1,49 +1,155 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.storage.tank
 
-import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
+import com.simibubi.create.api.connectivity.ConnectivityHandler
+import com.simibubi.create.foundation.blockEntity.IMultiBlockEntityContainer
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.NbtUtils
+import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
-import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.content.logistics.gas.IHeatableBlockEntity
+import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
-import org.valkyrienskies.mod.common.util.toJOMLD
 
-class DuctTankBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : SmartBlockEntity(type, pos, state), IHeatableBlockEntity {
+class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state),
+    IMultiBlockEntityContainer {
+
+    protected val maxHeight = 5
+
+    protected var heightCT = 1
+    protected var widthCT = 1
+
+    protected var controllerCT: BlockPos? = null
+    protected var lastKnownPosCT = blockPos
+
+    var updateConnectivity: Boolean = false
 
     override fun tick() {
         super.tick()
+
         if (level!!.isClientSide) return
+        if (updateConnectivity) updateConnectivity()
+    }
+
+    fun queueConnectivityUpdate() {
+        updateConnectivity = true
+    }
+
+    override fun read(tag: CompoundTag, clientPacket: Boolean) {
+
+        if (tag.contains("Controller")) controllerCT = NbtUtils.readBlockPos(tag.getCompound("Controller"))
+        if (tag.contains("Height")) heightCT = tag.getInt("Height")
+        if (tag.contains("Width")) widthCT = tag.getInt("Width")
+        super.read(tag, clientPacket)
+    }
+
+    override fun write(tag: CompoundTag, clientPacket: Boolean) {
+
+        tag.putInt("Height", height)
+        tag.putInt("Width", width)
+        if (controller != null) tag.put("Controller", NbtUtils.writeBlockPos(controller!!))
+        super.write(tag, clientPacket)
     }
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) {
         return
     }
 
+    fun updateConnectivity() {
+        if (level!!.isClientSide) return
+        if (!isController) return
+
+        updateConnectivity = false
+        ConnectivityHandler.formMulti(this)
+    }
+
     override fun getDuctNodePosition(): DuctNodePos {
-        if (level != null) {
-            return blockPos.toDuctNodePos(level!!.dimension().location())
+        return controller!!.toDuctNodePos(level!!.dimension().location())
+    }
+
+    override fun lazyTick() {
+        if (!isController) return
+        super.lazyTick()
+    }
+
+    override fun getController(): BlockPos? {
+        return if (isController) blockPos else controllerCT
+    }
+
+    // This is hideously stupid, but intelliJ won't let me do it in a normal way, so...
+    override fun <T> getControllerBE(): T? where T : BlockEntity?, T : IMultiBlockEntityContainer? {
+        if (isController) return this as T
+        return level?.getBlockEntity(controllerCT!!) as? T
+    }
+
+    override fun isController(): Boolean {
+        return controllerCT == null || controllerCT == blockPos
+    }
+
+    override fun setController(pos: BlockPos?) {
+        controllerCT = pos
+        notifyUpdate()
+        setChanged()
+        sendData()
+    }
+
+    override fun removeController(keepContents: Boolean) {
+        if (level!!.isClientSide) {return}
+        controllerCT = null
+        heightCT = 1
+        widthCT = 1
+        queueConnectivityUpdate()
+        notifyMultiUpdated()
+
+        var state = blockState
+        state = state.setValue(DuctTankBlock.LARGE, false)
+        level!!.setBlock(worldPosition, state, 22)
+
+        if (isController) {
+            (blockState.block as? DuctTankBlock)?.nodeRemove(blockState, level!!, blockPos, blockState, false)
         }
-        return blockPos.toDuctNodePos()
+
+        setChanged()
+        sendData()
     }
 
-    //todo: fern what the fuck is this code
-
-    override fun read(tag: CompoundTag, clientPacket: Boolean) {
-        super.read(tag, clientPacket)
-//        if (tag.contains("currentTemperature")) {
-//            ClockworkMod.getKelvin().nodeInfo[this.blockPos.toJOMLD()]?.currentTemperature = tag.getDouble("currentTemperature")
-//        }
-
+    override fun getLastKnownPos(): BlockPos {
+        return lastKnownPosCT
     }
 
-    override fun write(tag: CompoundTag, clientPacket: Boolean) {
-//        tag.putDouble("currentTemperature", ClockworkMod.getKelvin().getTemperatureAt(this.blockPos.toJOMLD()))
-
-        super.write(tag, clientPacket)
+    override fun preventConnectivityUpdate() {
+        updateConnectivity = false
     }
 
+    override fun notifyMultiUpdated() {
+        var state = blockState
+        if (state.block is DuctTankBlock) { // safety
+            state = state.setValue(DuctTankBlock.BOTTOM, controller!!.y == blockPos.y)
+            state = state.setValue(DuctTankBlock.TOP, controller!!.y + height - 1 == blockPos.y)
+            state = state.setValue(DuctTankBlock.LARGE, width > 1)
+            level!!.setBlock(blockPos, state,23)
+
+            if (isController) {
+                (blockState.block as? DuctTankBlock)?.nodeRemove(blockState, level!!, blockPos, blockState, false)
+                (blockState.block as? DuctTankBlock)?.nodePlace(blockState, level!!, blockPos, blockState, false)
+            }
+        }
+        setChanged()
+        notifyUpdate()
+    }
+
+    override fun getMainConnectionAxis(): Direction.Axis { return Direction.Axis.Y }
+
+    override fun getMaxLength(longAxis: Direction.Axis, width: Int): Int {
+        return if (longAxis === Direction.Axis.Y) maxHeight else maxWidth
+    }
+
+    override fun getMaxWidth(): Int = 3
+    override fun getHeight(): Int = heightCT
+    override fun setHeight(height: Int) { this.heightCT = height }
+    override fun getWidth(): Int = widthCT
+    override fun setWidth(width: Int) { this.widthCT = width }
 }

@@ -1,9 +1,9 @@
 package org.valkyrienskies.clockwork;
 
-import com.simibubi.create.foundation.utility.Components;
-import com.simibubi.create.foundation.utility.LangBuilder;
-import com.simibubi.create.foundation.utility.LangNumberFormat;
-import io.github.fabricators_of_create.porting_lib.util.FluidStack;
+import dev.architectury.fluid.FluidStack;
+import net.createmod.catnip.lang.Lang;
+import net.createmod.catnip.lang.LangBuilder;
+import net.createmod.catnip.lang.LangNumberFormat;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.ItemStack;
@@ -22,7 +22,7 @@ public class ClockworkLang {
      * @return
      */
     public static MutableComponent translateDirect(String key, Object... args) {
-        return Components.translatable(ClockworkMod.MOD_ID + "." + key, resolveBuilders(args));
+        return Component.translatable(ClockworkMod.MOD_ID + "." + key, resolveBuilders(args));
     }
 
     public static String asId(String name) {
@@ -64,7 +64,7 @@ public class ClockworkLang {
     }
 
     public static LangBuilder fluidName(FluidStack stack) {
-        return builder().add(stack.getDisplayName()
+        return builder().add(stack.getName()
                 .copy());
     }
 

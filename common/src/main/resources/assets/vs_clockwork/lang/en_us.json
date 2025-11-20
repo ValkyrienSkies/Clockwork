@@ -56,6 +56,17 @@
   "block.vs_clockwork.slicker": "Slicker",
   "item.vs_clockwork.slicker": "Slicker",
 
+  "item.vs_clockwork.music_disc_wanderlust": "Repaired Music Disc",
+  "item.vs_clockwork.music_disc_wanderlust.desc": "Tomato - wanderlust",
+  "item.vs_clockwork.music_disc_wanderlust.lore1": "You've restored this disc using a material not from this plane.",
+  "item.vs_clockwork.music_disc_wanderlust.lore2": "It holds together once more, but something about it feels... different.",
+
+  "block.vs_clockwork.distance_sensor": "Peepotron",
+  "item.vs_clockwork.distance_sensor": "Peepotron",
+  "block.vs_clockwork.gyroscopic_sensor": "Spinotron",
+  "item.vs_clockwork.gyroscopic_sensor": "Spinotron",
+
+
   "block.vs_clockwork.wanderlite_block": "Block of Wanderlite",
   "item.vs_clockwork.wanderlite_block": "Block of Wanderlite",
   "block.vs_clockwork.wanderlite_bricks": "Wanderlite Bricks",
@@ -107,8 +118,8 @@
   "item.vs_clockwork.duct": "Duct",
   "block.vs_clockwork.pump_duct": "Gas Pump",
   "item.vs_clockwork.pump_duct": "Gas Pump",
-  "block.vs_clockwork.valve_duct": "Pressure Valve",
-  "item.vs_clockwork.valve_duct": "Pressure Valve",
+  "block.vs_clockwork.valve_duct": "Gas Valve",
+  "item.vs_clockwork.valve_duct": "Gas Valve",
   "block.vs_clockwork.gas_nozzle": "Gas Nozzle",
   "item.vs_clockwork.gas_nozzle": "Gas Nozzle",
   "block.vs_clockwork.gas_vent": "Gas Vent",
@@ -135,6 +146,9 @@
   "item.vs_clockwork.physics_infuser": "Physics Infuser",
   "item.vs_clockwork.wanderwand": "Wanderwand",
 
+  "item.vs_clockwork.sugar_rocket": "Sugar Rocket",
+  "block.vs_clockwork.sugar_rocket": "Sugar Rocket",
+
   "vs_clockwork.subtitle.physinitialize": "Physics Infuser Initialized",
   "vs_clockwork.subtitle.physfinish": "Physics Infused",
   "vs_clockwork.subtitle.zap": "Zap!",
@@ -144,12 +158,15 @@
   "vs_clockwork.subtitle.tick": "Tick!",
   "vs_clockwork.subtitle.tock": "Tock!",
   "vs_clockwork.subtitle.clock_song": "Trailer moment.",
+  "vs_clockwork.subtitle.thruster": "Gas thruster roar",
+  "vs_clockwork.subtitle.gas_hiss": "Hissing gas",
 
   "vs_clockwork.subtitle.propeller": "Propeller spins",
   "vs_clockwork.subtitle.junk_propeller": "Jury-rigged propeller spins",
   "vs_clockwork.subtitle.junk_rattle": "Jury-rigged machinery rattles",
   "vs_clockwork.subtitle.propeller_start": "Propeller starting up",
   "vs_clockwork.subtitle.propeller_stop": "Propeller spinning down",
+
 
   "alt_meter.trigger_height": "Height",
   "sequenced_seat.operation.nothing": "None",

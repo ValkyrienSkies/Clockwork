@@ -305,5 +305,33 @@
       }
     ],
     "subtitle": "vs_clockwork.subtitle.propeller_stop"
+  },
+  "thruster": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:thruster",
+        "type": "file",
+        "attenuation_distance": 32
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.thruster"
+  },
+  "gas_hiss": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:gas_hiss",
+        "type": "file",
+        "attenuation_distance": 32
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.gas_hiss"
+  },
+  "wanderlust": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:wanderlust",
+        "stream": true
+      }
+    ]
   }
 }

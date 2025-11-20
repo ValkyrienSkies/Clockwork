@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.content.curiosities.particles
 
 import com.mojang.blaze3d.vertex.VertexConsumer
-import com.mojang.math.Quaternion
 import com.simibubi.create.content.equipment.bell.BasicParticleData
 import com.simibubi.create.content.equipment.bell.BasicParticleData.IBasicParticleFactory
 import com.simibubi.create.content.equipment.bell.CustomRotationParticle
@@ -64,8 +63,8 @@ class PhysLightningParticle(
         if (frame >= 0 && frame < totalFrames) setSprite(animatedSprite[frame, totalFrames])
     }
 
-    override fun getCustomRotation(camera: Camera, partialTicks: Float): Quaternion {
-        return Quaternion(0f, 0f, 0f, true)
+    override fun getCustomRotation(camera: Camera, partialTicks: Float): Quaternionf {
+        return Quaternionf()
     }
 
     class Data : BasicParticleData<PhysLightningParticle>() {

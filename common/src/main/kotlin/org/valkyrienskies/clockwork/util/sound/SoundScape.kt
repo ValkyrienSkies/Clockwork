@@ -1,10 +1,11 @@
 package org.valkyrienskies.clockwork.util.sound
 
-import com.simibubi.create.foundation.utility.AnimationTickHolder
-import com.simibubi.create.foundation.utility.VecHelper
 import com.simibubi.create.infrastructure.config.AllConfigs
+import net.createmod.catnip.animation.AnimationTickHolder
+import net.createmod.catnip.math.VecHelper
 import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.sounds.SoundInstance
+import net.minecraft.core.BlockPos
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.util.Mth
 import net.minecraft.world.phys.Vec3
@@ -26,8 +27,8 @@ class SoundScape(
 
     constructor(pitch: Float, group: ClockworkSoundScapes.AmbienceGroup, ship: Ship?) : this(pitch, group, null, ClockworkSoundScapes.getGroupFromPitch(pitch), ship)
 
-    fun continuous(sound: SoundEvent, relativeVolume: Float, relativePitch: Float, ship: Ship?): SoundScape {
-        return add(ContinuousSound(sound, this, pitch * relativePitch, relativeVolume, ship))
+    fun continuous(sound: SoundEvent, relativeVolume: Float, relativePitch: Float, ship: Ship?, pos: BlockPos?): SoundScape {
+        return add(ContinuousSound(sound, this, pitch * relativePitch, relativeVolume, ship, pos))
     }
 
     fun repeating(sound: SoundEvent, relativeVolume: Float, relativePitch: Float, delay: Int): SoundScape {

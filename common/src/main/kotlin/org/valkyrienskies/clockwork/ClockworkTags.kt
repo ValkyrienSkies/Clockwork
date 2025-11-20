@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork
 
 import net.minecraft.core.Registry
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.tags.TagKey
 import net.minecraft.world.item.Item
@@ -37,7 +38,8 @@ object ClockworkTags {
         optional: Boolean = namespace.optionalDefault,
         alwaysDatagen: Boolean = namespace.alwaysDatagenDefault
     ) {
-        BALLOON_BLOCK;
+        BALLOON_BLOCK,
+        SENSOR_LENS;
 
         val tag: TagKey<Block>
         val alwaysDatagen: Boolean
@@ -53,7 +55,7 @@ object ClockworkTags {
                 namespace.id,
                 path ?: ClockworkLang.asId(name)
             )
-            tag = optionalTag(Registry.BLOCK, id)
+            tag = optionalTag(BuiltInRegistries.BLOCK, id)
             this.alwaysDatagen = alwaysDatagen
         }
 
@@ -94,7 +96,7 @@ object ClockworkTags {
                 namespace.id,
                 path ?: ClockworkLang.asId(name)
             )
-            tag = optionalTag(Registry.ITEM, id)
+            tag = optionalTag(BuiltInRegistries.ITEM, id)
             this.alwaysDatagen = alwaysDatagen
         }
 

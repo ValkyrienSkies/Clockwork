@@ -17,19 +17,19 @@ public class ForgeClockworkShaders {
     @SubscribeEvent
     public static void registerShader(RegisterShadersEvent event) throws IOException {
         event.registerShader(
-                new ShaderInstance(event.getResourceManager(), "crystal", DefaultVertexFormat.NEW_ENTITY),
+                new ShaderInstance(event.getResourceProvider(), "crystal", DefaultVertexFormat.NEW_ENTITY),
                 shaderInstance -> {
                     //ClockworkShaders.crystal = shaderInstance;
                 }
         );
         event.registerShader(
-                new ShaderInstance(event.getResourceManager(), "heat", DefaultVertexFormat.NEW_ENTITY),
+                new ShaderInstance(event.getResourceProvider(), "heat", DefaultVertexFormat.NEW_ENTITY),
                 shaderInstance -> {
                     //ClockworkShaders.heat = shaderInstance;
                 }
         );
         event.registerShader(
-                new ShaderInstance(event.getResourceManager(), "haze", DefaultVertexFormat.NEW_ENTITY),
+                new ShaderInstance(event.getResourceProvider(), "haze", DefaultVertexFormat.NEW_ENTITY),
                 shaderInstance -> {
                     //ClockworkShaders.haze = shaderInstance;
                 }

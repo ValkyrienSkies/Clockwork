@@ -1,45 +1,40 @@
 package org.valkyrienskies.clockwork.forge;
 
-import com.simibubi.create.content.contraptions.chassis.StickerBlock;
-import com.simibubi.create.content.redstone.RoseQuartzLampBlock;
-import net.minecraft.client.Minecraft;
+import dev.architectury.platform.forge.EventBuses;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.ConfigGuiHandler;
-import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLLoader;
+import net.minecraftforge.registries.RegisterEvent;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
 import org.valkyrienskies.clockwork.forge.integration.cc.ClockworkForgePeripheralProviders;
 import org.valkyrienskies.mod.compat.clothconfig.VSClothConfig;
+import org.valkyrienskies.clockwork.util.AtmosphereParametersResolver;
 
+import static net.minecraftforge.common.MinecraftForge.EVENT_BUS;
 import static org.valkyrienskies.clockwork.ClockworkMod.MOD_ID;
 
 @Mod(MOD_ID)
 public class ClockworkModForge {
-
-    //final DeferredRegister<EntityDataSerializer<?>> DATA_SERIALIZER_REGISTER = DeferredRegister.create(ForgeRegistries.Keys.DATA_SERIALIZERS, MOD_ID);
-
     public ClockworkModForge() {
-        ModLoadingContext modLoadingContext = ModLoadingContext.get();
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
+        EventBuses.registerModEventBus(MOD_ID, modEventBus);
         ClockworkMod.INSTANCE.getREGISTRATE().registerEventListeners(modEventBus);
-
+        ClockworkSounds.register();
         ClockworkBlocks.register();
         ClockworkItems.register();
         ClockworkBlockEntities.register();
         ForgeClockworkBlockEntities.register();
 
-        ForgeClockworkFluids.register();
+        modEventBus.addListener(this::onRegister);
 
         ClockworkEntities.register();
         ForgeClockworkEntities.register();
@@ -48,38 +43,40 @@ public class ClockworkModForge {
 
         //AllClockworkConfigs.register(modLoadingContext);
 
-        ClockworkSounds.register();
+
         ClockworkPackets.init();
 
         ClockworkShaders.INSTANCE.init();
 
+        //todo: fix this you fucking moron
         //ForgeClockworkWorldgen.CONFIGURED_FEATURES.register(modEventBus);
         //ForgeClockworkWorldgen.PLACED_FEATURES.register(modEventBus);
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClockworkModForgeClient.onCtorClient(modEventBus));
 
         modEventBus.addListener(this::onClientSetup);
-
-        if (FMLLoader.getLoadingModList().getModFileById("computercraft") != null) {
-            ClockworkForgePeripheralProviders.register();
-        }
+        EVENT_BUS.addListener(this::registerResourceManagers);
 
         modEventBus.addListener(ClockworkModForge::init);
+        ClockworkMod.init();
 
-        //todo fix forge vscore issue
-        modLoadingContext.registerExtensionPoint(
-                ConfigGuiHandler.ConfigGuiFactory.class,
-                () -> new ConfigGuiHandler.ConfigGuiFactory((minecraft, screen) -> VSClothConfig.createConfigScreenFor(screen, ClockworkConfig.class))
-        );
+//        //todo fix forge vscore issue
+//        modLoadingContext.registerExtensionPoint(
+//                ConfigGuiHandler.ConfigGuiFactory.class,
+//                () -> new ConfigGuiHandler.ConfigGuiFactory((minecraft, screen) -> VSClothConfig.createConfigScreenFor(screen, ClockworkConfig.class))
+//        );
 
     }
 
-    public static void init(final FMLCommonSetupEvent event) {
-        event.enqueueWork(() -> {
-            ClockworkMod.init();
-            ClockworkShaders.INSTANCE.init();
-        });
+    private void onRegister(RegisterEvent evt) {
+        ClockworkContraptions.init();
     }
+
+    private void registerResourceManagers(AddReloadListenerEvent event) {
+        event.addListener(AtmosphereParametersResolver.INSTANCE);
+    }
+
+    public static void init(final FMLCommonSetupEvent event) {}
 
     private void onClientSetup(FMLClientSetupEvent event) {
         ItemBlockRenderTypes.setRenderLayer(ClockworkBlocks.GOO_BLOCK.get(), RenderType.translucent());

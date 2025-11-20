@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.util.blocktype
 
 import com.simibubi.create.foundation.block.IBE
-import com.simibubi.create.foundation.utility.Color
+import net.createmod.catnip.theme.Color
 import net.minecraft.core.BlockPos
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.storage.loot.LootContext
+import net.minecraft.world.level.storage.loot.LootParams
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
@@ -62,7 +63,7 @@ abstract class DyedWing(properties: Properties?) :
         return ClockworkBlockEntities.COLOR_BLOCK_ENTITY.get()
     }
 
-    override fun getDrops(state: BlockState, params: LootContext.Builder): MutableList<ItemStack> {
+    override fun getDrops(state: BlockState, params: LootParams.Builder): MutableList<ItemStack> {
         val drops = super.getDrops(state, params)
         drops.replaceAll { stack: ItemStack ->
             val be: ColorBlockEntity =

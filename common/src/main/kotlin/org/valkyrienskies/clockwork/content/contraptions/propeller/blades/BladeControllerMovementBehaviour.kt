@@ -1,10 +1,10 @@
 package org.valkyrienskies.clockwork.content.contraptions.propeller.blades
 
-import com.jozufozu.flywheel.core.virtual.VirtualRenderWorld
-import com.simibubi.create.content.contraptions.behaviour.MovementBehaviour
+import com.simibubi.create.api.behaviour.movement.MovementBehaviour
 import com.simibubi.create.content.contraptions.behaviour.MovementContext
 import com.simibubi.create.content.contraptions.render.ContraptionMatrices
-import com.simibubi.create.foundation.utility.AnimationTickHolder
+import com.simibubi.create.foundation.virtualWorld.VirtualRenderWorld
+import net.createmod.catnip.animation.AnimationTickHolder
 import net.fabricmc.loader.impl.lib.sat4j.core.Vec
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.core.Direction
@@ -71,11 +71,15 @@ class BladeControllerMovementBehaviour: MovementBehaviour {
         val bladeCount = blockEntityData.getInt("BladeCount")
         val bladeList = mutableListOf<ItemStack>()
         for (i in 1 .. bladeCount) {
-            bladeList.add(ItemStack.of(blades.getCompound("Blade$i")))
+            val bladeInList = blades.getCompound("Blades.Items[{Slot: ${i}b}]")
+            println(blades.toString())
+            val blade = ItemStack.of(bladeInList)
+            blade.getOrCreateTag().putDouble("BladeLength", bladeInList.getDouble("BladeLength"))
+
+            bladeList.add(blade)
         }
 
         val bladeAngle = if (blockEntityData.contains("BladeAngle")) blockEntityData.getDouble("BladeAngle") else 0.0
-        val bladeLength = if (blockEntityData.contains("BladeLength")) blockEntityData.getInt("BladeLength") else 1
 
         val bladeRotations = ArrayList<Float>()
 
@@ -83,6 +87,8 @@ class BladeControllerMovementBehaviour: MovementBehaviour {
             bladeRotations.add((360f / bladeCount.toFloat()) * i.toFloat())
         }
 
-        BladeControllerRenderer.renderShared(bladeList, bladeAngle.toFloat(), bladeLength.toFloat(), context.state, AnimationTickHolder.getPartialTicks(context.world), matrices.viewProjection, buffer, bladeRotations, true, matrices)
+        println(blades)
+        println(bladeList)
+        BladeControllerRenderer.renderShared(bladeList, bladeAngle.toFloat(), context.state, AnimationTickHolder.getPartialTicks(context.world), matrices.viewProjection, buffer, bladeRotations, true, matrices)
     }
 }

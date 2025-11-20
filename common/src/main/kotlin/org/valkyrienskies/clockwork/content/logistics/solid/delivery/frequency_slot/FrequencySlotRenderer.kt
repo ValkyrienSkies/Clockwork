@@ -4,8 +4,8 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxRenderer
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
-import com.simibubi.create.foundation.utility.VecHelper
 import com.simibubi.create.infrastructure.config.AllConfigs
+import net.createmod.catnip.math.VecHelper
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
@@ -38,11 +38,11 @@ open class FrequencySlotRenderer<T : SmartBlockEntity>(context: BlockEntityRende
             ?: return
 
 
-        if (!behaviour.slot.shouldRender(be.blockState) || Minecraft.getInstance().player!!.getItemInHand(InteractionHand.MAIN_HAND).descriptionId == "item.create.wrench") return
+        if (!behaviour.slot.shouldRender(be.level, be.blockPos, be.blockState) || Minecraft.getInstance().player!!.getItemInHand(InteractionHand.MAIN_HAND).descriptionId == "item.create.wrench") return
         val stack = behaviour.frequency.stack
 
         ms.pushPose()
-        behaviour.slot.transform(be.blockState, ms)
+        behaviour.slot.transform(be.level, be.blockPos, be.blockState, ms)
         ValueBoxRenderer.renderItemIntoValueBox(stack, ms, buffer, light, overlay)
         ms.popPose()
 

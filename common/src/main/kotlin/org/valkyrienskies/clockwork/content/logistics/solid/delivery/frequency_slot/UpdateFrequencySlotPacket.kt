@@ -25,9 +25,9 @@ class UpdateFrequencySlotPacket : C2SCWPacket {
     override fun handle(context: ServerNetworkContext) {
         context.enqueueWork {
 
-            val behaviour = BlockEntityBehaviour.get(context.sender.level, pos, FrequencySlotBehaviour.TYPE)
+            val behaviour = BlockEntityBehaviour.get(context.sender.level(), pos, FrequencySlotBehaviour.TYPE)
                 ?: return@enqueueWork
-            println(stack)
+
             behaviour.setFrequency(stack)
             behaviour.blockEntity.setChanged() // This forces the BE to save, which it doesn't do sometimes??
         }

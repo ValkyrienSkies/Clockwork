@@ -10,7 +10,6 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.Gravitro
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatEntity;
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlockEntity;
 import org.valkyrienskies.clockwork.fabric.*;
-import org.valkyrienskies.clockwork.platform.CWItem;
 import org.valkyrienskies.clockwork.platform.api.network.PacketChannel;
 
 import java.util.ArrayList;
@@ -23,7 +22,7 @@ public class SharedValuesImpl {
         return CHANNEL;
     }
 
-    public static BiConsumer<CWItem, CustomRenderedItemModelRenderer> customRenderedRegisterer() {
+    public static BiConsumer<Item, CustomRenderedItemModelRenderer> customRenderedRegisterer() {
         return BuiltinItemRendererRegistry.INSTANCE::register;
     }
 

@@ -3,8 +3,8 @@ package org.valkyrienskies.clockwork.util.fluid
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
-import com.simibubi.create.foundation.utility.NBTHelper
-import com.simibubi.create.foundation.utility.animation.LerpedFloat
+import net.createmod.catnip.animation.LerpedFloat
+import net.createmod.catnip.nbt.NBTHelper
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.Tag
@@ -139,7 +139,7 @@ abstract class CWFluidTankBehaviour protected constructor(
     override fun read(nbt: CompoundTag, clientPacket: Boolean) {
         super.read(nbt, clientPacket)
         val index = MutableInt(0)
-        NBTHelper.iterateCompoundList<Any>(
+        NBTHelper.iterateCompoundList(
             nbt.getList(type.name + "Tanks", Tag.TAG_COMPOUND.toInt())
         ) { c: CompoundTag ->
             if (index.toInt() >= tanks.size) return@iterateCompoundList

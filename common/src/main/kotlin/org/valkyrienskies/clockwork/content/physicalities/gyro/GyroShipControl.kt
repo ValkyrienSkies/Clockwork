@@ -5,7 +5,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.joml.Quaterniond
 import org.joml.Vector3d
-import org.valkyrienskies.core.api.ships.*
+import org.valkyrienskies.core.api.attachment.getAttachment
+import org.valkyrienskies.core.api.attachment.removeAttachment
+import org.valkyrienskies.core.api.ships.LoadedServerShip
+import org.valkyrienskies.core.api.ships.PhysShip
+import org.valkyrienskies.core.api.ships.ServerTickListener
+import org.valkyrienskies.core.api.ships.ShipPhysicsListener
+import org.valkyrienskies.core.api.world.PhysLevel
 import kotlin.math.abs
 import kotlin.math.exp
 
@@ -16,7 +22,7 @@ import kotlin.math.exp
     setterVisibility = JsonAutoDetect.Visibility.NONE
 )
 @JsonIgnoreProperties(ignoreUnknown = true)
-class GyroShipControl : ShipForcesInducer, ServerTickListener {
+class GyroShipControl : ShipPhysicsListener, ServerTickListener {
 
     private var targetRotation = Quaterniond()
     private var targetStrength = 1.0f
@@ -33,16 +39,14 @@ class GyroShipControl : ShipForcesInducer, ServerTickListener {
         private set
 
     @JsonIgnore
-    internal var ship: ServerShip? = null
+    internal var ship: LoadedServerShip? = null
 
     internal var speed: Float = 0f
 
-    override fun applyForces(physShip: PhysShip) {
+    override fun physTick(physShip: PhysShip, physLevel: PhysLevel) {
         if (gyros < 1) {
             return
         }
-
-        physShip as PhysShip
 
         val rotDif = targetRotation
             .mul(physShip.transform.shipToWorldRotation.invert(Quaterniond()), Quaterniond())
@@ -70,7 +74,7 @@ class GyroShipControl : ShipForcesInducer, ServerTickListener {
 
     private fun deleteIfEmpty() {
         if (gyros <= 0) {
-            ship?.saveAttachment<GyroShipControl>(null)
+            ship?.removeAttachment<GyroShipControl>()
         }
     }
 
@@ -92,10 +96,10 @@ class GyroShipControl : ShipForcesInducer, ServerTickListener {
     }
 
     companion object {
-        fun getOrCreate(ship: ServerShip): GyroShipControl {
+        fun getOrCreate(ship: LoadedServerShip): GyroShipControl {
             return ship.getAttachment<GyroShipControl>()
                 ?: GyroShipControl().also {
-                    ship.saveAttachment(it)
+                    ship.setAttachment(it)
                 }
         }
     }

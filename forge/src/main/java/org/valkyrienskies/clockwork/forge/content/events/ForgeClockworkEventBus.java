@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.forge.content.events;
 
-import com.simibubi.create.foundation.ModFilePackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
@@ -23,9 +22,6 @@ public class ForgeClockworkEventBus {
                 return;
             }
             IModFile modFile = modFileInfo.getFile();
-            event.addRepositorySource((consumer, constructor) -> {
-                consumer.accept(Pack.create(ClockworkMod.asResource("gearwork").toString(), false, () -> new ModFilePackResources("Clockwork: Gearwork", modFile, "resourcepacks/gearwork"), constructor, Pack.Position.TOP, PackSource.DEFAULT));
-            });
         }
     }
 }

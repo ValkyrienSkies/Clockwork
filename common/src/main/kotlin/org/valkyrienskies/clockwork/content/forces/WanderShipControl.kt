@@ -8,10 +8,13 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import net.minecraft.core.BlockPos
 import org.joml.Vector3d
 import org.joml.Vector3i
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.util.Vector3icKeyDeserializer
 import org.valkyrienskies.clockwork.util.Vector3icKeySerializer
 import org.valkyrienskies.core.api.ships.*
+import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.mod.common.util.toJOML
+import java.util.concurrent.ConcurrentHashMap
 
 @JsonAutoDetect(
     fieldVisibility = JsonAutoDetect.Visibility.ANY,
@@ -20,21 +23,23 @@ import org.valkyrienskies.mod.common.util.toJOML
     setterVisibility = JsonAutoDetect.Visibility.NONE
 )
 @JsonIgnoreProperties(ignoreUnknown = true)
-class WanderShipControl : ShipForcesInducer {
+class WanderShipControl : ShipPhysicsListener {
 
     @JsonSerialize(keyUsing = Vector3icKeySerializer::class)
     @JsonDeserialize(keyUsing = Vector3icKeyDeserializer::class)
-    val wanderBlocks: HashMap<Vector3i, Double> = HashMap()
+    val wanderBlocks: ConcurrentHashMap<Vector3i, Double> = ConcurrentHashMap()
 
-    override fun applyForces(physShip: PhysShip) {
+    override fun physTick(physShip: PhysShip, physLevel: PhysLevel) {
         val meanPos: Vector3d = Vector3d()
         for (blockPos in wanderBlocks.keys) {
-            meanPos.add(Vector3d(blockPos.x.toDouble(), blockPos.y.toDouble(), blockPos.z.toDouble()).sub(physShip.transform.positionInShip))
+            meanPos.add(Vector3d(blockPos.x.toDouble() + 0.5, blockPos.y.toDouble() + 0.5, blockPos.z.toDouble() + 0.5))
         }
+        meanPos.div(wanderBlocks.size.toDouble())
+        meanPos.sub(physShip.transform.positionInShip)
         val sumForce: Double = wanderBlocks.values.sum()
-        val force =  Vector3d(0.0, sumForce,0.0).mul(1100.0, Vector3d())
+        val force =  Vector3d(0.0, sumForce,0.0).mul(ClockworkConfig.SERVER.wanderOreForce, Vector3d())
 
-        physShip.applyInvariantForce(force)
+        if (meanPos.isFinite && !meanPos.length().isNaN() && force.isFinite && !force.length().isNaN()) physShip.applyInvariantForceToPos(meanPos, force)
     }
 
     fun addBlock(blockPos: BlockPos, force: Double) {
@@ -47,9 +52,9 @@ class WanderShipControl : ShipForcesInducer {
 
     companion object {
 
-        fun getOrCreate(ship: ServerShip): WanderShipControl? {
+        fun getOrCreate(ship: LoadedServerShip): WanderShipControl? {
             if (ship.getAttachment(WanderShipControl::class.java) == null) {
-                ship.saveAttachment(WanderShipControl::class.java, WanderShipControl())
+                ship.setAttachment(WanderShipControl())
             }
             return ship.getAttachment(WanderShipControl::class.java)
         }

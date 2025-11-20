@@ -1,10 +1,10 @@
 package org.valkyrienskies.clockwork.content.kinetics.resistor
 
-import com.simibubi.create.content.equipment.goggles.IHaveGoggleInformation
+import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation
 import com.simibubi.create.content.kinetics.RotationPropagator
 import com.simibubi.create.content.kinetics.transmission.SplitShaftBlockEntity
-import com.simibubi.create.foundation.utility.Iterate
-import com.simibubi.create.foundation.utility.Lang
+import com.simibubi.create.foundation.utility.CreateLang
+import net.createmod.catnip.data.Iterate
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
@@ -69,11 +69,9 @@ open class RedstoneResistorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos,
 
     override fun addToGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
         tooltip.add(
-            componentSpacing.plainCopy().append(
-                Lang.translateDirect(
-                    "tooltip.analogStrength",
-                    state
-                )
+            CreateLang.translateDirect(
+                "tooltip.analogStrength",
+                state
             )
         )
         return true

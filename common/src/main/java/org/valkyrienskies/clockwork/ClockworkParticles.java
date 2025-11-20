@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork;
 
 import com.simibubi.create.foundation.particle.ICustomParticleData;
-import com.simibubi.create.foundation.utility.Lang;
+import net.createmod.catnip.lang.Lang;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -9,6 +9,8 @@ import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import org.valkyrienskies.clockwork.content.curiosities.particles.PhysLightningParticle;
 import org.valkyrienskies.clockwork.platform.api.DeferredRegister;
 
@@ -45,7 +47,7 @@ public enum ClockworkParticles {
 
     private static class ParticleEntry<D extends ParticleOptions> {
         private static final DeferredRegister<ParticleType<?>> REGISTER =
-                DeferredRegister.create(Registry.PARTICLE_TYPE, ClockworkMod.MOD_ID);
+                DeferredRegister.create(BuiltInRegistries.PARTICLE_TYPE, ClockworkMod.MOD_ID);
 
         private final String name;
         private final Supplier<? extends ICustomParticleData<D>> typeFactory;

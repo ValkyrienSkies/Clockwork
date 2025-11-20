@@ -39,6 +39,7 @@ public abstract class MixinEncasedFanTileEntity extends KineticBlockEntity imple
         //do stuff here (I like to have the inject call to a separate function so the breakpoint will work properly for this function)
 
         LoadedServerShip ship = null;
+        if (level == null) return;
         if (!level.isClientSide) {
             if (VSGameUtilsKt.getShipObjectManagingPos(level, getBlockPos()) != null) {
                 ship = VSGameUtilsKt.getShipObjectManagingPos((ServerLevel) level, getBlockPos());
@@ -54,20 +55,24 @@ public abstract class MixinEncasedFanTileEntity extends KineticBlockEntity imple
 
     @Inject(method = "tick", at = @At("HEAD"), remap = false)
     private void vs_clockwork$injectTick(CallbackInfo ci) {
-        vs_clockwork$handleController();
+        if (!isVirtual()) vs_clockwork$handleController();
     }
 
     @Inject(method = "write", at = @At("TAIL"), remap = false)
     private void vs_clockwork$injectWrite(CompoundTag compound, boolean clientPacket, CallbackInfo ci) {
-        if (getPhysID() != -1.0) {
-            compound.putInt(ClockworkConstants.Nbt.FAN_ID, getPhysID());
+        if (!isVirtual()) {
+            if (getPhysID() != -1.0) {
+                compound.putInt(ClockworkConstants.Nbt.FAN_ID, getPhysID());
+            }
         }
     }
 
     @Inject(method = "read", at = @At("TAIL"), remap = false)
     private void vs_clockwork$injectRead(CompoundTag compound, boolean clientPacket, CallbackInfo ci) {
-        if (compound.contains(ClockworkConstants.Nbt.FAN_ID)) {
-            setPhysID(compound.getInt(ClockworkConstants.Nbt.FAN_ID));
+        if (!isVirtual()) {
+            if (compound.contains(ClockworkConstants.Nbt.FAN_ID)) {
+                setPhysID(compound.getInt(ClockworkConstants.Nbt.FAN_ID));
+            }
         }
     }
 

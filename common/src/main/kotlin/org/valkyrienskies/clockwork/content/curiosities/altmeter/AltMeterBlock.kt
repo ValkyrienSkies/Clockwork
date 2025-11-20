@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.content.curiosities.altmeter
 
 import com.simibubi.create.foundation.block.IBE
-import com.simibubi.create.foundation.gui.ScreenOpener
+import net.createmod.catnip.gui.ScreenOpener
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.player.LocalPlayer
@@ -81,7 +81,8 @@ class AltMeterBlock(properties: Properties) : Block(properties), IBE<AltMeterBlo
 
     override fun getSignal(state: BlockState, level: BlockGetter, pos: BlockPos, direction: Direction): Int {
         return if (state.getValue(POWERED)) {
-            15
+            (level.getBlockEntity(pos) as? AltMeterBlockEntity)?.getSignalPower()
+                ?: return 15
         } else 0
     }
 

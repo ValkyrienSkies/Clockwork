@@ -2,23 +2,37 @@ package org.valkyrienskies.clockwork.forge;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.simibubi.create.foundation.render.SuperRenderTypeBuffer;
-import com.simibubi.create.foundation.utility.AnimationTickHolder;
+import com.simibubi.create.content.equipment.armor.BacktankArmorLayer;
+import net.createmod.catnip.animation.AnimationTickHolder;
+import net.createmod.catnip.render.DefaultSuperRenderTypeBuffer;
+import net.createmod.catnip.render.SuperRenderTypeBuffer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.InputEvent;
+import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.valkyrienskies.clockwork.ClockworkModClient;
+import org.valkyrienskies.clockwork.client.render.debug.KelvinEdgeRenderer;
+import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankArmorLayer;
+import org.valkyrienskies.clockwork.forge.content.logistics.gas.backtank.ForgeGasBacktankArmorLayer;
 
-import static com.jozufozu.flywheel.backend.Backend.isGameActive;
+import static net.createmod.ponder.PonderClient.isGameActive;
 
 @Mod.EventBusSubscriber(Dist.CLIENT)
 public class ClockworkClientEvents {
 
+    @SubscribeEvent
+    public static void onRegisterGuiOverlays(RegisterGuiOverlaysEvent event) {
+        event.registerAbove(VanillaGuiOverlay.HOTBAR.id(), "Gravitron",
+                ClockworkModForgeClient.GRAVITRON_HANDLER.getOverlayRenderer());
+    }
 
     @SubscribeEvent
     public static void onRenderWorld(RenderLevelStageEvent event) {
@@ -26,16 +40,22 @@ public class ClockworkClientEvents {
             return;
         }
 
+
+
         PoseStack ms = event.getPoseStack();
+
+        assert Minecraft.getInstance().level != null;
+        KelvinEdgeRenderer.render(Minecraft.getInstance().level, event.getPoseStack(), event.getCamera());
+
         ms.pushPose();
-        SuperRenderTypeBuffer buffer = SuperRenderTypeBuffer.getInstance();
+        SuperRenderTypeBuffer buffer = DefaultSuperRenderTypeBuffer.getInstance();
         float partialTicks = AnimationTickHolder.getPartialTicks();
         Vec3 camera = Minecraft.getInstance().gameRenderer.getMainCamera()
                 .getPosition();
 
-        ClockworkModClient.getOUTLINER().renderOutlines(ms, SuperRenderTypeBuffer.getInstance(), camera, partialTicks);
-        ClockworkModClient.getWANDER_OUTLINER().renderOutlines(ms, SuperRenderTypeBuffer.getInstance(), camera, partialTicks);
-        ClockworkModClient.getWANDERWAND_EFFECT_RENDERER().render(ms, SuperRenderTypeBuffer.getInstance(), camera, partialTicks);
+        ClockworkModClient.getOUTLINER().renderOutlines(ms, DefaultSuperRenderTypeBuffer.getInstance(), camera, partialTicks);
+        ClockworkModClient.getWANDER_OUTLINER().renderOutlines(ms, DefaultSuperRenderTypeBuffer.getInstance(), camera, partialTicks);
+        ClockworkModClient.getWANDERWAND_EFFECT_RENDERER().render(ms, DefaultSuperRenderTypeBuffer.getInstance(), camera, partialTicks);
 
         buffer.draw();
         RenderSystem.enableCull();
@@ -59,7 +79,7 @@ public class ClockworkClientEvents {
     }
 
     @SubscribeEvent
-    public static void onKeyInput(InputEvent.KeyInputEvent event) {
+    public static void onKeyInput(InputEvent.Key event) {
         if (Minecraft.getInstance().screen != null) {
             return;
         }
@@ -71,7 +91,7 @@ public class ClockworkClientEvents {
     }
 
     @SubscribeEvent
-    public static void onMouseScrolled(InputEvent.MouseScrollEvent event) {
+    public static void onMouseScrolled(InputEvent.MouseScrollingEvent event) {
         if (Minecraft.getInstance().screen != null) {
             return;
         }
@@ -82,7 +102,7 @@ public class ClockworkClientEvents {
     }
 
     @SubscribeEvent
-    public static void onMouseInput(InputEvent.RawMouseEvent event) {
+    public static void onMouseInput(InputEvent.MouseButton event) {
         if (Minecraft.getInstance().screen != null) {
             return;
         }
@@ -93,6 +113,13 @@ public class ClockworkClientEvents {
         if (ClockworkModForgeClient.GRAVITRON_HANDLER.onMouseInput(button, pressed)) {
             event.setCanceled(true);
         }
+    }
+
+    @SubscribeEvent
+    public static void addEntityRendererLayers(EntityRenderersEvent.AddLayers event) {
+        EntityRenderDispatcher dispatcher = Minecraft.getInstance()
+                .getEntityRenderDispatcher();
+        ForgeGasBacktankArmorLayer.registerOnAll(dispatcher);
     }
 
 }

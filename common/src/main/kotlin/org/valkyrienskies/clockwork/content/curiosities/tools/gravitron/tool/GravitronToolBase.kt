@@ -2,8 +2,8 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.content.schematics.client.tools.ToolType
-import com.simibubi.create.foundation.render.SuperRenderTypeBuffer
 import com.simibubi.create.foundation.utility.RaycastHelper
+import net.createmod.catnip.render.SuperRenderTypeBuffer
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.world.phys.HitResult
@@ -28,7 +28,7 @@ abstract class GravitronToolBase : IGravitronTool {
         val player = Minecraft.getInstance().player
 
         val trace = RaycastHelper.rayTraceRange(
-            player!!.level, player, 15.0
+            player!!.level(), player, 15.0
         )
         if (trace == null || trace.type != HitResult.Type.BLOCK) {
             return

@@ -2,15 +2,17 @@ package org.valkyrienskies.clockwork.util
 
 import com.simibubi.create.content.contraptions.AssemblyException
 import com.simibubi.create.content.contraptions.glue.SuperGlueEntity
-import com.simibubi.create.foundation.utility.UniqueLinkedList
+import net.createmod.catnip.data.UniqueLinkedList
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.core.Registry
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.TextComponent
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.state.BlockState
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import java.util.*
 import java.util.function.Consumer
@@ -28,7 +30,7 @@ object GlueAssembler {
         frontier.add(pos)
         for (limit in 100000 downTo 1) {
             if (frontier.isEmpty()) {
-                if (result.isEmpty()) throw AssemblyException(TextComponent("No blocks found!"))
+                if (result.isEmpty()) throw AssemblyException(Component.literal("No blocks found!"))
                 return result
             }
             visitBlock(level, frontier, result, toRemove)
@@ -61,6 +63,6 @@ object GlueAssembler {
     }
 
     private fun isAllowed(state: BlockState): Boolean {
-        return true // TODO blacklisting or unmovable whatever
+        return !ClockworkConfig.SERVER.blockBlacklist.contains(BuiltInRegistries.BLOCK.getKey(state.block).toString())
     }
 }

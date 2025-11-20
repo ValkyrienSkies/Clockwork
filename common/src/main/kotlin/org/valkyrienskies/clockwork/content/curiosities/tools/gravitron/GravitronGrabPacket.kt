@@ -31,8 +31,8 @@ class GravitronGrabPacket : C2SCWPacket {
     override fun handle(context: ServerNetworkContext) {
         context.enqueueWork {
             val serverPlayer = context.sender
-            if (serverPlayer.level is ServerLevel) {
-                val serverLevel = serverPlayer.getLevel() as ServerLevel
+            if (serverPlayer.level() is ServerLevel) {
+                val serverLevel = serverPlayer.serverLevel()
                 val stack = serverPlayer.mainHandItem
                 val bl = stack.`is`(ClockworkItems.CREATIVE_GRAVITRON.get().asItem())
                 val bl2 = stack.`is`(ClockworkItems.GRAVITRON.get().asItem())
