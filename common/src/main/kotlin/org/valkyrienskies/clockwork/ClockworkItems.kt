@@ -18,6 +18,7 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.B
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.BladeItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteCubeItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteItem
+import org.valkyrienskies.clockwork.content.curiosities.WanderlustMusicDisc
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.CreativeGravitronItem
@@ -34,9 +35,9 @@ import java.util.function.Supplier
 object ClockworkItems {
 
     @JvmField
-    val WANDERLUST_DISC: ItemEntry<RecordItem> =
-        REGISTRATE.item<RecordItem>("music_disc_wanderlust") { properties: Item.Properties? ->
-            RecordItem(7, ClockworkSounds.WANDERLUST.mainEvent!!, properties!!, 84)
+    val WANDERLUST_DISC: ItemEntry<WanderlustMusicDisc> =
+        REGISTRATE.item<WanderlustMusicDisc>("music_disc_wanderlust") { properties: Item.Properties? ->
+            WanderlustMusicDisc(properties!!)
         }
             .properties { it.rarity(Rarity.EPIC) }
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
