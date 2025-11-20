@@ -75,6 +75,7 @@ import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.WingBlock
 import org.valkyrienskies.clockwork.content.propulsion.sugar_rocket.SugarRocketBlock
+import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork
 import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork.flapbearing
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import java.util.function.Supplier
@@ -88,7 +89,7 @@ object ClockworkBlocks {
             SugarRocketBlock(properties!!)
         }
             .initialProperties(AllBlocks.BELT)
-            .transform(TagGen.axeOrPickaxe())
+            .transform(axeOrPickaxe())
             .properties { it.instabreak().explosionResistance(0f) }
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
@@ -103,9 +104,10 @@ object ClockworkBlocks {
             PropellerBearingBlock(properties!!)
         }
             .transform(axeOrPickaxe())
-            //.transform(BuilderTransformers.bearing("propeller", "gearbox"))
+            //.transform(BuilderTransformersClockwork.bearing("propeller", "gearbox"))
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
-            .addLayer { Supplier { RenderType.cutout() } }
+            .addLayer { Supplier { RenderType.cutoutMipped() } }
+            .properties { it.noOcclusion() }
             .item()
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
@@ -113,13 +115,14 @@ object ClockworkBlocks {
 
     @JvmField
     val JURYRIGGED_PROPELLER_BEARING: BlockEntry<PropellerBearingBlock> =
-        REGISTRATE.block<PropellerBearingBlock>("juryrigged_propeller_bearing") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("juryrigged_propeller_bearing") { properties: BlockBehaviour.Properties? ->
             PropellerBearingBlock(properties!!)
         }
             .transform(axeOrPickaxe())
-            //.transform(BuilderTransformers.bearing("propeller", "gearbox"))
+            //.transform(BuilderTransformersClockwork.bearing("propeller", "gearbox"))
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
-            .addLayer { Supplier { RenderType.cutout() } }
+            .addLayer { Supplier { RenderType.cutoutMipped() } }
+            .properties { it.noOcclusion() }
             .item()
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
@@ -133,7 +136,7 @@ object ClockworkBlocks {
             .transform(axeOrPickaxe())
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .properties { it.noOcclusion() }
-            .addLayer { Supplier { RenderType.cutout() } }
+            .addLayer { Supplier { RenderType.cutoutMipped() } }
             .onRegister(movementBehaviour(BladeControllerMovementBehaviour()))
             .item()
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
@@ -167,7 +170,7 @@ object ClockworkBlocks {
             FlapBearingBlock(properties)
         }
             .transform(axeOrPickaxe())
-            //.transform(flapbearing())
+            .transform(flapbearing())
             .transform(ClockworkStress.setImpact(4.0))
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
@@ -212,7 +215,7 @@ object ClockworkBlocks {
             DistanceSensorBlock(properties!!)
         }
             .initialProperties { SharedProperties.stone() }
-            .transform(TagGen.axeOrPickaxe())
+            .transform(axeOrPickaxe())
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
@@ -226,7 +229,7 @@ object ClockworkBlocks {
         GyroscopicSensorBlock(properties!!)
     }
         .initialProperties { SharedProperties.stone() }
-        .transform(TagGen.axeOrPickaxe())
+        .transform(axeOrPickaxe())
         .properties { it.noOcclusion() }
         .addLayer { Supplier { RenderType.cutout() } }
         .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
@@ -240,7 +243,7 @@ object ClockworkBlocks {
         LodefocusBlock(properties!!)
     }
         .initialProperties { Blocks.GLASS }
-        .transform(TagGen.axeOrPickaxe())
+        .transform(axeOrPickaxe())
         .properties { it.noOcclusion() ; it.lightLevel{ _ -> 1 } ; it.isViewBlocking{ _, _, _ -> false } }
         .addLayer { Supplier { RenderType.cutout() } }
         .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
@@ -256,7 +259,7 @@ object ClockworkBlocks {
             ImpactSensorBlock(properties!!)
         }
             .initialProperties { SharedProperties.stone() }
-            .transform(TagGen.axeOrPickaxe())
+            .transform(axeOrPickaxe())
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
@@ -961,7 +964,7 @@ object ClockworkBlocks {
             AsteroidBlock(properties!!)
         }
             .initialProperties { SharedProperties.wooden() }
-            .transform(TagGen.axeOrPickaxe())
+            .transform(axeOrPickaxe())
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
@@ -976,7 +979,7 @@ object ClockworkBlocks {
             UniversalShaftBlock(properties!!)
         }
             .initialProperties { SharedProperties.wooden() }
-            .transform(TagGen.axeOrPickaxe())
+            .transform(axeOrPickaxe())
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)

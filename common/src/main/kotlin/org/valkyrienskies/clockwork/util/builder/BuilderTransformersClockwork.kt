@@ -1,13 +1,14 @@
 package org.valkyrienskies.clockwork.util.builder
 
-import com.simibubi.create.api.stress.BlockStressValues
-import com.simibubi.create.content.kinetics.base.IRotate
+import com.simibubi.create.Create
 import com.simibubi.create.content.kinetics.base.RotatedPillarKineticBlock
 import com.simibubi.create.foundation.data.SharedProperties
 import com.tterrag.registrate.builders.BlockBuilder
 import com.tterrag.registrate.providers.DataGenContext
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider
 import com.tterrag.registrate.providers.RegistrateItemModelProvider
+import com.tterrag.registrate.util.nullness.NonNullBiConsumer
+import com.tterrag.registrate.util.nullness.NonNullSupplier
 import com.tterrag.registrate.util.nullness.NonNullUnaryOperator
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.BlockItem
@@ -83,6 +84,37 @@ object BuilderTransformersClockwork {
                         .texture("1", topTextureLocation)
                         .texture("2", baseTextureLocation)
                 }
+                .build()
+        }
+    }
+
+    fun <B : Block?, P> bearing(
+        prefix: String?,
+        backTexture: String?
+    ): NonNullUnaryOperator<BlockBuilder<B, P>> {
+        val baseBlockModelLocation = ClockworkMod.asResource("block/bearing/block")
+        val baseItemModelLocation = ClockworkMod.asResource("block/bearing/item")
+        val topTextureLocation = ClockworkMod.asResource("block/bearing_top")
+        val sideTextureLocation = ClockworkMod.asResource("block/" + prefix + "_bearing_side")
+        val backTextureLocation = ClockworkMod.asResource("block/" + backTexture)
+        return NonNullUnaryOperator { b: BlockBuilder<B, P>? ->
+            b!!.initialProperties(NonNullSupplier { SharedProperties.stone() })
+                .properties(NonNullUnaryOperator { p: BlockBehaviour.Properties -> p.noOcclusion() })
+                .blockstate(NonNullBiConsumer { c: DataGenContext<Block, B>, p: RegistrateBlockstateProvider? ->
+                    p!!.directionalBlock(
+                        c!!.get(), p.models()
+                            .withExistingParent(c.getName(), baseBlockModelLocation)
+                            .texture("side", sideTextureLocation)
+                            .texture("back", backTextureLocation)
+                    )
+                })
+                .item()
+                .model(NonNullBiConsumer { c: DataGenContext<Item?, BlockItem?>?, p: RegistrateItemModelProvider? ->
+                    p!!.withExistingParent(c!!.getName(), baseItemModelLocation)
+                        .texture("top", topTextureLocation)
+                        .texture("side", sideTextureLocation)
+                        .texture("back", backTextureLocation)
+                })
                 .build()
         }
     }

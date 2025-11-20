@@ -71,7 +71,12 @@ class BladeControllerMovementBehaviour: MovementBehaviour {
         val bladeCount = blockEntityData.getInt("BladeCount")
         val bladeList = mutableListOf<ItemStack>()
         for (i in 1 .. bladeCount) {
-            bladeList.add(ItemStack.of(blades.getCompound("Blade$i")))
+            val bladeInList = blades.getCompound("Blades.Items[{Slot: ${i}b}]")
+            println(blades.toString())
+            val blade = ItemStack.of(bladeInList)
+            blade.getOrCreateTag().putDouble("BladeLength", bladeInList.getDouble("BladeLength"))
+
+            bladeList.add(blade)
         }
 
         val bladeAngle = if (blockEntityData.contains("BladeAngle")) blockEntityData.getDouble("BladeAngle") else 0.0
@@ -82,6 +87,8 @@ class BladeControllerMovementBehaviour: MovementBehaviour {
             bladeRotations.add((360f / bladeCount.toFloat()) * i.toFloat())
         }
 
+        println(blades)
+        println(bladeList)
         BladeControllerRenderer.renderShared(bladeList, bladeAngle.toFloat(), context.state, AnimationTickHolder.getPartialTicks(context.world), matrices.viewProjection, buffer, bladeRotations, true, matrices)
     }
 }
