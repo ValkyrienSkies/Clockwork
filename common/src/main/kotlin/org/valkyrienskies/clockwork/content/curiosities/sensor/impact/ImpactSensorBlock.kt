@@ -176,7 +176,7 @@ class ImpactSensorBlock(properties: Properties?): DirectionalBlock(properties), 
                 val nextMax = if (currentMax == 3) 0 else currentMax + 1
                 level.setBlock(pos, state.setValue(PREDICTIVENESS, nextMax) as BlockState, 2)
                 val pitch = level.random.nextFloat() * 0.2f + 0.9f
-                level.playSound(null, pos, ClockworkSounds.WELDER_WHIRR.mainEvent!!, player.soundSource, 1.0f, pitch)
+                level.playSound(null, pos, ClockworkSounds.WAND_WELD.mainEvent!!, player.soundSource, 1.0f, pitch)
                 level.scheduleTick(pos, this, 2)
                 return InteractionResult.SUCCESS
             }

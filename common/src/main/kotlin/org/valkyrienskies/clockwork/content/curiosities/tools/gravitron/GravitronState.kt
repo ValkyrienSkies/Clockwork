@@ -7,9 +7,14 @@ import org.joml.Quaterniondc
 import org.joml.Vector2dc
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkSounds
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.GrabTool
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
+import org.valkyrienskies.clockwork.platform.SharedValues
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.properties.ShipId
+import org.valkyrienskies.mod.api.toJOML
+import org.valkyrienskies.mod.common.ValkyrienSkiesMod
+import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.shipObjectWorld
 import kotlin.math.max
 import kotlin.math.min
@@ -71,11 +76,20 @@ class GravitronState {
                 if (shipId != null) {
                     val ship: LoadedServerShip? = level.shipObjectWorld.loadedShips.getById(shipId)
                     if (ship != null) {
-                        ship.isStatic = !ship.isStatic
+                        if (SharedValues.gravitronHandler.isRegular) {
+                            val lookDir = player.lookAngle.normalize().toJOML()
+                            val magnitude = 6000 * ship.inertiaData.mass
+                            val launchVec = lookDir.mul(magnitude)
+                            ValkyrienSkiesMod.getOrCreateGTPA(level.dimensionId).applyInvariantForceToPos(ship.id, launchVec, state.shipGrabbedPos!!)
+                            GrabTool.dropShip(player)
+                        } else {
+                            ship.isStatic = !ship.isStatic
+                        }
+
                         level.playSound(
                             player,
                             player.blockPosition(),
-                            ClockworkSounds.DESIGNATOR_ACTIVATE.mainEvent!!,
+                            ClockworkSounds.WAND_FINISH.mainEvent!!,
                             SoundSource.PLAYERS,
                             1f,
                             1f

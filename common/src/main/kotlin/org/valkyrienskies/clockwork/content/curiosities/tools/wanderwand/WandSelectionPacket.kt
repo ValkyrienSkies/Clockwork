@@ -15,13 +15,15 @@ class WandSelectionPacket : C2SCWPacket {
     val tool: ToolType
     val isSecond: Boolean
     val leftClick: Boolean
+    val clickedFace: Int
 
-    constructor(pos1: BlockPos, pos2: BlockPos?, tool: ToolType, leftClick: Boolean) {
+    constructor(pos1: BlockPos, pos2: BlockPos?, tool: ToolType, leftClick: Boolean, clickedFace: Int = -1) {
         firstPos = pos1
         secondPos = pos2 ?: pos1
         this.tool = tool
         isSecond = pos2 != null
         this.leftClick = leftClick
+        this.clickedFace = clickedFace
     }
     constructor(buffer: FriendlyByteBuf) {
         firstPos = buffer.readBlockPos()
@@ -29,6 +31,7 @@ class WandSelectionPacket : C2SCWPacket {
         tool = buffer.readEnum(ToolType::class.java)
         isSecond = buffer.readBoolean()
         leftClick = buffer.readBoolean()
+        clickedFace = buffer.readInt()
     }
     override fun handle(context: ServerNetworkContext) {
         context.enqueueWork {
@@ -48,11 +51,11 @@ class WandSelectionPacket : C2SCWPacket {
                             ToolType.WELD -> {
                                 if (isSecond) {
                                     WanderwandItem.weld(
-                                        serverLevel, serverPlayer, secondPos!!.mutable()
+                                        serverLevel, serverPlayer, secondPos!!.mutable(), clickedFace
                                     )
                                 } else {
                                     WanderwandItem.startWeld(
-                                        serverLevel, serverPlayer, firstPos!!.mutable()
+                                        serverLevel, serverPlayer, firstPos!!.mutable(), clickedFace
                                     )
                                 }
                             }
@@ -64,17 +67,17 @@ class WandSelectionPacket : C2SCWPacket {
                                 )
                             }
 
-//                            ToolType.BIND -> {
-//                                if (isSecond) {
-//                                    WanderwandItem.bind(
-//                                        serverLevel, serverPlayer, secondPos!!.mutable()
-//                                    )
-//                                } else {
-//                                    WanderwandItem.startBind(
-//                                        serverLevel, serverPlayer, firstPos!!.mutable()
-//                                    )
-//                                }
-//                            }
+                            ToolType.BIND -> {
+                                if (isSecond) {
+                                    WanderwandItem.bind(
+                                        serverLevel, serverPlayer, secondPos!!.mutable()
+                                    )
+                                } else {
+                                    WanderwandItem.startBind(
+                                        serverLevel, serverPlayer, firstPos!!.mutable()
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -89,5 +92,6 @@ class WandSelectionPacket : C2SCWPacket {
         buffer.writeEnum(tool)
         buffer.writeBoolean(isSecond)
         buffer.writeBoolean(leftClick)
+        buffer.writeInt(clickedFace)
     }
 }

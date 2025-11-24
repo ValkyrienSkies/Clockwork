@@ -94,8 +94,11 @@ open class WanderwandHandler {
         currentTool!!.tool.init()
     }
 
-    private fun findWandInHand(player: Player?): ItemStack? {
-        val stack = player!!.mainHandItem
+    fun findWandInHand(player: Player?): ItemStack? {
+        if (player == null) {
+            return null
+        }
+        val stack = player.mainHandItem
         if (!ClockworkItems.WANDERWAND.isIn(stack)) {
             return null
         }

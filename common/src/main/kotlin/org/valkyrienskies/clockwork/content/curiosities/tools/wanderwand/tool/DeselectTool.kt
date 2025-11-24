@@ -37,6 +37,11 @@ class DeselectTool(): SelectionToolBase() {
 
                 ClockworkPackets.sendToServer(WandSelectionPacket(lastClickedPos!!, clickedPos!!, ToolType.DESELECT, false))
                 lastClickedPos = null
+                lastClickedLocation = null
+                clickedPos = null
+                clickedLocation = null
+                lastClickedDirection = null
+                clickedDirection = null
                 return true
             }
         }

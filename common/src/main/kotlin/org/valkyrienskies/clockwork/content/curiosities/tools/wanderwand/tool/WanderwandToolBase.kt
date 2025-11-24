@@ -6,6 +6,7 @@ import net.createmod.catnip.render.SuperRenderTypeBuffer
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler
@@ -18,8 +19,10 @@ abstract class WanderwandToolBase : IWanderwandTool {
     protected var wanderwandHandler: WanderwandHandler? = null
     var clickedPos: BlockPos? = null
     var clickedLocation: Vec3? = null
+    var clickedDirection: Direction? = null
     var lastClickedPos: BlockPos? = null
     var lastClickedLocation: Vec3? = null
+    var lastClickedDirection: Direction? = null
 
 
     /**
@@ -29,6 +32,7 @@ abstract class WanderwandToolBase : IWanderwandTool {
     fun updateTargetPos() {
         lastClickedPos = clickedPos
         lastClickedLocation = clickedLocation
+        lastClickedDirection = clickedDirection
 
         val player = Minecraft.getInstance().player
 
@@ -41,7 +45,8 @@ abstract class WanderwandToolBase : IWanderwandTool {
 
         clickedPos = trace.blockPos.immutable()
 
-        clickedLocation = clickedPos!!.toDoubles().add(0.5,0.5,0.5)
+        clickedLocation = trace.location
+        clickedDirection = trace.direction
     }
 
     override fun handleLeftClick(): Boolean {

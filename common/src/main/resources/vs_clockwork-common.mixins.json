@@ -22,8 +22,7 @@
     "content.steam_generator.MixinBoilerData",
     "content.sugar_rocket.MixinFireCharge",
     "content.universal_joint.MixinRotationPropagator",
-    "content.wing.MixinAbstractCauldronBlock",
-    "effekseer.MixinResourceLocation"
+    "content.wing.MixinAbstractCauldronBlock"
   ],
   "client": [
     "MixinLevelRenderer",
@@ -32,12 +31,7 @@
     "client.MixinFogRenderer",
     "client.MixinItemInHandRenderer",
     "content.gravitron.MinecraftAccessor",
-    "content.gravitron.MixinLocalPlayer",
-    "effekseer.client.GameRendererAccessor",
-    "effekseer.client.MixinGameRenderer",
-    "effekseer.client.MixinItemInHandRenderer",
-    "effekseer.client.MixinLevelRenderer",
-    "effekseer.client.MixinMinecraft"
+    "content.gravitron.MixinLocalPlayer"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -61,6 +61,9 @@ open class GravitronHandler {
         }
 
         selectionScreen!!.update()
+        if (this.isRegular && this.currentTool != ToolType.GRAB) {
+            this.equip(ToolType.GRAB)
+        }
     }
 
     fun render(poseStack: GuiGraphics, partialTicks: Float, width: Int, height: Int) {
@@ -73,6 +76,9 @@ open class GravitronHandler {
             overlay!!.renderWanderlite(poseStack, activeHotbarSlot, partialTicks)
         }
 
+        if (isRegular) {
+            return
+        }
         currentTool!!.tool.renderOverlay(poseStack.pose(), partialTicks, width, height)
         selectionScreen!!.renderPassive(poseStack, partialTicks)
     }

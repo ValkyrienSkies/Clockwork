@@ -26,6 +26,7 @@ class SelectTool(): SelectionToolBase() {
                     message.setStyle(Style.EMPTY.withColor(ChatFormatting.LIGHT_PURPLE).withItalic(true))
 
                     Minecraft.getInstance().player!!.displayClientMessage(message, true)
+
                     ClockworkPackets.sendToServer(WandSelectionPacket(clickedPos!!, null, ToolType.SELECT, false))
                     return true
                 }
@@ -37,6 +38,11 @@ class SelectTool(): SelectionToolBase() {
 
                 ClockworkPackets.sendToServer(WandSelectionPacket(lastClickedPos!!, clickedPos!!, ToolType.SELECT, false))
                 lastClickedPos = null
+                lastClickedLocation = null
+                clickedPos = null
+                clickedLocation = null
+                lastClickedDirection = null
+                clickedDirection = null
                 return true
             }
         }

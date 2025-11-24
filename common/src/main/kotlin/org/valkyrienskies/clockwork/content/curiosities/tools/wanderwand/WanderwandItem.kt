@@ -11,8 +11,10 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.ClockworkPackets.Companion.sendTo
+import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool.ToolType
 import org.valkyrienskies.clockwork.platform.CWItem
+import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import kotlin.math.max
 import kotlin.math.min
 
@@ -84,27 +86,45 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
                     if (existingSelection != null) {
                         selection.addAll(readBlockPosSetFromNBT(existingSelection))
                     }
-
+                    wand.tag?.remove("selectedBlocks")
                     wand.tag?.put("selectedBlocks", writeBlockPosSetToNBT(selection))
                 } else {
                     val existingSelection = wand.tag?.get("selectedBlocks") as CompoundTag?
                     if (existingSelection != null) {
                         val existingSelectionDeser = readBlockPosSetFromNBT(existingSelection)
                         existingSelectionDeser.removeAll(selection)
+                        wand.tag?.remove("selectedBlocks")
                         wand.tag?.put("selectedBlocks", writeBlockPosSetToNBT(existingSelectionDeser))
                     }
                 }
-                sendTo(WanderwandRenderUpdatePacket(firstPos, ToolType.SELECT, blocks = writeBlockPosSetToNBT(selection)), sPlayer)
+                sendTo(WanderwandRenderUpdatePacket(firstPos, if (deselect) ToolType.DESELECT else ToolType.SELECT, blocks = wand.tag?.get("selectedBlocks") as CompoundTag?), sPlayer)
             }
         }
 
         @JvmStatic
-        fun startWeld(sLevel: ServerLevel, sPlayer: ServerPlayer, clickedPos: BlockPos) {
-
+        fun startWeld(sLevel: ServerLevel, sPlayer: ServerPlayer, clickedPos: BlockPos, clickedFace: Int) {
+            val ship = sLevel.getShipObjectManagingPos(clickedPos)
+            if (ship == null) {
+                return
+            }
+            val wand = sPlayer.mainHandItem
+            wand.tag?.putBoolean("isWelding", true)
+            wand.tag?.putLong("weldingShipId", ship.id)
+            val blocks = HashSet<BlockPos>()
+            val clickedDir = Direction.values().get(clickedFace)
+            blocks.add(clickedPos)
+            for (dir in Direction.values()) {
+                if (dir == clickedDir) continue
+                val neighbor = clickedPos.relative(dir)
+                if (sLevel.getBlockState(neighbor).isAir) continue
+                blocks.add(neighbor)
+            }
+            sLevel.playSound(null, sPlayer.blockPosition(), ClockworkSounds.WAND_START.mainEvent!!, sPlayer.soundSource, 1.0f, 1.0f)
+            sendTo(WanderwandRenderUpdatePacket(clickedPos, ToolType.WELD, blocks = wand.tag?.get("selectedBlocks") as CompoundTag?, selDir = clickedDir, shipId = ship.id), sPlayer)
         }
 
         @JvmStatic
-        fun weld(sLevel: ServerLevel, sPlayer: ServerPlayer, clickedPos: BlockPos) {
+        fun weld(sLevel: ServerLevel, sPlayer: ServerPlayer, clickedPos: BlockPos, clickedFace: Int) {
 
         }
 
@@ -115,12 +135,12 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
 
         @JvmStatic
         fun startBind(sLevel: ServerLevel, sPlayer: ServerPlayer, clickedPos: BlockPos) {
-            TODO()
+            //TODO
         }
 
         @JvmStatic
         fun bind(sLevel: ServerLevel, sPlayer: ServerPlayer, clickedPos: BlockPos) {
-            TODO()
+            //TODO
         }
 
         // Method to write a set of BlockPos to NBT

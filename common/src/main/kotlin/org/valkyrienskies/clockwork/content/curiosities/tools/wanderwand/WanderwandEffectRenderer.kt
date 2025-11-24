@@ -21,6 +21,7 @@ import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool.ToolType
+import org.valkyrienskies.clockwork.platform.SharedValues
 import org.valkyrienskies.core.api.ships.properties.ShipId
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOMLD
@@ -42,14 +43,16 @@ class WanderwandEffectRenderer {
     var selectionDir: Direction? = null
     var lastTargetPos: Vec3 = Vec3.ZERO
 
-    val clusters = HashSet<Set<BlockPos>>()
+    val clusters = ArrayList<Set<BlockPos>>()
 
     //clusters and attachments
     fun clientTick(clientLevel: ClientLevel) {
         var count = 0
-        for (cluster in clusters) {
-            ClockworkModClient.WANDER_OUTLINER.showCluster("cluster$count", cluster).colored(0xd8b2e9).lineWidth(0.5f).withFaceTextures(AllSpecialTextures.CHECKERED, AllSpecialTextures.HIGHLIGHT_CHECKERED)
-            count++
+        if (SharedValues.wanderwandHandler.findWandInHand(client.player) != null) {
+            for (cluster in clusters) {
+                ClockworkModClient.WANDER_OUTLINER.showCluster("cluster$count", cluster).colored(0xd8b2e9).lineWidth(0.5f).withFaceTextures(AllSpecialTextures.CHECKERED, AllSpecialTextures.HIGHLIGHT_CHECKERED)
+                count++
+            }
         }
         count = 0
         for (attachment in attachments) {
@@ -64,6 +67,7 @@ class WanderwandEffectRenderer {
         val player = client.player ?: return
         if (isWelding && weldingShip != null) {
             ms.pushPose()
+            println("WELDING FUCKHEAD")
 
 
             val range = (client.gameMode?.getPickRange()?.toDouble()?.plus(1)) ?: 5.0

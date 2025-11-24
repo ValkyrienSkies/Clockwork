@@ -69,25 +69,25 @@
     ],
     "subtitle": "vs_clockwork.subtitle.thick_fluid_empty"
   },
-  "welder_weld": {
+  "wand_weld": {
     "sounds": [
       {
-        "name": "vs_clockwork:welder_weld",
+        "name": "vs_clockwork:wand_weld",
         "type": "file",
         "attenuation_distance": 16
       }
     ],
-    "subtitle": "vs_clockwork.subtitle.welder_weld"
+    "subtitle": "vs_clockwork.subtitle.wand_weld"
   },
-  "welder_whirr": {
+  "wand_start": {
     "sounds": [
       {
-        "name": "vs_clockwork:welder_whirr",
+        "name": "vs_clockwork:wand_start",
         "type": "file",
         "attenuation_distance": 16
       }
     ],
-    "subtitle": "vs_clockwork.subtitle.welder_whirr"
+    "subtitle": "vs_clockwork.subtitle.wand_whirr"
   },
   "supersonic": {
     "sounds": [
@@ -99,60 +99,35 @@
     ],
     "subtitle": "vs_clockwork.subtitle.supersonic"
   },
-  "designator_activate": {
+  "wand_equip": {
     "sounds": [
       {
-        "name": "vs_clockwork:designatoractivate",
+        "name": "vs_clockwork:wand_equip",
         "type": "file",
         "attenuation_distance": 16
       }
     ],
-    "subtitle": "vs_clockwork.subtitle.designator_activate"
+    "subtitle": "vs_clockwork.subtitle.wand_equip"
   },
-  "designator_idle": {
+  "wand_idle": {
     "sounds": [
       {
-        "name": "vs_clockwork:designatoridleone",
-        "type": "file",
-        "attenuation_distance": 16
-      },
-      {
-        "name": "vs_clockwork:designatoridletwo",
+        "name": "vs_clockwork:wand_idle",
         "type": "file",
         "attenuation_distance": 16
       }
     ],
-    "subtitle": "vs_clockwork.subtitle.designator_idle"
+    "subtitle": "vs_clockwork.subtitle.wand_idle"
   },
-  "designator_dump_cluster": {
+  "wand_finish": {
     "sounds": [
       {
-        "name": "vs_clockwork:designatordumpcluster",
+        "name": "vs_clockwork:wand_finish",
         "type": "file",
         "attenuation_distance": 16
       }
     ],
-    "subtitle": "vs_clockwork.subtitle.designator_dump_cluster"
-  },
-  "designator_select_start": {
-    "sounds": [
-      {
-        "name": "vs_clockwork:designatorselectstart",
-        "type": "file",
-        "attenuation_distance": 16
-      }
-    ],
-    "subtitle": "vs_clockwork.subtitle.designator_select_start"
-  },
-  "designator_select_end": {
-    "sounds": [
-      {
-        "name": "vs_clockwork:designatorselectend",
-        "type": "file",
-        "attenuation_distance": 16
-      }
-    ],
-    "subtitle": "vs_clockwork.subtitle.designator_select_end"
+    "subtitle": "vs_clockwork.subtitle.wand_finish"
   },
   "boing": {
     "sounds": [
