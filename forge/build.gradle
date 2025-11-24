@@ -65,21 +65,24 @@ dependencies {
 
     include(modApi("dev.architectury:architectury-forge:${rootProject.architectury_version}"))
     implementation(include((("io.github.llamalad7:mixinextras-forge:0.4.1"))))
+    implementation("com.github.bawnorton.mixinsquared:mixinsquared-forge:0.3.7-beta.1")
 
     //VS2
-    modApi("org.valkyrienskies:valkyrienskies-120-forge:${rootProject.vs2_version}") { transitive = false }
-    implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") {
+    modApi("org.valkyrienskies:valkyrienskies-120-forge:${rootProject.vs2_version}") { transitive = false
+        exclude group: 'org.valkyrienskies.core', module: ''
+    }
+    implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") { transitive = false
         exclude group: 'org.joml', module: ''
     }
-    implementation("org.valkyrienskies.core:util:${rootProject.vscore_version}") {
+    implementation("org.valkyrienskies.core:util:${rootProject.vscore_version}") { transitive = false
         exclude group: 'org.joml', module: ''
     }
-    implementation("org.valkyrienskies.core:internal:${rootProject.vscore_version}") {
+    implementation("org.valkyrienskies.core:internal:${rootProject.vscore_version}") { transitive = false
         exclude group: 'org.joml', module: ''
     }
 
 
-    modImplementation("org.valkyrienskies.kelvin:kelvin-forge:${rootProject.minecraft_version}-${rootProject.kelvin_version}") {
+    modImplementation("org.valkyrienskies.kelvin:kelvin-forge:${rootProject.minecraft_version}-${rootProject.kelvin_version}") { transitive = false
         exclude group: 'org.joml', module: ''
     }
 

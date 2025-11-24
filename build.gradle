@@ -67,6 +67,7 @@ subprojects {
     }
 
     repositories {
+        maven { url = "https://maven.bawnorton.com/releases" }
         maven {
             // location of the maven that hosts JEI files before January 2023
             name = "Progwml6's maven"
