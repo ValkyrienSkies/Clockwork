@@ -31,6 +31,7 @@ public class FabricClockworkClientEvents {
             return;
 
         ClockworkModFabricClient.GRAVITRON_HANDLER.tick();
+        ClockworkModFabricClient.WANDERWAND_HANDLER.tick();
 
         ClockworkModClient.getOUTLINER().tickOutlines();
         ClockworkModClient.getWANDER_OUTLINER().tickOutlines();

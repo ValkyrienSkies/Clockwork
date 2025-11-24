@@ -18,7 +18,7 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceProvider;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler;
-import org.valkyrienskies.clockwork.effekseer.client.render.EffekRenderer;
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandHandler;
 //import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer;
 
 import java.io.IOException;
@@ -27,6 +27,7 @@ public class ClockworkModFabricClient implements ClientModInitializer {
 
     //public static final WanderWandClusterRenderer WANDER_HANDLER = new WanderWandClusterRenderer();
     public static final GravitronHandler GRAVITRON_HANDLER = new GravitronHandler();
+    public static final WanderwandHandler WANDERWAND_HANDLER = new WanderwandHandler();
 
     @Override
     public void onInitializeClient() {
@@ -42,8 +43,6 @@ public class ClockworkModFabricClient implements ClientModInitializer {
         ClockworkShaders.INSTANCE.init();
         //ClientReloadShadersEvent.EVENT.register(ClockworkModClient::onShaderReload);
         //RegisterShadersCallback.EVENT.register(this::registerShaders);
-
-        EffekRenderer.INSTANCE.init();
 
         KeyInputCallback.EVENT.register(FabricClockworkInputEvents::onKeyInput);
 
@@ -70,6 +69,7 @@ public class ClockworkModFabricClient implements ClientModInitializer {
         HudRenderCallback.EVENT.register((graphics, partialTicks) -> {
             Window window = Minecraft.getInstance().getWindow();
             GRAVITRON_HANDLER.render(graphics, partialTicks, window.getWidth(), window.getHeight());
+            WANDERWAND_HANDLER.render(graphics, partialTicks, window.getWidth(), window.getHeight());
         });
 
     }

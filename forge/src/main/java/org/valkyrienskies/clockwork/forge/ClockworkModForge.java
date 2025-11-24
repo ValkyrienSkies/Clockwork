@@ -14,7 +14,6 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.RegisterEvent;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.forge.config.AllClockworkConfigs;
-import org.valkyrienskies.clockwork.forge.integration.cc.ClockworkForgePeripheralProviders;
 import org.valkyrienskies.mod.compat.clothconfig.VSClothConfig;
 import org.valkyrienskies.clockwork.util.AtmosphereParametersResolver;
 

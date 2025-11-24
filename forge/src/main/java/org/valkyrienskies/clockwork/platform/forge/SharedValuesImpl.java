@@ -6,8 +6,8 @@ import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import com.tterrag.registrate.util.entry.EntityEntry;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler;
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandHandler;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatEntity;
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlockEntity;
 import org.valkyrienskies.clockwork.forge.ClockworkModForge;
@@ -44,6 +44,10 @@ public class SharedValuesImpl {
 
     public static GravitronHandler getGravitronHandler() {
         return ClockworkModForgeClient.GRAVITRON_HANDLER;
+    }
+
+    public static WanderwandHandler getWanderwandHandler() {
+        return ClockworkModForgeClient.WANDERWAND_HANDLER;
     }
 
 //    public static WanderWandClusterRenderer getAuricHandler() {

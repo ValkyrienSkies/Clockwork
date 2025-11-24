@@ -32,6 +32,8 @@ public class ClockworkClientEvents {
     public static void onRegisterGuiOverlays(RegisterGuiOverlaysEvent event) {
         event.registerAbove(VanillaGuiOverlay.HOTBAR.id(), "Gravitron",
                 ClockworkModForgeClient.GRAVITRON_HANDLER.getOverlayRenderer());
+        event.registerAbove(VanillaGuiOverlay.HOTBAR.id(), "Wanderwand",
+                ClockworkModForgeClient.WANDERWAND_HANDLER.getOverlayRenderer());
     }
 
     @SubscribeEvent
@@ -73,6 +75,7 @@ public class ClockworkClientEvents {
         }
 
         ClockworkModForgeClient.GRAVITRON_HANDLER.tick();
+        ClockworkModForgeClient.WANDERWAND_HANDLER.tick();
 
         ClockworkModClient.getOUTLINER().tickOutlines();
         ClockworkModClient.getWANDER_OUTLINER().tickOutlines();
@@ -88,6 +91,7 @@ public class ClockworkClientEvents {
         boolean pressed = !(event.getAction() == 0);
 
         ClockworkModForgeClient.GRAVITRON_HANDLER.onKeyInput(key, pressed);
+        ClockworkModForgeClient.WANDERWAND_HANDLER.onKeyInput(key, pressed);
     }
 
     @SubscribeEvent
@@ -97,7 +101,7 @@ public class ClockworkClientEvents {
         }
 
         double delta = event.getScrollDelta();
-        boolean cancelled = ClockworkModForgeClient.GRAVITRON_HANDLER.mouseScrolled(delta);
+        boolean cancelled = ClockworkModForgeClient.GRAVITRON_HANDLER.mouseScrolled(delta) || ClockworkModForgeClient.WANDERWAND_HANDLER.mouseScrolled(delta);
         event.setCanceled(cancelled);
     }
 
@@ -111,6 +115,9 @@ public class ClockworkClientEvents {
         boolean pressed = !(event.getAction() == 0);
 
         if (ClockworkModForgeClient.GRAVITRON_HANDLER.onMouseInput(button, pressed)) {
+            event.setCanceled(true);
+        }
+        if (ClockworkModForgeClient.WANDERWAND_HANDLER.onMouseInput(button, pressed)) {
             event.setCanceled(true);
         }
     }

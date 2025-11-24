@@ -60,6 +60,7 @@ dependencies {
     modApi("org.valkyrienskies:valkyrienskies-120-fabric:${rootProject.vs2_version}") {
         exclude group: "com.simibubi"
         exclude group: "me.jellysquid"
+        exclude module: "sodium"
     }
     implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") {
         exclude group: 'org.joml', module: ''
@@ -86,6 +87,7 @@ dependencies {
     modImplementation("com.simibubi.create:create-fabric-${minecraft_version}:${create_fabric_version}") {
         exclude group: 'com.github.AlphaMode', module: 'fakeconfigtoml'
         exclude group: "me.jellysquid"
+        exclude module: "sodium"
     }
 
 
@@ -107,7 +109,7 @@ dependencies {
         exclude(group: "net.fabricmc.fabric-api")
     }
     modCompileOnly("cc.tweaked:cc-tweaked-${minecraft_version}-fabric-api:${cc_version}")
-    modRuntimeOnly("cc.tweaked:cc-tweaked-${minecraft_version}-fabric:${cc_version}")
+    //modRuntimeOnly("cc.tweaked:cc-tweaked-${minecraft_version}-fabric:${cc_version}")
 
 //JEI
     //modRuntimeOnly("mezz.jei:jei-${minecraft_version}-fabric:${jei_version_fabric}")

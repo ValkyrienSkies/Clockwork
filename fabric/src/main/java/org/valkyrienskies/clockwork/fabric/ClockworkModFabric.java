@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.fabric;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
+import dev.architectury.event.events.common.InteractionEvent;
 import io.github.fabricators_of_create.porting_lib.entity.events.LivingEntityEvents;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
