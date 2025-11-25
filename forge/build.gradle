@@ -183,16 +183,27 @@ publishing {
     // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
     repositories {
         // Add repositories to publish to here.
-        if (System.getenv("GITHUB_ACTOR") != null) {
-            println "Publishing to Github Packages"
+        if (project.vs_maven_username && project.vs_maven_password) {
+            println "Publishing to VS Maven ($version)"
             maven {
-                name = "GitHubPackages"
-                url = uri("https://maven.pkg.github.com/ValkyrienSkies/Clockwork")
+                name = "VSMaven"
+                url = project.vs_maven_url
                 credentials {
-                    username = System.getenv("GITHUB_ACTOR")
-                    password = System.getenv("GITHUB_TOKEN")
+                    username = project.vs_maven_username
+                    password = project.vs_maven_password
                 }
             }
         }
+//        if (System.getenv("GITHUB_ACTOR") != null) {
+//            println "Publishing to Github Packages"
+//            maven {
+//                name = "GitHubPackages"
+//                url = uri("https://maven.pkg.github.com/ValkyrienSkies/Clockwork")
+//                credentials {
+//                    username = System.getenv("GITHUB_ACTOR")
+//                    password = System.getenv("GITHUB_TOKEN")
+//                }
+//            }
+//        }
     }
 }
