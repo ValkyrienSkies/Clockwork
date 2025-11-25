@@ -77,6 +77,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
     var cooldown = 0.0
     var gunpowderTicks = 0.0
+    var shootingAtChute: BlockPos? = null
 
     private var xRot = LerpedFloat.angular()
     private var yRot = LerpedFloat.angular()
@@ -103,6 +104,14 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         realPos ?: return
         if (level!!.isClientSide) return
 
+
+        if (shootingAtChute != null) {
+            val chute = ActiveChutes.actives[shootingAtChute]
+            if (chute == null && ActiveChutes.unloaded[shootingAtChute] == null) shootingAtChute = null
+            return
+        }
+
+
         if (midAirStack.isEmpty && !currentStack.isEmpty) {
             // TODO: CONFIGURE MAX DISTANCE
             val chutes = ActiveChutes.getSortedChuteWithFrequency(realPos!!,100.0,frequencySlotBehaviour.frequency)
@@ -119,11 +128,8 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
                 if (chute == null) visitedChutes.clear()
             }
+
             chute ?: return
-
-            // TODO: CONFIGURE SPEED
-            updateAngleChaser(ActiveChutes.actives[chute]!!)
-
 
             if (abs(xRot.value-xRot.chaseTarget) < 1 && abs(yRot.value-yRot.chaseTarget) < 1) {
                 midAirStack = currentStack
