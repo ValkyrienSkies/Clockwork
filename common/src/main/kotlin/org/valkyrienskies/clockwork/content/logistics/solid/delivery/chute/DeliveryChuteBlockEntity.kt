@@ -32,6 +32,8 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.ActiveChute
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotBehaviour
 import org.valkyrienskies.clockwork.util.blocktype.ISyncableStorage
 import org.valkyrienskies.clockwork.util.blocktype.SyncableStoragePacket
+import org.valkyrienskies.mod.api.positionToWorld
+import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOMLD
 
@@ -47,7 +49,8 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
     lateinit var frequencySlotBehaviour: FrequencySlotBehaviour
 
     var isRecieving = false
-
+    val realPos: Vector3d? get()
+    { return vsApi.getShipManagingBlock(level, blockPos)?.positionToWorld(blockPos.toJOMLD()) }
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
         frequencySlotBehaviour = FrequencySlotBehaviour(this,FrequencySlot())
@@ -117,14 +120,8 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
         return (this.level!! as ServerLevel).getShipObjectManagingPos(this.worldPosition) != null
     }
 
-    fun getRealPos(): Vector3dc {
-        return if (isOnShip()) {
-            (this.level!! as ServerLevel).getShipObjectManagingPos(this.worldPosition)!!.transform.shipToWorld.transformPosition(Vector3d(
-                worldPosition.x+0.5,worldPosition.y+0.95,worldPosition.z+0.5
-            ))
-        } else {
-            Vector3d(worldPosition.x+0.5,worldPosition.y+0.95,worldPosition.z+0.5)
-        }
+    fun getRealPos(): Vector3d {
+        return
     }
 
     fun getVelocity(): Vector3dc? {
