@@ -27,6 +27,8 @@ import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.ActiveChutes
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.euler_angle
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.getThirdPoint
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotBehaviour
 import org.valkyrienskies.core.api.VsCoreApi
@@ -36,7 +38,9 @@ import org.valkyrienskies.mod.api.shipWorld
 import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOMLD
+import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.min
 
 class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : KineticBlockEntity(type, pos, state), IHaveGoggleInformation {
 
@@ -76,10 +80,10 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
     private var xRot = LerpedFloat.angular()
     private var yRot = LerpedFloat.angular()
-    private var progression = LerpedFloat.linear()
+    private var distance = LerpedFloat.linear()
 
     val realPos: Vector3d? get()
-    { return vsApi.getShipManagingBlock(level, blockPos)?.positionToWorld(blockPos.toJOMLD()) }
+    { return vsApi.getShipManagingBlock(level, blockPos)?.positionToWorld(blockPos.toJOMLD()) ?: blockPos.toJOMLD() }
 
     init {
         xRot.setValue(blockState.getValue(HorizontalDirectionalBlock.FACING).toYRot().toDouble())
@@ -92,7 +96,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
         xRot.tickChaser()
         yRot.tickChaser()
-        progression.tickChaser()
+        distance.tickChaser()
         cooldown = max(cooldown, cooldown-1)
         gunpowderTicks = max(gunpowderTicks, gunpowderTicks-1)
 
@@ -100,7 +104,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         if (level!!.isClientSide) return
 
         if (midAirStack.isEmpty && !currentStack.isEmpty) {
-
+            // TODO: CONFIGURE MAX DISTANCE
             val chutes = ActiveChutes.getSortedChuteWithFrequency(realPos!!,100.0,frequencySlotBehaviour.frequency)
             var chute: BlockPos? = null
             if (distributionModeBehaviour.get() == DistributionMode.ALWAYS_CLOSEST)  chute = chutes[0]
@@ -117,10 +121,35 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             }
             chute ?: return
 
+            // TODO: CONFIGURE SPEED
+            updateAngleChaser(ActiveChutes.actives[chute]!!)
+
+
+            if (abs(xRot.value-xRot.chaseTarget) < 1 && abs(yRot.value-yRot.chaseTarget) < 1) {
+                midAirStack = currentStack
+                currentStack = ItemStack.EMPTY
+                distance.updateChaseTarget(realPos!!.distance(ActiveChutes.actives[chute]!!.realPos).toFloat())
+            }
         }
+
 
     }
 
+    fun updateAngleChaser(chuteBlockEntity: DeliveryChuteBlockEntity) {
+
+        val vertex = getThirdPoint(realPos!!, chuteBlockEntity.realPos!!)
+        val deltaP = realPos!!.sub(vertex)
+
+        xRot.updateChaseTarget(euler_angle(deltaP.z,-deltaP.x).toFloat())
+
+        val otherV: Double
+        if (abs(deltaP.z) > abs(deltaP.x)) otherV = deltaP.z
+        else otherV =  deltaP.x
+        var u_angle = euler_angle(deltaP.y,otherV)
+        if (u_angle>90) u_angle=180-u_angle
+
+        yRot.updateChaseTarget(min(90.0,u_angle+20).toFloat())
+    }
 
     companion object {
         @ExpectPlatform
@@ -128,7 +157,6 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             throw AssertionError()
         }
     }
-
 
 //
 //    val soundRandom = RandomSource.create()

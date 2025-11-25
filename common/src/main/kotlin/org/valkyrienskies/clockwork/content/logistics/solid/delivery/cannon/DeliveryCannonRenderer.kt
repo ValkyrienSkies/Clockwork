@@ -20,6 +20,7 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.phys.Vec3
 import org.joml.AxisAngle4f
 import org.joml.Quaternionf
+import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotRenderer
 import org.valkyrienskies.clockwork.util.EaseHelper
@@ -244,9 +245,9 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
             return A*z.pow(2) + B*z + C
         }
 
-        fun getThirdPoint(startVec3: Vec3, endVec3: Vec3): Vec3 {
-            val lerped = startVec3.lerp(endVec3,0.5)
-            return Vec3(lerped.x, endVec3.y + 5, lerped.z)
+        fun getThirdPoint(start: Vector3d, end: Vector3d): Vector3d {
+            val lerped = start.lerp(end,0.5)
+            return Vector3d(lerped.x, end.y + 5, lerped.z)
         }
 
 
