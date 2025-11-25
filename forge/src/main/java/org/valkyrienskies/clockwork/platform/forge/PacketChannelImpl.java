@@ -105,6 +105,7 @@ public class PacketChannelImpl implements PacketChannel {
 
     @Override
     public void sendTo(@NotNull S2CCWPacket packet, @NotNull ServerPlayer player) {
+        packet.setPlayer(player);
         channel.send(PacketDistributor.PLAYER.with(() -> player), packet);
     }
 }

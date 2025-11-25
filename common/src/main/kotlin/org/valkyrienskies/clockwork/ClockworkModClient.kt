@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork
 
 import com.simibubi.create.content.equipment.armor.BacktankArmorLayer
 import dev.architectury.event.events.client.ClientTickEvent
-import dev.architectury.event.events.common.TickEvent
 import dev.architectury.registry.ReloadListenerRegistry
 import net.createmod.catnip.outliner.Outliner
 import net.createmod.ponder.foundation.PonderIndex
@@ -11,7 +10,15 @@ import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRe
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents
 import net.minecraft.client.renderer.entity.EntityRendererProvider
 import net.minecraft.client.renderer.entity.LivingEntityRenderer
+import net.minecraft.client.Minecraft
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.packs.PackType
+import net.minecraft.world.level.Level
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandEffectRenderer
+import org.valkyrienskies.clockwork.platform.NativePlatform
+import java.io.IOException
+import java.util.*
+import dev.architectury.event.events.common.TickEvent
 import net.minecraft.server.packs.resources.ResourceManager
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener
 import net.minecraft.world.entity.EntityType
@@ -23,7 +30,6 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_s
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.impl.client.DuctNetworkClient
 
-
 object ClockworkModClient {
 
     @JvmStatic
@@ -33,12 +39,18 @@ object ClockworkModClient {
     val WANDER_OUTLINER: Outliner = Outliner()
 
     @JvmStatic
+    val WANDERWAND_EFFECT_RENDERER = WanderwandEffectRenderer()
+
+    @JvmStatic
     val RESOURCE_RELOAD_LISTENER: ResourceManagerReloadListener = ClockworkReloadListener()
 
 
     @JvmStatic
     fun initClient() {
         PonderIndex.addPlugin(ClockworkPonderPlugin())
+        ClientTickEvent.CLIENT_LEVEL_POST.register {
+            WANDERWAND_EFFECT_RENDERER.clientTick(it)
+        }
         ClockworkSoundScapes.init()
         SecondScrollValueRenderer.init()
 
@@ -100,7 +112,6 @@ object ClockworkModClient {
 //            }
 //        })
     }
-
     @JvmStatic
     fun getKelvin(): DuctNetworkClient {
         return KelvinMod.getClientKelvin() as DuctNetworkClient

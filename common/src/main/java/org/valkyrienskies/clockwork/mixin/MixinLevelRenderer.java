@@ -16,7 +16,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.valkyrienskies.clockwork.client.render.scanner.ScannerRenderer;
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer;
 
 @Mixin(LevelRenderer.class)
 public class MixinLevelRenderer {
@@ -40,6 +39,6 @@ public class MixinLevelRenderer {
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/OutlineBufferSource;endOutlineBatch()V", shift = At.Shift.BEFORE))
     private void vs_clockwork$renderAreaDesignator(PoseStack poseStack, float partialTick, long finishNanoTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, org.joml.Matrix4f projectionMatrix, CallbackInfo ci) {
-        WanderWandClusterRenderer.Companion.getINSTANCE().renderDesignator(level, minecraft, poseStack);
+        //WanderWandClusterRenderer.Companion.getINSTANCE().renderDesignator(level, minecraft, poseStack);
     }
 }

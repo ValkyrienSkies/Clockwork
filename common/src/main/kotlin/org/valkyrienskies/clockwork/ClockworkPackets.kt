@@ -8,11 +8,11 @@ import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.UpdateAltMeterPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerAttachmentSyncPacket
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandSelectionPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDestroyPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDialPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronGrabPacket
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClearPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandSelectionPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandRenderUpdatePacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctEdgeSyncPacket
@@ -47,6 +47,7 @@ enum class ClockworkPackets(
 
     GRAVITRON_GRAB_PACKET(GravitronGrabPacket::class.java, ::GravitronGrabPacket),
     GRAVITRON_DESTROY_PACKET(GravitronDestroyPacket::class.java, ::GravitronDestroyPacket),
+    WAND_SELECTION_PACKET(WandSelectionPacket::class.java, ::WandSelectionPacket),
 
     // Server to Client
     COLORBLOCKENTITY(BlockEntityColorPacket::class.java, ::BlockEntityColorPacket),
@@ -64,15 +65,14 @@ enum class ClockworkPackets(
     //SYNC_TEMPERATURE(TemperatureSyncPacket::class.java, ::TemperatureSyncPacket),
 
     PHYSICS_INFUSER(PhysicsInfuserSyncPacket::class.java, ::PhysicsInfuserSyncPacket),
-    WANDER_WAND(WanderWandSelectionPacket::class.java, ::WanderWandSelectionPacket),
-    WANDER_WAND_CLEAR(WanderWandClearPacket::class.java, ::WanderWandClearPacket),
+
+    WAND_RENDER_UPDATE_PACKET(WanderwandRenderUpdatePacket::class.java, ::WanderwandRenderUpdatePacket),
 
     UPDATE_DUCT_EDGE(DuctEdgeSyncPacket::class.java, ::DuctEdgeSyncPacket),
 
     NODE_SYNC(KNodeSyncPacket::class.java, ::KNodeSyncPacket),
 
     UNIVERSAL_JOINT_ITEM_PACKET(UniversalJointItemPacket::class.java, ::UniversalJointItemPacket)
-
     ;
 
     init {

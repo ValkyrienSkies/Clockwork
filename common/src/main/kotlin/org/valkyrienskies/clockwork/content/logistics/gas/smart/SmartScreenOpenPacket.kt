@@ -4,6 +4,7 @@ import net.createmod.catnip.gui.ScreenOpener
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.entity.player.Player
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterScreen
 import org.valkyrienskies.kelvin.api.DuctNodePos
@@ -21,7 +22,9 @@ import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3d
 
-class SmartScreenOpenPacket(private val nodeA: DuctNodePos, private val nodeB: DuctNodePos, private val filter: FilterType, private val comparisonValue: Double, private val moreThan: Boolean): S2CCWPacket {
+class SmartScreenOpenPacket(private val nodeA: DuctNodePos, private val nodeB: DuctNodePos, private val filter: FilterType, private val comparisonValue: Double, private val moreThan: Boolean,
+                            override var player: Player? = null
+): S2CCWPacket {
 
 
 

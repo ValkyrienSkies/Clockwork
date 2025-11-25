@@ -3,11 +3,12 @@ package org.valkyrienskies.clockwork.content.contraptions.phys.slicker
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.world.entity.player.Player
 import org.valkyrienskies.clockwork.platform.api.network.ClientNetworkContext
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket
 
 class SlickerAttachmentSyncPacket : S2CCWPacket {
-
+    override var player: Player? = null
     val pos: BlockPos
     val stuck: Boolean
 
@@ -35,6 +36,7 @@ class SlickerAttachmentSyncPacket : S2CCWPacket {
                 }
             }
         }
+        context.setPacketHandled(true)
     }
 
     override fun write(buffer: FriendlyByteBuf) {

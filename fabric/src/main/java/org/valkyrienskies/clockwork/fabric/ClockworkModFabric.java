@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.fabric;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
+import dev.architectury.event.events.common.InteractionEvent;
 import io.github.fabricators_of_create.porting_lib.entity.events.LivingEntityEvents;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -11,6 +12,7 @@ import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.ResourceLocation;
 import org.valkyrienskies.clockwork.*;
+//import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer;
 import org.valkyrienskies.clockwork.content.events.ClockworkCommonEvents;
 import org.valkyrienskies.mod.compat.clothconfig.VSClothConfig;
 import org.valkyrienskies.mod.fabric.common.ValkyrienSkiesModFabric;

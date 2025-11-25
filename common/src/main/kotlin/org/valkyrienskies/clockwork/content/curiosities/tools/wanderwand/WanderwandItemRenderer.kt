@@ -20,9 +20,10 @@ import org.valkyrienskies.clockwork.util.render.TransformData
 import kotlin.math.sin
 
 
-class WanderWandItemRenderer() : CustomRenderedItemModelRenderer() {
+class WanderwandItemRenderer() : CustomRenderedItemModelRenderer() {
 
     private var crystalAngle = 0f
+    private var idleProgress = 0f
 
     override fun render(
         stack: ItemStack,
@@ -44,8 +45,12 @@ class WanderWandItemRenderer() : CustomRenderedItemModelRenderer() {
             val stacker = TransformStack.of(ms)
             ms.pushPose()
             renderer!!.renderSolid(model!!.originalModel, light)
-            val adi: WanderWandItem = stack.item as WanderWandItem
-            animateIdle(ms, stacker, light, adi.idleProgress, renderer)
+            val ww: WanderwandItem = stack.item as WanderwandItem
+            animateIdle(ms, stacker, light, idleProgress, renderer)
+            idleProgress += 0.01f
+            if (idleProgress > 2.0f) {
+                idleProgress = 0.0f
+            }
             ms.popPose()
         }
 
@@ -60,12 +65,12 @@ class WanderWandItemRenderer() : CustomRenderedItemModelRenderer() {
     ) {
         val partialTicks: Float = AnimationTickHolder.getPartialTicks() - 1
         val nextCrystalAngle = this.crystalAngle + 0.1f % 360
-        val i = Mth.lerp(partialTicks, this.crystalAngle, nextCrystalAngle);
+        val i = Mth.rotLerp(partialTicks, this.crystalAngle, nextCrystalAngle);
 
 
         val innerData = TransformData(Vector3f(0f, 0f, 0f), Vector3f(i, i, 0f))
         val data = TransformData(Vector3f(0f, 0f, 0f), Vector3f(0f, i, 0f))
-        val heightAlt = 3f / 16f + sin(easeInOutSine(progress).toDouble()).toFloat() / 16f
+        val heightAlt = -(6f / 16f) + sin(easeInOutSine(progress).toDouble()).toFloat() / 16f
         stacker.translateY((heightAlt * 0.05f))
         ms.translate(0.0,heightAlt + 0.5,0.0)
         ms.pushPose()

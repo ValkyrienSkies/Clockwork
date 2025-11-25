@@ -19,11 +19,11 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.B
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteCubeItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteItem
 import org.valkyrienskies.clockwork.content.curiosities.WanderlustMusicDisc
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItemRenderer
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItem
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.CreativeGravitronItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItemRenderer
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver.ScrewdriverItem
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftItem
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBackTankItem
@@ -66,7 +66,7 @@ object ClockworkItems {
         }
             .properties {
                 it.stacksTo(1)
-                it.rarity(Rarity.UNCOMMON)
+                it.rarity(Rarity.RARE)
             }
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .tag(AllTags.AllItemTags.WRENCH.tag)
@@ -101,7 +101,7 @@ object ClockworkItems {
                 it.rarity(Rarity.UNCOMMON)
             }
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
-            .transform(ClockworkRegistrate.customRenderedItem { Supplier { WanderWandItemRenderer() } })
+            .transform(ClockworkRegistrate.customRenderedItem { Supplier { WanderwandItemRenderer() } })
             .tag(AllTags.AllItemTags.WRENCH.tag)
             .model(AssetLookup.itemModelWithPartials())
             .register()
@@ -132,16 +132,16 @@ object ClockworkItems {
         .register()
 
     @JvmField
-    val WANDERWAND: ItemEntry<WanderWandItem> =
-        REGISTRATE.item<WanderWandItem>("wanderwand") { properties: Item.Properties? ->
-            WanderWandItem(properties!!)
+    val WANDERWAND: ItemEntry<WanderwandItem> =
+        REGISTRATE.item<WanderwandItem>("wanderwand") { properties: Item.Properties? ->
+            WanderwandItem(properties!!)
         }
             .properties {
                 it.stacksTo(1)
                 it.rarity(Rarity.UNCOMMON)
             }
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
-            .transform(ClockworkRegistrate.customRenderedItem { Supplier { WanderWandItemRenderer() } })
+            .transform(ClockworkRegistrate.customRenderedItem { Supplier { WanderwandItemRenderer() } })
             .tag(AllTags.AllItemTags.WRENCH.tag)
             .model(AssetLookup.itemModelWithPartials())
             .register()

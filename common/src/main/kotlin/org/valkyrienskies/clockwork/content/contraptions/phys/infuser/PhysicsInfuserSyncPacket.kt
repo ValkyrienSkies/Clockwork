@@ -7,11 +7,13 @@ import net.minecraft.core.NonNullList
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.world.ContainerHelper
+import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import org.valkyrienskies.clockwork.platform.api.network.ClientNetworkContext
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket
 
 class PhysicsInfuserSyncPacket : S2CCWPacket {
+    override var player: Player? = null
     private var inventoryPacket: NonNullList<ItemStack>? = null
     private val pos: BlockPos
 
@@ -51,5 +53,6 @@ class PhysicsInfuserSyncPacket : S2CCWPacket {
                 }
             }
         }
+        context.setPacketHandled(true)
     }
 }

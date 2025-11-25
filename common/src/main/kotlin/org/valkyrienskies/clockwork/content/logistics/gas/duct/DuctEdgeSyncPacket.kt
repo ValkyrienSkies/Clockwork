@@ -5,13 +5,14 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.world.entity.player.Player
 import org.valkyrienskies.kelvin.api.ConnectionType
 import org.valkyrienskies.clockwork.platform.api.network.ClientNetworkContext
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket
 import org.valkyrienskies.kelvin.util.INodeBlockEntity
 
 class DuctEdgeSyncPacket : S2CCWPacket {
-
+    override var player: Player? = null
     val pos: BlockPos
     val direction: Direction
     val type: DuctEdgeType

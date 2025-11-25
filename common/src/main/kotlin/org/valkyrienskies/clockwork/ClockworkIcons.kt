@@ -36,6 +36,21 @@ class ClockworkIcons(x: Int, y: Int) : ScreenElement {
         @JvmField
         val FORTY_FIVE: ClockworkIcons = next()
 
+        @JvmField
+        val SELECT: ClockworkIcons = newRow()
+
+        @JvmField
+        val DESELECT: ClockworkIcons = next()
+
+        @JvmField
+        val ATTACH: ClockworkIcons = next()
+
+        @JvmField
+        val BIND: ClockworkIcons = next()
+
+        @JvmField
+        val WELD: ClockworkIcons = next()
+
         private fun next(): ClockworkIcons {
             return ClockworkIcons(++x, y)
         }

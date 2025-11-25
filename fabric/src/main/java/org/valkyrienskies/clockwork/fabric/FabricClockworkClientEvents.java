@@ -31,6 +31,7 @@ public class FabricClockworkClientEvents {
             return;
 
         ClockworkModFabricClient.GRAVITRON_HANDLER.tick();
+        ClockworkModFabricClient.WANDERWAND_HANDLER.tick();
 
         ClockworkModClient.getOUTLINER().tickOutlines();
         ClockworkModClient.getWANDER_OUTLINER().tickOutlines();
@@ -52,6 +53,7 @@ public class FabricClockworkClientEvents {
         ClockworkModClient.getOUTLINER().renderOutlines(ms, DefaultSuperRenderTypeBuffer.getInstance(), camera, partialTicks);
         ClockworkModClient.getWANDER_OUTLINER().renderOutlines(ms, DefaultSuperRenderTypeBuffer.getInstance(), camera, partialTicks);
         KelvinEdgeRenderer.render(worldRenderContext.world(), worldRenderContext.matrixStack(), worldRenderContext.camera());
+        ClockworkModClient.getWANDERWAND_EFFECT_RENDERER().render(ms, buffer, camera, partialTicks);
 
         buffer.draw();
         RenderSystem.enableCull();
