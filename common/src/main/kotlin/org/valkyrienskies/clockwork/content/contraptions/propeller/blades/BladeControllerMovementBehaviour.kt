@@ -8,7 +8,9 @@ import net.createmod.catnip.animation.AnimationTickHolder
 import net.fabricmc.loader.impl.lib.sat4j.core.Vec
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.core.Direction
+import net.minecraft.core.NonNullList
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.world.ContainerHelper
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
@@ -69,14 +71,16 @@ class BladeControllerMovementBehaviour: MovementBehaviour {
         val blockEntityData = context.blockEntityData
         val blades = blockEntityData.getCompound("Blades")
         val bladeCount = blockEntityData.getInt("BladeCount")
-        val bladeList = mutableListOf<ItemStack>()
-        for (i in 1 .. bladeCount) {
-            val bladeInList = blades.getCompound("Blades.Items[{Slot: ${i}b}]")
-            println(blades.toString())
-            val blade = ItemStack.of(bladeInList)
-            blade.getOrCreateTag().putDouble("BladeLength", bladeInList.getDouble("BladeLength"))
 
-            bladeList.add(blade)
+        val bladeNonNullList = NonNullList.withSize(bladeCount, ItemStack.EMPTY)
+        ContainerHelper.loadAllItems(blades, bladeNonNullList)
+        println(blades.toString())
+        println(bladeNonNullList)
+
+        val bladeList = mutableListOf<ItemStack>()
+        for (i in 0..<bladeCount) {
+            if (bladeNonNullList.size <= i) continue
+            bladeList.add(bladeNonNullList[i])
         }
 
         val bladeAngle = if (blockEntityData.contains("BladeAngle")) blockEntityData.getDouble("BladeAngle") else 0.0
