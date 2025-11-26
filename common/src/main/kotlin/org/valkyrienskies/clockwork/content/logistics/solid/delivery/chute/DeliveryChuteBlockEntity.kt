@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllBlocks
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.content.logistics.depot.EjectorBlock
+import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.item.ItemHelper
@@ -38,7 +39,7 @@ import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOMLD
 
 class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
-    KineticBlockEntity(typeIn, pos, state), ISyncableStorage {
+    SmartBlockEntity(typeIn, pos, state), ISyncableStorage {
 
     lateinit var capBelow: StorageProvider<ItemVariant>
 
@@ -47,27 +48,23 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
 
 
     lateinit var frequencySlotBehaviour: FrequencySlotBehaviour
+    var busy = false
 
-    var isRecieving = false
     val realPos: Vector3d? get()
     { return vsApi.getShipManagingBlock(level, blockPos)?.positionToWorld(blockPos.toJOMLD()) }
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
+
         frequencySlotBehaviour = FrequencySlotBehaviour(this,FrequencySlot())
 
         behaviours.add(frequencySlotBehaviour)
-        super.addBehaviours(behaviours)
+
     }
-
-
-
-
-
 
     override fun tick() {
         if (this.level == null || this.level!!.isClientSide) return
 
-        if (!ActiveChutes.hasChute(this.worldPosition)) {
+        if (ActiveChutes.actives[this.worldPosition] == null) {
             ActiveChutes.addChute(this.worldPosition, this)
         }
 
@@ -118,10 +115,6 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
     fun isOnShip(): Boolean {
         if (this.level!!.isClientSide) return false
         return (this.level!! as ServerLevel).getShipObjectManagingPos(this.worldPosition) != null
-    }
-
-    fun getRealPos(): Vector3d {
-        return
     }
 
     fun getVelocity(): Vector3dc? {
@@ -191,38 +184,33 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
         return true
     }
 
-    private fun grabCapability(side: Direction): Storage<ItemVariant>? {
-        if (level == null) return null
-        val provider: StorageProvider<ItemVariant> = capBelow
-        return provider[side.opposite]
-    }
-
     fun handleDownwardOutput(simulate: Boolean): Boolean {
 
-		if (level == null) return false
-		val inv  = grabCapability(Direction.DOWN);
-		if (!isEmpty) {
-            if (level!!.isClientSide && !isVirtual)
-                return false;
 
-
-            TransferUtil.getTransaction().use { t ->
-                val inserted = inv!!.insert(
-                    ItemVariant.of(getItem(0)),
-                    getItem(0).getCount().toLong(),
-                    t
-                )
-                if (inserted != 0L && !simulate) t.commit()
-                val held = getItem(0)
-                if (!simulate) {
-                    val newStack = held.copy()
-                    newStack.shrink(ItemHelper.truncateLong(inserted))
-                    setItem(0, newStack)
-                }
-                if (inserted != 0L) return true
-            }
-        }
-        return false
+//		if (level == null) return false
+//		val inv  = grabCapability(Direction.DOWN);
+//		if (!isEmpty) {
+//            if (level!!.isClientSide && !isVirtual)
+//                return false;
+//
+//
+//            TransferUtil.getTransaction().use { t ->
+//                val inserted = inv!!.insert(
+//                    ItemVariant.of(getItem(0)),
+//                    getItem(0).getCount().toLong(),
+//                    t
+//                )
+//                if (inserted != 0L && !simulate) t.commit()
+//                val held = getItem(0)
+//                if (!simulate) {
+//                    val newStack = held.copy()
+//                    newStack.shrink(ItemHelper.truncateLong(inserted))
+//                    setItem(0, newStack)
+//                }
+//                if (inserted != 0L) return true
+//            }
+//        }
+//        return false
    }
 
     public class FrequencySlot : ValueBoxTransform.Sided() {

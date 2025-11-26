@@ -22,7 +22,6 @@ import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_ge
 import org.valkyrienskies.clockwork.content.logistics.gas.smart.SmartScreenClosePacket
 import org.valkyrienskies.clockwork.content.logistics.gas.smart.SmartScreenOpenPacket
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.UpdateFrequencySlotPacket
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonSyncPacket
 import org.valkyrienskies.clockwork.content.physicalities.wing.BlockEntityColorPacket
 import org.valkyrienskies.clockwork.platform.SharedValues.packetChannel
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
@@ -52,7 +51,6 @@ enum class ClockworkPackets(
     // Server to Client
     COLORBLOCKENTITY(BlockEntityColorPacket::class.java, ::BlockEntityColorPacket),
     SYNCABLESTORAGE(SyncableStoragePacket::class.java, ::SyncableStoragePacket),
-    DELIVERY_CANNON_SYNC(DeliveryCannonSyncPacket::class.java, ::DeliveryCannonSyncPacket),
 
     SLICKERATTACHMENT(SlickerAttachmentSyncPacket::class.java, ::SlickerAttachmentSyncPacket),
     GRAVITRON_DIAL_PACKET(GravitronDialPacket::class.java, ::GravitronDialPacket),

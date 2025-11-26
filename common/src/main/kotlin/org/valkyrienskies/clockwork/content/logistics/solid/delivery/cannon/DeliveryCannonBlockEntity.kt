@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
+import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.INamedIconOptions
@@ -16,6 +17,8 @@ import net.createmod.catnip.math.AngleHelper
 import net.createmod.catnip.math.VecHelper
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.NbtUtils
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
@@ -42,15 +45,13 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : KineticBlockEntity(type, pos, state), IHaveGoggleInformation {
+class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : SmartBlockEntity(type, pos, state), IHaveGoggleInformation {
 
     //    var inventory: Any? = null
     lateinit var frequencySlotBehaviour: FrequencySlotBehaviour
     lateinit var distributionModeBehaviour: ScrollOptionBehaviour<DistributionMode>
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
-        super.addBehaviours(behaviours)
-
         frequencySlotBehaviour = FrequencySlotBehaviour(this, FrequencySlot())
         behaviours.add(frequencySlotBehaviour)
 
@@ -86,6 +87,9 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     val realPos: Vector3d? get()
     { return vsApi.getShipManagingBlock(level, blockPos)?.positionToWorld(blockPos.toJOMLD()) ?: blockPos.toJOMLD() }
 
+    val isRoundRobin: Boolean get()
+    {return distributionModeBehaviour.get() == DistributionMode.ALWAYS_CLOSEST}
+
     init {
         xRot.setValue(blockState.getValue(HorizontalDirectionalBlock.FACING).toYRot().toDouble())
     }
@@ -93,17 +97,12 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     override fun tick() {
         super.tick()
 
-
+        realPos ?: return
 
         xRot.tickChaser()
         yRot.tickChaser()
         distance.tickChaser()
-        cooldown = max(cooldown, cooldown-1)
-        gunpowderTicks = max(gunpowderTicks, gunpowderTicks-1)
-
-        realPos ?: return
         if (level!!.isClientSide) return
-
 
         if (shootingAtChute != null) {
             val chute = ActiveChutes.actives[shootingAtChute]
@@ -112,16 +111,24 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         }
 
 
+        cooldown = max(cooldown, cooldown-1)
+        gunpowderTicks = max(gunpowderTicks, gunpowderTicks-1)
+
         if (midAirStack.isEmpty && !currentStack.isEmpty) {
             // TODO: CONFIGURE MAX DISTANCE
             val chutes = ActiveChutes.getSortedChuteWithFrequency(realPos!!,100.0,frequencySlotBehaviour.frequency)
             var chute: BlockPos? = null
-            if (distributionModeBehaviour.get() == DistributionMode.ALWAYS_CLOSEST)  chute = chutes[0]
+            var chuteBe: DeliveryChuteBlockEntity? = null
+            if (!isRoundRobin)  chute = chutes[0]
             else {
                 for (possibleChute in chutes) {
                     if (possibleChute in visitedChutes) continue
                     chute = possibleChute
-                    visitedChutes.add(chute)
+                    chuteBe = ActiveChutes.actives[chute] ?: continue
+                    if (chuteBe.busy || !chuteBe.receiveItem(currentStack, true)) {
+                        chuteBe = null
+                        continue
+                    }
 
                     break
                 }
@@ -129,9 +136,12 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
                 if (chute == null) visitedChutes.clear()
             }
 
-            chute ?: return
+            chuteBe ?: return
+
+            updateAngleChaser(chuteBe)
 
             if (abs(xRot.value-xRot.chaseTarget) < 1 && abs(yRot.value-yRot.chaseTarget) < 1) {
+                if (isRoundRobin) visitedChutes.add(chuteBe.blockPos)
                 midAirStack = currentStack
                 currentStack = ItemStack.EMPTY
                 distance.updateChaseTarget(realPos!!.distance(ActiveChutes.actives[chute]!!.realPos).toFloat())
@@ -157,11 +167,32 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         yRot.updateChaseTarget(min(90.0,u_angle+20).toFloat())
     }
 
+    fun addGunpowderTicks(count: Int) {
+        gunpowderTicks += count*6000
+    }
+
     companion object {
         @ExpectPlatform
         fun extractFrom(level: Level): ItemStack {
             throw AssertionError()
         }
+    }
+
+    override fun read(tag: CompoundTag, clientPacket: Boolean) {
+        super.read(tag, clientPacket)
+    }
+
+    override fun write(tag: CompoundTag, clientPacket: Boolean) {
+        tag.put("xRot", xRot.writeNBT())
+        tag.put("yRot", yRot.writeNBT())
+        tag.put("distance", distance.writeNBT())
+        currentStack.save(tag)
+        midAirStack.save(tag)
+
+        if (shootingAtChute != null) tag.put("shootingAtChute",NbtUtils.writeBlockPos(shootingAtChute!!))
+
+        super.write(tag, clientPacket)
+
     }
 
 //
@@ -170,7 +201,8 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 //    var currentStack: ItemStack = ItemStack.EMPTY
 //
 //    var transportStack: ItemStack = ItemStack.EMPTY
-//    var progress: Double = 0.0
+//    var progress: Double =
+//    0.0
 //    var clientProgress: Double = 0.0
 //    var maxProgress: Double = 0.0
 //    var chuteLocation: BlockPos = BlockPos.ZERO
@@ -346,9 +378,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 //        return false
 //    }
 //
-//    fun addGunpowderTicks(count: Int) {
-//        gunPowderTicks += count*6000
-//    }
+
 //
 //    fun getRealPos(): Vec3 {
 //        if (level.getShipManagingPos(blockPos) != null) {
