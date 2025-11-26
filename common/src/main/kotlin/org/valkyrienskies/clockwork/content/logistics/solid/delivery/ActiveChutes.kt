@@ -44,7 +44,7 @@ object ActiveChutes {
         var closest: BlockPos? = null
         var closestDistance: Double = Double.MAX_VALUE
         for (chute in actives.keys) {
-            val realPos = actives[chute]!!.getRealPos()
+            val realPos = actives[chute]!!.realPos!!
             val realBlockPos = BlockPos(realPos.x().toInt(), realPos.y().toInt(), realPos.z().toInt())
             if (realBlockPos.closerThan(pos, maxDistance)) {
                 if (realPos.distance(pos.toJOMLD()) < closestDistance) {

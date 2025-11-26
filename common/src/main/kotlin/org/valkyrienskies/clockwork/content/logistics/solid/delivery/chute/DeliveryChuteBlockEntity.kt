@@ -184,38 +184,41 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
         return true
     }
 
-    fun handleDownwardOutput(simulate: Boolean): Boolean {
-
-
-//		if (level == null) return false
-//		val inv  = grabCapability(Direction.DOWN);
-//		if (!isEmpty) {
-//            if (level!!.isClientSide && !isVirtual)
-//                return false;
+//    fun handleDownwardOutput(simulate: Boolean): Boolean {
 //
 //
-//            TransferUtil.getTransaction().use { t ->
-//                val inserted = inv!!.insert(
-//                    ItemVariant.of(getItem(0)),
-//                    getItem(0).getCount().toLong(),
-//                    t
-//                )
-//                if (inserted != 0L && !simulate) t.commit()
-//                val held = getItem(0)
-//                if (!simulate) {
-//                    val newStack = held.copy()
-//                    newStack.shrink(ItemHelper.truncateLong(inserted))
-//                    setItem(0, newStack)
-//                }
-//                if (inserted != 0L) return true
-//            }
-//        }
-//        return false
-   }
-
-    public class FrequencySlot : ValueBoxTransform.Sided() {
+//        //		if (level == null) return false
+////		val inv  = grabCapability(Direction.DOWN);
+////		if (!isEmpty) {
+////            if (level!!.isClientSide && !isVirtual)
+////                return false;
+////
+////
+////            TransferUtil.getTransaction().use { t ->
+////                val inserted = inv!!.insert(
+////                    ItemVariant.of(getItem(0)),
+////                    getItem(0).getCount().toLong(),
+////                    t
+////                )
+////                if (inserted != 0L && !simulate) t.commit()
+////                val held = getItem(0)
+////                if (!simulate) {
+////                    val newStack = held.copy()
+////                    newStack.shrink(ItemHelper.truncateLong(inserted))
+////                    setItem(0, newStack)
+////                }
+////                if (inserted != 0L) return true
+////            }
+////        }
+////        return false
+//        //
+    private class FrequencySlot : ValueBoxTransform.Sided() {
         override fun getLocalOffset(level: LevelAccessor, pos: BlockPos, state: BlockState): Vec3 {
-            return if (direction != Direction.UP) super.getLocalOffset(level, pos, state) else Vec3(.5, 10.5 / 16f, .5).add(
+            return if (direction != Direction.UP) super.getLocalOffset(level, pos, state) else Vec3(
+                .5,
+                10.5 / 16f,
+                .5
+            ).add(
                 VecHelper.rotate(
                     VecHelper.voxelSpace(0.0, 0.0, -5.0), angle(state).toDouble(), Direction.Axis.Y
                 )
@@ -233,7 +236,11 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
         }
 
         private fun angle(state: BlockState): Float {
-            return if (AllBlocks.WEIGHTED_EJECTOR.has(state)) AngleHelper.horizontalAngle(state.getValue(EjectorBlock.HORIZONTAL_FACING)) else 0f
+            return if (AllBlocks.WEIGHTED_EJECTOR.has(state)) AngleHelper.horizontalAngle(
+                state.getValue(
+                    EjectorBlock.HORIZONTAL_FACING
+                )
+            ) else 0f
         }
 
         override fun isSideActive(state: BlockState, direction: Direction): Boolean {

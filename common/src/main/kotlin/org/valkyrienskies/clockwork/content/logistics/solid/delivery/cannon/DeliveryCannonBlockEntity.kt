@@ -35,6 +35,8 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.Deli
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotBehaviour
 import org.valkyrienskies.core.api.VsCoreApi
+import org.valkyrienskies.core.impl.shadow.ch
+import org.valkyrienskies.core.impl.shadow.cl
 import org.valkyrienskies.mod.api.VsApi
 import org.valkyrienskies.mod.api.positionToWorld
 import org.valkyrienskies.mod.api.shipWorld
@@ -102,17 +104,22 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         xRot.tickChaser()
         yRot.tickChaser()
         distance.tickChaser()
+        gunpowderTicks = max(gunpowderTicks, gunpowderTicks-1)
+
         if (level!!.isClientSide) return
 
         if (shootingAtChute != null) {
             val chute = ActiveChutes.actives[shootingAtChute]
-            if (chute == null && ActiveChutes.unloaded[shootingAtChute] == null) shootingAtChute = null
+            if (chute != null) distance.updateChaseTarget(chute.realPos?.distance(realPos)?.toFloat() ?: 0f)
+            else if (ActiveChutes.unloaded[shootingAtChute] == null) shootingAtChute = null
+
+
             return
         }
 
 
         cooldown = max(cooldown, cooldown-1)
-        gunpowderTicks = max(gunpowderTicks, gunpowderTicks-1)
+
 
         if (midAirStack.isEmpty && !currentStack.isEmpty) {
             // TODO: CONFIGURE MAX DISTANCE
@@ -142,11 +149,12 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
             if (abs(xRot.value-xRot.chaseTarget) < 1 && abs(yRot.value-yRot.chaseTarget) < 1) {
                 if (isRoundRobin) visitedChutes.add(chuteBe.blockPos)
+                shootingAtChute = chute
                 midAirStack = currentStack
                 currentStack = ItemStack.EMPTY
                 distance.updateChaseTarget(realPos!!.distance(ActiveChutes.actives[chute]!!.realPos).toFloat())
             }
-        }
+        } else if (currentStack.isEmpty) currentStack = extractFrom(level!!, this)
 
 
     }
@@ -173,27 +181,37 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
     companion object {
         @ExpectPlatform
-        fun extractFrom(level: Level): ItemStack {
+        fun extractFrom(level: Level, be: DeliveryCannonBlockEntity): ItemStack {
             throw AssertionError()
         }
     }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         super.read(tag, clientPacket)
+
+        xRot.readNBT(tag, clientPacket)
+        yRot.readNBT(tag, clientPacket)
+        distance.readNBT(tag, clientPacket)
+
+        currentStack = ItemStack.of(tag)
+        midAirStack = ItemStack.of(tag)
+
+        if (tag.contains("shootingAtChute")) shootingAtChute = NbtUtils.readBlockPos(tag)
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
         tag.put("xRot", xRot.writeNBT())
         tag.put("yRot", yRot.writeNBT())
         tag.put("distance", distance.writeNBT())
+
         currentStack.save(tag)
         midAirStack.save(tag)
 
         if (shootingAtChute != null) tag.put("shootingAtChute",NbtUtils.writeBlockPos(shootingAtChute!!))
-
         super.write(tag, clientPacket)
 
     }
+
 
 //
 //    val soundRandom = RandomSource.create()
