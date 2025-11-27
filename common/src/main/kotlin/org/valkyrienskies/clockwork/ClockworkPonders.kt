@@ -100,9 +100,9 @@ object ClockworkPonders {
             .pointAt(util.vector().blockSurface(util.grid().at(0, 2, 0), Direction.WEST))
         scene.world().createItemOnBeltLike(BlockPos(0,1,0), Direction.NORTH, ItemStack(Items.COPPER_BLOCK))
         scene.idle(2)
-        scene.world().modifyBlockEntity(BlockPos(0, 2, 0), DeliveryCannonBlockEntity::class.java) { be: DeliveryCannonBlockEntity -> be.ponder = true}
+        //scene.world().modifyBlockEntity(BlockPos(0, 2, 0), DeliveryCannonBlockEntity::class.java) { be: DeliveryCannonBlockEntity -> be.ponder = true}
         scene.idle(2)
-        scene.world().modifyBlockEntity(BlockPos(0, 2, 0), DeliveryCannonBlockEntity::class.java) { be: DeliveryCannonBlockEntity -> be.ponderFire(BlockPos(4,2,0))}
+        //scene.world().modifyBlockEntity(BlockPos(0, 2, 0), DeliveryCannonBlockEntity::class.java) { be: DeliveryCannonBlockEntity -> be.ponderFire(BlockPos(4,2,0))}
         scene.idle(60)
         scene.overlay().showText(40)
             .attachKeyFrame()

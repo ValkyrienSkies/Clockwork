@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation
-import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
@@ -30,22 +29,18 @@ import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.ActiveChutes
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.euler_angle
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer.Companion.getThirdPoint
+
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotBehaviour
-import org.valkyrienskies.core.api.VsCoreApi
-import org.valkyrienskies.core.impl.shadow.ch
-import org.valkyrienskies.core.impl.shadow.cl
-import org.valkyrienskies.mod.api.VsApi
+import org.valkyrienskies.clockwork.platform.SolidDeliveryMethods
 import org.valkyrienskies.mod.api.positionToWorld
-import org.valkyrienskies.mod.api.shipWorld
 import org.valkyrienskies.mod.api.vsApi
-import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.math.abs
+import kotlin.math.atan
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.pow
 
 class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : SmartBlockEntity(type, pos, state), IHaveGoggleInformation {
 
@@ -124,6 +119,8 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         if (midAirStack.isEmpty && !currentStack.isEmpty) {
             // TODO: CONFIGURE MAX DISTANCE
             val chutes = ActiveChutes.getSortedChuteWithFrequency(realPos!!,100.0,frequencySlotBehaviour.frequency)
+            if (chutes.isEmpty()) return
+
             var chute: BlockPos? = null
             var chuteBe: DeliveryChuteBlockEntity? = null
             if (!isRoundRobin)  chute = chutes[0]
@@ -154,7 +151,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
                 currentStack = ItemStack.EMPTY
                 distance.updateChaseTarget(realPos!!.distance(ActiveChutes.actives[chute]!!.realPos).toFloat())
             }
-        } else if (currentStack.isEmpty) currentStack = extractFrom(level!!, this)
+        } else if (currentStack.isEmpty) currentStack = SolidDeliveryMethods.extractFrom(level!!, this)
 
 
     }
@@ -179,11 +176,83 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         gunpowderTicks += count*6000
     }
 
-    companion object {
-        @ExpectPlatform
-        fun extractFrom(level: Level, be: DeliveryCannonBlockEntity): ItemStack {
-            throw AssertionError()
+    fun getParabolaY(vec: Vector3d): Double {
+        val startPos = realPos!!
+        val endPos = vsApi.getShipManagingBlock(level, blockPos)?.positionToWorld(blockPos.toJOMLD()) ?: blockPos.toJOMLD()
+        val middlePos = getThirdPoint(startPos, endPos)
+
+        var sX = startPos.x
+        var eX = endPos.x
+        var vX = middlePos.x
+        var iX = vec.x
+
+        // Picks an axis to use for the parabola.
+        if (abs(endPos.x-startPos.x) < abs(endPos.z-startPos.z)) {
+
+            sX = startPos.z
+            eX = endPos.z
+            vX = middlePos.z
+            iX = vec.z
         }
+
+        return parabola(sX,startPos.y,eX,endPos.y,vX,middlePos.y, iX)
+
+    }
+
+    companion object {
+
+
+        fun parabola(x1: Double, y1: Double, x2: Double, y2: Double, x3: Double, y3: Double,  z:Double): Double {
+            val denom = (x1 - x2) * (x1 - x3) * (x2 - x3)
+            val A = (x3 * (y2 - y1) + x2 * (y1 - y3) + x1 * (y3 - y2)) / denom
+            val B = (x3 * x3 * (y1 - y2) + x2 * x2 * (y3 - y1) + x1 * x1 * (y2 - y3)) / denom
+            val C = (x2 * x3 * (x2 - x3) * y1 + x3 * x1 * (x3 - x1) * y2 + x1 * x2 * (x1 - x2) * y3) / denom
+
+
+            return A*z.pow(2) + B*z + C
+        }
+
+        fun getThirdPoint(start: Vector3d, end: Vector3d): Vector3d {
+            val lerped = start.lerp(end,0.5)
+            return Vector3d(lerped.x, end.y + 5, lerped.z)
+        }
+
+
+        fun euler_angle(x: Double,y: Double): Double {
+            val rad = atan(y/x)   // arcus tangent in radians
+            var deg = rad*180/Math.PI  // converted to degrees
+            if (x<0) deg += 180        // fixed mirrored angle of arctan
+            val eul = (270+deg)%360    // folded to [0,360) domain
+            return eul
+        }
+
+
+
+//        fun turn(currentRotation: Double, targetRotation: Double, turnSpeed: Double): Pair<Double, Boolean> {
+//
+//            var shouldLerp = true
+//            var rotation = currentRotation
+//
+//            if (360+rotation-targetRotation<abs(targetRotation-rotation)) {
+//
+//                rotation -=  turnSpeed
+//                if (rotation<0) {
+//                    rotation += 360
+//                    shouldLerp = false
+//                }
+//            }
+//            else if (360-rotation+targetRotation<abs(targetRotation-rotation)) {
+//
+//                rotation +=  turnSpeed
+//                if (rotation>=360) {
+//                    rotation -= 360
+//                    shouldLerp = false
+//                }
+//            }
+//            else
+//            rotation +=  Mth.clamp(targetRotation-rotation, -turnSpeed, turnSpeed)
+//            return Pair(rotation,shouldLerp)
+//        }
     }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {

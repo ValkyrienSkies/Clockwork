@@ -1,4 +1,4 @@
-package platform
+package org.valkyrienskies.clockwork.platform.forge
 
 import com.simibubi.create.foundation.item.ItemHelper
 import net.minecraft.core.BlockPos
@@ -11,8 +11,9 @@ import net.minecraftforge.common.util.LazyOptional
 import net.minecraftforge.items.IItemHandler
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
 
-object DeliveryCannonBlockEntityImpl {
+object SolidDeliveryMethodsImpl {
 
+    @JvmStatic
     fun extractFrom(level: Level?, be: DeliveryCannonBlockEntity?): ItemStack {
         if (level == null) return ItemStack.EMPTY
 
@@ -24,7 +25,7 @@ object DeliveryCannonBlockEntityImpl {
         return ItemHelper.extract(inv, {true}, ItemHelper.ExtractionCountMode.UPTO, 64, false)
     }
 
-    private fun grabCapability( level: Level?, be: DeliveryCannonBlockEntity?): LazyOptional<IItemHandler> {
+    private fun grabCapability(level: Level?, be: DeliveryCannonBlockEntity?): LazyOptional<IItemHandler> {
 
         if (level == null) return LazyOptional.empty()
         if (be == null) return LazyOptional.empty()

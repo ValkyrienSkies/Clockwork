@@ -78,7 +78,7 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
         }
         previousInventory = inventory
 
-        if (!isEmpty) handleDownwardOutput(false)
+        //if (!isEmpty) handleDownwardOutput(false)
     }
 
     override fun setLevel(level: Level) {
