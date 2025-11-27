@@ -9,7 +9,9 @@ import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraftforge.common.capabilities.ForgeCapabilities
 import net.minecraftforge.common.util.LazyOptional
 import net.minecraftforge.items.IItemHandler
+import net.minecraftforge.items.ItemHandlerHelper
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 
 object SolidDeliveryMethodsImpl {
 
@@ -25,7 +27,26 @@ object SolidDeliveryMethodsImpl {
         return ItemHelper.extract(inv, {true}, ItemHelper.ExtractionCountMode.UPTO, 64, false)
     }
 
-    private fun grabCapability(level: Level?, be: DeliveryCannonBlockEntity?): LazyOptional<IItemHandler> {
+    @JvmStatic
+    fun pushTo(level: Level?, be: DeliveryChuteBlockEntity?): Boolean {
+
+        level ?: return false
+		val inv  = grabCapability(level, be)
+
+		if (!be!!.itemStack.isEmpty && inv.isPresent) {
+            if (level.isClientSide && !be.isVirtual)
+                return false
+
+            val remainder = ItemHandlerHelper.insertItemStacked(inv.orElseThrow { AssertionError()}, be.itemStack, false)
+            if (remainder.count == be.itemStack.count) return false
+            be.itemStack = remainder
+            return true
+
+        }
+        return false
+    }
+
+    private fun grabCapability(level: Level?, be: BlockEntity?): LazyOptional<IItemHandler> {
 
         if (level == null) return LazyOptional.empty()
         if (be == null) return LazyOptional.empty()

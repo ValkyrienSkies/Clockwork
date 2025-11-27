@@ -67,7 +67,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
     var currentStack: ItemStack = ItemStack.EMPTY
     var midAirStack    : ItemStack = ItemStack.EMPTY
-    var didParticles = false
+
     var fired = false
 
     var lastVel = 0.0
@@ -91,6 +91,10 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         xRot.setValue(blockState.getValue(HorizontalDirectionalBlock.FACING).toYRot().toDouble())
     }
 
+    override fun lazyTick() {
+       sendData()
+    }
+
     override fun tick() {
         super.tick()
 
@@ -108,21 +112,35 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             if (chute != null) distance.updateChaseTarget(chute.realPos?.distance(realPos)?.toFloat() ?: 0f)
             else if (ActiveChutes.unloaded[shootingAtChute] == null) shootingAtChute = null
 
+            if (abs(distance.value - distance.chaseTarget) < 0.01 && chute != null) {
+                chute.busy = false
+                chute.receiveItem(midAirStack)
+                xRot.updateChaseTarget(0f)
+                yRot.updateChaseTarget(0f)
+                distance.setValue(0.0)
+                distance.updateChaseTarget(0f)
 
+                shootingAtChute = null
+                midAirStack = ItemStack.EMPTY
+                sendData()
+            }
             return
         }
 
 
         cooldown = max(cooldown, cooldown-1)
 
-
+        println(0)
         if (midAirStack.isEmpty && !currentStack.isEmpty) {
             // TODO: CONFIGURE MAX DISTANCE
             val chutes = ActiveChutes.getSortedChuteWithFrequency(realPos!!,100.0,frequencySlotBehaviour.frequency)
+            println(chutes)
             if (chutes.isEmpty()) return
 
             var chute: BlockPos? = null
             var chuteBe: DeliveryChuteBlockEntity? = null
+
+            println(1)
             if (!isRoundRobin)  chute = chutes[0]
             else {
                 for (possibleChute in chutes) {
@@ -140,16 +158,22 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
                 if (chute == null) visitedChutes.clear()
             }
 
+            println(2)
             chuteBe ?: return
+            println(3)
+
 
             updateAngleChaser(chuteBe)
-
             if (abs(xRot.value-xRot.chaseTarget) < 1 && abs(yRot.value-yRot.chaseTarget) < 1) {
                 if (isRoundRobin) visitedChutes.add(chuteBe.blockPos)
                 shootingAtChute = chute
                 midAirStack = currentStack
                 currentStack = ItemStack.EMPTY
                 distance.updateChaseTarget(realPos!!.distance(ActiveChutes.actives[chute]!!.realPos).toFloat())
+
+                chuteBe.busy = true
+                sendData()
+                println(4)
             }
         } else if (currentStack.isEmpty) currentStack = SolidDeliveryMethods.extractFrom(level!!, this)
 

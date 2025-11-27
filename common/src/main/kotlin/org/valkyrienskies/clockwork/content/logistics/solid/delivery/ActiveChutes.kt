@@ -59,12 +59,13 @@ object ActiveChutes {
     fun getSortedChuteWithFrequency(pos: Vector3d, maxDistance: Double, frequency: Frequency): MutableList<BlockPos>{
         val inRange = mutableListOf<BlockPos>()
 
-        for (chute in actives.keys) {
-            val realChutePos = actives[chute]!!.realPos ?: continue
+        println(actives)
+        for (entry in actives) {
+            val realChutePos = entry.value.realPos ?: continue
             if (realChutePos.distance(pos) > maxDistance) continue
-            if (actives[chute]!!.frequencySlotBehaviour.frequency != frequency) continue
+            if (entry.value.frequencySlotBehaviour.frequency != frequency) continue
 
-            inRange.add(chute)
+            inRange.add(entry.key)
         }
 
         inRange.sortWith(compareBy { actives[it]!!.realPos!!.distance(pos) })
