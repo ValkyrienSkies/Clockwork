@@ -27,10 +27,13 @@ import org.valkyrienskies.core.api.world.connectivity.DoubleComponentAugmentatio
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil.defaultMapper
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
+import org.valkyrienskies.mod.api.positionToWorld
+import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.BlockStateInfo
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
+import org.valkyrienskies.mod.common.util.toJOMLD
 import java.io.IOException
 import java.util.*
 import java.util.stream.Collectors
@@ -196,6 +199,9 @@ object ClockworkUtils {
 
         return Pair(gasMap, temperature)
     }
+
+    fun getRealPos(level: Level, blockPos: BlockPos): Vector3d
+    { return vsApi.getShipManagingBlock(level, blockPos)?.positionToWorld(blockPos.toJOMLD()) ?: blockPos.toJOMLD() }
 
     /**
      * Retrieves all components within a given chunk claim, using a key as reference.

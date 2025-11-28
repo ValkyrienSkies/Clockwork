@@ -33,6 +33,7 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.ActiveChute
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotBehaviour
 import org.valkyrienskies.clockwork.platform.SolidDeliveryMethods
+import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.mod.api.positionToWorld
 import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.util.toJOMLD
@@ -68,7 +69,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     var currentStack: ItemStack = ItemStack.EMPTY
     var midAirStack    : ItemStack = ItemStack.EMPTY
 
-    var fired = false
+
 
     var lastVel = 0.0
     var visitedChutes = HashSet<BlockPos>()
@@ -77,18 +78,30 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     var gunpowderTicks = 0.0
     var shootingAtChute: BlockPos? = null
 
-    private var xRot = LerpedFloat.angular()
-    private var yRot = LerpedFloat.angular()
-    private var distance = LerpedFloat.linear()
+    var xRot = LerpedFloat.angular()
+    var yRot = LerpedFloat.angular()
+    var distance = LerpedFloat.linear()
 
-    val realPos: Vector3d? get()
+    //For client
+    var clientShotProgress = 0.0
+    var clientBarrelOffset = 0.0f
+    var clientCannonRotationOffset = 0.0f
+    var clientAntennaRotationOffset = 0.0f
+    var clientItemRotation = 0.0
+    var fired = false
+
+    val realPos: Vector3d get()
     { return vsApi.getShipManagingBlock(level, blockPos)?.positionToWorld(blockPos.toJOMLD()) ?: blockPos.toJOMLD() }
 
     val isRoundRobin: Boolean get()
     {return distributionModeBehaviour.get() == DistributionMode.ALWAYS_CLOSEST}
 
     init {
-        xRot.setValue(blockState.getValue(HorizontalDirectionalBlock.FACING).toYRot().toDouble())
+        val xrot = blockState.getValue(HorizontalDirectionalBlock.FACING).toYRot().toDouble()
+
+        xRot.chase(xrot, 1.0, LerpedFloat.Chaser.LINEAR)
+        yRot.chase(0.0, 1.0, LerpedFloat.Chaser.LINEAR)
+        distance.chase(0.0, 0.025, LerpedFloat.Chaser.LINEAR)
     }
 
     override fun lazyTick() {
@@ -98,7 +111,10 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     override fun tick() {
         super.tick()
 
-        realPos ?: return
+        xRot.updateChaseSpeed(1.0)
+        yRot.updateChaseSpeed(1.0)
+
+        println("${xRot.value} ${xRot.chaseTarget} ${yRot.value} ${yRot.chaseTarget}")
 
         xRot.tickChaser()
         yRot.tickChaser()
@@ -109,7 +125,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
         if (shootingAtChute != null) {
             val chute = ActiveChutes.actives[shootingAtChute]
-            if (chute != null) distance.updateChaseTarget(chute.realPos?.distance(realPos)?.toFloat() ?: 0f)
+            if (chute != null) distance.updateChaseTarget(chute.realPos.distance(realPos).toFloat())
             else if (ActiveChutes.unloaded[shootingAtChute] == null) shootingAtChute = null
 
             if (abs(distance.value - distance.chaseTarget) < 0.01 && chute != null) {
@@ -130,18 +146,19 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
         cooldown = max(cooldown, cooldown-1)
 
-        println(0)
         if (midAirStack.isEmpty && !currentStack.isEmpty) {
             // TODO: CONFIGURE MAX DISTANCE
-            val chutes = ActiveChutes.getSortedChuteWithFrequency(realPos!!,100.0,frequencySlotBehaviour.frequency)
-            println(chutes)
+            val chutes = ActiveChutes.getSortedChuteWithFrequency(realPos,100.0,frequencySlotBehaviour.frequency)
+            println("chutes = $chutes")
             if (chutes.isEmpty()) return
 
             var chute: BlockPos? = null
             var chuteBe: DeliveryChuteBlockEntity? = null
 
-            println(1)
-            if (!isRoundRobin)  chute = chutes[0]
+            if (!isRoundRobin)  {
+                chute = chutes[0]
+                chuteBe = ActiveChutes.actives[chute]
+            }
             else {
                 for (possibleChute in chutes) {
                     if (possibleChute in visitedChutes) continue
@@ -152,28 +169,27 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
                         continue
                     }
 
-                    break
                 }
 
-                if (chute == null) visitedChutes.clear()
+                if (chute == null || !isRoundRobin) visitedChutes.clear()
             }
 
-            println(2)
+            println("$chute    $chuteBe    ${ActiveChutes.actives[chute]}    ${ActiveChutes.actives[chute]?.receiveItem(currentStack, true)}")
             chuteBe ?: return
-            println(3)
 
 
+            println("updated angle chaser")
             updateAngleChaser(chuteBe)
             if (abs(xRot.value-xRot.chaseTarget) < 1 && abs(yRot.value-yRot.chaseTarget) < 1) {
                 if (isRoundRobin) visitedChutes.add(chuteBe.blockPos)
                 shootingAtChute = chute
                 midAirStack = currentStack
                 currentStack = ItemStack.EMPTY
-                distance.updateChaseTarget(realPos!!.distance(ActiveChutes.actives[chute]!!.realPos).toFloat())
+                distance.updateChaseTarget(realPos.distance(ActiveChutes.actives[chute]!!.realPos).toFloat())
 
                 chuteBe.busy = true
                 sendData()
-                println(4)
+                println("SHOT!")
             }
         } else if (currentStack.isEmpty) currentStack = SolidDeliveryMethods.extractFrom(level!!, this)
 
@@ -194,6 +210,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         if (u_angle>90) u_angle=180-u_angle
 
         yRot.updateChaseTarget(min(90.0,u_angle+20).toFloat())
+        sendData()
     }
 
     fun addGunpowderTicks(count: Int) {
@@ -201,8 +218,8 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     }
 
     fun getParabolaY(vec: Vector3d): Double {
-        val startPos = realPos!!
-        val endPos = vsApi.getShipManagingBlock(level, blockPos)?.positionToWorld(blockPos.toJOMLD()) ?: blockPos.toJOMLD()
+        val startPos = realPos
+        val endPos = ClockworkUtils.getRealPos(level!!, shootingAtChute!!)
         val middlePos = getThirdPoint(startPos, endPos)
 
         var sX = startPos.x
@@ -219,6 +236,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             iX = vec.z
         }
 
+        println("parabolas: $startPos $middlePos $endPos")
         return parabola(sX,startPos.y,eX,endPos.y,vX,middlePos.y, iX)
 
     }
@@ -251,40 +269,14 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         }
 
 
-
-//        fun turn(currentRotation: Double, targetRotation: Double, turnSpeed: Double): Pair<Double, Boolean> {
-//
-//            var shouldLerp = true
-//            var rotation = currentRotation
-//
-//            if (360+rotation-targetRotation<abs(targetRotation-rotation)) {
-//
-//                rotation -=  turnSpeed
-//                if (rotation<0) {
-//                    rotation += 360
-//                    shouldLerp = false
-//                }
-//            }
-//            else if (360-rotation+targetRotation<abs(targetRotation-rotation)) {
-//
-//                rotation +=  turnSpeed
-//                if (rotation>=360) {
-//                    rotation -= 360
-//                    shouldLerp = false
-//                }
-//            }
-//            else
-//            rotation +=  Mth.clamp(targetRotation-rotation, -turnSpeed, turnSpeed)
-//            return Pair(rotation,shouldLerp)
-//        }
     }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         super.read(tag, clientPacket)
 
-        xRot.readNBT(tag, clientPacket)
-        yRot.readNBT(tag, clientPacket)
-        distance.readNBT(tag, clientPacket)
+        xRot.readNBT(tag.get("xRot") as CompoundTag, clientPacket)
+        yRot.readNBT(tag.get("yRot") as CompoundTag, clientPacket)
+        distance.readNBT(tag.get("distance") as CompoundTag, clientPacket)
 
         currentStack = ItemStack.of(tag)
         midAirStack = ItemStack.of(tag)
