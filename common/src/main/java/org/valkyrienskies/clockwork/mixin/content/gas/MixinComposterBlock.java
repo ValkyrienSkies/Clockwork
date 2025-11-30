@@ -105,12 +105,12 @@ public class MixinComposterBlock extends Block implements INodeBlock {
     }
 
     @Override
-    public void nodeAddClient(@NotNull BlockState blockState, @NotNull ClientLevel clientLevel, @NotNull BlockPos blockPos) {
+    public void nodeAddClient(@NotNull BlockState blockState, @NotNull Level level, @NotNull BlockPos blockPos) {
 
     }
 
     @Override
-    public void nodeRemoveClient(@NotNull BlockState blockState, @NotNull ClientLevel clientLevel, @NotNull BlockPos blockPos) {
+    public void nodeRemoveClient(@NotNull BlockState blockState, @NotNull Level level, @NotNull BlockPos blockPos) {
 
     }
 }
