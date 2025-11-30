@@ -76,9 +76,7 @@ object ClockworkMod {
         ValkyrienSkiesMod.vsCore.registerConfigLegacy("clockwork", ClockworkConfig::class.java)
 
         vsCore.registerAttachment(PocketForcesController::class.java)
-        vsCore.registerAttachment(DragController::class.java)
         vsCore.registerAttachment(WanderShipControl::class.java)
-
         vsCore.registerAttachment(GasThrusterController::class.java)
         vsCore.registerAttachment(PropellerController::class.java)
         vsCore.registerAttachment(ReactionWheelController::class.java)
@@ -90,7 +88,7 @@ object ClockworkMod {
 
         vsApi.shipLoadEvent.on { event -> val ship = event.ship;
             PocketForcesController.getOrCreate(ship)
-            DragController.getOrCreate(ship)
+            //DragController.getOrCreate(ship)
             WanderShipControl.getOrCreate(ship)
 
             //TODO remove when attachment bug is fixed
@@ -120,7 +118,6 @@ object ClockworkMod {
         TickEvent.SERVER_LEVEL_POST.register {
             for (ship in it.shipObjectWorld.loadedShips) {
                 ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship)
-                ship.getAttachment(DragController::class.java)?.gameTick(ship, it)
             }
 
             ClockworkUtils.tick(it)
