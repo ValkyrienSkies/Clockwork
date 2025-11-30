@@ -170,7 +170,6 @@ object ClockworkBlocks {
             FlapBearingBlock(properties)
         }
             .transform(axeOrPickaxe())
-            .transform(flapbearing())
             .transform(ClockworkStress.setImpact(4.0))
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
