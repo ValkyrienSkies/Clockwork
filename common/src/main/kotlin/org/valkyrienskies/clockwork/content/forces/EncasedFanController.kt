@@ -35,8 +35,8 @@ class EncasedFanController(
         for (physData in appliers.values) {
             val force = computeForce(physData, physShip)
             val fanVector: Vector3dc =
-                Vector3d(physData.position).add(0.5, 0.5, 0.5, Vector3d()).sub(physShip.transform.positionInShip)
-            physShip.applyRotDependentForceToPos(force, fanVector)
+                Vector3d(physData.position).add(0.5, 0.5, 0.5, Vector3d())
+            physShip.applyModelForce(force, fanVector)
         }
     }
 

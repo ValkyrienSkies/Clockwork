@@ -34,8 +34,8 @@ class SugarRocketController : ShipPhysicsListener {
             //println("removed rocket at $rocket")
         }
         burningRockets.forEach { data ->
-            val shipPos = Vector3d(data.position).add(0.5, 0.5, 0.5, Vector3d()).sub(physShip.transform.positionInShip)
-            physShip.applyRotDependentForceToPos(data.force!!, shipPos)
+            val shipPos = Vector3d(data.position).add(0.5, 0.5, 0.5, Vector3d())
+            physShip.applyModelForce(data.force!!, shipPos)
         }
     }
 

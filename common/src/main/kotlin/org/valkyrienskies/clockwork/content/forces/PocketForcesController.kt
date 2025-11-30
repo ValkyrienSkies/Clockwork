@@ -90,7 +90,7 @@ class PocketForcesController: ShipPhysicsListener {
 
         buoyancyForce.forEach {
             if (it.value.isFinite() && !it.value.isNaN()) { //just to be safe
-                physShipImpl.applyInvariantForceToPos(Vector3d(0.0, it.value, 0.0), Vector3d(pocketCenters[it.key]!!).sub(physShip.transform.positionInShip))
+                physShipImpl.applyWorldForceToModelPos(Vector3d(0.0, it.value, 0.0), Vector3d(pocketCenters[it.key]!!))
             }
         }
     }
