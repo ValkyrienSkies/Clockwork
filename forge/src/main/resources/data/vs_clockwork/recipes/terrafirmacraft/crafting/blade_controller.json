@@ -1,22 +1,28 @@
-\{
+{
   "type": "minecraft:crafting_shaped",
   "pattern": [
     "W",
-    "A",
-    "E"
+    "C",
+    "S"
   ],
   "key": {
     "W": {
       "tag": "minecraft:wooden_slabs"
     },
-    "A": {
-      "item": "create:andesite_casing"
+    "C": {
+      "item": "create:brass_casing"
     },
-    "E": {
-      "item": "create:shaft"
+    "S": {
+      "item": "greate:andesite_alloy_shaft"
     }
   },
   "result": {
     "item": "vs_clockwork:blade_controller"
-  }
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tfc"
+    }
+  ]
 }

@@ -1,20 +1,20 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "CB",
-    "BC"
+    "SCS",
+    "CSC",
+    "SCS"
   ],
   "key": {
+    "S": {
+      "item": "minecraft:sugar"
+    },
     "C": {
       "tag": "forge:cloth"
-    },
-    "B": {
-      "tag": "forge:nuggets/brass"
     }
   },
   "result": {
-    "item": "vs_clockwork:wing",
-    "count": 8
+    "item": "vs_clockwork:sugar_rocket"
   },
   "conditions": [
     {

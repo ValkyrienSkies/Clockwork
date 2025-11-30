@@ -3,7 +3,7 @@
   "pattern": [
     "W",
     "A",
-    "E"
+    "S"
   ],
   "key": {
     "W": {
@@ -12,11 +12,17 @@
     "A": {
       "item": "create:andesite_casing"
     },
-    "E": {
-      "item": "create:shaft"
+    "S": {
+      "item": "greate:andesite_alloy_shaft"
     }
   },
   "result": {
-    "item": "vs_clockwork:propeller_bearing"
-  }
+    "item": "vs_clockwork:juryrigged_propeller_bearing"
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tfc"
+    }
+  ]
 }
