@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "M",
+    "F",
+    "T"
+  ],
+  "key": {
+    "T": {
+      "item": "create:turntable"
+    },
+    "F": {
+      "item": "create:flywheel"
+    },
+    "M": {
+      "item": "vs_clockwork:wanderlite_matrix"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:gyro"
+  }
+}

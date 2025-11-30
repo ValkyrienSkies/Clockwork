@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "BOB",
+    "OMO",
+    "BOB"
+  ],
+  "key": {
+    "B": {
+      "tag": "forge:ingots/brass"
+    },
+    "O": {
+      "tag": "forge:plates/obsidian"
+    },
+    "M": {
+      "item": "vs_clockwork:wanderlite_matrix"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:physics_infuser"
+  }
+}
