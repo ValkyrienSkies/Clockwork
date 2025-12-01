@@ -8,7 +8,6 @@ import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.INamedIconOptions
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour
 import com.simibubi.create.foundation.gui.AllIcons
-import dev.architectury.injectables.annotations.ExpectPlatform
 import dev.engine_room.flywheel.lib.transform.TransformStack
 import net.createmod.catnip.animation.LerpedFloat
 import net.createmod.catnip.lang.Lang
@@ -19,7 +18,6 @@ import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtUtils
 import net.minecraft.world.item.ItemStack
-import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
@@ -29,19 +27,15 @@ import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.ActiveChutes
-
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotBehaviour
 import org.valkyrienskies.clockwork.platform.SolidDeliveryMethods
 import org.valkyrienskies.clockwork.util.ClockworkUtils
+import org.valkyrienskies.clockwork.util.EaseHelper
 import org.valkyrienskies.mod.api.positionToWorld
 import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.util.toJOMLD
-import kotlin.math.abs
-import kotlin.math.atan
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.pow
+import kotlin.math.*
 
 class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : SmartBlockEntity(type, pos, state), IHaveGoggleInformation {
 
@@ -101,7 +95,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
         xRot.chase(xrot, 1.0, LerpedFloat.Chaser.LINEAR)
         yRot.chase(0.0, 1.0, LerpedFloat.Chaser.LINEAR)
-        distance.chase(0.0, 0.025, LerpedFloat.Chaser.LINEAR)
+        distance.chase(0.0, 100000.0, EaseHelper.CUBIC_EASE)
     }
 
     override fun lazyTick() {
@@ -114,7 +108,6 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         xRot.updateChaseSpeed(1.0)
         yRot.updateChaseSpeed(1.0)
 
-        println("${xRot.value} ${xRot.chaseTarget} ${yRot.value} ${yRot.chaseTarget}")
 
         xRot.tickChaser()
         yRot.tickChaser()
@@ -236,7 +229,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             iX = vec.z
         }
 
-        println("parabolas: $startPos $middlePos $endPos")
+        println("parabola $startPos $middlePos $endPos")
         return parabola(sX,startPos.y,eX,endPos.y,vX,middlePos.y, iX)
 
     }
@@ -246,6 +239,8 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
         fun parabola(x1: Double, y1: Double, x2: Double, y2: Double, x3: Double, y3: Double,  z:Double): Double {
             val denom = (x1 - x2) * (x1 - x3) * (x2 - x3)
+
+            println("denom: $denom")
             val A = (x3 * (y2 - y1) + x2 * (y1 - y3) + x1 * (y3 - y2)) / denom
             val B = (x3 * x3 * (y1 - y2) + x2 * x2 * (y3 - y1) + x1 * x1 * (y2 - y3)) / denom
             val C = (x2 * x3 * (x2 - x3) * y1 + x3 * x1 * (x3 - x1) * y2 + x1 * x2 * (x1 - x2) * y3) / denom
@@ -255,8 +250,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         }
 
         fun getThirdPoint(start: Vector3d, end: Vector3d): Vector3d {
-            val lerped = start.lerp(end,0.5)
-            return Vector3d(lerped.x, end.y + 5, lerped.z)
+            return Vector3d((start.x + end.x)/2, (start.y + end.y)/2+5, (start.z + end.z)/2)
         }
 
 
@@ -281,7 +275,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         currentStack = ItemStack.of(tag)
         midAirStack = ItemStack.of(tag)
 
-        if (tag.contains("shootingAtChute")) shootingAtChute = NbtUtils.readBlockPos(tag)
+        if (tag.contains("shootingAtChute")) shootingAtChute = NbtUtils.readBlockPos(tag.get("shootingAtChute") as CompoundTag)
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
