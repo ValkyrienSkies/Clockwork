@@ -3,11 +3,13 @@ package org.valkyrienskies.clockwork
 import com.simibubi.create.AllItems
 import com.simibubi.create.AllTags
 import com.simibubi.create.AllTags.AllItemTags
+import com.simibubi.create.content.equipment.goggles.GogglesItem
 import com.simibubi.create.foundation.data.AssetLookup
 import com.tterrag.registrate.util.entry.ItemEntry
 import dev.architectury.core.item.ArchitecturyRecordItem
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings
 import net.minecraft.tags.ItemTags
+import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.Rarity
 import net.minecraft.world.item.RecordItem
@@ -19,6 +21,7 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.B
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteCubeItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteItem
 import org.valkyrienskies.clockwork.content.curiosities.WanderlustMusicDisc
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautGogglesItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.CreativeGravitronItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem
@@ -193,8 +196,16 @@ object ClockworkItems {
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .register()
 
+    @JvmField
+    val AERONAUT_GOGGLES: ItemEntry<AeronautGogglesItem> =
+        REGISTRATE.item<AeronautGogglesItem>("aeronaut_goggles") { properties: Item.Properties? ->
+            AeronautGogglesItem(properties!!)
+        }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .register()
+
     @JvmStatic
     fun register() {
-
+        GogglesItem.addIsWearingPredicate { player -> AERONAUT_GOGGLES.isIn(player.getItemBySlot(EquipmentSlot.HEAD))  }
     }
 }

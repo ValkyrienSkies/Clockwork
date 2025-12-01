@@ -308,5 +308,45 @@
         "stream": true
       }
     ]
+  },
+  "flightsuit_equip": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:flightsuit_equip",
+        "type": "file",
+        "attenuation_distance": 16
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.flightsuit_equip"
+  },
+  "flightsuit_unequip": {
+      "sounds": [
+      {
+          "name": "vs_clockwork:flightsuit_unequip",
+          "type": "file",
+          "attenuation_distance": 16
+      }
+      ],
+      "subtitle": "vs_clockwork.subtitle.flightsuit_unequip"
+  },
+  "goggles_equip": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:goggles_equip",
+        "type": "file",
+        "attenuation_distance": 16
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.goggles_equip"
+  },
+  "goggles_unequip": {
+      "sounds": [
+      {
+          "name": "vs_clockwork:goggles_unequip",
+          "type": "file",
+          "attenuation_distance": 16
+      }
+      ],
+      "subtitle": "vs_clockwork.subtitle.goggles_unequip"
   }
 }

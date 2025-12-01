@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork
 
+import com.mojang.blaze3d.platform.InputConstants
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.logging.LogUtils
 import com.simibubi.create.foundation.data.CreateRegistrate
@@ -10,6 +11,7 @@ import dev.architectury.event.events.common.TickEvent
 import dev.architectury.registry.CreativeTabRegistry
 import dev.architectury.registry.registries.DeferredRegister
 import dev.architectury.registry.registries.RegistrySupplier
+import net.minecraft.client.KeyMapping
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.core.registries.Registries
 import net.minecraft.network.chat.Component
