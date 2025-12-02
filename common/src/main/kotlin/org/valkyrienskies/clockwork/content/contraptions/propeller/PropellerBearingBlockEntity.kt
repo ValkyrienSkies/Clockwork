@@ -42,6 +42,7 @@ import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.math.absoluteValue
 import kotlin.math.min
+import kotlin.math.sin
 
 class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState, val brass: Boolean = false) : KineticBlockEntity(type, pos, state), IBearingBlockEntity, IForceApplierBE<PropUpdateData, PropData, PropCreateData, PropellerController> {
 
@@ -271,18 +272,11 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
 
         if (brass) {
             getSails()
-            // Add stress impact from propeller contraption.
-            // Stress impact of propeller contraption is computed by:
-            // sum((sail relative pos from bearing).cross(bearing axis))
-            var stressImpact = 0.0
-            val axis : Vector3dc = direction.normal.toJOMLD()
-            for(sail in sailPositions) {
-                stressImpact += axis.cross(sail.x().toDouble(), sail.y().toDouble(), sail.z().toDouble(), Vector3d()).length()
-            }
-            orCreateNetwork?.updateStressFor(this, stressImpact.toFloat())
         } else {
             getBlades()
         }
+        val stressImpact = calculateStressApplied()
+        orCreateNetwork?.updateStressFor(this, stressImpact)
 
         if (!level!!.isClientSide) {
             val ship = (level as ServerLevel).getShipObjectManagingPos(
@@ -316,7 +310,8 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         }
 
         // Remove stress impact
-        orCreateNetwork?.updateStressFor(this, 0.0f)
+        val stressImpact = calculateStressApplied()
+        orCreateNetwork?.updateStressFor(this, stressImpact)
 
         sendData()
     }
@@ -494,5 +489,28 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         fun omegaToRPM(omega: Double): Float {
             return ((omega * 60.0) / (2.0 * Math.PI)).toFloat()
         }
+    }
+
+    override fun calculateStressApplied(): Float {
+        if(level!!.isClientSide) return lastStressApplied
+        var stressImpact = 0.0
+        val axis : Vector3dc = blockState.getValue(BlockStateProperties.FACING).normal.toJOMLD()
+        if (propellerContraption != null) {
+            if(brass) {
+                // Add stress impact from propeller contraption.
+                // Stress impact of propeller contraption is computed by:
+                // sum((sail relative pos from bearing).cross(bearing axis))
+                for (sail in sailPositions) {
+                    stressImpact += axis.cross(sail.x().toDouble(), sail.y().toDouble(), sail.z().toDouble(), Vector3d()).length()
+                }
+            } else {
+                // Add stress impact from propeller blades.
+                for (blade in blades) {
+                    stressImpact += blade.length * sin(Math.toRadians(blade.angle)) * (if(blade.wide) 1.5 else 1.0)
+                }
+            }
+        }
+        lastStressApplied = stressImpact.toFloat()
+        return stressImpact.toFloat()
     }
 }
