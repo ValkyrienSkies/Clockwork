@@ -8,32 +8,12 @@ import kotlin.math.*
 object EaseHelper {
 
 
-    val QUADRATIC_CHASE = Chaser { c: Double, s: Double, t: Double ->
-        val distance = t - c
-        val delta = distance * distance * s * sign(distance)
-        (c + Mth.clamp(delta, -abs(s * 10), abs(s * 10))).toFloat()
-    }
+    val EASE_IN_OUT: Chaser = { current: Double, maxSpeed: Double, target: Double ->
+        val dampingFactor = 0.15
+        val desiredMovement = (target - current) * dampingFactor
 
-    val CUBIC_EASE = Chaser { c: Double, s: Double, t: Double ->
-        val distance = t - c
-        val delta = distance * distance * distance * s
-
-        val maxStep = abs(s * 100)
-        (c + Mth.clamp(delta, -maxStep, maxStep)).toFloat()
-    }
-
-    val CUBIC_EASE_IN_OUT = Chaser { c, s, t ->
-        val distance = (t - c)
-        val absDistance = abs(distance)
-        val normalizedDistance = Mth.clamp(absDistance * s, 0.0, 1.0)
-        val easeFactor =
-        normalizedDistance * normalizedDistance * (1.0 - normalizedDistance) * (1.0 - normalizedDistance)
-        val scaleFactor = 10000.0
-        val delta: Double = distance * easeFactor * scaleFactor * s
-
-        val maxStep: Double = abs(scaleFactor * s)
-        (c + Mth.clamp(delta, -maxStep, maxStep)).toFloat()
-    }
+        (current + Mth.clamp(desiredMovement, -maxSpeed, maxSpeed)).toFloat()
+    } as Chaser
 
 
 

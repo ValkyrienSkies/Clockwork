@@ -95,7 +95,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
         xRot.chase(xrot, 1.0, LerpedFloat.Chaser.LINEAR)
         yRot.chase(0.0, 1.0, LerpedFloat.Chaser.LINEAR)
-        distance.chase(0.0, 100000.0, EaseHelper.CUBIC_EASE)
+        distance.chase(0.0, 100000.0, EaseHelper.EASE_IN_OUT)
     }
 
     override fun lazyTick() {
