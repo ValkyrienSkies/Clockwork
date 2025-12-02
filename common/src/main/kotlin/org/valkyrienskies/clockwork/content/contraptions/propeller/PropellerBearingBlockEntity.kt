@@ -22,6 +22,9 @@ import net.minecraft.util.Mth
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
+import org.joml.Vector3d
+import org.joml.Vector3dc
+import org.joml.Vector3i
 import org.joml.Vector3ic
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkLang
@@ -37,9 +40,7 @@ import org.valkyrienskies.clockwork.content.generic.IForceApplierBE
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toJOMLD
-import kotlin.math.abs
 import kotlin.math.absoluteValue
-import kotlin.math.max
 import kotlin.math.min
 
 class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState, val brass: Boolean = false) : KineticBlockEntity(type, pos, state), IBearingBlockEntity, IForceApplierBE<PropUpdateData, PropData, PropCreateData, PropellerController> {
@@ -270,6 +271,15 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
 
         if (brass) {
             getSails()
+            // Add stress impact from propeller contraption.
+            // Stress impact of propeller contraption is computed by:
+            // sum((sail relative pos from bearing).cross(bearing axis))
+            var stressImpact = 0.0
+            val axis : Vector3dc = direction.normal.toJOMLD()
+            for(sail in sailPositions) {
+                stressImpact += axis.cross(sail.x().toDouble(), sail.y().toDouble(), sail.z().toDouble(), Vector3d()).length()
+            }
+            orCreateNetwork?.updateStressFor(this, stressImpact.toFloat())
         } else {
             getBlades()
         }
@@ -304,6 +314,10 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         if (physID != -1) {
             removeApplier(PropellerController::class.java, level, worldPosition)
         }
+
+        // Remove stress impact
+        orCreateNetwork?.updateStressFor(this, 0.0f)
+
         sendData()
     }
 
