@@ -25,6 +25,7 @@ import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotRenderer
 import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.clockwork.util.EaseHelper
+import org.valkyrienskies.core.impl.shadow.rX
 import org.valkyrienskies.mod.api.positionToWorld
 import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.util.toJOMLD
@@ -57,7 +58,6 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
 
         handleShootingAnim(be, partialTicks)
 
-        val lookDir = VecHelper.rotate(be.blockState.getValue(HorizontalDirectionalBlock.FACING).normal.toJOMLD().toMinecraft(), 0.0, -xCurrentRotation, yCurrentRotation).normalize()
 
         // X Axis rotation
         mount = rotateCentered(mount, xCurrentRotation)
@@ -84,15 +84,25 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         if (!be.midAirStack.isEmpty && be.shootingAtChute != null) {
 
             if (!be.fired) {
+
+                val chutePosition = ClockworkUtils.getRealPos(be.level, be.shootingAtChute!!)
+                val middlePosition = DeliveryCannonBlockEntity.getThirdPoint(be.realPos, chutePosition)
+                val lookDir = middlePosition.sub(be.realPos, Vector3d()).normalize()
                 for (i in 0..9) {
                     val r = Random()
-                    val sX: Double = lookDir.x * .01f
-                    val sY: Double = (lookDir.y + 1) * .01f
-                    val sZ: Double = lookDir.z * .01f
-                    val rX = r.nextFloat() - sX * 40f
-                    val rY = r.nextFloat() - sY * 40f
-                    val rZ = r.nextFloat() - sZ * 40f
-                    be.level!!.addParticle(ParticleTypes.CLOUD, be.realPos.x- 0.5 - (lookDir.x*2.0) + rX, pivot.y + be.realPos.y + 1 + rY, be.realPos.z - 0.5 - (lookDir.z*2.0) + rZ, sX, sY, sZ)
+
+                    val pV = 0.25
+                    val particlePosition = be.realPos.add(lookDir.mul(2.0, Vector3d()))
+                        .add(r.nextDouble()*pV - pV/2,r.nextDouble()*pV - pV/2,r.nextDouble()*pV - pV/2)
+
+                    val sV = 0.05
+                    val particleSpeed = lookDir.mul(0.05, Vector3d())
+                        .add(r.nextDouble()*sV - sV/2, r.nextDouble()*sV - sV/2, r.nextDouble()*sV - sV/2)
+
+                    be.level!!.addParticle(ParticleTypes.CLOUD,
+                        particlePosition.x, particlePosition.y, particlePosition.z,
+                        particleSpeed.x, particleSpeed.y, particleSpeed.z)
+
                 }
                 be.fired = true
             }

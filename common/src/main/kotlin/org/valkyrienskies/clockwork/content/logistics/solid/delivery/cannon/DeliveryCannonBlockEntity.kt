@@ -21,10 +21,13 @@ import net.minecraft.sounds.SoundSource
 import net.minecraft.util.Mth
 import net.minecraft.util.RandomSource
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.ClipContext
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkBlocks
@@ -36,9 +39,8 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_s
 import org.valkyrienskies.clockwork.platform.SolidDeliveryMethods
 import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.clockwork.util.EaseHelper
-import org.valkyrienskies.mod.api.positionToWorld
-import org.valkyrienskies.mod.api.vsApi
-import org.valkyrienskies.mod.common.util.toJOMLD
+import org.valkyrienskies.mod.api.toMinecraft
+import org.valkyrienskies.mod.common.world.clipIncludeShips
 import kotlin.math.*
 
 class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : SmartBlockEntity(type, pos, state), IHaveGoggleInformation {
@@ -151,26 +153,18 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             var chute: BlockPos? = null
             var chuteBe: DeliveryChuteBlockEntity? = null
 
-            if (!isRoundRobin)  {
-                chute = chutes[0]
-                chuteBe = ActiveChutes.actives[chute]
-            }
-            else {
-                for (possibleChute in chutes) {
-                    if (possibleChute in visitedChutes) continue
-                    chute = possibleChute
-                    chuteBe = ActiveChutes.actives[chute] ?: continue
-                    if (chuteBe.busy || !chuteBe.receiveItem(currentStack, true)) {
-                        chuteBe = null
-                        continue
-                    }
-
+            for (possibleChute in chutes) {
+                if (isRoundRobin && possibleChute in visitedChutes) continue
+                chute = possibleChute
+                chuteBe = ActiveChutes.actives[chute] ?: continue
+                if (chuteBe.busy || !chuteBe.receiveItem(currentStack, true) || isObstructed(chuteBe)) {
+                    chuteBe = null
+                    continue
                 }
-
-                if (chute == null || !isRoundRobin) visitedChutes.clear()
+                break
             }
 
-            chuteBe ?: return
+            chuteBe ?: return visitedChutes.clear()
 
 
             updateAngleChaser(chuteBe)
@@ -218,8 +212,26 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         var u_angle = euler_angle(deltaP.y,otherV)
         if (u_angle>90) u_angle=180-u_angle
 
-        yRot.updateChaseTarget(min(90.0,u_angle+20).toFloat())
+        yRot.updateChaseTarget(min(90.0,u_angle).toFloat())
         sendData()
+    }
+
+    fun isObstructed(chute: DeliveryChuteBlockEntity): Boolean {
+        val vertex = getThirdPoint(realPos, chute.realPos).toMinecraft()
+
+        val cannonToVertex = clip(realPos.add(0.0,0.5,0.0).toMinecraft(), vertex)
+        println("CTV: ${cannonToVertex.type} ${cannonToVertex.blockPos}")
+        if (cannonToVertex.type != HitResult.Type.MISS) return true
+
+        val vertexToChute = clip(vertex, chute.realPos.toMinecraft())
+        println("VTC: ${vertexToChute.type} ${vertexToChute.blockPos} ${chute.blockPos}")
+        return vertexToChute.type == HitResult.Type.MISS || vertexToChute.blockPos != chute.blockPos
+
+    }
+
+
+    fun clip(from: Vec3, to: Vec3): BlockHitResult {
+        return level!!.clipIncludeShips(ClipContext(from, to, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, null))
     }
 
     fun addGunpowderTicks(count: Int) {
@@ -452,20 +464,8 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 //        if (isVirtual) sync()
 //    }
 //
-//    fun obstructionChecker(chuteBlockLocation: BlockPos, chuteRealLocation: Vec3): Boolean {
-//        val vertex = getVertexOfParabola(chuteRealLocation)
 //
-//        val cannonToVertex = clip(getRealPos().add(0.0,0.5,0.0), vertex)
-//        if (cannonToVertex.type != HitResult.Type.MISS) return false // returns if path to parabola vertex is obstructed
-//
-//        val vertexToChute = clip(vertex, chuteRealLocation)
-//        return !(vertexToChute.type == HitResult.Type.MISS || vertexToChute.blockPos != chuteBlockLocation)
-//
-//    }
-//
-//    fun clip(from: Vec3, to: Vec3): BlockHitResult {
-//        return level!!.clipIncludeShips(ClipContext(from, to, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, null))
-//    }
+
 //
 //    fun startAiming(chute: BlockPos): Boolean {
 //
