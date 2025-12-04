@@ -1,11 +1,8 @@
 package org.valkyrienskies.clockwork
 
 import com.simibubi.create.content.contraptions.bearing.BearingRenderer
-import com.simibubi.create.content.contraptions.bearing.BearingVisual
 import com.tterrag.registrate.util.entry.BlockEntityEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
-import dev.engine_room.flywheel.api.visual.BlockEntityVisual
-import dev.engine_room.flywheel.api.visualization.VisualizationContext
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.BlockPos
@@ -46,7 +43,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.engine.GasEngineBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.exhaust.ExhaustBlockEntity
-import org.valkyrienskies.clockwork.content.logistics.gas.gas_crafter.GasCrafterBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorRenderer
@@ -54,15 +51,12 @@ import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_ge
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.steam_generator.SteamGeneratorBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.heater.GasHeaterBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlockEntity
-import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctCogInstance
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlockEntity
-import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleInstance
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctRenderer
-import java.util.function.BiFunction
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotRenderer
@@ -70,7 +64,6 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.Deli
 import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity
 import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonRenderer
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelBlockEntity
-import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelInstance
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelRenderer
 import org.valkyrienskies.clockwork.content.propulsion.sugar_rocket.SugarRocketBlockEntity
 import org.valkyrienskies.clockwork.content.propulsion.sugar_rocket.SugarRocketRenderer

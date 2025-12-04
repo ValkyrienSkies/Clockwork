@@ -5,7 +5,6 @@ import com.simibubi.create.AllTags
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour.movementBehaviour
 import com.simibubi.create.content.decoration.encasing.CasingBlock
 import com.simibubi.create.content.fluids.PipeAttachmentModel
-import com.simibubi.create.content.kinetics.simpleRelays.encased.EncasedShaftBlock
 import com.simibubi.create.foundation.data.*
 import com.simibubi.create.foundation.data.CreateRegistrate.connectedTextures
 import com.simibubi.create.foundation.data.ModelGen.customItemModel
@@ -52,7 +51,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankBl
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.engine.GasEngineBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.exhaust.ExhaustBlock
-import org.valkyrienskies.clockwork.content.logistics.gas.gas_crafter.GasCrafterBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorBlock
@@ -75,8 +74,6 @@ import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.WingBlock
 import org.valkyrienskies.clockwork.content.propulsion.sugar_rocket.SugarRocketBlock
-import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork
-import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork.flapbearing
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import java.util.function.Supplier
 
