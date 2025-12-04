@@ -1,0 +1,91 @@
+{
+	"format_version": "1.9.0",
+	"credit": "Made with Blockbench",
+	"texture_size": [64, 64],
+	"textures": {
+		"0": "vs_clockwork:item/aeronaut_cap",
+		"particle": "vs_clockwork:item/aeronaut_cap"
+	},
+	"elements": [
+		{
+			"name": "flap_right",
+			"from": [13.275, -2, 3],
+			"to": [16.275, 10, 13],
+			"rotation": {"angle": 0, "axis": "y", "origin": [12.275, 0, 0]},
+			"faces": {
+				"north": {"uv": [8.25, 0.75, 9, 3.75], "texture": "#0"},
+				"east": {"uv": [9, 4.5, 11.5, 7.5], "texture": "#0"},
+				"south": {"uv": [11.5, 0.75, 12.25, 3.75], "texture": "#0"},
+				"west": {"uv": [9, 0.75, 11.5, 3.75], "texture": "#0"},
+				"up": {"uv": [11.5, 0.75, 9, 0], "rotation": 270, "texture": "#0"},
+				"down": {"uv": [9, 4.5, 11.5, 3.75], "rotation": 90, "texture": "#0"}
+			}
+		},
+		{
+			"name": "strap_right",
+			"from": [14.775, -6, 6],
+			"to": [14.775, -2, 10],
+			"rotation": {"angle": 0, "axis": "y", "origin": [14.775, -2, 8]},
+			"faces": {
+				"east": {"uv": [9.75, 7.5, 10.75, 8.5], "texture": "#0"}
+			}
+		},
+		{
+			"name": "strap_right2",
+			"from": [14.725, -6, 6],
+			"to": [14.725, -2, 10],
+			"rotation": {"angle": 0, "axis": "y", "origin": [14.725, -2, 8]},
+			"faces": {
+				"west": {"uv": [10.75, 7.5, 9.75, 8.5], "texture": "#0"}
+			}
+		}
+	],
+	"display": {
+		"thirdperson_righthand": {
+			"rotation": [75, 45, 0],
+			"translation": [0, 2.5, 0],
+			"scale": [0.375, 0.375, 0.375]
+		},
+		"thirdperson_lefthand": {
+			"rotation": [75, 45, 0],
+			"translation": [0, 2.5, 0],
+			"scale": [0.375, 0.375, 0.375]
+		},
+		"firstperson_righthand": {
+			"rotation": [0, 45, 0],
+			"scale": [0.4, 0.4, 0.4]
+		},
+		"firstperson_lefthand": {
+			"rotation": [0, -135, 0],
+			"scale": [0.4, 0.4, 0.4]
+		},
+		"ground": {
+			"translation": [0, 2, 0],
+			"scale": [0.5, 0.5, 0.5]
+		},
+		"gui": {
+			"rotation": [30, -135, 0],
+			"translation": [0, 2, 0],
+			"scale": [0.625, 0.625, 0.625]
+		},
+		"head": {
+			"translation": [0, 3, 0],
+			"scale": [1.06055, 1.06055, 1.06055]
+		},
+		"fixed": {
+			"translation": [0, 2.5, 0]
+		},
+		"on_shelf": {
+			"rotation": [0, -180, 0],
+			"translation": [0, 0, 0.5]
+		}
+	},
+	"groups": [
+		{
+			"name": "flapRight",
+			"origin": [14.775, -2, 8],
+			"color": 0,
+			"children": [0, 1, 2]
+		}
+	]
+}

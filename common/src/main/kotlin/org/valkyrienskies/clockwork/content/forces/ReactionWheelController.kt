@@ -43,7 +43,7 @@ class ReactionWheelController(
         for (wheelID in appliers.keys) {
             val (torque, deltaWheelOmega) = conserveMomentum(physShip as PhysShipImpl, appliers[wheelID]!!)
             if (torque.isFinite && !torque.length().isNaN()) {
-                physShip.applyInvariantTorque(torque)
+                physShip.applyWorldTorque(torque)
                 pendingMomentumConsumptionQueue[wheelID]?.add(deltaWheelOmega) ?: run {
                     pendingMomentumConsumptionQueue[wheelID] = ConcurrentLinkedQueue()
                     pendingMomentumConsumptionQueue[wheelID]?.add(deltaWheelOmega)

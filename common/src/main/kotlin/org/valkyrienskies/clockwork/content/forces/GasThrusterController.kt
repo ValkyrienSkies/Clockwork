@@ -29,11 +29,11 @@ class GasThrusterController(
         super.physTick(physShip, physLevel)
         for (thruster in appliers.values) {
            if (thruster.position == null || thruster.force == null || thruster.force!!.length() == 0.0) continue
-           val pos =  Vector3d(thruster.position).add(0.5,0.5,0.5, Vector3d()).sub(physShip.transform.positionInShip)
+           val pos =  Vector3d(thruster.position).add(0.5,0.5,0.5, Vector3d())
            val force = thruster.force!!.mul(ClockworkConfig.SERVER.gasThrusterForceMul, Vector3d())
 
 
-           physShip.applyRotDependentForceToPos(force!!, pos)
+           physShip.applyModelForce(force!!, pos)
         }
     }
 

@@ -45,8 +45,6 @@ public class ClockworkModForge {
 
         ClockworkPackets.init();
 
-        ClockworkShaders.INSTANCE.init();
-
         //todo: fix this you fucking moron
         //ForgeClockworkWorldgen.CONFIGURED_FEATURES.register(modEventBus);
         //ForgeClockworkWorldgen.PLACED_FEATURES.register(modEventBus);

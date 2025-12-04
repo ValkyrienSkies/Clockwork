@@ -84,13 +84,13 @@ class PocketForcesController: ShipPhysicsListener {
             temperatures.remove(root)
         }
 
-        val buoyancyForce = calculateBuoyancyForce(physShip)
+        val buoyancyForce = calculateBuoyancyForce(physShip, physLevel)
 
         //ClockworkMod.LOGGER.info(physShip.mass.toString())
 
         buoyancyForce.forEach {
             if (it.value.isFinite() && !it.value.isNaN()) { //just to be safe
-                physShipImpl.applyInvariantForceToPos(Vector3d(0.0, it.value, 0.0), Vector3d(pocketCenters[it.key]!!).sub(physShip.transform.positionInShip))
+                physShipImpl.applyWorldForceToModelPos(Vector3d(0.0, it.value, 0.0), Vector3d(pocketCenters[it.key]!!))
             }
         }
     }
@@ -104,7 +104,7 @@ class PocketForcesController: ShipPhysicsListener {
         pressures[pocket.rootPos] = pocket.pressure
     }
 
-    fun calculateBuoyancyForce(physShip: PhysShip): Map<Vector3ic, Double> {
+    fun calculateBuoyancyForce(physShip: PhysShip, physLevel: PhysLevel): Map<Vector3ic, Double> {
         val physShipImpl = physShip
 
         var totalBuoyantForce = HashMap<Vector3ic, Double>()
@@ -128,10 +128,10 @@ class PocketForcesController: ShipPhysicsListener {
 //                            totalInternalDensity += density
 //                        }
 //                    }
-                    if (totalInternalDensity != 0.0 && AerodynamicUtils.getAirDensityForY(physShip.transform.shipToWorld.transformPosition(pocketCenters[it], Vector3d()).y(), this.dimensionId) != 0.0) {
+                    if (totalInternalDensity != 0.0 && physLevel.aerodynamicUtils.getAirDensityForY(physShip.transform.shipToWorld.transformPosition(pocketCenters[it], Vector3d()).y(), this.dimensionId) != 0.0) {
                         //ClockworkMod.LOGGER.info("Density at Y: " + AerodynamicUtils.getAirDensityForY(physShip.transform.positionInWorld.y(), max_height).toString())
                         //ClockworkMod.LOGGER.info("Internal Density: $totalInternalDensity")
-                        val buoyantForce = (pocketRoots[it]!!.toDouble() * (AerodynamicUtils.getAirDensityForY(physShip.transform.shipToWorld.transformPosition(pocketCenters[it], Vector3d()).y(), this.dimensionId) - totalInternalDensity) * GRAVITATIONAL_ACCELERATION) * ClockworkConfig.SERVER.balloonForceMult
+                        val buoyantForce = (pocketRoots[it]!!.toDouble() * (physLevel.aerodynamicUtils.getAirDensityForY(physShip.transform.shipToWorld.transformPosition(pocketCenters[it], Vector3d()).y(), this.dimensionId) - totalInternalDensity) * GRAVITATIONAL_ACCELERATION) * ClockworkConfig.SERVER.balloonForceMult
                         totalBuoyantForce[it] = max(buoyantForce, 0.0)
                     }
                 }
@@ -169,9 +169,9 @@ class PocketForcesController: ShipPhysicsListener {
             val r = Triple(root.x,root.y,root.z)
             if (roots[r] != null) {
                 val rootYInWorld = ship.transform.shipToWorld.transformPosition(Vector3d(root.x().toDouble(), root.y().toDouble(), root.z().toDouble())).y + 0.5
-                val atmosphericDensityAtRoot = AerodynamicUtils.getAirDensityForY(rootYInWorld, level.dimensionId)
-                val atmosphericPressureAtRoot = AerodynamicUtils.getAirPressureForY(rootYInWorld, level.dimensionId)
-                val atmosphericTemperatureAtRoot = AerodynamicUtils.getAirTemperatureForY(rootYInWorld, level.dimensionId)
+                val atmosphericDensityAtRoot = level.shipObjectWorld.aerodynamicUtils.getAirDensityForY(rootYInWorld, level.dimensionId)
+                val atmosphericPressureAtRoot = level.shipObjectWorld.aerodynamicUtils.getAirPressureForY(rootYInWorld, level.dimensionId)
+                val atmosphericTemperatureAtRoot = level.shipObjectWorld.aerodynamicUtils.getAirTemperatureForY(rootYInWorld, level.dimensionId)
                 val requiredMassForDensity = atmosphericDensityAtRoot * roots[r]!!.toDouble()
                 if (level.shipObjectWorld.getAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("airupdated"), root.x(), root.y(), root.z(), level.dimensionId) < 1.0 && roots[r]!! > 0) {
 

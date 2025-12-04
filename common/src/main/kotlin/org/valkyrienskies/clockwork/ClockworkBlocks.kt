@@ -170,9 +170,9 @@ object ClockworkBlocks {
             FlapBearingBlock(properties)
         }
             .transform(axeOrPickaxe())
-            .transform(flapbearing())
             .transform(ClockworkStress.setImpact(4.0))
             .addLayer { Supplier { RenderType.cutout() } }
+            .properties { it.noOcclusion() }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
@@ -188,6 +188,7 @@ object ClockworkBlocks {
             //.transform(flapbearing())
             .transform(ClockworkStress.setImpact(4.0))
             .addLayer { Supplier { RenderType.cutout() } }
+            .properties { it.noOcclusion() }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)

@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork
 
+import com.mojang.blaze3d.platform.InputConstants
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.logging.LogUtils
 import com.simibubi.create.foundation.data.CreateRegistrate
@@ -10,6 +11,7 @@ import dev.architectury.event.events.common.TickEvent
 import dev.architectury.registry.CreativeTabRegistry
 import dev.architectury.registry.registries.DeferredRegister
 import dev.architectury.registry.registries.RegistrySupplier
+import net.minecraft.client.KeyMapping
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.core.registries.Registries
 import net.minecraft.network.chat.Component
@@ -27,7 +29,6 @@ import org.valkyrienskies.clockwork.content.events.CollisionSoundEffectHandler
 import org.valkyrienskies.clockwork.content.forces.*
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroShipControl
-import org.valkyrienskies.clockwork.util.AerodynamicUtils
 import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.core.api.VsBeta
 import org.valkyrienskies.kelvin.KelvinMod
@@ -76,9 +77,7 @@ object ClockworkMod {
         ValkyrienSkiesMod.vsCore.registerConfigLegacy("clockwork", ClockworkConfig::class.java)
 
         vsCore.registerAttachment(PocketForcesController::class.java)
-        vsCore.registerAttachment(DragController::class.java)
         vsCore.registerAttachment(WanderShipControl::class.java)
-
         vsCore.registerAttachment(GasThrusterController::class.java)
         vsCore.registerAttachment(PropellerController::class.java)
         vsCore.registerAttachment(ReactionWheelController::class.java)
@@ -90,18 +89,18 @@ object ClockworkMod {
 
         vsApi.shipLoadEvent.on { event -> val ship = event.ship;
             PocketForcesController.getOrCreate(ship)
-            DragController.getOrCreate(ship)
+            //DragController.getOrCreate(ship)
             WanderShipControl.getOrCreate(ship)
 
             //TODO remove when attachment bug is fixed
-            GasThrusterController.getOrCreate(ship)
-            PropellerController.getOrCreate(ship)
-            ReactionWheelController.getOrCreate(ship)
-            EncasedFanController.getOrCreate(ship)
-            GyroShipControl.getOrCreate(ship)
-            GravitronController.getOrCreate(ship)
-            SugarRocketController.getOrCreate(ship)
-            BearingController.getOrCreate(ship)
+//            GasThrusterController.getOrCreate(ship)
+//            PropellerController.getOrCreate(ship)
+//            ReactionWheelController.getOrCreate(ship)
+//            EncasedFanController.getOrCreate(ship)
+//            GyroShipControl.getOrCreate(ship)
+//            GravitronController.getOrCreate(ship)
+//            SugarRocketController.getOrCreate(ship)
+//            BearingController.getOrCreate(ship)
         }
 
         ClockworkWorldgen.register()
@@ -118,10 +117,9 @@ object ClockworkMod {
         }
 
         TickEvent.SERVER_LEVEL_POST.register {
-            for (ship in it.shipObjectWorld.loadedShips) {
-                ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship)
-                ship.getAttachment(DragController::class.java)?.gameTick(ship, it)
-            }
+            //for (ship in it.shipObjectWorld.loadedShips) {
+            //    ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship)
+            //}
 
             ClockworkUtils.tick(it)
             CollisionSoundEffectHandler.tick(it)
@@ -133,19 +131,12 @@ object ClockworkMod {
 
         //TODO remove when VS commands return
         CommandRegistrationEvent.EVENT.register { dispatcher, context, idk ->
-            dispatcher.register(LiteralArgumentBuilder.literal<CommandSourceStack>("clockwork-remove-all-ships").executes {
-                val level = it.source.level!!
-                level.shipObjectWorld.allShips
-                    .map { it }
-                    .forEach { level.shipObjectWorld.deleteShip(it) }
-                0
-            })
             dispatcher.register(LiteralArgumentBuilder.literal<CommandSourceStack>("get-air-values").executes {
                 val level = it.source.level!!
                 val player = it.source.player!!
 
-                val density = AerodynamicUtils.getAirDensityForY(player.position().y(),level.dimensionId)
-                val temperature = AerodynamicUtils.getAirTemperatureForY(player.position().y(),level.dimensionId)
+                val density = level.shipObjectWorld.aerodynamicUtils.getAirTemperatureForY(player.position().y(),level.dimensionId)
+                val temperature = level.shipObjectWorld.aerodynamicUtils.getAirTemperatureForY(player.position().y(),level.dimensionId)
 
                 player.sendSystemMessage(Component.literal("At y: ${player.position().y} density: $density temperature: $temperature"))
 

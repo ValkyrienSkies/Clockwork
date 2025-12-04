@@ -1,0 +1,24 @@
+{
+  "type": "tfc:damage_inputs_shapeless_crafting",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "ingredients": [{
+      "item": "tfc:silica_glass_bottle"
+    }, {
+      "tag": "tfc:hammers"
+    }],
+    "result": {
+      "item": "vs_sails:dedication_bottle"
+    }
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tfc"
+    },
+    {
+      "type": "forge:mod_loaded",
+      "modid": "vs_sails"
+    }
+  ]
+}

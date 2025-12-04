@@ -50,17 +50,17 @@ class BearingController : ShipPhysicsListener {
             if (physShipBearingIsOnId == PhysBearingBlockEntity.NO_SHIPTRAPTION_ID) {
                 // Constraint connects to world
                 val torque = computeRotationalForce(data, physShip, null)
-                physShip.applyInvariantTorque(torque)
+                physShip.applyWorldTorque(torque)
                 continue
             }
             val physShipBearingIsOn = physLevel.getShipById(physShipBearingIsOnId)
             if (physShipBearingIsOn == null) {
                 val torque = computeRotationalForce(data, physShip, null)
-                physShip.applyInvariantTorque(torque)
+                physShip.applyWorldTorque(torque)
             } else {
                 val torque = computeRotationalForce(data, physShip, physShipBearingIsOn)
-                physShip.applyInvariantTorque(torque)
-                physShipBearingIsOn.applyInvariantTorque(torque.mul(-1.0, Vector3d()))
+                physShip.applyWorldTorque(torque)
+                physShipBearingIsOn.applyWorldTorque(torque.mul(-1.0, Vector3d()))
             }
         }
     }

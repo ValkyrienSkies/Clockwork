@@ -21,6 +21,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.contraptions.flap.contraption.FlapContraption
+import org.valkyrienskies.core.impl.shadow.re
 
 open class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState, val maxSize: Long = 16) :
     KineticBlockEntity(type, pos, state), IBearingBlockEntity, IDisplayAssemblyExceptions {
@@ -101,12 +102,8 @@ open class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, stat
         val facing = blockState.getValue(DirectionalAxisKineticBlock.FACING)
         val axisAlong = blockState.getValue(DirectionalAxisKineticBlock.AXIS_ALONG_FIRST_COORDINATE)
 
-        return when  {
-            facing.axis == Axis.Z -> Direction.WEST
-            axisAlong == false -> Direction.WEST
-
-            else -> Direction.NORTH
-        }
+        if (facing.axis == Axis.Y) return if (axisAlong) Direction.WEST else Direction.NORTH
+        return facing.clockWise
     }
 
     open protected fun getPower(): Int {

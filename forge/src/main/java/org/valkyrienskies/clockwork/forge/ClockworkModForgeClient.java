@@ -21,6 +21,7 @@ public class ClockworkModForgeClient {
     public static void onCtorClient(IEventBus modEventBus) {
         ClockworkPartials.INSTANCE.init();
         ClockworkModClient.initClient();
+        ClockworkShaders.INSTANCE.init();
         modEventBus.addListener(AllParticleTypes::registerFactories);
 
         //ClientReloadShadersEvent.EVENT.register(ClockworkModForgeClient::onShaderReload);

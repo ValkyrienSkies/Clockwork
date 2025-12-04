@@ -8,11 +8,8 @@ import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanCreateData
 import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanData
 import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanUpdateData
-import org.valkyrienskies.clockwork.util.AerodynamicUtils
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
-import org.valkyrienskies.core.api.ships.ServerShip
-import org.valkyrienskies.core.api.ships.setAttachment
 import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.api.world.properties.DimensionId
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -33,16 +30,17 @@ class EncasedFanController(
         super.physTick(physShip, physLevel)
 
         for (physData in appliers.values) {
-            val force = computeForce(physData, physShip)
+            val force = computeForce(physData, physShip, physLevel)
             val fanVector: Vector3dc =
-                Vector3d(physData.position).add(0.5, 0.5, 0.5, Vector3d()).sub(physShip.transform.positionInShip)
-            physShip.applyRotDependentForceToPos(force, fanVector)
+                Vector3d(physData.position).add(0.5, 0.5, 0.5, Vector3d())
+            physShip.applyModelForce(force, fanVector)
         }
     }
 
     private fun computeForce(
         physData: EncasedFanData,
-        physShip: PhysShip
+        physShip: PhysShip,
+        physLevel: PhysLevel
     ): Vector3dc {
         val speed: Double = physData.fanSpeed * 2.0 * PI / 60.0
         val bladePitch = 15.0
@@ -53,7 +51,7 @@ class EncasedFanController(
         val worldVelAtFan: Vector3dc = physShip.omega.cross(fanPosRelCenterMass, Vector3d())
             .add(physShip.velocity, Vector3d())
 
-        val airDensityAtY = AerodynamicUtils.getAirDensityForY(physShip.transform.positionInWorld.y(), dimensionId)
+        val airDensityAtY = physLevel.aerodynamicUtils.getAirDensityForY(physShip.transform.positionInWorld.y(), dimensionId)
 
         val velocityTowardsPropellerDir = worldVelAtFan.dot(physShip.transform.shipToWorld.transformDirection(physData.fanDir!!, Vector3d()).normalize())
 
