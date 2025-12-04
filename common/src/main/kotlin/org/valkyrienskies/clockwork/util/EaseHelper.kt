@@ -8,15 +8,12 @@ import kotlin.math.*
 object EaseHelper {
 
 
-    val EASE_IN_OUT: Chaser = { current: Double, maxSpeed: Double, target: Double ->
-        val dampingFactor = 0.15
+    val EASE_IN_OUT = Chaser { current: Double, maxSpeed: Double, target: Double ->
+        val dampingFactor = 0.35
         val desiredMovement = (target - current) * dampingFactor
 
         (current + Mth.clamp(desiredMovement, -maxSpeed, maxSpeed)).toFloat()
-    } as Chaser
-
-
-
+    }
 
 
     /**

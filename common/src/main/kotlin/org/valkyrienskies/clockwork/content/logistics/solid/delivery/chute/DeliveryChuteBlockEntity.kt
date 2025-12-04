@@ -22,6 +22,7 @@ import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.ActiveChutes
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotBehaviour
 import org.valkyrienskies.clockwork.platform.SolidDeliveryMethods
+import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.mod.api.positionToWorld
 import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
@@ -36,7 +37,7 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
     var busy = false
 
     val realPos: Vector3d get()
-    { return vsApi.getShipManagingBlock(level, blockPos)?.positionToWorld(blockPos.toJOMLD()) ?: blockPos.toJOMLD() }
+    { return ClockworkUtils.getRealPos(level, blockPos) }
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
         frequencySlotBehaviour = FrequencySlotBehaviour(this,FrequencySlot())

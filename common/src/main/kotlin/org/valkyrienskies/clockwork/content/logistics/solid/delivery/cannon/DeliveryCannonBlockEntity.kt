@@ -17,6 +17,9 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtUtils
+import net.minecraft.sounds.SoundSource
+import net.minecraft.util.Mth
+import net.minecraft.util.RandomSource
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.HorizontalDirectionalBlock
@@ -26,6 +29,7 @@ import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkLang
+import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.ActiveChutes
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotBehaviour
@@ -39,7 +43,6 @@ import kotlin.math.*
 
 class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : SmartBlockEntity(type, pos, state), IHaveGoggleInformation {
 
-    //    var inventory: Any? = null
     lateinit var frequencySlotBehaviour: FrequencySlotBehaviour
     lateinit var distributionModeBehaviour: ScrollOptionBehaviour<DistributionMode>
 
@@ -76,7 +79,8 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     var yRot = LerpedFloat.angular()
     var distance = LerpedFloat.linear()
 
-    //For client
+    val soundRandom = RandomSource.create()
+    // for Client
     var clientShotProgress = 0.0
     var clientBarrelOffset = 0.0f
     var clientCannonRotationOffset = 0.0f
@@ -84,18 +88,23 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     var clientItemRotation = 0.0
     var fired = false
 
+    val gunpowderedCoefficient: Double get()
+    { return if (gunpowderTicks > 0) 1.0 else 0.0 }
+
     val realPos: Vector3d get()
-    { return vsApi.getShipManagingBlock(level, blockPos)?.positionToWorld(blockPos.toJOMLD()) ?: blockPos.toJOMLD() }
+    { return ClockworkUtils.getRealPos(level, blockPos) }
 
     val isRoundRobin: Boolean get()
-    {return distributionModeBehaviour.get() == DistributionMode.ALWAYS_CLOSEST}
+    {return distributionModeBehaviour.get() == DistributionMode.ROUND_ROBIN}
+
+    val defaultXrot: Double get()
+    {return blockState.getValue(HorizontalDirectionalBlock.FACING).toYRot().toDouble()}
 
     init {
-        val xrot = blockState.getValue(HorizontalDirectionalBlock.FACING).toYRot().toDouble()
 
-        xRot.chase(xrot, 1.0, LerpedFloat.Chaser.LINEAR)
+        xRot.chase(defaultXrot, 1.0, LerpedFloat.Chaser.LINEAR)
         yRot.chase(0.0, 1.0, LerpedFloat.Chaser.LINEAR)
-        distance.chase(0.0, 100000.0, EaseHelper.EASE_IN_OUT)
+        distance.chase(0.0, 5.0, EaseHelper.EASE_IN_OUT)
     }
 
     override fun lazyTick() {
@@ -105,8 +114,9 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     override fun tick() {
         super.tick()
 
-        xRot.updateChaseSpeed(1.0)
-        yRot.updateChaseSpeed(1.0)
+        xRot.updateChaseSpeed(1.0 + gunpowderedCoefficient * 3)
+        yRot.updateChaseSpeed(1.0 + gunpowderedCoefficient * 3)
+        distance.updateChaseSpeed(5.0 + gunpowderedCoefficient * 5)
 
 
         xRot.tickChaser()
@@ -119,19 +129,13 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         if (shootingAtChute != null) {
             val chute = ActiveChutes.actives[shootingAtChute]
             if (chute != null) distance.updateChaseTarget(chute.realPos.distance(realPos).toFloat())
-            else if (ActiveChutes.unloaded[shootingAtChute] == null) shootingAtChute = null
+            else if (ActiveChutes.unloaded[shootingAtChute] == null) reset()
 
-            if (abs(distance.value - distance.chaseTarget) < 0.01 && chute != null) {
+            if (abs(distance.value - distance.chaseTarget) < 0.5 && chute != null) {
                 chute.busy = false
                 chute.receiveItem(midAirStack)
-                xRot.updateChaseTarget(0f)
-                yRot.updateChaseTarget(0f)
-                distance.setValue(0.0)
-                distance.updateChaseTarget(0f)
 
-                shootingAtChute = null
-                midAirStack = ItemStack.EMPTY
-                sendData()
+                reset()
             }
             return
         }
@@ -142,7 +146,6 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         if (midAirStack.isEmpty && !currentStack.isEmpty) {
             // TODO: CONFIGURE MAX DISTANCE
             val chutes = ActiveChutes.getSortedChuteWithFrequency(realPos,100.0,frequencySlotBehaviour.frequency)
-            println("chutes = $chutes")
             if (chutes.isEmpty()) return
 
             var chute: BlockPos? = null
@@ -167,11 +170,9 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
                 if (chute == null || !isRoundRobin) visitedChutes.clear()
             }
 
-            println("$chute    $chuteBe    ${ActiveChutes.actives[chute]}    ${ActiveChutes.actives[chute]?.receiveItem(currentStack, true)}")
             chuteBe ?: return
 
 
-            println("updated angle chaser")
             updateAngleChaser(chuteBe)
             if (abs(xRot.value-xRot.chaseTarget) < 1 && abs(yRot.value-yRot.chaseTarget) < 1) {
                 if (isRoundRobin) visitedChutes.add(chuteBe.blockPos)
@@ -181,18 +182,33 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
                 distance.updateChaseTarget(realPos.distance(ActiveChutes.actives[chute]!!.realPos).toFloat())
 
                 chuteBe.busy = true
+
+                val pitch = Mth.randomBetween(soundRandom, 0.9f, 1.1f)
+                level!!.playSound(null, blockPos, ClockworkSounds.THWOOM.mainEvent!!, SoundSource.BLOCKS, 1f,pitch)
+                fired = true
+
                 sendData()
-                println("SHOT!")
             }
         } else if (currentStack.isEmpty) currentStack = SolidDeliveryMethods.extractFrom(level!!, this)
 
 
     }
 
+    fun reset() {
+        xRot.updateChaseTarget(defaultXrot.toFloat())
+        yRot.updateChaseTarget(0f)
+        distance.setValue(0.0)
+        distance.updateChaseTarget(0f)
+
+        shootingAtChute = null
+        midAirStack = ItemStack.EMPTY
+        sendData()
+    }
+
     fun updateAngleChaser(chuteBlockEntity: DeliveryChuteBlockEntity) {
 
-        val vertex = getThirdPoint(realPos!!, chuteBlockEntity.realPos!!)
-        val deltaP = realPos!!.sub(vertex)
+        val vertex = getThirdPoint(realPos, chuteBlockEntity.realPos)
+        val deltaP = realPos.sub(vertex)
 
         xRot.updateChaseTarget(euler_angle(deltaP.z,-deltaP.x).toFloat())
 
@@ -229,7 +245,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             iX = vec.z
         }
 
-        println("parabola $startPos $middlePos $endPos")
+
         return parabola(sX,startPos.y,eX,endPos.y,vX,middlePos.y, iX)
 
     }
@@ -240,7 +256,6 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         fun parabola(x1: Double, y1: Double, x2: Double, y2: Double, x3: Double, y3: Double,  z:Double): Double {
             val denom = (x1 - x2) * (x1 - x3) * (x2 - x3)
 
-            println("denom: $denom")
             val A = (x3 * (y2 - y1) + x2 * (y1 - y3) + x1 * (y3 - y2)) / denom
             val B = (x3 * x3 * (y1 - y2) + x2 * x2 * (y3 - y1) + x1 * x1 * (y2 - y3)) / denom
             val C = (x2 * x3 * (x2 - x3) * y1 + x3 * x1 * (x3 - x1) * y2 + x1 * x2 * (x1 - x2) * y3) / denom
@@ -293,7 +308,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
 
 //
-//    val soundRandom = RandomSource.create()
+//
 //
 //    var currentStack: ItemStack = ItemStack.EMPTY
 //

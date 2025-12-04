@@ -101,7 +101,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
             val realChute = ClockworkUtils.getRealPos(Minecraft.getInstance().level!!, be.shootingAtChute!!)
             val og = be.realPos.lerp(realChute, (be.distance.getValue(partialTicks)/be.distance.chaseTarget).toDouble())
             val y = be.getParabolaY(og)
-            be.clientItemRotation+=partialTicks
+            be.clientItemRotation+=partialTicks*(be.gunpowderedCoefficient+1)
 
 
 

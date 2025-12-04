@@ -200,8 +200,8 @@ object ClockworkUtils {
         return Pair(gasMap, temperature)
     }
 
-    fun getRealPos(level: Level, blockPos: BlockPos): Vector3d
-    { return vsApi.getShipManagingBlock(level, blockPos)?.positionToWorld(blockPos.toJOMLD()) ?: blockPos.toJOMLD() }
+    fun getRealPos(level: Level?, blockPos: BlockPos): Vector3d
+    { return vsApi.getShipManagingBlock(level, blockPos)?.positionToWorld(blockPos.toJOMLD().add(0.5,0.5,0.5)) ?: blockPos.toJOMLD().add(0.5,0.5,0.5) }
 
     /**
      * Retrieves all components within a given chunk claim, using a key as reference.
