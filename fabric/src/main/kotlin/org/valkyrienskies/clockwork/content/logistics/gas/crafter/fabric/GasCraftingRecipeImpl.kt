@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.fabric.content.logistics.gas.crafter
+package org.valkyrienskies.clockwork.content.logistics.gas.crafter.fabric
 
 import com.simibubi.create.content.processing.basin.BasinBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour
@@ -12,15 +12,20 @@ import net.minecraft.core.NonNullList
 import net.minecraft.world.inventory.CraftingContainer
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.crafting.Recipe
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCraftingRecipe
+import org.valkyrienskies.kelvin.api.GasType
+import org.valkyrienskies.kelvin.integration.jei.KelvinGasIngredient
 import java.util.ArrayList
 import java.util.LinkedList
+import kotlin.collections.iterator
 import kotlin.jvm.optionals.getOrNull
+import kotlin.math.min
 
 object GasCraftingRecipeImpl {
     private fun apply(be: GasCrafterBlockEntity, recipe: Recipe<*>, test: Boolean): Boolean {
-        val isBasinRecipe = recipe is GasCraftingRecipe
+        val isGasCrafterRecipe = recipe is GasCraftingRecipe
         val basin = be.getBasin().getOrNull() ?: return false
 
         val availableItems = basin.getItemStorage(null)
@@ -29,14 +34,15 @@ object GasCraftingRecipeImpl {
         if (availableItems == null || availableFluids == null) return false
 
         val heat = BasinBlockEntity.getHeatLevelOf(basin.blockState)
-        if (isBasinRecipe && !recipe.requiredHeat.testBlazeBurner(heat)) return false
+        if (isGasCrafterRecipe && !recipe.requiredHeat.testBlazeBurner(heat)) return false
 
         val recipeOutputItems: MutableList<ItemStack> = ArrayList()
         val recipeOutputFluids: MutableList<FluidStack> = ArrayList()
+        val recipeOutputGas: MutableList<KelvinGasIngredient> = ArrayList()
 
         val ingredients = LinkedList(recipe.ingredients)
-        val fluidIngredients =
-            if (isBasinRecipe) recipe.fluidIngredients else emptyList()
+        val fluidIngredients = if (isGasCrafterRecipe) recipe.fluidIngredients else emptyList()
+        val gasIngredients = if (isGasCrafterRecipe) recipe.gasIngredients else emptyList()
 
         val consumedItems = NonNullList.create<ItemStack>()
 
@@ -67,7 +73,7 @@ object GasCraftingRecipeImpl {
                 for (view: StorageView<FluidVariant> in availableFluids.nonEmptyViews()) {
                     val fluidStack = FluidStack(view)
                     if (!fluidIngredient.test(fluidStack)) continue
-                    val drainedAmount = kotlin.math.min(amountRequired, fluidStack.amount)
+                    val drainedAmount = min(amountRequired, fluidStack.amount)
                     if (view.extract(fluidStack.type, drainedAmount, t) == drainedAmount) {
                         fluidsAffected = true
                         amountRequired -= drainedAmount
@@ -108,7 +114,28 @@ object GasCraftingRecipeImpl {
 
             if (!basin.acceptOutputs(recipeOutputItems, recipeOutputFluids, t)) return false
 
-            if (!test) t.commit()
+            val inputGasses: HashMap<GasType, Double> = hashMapOf()
+            val currentMasses = ClockworkMod.getKelvin().getGasMassAt(be.getDuctNodePosition())
+            GasIngredients@ for (gasIngredient in gasIngredients) {
+                val mass = gasIngredient.moles * gasIngredient.gasType.density * 22.4
+                inputGasses[gasIngredient.gasType] = mass
+
+                if ((currentMasses[gasIngredient.gasType] ?: 0.0) < mass) return false
+            }
+
+            if (!test) {
+                t.commit()
+
+                for ((gas,deltaMass) in inputGasses) {
+                    ClockworkMod.getKelvin().modGasMass(be.getDuctNodePosition(), gas, -deltaMass)
+                }
+
+                for (ingredient in gasIngredients) {
+                    val mass = ingredient.moles * ingredient.gasType.density * 22.4
+                    ClockworkMod.getKelvin().modGasMass(be.getDuctNodePosition(), ingredient.gasType, -mass)
+                }
+
+            }
             return true
         }
     }

@@ -1,4 +1,4 @@
-package fabric
+package platform.fabric
 
 import com.simibubi.create.foundation.item.ItemHelper
 import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil
