@@ -36,5 +36,12 @@ class AeronautGogglesState {
             val angle = p.prevFlapsAngle
             return angle
         }
+
+        @JvmStatic
+        fun getGogglesAreDown(player: Player): Boolean {
+            val p = player as MixinPlayerDuck
+            val down = p.gogglesDown
+            return down
+        }
     }
 }

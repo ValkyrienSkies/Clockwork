@@ -76,7 +76,7 @@ class GravitronState {
                 if (shipId != null) {
                     val ship: LoadedServerShip? = level.shipObjectWorld.loadedShips.getById(shipId)
                     if (ship != null) {
-                        if (SharedValues.gravitronHandler.isRegular) {
+                        if (SharedValues.gravitronHandler != null && SharedValues.gravitronHandler.isRegular) {
                             val lookDir = player.lookAngle.normalize().toJOML()
                             val magnitude = 6000 * ship.inertiaData.mass
                             val launchVec = lookDir.mul(magnitude)

@@ -22,6 +22,7 @@ import org.valkyrienskies.clockwork.content.curiosities.WanderliteCubeItemRender
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteItem
 import org.valkyrienskies.clockwork.content.curiosities.WanderlustMusicDisc
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautGogglesItem
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautGogglesRenderer
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.CreativeGravitronItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem
@@ -202,6 +203,8 @@ object ClockworkItems {
             AeronautGogglesItem(properties!!)
         }
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .model(AssetLookup.itemModelWithPartials())
+            .transform(ClockworkRegistrate.customRenderedItem { Supplier { AeronautGogglesRenderer() } })
             .register()
 
     @JvmStatic

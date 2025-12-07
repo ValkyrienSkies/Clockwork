@@ -120,6 +120,12 @@ object ClockworkPartials {
 
     // endregion
 
+    // region Aeronaut
+    val HAT_GOGGLES = PartialModel.of(ClockworkMod.asResource("item/aeronaut_goggles/goggles"))
+    val HAT_FLAP_LEFT = PartialModel.of(ClockworkMod.asResource("item/aeronaut_goggles/flap_left"))
+    val HAT_FLAP_RIGHT = PartialModel.of(ClockworkMod.asResource("item/aeronaut_goggles/flap_right"))
+    val HAT_BASE = PartialModel.of(ClockworkMod.asResource("item/aeronaut_goggles/base"))
+
     val ALTIMETER_REDSTONE = PartialModel.of(ClockworkMod.asResource("block/alt_meter/redstone"))
 
     private fun block(path: String): PartialModel {
