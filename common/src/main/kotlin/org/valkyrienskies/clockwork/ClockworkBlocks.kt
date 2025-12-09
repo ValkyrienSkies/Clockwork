@@ -5,7 +5,6 @@ import com.simibubi.create.AllTags
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour.movementBehaviour
 import com.simibubi.create.content.decoration.encasing.CasingBlock
 import com.simibubi.create.content.fluids.PipeAttachmentModel
-import com.simibubi.create.content.kinetics.simpleRelays.encased.EncasedShaftBlock
 import com.simibubi.create.foundation.data.*
 import com.simibubi.create.foundation.data.CreateRegistrate.connectedTextures
 import com.simibubi.create.foundation.data.ModelGen.customItemModel
@@ -39,7 +38,7 @@ import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteSlab
 import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteStairs
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteOreBlock
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterBlock
-import org.valkyrienskies.clockwork.content.curiosities.asteroid.AsteroidBlock
+import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorTestBlock
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.distance.DistanceSensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.impact.ImpactSensorBlock
@@ -75,8 +74,6 @@ import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.WingBlock
 import org.valkyrienskies.clockwork.content.propulsion.sugar_rocket.SugarRocketBlock
-import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork
-import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork.flapbearing
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import java.util.function.Supplier
 
@@ -960,9 +957,9 @@ object ClockworkBlocks {
             .register()
 
     @JvmField
-    val ASTEROID: BlockEntry<AsteroidBlock> =
-        REGISTRATE.block<AsteroidBlock>("asteroid_block") { properties: BlockBehaviour.Properties? ->
-            AsteroidBlock(properties!!)
+    val ASTEROID: BlockEntry<MeteorTestBlock> =
+        REGISTRATE.block<MeteorTestBlock>("asteroid_block") { properties: BlockBehaviour.Properties? ->
+            MeteorTestBlock(properties!!)
         }
             .initialProperties { SharedProperties.wooden() }
             .transform(axeOrPickaxe())

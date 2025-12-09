@@ -1,22 +1,22 @@
-package org.valkyrienskies.clockwork.content.curiosities.asteroid
+package org.valkyrienskies.clockwork.content.curiosities.meteor
 
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.levelgen.SingleThreadedRandomSource
 import net.minecraft.world.level.levelgen.synth.PerlinNoise
 import org.valkyrienskies.clockwork.ClockworkBlocks
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.random.Random
 import kotlin.random.nextInt
 
 
-object MeteoroidGenerator {
+object MeteorGenerator {
 
     val resolution = 0.25
 
 
-    fun generate(level: ServerLevel,center: BlockPos, threshold: Double, maxDistance: Int, metaBallsCount: Int) {
+    fun generate(level: ServerLevel, center: BlockPos, threshold: Double, maxDistance: Int, metaBallsCount: Int) {
 
         val noise = PerlinNoise.create(SingleThreadedRandomSource(level.seed), mutableListOf(1,1))
 
@@ -33,11 +33,14 @@ object MeteoroidGenerator {
 
             val t = threshold  - noise.getValue(x.toDouble()*resolution,y.toDouble()*resolution,z.toDouble()*resolution)/500
             val mb = metaBall(balls, BlockPos(x,y,z))
-            if (mb > 2*t)  {
-                level.setBlockAndUpdate(BlockPos(x,y,z), ClockworkBlocks.WANDERLITE_NYX_ORE.defaultState)
-            } else if (mb > t) {
-                level.setBlockAndUpdate(BlockPos(x, y, z), ClockworkBlocks.NYX.defaultState)
-            }
+            val state: BlockState
+            if (mb > 2*t) state = ClockworkBlocks.WANDERLITE_NYX_ORE.defaultState
+            else if (mb > t) state = ClockworkBlocks.NYX.defaultState
+            else state = Blocks.AIR.defaultBlockState()
+
+
+            level.getChunk(BlockPos(x,y,z)).setBlockState(BlockPos(x,y,z), state, false)
+            //level.setBlockAndUpdate(BlockPos(x,y,z), state)
         }
     }
 
@@ -46,10 +49,10 @@ object MeteoroidGenerator {
         val smallest = res.first
         val largest = res.second
 
-
-        for (x in smallest.x-(2/threshold).toInt()..largest.x+(2/threshold).toInt()) {
-            for (y in smallest.y-(2/threshold).toInt()..largest.y+(2/threshold).toInt()) {
-                for (z in smallest.z-(2/threshold).toInt()..largest.z+(2/threshold).toInt()) {
+        println("$smallest $largest")
+        for (x in smallest.x-(0.5/threshold).toInt()..largest.x+(0.5/threshold).toInt()) {
+            for (y in smallest.y-(0.5/threshold).toInt()..largest.y+(0.5/threshold).toInt()) {
+                for (z in smallest.z-(0.5/threshold).toInt()..largest.z+(0.5/threshold).toInt()) {
                     func(x,y,z)
                 }
             }

@@ -142,6 +142,7 @@ object ClockworkMod {
 
                 0
             })
+
         }
 
         vsApi.collisionStartEvent.on(CollisionSoundEffectHandler::onCollide)
