@@ -74,8 +74,6 @@ class BladeControllerMovementBehaviour: MovementBehaviour {
 
         val bladeNonNullList = NonNullList.withSize(bladeCount, ItemStack.EMPTY)
         ContainerHelper.loadAllItems(blades, bladeNonNullList)
-        println(blades.toString())
-        println(bladeNonNullList)
 
         val bladeList = mutableListOf<ItemStack>()
         for (i in 0..<bladeCount) {
@@ -91,8 +89,6 @@ class BladeControllerMovementBehaviour: MovementBehaviour {
             bladeRotations.add((360f / bladeCount.toFloat()) * i.toFloat())
         }
 
-        println(blades)
-        println(bladeList)
         BladeControllerRenderer.renderShared(bladeList, bladeAngle.toFloat(), context.state, AnimationTickHolder.getPartialTicks(context.world), matrices.viewProjection, buffer, bladeRotations, true, matrices)
     }
 }
