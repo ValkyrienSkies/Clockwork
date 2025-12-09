@@ -14,6 +14,7 @@ import org.valkyrienskies.clockwork.ClockworkPackets.Companion.sendTo
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool.ToolType
 import org.valkyrienskies.clockwork.platform.CWItem
+import org.valkyrienskies.mod.common.getLoadedShipManagingPos
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import kotlin.math.max
 import kotlin.math.min
@@ -103,7 +104,7 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
 
         @JvmStatic
         fun startWeld(sLevel: ServerLevel, sPlayer: ServerPlayer, clickedPos: BlockPos, clickedFace: Int) {
-            val ship = sLevel.getShipObjectManagingPos(clickedPos)
+            val ship = sLevel.getLoadedShipManagingPos(clickedPos)
             if (ship == null) {
                 return
             }
@@ -120,12 +121,22 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
                 blocks.add(neighbor)
             }
             sLevel.playSound(null, sPlayer.blockPosition(), ClockworkSounds.WAND_START.mainEvent!!, sPlayer.soundSource, 1.0f, 1.0f)
-            sendTo(WanderwandRenderUpdatePacket(clickedPos, ToolType.WELD, blocks = wand.tag?.get("selectedBlocks") as CompoundTag?, selDir = clickedDir, shipId = ship.id), sPlayer)
+            sendTo(WanderwandRenderUpdatePacket(clickedPos, ToolType.WELD, blocks = wand.tag?.get("selectedBlocks") as CompoundTag?, selDir = clickedDir, shipId = ship.id, onOff = true), sPlayer)
         }
 
         @JvmStatic
         fun weld(sLevel: ServerLevel, sPlayer: ServerPlayer, clickedPos: BlockPos, clickedFace: Int) {
-
+            val ship = sLevel.getLoadedShipManagingPos(clickedPos)
+            if (ship == null) {
+                return
+            }
+            val wand = sPlayer.mainHandItem
+            wand.tag?.putBoolean("isWelding", true)
+            wand.tag?.putLong("weldingShipId", ship.id)
+            val blocks = HashSet<BlockPos>()
+            val clickedDir = Direction.values().get(clickedFace)
+            sLevel.playSound(null, sPlayer.blockPosition(), ClockworkSounds.WAND_WELD.mainEvent!!, sPlayer.soundSource, 1.0f, 1.0f)
+            sendTo(WanderwandRenderUpdatePacket(clickedPos, ToolType.WELD, blocks = wand.tag?.get("selectedBlocks") as CompoundTag?, selDir = clickedDir, shipId = ship.id, onOff = false), sPlayer)
         }
 
         @JvmStatic

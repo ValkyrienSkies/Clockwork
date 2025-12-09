@@ -48,7 +48,6 @@ object SharedValues {
         }
 
 
-
     @get:ExpectPlatform
     @JvmStatic
     val gravitronHandler: GravitronHandler

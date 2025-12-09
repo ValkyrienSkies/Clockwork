@@ -1,19 +1,34 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool
 
 import com.mojang.blaze3d.vertex.PoseStack
+import com.simibubi.create.foundation.utility.RaycastHelper
 import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Style
+import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandSelectionPacket
+import org.valkyrienskies.mod.common.isBlockInShipyard
+import org.valkyrienskies.mod.common.isChunkInShipyard
 
 class SelectTool(): SelectionToolBase() {
 
     override fun handleRightClick(crouching: Boolean): Boolean {
         if (crouching) {
             return false
+        }
+        val player = Minecraft.getInstance().player
+
+        val trace = RaycastHelper.rayTraceRange(
+            player!!.level(), player, 15.0
+        )
+        if (trace != null && trace.type != HitResult.Type.BLOCK) {
+            //if on ship, don't let select
+            if (player!!.level().isBlockInShipyard(trace.blockPos)) {
+                return false
+            }
         }
         updateTargetPos()
         if (clickedPos != null && clickedLocation != null) {

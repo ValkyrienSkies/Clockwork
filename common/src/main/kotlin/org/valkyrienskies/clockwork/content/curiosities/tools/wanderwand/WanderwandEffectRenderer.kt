@@ -4,6 +4,7 @@ import com.jamieswhiteshirt.reachentityattributes.ReachEntityAttributes
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllSpecialTextures
 import com.simibubi.create.foundation.utility.RaycastHelper
+import net.createmod.catnip.outliner.Outliner
 import net.createmod.catnip.render.SuperRenderTypeBuffer
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
@@ -50,13 +51,13 @@ class WanderwandEffectRenderer {
         var count = 0
         if (SharedValues.wanderwandHandler.findWandInHand(client.player) != null) {
             for (cluster in clusters) {
-                ClockworkModClient.WANDER_OUTLINER.showCluster("cluster$count", cluster).colored(0xd8b2e9).lineWidth(0.5f).withFaceTextures(AllSpecialTextures.CHECKERED, AllSpecialTextures.HIGHLIGHT_CHECKERED)
+                Outliner.getInstance().showCluster("cluster$count", cluster).colored(0xFF55FF).lineWidth(0.1f).withFaceTextures(AllSpecialTextures.THIN_CHECKERED, AllSpecialTextures.HIGHLIGHT_CHECKERED)
                 count++
             }
         }
         count = 0
         for (attachment in attachments) {
-            ClockworkModClient.WANDER_OUTLINER.showLine("attachment$count", attachment.first.toMinecraft(), attachment.second.toMinecraft()).lineWidth(0.5f).colored(0xd8b2e9)
+            Outliner.getInstance().showLine("attachment$count", attachment.first.toMinecraft(), attachment.second.toMinecraft()).lineWidth(0.1f).colored(0xFF55FF)
             count++
         }
     }
@@ -148,7 +149,7 @@ class WanderwandEffectRenderer {
 
     fun handlePacket(packet: WanderwandRenderUpdatePacket) {
         if (packet.tool == ToolType.SELECT || packet.tool == ToolType.DESELECT) {
-            updateClusters(packet.blocks!!)
+            if (packet.blocks != null) updateClusters(packet.blocks)
         } else if (packet.tool == ToolType.WELD) {
             if (packet.blocks != null && packet.onOff) {
                 startWelding(packet.selectionPos, packet.selectionDir!!, packet.blocks, packet.shipId!!)
