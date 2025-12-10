@@ -67,9 +67,8 @@ open class WanderwandHandler {
     }
 
     fun render(poseStack: GuiGraphics, partialTicks: Float, width: Int, height: Int) {
-        if (Minecraft.getInstance().options.hideGui || !active) {
-            return
-        }
+        if (Minecraft.getInstance().options.hideGui || !active) return
+
         if (activeSchematicItem != null && isRegular) {
             overlay!!.renderWanderlite(poseStack, activeHotbarSlot, partialTicks)
         }

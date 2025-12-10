@@ -17,6 +17,8 @@ import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.util.RandomSource
 import net.minecraft.world.level.ClipContext
+import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import org.joml.Quaternionf
 import org.joml.Vector3d
@@ -66,6 +68,7 @@ class WanderwandEffectRenderer {
     fun render(ms: PoseStack, buffer: SuperRenderTypeBuffer, camera: Vec3, partialTicks: Float) {
         val level = client.level ?: return
         val player = client.player ?: return
+
         if (isWelding && weldingShip != null) {
             ms.pushPose()
             println("WELDING FUCKHEAD")
@@ -120,6 +123,12 @@ class WanderwandEffectRenderer {
             lastTargetPos = targetPos
 
             ms.popPose()
+        } else {
+            val trace = RaycastHelper.rayTraceRange(player.level(), player, 15.0) ?: return
+            if (trace.type != HitResult.Type.BLOCK) return
+
+            val aabb = AABB(trace.blockPos)
+            Outliner.getInstance().showAABB("selectAABB", aabb).colored(0xFF5FFF).lineWidth(0.05f)
         }
     }
 
