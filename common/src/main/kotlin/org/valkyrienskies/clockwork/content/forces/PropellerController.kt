@@ -217,7 +217,7 @@ class PropellerController(
             val force = worldAxis.mul(dThrust, Vector3d())
             //val torque = rotatedDist.cross(force, Vector3d())
 
-            netForce.add(force.mul(50.0))
+            netForce.add(force)
             netTorque.add(Vector3d())
         }
 
