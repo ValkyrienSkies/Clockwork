@@ -748,5 +748,15 @@
     "block": "create:red_sail",
     "mass": 1,
     "friction": 0.75
+  },
+  {
+    "block": "vs_clockwork:nyx",
+    "mass" : 9725.0,
+    "friction": 0.8
+  },
+  {
+    "block": "vs_clockwork:cobbled_nyx",
+    "mass" : 4860.0,
+    "friction": 0.8
   }
 ]

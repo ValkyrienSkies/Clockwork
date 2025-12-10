@@ -5,6 +5,7 @@ import net.minecraft.server.level.ServerLevel
 import org.joml.Vector3d
 import org.joml.Vector3i
 import org.valkyrienskies.core.api.util.GameTickOnly
+import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
 import org.valkyrienskies.mod.api.dimensionId
 import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.assembly.ShipAssembler
@@ -16,7 +17,7 @@ object MeteorStorm {
     @OptIn(GameTickOnly::class)
     fun assembleMeteor(level: ServerLevel, at: Vector3i) {
         val ship = level.shipObjectWorld.createNewShipAtBlock(at, false, 1.0, level.dimensionId)
-        val center = BlockPos(ship.chunkClaim.xMiddle,128,ship.chunkClaim.zMiddle)
+        val center = ship.kinematics.positionInModel.toMinecraft()
         ship.isStatic = true
         println("1 ${ship}")
         MeteorGenerator.generate(level, center, 0.035, 10, 3)

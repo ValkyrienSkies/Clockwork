@@ -34,7 +34,8 @@ object MeteorGenerator {
             val t = threshold  - noise.getValue(x.toDouble()*resolution,y.toDouble()*resolution,z.toDouble()*resolution)/500
             val mb = metaBall(balls, BlockPos(x,y,z))
             val state: BlockState
-            if (mb > 2*t) state = ClockworkBlocks.WANDERLITE_NYX_ORE.defaultState
+            //(mb > 2*t)
+            if (false) state = ClockworkBlocks.WANDERLITE_NYX_ORE.defaultState
             else if (mb > t) state = ClockworkBlocks.NYX.defaultState
             else state = Blocks.AIR.defaultBlockState()
 
