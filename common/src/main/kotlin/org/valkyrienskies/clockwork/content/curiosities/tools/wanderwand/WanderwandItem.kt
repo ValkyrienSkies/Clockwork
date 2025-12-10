@@ -44,7 +44,7 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
         @JvmStatic
         fun select(sLevel: ServerLevel, sPlayer: ServerPlayer, firstPos: BlockPos, secondPos: BlockPos, isSecond: Boolean, deselect: Boolean, leftClick: Boolean) {
             if (!isSecond) {
-                if (leftClick && sPlayer.mainHandItem.item is WanderwandItem && !sPlayer.cooldowns.isOnCooldown(sPlayer.mainHandItem.item)) {
+                if (leftClick && sPlayer.mainHandItem.item is WanderwandItem) {
                     val existingSelection = sPlayer.mainHandItem.tag?.get("selectedBlocks") as CompoundTag?
                     if (existingSelection != null) {
                         val existingSelectionDeser = readBlockPosSetFromNBT(existingSelection)
@@ -104,10 +104,7 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
 
         @JvmStatic
         fun startWeld(sLevel: ServerLevel, sPlayer: ServerPlayer, clickedPos: BlockPos, clickedFace: Int) {
-            val ship = sLevel.getLoadedShipManagingPos(clickedPos)
-            if (ship == null) {
-                return
-            }
+            val ship = sLevel.getLoadedShipManagingPos(clickedPos) ?: return
             val wand = sPlayer.mainHandItem
             wand.tag?.putBoolean("isWelding", true)
             wand.tag?.putLong("weldingShipId", ship.id)
@@ -126,10 +123,7 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
 
         @JvmStatic
         fun weld(sLevel: ServerLevel, sPlayer: ServerPlayer, clickedPos: BlockPos, clickedFace: Int) {
-            val ship = sLevel.getLoadedShipManagingPos(clickedPos)
-            if (ship == null) {
-                return
-            }
+            val ship = sLevel.getLoadedShipManagingPos(clickedPos) ?: return
             val wand = sPlayer.mainHandItem
             wand.tag?.putBoolean("isWelding", true)
             wand.tag?.putLong("weldingShipId", ship.id)

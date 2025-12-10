@@ -41,8 +41,8 @@ class WandSelectionPacket : C2SCWPacket {
                 val stack = serverPlayer.mainHandItem
                 val bl = stack.`is`(ClockworkItems.WANDERWAND.get().asItem())
                 if (bl) {
-                    if (!serverPlayer.cooldowns.isOnCooldown(stack.item)) {
-                        serverPlayer.cooldowns.addCooldown(stack.item, 20)
+                    //if (!serverPlayer.cooldowns.isOnCooldown(stack.item)) {
+                        //serverPlayer.cooldowns.addCooldown(stack.item, 3)
                         when (tool) {
                             ToolType.SELECT, ToolType.DESELECT -> {
                                 WanderwandItem.select(serverLevel, serverPlayer, firstPos, secondPos, isSecond, tool == ToolType.DESELECT, leftClick)
@@ -80,7 +80,7 @@ class WandSelectionPacket : C2SCWPacket {
                             }
                         }
                     }
-                }
+                //}
             }
         }
         context.setPacketHandled(true)
