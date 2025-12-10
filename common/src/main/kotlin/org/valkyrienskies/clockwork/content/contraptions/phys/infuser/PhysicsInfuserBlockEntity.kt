@@ -284,15 +284,20 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         val selectedTag = item.tag?.get("selectedBlocks") as? CompoundTag ?: return
         val blockposSet = WanderwandItem.readBlockPosSetFromNBT(selectedTag)
 
-        WanderwandItem.findIsolatedComponents(blockposSet).forEach {
-            ShipAssembler.assembleToShip(level!!, it.toList(), true)
+        for (component in WanderwandItem.findIsolatedComponents(blockposSet)) {
+
+            if (component.any { ClockworkConfig.SERVER.blockBlacklist.contains(level!!.getBlockState(it).block.descriptionId) } ) continue
+
+
+            ShipAssembler.assembleToShip(level!!, component.toList(), true)
         }
+
 
 //        item.selectedArea.selectionClusters.run clusters@{
 //            item.selectedArea.selectionClusters.forEach { cluster ->
 //                val selection: DenseBlockPosSet
 //                val caughtEntities: Set<Entity>
-//                if (level is ServerLevel) {
+//                if (level is ServerLevel)
 //                    val serverLevel = level as ServerLevel
 //                    selection = SelectedAreaToolkit.denseBlocksFromCluster(cluster)
 //                    caughtEntities = SelectedAreaToolkit.entitiesFromCluster(cluster, (level as ServerLevel))
@@ -303,7 +308,7 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 //                    selection.run loop@{
 //                        selection.forEach { x, y, z ->
 //                            val it =serverLevel.getBlockState(BlockPos(x, y, z))
-//                            if (!it.isAir && !ClockworkConfig.SERVER.blockBlacklist.contains(Registry.BLOCK.getKey(it.block).toString())) {
+//                            if (!it.isAir && !) {
 //                                bl = true
 //                                return@loop
 //                            }
