@@ -1,8 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle
 
-import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
-import com.simibubi.create.foundation.utility.animation.LerpedFloat
 import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
@@ -13,8 +11,6 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkAugmentations
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.kelvin.api.DuctNodePos
-import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.clockwork.util.AerodynamicUtils
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.densityAverage
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.dynamicViscosityAverage
@@ -22,6 +18,8 @@ import org.valkyrienskies.clockwork.util.AerodynamicUtils.specificHeatAverage
 import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
 import org.valkyrienskies.clockwork.util.KNodeKineticBlockEntity
 import org.valkyrienskies.clockwork.util.PIDstance
+import org.valkyrienskies.kelvin.api.DuctNodePos
+import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.dimensionId
@@ -90,6 +88,8 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
                 serverLevel.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("airupdated"), blockPos.x, blockPos.y +1, blockPos.z, serverLevel.dimensionId, 0.0)
             }
             heatPocket()
+
+
         }
 
     }

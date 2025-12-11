@@ -42,7 +42,7 @@ public class FabricClockworkClientEvents {
         LivingEntityFeatureRendererRegistrationCallback.EVENT.register(FabricClockworkClientEvents::addEntityRendererLayers);
     }
 
-    public static void onRenderWorld(WorldRenderContext worldRenderContext) {
+    public static void  onRenderWorld(WorldRenderContext worldRenderContext) {
         PoseStack ms = worldRenderContext.matrixStack();
         ms.pushPose();
         SuperRenderTypeBuffer buffer = SuperRenderTypeBuffer.getInstance();

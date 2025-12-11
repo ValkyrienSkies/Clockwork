@@ -68,7 +68,7 @@ object AirpocketRenderer {
     @JvmStatic
     fun getEveryNode(level: ServerLevel, ship: Ship): MutableSet<BlockPos> {
         val nodes = mutableSetOf<BlockPos>()
-        ship.shipAABB!!.forEachBlock { x,y,z -> if (level.getBlockState(BlockPos(x,y,z)).isAir && level.shipObjectWorld.isIsolatedAir(x,y,z,level.dimensionId) == ConnectionStatus.CONNECTED) nodes.add(BlockPos(x,y,z)) }
+        ship.shipAABB!!.forEachBlock { x,y,z -> if ( level.shipObjectWorld.isIsolatedAir(x,y,z,level.dimensionId) == ConnectionStatus.UNKNOWN) nodes.add(BlockPos(x,y,z)) }
         println("\ngot nodes: $nodes")
         return nodes
     }

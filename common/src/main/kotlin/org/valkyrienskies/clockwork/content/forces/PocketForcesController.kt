@@ -142,6 +142,7 @@ class PocketForcesController: ShipPhysicsListener {
     }
 
     fun gameTick(level: ServerLevel, ship: ServerShip) {
+        return
         val loadedShip = level.shipObjectWorld.loadedShips.getById(ship.id) ?: return
 
         val roots = level.shipObjectWorld.getFromEachAirComponent(ClockworkAugmentations.getComponentAugmentation("temperature"), level.dimensionId, loadedShip.chunkClaim)

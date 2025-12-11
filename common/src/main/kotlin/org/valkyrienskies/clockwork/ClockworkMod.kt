@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork
 
+import com.mojang.blaze3d.platform.InputConstants
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.logging.LogUtils
 import com.simibubi.create.foundation.data.CreateRegistrate
@@ -10,30 +11,36 @@ import dev.architectury.event.events.common.TickEvent
 import dev.architectury.registry.CreativeTabRegistry
 import dev.architectury.registry.registries.DeferredRegister
 import dev.architectury.registry.registries.RegistrySupplier
+import net.minecraft.client.KeyMapping
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.core.registries.Registries
 import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.OutgoingChatMessage
 import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.crafting.RecipeSerializer
+import net.minecraft.world.item.crafting.RecipeType
 import org.slf4j.LoggerFactory
 import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketRenderer
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkHandler
+import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.CraftingTableBladeRecipe
 import org.valkyrienskies.clockwork.content.events.CollisionSoundEffectHandler
 import org.valkyrienskies.clockwork.content.forces.*
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroShipControl
 import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.core.api.VsBeta
-import org.valkyrienskies.core.api.events.CollisionEvent
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.impl.DuctNetworkServer
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
+import org.valkyrienskies.mod.api.dimensionId
 import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.vsCore
+
 
 object ClockworkMod {
     const val MOD_ID = "vs_clockwork"
@@ -62,17 +69,13 @@ object ClockworkMod {
     @OptIn(VsBeta::class)
     @JvmStatic
     fun init() {
-        ClockworkContraptions.init()
         ClockworkPackets.init()
         ClockworkTags.init()
+        ClockworkRecipes.init()
         TAB_REGISTRY.register()
 
-        ValkyrienSkiesMod.vsCore.registerConfigLegacy("clockwork", ClockworkConfig::class.java)
-
         vsCore.registerAttachment(PocketForcesController::class.java)
-        vsCore.registerAttachment(DragController::class.java)
         vsCore.registerAttachment(WanderShipControl::class.java)
-
         vsCore.registerAttachment(GasThrusterController::class.java)
         vsCore.registerAttachment(PropellerController::class.java)
         vsCore.registerAttachment(ReactionWheelController::class.java)
@@ -84,18 +87,18 @@ object ClockworkMod {
 
         vsApi.shipLoadEvent.on { event -> val ship = event.ship;
             PocketForcesController.getOrCreate(ship)
-            DragController.getOrCreate(ship)
+            //DragController.getOrCreate(ship)
             WanderShipControl.getOrCreate(ship)
 
             //TODO remove when attachment bug is fixed
-            GasThrusterController.getOrCreate(ship)
-            PropellerController.getOrCreate(ship)
-            ReactionWheelController.getOrCreate(ship)
-            EncasedFanController.getOrCreate(ship)
-            GyroShipControl.getOrCreate(ship)
-            GravitronController.getOrCreate(ship)
-            SugarRocketController.getOrCreate(ship)
-            BearingController.getOrCreate(ship)
+//            GasThrusterController.getOrCreate(ship)
+//            PropellerController.getOrCreate(ship)
+//            ReactionWheelController.getOrCreate(ship)
+//            EncasedFanController.getOrCreate(ship)
+//            GyroShipControl.getOrCreate(ship)
+//            GravitronController.getOrCreate(ship)
+//            SugarRocketController.getOrCreate(ship)
+//            BearingController.getOrCreate(ship)
         }
 
         ClockworkWorldgen.register()
@@ -114,8 +117,8 @@ object ClockworkMod {
         TickEvent.SERVER_LEVEL_POST.register {
             for (ship in it.shipObjectWorld.loadedShips) {
                 ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship)
-                ship.getAttachment(DragController::class.java)?.gameTick(ship, it)
             }
+
             ClockworkUtils.tick(it)
             AirpocketRenderer.tick(it)
             CollisionSoundEffectHandler.tick(it)
@@ -128,11 +131,15 @@ object ClockworkMod {
 
         //TODO remove when VS commands return
         CommandRegistrationEvent.EVENT.register { dispatcher, context, idk ->
-            dispatcher.register(LiteralArgumentBuilder.literal<CommandSourceStack>("clockwork-remove-all-ships").executes {
+            dispatcher.register(LiteralArgumentBuilder.literal<CommandSourceStack>("get-air-values").executes {
                 val level = it.source.level!!
-                level.shipObjectWorld.allShips
-                    .map { it }
-                    .forEach { level.shipObjectWorld.deleteShip(it) }
+                val player = it.source.player!!
+
+                val density = level.shipObjectWorld.aerodynamicUtils.getAirTemperatureForY(player.position().y(),level.dimensionId)
+                val temperature = level.shipObjectWorld.aerodynamicUtils.getAirTemperatureForY(player.position().y(),level.dimensionId)
+
+                player.sendSystemMessage(Component.literal("At y: ${player.position().y} density: $density temperature: $temperature"))
+
                 0
             })
         }

@@ -19,6 +19,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.valkyrienskies.clockwork.ClockworkModClient;
+import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketRenderer;
 import org.valkyrienskies.clockwork.client.render.debug.KelvinEdgeRenderer;
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankArmorLayer;
 import org.valkyrienskies.clockwork.forge.content.logistics.gas.backtank.ForgeGasBacktankArmorLayer;
@@ -36,6 +37,10 @@ public class ClockworkClientEvents {
 
     @SubscribeEvent
     public static void onRenderWorld(RenderLevelStageEvent event) {
+        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
+            AirpocketRenderer.render(Minecraft.getInstance().level, event.getPoseStack(), Minecraft.getInstance().gameRenderer.getMainCamera());
+        }
+
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
             return;
         }
