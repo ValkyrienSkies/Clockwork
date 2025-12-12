@@ -1,6 +1,8 @@
 {
-  "parent": "minecraft:block/cube_all",
+  "parent": "minecraft:block/orientable",
   "textures": {
-    "all": "vs_clockwork:block/gas_crafter"
+    "front": "minecraft:block/blast_furnace_front",
+    "side": "vs_clockwork:block/gas_crafter",
+    "top": "vs_clockwork:block/gas_crafter"
   }
 }

@@ -1,7 +1,27 @@
 {
   "variants": {
-    "": {
+    "facing=down": {
+      "model": "vs_clockwork:block/gas_crafter/block",
+      "x": 90
+    },
+    "facing=up": {
+      "model": "vs_clockwork:block/gas_crafter/block",
+      "x": 270
+    },
+    "facing=north": {
       "model": "vs_clockwork:block/gas_crafter/block"
+    },
+    "facing=south": {
+      "model": "vs_clockwork:block/gas_crafter/block",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vs_clockwork:block/gas_crafter/block",
+      "y": 270
+    },
+    "facing=east": {
+      "model": "vs_clockwork:block/gas_crafter/block",
+      "y": 90
     }
   }
 }

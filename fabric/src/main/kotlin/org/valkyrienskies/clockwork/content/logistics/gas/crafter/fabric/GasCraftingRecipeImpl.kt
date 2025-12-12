@@ -42,7 +42,9 @@ object GasCraftingRecipeImpl {
 
         val ingredients = LinkedList(recipe.ingredients)
         val fluidIngredients = if (isGasCrafterRecipe) recipe.fluidIngredients else emptyList()
+
         val gasIngredients = if (isGasCrafterRecipe) recipe.gasIngredients else emptyList()
+        val gasResults = if (isGasCrafterRecipe) recipe.gasResults else emptyList()
 
         val consumedItems = NonNullList.create<ItemStack>()
 
@@ -130,7 +132,7 @@ object GasCraftingRecipeImpl {
                     ClockworkMod.getKelvin().modGasMass(be.getDuctNodePosition(), gas, -deltaMass)
                 }
 
-                for (ingredient in gasIngredients) {
+                for (ingredient in gasResults) {
                     val mass = ingredient.moles * ingredient.gasType.density * 22.4
                     ClockworkMod.getKelvin().modGasMass(be.getDuctNodePosition(), ingredient.gasType, -mass)
                 }

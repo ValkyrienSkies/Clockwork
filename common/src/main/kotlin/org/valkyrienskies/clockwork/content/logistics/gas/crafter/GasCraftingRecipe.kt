@@ -1,16 +1,21 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.crafter
 
+import com.google.gson.JsonObject
 import com.simibubi.create.AllRecipeTypes
 import com.simibubi.create.content.processing.recipe.ProcessingRecipe
+import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder
 import com.simibubi.create.foundation.recipe.IRecipeTypeInfo
 import dev.architectury.injectables.annotations.ExpectPlatform
 import net.minecraft.core.NonNullList
+import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.world.Container
 import net.minecraft.world.item.crafting.Recipe
 import net.minecraft.world.level.Level
+import org.valkyrienskies.clockwork.ClockworkRecipeTypes
 import org.valkyrienskies.kelvin.integration.jei.KelvinGasIngredient
 import kotlin.jvm.optionals.getOrNull
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCraftingRecipeBuilder.GasRecipeParams
+import org.valkyrienskies.kelvin.impl.KelvinReactionDataLoader
 
 open class GasCraftingRecipe(type: IRecipeTypeInfo, params: GasRecipeParams) :
     ProcessingRecipe<Container>(type, params) {
@@ -18,7 +23,9 @@ open class GasCraftingRecipe(type: IRecipeTypeInfo, params: GasRecipeParams) :
     var gasIngredients: NonNullList<KelvinGasIngredient> = params.gasIngredients
     var gasResults: NonNullList<KelvinGasIngredient> = params.gasResults
 
-    constructor(params: GasRecipeParams) : this(AllRecipeTypes.BASIN, params)
+    constructor(params: GasRecipeParams) : this(ClockworkRecipeTypes.GAS_CRAFTING, params)
+    constructor(params: ProcessingRecipeBuilder.ProcessingRecipeParams) : this(ClockworkRecipeTypes.GAS_CRAFTING, params as GasRecipeParams)
+
 
     companion object {
         @JvmStatic
@@ -66,5 +73,13 @@ open class GasCraftingRecipe(type: IRecipeTypeInfo, params: GasRecipeParams) :
 
     override fun matches(inv: Container, worldIn: Level): Boolean {
         return false
+    }
+
+    override fun readAdditional(json: JsonObject) {
+
+    }
+
+    override fun writeAdditional(json: JsonObject) {
+
     }
 }
