@@ -797,6 +797,23 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
+    val CHARGED_NYX = REGISTRATE.block<Block>(
+        "charged_nyx"
+    ) { properties: BlockBehaviour.Properties? ->
+        Block(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .item()
+        .properties {
+            it.fireResistant()
+        }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .build()
+        .register()
+
+    @JvmField
     val WANDERLITE_BLOCK = REGISTRATE.block<GenericWanderliteBlock>(
         "wanderlite_block"
     ) { properties: BlockBehaviour.Properties? ->

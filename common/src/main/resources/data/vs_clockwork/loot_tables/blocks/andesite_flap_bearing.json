@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "vs_clockwork:propeller_bearing"
+          "name": "vs_clockwork:andesite_flap_bearing"
         }
       ],
       "conditions": [

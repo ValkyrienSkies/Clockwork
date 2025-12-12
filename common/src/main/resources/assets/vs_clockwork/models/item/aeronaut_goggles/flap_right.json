@@ -11,7 +11,7 @@
 			"name": "flap_right",
 			"from": [13.275, -2, 3],
 			"to": [16.275, 10, 13],
-			"rotation": {"angle": 0, "axis": "y", "origin": [12.275, 0, 0]},
+			"rotation": {"angle": 0, "axis": "y", "origin": [13.275, 10, 8]},
 			"faces": {
 				"north": {"uv": [8.25, 0.75, 9, 3.75], "texture": "#0"},
 				"east": {"uv": [9, 4.5, 11.5, 7.5], "texture": "#0"},

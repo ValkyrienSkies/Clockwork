@@ -14,7 +14,6 @@ import net.minecraft.resources.ResourceLocation;
 import org.valkyrienskies.clockwork.*;
 //import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer;
 import org.valkyrienskies.clockwork.content.events.ClockworkCommonEvents;
-import org.valkyrienskies.mod.compat.clothconfig.VSClothConfig;
 import org.valkyrienskies.mod.fabric.common.ValkyrienSkiesModFabric;
 
 public class ClockworkModFabric implements ModInitializer {
@@ -58,15 +57,5 @@ public class ClockworkModFabric implements ModInitializer {
         ServerTickEvents.START_WORLD_TICK.register(ClockworkCommonEvents.INSTANCE::onWorldTick);
         LivingEntityEvents.LivingTickEvent.TICK.register(FabricClockworkCommonEvents::onLivingTick);
         AttackBlockCallback.EVENT.register(FabricClockworkCommonEvents::playerLeftClick);
-    }
-
-    public static class ModMenu implements ModMenuApi {
-        @Override
-        public ConfigScreenFactory<?> getModConfigScreenFactory() {
-            return (parent) -> VSClothConfig.createConfigScreenFor(
-                    parent,
-                    ClockworkConfig.class
-            );
-        }
     }
 }

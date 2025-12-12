@@ -73,9 +73,6 @@ object ClockworkMod {
         ClockworkRecipes.init()
         TAB_REGISTRY.register()
 
-
-        ValkyrienSkiesMod.vsCore.registerConfigLegacy("clockwork", ClockworkConfig::class.java)
-
         vsCore.registerAttachment(PocketForcesController::class.java)
         vsCore.registerAttachment(WanderShipControl::class.java)
         vsCore.registerAttachment(GasThrusterController::class.java)

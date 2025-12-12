@@ -7,7 +7,7 @@ import net.minecraft.world.item.crafting.Ingredient
 import java.util.function.Supplier
 
 enum class ClockworkArmorMaterials(val resourceName: String, val maxDamageFactor: Int, val damageReductionAmountArray: IntArray, val enchantability: Int,
-                                   val soundEvent: Supplier<SoundEvent>, val toughness: Float, val knockbackResistance: Float, val repairMaterial: Supplier<Ingredient>): ArmorMaterial {
+                                   val soundEvent: Supplier<SoundEvent>, val armorToughness: Float, val kbResistance: Float, val repairMaterial: Supplier<Ingredient>): ArmorMaterial {
 
     FLIGHT(ClockworkMod.asResource("flight").toString(), 33, intArrayOf(3, 6, 8, 3), 15,
         Supplier { ClockworkSounds.FLIGHTSUIT_EQUIP.mainEvent!! }, 2.0f, 0.1f,
@@ -36,10 +36,10 @@ enum class ClockworkArmorMaterials(val resourceName: String, val maxDamageFactor
     }
 
     override fun getKnockbackResistance(): Float {
-        return this.knockbackResistance
+        return this.kbResistance
     }
     override fun getToughness(): Float {
-        return this.toughness
+        return this.armorToughness
     }
 
     companion object {
