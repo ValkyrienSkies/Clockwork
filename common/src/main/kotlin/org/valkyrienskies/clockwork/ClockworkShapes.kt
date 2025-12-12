@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork
 
+import com.simibubi.create.AllShapes
 import net.createmod.catnip.math.VoxelShaper
 import net.minecraft.core.Direction
 import net.minecraft.world.level.block.Block
@@ -12,6 +13,9 @@ object ClockworkShapes {
     val WING = shape(0.0, 4.0, 0.0, 16.0, 12.0, 16.0).forAxis()
     val AFTERBLAZER = shape(1.0, 0.0, 1.0, 15.0, 14.0, 15.0).forDirectional()
     val ALT_METER = shape(1.0, 0.0, 1.0, 15.0, 5.0, 15.0).add(4.0, 8.0, 4.0, 12.0, 16.0, 12.0).build()
+
+    // Why the .8 and .2 you ask? Because otherwise the model _slightly_ overlaps the hitbox, and that looks uggo
+    val EXHAUST = shape(2.8, 0.0, 2.8, 13.2, 16.0, 13.2).forAxis()
 
     val GYRO = shape(1.0, 0.0, 1.0, 15.0, 5.0, 15.0)
         .add(5.0, 5.0, 5.0, 11.0, 10.0, 11.0).build()
