@@ -282,6 +282,7 @@ object ClockworkBlocks {
         .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
         .item()
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        // I have no idea why the item model is still fucked when the block model is working
         .model(AssetLookup.customBlockItemModel("gyro"))
         .build()
         .register()
