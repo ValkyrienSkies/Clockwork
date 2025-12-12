@@ -31,6 +31,7 @@ class AeronautGogglesRenderer: CustomRenderedItemModelRenderer() {
             ms.pushPose()
 
             renderer.renderSolid(ClockworkPartials.HAT_BASE.get(), light)
+
             val flapAngle = AeronautGogglesState.getFlapsAngle(player)
             val prevFlapAngle = AeronautGogglesState.getPrevFlapsAngle(player)
             val interpolatedFlapAngle = prevFlapAngle + (flapAngle - prevFlapAngle) * partialTicks
@@ -61,12 +62,12 @@ class AeronautGogglesRenderer: CustomRenderedItemModelRenderer() {
                 ms.mulPose(org.joml.Quaternionf().setAngleAxis(-90f, 0f, 0f, 1f))
             }
             ms.popPose()
-            renderer.renderSolid(ClockworkPartials.HAT_GOGGLES.get(), light)
+            renderer.render(ClockworkPartials.HAT_GOGGLES.get(), light)
             ms.popPose()
 
             ms.popPose()
         } else {
-            renderer.renderSolid(model.originalModel, light)
+            renderer.render(model.originalModel, light)
         }
     }
 
