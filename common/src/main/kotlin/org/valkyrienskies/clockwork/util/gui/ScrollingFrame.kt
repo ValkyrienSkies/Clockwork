@@ -1,8 +1,7 @@
 package org.valkyrienskies.clockwork.util.gui
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.foundation.gui.AbstractSimiScreen
-import com.simibubi.create.foundation.gui.widget.AbstractSimiWidget
+import net.createmod.catnip.gui.widget.AbstractSimiWidget
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.components.AbstractWidget
 import net.minecraft.client.gui.narration.NarrationElementOutput
@@ -44,6 +43,7 @@ open class ScrollingFrame(x: Int, y: Int, w: Int, h: Int): AbstractSimiWidget(x,
 
         val pose = ms.pose()
 
+        ms.enableScissor(x,y, x+width, y+height)
         pose.pushPose()
         pose.translate(0.0,currentScroll,0.0)
 
@@ -62,7 +62,10 @@ open class ScrollingFrame(x: Int, y: Int, w: Int, h: Int): AbstractSimiWidget(x,
             pastHeight+=element.height+padding
         }
         minScroll = -max(pastHeight-height,0.0)
+
+
         pose.popPose()
+        ms.disableScissor()
 
     }
 

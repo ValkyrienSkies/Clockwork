@@ -12,8 +12,8 @@ import com.simibubi.create.content.kinetics.transmission.sequencer.SequencerInst
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour
 import com.simibubi.create.foundation.item.TooltipHelper
-import com.simibubi.create.foundation.utility.AngleHelper
 import com.simibubi.create.foundation.utility.ServerSpeedProvider
+import net.createmod.catnip.math.AngleHelper
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
@@ -42,7 +42,7 @@ import org.valkyrienskies.clockwork.util.plus
 import org.valkyrienskies.clockwork.util.times
 import org.valkyrienskies.core.api.attachment.getAttachment
 import org.valkyrienskies.core.api.ships.ServerShip
-import org.valkyrienskies.core.apigame.joints.*
+import org.valkyrienskies.core.internal.joints.*
 import org.valkyrienskies.core.impl.bodies.properties.BodyTransformFactory
 
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil

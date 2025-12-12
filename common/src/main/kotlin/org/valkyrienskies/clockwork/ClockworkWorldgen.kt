@@ -16,7 +16,6 @@ object ClockworkWorldgen {
         BiomeModifications.addProperties { ctx: BiomeModifications.BiomeContext, mutable: BiomeProperties.Mutable ->
             if (ctx.hasTag(BiomeTags.IS_NETHER)) return@addProperties
 
-            ClockworkMod.LOGGER.info("REGISTERING WANDERLITE")
             mutable.generationProperties.addFeature(
                 GenerationStep.Decoration.UNDERGROUND_ORES,
                 ResourceKey.create(Registries.PLACED_FEATURE, ClockworkMod.asResource("wanderlite_ore"))

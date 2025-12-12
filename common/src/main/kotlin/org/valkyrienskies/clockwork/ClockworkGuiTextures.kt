@@ -2,9 +2,9 @@ package org.valkyrienskies.clockwork
 
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.foundation.gui.UIRenderHelper
-import com.simibubi.create.foundation.gui.element.ScreenElement
-import com.simibubi.create.foundation.utility.Color
+import net.createmod.catnip.gui.UIRenderHelper
+import net.createmod.catnip.gui.element.ScreenElement
+import net.createmod.catnip.theme.Color
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.gui.Gui
@@ -19,7 +19,9 @@ enum class ClockworkGuiTextures(
     val startY: Int
 ) : ScreenElement {
 
-    GRAVITRON_SELECTED("widgets", 0, 0, 22, 22),
+    BRASS_SELECTED("widgets", 0, 0, 22, 22),
+    WANDERLITE_SELECTED_1("widgets", 0, 22, 22, 22),
+    WANDERLITE_SELECTED_2("widgets", 22, 22, 22, 22),
     GYRO("gyro", 200, 212),
     ALT_METER("alt_meter", 173, 73),
 
@@ -30,6 +32,8 @@ enum class ClockworkGuiTextures(
     GAS_FILTER_TAB("gas_filter_menu", 214, 104),
     GAS_FILTER_FRAME("gas_filter_menu", 0,104,214, 49),
     GAS_FILTER_ELEMENT("gas_filter_menu", 0,153,75, 18),
+
+    SMART_DUCT_BG("smart_duct", 0,0,165, 73),
 
 
     COMMAND_SEAT("command_seat", 173, 159),

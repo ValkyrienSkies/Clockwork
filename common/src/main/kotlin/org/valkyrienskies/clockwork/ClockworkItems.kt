@@ -3,21 +3,31 @@ package org.valkyrienskies.clockwork
 import com.simibubi.create.AllItems
 import com.simibubi.create.AllTags
 import com.simibubi.create.AllTags.AllItemTags
+import com.simibubi.create.content.equipment.goggles.GogglesItem
 import com.simibubi.create.foundation.data.AssetLookup
 import com.tterrag.registrate.util.entry.ItemEntry
+import dev.architectury.core.item.ArchitecturyRecordItem
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings
+import net.minecraft.tags.ItemTags
+import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.Rarity
+import net.minecraft.world.item.RecordItem
 import net.minecraft.world.item.SwordItem
 import net.minecraft.world.item.Tiers
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
+import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.BladeItem
+import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.BladeItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteCubeItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteItem
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItemRenderer
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItem
+import org.valkyrienskies.clockwork.content.curiosities.WanderlustMusicDisc
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautGogglesItem
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautGogglesRenderer
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.CreativeGravitronItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItemRenderer
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver.ScrewdriverItem
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftItem
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBackTankItem
@@ -28,7 +38,15 @@ import java.util.function.Supplier
 
 object ClockworkItems {
 
-
+    @JvmField
+    val WANDERLUST_DISC: ItemEntry<WanderlustMusicDisc> =
+        REGISTRATE.item<WanderlustMusicDisc>("music_disc_wanderlust") { properties: Item.Properties? ->
+            WanderlustMusicDisc(properties!!)
+        }
+            .properties { it.rarity(Rarity.EPIC) }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .tag(ItemTags.MUSIC_DISCS)
+            .register()
 
     @JvmField
     val GRAVITRON: ItemEntry<GravitronItem> =
@@ -52,7 +70,7 @@ object ClockworkItems {
         }
             .properties {
                 it.stacksTo(1)
-                it.rarity(Rarity.UNCOMMON)
+                it.rarity(Rarity.RARE)
             }
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .tag(AllTags.AllItemTags.WRENCH.tag)
@@ -87,45 +105,47 @@ object ClockworkItems {
                 it.rarity(Rarity.UNCOMMON)
             }
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
-            .transform(ClockworkRegistrate.customRenderedItem { Supplier { WanderWandItemRenderer() } })
+            .transform(ClockworkRegistrate.customRenderedItem { Supplier { WanderwandItemRenderer() } })
             .tag(AllTags.AllItemTags.WRENCH.tag)
             .model(AssetLookup.itemModelWithPartials())
             .register()
 
 
     @JvmField
-    val PROPELLER_BLADE: ItemEntry<SwordItem> = REGISTRATE.item<SwordItem>("propeller_blade") { properties: Item.Properties? ->
-        SwordItem(Tiers.WOOD, 2, 0.4f, properties!!)
+    val PROPELLER_BLADE: ItemEntry<BladeItem> = REGISTRATE.item("propeller_blade") { properties: Item.Properties? ->
+        BladeItem(Tiers.WOOD, 2, 0.4f, properties!!)
     }
         .properties {
             it.durability(100)
         }
+        .transform(ClockworkRegistrate.customRenderedItem { Supplier { BladeItemRenderer() } })
         .tag(ClockworkTags.AllItemTags.PROP_BLADE.tag)
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .register()
 
     @JvmField
-    val WIDE_PROPELLER_BLADE: ItemEntry<SwordItem> = REGISTRATE.item<SwordItem>("wide_propeller_blade") { properties: Item.Properties? ->
-        SwordItem(Tiers.WOOD, 4, 0.2f, properties!!)
+    val WIDE_PROPELLER_BLADE: ItemEntry<BladeItem> = REGISTRATE.item("wide_propeller_blade") { properties: Item.Properties? ->
+        BladeItem(Tiers.WOOD, 4, 0.2f, properties!!)
     }
         .properties {
             it.durability(200)
         }
+        .transform(ClockworkRegistrate.customRenderedItem { Supplier { BladeItemRenderer() } })
         .tag(ClockworkTags.AllItemTags.PROP_BLADE.tag)
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .register()
 
     @JvmField
-    val WANDERWAND: ItemEntry<WanderWandItem> =
-        REGISTRATE.item<WanderWandItem>("wanderwand") { properties: Item.Properties? ->
-            WanderWandItem(properties!!)
+    val WANDERWAND: ItemEntry<WanderwandItem> =
+        REGISTRATE.item<WanderwandItem>("wanderwand") { properties: Item.Properties? ->
+            WanderwandItem(properties!!)
         }
             .properties {
                 it.stacksTo(1)
                 it.rarity(Rarity.UNCOMMON)
             }
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
-            .transform(ClockworkRegistrate.customRenderedItem { Supplier { WanderWandItemRenderer() } })
+            .transform(ClockworkRegistrate.customRenderedItem { Supplier { WanderwandItemRenderer() } })
             .tag(AllTags.AllItemTags.WRENCH.tag)
             .model(AssetLookup.itemModelWithPartials())
             .register()
@@ -177,8 +197,18 @@ object ClockworkItems {
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .register()
 
+    @JvmField
+    val AERONAUT_GOGGLES: ItemEntry<AeronautGogglesItem> =
+        REGISTRATE.item<AeronautGogglesItem>("aeronaut_goggles") { properties: Item.Properties? ->
+            AeronautGogglesItem(properties!!)
+        }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .model(AssetLookup.itemModelWithPartials())
+            .transform(ClockworkRegistrate.customRenderedItem { Supplier { AeronautGogglesRenderer() } })
+            .register()
+
     @JvmStatic
     fun register() {
-
+        GogglesItem.addIsWearingPredicate { player -> AERONAUT_GOGGLES.isIn(player.getItemBySlot(EquipmentSlot.HEAD))  }
     }
 }

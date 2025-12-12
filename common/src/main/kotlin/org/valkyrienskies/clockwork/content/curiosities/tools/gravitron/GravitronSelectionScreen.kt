@@ -3,7 +3,6 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllKeys
-import com.simibubi.create.foundation.utility.Components
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
@@ -15,7 +14,7 @@ import java.util.function.Consumer
 import kotlin.math.max
 
 class GravitronSelectionScreen(private val tools: List<ToolType>, private val callback: Consumer<ToolType>) :
-    Screen(Components.literal("Tool Selection")) {
+    Screen(Component.literal("Tool Selection")) {
     val holdToFocus: String = "gui.toolmenu.focusKey"
 
     var focus: Boolean = false

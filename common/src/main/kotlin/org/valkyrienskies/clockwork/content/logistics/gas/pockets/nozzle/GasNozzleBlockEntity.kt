@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle
 
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
+import net.createmod.catnip.animation.LerpedFloat
 import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag

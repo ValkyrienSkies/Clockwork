@@ -225,11 +225,17 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         if ((level as? Level)?.isClientSide != false || isConnectedEdgeBlock) return finalConnection
 
         val blockEntity = level.getBlockEntity(currentPos) as? DuctBlockEntity ?: return finalConnection
-        val neighborDuctNodePos = (level.getBlockEntity(neighborPos) as? INodeBlockEntity)?.getDuctNodePosition()
-            ?: return finalConnection
 
-        val storedType = blockEntity.DIR_TO_CONNECTION_TYPE[direction] ?: ConnectionType.PIPE
-        val connectionType = if (finalConnection.isConnected) (if (storedType != ConnectionType.NONE) storedType else ConnectionType.PIPE) else ConnectionType.NONE
+
+        val neighborBe = level.getBlockEntity(neighborPos)
+        if (neighborBe !is INodeBlockEntity) {
+            blockEntity.clearEdgeType(direction)
+            return finalConnection
+        }
+
+        val neighborDuctNodePos = neighborBe.getDuctNodePosition()
+        val storedType = blockEntity.DIR_TO_CONNECTION_TYPE[direction] ?: DuctEdgeType.PIPE
+        val connectionType = if (finalConnection.isConnected) (if (storedType != DuctEdgeType.NONE) storedType else DuctEdgeType.PIPE) else DuctEdgeType.NONE
 
         blockEntity.setEdgeType(direction, neighborDuctNodePos, connectionType, clientPacket = false, silent = false, forced = true)
 
@@ -397,9 +403,12 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         if (!connected) return InteractionResult.FAIL
         if (context.level.isClientSide) return InteractionResult.SUCCESS
 
+
         val otherDuctNodePos =
-            (context.level.getBlockEntity(context.clickedPos.relative(changeDirection.opposite)) as? INodeBlockEntity)?.getDuctNodePosition()
+            (context.level.getBlockEntity(context.clickedPos.relative(changeDirection)) as? INodeBlockEntity)?.getDuctNodePosition()
                 ?: return InteractionResult.FAIL
+
+
 
         playScrewSound(context.level, context.clickedPos)
         withBlockEntityDo(context.level, context.clickedPos) { blockEntity ->

@@ -2,8 +2,8 @@ package org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_g
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour
-import com.simibubi.create.foundation.gui.AbstractSimiScreen
 import com.simibubi.create.foundation.gui.widget.ScrollInput
+import net.createmod.catnip.gui.AbstractSimiScreen
 import net.minecraft.client.gui.GuiGraphics
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
 import org.valkyrienskies.clockwork.ClockworkPackets

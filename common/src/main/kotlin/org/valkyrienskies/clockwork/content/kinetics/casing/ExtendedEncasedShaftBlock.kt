@@ -2,11 +2,11 @@ package org.valkyrienskies.clockwork.content.kinetics.casing
 
 
 import com.simibubi.create.AllBlocks
+import com.simibubi.create.api.schematic.requirement.SpecialBlockItemRequirement
 import com.simibubi.create.content.decoration.encasing.CasingBlock
 import com.simibubi.create.content.decoration.encasing.EncasedBlock
 import com.simibubi.create.content.kinetics.base.AbstractEncasedShaftBlock
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
-import com.simibubi.create.content.schematics.requirement.ISpecialBlockItemRequirement
 import com.simibubi.create.content.schematics.requirement.ItemRequirement
 import com.simibubi.create.foundation.block.IBE
 import com.tterrag.registrate.util.entry.BlockEntry
@@ -28,7 +28,7 @@ class ExtendedEncasedShaftBlock
 //    }
 protected constructor(properties: Properties, private val casing: BlockEntry<CasingBlock>) :
     AbstractEncasedShaftBlock(properties),
-    IBE<KineticBlockEntity>, ISpecialBlockItemRequirement,
+    IBE<KineticBlockEntity>, SpecialBlockItemRequirement,
     EncasedBlock {
     override fun getCasing(): Block {
         return this
@@ -46,7 +46,7 @@ protected constructor(properties: Properties, private val casing: BlockEntry<Cas
         return InteractionResult.SUCCESS
     }
 
-    override fun getRequiredItems(state: BlockState, te: BlockEntity): ItemRequirement {
+    override fun getRequiredItems(state: BlockState, te: BlockEntity?): ItemRequirement {
         return ItemRequirement.of(AllBlocks.SHAFT.defaultState, te)
     }
 

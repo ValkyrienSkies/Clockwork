@@ -212,7 +212,7 @@ class GyroscopicSensorBlock(properties: Properties) : DirectionalBlock(propertie
                     else -> Axis.X
                 }
                 level.setBlock(pos, state.setValue(REFERENCE_AXIS, nextAxis) as BlockState, 2)
-                level.playSound(null, pos, ClockworkSounds.WELDER_WHIRR.mainEvent!!, player.soundSource, 1.0f, 1.0f)
+                level.playSound(null, pos, ClockworkSounds.WAND_WELD.mainEvent!!, player.soundSource, 1.0f, 1.0f)
                 return InteractionResult.SUCCESS
             }
         }

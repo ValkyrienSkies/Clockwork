@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork
 
-import com.jozufozu.flywheel.core.PartialModel
-import com.simibubi.create.AllPartialModels
+import dev.engine_room.flywheel.lib.model.baked.PartialModel
 
 object ClockworkPartials {
 
@@ -62,9 +61,9 @@ object ClockworkPartials {
     val GRAV_PRONG_TOP_THREE = item("gravitron/prongtopthree")
     // endregion
 
-    val CRYSTAL: PartialModel = PartialModel(ClockworkMod.asResource("item/wanderwand/crystal"))
-    val CRYSTAL_OUTER: PartialModel = PartialModel(ClockworkMod.asResource("item/wanderwand/crystal_outer"))
-    val CRYSTAL_INNER: PartialModel = PartialModel(ClockworkMod.asResource("item/wanderwand/crystal_inner"))
+    val CRYSTAL: PartialModel = PartialModel.of(ClockworkMod.asResource("item/wanderwand/crystal"))
+    val CRYSTAL_OUTER: PartialModel = PartialModel.of(ClockworkMod.asResource("item/wanderwand/crystal_outer"))
+    val CRYSTAL_INNER: PartialModel = PartialModel.of(ClockworkMod.asResource("item/wanderwand/crystal_inner"))
 
     val GYRO_BASE: PartialModel = block("gyro/base")
 
@@ -84,69 +83,61 @@ object ClockworkPartials {
     val BOING = block("boing")
 
     //PIPE DEATH
-    val DUCT_CORE: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/core"))
-    val DUCT_CORE_WARM: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/core/warm"))
-    val DUCT_CORE_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/core/hot"))
-    val DUCT_CORE_VERY_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/core/very_hot"))
-    val DUCT_CORE_SUPER_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/core/super_hot"))
-    val DUCT_CORE_MOLTEN: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/core/molten"))
+    val DUCT_CONN: PartialModel = PartialModel.of(ClockworkMod.asResource("block/duct/connection"))
+    val DUCT_RIM: PartialModel = PartialModel.of(ClockworkMod.asResource("block/duct/rim"))
+    val DUCT_LEAK: PartialModel = PartialModel.of(ClockworkMod.asResource("block/duct/leak"))
 
-    val DUCT_CONN: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/connection"))
-    val DUCT_CONN_WARM: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/connection/warm"))
-    val DUCT_CONN_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/connection/hot"))
-    val DUCT_CONN_VERY_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/connection/very_hot"))
-    val DUCT_CONN_SUPER_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/connection/super_hot"))
-    val DUCT_CONN_MOLTEN: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/connection/molten"))
-
-    val DUCT_RIM: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/rim"))
-    val DUCT_RIM_WARM: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/rim/warm"))
-    val DUCT_RIM_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/rim/hot"))
-    val DUCT_RIM_VERY_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/rim/very_hot"))
-    val DUCT_RIM_SUPER_HOT: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/rim/super_hot"))
-    val DUCT_RIM_MOLTEN: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/rim/molten"))
-
-    val DUCT_LEAK: PartialModel = PartialModel(ClockworkMod.asResource("block/duct/leak"))
+    val DUCT_SMART: PartialModel = PartialModel.of(ClockworkMod.asResource("block/duct/custom/smart"))
+    val DUCT_COPPER: PartialModel = PartialModel.of(ClockworkMod.asResource("block/duct/custom/copper"))
+    val DUCT_ONEWAY_FORWARD: PartialModel = PartialModel.of(ClockworkMod.asResource("block/duct/custom/oneway_forward"))
+    val DUCT_ONEWAY_BACKWARD: PartialModel = PartialModel.of(ClockworkMod.asResource("block/duct/custom/oneway_backward"))
     //END OF PIPE DEATH
 
-    val VALVE_DUCT_POINTER: PartialModel = PartialModel(ClockworkMod.asResource("block/valve_duct/pointer"))
+    val VALVE_DUCT_POINTER: PartialModel = PartialModel.of(ClockworkMod.asResource("block/valve_duct/pointer"))
 
-    val COMPRESSOR_AXIS: PartialModel = PartialModel(ClockworkMod.asResource("block/compressor/axis"))
-    val COMPRESSOR_FABRIC: PartialModel = PartialModel(ClockworkMod.asResource("block/compressor/fabric"))
-    val COMPRESSOR_TOP: PartialModel = PartialModel(ClockworkMod.asResource("block/compressor/top"))
+    val COMPRESSOR_AXIS: PartialModel = PartialModel.of(ClockworkMod.asResource("block/compressor/axis"))
+    val COMPRESSOR_FABRIC: PartialModel = PartialModel.of(ClockworkMod.asResource("block/compressor/fabric"))
+    val COMPRESSOR_TOP: PartialModel = PartialModel.of(ClockworkMod.asResource("block/compressor/top"))
 
-    val PUMP_COG: PartialModel = PartialModel(ClockworkMod.asResource("block/pump/cog"))
+    val PUMP_COG: PartialModel = PartialModel.of(ClockworkMod.asResource("block/pump/cog"))
 
-    val NOZZLE_DIAL: PartialModel = PartialModel(ClockworkMod.asResource("block/gas_nozzle/dial"))
-    val NOZZLE_AXIS: PartialModel = PartialModel(ClockworkMod.asResource("block/gas_nozzle/axis"))
+    val NOZZLE_DIAL: PartialModel = PartialModel.of(ClockworkMod.asResource("block/gas_nozzle/dial"))
+    val NOZZLE_AXIS: PartialModel = PartialModel.of(ClockworkMod.asResource("block/gas_nozzle/axis"))
 
-    val HAND_SECOND: PartialModel = PartialModel(ClockworkMod.asResource("block/clock/hand_second"))
-    val HAND_MINUTE: PartialModel = PartialModel(ClockworkMod.asResource("block/clock/hand_minute"))
-    val HAND_HOUR: PartialModel = PartialModel(ClockworkMod.asResource("block/clock/hand_hour"))
-    val CLOCK_FRAME: PartialModel = PartialModel(ClockworkMod.asResource("block/clock/clock_ring"))
+    val HAND_SECOND: PartialModel = PartialModel.of(ClockworkMod.asResource("block/clock/hand_second"))
+    val HAND_MINUTE: PartialModel = PartialModel.of(ClockworkMod.asResource("block/clock/hand_minute"))
+    val HAND_HOUR: PartialModel = PartialModel.of(ClockworkMod.asResource("block/clock/hand_hour"))
+    val CLOCK_FRAME: PartialModel = PartialModel.of(ClockworkMod.asResource("block/clock/clock_ring"))
     // region Delivery cannon
-    val CANNON_ANTENNA = PartialModel(ClockworkMod.asResource("block/delivery_cannon/antenna"))
-    val CANNON_BARREL = PartialModel(ClockworkMod.asResource("block/delivery_cannon/cannon_barrel"))
-    val CANNON_BASE = PartialModel(ClockworkMod.asResource("block/delivery_cannon/cannon_base"))
-    val CANNON_MOUNT = PartialModel(ClockworkMod.asResource("block/delivery_cannon/mount"))
+    val CANNON_ANTENNA = PartialModel.of(ClockworkMod.asResource("block/delivery_cannon/antenna"))
+    val CANNON_BARREL = PartialModel.of(ClockworkMod.asResource("block/delivery_cannon/cannon_barrel"))
+    val CANNON_BASE = PartialModel.of(ClockworkMod.asResource("block/delivery_cannon/cannon_base"))
+    val CANNON_MOUNT = PartialModel.of(ClockworkMod.asResource("block/delivery_cannon/mount"))
     // region Extendon
-    val EXTENDON_AXIS0 = PartialModel(ClockworkMod.asResource("block/extendon/axis0"))
-    val EXTENDON_AXIS1 = PartialModel(ClockworkMod.asResource("block/extendon/axis1"))
-    val EXTENDON_HOSE = PartialModel(ClockworkMod.asResource("block/extendon/hose"))
+    val EXTENDON_AXIS0 = PartialModel.of(ClockworkMod.asResource("block/extendon/axis0"))
+    val EXTENDON_AXIS1 = PartialModel.of(ClockworkMod.asResource("block/extendon/axis1"))
+    val EXTENDON_HOSE = PartialModel.of(ClockworkMod.asResource("block/extendon/hose"))
 
     // endregion
 
-    val ALTIMETER_REDSTONE = PartialModel(ClockworkMod.asResource("block/alt_meter/redstone"))
+    // region Aeronaut
+    val HAT_GOGGLES = PartialModel.of(ClockworkMod.asResource("item/aeronaut_goggles/goggles"))
+    val HAT_FLAP_LEFT = PartialModel.of(ClockworkMod.asResource("item/aeronaut_goggles/flap_left"))
+    val HAT_FLAP_RIGHT = PartialModel.of(ClockworkMod.asResource("item/aeronaut_goggles/flap_right"))
+    val HAT_BASE = PartialModel.of(ClockworkMod.asResource("item/aeronaut_goggles/base"))
+
+    val ALTIMETER_REDSTONE = PartialModel.of(ClockworkMod.asResource("block/alt_meter/redstone"))
 
     private fun block(path: String): PartialModel {
-        return PartialModel(ClockworkMod.asResource("block/$path"))
+        return PartialModel.of(ClockworkMod.asResource("block/$path"))
     }
 
     private fun entity(path: String): PartialModel {
-        return PartialModel(ClockworkMod.asResource("entity/$path"))
+        return PartialModel.of(ClockworkMod.asResource("entity/$path"))
     }
 
     private fun item(path: String): PartialModel {
-        return PartialModel(ClockworkMod.asResource("item/$path"))
+        return PartialModel.of(ClockworkMod.asResource("item/$path"))
     }
 
     fun init() {

@@ -35,11 +35,10 @@ class WanderShipControl : ShipPhysicsListener {
             meanPos.add(Vector3d(blockPos.x.toDouble() + 0.5, blockPos.y.toDouble() + 0.5, blockPos.z.toDouble() + 0.5))
         }
         meanPos.div(wanderBlocks.size.toDouble())
-        meanPos.sub(physShip.transform.positionInShip)
         val sumForce: Double = wanderBlocks.values.sum()
         val force =  Vector3d(0.0, sumForce,0.0).mul(ClockworkConfig.SERVER.wanderOreForce, Vector3d())
 
-        if (meanPos.isFinite && !meanPos.length().isNaN() && force.isFinite && !force.length().isNaN()) physShip.applyInvariantForceToPos(meanPos, force)
+        if (meanPos.isFinite && !meanPos.length().isNaN() && force.isFinite && !force.length().isNaN()) physShip.applyWorldForceToModelPos(meanPos, force)
     }
 
     fun addBlock(blockPos: BlockPos, force: Double) {

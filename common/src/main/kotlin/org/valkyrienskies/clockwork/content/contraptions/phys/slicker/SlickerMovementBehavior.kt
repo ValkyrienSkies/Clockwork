@@ -1,17 +1,17 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.slicker
 
+import com.simibubi.create.api.behaviour.movement.MovementBehaviour
 import com.simibubi.create.content.contraptions.ControlledContraptionEntity
 import com.simibubi.create.content.contraptions.StructureTransform
 import com.simibubi.create.content.contraptions.TranslatingContraption
 import com.simibubi.create.content.contraptions.bearing.BearingContraption
 import com.simibubi.create.content.contraptions.bearing.StabilizedContraption
-import com.simibubi.create.content.contraptions.behaviour.MovementBehaviour
 import com.simibubi.create.content.contraptions.behaviour.MovementContext
 import com.simibubi.create.content.contraptions.gantry.GantryContraption
 import com.simibubi.create.content.contraptions.piston.LinearActuatorBlockEntity
 import com.simibubi.create.content.contraptions.piston.PistonContraption
 import com.simibubi.create.content.contraptions.pulley.PulleyContraption
-import com.simibubi.create.foundation.utility.VecHelper
+import net.createmod.catnip.math.VecHelper
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
@@ -34,9 +34,9 @@ import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.clockwork.util.updateJoint
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.Ship
-import org.valkyrienskies.core.apigame.joints.VSFixedJoint
-import org.valkyrienskies.core.apigame.joints.VSJointMaxForceTorque
-import org.valkyrienskies.core.apigame.joints.VSJointPose
+import org.valkyrienskies.core.internal.joints.VSFixedJoint
+import org.valkyrienskies.core.internal.joints.VSJointMaxForceTorque
+import org.valkyrienskies.core.internal.joints.VSJointPose
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
 import org.valkyrienskies.mod.common.*
 import org.valkyrienskies.mod.common.util.toJOML
@@ -48,10 +48,6 @@ import org.valkyrienskies.mod.mixinducks.mod_compat.create.IMixinControlledContr
 class SlickerMovementBehavior : MovementBehaviour {
 
     var isStopped = true
-
-    override fun renderAsNormalBlockEntity(): Boolean {
-        return true
-    }
 
     override fun tick(context: MovementContext) {
         if (context.world == null || context.world.isClientSide) return

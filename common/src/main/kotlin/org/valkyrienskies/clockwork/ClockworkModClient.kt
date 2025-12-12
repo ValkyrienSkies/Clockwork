@@ -1,28 +1,40 @@
 package org.valkyrienskies.clockwork
 
+import com.mojang.blaze3d.platform.InputConstants
 import com.simibubi.create.content.equipment.armor.BacktankArmorLayer
-import com.simibubi.create.foundation.outliner.Outliner
-import com.simibubi.create.foundation.utility.ModelSwapper
 import dev.architectury.event.events.client.ClientTickEvent
-import dev.architectury.event.events.common.TickEvent
 import dev.architectury.registry.ReloadListenerRegistry
+import net.createmod.catnip.outliner.Outliner
+import net.createmod.ponder.foundation.PonderIndex
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRenderEvents
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents
 import net.minecraft.client.renderer.entity.EntityRendererProvider
 import net.minecraft.client.renderer.entity.LivingEntityRenderer
+import net.minecraft.client.Minecraft
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.packs.PackType
+import net.minecraft.world.level.Level
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandEffectRenderer
+import org.valkyrienskies.clockwork.platform.NativePlatform
+import java.io.IOException
+import java.util.*
+import dev.architectury.event.events.common.TickEvent
+import dev.architectury.registry.client.keymappings.KeyMappingRegistry
+import net.minecraft.client.KeyMapping
+import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.server.packs.resources.ResourceManager
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener
+import net.minecraft.sounds.SoundSource
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.LivingEntity
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkRenderer
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.SecondScrollValueRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankArmorLayer
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotGlobals
+import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.impl.client.DuctNetworkClient
-
 
 object ClockworkModClient {
 
@@ -33,16 +45,28 @@ object ClockworkModClient {
     val WANDER_OUTLINER: Outliner = Outliner()
 
     @JvmStatic
+    val WANDERWAND_EFFECT_RENDERER = WanderwandEffectRenderer()
+
+    @JvmStatic
     val RESOURCE_RELOAD_LISTENER: ResourceManagerReloadListener = ClockworkReloadListener()
+
+    @JvmStatic
+    val AERONAUT_GOGGLE_KEYBIND: KeyMapping = KeyMapping(
+        "key.vs_clockwork.aeronaut_goggles_toggle",
+        InputConstants.Type.KEYSYM,
+        InputConstants.KEY_G,
+        "category.vs_clockwork.clockwork_keys"
+    )
 
 
     @JvmStatic
     fun initClient() {
-        ClockworkPonders.init()
+        PonderIndex.addPlugin(ClockworkPonderPlugin())
+        ClientTickEvent.CLIENT_LEVEL_POST.register {
+            WANDERWAND_EFFECT_RENDERER.clientTick(it)
+        }
         ClockworkSoundScapes.init()
         SecondScrollValueRenderer.init()
-
-
 
         ReloadListenerRegistry.register(PackType.CLIENT_RESOURCES, RESOURCE_RELOAD_LISTENER)
 
@@ -57,6 +81,39 @@ object ClockworkModClient {
             SecondScrollValueRenderer.tickSecond()
         })
 
+        KeyMappingRegistry.register(AERONAUT_GOGGLE_KEYBIND)
+        ClientTickEvent.CLIENT_POST.register {
+            while (AERONAUT_GOGGLE_KEYBIND.consumeClick()) {
+                val player = Minecraft.getInstance().player
+                if (player != null) {
+                    val level = player.level()
+                    if (level != null) {
+                        val duck = (player as MixinPlayerDuck)
+                        duck.aeronautGogglesState.gogglesDown = !duck.aeronautGogglesState.gogglesDown
+                        duck.gogglesNeedRefresh = true
+                        if (duck.aeronautGogglesState.gogglesDown) {
+                            level.playSound(
+                                player,
+                                player.blockPosition(),
+                                ClockworkSounds.GOGGLES_EQUIP.mainEvent,
+                                SoundSource.PLAYERS,
+                                1.0f,
+                                1.0f
+                            )
+                        } else {
+                            level.playSound(
+                                player,
+                                player.blockPosition(),
+                                ClockworkSounds.GOGGLES_UNEQUIP.mainEvent,
+                                SoundSource.PLAYERS,
+                                1.0f,
+                                1.0f
+                            )
+                        }
+                    }
+                }
+            }
+        }
 
 //        RenderEvent.AFTER_TRANSLUCENT.register(WorldRenderEvents.AfterTranslucent { context ->
 //            if(!context.gameRenderer().minecraft.options.renderDebug) return@AfterTranslucent
@@ -102,7 +159,6 @@ object ClockworkModClient {
 //            }
 //        })
     }
-
     @JvmStatic
     fun getKelvin(): DuctNetworkClient {
         return KelvinMod.getClientKelvin() as DuctNetworkClient

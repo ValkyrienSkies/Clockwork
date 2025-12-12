@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork.content.physicalities.gyro
 
 import com.simibubi.create.content.kinetics.base.KineticBlock
 import com.simibubi.create.foundation.block.IBE
-import com.simibubi.create.foundation.gui.ScreenOpener
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.player.LocalPlayer

@@ -13,7 +13,7 @@
     "accessors.FluidAccessor",
     "accessors.IMixinClockworkContraption",
     "accessors.IMixinPistonContraption",
-    "content.fan.MixinEncasedFanTileEntity",
+    "content.blade.RepairItemRecipeMixin",
     "content.gas.MixinBacktankUtil",
     "content.gas.MixinComposterBlock",
     "content.gas_engine.MixinSteamEngineBlock",

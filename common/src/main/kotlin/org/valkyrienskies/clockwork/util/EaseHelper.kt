@@ -1,10 +1,21 @@
 package org.valkyrienskies.clockwork.util
 
-import kotlin.math.cos
-import kotlin.math.pow
-import kotlin.math.sin
+import net.createmod.catnip.animation.LerpedFloat.Chaser
+import net.minecraft.util.Mth
+import kotlin.math.*
+
 
 object EaseHelper {
+
+
+    val EASE_IN_OUT = Chaser { current: Double, maxSpeed: Double, target: Double ->
+        val dampingFactor = 0.35
+        val desiredMovement = (target - current) * dampingFactor
+
+        (current + Mth.clamp(desiredMovement, -maxSpeed, maxSpeed)).toFloat()
+    }
+
+
     /**
      * Ease In Sine + Ease Out Sine + Ease In/Out Sine
      */

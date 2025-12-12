@@ -87,5 +87,17 @@ object ClockworkConfig {
 
         @JsonSchema(min = 0.0)
         var sugarRocketBlockThrust = 10000.0
+
+        @JsonSchema(description = "The lazytick rate for Kelvin node block entity updates")
+        var kelvinNodeBlockEntityLazyTickRate = 10
+
+        @JsonSchema(description = "The amount of air (in kg) that the air compressor produces per tick at sea level and 1 rpm")
+        var airCompressorSpeed = 0.1
+
+        @JsonSchema(description = "The max amount of pressure that the air compressor will generate air for. In Pa")
+        var airCompressorMaxPressure = 1000000.0
+
+        @JsonSchema(description = "Air density at which the air compressor will start generating helium. Setting it to 0 or even a negative number should just disable helium generation")
+        var airCompressorHeliumAirDensity = 0.3
     }
 }

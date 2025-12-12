@@ -2,8 +2,8 @@ package org.valkyrienskies.clockwork.content.contraptions.propeller
 
 import com.simibubi.create.content.contraptions.bearing.BearingBlock
 import com.simibubi.create.foundation.block.IBE
-import com.simibubi.create.foundation.utility.Couple
-import com.simibubi.create.foundation.utility.Lang
+import net.createmod.catnip.data.Couple
+import net.createmod.catnip.lang.Lang
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.util.StringRepresentable

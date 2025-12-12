@@ -31,7 +31,7 @@ class GravitronController : ShipPhysicsListener {
             posDif.sub(physShip.velocity.mul(dConst, Vector3d()))
 
             val force = posDif.mul(mass, Vector3d())
-            physShip.applyInvariantForce(force)
+            physShip.applyWorldForceToBodyPos(force)
         }
 
         run {
@@ -47,7 +47,7 @@ class GravitronController : ShipPhysicsListener {
             rotDifVector.mul(-1.0)
 
             // Integrate
-            rotDifVector.sub(physShip.omega.mul(dConst, Vector3d()))
+            rotDifVector.sub(physShip.angularVelocity.mul(dConst, Vector3d()))
 
             val torque = physShip.transform.shipToWorldRotation.transform(
                 physShip.momentOfInertia.transform(
@@ -57,7 +57,7 @@ class GravitronController : ShipPhysicsListener {
                     )
                 )
             )
-            physShip.applyInvariantTorque(torque)
+            physShip.applyWorldTorque(torque)
         }
     }
 

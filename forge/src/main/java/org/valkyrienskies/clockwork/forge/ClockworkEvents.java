@@ -6,7 +6,6 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronState;
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.GrabTool;
 
 
@@ -22,12 +21,12 @@ public class ClockworkEvents {
 
     @SubscribeEvent
     public static void playerLeftClick(PlayerInteractEvent.LeftClickBlock event) {
-        if (event.getEntity() != null && event.getEntity().isLocalPlayer()) {
+        if (event.getEntity() != null) {
             GravitronState.leftClickItem(event.getEntity(), GravitronState.getState(event.getEntity()));
-            boolean bl = WanderWandItem.onAttack(event.getEntity());
-            if (bl) {
-                event.setCanceled(true);
-            }
+//            boolean bl = WanderWandItem.onAttack(event.getEntity());
+//            if (bl) {
+//                event.setCanceled(true);
+//            }
         }
     }
 }

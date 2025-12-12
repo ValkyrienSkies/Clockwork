@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.filter
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.foundation.gui.AbstractSimiScreen
 import com.simibubi.create.foundation.gui.widget.IconButton
 import com.simibubi.create.foundation.gui.widget.ScrollInput
 import net.minecraft.client.gui.Font
@@ -15,6 +14,7 @@ import kotlin.math.roundToInt
 class FilterScrolling(x: Int, y: Int) : ScrollingFrame(x, y, 206, 47) {
     override var padding = 4.0
     override var scrollSpeed: Double = 4.0
+
 
 
     override fun onClick(mouseX: Double, mouseY: Double) {
@@ -43,11 +43,9 @@ class FilterScrolling(x: Int, y: Int) : ScrollingFrame(x, y, 206, 47) {
             button.y = y-1
             button.visible = visible
 
-
             if (visible) {
                 tab.render(ms, x, y)
                 ms.drawString(font, gasType.name, x+5, y+5,0xFFFFFF)
-
                 button.render(ms, mouseX, (mouseY-scroll).roundToInt(), partialTicks)
             }
 

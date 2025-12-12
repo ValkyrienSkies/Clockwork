@@ -8,7 +8,7 @@ import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
-import com.simibubi.create.foundation.utility.Couple
+import net.createmod.catnip.data.Couple
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
@@ -187,7 +187,7 @@ open class DualLinkBehaviour(
         val localHit = pos1.subtract(pos2)
 
         val slot = (if (first) firstSlot else secondSlot)
-        return slot.testHit(state, localHit)
+        return slot.testHit(level, blockEntity.blockPos, state, localHit)
     }
 
     override fun isAlive(): Boolean {

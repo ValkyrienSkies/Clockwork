@@ -2,8 +2,8 @@ package org.valkyrienskies.clockwork.client.render
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
-import com.simibubi.create.foundation.render.CachedBufferer
-import com.simibubi.create.foundation.render.SuperByteBuffer
+import net.createmod.catnip.render.CachedBuffers
+import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
@@ -28,25 +28,25 @@ class WingBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
         val state: BlockState = be.blockState
         val color: Int = be.getColor()
         val facing = state.getValue(BlockStateProperties.FACING)
-        val middle = applyColor(color, CachedBufferer.partial(ClockworkPartials.WING_MIDDLE, state))
-        val side = CachedBufferer.partial(ClockworkPartials.WING_SIDE, state)
-        val sideVertical = CachedBufferer.partial(ClockworkPartials.WING_SIDE_VERTICAL, state)
+        val middle = applyColor(color, CachedBuffers.partial(ClockworkPartials.WING_MIDDLE, state))
+        val side = CachedBuffers.partial(ClockworkPartials.WING_SIDE, state)
+        val sideVertical = CachedBuffers.partial(ClockworkPartials.WING_SIDE_VERTICAL, state)
         when (facing) {
-            Direction.NORTH, Direction.SOUTH -> middle.rotateCentered(Direction.EAST, Math.toRadians(90.0).toFloat())
-                .light(light).renderInto(ms, vb)
+            Direction.NORTH, Direction.SOUTH -> middle.rotateCentered(Math.toRadians(90.0).toFloat(), Direction.EAST)
+                .light<SuperByteBuffer>(light).renderInto(ms, vb)
 
-            Direction.EAST, Direction.WEST -> middle.rotateCentered(Direction.NORTH, Math.toRadians(90.0).toFloat())
-                .light(light).renderInto(ms, vb)
+            Direction.EAST, Direction.WEST -> middle.rotateCentered(Math.toRadians(90.0).toFloat(), Direction.NORTH)
+                .light<SuperByteBuffer>(light).renderInto(ms, vb)
 
-            else -> middle.light(light).renderInto(ms, vb)
+            else -> middle.light<SuperByteBuffer>(light).renderInto(ms, vb)
         }
         if (state.getValue(BlockStateProperties.NORTH)) {
             when (facing) {
                 Direction.EAST, Direction.WEST -> applyColor(color, sideVertical)
-                    .light(light).renderInto(ms, vb)
+                    .light<SuperByteBuffer>(light).renderInto(ms, vb)
 
                 Direction.UP, Direction.DOWN -> applyColor(color, side)
-                    .light(light).renderInto(ms, vb)
+                    .light<SuperByteBuffer>(light).renderInto(ms, vb)
 
                 else -> {}
             }
@@ -54,12 +54,12 @@ class WingBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
         if (state.getValue(BlockStateProperties.SOUTH)) {
             when (facing) {
                 Direction.EAST, Direction.WEST -> applyColor(color, sideVertical)
-                    .rotateCentered(Direction.UP, Math.toRadians(180.0).toFloat())
-                    .light(light).renderInto(ms, vb)
+                    .rotateCentered(Math.toRadians(180.0).toFloat(), Direction.UP)
+                    .light<SuperByteBuffer>(light).renderInto(ms, vb)
 
                 Direction.UP, Direction.DOWN -> applyColor(color, side)
-                    .rotateCentered(Direction.UP, Math.toRadians(180.0).toFloat())
-                    .light(light).renderInto(ms, vb)
+                    .rotateCentered(Math.toRadians(180.0).toFloat(), Direction.UP)
+                    .light<SuperByteBuffer>(light).renderInto(ms, vb)
 
                 else -> {}
             }
@@ -67,12 +67,12 @@ class WingBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
         if (state.getValue(BlockStateProperties.EAST)) {
             when (facing) {
                 Direction.NORTH, Direction.SOUTH -> applyColor(color, sideVertical)
-                    .rotateCentered(Direction.UP, Math.toRadians(270.0).toFloat())
-                    .light(light).renderInto(ms, vb)
+                    .rotateCentered(Math.toRadians(270.0).toFloat(), Direction.UP)
+                    .light<SuperByteBuffer>(light).renderInto(ms, vb)
 
                 Direction.UP, Direction.DOWN -> applyColor(color, side)
-                    .rotateCentered(Direction.UP, Math.toRadians(270.0).toFloat())
-                    .light(light).renderInto(ms, vb)
+                    .rotateCentered(Math.toRadians(270.0).toFloat(), Direction.UP)
+                    .light<SuperByteBuffer>(light).renderInto(ms, vb)
 
                 else -> {}
             }
@@ -80,12 +80,12 @@ class WingBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
         if (state.getValue(BlockStateProperties.WEST)) {
             when (facing) {
                 Direction.NORTH, Direction.SOUTH -> applyColor(color, sideVertical)
-                    .rotateCentered(Direction.UP, Math.toRadians(90.0).toFloat())
-                    .light(light).renderInto(ms, vb)
+                    .rotateCentered(Math.toRadians(90.0).toFloat(), Direction.UP)
+                    .light<SuperByteBuffer>(light).renderInto(ms, vb)
 
                 Direction.UP, Direction.DOWN -> applyColor(color, side)
-                    .rotateCentered(Direction.UP, Math.toRadians(90.0).toFloat())
-                    .light(light).renderInto(ms, vb)
+                    .rotateCentered(Math.toRadians(90.0).toFloat(), Direction.UP)
+                    .light<SuperByteBuffer>(light).renderInto(ms, vb)
 
                 else -> {}
             }
@@ -93,13 +93,13 @@ class WingBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
         if (state.getValue(BlockStateProperties.UP)) {
             when (facing) {
                 Direction.NORTH, Direction.SOUTH -> applyColor(color, side)
-                    .rotateCentered(Direction.EAST, Math.toRadians(90.0).toFloat())
-                    .light(light).renderInto(ms, vb)
+                    .rotateCentered(Math.toRadians(90.0).toFloat(), Direction.EAST)
+                    .light<SuperByteBuffer>(light).renderInto(ms, vb)
 
                 Direction.EAST, Direction.WEST -> applyColor(color, side)
-                    .rotateCentered(Direction.EAST, Math.toRadians(90.0).toFloat())
-                    .rotateCentered(Direction.NORTH, Math.toRadians(270.0).toFloat())
-                    .light(light).renderInto(ms, vb)
+                    .rotateCentered(Math.toRadians(90.0).toFloat(), Direction.EAST)
+                    .rotateCentered(Math.toRadians(270.0).toFloat(), Direction.NORTH)
+                    .light<SuperByteBuffer>(light).renderInto(ms, vb)
 
                 else -> {}
             }
@@ -107,13 +107,13 @@ class WingBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
         if (state.getValue(BlockStateProperties.DOWN)) {
             when (facing) {
                 Direction.NORTH, Direction.SOUTH -> applyColor(color, side)
-                    .rotateCentered(Direction.EAST, Math.toRadians(270.0).toFloat())
-                    .light(light).renderInto(ms, vb)
+                    .rotateCentered(Math.toRadians(270.0).toFloat(), Direction.EAST)
+                    .light<SuperByteBuffer>(light).renderInto(ms, vb)
 
                 Direction.EAST, Direction.WEST -> applyColor(color, side)
-                    .rotateCentered(Direction.NORTH, Math.toRadians(90.0).toFloat())
-                    .rotateCentered(Direction.UP, Math.toRadians(270.0).toFloat())
-                    .light(light).renderInto(ms, vb)
+                    .rotateCentered(Math.toRadians(90.0).toFloat(), Direction.NORTH)
+                    .rotateCentered(Math.toRadians(270.0).toFloat(), Direction.UP)
+                    .light<SuperByteBuffer>(light).renderInto(ms, vb)
 
                 else -> {}
             }
@@ -121,7 +121,7 @@ class WingBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
     }
 
     private fun applyColor(color: Int, buf: SuperByteBuffer): SuperByteBuffer {
-        if (color != -1) buf.color(color)
+        if (color != -1) buf.color<SuperByteBuffer>(color)
         return buf
     }
 }

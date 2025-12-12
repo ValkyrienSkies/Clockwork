@@ -1,12 +1,12 @@
 package org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon
 
-import com.jozufozu.flywheel.util.transform.TransformStack
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
-import com.simibubi.create.foundation.render.CachedBufferer
-import com.simibubi.create.foundation.render.SuperByteBuffer
-import com.simibubi.create.foundation.utility.AngleHelper
-import com.simibubi.create.foundation.utility.VecHelper
+import dev.engine_room.flywheel.lib.transform.TransformStack
+import net.createmod.catnip.math.AngleHelper
+import net.createmod.catnip.math.VecHelper
+import net.createmod.catnip.render.CachedBuffers
+import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
@@ -20,9 +20,14 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.phys.Vec3
 import org.joml.AxisAngle4f
 import org.joml.Quaternionf
+import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotRenderer
+import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.clockwork.util.EaseHelper
+import org.valkyrienskies.core.impl.shadow.rX
+import org.valkyrienskies.mod.api.positionToWorld
+import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
 import java.util.Random
@@ -43,30 +48,16 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
     ) {
         super.renderSafe(be, partialTicks, ms, buffer, light, overlay)
 
-        var antenna = CachedBufferer.partial(ClockworkPartials.CANNON_ANTENNA,be.blockState)
-        var base = CachedBufferer.partial(ClockworkPartials.CANNON_BASE,be.blockState)
-        var mount = CachedBufferer.partial(ClockworkPartials.CANNON_MOUNT,be.blockState)
-        var barrel = CachedBufferer.partial(ClockworkPartials.CANNON_BARREL,be.blockState)
+        var antenna = CachedBuffers.partial(ClockworkPartials.CANNON_ANTENNA,be.blockState)
+        var base = CachedBuffers.partial(ClockworkPartials.CANNON_BASE,be.blockState)
+        var mount = CachedBuffers.partial(ClockworkPartials.CANNON_MOUNT,be.blockState)
+        var barrel = CachedBuffers.partial(ClockworkPartials.CANNON_BARREL,be.blockState)
 
-        val mult = if (Minecraft.getInstance().isPaused) 0 else if(be.gunPowderTicks>0) 3 else 1
-
-        val xResult = turn(be.xLastRotation, be.xTargetRotation, 1.0*mult)
-        val yResult = turn(be.yLastRotation, be.yTargetRotation, 0.75*mult)
-
-
-        val xCurrentRotation: Double
-        if (xResult.second) xCurrentRotation = Mth.lerp(partialTicks.toDouble(), be.xLastRotation, xResult.first)
-        else xCurrentRotation = xResult.first
-
-        val yCurrentRotation: Double
-        if (xResult.second) yCurrentRotation = Mth.lerp(partialTicks.toDouble(), be.yLastRotation, yResult.first)
-        else yCurrentRotation = yResult.first
-
-
+        val xCurrentRotation = be.xRot.getValue(partialTicks).toDouble()
+        val yCurrentRotation = be.yRot.getValue(partialTicks).toDouble()
 
         handleShootingAnim(be, partialTicks)
 
-        val lookDir = VecHelper.rotate(be.blockState.getValue(HorizontalDirectionalBlock.FACING).normal.toJOMLD().toMinecraft(), 0.0, -xCurrentRotation, yCurrentRotation).normalize()
 
         // X Axis rotation
         mount = rotateCentered(mount, xCurrentRotation)
@@ -75,8 +66,8 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         antenna = rotateCentered(antenna, xCurrentRotation)
 
         // Y Axis rotation
-        var clientCannonRotOffsetRad = be.clientCannonRotationOffset * 15.0
-        var clientAntennaRotOffsetRad = be.clientAntennaRotationOffset * 25.0
+        val clientCannonRotOffsetRad = be.clientCannonRotationOffset * 15.0
+        val clientAntennaRotOffsetRad = be.clientAntennaRotationOffset * 25.0
         base = rotateToAngle(base,yCurrentRotation + clientCannonRotOffsetRad)
         antenna = rotateToAngle(antenna,yCurrentRotation + clientCannonRotOffsetRad)
         barrel = rotateToAngle(barrel,yCurrentRotation + clientCannonRotOffsetRad)
@@ -84,52 +75,57 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
 
         antenna = rotateAntenna(antenna,yCurrentRotation + clientAntennaRotOffsetRad)
         barrel.translate(Vec3(0.0,0.0,(be.clientBarrelOffset*2.0)/16.0))
-        be.xLastRotation = xCurrentRotation
-        be.yLastRotation = yCurrentRotation
 
         val vb = buffer.getBuffer(RenderType.cutout())
 
 
 
         render(mount,base,barrel,antenna,ms,vb,light)
-        if (!be.transportStack.isEmpty && be.maxProgress > 0) {
+        if (!be.midAirStack.isEmpty && be.shootingAtChute != null) {
 
+            if (!be.fired) {
 
-            if (!Minecraft.getInstance().isPaused) be.clientProgress=min(be.clientProgress+partialTicks.toDouble()/3.0,be.maxProgress)
-
-
-            if (!be.didParticles) {
+                val chutePosition = ClockworkUtils.getRealPos(be.level, be.shootingAtChute!!)
+                val middlePosition = DeliveryCannonBlockEntity.getThirdPoint(be.realPos, chutePosition)
+                val lookDir = middlePosition.sub(be.realPos, Vector3d()).normalize()
                 for (i in 0..9) {
                     val r = Random()
-                    val sX: Double = lookDir.x * .01f
-                    val sY: Double = (lookDir.y + 1) * .01f
-                    val sZ: Double = lookDir.z * .01f
-                    val rX = r.nextFloat() - sX * 40f
-                    val rY = r.nextFloat() - sY * 40f
-                    val rZ = r.nextFloat() - sZ * 40f
-                    be.level!!.addParticle(ParticleTypes.CLOUD, be.getRealPos().x - 0.5 - (lookDir.x*2.0) + rX, pivot.y + be.getRealPos().y + 1 + rY, be.getRealPos().z - 0.5 - (lookDir.z*2.0) + rZ, sX, sY, sZ)
+
+                    val pV = 0.25
+                    val particlePosition = be.realPos.add(lookDir.mul(2.0, Vector3d()))
+                        .add(r.nextDouble()*pV - pV/2,r.nextDouble()*pV - pV/2,r.nextDouble()*pV - pV/2)
+
+                    val sV = 0.05
+                    val particleSpeed = lookDir.mul(0.05, Vector3d())
+                        .add(r.nextDouble()*sV - sV/2, r.nextDouble()*sV - sV/2, r.nextDouble()*sV - sV/2)
+
+                    be.level!!.addParticle(ParticleTypes.CLOUD,
+                        particlePosition.x, particlePosition.y, particlePosition.z,
+                        particleSpeed.x, particleSpeed.y, particleSpeed.z)
+
                 }
-                be.didParticles = true
+                be.fired = true
             }
 
             // Item Render code
-            val og: Vec3 = be.getRealPos().lerp(be.realLocation,be.clientProgress/be.maxProgress)
-            val y = getParabolaY(be,og)
-            be.itemRotation+=partialTicks
+            val realChute = ClockworkUtils.getRealPos(Minecraft.getInstance().level!!, be.shootingAtChute!!)
+            val og = be.realPos.lerp(realChute, (be.distance.getValue(partialTicks)/be.distance.chaseTarget).toDouble())
+            val y = be.getParabolaY(og)
+            be.clientItemRotation+=partialTicks*(be.gunpowderedCoefficient+1)
+
 
 
             renderItem(Vec3(og.x,y,og.z),be,light,overlay,buffer, ms)
 
 
         } else {
-            be.didParticles = false
-            be.clientProgress = 0.0
-            be.itemRotation=0.0
+            be.fired = false
+            be.clientItemRotation=0.0
         }
     }
 
     fun handleShootingAnim(be: DeliveryCannonBlockEntity, partialTicks: Float) {
-        if (be.maxProgress > 0) {
+        if (!be.midAirStack.isEmpty) {
             be.clientShotProgress = Mth.clamp(be.clientShotProgress + partialTicks, 0.0, 12.0)
 
             if (be.clientShotProgress<=4.0) {
@@ -162,17 +158,17 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
     fun renderItem(launchedItemPos: Vec3, be: DeliveryCannonBlockEntity, light: Int, overlay: Int, buffer: MultiBufferSource, ms: PoseStack) {
 
         val new: PoseStack
-        if (be.ponder) new = ms
+        if (be.isVirtual) new = ms
         else new = PoseStack()
 
-        val msr = TransformStack.cast(new)
+        val msr = TransformStack.of(new)
         val cam = Minecraft.getInstance().gameRenderer.mainCamera
 
         new.pushPose()
-        if (be.ponder) msr.translate(launchedItemPos.subtract(be.getRealPos()).add(0.5,1.25,0.5))
+        if (be.isVirtual) msr.translate(launchedItemPos.subtract(be.realPos.toMinecraft()).add(0.5,1.25,0.5))
         else {
-            msr.multiply(Quaternionf(AxisAngle4f(AngleHelper.rad(cam.xRot.toDouble()), 1f, 0f, 0f)))
-            msr.multiply(Quaternionf(AxisAngle4f(AngleHelper.rad(cam.yRot + 180.0), 0f, 1f, 0f)))
+            msr.rotate(Quaternionf(AxisAngle4f(AngleHelper.rad(cam.xRot.toDouble()), 1f, 0f, 0f)))
+            msr.rotate(Quaternionf(AxisAngle4f(AngleHelper.rad(cam.yRot + 180.0), 0f, 1f, 0f)))
             msr.translate(-cam.position.x,-cam.position.y,-cam.position.z)
             msr.translate(launchedItemPos.x,launchedItemPos.y+0.25,launchedItemPos.z)
         }
@@ -181,13 +177,13 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
 
         val itemRotOffset = VecHelper.voxelSpace(0.0, 3.0, 0.0)
         msr.translate(itemRotOffset)
-        msr.rotateY(be.itemRotation*3)
-        msr.rotateX(be.itemRotation*3)
+        msr.rotateYDegrees(be.clientItemRotation.toFloat()*3f)
+        msr.rotateXDegrees(be.clientItemRotation.toFloat()*3f)
         msr.translateBack(itemRotOffset)
         Minecraft.getInstance()
             .itemRenderer
             .renderStatic(
-                be.transportStack,
+                be.midAirStack,
                 ItemDisplayContext.GROUND,
                 light,
                 overlay,
@@ -201,7 +197,7 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
 
     fun rotateToAngle(superByteBuffer: SuperByteBuffer, angle: Double): SuperByteBuffer {
         var buffer = superByteBuffer.translate(pivot);
-        buffer = buffer.rotate(Direction.EAST,AngleHelper.rad(angle))
+        buffer = buffer.rotate(AngleHelper.rad(angle), Direction.EAST)
         buffer = buffer.translate(pivot.scale(-1.0))
         return buffer
     }
@@ -209,21 +205,21 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
     // doing it like this is easier than using AngleHelper.rad()
     fun rotateCentered(buffer: SuperByteBuffer, angle: Double): SuperByteBuffer {
 
-        return buffer.rotateCentered(Direction.UP, ((-angle - 90.0) / 180.0 * Math.PI).toFloat())
+        return buffer.rotateCentered(((-angle - 90.0) / 180.0 * Math.PI).toFloat(), Direction.UP)
     }
 
     fun rotateAntenna(superByteBuffer: SuperByteBuffer, angle: Double): SuperByteBuffer {
         var buffer = superByteBuffer.translate(antennaPivot);
-        buffer = buffer.rotate(Direction.WEST,AngleHelper.rad(angle))
+        buffer = buffer.rotate(AngleHelper.rad(angle), Direction.WEST)
         buffer = buffer.translate(antennaPivot.scale(-1.0))
         return buffer
     }
 
     fun render(mount: SuperByteBuffer, base: SuperByteBuffer, barrel: SuperByteBuffer, antenna: SuperByteBuffer, ms: PoseStack, vb: VertexConsumer, light: Int) {
-        mount.light(light).renderInto(ms,vb)
-        base.light(light).renderInto(ms,vb)
-        barrel.light(light).renderInto(ms,vb)
-        antenna.light(light).renderInto(ms,vb)
+        mount.light<SuperByteBuffer>(light).renderInto(ms,vb)
+        base.light<SuperByteBuffer>(light).renderInto(ms,vb)
+        barrel.light<SuperByteBuffer>(light).renderInto(ms,vb)
+        antenna.light<SuperByteBuffer>(light).renderInto(ms,vb)
     }
 
 
@@ -231,7 +227,11 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         return true
     }
 
+
+
     companion object {
+
+
 
         // This function solves a parabola using 3 points. Z is the value that gets fed into the resulting quadratic
         fun parabola(x1: Double, y1: Double, x2: Double, y2: Double, x3: Double, y3: Double,  z:Double): Double {
@@ -244,34 +244,13 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
             return A*z.pow(2) + B*z + C
         }
 
-        fun getThirdPoint(startVec3: Vec3, endVec3: Vec3): Vec3 {
-            val lerped = startVec3.lerp(endVec3,0.5)
-            return Vec3(lerped.x, endVec3.y + 5, lerped.z)
+        fun getThirdPoint(start: Vector3d, end: Vector3d): Vector3d {
+            val lerped = start.lerp(end,0.5)
+            return Vector3d(lerped.x, end.y + 5, lerped.z)
         }
 
 
-        fun getParabolaY(DBe: DeliveryCannonBlockEntity, vec: Vec3): Double {
-            val startVec3 = DBe.getRealPos()
-            val endVec3 = DBe.realLocation
-            val vertVec3 = getThirdPoint(DBe.getRealPos(), DBe.realLocation)
 
-            var sX = startVec3.x
-            var eX = endVec3.x
-            var vX = vertVec3.x
-            var iX = vec.x
-
-            // Picks an axis to use for the parabola.
-            if (abs(endVec3.x-startVec3.x) < abs(endVec3.z-startVec3.z)) {
-
-                sX = startVec3.z
-                eX = endVec3.z
-                vX = vertVec3.z
-                iX = vec.z
-            }
-
-            return parabola(sX,startVec3.y,eX,endVec3.y,vX,vertVec3.y, iX)
-
-        }
 
         fun euler_angle(x: Double,y: Double): Double {
             val rad = atan(y/x)   // arcus tangent in radians

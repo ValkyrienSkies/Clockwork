@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " L ",
+    "SCS",
+    "   "
+  ],
+  "key": {
+    "L": {
+      "item": "create:analog_lever"
+    },
+    "S": {
+      "item": "greate:andesite_alloy_shaft"
+    },
+    "C": {
+      "item": "create:andesite_casing"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:redstone_resistor"
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tfc"
+    }
+  ]
+}

@@ -5,8 +5,9 @@ import com.simibubi.create.foundation.item.render.SimpleCustomRenderer;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import com.tterrag.registrate.util.entry.EntityEntry;
 import net.minecraft.world.item.BlockItem;
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer;
+import net.minecraft.world.item.Item;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler;
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandHandler;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatEntity;
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlockEntity;
 import org.valkyrienskies.clockwork.forge.ClockworkModForge;
@@ -14,7 +15,6 @@ import org.valkyrienskies.clockwork.forge.ClockworkModForgeClient;
 import org.valkyrienskies.clockwork.forge.ForgeClockworkBlockEntities;
 import org.valkyrienskies.clockwork.forge.ForgeClockworkEntities;
 import org.valkyrienskies.clockwork.forge.mixin.accessors.ItemAccessor;
-import org.valkyrienskies.clockwork.platform.CWItem;
 import org.valkyrienskies.clockwork.platform.api.network.PacketChannel;
 
 import java.util.function.BiConsumer;
@@ -26,7 +26,7 @@ public class SharedValuesImpl {
         return CHANNEL;
     }
 
-    public static BiConsumer<CWItem, CustomRenderedItemModelRenderer> customRenderedRegisterer() {
+    public static BiConsumer<Item, CustomRenderedItemModelRenderer> customRenderedRegisterer() {
         return (item, renderer) -> ((ItemAccessor) item).setRenderProperties(SimpleCustomRenderer.create(item, renderer));
     }
 
@@ -46,7 +46,11 @@ public class SharedValuesImpl {
         return ClockworkModForgeClient.GRAVITRON_HANDLER;
     }
 
-    public static WanderWandClusterRenderer getAuricHandler() {
-        return ClockworkModForgeClient.WANDER_HANDLER;
+    public static WanderwandHandler getWanderwandHandler() {
+        return ClockworkModForgeClient.WANDERWAND_HANDLER;
     }
+
+//    public static WanderWandClusterRenderer getAuricHandler() {
+//        return ClockworkModForgeClient.WANDER_HANDLER;
+//    }
 }

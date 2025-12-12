@@ -64,20 +64,35 @@ dependencies {
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 
     include(modApi("dev.architectury:architectury-forge:${rootProject.architectury_version}"))
-    implementation(include((("io.github.llamalad7:mixinextras-forge:0.3.5"))))
+    implementation(include((("io.github.llamalad7:mixinextras-forge:0.4.1"))))
+    implementation("com.github.bawnorton.mixinsquared:mixinsquared-forge:0.3.7-beta.1")
 
     //VS2
-    modApi("org.valkyrienskies:valkyrienskies-120-forge:${rootProject.vs2_version}") { transitive = false }
-    implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}")
+    modApi("org.valkyrienskies:valkyrienskies-120-forge:${rootProject.vs2_version}") { transitive = false
+        exclude group: 'org.valkyrienskies.core', module: ''
+    }
+    implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") { transitive = false
+        exclude group: 'org.joml', module: ''
+    }
+    implementation("org.valkyrienskies.core:util:${rootProject.vscore_version}") { transitive = false
+        exclude group: 'org.joml', module: ''
+    }
+    implementation("org.valkyrienskies.core:internal:${rootProject.vscore_version}") { transitive = false
+        exclude group: 'org.joml', module: ''
+    }
 
-    modImplementation("org.valkyrienskies.kelvin:kelvin-forge:${rootProject.minecraft_version}-${rootProject.kelvin_version}") {
+
+    modImplementation("org.valkyrienskies.kelvin:kelvin-forge:${rootProject.minecraft_version}-${rootProject.kelvin_version}") { transitive = false
         exclude group: 'org.joml', module: ''
     }
 
     // Create and its dependencies
     modImplementation("com.simibubi.create:create-${minecraft_version}:${create_forge_version}:slim") { transitive = false }
     modImplementation("com.tterrag.registrate:Registrate:${registrate_forge_version}")
-    modImplementation("com.jozufozu.flywheel:flywheel-forge-${flywheel_forge_minecraft_version}:${flywheel_forge_version}")
+    modImplementation("net.createmod.ponder:Ponder-Forge-${minecraft_version}:${ponder_version}")
+    modImplementation("curse.maven:vanillin-965702:6446560")
+    modCompileOnly("dev.engine-room.flywheel:flywheel-forge-api-${minecraft_version}:${flywheel_forge_version}")
+    modRuntimeOnly("dev.engine-room.flywheel:flywheel-forge-${minecraft_version}:${flywheel_forge_version}")
 
     // JOML
     compileOnly("org.joml:joml:1.10.4")
@@ -168,16 +183,27 @@ publishing {
     // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
     repositories {
         // Add repositories to publish to here.
-        if (System.getenv("GITHUB_ACTOR") != null) {
-            println "Publishing to Github Packages"
+        if (project.vs_maven_username && project.vs_maven_password) {
+            println "Publishing to VS Maven ($version)"
             maven {
-                name = "GitHubPackages"
-                url = uri("https://maven.pkg.github.com/ValkyrienSkies/Clockwork")
+                name = "VSMaven"
+                url = project.vs_maven_url
                 credentials {
-                    username = System.getenv("GITHUB_ACTOR")
-                    password = System.getenv("GITHUB_TOKEN")
+                    username = project.vs_maven_username
+                    password = project.vs_maven_password
                 }
             }
         }
+//        if (System.getenv("GITHUB_ACTOR") != null) {
+//            println "Publishing to Github Packages"
+//            maven {
+//                name = "GitHubPackages"
+//                url = uri("https://maven.pkg.github.com/ValkyrienSkies/Clockwork")
+//                credentials {
+//                    username = System.getenv("GITHUB_ACTOR")
+//                    password = System.getenv("GITHUB_TOKEN")
+//                }
+//            }
+//        }
     }
 }

@@ -3,9 +3,9 @@ package org.valkyrienskies.clockwork.forge;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.content.equipment.armor.BacktankArmorLayer;
-import com.simibubi.create.content.trains.schedule.TrainHatArmorLayer;
-import com.simibubi.create.foundation.render.SuperRenderTypeBuffer;
-import com.simibubi.create.foundation.utility.AnimationTickHolder;
+import net.createmod.catnip.animation.AnimationTickHolder;
+import net.createmod.catnip.render.DefaultSuperRenderTypeBuffer;
+import net.createmod.catnip.render.SuperRenderTypeBuffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.world.phys.Vec3;
@@ -24,7 +24,7 @@ import org.valkyrienskies.clockwork.client.render.debug.KelvinEdgeRenderer;
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankArmorLayer;
 import org.valkyrienskies.clockwork.forge.content.logistics.gas.backtank.ForgeGasBacktankArmorLayer;
 
-import static com.jozufozu.flywheel.backend.Backend.isGameActive;
+import static net.createmod.ponder.PonderClient.isGameActive;
 
 @Mod.EventBusSubscriber(Dist.CLIENT)
 public class ClockworkClientEvents {
@@ -33,6 +33,8 @@ public class ClockworkClientEvents {
     public static void onRegisterGuiOverlays(RegisterGuiOverlaysEvent event) {
         event.registerAbove(VanillaGuiOverlay.HOTBAR.id(), "Gravitron",
                 ClockworkModForgeClient.GRAVITRON_HANDLER.getOverlayRenderer());
+        event.registerAbove(VanillaGuiOverlay.HOTBAR.id(), "Wanderwand",
+                ClockworkModForgeClient.WANDERWAND_HANDLER.getOverlayRenderer());
     }
 
     @SubscribeEvent
@@ -53,13 +55,14 @@ public class ClockworkClientEvents {
         KelvinEdgeRenderer.render(Minecraft.getInstance().level, event.getPoseStack(), event.getCamera());
 
         ms.pushPose();
-        SuperRenderTypeBuffer buffer = SuperRenderTypeBuffer.getInstance();
+        SuperRenderTypeBuffer buffer = DefaultSuperRenderTypeBuffer.getInstance();
         float partialTicks = AnimationTickHolder.getPartialTicks();
         Vec3 camera = Minecraft.getInstance().gameRenderer.getMainCamera()
                 .getPosition();
 
-        ClockworkModClient.getOUTLINER().renderOutlines(ms, SuperRenderTypeBuffer.getInstance(), camera, partialTicks);
-        ClockworkModClient.getWANDER_OUTLINER().renderOutlines(ms, SuperRenderTypeBuffer.getInstance(), camera, partialTicks);
+        ClockworkModClient.getOUTLINER().renderOutlines(ms, DefaultSuperRenderTypeBuffer.getInstance(), camera, partialTicks);
+        ClockworkModClient.getWANDER_OUTLINER().renderOutlines(ms, DefaultSuperRenderTypeBuffer.getInstance(), camera, partialTicks);
+        ClockworkModClient.getWANDERWAND_EFFECT_RENDERER().render(ms, DefaultSuperRenderTypeBuffer.getInstance(), camera, partialTicks);
 
         buffer.draw();
         RenderSystem.enableCull();
@@ -77,6 +80,7 @@ public class ClockworkClientEvents {
         }
 
         ClockworkModForgeClient.GRAVITRON_HANDLER.tick();
+        ClockworkModForgeClient.WANDERWAND_HANDLER.tick();
 
         ClockworkModClient.getOUTLINER().tickOutlines();
         ClockworkModClient.getWANDER_OUTLINER().tickOutlines();
@@ -92,6 +96,7 @@ public class ClockworkClientEvents {
         boolean pressed = !(event.getAction() == 0);
 
         ClockworkModForgeClient.GRAVITRON_HANDLER.onKeyInput(key, pressed);
+        ClockworkModForgeClient.WANDERWAND_HANDLER.onKeyInput(key, pressed);
     }
 
     @SubscribeEvent
@@ -101,7 +106,7 @@ public class ClockworkClientEvents {
         }
 
         double delta = event.getScrollDelta();
-        boolean cancelled = ClockworkModForgeClient.GRAVITRON_HANDLER.mouseScrolled(delta);
+        boolean cancelled = ClockworkModForgeClient.GRAVITRON_HANDLER.mouseScrolled(delta) || ClockworkModForgeClient.WANDERWAND_HANDLER.mouseScrolled(delta);
         event.setCanceled(cancelled);
     }
 
@@ -115,6 +120,9 @@ public class ClockworkClientEvents {
         boolean pressed = !(event.getAction() == 0);
 
         if (ClockworkModForgeClient.GRAVITRON_HANDLER.onMouseInput(button, pressed)) {
+            event.setCanceled(true);
+        }
+        if (ClockworkModForgeClient.WANDERWAND_HANDLER.onMouseInput(button, pressed)) {
             event.setCanceled(true);
         }
     }

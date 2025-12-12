@@ -1,8 +1,9 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.filter
 
-import com.simibubi.create.foundation.gui.ScreenOpener
+import net.createmod.catnip.gui.ScreenOpener
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.world.entity.player.Player
 import net.minecraft.resources.ResourceLocation
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.kelvin.api.DuctNodePos
@@ -19,7 +20,9 @@ import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3d
 
-class FilterScreenOpenPacket(private val nodeA: DuctNodePos, private val nodeB: DuctNodePos, private val filter: HashSet<GasType>, private val blacklist: Boolean): S2CCWPacket {
+class FilterScreenOpenPacket(private val nodeA: DuctNodePos, private val nodeB: DuctNodePos, private val filter: HashSet<GasType>, private val blacklist: Boolean,
+                             override var player: Player? = null
+): S2CCWPacket {
 
 
 

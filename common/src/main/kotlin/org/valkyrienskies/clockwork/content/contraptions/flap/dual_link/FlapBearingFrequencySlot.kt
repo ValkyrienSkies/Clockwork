@@ -1,19 +1,21 @@
 package org.valkyrienskies.clockwork.content.contraptions.flap.dual_link
 
-import com.jozufozu.flywheel.util.transform.TransformStack
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.content.kinetics.base.DirectionalAxisKineticBlock
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
-import com.simibubi.create.foundation.utility.AngleHelper
-import com.simibubi.create.foundation.utility.VecHelper
+import dev.engine_room.flywheel.lib.transform.TransformStack
+import net.createmod.catnip.math.AngleHelper
+import net.createmod.catnip.math.VecHelper
+import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction.*
+import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
 
 class FlapBearingFrequencySlot(first: Boolean, val front: Boolean) : ValueBoxTransform.Dual(first) {
 
-    override fun getLocalOffset(state: BlockState): Vec3 {
+    override fun getLocalOffset(level: LevelAccessor, blockPos: BlockPos, state: BlockState): Vec3 {
         val facing = state.getValue(BlockStateProperties.FACING)
         val axis_along = state.getValue(DirectionalAxisKineticBlock.AXIS_ALONG_FIRST_COORDINATE)
         val center = Vec3(0.5,0.5,0.5)
@@ -30,7 +32,7 @@ class FlapBearingFrequencySlot(first: Boolean, val front: Boolean) : ValueBoxTra
         return location
     }
 
-    override fun rotate(state: BlockState, ms: PoseStack) {
+    override fun rotate(level: LevelAccessor, blockPos: BlockPos, state: BlockState, ms: PoseStack) {
         val facing = state.getValue(BlockStateProperties.FACING)
         val axis_along = state.getValue(DirectionalAxisKineticBlock.AXIS_ALONG_FIRST_COORDINATE)
         var xRot: Double
@@ -48,9 +50,9 @@ class FlapBearingFrequencySlot(first: Boolean, val front: Boolean) : ValueBoxTra
 
         if (!front) yRot += 180.0
 
-        TransformStack.cast(ms)
-            .rotateX(xRot)
-            .rotateY(yRot)
+        TransformStack.of(ms)
+            .rotateXDegrees(xRot.toFloat())
+            .rotateYDegrees(yRot.toFloat())
 
 
     }

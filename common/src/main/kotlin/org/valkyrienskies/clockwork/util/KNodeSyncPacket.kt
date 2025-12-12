@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.util
 import net.minecraft.client.Minecraft
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.world.entity.player.Player
 import org.valkyrienskies.clockwork.platform.api.network.ClientNetworkContext
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket
 import org.valkyrienskies.kelvin.api.DuctNodePos
@@ -12,6 +13,7 @@ import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
 class KNodeSyncPacket: S2CCWPacket {
     val pos: DuctNodePos
     val nodeInfo: CompoundTag
+    override var player: Player? = null
 
     constructor(pos: DuctNodePos, nodeInfo: CompoundTag) {
         this.pos = pos

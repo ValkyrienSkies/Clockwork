@@ -6,12 +6,11 @@ import com.tterrag.registrate.util.entry.EntityEntry;
 import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler;
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandHandler;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatEntity;
 import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlockEntity;
 import org.valkyrienskies.clockwork.fabric.*;
-import org.valkyrienskies.clockwork.platform.CWItem;
 import org.valkyrienskies.clockwork.platform.api.network.PacketChannel;
 
 import java.util.ArrayList;
@@ -24,7 +23,7 @@ public class SharedValuesImpl {
         return CHANNEL;
     }
 
-    public static BiConsumer<CWItem, CustomRenderedItemModelRenderer> customRenderedRegisterer() {
+    public static BiConsumer<Item, CustomRenderedItemModelRenderer> customRenderedRegisterer() {
         return BuiltinItemRendererRegistry.INSTANCE::register;
     }
 
@@ -46,8 +45,8 @@ public class SharedValuesImpl {
         return ClockworkModFabricClient.GRAVITRON_HANDLER;
     }
 
-    public static WanderWandClusterRenderer getAuricHandler() {
-        return ClockworkModFabricClient.WANDER_HANDLER;
+    public static WanderwandHandler getWanderwandHandler() {
+        return ClockworkModFabricClient.WANDERWAND_HANDLER;
     }
 
 }

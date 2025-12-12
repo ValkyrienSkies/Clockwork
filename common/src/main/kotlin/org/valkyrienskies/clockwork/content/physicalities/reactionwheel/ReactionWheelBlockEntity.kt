@@ -1,7 +1,7 @@
 package org.valkyrienskies.clockwork.content.physicalities.reactionwheel
 
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
-import com.simibubi.create.foundation.utility.animation.LerpedFloat
+import net.createmod.catnip.animation.LerpedFloat
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel

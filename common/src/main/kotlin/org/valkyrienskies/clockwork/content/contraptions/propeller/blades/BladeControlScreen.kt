@@ -12,8 +12,8 @@ import java.util.function.Consumer
 
 class BladeControlScreen(pos: BlockPos, board: ValueSettingsBoard,
                          valueSettings: ValueSettingsBehaviour.ValueSettings,
-                         onHover: Consumer<ValueSettingsBehaviour.ValueSettings>
-) : ValueSettingsScreen(pos, board, valueSettings, onHover) {
+                         onHover: Consumer<ValueSettingsBehaviour.ValueSettings>, netId: Int
+) : ValueSettingsScreen(pos, board, valueSettings, onHover, netId) {
     override fun saveAndClose(pMouseX: Double, pMouseY: Double) {
         val closest = getClosestCoordinate(pMouseX.toInt(), pMouseY.toInt())
 

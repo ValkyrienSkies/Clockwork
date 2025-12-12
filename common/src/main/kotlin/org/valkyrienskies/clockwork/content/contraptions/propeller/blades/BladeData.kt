@@ -18,12 +18,14 @@ data class BladeData(val wide: Boolean, val angle: Double, val length: Double) {
             val blades = arrayListOf<BladeData>()
 
 
-            val bladeLength = nbt.getDouble("BladeLength")
             val bladeAngle = nbt.getDouble("BladeAngle")
 
             for (blade in newList) {
                 if (blade.isEmpty) continue
-                blades.add(BladeData(blade.`is`(ClockworkItems.WIDE_PROPELLER_BLADE.get()), bladeAngle, bladeLength))
+
+                val wide = blade.`is`(ClockworkItems.WIDE_PROPELLER_BLADE.get())
+                val length = blade.tag?.getDouble("BladeLength") ?: 1.0
+                blades.add(BladeData(wide, bladeAngle, length))
             }
             return blades
         }

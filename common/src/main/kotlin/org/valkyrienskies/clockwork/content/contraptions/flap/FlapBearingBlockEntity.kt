@@ -5,11 +5,13 @@ import com.simibubi.create.content.contraptions.AssemblyException
 import com.simibubi.create.content.contraptions.ControlledContraptionEntity
 import com.simibubi.create.content.contraptions.IDisplayAssemblyExceptions
 import com.simibubi.create.content.contraptions.bearing.BearingBlock
+import com.simibubi.create.content.contraptions.bearing.ClockworkBearingBlockEntity
 import com.simibubi.create.content.contraptions.bearing.IBearingBlockEntity
+import com.simibubi.create.content.contraptions.bearing.MechanicalBearingBlockEntity
 import com.simibubi.create.content.kinetics.base.DirectionalAxisKineticBlock
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.foundation.utility.ServerSpeedProvider
-import com.simibubi.create.foundation.utility.animation.LerpedFloat
+import net.createmod.catnip.animation.LerpedFloat
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.Direction.Axis
@@ -19,6 +21,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.contraptions.flap.contraption.FlapContraption
+import org.valkyrienskies.core.impl.shadow.re
 
 open class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState, val maxSize: Long = 16) :
     KineticBlockEntity(type, pos, state), IBearingBlockEntity, IDisplayAssemblyExceptions {
@@ -49,6 +52,8 @@ open class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, stat
 
         bearingAngle.tickChaser()
         if (isRunning) applyRotations()
+
+        //println("${level?.isClientSide} ${ movedContraption?.getAngle(0f) }")
         if (level?.isClientSide != false) return
 
         movedContraption?.tick()
@@ -61,6 +66,8 @@ open class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, stat
         currentPower = getPower()
 
         bearingAngle.chase(currentPower * 22.5 / 15, angularSpeed, chaser)
+
+
 
         if (lastPower != currentPower) sendData()
     }
@@ -95,12 +102,8 @@ open class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, stat
         val facing = blockState.getValue(DirectionalAxisKineticBlock.FACING)
         val axisAlong = blockState.getValue(DirectionalAxisKineticBlock.AXIS_ALONG_FIRST_COORDINATE)
 
-        return when  {
-            facing.axis == Axis.Z -> Direction.WEST
-            axisAlong == false -> Direction.WEST
-
-            else -> Direction.NORTH
-        }
+        if (facing.axis == Axis.Y) return if (axisAlong) Direction.WEST else Direction.NORTH
+        return facing.clockWise
     }
 
     open protected fun getPower(): Int {
@@ -176,7 +179,7 @@ open class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, stat
 
     override fun lazyTick() {
         super.lazyTick()
-        if (movedContraption != null && level?.isClientSide != false) sendData()
+        if (movedContraption != null && level?.isClientSide == false) sendData()
     }
 
 

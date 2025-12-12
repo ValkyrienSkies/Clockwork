@@ -4,7 +4,8 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllSoundEvents
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
 import com.simibubi.create.foundation.particle.AirParticleData
-import com.simibubi.create.foundation.render.CachedBufferer
+import net.createmod.catnip.render.CachedBuffers
+import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.LevelRenderer
 import net.minecraft.client.renderer.MultiBufferSource
@@ -53,7 +54,7 @@ class AirCompressorRenderer(context: BlockEntityRendererProvider.Context?) : Kin
 
         val vb = buffer.getBuffer(RenderType.cutoutMipped())
 
-        val axisPartial = CachedBufferer.partial(ClockworkPartials.COMPRESSOR_AXIS, be.blockState)
+        val axisPartial = CachedBuffers.partial(ClockworkPartials.COMPRESSOR_AXIS, be.blockState)
         standardKineticRotationTransform(axisPartial, be, lightBelow).renderInto(ms, vb)
 
 
@@ -61,8 +62,8 @@ class AirCompressorRenderer(context: BlockEntityRendererProvider.Context?) : Kin
         handleParticleSpawning(be, level)
 
 
-        val fabricPartial = CachedBufferer.partial(ClockworkPartials.COMPRESSOR_FABRIC, be.blockState)
-        val topPartial = CachedBufferer.partial(ClockworkPartials.COMPRESSOR_TOP, be.blockState)
+        val fabricPartial = CachedBuffers.partial(ClockworkPartials.COMPRESSOR_FABRIC, be.blockState)
+        val topPartial = CachedBuffers.partial(ClockworkPartials.COMPRESSOR_TOP, be.blockState)
 
         // easedHalfSize ranges from 0.0 (fully deflated) to 0.5 (fully inflated)
         val easedHalfSize = EaseHelper.easeInOutQuad(be.clientSize) / 2.0f
@@ -70,12 +71,12 @@ class AirCompressorRenderer(context: BlockEntityRendererProvider.Context?) : Kin
         fabricPartial.apply {
             scale(1.0f, BASE_FABRIC_SCALE_Y + easedHalfSize, 1.0f)
             translate(0.0, (BASE_FABRIC_SCALE_Y - easedHalfSize) / 2.0, 0.0) // Divide by 2.0 for Float division
-            light(lightAbove)
+            light<SuperByteBuffer>(lightAbove)
         }.renderInto(ms, vb)
 
         topPartial.apply {
             translate(0.0, ((easedHalfSize - BASE_FABRIC_SCALE_Y) * TOP_TRANSLATION_FACTOR).toDouble(), 0.0)
-            light(lightAbove)
+            light<SuperByteBuffer>(lightAbove)
         }.renderInto(ms, vb)
     }
 

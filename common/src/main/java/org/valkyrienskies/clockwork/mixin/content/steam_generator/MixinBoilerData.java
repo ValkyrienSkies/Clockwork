@@ -6,7 +6,7 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.content.fluids.tank.BoilerData;
 import com.simibubi.create.content.kinetics.steamEngine.SteamEngineBlock;
-import com.simibubi.create.foundation.utility.Iterate;
+import net.createmod.catnip.data.Iterate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;

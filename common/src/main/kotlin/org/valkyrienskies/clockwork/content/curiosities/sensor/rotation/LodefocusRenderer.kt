@@ -1,10 +1,10 @@
 package org.valkyrienskies.clockwork.content.curiosities.sensor.rotation
 
-import com.jozufozu.flywheel.util.transform.TransformStack
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.content.kinetics.belt.BeltHelper
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
-import com.simibubi.create.foundation.utility.VecHelper
+import dev.engine_room.flywheel.lib.transform.TransformStack
+import net.createmod.catnip.math.VecHelper
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.block.model.ItemTransforms
@@ -57,14 +57,14 @@ class LodefocusRenderer(context: BlockEntityRendererProvider.Context?) : SmartBl
     ) {
         val itemRenderer = Minecraft.getInstance()
             .itemRenderer
-        val msr = TransformStack.cast(ms)
+        val msr = TransformStack.of(ms)
         val count = (Mth.log2((itemStack.count))) / 2
         val renderUpright = BeltHelper.isItemUpright(itemStack) || itemStack.`is`(Items.COMPASS)
         val bakedModel = itemRenderer.getModel(itemStack, null, null, 0)
         val blockItem = bakedModel.isGui3d
 
         ms.pushPose()
-        msr.rotateY(angle.toDouble())
+        msr.rotateYDegrees(angle.toFloat())
 
         if (renderUpright) {
             val renderViewEntity = Minecraft.getInstance().cameraEntity
@@ -99,7 +99,7 @@ class LodefocusRenderer(context: BlockEntityRendererProvider.Context?) : SmartBl
             ms.popPose()
 
             if (!renderUpright) {
-                if (!blockItem) msr.rotateY(10.0)
+                if (!blockItem) msr.rotateYDegrees(10.0f)
                 ms.translate(0.0, if (blockItem) 1 / 64.0 else 1 / 16.0, 0.0)
             } else ms.translate(0.0, 0.0, (-1 / 16f).toDouble())
         }

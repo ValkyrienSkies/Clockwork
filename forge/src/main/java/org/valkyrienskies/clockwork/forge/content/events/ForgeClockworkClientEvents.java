@@ -15,7 +15,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.util.render.BoltUtil;
 
-import static com.jozufozu.flywheel.backend.Backend.isGameActive;
+import static net.createmod.ponder.PonderClient.isGameActive;
 
 @Mod.EventBusSubscriber(Dist.CLIENT)
 public class ForgeClockworkClientEvents {

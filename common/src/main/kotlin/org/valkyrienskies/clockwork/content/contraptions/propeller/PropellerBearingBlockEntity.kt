@@ -12,8 +12,8 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.INamedIconOptions
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour
 import com.simibubi.create.foundation.gui.AllIcons
-import com.simibubi.create.foundation.utility.Lang
 import com.simibubi.create.foundation.utility.ServerSpeedProvider
+import net.createmod.catnip.lang.Lang
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
@@ -22,6 +22,9 @@ import net.minecraft.util.Mth
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
+import org.joml.Vector3d
+import org.joml.Vector3dc
+import org.joml.Vector3i
 import org.joml.Vector3ic
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkLang
@@ -37,10 +40,9 @@ import org.valkyrienskies.clockwork.content.generic.IForceApplierBE
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toJOMLD
-import kotlin.math.abs
 import kotlin.math.absoluteValue
-import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sin
 
 class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState, val brass: Boolean = false) : KineticBlockEntity(type, pos, state), IBearingBlockEntity, IForceApplierBE<PropUpdateData, PropData, PropCreateData, PropellerController> {
 
@@ -273,6 +275,8 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         } else {
             getBlades()
         }
+        val stressImpact = calculateStressApplied()
+        orCreateNetwork?.updateStressFor(this, stressImpact)
 
         if (!level!!.isClientSide) {
             val ship = (level as ServerLevel).getShipObjectManagingPos(
@@ -304,6 +308,11 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         if (physID != -1) {
             removeApplier(PropellerController::class.java, level, worldPosition)
         }
+
+        // Remove stress impact
+        val stressImpact = calculateStressApplied()
+        orCreateNetwork?.updateStressFor(this, stressImpact)
+
         sendData()
     }
 
@@ -480,5 +489,28 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         fun omegaToRPM(omega: Double): Float {
             return ((omega * 60.0) / (2.0 * Math.PI)).toFloat()
         }
+    }
+
+    override fun calculateStressApplied(): Float {
+        if(level!!.isClientSide) return lastStressApplied
+        var stressImpact = 0.0
+        val axis : Vector3dc = blockState.getValue(BlockStateProperties.FACING).normal.toJOMLD()
+        if (propellerContraption != null) {
+            if(brass) {
+                // Add stress impact from propeller contraption.
+                // Stress impact of propeller contraption is computed by:
+                // sum((sail relative pos from bearing).cross(bearing axis))
+                for (sail in sailPositions) {
+                    stressImpact += axis.cross(sail.x().toDouble(), sail.y().toDouble(), sail.z().toDouble(), Vector3d()).length()
+                }
+            } else {
+                // Add stress impact from propeller blades.
+                for (blade in blades) {
+                    stressImpact += blade.length * sin(Math.toRadians(blade.angle)) * (if(blade.wide) 1.5 else 1.0)
+                }
+            }
+        }
+        lastStressApplied = stressImpact.toFloat()
+        return stressImpact.toFloat()
     }
 }

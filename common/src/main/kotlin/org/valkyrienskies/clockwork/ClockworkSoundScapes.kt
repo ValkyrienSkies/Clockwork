@@ -1,8 +1,7 @@
 package org.valkyrienskies.clockwork
 
-import com.simibubi.create.foundation.utility.AnimationTickHolder
-import com.simibubi.create.foundation.utility.Pair
 import com.simibubi.create.infrastructure.config.AllConfigs
+import net.createmod.catnip.animation.AnimationTickHolder
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.data.models.blockstates.PropertyDispatch.QuadFunction
@@ -111,7 +110,7 @@ object ClockworkSoundScapes {
         val ship = Minecraft.getInstance().level?.getShipManagingPos(pos)
 
         val pair: Pair<AmbienceGroup, PitchGroup> =
-            Pair.of(group, groupFromPitch)
+            Pair(group, groupFromPitch)
         activeSounds.computeIfAbsent(pair) {
             val soundScape = group.instantiate(pitch, ship, realPos)
             soundScape.play()

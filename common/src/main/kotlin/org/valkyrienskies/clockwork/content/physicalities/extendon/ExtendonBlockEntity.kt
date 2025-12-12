@@ -20,9 +20,9 @@ import org.valkyrienskies.clockwork.util.universal_joint.IUniversalJoint
 import org.valkyrienskies.clockwork.util.updateJoint
 import org.valkyrienskies.core.api.ships.properties.ShipId
 import org.valkyrienskies.core.api.world.properties.DimensionId
-import org.valkyrienskies.core.apigame.joints.*
-import org.valkyrienskies.core.apigame.joints.VSD6Joint.D6Axis
-import org.valkyrienskies.core.apigame.joints.VSD6Joint.D6Motion
+import org.valkyrienskies.core.internal.joints.*
+import org.valkyrienskies.core.internal.joints.VSD6Joint.D6Axis
+import org.valkyrienskies.core.internal.joints.VSD6Joint.D6Motion
 import org.valkyrienskies.kelvin.api.*
 import org.valkyrienskies.kelvin.api.edges.PipeDuctEdge
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos

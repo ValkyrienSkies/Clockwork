@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "W",
+    "W",
+    "I"
+  ],
+  "key": {
+    "W": {
+      "tag": "tfc:lumber"
+    },
+    "I": {
+      "tag": "createdeco:internal/nuggets/iron_nuggets"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:propeller_blade",
+    "count": 8
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tfc"
+    }
+  ]
+}

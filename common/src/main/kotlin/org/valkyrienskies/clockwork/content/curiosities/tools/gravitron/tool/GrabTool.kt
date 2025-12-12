@@ -19,6 +19,7 @@ import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkPackets.Companion.sendToServer
+import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDialPacket
 import org.valkyrienskies.clockwork.content.forces.GravitronController.Companion.getOrCreate
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronForceInducerData
@@ -65,6 +66,7 @@ class GrabTool : GravitronToolBase() {
                     val gravitronForceInducer = getOrCreate(ship)
                     gravitronForceInducer.data = null
                     getState(player).shipID = null
+                    ClockworkPackets.sendTo(GravitronDialPacket(0f), player as ServerPlayer)
                     return true
                 }
             }
@@ -205,6 +207,14 @@ class GrabTool : GravitronToolBase() {
             }
 
             grabShip(player, ship, grabPosInShip)
+            level.playSound(
+                null,
+                player.blockPosition(),
+                ClockworkSounds.WAND_START.mainEvent!!,
+                player.soundSource,
+                1f,
+                1f
+            )
 
             return true
         }

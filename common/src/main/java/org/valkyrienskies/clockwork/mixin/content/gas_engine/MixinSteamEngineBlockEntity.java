@@ -11,7 +11,6 @@ import com.simibubi.create.content.kinetics.steamEngine.SteamEngineBlockEntity;
 import com.simibubi.create.foundation.advancement.AllAdvancements;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -106,9 +105,9 @@ public abstract class MixinSteamEngineBlockEntity extends SmartBlockEntity {
 
         if (!level.isClientSide) return;
 
-        if (efficiency > 0) engine.spawnParticles( (ClientLevel) level,
-                new Vector3d(getBlockPos().getX() + level.random.nextDouble(), getBlockPos().getY() + level.random.nextDouble(), getBlockPos().getZ() + level.random.nextDouble()),
-                new Vector3d(0.0,0.0,0.0));
+//        if (efficiency > 0) engine.spawnParticles(level,
+//                new Vector3d(getBlockPos().getX() + level.random.nextDouble(), getBlockPos().getY() + level.random.nextDouble(), getBlockPos().getZ() + level.random.nextDouble()),
+//                new Vector3d(0.0,0.0,0.0));
 
 
     }

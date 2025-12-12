@@ -5,7 +5,7 @@ import com.simibubi.create.content.contraptions.chassis.StickerBlock
 import com.simibubi.create.content.contraptions.glue.SuperGlueItem
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
-import com.simibubi.create.foundation.utility.animation.LerpedFloat
+import net.createmod.catnip.animation.LerpedFloat
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
@@ -24,7 +24,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerMov
 import org.valkyrienskies.clockwork.platform.PlatformUtils
 import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.clockwork.util.gtpa
-import org.valkyrienskies.core.apigame.joints.VSFixedJoint
+import org.valkyrienskies.core.internal.joints.VSFixedJoint
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
 import org.valkyrienskies.mod.common.toWorldCoordinates
 import org.valkyrienskies.mod.common.util.toJOML

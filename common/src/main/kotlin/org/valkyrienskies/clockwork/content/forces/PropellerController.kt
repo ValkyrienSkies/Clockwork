@@ -12,15 +12,12 @@ import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropCreateData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropUpdateData
-import org.valkyrienskies.clockwork.util.AerodynamicUtils
-import org.valkyrienskies.clockwork.util.AerodynamicUtils.getAirDensityForY
 import org.valkyrienskies.core.api.ships.*
 import org.valkyrienskies.core.api.ships.properties.ShipTransform
 import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.api.world.properties.DimensionId
 import org.valkyrienskies.mod.common.util.toJOMLD
 import java.lang.Math
-import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.collections.HashMap
 import kotlin.math.*
@@ -45,16 +42,16 @@ class PropellerController(
         // Propeller Thrust
         for (physData in appliers.values) {
             if(physData.active) {
-                val (force, torque) = if (physData.brass) computeForce(physShip.transform, physData, (physShip).velocity, physShip.omega, physShip)
-                else computeBladeForce(physShip, physData)
+                val (force, torque) = if (physData.brass) computeForce(physShip.transform, physData, (physShip).velocity, physShip.omega, physShip, physLevel)
+                else computeBladeForce(physShip, physData, physLevel)
 
                 if (force.isFinite && torque.isFinite) {
                     if (physData.brass) {
-                        physShip.applyInvariantForce(force)
-                        physShip.applyInvariantTorque(torque)
+                        physShip.applyWorldForceToBodyPos(force)
+                        physShip.applyWorldTorque(torque)
                     } else {
-                        physShip.applyInvariantForceToPos(force, Vector3d(physData.position).sub(physShip.transform.positionInShip, Vector3d()))
-                        physShip.applyInvariantTorque(torque)
+                        physShip.applyWorldForceToModelPos(force, Vector3d(physData.position).add(0.5, 0.5, 0.5))
+                        physShip.applyWorldTorque(torque)
                     }
 
                 }
@@ -71,7 +68,8 @@ class PropellerController(
         physProp: PropData,
         vel: Vector3dc,
         omega: Vector3dc,
-        physShip: PhysShip
+        physShip: PhysShip,
+        physLevel: PhysLevel
     ): Pair<Vector3dc, Vector3dc> {
         val estAngle = (physProp.bearingAngle + (physProp.bearingSpeed / 3.0 * ticksSinceLastUpdate.toDouble())) % 360.0
 
@@ -113,7 +111,7 @@ class PropellerController(
             val angleOfAttack = physProp.currentBladePitch - inflowAngle
             val thrustCoefficient = (angleOfAttack * cos(inflowAngle)) - (0.1 * sin(inflowAngle))
 
-            val q = 0.5 * getAirDensityForY(sailPosWorld.y(), dimensionId) * ((axialVelocity).pow(2.0) + (sailVel.length()).pow(2.0))
+            val q = 0.5 * physLevel.aerodynamicUtils.getAirDensityForY(sailPosWorld.y(), dimensionId) * ((axialVelocity).pow(2.0) + (sailVel.length()).pow(2.0))
 
             val thrust = q * thrustCoefficient
 
@@ -175,14 +173,14 @@ class PropellerController(
         return torque
     }
 
-    private fun computeBladeForce(physShip: PhysShip, physProp: PropData): Pair<Vector3dc, Vector3dc> {
+    private fun computeBladeForce(physShip: PhysShip, physProp: PropData, physLevel: PhysLevel): Pair<Vector3dc, Vector3dc> {
         val estAngle = (physProp.bearingAngle + (physProp.bearingSpeed / 3.0 * ticksSinceLastUpdate.toDouble())) % 360.0
         val blades = physProp.blades
         val bladeCount = blades.size
         val angleBetweenBlades = 2 * Math.PI / bladeCount
 
-        val airDensityAtY = AerodynamicUtils.getAirDensityForY(physShip.transform.positionInWorld.y(), dimensionId)
-        val airTemperatureAtY = AerodynamicUtils.getAirTemperatureForY(physShip.transform.positionInWorld.y(), dimensionId)
+        val airDensityAtY = physLevel.aerodynamicUtils.getAirDensityForY(physShip.transform.positionInWorld.y(), dimensionId)
+        val airTemperatureAtY = physLevel.aerodynamicUtils.getAirTemperatureForY(physShip.transform.positionInWorld.y(), dimensionId)
 
         val clockwiseAxis: Vector3dc = if (physProp.bearingAxis == Direction.UP.normal.toJOMLD()) {
             Direction.NORTH.normal.toJOMLD()
@@ -216,11 +214,11 @@ class PropellerController(
 
             val dThrust = dLift * Math.cos(angleOfAttack) - dDrag * Math.sin(bladeAngle)
 
-            val force = worldAxis.mul(dThrust, Vector3d())
-            val torque = rotatedDist.cross(force, Vector3d())
+            val force = worldAxis.mul(dThrust * 25, Vector3d())
+            //val torque = rotatedDist.cross(force, Vector3d())
 
-            netForce.add(force.mul(50.0))
-            netTorque.add(torque)
+            netForce.add(force)
+            netTorque.add(Vector3d())
         }
 
         return netForce to netTorque

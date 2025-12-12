@@ -1,12 +1,11 @@
 package org.valkyrienskies.clockwork
 
-import com.jozufozu.flywheel.api.MaterialManager
-import com.jozufozu.flywheel.backend.instancing.blockentity.BlockEntityInstance
-import com.simibubi.create.content.contraptions.bearing.BearingInstance
 import com.simibubi.create.content.contraptions.bearing.BearingRenderer
-import com.simibubi.create.content.kinetics.base.ShaftInstance
+import com.simibubi.create.content.contraptions.bearing.BearingVisual
 import com.tterrag.registrate.util.entry.BlockEntityEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
+import dev.engine_room.flywheel.api.visual.BlockEntityVisual
+import dev.engine_room.flywheel.api.visualization.VisualizationContext
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.BlockPos
@@ -47,6 +46,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.engine.GasEngineBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.exhaust.ExhaustBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.gas_crafter.GasCrafterBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorRenderer
@@ -107,13 +107,9 @@ object ClockworkBlockEntities {
                 type!!, pos!!, state!!
             )
         }
-        .instance { BiFunction<MaterialManager?, PropellerBearingBlockEntity?, BlockEntityInstance<in PropellerBearingBlockEntity?>> { materialManager: MaterialManager?, blockEntity: PropellerBearingBlockEntity? ->
-                BearingInstance<PropellerBearingBlockEntity>(
-                    materialManager,
-                    blockEntity
-                )
-            }
-        }
+//        .visual { factory: SimpleBlockEntityVisualizer.Factory<PropellerBearingBlockEntity> ->
+//            BearingVisual<PropellerBearingBlockEntity>()
+//        }
         .validBlocks(ClockworkBlocks.JURYRIGGED_PROPELLER_BEARING)
         .validBlocks(ClockworkBlocks.BRASS_PROPELLER_BEARING)
         .renderer {
@@ -277,13 +273,13 @@ object ClockworkBlockEntities {
                 pos!!, state!!
             )
         }
-        .instance { BiFunction<MaterialManager?, ReactionWheelBlockEntity?, BlockEntityInstance<in ReactionWheelBlockEntity?>> { materialManager: MaterialManager?, blockEntity: ReactionWheelBlockEntity? ->
-                ReactionWheelInstance(
-                    materialManager,
-                    blockEntity
-                )
-            }
-        }
+//        .instance { BiFunction<MaterialManager?, ReactionWheelBlockEntity?, BlockEntityInstance<in ReactionWheelBlockEntity?>> { materialManager: MaterialManager?, blockEntity: ReactionWheelBlockEntity? ->
+//                ReactionWheelInstance(
+//                    materialManager,
+//                    blockEntity
+//                )
+//            }
+//        }
         .validBlocks(ClockworkBlocks.REACTIONWHEEL)
         .renderer {
             NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in ReactionWheelBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
@@ -423,14 +419,14 @@ object ClockworkBlockEntities {
                 state
             )
         }
-        .instance {
-            BiFunction<MaterialManager?, PumpDuctBlockEntity?, BlockEntityInstance<in PumpDuctBlockEntity?>> { materialManager: MaterialManager?, blockEntity: PumpDuctBlockEntity? ->
-                PumpDuctCogInstance(
-                    materialManager,
-                    blockEntity
-                )
-            }
-        }
+//        .instance {
+//            BiFunction<MaterialManager?, PumpDuctBlockEntity?, BlockEntityInstance<in PumpDuctBlockEntity?>> { materialManager: MaterialManager?, blockEntity: PumpDuctBlockEntity? ->
+//                PumpDuctCogInstance(
+//                    materialManager,
+//                    blockEntity
+//                )
+//            }
+//        }
         .validBlocks(ClockworkBlocks.PUMP_DUCT)
         .renderer {
             NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in PumpDuctBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
@@ -450,14 +446,14 @@ object ClockworkBlockEntities {
                 state
             )
         }
-        .instance {
-            BiFunction<MaterialManager?, ValveDuctBlockEntity?, BlockEntityInstance<in ValveDuctBlockEntity?>> { materialManager: MaterialManager?, blockEntity: ValveDuctBlockEntity? ->
-                ShaftInstance(
-                    materialManager,
-                    blockEntity
-                )
-            }
-        }
+//        .instance {
+//            BiFunction<MaterialManager?, ValveDuctBlockEntity?, BlockEntityInstance<in ValveDuctBlockEntity?>> { materialManager: MaterialManager?, blockEntity: ValveDuctBlockEntity? ->
+//                ShaftInstance(
+//                    materialManager,
+//                    blockEntity
+//                )
+//            }
+//        }
         .validBlocks(ClockworkBlocks.VALVE_DUCT)
         .renderer {
             NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in ValveDuctBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
@@ -534,14 +530,14 @@ object ClockworkBlockEntities {
                 state
             )
         }
-        .instance {
-            BiFunction<MaterialManager?, GasNozzleBlockEntity?, BlockEntityInstance<in GasNozzleBlockEntity?>> { materialManager: MaterialManager?, blockEntity: GasNozzleBlockEntity? ->
-                GasNozzleInstance(
-                    materialManager,
-                    blockEntity
-                )
-            }
-        }
+//        .instance {
+//            BiFunction<MaterialManager?, GasNozzleBlockEntity?, BlockEntityInstance<in GasNozzleBlockEntity?>> { materialManager: MaterialManager?, blockEntity: GasNozzleBlockEntity? ->
+//                GasNozzleInstance(
+//                    materialManager,
+//                    blockEntity
+//                )
+//            }
+//        }
         .validBlocks(ClockworkBlocks.GAS_NOZZLE)
         .renderer {
             NonNullFunction<BlockEntityRendererProvider.Context?, BlockEntityRenderer<in GasNozzleBlockEntity?>> { context: BlockEntityRendererProvider.Context? ->
@@ -586,6 +582,18 @@ object ClockworkBlockEntities {
             )
         }
         .validBlocks(ClockworkBlocks.GAS_ENGINE)
+        .register()
+
+    @JvmField
+    val GAS_CRAFTER: BlockEntityEntry<GasCrafterBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<GasCrafterBlockEntity>("gas_crafter") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            GasCrafterBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .validBlocks(ClockworkBlocks.GAS_CRAFTER)
         .register()
 
     @JvmField

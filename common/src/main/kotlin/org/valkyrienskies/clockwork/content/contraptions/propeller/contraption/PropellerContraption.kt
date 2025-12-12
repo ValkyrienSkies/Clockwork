@@ -1,11 +1,9 @@
 package org.valkyrienskies.clockwork.content.contraptions.propeller.contraption
 
 import com.simibubi.create.AllTags
+import com.simibubi.create.api.contraption.ContraptionType
 import com.simibubi.create.content.contraptions.AssemblyException
 import com.simibubi.create.content.contraptions.Contraption
-import com.simibubi.create.content.contraptions.ContraptionType
-import com.simibubi.create.content.contraptions.bearing.AnchoredLighter
-import com.simibubi.create.content.contraptions.render.ContraptionLighter
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.core.BlockPos
@@ -88,17 +86,21 @@ class PropellerContraption : Contraption {
     }
 
     override fun getType(): ContraptionType {
-        return ClockworkContraptions.PROPELLER
+        return ClockworkContraptions.PROPELLER.value()
     }
 
     override fun isAnchoringBlockAt(pos: BlockPos): Boolean {
         return pos == anchor.relative(facing!!.opposite, offset + 1)
     }
 
-    public override fun addBlock(pos: BlockPos, capture: Pair<StructureTemplate.StructureBlockInfo, BlockEntity>) {
+    public override fun addBlock(
+        level: Level,
+        pos: BlockPos,
+        capture: Pair<StructureTemplate.StructureBlockInfo, BlockEntity>
+    ) {
         val localPos = pos.subtract(anchor)
         if (!getBlocks().containsKey(localPos) && AllTags.AllBlockTags.WINDMILL_SAILS.matches(capture.key.state)) sailBlocks++
-        super.addBlock(pos, capture)
+        super.addBlock(level, pos, capture)
     }
 
     override fun writeNBT(spawnPacket: Boolean): CompoundTag {
@@ -120,10 +122,10 @@ class PropellerContraption : Contraption {
         return if (facing.opposite == this.facing && BlockPos.ZERO == localPos) false else facing.axis === this.facing!!.axis
     }
 
-    @Environment(EnvType.CLIENT)
-    override fun makeLighter(): ContraptionLighter<*> {
-        return AnchoredLighter(this)
-    }
+//    @Environment(EnvType.CLIENT)
+//    override fun makeLighter(): ContraptionLighter<*> {
+//        return AnchoredLighter(this)
+//    }
 
     companion object {
         @Throws(AssemblyException::class)

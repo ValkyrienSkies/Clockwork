@@ -8,12 +8,13 @@ import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOp
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueRenderer
 import com.simibubi.create.foundation.utility.AdventureUtil
-import com.simibubi.create.foundation.utility.Components
-import com.simibubi.create.foundation.utility.Lang
+import com.simibubi.create.foundation.utility.CreateLang
+import net.createmod.catnip.outliner.Outliner
 import net.minecraft.client.Minecraft
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.phys.AABB
@@ -35,7 +36,7 @@ object SecondScrollValueRenderer: ScrollValueRenderer() {
         val behaviour = BlockEntityBehaviour.get(world, pos, LengthScrollValueBehaviour.LENGTH_TYPE)
             ?: return
         if (!behaviour.isActive) {
-            CreateClient.OUTLINER.remove(Vec3.atCenterOf(pos))
+            Outliner.getInstance().remove(Vec3.atCenterOf(pos))
             return
         }
         val mainhandItem = mc.player!!.getItemInHand(InteractionHand.MAIN_HAND)
@@ -48,7 +49,7 @@ object SecondScrollValueRenderer: ScrollValueRenderer() {
 
         val tip: MutableList<MutableComponent> = ArrayList()
         tip.add(behaviour.label.copy())
-        tip.add(Lang.translateDirect("gui.value_settings.hold_to_edit"))
+        tip.add(CreateLang.translateDirect("gui.value_settings.hold_to_edit"))
         CreateClient.VALUE_SETTINGS_HANDLER.showHoverTip(tip)
     }
 
@@ -61,13 +62,13 @@ object SecondScrollValueRenderer: ScrollValueRenderer() {
             .move(0.0, 0.0, -.125)
         val label = behaviour.label
 
-        val box = ValueBox.TextValueBox(label, bb, pos, Components.literal(behaviour.formatValue()))
+        val box = ValueBox.TextValueBox(label, bb, pos, Component.literal(behaviour.formatValue()))
 
 
         if (!AdventureUtil.isAdventure(Minecraft.getInstance().player)) box.passive(!highlight)
             .wideOutline()
 
-        CreateClient.OUTLINER.showValueBox(Vec3.atCenterOf(pos), box.transform(behaviour.slotPositioning))
+        Outliner.getInstance().showOutline(Vec3.atCenterOf(pos), box.transform(behaviour.slotPositioning))
             .highlightFace(face)
     }
 

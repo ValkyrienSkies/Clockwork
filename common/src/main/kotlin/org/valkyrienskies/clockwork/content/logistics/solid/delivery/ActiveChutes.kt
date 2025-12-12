@@ -4,6 +4,7 @@ import com.simibubi.create.content.redstone.link.RedstoneLinkNetworkHandler.Freq
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.phys.Vec3
+import org.joml.Vector3d
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import org.valkyrienskies.core.util.x
@@ -43,7 +44,7 @@ object ActiveChutes {
         var closest: BlockPos? = null
         var closestDistance: Double = Double.MAX_VALUE
         for (chute in actives.keys) {
-            val realPos = actives[chute]!!.getRealPos()
+            val realPos = actives[chute]!!.realPos!!
             val realBlockPos = BlockPos(realPos.x().toInt(), realPos.y().toInt(), realPos.z().toInt())
             if (realBlockPos.closerThan(pos, maxDistance)) {
                 if (realPos.distance(pos.toJOMLD()) < closestDistance) {
@@ -55,43 +56,22 @@ object ActiveChutes {
         return closest
     }
 
-    fun getSortedChuteWithFrequency(pos: Vec3, maxDistance: Double, frequency: Frequency): MutableList<BlockPos>{
+    fun getSortedChuteWithFrequency(pos: Vector3d, maxDistance: Double, frequency: Frequency): MutableList<BlockPos>{
+        val inRange = mutableListOf<BlockPos>()
 
-        var inRange = mutableListOf<BlockPos>()
+        println(actives)
+        for (entry in actives) {
+            val realChutePos = entry.value.realPos ?: continue
+            if (realChutePos.distance(pos) > maxDistance) continue
+            if (entry.value.frequencySlotBehaviour.frequency != frequency) continue
 
-        for (chute in actives.keys) {
-            val realPos = actives[chute]!!.getRealPos()
-            val realVec3 = Vec3(realPos.x,realPos.y,realPos.z)
-
-            if (realVec3.subtract(pos).length() < maxDistance) {
-                if (actives[chute]!!.frequencySlotBehaviour.frequency == frequency) {
-                    inRange.add(chute)
-                }
-
-            }
+            inRange.add(entry.key)
         }
 
-        inRange.sortWith(compareBy { getChuteRealPos(it)!!.subtract(pos).length() })
-
+        inRange.sortWith(compareBy { actives[it]!!.realPos!!.distance(pos) })
         return inRange
     }
 
-
-
-    fun hasChute(pos: BlockPos): Boolean {
-        return actives.containsKey(pos) || unloaded.containsKey(pos)
-    }
-
-    fun getChuteRealPos(pos: BlockPos): Vec3? {
-        if (actives.containsKey(pos)) {
-            val temp = actives[pos]!!.getRealPos()
-            return Vec3(temp.x,temp.y,temp.z)
-        } else if (unloaded.containsKey(pos)) {
-            val temp = unloaded[pos]!!.getRealPos()
-            return Vec3(temp.x,temp.y,temp.z)
-        }
-        return null
-    }
 
     fun tick(level: ServerLevel) {
 

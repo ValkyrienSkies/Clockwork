@@ -1,15 +1,16 @@
 package org.valkyrienskies.clockwork.content.physicalities.extendon
 
-import com.jozufozu.flywheel.util.transform.TransformStack
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.Tesselator
 import com.mojang.blaze3d.vertex.VertexConsumer
 import com.mojang.blaze3d.vertex.VertexFormat
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
-import com.simibubi.create.foundation.render.CachedBufferer
-import com.simibubi.create.foundation.outliner.Outliner
-import com.simibubi.create.foundation.outliner.Outline
+import dev.engine_room.flywheel.lib.transform.TransformStack
+import net.createmod.catnip.outliner.Outline
+import net.createmod.catnip.outliner.Outliner
+import net.createmod.catnip.render.CachedBuffers
+import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.client.renderer.LightTexture
@@ -46,8 +47,8 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
     ) {
         val vb = buffer.getBuffer(RenderType.cutout())
 
-        var axis0 = CachedBufferer.partial(ClockworkPartials.EXTENDON_AXIS0,be.blockState)
-        var axis1 = CachedBufferer.partial(ClockworkPartials.EXTENDON_AXIS1,be.blockState)
+        var axis0 = CachedBuffers.partial(ClockworkPartials.EXTENDON_AXIS0,be.blockState)
+        var axis1 = CachedBuffers.partial(ClockworkPartials.EXTENDON_AXIS1,be.blockState)
 
         if (be.connectedBe != null) {
             val thisShip = be.level!!.getShipManagingPos(be.blockPos) as ClientShip?
@@ -61,10 +62,10 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
             val angles = if (thisShip == null) getEulerAngles(direction) else getEulerAngles(thisShip.renderTransform.worldToShip.transformDirection(direction, Vector3d()))
 
             //Rotate Partials
-            axis0 = axis0.rotateCentered(Direction.UP, angles.second.toFloat())
+            axis0 = axis0.rotateCentered(angles.second.toFloat(), Direction.UP)
 
-            axis1 = axis1.rotateCentered(Direction.UP, angles.second.toFloat())
-            axis1 = axis1.rotateCentered(Direction.WEST, angles.first.toFloat())
+            axis1 = axis1.rotateCentered(angles.second.toFloat(), Direction.UP)
+            axis1 = axis1.rotateCentered(angles.first.toFloat(), Direction.WEST)
 
             if (be.main) {
                 val mainScale  = thisShip ?.transform?.scaling?.get(0) ?: 1.0
@@ -78,8 +79,8 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
             }
         }
 
-        axis0.light().renderInto(ms,vb)
-        axis1.light().renderInto(ms,vb)
+        axis0.light<SuperByteBuffer>(light).renderInto(ms,vb)
+        axis1.light<SuperByteBuffer>(light).renderInto(ms,vb)
 
         super.renderSafe(be, partialTicks, ms, buffer, light, overlay)
     }
@@ -95,15 +96,15 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
         val level = Minecraft.getInstance().level!!
 
         ms.pushPose();
-        var chain = TransformStack.cast(ms)
-        chain.centre();
+        var chain = TransformStack.of(ms)
+        chain.center();
 
-        chain.rotateYRadians(yaw)
-        chain.rotateXRadians(-pitch)
-        chain.rotateYRadians(PI / 4.0)
+        chain.rotateY(yaw.toFloat())
+        chain.rotateX((-pitch).toFloat())
+        chain.rotateY((PI / 4.0f).toFloat())
 
         chain.translate(0.5, 8 / 16.0, 0.5)
-        chain.unCentre()
+        chain.uncenter()
 
         //==========
 

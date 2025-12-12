@@ -7,6 +7,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.logistics.gas.IClockworkNodeBE
@@ -59,7 +60,7 @@ abstract class KNodeBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state:
     }
 
     override fun setLazyTickRate(slowTickRate: Int) {
-        super.setLazyTickRate(10)
+        super.setLazyTickRate(ClockworkConfig.SERVER.kelvinNodeBlockEntityLazyTickRate)
     }
 
     override fun addToGoggleTooltip(
