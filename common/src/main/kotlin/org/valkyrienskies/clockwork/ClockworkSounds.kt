@@ -147,6 +147,10 @@ object ClockworkSounds {
         .category(SoundSource.PLAYERS)
         .attenuationDistance(16)
         .build()
+    val GEAR_WHIRR = create("gear_whirr").subtitle("Gear whirring")
+        .category(SoundSource.BLOCKS)
+        .attenuationDistance(16)
+        .build()
 
     private val sounds: DeferredRegister<SoundEvent> =
         DeferredRegister.create(BuiltInRegistries.SOUND_EVENT, ClockworkMod.MOD_ID)
