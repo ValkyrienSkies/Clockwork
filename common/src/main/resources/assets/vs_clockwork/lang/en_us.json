@@ -113,6 +113,8 @@
   "item.vs_clockwork.wanderlite_matrix": "Wanderlite Matrix",
   "item.vs_clockwork.incomplete_wanderwand": "Incomplete Wanderwand",
 
+  "block.vs_clockwork.spinoff_bearing": "Spinoff Bearing",
+  "item.vs_clockwork.spinoff_bearing": "Spinoff Bearing",
 
   "block.vs_clockwork.duct": "Duct",
   "item.vs_clockwork.duct": "Duct",
@@ -160,6 +162,7 @@
   "vs_clockwork.subtitle.clock_song": "Trailer moment.",
   "vs_clockwork.subtitle.thruster": "Gas thruster roar",
   "vs_clockwork.subtitle.gas_hiss": "Hissing gas",
+  "vs_clockwork.subtitle.spinoff_click": "Spinoff bearing attaches",
 
   "vs_clockwork.subtitle.propeller": "Propeller spins",
   "vs_clockwork.subtitle.junk_propeller": "Jury-rigged propeller spins",

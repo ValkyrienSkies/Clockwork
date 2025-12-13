@@ -65,6 +65,7 @@ import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlock
 import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonRenderer
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelBlockEntity
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelRenderer
+import org.valkyrienskies.clockwork.content.physicalities.spinoff_bearing.SpinoffBearingBlockEntity
 import org.valkyrienskies.clockwork.content.propulsion.sugar_rocket.SugarRocketBlockEntity
 import org.valkyrienskies.clockwork.content.propulsion.sugar_rocket.SugarRocketRenderer
 
@@ -750,6 +751,19 @@ object ClockworkBlockEntities {
             }
         }
         .validBlocks(ClockworkBlocks.EXTENDON)
+        .register()
+
+    @JvmField
+    val SPINOFF_BEARING: BlockEntityEntry<SpinoffBearingBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<SpinoffBearingBlockEntity>(
+            "spinoff_bearing"
+        ) { typeIn: BlockEntityType<SpinoffBearingBlockEntity>, pos: BlockPos, state: BlockState? ->
+            SpinoffBearingBlockEntity(
+                typeIn,
+                pos, state!!
+            )
+        }
+        .validBlocks(ClockworkBlocks.SPINOFF_BEARING)
         .register()
 
     @JvmStatic

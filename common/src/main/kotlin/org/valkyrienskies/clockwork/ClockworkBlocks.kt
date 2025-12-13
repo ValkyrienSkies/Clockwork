@@ -70,6 +70,7 @@ import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlock
 import org.valkyrienskies.clockwork.content.physicalities.gas_thruster.GasThrusterBlock
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroBlock
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelBlock
+import org.valkyrienskies.clockwork.content.physicalities.spinoff_bearing.SpinoffBearingBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.WingBlock
@@ -279,6 +280,7 @@ object ClockworkBlocks {
         .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
         .item()
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        // I have no idea why the item model is still fucked when the block model is working
         .model(AssetLookup.customBlockItemModel("gyro"))
         .build()
         .register()
@@ -1003,9 +1005,20 @@ object ClockworkBlocks {
             .build()
             .register()
 
-
-
-
+    @JvmField
+    val SPINOFF_BEARING: BlockEntry<SpinoffBearingBlock> =
+        REGISTRATE.block<SpinoffBearingBlock>("spinoff_bearing") { properties: BlockBehaviour.Properties? ->
+            SpinoffBearingBlock(properties!!)
+        }
+            .transform(axeOrPickaxe())
+            //.transform(BuilderTransformersClockwork.bearing("propeller", "gearbox"))
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .item()
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .build()
+            .register()
 
 
 

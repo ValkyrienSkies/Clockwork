@@ -348,5 +348,15 @@
       }
       ],
       "subtitle": "vs_clockwork.subtitle.goggles_unequip"
+  },
+  "gear_whirr": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:gear_whirr",
+        "type": "file",
+        "attenuation_distance": 16
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.spinoff_click"
   }
 }
