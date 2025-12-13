@@ -6,6 +6,7 @@ import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.phys.AABB
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.magnitudeSqr
@@ -169,4 +170,7 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
         )
     }
 
+    override fun createRenderBoundingBox(): AABB? {
+        return super.createRenderBoundingBox().inflate(1.0/16.0)
+    }
 }

@@ -29,7 +29,6 @@ class DuctRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEnt
 
         val connection = ClockworkPartials.DUCT_CONN
 
-        val rim = ClockworkPartials.DUCT_RIM
 
         val leak = ClockworkPartials.DUCT_LEAK
 
@@ -38,40 +37,37 @@ class DuctRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEnt
         val kelvin = ClockworkModClient.getKelvin()
 
         for (dir in Direction.values()) {
+
+            if (blockEntity.DIR_TO_CONNECTION_TYPE[dir] == DuctEdgeType.NONE) continue
+            
+
             val dirConnection = CachedBuffers.partialFacing(connection, blockEntity.blockState, dir.opposite)
-            val dirRim = CachedBuffers.partialFacing(rim, blockEntity.blockState, dir.opposite)
-            if (blockEntity.blockState.getValue(DIR_TO_CONNECTION[dir]!!).isConnected) {
-                if (blockEntity.level != null) {
-                    dirConnection.light<SuperByteBuffer>(light).overlay<SuperByteBuffer>(overlay).renderInto(ms, vertexConsumer)
-                    if (blockEntity.level!!.getBlockState(blockEntity.blockPos.relative(dir)).block !is IDuct)
-                        dirRim.light<SuperByteBuffer>(light).overlay<SuperByteBuffer>(overlay).renderInto(ms, vertexConsumer)
-                }
-            } else if (blockEntity.blockState.getValue(DIR_TO_CONNECTION[dir]!!) == DuctConnectionType.LEAK) {
+            dirConnection.light<SuperByteBuffer>(light).overlay<SuperByteBuffer>(overlay).renderInto(ms, vertexConsumer)
+            if (blockEntity.blockState.getValue(DIR_TO_CONNECTION[dir]!!) == DuctConnectionType.LEAK) {
                 val dirLeak = CachedBuffers.partialFacing(leak, blockEntity.blockState, dir.opposite)
                 dirLeak.light<SuperByteBuffer>(light).overlay<SuperByteBuffer>(overlay).renderInto(ms, vertexConsumer)
             }
 
             val dirBe = blockEntity.level?.getBlockEntity(blockEntity.blockPos.relative(dir))
-            if (dirBe !is DuctBlockEntity) continue
 
             val edge = blockEntity.DIR_TO_CONNECTION_TYPE[dir]
             if (edge == null) continue
 
-            val partial: PartialModel
-
-            when (edge) {
-                DuctEdgeType.FILTERED -> partial = ClockworkPartials.DUCT_SMART
-                DuctEdgeType.SMART -> partial = ClockworkPartials.DUCT_COPPER
+            val partial = when (edge) {
+                DuctEdgeType.FILTERED -> ClockworkPartials.DUCT_SMART
+                DuctEdgeType.SMART ->  ClockworkPartials.DUCT_COPPER
                 // Edge directionality is enforced by axis direction for oneways
                 DuctEdgeType.ONEWAY_BACKWARD ->
-                    partial = if (dir.axisDirection.step == 1) ClockworkPartials.DUCT_ONEWAY_FORWARD else ClockworkPartials.DUCT_ONEWAY_BACKWARD
+                     if (dir.axisDirection.step == 1) ClockworkPartials.DUCT_ONEWAY_FORWARD else ClockworkPartials.DUCT_ONEWAY_BACKWARD
                 DuctEdgeType.ONEWAY_FORWARD ->
-                    partial = if (dir.axisDirection.step == -1) ClockworkPartials.DUCT_ONEWAY_FORWARD else ClockworkPartials.DUCT_ONEWAY_BACKWARD
-                else -> continue
+                     if (dir.axisDirection.step == -1) ClockworkPartials.DUCT_ONEWAY_FORWARD else ClockworkPartials.DUCT_ONEWAY_BACKWARD
+                else -> if (dirBe is DuctBlockEntity) null else ClockworkPartials.DUCT_RIM
             }
 
-            CachedBuffers.partialFacing(partial, blockEntity.blockState, dir.opposite)
-                .light<SuperByteBuffer>(light).overlay<SuperByteBuffer>(overlay).renderInto(ms, vertexConsumer)
+            if (partial != null)
+                CachedBuffers.partialFacing(partial, blockEntity.blockState, dir.opposite)
+                    .light<SuperByteBuffer>(light).overlay<SuperByteBuffer>(overlay).renderInto(ms, vertexConsumer)
+
 
 
         }
