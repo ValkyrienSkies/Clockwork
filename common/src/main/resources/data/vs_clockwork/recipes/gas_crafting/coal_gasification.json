@@ -1,0 +1,36 @@
+{
+  "type": "vs_clockwork:gas_crafting",
+  "ingredients": [
+    {
+      "tag": "minecraft:coals"
+    }
+  ],
+  "input_gasses": {
+    "kelvin:steam": {
+      "amount": 5,
+      "unit": "kg"
+    }
+  },
+  "result_gasses": {
+    "kelvin:methane": {
+      "amount": 5,
+      "unit": "kg"
+    },
+    "kelvin:exhaust": {
+      "amount": 10,
+      "unit": "kg"
+    },
+    "kelvin:hydrogen": {
+      "amount": 0.1,
+      "unit": "kg"
+    }
+  },
+  "results": [],
+  "requirements": {
+    "kelvin:min_temperature": 1100.0,
+    "kelvin:inhibited_by": {
+      "gas": "kelvin:air",
+      "ratio": 0.1
+    }
+  }
+}

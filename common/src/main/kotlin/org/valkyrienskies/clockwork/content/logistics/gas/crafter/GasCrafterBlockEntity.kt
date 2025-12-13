@@ -1,18 +1,17 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.crafter
 
-import com.simibubi.create.AllRecipeTypes
 import com.simibubi.create.content.processing.basin.BasinBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.simple.DeferralBehaviour
 import com.simibubi.create.foundation.recipe.RecipeFinder
 import net.minecraft.core.BlockPos
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.Container
 import net.minecraft.world.item.crafting.Recipe
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkRecipes
 import org.valkyrienskies.clockwork.util.KNodeBlockEntity
-import org.valkyrienskies.core.impl.shadow.cu
 import java.util.*
 import java.util.function.Predicate
 import kotlin.math.max
@@ -38,7 +37,6 @@ class GasCrafterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Blo
         super.tick()
 
         if (level!!.isClientSide && !isVirtual) return
-        println("basin: ${ getBasin().isPresent }")
 
         processingTicks = max(processingTicks,0)
         if (processingTicks == 0 && currentRecipe != null) {
@@ -61,7 +59,6 @@ class GasCrafterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Blo
         ) return true
 
         val recipes: MutableList<Recipe<*>?> = getMatchingRecipes()
-        println("MATCHING RECIPES $recipes")
         if (recipes.isEmpty() || currentRecipe != null) return true
         currentRecipe = recipes[0]
         processingTicks = (currentRecipe as GasCraftingRecipe).processingDuration
@@ -98,6 +95,17 @@ class GasCrafterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Blo
         if (basinBE !is BasinBlockEntity) return Optional.empty<BasinBlockEntity>()
         return Optional.of<BasinBlockEntity>(basinBE)
     }
+
+    override fun write(tag: CompoundTag, clientPacket: Boolean) {
+        tag.putInt("processingTicks", processingTicks)
+        super.write(tag, clientPacket)
+    }
+
+    override fun read(tag: CompoundTag, clientPacket: Boolean) {
+        super.read(tag, clientPacket)
+        processingTicks = tag.getInt("processingTicks")
+    }
+
 
     companion object {
         val GAS_CRAFTER_RECIPES_KEY = Any()
