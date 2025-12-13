@@ -4,6 +4,7 @@ import com.google.gson.JsonObject
 import com.simibubi.create.AllRecipeTypes
 import com.simibubi.create.content.processing.recipe.ProcessingRecipe
 import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder
+import com.simibubi.create.content.processing.recipe.ProcessingRecipeSerializer
 import com.simibubi.create.foundation.recipe.IRecipeTypeInfo
 import dev.architectury.injectables.annotations.ExpectPlatform
 import net.minecraft.core.NonNullList

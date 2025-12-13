@@ -93,6 +93,17 @@ object ClockworkPartials {
     val DUCT_ONEWAY_BACKWARD: PartialModel = PartialModel.of(ClockworkMod.asResource("block/duct/custom/oneway_backward"))
     //END OF PIPE DEATH
 
+    //GAS CRAFTER
+    val GAS_CRAFTER_FRAME: PartialModel = PartialModel.of(ClockworkMod.asResource("block/gas_crafter/frame"))
+    val GAS_CRAFTER_TUBE: PartialModel = PartialModel.of(ClockworkMod.asResource("block/gas_crafter/tube"))
+    val GAS_CRAFTER_MESH: PartialModel = PartialModel.of(ClockworkMod.asResource("block/gas_crafter/mesh"))
+    val GAS_CRAFTER_GLOW: PartialModel = PartialModel.of(ClockworkMod.asResource("block/gas_crafter/glow"))
+
+
+
+
+    //GAS CRAFTER
+
     val VALVE_DUCT_POINTER: PartialModel = PartialModel.of(ClockworkMod.asResource("block/valve_duct/pointer"))
 
     val COMPRESSOR_AXIS: PartialModel = PartialModel.of(ClockworkMod.asResource("block/compressor/axis"))

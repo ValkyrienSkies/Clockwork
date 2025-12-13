@@ -4,6 +4,7 @@ import com.simibubi.create.content.processing.basin.BasinBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.simple.DeferralBehaviour
 import com.simibubi.create.foundation.recipe.RecipeFinder
+import net.createmod.catnip.animation.LerpedFloat
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.Container
@@ -23,6 +24,13 @@ class GasCrafterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Blo
     var processingTicks = 0
     var currentRecipe: Recipe<*>? = null
 
+    var clientProcessingTicks = 0f
+    val glow: LerpedFloat = LerpedFloat.linear()
+
+    init {
+        glow.chase(0.0,0.5, LerpedFloat.Chaser.EXP)
+    }
+
     val isRunning: Boolean get() {
         return processingTicks > 0
     }
@@ -36,12 +44,16 @@ class GasCrafterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Blo
     override fun tick() {
         super.tick()
 
+        glow.tickChaser()
         if (level!!.isClientSide && !isVirtual) return
 
-        processingTicks = max(processingTicks,0)
+
+        processingTicks = max(processingTicks-1,0)
         if (processingTicks == 0 && currentRecipe != null) {
+            glow.setValue(2.0)
             GasCraftingRecipe.apply(this, currentRecipe!!)
             currentRecipe = null
+            sendData()
         }
     }
 
@@ -61,7 +73,7 @@ class GasCrafterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Blo
         val recipes: MutableList<Recipe<*>?> = getMatchingRecipes()
         if (recipes.isEmpty() || currentRecipe != null) return true
         currentRecipe = recipes[0]
-        processingTicks = (currentRecipe as GasCraftingRecipe).processingDuration
+        processingTicks = max((currentRecipe as GasCraftingRecipe).processingDuration, 20)
         sendData()
         return true
     }
@@ -98,12 +110,16 @@ class GasCrafterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Blo
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
         tag.putInt("processingTicks", processingTicks)
+        tag.put("glow", glow.writeNBT())
         super.write(tag, clientPacket)
     }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         super.read(tag, clientPacket)
         processingTicks = tag.getInt("processingTicks")
+        glow.readNBT(tag, clientPacket)
+
+        if (clientPacket) clientProcessingTicks = processingTicks.toFloat()
     }
 
 

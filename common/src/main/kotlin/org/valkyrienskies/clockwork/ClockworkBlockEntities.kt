@@ -44,6 +44,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.engine.GasEngineBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.exhaust.ExhaustBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorRenderer
@@ -587,6 +588,13 @@ object ClockworkBlockEntities {
                 state
             )
         }
+        .renderer {
+            NonNullFunction { context: BlockEntityRendererProvider.Context? ->
+                GasCrafterBlockEntityRenderer(
+                    context!!
+                )
+            }
+        }
         .validBlocks(ClockworkBlocks.GAS_CRAFTER)
         .register()
 
@@ -611,6 +619,7 @@ object ClockworkBlockEntities {
                 state
             )
         }
+
         .validBlocks(ClockworkBlocks.GAS_HEATER)
         .register()
 
