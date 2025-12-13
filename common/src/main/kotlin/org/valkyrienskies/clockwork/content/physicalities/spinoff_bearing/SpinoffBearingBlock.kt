@@ -3,12 +3,16 @@ package org.valkyrienskies.clockwork.content.physicalities.spinoff_bearing
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.BlockGetter
+import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.DirectionalBlock
 import net.minecraft.world.level.block.RenderShape
+import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
@@ -59,12 +63,15 @@ class SpinoffBearingBlock(properties: Properties) : DirectionalBlock(properties)
         )
     }
 
-    override fun destroy(level: LevelAccessor, pos: BlockPos, state: BlockState) {
-        super.destroy(level, pos, state)
-        withBlockEntityDo(level, pos) { be ->
-            be.partner?.disconnect()
-            be.disconnect()
-        }
+    override fun onRemove(
+        state: BlockState,
+        level: Level,
+        pos: BlockPos,
+        newState: BlockState,
+        movedByPiston: Boolean
+    ) {
+        IBE.onRemove(state, level, pos, newState)
+        //super.onRemove(state, level, pos, newState, movedByPiston)
     }
 
     override fun getBlockEntityClass(): Class<SpinoffBearingBlockEntity> {

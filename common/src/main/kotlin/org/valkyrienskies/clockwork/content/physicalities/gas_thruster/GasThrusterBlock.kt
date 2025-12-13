@@ -80,7 +80,17 @@ class GasThrusterBlock(properties: Properties) : DirectionalBlock(properties), I
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
         super.onPlace(state, level, pos, oldState, isMoving)
         nodePlace(state, level, pos, oldState, isMoving)
+    }
 
+    override fun onRemove(
+        pState: BlockState,
+        pLevel: Level,
+        pPos: BlockPos,
+        pNewState: BlockState,
+        pIsMoving: Boolean
+    ) {
+        nodeRemove(pState, pLevel, pPos, pNewState, pIsMoving)
+        IBE.onRemove(pState, pLevel, pPos, pNewState)
     }
 
     override fun getBlockEntityClass(): Class<GasThrusterBlockEntity> {

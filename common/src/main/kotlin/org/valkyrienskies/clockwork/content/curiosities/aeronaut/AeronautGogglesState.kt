@@ -17,7 +17,7 @@ class AeronautGogglesState {
 
             if (s == null) {
                 s = AeronautGogglesState()
-                p.aeronautGogglesState = s
+                p.setAeronautGogglesState(s)
             }
 
             return s
