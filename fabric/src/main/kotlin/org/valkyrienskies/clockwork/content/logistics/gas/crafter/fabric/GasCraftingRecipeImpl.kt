@@ -24,6 +24,7 @@ import kotlin.jvm.optionals.getOrNull
 import kotlin.math.min
 
 object GasCraftingRecipeImpl {
+    @JvmStatic
     private fun apply(be: GasCrafterBlockEntity, recipe: Recipe<*>, test: Boolean): Boolean {
         val isGasCrafterRecipe = recipe is GasCraftingRecipe
         val basin = be.getBasin().getOrNull() ?: return false
@@ -38,7 +39,7 @@ object GasCraftingRecipeImpl {
 
         val recipeOutputItems: MutableList<ItemStack> = ArrayList()
         val recipeOutputFluids: MutableList<FluidStack> = ArrayList()
-        val recipeOutputGas: MutableList<KelvinGasIngredient> = ArrayList()
+
 
         val ingredients = LinkedList(recipe.ingredients)
         val fluidIngredients = if (isGasCrafterRecipe) recipe.fluidIngredients else emptyList()
@@ -132,9 +133,9 @@ object GasCraftingRecipeImpl {
                     ClockworkMod.getKelvin().modGasMass(be.getDuctNodePosition(), gas, -deltaMass)
                 }
 
-                for (ingredient in gasResults) {
-                    val mass = ingredient.moles * ingredient.gasType.density * 22.4
-                    ClockworkMod.getKelvin().modGasMass(be.getDuctNodePosition(), ingredient.gasType, -mass)
+                for (gas in gasResults) {
+                    val mass = gas.moles * gas.gasType.density * 22.4
+                    ClockworkMod.getKelvin().modGasMass(be.getDuctNodePosition(), gas.gasType, -mass)
                 }
 
             }

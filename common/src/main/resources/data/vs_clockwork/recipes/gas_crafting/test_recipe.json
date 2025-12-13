@@ -1,0 +1,25 @@
+{
+  "type": "vs_clockwork:gas_crafting",
+  "ingredients": [
+    {
+      "item": "minecraft:andesite"
+    }
+  ],
+  "input_gasses": {
+    "kelvin:air": {
+      "amount": 1,
+      "unit": "kg"
+    }
+  },
+  "result_gasses": {
+    "kelvin:exhaust": {
+      "amount": 1,
+      "unit": "kg"
+    }
+  },
+  "results": [
+    {
+      "item": "create:andesite_alloy"
+    }
+  ]
+}

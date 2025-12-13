@@ -12,10 +12,10 @@ import net.minecraft.world.Container
 import net.minecraft.world.item.crafting.Recipe
 import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.ClockworkRecipeTypes
-import org.valkyrienskies.kelvin.integration.jei.KelvinGasIngredient
 import kotlin.jvm.optionals.getOrNull
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCraftingRecipeBuilder.GasRecipeParams
-import org.valkyrienskies.kelvin.impl.KelvinReactionDataLoader
+import org.valkyrienskies.kelvin.api.recipe.KelvinGasIngredient
+import org.valkyrienskies.kelvin.impl.recipe.KelvinGasRecipeSerializer
 
 open class GasCraftingRecipe(type: IRecipeTypeInfo, params: GasRecipeParams) :
     ProcessingRecipe<Container>(type, params) {
@@ -25,7 +25,6 @@ open class GasCraftingRecipe(type: IRecipeTypeInfo, params: GasRecipeParams) :
 
     constructor(params: GasRecipeParams) : this(ClockworkRecipeTypes.GAS_CRAFTING, params)
     constructor(params: ProcessingRecipeBuilder.ProcessingRecipeParams) : this(ClockworkRecipeTypes.GAS_CRAFTING, params as GasRecipeParams)
-
 
     companion object {
         @JvmStatic
@@ -76,6 +75,10 @@ open class GasCraftingRecipe(type: IRecipeTypeInfo, params: GasRecipeParams) :
     }
 
     override fun readAdditional(json: JsonObject) {
+        val gasBaseRecipe = KelvinGasRecipeSerializer.parse(json) ?: return
+
+        gasBaseRecipe.gasses.forEach { gasIngredients.add(KelvinGasIngredient(it.key, it.value)) }
+        gasBaseRecipe.result.forEach { gasResults.add(KelvinGasIngredient(it.key, it.value)) }
 
     }
 

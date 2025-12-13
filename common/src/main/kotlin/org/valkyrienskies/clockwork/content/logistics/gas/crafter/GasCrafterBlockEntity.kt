@@ -37,6 +37,7 @@ class GasCrafterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Blo
         super.tick()
 
         if (level!!.isClientSide && !isVirtual) return
+        println("basin: ${ getBasin().isPresent }")
 
         processingTicks = max(processingTicks,0)
         if (processingTicks == 0 && currentRecipe != null) {
@@ -47,6 +48,7 @@ class GasCrafterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Blo
 
     override fun lazyTick() {
         basinChecker?.scheduleUpdate()
+        super.lazyTick()
     }
 
     fun updateBasin(): Boolean {
@@ -89,7 +91,7 @@ class GasCrafterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Blo
 
     fun getBasin(): Optional<BasinBlockEntity> {
         if (level == null) return Optional.empty<BasinBlockEntity>()
-        val basinBE = level!!.getBlockEntity(worldPosition.below(2))
+        val basinBE = level!!.getBlockEntity(worldPosition.below(1))
         if (basinBE !is BasinBlockEntity) return Optional.empty<BasinBlockEntity>()
         return Optional.of<BasinBlockEntity>(basinBE)
     }

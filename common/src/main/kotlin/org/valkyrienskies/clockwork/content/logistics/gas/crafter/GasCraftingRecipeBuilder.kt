@@ -5,7 +5,7 @@ import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder
 import net.minecraft.core.NonNullList
 import net.minecraft.resources.ResourceLocation
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.kelvin.integration.jei.KelvinGasIngredient
+import org.valkyrienskies.kelvin.api.recipe.KelvinGasIngredient
 
 class GasCraftingRecipeBuilder(factory: ProcessingRecipeBuilder.ProcessingRecipeFactory<GasCraftingRecipe>, recipeId: ResourceLocation) {
 

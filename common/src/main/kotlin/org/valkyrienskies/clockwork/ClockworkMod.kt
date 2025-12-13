@@ -71,6 +71,7 @@ object ClockworkMod {
         ClockworkPackets.init()
         ClockworkTags.init()
         ClockworkRecipes.init()
+        ClockworkRecipeTypes.init()
         TAB_REGISTRY.register()
 
         vsCore.registerAttachment(PocketForcesController::class.java)
