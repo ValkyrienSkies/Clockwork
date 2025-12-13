@@ -1,0 +1,49 @@
+{
+	"format_version": "1.9.0",
+	"credit": "Made with Blockbench",
+	"texture_size": [128, 128],
+	"textures": {
+		"1": "create:block/display_link",
+		"particle": "vs_clockwork:block/pneumocrafter"
+	},
+	"elements": [
+		{
+			"from": [2.5, 13.5, 7.5],
+			"to": [8.5, 19.5, 13.5],
+			"rotation": {"angle": 0, "axis": "y", "origin": [16.5, 6, 0.5]},
+			"faces": {
+				"north": {"uv": [16, 8.5, 13.5, 11], "texture": "#1"},
+				"east": {"uv": [16, 8.5, 13.5, 11], "texture": "#1"},
+				"south": {"uv": [16, 8.5, 13.5, 11], "texture": "#1"},
+				"west": {"uv": [16, 8.5, 13.5, 11], "texture": "#1"},
+				"up": {"uv": [16, 6, 13.5, 8.5], "texture": "#1"},
+				"down": {"uv": [16, 11, 13.5, 13.5], "texture": "#1"}
+			}
+		},
+		{
+			"from": [2.5, 13.5, 9],
+			"to": [8.5, 19.5, 11],
+			"rotation": {"angle": 0, "axis": "y", "origin": [6.5, 13.5, 19.5]},
+			"faces": {
+				"south": {"uv": [16, 13.5, 13.5, 16], "texture": "#1"}
+			}
+		},
+		{
+			"from": [2.5, 13.5, 10],
+			"to": [8.5, 19.5, 12],
+			"rotation": {"angle": 0, "axis": "y", "origin": [16.5, 6, 0.5]},
+			"faces": {
+				"north": {"uv": [16, 13.5, 13.5, 16], "texture": "#1"}
+			}
+		}
+	],
+	"display": {},
+	"groups": [
+		{
+			"name": "tube",
+			"origin": [16, 0, 0],
+			"color": 0,
+			"children": [0, 1, 2]
+		}
+	]
+}

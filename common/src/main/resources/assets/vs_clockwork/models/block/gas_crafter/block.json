@@ -1,8 +1,43 @@
 {
-  "parent": "minecraft:block/orientable",
-  "textures": {
-    "front": "minecraft:block/blast_furnace_front",
-    "side": "vs_clockwork:block/gas_crafter",
-    "top": "vs_clockwork:block/gas_crafter"
-  }
+	"format_version": "1.9.0",
+	"credit": "Made with Blockbench",
+	"texture_size": [128, 128],
+	"textures": {
+		"0": "vs_clockwork:block/pneumocrafter",
+		"particle": "vs_clockwork:block/pneumocrafter"
+	},
+	"elements": [
+		{
+			"from": [0.5, 2, 0.5],
+			"to": [15.5, 4, 15.5],
+			"rotation": {"angle": 0, "axis": "y", "origin": [0, 2, 0]},
+			"faces": {
+				"north": {"uv": [0, 7.25, 3.75, 7.75], "texture": "#0"},
+				"east": {"uv": [0, 7.25, 3.75, 7.75], "texture": "#0"},
+				"south": {"uv": [0, 7.25, 3.75, 7.75], "texture": "#0"},
+				"west": {"uv": [0, 7.25, 3.75, 7.75], "texture": "#0"}
+			}
+		},
+		{
+			"from": [0, 0, 0],
+			"to": [16, 2, 16],
+			"faces": {
+				"north": {"uv": [0, 7.75, 4, 8.25], "texture": "#0"},
+				"east": {"uv": [0, 7.75, 4, 8.25], "texture": "#0"},
+				"south": {"uv": [0, 7.75, 4, 8.25], "texture": "#0"},
+				"west": {"uv": [0, 7.75, 4, 8.25], "texture": "#0"},
+				"up": {"uv": [4, 4, 0, 0], "texture": "#0"},
+				"down": {"uv": [4, 8.25, 0, 12.25], "texture": "#0"}
+			}
+		}
+	],
+	"display": {},
+	"groups": [
+		{
+			"name": "base",
+			"origin": [0, 0, 0],
+			"color": 0,
+			"children": [0, 1]
+		}
+	]
 }
