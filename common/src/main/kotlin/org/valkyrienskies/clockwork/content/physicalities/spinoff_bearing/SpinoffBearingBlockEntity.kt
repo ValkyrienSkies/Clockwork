@@ -133,9 +133,10 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
         }
         if (partner == null) {
             //search for a partner
+
             val clip = ClipContext(
-                Vec3.atCenterOf(position),
-                Vec3.atCenterOf(position.relative(facing, 2)),
+                sLevel.toWorldCoordinates(Vec3.atCenterOf(position)),
+                sLevel.toWorldCoordinates(Vec3.atCenterOf(position.relative(facing, 2))),
                 ClipContext.Block.COLLIDER,
                 ClipContext.Fluid.NONE,
                 null
