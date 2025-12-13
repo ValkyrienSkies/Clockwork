@@ -27,6 +27,7 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity
+import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.core.api.VsBeta
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
@@ -45,6 +46,7 @@ import org.valkyrienskies.mod.api.dimensionId
 import org.valkyrienskies.mod.common.getLoadedShipManagingPos
 import org.valkyrienskies.mod.common.toWorldCoordinates
 import org.valkyrienskies.mod.common.util.toJOMLD
+import org.valkyrienskies.mod.common.world.clipIncludeShips
 
 @OptIn(PhysTickOnly::class, GameTickOnly::class, VsBeta::class)
 class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : SmartBlockEntity(type, pos,
@@ -81,6 +83,9 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
     var shouldRemoveJoint: Boolean = false
     var shouldVerifyPartner: Boolean = false
 
+    var reconnectDelay: Int = 0
+    var canConnect : Boolean = true
+
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
         if (clientPacket) {
             super.write(tag, clientPacket)
@@ -102,6 +107,9 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
             val y = tag.getInt("partnerY")
             val z = tag.getInt("partnerZ")
             partnerPos = BlockPos(x, y, z)
+        }
+        if (tag.contains("isLeader")) {
+            isLeader = tag.getBoolean("isLeader")
         }
         jointId = tag.getInt("jointId")
         shouldVerifyPartner = true
@@ -131,7 +139,13 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
             }
             shouldVerifyPartner = false
         }
-        if (partner == null) {
+        val selfIsPowered = sLevel.hasNeighborSignal(position)
+        canConnect = (reconnectDelay <= 0) && !selfIsPowered
+        if (partner != null && !canConnect) {
+            partner?.disconnect()
+            disconnect()
+        }
+        if (partner == null && canConnect) {
             //search for a partner
 
             val clip = ClipContext(
@@ -142,13 +156,13 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
                 null
             )
 
-            val hitResult = sLevel.clip(clip)
+            val hitResult = sLevel.clipIncludeShips(clip, skipShip = level!!.getLoadedShipManagingPos(position)?.id)
             if (hitResult.type == HitResult.Type.BLOCK) {
                 println("hit!")
                 println(hitResult.blockPos)
                 val hitPos = hitResult.blockPos
                 sLevel.getBlockEntity(hitPos)?.let { be ->
-                    if (be is SpinoffBearingBlockEntity && (be.partner == null || be.partner == this) ) {
+                    if (be is SpinoffBearingBlockEntity && (be.partner == null || be.partner == this) && be.canConnect) {
                         //check the two bearings are facing eachother mostly
                         val selfShip = sLevel.getLoadedShipManagingPos(this.position)
                         val partnerShip = sLevel.getLoadedShipManagingPos(hitPos)
@@ -186,6 +200,9 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
                 }
             }
         }
+        if (reconnectDelay > 0) {
+            reconnectDelay--
+        }
     }
 
     override fun physTick(
@@ -195,16 +212,15 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
         if (shouldVerifyConnection) {
             val vsiPhysLevel = physLevel as VsiPhysLevel
             vsiPhysLevel.getJointById(jointId)?.let {
-                println("already connected")
                 isConnected = true
+                shouldVerifyConnection = false
             } ?: run {
                 isConnected = false
                 jointId = -1
             }
-            shouldVerifyConnection = false
             if (!isConnected) {
-                println("Making joint")
                 if (partnerShipId == physShip?.id) return
+                if (partnerFacing == null || partnerPos == null) return
                 //create joint between the two bearings
                 val selfRotation = facing.getQuaternion()
                 val partnerRotation = partnerFacing?.opposite!!.getQuaternion()
@@ -241,6 +257,7 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
                     )
                 }
                 jointId = vsiPhysLevel.addJoint(revoluteJoint)
+                shouldVerifyConnection = false
             }
         }
         if (shouldRemoveJoint) {
@@ -253,13 +270,23 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
     }
 
     fun disconnect() {
-        if (this.isLeader) {
-            this.shouldRemoveJoint = true
-        }
+        this.shouldRemoveJoint = true
         partner = null
         partnerPos = null
         partnerShipId = null
         partnerFacing = null
+        reconnectDelay = 10
+    }
+
+    override fun destroy() {
+        if (level is ServerLevel) {
+            val sLevel = (level as ServerLevel)
+            sLevel.gtpa.removeJoint(jointId)
+            println("tried to use GTPA to remove joint")
+        }
+        partner?.disconnect()
+        this.disconnect()
+        super.destroy()
     }
 
     private fun Vector3dc.toWorldFacing(ship: LoadedServerShip?): Vector3dc {

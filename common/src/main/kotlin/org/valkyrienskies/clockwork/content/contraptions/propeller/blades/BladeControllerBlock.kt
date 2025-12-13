@@ -86,4 +86,15 @@ class BladeControllerBlock(properties: Properties) : DirectionalBlock(properties
             return super.use(state, level, pos, player, hand, hit)
         }
     }
+
+    override fun onRemove(
+        pState: BlockState,
+        pLevel: Level,
+        pPos: BlockPos,
+        pNewState: BlockState,
+        pIsMoving: Boolean
+    ) {
+        IBE.onRemove(pState, pLevel, pPos, pNewState)
+        //super.onRemove(pState, pLevel, pPos, pNewState, pIsMoving)
+    }
 }

@@ -96,7 +96,8 @@ class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(prope
 
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
         nodeRemove(state, level, pos, newState, isMoving)
-        super.onRemove(state, level, pos, newState, isMoving)
+        IBE.onRemove(state, level, pos, newState)
+        //super.onRemove(state, level, pos, newState, isMoving)
     }
 
 

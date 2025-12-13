@@ -428,12 +428,18 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val ship1rot = getHingeRotation(direction)
         val ship2rot = getHingeRotation(direction)
 
+        val worldOffset0 = if (shipOn != null) {
+            Vector3d(0.0, 0.0, 0.0)
+        } else {
+            Vector3d(0.5, 0.5, 0.5)
+        }
+
         val extraDist = 1.0
         val realSpeed = if (getSpeed().absoluteValue > 0.0f) getRealisticAngularSpeed() else 0.0f
         val newDriveVelocity = if (realSpeed != 0.0f) VSRevoluteJoint.VSRevoluteDriveVelocity(getRealisticAngularSpeed(), true) else null
         val angle = if (movementMode!!.get() == LockedMode.FOLLOW_ANGLE) { Math.toRadians(targetAngle.toDouble()).toFloat().let { VSD6Joint.AngularLimitPair(it, it.nextUp()) } } else {null}
         val joint = VSRevoluteJoint(
-            shiptraptionID, VSJointPose(bearingPos.fma(-extraDist, axis, Vector3d()), ship1rot),
+            shiptraptionID, VSJointPose(bearingPos.fma(-extraDist, axis, Vector3d()).add(worldOffset0, Vector3d()), ship1rot),
             shipOnID, VSJointPose(posInOwnerShip.fma(-extraDist, axis, Vector3d()), ship2rot),
             driveFreeSpin = this.movementMode!!.get() == LockedMode.UNLOCKED,
             driveVelocity = newDriveVelocity,
