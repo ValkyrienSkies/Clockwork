@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.platform.fabric
 
 import com.simibubi.create.content.processing.basin.BasinBlockEntity
+import com.simibubi.create.content.processing.burner.BlazeBurnerBlock
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour
 import com.simibubi.create.foundation.recipe.DummyCraftingContainer
 import io.github.fabricators_of_create.porting_lib.fluids.FluidStack
@@ -15,10 +16,8 @@ import net.minecraft.world.item.crafting.Recipe
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCraftingRecipe
-import org.valkyrienskies.kelvin.api.GasType
 import java.util.ArrayList
 import java.util.LinkedList
-import kotlin.collections.iterator
 import kotlin.jvm.optionals.getOrNull
 import kotlin.math.min
 import kotlin.use
@@ -27,14 +26,12 @@ object GasCrafterMethodsImpl {
     @JvmStatic
     fun apply(be: GasCrafterBlockEntity, recipe: Recipe<*>, test: Boolean): Boolean {
         val isGasCrafterRecipe = recipe is GasCraftingRecipe
-        val basin = be.getBasin().getOrNull() ?: return false
+        val basin = be.getBasin().getOrNull()
 
-        val availableItems = basin.getItemStorage(null)
-        val availableFluids = basin.getFluidStorage(null)
+        val availableItems = basin?.getItemStorage(null)
+        val availableFluids = basin?.getFluidStorage(null)
 
-        if (availableItems == null || availableFluids == null) return false
-
-        val heat = BasinBlockEntity.getHeatLevelOf(basin.blockState)
+        val heat = if (basin != null)  BasinBlockEntity.getHeatLevelOf(basin.blockState) else BlazeBurnerBlock.HeatLevel.NONE
         if (isGasCrafterRecipe && !recipe.requiredHeat.testBlazeBurner(heat)) return false
 
         val recipeOutputItems: MutableList<ItemStack> = ArrayList()
@@ -44,12 +41,16 @@ object GasCrafterMethodsImpl {
         val ingredients = LinkedList(recipe.ingredients)
         val fluidIngredients = if (isGasCrafterRecipe) recipe.fluidIngredients else emptyList()
 
-        val gasIngredients = if (isGasCrafterRecipe) recipe.gasIngredients else emptyList()
-        val gasResults = if (isGasCrafterRecipe) recipe.gasResults else emptyList()
+        val baseGasRecipe = (recipe as? GasCraftingRecipe)?.gasRecipe
+        val gasIngredients = baseGasRecipe?.gasses?.toList() ?: emptyList()
+        val gasResults = baseGasRecipe?.result?.toList() ?: emptyList()
 
         val consumedItems = NonNullList.create<ItemStack>()
 
         TransferUtil.getTransaction().use { t ->
+
+            var itemsAffected = false
+            if (availableItems != null)
             Ingredients@ for (ingredient in ingredients) {
                 for (view in availableItems.nonEmptyViews()) {
                     val variant = view.resource
@@ -64,6 +65,7 @@ object GasCrafterMethodsImpl {
                     val extracted = view.extract(variant, 1, t)
                     if (extracted == 0L) continue
                     consumedItems.add(stack)
+                    itemsAffected = true
                     continue@Ingredients
                 }
                 // something wasn't found
@@ -71,6 +73,7 @@ object GasCrafterMethodsImpl {
             }
 
             var fluidsAffected = false
+            if (availableFluids != null)
             FluidIngredients@ for (fluidIngredient in fluidIngredients) {
                 var amountRequired = fluidIngredient.requiredAmount
                 for (view: StorageView<FluidVariant> in availableFluids.nonEmptyViews()) {
@@ -90,7 +93,7 @@ object GasCrafterMethodsImpl {
 
             if (fluidsAffected) {
                 TransactionCallback.onSuccess(t) {
-                    basin.getBehaviour(SmartFluidTankBehaviour.INPUT)
+                    basin!!.getBehaviour(SmartFluidTankBehaviour.INPUT)
                         .forEach { obj: SmartFluidTankBehaviour.TankSegment -> obj.onFluidStackChanged() }
                     basin.getBehaviour(SmartFluidTankBehaviour.OUTPUT)
                         .forEach { obj: SmartFluidTankBehaviour.TankSegment -> obj.onFluidStackChanged() }
@@ -110,34 +113,36 @@ object GasCrafterMethodsImpl {
                     if (!stack.isEmpty)
                         recipeOutputItems.add(stack)
 
+                baseGasRecipe?.requirements?.forEach { (requirement, element) ->
+                    if (!requirement.apply_requirement(be.level!!, be.getDuctNodePosition(),
+                        ClockworkMod.getKelvin(), element)) return false
+                }
             }
 
             // fabric: bad
             recipeOutputItems.removeIf { it.isEmpty }
 
-            if (!basin.acceptOutputs(recipeOutputItems, recipeOutputFluids, t)) return false
+            if (itemsAffected && !basin!!.acceptOutputs(recipeOutputItems, recipeOutputFluids, t)) return false
 
-            val inputGasses: HashMap<GasType, Double> = hashMapOf()
             val currentMasses = ClockworkMod.getKelvin().getGasMassAt(be.getDuctNodePosition())
-            GasIngredients@ for (gasIngredient in gasIngredients) {
-                val mass = gasIngredient.mass
-                inputGasses[gasIngredient.gasType] = mass
-
-                if ((currentMasses[gasIngredient.gasType] ?: 0.0) < mass) return false
+            GasIngredients@ for ((gasType, mass) in gasIngredients) {
+                val mass = mass
+                if ((currentMasses[gasType] ?: 0.0) < mass) return false
             }
 
             if (!test) {
                 t.commit()
 
-                for ((gas, deltaMass) in inputGasses) {
+                for ((gas, deltaMass) in gasIngredients) {
                     ClockworkMod.getKelvin().modGasMass(be.getDuctNodePosition(), gas, -deltaMass)
                 }
 
-                println(gasResults)
-                for (gas in gasResults) {
-                    val mass = gas.mass
-                    ClockworkMod.getKelvin().modGasMass(be.getDuctNodePosition(), gas.gasType, mass)
+                for ((gasType, mass) in gasResults) {
+                    val mass = mass
+                    ClockworkMod.getKelvin().modGasMass(be.getDuctNodePosition(), gasType, mass)
                 }
+
+                ClockworkMod.getKelvin().modHeatEnergy(be.getDuctNodePosition(), baseGasRecipe?.energy ?: 0.0)
 
             }
             return true

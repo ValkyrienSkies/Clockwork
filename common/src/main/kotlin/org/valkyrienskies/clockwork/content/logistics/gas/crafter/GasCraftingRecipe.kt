@@ -15,14 +15,14 @@ import org.valkyrienskies.clockwork.ClockworkRecipes
 import kotlin.jvm.optionals.getOrNull
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCraftingRecipeBuilder.GasRecipeParams
 import org.valkyrienskies.clockwork.platform.GasCrafterMethods
+import org.valkyrienskies.kelvin.api.recipe.GasBaseRecipe
 import org.valkyrienskies.kelvin.api.recipe.KelvinGasIngredient
 import org.valkyrienskies.kelvin.impl.recipe.KelvinGasRecipeSerializer
 
 open class GasCraftingRecipe(type: IRecipeTypeInfo, params: ProcessingRecipeBuilder.ProcessingRecipeParams) :
     ProcessingRecipe<Container>(type, params) {
 
-    var gasIngredients: NonNullList<KelvinGasIngredient> = NonNullList.create()
-    var gasResults: NonNullList<KelvinGasIngredient> = NonNullList.create()
+    var gasRecipe: GasBaseRecipe? = null
 
     constructor(params: GasRecipeParams) : this(ClockworkRecipes.ClockworkRecipeTypes.GAS_CRAFTING, params)
     constructor(params: ProcessingRecipeBuilder.ProcessingRecipeParams) : this(ClockworkRecipes.ClockworkRecipeTypes.GAS_CRAFTING, params)
@@ -78,14 +78,10 @@ open class GasCraftingRecipe(type: IRecipeTypeInfo, params: ProcessingRecipeBuil
     }
 
     override fun readAdditional(json: JsonObject) {
-        val gasBaseRecipe = KelvinGasRecipeSerializer.parse(json) ?: return
-
-        gasBaseRecipe.gasses.forEach { gasIngredients.add(KelvinGasIngredient(it.key, it.value)) }
-        gasBaseRecipe.result.forEach { gasResults.add(KelvinGasIngredient(it.key, it.value)) }
-
+        gasRecipe = KelvinGasRecipeSerializer.parse(json) ?: return
     }
 
     override fun writeAdditional(json: JsonObject) {
-
+        if (gasRecipe != null) KelvinGasRecipeSerializer.write(json, gasRecipe!!)
     }
 }
