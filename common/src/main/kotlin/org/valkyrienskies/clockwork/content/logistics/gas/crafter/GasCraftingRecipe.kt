@@ -11,25 +11,25 @@ import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.world.Container
 import net.minecraft.world.item.crafting.Recipe
 import net.minecraft.world.level.Level
-import org.valkyrienskies.clockwork.ClockworkRecipeTypes
+import org.valkyrienskies.clockwork.ClockworkRecipes
 import kotlin.jvm.optionals.getOrNull
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCraftingRecipeBuilder.GasRecipeParams
+import org.valkyrienskies.clockwork.platform.GasCrafterMethods
 import org.valkyrienskies.kelvin.api.recipe.KelvinGasIngredient
 import org.valkyrienskies.kelvin.impl.recipe.KelvinGasRecipeSerializer
 
-open class GasCraftingRecipe(type: IRecipeTypeInfo, params: GasRecipeParams) :
+open class GasCraftingRecipe(type: IRecipeTypeInfo, params: ProcessingRecipeBuilder.ProcessingRecipeParams) :
     ProcessingRecipe<Container>(type, params) {
 
-    var gasIngredients: NonNullList<KelvinGasIngredient> = params.gasIngredients
-    var gasResults: NonNullList<KelvinGasIngredient> = params.gasResults
+    var gasIngredients: NonNullList<KelvinGasIngredient> = NonNullList.create()
+    var gasResults: NonNullList<KelvinGasIngredient> = NonNullList.create()
 
-    constructor(params: GasRecipeParams) : this(ClockworkRecipeTypes.GAS_CRAFTING, params)
-    constructor(params: ProcessingRecipeBuilder.ProcessingRecipeParams) : this(ClockworkRecipeTypes.GAS_CRAFTING, params as GasRecipeParams)
+    constructor(params: GasRecipeParams) : this(ClockworkRecipes.ClockworkRecipeTypes.GAS_CRAFTING, params)
+    constructor(params: ProcessingRecipeBuilder.ProcessingRecipeParams) : this(ClockworkRecipes.ClockworkRecipeTypes.GAS_CRAFTING, params)
 
     companion object {
         @JvmStatic
         fun match(be: GasCrafterBlockEntity, recipe: Recipe<*>): Boolean {
-
             val basin = be.getBasin().getOrNull() ?: return false
             return apply(be, recipe, true)
         }
@@ -39,12 +39,15 @@ open class GasCraftingRecipe(type: IRecipeTypeInfo, params: GasRecipeParams) :
             return apply(be, recipe, false)
         }
 
-        @ExpectPlatform
-        private fun apply(be: GasCrafterBlockEntity, recipe: Recipe<*>, test: Boolean): Boolean {
-            throw AssertionError()
+        @JvmStatic
+        fun apply(be: GasCrafterBlockEntity, recipe: Recipe<*>, test: Boolean): Boolean {
+            return GasCrafterMethods.apply(be, recipe, test)
         }
 
+
     }
+
+
 
     override fun getMaxInputCount(): Int {
         return 64

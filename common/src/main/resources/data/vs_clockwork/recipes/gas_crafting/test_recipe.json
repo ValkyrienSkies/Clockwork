@@ -17,6 +17,7 @@
       "unit": "kg"
     }
   },
+  "requirements": {},
   "results": [
     {
       "item": "create:andesite_alloy"

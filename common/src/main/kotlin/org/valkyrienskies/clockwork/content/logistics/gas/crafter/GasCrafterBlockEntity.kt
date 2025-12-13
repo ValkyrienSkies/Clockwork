@@ -10,6 +10,7 @@ import net.minecraft.world.Container
 import net.minecraft.world.item.crafting.Recipe
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import org.valkyrienskies.clockwork.ClockworkRecipes
 import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.core.impl.shadow.cu
 import java.util.*
@@ -58,7 +59,9 @@ class GasCrafterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Blo
         if (!basin.filter(Predicate { obj: BasinBlockEntity? -> obj!!.canContinueProcessing() })
                 .isPresent()
         ) return true
+
         val recipes: MutableList<Recipe<*>?> = getMatchingRecipes()
+        println("MATCHING RECIPES $recipes")
         if (recipes.isEmpty() || currentRecipe != null) return true
         currentRecipe = recipes[0]
         processingTicks = (currentRecipe as GasCraftingRecipe).processingDuration
@@ -74,7 +77,7 @@ class GasCrafterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Blo
 
 
         for (r in RecipeFinder.get(GAS_CRAFTER_RECIPES_KEY, level)
-            { recipe: Recipe<*> -> recipe.type == AllRecipeTypes.BASIN.getType() })
+            { recipe: Recipe<*> -> recipe.type == ClockworkRecipes.ClockworkRecipeTypes.GAS_CRAFTING.getType() })
             if (matchRecipe(r)) list.add(r)
 
         if (list.size > 1)

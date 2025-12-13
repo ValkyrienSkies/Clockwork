@@ -1,8 +1,9 @@
-package org.valkyrienskies.clockwork.content.logistics.gas.crafter.fabric
+package org.valkyrienskies.clockwork.platform
 
 import com.simibubi.create.content.processing.basin.BasinBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour
 import com.simibubi.create.foundation.recipe.DummyCraftingContainer
+import dev.architectury.injectables.annotations.ExpectPlatform
 import io.github.fabricators_of_create.porting_lib.fluids.FluidStack
 import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil
 import io.github.fabricators_of_create.porting_lib.transfer.callbacks.TransactionCallback
@@ -18,10 +19,14 @@ import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCraftingRec
 import org.valkyrienskies.kelvin.api.GasType
 import java.util.ArrayList
 import java.util.LinkedList
-import kotlin.collections.iterator
 import kotlin.jvm.optionals.getOrNull
 import kotlin.math.min
+import kotlin.use
 
-object GasCraftingRecipeImpl {
-
+object GasCrafterMethods {
+    @JvmStatic
+    @ExpectPlatform
+    fun apply(be: GasCrafterBlockEntity, recipe: Recipe<*>, test: Boolean): Boolean {
+        throw AssertionError()
+    }
 }

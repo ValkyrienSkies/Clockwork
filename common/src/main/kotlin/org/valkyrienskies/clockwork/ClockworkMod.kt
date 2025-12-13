@@ -39,6 +39,7 @@ import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.vsCore
+import org.valkyrienskies.mod.event.RegistryEvents
 
 
 object ClockworkMod {
@@ -71,7 +72,6 @@ object ClockworkMod {
         ClockworkPackets.init()
         ClockworkTags.init()
         ClockworkRecipes.init()
-        ClockworkRecipeTypes.init()
         TAB_REGISTRY.register()
 
         vsCore.registerAttachment(PocketForcesController::class.java)
@@ -113,6 +113,7 @@ object ClockworkMod {
             ClockworkAugmentations.registerComponentSumAugmentation("airupdated", it.shipObjectWorld)
             ClockworkAugmentations.registerSumAugmentation("sealed", it.shipObjectWorld)
         }
+
 
         TickEvent.SERVER_LEVEL_POST.register {
             //for (ship in it.shipObjectWorld.loadedShips) {

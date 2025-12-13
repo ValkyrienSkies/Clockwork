@@ -28,11 +28,8 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
         super.tick()
         if (level!!.isClientSide) return
         val kelvin = ClockworkMod.getKelvin()
-        val node = kelvin.getNodeAt(blockPos.toDuctNodePos(level!!.dimension().location())) ?: return
 
-
-
-
+        kelvin.getNodeAt(blockPos.toDuctNodePos(level!!.dimension().location())) ?: return
         if (fuelTicks>0) {
             fuelTicks-=1
             if (kelvin.getTemperatureAt(blockPos.toDuctNodePos(level!!.dimension().location()))<2000.0) kelvin.modHeatEnergy(blockPos.toDuctNodePos(level!!.dimension().location()),1000.0)
