@@ -217,9 +217,9 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
                 isConnected = false
                 jointId = -1
             }
-            shouldVerifyConnection = false
             if (!isConnected) {
                 if (partnerShipId == physShip?.id) return
+                if (partnerFacing == null || partnerPos == null) return
                 //create joint between the two bearings
                 val selfRotation = facing.getQuaternion()
                 val partnerRotation = partnerFacing?.opposite!!.getQuaternion()
@@ -256,6 +256,7 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
                     )
                 }
                 jointId = vsiPhysLevel.addJoint(revoluteJoint)
+                shouldVerifyConnection = false
             }
         }
         if (shouldRemoveJoint) {
