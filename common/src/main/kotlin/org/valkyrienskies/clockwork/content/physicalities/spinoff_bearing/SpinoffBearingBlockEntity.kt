@@ -46,6 +46,7 @@ import org.valkyrienskies.mod.api.dimensionId
 import org.valkyrienskies.mod.common.getLoadedShipManagingPos
 import org.valkyrienskies.mod.common.toWorldCoordinates
 import org.valkyrienskies.mod.common.util.toJOMLD
+import org.valkyrienskies.mod.common.world.clipIncludeShips
 
 @OptIn(PhysTickOnly::class, GameTickOnly::class, VsBeta::class)
 class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : SmartBlockEntity(type, pos,
@@ -155,7 +156,7 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
                 null
             )
 
-            val hitResult = sLevel.clip(clip)
+            val hitResult = sLevel.clipIncludeShips(clip, skipShip = level!!.getLoadedShipManagingPos(position)?.id)
             if (hitResult.type == HitResult.Type.BLOCK) {
                 println("hit!")
                 println(hitResult.blockPos)
