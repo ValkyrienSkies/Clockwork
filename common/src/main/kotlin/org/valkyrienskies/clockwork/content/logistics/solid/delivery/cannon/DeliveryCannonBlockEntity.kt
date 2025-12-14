@@ -295,9 +295,10 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         super.read(tag, clientPacket)
 
-        xRot.readNBT(tag.get("xRot") as CompoundTag, clientPacket)
-        yRot.readNBT(tag.get("yRot") as CompoundTag, clientPacket)
-        distance.readNBT(tag.get("distance") as CompoundTag, clientPacket)
+        // The CompoundTag? ?: return is sus I will admit
+        xRot.readNBT(tag.get("xRot") as CompoundTag? ?: return, clientPacket)
+        yRot.readNBT(tag.get("yRot") as CompoundTag? ?: return, clientPacket)
+        distance.readNBT(tag.get("distance") as CompoundTag? ?:return, clientPacket)
 
         currentStack = ItemStack.of(tag)
         midAirStack = ItemStack.of(tag)
@@ -364,7 +365,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 //    var roundRobin = true
 //
 //    var visitedChutes = HashSet<BlockPos>()
-//    var ponder = false
+//
 //
 //    init {
 //        xTargetRotation = blockState.getValue(HorizontalDirectionalBlock.FACING).toYRot().toDouble()

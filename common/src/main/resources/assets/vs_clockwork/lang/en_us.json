@@ -228,17 +228,31 @@
   "vs_clockwork.ponder.alt_meter.header": "Altitude Meter",
   "vs_clockwork.ponder.alt_meter.text_1": "Configure Altitude Meter to desired height",
   "vs_clockwork.ponder.alt_meter.text_2": "Redstone output will trigger at configured height",
+
   "vs_clockwork.ponder.flap_bearing.header": "Flap Bearing",
+  "vs_clockwork.ponder.flap_bearing.text_1": "Flap bearings are a unique kind of bearing",
+  "vs_clockwork.ponder.flap_bearing.text_2": "They still require glue,",
+  "vs_clockwork.ponder.flap_bearing.text_3": "but don't spin immediately when given rotation",
+  "vs_clockwork.ponder.flap_bearing.text_4": "Instead, they tilt when given a redstone signal",
+  "vs_clockwork.ponder.flap_bearing.text_5": "Analogue signal strengths allow more control over the angle",
+
+  "vs_clockwork.ponder.smart_flap_bearing.header": "Smart Flap Bearing",
+  "vs_clockwork.ponder.smart_flap_bearing.text_1": "Smart flap bearings work the same as normal ones",
+  "vs_clockwork.ponder.smart_flap_bearing.text_2": "Except that they have built-in redstone link slots",
+  "vs_clockwork.ponder.smart_flap_bearing.text_3": "Making for much more compact builds.",
 
   "vs_clockwork.ponder.gyro.header": "Gyro",
   "vs_clockwork.ponder.gyro.text_1": "Gyro will stabilize ship in its direction",
   "vs_clockwork.ponder.gyro.text_2": "Redstone input from each side will tilt the ship",
 
   "vs_clockwork.ponder.solid_delivery.header": "Solid Delivery",
-  "vs_clockwork.ponder.solid_delivery.text_1": "Delivery cannons and delivery chutes allows transporting items in a short distance",
-  "vs_clockwork.ponder.solid_delivery.text_2": "Delivery Cannons and Chutes have a frequency slot, similar to Redstone links. Delivery cannons will only fire to chutes with the same frequency",
-  "vs_clockwork.ponder.solid_delivery.text_3": "Delivery cannons will shoot out any items placed in the storage below it",
-  "vs_clockwork.ponder.solid_delivery.text_4": "They can only be placed on Depots,",
-  "vs_clockwork.ponder.solid_delivery.text_5": "Chutes,",
-  "vs_clockwork.ponder.solid_delivery.text_6": "and Belts"
+  "vs_clockwork.ponder.solid_delivery.text_1": "Delivery cannons and chutes can transport items in a short range",
+  "vs_clockwork.ponder.solid_delivery.text_2": "They have a frequency slot, similar to Redstone links",
+  "vs_clockwork.ponder.solid_delivery.text_3": "Cannons will only fire to chutes with the same frequency",
+  "vs_clockwork.ponder.solid_delivery.text_4": "Cannons will shoot out any items from the storage below",
+  "vs_clockwork.ponder.solid_delivery.text_5": "The benefit of Delivery cannons over something like a weighted ejector,",
+  "vs_clockwork.ponder.solid_delivery.text_6": "Is that the Delivery cannon can shoot between Ships.",
+  "vs_clockwork.ponder.solid_delivery.text_7": "Both the cannon and chute can only be placed on Depots,",
+  "vs_clockwork.ponder.solid_delivery.text_8": "Chutes,",
+  "vs_clockwork.ponder.solid_delivery.text_9": "and belts"
 }
