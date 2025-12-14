@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork
 import com.simibubi.create.content.contraptions.bearing.BearingRenderer
 import com.tterrag.registrate.util.entry.BlockEntityEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
+import dev.engine_room.flywheel.lib.visualization.SimpleBlockEntityVisualizer
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.BlockPos
@@ -58,6 +59,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozz
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctRenderer
+import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctVisual
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotRenderer
@@ -440,6 +442,11 @@ object ClockworkBlockEntities {
                 pos,
                 state
             )
+        }
+        .visual {
+            SimpleBlockEntityVisualizer.Factory { ctx, blockEntity, partialTick ->
+                ValveDuctVisual(ctx, blockEntity, partialTick)
+            }
         }
 //        .instance {
 //            BiFunction<MaterialManager?, ValveDuctBlockEntity?, BlockEntityInstance<in ValveDuctBlockEntity?>> { materialManager: MaterialManager?, blockEntity: ValveDuctBlockEntity? ->
