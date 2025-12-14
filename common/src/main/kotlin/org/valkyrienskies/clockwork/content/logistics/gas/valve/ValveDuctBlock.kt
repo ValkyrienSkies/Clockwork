@@ -1,6 +1,8 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.valve
 
 import com.simibubi.create.AllShapes
+import com.simibubi.create.content.fluids.pipes.IAxisPipe
+import com.simibubi.create.content.fluids.pipes.valve.FluidValveBlock
 import com.simibubi.create.content.kinetics.base.DirectionalAxisKineticBlock
 import com.simibubi.create.foundation.block.IBE
 import net.createmod.catnip.data.Iterate
@@ -22,7 +24,7 @@ import org.valkyrienskies.kelvin.api.edges.ApertureDuctEdge
 import org.valkyrienskies.kelvin.util.IEdgeBlock
 import org.valkyrienskies.kelvin.util.INodeBlock
 import org.valkyrienskies.kelvin.util.INodeBlockEntity
-import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
+
 class ValveDuctBlock(properties: Properties?) : DirectionalAxisKineticBlock(properties), IEdgeBlock, IBE<ValveDuctBlockEntity> {
 
     var edge: ApertureDuctEdge? = null
