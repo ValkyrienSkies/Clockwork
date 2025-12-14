@@ -47,7 +47,7 @@ class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
         }
 
         for ((gas,value) in gasses) {
-            network.modGasMass(getDuctNodePosition(), gas, -value)
+            network.removeGas(getDuctNodePosition(), gas, value)
         }
 
 

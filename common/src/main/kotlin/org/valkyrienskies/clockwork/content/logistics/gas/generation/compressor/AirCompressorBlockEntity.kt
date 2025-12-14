@@ -68,8 +68,8 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
             val heliumShare = max(0.0, (ClockworkConfig.SERVER.airCompressorHeliumAirDensity - getAirDensity())) / ClockworkConfig.SERVER.airCompressorHeliumAirDensity
             val deltaVolume = ClockworkConfig.SERVER.airCompressorSpeed*speed
 
-            kelvin.modGasMassOfTemperature(getDuctNodePosition(),airGas, (1-heliumShare)*deltaVolume, getAirTemperature())
-            kelvin.modGasMassOfTemperature(getDuctNodePosition(),heliumGas, heliumShare*deltaVolume, getAirTemperature())
+            kelvin.addGasAtTemperature(getDuctNodePosition(),airGas, (1-heliumShare)*deltaVolume, getAirTemperature())
+            kelvin.addGasAtTemperature(getDuctNodePosition(),heliumGas, heliumShare*deltaVolume, getAirTemperature())
         } else if (isActivated) {
             isActivated = false;
             sendData()

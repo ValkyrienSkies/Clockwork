@@ -66,10 +66,10 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
                 tag.putInt("DuctEdgeType${dir.name}", this.DIR_TO_CONNECTION_TYPE[dir]!!.ordinal)
 
                 if (clientPacket) continue
-                val neighborDuct = level?.getBlockEntity(blockPos) as? DuctBlockEntity ?: continue
 
                 val kelvin = ClockworkMod.getKelvin()
-                val edge = kelvin.getEdgeBetween(getDuctNodePosition(), neighborDuct.getDuctNodePosition()) ?: continue
+                val thisDuctPos = getDuctNodePosition()
+                val edge = kelvin.getEdgeBetween(thisDuctPos, DuctNodePos(thisDuctPos.x + dir.normal.x, thisDuctPos.y + dir.normal.y, thisDuctPos.z + dir.normal.z, thisDuctPos.dimensionId)) ?: continue
 
                 val serializedEdge = edge.serialize(tag)
                 tag.put("DuctEdge${dir.name}", serializedEdge)
