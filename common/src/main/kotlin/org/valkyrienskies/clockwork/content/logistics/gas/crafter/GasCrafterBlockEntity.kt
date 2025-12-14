@@ -45,6 +45,7 @@ class GasCrafterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Blo
         super.tick()
 
         glow.tickChaser()
+        println("${level?.isClientSide} ${glow.value}")
         if (level!!.isClientSide && !isVirtual) return
 
 
@@ -110,14 +111,14 @@ class GasCrafterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Blo
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
         tag.putInt("processingTicks", processingTicks)
-        tag.put("glow", glow.writeNBT())
+        tag.putFloat("glow", glow.value)
         super.write(tag, clientPacket)
     }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         super.read(tag, clientPacket)
         processingTicks = tag.getInt("processingTicks")
-        glow.readNBT(tag, clientPacket)
+        glow.setValue(tag.getFloat("glow").toDouble())
 
         if (clientPacket) clientProcessingTicks = processingTicks.toFloat()
     }

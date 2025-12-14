@@ -26,14 +26,16 @@ class GasCrafterBlockEntityRenderer(context: BlockEntityRendererProvider.Context
         val frame = CachedBuffers.partial(ClockworkPartials.GAS_CRAFTER_FRAME, be.blockState)
         val tube = CachedBuffers.partial(ClockworkPartials.GAS_CRAFTER_TUBE, be.blockState)
         val mesh = CachedBuffers.partial(ClockworkPartials.GAS_CRAFTER_MESH, be.blockState)
+        val glow_lamp = CachedBuffers.partial(ClockworkPartials.GAS_CRAFTER_GLOW, be.blockState)
 
-
-        var glow: Float = be.glow.getValue(partialTicks)
+        var glow: Float = 2-be.glow.getValue(partialTicks)
         glow = (1 - (2 * (glow - .75f).toDouble().pow(2.0))).toFloat()
         glow = Mth.clamp(glow, -1f, 1f)
         val color = (200 * glow).toInt()
-        val glow_lamp = CachedBuffers.partial(ClockworkPartials.GAS_CRAFTER_GLOW, be.blockState)
-            .color<SuperByteBuffer>(color,color,color,255).disableDiffuse<SuperByteBuffer>()
+
+
+
+        glow_lamp.color<SuperByteBuffer>(color,color,color,255).disableDiffuse<SuperByteBuffer>()
 
 
 
@@ -43,10 +45,17 @@ class GasCrafterBlockEntityRenderer(context: BlockEntityRendererProvider.Context
         val facing = be.blockState.getValue(BlockStateProperties.FACING) ?: return
         be.clientProcessingTicks = max(be.clientProcessingTicks-partialTicks,0f)
 
+
         mesh.translate(facing.normal.toJOMLF().mul(EaseHelper.easeInQuad(cos(be.clientProcessingTicks * 0.1f))*0.3f-0.3f))
 
-        if (be.clientProcessingTicks > 0)
-        frame.translate(Vector3f(Random.nextFloat(),Random.nextFloat(),Random.nextFloat()).mul(0.01f))
+        if (be.clientProcessingTicks > 0) {
+            val randomOffset =Vector3f(Random.nextFloat(),Random.nextFloat(),Random.nextFloat()).mul(0.01f)
+            frame.translate(randomOffset)
+            glow_lamp.translate(randomOffset)
+            tube.translate(randomOffset)
+        }
+
+
 
         fun rotateAndRender(buffer: SuperByteBuffer, light: Int, consumer: VertexConsumer) {
             buffer.translate(0.5,0.5,0.5).rotateToFace(facing).translateBack(0.5,0.5,0.5).light<SuperByteBuffer>(light).renderInto(ms, consumer)
