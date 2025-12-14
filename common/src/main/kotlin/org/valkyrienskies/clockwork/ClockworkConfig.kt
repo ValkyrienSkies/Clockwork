@@ -92,7 +92,7 @@ object ClockworkConfig {
         var kelvinNodeBlockEntityLazyTickRate = 10
 
         @JsonSchema(description = "The amount of air (in kg) that the air compressor produces per tick at sea level and 1 rpm")
-        var airCompressorSpeed = 0.1
+        var airCompressorSpeed = 0.01
 
         @JsonSchema(description = "The max amount of pressure that the air compressor will generate air for. In Pa")
         var airCompressorMaxPressure = 1000000.0
