@@ -52,6 +52,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.engine.GasEngineBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.exhaust.ExhaustBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.encased.GirderEncasedDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorBlock
@@ -419,6 +420,28 @@ object ClockworkBlocks {
         "duct"
     ) { properties: BlockBehaviour.Properties? ->
         DuctBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .onRegister(CreateRegistrate.blockModel {
+            NonNullFunction<BakedModel?, BakedModel> { template: BakedModel? ->
+                PipeAttachmentModel(
+                    template,
+                    false
+                )
+            }
+        })
+        .item()
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .transform(customItemModel())
+        .register()
+
+    @JvmField
+    val GIRDER_ENCASED_DUCT: BlockEntry<GirderEncasedDuctBlock> = REGISTRATE.block(
+        "girder_encased_duct"
+    ) { properties: BlockBehaviour.Properties? ->
+        GirderEncasedDuctBlock(
             properties!!
         )
     }

@@ -1,0 +1,103 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "create:block/metal_girder_encased_shaft/block"
+      },
+      "when": {
+        "axis": "z"
+      }
+    },
+    {
+      "apply": {
+        "model": "create:block/metal_girder_encased_shaft/block",
+        "y": 90
+      },
+      "when": {
+        "axis": "x"
+      }
+    },
+    {
+      "apply": {
+        "model": "create:block/metal_girder_encased_shaft/block_top"
+      },
+      "when": {
+        "top": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "create:block/metal_girder_encased_shaft/block_bottom"
+      },
+      "when": {
+        "bottom": "true"
+      }
+    },
+
+    {
+      "when": {
+        "OR": [
+          {"up": "true|leak", "down":  "false|forced" },
+          {"up": "false|forced", "down":  "true|leak" },
+          {"east": "true|leak", "west": "false|forced" },
+          {"north": "true|leak", "south": "false|forced" },
+          {"west": "true|leak", "east": "false|forced" },
+          {"north": "false|forced", "south": "true|leak" },
+
+          {"south": "true|leak", "north":  "true|leak", "east": "true" },
+          {"south": "true|leak", "north":  "true|leak", "west": "true" },
+          {"south": "true|leak", "north":  "true|leak", "up": "true" },
+          {"south": "true|leak", "north":  "true|leak", "down": "true" },
+
+          {"up": "true|leak", "down":  "true|leak", "east": "true|leak" },
+          {"up": "true|leak", "down":  "true|leak", "west": "true|leak" },
+          {"up": "true|leak", "down":  "true|leak", "north": "true|leak" },
+          {"up": "true|leak", "down":  "true|leak", "south": "true|leak" },
+
+          {"east": "true|leak", "west": "true|leak", "north": "true|leak" },
+          {"east": "true|leak", "west": "true|leak", "south": "true|leak" },
+          {"north": "true|leak", "south": "true|leak", "up": "true|leak" },
+          {"north": "true|leak", "south": "true|leak", "down":  "true|leak" },
+
+          {"north": "true|leak", "east": "true|leak", "south": "true|leak", "west": "true|leak","up": "true|leak", "down": "true|leak" },
+          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "false|forced", "down": "false|forced" }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/duct/core"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {"north": "true|leak", "east": "false|forced", "south": "true|leak", "west": "false|forced","up": "false|forced", "down": "false|forced" }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/duct/core_straight"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {"north": "false|forced", "east": "true|leak", "south": "false|forced", "west": "true|leak","up": "false|forced", "down": "false|forced" }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/duct/core_straight",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {"north": "false|forced", "east": "false|forced", "south": "false|forced", "west": "false|forced","up": "true|leak", "down": "true|leak" }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/duct/core_straight",
+        "x": 90
+      }
+    }
+  ]
+}

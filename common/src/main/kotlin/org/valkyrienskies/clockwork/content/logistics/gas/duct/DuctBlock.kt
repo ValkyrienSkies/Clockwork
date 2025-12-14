@@ -1,9 +1,14 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.duct
 
 import com.google.common.collect.ImmutableMap
+import com.simibubi.create.AllBlocks
 import com.simibubi.create.AllSoundEvents
+import com.simibubi.create.content.decoration.girder.GirderEncasedShaftBlock
 import com.simibubi.create.content.equipment.wrench.IWrenchable
+import com.simibubi.create.content.kinetics.base.KineticBlockEntity
+import com.simibubi.create.content.kinetics.base.RotatedPillarKineticBlock
 import com.simibubi.create.foundation.block.IBE
+import com.simibubi.create.foundation.block.ProperWaterloggedBlock
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -11,7 +16,10 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundSource
 import net.minecraft.util.RandomSource
+import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.BlockGetter
@@ -28,17 +36,14 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.level.block.state.properties.EnumProperty
 import net.minecraft.world.level.material.Fluid
 import net.minecraft.world.level.material.Fluids
+import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.joml.Vector2f
 import org.joml.Vector3d
-import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import org.valkyrienskies.clockwork.ClockworkConfig
-import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.ClockworkModClient
-import org.valkyrienskies.clockwork.ClockworkSoundScapes
+import org.valkyrienskies.clockwork.*
 import org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver.IScrewdrivable
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.DOWN_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.EAST_CONNECTION
@@ -46,13 +51,12 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.N
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.SOUTH_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.UP_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.WEST_CONNECTION
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.encased.GirderEncasedDuctBlock
 import org.valkyrienskies.clockwork.util.KelvinParticleHelper
 import org.valkyrienskies.clockwork.util.MathFunctions.isWithin
 import org.valkyrienskies.clockwork.util.MathFunctions.removeAxis
-import org.valkyrienskies.kelvin.api.ConnectionType
 import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
-import org.valkyrienskies.kelvin.api.nodes.PipeDuctNode
 import org.valkyrienskies.kelvin.util.IEdgeBlock
 import org.valkyrienskies.kelvin.util.INodeBlock
 import org.valkyrienskies.kelvin.util.INodeBlockEntity
@@ -60,7 +64,7 @@ import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.util.toJOMLD
 
 
-class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, IBE<DuctBlockEntity>,
+open class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, IBE<DuctBlockEntity>,
     SimpleWaterloggedBlock, IWrenchable,
     IScrewdrivable {
 
@@ -258,7 +262,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
     }
 
     override fun createNode(pos: DuctNodePos): DuctNode {
-        return  DuctPipeNode(pos = pos, volume = 0.1, maxPressure = 16375049.0, maxTemperature = 1478.0)
+        return  DuctPipeNode(pos = pos, volume = 0.25, maxPressure = 16375049.0, maxTemperature = 1478.0)
     }
 
     override fun canBeReplaced(state: BlockState, fluid: Fluid): Boolean {
@@ -428,8 +432,30 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
     }
 
-    fun randomPos(deviation: Double, random: RandomSource): Double {
-        return (0.5-deviation/2.0)+random.nextDouble()*deviation
+    override fun use(state: BlockState, level: Level, pos: BlockPos, player: Player, hand: InteractionHand, hit: BlockHitResult): InteractionResult? {
+
+        val heldItem = player.getItemInHand(hand)
+        val hitAxis = hit.direction.axis
+
+        if (AllBlocks.METAL_GIRDER.isIn(heldItem) && hitAxis != Direction.Axis.Y) {
+            KineticBlockEntity.switchToBlockState(
+                level, pos, ClockworkBlocks.GIRDER_ENCASED_DUCT.defaultState
+                    .setValue(
+                        ProperWaterloggedBlock.WATERLOGGED,
+                        state.getValue(ProperWaterloggedBlock.WATERLOGGED)
+                    )
+                    .setValue(
+                        GirderEncasedDuctBlock.AXIS,
+                        hitAxis
+                    )
+            )
+            if (!level.isClientSide && !player.isCreative) {
+                heldItem.shrink(1)
+                if (heldItem.isEmpty) player.setItemInHand(hand, ItemStack.EMPTY)
+            }
+            return InteractionResult.SUCCESS
+        }
+        return super.use(state, level, pos, player, hand, hit)
     }
 
     override fun animateTick(state: BlockState, level: Level, pos: BlockPos, random: RandomSource) {
