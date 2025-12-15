@@ -41,7 +41,7 @@ class DuctRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEnt
 
         for (dir in Direction.values()) {
 
-            if (blockEntity.blockState.getValue(DIR_TO_CONNECTION[dir]!!) == DuctConnectionType.NONE) continue
+            if (!blockEntity.blockState.getValue(DIR_TO_CONNECTION[dir]!!).isConnected) continue
 
             val dirConnection = CachedBuffers.partialFacing(connection, blockEntity.blockState, dir.opposite)
             dirConnection.light<SuperByteBuffer>(light).overlay<SuperByteBuffer>(overlay).renderInto(ms, vertexConsumer)

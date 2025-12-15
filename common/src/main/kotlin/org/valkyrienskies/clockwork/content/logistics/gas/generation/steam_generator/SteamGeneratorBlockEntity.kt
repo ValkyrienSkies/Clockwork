@@ -11,13 +11,14 @@ import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import java.lang.ref.WeakReference
 import kotlin.math.max
+import kotlin.math.min
 
 class SteamGeneratorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state) {
 
     var source = WeakReference<FluidTankBlockEntity?>(null)
 
-    val maxMass = 0.01
-    val maxTemperature = 1400.0
+    val maxMass = 0.1
+    val maxTemperature = 1300.0
     val steamGas = GasTypeRegistry.getGasType("vs_clockwork", "steam")
 
     fun getTank(): FluidTankBlockEntity? {
@@ -50,8 +51,7 @@ class SteamGeneratorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state:
 
         val mass = maxMass * efficiency
 
-        // TODO: Redo temperature calc. A max boiler producing 1800°C steam is kind of stupid.
-        val temperature = maxTemperature * max(tank.boiler.activeHeat.toDouble(), 1.0) / 8.0
+        val temperature = maxTemperature * max(tank.boiler.activeHeat.toDouble(), 1.0) / 18.0
 
         network.addGasAtTemperature(getDuctNodePosition(), steamGas, mass, temperature)
     }

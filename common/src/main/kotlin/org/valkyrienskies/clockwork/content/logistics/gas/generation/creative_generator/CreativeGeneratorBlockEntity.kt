@@ -27,14 +27,14 @@ class CreativeGeneratorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, stat
         if (level!!.isClientSide) return
         val kelvin = ClockworkMod.getKelvin()
         val node = kelvin.getNodeAt(blockPos.toDuctNodePos(level!!.dimension().location())) ?: return
-        val volumes = kelvin.getGasMassAt(getDuctNodePosition())
+        val masses = kelvin.getGasMassAt(getDuctNodePosition())
 
         for (gas in gasValues.keys) {
             if (gasValues[gas] == 0 ) continue
-            val gasVolume: Double
-            if (volumes[gas] == null) gasVolume = 0.0
-            else gasVolume = volumes[gas]!!
-            kelvin.addGasAtTemperature(getDuctNodePosition(), gas, max(gasValues[gas]!!.toDouble()-(gasVolume/1000.0), 0.0),temperature)
+            val gasMass: Double
+            if (masses[gas] == null) gasMass = 0.0
+            else gasMass = masses[gas]!!
+            kelvin.addGasAtTemperature(getDuctNodePosition(), gas, max(gasValues[gas]!!/1000.0-gasMass, 0.0),temperature)
         }
 
 
