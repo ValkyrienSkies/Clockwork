@@ -42,6 +42,11 @@ class GravitronLeftClickPacket : C2SCWPacket {
                     val state = GravitronState.getState(serverPlayer)
 
                     if (SharedValues.gravitronHandler.isRegular) {
+
+                        // Only do cooldown for survival gravitron
+                        val stack = serverPlayer.mainHandItem
+                        serverPlayer.cooldowns.addCooldown(stack.item, 20)
+
                         val lookDir = serverPlayer.lookAngle.normalize().toJOML()
                         val magnitude = 6000 * ship.inertiaData.mass
                         val launchVec = lookDir.mul(magnitude)
