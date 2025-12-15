@@ -34,7 +34,7 @@ class CreativeGeneratorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, stat
             val gasVolume: Double
             if (volumes[gas] == null) gasVolume = 0.0
             else gasVolume = volumes[gas]!!
-            kelvin.modGasMassOfTemperature(getDuctNodePosition(), gas, max(gasValues[gas]!!.toDouble()-gasVolume, 0.0),temperature)
+            kelvin.addGasAtTemperature(getDuctNodePosition(), gas, max(gasValues[gas]!!.toDouble()-(gasVolume/1000.0), 0.0),temperature)
         }
 
 

@@ -15,12 +15,15 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
+import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.util.toJOMLD
+import kotlin.math.min
 
 class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), Clearable {
 
 
     var fuelTicks: Int = 0
+    var maxBurnTime: Double = 0.0
 
     var storedFuelStack: ItemStack = ItemStack.EMPTY
 
@@ -32,14 +35,26 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
         kelvin.getNodeAt(blockPos.toDuctNodePos(level!!.dimension().location())) ?: return
         if (fuelTicks>0) {
             fuelTicks-=1
-            if (kelvin.getTemperatureAt(blockPos.toDuctNodePos(level!!.dimension().location()))<2000.0) kelvin.modHeatEnergy(blockPos.toDuctNodePos(level!!.dimension().location()),1000.0)
+            val currentInternalGasses = kelvin.getGasMassAt(blockPos.toDuctNodePos(level!!.dimension().location()))
+            val currentInternalTemperature = kelvin.getTemperatureAt(blockPos.toDuctNodePos(level!!.dimension().location()))
+            if (currentInternalGasses.values.sum() > 1e-5) {
+                val currentInternalHeatCapacity = kelvin.mixtureCapacity(currentInternalGasses)
+                val targetTemperature = 1000.0
+                val maxEnergyAddedThisTick = (FUEL_ENERGY_DENSITY * (maxBurnTime / LOG_BURN_TIME)) / 20.0
+                val energyToAdd = min(currentInternalHeatCapacity * (targetTemperature - currentInternalTemperature), maxEnergyAddedThisTick)
+                if (energyToAdd > 0) {
+                    kelvin.modHeatEnergy(blockPos.toDuctNodePos(level!!.dimension().location()), energyToAdd)
+                }
+            }
 
             if (blockState.getValue(CoalBurnerBlock.LIT)==false) level!!.setBlock(blockPos,blockState.setValue(CoalBurnerBlock.LIT,true), 15)
         } else {
             if (storedFuelStack.isEmpty and blockState.getValue(CoalBurnerBlock.LIT)) level!!.setBlock(blockPos,blockState.setValue(CoalBurnerBlock.LIT,false), 15)
 
             if (!storedFuelStack.isEmpty) {
-                fuelTicks += FuelRegistry.get(storedFuelStack)
+                val burnTime = FuelRegistry.get(storedFuelStack)
+                fuelTicks += burnTime
+                maxBurnTime = burnTime.toDouble()
                 storedFuelStack.count -= 1
                 sendData()
             }
@@ -96,5 +111,10 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
         }
 
         return super.addToGoggleTooltip(tooltip, isPlayerSneaking)
+    }
+
+    companion object {
+        const val FUEL_ENERGY_DENSITY = 17000.0 // J per kg
+        const val LOG_BURN_TIME = 300.0 // ticks
     }
 }

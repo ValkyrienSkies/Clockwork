@@ -53,6 +53,6 @@ class SteamGeneratorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state:
         // TODO: Redo temperature calc. A max boiler producing 1800°C steam is kind of stupid.
         val temperature = maxTemperature * max(tank.boiler.activeHeat, 1) / 18
 
-        network.modGasMassOfTemperature(getDuctNodePosition(), steamGas, mass, temperature)
+        network.addGasAtTemperature(getDuctNodePosition(), steamGas, mass, temperature)
     }
 }

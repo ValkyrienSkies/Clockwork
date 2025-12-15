@@ -24,7 +24,13 @@ interface IClockworkNodeBE: INodeBlockEntity, IHaveGoggleInformation {
         if (kelvin is DuctNetworkClient) {
             tooltip.add(Component.literal("Last Synchronized: ${kelvin.queryTicksSinceLastSync()}..."))
         }
-
+        if (kelvin.nodeInfo[this.getDuctNodePosition()] != null) {
+            //add volume
+            // volume addition
+            val modVolume = kelvin.nodeInfo[this.getDuctNodePosition()]?.volumeChange ?: 0.0
+            tooltip.add(Component.literal("Volume: $modVolume m³").withStyle(ChatFormatting.GREEN))
+            found = true
+        }
         if (kelvin.getTemperatureAt(this.getDuctNodePosition()) != 0.0) {
             tooltip.add(Component.literal("Temperature: ${kelvin.getTemperatureAt(this.getDuctNodePosition()).toInt()} K").withStyle(ChatFormatting.GOLD))
             found = true
@@ -37,7 +43,8 @@ interface IClockworkNodeBE: INodeBlockEntity, IHaveGoggleInformation {
         if (kelvin.getGasMassAt(this.getDuctNodePosition()).isNotEmpty()) {
             tooltip.add(Component.literal("Gas Masses:"))
             for (entry in kelvin.getGasMassAt(this.getDuctNodePosition()).entries) {
-                if (entry.value > 0) tooltip.add(Component.literal("${entry.key.name}: ${entry.value.roundToInt()} kg"))
+                if (entry.value > 0 && entry.value < 1) tooltip.add(Component.literal("${entry.key.name}: ${(entry.value*1000.0).roundToInt()} g"))
+                else if (entry.value >= 1) tooltip.add(Component.literal("${entry.key.name}: ${(entry.value*1000.0).roundToInt()/1000.0} kg"))
             }
             found = true
         }

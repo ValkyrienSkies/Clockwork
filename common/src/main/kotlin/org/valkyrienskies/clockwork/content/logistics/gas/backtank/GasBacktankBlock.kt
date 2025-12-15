@@ -142,9 +142,9 @@ class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(prop
 
             val gasType = GasTypeRegistry.GAS_TYPES[ResourceLocation(gasResourceLocation)] ?: continue
             // Extremely stupid fix. TODO: Figure out why this is needed
-            network.modGasMass(pos,gasType,tag.getDouble(gasResourceLocation))
-            network.modGasMass(pos,gasType,tag.getDouble(gasResourceLocation))
-
+            //network.modGasMass(pos,gasType,tag.getDouble(gasResourceLocation))
+            //network.modGasMass(pos,gasType,tag.getDouble(gasResourceLocation))
+            network.addGasAtTemperature(pos, gasType, tag.getDouble(gasResourceLocation), temperature)
         }
         network.nodeInfo[pos]!!.currentTemperature = temperature
 

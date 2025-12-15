@@ -67,12 +67,12 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
 
                 if (clientPacket) continue
 
-                val kelvin = ClockworkMod.getKelvin()
-                val thisDuctPos = getDuctNodePosition()
-                val edge = kelvin.getEdgeBetween(thisDuctPos, DuctNodePos(thisDuctPos.x + dir.normal.x, thisDuctPos.y + dir.normal.y, thisDuctPos.z + dir.normal.z, thisDuctPos.dimensionId)) ?: continue
-
-                val serializedEdge = edge.serialize(tag)
-                tag.put("DuctEdge${dir.name}", serializedEdge)
+//                val kelvin = ClockworkMod.getKelvin()
+//                val thisDuctPos = getDuctNodePosition()
+//                val edge = kelvin.getEdgeBetween(thisDuctPos, DuctNodePos(thisDuctPos.x + dir.normal.x, thisDuctPos.y + dir.normal.y, thisDuctPos.z + dir.normal.z, thisDuctPos.dimensionId)) ?: continue
+//
+//                val serializedEdge = edge.serialize(tag)
+//                tag.put("DuctEdge${dir.name}", serializedEdge)
             }
         }
         super.write(tag, clientPacket)

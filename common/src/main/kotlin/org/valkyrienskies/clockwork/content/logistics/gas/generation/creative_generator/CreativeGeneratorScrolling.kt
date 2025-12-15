@@ -44,7 +44,7 @@ class CreativeGeneratorScrolling(x: Int, y: Int) : ScrollingFrame(x, y, 159, 64)
             if (visible) {
                 tab.render(ms, x, y)
                 ms.drawString(font, gasType.name, x+5, y+5,0xFFFFFF)
-                ms.drawString(font, input.state.toString()+" kg", x+79, y+5,0xFFFFFF)
+                ms.drawString(font, input.state.toString()+" g", x+79, y+5,0xFFFFFF)
                 input.render(ms, mouseX, mouseY, partialTicks)
             }
 

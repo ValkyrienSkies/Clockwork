@@ -51,7 +51,7 @@ public class MixinComposterBlock extends Block implements INodeBlock {
             GasType gas = GasTypeRegistry.INSTANCE.getGasType(KelvinMod.MOD_ID,"methane");
 
             if (pressure <= vs_clockwork$$maxPressure && gas != null) {
-                kelvin.modGasMassOfTemperature(ductNodePos, gas, 10, 305);
+                kelvin.addGasAtTemperature(ductNodePos, gas, 0.5, 305);
             }
         }
     }
@@ -60,7 +60,7 @@ public class MixinComposterBlock extends Block implements INodeBlock {
     @NotNull
     @Override
     public DuctNode createNode(@NotNull DuctNodePos pos) {
-        return new PipeDuctNode(pos, NodeBehaviorType.PIPE, new HashSet<>(),0.05, 16375049.0, 1478.0);
+        return new PipeDuctNode(pos, NodeBehaviorType.PIPE, new HashSet<>(),1.0, 16375049.0, 1478.0);
     }
 
     @Override

@@ -103,6 +103,9 @@ object ClockworkMod {
 
         ClockworkWorldgen.register()
 
+        //Register gas types
+        ClockworkGasses.init()
+
         LifecycleEvent.SERVER_STARTED.register {
             ClockworkAugmentations.registerComponentAvgAugmentation("temperature", it.shipObjectWorld)
             ClockworkAugmentations.registerComponentAvgAugmentation("pressure", it.shipObjectWorld)
@@ -117,7 +120,7 @@ object ClockworkMod {
 
         TickEvent.SERVER_LEVEL_POST.register {
             for (ship in it.shipObjectWorld.loadedShips) {
-                ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship)
+                //ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship)
             }
 
             ClockworkUtils.tick(it)
