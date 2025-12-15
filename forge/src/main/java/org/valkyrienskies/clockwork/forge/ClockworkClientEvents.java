@@ -107,7 +107,7 @@ public class ClockworkClientEvents {
     }
 
     @SubscribeEvent
-    public static void onMouseInput(InputEvent.MouseButton event) {
+    public static void onMouseInput(InputEvent.MouseButton.Pre event) {
         if (Minecraft.getInstance().screen != null) {
             return;
         }
@@ -118,6 +118,7 @@ public class ClockworkClientEvents {
         if (ClockworkModForgeClient.GRAVITRON_HANDLER.onMouseInput(button, pressed)) {
             event.setCanceled(true);
         }
+
         if (ClockworkModForgeClient.WANDERWAND_HANDLER.onMouseInput(button, pressed)) {
             event.setCanceled(true);
         }

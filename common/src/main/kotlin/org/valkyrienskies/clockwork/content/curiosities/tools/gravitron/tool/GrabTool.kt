@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool
 
 import net.minecraft.ChatFormatting
+import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.Tag
@@ -8,6 +9,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Style
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
+import net.minecraft.sounds.SoundSource
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.Vec3
@@ -24,12 +26,16 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.Gravitro
 import org.valkyrienskies.clockwork.content.forces.GravitronController.Companion.getOrCreate
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronForceInducerData
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronGrabPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronLeftClickPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronState
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronState.Companion.getState
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronState.Companion.mapValueToAngle
+import org.valkyrienskies.clockwork.platform.SharedValues
 import org.valkyrienskies.clockwork.util.ClockworkUtils.readVec3
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.ServerShip
+import org.valkyrienskies.mod.common.ValkyrienSkiesMod
+import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.isBlockInShipyard
 import org.valkyrienskies.mod.common.shipObjectWorld
@@ -37,10 +43,21 @@ import org.valkyrienskies.mod.common.util.toJOML
 
 class GrabTool : GravitronToolBase() {
 
-    override fun handleRightClick(): Boolean {
-        updateTargetPos()
+    override fun handleRightClick(isRegular: Boolean): Boolean {
+        updateTargetPos(isRegular)
         if (clickedPos != null && clickedLocation != null) {
             sendToServer(GravitronGrabPacket(clickedPos!!, clickedLocation!!, GRAB))
+        }
+
+        return true
+    }
+
+    override fun handleLeftClick(
+        isRegular: Boolean
+    ): Boolean {
+        updateTargetPos(isRegular)
+        if (clickedPos != null && clickedLocation != null) {
+            sendToServer(GravitronLeftClickPacket(clickedPos!!))
         }
 
         return true
@@ -63,6 +80,10 @@ class GrabTool : GravitronToolBase() {
                 val serverLevel = player.level() as ServerLevel
                 val ship = serverLevel.shipObjectWorld.loadedShips.getById(getState(player).shipID!!)
                 if (ship != null) {
+                    // Make sure we don't bother "dropping" the ship if its static,
+                    // we continue the rest of grab code so it un-static's first try
+                    if (ship.isStatic) return false
+
                     val gravitronForceInducer = getOrCreate(ship)
                     gravitronForceInducer.data = null
                     getState(player).shipID = null

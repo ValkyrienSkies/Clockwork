@@ -8,9 +8,10 @@ import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.UpdateAltMeterPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerAttachmentSyncPacket
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDestroyPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDisassemblyPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDialPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronGrabPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronLeftClickPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandSelectionPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandRenderUpdatePacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket
@@ -45,7 +46,8 @@ enum class ClockworkPackets(
     CREATIVE_GENERATOR_PACKET(CreativeGeneratorPacket::class.java, ::CreativeGeneratorPacket),
 
     GRAVITRON_GRAB_PACKET(GravitronGrabPacket::class.java, ::GravitronGrabPacket),
-    GRAVITRON_DESTROY_PACKET(GravitronDestroyPacket::class.java, ::GravitronDestroyPacket),
+    GRAVITRON_LEFT_CLICK_PACKET(GravitronLeftClickPacket::class.java, ::GravitronLeftClickPacket),
+    GRAVITRON_DESTROY_PACKET(GravitronDisassemblyPacket::class.java, ::GravitronDisassemblyPacket),
     WAND_SELECTION_PACKET(WandSelectionPacket::class.java, ::WandSelectionPacket),
 
     // Server to Client
