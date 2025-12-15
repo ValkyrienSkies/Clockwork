@@ -34,7 +34,7 @@ include("fabric")
 //include("impl")
 
 try {
-    val kelvin = file("kelvin")
+    val kelvin = file("Kelvin")
     if (kelvin.isDirectory) {
         //ts is evil as hell, but we have to do it because of an intellij bug :(
         includeBuild(kelvin.toPath().toRealPath().toAbsolutePath().toString())
