@@ -12,7 +12,7 @@
     }
   },
   "result_gasses": {
-    "kelvin:exhaust": {
+    "vs_clockwork:exhaust": {
       "amount": 1,
       "unit": "kg"
     }

@@ -16,9 +16,9 @@ class SteamGeneratorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state:
 
     var source = WeakReference<FluidTankBlockEntity?>(null)
 
-    val maxMass = 100.0
-    val maxTemperature = 2000.0
-    val steamGas = GasTypeRegistry.getGasType("kelvin", "steam")
+    val maxMass = 0.01
+    val maxTemperature = 1400.0
+    val steamGas = GasTypeRegistry.getGasType("vs_clockwork", "steam")
 
     fun getTank(): FluidTankBlockEntity? {
         var tank: FluidTankBlockEntity? = source.get()
@@ -37,7 +37,7 @@ class SteamGeneratorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state:
     override fun tick() {
         super.tick()
         if (level?.isClientSide != false) return
-        if (steamGas == null) return ClockworkMod.LOGGER.error("SteamGeneratorBlockEntity can't get GasType 'kelvin:steam'. Did something go wrong?")
+        if (steamGas == null) return ClockworkMod.LOGGER.error("SteamGeneratorBlockEntity can't get GasType 'vs_clockwork:steam'. Did something go wrong?")
 
         val tank = getTank() ?: return
 
@@ -51,7 +51,7 @@ class SteamGeneratorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state:
         val mass = maxMass * efficiency
 
         // TODO: Redo temperature calc. A max boiler producing 1800°C steam is kind of stupid.
-        val temperature = maxTemperature * max(tank.boiler.activeHeat, 1) / 18
+        val temperature = maxTemperature * max(tank.boiler.activeHeat.toDouble(), 1.0) / 8.0
 
         network.addGasAtTemperature(getDuctNodePosition(), steamGas, mass, temperature)
     }

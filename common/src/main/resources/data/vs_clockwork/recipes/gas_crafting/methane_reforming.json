@@ -6,21 +6,21 @@
     }
   ],
   "input_gasses": {
-    "kelvin:steam": {
+    "vs_clockwork:steam": {
       "amount": 5,
       "unit": "kg"
     },
-    "kelvin:methane": {
+    "vs_clockwork:bog": {
       "amount": 5,
       "unit": "kg"
     }
   },
   "result_gasses": {
-    "kelvin:exhaust": {
+    "vs_clockwork:exhaust": {
       "amount": 5,
       "unit": "kg"
     },
-    "kelvin:hydrogen": {
+    "vs_clockwork:stellane": {
       "amount": 1,
       "unit": "kg"
     }

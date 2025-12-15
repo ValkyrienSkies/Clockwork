@@ -97,7 +97,7 @@ object ClockworkConfig {
         @JsonSchema(description = "The max amount of pressure that the air compressor will generate air for. In Pa")
         var airCompressorMaxPressure = 1000000.0
 
-        @JsonSchema(description = "Air density at which the air compressor will start generating helium. Setting it to 0 or a negative number will disable helium generation")
+        @JsonSchema(description = "Air density at which the air compressor will start generating aether. Setting it to 0 or a negative number will disable helium generation")
         var airCompressorHeliumAirDensity = 0.3
     }
 }

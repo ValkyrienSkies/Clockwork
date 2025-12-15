@@ -28,7 +28,7 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
     var clientSize: Float = 0.0f
 
     private val airGas = GasTypeRegistry.getGasType("kelvin", "air")
-    private val heliumGas = GasTypeRegistry.getGasType("kelvin", "helium")
+    private val heliumGas = GasTypeRegistry.getGasType("vs_clockwork", "aether")
 
     fun getAirDensity(): Double {
 
@@ -48,7 +48,7 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
     override fun tick() {
         super.tick()
 
-        if (airGas == null || heliumGas == null) return ClockworkMod.LOGGER.error("Could not get GasType `kelvin:air` or `kelvin:helium`. Is Gas Registry broken?")
+        if (airGas == null || heliumGas == null) return ClockworkMod.LOGGER.error("Could not get GasType `kelvin:air` or `vs_clockwork:aether`. Is Gas Registry broken?")
 
         if (level!!.isClientSide) return
 
