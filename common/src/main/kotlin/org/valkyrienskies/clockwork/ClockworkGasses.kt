@@ -1,12 +1,25 @@
 package org.valkyrienskies.clockwork
 
 import net.minecraft.resources.ResourceLocation
+import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 
 object ClockworkGasses {
+    private val iconCodes: HashMap<ResourceLocation, String> = HashMap()
+
     private fun getIcon(name: String): ResourceLocation {
         return ClockworkMod.asResource("textures/icons/$name.png")
+    }
+
+    @JvmStatic
+    val ICON_FONT_LOCATION = ClockworkMod.asResource("gas_icons")
+
+    @JvmStatic
+    fun getDisplayCharacterCode(gasType: GasType): String {
+        return iconCodes.getOrPut(gasType.resourceLocation) {
+            "\uE000"
+        }
     }
 
     val EXHAUST = GasType("Exhaust", ResourceLocation(ClockworkMod.MOD_ID, "exhaust"),  density = 1.98, viscosity =1.10e-5, specificHeatCapacity = 0.846, thermalConductivity = 0.031, iconLocation = getIcon("exhaust"))
@@ -31,6 +44,17 @@ object ClockworkGasses {
         GasTypeRegistry.register(METHANE)
         GasTypeRegistry.register(VITIROL)
         GasTypeRegistry.register(OZONITE)
+
+        //ordering
+        iconCodes.put(ResourceLocation(KelvinMod.MOD_ID, "air"), "\uE001")
+        iconCodes.put(HELIUM.resourceLocation, "\uE002")
+        iconCodes.put(METHANE.resourceLocation, "\uE003")
+        iconCodes.put(EXHAUST.resourceLocation, "\uE004")
+        iconCodes.put(OZONITE.resourceLocation, "\uE005")
+        iconCodes.put(PHLOGISTON.resourceLocation, "\uE006")
+        iconCodes.put(STEAM.resourceLocation, "\uE007")
+        iconCodes.put(HYDROGEN.resourceLocation, "\uE008")
+        iconCodes.put(VITIROL.resourceLocation, "\uE009")
     }
 
 }

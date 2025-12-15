@@ -1,0 +1,13 @@
+{
+  "providers": [
+    {
+      "type": "bitmap",
+      "file": "vs_clockwork:font/gas_icons.png",
+      "ascent": 8,
+      "height": 8,
+      "chars": [
+        "\uE000\uE001\uE002\uE003\uE004\uE005\uE006\uE007\uE008\uE009"
+      ]
+    }
+  ]
+}
