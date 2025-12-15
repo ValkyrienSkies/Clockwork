@@ -1,0 +1,3 @@
+[submodule "kelvin"]
+	path = kelvin
+	url = https://github.com/ValkyrienSkies/Kelvin.git
