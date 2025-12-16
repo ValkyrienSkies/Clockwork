@@ -12,13 +12,13 @@ import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import java.lang.ref.WeakReference
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.pow
 
 class SteamGeneratorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state) {
 
     var source = WeakReference<FluidTankBlockEntity?>(null)
 
     val maxMass = 0.1
-    val maxTemperature = 1300.0
     val steamGas = GasTypeRegistry.getGasType("vs_clockwork", "steam")
 
     fun getTank(): FluidTankBlockEntity? {
@@ -46,12 +46,13 @@ class SteamGeneratorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state:
         tank.boiler.activeHeat
 
         if (efficiency == 0f) return
+        if (tank.boiler.activeHeat == 0) return
 
         val network = ClockworkMod.getKelvin()
 
         val mass = maxMass * efficiency
 
-        val temperature = maxTemperature * max(tank.boiler.activeHeat.toDouble(), 1.0) / 18.0
+        val temperature = 80*(tank.boiler.activeHeat.toDouble() * 100).pow(0.34)
 
         network.addGasAtTemperature(getDuctNodePosition(), steamGas, mass, temperature)
     }
