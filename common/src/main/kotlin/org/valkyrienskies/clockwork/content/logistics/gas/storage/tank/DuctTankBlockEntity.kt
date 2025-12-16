@@ -59,6 +59,7 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     }
 
     fun updateConnectivity() {
+
         if (level!!.isClientSide) return
         if (!isController) return
 
