@@ -443,11 +443,11 @@ object ClockworkBlockEntities {
                 state
             )
         }
-        .visual {
-            SimpleBlockEntityVisualizer.Factory { ctx, blockEntity, partialTick ->
-                ValveDuctVisual(ctx, blockEntity, partialTick)
-            }
-        }
+//        .visual {
+//            SimpleBlockEntityVisualizer.Factory { ctx, blockEntity, partialTick ->
+//                ValveDuctVisual(ctx, blockEntity, partialTick)
+//            }
+//        }
 //        .instance {
 //            BiFunction<MaterialManager?, ValveDuctBlockEntity?, BlockEntityInstance<in ValveDuctBlockEntity?>> { materialManager: MaterialManager?, blockEntity: ValveDuctBlockEntity? ->
 //                ShaftInstance(
