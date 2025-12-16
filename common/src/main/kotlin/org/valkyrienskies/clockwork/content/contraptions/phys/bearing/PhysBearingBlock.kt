@@ -2,12 +2,14 @@ package org.valkyrienskies.clockwork.content.contraptions.phys.bearing
 
 import com.simibubi.create.AllShapes
 import com.simibubi.create.content.contraptions.bearing.BearingBlock
+import com.simibubi.create.content.contraptions.bearing.MechanicalBearingBlockEntity
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelReader
@@ -36,6 +38,18 @@ class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<P
         })
         return InteractionResult.SUCCESS
     }
+
+    override fun onWrenched(state: BlockState?, context: UseOnContext): InteractionResult {
+        if (!context.getLevel().isClientSide) {
+            val be = context.getLevel().getBlockEntity(context.getClickedPos())
+            if (be is MechanicalBearingBlockEntity) {
+                be.disassemble()
+                return InteractionResult.SUCCESS
+            }
+        }
+        return InteractionResult.FAIL
+    }
+
     override fun neighborChanged(state: BlockState, level: Level, pos: BlockPos, block: Block, fromPos: BlockPos, isMoving: Boolean) {
         super.neighborChanged(state, level, pos, block, fromPos, isMoving)
         if (level.isClientSide) {return}
