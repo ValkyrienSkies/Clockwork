@@ -4,8 +4,10 @@ import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock
 import com.simibubi.create.content.kinetics.base.IRotate
 import com.simibubi.create.foundation.block.IBE
 import net.createmod.catnip.data.Iterate
+import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.network.chat.Component
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
@@ -20,9 +22,10 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkItems
+import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.util.INodeBlock
 
-class ExtendonBlock(properties: Properties) : DirectionalBlock(properties), IBE<ExtendonBlockEntity>, INodeBlock {
+class ExtendonBlock(properties: Properties) : DirectionalBlock(properties), IBE<ExtendonBlockEntity>, INodeBlock, IHaveDuctStats {
     init {
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.UP))
 
@@ -90,6 +93,11 @@ class ExtendonBlock(properties: Properties) : DirectionalBlock(properties), IBE<
 
     override fun getBlockEntityType(): BlockEntityType<out ExtendonBlockEntity> {
         return ClockworkBlockEntities.EXTENDON.get()
+    }
+
+    override fun getAdditionalInfoLines(): List<Component> {
+        return listOf(Component.translatable("vs_clockwork.extendon.function").withStyle(ChatFormatting.GRAY).withStyle(
+            ChatFormatting.ITALIC))
     }
 
     override fun use(

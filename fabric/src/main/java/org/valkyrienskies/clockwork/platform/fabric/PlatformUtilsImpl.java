@@ -16,12 +16,15 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import org.valkyrienskies.clockwork.ClockworkBlocks;
 import org.valkyrienskies.clockwork.ClockworkItems;
 import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.fabric.ClockworkModFabric;
 import org.valkyrienskies.clockwork.fabric.FabricClockworkFluids;
+import org.valkyrienskies.clockwork.fabric.util.DuctStatsFabric;
 import org.valkyrienskies.clockwork.util.blocktype.LiquidFuelType;
+import org.valkyrienskies.clockwork.util.gui.DuctStats;
 
 
 import java.util.function.Supplier;
@@ -56,5 +59,9 @@ public class PlatformUtilsImpl {
 
     public static CreativeModeTab getCreativeTab() {
         return FabricItemGroup.builder().title(Component.translatableWithFallback("vs_clockwork:creative_mode_tab", "VS: Clockwork")).build();
+    }
+
+    public static DuctStats getDuctStats(Block block) {
+        return new DuctStatsFabric(block);
     }
 }

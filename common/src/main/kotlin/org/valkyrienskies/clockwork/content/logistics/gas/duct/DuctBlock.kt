@@ -4,9 +4,11 @@ import com.google.common.collect.ImmutableMap
 import com.simibubi.create.AllSoundEvents
 import com.simibubi.create.content.equipment.wrench.IWrenchable
 import com.simibubi.create.foundation.block.IBE
+import net.minecraft.ChatFormatting
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundSource
@@ -49,6 +51,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.W
 import org.valkyrienskies.clockwork.util.KelvinParticleHelper
 import org.valkyrienskies.clockwork.util.MathFunctions.isWithin
 import org.valkyrienskies.clockwork.util.MathFunctions.removeAxis
+import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.api.ConnectionType
 import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
@@ -62,7 +65,7 @@ import org.valkyrienskies.mod.common.util.toJOMLD
 
 class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, IBE<DuctBlockEntity>,
     SimpleWaterloggedBlock, IWrenchable,
-    IScrewdrivable {
+    IScrewdrivable, IHaveDuctStats {
 
     //credit to NEEPMeat for the pipe implementation idea :3dsmile:
 
@@ -479,6 +482,14 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
                 level.setBlockAndUpdate(pos.relative(it), newState)
             }
         }
+    }
+
+    override fun getInternalVolume(): Double {
+        return 0.25
+    }
+
+    override fun getAdditionalInfoLines(): List<Component> {
+        return listOf(Component.translatable("vs_clockwork.duct.function").withStyle(ChatFormatting.GRAY).withStyle(ChatFormatting.ITALIC))
     }
 
     companion object {

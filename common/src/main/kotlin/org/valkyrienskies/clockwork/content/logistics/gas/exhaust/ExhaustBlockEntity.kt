@@ -15,7 +15,7 @@ import kotlin.math.floor
 
 class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state) {
 
-    val MASS_PER_EXHAUST = 5
+    val MASS_PER_EXHAUST = 0.05
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) {
         return

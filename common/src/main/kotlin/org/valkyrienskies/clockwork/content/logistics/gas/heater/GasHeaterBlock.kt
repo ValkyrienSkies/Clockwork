@@ -5,8 +5,10 @@ import com.simibubi.create.content.processing.basin.BasinBlockEntity
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock.HEAT_LEVEL
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock.HeatLevel
 import com.simibubi.create.foundation.block.IBE
+import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.network.chat.Component
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
@@ -16,10 +18,11 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.util.INodeBlock
 
 class GasHeaterBlock(properties: Properties) : HorizontalDirectionalBlock(properties), IBE<GasHeaterBlockEntity>,
-    INodeBlock {
+    INodeBlock, IHaveDuctStats {
 
     init {
         registerDefaultState(defaultBlockState().setValue(HEAT_LEVEL, HeatLevel.NONE).setValue(FACING, Direction.NORTH))
@@ -68,6 +71,10 @@ class GasHeaterBlock(properties: Properties) : HorizontalDirectionalBlock(proper
         if (direction.axis != level.getBlockState(self).getValue(FACING).axis && direction != Direction.DOWN) return false
 
         return super.canConnectTo(self, other, direction, level)
+    }
+
+    override fun getAdditionalInfoLines(): List<Component> {
+        return listOf(Component.translatable("vs_clockwork.gas_heater.function").withStyle(ChatFormatting.GRAY).withStyle(ChatFormatting.ITALIC))
     }
 
 }

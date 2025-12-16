@@ -2,8 +2,10 @@ package org.valkyrienskies.clockwork.content.logistics.gas.exhaust
 
 import com.simibubi.create.AllShapes
 import com.simibubi.create.foundation.block.IBE
+import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.network.chat.Component
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
@@ -20,8 +22,9 @@ import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkShapes
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 import org.valkyrienskies.clockwork.util.blocktype.ConnectedWingAlike
+import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 
-class ExhaustBlock(properties: Properties) : DirectionalBlock(properties), IBE<ExhaustBlockEntity>, IDuct {
+class ExhaustBlock(properties: Properties) : DirectionalBlock(properties), IBE<ExhaustBlockEntity>, IDuct, IHaveDuctStats {
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block?, BlockState?>) {
         builder.add(FACING)
@@ -82,6 +85,15 @@ class ExhaustBlock(properties: Properties) : DirectionalBlock(properties), IBE<E
     override fun canConnectTo(self: BlockPos, other: BlockPos, direction: Direction, level: BlockGetter): Boolean {
         if (direction != level.getBlockState(self).getValue(FACING).opposite) return false
         return super.canConnectTo(self, other, direction, level)
+    }
+
+    override fun getInternalVolume(): Double {
+        return 0.25
+    }
+
+    override fun getAdditionalInfoLines(): List<Component> {
+        return listOf(Component.translatable("vs_clockwork.gas_exhaust.function").withStyle(ChatFormatting.GRAY).withStyle(
+            ChatFormatting.ITALIC))
     }
 
 

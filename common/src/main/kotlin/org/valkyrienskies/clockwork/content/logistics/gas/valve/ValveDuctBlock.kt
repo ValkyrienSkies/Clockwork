@@ -6,9 +6,11 @@ import com.simibubi.create.content.fluids.pipes.valve.FluidValveBlock
 import com.simibubi.create.content.kinetics.base.DirectionalAxisKineticBlock
 import com.simibubi.create.foundation.block.IBE
 import net.createmod.catnip.data.Iterate
+import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.Direction.Axis
+import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
@@ -19,13 +21,14 @@ import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.api.ConnectionType
 import org.valkyrienskies.kelvin.api.edges.ApertureDuctEdge
 import org.valkyrienskies.kelvin.util.IEdgeBlock
 import org.valkyrienskies.kelvin.util.INodeBlock
 import org.valkyrienskies.kelvin.util.INodeBlockEntity
 
-class ValveDuctBlock(properties: Properties?) : DirectionalAxisKineticBlock(properties), IEdgeBlock, IBE<ValveDuctBlockEntity> {
+class ValveDuctBlock(properties: Properties?) : DirectionalAxisKineticBlock(properties), IEdgeBlock, IBE<ValveDuctBlockEntity>, IHaveDuctStats {
 
     var edge: ApertureDuctEdge? = null
 
@@ -106,6 +109,22 @@ class ValveDuctBlock(properties: Properties?) : DirectionalAxisKineticBlock(prop
 
     override fun getBlockEntityType(): BlockEntityType<out ValveDuctBlockEntity> {
         return ClockworkBlockEntities.VALVE_DUCT.get()
+    }
+
+    override fun getInternalVolume(): Double {
+        return 0.0
+    }
+
+    override fun getMaximumPressure(): Double {
+        return 0.0
+    }
+
+    override fun getMaximumTemperature(): Double {
+        return 0.0
+    }
+
+    override fun getAdditionalInfoLines(): List<Component> {
+        return listOf(Component.translatable("vs_clockwork.valve_duct.function").withStyle(ChatFormatting.GRAY).withStyle(ChatFormatting.ITALIC))
     }
 
     companion object {

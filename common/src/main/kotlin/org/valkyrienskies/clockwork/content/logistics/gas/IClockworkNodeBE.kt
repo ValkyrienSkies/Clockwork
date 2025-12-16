@@ -31,7 +31,7 @@ interface IClockworkNodeBE: INodeBlockEntity, IHaveGoggleInformation {
             found = true
         }
         if (kelvin.getTemperatureAt(this.getDuctNodePosition()) > 0.0) {
-            tooltip.add(Component.literal("Temperature: ${kelvin.getTemperatureAt(this.getDuctNodePosition()).toInt()} K").withStyle(ChatFormatting.GOLD))
+            tooltip.add(Component.literal("Temperature: ${kelvin.getTemperatureAt(this.getDuctNodePosition()).toInt()} °K").withStyle(ChatFormatting.GOLD))
             found = true
         }
         if (kelvin.nodeInfo[this.getDuctNodePosition()] != null && kelvin.nodeInfo[this.getDuctNodePosition()]!!.currentEnergy > 0.0 && isPlayerSneaking) {
@@ -61,7 +61,7 @@ interface IClockworkNodeBE: INodeBlockEntity, IHaveGoggleInformation {
                 val iconComponent = Component.literal(ClockworkGasses.getDisplayCharacterCode(entry.key)).withStyle {it.withFont(
                     ClockworkGasses.ICON_FONT_LOCATION)}
                 val nameComponent = if (isPlayerSneaking) Component.literal(" ${entry.key.name} ").withStyle(ChatFormatting.GRAY)
-                else Component.empty()
+                else Component.literal(" ")
                 val amtComponent =
                     if (entry.value > 0 && entry.value < 1) Component.literal("${(entry.value*1000.0).roundToInt()}g")
                     else if (entry.value >= 1) Component.literal("${(entry.value*1000.0).roundToInt()/1000.0}kg")

@@ -4,6 +4,8 @@ import com.mojang.blaze3d.platform.InputConstants
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.logging.LogUtils
 import com.simibubi.create.foundation.data.CreateRegistrate
+import com.simibubi.create.foundation.item.ItemDescription
+import com.simibubi.create.foundation.item.TooltipModifier
 import dev.architectury.event.events.common.CommandRegistrationEvent
 import dev.architectury.event.events.common.InteractionEvent
 import dev.architectury.event.events.common.LifecycleEvent
@@ -11,6 +13,7 @@ import dev.architectury.event.events.common.TickEvent
 import dev.architectury.registry.CreativeTabRegistry
 import dev.architectury.registry.registries.DeferredRegister
 import dev.architectury.registry.registries.RegistrySupplier
+import net.createmod.catnip.lang.FontHelper
 import net.minecraft.client.KeyMapping
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.core.registries.Registries
@@ -30,6 +33,7 @@ import org.valkyrienskies.clockwork.content.forces.*
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroShipControl
 import org.valkyrienskies.clockwork.util.ClockworkUtils
+import org.valkyrienskies.clockwork.util.gui.DuctStats
 import org.valkyrienskies.core.api.VsBeta
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.impl.DuctNetworkServer
@@ -52,7 +56,10 @@ object ClockworkMod {
 
     val NETWORK_CHANNEL: ResourceLocation = asResource("main")
 
-    val REGISTRATE: CreateRegistrate = CreateRegistrate.create(MOD_ID)
+    val REGISTRATE: CreateRegistrate = CreateRegistrate.create(MOD_ID).setTooltipModifierFactory { item ->
+        ItemDescription . Modifier (item, FontHelper.Palette.STANDARD_CREATE)
+        .andThen(TooltipModifier.mapNull(DuctStats.create(item)))
+    }
     val MIXIN_LOGGER = LoggerFactory.getLogger("ClockworkMixins")
     val LOGGER = LogUtils.getLogger()
 

@@ -1,8 +1,10 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.crafter
 
 import com.simibubi.create.foundation.block.IBE
+import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.network.chat.Component
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
@@ -15,9 +17,10 @@ import net.minecraft.world.level.block.state.StateDefinition
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.content.curiosities.sensor.ISensorBlock.Companion.POWER
 import org.valkyrienskies.clockwork.content.curiosities.sensor.distance.DistanceSensorBlock.Companion.MAX_DISTANCE
+import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.util.INodeBlock
 
-class GasCrafterBlock(properties: Properties) : DirectionalBlock(properties), IBE<GasCrafterBlockEntity>, INodeBlock {
+class GasCrafterBlock(properties: Properties) : DirectionalBlock(properties), IBE<GasCrafterBlockEntity>, INodeBlock, IHaveDuctStats {
     override fun getBlockEntityClass(): Class<GasCrafterBlockEntity> {
         return GasCrafterBlockEntity::class.java
     }
@@ -58,5 +61,10 @@ class GasCrafterBlock(properties: Properties) : DirectionalBlock(properties), IB
     override fun getStateForPlacement(context: BlockPlaceContext): BlockState {
         return this.defaultBlockState()
             .setValue<Direction, Direction>(DirectionalBlock.FACING, context.nearestLookingDirection.opposite.opposite)
+    }
+
+    override fun getAdditionalInfoLines(): List<Component> {
+        return listOf(Component.translatable("vs_clockwork.gas_crafter.function").withStyle(ChatFormatting.GRAY).withStyle(
+            ChatFormatting.ITALIC))
     }
 }

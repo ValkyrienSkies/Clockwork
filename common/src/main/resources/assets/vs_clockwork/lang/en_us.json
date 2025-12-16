@@ -61,6 +61,39 @@
   "item.vs_clockwork.music_disc_wanderlust.lore1": "You've restored this disc using a material not from this plane.",
   "item.vs_clockwork.music_disc_wanderlust.lore2": "It holds together once more, but something about it feels... different.",
 
+  "vs_clockwork.duct_stats.header": "Duct Stats",
+
+  "vs_clockwork.duct_stats.internal_volume": "Internal Volume:",
+  "vs_clockwork.duct_stats.max_temperature": "Max Temperature:",
+  "vs_clockwork.duct_stats.max_pressure": "Max Pressure:",
+  "vs_clockwork.duct_stats.is_producer": "Produces Gas",
+  "vs_clockwork.duct_stats.produces_heat": "Produces Heat",
+
+  "vs_clockwork.production_method.rpm" : "With RPM",
+  "vs_clockwork.production_method.passive" : "Constantly",
+  "vs_clockwork.production_method.boiler" : "While Attached to a Boiler",
+  "vs_clockwork.production_method.other" : "While Active",
+
+  "vs_clockwork.production_context.always": "Always",
+  "vs_clockwork.production_context.conditional": "",
+
+  "vs_clockwork.production_condition.air_compressor_helium": "Air Density < ",
+  "vs_clockwork.production_condition.composter_methane": "Compost Full",
+
+  "vs_clockwork.gas_exhaust.function": "Vents gas out of the network\nand into the surrounding area.",
+  "vs_clockwork.gas_backtank.function": "Retains gas contents when broken.\nCan be worn to serve as a personal gas tank.",
+  "vs_clockwork.gas_crafter.function": "Processes crafting recipes that require gas\nas an ingredient when placed above a basin.",
+  "vs_clockwork.coal_burner.function": "Burns furnace fuels to produce heat up to 1000°K.",
+  "vs_clockwork.gas_heater.function": "Uses Thermal Energy to heat a Steam Boiler.\nNot perfectly efficient.",
+  "vs_clockwork.gas_nozzle.function": "Expels hot gas to heat a Hot Air Balloon.",
+  "vs_clockwork.pump_duct.function": "Creates a pressure difference to\npump gas along the network.",
+  "vs_clockwork.gas_engine.function": "Turns Thermal Energy into Kinetic Power\nby turning a Steam Engine.",
+  "vs_clockwork.creative_generator.function": "Provides an infinite supply of gas.\nCan be configured using its GUI.",
+  "vs_clockwork.valve_duct.function": "Restricts gas flow based on its angle.",
+  "vs_clockwork.gas_thruster.function": "Produces thrust when gas flows out through it.",
+  "vs_clockwork.extendon.function": "Extends and retracts with changes\nin its internal pressure.",
+  "vs_clockwork.duct.function": "Configure connections with a Screwdriver.\nDisable connections with a Wrench.",
+
   "block.vs_clockwork.distance_sensor": "Peepotron",
   "item.vs_clockwork.distance_sensor": "Peepotron",
   "block.vs_clockwork.gyroscopic_sensor": "Spinotron",

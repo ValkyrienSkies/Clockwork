@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.mixin.content.gas;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -17,8 +18,13 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.valkyrienskies.clockwork.ClockworkGasses;
 import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.ClockworkModClient;
+import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats;
+import org.valkyrienskies.clockwork.util.gui.ProductionInfo;
+import org.valkyrienskies.clockwork.util.gui.ProductionMethod;
+import org.valkyrienskies.clockwork.util.gui.ProductionType;
 import org.valkyrienskies.kelvin.KelvinMod;
 import org.valkyrienskies.kelvin.api.*;
 import org.valkyrienskies.kelvin.api.nodes.PipeDuctNode;
@@ -26,10 +32,14 @@ import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry;
 import org.valkyrienskies.kelvin.util.INodeBlock;
 import org.valkyrienskies.kelvin.util.KelvinExtensions;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
+
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 @Mixin(ComposterBlock.class)
-public class MixinComposterBlock extends Block implements INodeBlock {
+public class MixinComposterBlock extends Block implements INodeBlock, IHaveDuctStats {
 
     @Unique
     Double vs_clockwork$$maxPressure = 100000.0;
@@ -51,7 +61,7 @@ public class MixinComposterBlock extends Block implements INodeBlock {
             GasType gas = GasTypeRegistry.INSTANCE.getGasType(KelvinMod.MOD_ID,"methane");
 
             if (pressure <= vs_clockwork$$maxPressure && gas != null) {
-                kelvin.addGasAtTemperature(ductNodePos, gas, 0.5, 305);
+                kelvin.addGasAtTemperature(ductNodePos, gas, 0.05, 305);
             }
         }
     }
@@ -112,5 +122,17 @@ public class MixinComposterBlock extends Block implements INodeBlock {
     @Override
     public void nodeRemoveClient(@NotNull BlockState blockState, @NotNull Level level, @NotNull BlockPos blockPos) {
 
+    }
+
+    @Override
+    public @NotNull Map<@NotNull ResourceLocation, @NotNull ProductionInfo> getProductionStats() {
+        HashMap<ResourceLocation, ProductionInfo> stats = new HashMap();
+        ResourceLocation methaneLocation = ClockworkGasses.INSTANCE.getMETHANE().getResourceLocation();
+        stats.put(methaneLocation, new ProductionInfo(
+                ProductionMethod.OTHER,
+                ProductionType.CONDITIONAL,
+                Component.translatable("vs_clockwork.production_condition.composter_methane")
+        ));
+        return stats;
     }
 }

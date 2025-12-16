@@ -2,9 +2,11 @@ package org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burne
 
 import com.simibubi.create.foundation.block.IBE
 import dev.architectury.registry.fuel.FuelRegistry
+import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.particles.ParticleTypes
+import net.minecraft.network.chat.Component
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.sounds.SoundSource
 import net.minecraft.util.RandomSource
@@ -23,11 +25,12 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.util.INodeBlock
 import java.util.*
 
 
-class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(properties), INodeBlock, IBE<CoalBurnerBlockEntity> {
+class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(properties), INodeBlock, IBE<CoalBurnerBlockEntity>, IHaveDuctStats {
 
 
 
@@ -145,6 +148,10 @@ class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(prope
             level.addParticle(ParticleTypes.SMOKE, d + i, e + j, f + k, 0.0, 0.0, 0.0)
             level.addParticle(ParticleTypes.FLAME, d + i, e + j, f + k, 0.0, 0.0, 0.0)
         }
+    }
+
+    override fun getAdditionalInfoLines(): List<Component> {
+        return listOf(Component.translatable("vs_clockwork.duct_stats.produces_heat").withStyle(ChatFormatting.GOLD), Component.translatable("vs_clockwork.coal_burner.function").withStyle(ChatFormatting.WHITE))
     }
 
     companion object {

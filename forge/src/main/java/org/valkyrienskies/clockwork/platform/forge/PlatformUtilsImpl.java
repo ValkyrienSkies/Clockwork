@@ -8,11 +8,14 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.network.NetworkHooks;
 import org.valkyrienskies.clockwork.ClockworkBlocks;
+import org.valkyrienskies.clockwork.forge.util.DuctStatsForge;
+import org.valkyrienskies.clockwork.util.gui.DuctStats;
 
 import java.util.function.Supplier;
 
@@ -44,5 +47,9 @@ public class PlatformUtilsImpl {
         return CreativeModeTab.builder().title(Component.translatable("vs_clockwork:creative_mode_tab", "VS: Clockwork"))
             .icon(() -> new ItemStack(ClockworkBlocks.PHYSICS_INFUSER.get()))
             .build();
+    }
+
+    public static DuctStats getDuctStats(Block block) {
+        return new DuctStatsForge(block);
     }
 }

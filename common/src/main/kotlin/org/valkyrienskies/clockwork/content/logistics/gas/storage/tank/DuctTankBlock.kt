@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
+import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.core.util.squared
 import org.valkyrienskies.kelvin.KelvinMod.KELVINLOGGER
 import org.valkyrienskies.kelvin.api.DuctNode
@@ -24,7 +25,7 @@ import org.valkyrienskies.kelvin.util.INodeBlock
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 
 
-class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE<DuctTankBlockEntity> {
+class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE<DuctTankBlockEntity>, IHaveDuctStats {
     init {
         registerDefaultState(
             defaultBlockState()
@@ -62,7 +63,7 @@ class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE
     }
 
     fun createTankNode(pos: DuctNodePos, size: Double): DuctNode {
-        return TankDuctNode(pos, NodeBehaviorType.TANK, volume = 0.52, maxPressure = 16375049.0, maxTemperature = 1478.0, size = size)
+        return TankDuctNode(pos, NodeBehaviorType.TANK, volume = 1.0, maxPressure = 16375049.0, maxTemperature = 1478.0, size = size)
     }
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
