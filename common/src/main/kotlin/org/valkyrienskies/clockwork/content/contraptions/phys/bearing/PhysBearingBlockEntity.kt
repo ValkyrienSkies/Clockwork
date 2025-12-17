@@ -584,6 +584,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val joint = VSRevoluteJoint(shipId00, pose0, shipOnID, pose1, maxForceTorque)
 
         level.gtpa.addJoint(joint) { id -> this.joint = VSJointAndId(id, joint) }
+        shouldRefresh = false
     }
 
     private fun tryUpdateData() {
