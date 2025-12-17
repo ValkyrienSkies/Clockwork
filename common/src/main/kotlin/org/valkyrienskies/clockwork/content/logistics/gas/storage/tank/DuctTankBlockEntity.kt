@@ -1,6 +1,8 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.storage.tank
 
 import com.simibubi.create.api.connectivity.ConnectivityHandler
+import com.simibubi.create.content.fluids.tank.FluidTankBlockEntity
+import com.simibubi.create.content.fluids.tank.FluidTankCTBehaviour
 import com.simibubi.create.foundation.blockEntity.IMultiBlockEntityContainer
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
@@ -27,6 +29,10 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
 
     var updateConnectivity: Boolean = false
 
+    override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) {
+        return
+    }
+
     override fun tick() {
         super.tick()
 
@@ -46,25 +52,12 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         super.read(tag, clientPacket)
     }
 
-    override fun write(tag: CompoundTag, clientPacket: Boolean) {
+    override fun writeSafe(tag: CompoundTag)  {
 
         tag.putInt("Height", height)
         tag.putInt("Width", width)
         if (controller != null) tag.put("Controller", NbtUtils.writeBlockPos(controller!!))
-        super.write(tag, clientPacket)
-    }
-
-    override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) {
-        return
-    }
-
-    fun updateConnectivity() {
-
-        if (level!!.isClientSide) return
-        if (!isController) return
-
-        updateConnectivity = false
-        ConnectivityHandler.formMulti(this)
+        super.writeSafe(tag)
     }
 
     override fun getDuctNodePosition(): DuctNodePos {
@@ -76,11 +69,38 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         super.lazyTick()
     }
 
+    fun updateConnectivity() {
+
+        if (level!!.isClientSide) return
+        if (!isController) return
+
+        updateConnectivity = false
+        ConnectivityHandler.formMulti(this)
+    }
+
+    override fun notifyMultiUpdated() {
+        var state = blockState
+        if (state.block is DuctTankBlock) { // safety
+            state = state.setValue(DuctTankBlock.BOTTOM, controller!!.y == blockPos.y)
+            state = state.setValue(DuctTankBlock.TOP, controller!!.y + height - 1 == blockPos.y)
+            level!!.setBlock(blockPos, state,23)
+
+            (blockState.block as? DuctTankBlock)?.nodeRemove(blockState, level!!, blockPos, blockState, false)
+            if (isController) {
+                (blockState.block as? DuctTankBlock)?.nodePlace(blockState, level!!, blockPos, blockState, false)
+            }
+        }
+
+        setChanged()
+        notifyUpdate()
+    }
+
     override fun getController(): BlockPos? {
         return if (isController) blockPos else controllerCT
     }
 
     // This is hideously stupid, but intelliJ won't let me do it in a normal way, so...
+    @Suppress("UNCHECKED_CAST")
     override fun <T> getControllerBE(): T? where T : BlockEntity?, T : IMultiBlockEntityContainer? {
         if (isController) return this as T
         return level?.getBlockEntity(controllerCT!!) as? T
@@ -98,20 +118,25 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     }
 
     override fun removeController(keepContents: Boolean) {
-        if (level!!.isClientSide) {return}
+        if (level!!.isClientSide) return
+
+        if (isController) (blockState.block as? DuctTankBlock)?.nodeRemove(blockState, level!!, blockPos, blockState, false)
+
+
         controllerCT = null
         heightCT = 1
         widthCT = 1
         queueConnectivityUpdate()
         notifyMultiUpdated()
 
-        var state = blockState
-        state = state.setValue(DuctTankBlock.LARGE, false)
+        (blockState.block as? DuctTankBlock)?.nodePlace(blockState, level!!, blockPos, blockState, false)
+
+        val state = blockState
+        state.setValue(DuctTankBlock.TOP, true)
+        state.setValue(DuctTankBlock.BOTTOM, true)
         level!!.setBlock(worldPosition, state, 22)
 
-        if (isController) {
-            (blockState.block as? DuctTankBlock)?.nodeRemove(blockState, level!!, blockPos, blockState, false)
-        }
+
 
         setChanged()
         sendData()
@@ -123,23 +148,6 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
 
     override fun preventConnectivityUpdate() {
         updateConnectivity = false
-    }
-
-    override fun notifyMultiUpdated() {
-        var state = blockState
-        if (state.block is DuctTankBlock) { // safety
-            state = state.setValue(DuctTankBlock.BOTTOM, controller!!.y == blockPos.y)
-            state = state.setValue(DuctTankBlock.TOP, controller!!.y + height - 1 == blockPos.y)
-            state = state.setValue(DuctTankBlock.LARGE, width > 1)
-            level!!.setBlock(blockPos, state,23)
-
-            if (isController) {
-                (blockState.block as? DuctTankBlock)?.nodeRemove(blockState, level!!, blockPos, blockState, false)
-                (blockState.block as? DuctTankBlock)?.nodePlace(blockState, level!!, blockPos, blockState, false)
-            }
-        }
-        setChanged()
-        notifyUpdate()
     }
 
     override fun getMainConnectionAxis(): Direction.Axis { return Direction.Axis.Y }
