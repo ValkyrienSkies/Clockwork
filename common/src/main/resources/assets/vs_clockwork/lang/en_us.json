@@ -287,5 +287,8 @@
   "vs_clockwork.ponder.solid_delivery.text_6": "Is that the Delivery cannon can shoot between Ships.",
   "vs_clockwork.ponder.solid_delivery.text_7": "Both the cannon and chute can only be placed on Depots,",
   "vs_clockwork.ponder.solid_delivery.text_8": "Chutes,",
-  "vs_clockwork.ponder.solid_delivery.text_9": "and belts"
+  "vs_clockwork.ponder.solid_delivery.text_9": "and belts",
+
+  "death.attack.gas_burn": "%s was singed to a crisp",
+  "death.attack.gas_explosion": "%s couldn't handle the pressure"
 }

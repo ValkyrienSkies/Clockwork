@@ -50,6 +50,7 @@ import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3d
 import org.valkyrienskies.mod.common.*
 import org.valkyrienskies.mod.common.util.SplittingDisablerAttachment
+import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
 import org.valkyrienskies.mod.common.world.clipIncludeShips
@@ -368,7 +369,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val attachPoint = worldPosition.relative(direction)
 
         // bearing data
-        val worldPos: Vector3dc = worldPosition.toJOMLD().add(0.5, 0.5, 0.5)
+        val worldPos: Vector3dc = worldPosition.center.toJOML()
         val axis = direction.normal.toJOMLD()
         val shipOn = level.getShipObjectManagingPos(worldPosition)
 
@@ -439,8 +440,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val newDriveVelocity = if (realSpeed != 0.0f) VSRevoluteJoint.VSRevoluteDriveVelocity(getRealisticAngularSpeed(), true) else null
         val angle = if (movementMode!!.get() == LockedMode.FOLLOW_ANGLE) { Math.toRadians(targetAngle.toDouble()).toFloat().let { VSD6Joint.AngularLimitPair(it, it.nextUp()) } } else {null}
         val joint = VSRevoluteJoint(
-            shiptraptionID, VSJointPose(bearingPos.fma(-extraDist, axis, Vector3d()).add(worldOffset0, Vector3d()), ship1rot),
-            shipOnID, VSJointPose(posInOwnerShip.fma(-extraDist, axis, Vector3d()), ship2rot),
+            shiptraptionID, VSJointPose(bearingPos.fma(-extraDist, axis, Vector3d()), ship1rot),
+            shipOnID, VSJointPose(posInOwnerShip.fma(-extraDist, axis, Vector3d()).add(worldOffset0, Vector3d()), ship2rot),
             driveFreeSpin = this.movementMode!!.get() == LockedMode.UNLOCKED,
             driveVelocity = newDriveVelocity,
             angularLimitPair = angle
@@ -583,6 +584,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val joint = VSRevoluteJoint(shipId00, pose0, shipOnID, pose1, maxForceTorque)
 
         level.gtpa.addJoint(joint) { id -> this.joint = VSJointAndId(id, joint) }
+        shouldRefresh = false
     }
 
     private fun tryUpdateData() {
