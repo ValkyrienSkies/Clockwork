@@ -1019,7 +1019,22 @@ object ClockworkBlocks {
             .build()
             .register()
 
-
+    @JvmField
+    val WANDERGLASS = REGISTRATE.block<GenericWanderliteBlock>(
+        "wanderglass"
+    ) { properties: BlockBehaviour.Properties? ->
+        GenericWanderliteBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .properties { it.noOcclusion() ; it.lightLevel{ _ -> 1 } ; it.isViewBlocking{ _, _, _ -> false } }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .tag(ClockworkTags.AllBlockTags.SENSOR_LENS.tag)
+        .item()
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .build()
+        .register()
 
     @JvmStatic
     fun register() {
