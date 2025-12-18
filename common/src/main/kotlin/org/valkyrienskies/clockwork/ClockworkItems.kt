@@ -43,7 +43,7 @@ object ClockworkItems {
         REGISTRATE.item<WanderlustMusicDisc>("music_disc_wanderlust") { properties: Item.Properties? ->
             WanderlustMusicDisc(properties!!)
         }
-            .properties { it.rarity(Rarity.EPIC) }
+            .properties { it.rarity(Rarity.EPIC).stacksTo(1) }
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .tag(ItemTags.MUSIC_DISCS)
             .register()
