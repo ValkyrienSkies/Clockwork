@@ -98,6 +98,8 @@
   "item.vs_clockwork.distance_sensor": "Peepotron",
   "block.vs_clockwork.gyroscopic_sensor": "Spinotron",
   "item.vs_clockwork.gyroscopic_sensor": "Spinotron",
+  "block.vs_clockwork.impact_sensor": "Impactotron",
+  "item.vs_clockwork.impact_sensor": "Impactotron",
 
 
   "block.vs_clockwork.wanderlite_block": "Block of Wanderlite",
