@@ -53,7 +53,7 @@ class DuctTankModel private constructor(originalModel: BakedModel, side: CTSprit
         }
 
         fun setCulled(face: Direction, cull: Boolean) {
-            return //TODO sus
+
             if (face.axis
                     .isVertical
             ) return
@@ -61,7 +61,7 @@ class DuctTankModel private constructor(originalModel: BakedModel, side: CTSprit
         }
 
         fun isCulled(face: Direction): Boolean {
-            return false //TODO sus
+
             if (face.axis
                     .isVertical
             ) return false

@@ -470,7 +470,7 @@ object ClockworkBlocks {
 
 
     @JvmField
-    val DUCT_TANK: BlockEntry<DuctTankBlock> = REGISTRATE.block<DuctTankBlock>(
+    val DUCT_TANK: BlockEntry<DuctTankBlock> = REGISTRATE.block(
         "duct_tank"
     ) { properties: BlockBehaviour.Properties? ->
         DuctTankBlock(

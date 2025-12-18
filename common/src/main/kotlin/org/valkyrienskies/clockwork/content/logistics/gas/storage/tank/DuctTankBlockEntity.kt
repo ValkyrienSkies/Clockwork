@@ -5,6 +5,7 @@ import com.simibubi.create.content.fluids.tank.FluidTankBlockEntity
 import com.simibubi.create.content.fluids.tank.FluidTankCTBehaviour
 import com.simibubi.create.foundation.blockEntity.IMultiBlockEntityContainer
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
+import io.github.fabricators_of_create.porting_lib.util.Constants
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
@@ -15,6 +16,7 @@ import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
+import org.valkyrienskies.mod.util.updateBlock
 
 class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state),
     IMultiBlockEntityContainer {
@@ -38,6 +40,7 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
 
         if (level!!.isClientSide) return
         if (updateConnectivity) updateConnectivity()
+        sendData()
     }
 
     fun queueConnectivityUpdate() {
@@ -52,12 +55,13 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         super.read(tag, clientPacket)
     }
 
-    override fun writeSafe(tag: CompoundTag)  {
+    override fun write(tag: CompoundTag, clientPacket: Boolean)  {
+
 
         tag.putInt("Height", height)
         tag.putInt("Width", width)
         if (controller != null) tag.put("Controller", NbtUtils.writeBlockPos(controller!!))
-        super.writeSafe(tag)
+        super.write(tag, clientPacket)
     }
 
     override fun getDuctNodePosition(): DuctNodePos {
@@ -122,21 +126,21 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
 
         if (isController) (blockState.block as? DuctTankBlock)?.nodeRemove(blockState, level!!, blockPos, blockState, false)
 
-
         controllerCT = null
         heightCT = 1
         widthCT = 1
         queueConnectivityUpdate()
         notifyMultiUpdated()
-
         (blockState.block as? DuctTankBlock)?.nodePlace(blockState, level!!, blockPos, blockState, false)
 
-        val state = blockState
-        state.setValue(DuctTankBlock.TOP, true)
-        state.setValue(DuctTankBlock.BOTTOM, true)
-        level!!.setBlock(worldPosition, state, 22)
-
-
+        var state = blockState
+        state = state.setValue(DuctTankBlock.TOP, true)
+        state = state.setValue(DuctTankBlock.BOTTOM, true)
+        level!!.setBlock(worldPosition, state, 22, 1024)
+        //updateBlock(level!!, blockPos, blockPos, state)
+        //level!!.setBlockAndUpdate(worldPosition, state)
+        //level!!.setBlocksDirty(blockPos, blockState, state)
+        //level!!.updateNeighborsAt(blockPos, blockState.block)
 
         setChanged()
         sendData()
