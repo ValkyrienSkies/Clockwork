@@ -98,8 +98,8 @@ dependencies {
 
     modImplementation("com.terraformersmc:modmenu:${modmenu_version}")
 
-    //modImplementation("net.minecraftforge:forgeconfigapiport-fabric:4.2.9") // TODO do we still need this?
-    modImplementation("curse.maven:forge-config-api-port-fabric-547434:4583000")
+    include(modImplementation "fuzs.forgeconfigapiport:forgeconfigapiport-fabric:8.0.0")
+    modRuntimeOnly("maven.modrinth:forge-config-screens:v8.0.2-1.20.1-Fabric")
 
     // Development QOL
     modLocalRuntime("maven.modrinth:lazydfu:${lazydfu_version}")
