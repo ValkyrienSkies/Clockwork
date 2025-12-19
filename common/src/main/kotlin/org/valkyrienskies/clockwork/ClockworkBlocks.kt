@@ -59,6 +59,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.generation.steam_gener
 import org.valkyrienskies.clockwork.content.logistics.gas.heater.GasHeaterBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.redstone.RedstoneDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankCTBehaviour
 import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankModel
@@ -517,6 +518,27 @@ object ClockworkBlocks {
         .item()
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .model(AssetLookup.customBlockItemModel("pump", "item"))
+        .transform(customItemModel())
+        .transform(ClockworkStress.setImpact(4.0))
+        .register()
+
+    @JvmField
+    val REDSTONE_DUCT: BlockEntry<RedstoneDuctBlock> = REGISTRATE.block<RedstoneDuctBlock>(
+        "redstone_duct"
+    ) { properties: BlockBehaviour.Properties? ->
+        RedstoneDuctBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .addLayer { Supplier { RenderType.cutoutMipped() } }
+        .properties { it.noOcclusion() }
+//        .blockstate { c: DataGenContext<Block?, RedstoneDuctBlock>, p: RegistrateBlockstateProvider ->
+//            BlockStateGen.axisBlock(c, p, { AssetLookup.partialBaseModel(c, p, "redstone_duct") })
+//        }
+        .item()
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .model(AssetLookup.customBlockItemModel("redstone_duct", "block"))
         .transform(customItemModel())
         .transform(ClockworkStress.setImpact(4.0))
         .register()

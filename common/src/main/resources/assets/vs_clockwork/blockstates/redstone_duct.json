@@ -1,0 +1,15 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "vs_clockwork:block/redstone_duct/block",
+      "y": 90
+    },
+    "axis=y": {
+      "model": "vs_clockwork:block/redstone_duct/block",
+      "x": 90
+    },
+    "axis=z": {
+      "model": "vs_clockwork:block/redstone_duct/block"
+    }
+  }
+}

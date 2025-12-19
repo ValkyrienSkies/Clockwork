@@ -57,6 +57,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleRenderer
+import org.valkyrienskies.clockwork.content.logistics.gas.redstone.RedstoneDuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctVisual
@@ -432,6 +433,18 @@ object ClockworkBlockEntities {
                 )
             }
         }
+        .register()
+
+    @JvmField
+    val REDSTONE_DUCT: BlockEntityEntry<RedstoneDuctBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity("redstone_duct") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            RedstoneDuctBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .validBlocks(ClockworkBlocks.REDSTONE_DUCT)
         .register()
 
     @JvmField
