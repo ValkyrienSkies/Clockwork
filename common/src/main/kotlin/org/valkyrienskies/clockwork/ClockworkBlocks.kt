@@ -38,7 +38,7 @@ import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteSlab
 import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteStairs
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteOreBlock
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterBlock
-import org.valkyrienskies.clockwork.content.curiosities.asteroid.AsteroidBlock
+import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorTestBlock
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.distance.DistanceSensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.impact.ImpactSensorBlock
@@ -997,9 +997,9 @@ object ClockworkBlocks {
             .register()
 
     @JvmField
-    val ASTEROID: BlockEntry<AsteroidBlock> =
-        REGISTRATE.block<AsteroidBlock>("asteroid_block") { properties: BlockBehaviour.Properties? ->
-            AsteroidBlock(properties!!)
+    val ASTEROID: BlockEntry<MeteorTestBlock> =
+        REGISTRATE.block<MeteorTestBlock>("asteroid_block") { properties: BlockBehaviour.Properties? ->
+            MeteorTestBlock(properties!!)
         }
             .initialProperties { SharedProperties.wooden() }
             .transform(axeOrPickaxe())

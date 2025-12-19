@@ -13,7 +13,7 @@ class AeronautGogglesState {
         @JvmStatic
         fun getState(player: Player): AeronautGogglesState {
             val p = player as MixinPlayerDuck
-            var s = p.aeronautGogglesState
+            var s = p.getAeronautGogglesState()
 
             if (s == null) {
                 s = AeronautGogglesState()
