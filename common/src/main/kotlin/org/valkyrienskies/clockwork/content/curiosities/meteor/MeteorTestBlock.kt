@@ -14,7 +14,7 @@ class MeteorTestBlock(properties: Properties) : Block(properties) {
         if (level.isClientSide) return
 
         MeteorStorm.assembleMeteor(level as ServerLevel, pos.offset(0,30,0).toVector3i())
-        MeteorGenerator.generate(level as ServerLevel, pos.offset(25,25,25), 0.035, 10, 3)
+        //MeteorGenerator.generate(level as ServerLevel, pos.offset(25,25,25), 0.035, 10, 3)
     }
 
 
