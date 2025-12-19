@@ -8,6 +8,8 @@ import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -20,8 +22,23 @@ import static org.valkyrienskies.clockwork.ClockworkMod.MOD_ID;
 
 @Mod(MOD_ID)
 public class ClockworkModForge {
-    public ClockworkModForge() {
-        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+    public ClockworkModForge(FMLJavaModLoadingContext context) {
+        IEventBus modEventBus = context.getModEventBus();
+
+        context.registerConfig(
+                ModConfig.Type.SERVER,
+                ClockworkConfigUpdater.INSTANCE.getSERVER_SPEC(),
+                "valkyrienskies/clockwork/server.toml"
+        );
+
+        context.registerConfig(
+                ModConfig.Type.CLIENT,
+                ClockworkConfigUpdater.INSTANCE.getCLIENT_SPEC(),
+                "valkyrienskies/clockwork/client.toml"
+        );
+
+        modEventBus.addListener(this::onConfigLoading);
+        modEventBus.addListener(this::onConfigReloading);
 
         EventBuses.registerModEventBus(MOD_ID, modEventBus);
         ClockworkMod.INSTANCE.getREGISTRATE().registerEventListeners(modEventBus);
@@ -61,6 +78,14 @@ public class ClockworkModForge {
 //                () -> new ConfigGuiHandler.ConfigGuiFactory((minecraft, screen) -> VSClothConfig.createConfigScreenFor(screen, ClockworkConfig.class))
 //        );
 
+    }
+
+    private void onConfigLoading(ModConfigEvent.Loading event) {
+        ClockworkConfigUpdater.INSTANCE.update(event.getConfig());
+    }
+
+    private void onConfigReloading(ModConfigEvent.Reloading event) {
+        ClockworkConfigUpdater.INSTANCE.update(event.getConfig());
     }
 
     private void onRegister(RegisterEvent evt) {
