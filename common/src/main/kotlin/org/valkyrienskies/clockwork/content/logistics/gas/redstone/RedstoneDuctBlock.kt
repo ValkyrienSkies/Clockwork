@@ -8,6 +8,7 @@ import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.context.BlockPlaceContext
+import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.DirectionalBlock
@@ -18,6 +19,7 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.content.curiosities.sensor.ISensorBlock
 import org.valkyrienskies.kelvin.util.INodeBlock
 
 class RedstoneDuctBlock(properties: Properties) : RotatedPillarBlock(properties), INodeBlock, IBE<RedstoneDuctBlockEntity> {
@@ -35,6 +37,21 @@ class RedstoneDuctBlock(properties: Properties) : RotatedPillarBlock(properties)
         }
 
         return InteractionResult.SUCCESS
+    }
+
+    override fun isSignalSource(state: BlockState): Boolean {
+        return true
+    }
+
+    override fun getDirectSignal(state: BlockState, level: BlockGetter, pos: BlockPos, direction: Direction): Int {
+        return state.getSignal(level, pos, direction)
+    }
+
+    override fun getSignal(state: BlockState, level: BlockGetter, pos: BlockPos, direction: Direction): Int {
+        if (state.getValue(ISensorBlock.Companion.POWER) != 0) {
+            return state.getValue(ISensorBlock.Companion.POWER)
+        }
+        return 0
     }
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {

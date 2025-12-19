@@ -1,10 +1,9 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.redstone
 
 import com.mojang.blaze3d.systems.RenderSystem
+import com.simibubi.create.AllSoundEvents
 import com.simibubi.create.foundation.gui.AllGuiTextures
 import com.simibubi.create.foundation.gui.AllIcons
-import com.simibubi.create.foundation.gui.ModularGuiLine
-import com.simibubi.create.foundation.gui.ModularGuiLineBuilder
 import com.simibubi.create.foundation.gui.widget.IconButton
 import com.simibubi.create.foundation.gui.widget.Label
 import com.simibubi.create.foundation.gui.widget.ScrollInput
@@ -13,12 +12,13 @@ import net.createmod.catnip.gui.AbstractSimiScreen
 import net.createmod.catnip.gui.UIRenderHelper
 import net.createmod.catnip.gui.widget.AbstractSimiWidget
 import net.minecraft.ChatFormatting
-import net.minecraft.client.gui.Font
+import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
-import net.minecraft.client.gui.components.ImageWidget
 import net.minecraft.client.gui.components.events.GuiEventListener
+import net.minecraft.client.resources.sounds.SimpleSoundInstance
 import net.minecraft.network.chat.Component
 import net.minecraft.util.Mth
+import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.logistics.gas.redstone.RedstoneDuctConditional.ConditionalType
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
@@ -46,6 +46,20 @@ class RedstoneDuctScreen(val be: RedstoneDuctBlockEntity) : AbstractSimiScreen(C
     private var filterWidget: GasFilterWidget? = null
     private var filterOpen = false
 
+    val mult: Double get() = when (type) {
+        ConditionalType.MASS -> 0.001
+        ConditionalType.HEAT_ENERGY -> 1000.0
+        ConditionalType.PRESSURE -> 1000.0
+        else -> 1.0
+    }
+
+    val unit: String  get() = when (type) {
+        ConditionalType.MASS -> "g"
+        ConditionalType.HEAT_ENERGY -> "Kj"
+        ConditionalType.PRESSURE -> "KPa"
+        ConditionalType.TEMPERATURE -> "K"
+        else -> ""
+    }
 
     init {
         // Load initial state from BE
@@ -74,20 +88,30 @@ class RedstoneDuctScreen(val be: RedstoneDuctBlockEntity) : AbstractSimiScreen(C
 
 
 
+
         conditionalTypeScrollInput = SelectionScrollInput(x + 20, y + 20, 80, 18)
         conditionalLabel = Label(x + 20, y + 29, Component.literal("Blank"))
         conditionalTypeScrollInput.forOptions(ConditionalType.entries.map { Component.literal(it.name) })
             .writingTo(conditionalLabel).setState(type.ordinal)
+            .calling {
+                val oldMult = mult
+                type = ConditionalType.entries[it]
+                comparisonValue = comparisonValue * (mult/oldMult)
+                comparisonValueScrollInput.onChanged()
+                }
 
         comparisonTypeScrollInput = SelectionScrollInput(x + 100, y + 20, 40, 18)
         comparisonTypeLabel = Label(x + 100, y + 29, Component.literal("Blank"))
         comparisonTypeScrollInput.forOptions(listOf(Component.literal("Less Than"), Component.literal("More Than")))
             .writingTo(comparisonTypeLabel).setState(if (moreThan) 1 else 0)
+            .calling {moreThan = it == 1 }
 
         comparisonValueScrollInput = ScrollInput(x + 165, y + 20, 30, 18)
         comparisonValueLabel = Label(x + 165, y + 29, Component.literal("Blank"))
-        comparisonValueScrollInput.withRange(0, 10000).writingTo(comparisonValueLabel).setState(comparisonValue.toInt())
-            .withStepFunction {if (it.control) 100 else if (it.shift) 10 else 1}
+        comparisonValueScrollInput.withRange(0, 10000).writingTo(comparisonValueLabel).setState((comparisonValue / mult).toInt())
+            .withStepFunction {if (it.control) 100 else if (it.shift) 10 else 1}.setState((comparisonValue / mult).toInt())
+            .calling { comparisonValue = it * mult }.format { Component.literal("$it$unit") }
+        comparisonValueScrollInput.onChanged()
 
         addRenderableOnly(conditionalLabel)
         addRenderableOnly(comparisonTypeLabel)
@@ -128,16 +152,9 @@ class RedstoneDuctScreen(val be: RedstoneDuctBlockEntity) : AbstractSimiScreen(C
 
     override fun removed() {
         super.removed()
-        // Save logic: Send Packet to Server
-        // Note: You must implement RedstoneDuctEditPacket
         val newConditional = RedstoneDuctConditional(type, moreThan, comparisonValue, filter, filterBlacklist)
-
-        //AllPackets.getChannel().sendToServer(RedstoneDuctEditPacket(be.blockPos, newConditional))
+        ClockworkPackets.sendToServer(RedstoneDuctScreenPacket(be.blockPos, newConditional))
     }
-
-    // ==========================================
-    //              Gas Filter Widget
-    // ==========================================
 
     inner class GasFilterWidget(x: Int, y: Int, w: Int, h: Int) : AbstractSimiWidget(x,y,w,h), GuiEventListener {
 
@@ -200,8 +217,6 @@ class RedstoneDuctScreen(val be: RedstoneDuctBlockEntity) : AbstractSimiScreen(C
                 }
 
                 // Draw Icon
-                // Assuming gas.iconLocation is a texture path.
-                // We render it as a sprite 16x16
                 RenderSystem.setShaderTexture(0, gas.iconLocation)
                 graphics.blit(gas.iconLocation, px, py, 0f, 0f, 16, 16, 16, 16)
 
@@ -242,8 +257,12 @@ class RedstoneDuctScreen(val be: RedstoneDuctBlockEntity) : AbstractSimiScreen(C
                 } else {
                     filter.add(gas)
                 }
+
                 // Play click sound
-                //net.createmod.catnip.gui.UIRenderHelper.s(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK.value())
+                Minecraft.getInstance()
+                    .getSoundManager()
+                    .play(SimpleSoundInstance.forUI(AllSoundEvents.SCROLL_VALUE.mainEvent, 1.5f))
+
                 return true
             }
             return false

@@ -20,6 +20,12 @@ class RedstoneDuctBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: B
 
     override fun tick() {
         super.tick()
+
+        val oldPower = blockState.getValue(RedstoneDuctBlock.POWER)
+        val power = getPower()
+        if (oldPower != power) {
+            level?.setBlockAndUpdate(blockPos, blockState.setValue(RedstoneDuctBlock.POWER, power))
+        }
     }
 
 
@@ -27,8 +33,8 @@ class RedstoneDuctBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: B
         ScreenOpener.open(RedstoneDuctScreen(this))
     }
 
-    fun getPower() {
-        ClockworkMod.getKelvin()
+    fun getPower(): Int {
+        return if (conditional != null && conditional!!.passes(ClockworkMod.getKelvin(), getDuctNodePosition())) 15 else 0
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
@@ -37,7 +43,11 @@ class RedstoneDuctBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: B
     }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
+        super.read(tag, clientPacket)
+
         if (tag.contains("Conditional"))
         conditional = RedstoneDuctConditional.deserialize(tag.get("Conditional") as CompoundTag)
+
+        super.write(tag, clientPacket)
     }
 }
