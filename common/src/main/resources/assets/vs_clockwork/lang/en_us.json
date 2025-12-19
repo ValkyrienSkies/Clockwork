@@ -203,6 +203,12 @@
   "block.vs_clockwork.gas_tube": "Gas Tube",
   "item.vs_clockwork.gas_tube": "Gas Tube",
 
+  "item.vs_clockwork.aeronaut_goggles": "Aeronaut Goggles",
+  "item.vs_clockwork.aeronaut_jacket": "Aeronaut Jacket",
+  "item.vs_clockwork.aeronaut_jumpers": "Aeronaut Jumpers",
+  "item.vs_clockwork.aeronaut_boots": "Aeronaut Boots",
+
+
   "block.vs_clockwork.delivery_chute": "Delivery Chute",
   "item.vs_clockwork.delivery_chute": "Delivery Chute",
   "block.vs_clockwork.delivery_cannon": "Delivery Cannon",
