@@ -40,6 +40,7 @@ import org.valkyrienskies.clockwork.content.generic.IForceApplierBE
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toJOMLD
+import kotlin.math.abs
 import kotlin.math.absoluteValue
 import kotlin.math.min
 import kotlin.math.sin
@@ -506,7 +507,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
             } else {
                 // Add stress impact from propeller blades.
                 for (blade in blades) {
-                    stressImpact += blade.length * sin(Math.toRadians(blade.angle)) * (if(blade.wide) 1.5 else 1.0)
+                    stressImpact += abs(blade.length * sin(Math.toRadians(blade.angle)) * (if(blade.wide) 1.5 else 1.0))
                 }
             }
         }
