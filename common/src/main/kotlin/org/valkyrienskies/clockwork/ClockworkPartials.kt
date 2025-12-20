@@ -4,7 +4,6 @@ import dev.engine_room.flywheel.lib.model.baked.PartialModel
 
 object ClockworkPartials {
 
-    val BEARING_TOP_VSIFIED = block("vstop")
     val BEARING_TOP_FLAP = block("flap_bearing_top")
     val JOYSTICK = block("command_seat/joystick")
     val BUTTON_ONE = block("command_seat/buttonone")

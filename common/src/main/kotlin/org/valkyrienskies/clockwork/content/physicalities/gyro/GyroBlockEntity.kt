@@ -11,22 +11,20 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Quaterniond
-import org.joml.Vector3d
+import org.valkyrienskies.clockwork.content.physicalities.IClockworkWheelBE
 import org.valkyrienskies.core.api.ships.LoadedServerShip
-import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
-import org.valkyrienskies.mod.common.util.toJOMLD
 import java.awt.Point
-import kotlin.math.max
 
 
 class GyroBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
-    KineticBlockEntity(typeIn, pos, state) {
+    KineticBlockEntity(typeIn, pos, state), IClockworkWheelBE {
 
     var redstonePower: Point = Point(0,0)
 
-    var visualSpeed: LerpedFloat = LerpedFloat.linear()
-    var angle: Float = 0f
+    override var visualSpeed: LerpedFloat = LerpedFloat.linear()
+    override var angle: Double = 0.0
+
     var coreAngle = 0f
     var previousCoreAngle = 0f
 
