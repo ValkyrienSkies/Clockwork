@@ -32,6 +32,7 @@ import java.util.EnumMap
 import org.valkyrienskies.kelvin.api.DuctNetwork.Companion.idealGasConstant
 import org.valkyrienskies.mod.common.dimensionId
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
@@ -70,16 +71,22 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         val kelvin = ClockworkMod.getKelvin()
         val serverLevel = level as ServerLevel
 
-        val distance = max(gasToDistance(kelvin, getDuctNodePosition(), level!!.dimensionId), 0.15f)
+        val previousDistance = distanceJoint!!.minDistance!!
 
+        val distance = max((gasToDistance(kelvin, getDuctNodePosition(), level!!.dimensionId) + gasToDistance(kelvin, connectedBe!!.getDuctNodePosition(), level!!.dimensionId)) * 10.0f, 0.15f)
 
-        val tempJoint = VSJointAndId(distanceJointId!!, VSDistanceJoint(distanceJoint!!.shipId0, distanceJoint!!.pose0, distanceJoint!!.shipId1, distanceJoint!!.pose1, minDistance = distance, maxDistance = distance))
+        if (distance == previousDistance) return
+        if (abs(distance - previousDistance) < 0.01f) return
+
+        var lerpedDistance = previousDistance + (distance - previousDistance) * 0.1f
+        if (lerpedDistance.isInfinite() || lerpedDistance.isNaN()) lerpedDistance = previousDistance
+        if (abs(lerpedDistance - distance) < 0.001f) lerpedDistance = distance
+
+        val tempJoint = VSJointAndId(distanceJointId!!, VSDistanceJoint(distanceJoint!!.shipId0, distanceJoint!!.pose0, distanceJoint!!.shipId1, distanceJoint!!.pose1, minDistance = lerpedDistance, maxDistance = lerpedDistance, damping = 1e10f))
 
         serverLevel.gtpa.updateJoint(distanceJointId!!, tempJoint.joint)
         distanceJoint = tempJoint.joint as VSDistanceJoint
     }
-
-
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) { return }
 
@@ -230,7 +237,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         // Doesn't account for the elastic force of the hose, because doing so would require solving a cubic polynomial
         fun gasToDistance(network: DuctNetwork<*>, pos: DuctNodePos, dimensionId: DimensionId): Float {
             var moles = 0.0
-            for ((gas, mass) in network.getGasMassAt(pos)) moles +=  gas.massToMoles(mass)
+            for ((gas, mass) in network.getGasMassAt(pos)) moles +=  gas.massToMoles(mass * 1000.0)
 
             val pressure = AerodynamicUtils.getAirPressureForY(pos.y, dimensionId)
             val temperature = network.getTemperatureAt(pos)
