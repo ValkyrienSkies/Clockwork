@@ -1,17 +1,21 @@
 package org.valkyrienskies.clockwork.content.contraptions.propeller.blades
 
+import com.mojang.logging.LogUtils
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour
 import com.simibubi.create.content.contraptions.behaviour.MovementContext
 import com.simibubi.create.content.contraptions.render.ContraptionMatrices
 import com.simibubi.create.foundation.virtualWorld.VirtualRenderWorld
 import net.createmod.catnip.animation.AnimationTickHolder
 import net.fabricmc.loader.impl.lib.sat4j.core.Vec
+import net.minecraft.client.renderer.LevelRenderer
 import net.minecraft.client.renderer.MultiBufferSource
+import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.NonNullList
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.ContainerHelper
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.LightLayer
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkConfig
@@ -89,6 +93,7 @@ class BladeControllerMovementBehaviour: MovementBehaviour {
             bladeRotations.add((360f / bladeCount.toFloat()) * i.toFloat())
         }
 
-        BladeControllerRenderer.renderShared(bladeList, bladeAngle.toFloat(), context.state, AnimationTickHolder.getPartialTicks(context.world), matrices.viewProjection, buffer, bladeRotations, true, matrices)
+        val light : Int = LevelRenderer.getLightColor(renderWorld, context.localPos)
+        BladeControllerRenderer.renderShared(bladeList, bladeAngle.toFloat(), context.state, AnimationTickHolder.getPartialTicks(context.world), matrices.viewProjection, buffer, light, bladeRotations, true, matrices, context.world)
     }
 }
