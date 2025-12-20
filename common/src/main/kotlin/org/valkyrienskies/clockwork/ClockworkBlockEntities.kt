@@ -72,6 +72,8 @@ import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.Reaction
 import org.valkyrienskies.clockwork.content.physicalities.spinoff_bearing.SpinoffBearingBlockEntity
 import org.valkyrienskies.clockwork.content.propulsion.sugar_rocket.SugarRocketBlockEntity
 import org.valkyrienskies.clockwork.content.propulsion.sugar_rocket.SugarRocketRenderer
+import org.valkyrienskies.clockwork.util.builder.ClockworkBlockEntityBuilder
+import org.valkyrienskies.clockwork.util.builder.ClockworkSimpleBlockEntityVisualFactory
 
 object ClockworkBlockEntities {
 
@@ -448,19 +450,19 @@ object ClockworkBlockEntities {
         .register()
 
     @JvmField
-    val VALVE_DUCT: BlockEntityEntry<ValveDuctBlockEntity> = ClockworkMod.REGISTRATE
+    val VALVE_DUCT: BlockEntityEntry<ValveDuctBlockEntity> = (ClockworkMod.REGISTRATE
         .blockEntity<ValveDuctBlockEntity>("valve_duct") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
             ValveDuctBlockEntity(
                 type,
                 pos,
                 state
             )
+        } as ClockworkBlockEntityBuilder)
+        .clockworkVisual {
+            ClockworkSimpleBlockEntityVisualFactory { ctx, blockEntity, partialTick ->
+                ValveDuctVisual(ctx, blockEntity, partialTick)
+            }
         }
-//        .visual {
-//            SimpleBlockEntityVisualizer.Factory { ctx, blockEntity, partialTick ->
-//                ValveDuctVisual(ctx, blockEntity, partialTick)
-//            }
-//        }
 //        .instance {
 //            BiFunction<MaterialManager?, ValveDuctBlockEntity?, BlockEntityInstance<in ValveDuctBlockEntity?>> { materialManager: MaterialManager?, blockEntity: ValveDuctBlockEntity? ->
 //                ShaftInstance(
