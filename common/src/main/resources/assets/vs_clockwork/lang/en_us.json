@@ -94,6 +94,13 @@
   "vs_clockwork.gas_thruster.function": "Produces thrust when gas flows out through it.",
   "vs_clockwork.extendon.function": "Extends and retracts with changes\nin its internal pressure.",
   "vs_clockwork.duct.function": "Configure connections with a Screwdriver.\nDisable connections with a Wrench.",
+  "vs_clockwork.hose_port.function": "Connects via a hose to another port,\nallowing gas to flow between vessels.",
+
+  "vs_clockwork.hose_port.connected": "Connected!",
+  "vs_clockwork.hose_port.connected_to": "Attached to: %s",
+  "vs_clockwork.hose_port.disconnected": "This port is not attached to anything.",
+  "vs_clockwork.hose_port.other_port_info": "Other Port Info:",
+  "vs_clockwork.extendon.current_length": "Current Length: ",
 
   "block.vs_clockwork.distance_sensor": "Peepotron",
   "item.vs_clockwork.distance_sensor": "Peepotron",

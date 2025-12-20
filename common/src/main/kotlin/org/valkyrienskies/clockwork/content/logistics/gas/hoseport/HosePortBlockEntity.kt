@@ -1,62 +1,57 @@
-package org.valkyrienskies.clockwork.content.physicalities.extendon
+package org.valkyrienskies.clockwork.content.logistics.gas.hoseport
 
-import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import dev.architectury.platform.Platform
 import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
-import org.joml.AxisAngle4d
-import org.joml.Quaterniond
-import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkGasses
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkSounds
-import org.valkyrienskies.clockwork.util.AerodynamicUtils
+import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity
+import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity.Companion.getQuaterniond
 import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.clockwork.util.universal_joint.IUniversalJoint
 import org.valkyrienskies.clockwork.util.updateJoint
 import org.valkyrienskies.core.api.ships.properties.ShipId
-import org.valkyrienskies.core.api.world.properties.DimensionId
-import org.valkyrienskies.core.internal.joints.*
+import org.valkyrienskies.core.internal.joints.VSD6Joint
 import org.valkyrienskies.core.internal.joints.VSD6Joint.D6Axis
 import org.valkyrienskies.core.internal.joints.VSD6Joint.D6Motion
-import org.valkyrienskies.kelvin.api.*
+import org.valkyrienskies.core.internal.joints.VSDistanceJoint
+import org.valkyrienskies.core.internal.joints.VSJointMaxForceTorque
+import org.valkyrienskies.core.internal.joints.VSJointPose
+import org.valkyrienskies.kelvin.api.ConnectionType
+import org.valkyrienskies.kelvin.api.DuctEdge
+import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.edges.PipeDuctEdge
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.getShipManagingPos
+import org.valkyrienskies.mod.common.toWorldCoordinates
 import org.valkyrienskies.mod.common.util.toJOMLD
 import java.util.EnumMap
-import org.valkyrienskies.kelvin.api.DuctNetwork.Companion.idealGasConstant
-import org.valkyrienskies.mod.common.dimensionId
-import kotlin.math.PI
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
+import kotlin.collections.set
 import kotlin.math.roundToInt
 
-class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), IUniversalJoint {
+class HosePortBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), IUniversalJoint {
+    override fun addBehaviours(behaviours: List<BlockEntityBehaviour>) {
+    }
 
     override var connectedJoint: IUniversalJoint? = null
     override var pos: BlockPos = pos
 
-    var connectedBe: ExtendonBlockEntity? = null
+    var connectedBe: HosePortBlockEntity? = null
     var edge: DuctEdge? = null
 
     var distanceJoint: VSDistanceJoint? = null
     var distanceJointId: Int? = null
-
-    var sphericalJoint: VSD6Joint? = null
-    var sphericalJointId: Int? = null
 
     var main: Boolean = false
 
@@ -65,7 +60,6 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
     override fun tick() {
         super.tick()
 
-
         if (level!!.isClientSide) return
 
         loadFn?.also {
@@ -73,43 +67,22 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
             loadFn = null
         }
 
-        if (connectedBe == null || connectedJoint == null || distanceJoint == null || distanceJointId == null || !main) return
-
-
-        val kelvin = ClockworkMod.getKelvin()
-        val serverLevel = level as ServerLevel
-
-        val previousDistance = distanceJoint!!.minDistance!!
-
-        val distance = max((gasToDistance(kelvin, getDuctNodePosition(), level!!.dimensionId) + gasToDistance(kelvin, connectedBe!!.getDuctNodePosition(), level!!.dimensionId)) * 10.0f, 0.15f)
-
-        if (distance == previousDistance) return
-        if (abs(distance - previousDistance) < 0.01f) return
-
-        var lerpedDistance = previousDistance + (distance - previousDistance) * 0.1f
-        if (lerpedDistance.isInfinite() || lerpedDistance.isNaN()) lerpedDistance = previousDistance
-        if (abs(lerpedDistance - distance) < 0.001f) lerpedDistance = distance
-
-        val tempJoint = VSJointAndId(distanceJointId!!, VSDistanceJoint(distanceJoint!!.shipId0, distanceJoint!!.pose0, distanceJoint!!.shipId1, distanceJoint!!.pose1, minDistance = lerpedDistance, maxDistance = lerpedDistance, damping = 1e10f))
-
-        serverLevel.gtpa.updateJoint(distanceJointId!!, tempJoint.joint)
-        distanceJoint = tempJoint.joint as VSDistanceJoint
+        if (distanceJointId != null && distanceJoint != null) {
+            val level = level as ServerLevel
+            level.gtpa.updateJoint(distanceJointId!!, this.distanceJoint!!)
+        }
     }
-
-    override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) { return }
 
     override fun connectTo(other: IUniversalJoint) {
         if (connectedJoint != null) return
 
-        connectedBe = other as? ExtendonBlockEntity ?: return
+        connectedBe = other as? HosePortBlockEntity ?: return
         if (connectedBe!!.edge != null) edge = connectedBe!!.edge
         else createEdge(blockPos.toDuctNodePos(level!!.dimension().location()), other.pos.toDuctNodePos(connectedBe!!.level!!.dimension().location()))
 
         if (connectedBe!!.distanceJoint != null) {
             distanceJoint = connectedBe!!.distanceJoint
             distanceJointId = connectedBe!!.distanceJointId
-            sphericalJoint = connectedBe!!.sphericalJoint
-            sphericalJointId = connectedBe!!.sphericalJointId
             main = false
         } else createJoint()
 
@@ -128,8 +101,6 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         if (connectedBe!!.distanceJoint == null) {
             distanceJoint = null
             distanceJointId = null
-            sphericalJoint = null
-            sphericalJointId = null
         } else if (distanceJointId != null) removeJoint()
 
         connectedBe = null
@@ -166,24 +137,13 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         val quater0 = getQuaterniond(level.getBlockState(blockPos).getValue(BlockStateProperties.FACING))
         val quater1 = getQuaterniond(level.getBlockState(connectedBe!!.blockPos).getValue(BlockStateProperties.FACING))
 
+        val distanceInWorld = level.toWorldCoordinates(pos0).distance(level.toWorldCoordinates(pos1))
+
         distanceJoint = VSDistanceJoint(pose0 = VSJointPose(pos0, quater0), pose1 = VSJointPose(pos1, quater1) , shipId0 = shipId0, shipId1 = shipId1,
-            minDistance = 0.5f, maxDistance = 1000f )
+            minDistance = 0f, maxDistance = (distanceInWorld + 1.0).roundToInt().toFloat()
+        )
         level.gtpa.addJoint(distanceJoint!!) { distanceJointId = it }
-
-        val limit = VSD6Joint.LimitCone(Math.PI.toFloat()/4f, Math.PI.toFloat()/4f)
-        val motions = EnumMap<D6Axis, D6Motion>(D6Axis::class.java)
-
-        motions[D6Axis.X] = D6Motion.FREE
-        motions[D6Axis.Y] = D6Motion.FREE
-        motions[D6Axis.Z] = D6Motion.FREE
-        motions[D6Axis.TWIST] = D6Motion.LOCKED
-        motions[D6Axis.SWING1] = D6Motion.LIMITED
-        motions[D6Axis.SWING2] = D6Motion.LIMITED
-
-
-
-        sphericalJoint = VSD6Joint(pose0 = VSJointPose(pos0, quater0), pose1 = VSJointPose(pos1, quater1) , shipId0 = shipId0, shipId1 = shipId1, swingLimit = limit, motions = motions  )
-        level.gtpa.addJoint(sphericalJoint!!) { sphericalJointId = it }
+        println("distance: $distanceInWorld")
 
         main = true
     }
@@ -192,12 +152,9 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         val level = level as ServerLevel
 
         level.gtpa.removeJoint(distanceJointId!!)
-        level.gtpa.removeJoint(sphericalJointId!!)
+
         distanceJoint = null
         distanceJointId = null
-
-        sphericalJoint = null
-        sphericalJointId = null
 
         main = false
     }
@@ -226,13 +183,13 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
             val bpos = BlockPos(compound.getInt("ConnectedPosX"),compound.getInt("ConnectedPosY"),compound.getInt("ConnectedPosZ"))
             if (!clientPacket) {
                 loadFn = {
-                    (level!!.getBlockEntity(bpos) as? ExtendonBlockEntity)?.also {
+                    (level!!.getBlockEntity(bpos) as? HosePortBlockEntity)?.also {
                         it.disconnect()
                         connectTo(it)
                     }
                 }
             } else {
-                connectedBe = level?.getBlockEntity(BlockPos(compound.getInt("ConnectedPosX"),compound.getInt("ConnectedPosY"),compound.getInt("ConnectedPosZ"))) as? ExtendonBlockEntity
+                connectedBe = level?.getBlockEntity(BlockPos(compound.getInt("ConnectedPosX"),compound.getInt("ConnectedPosY"),compound.getInt("ConnectedPosZ"))) as? HosePortBlockEntity
                 connectedJoint = connectedBe
                 connectedBe?.connectedJoint = this
                 connectedBe?.connectedBe = this
@@ -253,15 +210,8 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
                 Component.literal("${connectedBe!!.blockPos.x}, ${connectedBe!!.blockPos.y}, ${connectedBe!!.blockPos.z}")
                     .withStyle(ChatFormatting.AQUA)))
 
-            // extendon specific: display current length
-            val kelvin = if (Minecraft.getInstance().isLocalServer && Platform.isFabric()) ClockworkMod.getKelvin() else ClockworkModClient.getKelvin()
-
-            val currentLength = (max(gasToDistance(kelvin, getDuctNodePosition(), level!!.dimensionId) + gasToDistance(kelvin, connectedBe!!.getDuctNodePosition(), level!!.dimensionId) * 10.0f, 0.15f) * 10.0f).roundToInt() / 10.0f
-            tooltip.add(Component.translatable("vs_clockwork.extendon.current_length").append(Component.literal(currentLength.toString()).append("m").withStyle(ChatFormatting.YELLOW)))
-
-
             // display other node's info
-            tooltip.add(Component.translatable("vs_clockwork.hose_port.other_port_info").withStyle(ChatFormatting.GRAY))
+            tooltip.add(Component.translatable("vs_clockwork.hose_port.other_port_info").withStyle(ChatFormatting.GRAY).withStyle(ChatFormatting.ITALIC))
             connectedBe!!.safeHeatableGoggleTooltip(tooltip, isPlayerSneaking)
         } else {
             tooltip.add(Component.translatable("vs_clockwork.hose_port.disconnected"))
@@ -340,70 +290,4 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
 
         return found
     }
-
-    companion object {
-        // Calculates volume of cylinder via Ideal Gas Law, and then calculates said cylinder's height
-        // Doesn't account for the elastic force of the hose, because doing so would require solving a cubic polynomial
-        fun gasToDistance(network: DuctNetwork<*>, pos: DuctNodePos, dimensionId: DimensionId): Float {
-            var moles = 0.0
-            for ((gas, mass) in network.getGasMassAt(pos)) moles +=  gas.massToMoles(mass * 1000.0)
-
-            val pressure = AerodynamicUtils.getAirPressureForY(pos.y, dimensionId)
-            val temperature = network.getTemperatureAt(pos)
-
-            val volume = temperature*idealGasConstant*moles/pressure
-            val height = 4 * volume / PI
-
-
-            return height.toFloat()
-        }
-
-        fun getQuaterniond(direction: Direction): Quaterniond {
-            return when (direction) {
-                Direction.DOWN -> {
-                    Quaterniond(AxisAngle4d(Math.PI, Vector3d(1.0, 0.0, 0.0)))
-                }
-
-                Direction.NORTH -> {
-                    Quaterniond(AxisAngle4d(Math.PI, Vector3d(0.0, 1.0, 0.0))).mul(
-                        Quaterniond(
-                            AxisAngle4d(
-                                Math.PI / 2.0, Vector3d(1.0, 0.0, 0.0)
-                            )
-                        )
-                    ).normalize()
-                }
-
-                Direction.EAST -> {
-                    Quaterniond(AxisAngle4d(0.5 * Math.PI, Vector3d(0.0, 1.0, 0.0))).mul(
-                        Quaterniond(
-                            AxisAngle4d(
-                                Math.PI / 2.0, Vector3d(1.0, 0.0, 0.0)
-                            )
-                        )
-                    ).normalize()
-                }
-
-                Direction.SOUTH -> {
-                    Quaterniond(AxisAngle4d(Math.PI / 2.0, Vector3d(1.0, 0.0, 0.0))).normalize()
-                }
-
-                Direction.WEST -> {
-                    Quaterniond(AxisAngle4d(1.5 * Math.PI, Vector3d(0.0, 1.0, 0.0))).mul(
-                        Quaterniond(
-                            AxisAngle4d(
-                                Math.PI / 2.0, Vector3d(1.0, 0.0, 0.0)
-                            )
-                        )
-                    ).normalize()
-                }
-
-                else -> {
-                    // UP or null
-                    Quaterniond()
-                }
-            }
-        }
-    }
-
 }

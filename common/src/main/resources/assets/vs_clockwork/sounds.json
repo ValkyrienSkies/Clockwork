@@ -358,5 +358,25 @@
       }
     ],
     "subtitle": "vs_clockwork.subtitle.spinoff_click"
+  },
+  "hose_attach": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:hose_attach",
+        "type": "file",
+        "attenuation_distance": 16
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.hose_attach"
+  },
+  "hose_release": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:hose_release",
+        "type": "file",
+        "attenuation_distance": 16
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.hose_release"
   }
 }

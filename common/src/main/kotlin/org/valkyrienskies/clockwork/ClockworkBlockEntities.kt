@@ -53,6 +53,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.steam_generator.SteamGeneratorBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.heater.GasHeaterBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.hoseport.HosePortBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlockEntity
@@ -772,6 +773,26 @@ object ClockworkBlockEntities {
             }
         }
         .validBlocks(ClockworkBlocks.EXTENDON)
+        .register()
+
+    @JvmField
+    val HOSE_PORT: BlockEntityEntry<HosePortBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<HosePortBlockEntity>(
+            "hose_port"
+        ) { typeIn: BlockEntityType<HosePortBlockEntity>, pos: BlockPos, state: BlockState ->
+            HosePortBlockEntity(
+                typeIn,
+                pos, state
+            )
+        }
+//        .renderer {
+//            NonNullFunction { context: BlockEntityRendererProvider.Context? ->
+//                ExtendonRenderer(
+//                    context!!
+//                )
+//            }
+//        }
+        .validBlocks(ClockworkBlocks.HOSE_PORT)
         .register()
 
     @JvmField

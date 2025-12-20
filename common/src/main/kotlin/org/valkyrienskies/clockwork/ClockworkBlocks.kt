@@ -59,6 +59,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.steam_generator.SteamGeneratorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.heater.GasHeaterBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.hoseport.HosePortBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.redstone.RedstoneDuctBlock
@@ -655,6 +656,21 @@ object ClockworkBlocks {
     val EXTENDON: BlockEntry<ExtendonBlock> =
         REGISTRATE.block<ExtendonBlock>("extendon") { properties: BlockBehaviour.Properties? ->
             ExtendonBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.netheriteMetal() }
+            .transform(axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .build()
+            .register()
+
+    @JvmField
+    val HOSE_PORT: BlockEntry<HosePortBlock> =
+        REGISTRATE.block<HosePortBlock>("hose_port") { properties: BlockBehaviour.Properties? ->
+            HosePortBlock(properties!!)
         }
             .initialProperties { SharedProperties.netheriteMetal() }
             .transform(axeOrPickaxe())
