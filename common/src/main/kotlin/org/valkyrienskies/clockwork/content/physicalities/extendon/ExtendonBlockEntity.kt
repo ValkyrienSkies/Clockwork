@@ -32,6 +32,8 @@ import java.util.EnumMap
 import org.valkyrienskies.kelvin.api.DuctNetwork.Companion.idealGasConstant
 import org.valkyrienskies.mod.common.dimensionId
 import kotlin.math.PI
+import kotlin.math.max
+import kotlin.math.min
 
 class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), IUniversalJoint {
 
@@ -68,12 +70,12 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         val kelvin = ClockworkMod.getKelvin()
         val serverLevel = level as ServerLevel
 
-        val distance = gasToDistance(kelvin, getDuctNodePosition(), level!!.dimensionId)
+        val distance = max(gasToDistance(kelvin, getDuctNodePosition(), level!!.dimensionId), 0.15f)
 
 
         val tempJoint = VSJointAndId(distanceJointId!!, VSDistanceJoint(distanceJoint!!.shipId0, distanceJoint!!.pose0, distanceJoint!!.shipId1, distanceJoint!!.pose1, minDistance = distance, maxDistance = distance))
 
-        if (distance >= 0.15) serverLevel.gtpa.updateJoint(distanceJointId!!, tempJoint.joint)
+        serverLevel.gtpa.updateJoint(distanceJointId!!, tempJoint.joint)
         distanceJoint = tempJoint.joint as VSDistanceJoint
     }
 
@@ -228,9 +230,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         // Doesn't account for the elastic force of the hose, because doing so would require solving a cubic polynomial
         fun gasToDistance(network: DuctNetwork<*>, pos: DuctNodePos, dimensionId: DimensionId): Float {
             var moles = 0.0
-            for (gas in network.getGasMassAt(pos)) moles +=  gas.value / ( gas.key.density * 22.4)
-
-            if (moles < 0.01) return 0f
+            for ((gas, mass) in network.getGasMassAt(pos)) moles +=  gas.massToMoles(mass)
 
             val pressure = AerodynamicUtils.getAirPressureForY(pos.y, dimensionId)
             val temperature = network.getTemperatureAt(pos)
