@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork
 
 import com.simibubi.create.AllBlocks
+import com.simibubi.create.AllSpriteShifts
 import com.simibubi.create.AllTags
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour.movementBehaviour
 import com.simibubi.create.content.decoration.encasing.CasingBlock
@@ -481,6 +482,7 @@ object ClockworkBlocks {
         .initialProperties { SharedProperties.netheriteMetal() }
         .addLayer { Supplier { RenderType.cutout() } }
         .properties { it.noOcclusion() }
+        .onRegister(connectedTextures { DuctTankCTBehaviour(ClockworkSpriteShifts.DUCT_TANK, ClockworkSpriteShifts.DUCT_TANK_TOP, AllSpriteShifts.FLUID_TANK_INNER) })
         .onRegister(ClockworkRegistrate.blockModel { NonNullFunction<BakedModel, BakedModel> { originalModel: BakedModel -> DuctTankModel(originalModel) } })
         .item()
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
