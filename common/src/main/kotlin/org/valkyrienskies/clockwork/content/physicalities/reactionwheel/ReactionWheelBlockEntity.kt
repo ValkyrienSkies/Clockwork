@@ -61,21 +61,7 @@ class ReactionWheelBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
     }
 
     private fun calculateTargetSpeed(): Double {
-        val ship = (level as ServerLevel).getShipObjectManagingPos(worldPosition)
-        if (ship != null) {
-            val attachment = ReactionWheelController.getOrCreate(ship!!)
-            if (attachment != null && physID >= 0) {
-                if (attachment.pendingMomentumConsumptionQueue.isNotEmpty()) {
-                    targetSpeed = attachment.pendingMomentumConsumptionQueue[physID]?.poll() ?: 0.0
-                }
-            }
-        }
-
-        return if (getSpeed() != 0f) {
-            Mth.clamp(targetSpeed + (getSpeed().toDouble() / 2.0), -1024.0, 1024.0)
-        } else {
-            targetSpeed
-        }
+        return getSpeed().toDouble()
     }
 
     override fun tick() {
