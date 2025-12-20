@@ -58,15 +58,6 @@ object ClockworkUtils {
     }
 
     @JvmStatic
-    fun updateBlockStateWeight(serverLevel: ServerLevel, blockPos: BlockPos, oldWeight: Double, newWeight: Double){
-        val state = serverLevel.getBlockState(blockPos)
-
-        val (_, prevBlockType) = BlockStateInfo.get(state) ?: return
-
-        serverLevel.shipObjectWorld.onSetBlock(blockPos.x, blockPos.y, blockPos.z, serverLevel.dimensionId, prevBlockType, prevBlockType, oldWeight, newWeight)
-    }
-
-    @JvmStatic
     fun writeVec3(vec: Vec3): ListTag {
         val tag = ListTag()
         tag.add(DoubleTag.valueOf(vec.x))

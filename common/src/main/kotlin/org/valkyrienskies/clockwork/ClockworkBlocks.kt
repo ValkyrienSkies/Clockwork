@@ -68,7 +68,6 @@ import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankM
 import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlock
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlock
-import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlock
 import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlock
 import org.valkyrienskies.clockwork.content.physicalities.gas_thruster.GasThrusterBlock
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroBlock
@@ -749,20 +748,6 @@ object ClockworkBlocks {
         .properties {
             it.fireResistant()
         }
-        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
-        .build()
-        .register()
-
-    @JvmField
-    val BALLAST = REGISTRATE.block<BallastBlock>(
-        "ballast"
-    ) { properties: BlockBehaviour.Properties? ->
-        BallastBlock(
-            properties!!
-        )
-    }
-        .initialProperties { SharedProperties.wooden() }
-        .item()
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .build()
         .register()
