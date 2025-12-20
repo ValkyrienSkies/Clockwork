@@ -18,6 +18,7 @@ import com.tterrag.registrate.util.nullness.NonNullFunction
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.resources.model.BakedModel
 import net.minecraft.world.item.BlockItem
+import net.minecraft.world.item.CreativeModeTabs
 import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
@@ -342,7 +343,7 @@ object ClockworkBlocks {
             .transform(axeOrPickaxe())
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            //.tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .transform(customItemModel("command_seat", "item"))
             .register()
 
@@ -394,27 +395,6 @@ object ClockworkBlocks {
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .transform(customItemModel("physics_infuser", "item"))
             .register()
-
-//    @JvmField
-//    val HEAT_PIPE: BlockEntry<HeatPipeBlock> = REGISTRATE.block<HeatPipeBlock>(
-//        "heat_pipe"
-//    ) { properties: BlockBehaviour.Properties? ->
-//        HeatPipeBlock(
-//            properties!!
-//        )
-//    }
-//        .initialProperties { SharedProperties.netheriteMetal() }
-//        .onRegister(CreateRegistrate.blockModel {
-//            NonNullFunction<BakedModel?, BakedModel> { template: BakedModel? ->
-//                PipeAttachmentModel(
-//                    template
-//                )
-//            }
-//        })
-//        .item()
-//        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
-//        .transform(customItemModel())
-//        .register()
 
     @JvmField
     val DUCT: BlockEntry<DuctBlock> = REGISTRATE.block<DuctBlock>(
@@ -724,7 +704,7 @@ object ClockworkBlocks {
         .initialProperties { SharedProperties.softMetal() }
         .addLayer { Supplier { RenderType.cutout() } }
         .item()
-        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        //.tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .transform(customItemModel())
         .register()
 
@@ -1009,7 +989,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .tab(CreativeModeTabs.OP_BLOCKS)
             .build()
             .register()
 
