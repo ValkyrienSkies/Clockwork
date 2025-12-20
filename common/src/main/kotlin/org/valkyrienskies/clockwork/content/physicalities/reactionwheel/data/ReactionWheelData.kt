@@ -16,6 +16,7 @@ class ReactionWheelData: ForceApplierData<ReactionWheelUpdateData> {
 
 
     override fun updateData(data: ReactionWheelUpdateData) {
+        this.previousRPM = this.currentRPM
         this.currentRPM = data.currentSpeed
     }
 
@@ -30,9 +31,5 @@ class ReactionWheelData: ForceApplierData<ReactionWheelUpdateData> {
     constructor() {
         this.position = null
         this.direction = null
-    }
-
-    fun pushRPM(rpm: Double) {
-        previousRPM = rpm
     }
 }
