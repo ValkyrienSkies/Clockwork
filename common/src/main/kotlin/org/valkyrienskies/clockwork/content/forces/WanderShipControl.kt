@@ -51,11 +51,11 @@ class WanderShipControl : ShipPhysicsListener {
 
     companion object {
 
-        fun getOrCreate(ship: LoadedServerShip): WanderShipControl? {
+        fun getOrCreate(ship: LoadedServerShip): WanderShipControl {
             if (ship.getAttachment(WanderShipControl::class.java) == null) {
                 ship.setAttachment(WanderShipControl())
             }
-            return ship.getAttachment(WanderShipControl::class.java)
+            return ship.getAttachment(WanderShipControl::class.java)!!
         }
     }
 }
