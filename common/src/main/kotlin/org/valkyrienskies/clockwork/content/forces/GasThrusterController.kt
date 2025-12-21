@@ -32,8 +32,7 @@ class GasThrusterController(
            val pos =  Vector3d(thruster.position).add(0.5,0.5,0.5, Vector3d())
            val force = thruster.force!!.mul(ClockworkConfig.SERVER.gasThrusterForceMul, Vector3d())
 
-
-           physShip.applyModelForce(force!!, pos)
+            if (force.isFinite) physShip.applyModelForce(force!!, pos)
         }
     }
 

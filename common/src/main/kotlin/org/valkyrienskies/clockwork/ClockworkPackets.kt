@@ -8,9 +8,10 @@ import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.UpdateAltMeterPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerAttachmentSyncPacket
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDestroyPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDisassemblyPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDialPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronGrabPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronLeftClickPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandSelectionPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandRenderUpdatePacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket
@@ -19,6 +20,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctEdgeSyncPacke
 import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterClosePacket
 import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterScreenOpenPacket
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorPacket
+import org.valkyrienskies.clockwork.content.logistics.gas.redstone.RedstoneDuctScreenPacket
 import org.valkyrienskies.clockwork.content.logistics.gas.smart.SmartScreenClosePacket
 import org.valkyrienskies.clockwork.content.logistics.gas.smart.SmartScreenOpenPacket
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.UpdateFrequencySlotPacket
@@ -45,7 +47,8 @@ enum class ClockworkPackets(
     CREATIVE_GENERATOR_PACKET(CreativeGeneratorPacket::class.java, ::CreativeGeneratorPacket),
 
     GRAVITRON_GRAB_PACKET(GravitronGrabPacket::class.java, ::GravitronGrabPacket),
-    GRAVITRON_DESTROY_PACKET(GravitronDestroyPacket::class.java, ::GravitronDestroyPacket),
+    GRAVITRON_LEFT_CLICK_PACKET(GravitronLeftClickPacket::class.java, ::GravitronLeftClickPacket),
+    GRAVITRON_DESTROY_PACKET(GravitronDisassemblyPacket::class.java, ::GravitronDisassemblyPacket),
     WAND_SELECTION_PACKET(WandSelectionPacket::class.java, ::WandSelectionPacket),
 
     // Server to Client
@@ -59,6 +62,7 @@ enum class ClockworkPackets(
     FILTER_SCREEN_CLOSE_PACKET(FilterClosePacket::class.java, ::FilterClosePacket),
     SMART_SCREEN_OPEN_PACKET(SmartScreenOpenPacket::class.java, ::SmartScreenOpenPacket),
     SMART_SCREEN_CLOSE_PACKET(SmartScreenClosePacket::class.java, ::SmartScreenClosePacket),
+    REDSTONE_DUCT_SCREEN_PACKET(RedstoneDuctScreenPacket::class.java, ::RedstoneDuctScreenPacket),
 
     //SYNC_TEMPERATURE(TemperatureSyncPacket::class.java, ::TemperatureSyncPacket),
 

@@ -60,4 +60,14 @@ class DeliveryChuteBlock(properties: Properties): Block(properties), IBE<Deliver
         return super.updateShape(state, direction, neighborState, level, currentPos, neighborPos)
     }
 
+    override fun onRemove(
+        pState: BlockState,
+        pLevel: Level,
+        pPos: BlockPos,
+        pNewState: BlockState,
+        pIsMoving: Boolean
+    ) {
+        IBE.onRemove(pState, pLevel, pPos, pNewState)
+        //super.onRemove(pState, pLevel, pPos, pNewState, pIsMoving)
+    }
 }

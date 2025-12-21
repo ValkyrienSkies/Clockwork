@@ -21,6 +21,7 @@ import net.minecraftforge.fml.common.Mod;
 import org.valkyrienskies.clockwork.ClockworkModClient;
 import org.valkyrienskies.clockwork.client.render.debug.KelvinEdgeRenderer;
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankArmorLayer;
+import org.valkyrienskies.clockwork.forge.content.curiosities.tools.aeronaut.ForgeAeronautArmorLayer;
 import org.valkyrienskies.clockwork.forge.content.logistics.gas.backtank.ForgeGasBacktankArmorLayer;
 
 import static net.createmod.ponder.PonderClient.isGameActive;
@@ -114,6 +115,7 @@ public class ClockworkClientEvents {
         if (ClockworkModForgeClient.GRAVITRON_HANDLER.onMouseInput(button, pressed)) {
             event.setCanceled(true);
         }
+
         if (ClockworkModForgeClient.WANDERWAND_HANDLER.onMouseInput(button, pressed)) {
             event.setCanceled(true);
         }
@@ -124,6 +126,7 @@ public class ClockworkClientEvents {
         EntityRenderDispatcher dispatcher = Minecraft.getInstance()
                 .getEntityRenderDispatcher();
         ForgeGasBacktankArmorLayer.registerOnAll(dispatcher);
+        ForgeAeronautArmorLayer.registerOnAll(dispatcher);
     }
 
 }

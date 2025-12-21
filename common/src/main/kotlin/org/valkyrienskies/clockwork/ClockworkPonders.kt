@@ -1,30 +1,30 @@
 package org.valkyrienskies.clockwork
 
+import com.simibubi.create.AllBlocks
+import com.simibubi.create.AllItems
 import com.simibubi.create.content.redstone.analogLever.AnalogLeverBlockEntity
-import com.simibubi.create.content.redstone.link.RedstoneLinkBlockEntity
 import com.simibubi.create.foundation.ponder.CreateSceneBuilder
 import com.tterrag.registrate.util.entry.ItemProviderEntry
-import com.tterrag.registrate.util.entry.RegistryEntry
 import net.createmod.catnip.math.Pointing
 import net.createmod.ponder.api.PonderPalette
 import net.createmod.ponder.api.registration.PonderSceneRegistrationHelper
 import net.createmod.ponder.api.scene.SceneBuilder
 import net.createmod.ponder.api.scene.SceneBuildingUtil
-import net.createmod.ponder.foundation.PonderIndex
-import net.createmod.ponder.foundation.element.InputWindowElement
-import net.createmod.ponder.foundation.registration.DefaultPonderSceneRegistrationHelper
-import net.createmod.ponder.foundation.registration.PonderSceneRegistry
+import net.createmod.ponder.foundation.PonderSceneBuilder
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.Items
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.RedStoneWireBlock
+import net.minecraft.world.level.block.Rotation
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlockEntity
+import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity
+import java.time.Clock
 
 object ClockworkPonders {
 
@@ -43,9 +43,12 @@ object ClockworkPonders {
             .addStoryBoard(
                 "alt_meter", ::altMeter
             )
-        HELPER.forComponents(ClockworkBlocks.ANDESITE_FLAP_BEARING, ClockworkBlocks.FLAP)
+        HELPER.forComponents(ClockworkBlocks.ANDESITE_FLAP_BEARING, ClockworkBlocks.SMART_FLAP_BEARING, ClockworkBlocks.FLAP)
             .addStoryBoard(
                 "flap_bearing", ::flap
+            )
+            .addStoryBoard(
+                "smart_flap_bearing", ::smart_flap
             )
         HELPER.forComponents(ClockworkBlocks.GYRO).addStoryBoard(
             "gyro", ::gyro
@@ -56,6 +59,10 @@ object ClockworkPonders {
             )
     }
 
+    private fun PonderSceneBuilder.ponderLang(index: Int): String {
+        return Component.translatable("${ClockworkMod.MOD_ID}.ponder.${this.scene.id.path}.text_$index").string
+    }
+
     private fun solid_delivery(sceneBuilder: SceneBuilder, util: SceneBuildingUtil) {
         val scene = CreateSceneBuilder(sceneBuilder)
         scene.title("solid_delivery", "Solid delivery")
@@ -63,100 +70,378 @@ object ClockworkPonders {
         scene.showBasePlate()
         scene.setSceneOffsetY(-1f)
         scene.idle(15)
-        val depotLine = util.select().fromTo(0, 1, 0, 4, 2, 0)
-        val chuteLine = util.select().fromTo(0, 1, 2, 4, 2, 2)
+        val depotLine = util.select().fromTo(0, 1, 2, 4, 2, 2)
+        val chuteLine = util.select().fromTo(0, 1, 3, 4, 2, 3)
         val beltLine = util.select().fromTo(0, 1, 4, 4, 2, 4)
+        val depotCannonPos = BlockPos(0, 2, 2)
+        val depotChutePos = BlockPos(4, 2, 2)
 
-        val cannonSlot = util.vector().blockSurface(BlockPos(0,2,0), Direction.NORTH)
+        val cannonSlot = util.vector().blockSurface(depotCannonPos, Direction.NORTH)
             .add(0.0, -0.35, 0.0)
 
-        val chuteSlot = util.vector().blockSurface(BlockPos(4,2,0), Direction.NORTH)
+        val chuteSlot = util.vector().blockSurface(depotChutePos, Direction.NORTH)
             .add(0.0, -0.35, 0.0)
-
-
-
 
         scene.world().showSection(depotLine, Direction.DOWN)
-        scene.overlay().showText(60)
-            .attachKeyFrame()
-            .text("Delivery cannons and delivery chutes allows transporting items in a short distance")
+        scene.overlay().showText(80)
+            .text(scene.ponderLang(1))
             .placeNearTarget()
-            .pointAt(util.vector().blockSurface(util.grid().at(0, 2, 0), Direction.WEST))
+            .pointAt(util.vector().blockSurface(depotCannonPos, Direction.WEST))
 
+        scene.idle(80+20)
 
-        scene.idle(60)
         scene.overlay().showFilterSlotInput(cannonSlot, Direction.NORTH, 60)
         scene.overlay().showFilterSlotInput(chuteSlot, Direction.NORTH, 60)
-        scene.overlay().showText(120)
+
+        scene.overlay().showText(80)
             .attachKeyFrame()
-            .text("Delivery Cannons and Chutes have a frequency slot, similar to Redstone links. Delivery cannons will only fire to chutes with the same frequency")
+            .placeNearTarget()
+            .text(scene.ponderLang(2))
+            .pointAt(cannonSlot)
+
+        scene.idle(80+20)
+
+        scene.overlay().showText(60)
+            .placeNearTarget()
+            .text(scene.ponderLang(3))
             .pointAt(chuteSlot)
 
-        scene.idle(120)
-        scene.overlay().showText(40)
+        scene.idle(60+20)
+
+        scene.overlay().showText(80)
             .attachKeyFrame()
-            .text("Delivery cannons will shoot out any items placed in the storage below it")
+            .text(scene.ponderLang(4))
             .placeNearTarget()
-            .pointAt(util.vector().blockSurface(util.grid().at(0, 2, 0), Direction.WEST))
-        scene.world().createItemOnBeltLike(BlockPos(0,1,0), Direction.NORTH, ItemStack(Items.COPPER_BLOCK))
-        scene.idle(2)
-        //scene.world().modifyBlockEntity(BlockPos(0, 2, 0), DeliveryCannonBlockEntity::class.java) { be: DeliveryCannonBlockEntity -> be.ponder = true}
-        scene.idle(2)
-        //scene.world().modifyBlockEntity(BlockPos(0, 2, 0), DeliveryCannonBlockEntity::class.java) { be: DeliveryCannonBlockEntity -> be.ponderFire(BlockPos(4,2,0))}
-        scene.idle(60)
-        scene.overlay().showText(40)
+            .pointAt(util.vector().blockSurface(depotCannonPos.below(), Direction.WEST))
+
+        scene.idle(80+20)
+
+        // region Temporarily hide the delivery cannon/chute
+        scene.world().hideSection(depotLine, Direction.UP)
+        scene.idle(15)
+        scene.world().setBlock(depotCannonPos, Blocks.AIR.defaultBlockState(), false)
+        scene.world().setBlock(depotChutePos, Blocks.AIR.defaultBlockState(), false)
+        // endregion
+
+        // region Show the section but with weighted ejector
+        scene.world().setBlock(depotCannonPos.below(), AllBlocks.WEIGHTED_EJECTOR.defaultState.rotate(Rotation.CLOCKWISE_90), false)
+        scene.world().showSection(depotLine, Direction.DOWN)
+        scene.idle(15)
+        // endregion
+
+        scene.overlay().showText(80)
             .attachKeyFrame()
-            .text("They can only be placed on Depots,")
+            .text(scene.ponderLang(5))
             .placeNearTarget()
-            .pointAt(util.vector().blockSurface(util.grid().at(4, 1, 0), Direction.WEST))
-        scene.idle(40)
-        scene.world().showSection(chuteLine, Direction.DOWN)
+            .pointAt(util.vector().blockSurface(depotCannonPos.below(), Direction.WEST))
+
+        scene.idle(80+20)
+
+        // region Restore to original cannon+chute
+        scene.world().hideSection(depotLine, Direction.UP)
+        scene.idle(15)
+        scene.world().restoreBlocks(depotLine)
+        scene.idle(5)
+        scene.world().showSection(depotLine, Direction.DOWN)
+        scene.idle(15)
+        // endregion
+
+        scene.overlay().showText(80)
+            .text(scene.ponderLang(6))
+            .placeNearTarget()
+            .pointAt(util.vector().blockSurface(depotCannonPos, Direction.WEST))
+
+        scene.idle(80+20)
+
+        // region "can be placed on depot, chute, belts" section
+        scene.addKeyframe()
+        scene.idle(20)
+
+        scene.overlay().showText(40)
+            .text(scene.ponderLang(7))
+            .placeNearTarget()
+            .pointAt(util.vector().blockSurface(depotChutePos.below(), Direction.WEST))
+        scene.idle(40+20)
+
         scene.world().hideSection(depotLine, Direction.DOWN)
+        scene.idle(10)
+        scene.world().showSection(chuteLine, Direction.DOWN)
+
         scene.overlay().showText(40)
-            .attachKeyFrame()
-            .text("Chutes,")
+            .text(scene.ponderLang(8))
             .placeNearTarget()
-            .pointAt(util.vector().blockSurface(util.grid().at(4, 1, 2), Direction.WEST))
-        scene.idle(40)
-        scene.world().showSection(beltLine, Direction.DOWN)
+            .pointAt(util.vector().blockSurface(util.grid().at(4, 1, 3), Direction.WEST))
+        scene.idle(40+20)
+
         scene.world().hideSection(chuteLine, Direction.DOWN)
+        scene.idle(10)
+        scene.world().showSection(beltLine, Direction.DOWN)
+
         scene.overlay().showText(40)
-            .attachKeyFrame()
-            .text("and belts")
+            .text(scene.ponderLang(9))
             .placeNearTarget()
             .pointAt(util.vector().blockSurface(util.grid().at(4, 1, 4), Direction.WEST))
-        scene.idle(40)
+        scene.idle(40+20)
+        // endregion
+
+        scene.markAsFinished()
     }
 
-    private fun flap(scene: SceneBuilder, util: SceneBuildingUtil) {
-        scene.title("flap_bearing", "Steering planes")
+    private fun flap(sceneBuilder: SceneBuilder, util: SceneBuildingUtil) {
+        val scene = CreateSceneBuilder(sceneBuilder)
+
+        scene.title("flap_bearing", "Flap bearing")
         scene.configureBasePlate(0, 0, 5)
         scene.showBasePlate()
         scene.setSceneOffsetY(-1f)
         scene.idle(15)
 
-        val bearing = util.select().fromTo(2, 1, 2, 2, 1, 4)
-        val flap_ship = util.select().position(2, 1, 1)
-        val contraption =
-            scene.world().showIndependentSection(flap_ship, Direction.DOWN)
-        scene.world().moveSection(contraption, util.vector().of(0.0, 0.0, 0.0), 0)
+        val flap_bearing = BlockPos(2, 1, 2)
+        val flap_selection = util.select().position(2, 1, 1)
+
+        val bottom_cog = BlockPos(2, 0, 5)
+        val shaft_selection = util.select().fromTo(flap_bearing, BlockPos(2, 1, 5))
+
         val red1 = util.select().fromTo(0, 1, 2, 1, 1, 2)
         val red2 = util.select().fromTo(4, 1, 2, 3, 1, 2)
-        scene.world().showSection(bearing, Direction.DOWN)
-        scene.idle(15)
-        //scene.world().showSection(flap_ship, Direction.DOWN);
-        scene.idle(45)
+
+        // region Setup flap contraption
+        val contraption =
+            scene.world().showIndependentSection(flap_selection, Direction.DOWN)
+        // endregion
+
+        // region Show everything except redstone+flap
+        scene.world().showSection(util.select().layersFrom(1).substract(red1).substract(red2).substract(flap_selection), Direction.DOWN)
+        scene.world().showSection(shaft_selection, Direction.DOWN)
+        scene.world().showSection(util.select().position(bottom_cog), Direction.DOWN)
+        scene.idle(20)
+        // endregion
+
+        scene.world().setKineticSpeed(shaft_selection, 16.0F)
+        scene.world().setKineticSpeed(util.select().position(bottom_cog), -16.0F)
+
+        scene.overlay().showText(60)
+            .text(scene.ponderLang(1))
+            .pointAt(util.vector().blockSurface(flap_bearing, Direction.WEST))
+        scene.idle(60+20)
+
+        scene.overlay().showText(60)
+            .text(scene.ponderLang(2))
+            .pointAt(util.vector().blockSurface(flap_bearing, Direction.WEST))
+        scene.idle(60+20)
+
+        scene.overlay().showText(60)
+            .text(scene.ponderLang(3))
+            .pointAt(util.vector().blockSurface(flap_bearing, Direction.WEST))
+        scene.idle(60+20)
+
+        scene.addKeyframe()
+
         scene.world().showSection(red1, Direction.DOWN)
         scene.world().showSection(red2, Direction.DOWN)
-        scene.idle(25)
+        scene.idle(15)
+
+        scene.overlay().showText(60)
+            .text(scene.ponderLang(4))
+            .pointAt(util.vector().blockSurface(flap_bearing, Direction.WEST))
+        scene.idle(60+20)
+
+        // region Tilt towards red1
         scene.world().toggleRedstonePower(red1)
-        scene.world().rotateSection(contraption, 0.0, 0.0, 25.0, 17)
+        scene.world().rotateSection(contraption, 0.0, 0.0, 25.0, 6)
+
+        scene.world().modifyBlockEntityNBT(
+            util.select().position(flap_bearing),
+            FlapBearingBlockEntity::class.java
+        ) { nbt: CompoundTag? -> nbt!!.putFloat("TargetAngle", 22.5F) }
+
         scene.idle(35)
+        // endregion
+
+        // region Tilt towards red2
         scene.world().toggleRedstonePower(red1)
         scene.world().toggleRedstonePower(red2)
-        scene.world().rotateSection(contraption, 0.0, 0.0, -50.0, 17)
+        scene.world().modifyBlockEntityNBT(
+            util.select().position(flap_bearing),
+            FlapBearingBlockEntity::class.java
+        ) { nbt: CompoundTag? -> nbt!!.putFloat("TargetAngle", -22.5F) }
+
+        scene.world().rotateSection(contraption, 0.0, 0.0, -50.0, 6*2)
         scene.idle(35)
-        scene.idle(37 * 4)
+        // endregion
+
+        // region Reset rotation
+        scene.world().toggleRedstonePower(red2)
+        scene.world().modifyBlockEntityNBT(
+            util.select().position(flap_bearing),
+            FlapBearingBlockEntity::class.java
+        ) { nbt: CompoundTag? -> nbt!!.putFloat("TargetAngle", 0.0F) }
+
+        scene.world().rotateSection(contraption, 0.0, 0.0, 25.0, 6)
+
+        scene.idle(40)
+
+        // endregion
+
+        scene.addKeyframe()
+
+        scene.idle(20)
+
+        // region Swap out levers for analog levers
+        scene.world().hideSection(red1, Direction.UP)
+        scene.world().hideSection(red2, Direction.UP)
+        scene.idle(20)
+        scene.world().setBlock(BlockPos(4, 1, 2), AllBlocks.ANALOG_LEVER.defaultState, false)
+        scene.world().setBlock(BlockPos(0, 1, 2), AllBlocks.ANALOG_LEVER.defaultState, false)
+        scene.world().showSection(red1, Direction.DOWN)
+        scene.world().showSection(red2, Direction.DOWN)
+        scene.idle(15)
+        // endregion
+
+        val leverPos = BlockPos(0, 1, 2)
+
+        scene.overlay().showText(80)
+            .text(scene.ponderLang(5))
+            .pointAt(util.vector().centerOf(leverPos))
+        scene.idle(80+20)
+
+        // region Analogue tilt to red2
+
+        // "Click" lever
+        scene.overlay().showControls(
+            util.vector().centerOf(leverPos),
+            Pointing.DOWN,
+            20
+        )
+            .rightClick()
+        scene.idle(10)
+
+        // Set analog lever strength
+        scene.world().modifyBlockEntityNBT(
+            util.select().position(leverPos),
+            AnalogLeverBlockEntity::class.java
+        ) { nbt: CompoundTag? -> nbt!!.putInt("State", 3) }
+        scene.idle(10)
+
+        // Set redstone dust strength
+        scene.world().modifyBlock(
+            leverPos.east(),
+            { s: BlockState? -> s!!.setValue(RedStoneWireBlock.POWER, 3) },
+            false
+        )
+        scene.effects().indicateRedstone(leverPos.east())
+
+        // Rotate bearing
+        scene.world().rotateSection(contraption, 0.0, 0.0, 4.5, 1)
+        scene.world().modifyBlockEntityNBT(
+            util.select().position(flap_bearing),
+            FlapBearingBlockEntity::class.java
+        ) { nbt: CompoundTag? -> nbt!!.putFloat("TargetAngle", 4.5F) }
+        scene.idle(20)
+
+        // endregion
+
+        // region Analogue tilt to red2 more
+
+        // "Click" lever
+        scene.overlay().showControls(
+            util.vector().centerOf(leverPos),
+            Pointing.DOWN,
+            20
+        )
+            .rightClick()
+        scene.idle(10)
+
+        // Set analog lever strength
+        scene.world().modifyBlockEntityNBT(
+            util.select().position(leverPos),
+            AnalogLeverBlockEntity::class.java
+        ) { nbt: CompoundTag? -> nbt!!.putInt("State", 7) }
+        scene.idle(10)
+
+        // Set redstone dust strength
+        scene.world().modifyBlock(
+            leverPos.east(),
+            { s: BlockState? -> s!!.setValue(RedStoneWireBlock.POWER, 7) },
+            false
+        )
+        scene.effects().indicateRedstone(leverPos.east())
+
+        // Rotate bearing
+        scene.world().rotateSection(contraption, 0.0, 0.0, 10.5, 3)
+        scene.world().modifyBlockEntityNBT(
+            util.select().position(flap_bearing),
+            FlapBearingBlockEntity::class.java
+        ) { nbt: CompoundTag? -> nbt!!.putFloat("TargetAngle", 10.5F) }
+        scene.idle(20)
+
+        // endregion
+        scene.idle(20)
+
+        scene.markAsFinished()
+
+    }
+
+    private fun smart_flap(sceneBuilder: SceneBuilder, util: SceneBuildingUtil) {
+        val scene = CreateSceneBuilder(sceneBuilder)
+
+        scene.title("smart_flap_bearing", "Smart flap bearing")
+        scene.configureBasePlate(0, 0, 5)
+        scene.showBasePlate()
+        scene.setSceneOffsetY(-1f)
+        scene.idle(15)
+
+        val flap_bearing = BlockPos(2, 1, 2)
+        val flap_selection = util.select().position(2, 1, 1)
+
+        val bottom_cog = BlockPos(2, 0, 5)
+        val shaft_selection = util.select().fromTo(flap_bearing, BlockPos(2, 1, 5))
+
+        val red1 = util.select().fromTo(0, 1, 2, 1, 1, 2)
+        val red2 = util.select().fromTo(4, 1, 2, 3, 1, 2)
+
+        // region Setup flap contraption
+        val contraption =
+            scene.world().showIndependentSection(flap_selection, Direction.DOWN)
+        // endregion
+
+        // region Show everything except redstone+flap
+        scene.world().showSection(util.select().layersFrom(1).substract(red1).substract(red2).substract(flap_selection), Direction.DOWN)
+        scene.world().showSection(shaft_selection, Direction.DOWN)
+        scene.world().showSection(util.select().position(bottom_cog), Direction.DOWN)
+        scene.idle(20)
+        // endregion
+
+        scene.world().setKineticSpeed(shaft_selection, 16.0F)
+        scene.world().setKineticSpeed(util.select().position(bottom_cog), -16.0F)
+
+        scene.overlay().showText(60)
+            .text(scene.ponderLang(1))
+            .pointAt(util.vector().blockSurface(flap_bearing, Direction.WEST))
+        scene.idle(60+20)
+
+        scene.overlay().showText(60)
+            .attachKeyFrame()
+            .text(scene.ponderLang(2))
+            .pointAt(util.vector().blockSurface(flap_bearing, Direction.WEST))
+
+        val slot1 = util.vector().blockSurface(flap_bearing, Direction.WEST)
+            .add(0.0, 0.2, 0.1)
+        val slot2 = util.vector().blockSurface(flap_bearing, Direction.WEST)
+            .subtract(0.0, 0.2, -0.1)
+
+        scene.overlay().showFilterSlotInput(slot1, Direction.WEST, 60)
+        scene.overlay().showFilterSlotInput(slot2, Direction.WEST, 60)
+
+        scene.idle(60+20)
+
+        scene.overlay().showText(60)
+            .text(scene.ponderLang(3))
+            .pointAt(util.vector().blockSurface(flap_bearing, Direction.WEST))
+        scene.idle(60+20)
+
+        scene.markAsFinished()
+
     }
 
     private fun altMeter(scene: SceneBuilder, util: SceneBuildingUtil) {

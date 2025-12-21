@@ -4,8 +4,10 @@ import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock
 import com.simibubi.create.content.kinetics.base.IRotate
 import com.simibubi.create.foundation.block.IBE
 import net.createmod.catnip.data.Iterate
+import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.Level
@@ -17,12 +19,13 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BooleanProperty
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.content.forces.GasThrusterController
+import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.util.INodeBlock
 
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 
 
-class GasThrusterBlock(properties: Properties) : DirectionalBlock(properties), INodeBlock, IBE<GasThrusterBlockEntity> {
+class GasThrusterBlock(properties: Properties) : DirectionalBlock(properties), INodeBlock, IBE<GasThrusterBlockEntity>, IHaveDuctStats {
 
 
     init {
@@ -80,7 +83,17 @@ class GasThrusterBlock(properties: Properties) : DirectionalBlock(properties), I
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
         super.onPlace(state, level, pos, oldState, isMoving)
         nodePlace(state, level, pos, oldState, isMoving)
+    }
 
+    override fun onRemove(
+        pState: BlockState,
+        pLevel: Level,
+        pPos: BlockPos,
+        pNewState: BlockState,
+        pIsMoving: Boolean
+    ) {
+        nodeRemove(pState, pLevel, pPos, pNewState, pIsMoving)
+        IBE.onRemove(pState, pLevel, pPos, pNewState)
     }
 
     override fun getBlockEntityClass(): Class<GasThrusterBlockEntity> {
@@ -89,5 +102,10 @@ class GasThrusterBlock(properties: Properties) : DirectionalBlock(properties), I
 
     override fun getBlockEntityType(): BlockEntityType<out GasThrusterBlockEntity> {
         return ClockworkBlockEntities.GAS_THRUSTER.get()
+    }
+
+    override fun getAdditionalInfoLines(): List<Component> {
+        return listOf(Component.translatable("vs_clockwork.gas_thruster.function").withStyle(ChatFormatting.GRAY).withStyle(
+            ChatFormatting.ITALIC))
     }
 }

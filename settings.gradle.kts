@@ -33,11 +33,12 @@ include("fabric")
 //include("api")
 //include("impl")
 
-//try {
-//    val kelvin = file("../kelvin")
-//    if (kelvin.isDirectory) {
-//        includeBuild(kelvin)
-//    }
-//} catch (ignore: SecurityException) {}
+try {
+    val kelvin = file("Kelvin")
+    if (kelvin.isDirectory) {
+        //ts is evil as hell, but we have to do it because of an intellij bug :(
+        includeBuild(kelvin.toPath().toRealPath().toAbsolutePath().toString())
+    }
+} catch (ignore: SecurityException) {}
 
 rootProject.name = "vs-clockwork-mod"

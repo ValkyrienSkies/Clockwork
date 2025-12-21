@@ -3,8 +3,6 @@ package org.valkyrienskies.clockwork.util
 object ClockworkConstants {
     object Nbt {
         val SELECTED_DATA: String = "SelectedData"
-        val WEIGHT: String = "Weight"
-        val OLD_WEIGHT: String = "OldWeight"
         val RIGHT_RULES: String = "RightRules"
         val LEFT_RULES: String = "LeftRules"
         val BACKWARD_RULES: String = "BackwardRules"

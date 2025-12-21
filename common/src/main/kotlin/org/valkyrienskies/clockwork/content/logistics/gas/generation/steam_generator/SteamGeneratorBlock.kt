@@ -3,8 +3,11 @@ package org.valkyrienskies.clockwork.content.logistics.gas.generation.steam_gene
 import com.simibubi.create.content.fluids.tank.FluidTankBlock
 import com.simibubi.create.content.kinetics.steamEngine.SteamEngineBlock
 import com.simibubi.create.foundation.block.IBE
+import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelReader
@@ -15,10 +18,15 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.AttachFace
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.ClockworkGasses
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
+import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
+import org.valkyrienskies.clockwork.util.gui.ProductionInfo
+import org.valkyrienskies.clockwork.util.gui.ProductionMethod
+import org.valkyrienskies.clockwork.util.gui.ProductionType
 import org.valkyrienskies.kelvin.util.INodeBlock
 
-class SteamGeneratorBlock(properties: Properties) : FaceAttachedHorizontalDirectionalBlock(properties), IBE<SteamGeneratorBlockEntity>, IDuct {
+class SteamGeneratorBlock(properties: Properties) : FaceAttachedHorizontalDirectionalBlock(properties), IBE<SteamGeneratorBlockEntity>, IDuct, IHaveDuctStats {
 
     init { registerDefaultState(defaultBlockState().setValue(FACE, AttachFace.FLOOR).setValue(FACING, Direction.NORTH)) }
 
@@ -58,6 +66,16 @@ class SteamGeneratorBlock(properties: Properties) : FaceAttachedHorizontalDirect
         if (direction != getFacing(level.getBlockState(self))) return false
 
         return super<IDuct>.canConnectTo(self, other, direction, level)
+    }
+
+    override fun getProductionStats(): Map<ResourceLocation, ProductionInfo> {
+        val stats = mutableMapOf<ResourceLocation, ProductionInfo>()
+        val steamLocation = ClockworkGasses.STEAM.resourceLocation
+        stats[steamLocation] = ProductionInfo(
+            ProductionMethod.BOILER,
+            ProductionType.ALWAYS
+        )
+        return stats
     }
 
     companion object {

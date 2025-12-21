@@ -67,38 +67,5 @@ class GravitronState {
         fun mapValueToAngle(value: Float): Float {
             return min( value * 3.5f + 10, 350f) // (350 - 10) / 100
         }
-
-        @JvmStatic
-        fun leftClickItem(player: Player, state: GravitronState): Boolean {
-            val level = player.level()
-            if (state.shipID != null && level is ServerLevel) {
-                val shipId = state.shipID
-                if (shipId != null) {
-                    val ship: LoadedServerShip? = level.shipObjectWorld.loadedShips.getById(shipId)
-                    if (ship != null) {
-                        if (SharedValues.gravitronHandler != null && SharedValues.gravitronHandler.isRegular) {
-                            val lookDir = player.lookAngle.normalize().toJOML()
-                            val magnitude = 6000 * ship.inertiaData.mass
-                            val launchVec = lookDir.mul(magnitude)
-                            ValkyrienSkiesMod.getOrCreateGTPA(level.dimensionId).applyInvariantForceToPos(ship.id, launchVec, state.shipGrabbedPos!!)
-                            GrabTool.dropShip(player)
-                        } else {
-                            ship.isStatic = !ship.isStatic
-                        }
-
-                        level.playSound(
-                            player,
-                            player.blockPosition(),
-                            ClockworkSounds.WAND_FINISH.mainEvent!!,
-                            SoundSource.PLAYERS,
-                            1f,
-                            1f
-                        )
-                        return true
-                    }
-                }
-            }
-            return false
-        }
     }
 }

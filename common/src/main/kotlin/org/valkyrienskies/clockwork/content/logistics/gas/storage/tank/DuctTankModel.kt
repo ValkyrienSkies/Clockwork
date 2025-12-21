@@ -19,7 +19,7 @@ import java.util.*
 import java.util.function.Supplier
 
 class DuctTankModel private constructor(originalModel: BakedModel, side: CTSpriteShiftEntry, top: CTSpriteShiftEntry, inner: CTSpriteShiftEntry) :
-    CTModel(originalModel, FluidTankCTBehaviour(side, top, inner)) {
+    CTModel(originalModel, DuctTankCTBehaviour(side, top, inner)) {
 
     constructor(originalModel: BakedModel) : this(originalModel, ClockworkSpriteShifts.DUCT_TANK, ClockworkSpriteShifts.DUCT_TANK_TOP, AllSpriteShifts.FLUID_TANK_INNER)
 
@@ -53,7 +53,6 @@ class DuctTankModel private constructor(originalModel: BakedModel, side: CTSprit
         }
 
         fun setCulled(face: Direction, cull: Boolean) {
-            return //TODO sus
             if (face.axis
                     .isVertical
             ) return
@@ -61,7 +60,6 @@ class DuctTankModel private constructor(originalModel: BakedModel, side: CTSprit
         }
 
         fun isCulled(face: Direction): Boolean {
-            return false //TODO sus
             if (face.axis
                     .isVertical
             ) return false

@@ -1,0 +1,8 @@
+{
+  "parent": "vs_clockwork:item/aeronaut_goggles/item",
+  "textures": {
+    "0": "vs_clockwork:item/aeronaut_cap",
+    "1": "vs_clockwork:item/aeronaut_goggles",
+    "particle": "vs_clockwork:item/aeronaut_cap"
+  }
+}

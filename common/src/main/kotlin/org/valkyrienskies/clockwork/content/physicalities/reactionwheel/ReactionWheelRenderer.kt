@@ -27,7 +27,7 @@ class ReactionWheelRenderer(context: BlockEntityRendererProvider.Context) : Kine
 
         val blockState = be.blockState
 
-        val speed: Float = be.clientSpeed.getValue(partialTicks) * 3 / 10f
+        val speed: Float = be.visualSpeed.getValue(partialTicks) * 3 / 10f
         val angle: Float = be.angle.toFloat() + speed * partialTicks
 
         val vb = buffer.getBuffer(RenderType.solid())

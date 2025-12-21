@@ -29,7 +29,7 @@ class CreativeGeneratorScreen(private val be: CreativeGeneratorBlockEntity) : Ab
 
             val input = ScrollInput(0,0,51, 18)
             input.calling { state: Int -> be.gasValues[type] = state }
-            input.withRange(0,9999)
+            input.withRange(0,8000)
             input.withStepFunction {  c: ScrollValueBehaviour.StepContext -> if (c.shift) 100 else 10  }
             input.state = be.gasValues[type] ?: 0
 
@@ -40,7 +40,7 @@ class CreativeGeneratorScreen(private val be: CreativeGeneratorBlockEntity) : Ab
         addRenderableWidget(scrollingFrame)
 
         temperatureInput = ScrollInput(guiLeft + 82,guiTop + 89, 51, 18)
-        temperatureInput.withRange(0,9999)
+        temperatureInput.withRange(0,2000)
         temperatureInput.withStepFunction {  c: ScrollValueBehaviour.StepContext -> if (c.shift) 100 else 10  }
         temperatureInput.calling { state: Int -> be.temperature = state.toDouble() }
         addRenderableWidget(temperatureInput)

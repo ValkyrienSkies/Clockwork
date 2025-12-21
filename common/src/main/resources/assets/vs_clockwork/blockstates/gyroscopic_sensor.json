@@ -6,7 +6,7 @@
         "reference_axis": "x"
       },
       "apply": {
-        "model": "vs_clockwork:block/distance_sensor/block"
+        "model": "vs_clockwork:block/gyroscopic_sensor/block"
       }
     },
     {
@@ -15,7 +15,7 @@
         "reference_axis": "x"
       },
       "apply": {
-        "model": "vs_clockwork:block/distance_sensor/block",
+        "model": "vs_clockwork:block/gyroscopic_sensor/block",
         "y": 180
       }
     },
@@ -25,7 +25,7 @@
         "reference_axis": "x"
       },
       "apply": {
-        "model": "vs_clockwork:block/distance_sensor/block",
+        "model": "vs_clockwork:block/gyroscopic_sensor/block",
         "y": 90
       }
     },
@@ -35,7 +35,7 @@
         "reference_axis": "x"
       },
       "apply": {
-        "model": "vs_clockwork:block/distance_sensor/block",
+        "model": "vs_clockwork:block/gyroscopic_sensor/block",
         "y": 270
       }
     },
@@ -45,7 +45,7 @@
         "reference_axis": "x"
       },
       "apply": {
-        "model": "vs_clockwork:block/distance_sensor/block",
+        "model": "vs_clockwork:block/gyroscopic_sensor/block",
         "x": 270
       }
     },
@@ -55,7 +55,7 @@
         "reference_axis": "x"
       },
       "apply": {
-        "model": "vs_clockwork:block/distance_sensor/block",
+        "model": "vs_clockwork:block/gyroscopic_sensor/block",
         "x": 90
       }
     },
@@ -65,7 +65,7 @@
         "reference_axis": "y"
       },
       "apply": {
-        "model": "vs_clockwork:block/distance_sensor/block2"
+        "model": "vs_clockwork:block/gyroscopic_sensor/block2"
       }
     },
     {
@@ -74,7 +74,7 @@
         "reference_axis": "y"
       },
       "apply": {
-        "model": "vs_clockwork:block/distance_sensor/block2",
+        "model": "vs_clockwork:block/gyroscopic_sensor/block2",
         "y": 180
       }
     },
@@ -84,7 +84,7 @@
         "reference_axis": "y"
       },
       "apply": {
-        "model": "vs_clockwork:block/distance_sensor/block2",
+        "model": "vs_clockwork:block/gyroscopic_sensor/block2",
         "y": 90
       }
     },
@@ -94,7 +94,7 @@
         "reference_axis": "y"
       },
       "apply": {
-        "model": "vs_clockwork:block/distance_sensor/block2",
+        "model": "vs_clockwork:block/gyroscopic_sensor/block2",
         "y": 270
       }
     },
@@ -104,7 +104,7 @@
         "reference_axis": "y"
       },
       "apply": {
-        "model": "vs_clockwork:block/distance_sensor/block2",
+        "model": "vs_clockwork:block/gyroscopic_sensor/block2",
         "x": 270
       }
     },
@@ -114,7 +114,7 @@
         "reference_axis": "y"
       },
       "apply": {
-        "model": "vs_clockwork:block/distance_sensor/block2",
+        "model": "vs_clockwork:block/gyroscopic_sensor/block2",
         "x": 90
       }
     },
@@ -124,7 +124,7 @@
         "reference_axis": "z"
       },
       "apply": {
-        "model": "vs_clockwork:block/distance_sensor/block3"
+        "model": "vs_clockwork:block/gyroscopic_sensor/block3"
       }
     },
     {
@@ -133,7 +133,7 @@
         "reference_axis": "z"
       },
       "apply": {
-        "model": "vs_clockwork:block/distance_sensor/block3",
+        "model": "vs_clockwork:block/gyroscopic_sensor/block3",
         "y": 180
       }
     },
@@ -143,7 +143,7 @@
         "reference_axis": "z"
       },
       "apply": {
-        "model": "vs_clockwork:block/distance_sensor/block3",
+        "model": "vs_clockwork:block/gyroscopic_sensor/block3",
         "y": 90
       }
     },
@@ -153,7 +153,7 @@
         "reference_axis": "z"
       },
       "apply": {
-        "model": "vs_clockwork:block/distance_sensor/block3",
+        "model": "vs_clockwork:block/gyroscopic_sensor/block3",
         "y": 270
       }
     },
@@ -163,7 +163,7 @@
         "reference_axis": "z"
       },
       "apply": {
-        "model": "vs_clockwork:block/distance_sensor/block3",
+        "model": "vs_clockwork:block/gyroscopic_sensor/block3",
         "x": 270
       }
     },
@@ -173,7 +173,7 @@
         "reference_axis": "z"
       },
       "apply": {
-        "model": "vs_clockwork:block/distance_sensor/block3",
+        "model": "vs_clockwork:block/gyroscopic_sensor/block3",
         "x": 90
       }
     }

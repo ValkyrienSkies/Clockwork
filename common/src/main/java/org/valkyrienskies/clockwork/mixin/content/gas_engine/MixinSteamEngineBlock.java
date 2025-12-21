@@ -17,9 +17,9 @@ import org.valkyrienskies.clockwork.content.logistics.gas.engine.GasEngineBlock;
 @Mixin(SteamEngineBlock.class)
 public class MixinSteamEngineBlock {
 
-    //Name is mangled on forge, but not on fabric, so it needs to be remapped on forge and not remapped on fabric.
+    //Name is mangled on forge, but not on fabric, for who knows why
     //This will work cuz it canAttachForge will not find target on fabric, and canAttachFabric will not find target on forge
-    @Inject(method = "canAttach", at = @At("RETURN"), cancellable = true, require = 0)
+    @Inject(method = "m_53196_", at = @At("RETURN"), cancellable = true, require = 0)
     private static void vs_clockwork$canAttachForge(LevelReader pReader, BlockPos pPos, Direction pDirection, CallbackInfoReturnable<Boolean> cir) {
         if (pReader.getBlockState(pPos.relative(pDirection)).getBlock() instanceof GasEngineBlock) cir.setReturnValue(Boolean.TRUE);
         else cir.setReturnValue(cir.getReturnValue());

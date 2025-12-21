@@ -4,9 +4,11 @@ import com.simibubi.create.AllShapes
 import com.simibubi.create.content.equipment.armor.BacktankItem
 import com.simibubi.create.content.kinetics.base.HorizontalKineticBlock
 import com.simibubi.create.foundation.block.IBE
+import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.sounds.SoundSource
@@ -31,6 +33,7 @@ import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBackTankItem.Companion.AirKgsToAirTicks
+import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.NodeBehaviorType
@@ -42,7 +45,7 @@ import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import java.util.*
 
 class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(properties), IBE<GasBacktankBlockEntity>,
-    INodeBlock {
+    INodeBlock, IHaveDuctStats {
 
 
 
@@ -74,7 +77,7 @@ class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(prop
     }
 
     override fun createNode(pos: DuctNodePos): DuctNode {
-        return TankDuctNode(pos = pos, behavior =  NodeBehaviorType.TANK, volume = 0.05, maxPressure = 16375049.0, maxTemperature = 1478.0, size = 3.0)
+        return TankDuctNode(pos = pos, behavior =  NodeBehaviorType.TANK, volume = 0.75, maxPressure = 16375049.0, maxTemperature = 1478.0, size = 3.0)
     }
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
@@ -142,12 +145,21 @@ class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(prop
 
             val gasType = GasTypeRegistry.GAS_TYPES[ResourceLocation(gasResourceLocation)] ?: continue
             // Extremely stupid fix. TODO: Figure out why this is needed
-            network.modGasMass(pos,gasType,tag.getDouble(gasResourceLocation))
-            network.modGasMass(pos,gasType,tag.getDouble(gasResourceLocation))
-
+            //network.modGasMass(pos,gasType,tag.getDouble(gasResourceLocation))
+            //network.modGasMass(pos,gasType,tag.getDouble(gasResourceLocation))
+            network.addGasAtTemperature(pos, gasType, tag.getDouble(gasResourceLocation), temperature)
         }
         network.nodeInfo[pos]!!.currentTemperature = temperature
 
+    }
+
+    override fun getInternalVolume(): Double {
+        return 0.75
+    }
+
+    override fun getAdditionalInfoLines(): List<Component> {
+        return listOf(Component.translatable("vs_clockwork.gas_backtank.function").withStyle(ChatFormatting.GRAY).withStyle(
+            ChatFormatting.ITALIC))
     }
 
     override fun getShape(

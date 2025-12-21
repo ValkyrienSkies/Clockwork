@@ -11,7 +11,6 @@ import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
-import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Vector3f
@@ -30,8 +29,7 @@ class GyroBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
 
         val blockState: BlockState = be.blockState
         val speed: Float = be.visualSpeed.getValue(partialTicks) * 3 / 10f
-        val angle: Float = be.angle + speed * partialTicks
-
+        val angle: Double = be.angle + speed * partialTicks
 
 
         val vb = buffer!!.getBuffer(RenderType.solid())
@@ -77,7 +75,7 @@ class GyroBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
 
     }
 
-    private fun renderGyro(be: GyroBlockEntity, ms: PoseStack?, light: Int, blockState: BlockState, angle: Float, vb: VertexConsumer) {
+    private fun renderGyro(be: GyroBlockEntity, ms: PoseStack?, light: Int, blockState: BlockState, angle: Double, vb: VertexConsumer) {
         val wheel = CachedBuffers.block(blockState)
 
         //TODO this also eed to rotate with ship rotation to make sense, also maybe invert tilt to make more sense

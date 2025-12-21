@@ -4,7 +4,6 @@ import dev.engine_room.flywheel.lib.model.baked.PartialModel
 
 object ClockworkPartials {
 
-    val BEARING_TOP_VSIFIED = block("vstop")
     val BEARING_TOP_FLAP = block("flap_bearing_top")
     val JOYSTICK = block("command_seat/joystick")
     val BUTTON_ONE = block("command_seat/buttonone")
@@ -92,6 +91,17 @@ object ClockworkPartials {
     val DUCT_ONEWAY_FORWARD: PartialModel = PartialModel.of(ClockworkMod.asResource("block/duct/custom/oneway_forward"))
     val DUCT_ONEWAY_BACKWARD: PartialModel = PartialModel.of(ClockworkMod.asResource("block/duct/custom/oneway_backward"))
     //END OF PIPE DEATH
+
+    //GAS CRAFTER
+    val GAS_CRAFTER_FRAME: PartialModel = PartialModel.of(ClockworkMod.asResource("block/gas_crafter/frame"))
+    val GAS_CRAFTER_TUBE: PartialModel = PartialModel.of(ClockworkMod.asResource("block/gas_crafter/tube"))
+    val GAS_CRAFTER_MESH: PartialModel = PartialModel.of(ClockworkMod.asResource("block/gas_crafter/mesh"))
+    val GAS_CRAFTER_GLOW: PartialModel = PartialModel.of(ClockworkMod.asResource("block/gas_crafter/glow"))
+
+
+
+
+    //GAS CRAFTER
 
     val VALVE_DUCT_POINTER: PartialModel = PartialModel.of(ClockworkMod.asResource("block/valve_duct/pointer"))
 

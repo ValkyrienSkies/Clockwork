@@ -9,8 +9,17 @@ interface IGravitronTool {
 
     /**
      * Will run when a player rightClicks, should be overriden for tools which utilises right click
+     *
+     * @param isRegular is the gravitron tool a regular one, or a creative one
      */
-    fun handleRightClick(): Boolean
+    fun handleRightClick(isRegular: Boolean): Boolean
+
+    /**
+     * Will run when a player leftClicks, should be overriden for tools which utilises right click
+     *
+     * @param isRegular is the gravitron tool a regular one, or a creative one
+     */
+    fun handleLeftClick(regular: Boolean): Boolean
 
     /**
      * Will run when a player uses their mouse wheel, should be overriden for tools which utilises mouse wheel

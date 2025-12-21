@@ -16,6 +16,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 import org.valkyrienskies.clockwork.ClockworkModClient;
 import org.valkyrienskies.clockwork.client.render.debug.KelvinEdgeRenderer;
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautArmorLayer;
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankArmorLayer;
 
 import static net.createmod.ponder.PonderClient.isGameActive;
@@ -63,6 +64,7 @@ public class FabricClockworkClientEvents {
     public static void addEntityRendererLayers(EntityType<? extends LivingEntity> entityType, LivingEntityRenderer<?, ?> entityRenderer,
                                                LivingEntityFeatureRendererRegistrationCallback.RegistrationHelper registrationHelper, EntityRendererProvider.Context context) {
         GasBacktankArmorLayer.registerOn(entityRenderer, registrationHelper);
+        AeronautArmorLayer.registerOn(entityRenderer, registrationHelper);
     }
 
 }

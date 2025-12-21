@@ -106,6 +106,9 @@ dependencies {
     modCompileOnly("cc.tweaked:cc-tweaked-$minecraft_version-forge-api:$cc_version")
     modRuntimeOnly("cc.tweaked:cc-tweaked-$minecraft_version-forge:$cc_version")
 
+    //Spark profiler
+    modRuntimeOnly("maven.modrinth:spark:1.10.53-forge")
+
 
     //modRuntimeOnly "me.shedaniel:RoughlyEnoughItems-forge:${rei_version}"
 

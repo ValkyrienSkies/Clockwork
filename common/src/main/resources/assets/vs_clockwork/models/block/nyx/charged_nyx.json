@@ -1,0 +1,7 @@
+{
+	"parent": "minecraft:block/cube_all",
+	"textures": {
+		"all": "vs_clockwork:block/charged_nyx",
+		"particle": "vs_clockwork:block/nyx"
+	}
+}

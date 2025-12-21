@@ -134,7 +134,7 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         val airPressure = AerodynamicUtils.getAirPressureForY(blockPos.y.toDouble(), level!!.dimensionId)
         val gasPressure = kelvin.getPressureAt(ductnodepos)
         val temp = kelvin.getTemperatureAt(ductnodepos)
-        val avgSpecificHeat = AerodynamicUtils.specificHeatAverage(kelvin.getGasMassAt(ductnodepos))
+        val avgSpecificHeat = kelvin.mixtureCapacity(kelvin.getGasMassAt(ductnodepos))
 
 
         if (gasPressure<airPressure) return clearMassFlow()
@@ -154,7 +154,7 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
             val gasMassLoss = max(flowRate*0.05, gas.value)
 
             gasMassFlow[gas.key] = gasMassLoss
-            kelvin.modGasMass(ductnodepos, gas.key, -gasMassLoss)
+            kelvin.removeGas(ductnodepos, gas.key, gasMassLoss)
         }
         sendData()
 

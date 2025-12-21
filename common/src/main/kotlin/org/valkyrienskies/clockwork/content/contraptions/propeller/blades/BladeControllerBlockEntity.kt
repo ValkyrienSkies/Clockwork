@@ -127,8 +127,8 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
     }
 
     override fun destroy() {
-        super.destroy()
         dropBlades()
+        super.destroy()
     }
 
     override fun invalidate() {

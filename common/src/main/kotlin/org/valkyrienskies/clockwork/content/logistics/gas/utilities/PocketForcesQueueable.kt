@@ -7,4 +7,4 @@ import org.valkyrienskies.kelvin.api.GasType
 import java.util.*
 import kotlin.collections.HashMap
 
-data class PocketForcesQueueable(val rootPos: Vector3ic, val pocketCenter: Vector3dc, val pocketSize: Long, val gasMasses: HashMap<GasType, Double>, val temperature: Double, val pressure: Double)
+data class PocketForcesQueueable(val pocketCenter: Vector3dc, val pocketVolume: Double, val hotDensity: Double)
