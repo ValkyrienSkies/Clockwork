@@ -21,6 +21,7 @@ import net.minecraft.world.phys.Vec3
 import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool.SelectTool
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool.SelectionToolBase
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool.ToolType
 import org.valkyrienskies.clockwork.platform.SharedValues
 import org.valkyrienskies.core.api.ships.properties.ShipId
@@ -123,8 +124,8 @@ class WanderwandEffectRenderer {
             ms.popPose()
         } else {
             val tool = SharedValues.wanderwandHandler.currentTool
-            if (tool != ToolType.SELECT) return
-            val selectionTool = (tool.tool) as SelectTool
+            if (tool != ToolType.SELECT && tool != ToolType.DESELECT) return
+            val selectionTool = (tool.tool) as SelectionToolBase
 
             val player = Minecraft.getInstance().player ?: return
             val itemStack = player.mainHandItem
@@ -132,25 +133,30 @@ class WanderwandEffectRenderer {
             if (itemStack.item !is WanderwandItem) { Outliner.getInstance().remove("wandSelectionBox"); return }
             val wand = itemStack.item as WanderwandItem
 
-            val trace = RaycastHelper.rayTraceRange(player.level(), player, 15.0) ?: return
-            if (trace.type != HitResult.Type.BLOCK) return
+
+            val origin = player.eyePosition
+            val target = RaycastHelper.getTraceTarget(player, 15.0, origin)
+            val trace = level.clip(ClipContext(origin, target, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player))
+                ?: return
+
+            val resultPos = if (trace.type == HitResult.Type.BLOCK) trace.blockPos else BlockPos.containing(RaycastHelper.getTraceTarget(player, 4.0, origin))
 
 
             val aabb: AABB
-            if (selectionTool.clickedPos == null) aabb = AABB(trace.blockPos)
+            if (selectionTool.clickedPos == null) aabb = AABB(resultPos)
             else {
-                val minX = min(selectionTool.clickedPos!!.x, trace.blockPos.x).toDouble()
-                val minY = min(selectionTool.clickedPos!!.y, trace.blockPos.y).toDouble()
-                val minZ = min(selectionTool.clickedPos!!.z, trace.blockPos.z).toDouble()
-                val maxX = max(selectionTool.clickedPos!!.x, trace.blockPos.x).toDouble() + 1.0
-                val maxY = max(selectionTool.clickedPos!!.y, trace.blockPos.y).toDouble() + 1.0
-                val maxZ = max(selectionTool.clickedPos!!.z, trace.blockPos.z).toDouble() + 1.0
+                val minX = min(selectionTool.clickedPos!!.x, resultPos.x).toDouble()
+                val minY = min(selectionTool.clickedPos!!.y, resultPos.y).toDouble()
+                val minZ = min(selectionTool.clickedPos!!.z, resultPos.z).toDouble()
+                val maxX = max(selectionTool.clickedPos!!.x, resultPos.x).toDouble() + 1.0
+                val maxY = max(selectionTool.clickedPos!!.y, resultPos.y).toDouble() + 1.0
+                val maxZ = max(selectionTool.clickedPos!!.z, resultPos.z).toDouble() + 1.0
                 aabb = AABB(minX,minY,minZ,maxX,maxY,maxZ)
             }
 
-            println("${selectionTool.clickedPos} ${trace.blockPos}")
+            val color = if (tool == ToolType.SELECT) 0xFF5FFF else 0xB31B52
 
-            Outliner.getInstance().showAABB("wandSelectionBox", aabb).colored(0xFF5FFF).lineWidth(0.05f)
+            Outliner.getInstance().showAABB("wandSelectionBox", aabb).colored(color).lineWidth(0.05f)
         }
     }
 
