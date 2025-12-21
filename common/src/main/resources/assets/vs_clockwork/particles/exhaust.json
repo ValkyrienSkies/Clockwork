@@ -1,16 +1,16 @@
 {
   "textures": [
-    "kelvin:exhaust_0",
-    "kelvin:exhaust_1",
-    "kelvin:exhaust_2",
-    "kelvin:exhaust_3",
-    "kelvin:exhaust_4",
-    "kelvin:exhaust_5",
-    "kelvin:exhaust_6",
-    "kelvin:exhaust_7",
-    "kelvin:exhaust_8",
-    "kelvin:exhaust_9",
-    "kelvin:exhaust_10",
-    "kelvin:exhaust_11"
+    "clockwork:exhaust_0",
+    "clockwork:exhaust_1",
+    "clockwork:exhaust_2",
+    "clockwork:exhaust_3",
+    "clockwork:exhaust_4",
+    "clockwork:exhaust_5",
+    "clockwork:exhaust_6",
+    "clockwork:exhaust_7",
+    "clockwork:exhaust_8",
+    "clockwork:exhaust_9",
+    "clockwork:exhaust_10",
+    "clockwork:exhaust_11"
   ]
 }

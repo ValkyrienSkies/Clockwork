@@ -13,6 +13,7 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
+import net.minecraft.world.phys.AABB
 import org.joml.AxisAngle4d
 import org.joml.Quaterniond
 import org.joml.Vector3d
@@ -81,7 +82,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
 
         val previousDistance = distanceJoint!!.minDistance!!
 
-        val distance = max((gasToDistance(kelvin, getDuctNodePosition(), level!!.dimensionId) + gasToDistance(kelvin, connectedBe!!.getDuctNodePosition(), level!!.dimensionId)) * 10.0f, 0.15f)
+        val distance = max((gasToDistance(kelvin, getDuctNodePosition(), level!!.dimensionId) + gasToDistance(kelvin, connectedBe!!.getDuctNodePosition(), level!!.dimensionId)), 0.15f)
 
         if (distance == previousDistance) return
         if (abs(distance - previousDistance) < 0.01f) return
@@ -90,7 +91,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         if (lerpedDistance.isInfinite() || lerpedDistance.isNaN()) lerpedDistance = previousDistance
         if (abs(lerpedDistance - distance) < 0.001f) lerpedDistance = distance
 
-        val tempJoint = VSJointAndId(distanceJointId!!, VSDistanceJoint(distanceJoint!!.shipId0, distanceJoint!!.pose0, distanceJoint!!.shipId1, distanceJoint!!.pose1, minDistance = lerpedDistance, maxDistance = lerpedDistance, damping = 1e10f))
+        val tempJoint = VSJointAndId(distanceJointId!!, VSDistanceJoint(distanceJoint!!.shipId0, distanceJoint!!.pose0, distanceJoint!!.shipId1, distanceJoint!!.pose1, minDistance = lerpedDistance, maxDistance = lerpedDistance))
 
         serverLevel.gtpa.updateJoint(distanceJointId!!, tempJoint.joint)
         distanceJoint = tempJoint.joint as VSDistanceJoint
@@ -154,6 +155,10 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         edge = null
     }
 
+    override fun getRenderBoundingBox(): AABB? {
+        return INFINITE_EXTENT_AABB
+    }
+
     private fun createJoint() {
         val level = level as ServerLevel
 
@@ -167,7 +172,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         val quater1 = getQuaterniond(level.getBlockState(connectedBe!!.blockPos).getValue(BlockStateProperties.FACING))
 
         distanceJoint = VSDistanceJoint(pose0 = VSJointPose(pos0, quater0), pose1 = VSJointPose(pos1, quater1) , shipId0 = shipId0, shipId1 = shipId1,
-            minDistance = 0.5f, maxDistance = 1000f )
+            minDistance = 0.5f, maxDistance = 1000f, damping = 1000f )
         level.gtpa.addJoint(distanceJoint!!) { distanceJointId = it }
 
         val limit = VSD6Joint.LimitCone(Math.PI.toFloat()/4f, Math.PI.toFloat()/4f)
@@ -182,7 +187,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
 
 
 
-        sphericalJoint = VSD6Joint(pose0 = VSJointPose(pos0, quater0), pose1 = VSJointPose(pos1, quater1) , shipId0 = shipId0, shipId1 = shipId1, swingLimit = limit, motions = motions  )
+        sphericalJoint = VSD6Joint(pose0 = VSJointPose(pos0, quater0), pose1 = VSJointPose(pos1, quater1) , shipId0 = shipId0, shipId1 = shipId1, swingLimit = limit, motions = motions,  )
         level.gtpa.addJoint(sphericalJoint!!) { sphericalJointId = it }
 
         main = true
@@ -346,13 +351,13 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         // Doesn't account for the elastic force of the hose, because doing so would require solving a cubic polynomial
         fun gasToDistance(network: DuctNetwork<*>, pos: DuctNodePos, dimensionId: DimensionId): Float {
             var moles = 0.0
-            for ((gas, mass) in network.getGasMassAt(pos)) moles +=  gas.massToMoles(mass * 1000.0)
+            for ((gas, mass) in network.getGasMassAt(pos)) moles +=  gas.massToMoles(mass)
 
             val pressure = AerodynamicUtils.getAirPressureForY(pos.y, dimensionId)
             val temperature = network.getTemperatureAt(pos)
 
             val volume = temperature*idealGasConstant*moles/pressure
-            val height = 4 * volume / PI
+            val height = 2 * volume / PI
 
 
             return height.toFloat()

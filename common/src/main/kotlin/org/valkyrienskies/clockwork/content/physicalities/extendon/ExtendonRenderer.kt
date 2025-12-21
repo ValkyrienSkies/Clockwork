@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.Tesselator
 import com.mojang.blaze3d.vertex.VertexConsumer
 import com.mojang.blaze3d.vertex.VertexFormat
+import com.simibubi.create.content.logistics.depot.EjectorRenderer
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
 import dev.engine_room.flywheel.lib.transform.TransformStack
 import net.createmod.catnip.outliner.Outline
