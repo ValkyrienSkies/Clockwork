@@ -175,7 +175,7 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         val rand = level!!.getRandom()
         //client sounds
         if (assembling) {
-            if (skippingAssembly) assemblyProgress.setValue(455.0)
+            if (skippingAssembly && assemblyProgress.value < 455) assemblyProgress.setValue(455.0)
 
             if (assemblyProgress.value == 0f) {
                 playInitializeSound(level!!, thisposition)
@@ -225,6 +225,7 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
     fun skipAssembly() {
         skippingAssembly = true
+
     }
 
     fun startDisassembly() {
@@ -287,7 +288,6 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         for (component in WanderwandItem.findIsolatedComponents(blockposSet)) {
 
             if (component.any { ClockworkConfig.SERVER.blockBlacklist.contains(level!!.getBlockState(it).block.descriptionId) } ) continue
-
 
             ShipAssembler.assembleToShip(level!!, component.toList(), true)
         }
