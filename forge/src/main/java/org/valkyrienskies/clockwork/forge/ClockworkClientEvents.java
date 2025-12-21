@@ -105,9 +105,8 @@ public class ClockworkClientEvents {
 
     @SubscribeEvent
     public static void onMouseInput(InputEvent.MouseButton event) {
-        if (Minecraft.getInstance().screen != null) {
-            return;
-        }
+        if (Minecraft.getInstance().screen != null ||  !event.isCancelable()) return;
+
 
         int button = event.getButton();
         boolean pressed = !(event.getAction() == 0);

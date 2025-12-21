@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand
 
-import com.jamieswhiteshirt.reachentityattributes.ReachEntityAttributes
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllSpecialTextures
 import com.simibubi.create.foundation.utility.RaycastHelper
@@ -15,22 +14,21 @@ import net.minecraft.client.renderer.texture.OverlayTexture
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.util.RandomSource
 import net.minecraft.world.level.ClipContext
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import org.joml.Quaternionf
 import org.joml.Vector3d
-import org.valkyrienskies.clockwork.ClockworkModClient
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool.SelectTool
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool.ToolType
 import org.valkyrienskies.clockwork.platform.SharedValues
 import org.valkyrienskies.core.api.ships.properties.ShipId
-import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
 import org.valkyrienskies.mod.common.world.clipIncludeShips
-import java.util.*
+import kotlin.math.max
+import kotlin.math.min
 
 @Environment(EnvType.CLIENT)
 class WanderwandEffectRenderer {
@@ -124,11 +122,35 @@ class WanderwandEffectRenderer {
 
             ms.popPose()
         } else {
+            val tool = SharedValues.wanderwandHandler.currentTool
+            if (tool != ToolType.SELECT) return
+            val selectionTool = (tool.tool) as SelectTool
+
+            val player = Minecraft.getInstance().player ?: return
+            val itemStack = player.mainHandItem
+
+            if (itemStack.item !is WanderwandItem) { Outliner.getInstance().remove("wandSelectionBox"); return }
+            val wand = itemStack.item as WanderwandItem
+
             val trace = RaycastHelper.rayTraceRange(player.level(), player, 15.0) ?: return
             if (trace.type != HitResult.Type.BLOCK) return
 
-            val aabb = AABB(trace.blockPos)
-            Outliner.getInstance().showAABB("selectAABB", aabb).colored(0xFF5FFF).lineWidth(0.05f)
+
+            val aabb: AABB
+            if (selectionTool.clickedPos == null) aabb = AABB(trace.blockPos)
+            else {
+                val minX = min(selectionTool.clickedPos!!.x, trace.blockPos.x).toDouble()
+                val minY = min(selectionTool.clickedPos!!.y, trace.blockPos.y).toDouble()
+                val minZ = min(selectionTool.clickedPos!!.z, trace.blockPos.z).toDouble()
+                val maxX = max(selectionTool.clickedPos!!.x, trace.blockPos.x).toDouble() + 1.0
+                val maxY = max(selectionTool.clickedPos!!.y, trace.blockPos.y).toDouble() + 1.0
+                val maxZ = max(selectionTool.clickedPos!!.z, trace.blockPos.z).toDouble() + 1.0
+                aabb = AABB(minX,minY,minZ,maxX,maxY,maxZ)
+            }
+
+            println("${selectionTool.clickedPos} ${trace.blockPos}")
+
+            Outliner.getInstance().showAABB("wandSelectionBox", aabb).colored(0xFF5FFF).lineWidth(0.05f)
         }
     }
 
