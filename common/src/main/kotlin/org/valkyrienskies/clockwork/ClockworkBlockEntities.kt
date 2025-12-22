@@ -40,6 +40,7 @@ import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRe
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRenderer
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftBlockEntity
+import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBlockEntityRenderer
@@ -751,6 +752,13 @@ object ClockworkBlockEntities {
                 typeIn,
                 pos!!, state!!
             )
+        }
+        .renderer {
+            NonNullFunction { context: BlockEntityRendererProvider.Context? ->
+                UniversalShaftRenderer(
+                    context!!
+                )
+            }
         }
         .validBlocks(ClockworkBlocks.UNIVERSAL_SHAFT)
         .register()
