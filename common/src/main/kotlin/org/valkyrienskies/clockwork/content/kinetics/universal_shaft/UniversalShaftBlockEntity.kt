@@ -4,11 +4,15 @@ import com.simibubi.create.content.kinetics.base.IRotate
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.sounds.SoundSource
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity
 import org.valkyrienskies.clockwork.util.universal_joint.IUniversalJoint
+import org.valkyrienskies.mod.common.toWorldCoordinates
 
 class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : KineticBlockEntity(typeIn, pos, state), IUniversalJoint {
     override var connectedJoint: IUniversalJoint? = null
@@ -97,6 +101,17 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
             else if(be != null) {
                 connectedJoint = be as UniversalShaftBlockEntity
                 connectedBe = be as UniversalShaftBlockEntity
+            }
+        }
+        if (level == null || level!!.isClientSide) return
+        if (connectedPos != null && main) {
+            val posInWorld = level.toWorldCoordinates(pos)
+            val otherPosInWorld = level.toWorldCoordinates(connectedPos!!)
+            val distance = posInWorld.distanceTo(otherPosInWorld)
+            if (distance > maxCreationDistance && connectedBe != null) {
+                connectedBe!!.disconnect()
+                disconnect()
+                (level as ServerLevel).playSound(null, pos, ClockworkSounds.HOSE_RELEASE.mainEvent, SoundSource.BLOCKS, 1.0f, 1.0f)
             }
         }
 

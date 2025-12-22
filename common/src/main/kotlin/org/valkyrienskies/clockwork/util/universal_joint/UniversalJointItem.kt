@@ -1,15 +1,23 @@
 package org.valkyrienskies.clockwork.util.universal_joint
 
 import net.minecraft.network.chat.Component
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.item.Item
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.block.entity.BlockEntity
+import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftBlockEntity
 import org.valkyrienskies.mod.common.toWorldCoordinates
 
 open class UniversalJointItem<T: IUniversalJoint>(properties: Properties) : Item(properties) {
     var firstSelect: T? = null
+
+    override fun isFoil(stack: ItemStack?): Boolean {
+        return firstSelect != null || super.isFoil(stack)
+    }
 
     override fun useOn(context: UseOnContext): InteractionResult {
         if (context.level.isClientSide) return InteractionResult.SUCCESS
@@ -42,7 +50,7 @@ open class UniversalJointItem<T: IUniversalJoint>(properties: Properties) : Item
                 return fail()
             }
             context.player!!.displayClientMessage(Component.literal("Connected!"), true)
-
+            context.level!!.playSound(null, be.blockPos, ClockworkSounds.HOSE_ATTACH.mainEvent, SoundSource.BLOCKS, 1.0f, 1.0f)
 
             context.itemInHand.count -= 1
             firstSelect = null
