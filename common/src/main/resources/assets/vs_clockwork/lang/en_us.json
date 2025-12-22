@@ -204,7 +204,9 @@
   "item.vs_clockwork.gas_backtank": "Gas Backtank",
   "item.vs_clockwork.screwdriver": "Screwdriver",
   "item.vs_clockwork.extendon_hose": "Gas Hose",
-  "item.vs_clockwork.universal_shaft_item": "Univeral Shaft Connector",
+  "block.vs_clockwork.universal_shaft": "Universal Shaft",
+  "item.vs_clockwork.universal_shaft": "Universal Shaft",
+  "item.vs_clockwork.universal_shaft_item": "Compressible Shaft",
   "block.vs_clockwork.gas_tube": "Gas Tube",
   "item.vs_clockwork.gas_tube": "Gas Tube",
 

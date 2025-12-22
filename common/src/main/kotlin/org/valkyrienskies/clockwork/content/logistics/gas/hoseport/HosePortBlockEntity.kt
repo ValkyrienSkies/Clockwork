@@ -15,7 +15,6 @@ import org.valkyrienskies.clockwork.ClockworkGasses
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkSounds
-import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity
 import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity.Companion.getQuaterniond
 import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.gtpa
@@ -143,7 +142,6 @@ class HosePortBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
             minDistance = 0f, maxDistance = (distanceInWorld + 1.0).roundToInt().toFloat()
         )
         level.gtpa.addJoint(distanceJoint!!) { distanceJointId = it }
-        println("distance: $distanceInWorld")
 
         main = true
     }

@@ -20,10 +20,10 @@ open class UniversalJointItem<T: IUniversalJoint>(properties: Properties) : Item
         val tBe = be as T
         if (firstSelect == null) {
             firstSelect = tBe
-            context.player!!.sendSystemMessage(Component.literal("First selected"))
+            context.player!!.displayClientMessage(Component.literal("First selected"), true)
         }
         else {
-            context.player!!.sendSystemMessage(Component.literal("second selected"))
+            context.player!!.displayClientMessage(Component.literal("second selected"), true)
             if (firstSelect == tBe) return fail()
             if (!firstSelect!!.tryConnect(context.level,be.blockPos)) return fail()
             context.itemInHand.count -= 1
