@@ -5,14 +5,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.joml.Quaterniond
 import org.joml.Vector3d
-import org.valkyrienskies.core.api.VsBeta
 import org.valkyrienskies.core.api.attachment.getAttachment
 import org.valkyrienskies.core.api.attachment.removeAttachment
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerTickListener
 import org.valkyrienskies.core.api.ships.ShipPhysicsListener
-import org.valkyrienskies.core.api.util.PhysTickOnly
 import org.valkyrienskies.core.api.world.PhysLevel
 import kotlin.math.abs
 import kotlin.math.exp
@@ -45,44 +43,29 @@ class GyroShipControl : ShipPhysicsListener, ServerTickListener {
 
     internal var speed: Float = 0f
 
-    @OptIn(PhysTickOnly::class)
     override fun physTick(physShip: PhysShip, physLevel: PhysLevel) {
-        // region 70% chatGPT code but it somehow works
-        if (gyros < 1) return
+        if (gyros < 1) {
+            return
+        }
 
-        val transform = physShip.transform
+        val rotDif = targetRotation
+            .mul(physShip.transform.shipToWorldRotation.invert(Quaterniond()), Quaterniond())
+            .normalize().invert()
 
-        // Worldspace "up" to shipspace up
-        val correctionAxis = transform.shipToWorldRotation
-            .transform(Vector3d(0.0, 1.0, 0.0))
-            .normalize()
+        // Blackmagic ask triode
+        val idealOmega = Vector3d(rotDif.x() * 2.0, rotDif.y() * 2.0, rotDif.z() * 2.0)
+        if (rotDif.w() > 0) idealOmega.mul(-1.0)
 
-        val errorMagnitude = correctionAxis.length()
-        if (errorMagnitude < 1e-6) return
+        idealOmega.sub(physShip.omega)
 
-        correctionAxis.normalize()
-
-        // Proportional correction (acts like a PD controller)
-        val correctionStrength = errorMagnitude * 2.0
-
-        val idealOmega = correctionAxis.mul(correctionStrength)
-
-        // Damping using current angular velocity
-        idealOmega.sub(physShip.angularVelocity)
-
-        // Convert angular correction to torque
-        val idealTorque = transform.shipToWorldRotation.transform(
+        val idealTorque = physShip.transform.shipToWorldRotation.transform(
             physShip.momentOfInertia.transform(
-                transform.shipToWorldRotation.transformInverse(idealOmega, Vector3d())
-            )
-        )
+                physShip.transform.shipToWorldRotation.transformInverse(idealOmega, Vector3d())))
 
         idealTorque.mul(abs(speedToForce(speed)))
 
-        physShip.applyWorldTorque(idealTorque)
-        // endregion
+        physShip.applyInvariantTorque(idealTorque)
     }
-
 
     private fun speedToForce(speed: Float): Double {
         val y = 128.0 / (1 + exp(6 - (speed * 0.05)))
