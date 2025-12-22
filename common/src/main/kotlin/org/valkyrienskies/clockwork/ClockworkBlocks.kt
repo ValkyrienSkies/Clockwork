@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork
 
 import com.simibubi.create.AllBlocks
+import com.simibubi.create.AllSpriteShifts
 import com.simibubi.create.AllTags
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour.movementBehaviour
 import com.simibubi.create.content.decoration.encasing.CasingBlock
@@ -17,6 +18,7 @@ import com.tterrag.registrate.util.nullness.NonNullFunction
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.resources.model.BakedModel
 import net.minecraft.world.item.BlockItem
+import net.minecraft.world.item.CreativeModeTabs
 import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
@@ -57,15 +59,16 @@ import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.steam_generator.SteamGeneratorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.heater.GasHeaterBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.hoseport.HosePortBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.redstone.RedstoneDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankCTBehaviour
 import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankModel
 import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlock
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlock
-import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlock
 import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlock
 import org.valkyrienskies.clockwork.content.physicalities.gas_thruster.GasThrusterBlock
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroBlock
@@ -340,7 +343,7 @@ object ClockworkBlocks {
             .transform(axeOrPickaxe())
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            //.tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .transform(customItemModel("command_seat", "item"))
             .register()
 
@@ -392,27 +395,6 @@ object ClockworkBlocks {
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .transform(customItemModel("physics_infuser", "item"))
             .register()
-
-//    @JvmField
-//    val HEAT_PIPE: BlockEntry<HeatPipeBlock> = REGISTRATE.block<HeatPipeBlock>(
-//        "heat_pipe"
-//    ) { properties: BlockBehaviour.Properties? ->
-//        HeatPipeBlock(
-//            properties!!
-//        )
-//    }
-//        .initialProperties { SharedProperties.netheriteMetal() }
-//        .onRegister(CreateRegistrate.blockModel {
-//            NonNullFunction<BakedModel?, BakedModel> { template: BakedModel? ->
-//                PipeAttachmentModel(
-//                    template
-//                )
-//            }
-//        })
-//        .item()
-//        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
-//        .transform(customItemModel())
-//        .register()
 
     @JvmField
     val DUCT: BlockEntry<DuctBlock> = REGISTRATE.block<DuctBlock>(
@@ -480,6 +462,7 @@ object ClockworkBlocks {
         .initialProperties { SharedProperties.netheriteMetal() }
         .addLayer { Supplier { RenderType.cutout() } }
         .properties { it.noOcclusion() }
+        .onRegister(connectedTextures { DuctTankCTBehaviour(ClockworkSpriteShifts.DUCT_TANK, ClockworkSpriteShifts.DUCT_TANK_TOP, AllSpriteShifts.FLUID_TANK_INNER) })
         .onRegister(ClockworkRegistrate.blockModel { NonNullFunction<BakedModel, BakedModel> { originalModel: BakedModel -> DuctTankModel(originalModel) } })
         .item()
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
@@ -517,6 +500,27 @@ object ClockworkBlocks {
         .item()
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .model(AssetLookup.customBlockItemModel("pump", "item"))
+        .transform(customItemModel())
+        .transform(ClockworkStress.setImpact(4.0))
+        .register()
+
+    @JvmField
+    val REDSTONE_DUCT: BlockEntry<RedstoneDuctBlock> = REGISTRATE.block<RedstoneDuctBlock>(
+        "redstone_duct"
+    ) { properties: BlockBehaviour.Properties? ->
+        RedstoneDuctBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .addLayer { Supplier { RenderType.cutoutMipped() } }
+        .properties { it.noOcclusion() }
+//        .blockstate { c: DataGenContext<Block?, RedstoneDuctBlock>, p: RegistrateBlockstateProvider ->
+//            BlockStateGen.axisBlock(c, p, { AssetLookup.partialBaseModel(c, p, "redstone_duct") })
+//        }
+        .item()
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .model(AssetLookup.customBlockItemModel("redstone_duct", "block"))
         .transform(customItemModel())
         .transform(ClockworkStress.setImpact(4.0))
         .register()
@@ -663,6 +667,21 @@ object ClockworkBlocks {
             .build()
             .register()
 
+    @JvmField
+    val HOSE_PORT: BlockEntry<HosePortBlock> =
+        REGISTRATE.block<HosePortBlock>("hose_port") { properties: BlockBehaviour.Properties? ->
+            HosePortBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.netheriteMetal() }
+            .transform(axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .build()
+            .register()
+
 
     @JvmField
     val GAS_BACKTANK: BlockEntry<GasBacktankBlock> =
@@ -700,7 +719,7 @@ object ClockworkBlocks {
         .initialProperties { SharedProperties.softMetal() }
         .addLayer { Supplier { RenderType.cutout() } }
         .item()
-        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        //.tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .transform(customItemModel())
         .register()
 
@@ -745,20 +764,6 @@ object ClockworkBlocks {
         .properties {
             it.fireResistant()
         }
-        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
-        .build()
-        .register()
-
-    @JvmField
-    val BALLAST = REGISTRATE.block<BallastBlock>(
-        "ballast"
-    ) { properties: BlockBehaviour.Properties? ->
-        BallastBlock(
-            properties!!
-        )
-    }
-        .initialProperties { SharedProperties.wooden() }
-        .item()
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .build()
         .register()
@@ -985,7 +990,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .tab(CreativeModeTabs.OP_BLOCKS)
             .build()
             .register()
 
@@ -994,7 +999,7 @@ object ClockworkBlocks {
         REGISTRATE.block<UniversalShaftBlock>("universal_shaft") { properties: BlockBehaviour.Properties? ->
             UniversalShaftBlock(properties!!)
         }
-            .initialProperties { SharedProperties.wooden() }
+            .initialProperties { SharedProperties.stone() }
             .transform(axeOrPickaxe())
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }

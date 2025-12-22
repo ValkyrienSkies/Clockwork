@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.Tesselator
 import com.mojang.blaze3d.vertex.VertexConsumer
 import com.mojang.blaze3d.vertex.VertexFormat
+import com.simibubi.create.content.logistics.depot.EjectorRenderer
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
 import dev.engine_room.flywheel.lib.transform.TransformStack
 import net.createmod.catnip.outliner.Outline
@@ -22,6 +23,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.LightLayer
+import net.minecraft.world.phys.Vec3
 import org.joml.Matrix3f
 import org.joml.Matrix4f
 import org.joml.Vector3d
@@ -33,10 +35,13 @@ import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.math.*
 import org.valkyrienskies.clockwork.util.*
+import org.valkyrienskies.core.api.util.GameTickOnly
 
 class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlockEntityRenderer<ExtendonBlockEntity>(context) {
     override fun shouldRenderOffScreen(blockEntity: ExtendonBlockEntity) = true
+    override fun shouldRender(blockEntity: ExtendonBlockEntity, cameraPos: Vec3): Boolean = true
 
+    @OptIn(GameTickOnly::class)
     override fun renderSafe(
         be: ExtendonBlockEntity,
         partialTicks: Float,
@@ -96,7 +101,7 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
         val level = Minecraft.getInstance().level!!
 
         ms.pushPose();
-        var chain = TransformStack.of(ms)
+        val chain = TransformStack.of(ms)
         chain.center();
 
         chain.rotateY(yaw.toFloat())
@@ -108,18 +113,18 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
 
         //==========
 
-        var radius = 13f / 16f / 2f * tubeRadiusScale
+        val radius = 13f / 16f / 2f * tubeRadiusScale
 
-        var minU = 0f
-        var maxU = 1f
-        var minV = 0f
-        var maxV = length / (15f/16f) / tubeLengthScale
+        val minU = 0f
+        val maxU = 1f
+        val minV = 0f
+        val maxV = length / (15f/16f) / tubeLengthScale
 
-        var light1 = LightTexture.pack(
+        val light1 = LightTexture.pack(
             level.getBrightness(LightLayer.BLOCK, pos1),
             level.getBrightness(LightLayer.SKY, pos1)
         )
-        var light2 = LightTexture.pack(
+        val light2 = LightTexture.pack(
             level.getBrightness(LightLayer.BLOCK, pos2),
             level.getBrightness(LightLayer.SKY, pos2)
         )
@@ -230,26 +235,4 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
             return Triple(pitch + Math.PI*3/2, yaw, roll)
         }
     }
-}
-
-// TODO: MOVE THIS TO UTILS
-public fun Outliner.showCustomOutline(key: Any, outline: Outline) {
-    this::class.java.getDeclaredMethod("addOutline", Any::class.java, Outline::class.java)
-        .apply { isAccessible = true }
-        .invoke(this, key, outline)
-}
-
-public fun Outliner.editCustomOutline(key: Any, outline: Outline) {
-    @Suppress("UNCHECKED_CAST")
-    this::class.java.getDeclaredField("outlines")
-        .apply { isAccessible = true }
-        .get(this)
-        .let { it as MutableMap<Any, Outliner.OutlineEntry> }[key] = Outliner.OutlineEntry(outline)
-}
-
-public fun Outline.OutlineParams.disableFadeLineWidth() {
-    this::class.java.getDeclaredField("fadeLineWidth")
-        .apply { isAccessible = true }
-        .set(this, false)
-
 }

@@ -355,17 +355,18 @@ class SlickerMovementBehavior : MovementBehaviour {
             val constraintPair: VSFixedJoint? = makeConstraint(realShip1Pos, ship2ConstraintPos, realShip1, realShip2, level, realShip1Rot, realShip2Rot, realShip2Pos)
 
             //TODO
-//            if (constraintPair != null) {
-//                val attachConstraint = constraintPair
-//                val attachConstraintId = level.shipObjectWorld.createNewConstraint(attachConstraint)
-//
-//                tag.putInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID, attachConstraintId ?: -1)
-//                tag.putByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT, mapper.writeValueAsBytes(attachConstraint))
-//
-//                tag.putDouble(ClockworkConstants.Nbt.SHIP_SLICKER_DISTANCE, adjustedDistance)
-//
-//                ClockworkMod.LOGGER.info("Attached to ship ${attachConstraint.shipId1} using points ${attachConstraint.pose0.pos} && ${attachConstraint.pose1.pos}")
-//            }
+            if (constraintPair != null) {
+                val attachConstraint = constraintPair
+                level.gtpa.addJoint(attachConstraint, 3, {
+                    tag.putInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID, it ?: -1)
+                })
+
+                tag.putByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT, mapper.writeValueAsBytes(attachConstraint))
+
+                tag.putDouble(ClockworkConstants.Nbt.SHIP_SLICKER_DISTANCE, adjustedDistance)
+
+                ClockworkMod.LOGGER.info("Attached to ship ${attachConstraint.shipId1} using points ${attachConstraint.pose0.pos} && ${attachConstraint.pose1.pos}")
+            }
         }
 
         private fun makeConstraint(

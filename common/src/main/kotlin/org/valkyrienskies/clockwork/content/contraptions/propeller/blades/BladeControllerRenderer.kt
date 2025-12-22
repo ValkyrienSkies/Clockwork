@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.content.contraptions.propeller.blades
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
+import com.mojang.logging.LogUtils
 import com.simibubi.create.content.contraptions.render.ContraptionMatrices
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
 import dev.engine_room.flywheel.lib.transform.TransformStack
@@ -11,15 +12,14 @@ import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
+import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.BlockAndTintGetter
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
-import org.joml.Vector3d
-import org.joml.Vector3f
 import org.valkyrienskies.clockwork.ClockworkItems
-import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPartials
 
 class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlockEntityRenderer<BladeControllerBlockEntity>(
@@ -43,11 +43,11 @@ class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : S
 
         val bladeRotations = blockEntity.clientBladeRotation.map { it.value.getValue(partialTicks) }
 
-        renderShared(blades, bladeAngle, blockState, partialTicks, ms, buffer, bladeRotations)
+        renderShared(blades, bladeAngle, blockState, partialTicks, ms, buffer, light, bladeRotations)
     }
 
     companion object {
-        fun renderShared(blades: List<ItemStack>, bladeAngle: Float, blockState: BlockState, partialTicks: Float, ms: PoseStack, buffer: MultiBufferSource, bladeRotations: List<Float>, contraption: Boolean = false, contraptionMatrices: ContraptionMatrices? = null) {
+        fun renderShared(blades: List<ItemStack>, bladeAngle: Float, blockState: BlockState, partialTicks: Float, ms: PoseStack, buffer: MultiBufferSource, light: Int, bladeRotations: List<Float>, contraption: Boolean = false, contraptionMatrices: ContraptionMatrices? = null, tintGetter: BlockAndTintGetter? = null) {
             val renderBuffer = buffer.getBuffer(RenderType.cutout())
 
             val facing = blockState.getValue(BlockStateProperties.FACING)
@@ -74,7 +74,7 @@ class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : S
                     bladeTip.transform(contraptionMatrices.model)
                 }
 
-                renderBlade(bladeBase, bladeExtension, bladeTip, bladeAngle, bladeLength, bladeRotation, ms, renderBuffer, facing, contraption)
+                renderBlade(bladeBase, bladeExtension, bladeTip, bladeAngle, bladeLength, bladeRotation, ms, renderBuffer, light, facing, contraption, contraptionMatrices, tintGetter)
             }
             //ms.popPose()
         }
@@ -85,16 +85,12 @@ class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : S
             buffer.translateBack(pivot)
         }
 
-        fun renderBlade(bladeBase: SuperByteBuffer, bladeExtension: SuperByteBuffer, bladeTip: SuperByteBuffer, bladeAngle: Float, bladeLength: Float, bladeRotation: Float, ms: PoseStack, buffer: VertexConsumer, facing: Direction, contraption: Boolean) {
+        fun renderBlade(bladeBase: SuperByteBuffer, bladeExtension: SuperByteBuffer, bladeTip: SuperByteBuffer, bladeAngle: Float, bladeLength: Float, bladeRotation: Float, ms: PoseStack, buffer: VertexConsumer, light: Int, facing: Direction, contraption: Boolean, contraptionMatrices: ContraptionMatrices? = null, tintGetter: BlockAndTintGetter? = null) {
             // Render the blade here
             ms.pushPose()
             ms.translate(0.0, 0.0, 0.0)
 
             val pivot = Vec3(0.5,0.5,0.5)
-
-
-
-
 
             ms.popPose()
             ms.pushPose()
@@ -113,16 +109,27 @@ class BladeControllerRenderer(context: BlockEntityRendererProvider.Context?) : S
                     Direction.UP
                 )
             }
+
+            bladeBase.light<SuperByteBuffer>(light)
+            bladeExtension.light<SuperByteBuffer>(light)
+            bladeTip.light<SuperByteBuffer>(light)
+
+            if(tintGetter != null && contraptionMatrices != null) {
+                bladeBase.useLevelLight<SuperByteBuffer>(tintGetter, contraptionMatrices.world)
+                bladeExtension.useLevelLight<SuperByteBuffer>(tintGetter, contraptionMatrices.world)
+                bladeTip.useLevelLight<SuperByteBuffer>(tintGetter, contraptionMatrices.world)
+            }
+
             bladeBase.rotateCentered(
-                AngleHelper.rad((-90.0 - AngleHelper.verticalAngle(facing)).toDouble()),
+                AngleHelper.rad((-90.0 - AngleHelper.verticalAngle(facing))),
                 Direction.EAST
             )
             bladeExtension.rotateCentered(
-                AngleHelper.rad((-90.0 - AngleHelper.verticalAngle(facing)).toDouble()),
+                AngleHelper.rad((-90.0 - AngleHelper.verticalAngle(facing))),
                 Direction.EAST
             )
             bladeTip.rotateCentered(
-                AngleHelper.rad((-90.0 - AngleHelper.verticalAngle(facing)).toDouble()),
+                AngleHelper.rad((-90.0 - AngleHelper.verticalAngle(facing))),
                 Direction.EAST
             )
 

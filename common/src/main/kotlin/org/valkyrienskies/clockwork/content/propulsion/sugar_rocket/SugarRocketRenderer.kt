@@ -28,7 +28,7 @@ class SugarRocketRenderer(context: BlockEntityRendererProvider.Context?) : Smart
         if (blockEntity.isBurning) {
             superByteBuffer.light<SuperByteBuffer>(light).color<SuperByteBuffer>(color).renderInto(ms, buffer.getBuffer(RenderType.cutout()))
         } else {
-            superByteBuffer.light<SuperByteBuffer>(light).renderInto(ms, buffer.getBuffer(RenderType.cutout()))
+            superByteBuffer.light<SuperByteBuffer>(light).renderInto(ms, buffer.getBuffer(RenderType.solid()))
         }
 
     }

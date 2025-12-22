@@ -4,6 +4,8 @@ import com.simibubi.create.api.connectivity.ConnectivityHandler
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.util.RandomSource
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
@@ -33,6 +35,10 @@ class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE
                 .setValue(BOTTOM, true)
         )
     }
+
+//    override fun tick(state: BlockState, level: ServerLevel, pos: BlockPos, random: RandomSource) {
+//        println(state.getValue(TOP))
+//    }
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
         super.createBlockStateDefinition(builder.add(TOP).add(BOTTOM))

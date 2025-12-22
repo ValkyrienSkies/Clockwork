@@ -67,9 +67,8 @@ open class WanderwandHandler {
     }
 
     fun render(poseStack: GuiGraphics, partialTicks: Float, width: Int, height: Int) {
-        if (Minecraft.getInstance().options.hideGui || !active) {
-            return
-        }
+        if (Minecraft.getInstance().options.hideGui || !active) return
+
         if (activeSchematicItem != null && isRegular) {
             overlay!!.renderWanderlite(poseStack, activeHotbarSlot, partialTicks)
         }
@@ -111,19 +110,13 @@ open class WanderwandHandler {
     }
 
     fun onMouseInput(button: Int, pressed: Boolean): Boolean {
-        if (!active) {
-            return false
-        }
-        if (!pressed || (button != 1 && button != 0)) {
-            return false
-        }
+        if (!active) return false
+        else if (!pressed || (button != 1 && button != 0)) return false
         val mc = Minecraft.getInstance()
-        if (mc.player!!.isShiftKeyDown && currentTool != ToolType.DESELECT) {
-            return false
-        }
-        if (button == 0) {
-            return currentTool!!.tool.handleLeftClick()
-        }
+        if (mc.player!!.isShiftKeyDown && currentTool != ToolType.DESELECT) return false
+        else if (button == 0) return currentTool!!.tool.handleLeftClick()
+
+
         return currentTool!!.tool.handleRightClick(mc.player!!.isCrouching)
     }
 

@@ -1,6 +1,6 @@
 {
   "parent": "item/generated",
   "textures": {
-    "layer0": "vs_clockwork:item/universal_shaft_item"
+    "layer0": "vs_clockwork:item/compressible_shaft"
   }
 }

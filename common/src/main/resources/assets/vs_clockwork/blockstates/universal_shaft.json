@@ -1,0 +1,29 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "vs_clockwork:block/universal_shaft",
+      "x": 180
+    },
+    "facing=up": {
+      "model": "vs_clockwork:block/universal_shaft"
+    },
+    "facing=north": {
+      "model": "vs_clockwork:block/universal_shaft",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "vs_clockwork:block/universal_shaft",
+      "x": 270
+    },
+    "facing=east": {
+      "model": "vs_clockwork:block/universal_shaft",
+      "x": 90,
+      "y": 90
+    },
+    "facing=west": {
+      "model": "vs_clockwork:block/universal_shaft",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

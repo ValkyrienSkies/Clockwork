@@ -1,9 +1,9 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand
 
-import com.jamieswhiteshirt.reachentityattributes.ReachEntityAttributes
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllSpecialTextures
 import com.simibubi.create.foundation.utility.RaycastHelper
+import net.createmod.catnip.outliner.Outliner
 import net.createmod.catnip.render.SuperRenderTypeBuffer
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
@@ -14,20 +14,22 @@ import net.minecraft.client.renderer.texture.OverlayTexture
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.util.RandomSource
 import net.minecraft.world.level.ClipContext
+import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import org.joml.Quaternionf
 import org.joml.Vector3d
-import org.valkyrienskies.clockwork.ClockworkModClient
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool.SelectTool
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool.SelectionToolBase
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool.ToolType
 import org.valkyrienskies.clockwork.platform.SharedValues
 import org.valkyrienskies.core.api.ships.properties.ShipId
-import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
 import org.valkyrienskies.mod.common.world.clipIncludeShips
-import java.util.*
+import kotlin.math.max
+import kotlin.math.min
 
 @Environment(EnvType.CLIENT)
 class WanderwandEffectRenderer {
@@ -50,13 +52,13 @@ class WanderwandEffectRenderer {
         var count = 0
         if (SharedValues.wanderwandHandler.findWandInHand(client.player) != null) {
             for (cluster in clusters) {
-                ClockworkModClient.WANDER_OUTLINER.showCluster("cluster$count", cluster).colored(0xd8b2e9).lineWidth(0.5f).withFaceTextures(AllSpecialTextures.CHECKERED, AllSpecialTextures.HIGHLIGHT_CHECKERED)
+                Outliner.getInstance().showCluster("cluster$count", cluster).colored(0xFF55FF).lineWidth(0.1f).withFaceTextures(AllSpecialTextures.THIN_CHECKERED, AllSpecialTextures.HIGHLIGHT_CHECKERED)
                 count++
             }
         }
         count = 0
         for (attachment in attachments) {
-            ClockworkModClient.WANDER_OUTLINER.showLine("attachment$count", attachment.first.toMinecraft(), attachment.second.toMinecraft()).lineWidth(0.5f).colored(0xd8b2e9)
+            Outliner.getInstance().showLine("attachment$count", attachment.first.toMinecraft(), attachment.second.toMinecraft()).lineWidth(0.1f).colored(0xFF55FF)
             count++
         }
     }
@@ -65,6 +67,7 @@ class WanderwandEffectRenderer {
     fun render(ms: PoseStack, buffer: SuperRenderTypeBuffer, camera: Vec3, partialTicks: Float) {
         val level = client.level ?: return
         val player = client.player ?: return
+
         if (isWelding && weldingShip != null) {
             ms.pushPose()
             println("WELDING FUCKHEAD")
@@ -119,6 +122,41 @@ class WanderwandEffectRenderer {
             lastTargetPos = targetPos
 
             ms.popPose()
+        } else {
+            val tool = SharedValues.wanderwandHandler.currentTool
+            if (tool != ToolType.SELECT && tool != ToolType.DESELECT) return
+            val selectionTool = (tool.tool) as SelectionToolBase
+
+            val player = Minecraft.getInstance().player ?: return
+            val itemStack = player.mainHandItem
+
+            if (itemStack.item !is WanderwandItem) { Outliner.getInstance().remove("wandSelectionBox"); return }
+            val wand = itemStack.item as WanderwandItem
+
+
+            val origin = player.eyePosition
+            val target = RaycastHelper.getTraceTarget(player, 15.0, origin)
+            val trace = level.clip(ClipContext(origin, target, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player))
+                ?: return
+
+            val resultPos = if (trace.type == HitResult.Type.BLOCK) trace.blockPos else BlockPos.containing(RaycastHelper.getTraceTarget(player, 4.0, origin))
+
+
+            val aabb: AABB
+            if (selectionTool.clickedPos == null) aabb = AABB(resultPos)
+            else {
+                val minX = min(selectionTool.clickedPos!!.x, resultPos.x).toDouble()
+                val minY = min(selectionTool.clickedPos!!.y, resultPos.y).toDouble()
+                val minZ = min(selectionTool.clickedPos!!.z, resultPos.z).toDouble()
+                val maxX = max(selectionTool.clickedPos!!.x, resultPos.x).toDouble() + 1.0
+                val maxY = max(selectionTool.clickedPos!!.y, resultPos.y).toDouble() + 1.0
+                val maxZ = max(selectionTool.clickedPos!!.z, resultPos.z).toDouble() + 1.0
+                aabb = AABB(minX,minY,minZ,maxX,maxY,maxZ)
+            }
+
+            val color = if (tool == ToolType.SELECT) 0xFF5FFF else 0xB31B52
+
+            Outliner.getInstance().showAABB("wandSelectionBox", aabb).colored(color).lineWidth(0.05f)
         }
     }
 
@@ -148,7 +186,7 @@ class WanderwandEffectRenderer {
 
     fun handlePacket(packet: WanderwandRenderUpdatePacket) {
         if (packet.tool == ToolType.SELECT || packet.tool == ToolType.DESELECT) {
-            updateClusters(packet.blocks!!)
+            if (packet.blocks != null) updateClusters(packet.blocks)
         } else if (packet.tool == ToolType.WELD) {
             if (packet.blocks != null && packet.onOff) {
                 startWelding(packet.selectionPos, packet.selectionDir!!, packet.blocks, packet.shipId!!)

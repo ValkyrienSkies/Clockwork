@@ -51,7 +51,7 @@ public class ClockworkRegistrate {
                 .register(CatnipServices.REGISTRIES.getKeyOrThrow(entry), func.get());
     }
 
-    protected static void onClient(Supplier<Runnable> toRun) {
+    static void onClient(Supplier<Runnable> toRun) {
         PlatformUtils.getEnvExecutor(toRun);
     }
 

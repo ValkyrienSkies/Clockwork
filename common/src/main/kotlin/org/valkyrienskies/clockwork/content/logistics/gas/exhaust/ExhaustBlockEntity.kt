@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.logistics.gas.exhaust
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
+import net.minecraft.util.Mth
 import net.minecraft.util.RandomSource
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
@@ -12,10 +13,12 @@ import org.valkyrienskies.clockwork.util.KelvinParticleHelper
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.math.floor
+import kotlin.math.min
+import kotlin.math.pow
 
 class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state) {
 
-    val MASS_PER_EXHAUST = 0.05
+    val MASS_PER_EXHAUST = 0.0005
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) {
         return
@@ -30,6 +33,7 @@ class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
 
         val network = KelvinMod.getKelvinByPlatform() ?: return
         val gasses = network.getGasMassAt(getDuctNodePosition())
+        val pressure = network.getPressureAt(getDuctNodePosition())
         if (gasses.isEmpty()) return super.tick()
 
         if (level!!.isClientSide) {
@@ -40,7 +44,7 @@ class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
             for (i in 1..floor(gasses.values.sum()/MASS_PER_EXHAUST).toInt()) {
                 KelvinParticleHelper.spawnParticleWithRatio(level as ClientLevel, getDuctNodePosition(),
                     blockPos.toJOMLD().add(randomPos(0.3, random), randomPos(0.3, random), randomPos(0.3, random)),
-                    facing.normal.toJOMLD().mul(0.1))
+                    facing.normal.toJOMLD().mul(Mth.clamp(0.0025 * pressure.pow(0.4), 0.1,5.0 )))
             }
 
             return super.tick()

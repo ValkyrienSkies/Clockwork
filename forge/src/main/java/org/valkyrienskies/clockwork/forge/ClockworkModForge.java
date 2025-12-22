@@ -46,7 +46,6 @@ public class ClockworkModForge {
         ClockworkBlocks.register();
         ClockworkItems.register();
         ClockworkBlockEntities.register();
-        ForgeClockworkBlockEntities.register();
 
         modEventBus.addListener(this::onRegister);
 

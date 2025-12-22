@@ -43,27 +43,20 @@ class PhysicsInfuserBlock(properties: Properties) : Block(properties),
         if (!player.mayBuild()) return InteractionResult.FAIL
         if (player.isShiftKeyDown) return InteractionResult.FAIL
         if (player.getItemInHand(handIn).isEmpty) {
-            if (!worldIn.isClientSide) {
-                withBlockEntityDo(
-                    worldIn, pos
-                ) { te: PhysicsInfuserBlockEntity? -> if (te!!.isAssembled && !te.assembling && !te.disassembling) te.startDisassembly() }
-                withBlockEntityDo(
-                    worldIn, pos
-                ) { te: PhysicsInfuserBlockEntity? -> if (!te!!.isAssembled && !te.assembling && !te.disassembling) te.startAssembly() }
-                return InteractionResult.SUCCESS
+
+            withBlockEntityDo(worldIn, pos) {
+                if (!it.assembling) it.startAssembly()
+                else it.skipAssembly()
             }
-            withBlockEntityDo(
-                worldIn, pos
-            ) { te: PhysicsInfuserBlockEntity? ->
-                if (te!!.isAssembled && !te.assembling && !te.disassembling && !te.onCooldown) {
-                    te.startDisassembly()
-                } else if (!te.isAssembled && te.assembling && !te.disassembling && !te.onCooldown) {
-                    te.skipAssembly()
-                } else if (!te.isAssembled && !te.assembling && !te.disassembling && !te.onCooldown) {
-                    te.startAssembly()
-                }
-            }
+
+//            withBlockEntityDo(
+//                worldIn, pos
+//            ) { te: PhysicsInfuserBlockEntity? -> if (te!!.isAssembled && !te.assembling && !te.disassembling) te.startDisassembly() }
+//            withBlockEntityDo(
+//                worldIn, pos
+//            ) { te: PhysicsInfuserBlockEntity? -> if (!te!!.isAssembled && !te.assembling && !te.disassembling) te.startAssembly() }
             return InteractionResult.SUCCESS
+
         } else if (player.getItemInHand(handIn).item is WanderwandItem) {
             if (worldIn.getBlockEntity(pos) != null) {
                 if (worldIn.getBlockEntity(pos) is PhysicsInfuserBlockEntity) {

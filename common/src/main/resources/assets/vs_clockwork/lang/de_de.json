@@ -4,6 +4,5 @@
   "block.vs_clockwork.anchor": "Anker",
   "block.vs_clockwork.engine": "Schiffsmotor",
   "block.vs_clockwork.balloon": "Ballon",
-  "block.vs_clockwork.floater": "Schwimmer",
-  "block.vs_clockwork.ballast": "Ballast"
+  "block.vs_clockwork.floater": "Schwimmer"
 }

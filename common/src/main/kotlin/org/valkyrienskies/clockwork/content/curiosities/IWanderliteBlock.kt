@@ -22,10 +22,10 @@ interface IWanderliteBlock {
     val forceMult: Double
 
     fun addToShip(ship: LoadedServerShip, pos: BlockPos, force: Double) {
-        WanderShipControl.getOrCreate(ship)?.addBlock(pos, force)
+        WanderShipControl.getOrCreate(ship).addBlock(pos, force)
     }
     fun removeFromShip(ship: LoadedServerShip, pos: BlockPos) {
-        WanderShipControl.getOrCreate(ship)?.removeBlock(pos)
+        WanderShipControl.getOrCreate(ship).removeBlock(pos)
     }
     fun collectBlockPositions(worldIn: Level, pos: BlockPos, depth: Int, collectedPositions: MutableList<BlockPos> = mutableListOf()): MutableList<BlockPos> {
         // Base case: If the depth is 0, return an empty collection

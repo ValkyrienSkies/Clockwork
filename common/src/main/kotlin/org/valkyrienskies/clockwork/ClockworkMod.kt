@@ -33,6 +33,7 @@ import org.valkyrienskies.clockwork.content.forces.*
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroShipControl
 import org.valkyrienskies.clockwork.util.ClockworkUtils
+import org.valkyrienskies.clockwork.util.builder.ClockworkExpandedCreateRegistrate
 import org.valkyrienskies.clockwork.util.gui.DuctStats
 import org.valkyrienskies.core.api.VsBeta
 import org.valkyrienskies.kelvin.KelvinMod
@@ -56,7 +57,7 @@ object ClockworkMod {
 
     val NETWORK_CHANNEL: ResourceLocation = asResource("main")
 
-    val REGISTRATE: CreateRegistrate = CreateRegistrate.create(MOD_ID).setTooltipModifierFactory { item ->
+    val REGISTRATE: CreateRegistrate = ClockworkExpandedCreateRegistrate.create(MOD_ID).setTooltipModifierFactory { item ->
         ItemDescription . Modifier (item, FontHelper.Palette.STANDARD_CREATE)
         .andThen(TooltipModifier.mapNull(DuctStats.create(item)))
     }
@@ -114,7 +115,7 @@ object ClockworkMod {
         ClockworkGasses.init()
 
         LifecycleEvent.SERVER_STARTED.register {
-            ClockworkAugmentations.registerComponentAvgAugmentation("temperature", it.shipObjectWorld)
+            ClockworkAugmentations.registerComponentAvgAugmentation("heatEnergy", it.shipObjectWorld)
             ClockworkAugmentations.registerComponentAvgAugmentation("pressure", it.shipObjectWorld)
             for (gas in GasTypeRegistry.GAS_TYPES.values) {
                 ClockworkAugmentations.registerComponentAvgAugmentation("gas_${gas.name.lowercase()}", it.shipObjectWorld)

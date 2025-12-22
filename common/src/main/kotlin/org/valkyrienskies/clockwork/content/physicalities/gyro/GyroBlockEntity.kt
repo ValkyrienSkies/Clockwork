@@ -12,25 +12,24 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Quaterniond
 import org.joml.Vector3d
+import org.valkyrienskies.clockwork.content.physicalities.IClockworkWheelBE
 import org.valkyrienskies.core.api.ships.LoadedServerShip
-import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
-import org.valkyrienskies.mod.common.util.toJOMLD
 import java.awt.Point
-import kotlin.math.max
 
 
 class GyroBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
-    KineticBlockEntity(typeIn, pos, state) {
+    KineticBlockEntity(typeIn, pos, state), IClockworkWheelBE {
 
     var redstonePower: Point = Point(0,0)
 
-    var visualSpeed: LerpedFloat = LerpedFloat.linear()
-    var angle: Float = 0f
+    override var visualSpeed: LerpedFloat = LerpedFloat.linear()
+    override var angle: Double = 0.0
+
     var coreAngle = 0f
     var previousCoreAngle = 0f
 
-    var targetQuat: Quaterniond = Quaterniond(0.0,1.0,0.0,0.0)
+    var targetVec: Vector3d = Vector3d(0.0,1.0,0.0)
     private val ship: LoadedServerShip? get() = (level as ServerLevel).getShipObjectManagingPos(this.blockPos)
     private val control: GyroShipControl? get() = ship?.getAttachment(GyroShipControl::class.java)
 
@@ -50,16 +49,19 @@ class GyroBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockSt
             return
         }
 
+        updatePower(level!!, blockPos)
+
+        val up = Vector3d(0.0, 1.0, 0.0)
+        up.rotateX((redstonePower.x / 15.0) * Math.PI/2)
+        up.rotateZ((redstonePower.y / 15.0) * Math.PI/2)
+        targetVec = up
+
         if (level is ServerLevel) {
             control?.ship = ship
             control?.speed = getSpeed()
-            control?.pointTowards(targetQuat, 1.0f)
+            control?.pointTowards(targetVec, 1.0f)
         }
 
-        updatePower(level!!, blockPos)
-
-        targetQuat.x = (redstonePower.x / 15.0) / 2
-        targetQuat.z = (redstonePower.y / 15.0) / 2
         val targetSpeed = getSpeed()
         visualSpeed.updateChaseTarget(targetSpeed)
         visualSpeed.tickChaser()
@@ -87,10 +89,9 @@ class GyroBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockSt
 
     public override fun write(compound: CompoundTag, clientPacket: Boolean) {
         super.write(compound, clientPacket)
-        compound.putDouble("X", targetQuat.x())
-        compound.putDouble("Y", targetQuat.y())
-        compound.putDouble("Z", targetQuat.z())
-        compound.putDouble("W", targetQuat.w())
+        compound.putDouble("X", targetVec.x())
+        compound.putDouble("Y", targetVec.y())
+        compound.putDouble("Z", targetVec.z())
 
         compound.putInt("PowerX", redstonePower.x)
         compound.putInt("PowerZ", redstonePower.y)
@@ -98,7 +99,7 @@ class GyroBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockSt
 
     public override fun read(compound: CompoundTag, clientPacket: Boolean) {
         if (compound.contains("X")) {
-            targetQuat = Quaterniond(compound.getDouble("X"), compound.getDouble("Y"), compound.getDouble("Z"), compound.getDouble("Z"))
+            targetVec = Vector3d(compound.getDouble("X"), compound.getDouble("Y"), compound.getDouble("Z"))
         }
         if (compound.contains("PowerX")) {
             redstonePower = Point(compound.getInt("PowerX"), compound.getInt("PowerXZ"))

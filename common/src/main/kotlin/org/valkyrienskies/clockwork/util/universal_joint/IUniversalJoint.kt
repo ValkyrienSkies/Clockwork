@@ -8,6 +8,9 @@ interface IUniversalJoint {
     var connectedJoint: IUniversalJoint?
     var pos: BlockPos
 
+    val maxCreationDistance: Double
+        get() = Double.MAX_VALUE
+
     fun connectTo(other: IUniversalJoint) {
         if (connectedJoint != null) return
         connectedJoint = other
@@ -21,6 +24,7 @@ interface IUniversalJoint {
 
         val oJ = other as IUniversalJoint
         if (oJ.connectedJoint != null) return false
+        if (other.javaClass != this.javaClass) return false
 
 
         connectTo(other)

@@ -56,8 +56,6 @@ public class ClockworkClientEvents {
         Vec3 camera = Minecraft.getInstance().gameRenderer.getMainCamera()
                 .getPosition();
 
-        ClockworkModClient.getOUTLINER().renderOutlines(ms, DefaultSuperRenderTypeBuffer.getInstance(), camera, partialTicks);
-        ClockworkModClient.getWANDER_OUTLINER().renderOutlines(ms, DefaultSuperRenderTypeBuffer.getInstance(), camera, partialTicks);
         ClockworkModClient.getWANDERWAND_EFFECT_RENDERER().render(ms, DefaultSuperRenderTypeBuffer.getInstance(), camera, partialTicks);
 
         buffer.draw();
@@ -107,10 +105,9 @@ public class ClockworkClientEvents {
     }
 
     @SubscribeEvent
-    public static void onMouseInput(InputEvent.MouseButton.Pre event) {
-        if (Minecraft.getInstance().screen != null) {
-            return;
-        }
+    public static void onMouseInput(InputEvent.MouseButton event) {
+        if (Minecraft.getInstance().screen != null ||  !event.isCancelable()) return;
+
 
         int button = event.getButton();
         boolean pressed = !(event.getAction() == 0);

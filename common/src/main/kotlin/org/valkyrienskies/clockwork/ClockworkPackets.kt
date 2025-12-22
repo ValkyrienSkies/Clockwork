@@ -20,6 +20,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctEdgeSyncPacke
 import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterClosePacket
 import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterScreenOpenPacket
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorPacket
+import org.valkyrienskies.clockwork.content.logistics.gas.redstone.RedstoneDuctScreenPacket
 import org.valkyrienskies.clockwork.content.logistics.gas.smart.SmartScreenClosePacket
 import org.valkyrienskies.clockwork.content.logistics.gas.smart.SmartScreenOpenPacket
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.UpdateFrequencySlotPacket
@@ -61,6 +62,7 @@ enum class ClockworkPackets(
     FILTER_SCREEN_CLOSE_PACKET(FilterClosePacket::class.java, ::FilterClosePacket),
     SMART_SCREEN_OPEN_PACKET(SmartScreenOpenPacket::class.java, ::SmartScreenOpenPacket),
     SMART_SCREEN_CLOSE_PACKET(SmartScreenClosePacket::class.java, ::SmartScreenClosePacket),
+    REDSTONE_DUCT_SCREEN_PACKET(RedstoneDuctScreenPacket::class.java, ::RedstoneDuctScreenPacket),
 
     //SYNC_TEMPERATURE(TemperatureSyncPacket::class.java, ::TemperatureSyncPacket),
 
