@@ -14,6 +14,7 @@ object ClockworkShapes {
     val AFTERBLAZER = shape(1.0, 0.0, 1.0, 15.0, 14.0, 15.0).forDirectional()
     val ALT_METER = shape(1.0, 0.0, 1.0, 15.0, 5.0, 15.0).add(4.0, 8.0, 4.0, 12.0, 16.0, 12.0).build()
     val SPINOFF_BEARING = shape(0.0, 0.0, 0.0, 16.0, 8.0, 16.0).forDirectional()
+    val UNIVERSAL_SHAFT = shape(5.0, 0.0, 5.0, 11.0, 10.0, 11.0).forDirectional()
 
     // Why the .8 and .2 you ask? Because otherwise the model _slightly_ overlaps the hitbox, and that looks uggo
     val EXHAUST = shape(2.8, 0.0, 2.8, 13.2, 16.0, 13.2).forAxis()

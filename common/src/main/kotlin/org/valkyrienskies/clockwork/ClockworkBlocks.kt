@@ -999,7 +999,7 @@ object ClockworkBlocks {
         REGISTRATE.block<UniversalShaftBlock>("universal_shaft") { properties: BlockBehaviour.Properties? ->
             UniversalShaftBlock(properties!!)
         }
-            .initialProperties { SharedProperties.wooden() }
+            .initialProperties { SharedProperties.stone() }
             .transform(axeOrPickaxe())
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }

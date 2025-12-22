@@ -7,13 +7,16 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity
 import org.valkyrienskies.clockwork.util.universal_joint.IUniversalJoint
 
 class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : KineticBlockEntity(typeIn, pos, state), IUniversalJoint {
     override var connectedJoint: IUniversalJoint? = null
     override var pos = blockPos
     var connectedPos: BlockPos? = null
+    var connectedBe: UniversalShaftBlockEntity? = null
 
+    var main: Boolean = false
 
     override fun onSpeedChanged(previousSpeed: Float) {
         super.onSpeedChanged(previousSpeed)
@@ -45,6 +48,9 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
     override fun disconnect() {
         super.disconnect()
         connectedPos = null
+        connectedBe = null
+        connectedJoint = null
+        main = false
         detachKinetics()
         sendData()
     }
@@ -52,6 +58,11 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
     override fun connectTo(other: IUniversalJoint) {
 
         connectedPos = other.pos
+        connectedJoint = other
+        main = true
+        if (other is UniversalShaftBlockEntity) {
+            main = !other.main
+        }
 
         super.connectTo(other)
 
@@ -65,7 +76,10 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
         if (connectedJoint == null && connectedPos != null) {
             val be = level!!.getBlockEntity(connectedPos!!)
             if (be != null && be !is UniversalShaftBlockEntity) connectedPos = null
-            else if(be != null) connectedJoint = be as UniversalShaftBlockEntity
+            else if(be != null) {
+                connectedJoint = be as UniversalShaftBlockEntity
+                connectedBe = be as UniversalShaftBlockEntity
+            }
         }
 
     }
@@ -79,6 +93,7 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
             compound.putInt("otherPosX",connectedPos!!.x)
             compound.putInt("otherPosY",connectedPos!!.y)
             compound.putInt("otherPosZ",connectedPos!!.z)
+            compound.putBoolean("main", main)
         }
 
         super.write(compound, clientPacket)
@@ -87,7 +102,7 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
     override fun read(compound: CompoundTag, clientPacket: Boolean) {
         if (compound.contains("otherPosX")) {
             connectedPos = BlockPos(compound.getInt("otherPosX"),compound.getInt("otherPosY"),compound.getInt("otherPosZ"))
-
+            main = compound.getBoolean("main")
         } else {
             connectedPos = null
         }

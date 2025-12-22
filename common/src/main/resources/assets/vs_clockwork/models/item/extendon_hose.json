@@ -1,6 +1,6 @@
 {
   "parent": "item/generated",
   "textures": {
-    "layer0": "vs_clockwork:item/extendon_hose"
+    "layer0": "vs_clockwork:item/hose_spool"
   }
 }
