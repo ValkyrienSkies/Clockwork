@@ -18,6 +18,9 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
 
     var main: Boolean = false
 
+    override val maxCreationDistance: Double
+        get() = 10.0 //todo add config
+
     override fun onSpeedChanged(previousSpeed: Float) {
         super.onSpeedChanged(previousSpeed)
     }
@@ -47,11 +50,21 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
 
     override fun disconnect() {
         super.disconnect()
+        if (connectedBe != null) {
+            connectedBe!!.connectedBe = null
+            connectedBe!!.connectedPos = null
+            connectedBe!!.connectedJoint = null
+            connectedBe!!.main = false
+            connectedBe!!.detachKinetics()
+            connectedBe!!.clearKineticInformation()
+            connectedBe!!.sendData()
+        }
         connectedPos = null
         connectedBe = null
         connectedJoint = null
         main = false
         detachKinetics()
+        clearKineticInformation()
         sendData()
     }
 
@@ -60,20 +73,25 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
         connectedPos = other.pos
         connectedJoint = other
         main = true
-        if (other is UniversalShaftBlockEntity) {
-            main = !other.main
-        }
 
         super.connectTo(other)
 
         sendData()
         attachKinetics()
+        if (other is UniversalShaftBlockEntity) {
+            other.connectedBe = this
+            other.connectedPos = this.pos
+            other.connectedJoint = this
+            other.main = false
+            other.attachKinetics()
+            other.sendData()
+        }
     }
 
     override fun tick() {
         super.tick()
 
-        if (connectedJoint == null && connectedPos != null) {
+        if ((connectedJoint == null || connectedBe == null) && connectedPos != null) {
             val be = level!!.getBlockEntity(connectedPos!!)
             if (be != null && be !is UniversalShaftBlockEntity) connectedPos = null
             else if(be != null) {
@@ -89,7 +107,7 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
     }
 
     override fun write(compound: CompoundTag, clientPacket: Boolean) {
-        if (connectedJoint != null) {
+        if (connectedPos != null) {
             compound.putInt("otherPosX",connectedPos!!.x)
             compound.putInt("otherPosY",connectedPos!!.y)
             compound.putInt("otherPosZ",connectedPos!!.z)
