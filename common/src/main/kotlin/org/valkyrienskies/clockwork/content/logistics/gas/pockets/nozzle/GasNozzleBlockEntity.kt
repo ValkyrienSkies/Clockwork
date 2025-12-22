@@ -22,8 +22,12 @@ import org.valkyrienskies.clockwork.util.AerodynamicUtils.specificHeatAverage
 import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
 import org.valkyrienskies.clockwork.util.KNodeKineticBlockEntity
 import org.valkyrienskies.clockwork.util.PIDstance
+import org.valkyrienskies.kelvin.KelvinMod
+import org.valkyrienskies.kelvin.api.DuctNetwork
+import org.valkyrienskies.kelvin.impl.DuctNetworkServer
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
+import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3i
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
@@ -44,16 +48,14 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
     var currentIdealOutput: Double = 0.0
 
-
-
-    val pid = PIDstance()
-
     var clientPocketTemperature: Double = 0.0
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
-        super.write(tag, clientPacket)
+
         tag.putDouble("pointer_target",pointer.chaseTarget.toDouble())
         tag.putDouble("pointer_speed",pointerSpeed)
+        tag.putBoolean("has_pocket",hasPocket)
+        super.write(tag, clientPacket)
     }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
@@ -61,6 +63,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
         val target = tag.getDouble("pointer_target")
         pointerSpeed = tag.getDouble("pointer_speed")
+        hasPocket = tag.getBoolean("has_pocket")
 
         pointer.chase(target, pointerSpeed, LerpedFloat.Chaser.LINEAR)
     }
@@ -77,12 +80,14 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
         val serverLevel = level!! as ServerLevel
 
+        val oldHas = hasPocket
         hasPocket = try {
             serverLevel.shipObjectWorld.getAirComponentSize(blockPos.x, blockPos.y+1, blockPos.z, serverLevel.dimensionId) > 0
         } catch (e: IllegalArgumentException) {
-            pid.resetIntegral()
             false
         }
+
+        if (oldHas != hasPocket) sendData()
 
         if (hasPocket) {
             //flowIntoPocket()
@@ -108,92 +113,104 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     }
 
     private fun heatPocket() {
-        val serverLevel = level!! as ServerLevel
-
-        val realY = if (level.getShipObjectManagingPos(blockPos) != null) {
-            level.getShipObjectManagingPos(blockPos)!!.transform.shipToWorld.transformPosition(blockPos.toJOMLD()).y + 0.5
-        } else {
-            blockPos.y + 0.5
-        }
-
-        val dimension = serverLevel.dimension().location()
-
         val pocketRef = blockPos.above()
-        val (pocketGasVolumes, pocketTemperature) = retrieveGasInfoFromPocket(pocketRef.toJOML(), serverLevel)
-        val pocketVolume = serverLevel.shipObjectWorld.getAirComponentSize(pocketRef.x, pocketRef.y, pocketRef.z, serverLevel.dimensionId).toDouble()
-        val pocketTotalMass = pocketGasVolumes.values.sum()
-        val pocketAvgDensity = densityAverage(pocketGasVolumes)
-        val pocketAvgViscosity = dynamicViscosityAverage(pocketGasVolumes, pocketTemperature)
-        val pocketPressure = serverLevel.shipObjectWorld.getAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("pressure"), pocketRef.x, pocketRef.y, pocketRef.z, serverLevel.dimensionId)
+        val (gasMass, heatEnergy) = retrieveGasInfoFromPocket(pocketRef.toVector3i(), level as ServerLevel)
+        val gasMassTotal = gasMass.values.sum()
+        val heatConstant = (KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(gasMass)
+        val temperature = heatEnergy / (heatConstant * gasMassTotal)
+        val moles = gasMass.entries.sumOf { it.key.massToMoles(it.value) }
+        val volume = level.shipObjectWorld.getAirComponentSize(pocketRef.x, pocketRef.y, pocketRef.z, level!!.dimensionId).toDouble()
+        val pressure = moles * DuctNetwork.idealGasConstant
 
-        val currentNodeTemperature = ClockworkMod.getKelvin().getTemperatureAt(blockPos.toDuctNodePos(dimension))
-        val currentNodePressure = ClockworkMod.getKelvin().getPressureAt(blockPos.toDuctNodePos(dimension))
-        val currentNodeGasVolumes = ClockworkMod.getKelvin().getGasMassAt(blockPos.toDuctNodePos(dimension))
-        val currentNodeTotalMass = currentNodeGasVolumes.values.sum()
-        val currentNodeAvgViscosity = dynamicViscosityAverage(currentNodeGasVolumes, currentNodeTemperature)
-        val currentNodeAvgSpecificHeat = specificHeatAverage(currentNodeGasVolumes)
+    }
 
-        val newNodeMasses = HashMap<GasType, Double>()
-
-        if (currentNodeTotalMass <= 0.0001 || pocketTotalMass <= 0.0001 || pocketTemperature >= currentNodeTemperature) return
-
-        val outsideAirTemp = AerodynamicUtils.getAirTemperatureForY(realY, serverLevel.dimensionId)
-
-        // Gas consumption
-
-        val outputRateMult = pointer.value.toDouble()
-        val consumedGasses = HashMap<GasType, Double>()
-
-        val idealOutputEnergy = 100000.0 //100 kW * closed off valve amount
-
-        val targetTemperature = currentNodeTemperature * outputRateMult
-
-        currentIdealOutput = Mth.lerp(1.0/60.0, currentIdealOutput, idealOutputEnergy)
-
-        var actualOutputEnergy = 0.0
-
-        val temperatureDiff = if (currentNodeTemperature - outsideAirTemp >= 0.001) {
-            currentNodeTemperature - outsideAirTemp
-        } else {
-            -0.001
-        }
-
-        val idealFlowRate = currentIdealOutput / (temperatureDiff * currentNodeAvgSpecificHeat)
-
-        val flowRate = Mth.clamp(idealFlowRate, 0.0, currentNodeTotalMass) / 20.0
-
-        actualOutputEnergy = flowRate * (temperatureDiff * currentNodeAvgSpecificHeat)
-
-        // Heat transfer
-
-        var temperatureChangeInPocket = (actualOutputEnergy / 20.0) / (pocketTotalMass * specificHeatAverage(pocketGasVolumes))
-
-        if (temperatureChangeInPocket.isInfinite() || temperatureChangeInPocket.isNaN() || temperatureChangeInPocket < 0.0) return
-
-        temperatureChangeInPocket = Mth.clamp(temperatureChangeInPocket, -pocketTemperature, currentNodeTemperature - pocketTemperature)
-
-        var newPocketTemperature = max(Mth.clamp(pocketTemperature + temperatureChangeInPocket, 0.0001, currentNodeTemperature), pocketTemperature)
-
-        val adjustment = pid.control(targetTemperature, pocketTemperature)
-
-        newPocketTemperature += adjustment
-
-        var newCurrentNodeTemperature = currentNodeTemperature - (actualOutputEnergy / (currentNodeTotalMass * currentNodeAvgSpecificHeat))
-        if (newCurrentNodeTemperature <= 0.0001 || newCurrentNodeTemperature.isNaN() && newCurrentNodeTemperature.isInfinite()) newCurrentNodeTemperature = 0.0001
-        for (gas in GasTypeRegistry.GAS_TYPES.values) {
-            val currentMass = currentNodeGasVolumes[gas] ?: 0.0
-            val deltaMass = Mth.clamp(flowRate, 0.0, currentMass)
-            newNodeMasses[gas] = max(currentMass - deltaMass, 0.0)
-            consumedGasses[gas] = deltaMass
-        }
-
-        //apply stuff
-
-        for (gas in GasTypeRegistry.GAS_TYPES.values) {
-            ClockworkMod.getKelvin().removeGas(blockPos.toDuctNodePos(dimension), gas, (consumedGasses[gas] ?: 0.0))
-        }
-        ClockworkMod.getKelvin().modTemperature(blockPos.toDuctNodePos(dimension), max(newCurrentNodeTemperature - currentNodeTemperature, -currentNodeTemperature))
-        serverLevel.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("temperature"), pocketRef.x, pocketRef.y, pocketRef.z, serverLevel.dimensionId, newPocketTemperature)
+    private fun heatPocketOld() {
+//        val serverLevel = level!! as ServerLevel
+//
+//        val realY = if (level.getShipObjectManagingPos(blockPos) != null) {
+//            level.getShipObjectManagingPos(blockPos)!!.transform.shipToWorld.transformPosition(blockPos.toJOMLD()).y + 0.5
+//        } else {
+//            blockPos.y + 0.5
+//        }
+//
+//        val dimension = serverLevel.dimension().location()
+//
+//
+//        val (pocketGasVolumes, pocketTemperature) = retrieveGasInfoFromPocket(pocketRef.toJOML(), serverLevel)
+//        val pocketVolume =
+//        val pocketTotalMass = pocketGasVolumes.values.sum()
+//        val pocketAvgDensity = densityAverage(pocketGasVolumes)
+//        val pocketAvgViscosity = dynamicViscosityAverage(pocketGasVolumes, pocketTemperature)
+//        val pocketPressure = serverLevel.shipObjectWorld.getAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("pressure"), pocketRef.x, pocketRef.y, pocketRef.z, serverLevel.dimensionId)
+//
+//        val currentNodeTemperature = ClockworkMod.getKelvin().getTemperatureAt(blockPos.toDuctNodePos(dimension))
+//        val currentNodePressure = ClockworkMod.getKelvin().getPressureAt(blockPos.toDuctNodePos(dimension))
+//        val currentNodeGasVolumes = ClockworkMod.getKelvin().getGasMassAt(blockPos.toDuctNodePos(dimension))
+//        val currentNodeTotalMass = currentNodeGasVolumes.values.sum()
+//        val currentNodeAvgViscosity = dynamicViscosityAverage(currentNodeGasVolumes, currentNodeTemperature)
+//        val currentNodeAvgSpecificHeat = specificHeatAverage(currentNodeGasVolumes)
+//
+//        val newNodeMasses = HashMap<GasType, Double>()
+//
+//        if (currentNodeTotalMass <= 0.0001 || pocketTotalMass <= 0.0001 || pocketTemperature >= currentNodeTemperature) return
+//
+//        val outsideAirTemp = AerodynamicUtils.getAirTemperatureForY(realY, serverLevel.dimensionId)
+//
+//        // Gas consumption
+//
+//        val outputRateMult = pointer.value.toDouble()
+//        val consumedGasses = HashMap<GasType, Double>()
+//
+//        val idealOutputEnergy = 100000.0 //100 kW * closed off valve amount
+//
+//        val targetTemperature = currentNodeTemperature * outputRateMult
+//
+//        currentIdealOutput = Mth.lerp(1.0/60.0, currentIdealOutput, idealOutputEnergy)
+//
+//        var actualOutputEnergy = 0.0
+//
+//        val temperatureDiff = if (currentNodeTemperature - outsideAirTemp >= 0.001) {
+//            currentNodeTemperature - outsideAirTemp
+//        } else {
+//            -0.001
+//        }
+//
+//        val idealFlowRate = currentIdealOutput / (temperatureDiff * currentNodeAvgSpecificHeat)
+//
+//        val flowRate = Mth.clamp(idealFlowRate, 0.0, currentNodeTotalMass) / 20.0
+//
+//        actualOutputEnergy = flowRate * (temperatureDiff * currentNodeAvgSpecificHeat)
+//
+//        // Heat transfer
+//
+//        var temperatureChangeInPocket = (actualOutputEnergy / 20.0) / (pocketTotalMass * specificHeatAverage(pocketGasVolumes))
+//
+//        if (temperatureChangeInPocket.isInfinite() || temperatureChangeInPocket.isNaN() || temperatureChangeInPocket < 0.0) return
+//
+//        temperatureChangeInPocket = Mth.clamp(temperatureChangeInPocket, -pocketTemperature, currentNodeTemperature - pocketTemperature)
+//
+//        var newPocketTemperature = max(Mth.clamp(pocketTemperature + temperatureChangeInPocket, 0.0001, currentNodeTemperature), pocketTemperature)
+//
+//        val adjustment = pid.control(targetTemperature, pocketTemperature)
+//
+//        newPocketTemperature += adjustment
+//
+//        var newCurrentNodeTemperature = currentNodeTemperature - (actualOutputEnergy / (currentNodeTotalMass * currentNodeAvgSpecificHeat))
+//        if (newCurrentNodeTemperature <= 0.0001 || newCurrentNodeTemperature.isNaN() && newCurrentNodeTemperature.isInfinite()) newCurrentNodeTemperature = 0.0001
+//        for (gas in GasTypeRegistry.GAS_TYPES.values) {
+//            val currentMass = currentNodeGasVolumes[gas] ?: 0.0
+//            val deltaMass = Mth.clamp(flowRate, 0.0, currentMass)
+//            newNodeMasses[gas] = max(currentMass - deltaMass, 0.0)
+//            consumedGasses[gas] = deltaMass
+//        }
+//
+//        //apply stuff
+//
+//        for (gas in GasTypeRegistry.GAS_TYPES.values) {
+//            ClockworkMod.getKelvin().removeGas(blockPos.toDuctNodePos(dimension), gas, (consumedGasses[gas] ?: 0.0))
+//        }
+//        ClockworkMod.getKelvin().modTemperature(blockPos.toDuctNodePos(dimension), max(newCurrentNodeTemperature - currentNodeTemperature, -currentNodeTemperature))
+//        serverLevel.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("temperature"), pocketRef.x, pocketRef.y, pocketRef.z, serverLevel.dimensionId, newPocketTemperature)
     }
 
     override fun getDuctNodePosition(): DuctNodePos {
