@@ -67,6 +67,8 @@ dependencies {
     implementation(include((("io.github.llamalad7:mixinextras-forge:0.4.1"))))
     implementation("com.github.bawnorton.mixinsquared:mixinsquared-forge:0.3.7-beta.1")
 
+    modRuntimeOnly("maven.modrinth:forge-config-screens:v8.0.2-1.20.1-Forge")
+
     //VS2
     modApi("org.valkyrienskies:valkyrienskies-120-forge:${rootProject.vs2_version}") { transitive = false
         exclude group: 'org.valkyrienskies.core', module: ''

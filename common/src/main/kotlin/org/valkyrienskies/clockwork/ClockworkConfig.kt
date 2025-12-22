@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork
 
-import com.github.imifou.jsonschema.module.addon.annotation.JsonSchema
+import org.valkyrienskies.core.internal.config.ConfigEntry
 
 object ClockworkConfig {
     @JvmField
@@ -11,22 +11,23 @@ object ClockworkConfig {
 
 
     class Client {
-        @JsonSchema(description = "Enable debug rendering")
+        @ConfigEntry(description = "Enable debug rendering")
         var debugRender = false
 
-        @JsonSchema(description = "Enable rendering particles for DuctBlock")
+        @ConfigEntry(description = "Enable rendering particles for DuctBlock")
         var renderDuctParticles = true
     }
 
     class Server {
-        @JsonSchema(description = "Enable verbose debug logging")
+        @ConfigEntry(description = "Enable verbose debug logging")
         var debugMode = false
 
-        @JsonSchema(description = "Kelvin sub steps (per Tick)")
+        @ConfigEntry(description = "Kelvin sub steps (per Tick)")
         var kelvinSubSteps = 10
       
         // Blacklist of blocks that don't get added for ship building
-        @JsonSchema(description = "Blacklist of blocks that don't get assembled")
+        // @ConfigEntry(description = "Blacklist of blocks that don't get assembled")
+        // todo: VS config system does not support collections!
         var blockBlacklist = setOf(
             "minecraft:bedrock",
             "minecraft:end_portal_frame",
@@ -40,67 +41,67 @@ object ClockworkConfig {
             "minecraft:flowing_lava"
         )
 
-        @JsonSchema(description = "Enable collision sound effects")
+        @ConfigEntry(description = "Enable collision sound effects")
         var collisionSoundEffects = false
 
-        @JsonSchema(description = "Max collision events per tick. Dumps collision event queue if amount is bigger. Default is 100", min = 1.0)
+        @ConfigEntry(description = "Max collision events per tick. Dumps collision event queue if amount is bigger. Default is 100", min = 1.0)
         var collisionSoundEffectMax = 100
 
-        @JsonSchema(description = "Max Gravitron mass in 1000 kg")
+        @ConfigEntry(description = "Max Gravitron mass in 1000 kg")
         var maxGravitronMass = 256
 
-        @JsonSchema(description = "Force multiplier for balloons. Realism is 1.0, default is 1000.0. Range: > 0.0", min = 0.0)
+        @ConfigEntry(description = "Force multiplier for balloons. Realism is 1.0, default is 1000.0. Range: > 0.0", min = 0.0)
         var balloonForceMult: Double = 1000.0
 
-        @JsonSchema(description = "Sets the gas retention efficiency of the balloon material; lower values simulate airtight rubber/synthetic, while higher values represent porous fabrics. Default 0.001.", min = 0.0, max = 1.0)
+        @ConfigEntry(description = "Sets the gas retention efficiency of the balloon material; lower values simulate airtight rubber/synthetic, while higher values represent porous fabrics. Default 0.001.", min = 0.0, max = 1.0)
         var permeabilityConstant = 0.001
 
-        @JsonSchema(description = "Controls how fast air pocket temperature equalizes with the ambient temperature; lower values simulate thick insulation, while higher values cause rapid cooling or heating. Default 0.001", min = 0.0, max = 1.0)
+        @ConfigEntry(description = "Controls how fast air pocket temperature equalizes with the ambient temperature; lower values simulate thick insulation, while higher values cause rapid cooling or heating. Default 0.001", min = 0.0, max = 1.0)
         var heatTransferCoefficient = 0.001
 
-        @JsonSchema(description = "Effectiveness scalar for reaction wheels. Higher value means a single reaction wheel can better control an entire ship, regardless of its mass. Default value is 0.1.", min = 0.001, max = 1.0)
+        @ConfigEntry(description = "Effectiveness scalar for reaction wheels. Higher value means a single reaction wheel can better control an entire ship, regardless of its mass. Default value is 0.1.", min = 0.001, max = 1.0)
         var reactionWheelEffectiveness = 1.0
 
-        @JsonSchema(description = "Whether or not blade controllers consume the durability of the blades inside while rotating at high speeds.")
+        @ConfigEntry(description = "Whether or not blade controllers consume the durability of the blades inside while rotating at high speeds.")
         var bladeControllerUsesDurability = false
 
-        @JsonSchema(description = "The substeps of blade force calculation. More steps means more \'accurate\' simulation, but also makes it significantly more performance heavy.")
+        @ConfigEntry(description = "The substeps of blade force calculation. More steps means more \'accurate\' simulation, but also makes it significantly more performance heavy.")
         var bladeIntegrationSteps = 10.0
 
-        @JsonSchema(description = "Force multiplier when no rpm is given")
+        @ConfigEntry(description = "Force multiplier when no rpm is given")
         var angleFollowingBaseAngleErrorMultiplier = 2.0
 
-        @JsonSchema()
+        @ConfigEntry()
         var angleFollowingAngleErrorMultiplier = 50.0
 
-        @JsonSchema()
+        @ConfigEntry()
         var angleFollowingOmegaErrorMultiplier = 10.0
 
-        @JsonSchema(min = 0.0)
+        @ConfigEntry(min = 0.0)
         var forceMulPerSailInPropeller = 500.0
 
-        @JsonSchema(min = 0.0)
+        @ConfigEntry(min = 0.0)
         var encasedFanForceMul = 40.0
 
-        @JsonSchema(min = 0.0)
+        @ConfigEntry(min = 0.0)
         var wanderOreForce = 1100.0
 
-        @JsonSchema(min = 0.0)
+        @ConfigEntry(min = 0.0)
         var gasThrusterForceMul = 2.0
 
-        @JsonSchema(min = 0.0)
+        @ConfigEntry(min = 0.0)
         var sugarRocketBlockThrust = 10000.0
 
-        @JsonSchema(description = "The lazytick rate for Kelvin node block entity updates")
+        @ConfigEntry(description = "The lazytick rate for Kelvin node block entity updates")
         var kelvinNodeBlockEntityLazyTickRate = 10
 
-        @JsonSchema(description = "The amount of air (in kg) that the air compressor produces per tick at sea level and 1 rpm")
+        @ConfigEntry(description = "The amount of air (in kg) that the air compressor produces per tick at sea level and 1 rpm")
         var airCompressorSpeed = 0.0001
 
-        @JsonSchema(description = "The max amount of pressure that the air compressor will generate air for. In Pa")
+        @ConfigEntry(description = "The max amount of pressure that the air compressor will generate air for. In Pa")
         var airCompressorMaxPressure = 1000000.0
 
-        @JsonSchema(description = "Air density at which the air compressor will start generating aether. Setting it to 0 or a negative number will disable helium generation")
+        @ConfigEntry(description = "Air density at which the air compressor will start generating aether. Setting it to 0 or a negative number will disable helium generation")
         var airCompressorHeliumAirDensity = 0.3
     }
 }

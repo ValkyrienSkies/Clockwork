@@ -1,7 +1,7 @@
 {
   "replace": false,
   "values": [
-    "vs_clockwork:flap_bearing",
+    "vs_clockwork:andesite_flap_bearing",
     "vs_clockwork:redstone_resistor",
     "vs_clockwork:command_seat",
     "vs_clockwork:physics_infuser"

@@ -1,13 +1,23 @@
 package org.valkyrienskies.clockwork.util.universal_joint
 
 import net.minecraft.network.chat.Component
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.item.Item
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.block.entity.BlockEntity
+import org.valkyrienskies.clockwork.ClockworkSounds
+import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftBlockEntity
+import org.valkyrienskies.mod.common.toWorldCoordinates
 
 open class UniversalJointItem<T: IUniversalJoint>(properties: Properties) : Item(properties) {
     var firstSelect: T? = null
+
+    override fun isFoil(stack: ItemStack?): Boolean {
+        return firstSelect != null || super.isFoil(stack)
+    }
 
     override fun useOn(context: UseOnContext): InteractionResult {
         if (context.level.isClientSide) return InteractionResult.SUCCESS
@@ -20,12 +30,28 @@ open class UniversalJointItem<T: IUniversalJoint>(properties: Properties) : Item
         val tBe = be as T
         if (firstSelect == null) {
             firstSelect = tBe
-            context.player!!.displayClientMessage(Component.literal("First selected"), true)
+            context.player!!.displayClientMessage(Component.literal("Connection Started..."), true)
         }
         else {
-            context.player!!.displayClientMessage(Component.literal("second selected"), true)
-            if (firstSelect == tBe) return fail()
-            if (!firstSelect!!.tryConnect(context.level,be.blockPos)) return fail()
+            val worldDistance = context.level.toWorldCoordinates(firstSelect!!.pos).distanceTo(context.level.toWorldCoordinates(tBe.pos))
+            if (worldDistance > tBe.maxCreationDistance) { //todo add joint distance config
+                context.player!!.displayClientMessage(Component.literal("Connection failed: Joints are too far apart!"), true)
+                firstSelect = null
+                return fail()
+            }
+            if (firstSelect == tBe) {
+                context.player!!.displayClientMessage(Component.literal("Connection failed: Cannot connect a joint to itself!"), true)
+                firstSelect = null
+                return fail()
+            }
+            if (!firstSelect!!.tryConnect(context.level,be.blockPos)) {
+                context.player!!.displayClientMessage(Component.literal("Connection failed."), true)
+                firstSelect = null
+                return fail()
+            }
+            context.player!!.displayClientMessage(Component.literal("Connected!"), true)
+            context.level!!.playSound(null, be.blockPos, ClockworkSounds.HOSE_ATTACH.mainEvent, SoundSource.BLOCKS, 1.0f, 1.0f)
+
             context.itemInHand.count -= 1
             firstSelect = null
         }

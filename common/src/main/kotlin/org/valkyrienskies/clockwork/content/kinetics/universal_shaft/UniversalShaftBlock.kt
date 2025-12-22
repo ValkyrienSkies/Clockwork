@@ -6,6 +6,7 @@ import com.simibubi.create.foundation.block.IBE
 import net.createmod.catnip.data.Iterate
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
@@ -23,6 +24,7 @@ import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkShapes
+import org.valkyrienskies.clockwork.ClockworkSounds
 
 class UniversalShaftBlock(properties: Properties?) : DirectionalKineticBlock(properties), IBE<UniversalShaftBlockEntity> {
     override fun getRotationAxis(state: BlockState): Direction.Axis {
@@ -90,6 +92,7 @@ class UniversalShaftBlock(properties: Properties?) : DirectionalKineticBlock(pro
         if (player.isShiftKeyDown && player.getItemInHand(InteractionHand.MAIN_HAND) == ItemStack.EMPTY) {
             if (be.connectedBe != null) be.connectedBe!!.disconnect()
             be.disconnect()
+            level.playSound(null, be.blockPos, ClockworkSounds.HOSE_RELEASE.mainEvent, SoundSource.BLOCKS, 1.0f, 1.0f)
             return InteractionResult.SUCCESS
         }
 
