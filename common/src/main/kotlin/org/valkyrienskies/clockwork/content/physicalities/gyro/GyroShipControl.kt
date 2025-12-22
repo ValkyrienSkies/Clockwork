@@ -3,17 +3,19 @@ package org.valkyrienskies.clockwork.content.physicalities.gyro
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import net.fabricmc.loader.impl.lib.sat4j.core.Vec
 import org.joml.Quaterniond
 import org.joml.Vector3d
-import org.valkyrienskies.core.api.VsBeta
+import org.joml.Vector3dc
 import org.valkyrienskies.core.api.attachment.getAttachment
 import org.valkyrienskies.core.api.attachment.removeAttachment
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerTickListener
 import org.valkyrienskies.core.api.ships.ShipPhysicsListener
-import org.valkyrienskies.core.api.util.PhysTickOnly
 import org.valkyrienskies.core.api.world.PhysLevel
+import org.valkyrienskies.core.impl.shadow.fr
+import org.valkyrienskies.core.impl.shadow.id
 import kotlin.math.abs
 import kotlin.math.exp
 
@@ -26,7 +28,7 @@ import kotlin.math.exp
 @JsonIgnoreProperties(ignoreUnknown = true)
 class GyroShipControl : ShipPhysicsListener, ServerTickListener {
 
-    private var targetRotation = Quaterniond()
+    private var targetUp: Vector3dc = Vector3d()
     private var targetStrength = 1.0f
     private var physConsumption = 0f
     private var extraForceLinear = 0.0
@@ -45,44 +47,24 @@ class GyroShipControl : ShipPhysicsListener, ServerTickListener {
 
     internal var speed: Float = 0f
 
-    @OptIn(PhysTickOnly::class)
     override fun physTick(physShip: PhysShip, physLevel: PhysLevel) {
-        // region 70% chatGPT code but it somehow works
-        if (gyros < 1) return
+        if (gyros < 1) {
+            return
+        }
 
-        val transform = physShip.transform
+        val shipWorldUp: Vector3dc = physShip.transform.shipToWorldRotation.transform(Vector3d(0.0,1.0,0.0))
+        val offAxisOmega = physShip.angularVelocity.sub(
+            shipWorldUp.normalize(physShip.angularVelocity.dot(shipWorldUp), Vector3d()), Vector3d())
+        val idealOmega = shipWorldUp.cross(targetUp, Vector3d()).sub(offAxisOmega)
 
-        // Worldspace "up" to shipspace up
-        val correctionAxis = transform.shipToWorldRotation
-            .transform(Vector3d(0.0, 1.0, 0.0))
-            .normalize()
-
-        val errorMagnitude = correctionAxis.length()
-        if (errorMagnitude < 1e-6) return
-
-        correctionAxis.normalize()
-
-        // Proportional correction (acts like a PD controller)
-        val correctionStrength = errorMagnitude * 2.0
-
-        val idealOmega = correctionAxis.mul(correctionStrength)
-
-        // Damping using current angular velocity
-        idealOmega.sub(physShip.angularVelocity)
-
-        // Convert angular correction to torque
-        val idealTorque = transform.shipToWorldRotation.transform(
+        val idealTorque = physShip.transform.shipToWorldRotation.transform(
             physShip.momentOfInertia.transform(
-                transform.shipToWorldRotation.transformInverse(idealOmega, Vector3d())
-            )
-        )
+                physShip.transform.shipToWorldRotation.transformInverse(idealOmega, Vector3d())))
 
         idealTorque.mul(abs(speedToForce(speed)))
 
         physShip.applyWorldTorque(idealTorque)
-        // endregion
     }
-
 
     private fun speedToForce(speed: Float): Double {
         val y = 128.0 / (1 + exp(6 - (speed * 0.05)))
@@ -95,9 +77,8 @@ class GyroShipControl : ShipPhysicsListener, ServerTickListener {
         }
     }
 
-    fun pointTowards(targetRotation: Quaterniond, power: Float) {
-        //val axis = seatDir.normal.toJOMLD().cross(targetDirection, Vector3d())
-        this.targetRotation = targetRotation//Quaterniond(AxisAngle4d(seatDir.normal.toJOMLD().angle(targetDirection), axis)).normalize()
+    fun pointTowards(targetUp: Vector3dc, power: Float) {
+        this.targetUp = targetUp//Quaterniond(AxisAngle4d(seatDir.normal.toJOMLD().angle(targetDirection), axis)).normalize()
         this.targetStrength = power
     }
 
