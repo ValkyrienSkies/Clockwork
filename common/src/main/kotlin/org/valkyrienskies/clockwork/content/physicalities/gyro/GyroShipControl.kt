@@ -3,8 +3,10 @@ package org.valkyrienskies.clockwork.content.physicalities.gyro
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import net.fabricmc.loader.impl.lib.sat4j.core.Vec
 import org.joml.Quaterniond
 import org.joml.Vector3d
+import org.joml.Vector3dc
 import org.valkyrienskies.core.api.attachment.getAttachment
 import org.valkyrienskies.core.api.attachment.removeAttachment
 import org.valkyrienskies.core.api.ships.LoadedServerShip
@@ -12,6 +14,8 @@ import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerTickListener
 import org.valkyrienskies.core.api.ships.ShipPhysicsListener
 import org.valkyrienskies.core.api.world.PhysLevel
+import org.valkyrienskies.core.impl.shadow.fr
+import org.valkyrienskies.core.impl.shadow.id
 import kotlin.math.abs
 import kotlin.math.exp
 
@@ -24,7 +28,7 @@ import kotlin.math.exp
 @JsonIgnoreProperties(ignoreUnknown = true)
 class GyroShipControl : ShipPhysicsListener, ServerTickListener {
 
-    private var targetRotation = Quaterniond()
+    private var targetUp: Vector3dc = Vector3d()
     private var targetStrength = 1.0f
     private var physConsumption = 0f
     private var extraForceLinear = 0.0
@@ -48,15 +52,10 @@ class GyroShipControl : ShipPhysicsListener, ServerTickListener {
             return
         }
 
-        val rotDif = targetRotation
-            .mul(physShip.transform.shipToWorldRotation.invert(Quaterniond()), Quaterniond())
-            .normalize().invert()
-
-        // Blackmagic ask triode
-        val idealOmega = Vector3d(rotDif.x() * 2.0, rotDif.y() * 2.0, rotDif.z() * 2.0)
-        if (rotDif.w() > 0) idealOmega.mul(-1.0)
-
-        idealOmega.sub(physShip.omega)
+        val shipWorldUp: Vector3dc = physShip.transform.shipToWorldRotation.transform(Vector3d(0.0,1.0,0.0))
+        val offAxisOmega = physShip.angularVelocity.sub(
+            shipWorldUp.normalize(physShip.angularVelocity.dot(shipWorldUp), Vector3d()), Vector3d())
+        val idealOmega = shipWorldUp.cross(targetUp, Vector3d()).sub(offAxisOmega)
 
         val idealTorque = physShip.transform.shipToWorldRotation.transform(
             physShip.momentOfInertia.transform(
@@ -64,7 +63,7 @@ class GyroShipControl : ShipPhysicsListener, ServerTickListener {
 
         idealTorque.mul(abs(speedToForce(speed)))
 
-        physShip.applyInvariantTorque(idealTorque)
+        physShip.applyWorldTorque(idealTorque)
     }
 
     private fun speedToForce(speed: Float): Double {
@@ -78,9 +77,8 @@ class GyroShipControl : ShipPhysicsListener, ServerTickListener {
         }
     }
 
-    fun pointTowards(targetRotation: Quaterniond, power: Float) {
-        //val axis = seatDir.normal.toJOMLD().cross(targetDirection, Vector3d())
-        this.targetRotation = targetRotation//Quaterniond(AxisAngle4d(seatDir.normal.toJOMLD().angle(targetDirection), axis)).normalize()
+    fun pointTowards(targetUp: Vector3dc, power: Float) {
+        this.targetUp = targetUp//Quaterniond(AxisAngle4d(seatDir.normal.toJOMLD().angle(targetDirection), axis)).normalize()
         this.targetStrength = power
     }
 
