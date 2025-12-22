@@ -115,7 +115,7 @@ object ClockworkMod {
         ClockworkGasses.init()
 
         LifecycleEvent.SERVER_STARTED.register {
-            ClockworkAugmentations.registerComponentAvgAugmentation("temperature", it.shipObjectWorld)
+            ClockworkAugmentations.registerComponentAvgAugmentation("heatEnergy", it.shipObjectWorld)
             ClockworkAugmentations.registerComponentAvgAugmentation("pressure", it.shipObjectWorld)
             for (gas in GasTypeRegistry.GAS_TYPES.values) {
                 ClockworkAugmentations.registerComponentAvgAugmentation("gas_${gas.name.lowercase()}", it.shipObjectWorld)

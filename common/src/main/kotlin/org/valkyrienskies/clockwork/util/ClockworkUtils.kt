@@ -180,15 +180,15 @@ object ClockworkUtils {
             gasMap[type] = gas
         }
 
-        val temperature = level.shipObjectWorld.getAirComponentAugmentation(
-            ClockworkAugmentations.getComponentAugmentation("temperature"),
+        val heatEnergy = level.shipObjectWorld.getAirComponentAugmentation(
+            ClockworkAugmentations.getComponentAugmentation("heatEnergy"),
             pos.x(),
             pos.y(),
             pos.z(),
             level.dimensionId
         )
 
-        return Pair(gasMap, temperature)
+        return Pair(gasMap, heatEnergy)
     }
 
     fun getRealPos(level: Level?, blockPos: BlockPos): Vector3d
