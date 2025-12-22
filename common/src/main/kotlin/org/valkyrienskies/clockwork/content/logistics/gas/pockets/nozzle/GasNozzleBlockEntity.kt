@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle
 
-import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.createmod.catnip.animation.LerpedFloat
 import net.minecraft.ChatFormatting
@@ -14,28 +13,16 @@ import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkAugmentations
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.kelvin.api.DuctNodePos
-import org.valkyrienskies.kelvin.api.GasType
-import org.valkyrienskies.clockwork.util.AerodynamicUtils
-import org.valkyrienskies.clockwork.util.AerodynamicUtils.densityAverage
-import org.valkyrienskies.clockwork.util.AerodynamicUtils.dynamicViscosityAverage
-import org.valkyrienskies.clockwork.util.AerodynamicUtils.specificHeatAverage
 import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
 import org.valkyrienskies.clockwork.util.KNodeKineticBlockEntity
-import org.valkyrienskies.clockwork.util.PIDstance
 import org.valkyrienskies.kelvin.KelvinMod
-import org.valkyrienskies.kelvin.api.DuctNetwork
-import org.valkyrienskies.kelvin.impl.DuctNetworkServer
-import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3i
+import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.dimensionId
-import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
-import org.valkyrienskies.mod.common.util.toJOML
-import org.valkyrienskies.mod.common.util.toJOMLD
-import java.util.*
+import org.valkyrienskies.mod.common.vsCore
 import kotlin.math.abs
-import kotlin.math.max
 
 class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState): KNodeKineticBlockEntity(type, pos, state) {
 
@@ -81,7 +68,9 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         val serverLevel = level!! as ServerLevel
 
         val oldHas = hasPocket
+        println(serverLevel.shipObjectWorld.getAirComponentSize(blockPos.x, blockPos.y+1, blockPos.z, serverLevel.dimensionId))
         hasPocket = try {
+
             serverLevel.shipObjectWorld.getAirComponentSize(blockPos.x, blockPos.y+1, blockPos.z, serverLevel.dimensionId) > 0
         } catch (e: IllegalArgumentException) {
             false
@@ -113,14 +102,31 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     }
 
     private fun heatPocket() {
+        val serverLevel = level as? ServerLevel ?: return
+
         val pocketRef = blockPos.above()
-        val (gasMass, heatEnergy) = retrieveGasInfoFromPocket(pocketRef.toVector3i(), level as ServerLevel)
+        val (pocketGasMass, pocketHeatEnergy) = retrieveGasInfoFromPocket(pocketRef.toVector3i(), serverLevel)
+        val pocketGasMassTotal = pocketGasMass.values.sum()
+
+        val gasMass = ClockworkMod.getKelvin().getGasMassAt(getDuctNodePosition())
         val gasMassTotal = gasMass.values.sum()
-        val heatConstant = (KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(gasMass)
-        val temperature = heatEnergy / (heatConstant * gasMassTotal)
-        val moles = gasMass.entries.sumOf { it.key.massToMoles(it.value) }
-        val volume = level.shipObjectWorld.getAirComponentSize(pocketRef.x, pocketRef.y, pocketRef.z, level!!.dimensionId).toDouble()
-        val pressure = moles * DuctNetwork.idealGasConstant
+        val heatEnergy = ClockworkMod.getKelvin().getHeatEnergy(getDuctNodePosition())
+
+        val usedUpMass = gasMassTotal * pointer.value
+        val usedEnergy = heatEnergy * pointer.value
+
+        serverLevel.shipObjectWorld.setAirComponentAugmentation(
+            ClockworkAugmentations.getComponentAugmentation("heatEnergy"),
+            blockPos.x,
+            blockPos.y,
+            blockPos.z,
+            serverLevel.dimensionId,
+            pocketHeatEnergy + usedEnergy
+        )
+
+        gasMass.forEach {
+            KelvinMod.getKelvin().removeGas(getDuctNodePosition(), it.key,usedUpMass * it.value / pocketGasMassTotal)
+        }
 
     }
 
