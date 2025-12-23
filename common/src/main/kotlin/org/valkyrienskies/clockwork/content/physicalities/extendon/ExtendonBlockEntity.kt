@@ -196,8 +196,8 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
     private fun removeJoint() {
         val level = level as ServerLevel
 
-        level.gtpa.removeJoint(distanceJointId!!)
-        level.gtpa.removeJoint(sphericalJointId!!)
+        if (distanceJointId != null) level.gtpa.removeJoint(distanceJointId!!)
+        if (sphericalJointId != null) level.gtpa.removeJoint(sphericalJointId!!)
         distanceJoint = null
         distanceJointId = null
 
