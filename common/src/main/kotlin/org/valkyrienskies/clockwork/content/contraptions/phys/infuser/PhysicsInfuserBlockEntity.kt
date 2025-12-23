@@ -40,8 +40,8 @@ import org.valkyrienskies.clockwork.client.render.scanner.ScannerRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer.Companion.SCAN_GROWTH_DURATION
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItem
 import org.valkyrienskies.clockwork.util.ClockworkConstants
-import org.valkyrienskies.clockwork.util.ClockworkUtils.assembleFromBlockSet
-import org.valkyrienskies.clockwork.util.ClockworkUtils.assembleFromDenseBlockSet
+//import org.valkyrienskies.clockwork.util.ClockworkUtils.assembleFromBlockSet
+//import org.valkyrienskies.clockwork.util.ClockworkUtils.assembleFromDenseBlockSet
 import org.valkyrienskies.clockwork.util.EaseHelper.easeInBounce
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.core.api.ships.Ship
@@ -291,8 +291,8 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
             if (component.any { ClockworkConfig.SERVER.blockBlacklist.contains(level!!.getBlockState(it).block.descriptionId) } ) continue
 
-            assembleFromBlockSet(level as ServerLevel, component, false)
-//            ShipAssembler.assembleToShip(level!!, component.toList(), true)
+            //assembleFromBlockSet(level as ServerLevel, component, false)
+            ShipAssembler.assembleToShip(level!!, component.toList(), true)
         }
 
 

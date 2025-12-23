@@ -1,11 +1,6 @@
 package org.valkyrienskies.clockwork.util
 
 import com.fasterxml.jackson.core.JsonProcessingException
-import g_mungus.vlib.VLib
-import g_mungus.vlib.v2.api.extension.fillFromVoxelSet
-import g_mungus.vlib.v2.api.extension.placeAsShip
-import g_mungus.vlib.v2.api.extension.scheduleCallback
-import g_mungus.vlib.v2.internal.assembly.BoundedVoxelSet
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import net.minecraft.core.BlockPos
@@ -16,7 +11,6 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
 import org.joml.Vector3i
@@ -70,128 +64,128 @@ object ClockworkUtils {
         successfullyAdded.forEach { wanderliteNodesToAdd.remove(it) }
     }
 
-    @JvmStatic
-    fun DenseBlockPosSet.toBlockPosSet(): Set<BlockPos> {
-        val set = mutableSetOf<BlockPos>()
-        this.forEach { x, y, z ->
-            set.add(BlockPos(x, y, z))
-        }
-        return set
-    }
-
-    @JvmStatic
-    fun Set<BlockPos>.toBoundedVoxelSet(): BoundedVoxelSet {
-        var minBound: Vector3ic? = null
-        var maxBound: Vector3ic? = null
-        this.forEach { bp ->
-            val pos = bp.toJOML()
-            if (minBound == null) {
-                minBound = pos
-                maxBound = pos
-            } else {
-                minBound = Vector3i(
-                    Math.min(minBound!!.x(), pos.x),
-                    Math.min(minBound!!.y(), pos.y),
-                    Math.min(minBound!!.z(), pos.z)
-                )
-                maxBound = Vector3i(
-                    Math.max(maxBound!!.x(), pos.x),
-                    Math.max(maxBound!!.y(), pos.y),
-                    Math.max(maxBound!!.z(), pos.z)
-                )
-            }
-        }
-        if (minBound == null || maxBound == null) {
-            ClockworkMod.LOGGER.warn("Tried to convert empty DenseBlockPosSet to BoundedVoxelSet!")
-            return BoundedVoxelSet(HashSet(), Vector3i(0, 0, 0), Vector3i(0, 0, 0))
-        }
-        return BoundedVoxelSet(this, minBound, maxBound)
-    }
-
-    @JvmStatic
-    fun DenseBlockPosSet.toBoundedVoxelSet(): BoundedVoxelSet {
-        var minBound: Vector3ic? = null
-        var maxBound: Vector3ic? = null
-        this.forEach { x, y, z ->
-            val pos = Vector3i(x, y, z)
-            if (minBound == null) {
-                minBound = pos
-                maxBound = pos
-            } else {
-                minBound = Vector3i(
-                    Math.min(minBound!!.x(), pos.x),
-                    Math.min(minBound!!.y(), pos.y),
-                    Math.min(minBound!!.z(), pos.z)
-                )
-                maxBound = Vector3i(
-                    Math.max(maxBound!!.x(), pos.x),
-                    Math.max(maxBound!!.y(), pos.y),
-                    Math.max(maxBound!!.z(), pos.z)
-                )
-            }
-        }
-        if (minBound == null || maxBound == null) {
-            ClockworkMod.LOGGER.warn("Tried to convert empty DenseBlockPosSet to BoundedVoxelSet!")
-            return BoundedVoxelSet(HashSet(), Vector3i(0, 0, 0), Vector3i(0, 0, 0))
-        }
-        return BoundedVoxelSet(this.toBlockPosSet(), minBound, maxBound)
-    }
-
-    @JvmStatic
-    fun StructureTemplate.fillFromDenseBlockPosSet(level: ServerLevel, set: DenseBlockPosSet) {
-        this.fillFromVoxelSet(level, set.toBoundedVoxelSet())
-    }
-
-    @JvmStatic
-    fun assembleFromDenseBlockSet(level: ServerLevel, set: DenseBlockPosSet, static: Boolean): ServerShip? {
-        val voxelSet = set.toBoundedVoxelSet()
-        val ship = StructureTemplate().let {
-            it.fillFromVoxelSet(level, voxelSet)
-            it.placeAsShip(level, BlockPos.containing(level.toWorldCoordinates(voxelSet.min.toBlockPos())), true)
-        } ?: return null
-
-        //sorry mungus i had to copy this
-        cleanupOriginalBlocks(level, voxelSet) {
-            ship.isStatic = static
-        }
-
-        return ship
-    }
-
-    @JvmStatic
-    fun assembleFromBlockSet(level: ServerLevel, set: Set<BlockPos>, static: Boolean): ServerShip? {
-        val voxelSet = set.toBoundedVoxelSet()
-        val ship = StructureTemplate().let {
-            it.fillFromVoxelSet(level, voxelSet)
-            it.placeAsShip(level, BlockPos.containing(level.toWorldCoordinates(voxelSet.min.toBlockPos())), true)
-        } ?: return null
-
-        //sorry mungus i had to copy this
-        cleanupOriginalBlocks(level, voxelSet) {
-            ship.isStatic = static
-        }
-
-        return ship
-    }
-
-
-    private fun cleanupOriginalBlocks(level: ServerLevel, voxelSet: BoundedVoxelSet, whenComplete: () -> Unit) {
-        voxelSet.voxels.forEach { pos ->
-            val be = level.getBlockEntity(pos)
-            if (be != null) {
-                level.removeBlockEntity(pos)
-            }
-            level.setBlock(pos, VLib.GHOST_BLOCK.defaultBlockState(), 0)
-        }
-
-        level.scheduleCallback(4) {
-            voxelSet.voxels.forEach { pos ->
-                level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS)
-            }
-
-            whenComplete.invoke()
-        }
-    }
+//    @JvmStatic
+//    fun DenseBlockPosSet.toBlockPosSet(): Set<BlockPos> {
+//        val set = mutableSetOf<BlockPos>()
+//        this.forEach { x, y, z ->
+//            set.add(BlockPos(x, y, z))
+//        }
+//        return set
+//    }
+//
+//    @JvmStatic
+//    fun Set<BlockPos>.toBoundedVoxelSet(): BoundedVoxelSet {
+//        var minBound: Vector3ic? = null
+//        var maxBound: Vector3ic? = null
+//        this.forEach { bp ->
+//            val pos = bp.toJOML()
+//            if (minBound == null) {
+//                minBound = pos
+//                maxBound = pos
+//            } else {
+//                minBound = Vector3i(
+//                    Math.min(minBound!!.x(), pos.x),
+//                    Math.min(minBound!!.y(), pos.y),
+//                    Math.min(minBound!!.z(), pos.z)
+//                )
+//                maxBound = Vector3i(
+//                    Math.max(maxBound!!.x(), pos.x),
+//                    Math.max(maxBound!!.y(), pos.y),
+//                    Math.max(maxBound!!.z(), pos.z)
+//                )
+//            }
+//        }
+//        if (minBound == null || maxBound == null) {
+//            ClockworkMod.LOGGER.warn("Tried to convert empty DenseBlockPosSet to BoundedVoxelSet!")
+//            return BoundedVoxelSet(HashSet(), Vector3i(0, 0, 0), Vector3i(0, 0, 0))
+//        }
+//        return BoundedVoxelSet(this, minBound, maxBound)
+//    }
+//
+//    @JvmStatic
+//    fun DenseBlockPosSet.toBoundedVoxelSet(): BoundedVoxelSet {
+//        var minBound: Vector3ic? = null
+//        var maxBound: Vector3ic? = null
+//        this.forEach { x, y, z ->
+//            val pos = Vector3i(x, y, z)
+//            if (minBound == null) {
+//                minBound = pos
+//                maxBound = pos
+//            } else {
+//                minBound = Vector3i(
+//                    Math.min(minBound!!.x(), pos.x),
+//                    Math.min(minBound!!.y(), pos.y),
+//                    Math.min(minBound!!.z(), pos.z)
+//                )
+//                maxBound = Vector3i(
+//                    Math.max(maxBound!!.x(), pos.x),
+//                    Math.max(maxBound!!.y(), pos.y),
+//                    Math.max(maxBound!!.z(), pos.z)
+//                )
+//            }
+//        }
+//        if (minBound == null || maxBound == null) {
+//            ClockworkMod.LOGGER.warn("Tried to convert empty DenseBlockPosSet to BoundedVoxelSet!")
+//            return BoundedVoxelSet(HashSet(), Vector3i(0, 0, 0), Vector3i(0, 0, 0))
+//        }
+//        return BoundedVoxelSet(this.toBlockPosSet(), minBound, maxBound)
+//    }
+//
+//    @JvmStatic
+//    fun StructureTemplate.fillFromDenseBlockPosSet(level: ServerLevel, set: DenseBlockPosSet) {
+//        this.fillFromVoxelSet(level, set.toBoundedVoxelSet())
+//    }
+//
+//    @JvmStatic
+//    fun assembleFromDenseBlockSet(level: ServerLevel, set: DenseBlockPosSet, static: Boolean): ServerShip? {
+//        val voxelSet = set.toBoundedVoxelSet()
+//        val ship = StructureTemplate().let {
+//            it.fillFromVoxelSet(level, voxelSet)
+//            it.placeAsShip(level, BlockPos.containing(level.toWorldCoordinates(voxelSet.min.toBlockPos())), true)
+//        } ?: return null
+//
+//        //sorry mungus i had to copy this
+//        cleanupOriginalBlocks(level, voxelSet) {
+//            ship.isStatic = static
+//        }
+//
+//        return ship
+//    }
+//
+//    @JvmStatic
+//    fun assembleFromBlockSet(level: ServerLevel, set: Set<BlockPos>, static: Boolean): ServerShip? {
+//        val voxelSet = set.toBoundedVoxelSet()
+//        val ship = StructureTemplate().let {
+//            it.fillFromVoxelSet(level, voxelSet)
+//            it.placeAsShip(level, BlockPos.containing(level.toWorldCoordinates(voxelSet.min.toBlockPos())), true)
+//        } ?: return null
+//
+//        //sorry mungus i had to copy this
+//        cleanupOriginalBlocks(level, voxelSet) {
+//            ship.isStatic = static
+//        }
+//
+//        return ship
+//    }
+//
+//
+//    private fun cleanupOriginalBlocks(level: ServerLevel, voxelSet: BoundedVoxelSet, whenComplete: () -> Unit) {
+//        voxelSet.voxels.forEach { pos ->
+//            val be = level.getBlockEntity(pos)
+//            if (be != null) {
+//                level.removeBlockEntity(pos)
+//            }
+//            level.setBlock(pos, VLib.GHOST_BLOCK.defaultBlockState(), 0)
+//        }
+//
+//        level.scheduleCallback(4) {
+//            voxelSet.voxels.forEach { pos ->
+//                level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS)
+//            }
+//
+//            whenComplete.invoke()
+//        }
+//    }
 
     @JvmStatic
     fun writeVec3(vec: Vec3): ListTag {
