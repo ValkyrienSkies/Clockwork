@@ -17,6 +17,7 @@ import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.util.EaseHelper
 import org.valkyrienskies.mod.common.util.toDoubles
+import kotlin.math.abs
 
 class AirCompressorRenderer(context: BlockEntityRendererProvider.Context?) : KineticBlockEntityRenderer<AirCompressorBlockEntity>(context) {
 
@@ -93,7 +94,7 @@ class AirCompressorRenderer(context: BlockEntityRendererProvider.Context?) : Kin
             else -> 1f
         }
 
-        be.clientSize += partialTicks * be.speed * sizeMultiplier * SPEED_TO_SIZE_FACTOR
+        be.clientSize += partialTicks * abs(be.speed) * sizeMultiplier * SPEED_TO_SIZE_FACTOR
         be.clientSize = Mth.clamp(be.clientSize, 0f, 1f)
     }
 
@@ -106,7 +107,7 @@ class AirCompressorRenderer(context: BlockEntityRendererProvider.Context?) : Kin
             be.clientParticles = true
             spawnAirBurstParticles(be.blockPos, level)
 
-            val pitch = be.speed / 256f + level.random.nextFloat() + 0.25f
+            val pitch = abs(be.speed) / 256f + level.random.nextFloat() + 0.25f
             AllSoundEvents.STEAM.playAt(level, be.blockPos.toDoubles(), 0.4f, pitch, true)
 
         }
