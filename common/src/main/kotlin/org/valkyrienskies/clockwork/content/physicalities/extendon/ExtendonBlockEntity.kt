@@ -166,8 +166,8 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
 
         val shipId0 = getShipID()
         val shipId1 = connectedBe!!.getShipID()
-        val pos0 = blockPos.toJOMLD()
-        val pos1 = connectedBe!!.blockPos.toJOMLD()
+        val pos0 = blockPos.toJOMLD().add(0.5,0.5,0.5)
+        val pos1 = connectedBe!!.blockPos.toJOMLD().add(0.5,0.5,0.5)
         val quater0 = getQuaterniond(level.getBlockState(blockPos).getValue(BlockStateProperties.FACING))
         val quater1 = getQuaterniond(level.getBlockState(connectedBe!!.blockPos).getValue(BlockStateProperties.FACING))
 
@@ -198,9 +198,9 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
 
         if (distanceJointId != null) level.gtpa.removeJoint(distanceJointId!!)
         if (sphericalJointId != null) level.gtpa.removeJoint(sphericalJointId!!)
+
         distanceJoint = null
         distanceJointId = null
-
         sphericalJoint = null
         sphericalJointId = null
 
