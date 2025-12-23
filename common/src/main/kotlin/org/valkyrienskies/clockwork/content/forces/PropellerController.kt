@@ -215,10 +215,10 @@ class PropellerController(
             val dThrust = dLift * Math.cos(angleOfAttack) - dDrag * Math.sin(angleOfAttack)
 
             val force = worldAxis.mul(dThrust * 25, Vector3d())
-            val torque = rotatedDist.cross(force, Vector3d()).div(2.0)
+            //val torque = rotatedDist.cross(force, Vector3d())
 
             netForce.add(force)
-            netTorque.add(torque)
+            netTorque.add(Vector3d())
         }
 
         return netForce to netTorque
