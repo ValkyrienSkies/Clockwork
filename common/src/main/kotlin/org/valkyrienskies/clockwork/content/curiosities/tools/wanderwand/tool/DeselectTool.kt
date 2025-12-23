@@ -12,9 +12,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandSel
 class DeselectTool(): SelectionToolBase() {
 
     override fun handleRightClick(crouching: Boolean): Boolean {
-        if (crouching) {
-            return false
-        }
+        if (crouching) return false
         updateTargetPos()
         if (clickedPos != null && clickedLocation != null) {
             //ClockworkPackets.sendToServer(GravitronGrabPacket(clickedPos!!, clickedLocation!!, GravitronToolBase.GRAB))

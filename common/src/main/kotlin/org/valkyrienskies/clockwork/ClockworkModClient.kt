@@ -27,9 +27,14 @@ import net.minecraft.server.packs.resources.ResourceManager
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.LivingEntity
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkRenderer
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.SecondScrollValueRenderer
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautGogglesItem
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautGogglesState
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.IAeronautEquipment
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.IAeronautEquipment.Companion.wearingAeronautInSlot
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankArmorLayer
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotGlobals
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
@@ -85,13 +90,13 @@ object ClockworkModClient {
         ClientTickEvent.CLIENT_POST.register {
             while (AERONAUT_GOGGLE_KEYBIND.consumeClick()) {
                 val player = Minecraft.getInstance().player
-                if (player != null) {
+                if (player != null && player.wearingAeronautInSlot(EquipmentSlot.HEAD)) {
                     val level = player.level()
                     if (level != null) {
                         val duck = (player as MixinPlayerDuck)
-                        duck.aeronautGogglesState.gogglesDown = !duck.aeronautGogglesState.gogglesDown
+                        AeronautGogglesState.getState(player).gogglesDown = !AeronautGogglesState.getState(player).gogglesDown
                         duck.gogglesNeedRefresh = true
-                        if (duck.aeronautGogglesState.gogglesDown) {
+                        if (AeronautGogglesState.getState(player).gogglesDown) {
                             level.playSound(
                                 player,
                                 player.blockPosition(),

@@ -44,6 +44,7 @@ import org.valkyrienskies.clockwork.util.EaseHelper.easeInBounce
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.core.api.ships.Ship
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
+import org.valkyrienskies.mod.common.assembly.ShipAssembler
 import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOML
@@ -174,6 +175,8 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         val rand = level!!.getRandom()
         //client sounds
         if (assembling) {
+            if (skippingAssembly && assemblyProgress.value < 455) assemblyProgress.setValue(455.0)
+
             if (assemblyProgress.value == 0f) {
                 playInitializeSound(level!!, thisposition)
             }
@@ -222,6 +225,7 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
     fun skipAssembly() {
         skippingAssembly = true
+
     }
 
     fun startDisassembly() {
@@ -275,15 +279,25 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     }
 
     fun assemble() {
-        if (getLevel()!!.isClientSide()) return
+        if (level!!.isClientSide) return
         if (inventory[0].item !is WanderwandItem) return
-        val item: WanderwandItem = inventory[0].item as WanderwandItem
+        val item = inventory[0]
+        val selectedTag = item.tag?.get("selectedBlocks") as? CompoundTag ?: return
+        val blockposSet = WanderwandItem.readBlockPosSetFromNBT(selectedTag)
+
+        for (component in WanderwandItem.findIsolatedComponents(blockposSet)) {
+
+            if (component.any { ClockworkConfig.SERVER.blockBlacklist.contains(level!!.getBlockState(it).block.descriptionId) } ) continue
+
+            ShipAssembler.assembleToShip(level!!, component.toList(), true)
+        }
+
 
 //        item.selectedArea.selectionClusters.run clusters@{
 //            item.selectedArea.selectionClusters.forEach { cluster ->
 //                val selection: DenseBlockPosSet
 //                val caughtEntities: Set<Entity>
-//                if (level is ServerLevel) {
+//                if (level is ServerLevel)
 //                    val serverLevel = level as ServerLevel
 //                    selection = SelectedAreaToolkit.denseBlocksFromCluster(cluster)
 //                    caughtEntities = SelectedAreaToolkit.entitiesFromCluster(cluster, (level as ServerLevel))
@@ -294,7 +308,7 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 //                    selection.run loop@{
 //                        selection.forEach { x, y, z ->
 //                            val it =serverLevel.getBlockState(BlockPos(x, y, z))
-//                            if (!it.isAir && !ClockworkConfig.SERVER.blockBlacklist.contains(Registry.BLOCK.getKey(it.block).toString())) {
+//                            if (!it.isAir && !) {
 //                                bl = true
 //                                return@loop
 //                            }

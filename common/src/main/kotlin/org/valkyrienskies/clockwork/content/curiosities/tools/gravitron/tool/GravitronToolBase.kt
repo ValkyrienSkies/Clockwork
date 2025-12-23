@@ -1,18 +1,15 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.content.schematics.client.tools.ToolType
 import com.simibubi.create.foundation.utility.RaycastHelper
 import net.createmod.catnip.render.SuperRenderTypeBuffer
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
-import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler
 import org.valkyrienskies.clockwork.platform.SharedValues
 import org.valkyrienskies.mod.common.util.toDoubles
-import org.valkyrienskies.mod.common.util.toJOMLF
 
 abstract class GravitronToolBase : IGravitronTool {
     protected var gravitronHandler: GravitronHandler? = null
@@ -24,11 +21,14 @@ abstract class GravitronToolBase : IGravitronTool {
      * This function will store the block the player looks
      * at withing 15 blocks to be accessed by the Gravitrons other functions
      */
-    fun updateTargetPos() {
+    fun updateTargetPos(smallRange: Boolean = true) {
         val player = Minecraft.getInstance().player
 
+        clickedPos = null
+        clickedLocation = null
+
         val trace = RaycastHelper.rayTraceRange(
-            player!!.level(), player, 15.0
+            player!!.level(), player, if (smallRange) 15.0 else 1000.0
         )
         if (trace == null || trace.type != HitResult.Type.BLOCK) {
             return
@@ -39,7 +39,7 @@ abstract class GravitronToolBase : IGravitronTool {
         clickedLocation = clickedPos!!.toDoubles().add(0.5,0.5,0.5)
     }
 
-    override fun handleRightClick(): Boolean {
+    override fun handleRightClick(isRegular: Boolean): Boolean {
         return false
     }
 

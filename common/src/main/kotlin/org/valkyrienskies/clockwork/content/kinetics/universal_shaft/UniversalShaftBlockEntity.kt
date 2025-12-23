@@ -4,16 +4,26 @@ import com.simibubi.create.content.kinetics.base.IRotate
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.sounds.SoundSource
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import org.valkyrienskies.clockwork.ClockworkSounds
+import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity
 import org.valkyrienskies.clockwork.util.universal_joint.IUniversalJoint
+import org.valkyrienskies.mod.common.toWorldCoordinates
 
 class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : KineticBlockEntity(typeIn, pos, state), IUniversalJoint {
     override var connectedJoint: IUniversalJoint? = null
     override var pos = blockPos
     var connectedPos: BlockPos? = null
+    var connectedBe: UniversalShaftBlockEntity? = null
 
+    var main: Boolean = false
+
+    override val maxCreationDistance: Double
+        get() = 10.0 //todo add config
 
     override fun onSpeedChanged(previousSpeed: Float) {
         super.onSpeedChanged(previousSpeed)
@@ -44,28 +54,65 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
 
     override fun disconnect() {
         super.disconnect()
+        if (connectedBe != null) {
+            connectedBe!!.connectedBe = null
+            connectedBe!!.connectedPos = null
+            connectedBe!!.connectedJoint = null
+            connectedBe!!.main = false
+            connectedBe!!.detachKinetics()
+            connectedBe!!.clearKineticInformation()
+            connectedBe!!.sendData()
+        }
         connectedPos = null
+        connectedBe = null
+        connectedJoint = null
+        main = false
         detachKinetics()
+        clearKineticInformation()
         sendData()
     }
 
     override fun connectTo(other: IUniversalJoint) {
 
         connectedPos = other.pos
+        connectedJoint = other
+        main = true
 
         super.connectTo(other)
 
         sendData()
         attachKinetics()
+        if (other is UniversalShaftBlockEntity) {
+            other.connectedBe = this
+            other.connectedPos = this.pos
+            other.connectedJoint = this
+            other.main = false
+            other.attachKinetics()
+            other.sendData()
+        }
     }
 
     override fun tick() {
         super.tick()
 
-        if (connectedJoint == null && connectedPos != null) {
+        if ((connectedJoint == null || connectedBe == null) && connectedPos != null) {
             val be = level!!.getBlockEntity(connectedPos!!)
             if (be != null && be !is UniversalShaftBlockEntity) connectedPos = null
-            else if(be != null) connectedJoint = be as UniversalShaftBlockEntity
+            else if(be != null) {
+                connectedJoint = be as UniversalShaftBlockEntity
+                connectedBe = be as UniversalShaftBlockEntity
+            }
+        }
+        if (level == null || level!!.isClientSide) return
+        if (connectedPos != null && main) {
+            val posInWorld = level.toWorldCoordinates(pos)
+            val otherPosInWorld = level.toWorldCoordinates(connectedPos!!)
+            val distance = posInWorld.distanceTo(otherPosInWorld)
+            if (distance > maxCreationDistance && connectedBe != null) {
+                connectedBe!!.disconnect()
+                disconnect()
+                (level as ServerLevel).playSound(null, pos, ClockworkSounds.HOSE_RELEASE.mainEvent, SoundSource.BLOCKS, 1.0f, 1.0f)
+            }
         }
 
     }
@@ -75,10 +122,11 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
     }
 
     override fun write(compound: CompoundTag, clientPacket: Boolean) {
-        if (connectedJoint != null) {
+        if (connectedPos != null) {
             compound.putInt("otherPosX",connectedPos!!.x)
             compound.putInt("otherPosY",connectedPos!!.y)
             compound.putInt("otherPosZ",connectedPos!!.z)
+            compound.putBoolean("main", main)
         }
 
         super.write(compound, clientPacket)
@@ -87,7 +135,7 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
     override fun read(compound: CompoundTag, clientPacket: Boolean) {
         if (compound.contains("otherPosX")) {
             connectedPos = BlockPos(compound.getInt("otherPosX"),compound.getInt("otherPosY"),compound.getInt("otherPosZ"))
-
+            main = compound.getBoolean("main")
         } else {
             connectedPos = null
         }

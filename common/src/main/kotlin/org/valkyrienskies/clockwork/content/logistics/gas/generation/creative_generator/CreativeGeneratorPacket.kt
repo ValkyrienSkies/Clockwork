@@ -43,7 +43,7 @@ class CreativeGeneratorPacket(var gasValues: HashMap<GasType, Int>, var temperat
         val compound = CompoundTag()
         //todo: figure out some way for other namespaces in this packet
         for (gas in gasValues.keys) {
-            compound.putInt("kelvin:${gas.name.lowercase()}", gasValues[gas] ?: 0)
+            compound.putInt(gas.resourceLocation.toString(), gasValues[gas] ?: 0)
         }
         buffer.writeNbt(compound)
         buffer.writeDouble(temperature)

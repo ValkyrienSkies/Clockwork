@@ -5,7 +5,6 @@ import net.minecraft.client.model.HumanoidModel
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
-import net.minecraft.sounds.SoundSource
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
@@ -14,12 +13,8 @@ import net.minecraft.world.item.UseAnim
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkItems
-import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.GrabTool
-import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 import org.valkyrienskies.clockwork.platform.CWItem
-import org.valkyrienskies.core.api.ships.LoadedServerShip
-import org.valkyrienskies.mod.common.shipObjectWorld
 
 class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseItem {
 
@@ -28,10 +23,14 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
             return
         }
 
-        val bl = entity.mainHandItem.`is`(ClockworkItems.GRAVITRON.get().asItem())
-        val bl2 = entity.mainHandItem.`is`(ClockworkItems.CREATIVE_GRAVITRON.get().asItem())
+        // Make sure we only tick for the gravitrons
+        if (!stack.`is`(ClockworkItems.GRAVITRON.get().asItem())) return
 
-        if (stack.`is`(ClockworkItems.CREATIVE_GRAVITRON.get().asItem()) && !(bl || bl2)) {
+
+        val isHoldingGravitron = entity.mainHandItem.`is`(ClockworkItems.GRAVITRON.get().asItem())
+        val isHoldingCreativeGravitron = entity.mainHandItem.`is`(ClockworkItems.CREATIVE_GRAVITRON.get().asItem())
+
+        if (!(isHoldingGravitron || isHoldingCreativeGravitron)) {
             GrabTool.dropShip(entity)
 
             if (stack.tag != null) {

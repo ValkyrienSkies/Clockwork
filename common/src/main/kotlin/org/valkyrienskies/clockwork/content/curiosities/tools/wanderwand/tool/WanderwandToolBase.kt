@@ -15,7 +15,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.Wanderw
 import org.valkyrienskies.clockwork.platform.SharedValues
 import org.valkyrienskies.mod.common.util.toDoubles
 
-abstract class WanderwandToolBase : IWanderwandTool {
+abstract class  WanderwandToolBase : IWanderwandTool {
     protected var wanderwandHandler: WanderwandHandler? = null
     var clickedPos: BlockPos? = null
     var clickedLocation: Vec3? = null
@@ -29,7 +29,7 @@ abstract class WanderwandToolBase : IWanderwandTool {
      * This function will store the block the player looks
      * at within 15 blocks to be accessed by the Wanderwand's other functions
      */
-    fun updateTargetPos() {
+    open fun updateTargetPos() {
         lastClickedPos = clickedPos
         lastClickedLocation = clickedLocation
         lastClickedDirection = clickedDirection
@@ -38,7 +38,7 @@ abstract class WanderwandToolBase : IWanderwandTool {
 
         val trace = RaycastHelper.rayTraceRange(
             player!!.level(), player, 15.0
-        )
+        ) ?: return
         if (trace == null || trace.type != HitResult.Type.BLOCK) {
             return
         }

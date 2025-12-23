@@ -1,18 +1,13 @@
 package org.valkyrienskies.clockwork.fabric;
 
-import com.terraformersmc.modmenu.api.ConfigScreenFactory;
-import com.terraformersmc.modmenu.api.ModMenuApi;
-import dev.architectury.event.events.common.InteractionEvent;
+import fuzs.forgeconfigapiport.api.config.v2.ForgeConfigRegistry;
+import fuzs.forgeconfigapiport.api.config.v2.ModConfigEvents;
 import io.github.fabricators_of_create.porting_lib.entity.events.LivingEntityEvents;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
-import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.fml.config.ModConfig;
 import org.valkyrienskies.clockwork.*;
-//import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer;
 import org.valkyrienskies.clockwork.content.events.ClockworkCommonEvents;
 import org.valkyrienskies.mod.fabric.common.ValkyrienSkiesModFabric;
 
@@ -22,13 +17,29 @@ public class ClockworkModFabric implements ModInitializer {
     public void onInitialize() {
         new ValkyrienSkiesModFabric().onInitialize();
 
+        ForgeConfigRegistry.INSTANCE.register(
+                ClockworkMod.MOD_ID,
+                ModConfig.Type.SERVER,
+                ClockworkConfigUpdater.INSTANCE.getSERVER_SPEC(),
+                "valkyrienskies/clockwork/server.toml"
+        );
+
+        ForgeConfigRegistry.INSTANCE.register(
+                ClockworkMod.MOD_ID,
+                ModConfig.Type.CLIENT,
+                ClockworkConfigUpdater.INSTANCE.getCLIENT_SPEC(),
+                "valkyrienskies/clockwork/client.toml"
+        );
+
+        ModConfigEvents.reloading(ClockworkMod.MOD_ID).register (ClockworkConfigUpdater.INSTANCE::update);
+        ModConfigEvents.loading(ClockworkMod.MOD_ID).register (ClockworkConfigUpdater.INSTANCE::update);
+
         ClockworkTags.INSTANCE.init();
         ClockworkSounds.register();
         ClockworkBlocks.register();
         ClockworkItems.register();
 
         ClockworkBlockEntities.register();
-        FabricClockworkBlockEntities.register();
 
         ClockworkEntities.register();
         FabricClockworkEntities.register();

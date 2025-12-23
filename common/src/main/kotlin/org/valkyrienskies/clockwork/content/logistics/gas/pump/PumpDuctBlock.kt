@@ -4,8 +4,10 @@ import com.simibubi.create.AllShapes
 import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock
 import com.simibubi.create.content.kinetics.simpleRelays.ICogWheel
 import com.simibubi.create.foundation.block.IBE
+import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
@@ -20,13 +22,14 @@ import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.api.edges.PumpDuctEdge
 import org.valkyrienskies.kelvin.util.IEdgeBlock
 import org.valkyrienskies.kelvin.util.INodeBlock
 import org.valkyrienskies.kelvin.util.INodeBlockEntity
 
 class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties), IBE<PumpDuctBlockEntity>, ICogWheel,
-    IEdgeBlock {
+    IEdgeBlock, IHaveDuctStats {
 
     var edge: PumpDuctEdge? = null
 
@@ -138,6 +141,22 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
         if (edge == null) return
         ClockworkMod.getKelvin().removeEdge(edge!!.nodeA, edge!!.nodeB)
         edge = null
+    }
+
+    override fun getInternalVolume(): Double {
+        return 0.0
+    }
+
+    override fun getMaximumPressure(): Double {
+        return 0.0
+    }
+
+    override fun getMaximumTemperature(): Double {
+        return 0.0
+    }
+
+    override fun getAdditionalInfoLines(): List<Component> {
+        return listOf(Component.translatable("vs_clockwork.pump_duct.function").withStyle(ChatFormatting.GRAY).withStyle(ChatFormatting.ITALIC))
     }
 
 

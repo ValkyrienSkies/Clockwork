@@ -47,10 +47,10 @@ class PropellerController(
 
                 if (force.isFinite && torque.isFinite) {
                     if (physData.brass) {
-                        physShip.applyWorldForceToBodyPos(force)
+                        physShip.applyWorldForceToBodyPos(force.mul(if(physData.bearingSpeed > 0) 1.0 else -1.0, Vector3d()))
                         physShip.applyWorldTorque(torque)
                     } else {
-                        physShip.applyWorldForceToModelPos(force, Vector3d(physData.position).add(0.5, 0.5, 0.5))
+                        physShip.applyWorldForceToModelPos(force.mul(if(physData.bearingSpeed > 0) 1.0 else -1.0, Vector3d()), Vector3d(physData.position).add(0.5, 0.5, 0.5))
                         physShip.applyWorldTorque(torque)
                     }
 
@@ -212,7 +212,7 @@ class PropellerController(
             val dLift = 0.5 * airDensityAtY * effectiveVelocity.pow(2.0) * bladeWidth * r * liftCoefficient
             val dDrag = 0.5 * airDensityAtY * effectiveVelocity.pow(2.0) * bladeWidth * r * dragCoefficient
 
-            val dThrust = dLift * Math.cos(angleOfAttack) - dDrag * Math.sin(bladeAngle)
+            val dThrust = dLift * Math.cos(angleOfAttack) - dDrag * Math.sin(angleOfAttack)
 
             val force = worldAxis.mul(dThrust * 25, Vector3d())
             //val torque = rotatedDist.cross(force, Vector3d())

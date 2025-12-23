@@ -5,5 +5,5 @@ import net.minecraft.world.item.ArmorItem
 import net.minecraft.world.item.ArmorItem.Type.HELMET
 import org.valkyrienskies.clockwork.ClockworkArmorMaterials
 
-class AeronautGogglesItem(properties: Properties) : ArmorItem(ClockworkArmorMaterials.FLIGHT, HELMET, properties) {
+class AeronautGogglesItem(properties: Properties) : ArmorItem(ClockworkArmorMaterials.FLIGHT, HELMET, properties), IAeronautEquipment {
 }

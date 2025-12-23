@@ -21,8 +21,8 @@ public class ForgeGasBacktankArmorLayer extends GasBacktankArmorLayer  {
         LivingEntityRenderer<?, ?> livingRenderer = (LivingEntityRenderer<?, ?>) entityRenderer;
         if (!(livingRenderer.getModel() instanceof HumanoidModel))
             return;
-        BacktankArmorLayer<?, ?> layer = new BacktankArmorLayer<>(livingRenderer);
-        livingRenderer.addLayer((BacktankArmorLayer) layer);
+        GasBacktankArmorLayer<?, ?> layer = new GasBacktankArmorLayer<>(livingRenderer);
+        livingRenderer.addLayer((GasBacktankArmorLayer) layer);
     }
 
     public static void registerOnAll(EntityRenderDispatcher renderManager) {

@@ -11,14 +11,15 @@ import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import java.lang.ref.WeakReference
 import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.pow
 
 class SteamGeneratorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state) {
 
     var source = WeakReference<FluidTankBlockEntity?>(null)
 
-    val maxMass = 100.0
-    val maxTemperature = 2000.0
-    val steamGas = GasTypeRegistry.getGasType("kelvin", "steam")
+    val maxMass = 0.1
+    val steamGas = GasTypeRegistry.getGasType("vs_clockwork", "steam")
 
     fun getTank(): FluidTankBlockEntity? {
         var tank: FluidTankBlockEntity? = source.get()
@@ -37,7 +38,7 @@ class SteamGeneratorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state:
     override fun tick() {
         super.tick()
         if (level?.isClientSide != false) return
-        if (steamGas == null) return ClockworkMod.LOGGER.error("SteamGeneratorBlockEntity can't get GasType 'kelvin:steam'. Did something go wrong?")
+        if (steamGas == null) return ClockworkMod.LOGGER.error("SteamGeneratorBlockEntity can't get GasType 'vs_clockwork:steam'. Did something go wrong?")
 
         val tank = getTank() ?: return
 
@@ -45,14 +46,14 @@ class SteamGeneratorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state:
         tank.boiler.activeHeat
 
         if (efficiency == 0f) return
+        if (tank.boiler.activeHeat == 0) return
 
         val network = ClockworkMod.getKelvin()
 
         val mass = maxMass * efficiency
 
-        // TODO: Redo temperature calc. A max boiler producing 1800°C steam is kind of stupid.
-        val temperature = maxTemperature * max(tank.boiler.activeHeat, 1) / 18
+        val temperature = 80*(tank.boiler.activeHeat.toDouble() * 100).pow(0.34)
 
-        network.modGasMassOfTemperature(getDuctNodePosition(), steamGas, mass, temperature)
+        network.addGasAtTemperature(getDuctNodePosition(), steamGas, mass, temperature)
     }
 }

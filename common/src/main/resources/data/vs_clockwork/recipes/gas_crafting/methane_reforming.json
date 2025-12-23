@@ -1,0 +1,33 @@
+{
+  "type": "vs_clockwork:gas_crafting",
+  "ingredients": [
+    {
+      "item": "minecraft:iron_nugget"
+    }
+  ],
+  "input_gasses": {
+    "vs_clockwork:steam": {
+      "amount": 5,
+      "unit": "kg"
+    },
+    "vs_clockwork:bog": {
+      "amount": 5,
+      "unit": "kg"
+    }
+  },
+  "result_gasses": {
+    "vs_clockwork:exhaust": {
+      "amount": 5,
+      "unit": "kg"
+    },
+    "vs_clockwork:stellane": {
+      "amount": 1,
+      "unit": "kg"
+    }
+  },
+  "results": [],
+  "requirements": {
+    "kelvin:min_temperature": 900.0
+  },
+  "energy": -165000
+}

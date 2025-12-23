@@ -11,6 +11,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.AABB
 import org.valkyrienskies.clockwork.content.forces.ReactionWheelController
 import org.valkyrienskies.clockwork.content.generic.IForceApplierBE
+import org.valkyrienskies.clockwork.content.physicalities.IClockworkWheelBE
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.data.ReactionWheelCreateData
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.data.ReactionWheelData
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.data.ReactionWheelUpdateData
@@ -18,10 +19,10 @@ import org.valkyrienskies.mod.common.getShipObjectManagingPos
 
 class ReactionWheelBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KineticBlockEntity(typeIn, pos,
     state
-), IForceApplierBE<ReactionWheelUpdateData, ReactionWheelData, ReactionWheelCreateData, ReactionWheelController> {
+), IForceApplierBE<ReactionWheelUpdateData, ReactionWheelData, ReactionWheelCreateData, ReactionWheelController>, IClockworkWheelBE {
 
-    val clientSpeed: LerpedFloat = LerpedFloat.linear()
-    var angle = 0.0
+    override var visualSpeed: LerpedFloat = LerpedFloat.linear()
+    override var angle = 0.0
 
     var realSpeed: Double = 0.0
     var targetSpeed: Double = 0.0
@@ -53,7 +54,7 @@ class ReactionWheelBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
     override fun read(compound: CompoundTag, clientPacket: Boolean) {
         super.read(compound, clientPacket)
         if (clientPacket) {
-            clientSpeed.chase(compound.getDouble("ServerSpeed"), 1.0/20.0, LerpedFloat.Chaser.EXP)
+            visualSpeed.chase(compound.getDouble("ServerSpeed"), 1.0/20.0, LerpedFloat.Chaser.EXP)
         }
         if (compound.contains("PhysID")) {
             physID = compound.getInt("PhysID")
@@ -61,28 +62,14 @@ class ReactionWheelBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
     }
 
     private fun calculateTargetSpeed(): Double {
-        val ship = (level as ServerLevel).getShipObjectManagingPos(worldPosition)
-        if (ship != null) {
-            val attachment = ReactionWheelController.getOrCreate(ship!!)
-            if (attachment != null && physID >= 0) {
-                if (attachment.pendingMomentumConsumptionQueue.isNotEmpty()) {
-                    targetSpeed = attachment.pendingMomentumConsumptionQueue[physID]?.poll() ?: 0.0
-                }
-            }
-        }
-
-        return if (getSpeed() != 0f) {
-            Mth.clamp(targetSpeed + (getSpeed().toDouble() / 2.0), -1024.0, 1024.0)
-        } else {
-            targetSpeed
-        }
+        return getSpeed().toDouble()
     }
 
     override fun tick() {
         super.tick()
         if (level?.isClientSide == true) {
-            clientSpeed.tickChaser()
-            angle += clientSpeed.getValue() * 3 / 10f
+            visualSpeed.tickChaser()
+            angle += visualSpeed.getValue() * 3 / 10f
             angle %= 360f
             return
         }

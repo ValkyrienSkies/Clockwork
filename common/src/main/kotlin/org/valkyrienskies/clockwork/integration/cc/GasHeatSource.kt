@@ -110,16 +110,17 @@ object GasHeatSource: GenericPeripheral {
         val kelvin = getKelvin()
         val currentAmount = kelvin.getGasMassAt(origin).getOrDefault(gas, 0.0)
         val actualAmount = amount.getOrDefault(currentAmount)
+        val currentTemp = kelvin.getTemperatureAt(origin)
 
         if (actualAmount <= 0)
             throw LuaException("Cannot transfer zero or negative gas...")
         if (currentAmount < actualAmount)
             throw LuaException("Exceeded Amount of `${gas.name}` in origin!")
 
-        kelvin.modGasMass(origin, gas, -actualAmount)
+        kelvin.removeGas(origin, gas, actualAmount)
 
-        kelvin.modGasMass(end, gas, 0.0)
-        kelvin.modGasMass(end, gas, actualAmount)
+        //kelvin.modGasMass(end, gas, 0.0)
+        kelvin.addGasAtTemperature(end, gas, actualAmount, currentTemp)
     }
 
     @Throws(LuaException::class)

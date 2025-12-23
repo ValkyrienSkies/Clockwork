@@ -1,18 +1,12 @@
 package org.valkyrienskies.clockwork.content.physicalities.extendon
 
-import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.blaze3d.vertex.Tesselator
 import com.mojang.blaze3d.vertex.VertexConsumer
-import com.mojang.blaze3d.vertex.VertexFormat
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
 import dev.engine_room.flywheel.lib.transform.TransformStack
-import net.createmod.catnip.outliner.Outline
-import net.createmod.catnip.outliner.Outliner
 import net.createmod.catnip.render.CachedBuffers
 import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.client.renderer.LightTexture
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
@@ -22,10 +16,10 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.LightLayer
+import net.minecraft.world.phys.Vec3
 import org.joml.Matrix3f
 import org.joml.Matrix4f
 import org.joml.Vector3d
-import org.lwjgl.opengl.GL11
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.core.api.ships.ClientShip
@@ -33,10 +27,13 @@ import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.math.*
 import org.valkyrienskies.clockwork.util.*
+import org.valkyrienskies.core.api.util.GameTickOnly
 
 class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlockEntityRenderer<ExtendonBlockEntity>(context) {
     override fun shouldRenderOffScreen(blockEntity: ExtendonBlockEntity) = true
+    override fun shouldRender(blockEntity: ExtendonBlockEntity, cameraPos: Vec3): Boolean = true
 
+    @OptIn(GameTickOnly::class)
     override fun renderSafe(
         be: ExtendonBlockEntity,
         partialTicks: Float,
@@ -46,6 +43,7 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
         overlay: Int
     ) {
         val vb = buffer.getBuffer(RenderType.cutout())
+        val tubebuffer = buffer.getBuffer(RenderType.entitySolid(texture))
 
         var axis0 = CachedBuffers.partial(ClockworkPartials.EXTENDON_AXIS0,be.blockState)
         var axis1 = CachedBuffers.partial(ClockworkPartials.EXTENDON_AXIS1,be.blockState)
@@ -75,7 +73,7 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
                 val tubeLengthMultiplier = (1.0 / mainScale).toFloat()
                 val tubeTextureMultiplier = if (otherScale > mainScale) 1f else (otherScale / mainScale).toFloat()
 
-                renderTubes(direction.length().toFloat() * tubeLengthMultiplier, ms, angles, be.blockPos, be.connectedBe!!.blockPos, tubeRadiusMultiplier, tubeTextureMultiplier)
+                renderTubes(direction.length().toFloat() * tubeLengthMultiplier, ms, angles, be.blockPos, be.connectedBe!!.blockPos, tubeRadiusMultiplier, tubeTextureMultiplier, tubebuffer)
             }
         }
 
@@ -91,66 +89,45 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
                     pos1: BlockPos, pos2: BlockPos,
                     tubeRadiusScale: Float,
                     tubeLengthScale: Float,
+                    buffer: VertexConsumer
                     ) {
         val (pitch, yaw, roll) = angles
         val level = Minecraft.getInstance().level!!
 
         ms.pushPose();
-        var chain = TransformStack.of(ms)
+        val chain = TransformStack.of(ms)
         chain.center();
 
         chain.rotateY(yaw.toFloat())
         chain.rotateX((-pitch).toFloat())
-        chain.rotateY((PI / 4.0f).toFloat())
 
         chain.translate(0.5, 8 / 16.0, 0.5)
         chain.uncenter()
 
         //==========
 
-        var radius = 13f / 16f / 2f * tubeRadiusScale
+        val radius = 13f / 16f / 2f * tubeRadiusScale / sqrt(2f)
 
-        var minU = 0f
-        var maxU = 1f
-        var minV = 0f
-        var maxV = length / (15f/16f) / tubeLengthScale
+        val minU = 0f
+        val maxU = 1f
+        val minV = 0f
+        val maxV = length / (15f/16f) / tubeLengthScale
 
-        var light1 = LightTexture.pack(
+        val light1 = LightTexture.pack(
             level.getBrightness(LightLayer.BLOCK, pos1),
             level.getBrightness(LightLayer.SKY, pos1)
         )
-        var light2 = LightTexture.pack(
+        val light2 = LightTexture.pack(
             level.getBrightness(LightLayer.BLOCK, pos2),
             level.getBrightness(LightLayer.SKY, pos2)
         )
 
-        //stupidity
-        val tesselator = Tesselator.getInstance()
-        val buf = tesselator.builder
-
-        RenderSystem.disableBlend()
-        RenderSystem.disableCull()
-        RenderSystem.enableDepthTest()
-        RenderSystem.depthFunc(GL11.GL_LEQUAL)
-        RenderSystem.depthMask(true)
-        RenderSystem.setShader(GameRenderer::getRendertypeTranslucentShader)
-        RenderSystem.setShaderTexture(0, texture)
-
-        Minecraft.getInstance().gameRenderer.lightTexture().turnOnLightLayer()
-
-        buf.begin(VertexFormat.Mode.QUADS, GameRenderer.getRendertypeTranslucentShader()!!.vertexFormat)
-
-        renderPart(buf, ms, length,
-            0f, radius, -radius, 0f,
-            radius, 0f, 0f, -radius,
+        renderPart(buffer, ms, length,
+            radius, radius, -radius, -radius,
+            radius, -radius, radius, -radius,
             minU, maxU, minV, maxV,
             light1, light2
         )
-
-        tesselator.end()
-
-        RenderSystem.enableBlend()
-        RenderSystem.enableCull()
 
         //==========
 
@@ -171,10 +148,10 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
         val matrix = pose.pose()
         val normal = pose.normal()
 
-        renderQuad(buf, matrix, normal, 0f, maxY, x0, x2, z0, z2, minU, maxU, minV, maxV, light1, light2)
-        renderQuad(buf, matrix, normal, 0f, maxY, x1, x0, z1, z0, minU, maxU, minV, maxV, light1, light2)
-        renderQuad(buf, matrix, normal, 0f, maxY, x3, x1, z3, z1, minU, maxU, minV, maxV, light1, light2)
-        renderQuad(buf, matrix, normal, 0f, maxY, x2, x3, z2, z3, minU, maxU, minV, maxV, light1, light2)
+        renderQuad(buf, matrix, normal, 0f, maxY, x2, x0, z2, z0, 0f, 0f, 1f, minU, maxU, minV, maxV, light1, light2)
+        renderQuad(buf, matrix, normal, 0f, maxY, x0, x1, z0, z1, 1f, 0f, 0f, minU, maxU, minV, maxV, light1, light2)
+        renderQuad(buf, matrix, normal, 0f, maxY, x1, x3, z1, z3, 0f, 0f, -1f, minU, maxU, minV, maxV, light1, light2)
+        renderQuad(buf, matrix, normal, 0f, maxY, x3, x2, z3, z2, -1f, 0f, 0f, minU, maxU, minV, maxV, light1, light2)
     }
 
     fun renderQuad(
@@ -184,14 +161,15 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
         minY: Float, maxY: Float,
         minX: Float, maxX: Float,
         minZ: Float, maxZ: Float,
+        normalX: Float, normalY: Float, normalZ: Float,
         minU: Float, maxU: Float,
         minV: Float, maxV: Float,
         light1: Int, light2: Int
     ) {
-        addVertex(buf, matrix, normal, minX, maxY, minZ, maxU, minV, light2)
-        addVertex(buf, matrix, normal, minX, minY, minZ, maxU, maxV, light1)
-        addVertex(buf, matrix, normal, maxX, minY, maxZ, minU, maxV, light1)
-        addVertex(buf, matrix, normal, maxX, maxY, maxZ, minU, minV, light2)
+        addVertex(buf, matrix, normal, minX, maxY, minZ, normalX, normalY, normalZ, maxU, minV, light2)
+        addVertex(buf, matrix, normal, minX, minY, minZ, normalX, normalY, normalZ, maxU, maxV, light1)
+        addVertex(buf, matrix, normal, maxX, minY, maxZ, normalX, normalY, normalZ, minU, maxV, light1)
+        addVertex(buf, matrix, normal, maxX, maxY, maxZ, normalX, normalY, normalZ, minU, minV, light2)
     }
 
     fun addVertex(
@@ -199,6 +177,7 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
         matrix: Matrix4f,
         normal: Matrix3f,
         x: Float, y: Float, z: Float,
+        normalX: Float, normalY: Float, normalZ: Float,
         u: Float, v: Float,
         light: Int,
     ) = buf
@@ -207,7 +186,7 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
         .uv(u, v)
         .overlayCoords(OverlayTexture.NO_OVERLAY)
         .uv2(light)
-        .normal(normal, 0f, 1f, 0f)
+        .normal(normal, normalX, normalY, normalZ)
         .endVertex()
 
     companion object {
@@ -230,26 +209,4 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
             return Triple(pitch + Math.PI*3/2, yaw, roll)
         }
     }
-}
-
-// TODO: MOVE THIS TO UTILS
-public fun Outliner.showCustomOutline(key: Any, outline: Outline) {
-    this::class.java.getDeclaredMethod("addOutline", Any::class.java, Outline::class.java)
-        .apply { isAccessible = true }
-        .invoke(this, key, outline)
-}
-
-public fun Outliner.editCustomOutline(key: Any, outline: Outline) {
-    @Suppress("UNCHECKED_CAST")
-    this::class.java.getDeclaredField("outlines")
-        .apply { isAccessible = true }
-        .get(this)
-        .let { it as MutableMap<Any, Outliner.OutlineEntry> }[key] = Outliner.OutlineEntry(outline)
-}
-
-public fun Outline.OutlineParams.disableFadeLineWidth() {
-    this::class.java.getDeclaredField("fadeLineWidth")
-        .apply { isAccessible = true }
-        .set(this, false)
-
 }

@@ -40,6 +40,7 @@ import org.valkyrienskies.clockwork.content.generic.IForceApplierBE
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toJOMLD
+import kotlin.math.abs
 import kotlin.math.absoluteValue
 import kotlin.math.min
 import kotlin.math.sin
@@ -125,7 +126,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
 
     override fun tickAudio() {
         if (starting) return
-        if (this.active && !this.stopping && this.currentOmega.absoluteValue > 2.0) {
+        if (this.active && !this.stopping && this.getAngularSpeed() > 2.0) {
             val pitch = Mth.clamp((backFromAngular(this.currentOmega.absoluteValue).toFloat() / 256f) + .45f, .85f, 1f)
             val scape = if (this.brass) ClockworkSoundScapes.AmbienceGroup.PROPELLER else ClockworkSoundScapes.AmbienceGroup.JURYRIGGED_PROPELLER
             ClockworkSoundScapes.play(scape, this.worldPosition, pitch)
@@ -506,7 +507,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
             } else {
                 // Add stress impact from propeller blades.
                 for (blade in blades) {
-                    stressImpact += blade.length * sin(Math.toRadians(blade.angle)) * (if(blade.wide) 1.5 else 1.0)
+                    stressImpact += abs(blade.length * sin(Math.toRadians(blade.angle)) * (if(blade.wide) 1.5 else 1.0))
                 }
             }
         }

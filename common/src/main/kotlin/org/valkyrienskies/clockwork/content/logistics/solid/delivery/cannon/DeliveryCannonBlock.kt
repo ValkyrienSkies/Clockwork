@@ -129,5 +129,4 @@ class DeliveryCannonBlock(properties: Properties) : HorizontalDirectionalBlock(p
             context.horizontalDirection.clockWise // The model is made in a weird way, so i have to do this
         ) as BlockState
     }
-
 }

@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.platform
 
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer
-import com.tterrag.registrate.util.entry.BlockEntityEntry
 import com.tterrag.registrate.util.entry.EntityEntry
 import dev.architectury.injectables.annotations.ExpectPlatform
 import net.minecraft.world.item.BlockItem
@@ -9,7 +8,6 @@ import net.minecraft.world.item.Item
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandHandler
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatEntity
-import org.valkyrienskies.clockwork.content.physicalities.ballast.BallastBlockEntity
 import org.valkyrienskies.clockwork.platform.api.network.PacketChannel
 import java.util.function.BiConsumer
 
@@ -39,15 +37,6 @@ object SharedValues {
         get() {
             throw AssertionError()
         }
-
-    @get:ExpectPlatform
-    @JvmStatic
-    val ballast: BlockEntityEntry<BallastBlockEntity>
-        get() {
-            throw AssertionError()
-        }
-
-
 
     @get:ExpectPlatform
     @JvmStatic

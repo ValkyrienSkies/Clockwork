@@ -17,6 +17,8 @@
     "minecraft:gray_stained_glass",
     "minecraft:black_stained_glass",
     "minecraft:brown_stained_glass",
-    "minecraft:tinted_glass"
+    "minecraft:tinted_glass",
+    "vs_clockwork:lodefocus",
+    "vs_clockwork:wanderglass"
   ]
 }

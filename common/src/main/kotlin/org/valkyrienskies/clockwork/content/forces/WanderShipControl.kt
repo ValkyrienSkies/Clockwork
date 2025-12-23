@@ -36,9 +36,9 @@ class WanderShipControl : ShipPhysicsListener {
         }
         meanPos.div(wanderBlocks.size.toDouble())
         val sumForce: Double = wanderBlocks.values.sum()
-        val force =  Vector3d(0.0, sumForce,0.0).mul(ClockworkConfig.SERVER.wanderOreForce, Vector3d())
+        val force =  Vector3d(0.0, sumForce,0.0).mul(2 * 9.81 * 100, Vector3d())
 
-        if (meanPos.isFinite && !meanPos.length().isNaN() && force.isFinite && !force.length().isNaN()) physShip.applyWorldForceToModelPos(meanPos, force)
+        if (meanPos.isFinite && !meanPos.length().isNaN() && force.isFinite && !force.length().isNaN()) physShip.applyWorldForceToModelPos(force, meanPos)
     }
 
     fun addBlock(blockPos: BlockPos, force: Double) {
@@ -51,11 +51,11 @@ class WanderShipControl : ShipPhysicsListener {
 
     companion object {
 
-        fun getOrCreate(ship: LoadedServerShip): WanderShipControl? {
+        fun getOrCreate(ship: LoadedServerShip): WanderShipControl {
             if (ship.getAttachment(WanderShipControl::class.java) == null) {
                 ship.setAttachment(WanderShipControl())
             }
-            return ship.getAttachment(WanderShipControl::class.java)
+            return ship.getAttachment(WanderShipControl::class.java)!!
         }
     }
 }

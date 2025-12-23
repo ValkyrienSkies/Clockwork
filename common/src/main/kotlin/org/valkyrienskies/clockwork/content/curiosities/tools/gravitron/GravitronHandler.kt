@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron
 
-import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllKeys
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
@@ -121,14 +120,16 @@ open class GravitronHandler {
         if (!active) {
             return false
         }
-        if (!pressed || button != 1) {
+        if (!pressed) {
             return false
         }
         val mc = Minecraft.getInstance()
         if (mc.player!!.isShiftKeyDown) {
             return false
         }
-        return currentTool!!.tool.handleRightClick()
+        if (button == 1) return currentTool!!.tool.handleRightClick(isRegular)
+        if (button == 0) return currentTool!!.tool.handleLeftClick(isRegular)
+        return false
     }
 
     fun onKeyInput(key: Int, pressed: Boolean) {

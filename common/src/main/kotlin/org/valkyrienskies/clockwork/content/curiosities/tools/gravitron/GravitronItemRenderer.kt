@@ -23,6 +23,7 @@ import org.joml.Vector3f
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 import org.valkyrienskies.clockwork.util.EaseHelper
+import org.valkyrienskies.mod.api.vsApi
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
@@ -41,7 +42,7 @@ open class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
         light: Int,
         overlay: Int,
     ) {
-
+        vsApi
         val player = Minecraft.getInstance().player!!
         val partialTicks = AnimationTickHolder.getPartialTicks()
 
@@ -70,73 +71,84 @@ open class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
         targetAngle %= 360f
 
         if (targetAngle >= 270f) {
-            ms.pushPose()
             ms.translate(sin(partialTicks/2f) / 32f, cos(partialTicks/2f + 7f) / 64f, 0f)
         }
         renderer.renderSolid(model.originalModel, light)
 
         renderDial(targetAngle, ms, renderer, light)
+        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_ONE.get(), light)
+        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_TWO.get(), light)
+        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_THREE.get(), light)
+        renderer.render(ClockworkPartials.GRAV_PRONG_LEFT_ONE.get(), light)
+        renderer.render(ClockworkPartials.GRAV_PRONG_LEFT_TWO.get(), light)
+        renderer.render(ClockworkPartials.GRAV_PRONG_LEFT_THREE.get(), light)
+        renderer.render(ClockworkPartials.GRAV_PRONG_RIGHT_ONE.get(), light)
+        renderer.render(ClockworkPartials.GRAV_PRONG_RIGHT_TWO.get(), light)
+        renderer.render(ClockworkPartials.GRAV_PRONG_RIGHT_THREE.get(), light)
+
+
+
+
+////        ms.pushPose()
+////        ms.translate(1.7441/16f, 4.0858/16f, 0.0)
+////        ms.mulPose(Vector3f.ZP.rotationDegrees(135f))
+////        ms.mulPose(Vector3f.XP.rotationDegrees(45f))
+////        //ms.mulPose(Vector3f.YP.rotationDegrees(120f))
+////        ms.translate(0.0, -0.300, 0.125)
+////        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_ONE.get(), light)
+////
+////        //ms.mulPose(Vector3f.ZP.rotationDegrees(-120f))
+////        ms.mulPose(Vector3f.XP.rotationDegrees(-15f))
+////        //ms.mulPose(Vector3f.YP.rotationDegrees(120f))
+////        ms.translate(0.0, 0.125, 0.025)
+////        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_TWO.get(), light)
+////
+////        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_THREE.get(), light)
+////        //ms.mulPose(Vector3f.YP.rotation(120f))
+////        ms.popPose()
+//
+//        //ms.translate(8.7559/16f, 4.0858/16f, 0.0)
+//        ms.translate(-7.7016/16f,-8.3536/16f,-1.6978/16f)
+//        ms.mulPose(Axis.ZN.rotationDegrees(135f))
 //        ms.pushPose()
-//        ms.translate(1.7441/16f, 4.0858/16f, 0.0)
-//        ms.mulPose(Vector3f.ZP.rotationDegrees(135f))
-//        ms.mulPose(Vector3f.XP.rotationDegrees(45f))
-//        //ms.mulPose(Vector3f.YP.rotationDegrees(120f))
+//        //ms.translate(7.7016/16f, 8.3536/16f, -1.6978/16f)
+//        //val rotatedVector2: Vector3d = Vector3d(7.7016/16f, 8.3536/16f, 1.6978/16f).rotate(Quaterniond(AxisAngle4d(Math.toRadians(135.0) ,0.0, 0.0, -1.0)))
+//        //ms.translate(rotatedVector2.x, rotatedVector2.y, rotatedVector2.z)
+//        ms.mulPose(Axis.XP.rotationDegrees(45f))
+//        //ms.mulPose(Vector3f.ZP.rotationDegrees(-240f))
 //        ms.translate(0.0, -0.300, 0.125)
 //        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_ONE.get(), light)
 //
-//        //ms.mulPose(Vector3f.ZP.rotationDegrees(-120f))
-//        ms.mulPose(Vector3f.XP.rotationDegrees(-15f))
-//        //ms.mulPose(Vector3f.YP.rotationDegrees(120f))
+//        //ms.mulPose(Vector3f.ZP.rotationDegrees(240f))
+//        ms.mulPose(Axis.XP.rotationDegrees(-15f))
 //        ms.translate(0.0, 0.125, 0.025)
 //        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_TWO.get(), light)
 //
 //        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_THREE.get(), light)
-//        //ms.mulPose(Vector3f.YP.rotation(120f))
+//        //ms.mulPose(Vector3f.YP.rotation(240f))
 //        ms.popPose()
-        ms.pushPose()
-
-        //ms.translate(8.7559/16f, 4.0858/16f, 0.0)
-        ms.translate(-7.7016/16f,-8.3536/16f,-1.6978/16f)
-        ms.mulPose(Axis.ZN.rotationDegrees(135f))
-        ms.pushPose()
-        //ms.translate(7.7016/16f, 8.3536/16f, -1.6978/16f)
-        //val rotatedVector2: Vector3d = Vector3d(7.7016/16f, 8.3536/16f, 1.6978/16f).rotate(Quaterniond(AxisAngle4d(Math.toRadians(135.0) ,0.0, 0.0, -1.0)))
-        //ms.translate(rotatedVector2.x, rotatedVector2.y, rotatedVector2.z)
-        ms.mulPose(Axis.XP.rotationDegrees(45f))
-        //ms.mulPose(Vector3f.ZP.rotationDegrees(-240f))
-        ms.translate(0.0, -0.300, 0.125)
-        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_ONE.get(), light)
-
-        //ms.mulPose(Vector3f.ZP.rotationDegrees(240f))
-        ms.mulPose(Axis.XP.rotationDegrees(-15f))
-        ms.translate(0.0, 0.125, 0.025)
-        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_TWO.get(), light)
-
-        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_THREE.get(), light)
-        //ms.mulPose(Vector3f.YP.rotation(240f))
-        ms.popPose()
-        ms.translate(7.7016/16f,8.3536/16f,1.6978/16f)
-        ms.popPose()
-        ms.pushPose()
-        ms.pushPose()
-        ms.translate(-7.7016/16f,-8.3536/16f,-1.6978/16f)
-        ms.mulPose(Axis.XP.rotationDegrees(45f))
-        ms.translate(7.7016/16f,8.3536/16f,1.6978/16f)
-        //ms.translate(0.0, -0.300, 0.125)
-        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_ONE.get(), light)
-        ms.popPose()
-        ms.pushPose()
-        ms.translate(-7.6944, -8.4963, 0.9806)
-        ms.mulPose(Axis.XP.rotationDegrees(-15f))
-        ms.translate(7.6944, 8.4963, -0.9806)
-        //ms.translate(0.0, 0.125, 0.025)
-        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_TWO.get(), light)
-        ms.popPose()
-        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_THREE.get(), light)
-        ms.popPose()
-        if (targetAngle >= 270f) {
-            ms.popPose()
-        }
+//        ms.translate(7.7016/16f,8.3536/16f,1.6978/16f)
+//        ms.popPose()
+//        ms.pushPose()
+//        ms.pushPose()
+//        ms.translate(-7.7016/16f,-8.3536/16f,-1.6978/16f)
+//        ms.mulPose(Axis.XP.rotationDegrees(45f))
+//        ms.translate(7.7016/16f,8.3536/16f,1.6978/16f)
+//        //ms.translate(0.0, -0.300, 0.125)
+//        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_ONE.get(), light)
+//        ms.popPose()
+//        ms.pushPose()
+//        ms.translate(-7.6944, -8.4963, 0.9806)
+//        ms.mulPose(Axis.XP.rotationDegrees(-15f))
+//        ms.translate(7.6944, 8.4963, -0.9806)
+//        //ms.translate(0.0, 0.125, 0.025)
+//        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_TWO.get(), light)
+//        ms.popPose()
+//        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_THREE.get(), light)
+//        ms.popPose()
+//        if (targetAngle >= 270f) {
+//            ms.popPose()
+//        }
     }
 
     private fun renderDial(angle: Float, matrices: PoseStack, renderer: PartialItemModelRenderer, light: Int) {

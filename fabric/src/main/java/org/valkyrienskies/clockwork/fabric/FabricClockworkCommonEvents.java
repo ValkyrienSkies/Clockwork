@@ -20,7 +20,6 @@ public class FabricClockworkCommonEvents {
     }
 
     public static InteractionResult playerLeftClick(Player player, Level level, InteractionHand interactionHand, BlockPos blockPos, Direction direction) {
-        GravitronState.leftClickItem(player, GravitronState.getState(player));
 
 //        boolean bl = WanderWandItem.onAttack(player);
 //        if (bl) {

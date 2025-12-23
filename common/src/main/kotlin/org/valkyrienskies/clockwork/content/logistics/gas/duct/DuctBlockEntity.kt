@@ -6,6 +6,7 @@ import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.phys.AABB
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.magnitudeSqr
@@ -65,13 +66,13 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
                 tag.putInt("DuctEdgeType${dir.name}", this.DIR_TO_CONNECTION_TYPE[dir]!!.ordinal)
 
                 if (clientPacket) continue
-                val neighborDuct = level?.getBlockEntity(blockPos) as? DuctBlockEntity ?: continue
 
-                val kelvin = ClockworkMod.getKelvin()
-                val edge = kelvin.getEdgeBetween(getDuctNodePosition(), neighborDuct.getDuctNodePosition()) ?: continue
-
-                val serializedEdge = edge.serialize(tag)
-                tag.put("DuctEdge${dir.name}", serializedEdge)
+//                val kelvin = ClockworkMod.getKelvin()
+//                val thisDuctPos = getDuctNodePosition()
+//                val edge = kelvin.getEdgeBetween(thisDuctPos, DuctNodePos(thisDuctPos.x + dir.normal.x, thisDuctPos.y + dir.normal.y, thisDuctPos.z + dir.normal.z, thisDuctPos.dimensionId)) ?: continue
+//
+//                val serializedEdge = edge.serialize(tag)
+//                tag.put("DuctEdge${dir.name}", serializedEdge)
             }
         }
         super.write(tag, clientPacket)
@@ -169,4 +170,7 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
         )
     }
 
+    override fun createRenderBoundingBox(): AABB? {
+        return super.createRenderBoundingBox().inflate(1.0/16.0)
+    }
 }

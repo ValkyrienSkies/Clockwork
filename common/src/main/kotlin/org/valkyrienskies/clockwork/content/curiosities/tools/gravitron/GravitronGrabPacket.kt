@@ -38,7 +38,10 @@ class GravitronGrabPacket : C2SCWPacket {
                 val bl2 = stack.`is`(ClockworkItems.GRAVITRON.get().asItem())
                 if (bl2 || bl) {
                     if (!serverPlayer.cooldowns.isOnCooldown(stack.item)) {
-                        serverPlayer.cooldowns.addCooldown(stack.item, 20)
+
+                        // Only do cooldown for survival gravitron
+                        if (bl2) serverPlayer.cooldowns.addCooldown(stack.item, 20)
+
                         if (bl2) {
                             mode = GravitronToolBase.GRAB
                         }
