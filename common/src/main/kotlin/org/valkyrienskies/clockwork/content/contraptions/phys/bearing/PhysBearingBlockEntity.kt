@@ -392,9 +392,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             val selection: DenseBlockPosSet?
             try {
                 selection = collectGlued(level, attachPoint)
-                if (selection?.contains(this.blockPos.x, this.blockPos.y, this.blockPos.z) ?: false) {
-                    throw AssemblyException.unmovableBlock(this.blockPos, this.blockState)
-                }
+                selection?.remove(this.blockPos.x, this.blockPos.y, this.blockPos.z)
                 lastException = null
             } catch (e: AssemblyException) {
                 lastException = e
