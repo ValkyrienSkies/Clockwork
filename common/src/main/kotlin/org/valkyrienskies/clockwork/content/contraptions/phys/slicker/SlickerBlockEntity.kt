@@ -30,9 +30,7 @@ import org.valkyrienskies.mod.common.toWorldCoordinates
 import org.valkyrienskies.mod.common.util.toJOML
 
 
-class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : SmartBlockEntity(type, pos,
-    state
-) {
+class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : SmartBlockEntity(type, pos, state) {
 
     var piston: LerpedFloat? = null
     var update = false
@@ -105,9 +103,7 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
                 ) {
                     shipStuck = true
                     ClockworkSounds.DOINK.playOnServer(slevel, BlockPos.containing(level.toWorldCoordinates(worldPosition)), 0.35f, 0.75f)
-                    ClockworkPackets.sendToNear(
-                        slevel, blockPos, 128, SlickerAttachmentSyncPacket(this)
-                    )
+                    sendData()
                 }
             }
         } else if (!isBlockStateExtended() && shipStuck) {
@@ -134,18 +130,14 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
             ) {
                 ClockworkSounds.DOINK.playOnServer(slevel, BlockPos.containing(level.toWorldCoordinates(worldPosition)), 0.35f, 0.75f)
                 shipStuck = true
-                ClockworkPackets.sendToNear(
-                    slevel, blockPos, 128, SlickerAttachmentSyncPacket(this)
-                )
+                sendData()
             }
         }
         if (waitForNoPower && !blockState.getValue(POWERED)) {
             if (shipStuck) ClockworkSounds.BOING.playOnServer(slevel, BlockPos.containing(level.toWorldCoordinates(worldPosition)), 0.35f, 0.75f)
             waitForNoPower = false
             shipStuck = false
-            ClockworkPackets.sendToNear(
-                slevel, blockPos, 128, SlickerAttachmentSyncPacket(this)
-            )
+            sendData()
         }
     }
 
@@ -232,12 +224,10 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
         if (this.attachmentConstraintId != -1) {
             condensedTag.putInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID, this.attachmentConstraintId)
         }
-        if (this.distance != 0.0) {
-            condensedTag.putDouble(ClockworkConstants.Nbt.SHIP_SLICKER_DISTANCE, this.distance)
-        }
-        if (this.shipStuck) {
-            condensedTag.putBoolean(ClockworkConstants.Nbt.SHIP_STUCK, this.shipStuck)
-        }
+
+        condensedTag.putDouble(ClockworkConstants.Nbt.SHIP_SLICKER_DISTANCE, this.distance)
+        condensedTag.putBoolean(ClockworkConstants.Nbt.SHIP_STUCK, this.shipStuck)
+
         tag.put(ClockworkConstants.Nbt.CONDENSED_DATA, condensedTag)
     }
 
@@ -254,12 +244,8 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
         if (tag.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)) {
             this.attachmentConstraintId = compound.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)
         }
-        if (tag.contains(ClockworkConstants.Nbt.SHIP_SLICKER_DISTANCE)) {
-            this.distance = compound.getDouble(ClockworkConstants.Nbt.SHIP_SLICKER_DISTANCE)
-        }
-        if (tag.contains(ClockworkConstants.Nbt.SHIP_STUCK)) {
-            this.shipStuck = compound.getBoolean(ClockworkConstants.Nbt.SHIP_STUCK)
-        }
+        this.distance = compound.getDouble(ClockworkConstants.Nbt.SHIP_SLICKER_DISTANCE)
+        this.shipStuck = compound.getBoolean(ClockworkConstants.Nbt.SHIP_STUCK)
     }
 
     fun playSound(attach: Boolean) {

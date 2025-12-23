@@ -62,6 +62,7 @@ class SlickerBlock(properties: Properties) : WrenchableDirectionalBlock(properti
         return ClockworkBlockEntities.SLICKER.get()
     }
 
+
     override fun onRemove(
         pState: BlockState,
         pLevel: Level,
