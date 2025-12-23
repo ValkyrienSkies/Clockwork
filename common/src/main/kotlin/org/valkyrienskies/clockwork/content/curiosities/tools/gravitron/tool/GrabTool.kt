@@ -44,9 +44,13 @@ import org.valkyrienskies.mod.common.util.toJOML
 class GrabTool : GravitronToolBase() {
 
     override fun handleRightClick(isRegular: Boolean): Boolean {
+        val lastClickedPos = clickedPos
+        val lastClickedLocation = clickedLocation
         updateTargetPos(isRegular)
         if (clickedPos != null && clickedLocation != null) {
             sendToServer(GravitronGrabPacket(clickedPos!!, clickedLocation!!, GRAB))
+        } else if (lastClickedPos != null && lastClickedLocation != null) {
+            sendToServer(GravitronGrabPacket(lastClickedPos, lastClickedLocation, GRAB))
         }
 
         return true
