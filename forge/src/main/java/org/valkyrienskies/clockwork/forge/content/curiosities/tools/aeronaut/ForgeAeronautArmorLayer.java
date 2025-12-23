@@ -1,5 +1,8 @@
 package org.valkyrienskies.clockwork.forge.content.curiosities.tools.aeronaut;
 
+import net.minecraft.client.model.AgeableListModel;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRenderer;

@@ -18,6 +18,7 @@ import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.ClockworkModClient;
 import org.valkyrienskies.clockwork.client.render.debug.KelvinEdgeRenderer;
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankArmorLayer;
@@ -28,15 +29,6 @@ import static net.createmod.ponder.PonderClient.isGameActive;
 
 @Mod.EventBusSubscriber(Dist.CLIENT)
 public class ClockworkClientEvents {
-
-    @SubscribeEvent
-    public static void onRegisterGuiOverlays(RegisterGuiOverlaysEvent event) {
-        event.registerAbove(VanillaGuiOverlay.HOTBAR.id(), "Gravitron",
-                ClockworkModForgeClient.GRAVITRON_HANDLER.getOverlayRenderer());
-        event.registerAbove(VanillaGuiOverlay.HOTBAR.id(), "Wanderwand",
-                ClockworkModForgeClient.WANDERWAND_HANDLER.getOverlayRenderer());
-    }
-
     @SubscribeEvent
     public static void onRenderWorld(RenderLevelStageEvent event) {
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
@@ -120,13 +112,4 @@ public class ClockworkClientEvents {
             event.setCanceled(true);
         }
     }
-
-    @SubscribeEvent
-    public static void addEntityRendererLayers(EntityRenderersEvent.AddLayers event) {
-        EntityRenderDispatcher dispatcher = Minecraft.getInstance()
-                .getEntityRenderDispatcher();
-        ForgeGasBacktankArmorLayer.registerOnAll(dispatcher);
-        ForgeAeronautArmorLayer.registerOnAll(dispatcher);
-    }
-
 }
