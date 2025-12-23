@@ -47,10 +47,10 @@ class PropellerController(
 
                 if (force.isFinite && torque.isFinite) {
                     if (physData.brass) {
-                        physShip.applyWorldForceToBodyPos(force)
+                        physShip.applyWorldForceToBodyPos(force.mul(if(physData.bearingSpeed > 0) 1.0 else -1.0, Vector3d()))
                         physShip.applyWorldTorque(torque)
                     } else {
-                        physShip.applyWorldForceToModelPos(force, Vector3d(physData.position).add(0.5, 0.5, 0.5))
+                        physShip.applyWorldForceToModelPos(force.mul(if(physData.bearingSpeed > 0) 1.0 else -1.0, Vector3d()), Vector3d(physData.position).add(0.5, 0.5, 0.5))
                         physShip.applyWorldTorque(torque)
                     }
 
