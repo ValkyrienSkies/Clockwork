@@ -22,6 +22,9 @@ class RedstoneDuctBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: B
         super.tick()
 
         val oldPower = blockState.getValue(RedstoneDuctBlock.POWER)
+
+        if (level == null || level!!.isClientSide) return
+
         val power = getPower()
         if (oldPower != power) {
             level?.setBlockAndUpdate(blockPos, blockState.setValue(RedstoneDuctBlock.POWER, power))
