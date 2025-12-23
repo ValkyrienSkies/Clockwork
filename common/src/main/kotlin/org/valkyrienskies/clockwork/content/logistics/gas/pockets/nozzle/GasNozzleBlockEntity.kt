@@ -84,6 +84,8 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
                 serverLevel.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("airupdated"), blockPos.x, blockPos.y +1, blockPos.z, serverLevel.dimensionId, 0.0)
             }
             heatPocket()
+
+
         }
 
     }

@@ -15,6 +15,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 import org.valkyrienskies.clockwork.ClockworkModClient;
+import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketRenderer;
 import org.valkyrienskies.clockwork.client.render.debug.KelvinEdgeRenderer;
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautArmorLayer;
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankArmorLayer;
@@ -55,6 +56,7 @@ public class FabricClockworkClientEvents {
         ClockworkModClient.getWANDER_OUTLINER().renderOutlines(ms, DefaultSuperRenderTypeBuffer.getInstance(), camera, partialTicks);
         KelvinEdgeRenderer.render(worldRenderContext.world(), worldRenderContext.matrixStack(), worldRenderContext.camera());
         ClockworkModClient.getWANDERWAND_EFFECT_RENDERER().render(ms, buffer, camera, partialTicks);
+        AirpocketRenderer.render(worldRenderContext.world(), worldRenderContext.matrixStack(), worldRenderContext.camera());
 
         buffer.draw();
         RenderSystem.enableCull();

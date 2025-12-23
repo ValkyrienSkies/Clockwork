@@ -26,6 +26,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.crafting.RecipeSerializer
 import net.minecraft.world.item.crafting.RecipeType
 import org.slf4j.LoggerFactory
+import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketRenderer
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkHandler
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.CraftingTableBladeRecipe
 import org.valkyrienskies.clockwork.content.events.CollisionSoundEffectHandler
@@ -132,7 +133,9 @@ object ClockworkMod {
             }
 
             ClockworkUtils.tick(it)
+            AirpocketRenderer.tick(it)
             CollisionSoundEffectHandler.tick(it)
+
         }
 
         InteractionEvent.RIGHT_CLICK_BLOCK.register(InteractionEvent.RightClickBlock { player, hand, pos, face ->

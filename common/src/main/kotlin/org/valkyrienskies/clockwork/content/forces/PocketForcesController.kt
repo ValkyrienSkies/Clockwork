@@ -75,6 +75,7 @@ class PocketForcesController: ShipPhysicsListener {
 
     @OptIn(GameTickOnly::class)
     fun gameTick(level: ServerLevel, ship: ServerShip) {
+        return
         val loadedShip = level.shipObjectWorld.loadedShips.getById(ship.id) ?: return
 
         // Todo: Replace with better 'get all air pockets' once theres an api method for that
