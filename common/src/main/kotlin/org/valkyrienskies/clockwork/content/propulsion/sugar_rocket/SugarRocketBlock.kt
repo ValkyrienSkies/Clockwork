@@ -43,12 +43,11 @@ class SugarRocketBlock(properties: Properties) : DirectionalBlock(properties), I
     }
 
     init {
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.UP))
+        registerDefaultState(defaultBlockState().setValue(FACING, Direction.UP))
     }
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
-        super.createBlockStateDefinition(builder)
-        builder.add(FACING)
+        super.createBlockStateDefinition(builder.add(FACING))
     }
 
     fun getAxialPositions(pos: BlockPos, ignoreAxis: Direction.Axis): List<BlockPos> {
