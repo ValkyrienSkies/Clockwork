@@ -378,5 +378,15 @@
       }
     ],
     "subtitle": "vs_clockwork.subtitle.hose_release"
+  },
+  "joint_break": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:joint_break",
+        "type": "file",
+        "attenuation_distance": 16
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.joint_break"
   }
 }

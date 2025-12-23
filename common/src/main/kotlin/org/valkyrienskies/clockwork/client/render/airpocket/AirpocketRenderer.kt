@@ -68,8 +68,8 @@ object AirpocketRenderer {
     @JvmStatic
     fun getEveryNode(level: ServerLevel, ship: Ship): MutableSet<BlockPos> {
         val nodes = mutableSetOf<BlockPos>()
-        ship.shipAABB!!.forEachBlock { x,y,z -> if ( level.shipObjectWorld.isIsolatedAir(x,y,z,level.dimensionId) == ConnectionStatus.UNKNOWN) nodes.add(BlockPos(x,y,z)) }
-        println("\ngot nodes: $nodes")
+        ship.shipAABB!!.forEachBlock { x,y,z -> if ( level.shipObjectWorld.isIsolatedAir(x,y,z,level.dimensionId) == ConnectionStatus.DISCONNECTED) nodes.add(BlockPos(x,y,z)) }
+        //println("\ngot nodes: $nodes")
         return nodes
     }
 
@@ -128,6 +128,7 @@ object AirpocketRenderer {
 
 
     fun tick(level: ServerLevel) {
+        return
         level.players().forEach { player ->
             val pos = Vector3d(player.x, player.y, player.z)
             val dragInfo = (player as IEntityDraggingInformationProvider).draggingInformation

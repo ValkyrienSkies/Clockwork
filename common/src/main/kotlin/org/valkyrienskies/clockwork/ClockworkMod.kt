@@ -133,7 +133,7 @@ object ClockworkMod {
             }
 
             ClockworkUtils.tick(it)
-            AirpocketRenderer.tick(it)
+            //AirpocketRenderer.tick(it)
             CollisionSoundEffectHandler.tick(it)
 
         }

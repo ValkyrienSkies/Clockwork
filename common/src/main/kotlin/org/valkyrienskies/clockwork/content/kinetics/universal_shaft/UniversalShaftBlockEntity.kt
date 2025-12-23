@@ -111,7 +111,7 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
             if (distance > maxCreationDistance && connectedBe != null) {
                 connectedBe!!.disconnect()
                 disconnect()
-                (level as ServerLevel).playSound(null, pos, ClockworkSounds.HOSE_RELEASE.mainEvent, SoundSource.BLOCKS, 1.0f, 1.0f)
+                (level as ServerLevel).playSound(null, pos, ClockworkSounds.JOINT_BREAK.mainEvent, SoundSource.BLOCKS, 1.0f, 1.0f)
             }
         }
 

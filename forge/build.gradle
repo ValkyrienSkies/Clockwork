@@ -88,6 +88,8 @@ dependencies {
         exclude group: 'org.joml', module: ''
     }
 
+    modImplementation("maven.modrinth:vlib:${rootProject.vlib_version}+forge")
+
     // Create and its dependencies
     modImplementation("com.simibubi.create:create-${minecraft_version}:${create_forge_version}:slim") { transitive = false }
     modImplementation("com.tterrag.registrate:Registrate:${registrate_forge_version}")

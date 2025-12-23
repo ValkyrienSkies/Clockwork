@@ -11,11 +11,11 @@ object ClockworkAugmentations {
     private val componentAugmentKeys: HashMap<String, DoubleComponentAugmentation> = HashMap()
 
     fun registerSumAugmentation(key: String, shipObjectWorld: VsiServerShipWorld) {
-        augmentKeys[key] = shipObjectWorld.createDoubleSumAugmentation("clockwork", key)
+        augmentKeys[key] = shipObjectWorld.createDoubleSumAugmentation("kelvin", key)
     }
 
     fun registerAvgAugmentation(key: String, shipObjectWorld: VsiServerShipWorld) {
-        augmentKeys[key] = DoubleAvgAugmentation("clockwork:$key")
+        augmentKeys[key] = DoubleAvgAugmentation("kelvin:$key")
     }
 
     fun getAugmentation(key: String): DoubleAugmentation {
@@ -23,11 +23,11 @@ object ClockworkAugmentations {
     }
 
     fun registerComponentSumAugmentation(key: String, shipObjectWorld: VsiServerShipWorld) {
-        componentAugmentKeys[key] = shipObjectWorld.createDoubleSumComponentAugmentation("clockwork", key)
+        componentAugmentKeys[key] = shipObjectWorld.createDoubleSumComponentAugmentation("kelvin", key)
     }
 
     fun registerComponentAvgAugmentation(key: String, shipObjectWorld: VsiServerShipWorld) {
-        componentAugmentKeys[key] = DoubleAvgComponentAugmentation("clockwork:$key")
+        componentAugmentKeys[key] = DoubleAvgComponentAugmentation("kelvin:$key")
     }
 
     fun getComponentAugmentation(key: String): DoubleComponentAugmentation {

@@ -159,6 +159,10 @@ object ClockworkSounds {
         .category(SoundSource.BLOCKS)
         .attenuationDistance(16)
         .build()
+    val JOINT_BREAK = create("joint_break").subtitle("Joint breaking")
+        .category(SoundSource.BLOCKS)
+        .attenuationDistance(16)
+        .build()
 
     private val sounds: DeferredRegister<SoundEvent> =
         DeferredRegister.create(BuiltInRegistries.SOUND_EVENT, ClockworkMod.MOD_ID)

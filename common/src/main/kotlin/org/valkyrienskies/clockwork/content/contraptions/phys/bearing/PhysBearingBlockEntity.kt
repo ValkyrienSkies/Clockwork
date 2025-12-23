@@ -401,6 +401,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             }
             if (selection == null) return
 
+            //todo: move to using new assembly from VLib
             val (shiptraption, previousCenterBP, newCenter, _) = PhysBearingAssembler.assembleToShip(level, selection, true, 1.0, true)
             val previousCenter = Vector3d(previousCenterBP)
 
