@@ -91,7 +91,7 @@ object ClockworkBlocks {
         }
             .initialProperties(AllBlocks.BELT)
             .transform(axeOrPickaxe())
-            .properties { it.instabreak().explosionResistance(0f) }
+            .properties { it.instabreak().explosionResistance(0f).noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
