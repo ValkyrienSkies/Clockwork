@@ -33,6 +33,7 @@ class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE
             defaultBlockState()
                 .setValue(TOP, true)
                 .setValue(BOTTOM, true)
+                .setValue(LARGE, false)
         )
     }
 
@@ -41,7 +42,7 @@ class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE
 //    }
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
-        super.createBlockStateDefinition(builder.add(TOP).add(BOTTOM))
+        super.createBlockStateDefinition(builder.add(TOP).add(BOTTOM).add(LARGE))
     }
 
     override fun nodePlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
@@ -95,6 +96,7 @@ class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE
     companion object {
         val TOP: BooleanProperty = BooleanProperty.create("top")
         val BOTTOM: BooleanProperty = BooleanProperty.create("bottom")
+        val LARGE: BooleanProperty = BooleanProperty.create("large")
     }
 
     override fun canConnectTo(self: BlockPos, other: BlockPos, direction: Direction, level: BlockGetter): Boolean {

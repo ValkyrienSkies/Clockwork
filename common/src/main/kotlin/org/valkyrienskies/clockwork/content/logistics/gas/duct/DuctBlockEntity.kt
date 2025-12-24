@@ -45,11 +45,12 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
                 if (!clientPacket) shouldUpdateEdges = true
 
                 if (clientPacket) continue
-                val neighborDuct = level?.getBlockEntity(blockPos) as? DuctBlockEntity ?: continue
+                //val neighborDuct = level?.getBlockEntity(blockPos) as? DuctBlockEntity ?: continue
                 val serializedEdge = tag.get("DuctEdgeType${dir.name}") as? CompoundTag ?: continue
 
                 val kelvin = ClockworkMod.getKelvin()
-                val edge = kelvin.getEdgeBetween(getDuctNodePosition(), neighborDuct.getDuctNodePosition()) ?: continue
+                val thisDuctPos = getDuctNodePosition()
+                val edge = kelvin.getEdgeBetween(getDuctNodePosition(), DuctNodePos(thisDuctPos.x + dir.normal.x, thisDuctPos.y + dir.normal.y, thisDuctPos.z + dir.normal.z, thisDuctPos.dimensionId)) ?: continue
 
                 edge.deserialize(serializedEdge)
             }
@@ -67,12 +68,12 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
 
                 if (clientPacket) continue
 
-//                val kelvin = ClockworkMod.getKelvin()
-//                val thisDuctPos = getDuctNodePosition()
-//                val edge = kelvin.getEdgeBetween(thisDuctPos, DuctNodePos(thisDuctPos.x + dir.normal.x, thisDuctPos.y + dir.normal.y, thisDuctPos.z + dir.normal.z, thisDuctPos.dimensionId)) ?: continue
-//
-//                val serializedEdge = edge.serialize(tag)
-//                tag.put("DuctEdge${dir.name}", serializedEdge)
+                val kelvin = ClockworkMod.getKelvin()
+                val thisDuctPos = getDuctNodePosition()
+                val edge = kelvin.getEdgeBetween(thisDuctPos, DuctNodePos(thisDuctPos.x + dir.normal.x, thisDuctPos.y + dir.normal.y, thisDuctPos.z + dir.normal.z, thisDuctPos.dimensionId)) ?: continue
+
+                val serializedEdge = edge.serialize(tag)
+                tag.put("DuctEdge${dir.name}", serializedEdge)
             }
         }
         super.write(tag, clientPacket)

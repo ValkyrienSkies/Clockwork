@@ -1,11 +1,10 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.storage.tank
 
 import com.simibubi.create.api.connectivity.ConnectivityHandler
+import com.simibubi.create.content.fluids.tank.FluidTankBlock
 import com.simibubi.create.content.fluids.tank.FluidTankBlockEntity
-import com.simibubi.create.content.fluids.tank.FluidTankCTBehaviour
 import com.simibubi.create.foundation.blockEntity.IMultiBlockEntityContainer
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
-import io.github.fabricators_of_create.porting_lib.util.Constants
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
@@ -16,7 +15,7 @@ import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
-import org.valkyrienskies.mod.util.updateBlock
+import kotlin.math.abs
 
 class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state),
     IMultiBlockEntityContainer {
@@ -74,11 +73,11 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     }
 
     fun updateConnectivity() {
-
+        updateConnectivity = false
         if (level!!.isClientSide) return
         if (!isController) return
 
-        updateConnectivity = false
+
         ConnectivityHandler.formMulti(this)
     }
 
@@ -87,7 +86,8 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         if (state.block is DuctTankBlock) { // safety
             state = state.setValue(DuctTankBlock.BOTTOM, controller!!.y == blockPos.y)
             state = state.setValue(DuctTankBlock.TOP, controller!!.y + height - 1 == blockPos.y)
-            level!!.setBlock(blockPos, state,23)
+            state = state.setValue(DuctTankBlock.LARGE, width > 1)
+            level!!.setBlock(blockPos, state,6)
 
             (blockState.block as? DuctTankBlock)?.nodeRemove(blockState, level!!, blockPos, blockState, false)
             if (isController) {
@@ -98,6 +98,20 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         setChanged()
         notifyUpdate()
     }
+
+//    fun updateAll() {
+//        for (yOffset in 0..<height) {
+//            for (xOffset in 0..<width) {
+//                for (zOffset in 0..<width) {
+//                    val pos = this.worldPosition.offset(xOffset, yOffset, zOffset)
+//                    val blockState = level!!.getBlockState(pos)
+//                    if (blockState.block !is DuctTankBlock) continue
+//
+//                    level!!.setBlock(pos, blockState, 23)
+//                }
+//            }
+//        }
+//    }
 
     override fun getController(): BlockPos? {
         return if (isController) blockPos else controllerCT
@@ -136,11 +150,14 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         var state = blockState
         state = state.setValue(DuctTankBlock.TOP, true)
         state = state.setValue(DuctTankBlock.BOTTOM, true)
-        level!!.setBlock(worldPosition, state, 22, 1024)
+        state = state.setValue(DuctTankBlock.LARGE, false)
+        level!!.setBlock(worldPosition, state, 23)
         //updateBlock(level!!, blockPos, blockPos, state)
         //level!!.setBlockAndUpdate(worldPosition, state)
         //level!!.setBlocksDirty(blockPos, blockState, state)
         //level!!.updateNeighborsAt(blockPos, blockState.block)
+
+
 
         setChanged()
         sendData()
