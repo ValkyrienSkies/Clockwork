@@ -33,7 +33,7 @@ abstract class DuctStats(val block: Block) : TooltipModifier {
 
                 list += Component.translatable("vs_clockwork.duct_stats.internal_volume").append(" $internalVolume m³").withStyle(
                     ChatFormatting.GREEN)
-                list += Component.translatable("vs_clockwork.duct_stats.max_temperature").append(" $maxTemperature °K").withStyle(
+                list += Component.translatable("vs_clockwork.duct_stats.max_temperature").append(" $maxTemperature K").withStyle(
                     ChatFormatting.RED)
                 list += Component.translatable("vs_clockwork.duct_stats.max_pressure").append(" ${maxPressure/1000} kPa").withStyle(
                     ChatFormatting.BLUE)

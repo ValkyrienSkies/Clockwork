@@ -15,6 +15,7 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
 import org.valkyrienskies.clockwork.util.KNodeKineticBlockEntity
+import org.valkyrienskies.core.api.world.connectivity.ConnectionStatus
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3i
@@ -22,6 +23,7 @@ import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.shipObjectWorld
 import java.time.Clock
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState): KNodeKineticBlockEntity(type, pos, state) {
 
@@ -70,12 +72,8 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
         val oldHas = hasPocket
         //println(serverLevel.shipObjectWorld.isIsolatedAir(blockPos.x, blockPos.y+1, blockPos.z, serverLevel.dimensionId))
-        hasPocket = try {
+        hasPocket = serverLevel.shipObjectWorld.isIsolatedAir(blockPos.x, blockPos.y+1, blockPos.z, serverLevel.dimensionId)  == ConnectionStatus.DISCONNECTED
 
-            serverLevel.shipObjectWorld.getAirComponentSize(blockPos.x, blockPos.y+1, blockPos.z, serverLevel.dimensionId) > 0
-        } catch (e: IllegalArgumentException) {
-            false
-        }
 
         if (oldHas != hasPocket) sendData()
 
@@ -118,7 +116,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         val usedUpMass = gasMassTotal * pointer.value
         val usedEnergy = heatEnergy * pointer.value
 
-        pocketTemperature = (pocketHeatEnergy + usedEnergy) / (ClockworkMod.getKelvin().mixtureCapacity(pocketGasMass) * pocketGasMassTotal)
+        pocketTemperature = (pocketHeatEnergy + usedEnergy) / ClockworkMod.getKelvin().mixtureCapacity(pocketGasMass)
 
         serverLevel.shipObjectWorld.setAirComponentAugmentation(
             ClockworkAugmentations.getComponentAugmentation("heatEnergy"),
@@ -132,7 +130,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         gasMass.forEach {
             KelvinMod.getKelvin().removeGas(getDuctNodePosition(), it.key,usedUpMass * it.value / gasMassTotal)
         }
-
+        sendData()
     }
 
     private fun heatPocketOld() {
@@ -233,10 +231,10 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
     override fun addToGoggleTooltip(tooltip: List<Component>?, isPlayerSneaking: Boolean): Boolean {
         val bool = super.addToGoggleTooltip(tooltip, isPlayerSneaking)
-        if (!hasPocket) {
+        if (!hasPocket || pocketTemperature.isNaN()) {
             (tooltip as MutableList?)?.add(Component.literal("Missing pocket.").withStyle(ChatFormatting.GRAY).withStyle(ChatFormatting.ITALIC))
         } else {
-            (tooltip as MutableList?)?.add(Component.literal("Pocket Temperature: $pocketTemperature").withStyle(ChatFormatting.RED))
+            (tooltip as MutableList?)?.add(Component.literal("Pocket Temperature: ${pocketTemperature.roundToInt()}K").withStyle(ChatFormatting.RED))
         }
         return bool
     }

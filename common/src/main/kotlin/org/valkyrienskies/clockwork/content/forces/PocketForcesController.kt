@@ -17,6 +17,7 @@ import org.valkyrienskies.core.api.VsBeta
 import org.valkyrienskies.core.api.ships.*
 import org.valkyrienskies.core.api.util.GameTickOnly
 import org.valkyrienskies.core.api.world.PhysLevel
+import org.valkyrienskies.core.api.world.connectivity.ConnectionStatus
 import org.valkyrienskies.core.api.world.properties.DimensionId
 import org.valkyrienskies.core.util.pollUntilEmpty
 import org.valkyrienskies.kelvin.KelvinMod
@@ -50,8 +51,10 @@ class PocketForcesController: ShipPhysicsListener {
         //ClockworkMod.LOGGER.info(physShip.mass.toString())
 
         buoyancyForce.forEach {
+            println(it.value)
             if (it.value.isFinite() && !it.value.isNaN()) { //just to be safe
-                physShipImpl.applyWorldForceToModelPos(Vector3d(0.0, it.value, 0.0))//, Vector3d(it.key))
+
+                physShipImpl.applyWorldForceToModelPos(Vector3d(0.0, it.value, 0.0), it.key)
             }
         }
     }
@@ -66,8 +69,9 @@ class PocketForcesController: ShipPhysicsListener {
 
         pocketQueue.pollUntilEmpty {
             val yHeight = physShip.transform.shipToWorld.transformPosition(it.pocketCenter, Vector3d()).y()
+            val atmoDensity = physLevel.aerodynamicUtils.getAirDensityForY(yHeight, this.dimensionId)
 
-            val buoyantForce = it.pocketVolume * (physLevel.aerodynamicUtils.getAirDensityForY(yHeight, this.dimensionId) - it.hotDensity) * 10.0 * ClockworkConfig.SERVER.balloonForceMult
+            val buoyantForce = it.pocketVolume * (atmoDensity - it.hotDensity) * 10.0 * ClockworkConfig.SERVER.balloonForceMult
             totalBuoyantForce[physShip.transform.toModel.transformPosition(it.pocketCenter, Vector3d())] = max(buoyantForce, 0.0)
         }
         pocketQueue.clear()
@@ -83,8 +87,12 @@ class PocketForcesController: ShipPhysicsListener {
         val roots = level.shipObjectWorld.getFromEachAirComponent(ClockworkAugmentations.getComponentAugmentation("heatEnergy"), level.dimensionId, ship.chunkClaim)
 
         for (r: Triple<Int, Int, Int> in roots.keys) {
+
+
+
             // Just so we can have x,y,z instead of first,second,third
             val root = Vector3i(r.first,r.second,r.third)
+            if (level.shipObjectWorld.isIsolatedAir(root.x, root.y, root.z, dimensionId) != ConnectionStatus.DISCONNECTED) continue
 
             val (gasMasses, heatEnergy) = retrieveGasInfoFromPocket(root, level)
             //val pressure = level.shipObjectWorld.getAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("pressure"), root.x(), root.y(), root.z(), level.dimensionId)
@@ -119,16 +127,19 @@ class PocketForcesController: ShipPhysicsListener {
             val isSealed = level.shipObjectWorld.collectAirAugmentation(ClockworkAugmentations.getAugmentation("sealed"), root.x(), root.y(), root.z(), level.dimensionId) > 0.0
             if (!isSealed) {
                 var (gasMasses, currentHeatEnergy) = retrieveGasInfoFromPocket(root, level)
-                println("mass: ${gasMasses.values.sum()};  energy: $currentHeatEnergy;  temperature: ${currentHeatEnergy/(KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(gasMasses)}")
+                //println("mass: ${gasMasses.values.sum()};  energy: $currentHeatEnergy;  temperature: ${currentHeatEnergy/(KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(gasMasses)}")
 
-                if (currentHeatEnergy.isNaN() || currentHeatEnergy == 0.0 || gasMasses.isEmpty()) {
+                if (currentHeatEnergy.isNaN()) {
 
                     val key = ClockworkAugmentations.getComponentAugmentation("gas/kelvin:air")
                     level.shipObjectWorld.setAirComponentAugmentation(key, root.x,root.y,root.z,dimensionId, volume*atmoDensity)
 
-                    val specificHeat = 1000 * GasTypeRegistry.getGasType("kelvin","air")!!.specificHeatCapacity
+                    val air = GasTypeRegistry.getGasType("kelvin","air")!!
+
+
+                    val capacity = 1000 * air.specificHeatCapacity / air.adiabaticIndex
                     level.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("heatEnergy"),
-                        root.x,root.y,root.z,dimensionId, atmoTemperature * volume*atmoDensity * specificHeat)
+                        root.x,root.y,root.z,dimensionId, atmoTemperature * volume*atmoDensity * capacity)
 
                     continue
                 }
@@ -180,7 +191,7 @@ class PocketForcesController: ShipPhysicsListener {
             }
         }
     }
-    
+
 
     private fun getPocketCenter(level: ServerLevel, pos: Vector3i): Vector3d {
         val collectX = level.shipObjectWorld.collectAirAugmentation(level.shipObjectWorld.createDoubleSumAugmentation("core", "x"), pos.x(), pos.y(), pos.z(), level.dimensionId)
