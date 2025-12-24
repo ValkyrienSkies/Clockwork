@@ -17,6 +17,7 @@ import org.valkyrienskies.core.api.ships.*
 import org.valkyrienskies.core.api.util.GameTickOnly
 import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.api.world.properties.DimensionId
+import org.valkyrienskies.core.util.pollUntilEmpty
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.api.DuctNetwork
 import org.valkyrienskies.kelvin.impl.DuctNetworkServer
@@ -48,7 +49,7 @@ class PocketForcesController: ShipPhysicsListener {
 
         buoyancyForce.forEach {
             if (it.value.isFinite() && !it.value.isNaN()) { //just to be safe
-                physShipImpl.applyWorldForceToModelPos(Vector3d(0.0, it.value, 0.0), Vector3d(it.key))
+                physShipImpl.applyWorldForceToModelPos(Vector3d(0.0, it.value, 0.0))//, Vector3d(it.key))
             }
         }
     }
@@ -57,16 +58,17 @@ class PocketForcesController: ShipPhysicsListener {
         val physShipImpl = physShip
 
         var totalBuoyantForce = HashMap<Vector3dc, Double>()
-        if (dimensionMap[dimensionId] != null && dimensionMap[dimensionId]!!.maxY <= 0.0) return totalBuoyantForce
+        if (dimensionMap[dimensionId] == null || dimensionMap[dimensionId]!!.maxY <= 0.0) return totalBuoyantForce
 
 
 
-        pocketQueue.forEach {
+        pocketQueue.pollUntilEmpty {
             val yHeight = physShip.transform.shipToWorld.transformPosition(it.pocketCenter, Vector3d()).y()
 
             val buoyantForce = it.pocketVolume * (physLevel.aerodynamicUtils.getAirDensityForY(yHeight, this.dimensionId) - it.hotDensity) * 10.0 * ClockworkConfig.SERVER.balloonForceMult
-            totalBuoyantForce[it.pocketCenter] = max(buoyantForce, 0.0)
+            totalBuoyantForce[physShip.transform.toModel.transformPosition(it.pocketCenter, Vector3d())] = max(buoyantForce, 0.0)
         }
+        pocketQueue.clear()
 
         return totalBuoyantForce
     }
@@ -82,12 +84,12 @@ class PocketForcesController: ShipPhysicsListener {
             // Just so we can have x,y,z instead of first,second,third
             val root = Vector3i(r.first,r.second,r.third)
 
-            val gasMap = retrieveGasInfoFromPocket(root, level)
+            val (gasMasses, heatEnergy) = retrieveGasInfoFromPocket(root, level)
             //val pressure = level.shipObjectWorld.getAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("pressure"), root.x(), root.y(), root.z(), level.dimensionId)
             //val temperature = level.shipObjectWorld.getAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("temperature"), root.x(), root.y(), root.z(), level.dimensionId)
             val volume = level.shipObjectWorld.getAirComponentSize(root.x(), root.y(), root.z(), dimensionId)
 
-            var totalInternalDensity = gasMap.first.values.sum() / volume
+            var totalInternalDensity = gasMasses.values.sum() / volume
 
             pocketQueue.add(PocketForcesQueueable(getPocketCenter(level, root), volume.toDouble(), totalInternalDensity))
         }
@@ -118,7 +120,7 @@ class PocketForcesController: ShipPhysicsListener {
 
                 if (currentHeatEnergy.isNaN() || currentHeatEnergy == 0.0 || gasMass.isEmpty()) {
 
-                    val key = ClockworkAugmentations.getComponentAugmentation("gas/kelvin:air")
+                    val key = ClockworkAugmentations.getComponentAugmentation("kelvin:gas/kelvin:air")
                     level.shipObjectWorld.setAirComponentAugmentation(key, root.x,root.y,root.z,dimensionId, volume*atmoDensity)
 
                     val specificHeat = 1000 * GasTypeRegistry.getGasType("kelvin","air")!!.specificHeatCapacity
