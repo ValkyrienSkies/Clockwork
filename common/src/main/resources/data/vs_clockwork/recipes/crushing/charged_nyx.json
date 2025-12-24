@@ -1,0 +1,18 @@
+{
+  "type": "create:crushing",
+  "ingredients": [
+    {
+      "item": "vs_clockwork:charged_nyx"
+    }
+  ],
+  "processingTime": 350,
+  "results": [
+    {
+      "item": "vs_clockwork:cobbled_nyx"
+    },
+    {
+      "chance": 0.5,
+      "item": "vs_clockwork:wanderlite_crystal"
+    }
+  ]
+}

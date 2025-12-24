@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": {
+      "item": "create:iron_sheet"
+    },
+    "N": {
+      "item": "create:zinc_nugget"
+    },
+	"S": {
+      "item": "create:shaft"
+    },
+	"C": {
+      "item": "create:industrial_iron_block"
+    },
+	"D": {
+      "item": "vs_clockwork:duct"
+    }
+  },
+  "pattern": [
+    " S ",
+    "NPN",
+	"DC "
+  ],
+  "result": {
+    "item": "vs_clockwork:extendon"
+  },
+  "show_notification": true
+}

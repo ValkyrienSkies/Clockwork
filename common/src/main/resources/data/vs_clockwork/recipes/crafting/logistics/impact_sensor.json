@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "create:content_observer"
+    },
+    {
+      "item": "minecraft:iron_ingot"
+    },
+	{
+      "item": "minecraft:string"
+    }
+  ],
+  "result": {
+    "item": "vs_clockwork:impact_sensor"
+  },
+  "show_notification": true
+}

@@ -1,0 +1,29 @@
+{
+  "type": "create:mechanical_crafting",
+  "pattern": [
+    "LCL",
+    "NHN",
+    "CWC"
+  ],
+  "key": {
+    "L": {
+      "item": "minecraft:leather"
+    },
+    "N": {
+      "item": "vs_clockwork:nyx"
+    },
+    "H": {
+      "item": "minecraft:diamond_leggings"
+    },
+    "C": {
+      "item": "vs_clockwork:wanderlite_crystal"
+    },
+    "W": {
+      "tag": "minecraft:wool"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:aeronaut_jumpers"
+  },
+  "acceptMirrored": false
+}

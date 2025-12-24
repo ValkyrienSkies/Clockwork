@@ -3,18 +3,18 @@
   "category": "misc",
   "key": {
     "S": {
-      "item": "minecraft:stick"
+      "item": "create:shaft"
     },
-    "P": {
-      "tag": "minecraft:wooden_slabs"
+    "N": {
+      "item": "create:zinc_nugget"
     }
   },
   "pattern": [
-    "P",
-    "S"
+    " N ",
+    "NSN"
   ],
   "result": {
-    "item": "vs_clockwork:propeller_blade"
+    "item": "vs_clockwork:universal_shaft"
   },
   "show_notification": true
 }

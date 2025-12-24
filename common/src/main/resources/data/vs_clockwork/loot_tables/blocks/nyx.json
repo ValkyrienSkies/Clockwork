@@ -24,23 +24,18 @@
                   }
                 }
               ],
-              "name": "vs_clockwork:wanderlite_deepslate_ore"
+              "name": "vs_clockwork:nyx"
             },
             {
               "type": "minecraft:item",
-              "functions": [
-                {
-                  "enchantment": "minecraft:fortune",
-                  "formula": "minecraft:ore_drops",
-                  "function": "minecraft:apply_bonus"
-                },
-                {
-                  "function": "minecraft:explosion_decay"
-                }
-              ],
-              "name": "vs_clockwork:wanderlite_crystal"
+              "name": "vs_clockwork:cobbled_nyx"
             }
           ]
+        }
+      ],
+	  "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
         }
       ],
       "rolls": 1.0

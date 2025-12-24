@@ -9,6 +9,7 @@
     "vs_clockwork:smooth_wanderlite",
     "vs_clockwork:smooth_wanderlite_slab",
     "vs_clockwork:smooth_wanderlite_stairs",
-    "vs_clockwork:wanderlite_bricks"
+    "vs_clockwork:wanderlite_bricks",
+	"vs_clockwork:wanderglass"
   ]
 }

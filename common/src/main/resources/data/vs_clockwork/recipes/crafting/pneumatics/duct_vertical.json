@@ -2,19 +2,21 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "S": {
-      "item": "minecraft:stick"
+    "C": {
+      "item": "create:industrial_iron_block"
     },
-    "P": {
-      "tag": "minecraft:wooden_slabs"
+    "S": {
+      "item": "create:iron_sheet"
     }
   },
   "pattern": [
-    "P",
+    "S",
+    "C",
     "S"
   ],
   "result": {
-    "item": "vs_clockwork:propeller_blade"
+    "count": 4,
+    "item": "vs_clockwork:duct"
   },
   "show_notification": true
 }

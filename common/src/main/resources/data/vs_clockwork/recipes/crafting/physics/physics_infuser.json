@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "BOB",
+    "OMO",
+    "BOB"
+  ],
+  "key": {
+    "B": {
+      "item": "create:brass_ingot"
+    },
+    "O": {
+      "item": "create:sturdy_sheet"
+    },
+    "M": {
+      "item": "vs_clockwork:wanderlite_matrix"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:physics_infuser"
+  }
+}

@@ -9,7 +9,7 @@
       "item": "minecraft:iron_bars"
     },
     "S": {
-      "tag": "forge:plates/iron"
+      "item": "create:iron_sheet"
     },
 	"C": {
       "item": "create:industrial_iron_block"

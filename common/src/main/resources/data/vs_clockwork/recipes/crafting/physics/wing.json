@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "WB",
+    "BO"
+  ],
+  "key": {
+    "W": {
+      "tag": "minecraft:wool"
+    },
+    "B": {
+      "item": "create:brass_nugget"
+    },
+    "O": {
+      "item": "create:sturdy_sheet"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:wing",
+    "count": 4
+  }
+}

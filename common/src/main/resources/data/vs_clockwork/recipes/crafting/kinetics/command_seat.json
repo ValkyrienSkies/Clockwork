@@ -10,7 +10,7 @@
       "tag": "minecraft:wool"
     },
     "B": {
-      "tag": "forge:ingots/brass"
+      "item": "create:brass_ingot"
     },
     "L": {
       "item": "create:linked_controller"

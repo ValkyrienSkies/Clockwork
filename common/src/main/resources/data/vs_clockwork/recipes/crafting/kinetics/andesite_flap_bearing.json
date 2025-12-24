@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "P",
+    "A",
+    "S"
+  ],
+  "key": {
+    "P": {
+      "item": "create:iron_sheet"
+    },
+    "A": {
+      "item": "create:andesite_casing"
+    },
+    "S": {
+      "item": "create:electron_tube"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:andesite_flap_bearing"
+  }
+}

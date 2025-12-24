@@ -1,0 +1,72 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "create:brass_ingot"
+  },
+  "transitionalItem": {
+    "item": "vs_clockwork:incomplete_wanderwand"
+  },
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "vs_clockwork:incomplete_wanderwand"
+        },
+        [
+          {
+            "item": "minecraft:iron_nugget"
+          },
+          {
+            "item": "create:zinc_nugget"
+          }
+        ]
+      ],
+      "results": [
+        {
+          "item": "vs_clockwork:incomplete_wanderwand"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "vs_clockwork:incomplete_wanderwand"
+        },
+        [
+          {
+            "item": "minecraft:iron_nugget"
+          },
+          {
+            "item": "create:zinc_nugget"
+          }
+        ]
+      ],
+      "results": [
+        {
+          "item": "vs_clockwork:incomplete_wanderwand"
+        }
+      ]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {
+          "item": "vs_clockwork:incomplete_wanderwand"
+        }
+      ],
+      "results": [
+        {
+          "item": "vs_clockwork:incomplete_wanderwand"
+        }
+      ]
+    }
+  ],
+  "results": [
+    {
+      "item": "vs_clockwork:incomplete_wanderwand"
+    }
+  ],
+  "loops": 3
+}

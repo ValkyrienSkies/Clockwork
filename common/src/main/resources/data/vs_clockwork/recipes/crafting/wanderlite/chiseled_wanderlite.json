@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "#": {
+      "item": "vs_clockwork:smooth_wanderlite_slab"
+    }
+  },
+  "pattern": [
+    "#",
+	"#"
+  ],
+  "result": {
+    "count": 1,
+    "item": "vs_clockwork:chiseled_wanderlite"
+  },
+  "show_notification": true
+}

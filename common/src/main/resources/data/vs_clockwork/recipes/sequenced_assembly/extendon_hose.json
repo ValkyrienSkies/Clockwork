@@ -3,7 +3,7 @@
   "ingredient": {
     "item": "vs_clockwork:duct"
   },
-  "loops": 10,
+  "loops": 5,
   "results": [
     {
       "chance": 120.0,
@@ -41,7 +41,7 @@
       "type": "create:deploying",
       "ingredients": [
         {
-          "item": "vs_clockwork:incomplete_extendon_hose"
+          "item": "vs_clockwork:incomplete_hose_spool"
         },
         {
           "item": "minecraft:dried_kelp"
@@ -49,7 +49,7 @@
       ],
       "results": [
         {
-          "item": "vs_clockwork:incomplete_extendon_hose"
+          "item": "vs_clockwork:incomplete_hose_spool"
         }
       ]
     },
@@ -57,7 +57,7 @@
       "type": "create:deploying",
       "ingredients": [
         {
-          "item": "vs_clockwork:incomplete_extendon_hose"
+          "item": "vs_clockwork:incomplete_hose_spool"
         },
         {
           "item": "minecraft:dried_kelp"
@@ -65,7 +65,7 @@
       ],
       "results": [
         {
-          "item": "vs_clockwork:incomplete_extendon_hose"
+          "item": "vs_clockwork:incomplete_hose_spool"
         }
       ]
     },
@@ -73,15 +73,15 @@
       "type": "create:deploying",
       "ingredients": [
         {
-          "item": "vs_clockwork:incomplete_extendon_hose"
+          "item": "vs_clockwork:incomplete_hose_spool"
         },
         {
-          "tag": "forge:plates/iron"
+          "item": "create:iron_sheet"
         }
       ],
       "results": [
         {
-          "item": "vs_clockwork:incomplete_extendon_hose"
+          "item": "vs_clockwork:incomplete_hose_spool"
         }
       ]
     },
@@ -89,17 +89,17 @@
       "type": "create:cutting",
       "ingredients": [
         {
-          "item": "vs_clockwork:incomplete_extendon_hose"
+          "item": "vs_clockwork:incomplete_hose_spool"
         }
       ],
       "results": [
         {
-          "item": "vs_clockwork:incomplete_extendon_hose"
+          "item": "vs_clockwork:incomplete_hose_spool"
         }
       ]
     }
   ],
   "transitionalItem": {
-    "item": "vs_clockwork:incomplete_extendon_hose"
+    "item": "vs_clockwork:incomplete_hose_spool"
   }
 }

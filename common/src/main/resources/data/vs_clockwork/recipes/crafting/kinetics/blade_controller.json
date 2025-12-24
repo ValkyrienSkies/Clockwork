@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " A ",
+    "AEA"
+  ],
+  "key": {
+    "A": {
+      "item": "create:zinc_nugget"
+    },
+    "E": {
+      "item": "create:radial_chassis"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:blade_controller"
+  }
+}

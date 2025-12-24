@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " P",
+    "TA",
+    " S"
+  ],
+  "key": {
+    "P": {
+      "item": "create:brass_sheet"
+    },
+    "A": {
+      "item": "create:railway_casing"
+    },
+	"T": {
+      "item": "create:transmitter"
+    },
+    "S": {
+      "item": "create:electron_tube"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:smart_flap_bearing"
+  }
+}

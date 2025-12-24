@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "PGP",
+    "KCK",
+    "DSD"
+  ],
+  "key": {
+    "P": {
+      "item": "create:iron_sheet"
+    },
+    "G": {
+      "item": "minecraft:iron_bars"
+    },
+    "K": {
+      "item": "minecraft:dried_kelp"
+    },
+	"C": {
+      "item": "create:industrial_iron_block"
+    },
+	"D": {
+      "item": "vs_clockwork:duct"
+    },
+    "S": {
+      "item": "create:shaft"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:air_compressor"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " D ",
+    "PPP"
+  ],
+  "key": {
+    "P": {
+      "item": "create:copper_sheet"
+    },
+	"D": {
+      "item": "vs_clockwork:duct"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:steam_generator"
+  }
+}

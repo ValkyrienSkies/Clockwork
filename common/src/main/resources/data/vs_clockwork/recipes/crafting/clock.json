@@ -6,7 +6,7 @@
       "item": "minecraft:clock"
     },
 	"S": {
-      "tag": "forge:rods/wooden"
+      "item": "minecraft:stick"
     },
     "P": {
       "tag": "minecraft:planks"

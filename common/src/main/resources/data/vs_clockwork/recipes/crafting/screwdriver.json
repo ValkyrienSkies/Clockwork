@@ -3,10 +3,10 @@
   "category": "misc",
   "key": {
     "N": {
-      "tag": "forge:nuggets/zinc"
+      "item": "create:zinc_nugget"
     },
     "S": {
-      "tag": "forge:rods/wooden"
+      "item": "minecraft:stick"
     }
   },
   "pattern": [

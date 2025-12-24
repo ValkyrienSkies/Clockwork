@@ -1,0 +1,32 @@
+{
+  "type": "create:mechanical_crafting",
+  "pattern": [
+    "LGL",
+    "NHN",
+    "CWC"
+  ],
+  "key": {
+    "L": {
+      "item": "minecraft:leather"
+    },
+    "G": {
+      "item": "create:goggles"
+    },
+    "N": {
+      "item": "vs_clockwork:nyx"
+    },
+    "H": {
+      "item": "minecraft:diamond_helmet"
+    },
+    "C": {
+      "item": "vs_clockwork:wanderlite_crystal"
+    },
+    "W": {
+      "tag": "minecraft:wool"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:aeronaut_goggles"
+  },
+  "acceptMirrored": false
+}

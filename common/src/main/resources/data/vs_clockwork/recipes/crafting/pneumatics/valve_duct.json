@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "create:iron_sheet"
+    },
+    {
+      "item": "vs_clockwork:duct"
+    }
+  ],
+  "result": {
+    "item": "vs_clockwork:valve_duct"
+  }
+}
