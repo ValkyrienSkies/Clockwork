@@ -48,6 +48,9 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
         var axis0 = CachedBuffers.partial(ClockworkPartials.EXTENDON_AXIS0,be.blockState)
         var axis1 = CachedBuffers.partial(ClockworkPartials.EXTENDON_AXIS1,be.blockState)
 
+        axis0.light<SuperByteBuffer>(light).renderInto(ms,vb)
+        axis1.light<SuperByteBuffer>(light).renderInto(ms,vb)
+
         if (be.connectedBe != null) {
             val thisShip = be.level!!.getShipManagingPos(be.blockPos) as ClientShip?
             val thisPos = if (thisShip == null) be.blockPos.toJOMLD() + 0.5 else thisShip.renderTransform.shipToWorld.transformPosition(be.blockPos.toJOMLD() + 0.5)!!
@@ -76,9 +79,6 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
                 renderTubes(direction.length().toFloat() * tubeLengthMultiplier, ms, angles, be.blockPos, be.connectedBe!!.blockPos, tubeRadiusMultiplier, tubeTextureMultiplier, tubebuffer)
             }
         }
-
-        axis0.light<SuperByteBuffer>(light).renderInto(ms,vb)
-        axis1.light<SuperByteBuffer>(light).renderInto(ms,vb)
 
         super.renderSafe(be, partialTicks, ms, buffer, light, overlay)
     }
