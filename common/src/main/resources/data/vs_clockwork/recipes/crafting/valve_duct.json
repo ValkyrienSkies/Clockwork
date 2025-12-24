@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "forge:plates/iron"
+    },
+    {
+      "item": "vs_clockwork:duct"
+    }
+  ],
+  "result": {
+    "item": "vs_clockwork:valve_duct"
+  }
+}

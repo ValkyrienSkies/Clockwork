@@ -2,6 +2,13 @@
   "replace": false,
   "values": [
     "vs_clockwork:wanderlite_deepslate_ore",
-    "vs_clockwork:wanderlite_end_ore"
+    "vs_clockwork:wanderlite_end_ore",
+    "vs_clockwork:wanderlite_nyx_ore",
+    "vs_clockwork:wanderlite_block",
+    "vs_clockwork:chiseled_wanderlite",
+    "vs_clockwork:smooth_wanderlite",
+    "vs_clockwork:smooth_wanderlite_slab",
+    "vs_clockwork:smooth_wanderlite_stairs",
+    "vs_clockwork:wanderlite_bricks"
   ]
 }

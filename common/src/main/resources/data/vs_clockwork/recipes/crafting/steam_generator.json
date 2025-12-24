@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " D ",
+    "PPP"
+  ],
+  "key": {
+    "P": {
+      "tag": "forge:plates/copper"
+    },
+	"D": {
+      "item": "vs_clockwork:duct"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:steam_generator"
+  }
+}

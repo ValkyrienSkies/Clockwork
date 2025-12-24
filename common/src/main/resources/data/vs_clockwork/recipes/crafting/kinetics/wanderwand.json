@@ -1,0 +1,16 @@
+{
+  "type": "create:deploying",
+  "ingredients": [
+    {
+      "item": "vs_clockwork:incomplete_wanderwand"
+    },
+    {
+      "item": "vs_clockwork:wanderlite_matrix"
+    }
+  ],
+  "results": [
+    {
+      "item": "vs_clockwork:wanderwand"
+    }
+  ]
+}

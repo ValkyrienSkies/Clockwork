@@ -24,7 +24,7 @@
                   }
                 }
               ],
-              "name": "create:deepslate_zinc_ore"
+              "name": "vs_clockwork:wanderlite_nyx_ore"
             },
             {
               "type": "minecraft:item",
@@ -38,7 +38,7 @@
                   "function": "minecraft:explosion_decay"
                 }
               ],
-              "name": "create:raw_zinc"
+              "name": "vs_clockwork:wanderlite_crystal"
             }
           ]
         }
@@ -46,5 +46,5 @@
       "rolls": 1.0
     }
   ],
-  "random_sequence": "create:blocks/deepslate_zinc_ore"
+  "random_sequence": "vs_clockwork:blocks/wanderlite_ore"
 }

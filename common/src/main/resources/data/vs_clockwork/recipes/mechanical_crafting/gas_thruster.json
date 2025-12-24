@@ -1,0 +1,30 @@
+{
+  "type": "create:mechanical_crafting",
+  "acceptMirrored": false,
+  "key": {
+    "D": {
+      "item": "vs_clockwork:duct"
+    },
+    "B": {
+      "item": "minecraft:iron_bars"
+    },
+    "S": {
+      "tag": "forge:plates/iron"
+    },
+	"C": {
+      "item": "create:industrial_iron_block"
+    },
+	"P": {
+      "item": "create:propeller"
+    }
+  },
+  "pattern": [
+    "DBSS",
+    "CPP ",
+    "DBSS"
+  ],
+  "result": {
+    "count": 1,
+    "item": "vs_clockwork:gas_thruster"
+  }
+}

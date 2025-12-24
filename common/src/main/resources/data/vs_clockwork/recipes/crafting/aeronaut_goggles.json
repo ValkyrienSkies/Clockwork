@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "minecraft:diamond_helmet"
+    },
+	{
+      "item": "create:goggles"
+    },
+    {
+      "tag": "minecraft:wool"
+    },
+    {
+      "item": "vs_clockwork:wanderlite_crystal"
+    },
+    {
+      "item": "vs_clockwork:nyx"
+    },
+    {
+      "item": "vs_clockwork:nyx"
+    }
+  ],
+  "result": {
+    "item": "vs_clockwork:aeronaut_goggles"
+  }
+}

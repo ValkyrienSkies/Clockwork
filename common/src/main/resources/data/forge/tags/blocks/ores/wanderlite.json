@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "vs_clockwork:wanderlite_deepslate_ore",
+    "vs_clockwork:wanderlite_end_ore",
+    "vs_clockwork:wanderlite_nyx_ore"
+  ]
+}

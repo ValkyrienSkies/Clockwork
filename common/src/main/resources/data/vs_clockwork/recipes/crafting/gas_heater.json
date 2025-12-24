@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "DBD",
+    " C "
+  ],
+  "key": {
+    "B": {
+      "item": "create:empty_blaze_burner"
+    },
+	"C": {
+      "item": "create:industrial_iron_block"
+    },
+	"D": {
+      "item": "vs_clockwork:duct"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:gas_heater"
+  }
+}

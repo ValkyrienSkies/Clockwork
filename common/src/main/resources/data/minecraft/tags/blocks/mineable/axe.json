@@ -1,9 +1,16 @@
 {
   "replace": false,
   "values": [
-    "vs_clockwork:redstone_resistor",
-    "vs_clockwork:andesite_flap_bearing",
+    "vs_clockwork:brass_propeller_bearing",
+    "vs_clockwork:juryrigged_propeller_bearing",
+    "vs_clockwork:blade_controller",
     "vs_clockwork:phys_bearing",
-    "vs_clockwork:alt_meter"
+    "vs_clockwork:andesite_flap_bearing",
+    "vs_clockwork:smart_flap_bearing",
+    "vs_clockwork:alt_meter",
+	"vs_clockwork:redstone_resistor",
+	"vs_clockwork:clock",
+	"vs_clockwork:delivery_cannon",
+	"vs_clockwork:delivery_chute"
   ]
 }

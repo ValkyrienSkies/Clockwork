@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "#": {
+      "item": "vs_clockwork:smooth_wanderlite"
+    }
+  },
+  "pattern": [
+    "#  ",
+	"## ",
+	"###"
+  ],
+  "result": {
+    "count": 4,
+    "item": "vs_clockwork:smooth_wanderlite_stairs"
+  },
+  "show_notification": true
+}

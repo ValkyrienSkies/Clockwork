@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "D": {
+      "item": "minecraft:music_disc_11"
+    },
+    "W": {
+      "item": "vs_clockwork:wanderlite_crystal"
+    }
+  },
+  "pattern": [
+    "W",
+    "D"
+  ],
+  "result": {
+    "item": "vs_clockwork:music_disc_wanderlust"
+  },
+  "show_notification": true
+}

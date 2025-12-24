@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "T",
+    "M",
+    "C"
+  ],
+  "key": {
+    "T": {
+      "item": "create:turntable"
+    },
+    "C": {
+      "item": "create:brass_casing"
+    },
+    "M": {
+      "item": "vs_clockwork:wanderlite_matrix"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:phys_bearing"
+  }
+}

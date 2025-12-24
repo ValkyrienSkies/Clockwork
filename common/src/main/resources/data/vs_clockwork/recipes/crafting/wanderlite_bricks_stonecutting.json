@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:stonecutting",
+  "count": 1,
+  "ingredient": {
+    "item": "vs_clockwork:smooth_wanderlite"
+  },
+  "result": "vs_clockwork:wanderlite_bricks"
+}

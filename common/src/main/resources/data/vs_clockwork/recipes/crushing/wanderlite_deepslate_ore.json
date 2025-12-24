@@ -1,0 +1,22 @@
+{
+  "type": "create:crushing",
+  "ingredients": [
+    {
+      "item": "vs_clockwork:wanderlite_deepslate_ore"
+    }
+  ],
+  "processingTime": 350,
+  "results": [
+    {
+      "item": "vs_clockwork:wanderlite_crystal"
+    },
+    {
+      "chance": 0.75,
+      "item": "vs_clockwork:wanderlite_crystal"
+    },
+    {
+      "chance": 0.125,
+      "item": "minecraft:cobbled_deepslate"
+    }
+  ]
+}

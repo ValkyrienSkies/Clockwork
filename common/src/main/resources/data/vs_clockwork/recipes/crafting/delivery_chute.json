@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "create:chute"
+    },
+    "D": {
+      "item": "create:depot"
+    },
+	"T": {
+      "item": "create:transmitter"
+    }
+  },
+  "pattern": [
+    "TD",
+    " C"
+  ],
+  "result": {
+    "item": "vs_clockwork:delivery_chute"
+  },
+  "show_notification": true
+}

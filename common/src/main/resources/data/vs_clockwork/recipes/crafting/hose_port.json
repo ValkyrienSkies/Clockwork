@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": {
+      "tag": "forge:plates/iron"
+    },
+    "N": {
+      "tag": "forge:nuggets/zinc"
+    },
+	"K": {
+      "item": "minecraft:dried_kelp"
+    },
+	"C": {
+      "item": "create:industrial_iron_block"
+    },
+	"D": {
+      "item": "vs_clockwork:duct"
+    }
+  },
+  "pattern": [
+    " C ",
+    "NKN",
+	"DP "
+  ],
+  "result": {
+    "item": "vs_clockwork:hose_port"
+  },
+  "show_notification": true
+}

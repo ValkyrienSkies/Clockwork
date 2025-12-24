@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "D": {
+      "item": "minecraft:dispenser"
+    },
+    "I": {
+      "item": "create:industrial_iron_block"
+    },
+    "L": {
+      "tag": "minecraft:logs"
+    },
+    "S": {
+      "item": "minecraft:smooth_stone"
+    },
+	"T": {
+      "item": "create:transmitter"
+    }
+  },
+  "pattern": [
+    "TI ",
+    "LIL",
+    "SDS"
+  ],
+  "result": {
+    "item": "vs_clockwork:delivery_cannon"
+  },
+  "show_notification": true
+}

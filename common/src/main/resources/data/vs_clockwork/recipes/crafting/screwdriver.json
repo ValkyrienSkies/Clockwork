@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "N": {
+      "tag": "forge:nuggets/zinc"
+    },
+    "S": {
+      "tag": "forge:rods/wooden"
+    }
+  },
+  "pattern": [
+    "  N",
+    " N ",
+    "S  "
+  ],
+  "result": {
+    "item": "vs_clockwork:screwdriver"
+  },
+  "show_notification": true
+}

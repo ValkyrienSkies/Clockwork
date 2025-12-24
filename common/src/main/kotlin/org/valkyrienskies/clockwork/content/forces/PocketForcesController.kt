@@ -64,7 +64,7 @@ class PocketForcesController: ShipPhysicsListener {
         pocketQueue.forEach {
             val yHeight = physShip.transform.shipToWorld.transformPosition(it.pocketCenter, Vector3d()).y()
 
-            val buoyantForce = it.pocketVolume * (physLevel.aerodynamicUtils.getAirDensityForY(yHeight, this.dimensionId) - it.hotDensity) * GRAVITATIONAL_ACCELERATION * ClockworkConfig.SERVER.balloonForceMult
+            val buoyantForce = it.pocketVolume * (physLevel.aerodynamicUtils.getAirDensityForY(yHeight, this.dimensionId) - it.hotDensity) * 10.0 * ClockworkConfig.SERVER.balloonForceMult
             totalBuoyantForce[it.pocketCenter] = max(buoyantForce, 0.0)
         }
 

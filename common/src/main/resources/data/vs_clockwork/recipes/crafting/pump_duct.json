@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "create:cogwheel"
+    },
+    {
+      "item": "vs_clockwork:duct"
+    }
+  ],
+  "result": {
+    "item": "vs_clockwork:pump_duct"
+  }
+}

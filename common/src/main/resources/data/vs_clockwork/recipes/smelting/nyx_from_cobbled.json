@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:smelting",
+  "category": "blocks",
+  "cookingtime": 200,
+  "experience": 0.1,
+  "ingredient": {
+    "item": "vs_clockwork:cobbled_nyx"
+  },
+  "result": "vs_clockwork:nyx"
+}

@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " V ",
+    "KTK",
+    " D "
+  ],
+  "key": {
+	"K": {
+      "item": "minecraft:dried_kelp"
+    },
+    "V": {
+      "item": "vs_clockwork:valve_duct"
+    },
+	"T": {
+      "item": "vs_clockwork:duct_tank"
+    },
+	"D": {
+      "item": "vs_clockwork:duct"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:gas_backtank"
+  }
+}

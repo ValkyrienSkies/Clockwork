@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " T ",
+    "DCD",
+    "KPK"
+  ],
+  "key": {
+    "P": {
+      "item": "create:propeller"
+    },
+    "T": {
+      "item": "create:electron_tube"
+    },
+    "K": {
+      "item": "minecraft:dried_kelp"
+    },
+	"C": {
+      "item": "create:industrial_iron_block"
+    },
+	"D": {
+      "item": "vs_clockwork:duct"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:gas_crafter"
+  }
+}
