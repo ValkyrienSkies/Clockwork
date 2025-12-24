@@ -128,7 +128,7 @@ object AirpocketRenderer {
 
 
     fun tick(level: ServerLevel) {
-        return
+
         level.players().forEach { player ->
             val pos = Vector3d(player.x, player.y, player.z)
             val dragInfo = (player as IEntityDraggingInformationProvider).draggingInformation

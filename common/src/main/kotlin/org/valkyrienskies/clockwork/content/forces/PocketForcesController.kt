@@ -9,7 +9,6 @@ import org.joml.Vector3dc
 import org.joml.Vector3i
 import org.valkyrienskies.clockwork.ClockworkAugmentations
 import org.valkyrienskies.clockwork.ClockworkConfig
-import org.valkyrienskies.clockwork.ClockworkGasses
 import org.valkyrienskies.clockwork.content.logistics.gas.utilities.PocketForcesQueueable
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.GRAVITATIONAL_ACCELERATION
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.dimensionMap
@@ -20,7 +19,6 @@ import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.api.world.properties.DimensionId
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.api.DuctNetwork
-import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.impl.DuctNetworkServer
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.mod.common.dimensionId
@@ -74,11 +72,11 @@ class PocketForcesController: ShipPhysicsListener {
     }
 
     @OptIn(GameTickOnly::class)
-    fun gameTick(level: ServerLevel, ship: ServerShip) {
-        val loadedShip = level.shipObjectWorld.loadedShips.getById(ship.id) ?: return
+    fun gameTick(level: ServerLevel, id: Long) {
+        val ship = level.shipObjectWorld.loadedShips.getById(id) ?: return
 
         // Todo: Replace with better 'get all air pockets' once theres an api method for that
-        val roots = level.shipObjectWorld.getFromEachAirComponent(ClockworkAugmentations.getComponentAugmentation("temperature"), level.dimensionId, loadedShip.chunkClaim)
+        val roots = level.shipObjectWorld.getFromEachAirComponent(ClockworkAugmentations.getComponentAugmentation("heatEnergy"), level.dimensionId, ship.chunkClaim)
 
         for (r: Triple<Int, Int, Int> in roots.keys) {
             // Just so we can have x,y,z instead of first,second,third
