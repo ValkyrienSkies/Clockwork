@@ -39,7 +39,9 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_s
 import org.valkyrienskies.clockwork.platform.SolidDeliveryMethods
 import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.clockwork.util.EaseHelper
+import org.valkyrienskies.mod.api.toFloat
 import org.valkyrienskies.mod.api.toMinecraft
+import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.world.clipIncludeShips
 import kotlin.math.*
 
@@ -106,7 +108,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
         xRot.chase(defaultXrot, 1.0, LerpedFloat.Chaser.LINEAR)
         yRot.chase(0.0, 1.0, LerpedFloat.Chaser.LINEAR)
-        distance.chase(0.0, 5.0, EaseHelper.EASE_IN_OUT)
+        distance.chase(0.0, 0.5, LerpedFloat.Chaser.LINEAR)
     }
 
     override fun lazyTick() {
@@ -118,7 +120,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
         xRot.updateChaseSpeed(1.0 + gunpowderedCoefficient * 3)
         yRot.updateChaseSpeed(1.0 + gunpowderedCoefficient * 3)
-        distance.updateChaseSpeed(5.0 + gunpowderedCoefficient * 5)
+        distance.updateChaseSpeed(0.5 + gunpowderedCoefficient * 2)
 
 
         xRot.tickChaser()
@@ -203,16 +205,26 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
         val vertex = getThirdPoint(realPos, chuteBlockEntity.realPos)
         val deltaP = realPos.sub(vertex)
+        val ship = level!!.getShipManagingPos(blockPos)
+        if (ship != null) {
+            val temp = ship.worldToShip.transformDirection(Vector3d(deltaP.x,deltaP.y,deltaP.z), Vector3d())
+            deltaP.x = temp.x
+            deltaP.y = temp.y
+            deltaP.z = temp.z
+        }
+        val xTargetRot = euler_angle(deltaP.z,-deltaP.x)
 
-        xRot.updateChaseTarget(euler_angle(deltaP.z,-deltaP.x).toFloat())
 
         val otherV: Double
         if (abs(deltaP.z) > abs(deltaP.x)) otherV = deltaP.z
         else otherV =  deltaP.x
         var u_angle = euler_angle(deltaP.y,otherV)
         if (u_angle>90) u_angle=180-u_angle
+        val yTargetRot = u_angle
 
-        yRot.updateChaseTarget(min(90.0,u_angle).toFloat())
+
+        xRot.updateChaseTarget(xTargetRot.toFloat())
+        yRot.updateChaseTarget(min(90.0f,yTargetRot.toFloat()))
         sendData()
     }
 

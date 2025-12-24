@@ -14,11 +14,22 @@ import net.minecraft.client.renderer.entity.EntityRenderer
 import net.minecraft.client.renderer.entity.LivingEntityRenderer
 import net.minecraft.client.renderer.entity.RenderLayerParent
 import net.minecraft.client.renderer.entity.layers.RenderLayer
+import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.level.block.Blocks
+import org.joml.Quaternionf
+import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautGogglesRenderer.Companion.fromModelSpace
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.IAeronautEquipment.Companion.isWearingAnyAeronaut
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.IAeronautEquipment.Companion.wearingAeronautInSlot
+import org.valkyrienskies.mod.api.getShipManagingEntity
+import org.valkyrienskies.mod.api.toJOML
+import org.valkyrienskies.mod.api.transformPosition
+import org.valkyrienskies.mod.api.vsApi
+import org.valkyrienskies.mod.common.shipObjectWorld
+import org.valkyrienskies.mod.common.util.IEntityDraggingInformationProvider
+import kotlin.math.min
 
 open class AeronautArmorLayer<T : LivingEntity, M : EntityModel<T>?>(renderer: RenderLayerParent<T, M>?) : RenderLayer<T, M>(renderer!!) {
 
@@ -44,65 +55,119 @@ open class AeronautArmorLayer<T : LivingEntity, M : EntityModel<T>?>(renderer: R
         val player = Minecraft.getInstance().player!!
         val partialTicks = AnimationTickHolder.getPartialTicks()
 
-        ms.pushPose()
+        val goggleState = AeronautGogglesState.getState(player)
 
-        val hatBase = ClockworkPartials.HAT_BASE
-        val air = Blocks.AIR.defaultBlockState()
-
-        CachedBuffers.partial(hatBase, air)
-            .disableDiffuse<SuperByteBuffer?>()
-            .light<SuperByteBuffer?>(light)
-            .renderInto(ms, buffer.getBuffer(renderType))
-
-        val flapAngle = AeronautGogglesState.getFlapsAngle(player)
-        val prevFlapAngle = AeronautGogglesState.getPrevFlapsAngle(player)
-        val interpolatedFlapAngle = prevFlapAngle + (flapAngle - prevFlapAngle) * partialTicks
-        ms.pushPose()
-        val originLeft = fromModelSpace(2.725, 10.0, 8.0)
-        ms.translate(-originLeft.x(), -originLeft.y(), -originLeft.z())
-        ms.mulPose(org.joml.Quaternionf().setAngleAxis(interpolatedFlapAngle.toFloat(), 1f, 0f, 0f))
-        ms.translate(originLeft.x(), originLeft.y(), originLeft.z())
-        ms.pushPose()
-
-        val hatFlapLeft = ClockworkPartials.HAT_FLAP_LEFT
-        CachedBuffers.partial(hatFlapLeft, air)
-            .disableDiffuse<SuperByteBuffer?>()
-            .light<SuperByteBuffer?>(light)
-            .renderInto(ms, buffer.getBuffer(renderType))
-        ms.popPose()
-        ms.popPose()
-        ms.pushPose()
-        val originRight = fromModelSpace(13.275, 10.0, 8.0)
-        ms.translate(-originRight.x(), -originRight.y(), -originRight.z())
-        ms.mulPose(org.joml.Quaternionf().setAngleAxis(-interpolatedFlapAngle.toFloat(), 1f, 0f, 0f))
-        ms.translate(originRight.x(), originRight.y(), originRight.z())
-        ms.pushPose()
-
-        val hatFlapRight = ClockworkPartials.HAT_FLAP_RIGHT
-        CachedBuffers.partial(hatFlapRight, air)
-            .disableDiffuse<SuperByteBuffer?>()
-            .light<SuperByteBuffer?>(light)
-            .renderInto(ms, buffer.getBuffer(renderType))
-        ms.popPose()
-        ms.popPose()
-
-        val wearingGoggles = AeronautGogglesState.getGogglesAreDown(player)
-        ms.pushPose()
-        ms.pushPose()
-        if (!wearingGoggles) {
-            //rotate so goggles are facing up
-            ms.mulPose(org.joml.Quaternionf().setAngleAxis(-90f, 0f, 0f, 1f))
+        //goggleState.prevFlapAngle = goggleState.flapAngle
+        val maxFlapAngle = Math.toRadians(90.0).toFloat()
+        val shipOn = (player as IEntityDraggingInformationProvider).draggingInformation.lastShipStoodOn ?: vsApi.getShipMountedTo(player)?.id ?: player.getShipManagingEntity()?.id
+        val velocity = player.deltaMovement.toJOML()
+        if (shipOn != null) {
+            val ship = player.clientLevel.shipObjectWorld!!.loadedShips.getById(shipOn)
+            if (ship != null) {
+                val playerPosInShip = ship.worldToShip.transformPosition(player.position().toJOML())
+                val velAtPlayerPos = ship.angularVelocity.cross(playerPosInShip, Vector3d()).add(ship.velocity)
+                velocity.add(velAtPlayerPos)
+            }
         }
-        ms.popPose()
+        val speed = velocity.length()
+        goggleState.flapAngle = -min(maxFlapAngle, (speed.toFloat() /200f) * maxFlapAngle)
+        //if (goggleState.flapAngle > 1) println("am i even real bro")
+        //println(goggleState.flapAngle)
+        if (player.wearingAeronautInSlot(EquipmentSlot.HEAD)) {
+            ms.pushPose()
 
-        val hatGoggles = ClockworkPartials.HAT_GOGGLES
-        CachedBuffers.partial(hatGoggles, air)
-            .disableDiffuse<SuperByteBuffer?>()
-            .light<SuperByteBuffer?>(light)
-            .renderInto(ms, buffer.getBuffer(renderType))
-        ms.popPose()
+//        ms.scale(0.5f, 0.5f, 0.5f)
+            val hatBase = ClockworkPartials.HAT_BASE
 
-        ms.popPose()
+            val air = Blocks.AIR.defaultBlockState()
+
+            //
+
+            model.head.translateAndRotate(ms)
+
+            hatBase.get().transforms.head.apply(false, ms)
+
+            //flip it since it's upside down for some reason
+
+
+
+            val quaternion = org.joml.Quaternionf()
+            quaternion.setAngleAxis(Math.toRadians(180.0).toFloat(), 0f, 0f, 1f)
+            ms.mulPose(quaternion)
+            //ms.translate(model.head.x, model.head.y, model.head.z)
+
+            ms.translate(-0.325, 0.195, -0.325)
+
+            ms.pushPose()
+
+            ms.scale(0.65f, 0.65f, 0.65f)
+
+            //ms.translate(-0.5, -0.5, -0.5)
+
+            CachedBuffers.partial(hatBase, air)
+                .disableDiffuse<SuperByteBuffer?>()
+                .light<SuperByteBuffer?>(light)
+                .renderInto(ms, buffer.getBuffer(renderType))
+
+            val flapAngle = goggleState.flapAngle
+            val prevFlapAngle = goggleState.prevFlapAngle
+            val interpolatedFlapAngle = prevFlapAngle + (flapAngle - prevFlapAngle) * partialTicks
+            goggleState.prevFlapAngle = interpolatedFlapAngle
+            ms.pushPose()
+            val originLeft = fromModelSpace(2.725, 10.0, 8.0)
+            //ms.translate(-originLeft.x(), -originLeft.y(), -originLeft.z())
+            ms.translate(0.0, 10.0/16.0, 0.0)
+            ms.mulPose(org.joml.Quaternionf().setAngleAxis(interpolatedFlapAngle.toFloat(), 0f, 0f, 1f))
+            //ms.translate(originLeft.x(), originLeft.y(), originLeft.z())
+            ms.translate(0.0, -10.0/16.0, 0.0)
+
+            val hatFlapLeft = ClockworkPartials.HAT_FLAP_LEFT
+            CachedBuffers.partial(hatFlapLeft, air)
+                .disableDiffuse<SuperByteBuffer?>()
+                .light<SuperByteBuffer?>(light)
+                .renderInto(ms, buffer.getBuffer(renderType))
+            ms.popPose()
+            ms.pushPose()
+            val originRight = fromModelSpace(13.275, 10.0, 8.0)
+            //ms.translate(-originRight.x(), -originRight.y(), -originRight.z())
+            ms.translate(11/16.0, 10.0/16.0, 0.0)
+            ms.mulPose(org.joml.Quaternionf().setAngleAxis(interpolatedFlapAngle.toFloat(), 0f, 0f, -1f))
+            //ms.translate(originRight.x(), originRight.y(), originRight.z())
+            ms.translate(-11/16.0, -10.0/16.0, 0.0)
+
+            val hatFlapRight = ClockworkPartials.HAT_FLAP_RIGHT
+            CachedBuffers.partial(hatFlapRight, air)
+                .disableDiffuse<SuperByteBuffer?>()
+                .light<SuperByteBuffer?>(light)
+                .renderInto(ms, buffer.getBuffer(renderType))
+            ms.popPose()
+
+            val wearingGoggles = AeronautGogglesState.getState(player).gogglesDown
+            ms.pushPose()
+            ms.pushPose()
+            if (!wearingGoggles) {
+                //rotate so goggles are facing up
+                //println("truth")
+                ms.mulPose(Quaternionf().setAngleAxis(Math.toRadians(90.0).toFloat(), 1f, 0f, 0f))
+                //flip it around so it faces forwards
+                ms.translate(0.0, 0.1, -0.85)
+
+            }
+
+
+            val hatGoggles = ClockworkPartials.HAT_GOGGLES
+            CachedBuffers.partial(hatGoggles, air)
+                .disableDiffuse<SuperByteBuffer?>()
+                .light<SuperByteBuffer?>(light)
+                .renderInto(ms, buffer.getBuffer(renderType))
+            ms.popPose()
+            ms.popPose()
+
+            ms.popPose()
+
+            ms.popPose()
+        }
+
     }
 
     companion object {

@@ -22,6 +22,7 @@ object SolidDeliveryMethodsImpl {
         if (capability == null) return ItemStack.EMPTY
         val inv = capability[Direction.UP]
 
+        if (inv == null) return ItemStack.EMPTY
 
         return ItemHelper.extract(inv, {true}, ItemHelper.ExtractionCountMode.UPTO, 64, false)
     }

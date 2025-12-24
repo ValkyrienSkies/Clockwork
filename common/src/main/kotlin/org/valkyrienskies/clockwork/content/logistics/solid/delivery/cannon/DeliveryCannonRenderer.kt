@@ -8,6 +8,7 @@ import net.createmod.catnip.math.VecHelper
 import net.createmod.catnip.render.CachedBuffers
 import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.Minecraft
+import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.block.model.ItemTransforms
@@ -21,13 +22,16 @@ import net.minecraft.world.phys.Vec3
 import org.joml.AxisAngle4f
 import org.joml.Quaternionf
 import org.joml.Vector3d
+import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotRenderer
 import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.clockwork.util.EaseHelper
 import org.valkyrienskies.core.impl.shadow.rX
+import org.valkyrienskies.mod.api.getShipManagingBlock
 import org.valkyrienskies.mod.api.positionToWorld
 import org.valkyrienskies.mod.api.vsApi
+import org.valkyrienskies.mod.common.getLoadedShipManagingPos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
 import java.util.Random
@@ -53,8 +57,19 @@ class DeliveryCannonRenderer(context: BlockEntityRendererProvider.Context?): Fre
         var mount = CachedBuffers.partial(ClockworkPartials.CANNON_MOUNT,be.blockState)
         var barrel = CachedBuffers.partial(ClockworkPartials.CANNON_BARREL,be.blockState)
 
-        val xCurrentRotation = be.xRot.getValue(partialTicks).toDouble()
-        val yCurrentRotation = be.yRot.getValue(partialTicks).toDouble()
+        var xCurrentRotation = be.xRot.getValue(partialTicks).toDouble()
+        var yCurrentRotation = be.yRot.getValue(partialTicks).toDouble()
+
+//        if (be.level is ClientLevel) {
+//            val level = be.level as ClientLevel
+//            val ship = level.getLoadedShipManagingPos(be.blockPos)
+//            if (ship != null) {
+//                val tempVec: Vector3dc = Vector3d(xCurrentRotation, yCurrentRotation, 0.0)
+//                val realVec = ship.renderTransform.rotation.transformInverse(tempVec, Vector3d())
+//                xCurrentRotation = realVec.x()
+//                yCurrentRotation = realVec.y()
+//            }
+//        }
 
         handleShootingAnim(be, partialTicks)
 

@@ -21,8 +21,11 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.B
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteCubeItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteItem
 import org.valkyrienskies.clockwork.content.curiosities.WanderlustMusicDisc
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautBootsItem
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautGogglesItem
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautGogglesRenderer
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautJacketItem
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautJumpersItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.CreativeGravitronItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem
@@ -73,6 +76,7 @@ object ClockworkItems {
                 it.rarity(Rarity.RARE)
             }
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .transform(ClockworkRegistrate.customRenderedItem { Supplier { GravitronItemRenderer() } })
             .tag(AllTags.AllItemTags.WRENCH.tag)
             .register()
 
@@ -205,6 +209,30 @@ object ClockworkItems {
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .model(AssetLookup.itemModelWithPartials())
             .transform(ClockworkRegistrate.customRenderedItem { Supplier { AeronautGogglesRenderer() } })
+            .register()
+
+    @JvmField
+    val AERONAUT_JACKET: ItemEntry<AeronautJacketItem> =
+        REGISTRATE.item<AeronautJacketItem>("aeronaut_jacket") { properties: Item.Properties? ->
+            AeronautJacketItem(properties!!)
+        }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .register()
+
+    @JvmField
+    val AERONAUT_JUMPERS: ItemEntry<AeronautJumpersItem> =
+        REGISTRATE.item<AeronautJumpersItem>("aeronaut_jumpers") { properties: Item.Properties? ->
+            AeronautJumpersItem(properties!!)
+        }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .register()
+
+    @JvmField
+    val AERONAUT_BOOTS: ItemEntry<AeronautBootsItem> =
+        REGISTRATE.item<AeronautBootsItem>("aeronaut_boots") { properties: Item.Properties? ->
+            AeronautBootsItem(properties!!)
+        }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .register()
 
     @JvmStatic

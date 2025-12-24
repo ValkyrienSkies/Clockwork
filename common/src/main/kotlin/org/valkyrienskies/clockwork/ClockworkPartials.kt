@@ -58,6 +58,7 @@ object ClockworkPartials {
     val GRAV_PRONG_LEFT_THREE = item("gravitron/prongleftthree")
     val GRAV_PRONG_RIGHT_THREE = item("gravitron/prongrightthree")
     val GRAV_PRONG_TOP_THREE = item("gravitron/prongtopthree")
+    val OVERLOAD_FX = item("gravitron/overload_fx")
     // endregion
 
     val CRYSTAL: PartialModel = PartialModel.of(ClockworkMod.asResource("item/wanderwand/crystal"))

@@ -94,9 +94,8 @@ object ClockworkModClient {
                     val level = player.level()
                     if (level != null) {
                         val duck = (player as MixinPlayerDuck)
-                        AeronautGogglesState.getState(player).gogglesDown = !AeronautGogglesState.getState(player).gogglesDown
                         duck.gogglesNeedRefresh = true
-                        if (AeronautGogglesState.getState(player).gogglesDown) {
+                        if (!AeronautGogglesState.getState(player).gogglesDown) {
                             level.playSound(
                                 player,
                                 player.blockPosition(),
@@ -105,6 +104,7 @@ object ClockworkModClient {
                                 1.0f,
                                 1.0f
                             )
+                            AeronautGogglesState.getState(player).gogglesDown = true
                         } else {
                             level.playSound(
                                 player,
@@ -114,6 +114,7 @@ object ClockworkModClient {
                                 1.0f,
                                 1.0f
                             )
+                            AeronautGogglesState.getState(player).gogglesDown = false
                         }
                     }
                 }

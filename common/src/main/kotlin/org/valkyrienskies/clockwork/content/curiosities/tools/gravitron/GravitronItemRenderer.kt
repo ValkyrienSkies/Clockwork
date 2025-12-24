@@ -31,6 +31,7 @@ import kotlin.math.sin
 open class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
 
     var tempAngle: Float = 0f
+    var overloadAngle: Float = 0f
 
     override fun render(
         stack: ItemStack,
@@ -85,6 +86,19 @@ open class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
         renderer.render(ClockworkPartials.GRAV_PRONG_RIGHT_ONE.get(), light)
         renderer.render(ClockworkPartials.GRAV_PRONG_RIGHT_TWO.get(), light)
         renderer.render(ClockworkPartials.GRAV_PRONG_RIGHT_THREE.get(), light)
+
+        if (stack.item is CreativeGravitronItem) {
+            overloadAngle = (overloadAngle + 1f * partialTicks) % 360f
+            ms.pushPose()
+
+            ms.translate(0.0, -0.1, 0.0)
+            ms.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(overloadAngle.toDouble()), 0f, 0f, 1f)))
+            ms.translate(8.0/16.0, 8/16.0, 0.0)
+            //ms.translate(7.75/16.0, 6.0/16.0, 7.75/16.0)
+
+            renderer.render(ClockworkPartials.OVERLOAD_FX.get(), light)
+            ms.popPose()
+        }
 
 
 
