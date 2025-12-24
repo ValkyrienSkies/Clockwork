@@ -307,7 +307,7 @@ object ClockworkUtils {
         for (type in GasTypeRegistry.GAS_TYPES.values) {
             val key = ClockworkAugmentations.getComponentAugmentation("gas/" + type.resourceLocation.toString())
             val gas = level.shipObjectWorld.getAirComponentAugmentation(key, pos.x(), pos.y(), pos.z(), level.dimensionId)
-            if (gas.isNaN()) continue
+            if (gas.isNaN() || gas < 0.0001) continue
             gasMap[type] = gas
         }
 

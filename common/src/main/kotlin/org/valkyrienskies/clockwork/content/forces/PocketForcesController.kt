@@ -9,6 +9,7 @@ import org.joml.Vector3dc
 import org.joml.Vector3i
 import org.valkyrienskies.clockwork.ClockworkAugmentations
 import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.utilities.PocketForcesQueueable
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.dimensionMap
 import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
@@ -20,6 +21,7 @@ import org.valkyrienskies.core.api.world.properties.DimensionId
 import org.valkyrienskies.core.util.pollUntilEmpty
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.api.DuctNetwork
+import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.impl.DuctNetworkServer
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.mod.api.positionToWorld
@@ -116,11 +118,12 @@ class PocketForcesController: ShipPhysicsListener {
 //            }
             val isSealed = level.shipObjectWorld.collectAirAugmentation(ClockworkAugmentations.getAugmentation("sealed"), root.x(), root.y(), root.z(), level.dimensionId) > 0.0
             if (!isSealed) {
-                val (gasMass, currentHeatEnergy) = retrieveGasInfoFromPocket(root, level)
+                var (gasMasses, currentHeatEnergy) = retrieveGasInfoFromPocket(root, level)
+                println("mass: ${gasMasses.values.sum()};  energy: $currentHeatEnergy;  temperature: ${currentHeatEnergy/(KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(gasMasses)}")
 
-                if (currentHeatEnergy.isNaN() || currentHeatEnergy == 0.0 || gasMass.isEmpty()) {
+                if (currentHeatEnergy.isNaN() || currentHeatEnergy == 0.0 || gasMasses.isEmpty()) {
 
-                    val key = ClockworkAugmentations.getComponentAugmentation("kelvin:gas/kelvin:air")
+                    val key = ClockworkAugmentations.getComponentAugmentation("gas/kelvin:air")
                     level.shipObjectWorld.setAirComponentAugmentation(key, root.x,root.y,root.z,dimensionId, volume*atmoDensity)
 
                     val specificHeat = 1000 * GasTypeRegistry.getGasType("kelvin","air")!!.specificHeatCapacity
@@ -130,34 +133,44 @@ class PocketForcesController: ShipPhysicsListener {
                     continue
                 }
 
-                val totalMass = gasMass.values.sum()
-                val moles = gasMass.entries.sumOf { it.key.massToMoles(it.value) }
-                val capacity = (KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(gasMass)
-                val currentTemperature = currentHeatEnergy / capacity
+                val totalMass = gasMasses.values.sum()
+                val moles = gasMasses.entries.sumOf { it.key.massToMoles(it.value) }
+                val capacity = (KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(gasMasses)
+                var currentTemperature = currentHeatEnergy / capacity
                 val currentPressure = moles * DuctNetwork.idealGasConstant * currentTemperature / volume
-                val molarMass = gasMass.entries.sumOf { it.key.density * 0.0224 * it.value } / totalMass
+                val molarMass = gasMasses.entries.sumOf { it.key.density * 0.0224 * it.value } / totalMass
                 val estimatedSurfaceArea = 4.84 * volume.pow(2.0/3.0)
 
                 // Gas leak exiting
                 val gasExitRate = max(0.0, currentPressure - atmoPressure) * estimatedSurfaceArea * ClockworkConfig.SERVER.permeabilityConstant / sqrt(currentTemperature * DuctNetwork.idealGasConstant / molarMass)
                 val exitGas = gasExitRate * 0.05
-                gasMass.forEach { gasMass[it.key] = gasMass[it.key]!! - exitGas * it.value / totalMass }
+                val exitGasMasses = HashMap<GasType, Double>()
+                gasMasses.forEach {
+                    gasMasses[it.key] = gasMasses[it.key]!! - exitGas * it.value / totalMass
+                    exitGasMasses[it.key] = exitGas * it.value / totalMass}
+                val exitHeat =  currentTemperature * ClockworkMod.getKelvin().mixtureCapacity(exitGasMasses)
+
+                currentHeatEnergy -= exitHeat
+                currentTemperature = currentHeatEnergy / capacity
 
                 // Gas leak heat transfer
                 val heatFlow = ClockworkConfig.SERVER.heatTransferCoefficient * estimatedSurfaceArea * (atmoTemperature - currentTemperature)
-                val newHeatEnergy = currentHeatEnergy + heatFlow * 0.05
-                val newCapacity = (KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(gasMass)
-                val newTemperature = newHeatEnergy / newCapacity
+                var newHeatEnergy = currentHeatEnergy + heatFlow * 0.05
+                val newCapacity = (KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(gasMasses)
+                var newTemperature = newHeatEnergy / newCapacity
 
                 // Gas leak entering
                 val air = GasTypeRegistry.GAS_TYPES[ResourceLocation("kelvin","air")]!!
-                val newMoles = gasMass.entries.sumOf { it.key.massToMoles(it.value) }
+                val newMoles = gasMasses.entries.sumOf { it.key.massToMoles(it.value) }
                 val newPressure = newMoles * DuctNetwork.idealGasConstant * newTemperature / volume
                 val addMoles = max(0.0, atmoPressure - newPressure) * volume / (newTemperature * DuctNetwork.idealGasConstant)
-                gasMass[air] = (gasMass[air] ?: 0.0) + air.molesToMass(addMoles)
+                gasMasses[air] = (gasMasses[air] ?: 0.0) + air.molesToMass(addMoles)
+
+                val addedHeat = air.molesToMass(addMoles) * atmoTemperature * (air.specificHeatCapacity * 1000 / air.adiabaticIndex)
+                newHeatEnergy += addedHeat
 
                 // Set Values
-                gasMass.forEach {
+                gasMasses.forEach {
                     val key = ClockworkAugmentations.getComponentAugmentation("gas/" + it.key.resourceLocation.toString())
                     level.shipObjectWorld.setAirComponentAugmentation(key, root.x,root.y,root.z,dimensionId, it.value)
                 }
@@ -167,6 +180,7 @@ class PocketForcesController: ShipPhysicsListener {
             }
         }
     }
+    
 
     private fun getPocketCenter(level: ServerLevel, pos: Vector3i): Vector3d {
         val collectX = level.shipObjectWorld.collectAirAugmentation(level.shipObjectWorld.createDoubleSumAugmentation("core", "x"), pos.x(), pos.y(), pos.z(), level.dimensionId)

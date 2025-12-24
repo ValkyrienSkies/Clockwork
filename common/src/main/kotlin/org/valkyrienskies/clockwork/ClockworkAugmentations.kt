@@ -8,7 +8,7 @@ import org.valkyrienskies.core.internal.world.VsiServerShipWorld
 
 object ClockworkAugmentations {
     private val augmentKeys: HashMap<String, DoubleAugmentation> = HashMap()
-    private val componentAugmentKeys: HashMap<String, DoubleComponentAugmentation> = HashMap()
+    val componentAugmentKeys: HashMap<String, DoubleComponentAugmentation> = HashMap()
 
     fun registerSumAugmentation(key: String, shipObjectWorld: VsiServerShipWorld) {
         augmentKeys[key] = shipObjectWorld.createDoubleSumAugmentation("kelvin", key)

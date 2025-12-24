@@ -119,8 +119,9 @@ object ClockworkMod {
             ClockworkAugmentations.registerComponentAvgAugmentation("heatEnergy", it.shipObjectWorld)
             ClockworkAugmentations.registerComponentAvgAugmentation("pressure", it.shipObjectWorld)
             for (gas in GasTypeRegistry.GAS_TYPES.values) {
-                ClockworkAugmentations.registerComponentAvgAugmentation("gas/${gas.resourceLocation.toString()}", it.shipObjectWorld)
+                ClockworkAugmentations.registerComponentAvgAugmentation("gas/${gas.resourceLocation}", it.shipObjectWorld)
             }
+            println("augments ${ClockworkAugmentations.componentAugmentKeys}")
             //todo: gas registry
             ClockworkAugmentations.registerComponentSumAugmentation("airupdated", it.shipObjectWorld)
             ClockworkAugmentations.registerSumAugmentation("sealed", it.shipObjectWorld)
