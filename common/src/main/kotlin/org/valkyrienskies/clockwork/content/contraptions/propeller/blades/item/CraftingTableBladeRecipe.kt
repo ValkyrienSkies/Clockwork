@@ -58,7 +58,7 @@ class CraftingTableBladeRecipe(id: ResourceLocation, category: CraftingBookCateg
 
 
     override fun canCraftInDimensions(width: Int, height: Int): Boolean {
-        println(width)
+        //println(width)
         return width*height >= 2
     }
 

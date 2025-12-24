@@ -70,7 +70,7 @@ class WanderwandEffectRenderer {
 
         if (isWelding && weldingShip != null) {
             ms.pushPose()
-            println("WELDING FUCKHEAD")
+            //println("WELDING FUCKHEAD")
 
 
             val range = (client.gameMode?.getPickRange()?.toDouble()?.plus(1)) ?: 5.0

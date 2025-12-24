@@ -55,7 +55,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         behaviours.add(frequencySlotBehaviour)
 
         distributionModeBehaviour = ScrollOptionBehaviour<DistributionMode>(
-            DistributionMode::class.java, ClockworkLang.translateDirect("contraptions.movement_mode"),
+            DistributionMode::class.java, ClockworkLang.translateDirect("delivery_cannon.distribution_mode"),
             this, FrequencySlot()
         )
 
@@ -229,14 +229,15 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     }
 
     fun isObstructed(chute: DeliveryChuteBlockEntity): Boolean {
+        return false
         val vertex = getThirdPoint(realPos, chute.realPos).toMinecraft()
 
         val cannonToVertex = clip(realPos.add(0.0,0.5,0.0).toMinecraft(), vertex)
-        println("CTV: ${cannonToVertex.type} ${cannonToVertex.blockPos}")
+        //println("CTV: ${cannonToVertex.type} ${cannonToVertex.blockPos}")
         if (cannonToVertex.type != HitResult.Type.MISS) return true
 
         val vertexToChute = clip(vertex, chute.realPos.toMinecraft())
-        println("VTC: ${vertexToChute.type} ${vertexToChute.blockPos} ${chute.blockPos}")
+        //println("VTC: ${vertexToChute.type} ${vertexToChute.blockPos} ${chute.blockPos}")
         return vertexToChute.type == HitResult.Type.MISS || vertexToChute.blockPos != chute.blockPos
 
     }

@@ -27,7 +27,7 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         val temperature = network.getTemperatureAt(getDuctNodePosition())
 
         totalEfficiency = tempToEfficiency(temperature)
-        println("${totalEfficiency} ${temperature}")
+        //println("${totalEfficiency} ${temperature}")
     }
 
     override fun tick() {

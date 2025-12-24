@@ -52,7 +52,7 @@ object ClockworkShaders {
                 ) { inst -> haze = inst }
 
             } catch (ex: IOException) {
-                System.err.println("Failed to load shader")
+                //System.err.println("Failed to load shader")
                 ex.printStackTrace()
             }
         }

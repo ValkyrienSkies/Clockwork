@@ -49,7 +49,7 @@ object CollisionSoundEffectHandler {
         if (collisionQueue.size > ClockworkConfig.SERVER.collisionSoundEffectMax) collisionQueue.clear()
 
         while (!collisionQueue.isEmpty()) {
-            if (collisionQueue.isNotEmpty()) println("Collision Queue size: ${collisionQueue.size}")
+            //if (collisionQueue.isNotEmpty()) println("Collision Queue size: ${collisionQueue.size}")
 
             val event = collisionQueue.first()
             if (event.dimensionId != level.dimensionId) continue

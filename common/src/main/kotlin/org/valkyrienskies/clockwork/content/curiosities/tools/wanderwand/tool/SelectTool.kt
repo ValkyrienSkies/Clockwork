@@ -22,7 +22,7 @@ class SelectTool(): SelectionToolBase() {
         val player = Minecraft.getInstance().player
 
         val trace = RaycastHelper.rayTraceRange(player!!.level(), player, 15.0)
-        println("$trace ${trace.type} ${trace.blockPos}")
+        //println("$trace ${trace.type} ${trace.blockPos}")
         if (trace != null && trace.type == HitResult.Type.BLOCK) {
             //if phys infuser, don't let select
             if (player.level().getBlockEntity(trace.blockPos) is PhysicsInfuserBlockEntity) return false

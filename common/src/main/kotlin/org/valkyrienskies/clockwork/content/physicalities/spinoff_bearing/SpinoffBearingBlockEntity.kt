@@ -158,8 +158,8 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
 
             val hitResult = sLevel.clipIncludeShips(clip, skipShip = level!!.getLoadedShipManagingPos(position)?.id)
             if (hitResult.type == HitResult.Type.BLOCK) {
-                println("hit!")
-                println(hitResult.blockPos)
+                //println("hit!")
+                //println(hitResult.blockPos)
                 val hitPos = hitResult.blockPos
                 sLevel.getBlockEntity(hitPos)?.let { be ->
                     if (be is SpinoffBearingBlockEntity && (be.partner == null || be.partner == this) && be.canConnect) {
@@ -282,7 +282,7 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
         if (level is ServerLevel) {
             val sLevel = (level as ServerLevel)
             sLevel.gtpa.removeJoint(jointId)
-            println("tried to use GTPA to remove joint")
+            //println("tried to use GTPA to remove joint")
         }
         partner?.disconnect()
         this.disconnect()

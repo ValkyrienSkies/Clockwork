@@ -50,7 +50,7 @@ object MeteorGenerator {
         val smallest = res.first
         val largest = res.second
 
-        println("$smallest $largest")
+        //println("$smallest $largest")
         for (x in smallest.x-(0.5/threshold).toInt()..largest.x+(0.5/threshold).toInt()) {
             for (y in smallest.y-(0.5/threshold).toInt()..largest.y+(0.5/threshold).toInt()) {
                 for (z in smallest.z-(0.5/threshold).toInt()..largest.z+(0.5/threshold).toInt()) {

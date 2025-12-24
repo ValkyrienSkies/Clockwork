@@ -19,9 +19,9 @@ object MeteorStorm {
         val ship = level.shipObjectWorld.createNewShipAtBlock(at, false, 1.0, level.dimensionId)
         val center = ship.kinematics.positionInModel.toMinecraft()
         ship.isStatic = true
-        println("1 ${ship}")
+        //println("1 ${ship}")
         MeteorGenerator.generate(level, center, 0.035, 10, 3)
-        println("2 ${ship}")
+        //println("2 ${ship}")
         ship.isStatic = false
 
     }

@@ -21,7 +21,7 @@ class BladeItem(tier: Tier, attackDamageModifier: Int, attackSpeedModifier: Floa
     override fun getDefaultInstance(): ItemStack {
         val instance = super.getDefaultInstance()
         instance.orCreateTag.putDouble("BladeLength",1.0)
-        println(instance.tag?.getDouble("BladeLength"))
+        //println(instance.tag?.getDouble("BladeLength"))
         return instance
     }
 

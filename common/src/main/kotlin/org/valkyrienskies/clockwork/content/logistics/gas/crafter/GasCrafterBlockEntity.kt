@@ -45,7 +45,7 @@ class GasCrafterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Blo
         super.tick()
 
         glow.tickChaser()
-        println("${level?.isClientSide} ${glow.value}")
+        //println("${level?.isClientSide} ${glow.value}")
         if (level!!.isClientSide && !isVirtual) return
 
 

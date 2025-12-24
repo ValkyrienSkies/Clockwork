@@ -136,7 +136,7 @@ object AirpocketRenderer {
                 val shipData = level.shipWorld!!.loadedShips.getById(dragInfo.lastShipStoodOn!!)
                 if (shipData != null) {
                     val nodes = getEveryNode(level, shipData)
-                    println("send packet: $nodes")
+                    //println("send packet: $nodes")
                     ClockworkPackets.sendToServer(AirpocketSyncPacket(nodes))
                 }
             }

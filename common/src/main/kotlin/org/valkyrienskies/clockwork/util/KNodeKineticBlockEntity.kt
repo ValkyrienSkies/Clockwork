@@ -27,7 +27,7 @@ abstract class KNodeKineticBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos
     override fun lazyTick() {
         super.lazyTick()
         if (level?.isClientSide != false) return
-        if (this.dataToLoad != null) println(this.dataToLoad)
+        //if (this.dataToLoad != null) println(this.dataToLoad)
         if (this.dataToLoad != null && KelvinMod.getKelvinByPlatform()!!.getNodeAt(this.getDuctNodePosition()) != null) {
             loadData(this.dataToLoad!!, this.getDuctNodePosition())
             //println("Loaded data for ${this.getDuctNodePosition()} from ${this.blockPos} at ${this.level!!.dimension()}")

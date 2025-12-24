@@ -59,7 +59,7 @@ object ClockworkRecipes {
         private val _typeObject: RecipeType<*>? = if (registerType) {
             val t = typeSupplier?.get() ?: simpleType<Recipe<*>>(id)
             RECIPE_TYPES.register(id) { t }
-            println("$id was registered as recipe Type")
+            //println("$id was registered as recipe Type")
             t
         } else {
             null

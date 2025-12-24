@@ -30,6 +30,7 @@ import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.IEntityDraggingInformationProvider
 import kotlin.math.min
+import kotlin.math.sin
 
 open class AeronautArmorLayer<T : LivingEntity, M : EntityModel<T>?>(renderer: RenderLayerParent<T, M>?) : RenderLayer<T, M>(renderer!!) {
 
@@ -58,19 +59,20 @@ open class AeronautArmorLayer<T : LivingEntity, M : EntityModel<T>?>(renderer: R
         val goggleState = AeronautGogglesState.getState(player)
 
         //goggleState.prevFlapAngle = goggleState.flapAngle
-        val maxFlapAngle = Math.toRadians(90.0).toFloat()
+        val maxFlapAngle = Math.toRadians(75.0).toFloat()
         val shipOn = (player as IEntityDraggingInformationProvider).draggingInformation.lastShipStoodOn ?: vsApi.getShipMountedTo(player)?.id ?: player.getShipManagingEntity()?.id
-        val velocity = player.deltaMovement.toJOML()
+        val velocity = player.deltaMovement.toJOML().mul(20.0)
         if (shipOn != null) {
             val ship = player.clientLevel.shipObjectWorld!!.loadedShips.getById(shipOn)
             if (ship != null) {
                 val playerPosInShip = ship.worldToShip.transformPosition(player.position().toJOML())
                 val velAtPlayerPos = ship.angularVelocity.cross(playerPosInShip, Vector3d()).add(ship.velocity)
+                    //val dragDecay = (player as IEntityDraggingInformationProvider).draggingInformation.ticksSinceStoodOnShip /
                 velocity.add(velAtPlayerPos)
             }
         }
         val speed = velocity.length()
-        goggleState.flapAngle = -min(maxFlapAngle, (speed.toFloat() /200f) * maxFlapAngle)
+        goggleState.flapAngle = -min(maxFlapAngle, (speed.toFloat() /200f) * maxFlapAngle) //+ sin(partialTicks * 0.05f) * (speed.toFloat() / 20000f)
         //if (goggleState.flapAngle > 1) println("am i even real bro")
         //println(goggleState.flapAngle)
         if (player.wearingAeronautInSlot(EquipmentSlot.HEAD)) {
@@ -130,10 +132,10 @@ open class AeronautArmorLayer<T : LivingEntity, M : EntityModel<T>?>(renderer: R
             ms.pushPose()
             val originRight = fromModelSpace(13.275, 10.0, 8.0)
             //ms.translate(-originRight.x(), -originRight.y(), -originRight.z())
-            ms.translate(11/16.0, 10.0/16.0, 0.0)
+            ms.translate(16/16.0, 10.0/16.0, 0.0)
             ms.mulPose(org.joml.Quaternionf().setAngleAxis(interpolatedFlapAngle.toFloat(), 0f, 0f, -1f))
             //ms.translate(originRight.x(), originRight.y(), originRight.z())
-            ms.translate(-11/16.0, -10.0/16.0, 0.0)
+            ms.translate(-16/16.0, -10.0/16.0, 0.0)
 
             val hatFlapRight = ClockworkPartials.HAT_FLAP_RIGHT
             CachedBuffers.partial(hatFlapRight, air)

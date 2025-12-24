@@ -69,7 +69,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         val serverLevel = level!! as ServerLevel
 
         val oldHas = hasPocket
-        println(serverLevel.shipObjectWorld.isIsolatedAir(blockPos.x, blockPos.y+1, blockPos.z, serverLevel.dimensionId))
+        //println(serverLevel.shipObjectWorld.isIsolatedAir(blockPos.x, blockPos.y+1, blockPos.z, serverLevel.dimensionId))
         hasPocket = try {
 
             serverLevel.shipObjectWorld.getAirComponentSize(blockPos.x, blockPos.y+1, blockPos.z, serverLevel.dimensionId) > 0

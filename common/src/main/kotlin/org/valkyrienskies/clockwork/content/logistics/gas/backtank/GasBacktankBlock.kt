@@ -131,7 +131,7 @@ class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(prop
         super.setPlacedBy(worldIn, pos, state, placer, stack)
         if (worldIn.isClientSide) return
         val tag = stack.getOrCreateTag()
-        println("$pos ${worldIn.dimension().location()}")
+        //println("$pos ${worldIn.dimension().location()}")
         deserializeNode(pos.toDuctNodePos(worldIn.dimension().location()), tag)
     }
 
