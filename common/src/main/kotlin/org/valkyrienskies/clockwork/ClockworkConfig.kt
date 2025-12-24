@@ -83,8 +83,8 @@ object ClockworkConfig {
         @ConfigEntry(min = 0.0)
         var encasedFanForceMul = 40.0
 
-        @ConfigEntry(min = 0.0)
-        var wanderOreForce = 1100.0
+        @ConfigEntry(min = 0.0, description = "Wanderlite blocks exert enough force to lift their own weight, times this multiplier.")
+        var wanderOreForceMultiplier = 2.0
 
         @ConfigEntry(min = 0.0)
         var gasThrusterForceMul = 2.0

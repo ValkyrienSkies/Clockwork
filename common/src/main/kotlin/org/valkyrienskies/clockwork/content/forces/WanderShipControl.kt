@@ -36,9 +36,14 @@ class WanderShipControl : ShipPhysicsListener {
         }
         meanPos.div(wanderBlocks.size.toDouble())
         val sumForce: Double = wanderBlocks.values.sum()
-        val force =  Vector3d(0.0, sumForce,0.0).mul(2 * 9.81 * 100, Vector3d())
+        // gravity is positive for whatever reason
+        val (_, _, gravity) = physLevel.aerodynamicUtils.getAtmosphereForDimension(physLevel.dimension)
+        val yForce = sumForce * gravity * ClockworkConfig.SERVER.wanderOreForceMultiplier * 100
+        val force = Vector3d(0.0, yForce, 0.0)
 
-        if (meanPos.isFinite && !meanPos.length().isNaN() && force.isFinite && !force.length().isNaN()) physShip.applyWorldForceToModelPos(force, meanPos)
+        if (meanPos.isFinite && !meanPos.length().isNaN() && force.isFinite && !force.length().isNaN()) {
+            physShip.applyWorldForceToModelPos(force, meanPos)
+        }
     }
 
     fun addBlock(blockPos: BlockPos, force: Double) {

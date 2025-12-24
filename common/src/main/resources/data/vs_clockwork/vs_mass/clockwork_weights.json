@@ -655,6 +655,46 @@
     "friction": 0.4
   },
   {
+    "block": "vs_clockwork:wanderlite_block",
+    "mass": 100,
+    "friction": 0.4
+  },
+  {
+    "block": "vs_clockwork:chiseled_wanderlite",
+    "mass": 100,
+    "friction": 0.4
+  },
+  {
+    "block": "vs_clockwork:smooth_wanderlite",
+    "mass": 100,
+    "friction": 0.4
+  },
+  {
+    "block": "vs_clockwork:smooth_wanderlite_slab",
+    "mass": 50,
+    "friction": 0.4
+  },
+  {
+    "block": "vs_clockwork:smooth_wanderlite_stairs",
+    "mass": 75,
+    "friction": 0.4
+  },
+  {
+    "block": "vs_clockwork:wanderlite_bricks",
+    "mass": 100,
+    "friction": 0.4
+  },
+  {
+    "block": "vs_clockwork:wanderglass",
+    "mass": 100,
+    "friction": 0.4
+  },
+  {
+    "block": "vs_clockwork:wanderlite_nyx_ore",
+    "mass": 100,
+    "friction": 0.4
+  },
+  {
     "block": "vs_clockwork:ballast",
     "mass": 1,
     "friction": 0.75
