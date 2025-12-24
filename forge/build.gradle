@@ -18,7 +18,7 @@ plugins {
 
 
 if (project.hasProperty("CustomReleaseVersion")) {
-    // Remove release/ from the version if present
+    // Remove release/ from the `version if present
     version = project.property("CustomReleaseVersion").replaceFirst("^release/", "")
 } else {
     String gitRevision = "git rev-parse HEAD".execute().text.trim()
@@ -88,7 +88,7 @@ dependencies {
         exclude group: 'org.joml', module: ''
     }
 
-    modImplementation("maven.modrinth:vlib:${rootProject.vlib_version}+forge")
+    //modImplementation("maven.modrinth:s:${rootProject.vlib_version}+forge")
 
     // Create and its dependencies
     modImplementation("com.simibubi.create:create-${minecraft_version}:${create_forge_version}:slim") { transitive = false }
@@ -111,7 +111,7 @@ dependencies {
     modRuntimeOnly("cc.tweaked:cc-tweaked-$minecraft_version-forge:$cc_version")
 
     //Spark profiler
-    modRuntimeOnly("maven.modrinth:spark:1.10.53-forge")
+    //modRuntimeOnly("maven.modrinth:spark:1.10.53-forge")
 
 
     //modRuntimeOnly "me.shedaniel:RoughlyEnoughItems-forge:${rei_version}"
