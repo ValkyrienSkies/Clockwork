@@ -3,6 +3,8 @@ package org.valkyrienskies.clockwork
 import com.mojang.blaze3d.platform.InputConstants
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.logging.LogUtils
+import com.simibubi.create.AllBlocks
+import com.simibubi.create.content.decoration.encasing.EncasingRegistry
 import com.simibubi.create.foundation.data.CreateRegistrate
 import com.simibubi.create.foundation.item.ItemDescription
 import com.simibubi.create.foundation.item.TooltipModifier
@@ -43,6 +45,7 @@ import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.mod.api.dimensionId
 import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod
+import org.valkyrienskies.mod.common.hooks.VSGameEvents
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.vsCore
 import org.valkyrienskies.mod.event.RegistryEvents
@@ -67,7 +70,7 @@ object ClockworkMod {
 
     private val TAB_REGISTRY = DeferredRegister.create(MOD_ID, Registries.CREATIVE_MODE_TAB)
 
-    val BASE_CREATIVE_TAB: RegistrySupplier<CreativeModeTab> = TAB_REGISTRY.register("example_tab") {
+    val BASE_CREATIVE_TAB: RegistrySupplier<CreativeModeTab> = TAB_REGISTRY.register("clockwork_main") {
         CreativeTabRegistry.create(Component.translatable("itemGroup.vs_clockwork")) {
             ItemStack(ClockworkBlocks.PHYSICS_INFUSER.asItem())
         }
@@ -122,7 +125,7 @@ object ClockworkMod {
                 ClockworkAugmentations.registerComponentAvgAugmentation("gas/${gas.resourceLocation}", it.shipObjectWorld)
             }
             println("augments ${ClockworkAugmentations.componentAugmentKeys}")
-            //todo: gas registry
+
             ClockworkAugmentations.registerComponentSumAugmentation("airupdated", it.shipObjectWorld)
             ClockworkAugmentations.registerSumAugmentation("sealed", it.shipObjectWorld)
         }

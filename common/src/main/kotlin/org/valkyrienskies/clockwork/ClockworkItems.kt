@@ -4,6 +4,7 @@ import com.simibubi.create.AllItems
 import com.simibubi.create.AllTags
 import com.simibubi.create.AllTags.AllItemTags
 import com.simibubi.create.content.equipment.goggles.GogglesItem
+import com.simibubi.create.content.processing.sequenced.SequencedAssemblyItem
 import com.simibubi.create.foundation.data.AssetLookup
 import com.tterrag.registrate.util.entry.ItemEntry
 import dev.architectury.core.item.ArchitecturyRecordItem
@@ -234,6 +235,18 @@ object ClockworkItems {
         }
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .register()
+
+    @JvmField
+    val INCOMPLETE_COMPRESSIBLE_SHAFT: ItemEntry<SequencedAssemblyItem> = sequencedIngredient("incomplete_telescoping_mechanism")
+
+    @JvmField
+    val INCOMPLETE_HOSE_SPOOL: ItemEntry<SequencedAssemblyItem> = sequencedIngredient("incomplete_hose_spool")
+
+    @JvmStatic
+    private fun sequencedIngredient(name: String): ItemEntry<SequencedAssemblyItem>  {
+        return REGISTRATE.item(name, ::SequencedAssemblyItem)
+            .register();
+    }
 
     @JvmStatic
     fun register() {

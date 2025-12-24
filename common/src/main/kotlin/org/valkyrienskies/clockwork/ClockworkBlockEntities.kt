@@ -4,6 +4,9 @@ import com.simibubi.create.AllPartialModels
 import com.simibubi.create.content.contraptions.bearing.BearingRenderer
 import com.simibubi.create.content.contraptions.bearing.BearingVisual
 import com.simibubi.create.content.fluids.pump.PumpRenderer
+import com.simibubi.create.content.kinetics.base.KineticBlockEntity
+import com.simibubi.create.content.kinetics.base.ShaftRenderer
+import com.simibubi.create.content.kinetics.base.ShaftVisual
 import com.simibubi.create.content.kinetics.base.SingleAxisRotatingVisual
 import com.tterrag.registrate.util.entry.BlockEntityEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
@@ -814,6 +817,31 @@ object ClockworkBlockEntities {
             )
         }
         .validBlocks(ClockworkBlocks.SPINOFF_BEARING)
+        .register()
+
+    @JvmField
+    val ENCASED_SHAFT: BlockEntityEntry<KineticBlockEntity> = (ClockworkMod.REGISTRATE
+        .blockEntity(
+            "ext_encased_shaft"
+        ) { typeIn: BlockEntityType<KineticBlockEntity>, pos: BlockPos, state: BlockState ->
+            KineticBlockEntity(
+                typeIn,
+                pos, state!!
+            )
+        } as ClockworkBlockEntityBuilder)
+        .clockworkVisual {
+            ClockworkSimpleBlockEntityVisualFactory { ctx, blockEntity, partialTick ->
+                ShaftVisual(ctx, blockEntity, partialTick)
+            }
+        }
+        .validBlocks(ClockworkBlocks.BALLOON_ENCASED_SHAFT)
+        .renderer() {
+            NonNullFunction { context: BlockEntityRendererProvider.Context? ->
+                ShaftRenderer(
+                    context!!
+                )
+            }
+        }
         .register()
 
     @JvmStatic

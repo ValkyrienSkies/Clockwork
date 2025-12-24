@@ -1,7 +1,18 @@
 package org.valkyrienskies.clockwork.util.builder
 
+import com.simibubi.create.AllBlocks
+import com.simibubi.create.AllTags
+import com.simibubi.create.content.decoration.encasing.CasingBlock
+import com.simibubi.create.content.decoration.encasing.EncasedCTBehaviour
+import com.simibubi.create.content.kinetics.base.AbstractEncasedShaftBlock
 import com.simibubi.create.content.kinetics.base.RotatedPillarKineticBlock
+import com.simibubi.create.content.kinetics.simpleRelays.encased.EncasedShaftBlock
+import com.simibubi.create.foundation.block.connected.CTSpriteShiftEntry
+import com.simibubi.create.foundation.data.AssetLookup
+import com.simibubi.create.foundation.data.BlockStateGen.axisBlock
+import com.simibubi.create.foundation.data.CreateRegistrate
 import com.simibubi.create.foundation.data.SharedProperties
+import com.simibubi.create.foundation.data.TagGen.axeOrPickaxe
 import com.tterrag.registrate.builders.BlockBuilder
 import com.tterrag.registrate.providers.DataGenContext
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider
@@ -14,9 +25,11 @@ import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
 import net.minecraft.world.level.ItemLike
 import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.block.state.BlockBehaviour
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkStress
+import org.valkyrienskies.clockwork.content.kinetics.casing.ExtendedEncasedShaftBlock
 import java.util.function.Supplier
 
 object BuilderTransformersClockwork {
@@ -24,7 +37,7 @@ object BuilderTransformersClockwork {
         b: BlockBuilder<B, P>,
         drop: Supplier<ItemLike>
     ): BlockBuilder<B, P> {
-        return b.initialProperties { SharedProperties.stone() }
+        return b.initialProperties { SharedProperties.wooden() }
             .properties(BlockBehaviour.Properties::noOcclusion)
             .transform(ClockworkStress.setNoImpact<B, P>())
             .loot { p, lb -> p.dropOther(lb, drop.get()) }
@@ -114,6 +127,52 @@ object BuilderTransformersClockwork {
                         .texture("side", sideTextureLocation)
                         .texture("back", backTextureLocation)
                 })
+                .build()
+        }
+    }
+
+
+
+    fun <B : AbstractEncasedShaftBlock, P> encasedShaft(
+        casing: String,
+        casingShift: Supplier<CTSpriteShiftEntry>
+    ): NonNullUnaryOperator<BlockBuilder<B, P>> {
+        return NonNullUnaryOperator { builder: BlockBuilder<B, P> ->
+            encasedBase(builder, { AllBlocks.SHAFT.get() })
+                .onRegister(CreateRegistrate.connectedTextures({ EncasedCTBehaviour(casingShift.get()) }))
+                .onRegister(CreateRegistrate.casingConnectivity({ block, cc ->
+                    cc.make(
+                        block, casingShift.get(),
+                        { s, f -> f.getAxis() !== s.getValue(EncasedShaftBlock.AXIS) })
+                }))
+                .blockstate({ c, p ->
+                    axisBlock(c, p, { blockState ->
+                        p.models()
+                            .getExistingFile(p.modLoc("block/encased_shaft/block_" + casing))
+                    }, true)
+                })
+                .item()
+                .model(AssetLookup.customBlockItemModel("encased_shaft", "item_" + casing))
+                //.tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+                .build()
+        }
+    }
+
+    fun <B : CasingBlock> casing(
+        ct: Supplier<CTSpriteShiftEntry>
+    ): NonNullUnaryOperator<BlockBuilder<B, CreateRegistrate>> {
+        return NonNullUnaryOperator { builder: BlockBuilder<B, CreateRegistrate> ->
+            builder.initialProperties { SharedProperties.wooden() }
+                .properties {p -> p.sound(SoundType.WOOD)}
+                .transform(axeOrPickaxe())
+                .onRegister(CreateRegistrate.connectedTextures{ EncasedCTBehaviour(ct.get()) })
+                .blockstate{ c, p -> p.simpleBlock(c.get()) }
+                .onRegister { it -> CreateRegistrate.connectedTextures<B> { EncasedCTBehaviour(ct.get()) } }
+                .onRegister { it -> CreateRegistrate.casingConnectivity<B> { block, cc -> cc.makeCasing(block, ct.get())} }
+                .tag(AllTags.AllBlockTags.CASING.tag)
+                .item()
+                .tag(AllTags.AllItemTags.CASING.tag)
+                .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
                 .build()
         }
     }

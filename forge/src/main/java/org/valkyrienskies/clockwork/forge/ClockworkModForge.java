@@ -5,6 +5,7 @@ import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.AddReloadListenerEvent;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
@@ -71,6 +72,8 @@ public class ClockworkModForge {
         modEventBus.addListener(ClockworkModForge::init);
         ClockworkMod.init();
 
+        modEventBus.addListener(this::onTabModify);
+
 //        //todo fix forge vscore issue
 //        modLoadingContext.registerExtensionPoint(
 //                ConfigGuiHandler.ConfigGuiFactory.class,
@@ -93,6 +96,12 @@ public class ClockworkModForge {
 
     private void registerResourceManagers(AddReloadListenerEvent event) {
         event.addListener(AtmosphereParametersResolver.INSTANCE);
+    }
+
+    private void onTabModify(BuildCreativeModeTabContentsEvent event) {
+        if (event.getTabKey() == ClockworkMod.INSTANCE.getBASE_CREATIVE_TABINFO()) {
+            event.accept(ClockworkBlocks.BALLOON_CASING.asItem());
+        }
     }
 
     public static void init(final FMLCommonSetupEvent event) {}

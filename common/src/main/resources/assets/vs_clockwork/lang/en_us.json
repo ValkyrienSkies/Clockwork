@@ -207,13 +207,16 @@
   "block.vs_clockwork.universal_shaft": "Universal Shaft",
   "item.vs_clockwork.universal_shaft": "Universal Shaft",
   "item.vs_clockwork.universal_shaft_item": "Compressible Shaft",
-  "block.vs_clockwork.gas_tube": "Gas Tube",
-  "item.vs_clockwork.gas_tube": "Gas Tube",
+  "block.vs_clockwork.hose_port": "Hose Port",
+  "item.vs_clockwork.hose_port": "Hose Port",
 
   "item.vs_clockwork.aeronaut_goggles": "Aeronaut Goggles",
   "item.vs_clockwork.aeronaut_jacket": "Aeronaut Jacket",
   "item.vs_clockwork.aeronaut_jumpers": "Aeronaut Jumpers",
   "item.vs_clockwork.aeronaut_boots": "Aeronaut Boots",
+
+  "item.vs_clockwork.incomplete_telescoping_mechanism": "Incomplete Telescoping Mechanism",
+  "item.vs_clockwork.incomplete_hose_spool": "Incomplete Hose Spool",
 
 
   "block.vs_clockwork.delivery_chute": "Delivery Chute",

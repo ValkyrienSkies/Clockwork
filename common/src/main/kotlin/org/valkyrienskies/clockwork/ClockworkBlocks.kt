@@ -5,7 +5,9 @@ import com.simibubi.create.AllSpriteShifts
 import com.simibubi.create.AllTags
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour.movementBehaviour
 import com.simibubi.create.content.decoration.encasing.CasingBlock
+import com.simibubi.create.content.decoration.encasing.EncasingRegistry
 import com.simibubi.create.content.fluids.PipeAttachmentModel
+import com.simibubi.create.content.kinetics.simpleRelays.encased.EncasedShaftBlock
 import com.simibubi.create.foundation.data.*
 import com.simibubi.create.foundation.data.CreateRegistrate.connectedTextures
 import com.simibubi.create.foundation.data.ModelGen.customItemModel
@@ -46,6 +48,7 @@ import org.valkyrienskies.clockwork.content.curiosities.sensor.distance.Distance
 import org.valkyrienskies.clockwork.content.curiosities.sensor.impact.ImpactSensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.GyroscopicSensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.LodefocusBlock
+import org.valkyrienskies.clockwork.content.kinetics.casing.ExtendedEncasedShaftBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftBlock
@@ -78,6 +81,7 @@ import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import org.valkyrienskies.clockwork.content.physicalities.wing.FlapBlock
 import org.valkyrienskies.clockwork.content.physicalities.wing.WingBlock
 import org.valkyrienskies.clockwork.content.propulsion.sugar_rocket.SugarRocketBlock
+import org.valkyrienskies.clockwork.util.builder.BuilderTransformersClockwork
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import java.util.function.Supplier
 
@@ -678,7 +682,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            //.tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -702,7 +706,7 @@ object ClockworkBlocks {
         )
     }
         .initialProperties { Blocks.HONEY_BLOCK }
-        .addLayer { Supplier { RenderType.cutout() } }
+        .addLayer { Supplier { RenderType.translucent() } }
         .item()
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .build()
@@ -717,7 +721,7 @@ object ClockworkBlocks {
         )
     }
         .initialProperties { SharedProperties.softMetal() }
-        .addLayer { Supplier { RenderType.cutout() } }
+        .addLayer { Supplier { RenderType.translucent() } }
         .item()
         //.tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .transform(customItemModel())
@@ -913,26 +917,21 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.wooden() }
         .transform(BuilderTransformers.casing { ClockworkSpriteShifts.BALLOON_CASING })
-        .item()
-        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
-        .build()
         .register()
 
-//    @JvmField
-//    val BALLOON_ENCASED_SHAFT = REGISTRATE.block<EncasedShaftBlock>(
-//        "balloon_encased_shaft"
-//    ) { properties: BlockBehaviour.Properties? ->
-//        EncasedShaftBlock(
-//            properties!!
-//        ) { BALLOON_CASING.get() }
-//    }
-//        .initialProperties { SharedProperties.wooden() }
-//        .transform(axeOrPickaxe())
-//        .transform(BuilderTransformers.encasedShaft("balloon") { ClockworkSpriteShifts.BALLOON_CASING })
-//        .item()
-//        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
-//        .build()
-//        .register()
+    @JvmField
+    val BALLOON_ENCASED_SHAFT = REGISTRATE.block<ExtendedEncasedShaftBlock>(
+        "balloon_encased_shaft"
+    ) { properties: BlockBehaviour.Properties? ->
+        ExtendedEncasedShaftBlock.balloon(
+            properties!!,
+        )
+    }
+        .initialProperties { SharedProperties.wooden() }
+        .transform(axeOrPickaxe())
+        .transform(BuilderTransformersClockwork.encasedShaft("balloon") { ClockworkSpriteShifts.BALLOON_CASING })
+        .transform(EncasingRegistry.addVariantTo { AllBlocks.SHAFT.get() })
+        .register()
 
     @JvmField
     val CLOCK: BlockEntry<ClockBlock> = REGISTRATE.block<ClockBlock>(

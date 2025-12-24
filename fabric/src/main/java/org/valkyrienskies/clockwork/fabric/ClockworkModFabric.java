@@ -6,6 +6,7 @@ import io.github.fabricators_of_create.porting_lib.entity.events.LivingEntityEve
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraftforge.fml.config.ModConfig;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.content.events.ClockworkCommonEvents;
@@ -62,6 +63,10 @@ public class ClockworkModFabric implements ModInitializer {
         registerServerEvents();
 
         ClockworkBoilerHeaters.INSTANCE.init();
+
+        ItemGroupEvents.modifyEntriesEvent(ClockworkMod.INSTANCE.getBASE_CREATIVE_TABINFO()).register(content -> {
+            content.accept(ClockworkBlocks.BALLOON_CASING.asItem());
+        });
     }
 
     public static void registerServerEvents() {

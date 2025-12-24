@@ -16,13 +16,11 @@ object SolidDeliveryMethodsImpl {
 
     @JvmStatic
     fun extractFrom(level: Level?, be: DeliveryCannonBlockEntity?): ItemStack {
-        if (level == null) return ItemStack.EMPTY
+        if (level == null || be == null) return ItemStack.EMPTY
 
-        val capability = grabCapability(level, be)
-        if (capability == null) return ItemStack.EMPTY
-        val inv = capability[Direction.UP]
+        val capability = grabCapability(level, be) ?: return ItemStack.EMPTY
+        val inv = capability[Direction.UP] ?: return ItemStack.EMPTY
 
-        if (inv == null) return ItemStack.EMPTY
 
         return ItemHelper.extract(inv, {true}, ItemHelper.ExtractionCountMode.UPTO, 64, false)
     }
@@ -31,7 +29,8 @@ object SolidDeliveryMethodsImpl {
     fun pushTo(level: Level?, be: DeliveryChuteBlockEntity?): Boolean {
 
         level ?: return false
-		val inv  = grabCapability(level, be)
+        be ?: return false
+		val inv  = grabCapability(level, be) ?: return false
 
         if (!be!!.itemStack.isEmpty && inv != null) {
             if (level.isClientSide && !be.isVirtual) return false
