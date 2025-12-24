@@ -10,7 +10,6 @@ import org.joml.Vector3i
 import org.valkyrienskies.clockwork.ClockworkAugmentations
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.content.logistics.gas.utilities.PocketForcesQueueable
-import org.valkyrienskies.clockwork.util.AerodynamicUtils.GRAVITATIONAL_ACCELERATION
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.dimensionMap
 import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
 import org.valkyrienskies.core.api.ships.*
@@ -21,6 +20,7 @@ import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.api.DuctNetwork
 import org.valkyrienskies.kelvin.impl.DuctNetworkServer
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
+import org.valkyrienskies.mod.api.positionToWorld
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.shipObjectWorld
 import java.util.Locale
@@ -98,11 +98,11 @@ class PocketForcesController: ShipPhysicsListener {
         for (r: Triple<Int, Int, Int> in roots.keys) {
             // Just so we can have x,y,z instead of first,second,third
             val root = Vector3i(r.first,r.second,r.third)
-            val rootYInWorld = ship.transform.shipToWorld.transformPosition(Vector3d(root.x().toDouble(), root.y().toDouble(), root.z().toDouble())).y + 0.5
-            val atmosphericDensityAtRoot = level.shipObjectWorld.aerodynamicUtils.getAirDensityForY(rootYInWorld, level.dimensionId)
-            val atmosphericPressureAtRoot = level.shipObjectWorld.aerodynamicUtils.getAirPressureForY(rootYInWorld, level.dimensionId)
-            val atmosphericTemperatureAtRoot = level.shipObjectWorld.aerodynamicUtils.getAirTemperatureForY(rootYInWorld, level.dimensionId)
-            val requiredMassForDensity = atmosphericDensityAtRoot * roots[r]!!.toDouble()
+            val rootYInWorld = ship.transform.positionToWorld(Vector3d(root.x().toDouble(), root.y().toDouble(), root.z().toDouble())).y + 0.5
+            val atmoDensity = level.shipObjectWorld.aerodynamicUtils.getAirDensityForY(rootYInWorld, level.dimensionId)
+            val atmoPressure = level.shipObjectWorld.aerodynamicUtils.getAirPressureForY(rootYInWorld, level.dimensionId)
+            val atmoTemperature = level.shipObjectWorld.aerodynamicUtils.getAirTemperatureForY(rootYInWorld, level.dimensionId)
+
             val volume = level.shipObjectWorld.getAirComponentSize(root.x(), root.y(), root.z(), dimensionId).toDouble()
 //            //if (level.shipObjectWorld.getAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("airupdated"), root.x(), root.y(), root.z(), level.dimensionId) < 1.0 && roots[r]!! > 0) {
 //
@@ -113,8 +113,21 @@ class PocketForcesController: ShipPhysicsListener {
 //            //ClockworkMod.LOGGER.info("Removed pocket with root: ($root)")
 //            }
             val isSealed = level.shipObjectWorld.collectAirAugmentation(ClockworkAugmentations.getAugmentation("sealed"), root.x(), root.y(), root.z(), level.dimensionId) > 0.0
-            if (!isSealed && roots[r]!! > 0) {
+            if (!isSealed) {
                 val (gasMass, currentHeatEnergy) = retrieveGasInfoFromPocket(root, level)
+
+                if (currentHeatEnergy.isNaN() || currentHeatEnergy == 0.0 || gasMass.isEmpty()) {
+
+                    val key = ClockworkAugmentations.getComponentAugmentation("gas_air")
+                    level.shipObjectWorld.setAirComponentAugmentation(key, root.x,root.y,root.z,dimensionId, volume*atmoDensity)
+
+                    val specificHeat = GasTypeRegistry.getGasType("kelvin","air")!!.specificHeatCapacity
+                    level.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("heatEnergy"),
+                        root.x,root.y,root.z,dimensionId, atmoTemperature * volume*atmoDensity * specificHeat)
+
+                    continue
+                }
+
                 val totalMass = gasMass.values.sum()
                 val moles = gasMass.entries.sumOf { it.key.massToMoles(it.value) }
                 val heatCapacity = (KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(gasMass)
@@ -124,13 +137,13 @@ class PocketForcesController: ShipPhysicsListener {
                 val estimatedSurfaceArea = 4.84 * volume.pow(2.0/3.0)
 
                 // Gas leak exiting
-                val gasExitRate = max(0.0, currentPressure - atmosphericPressureAtRoot) * estimatedSurfaceArea * ClockworkConfig.SERVER.permeabilityConstant / sqrt(currentTemperature * DuctNetwork.idealGasConstant / molarMass)
+                val gasExitRate = max(0.0, currentPressure - atmoPressure) * estimatedSurfaceArea * ClockworkConfig.SERVER.permeabilityConstant / sqrt(currentTemperature * DuctNetwork.idealGasConstant / molarMass)
                 val exitGas = gasExitRate * 0.05
                 gasMass.forEach { gasMass[it.key] = gasMass[it.key]!! - exitGas * it.value / totalMass }
 
                 // Gas leak heat transfer
-                val heatFlow = ClockworkConfig.SERVER.heatTransferCoefficient * estimatedSurfaceArea * max(0.0,currentTemperature - atmosphericTemperatureAtRoot)
-                val newHeatEnergy = heatFlow * 0.05
+                val heatFlow = ClockworkConfig.SERVER.heatTransferCoefficient * estimatedSurfaceArea * (currentTemperature - atmoTemperature)
+                val newHeatEnergy = currentHeatEnergy + heatFlow * 0.05
                 val newHeatCapacity = (KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(gasMass)
                 val newTemperature = newHeatEnergy / (newHeatCapacity * totalMass)
 
@@ -138,7 +151,7 @@ class PocketForcesController: ShipPhysicsListener {
                 val air = GasTypeRegistry.GAS_TYPES[ResourceLocation("kelvin","air")]!!
                 val newMoles = gasMass.entries.sumOf { it.key.massToMoles(it.value) }
                 val newPressure = newMoles * DuctNetwork.idealGasConstant * newTemperature / volume
-                val addMoles = max(0.0, atmosphericPressureAtRoot - newPressure) * volume / (newTemperature * DuctNetwork.idealGasConstant)
+                val addMoles = max(0.0, atmoPressure - newPressure) * volume / (newTemperature * DuctNetwork.idealGasConstant)
                 gasMass[air] = (gasMass[air] ?: 0.0) + air.molesToMass(addMoles)
 
                 // Set Values
@@ -147,8 +160,7 @@ class PocketForcesController: ShipPhysicsListener {
                     level.shipObjectWorld.setAirComponentAugmentation(key, root.x,root.y,root.z,dimensionId, it.value)
                 }
                 level.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("heatEnergy"),
-                    root.x,root.y,root.z,dimensionId,
-                    newHeatEnergy)
+                    root.x,root.y,root.z,dimensionId, newHeatEnergy)
 
             }
         }

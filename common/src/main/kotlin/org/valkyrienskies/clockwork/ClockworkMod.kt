@@ -115,7 +115,6 @@ object ClockworkMod {
         //Register gas types
         ClockworkGasses.init()
 
-        var registeredAugments = false
         LifecycleEvent.SERVER_STARTED.register {
             ClockworkAugmentations.registerComponentAvgAugmentation("heatEnergy", it.shipObjectWorld)
             ClockworkAugmentations.registerComponentAvgAugmentation("pressure", it.shipObjectWorld)
@@ -125,12 +124,11 @@ object ClockworkMod {
             //todo: gas registry
             ClockworkAugmentations.registerComponentSumAugmentation("airupdated", it.shipObjectWorld)
             ClockworkAugmentations.registerSumAugmentation("sealed", it.shipObjectWorld)
-            registeredAugments = true
         }
 
 
         TickEvent.SERVER_LEVEL_POST.register {
-            if (registeredAugments) for (ship in it.shipObjectWorld.loadedShips) {
+            for (ship in it.shipObjectWorld.loadedShips) {
                 ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship.id)
             }
 
