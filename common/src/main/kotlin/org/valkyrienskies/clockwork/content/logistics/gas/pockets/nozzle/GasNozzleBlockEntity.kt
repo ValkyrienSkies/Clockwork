@@ -123,7 +123,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         serverLevel.shipObjectWorld.setAirComponentAugmentation(
             ClockworkAugmentations.getComponentAugmentation("heatEnergy"),
             blockPos.x,
-            blockPos.y,
+            blockPos.y+1,
             blockPos.z,
             serverLevel.dimensionId,
             pocketHeatEnergy + usedEnergy
