@@ -79,7 +79,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
     lateinit var rotationDirection: ScrollOptionBehaviour<RotationDirection>
 
     override fun newCreateData(): PropCreateData {
-        return PropCreateData(worldPosition.toJOML(), blockState.getValue(BlockStateProperties.FACING).normal.toJOMLD(), angle, currentOmega, sailPositions, isInverted(), active, brass, blades)
+        return PropCreateData(worldPosition.toJOML(), blockState.getValue(BlockStateProperties.FACING).normal.toJOMLD(), angle, currentOmega, sailPositions, isInverted(), active, brass && blades.isEmpty(), blades)
     }
 
     override fun newUpdateData(): PropUpdateData {
@@ -271,11 +271,11 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
 
         targetOmega = convertToAngular(this.getSpeed()).toDouble()
 
-        if (brass) {
+        getBlades()
+        if (brass && blades.isEmpty()) {
             getSails()
-        } else {
-            getBlades()
         }
+
         val stressImpact = calculateStressApplied()
         orCreateNetwork?.updateStressFor(this, stressImpact)
 

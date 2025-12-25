@@ -51,7 +51,7 @@ class PocketForcesController: ShipPhysicsListener {
         //ClockworkMod.LOGGER.info(physShip.mass.toString())
 
         buoyancyForce.forEach {
-            if (it.value > 1.0) println(it.value.toString() + "to" + it.key.toString())
+            //if (it.value > 1.0) println(it.value.toString() + "to" + it.key.toString())
             if (it.value.isFinite() && !it.value.isNaN()) { //just to be safe
 
                 physShipImpl.applyWorldForceToModelPos(Vector3d(0.0, it.value, 0.0))

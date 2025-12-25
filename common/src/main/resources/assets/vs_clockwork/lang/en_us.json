@@ -119,6 +119,10 @@
   "vs_clockwork.logistics.firstFrequency": "Delivery Frequency",
   "vs_clockwork.logistics.filter.click_to_set": "Click with an item to set.",
 
+  "vs_clockwork.contraptions.propeller.rotation_direction": "Rotation Direction",
+  "propeller.rotation_direction.normal": "Normal",
+  "propeller.rotation_direction.reversed": "Reversed",
+
   "block.vs_clockwork.wanderlite_block": "Block of Wanderlite",
   "item.vs_clockwork.wanderlite_block": "Block of Wanderlite",
   "block.vs_clockwork.wanderlite_bricks": "Wanderlite Bricks",
