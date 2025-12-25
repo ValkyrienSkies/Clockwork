@@ -43,6 +43,6 @@
     "valkyrienskies": ">=2.4.0",
     "kelvin": ">=0.4.0",
     "create": ">=${create_fabric_version}",
-    "architectury": ">=9.2.12"
+    "architectury": ">=9.1.12"
   }
 }
