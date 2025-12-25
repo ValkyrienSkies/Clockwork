@@ -50,3 +50,10 @@ mandatory = true
 versionRange = "${create_version}"
 ordering = "AFTER"
 side = "BOTH"
+
+[[dependencies.vs_clockwork]]
+modId = "architectury"
+mandatory = true
+versionRange = "[9.2.14,)"
+ordering = "AFTER"
+side = "BOTH"
