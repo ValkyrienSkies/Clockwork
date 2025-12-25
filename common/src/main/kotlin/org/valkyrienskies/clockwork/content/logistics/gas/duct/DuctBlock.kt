@@ -240,6 +240,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         val storedType = blockEntity.DIR_TO_CONNECTION_TYPE[direction] ?: DuctEdgeType.PIPE
         val connectionType = if (finalConnection.isConnected) (if (storedType != DuctEdgeType.NONE) storedType else DuctEdgeType.PIPE) else DuctEdgeType.NONE
 
+        //if (type != finalConnection)
         blockEntity.setEdgeType(direction, neighborDuctNodePos, connectionType, clientPacket = false, silent = false, forced = true)
 
 

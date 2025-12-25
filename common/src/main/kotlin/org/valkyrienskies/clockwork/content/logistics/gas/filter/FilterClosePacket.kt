@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.filter
 
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.Level
@@ -12,6 +13,7 @@ import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
 import org.valkyrienskies.clockwork.platform.api.network.ServerNetworkContext
 import org.valkyrienskies.core.util.readVec3d
 import org.valkyrienskies.core.util.writeVec3d
+import org.valkyrienskies.kelvin.api.DuctEdge
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
@@ -42,15 +44,17 @@ class FilterClosePacket(private val nodeA: DuctNodePos, private val nodeB: DuctN
             val edge = ClockworkMod.getKelvin().edges[Pair(nodeA, nodeB)] as FilteredEdge? ?: return@enqueueWork
             edge.modFilter(filter, blacklist)
 
-            forceUpdate(context.sender.level(), nodeA)
-            forceUpdate(context.sender.level(), nodeB)
+            forceUpdate(context.sender.level(), nodeA, nodeB, edge)
+            forceUpdate(context.sender.level(), nodeB, nodeA, edge)
         }
         context.setPacketHandled(true)
     }
 
-    fun forceUpdate(level: Level, pos: DuctNodePos) {
-        val blockPos = pos.toMinecraft()
+    fun forceUpdate(level: Level, nodeA: DuctNodePos, nodeB: DuctNodePos, edge: DuctEdge) {
+        val blockPos = nodeA.toMinecraft()
         val be = level.getBlockEntity(blockPos) as? DuctBlockEntity ?: return
+
+        be.edgeData[DuctBlockEntity.EdgePos(nodeA, nodeB)] = edge.serialize(CompoundTag())
         be.notifyUpdate()
     }
 

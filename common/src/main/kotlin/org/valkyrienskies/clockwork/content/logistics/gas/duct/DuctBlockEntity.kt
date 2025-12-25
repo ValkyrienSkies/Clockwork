@@ -1,5 +1,9 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.duct
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -10,19 +14,17 @@ import net.minecraft.world.phys.AABB
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.magnitudeSqr
-import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.util.KNodeBlockEntity
-import org.valkyrienskies.core.impl.shadow.ke
+import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.util.INodeBlockEntity
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
-import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
 import java.util.*
 
 class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state) {
 
     val DIR_TO_CONNECTION_TYPE: EnumMap<Direction, DuctEdgeType> = EnumMap(Direction::class.java)
-
-
+    val edgeData = HashMap<EdgePos, CompoundTag>()
+    var objectMapper: ObjectMapper = ObjectMapper().registerKotlinModule()
 
     var shouldUpdateEdges = false
 
@@ -31,7 +33,6 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
             this.DIR_TO_CONNECTION_TYPE[dir] = DuctEdgeType.NONE
         }
     }
-
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
         super.addBehavioursDeferred(behaviours)
@@ -45,43 +46,34 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
                 this.DIR_TO_CONNECTION_TYPE[dir] = edgeType
                 if (clientPacket) continue
                 shouldUpdateEdges = true
-
-                //val neighborDuct = level?.getBlockEntity(blockPos) as? DuctBlockEntity ?: continue
-                val serializedEdge = tag.get("DuctEdge${dir.name}") as? CompoundTag ?: continue
-
-                val kelvin = ClockworkMod.getKelvin()
-                val thisDuctPos = getDuctNodePosition()
-                val otherDuctPos = DuctNodePos(thisDuctPos.x + dir.normal.x, thisDuctPos.y + dir.normal.y, thisDuctPos.z + dir.normal.z, thisDuctPos.dimensionId)
-
-                setEdgeType(dir, otherDuctPos, edgeType, false)
-
-                val edge = kelvin.getEdgeBetween(getDuctNodePosition(), DuctNodePos(thisDuctPos.x + dir.normal.x, thisDuctPos.y + dir.normal.y, thisDuctPos.z + dir.normal.z, thisDuctPos.dimensionId)) ?: continue
-
-                edge.deserialize(serializedEdge)
             }
         }
-        if (clientPacket) {
-            return
-        }
+        if (clientPacket) return
         if (level != null) ClockworkMod.getKelvin().markLoaded(this.blockPos.toDuctNodePos(level!!.dimension().location()))
+
+        val edgeDataTag = tag.get("edgeData") as? CompoundTag ?: return
+        edgeDataTag.allKeys.forEach {
+            val edgePos = objectMapper.readValue(it, EdgePos::class.java)
+            val tag = edgeDataTag.get(it) as? CompoundTag ?: return
+            edgeData[edgePos] = tag
+        }
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
-        println("WRITING $clientPacket")
+
         for (dir in Direction.values()) {
             if (this.DIR_TO_CONNECTION_TYPE[dir] != null) {
                 tag.putInt("DuctEdgeType${dir.name}", this.DIR_TO_CONNECTION_TYPE[dir]!!.ordinal)
-
-                if (clientPacket) continue
-
-                val kelvin = ClockworkMod.getKelvin()
-                val thisDuctPos = getDuctNodePosition()
-                val edge = kelvin.getEdgeBetween(thisDuctPos, DuctNodePos(thisDuctPos.x + dir.normal.x, thisDuctPos.y + dir.normal.y, thisDuctPos.z + dir.normal.z, thisDuctPos.dimensionId)) ?: continue
-
-                val serializedEdge = edge.serialize(CompoundTag())
-                tag.put("DuctEdge${dir.name}", serializedEdge)
             }
         }
+
+        if (!clientPacket) {
+            val edgeDataTag = CompoundTag()
+            edgeData.forEach { edgeDataTag.put(objectMapper.writeValueAsString(it.key), it.value) }
+            tag.put("edgeData", edgeDataTag)
+        }
+
+
         super.write(tag, clientPacket)
     }
 
@@ -147,7 +139,8 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
 
                     val newEdge = DuctEdgeType.createEdgeType(nodeA, nodeB, edgeType)
 
-
+                    if (edgeData[EdgePos(nodeA, nodeB)] != null)
+                        newEdge.deserialize(edgeData[EdgePos(nodeA, nodeB)]!!)
 
                     ClockworkMod.getKelvin().addEdge(nodeA, nodeB, newEdge)
                 }
@@ -180,4 +173,7 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
     override fun createRenderBoundingBox(): AABB? {
         return super.createRenderBoundingBox().inflate(1.0/16.0)
     }
+
+
+    data class EdgePos(val first: DuctNodePos, val second: DuctNodePos)
 }
