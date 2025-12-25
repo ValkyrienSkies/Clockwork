@@ -24,6 +24,8 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.content.forces.SugarRocketController
+import org.valkyrienskies.mod.common.getLoadedShipManagingPos
 
 class SugarRocketBlock(properties: Properties) : DirectionalBlock(properties), IBE<SugarRocketBlockEntity>, IWrenchable {
     override fun getBlockEntityClass(): Class<SugarRocketBlockEntity> {
@@ -48,6 +50,21 @@ class SugarRocketBlock(properties: Properties) : DirectionalBlock(properties), I
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
         super.createBlockStateDefinition(builder.add(FACING))
+    }
+
+    override fun onRemove(
+        state: BlockState,
+        level: Level,
+        pos: BlockPos,
+        newState: BlockState,
+        movedByPiston: Boolean
+    ) {
+        if (level.isClientSide) return super.onRemove(state, level, pos, newState, movedByPiston)
+        val ship = (level as ServerLevel).getLoadedShipManagingPos(pos)
+        if (ship != null) {
+            SugarRocketController.getOrCreate(ship).removeRocket(pos)
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston)
     }
 
     fun getAxialPositions(pos: BlockPos, ignoreAxis: Direction.Axis): List<BlockPos> {
