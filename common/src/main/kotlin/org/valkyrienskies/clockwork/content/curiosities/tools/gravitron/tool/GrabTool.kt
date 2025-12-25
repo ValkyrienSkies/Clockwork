@@ -184,6 +184,14 @@ class GrabTool : GravitronToolBase() {
         fun tryGrabShip(level: ServerLevel, player: Player, clickedPos: BlockPos, clickLocation: Vec3, isCreative: Boolean): Boolean {
 
             if (dropShip(player)) {
+                level.playSound(
+                    null,
+                    player.blockPosition(),
+                    ClockworkSounds.GRAVITRON_RELEASE.mainEvent!!,
+                    player.soundSource,
+                    1f,
+                    1f
+                )
                 return true
             }
 
@@ -235,7 +243,7 @@ class GrabTool : GravitronToolBase() {
             level.playSound(
                 null,
                 player.blockPosition(),
-                ClockworkSounds.WAND_START.mainEvent!!,
+                ClockworkSounds.GRAVITRON_GRAB.mainEvent!!,
                 player.soundSource,
                 1f,
                 1f

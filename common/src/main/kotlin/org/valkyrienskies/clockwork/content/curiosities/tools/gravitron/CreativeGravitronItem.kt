@@ -24,6 +24,7 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkItems
+import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronState.Companion.getState
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.SelectedAreaToolkit
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.GrabTool
@@ -157,6 +158,14 @@ class CreativeGravitronItem(properties: Properties) : CWItem(properties), Custom
                         if (component.any { ClockworkConfig.SERVER.blockBlacklist.contains(level.getBlockState(it).block.descriptionId) } ) continue
                         if (component.contains(blockPos)) {
                             ShipAssembler.assembleToShip(level, component.toList(), true)
+                            level.playSound(
+                                null,
+                                blockPos,
+                                ClockworkSounds.PHYSICS_INFUSER_FINISH.mainEvent,
+                                player.soundSource,
+                                1.0f,
+                                1.0f
+                            )
                             break
                         }
                         //assembleFromBlockSet(level as ServerLevel, component, false)

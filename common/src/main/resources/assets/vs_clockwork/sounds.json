@@ -388,5 +388,65 @@
       }
     ],
     "subtitle": "vs_clockwork.subtitle.joint_break"
+  },
+  "gravitron_start": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:gravitron_start",
+        "type": "file",
+        "attenuation_distance": 32
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.gravitron_start"
+  },
+  "gravitron_grab": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:gravitron_grab",
+        "type": "file",
+        "attenuation_distance": 16
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.gravitron_grab"
+  },
+  "gravitron_release": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:gravitron_release",
+        "type": "file",
+        "attenuation_distance": 16
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.gravitron_release"
+  },
+  "gravitron_fling": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:gravitron_fling",
+        "type": "file",
+        "attenuation_distance": 32
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.gravitron_fling"
+  },
+  "gravitron_freeze": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:gravitron_freeze",
+        "type": "file",
+        "attenuation_distance": 16
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.gravitron_freeze"
+  },
+  "gravitron_shutdown": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:gravitron_shutdown",
+        "type": "file",
+        "attenuation_distance": 16
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.gravitron_shutdown"
   }
 }

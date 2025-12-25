@@ -123,6 +123,13 @@
   "propeller.rotation_direction.normal": "Normal",
   "propeller.rotation_direction.reversed": "Reversed",
 
+  "vs_clockwork.subtitle.gravitron_start": "Gravitron Booting Up",
+  "vs_clockwork.subtitle.gravitron_grab": "Gravitron Grabbing Ship",
+  "vs_clockwork.subtitle.gravitron_release": "Gravitron Releasing Ship",
+  "vs_clockwork.subtitle.gravitron_fling": "Gravitron Launching Ship",
+  "vs_clockwork.subtitle.gravitron_shutdown": "Gravitron Shutting Down",
+  "vs_clockwork.subtitle.gravitron_freeze": "Supercharged Gravitron Freezes Ship",
+
   "block.vs_clockwork.wanderlite_block": "Block of Wanderlite",
   "item.vs_clockwork.wanderlite_block": "Block of Wanderlite",
   "block.vs_clockwork.wanderlite_bricks": "Wanderlite Bricks",

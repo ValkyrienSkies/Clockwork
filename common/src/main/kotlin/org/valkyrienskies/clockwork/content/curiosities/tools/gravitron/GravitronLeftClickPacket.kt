@@ -48,10 +48,18 @@ class GravitronLeftClickPacket : C2SCWPacket {
                         serverPlayer.cooldowns.addCooldown(stack.item, 20)
 
                         val lookDir = serverPlayer.lookAngle.normalize().toJOML()
-                        val magnitude = 6000 * ship.inertiaData.mass
+                        val magnitude = 600 * ship.inertiaData.mass
                         val launchVec = lookDir.mul(magnitude)
-                        ValkyrienSkiesMod.getOrCreateGTPA(level.dimensionId).applyInvariantForceToPos(ship.id, launchVec, state.shipGrabbedPos!!)
+                        ValkyrienSkiesMod.getOrCreateGTPA(level.dimensionId).applyWorldForceToBodyPos(ship.id, launchVec, state.shipGrabbedPos!!)
                         GrabTool.dropShip(serverPlayer)
+                        level.playSound(
+                            serverPlayer,
+                            serverPlayer.blockPosition(),
+                            ClockworkSounds.GRAVITRON_LAUNCH.mainEvent!!,
+                            SoundSource.PLAYERS,
+                            1f,
+                            1f
+                        )
                     } else {
                         // To make sure when un-static-ing, it doesn't go back to actively grabbing
                         if (state.shipID != null) {
@@ -59,16 +67,15 @@ class GravitronLeftClickPacket : C2SCWPacket {
                         }
 
                         ship.isStatic = !ship.isStatic
+                        level.playSound(
+                            serverPlayer,
+                            serverPlayer.blockPosition(),
+                            ClockworkSounds.GRAVITRON_FREEZE.mainEvent!!,
+                            SoundSource.PLAYERS,
+                            1f,
+                            1f
+                        )
                     }
-
-                    level.playSound(
-                        serverPlayer,
-                        serverPlayer.blockPosition(),
-                        ClockworkSounds.WAND_FINISH.mainEvent!!,
-                        SoundSource.PLAYERS,
-                        1f,
-                        1f
-                    )
                 }
 
             }

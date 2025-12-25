@@ -9,6 +9,7 @@ import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.GameType
 import org.valkyrienskies.clockwork.ClockworkItems
+import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.ToolType
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.ToolType.Companion.getTools
 import org.valkyrienskies.clockwork.util.ClockworkHotbarSlotOverlays
@@ -36,6 +37,7 @@ open class GravitronHandler {
 
     fun tick() {
         val mc = Minecraft.getInstance()
+        val wasActive = active
         if (mc.gameMode != null && mc.gameMode!!.playerMode == GameType.SPECTATOR) {
             if (active) {
                 active = false
@@ -48,6 +50,18 @@ open class GravitronHandler {
         val stack = findGravitronInHand(player)
         if (stack == null) {
             active = false
+            if (wasActive) {
+                player?.level().let {
+                    it?.playSound(
+                        null,
+                        player!!.blockPosition(),
+                        ClockworkSounds.GRAVITRON_SHUTDOWN.mainEvent,
+                        player.soundSource,
+                        1.0f,
+                        1.0f
+                    )
+                }
+            }
             if (activeSchematicItem != null && itemLost(player!!)) {
                 activeHotbarSlot = 0
                 activeSchematicItem = null
@@ -55,6 +69,18 @@ open class GravitronHandler {
             return
         }
         init(player)
+        if (!wasActive && active) {
+            player?.level().let {
+                it?.playSound(
+                    null,
+                    player!!.blockPosition(),
+                    ClockworkSounds.GRAVITRON_START.mainEvent,
+                    player.soundSource,
+                    1.0f,
+                    1.0f
+                )
+            }
+        }
         if (!active) {
             return
         }

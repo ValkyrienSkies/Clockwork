@@ -133,7 +133,7 @@ object ClockworkMod {
 
         TickEvent.SERVER_LEVEL_POST.register {
             for (ship in it.shipObjectWorld.loadedShips) {
-                //ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship.id)
+                ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship.id)
             }
 
             ClockworkUtils.tick(it)
