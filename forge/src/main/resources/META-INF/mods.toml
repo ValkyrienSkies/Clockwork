@@ -6,10 +6,13 @@ license = "Apache-2.0"
 [[mods]]
 modId = "vs_clockwork"
 version = "${version}"
-displayName = "Clockwork: Create x Valkyrien Skies"
+displayName = "Clockwork"
 authors = ["potato", "priestoffern", "mrsterner", "fluffy"]
 description = '''
-An over-the-top spin on Create, powered by Valkyrien Skies.
+Clockwork is a mod built on the framework of Valkyrien Skies 2 and Create, providing new opportunities for exploration,
+and new ways to discover your own path to adventure in your world.
+From new mechanics to new biomes, new creatures and new machines-
+when magical whimsy and technological ingenuity collide, Clockwork stands in their wake.
 '''
 logoFile = "icon.png"
 
