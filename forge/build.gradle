@@ -16,6 +16,8 @@ plugins {
     id "com.modrinth.minotaur"
 }
 
+apply from: '../gradle-scripts/publish-curseforge.gradle'
+
 
 if (project.hasProperty("CustomReleaseVersion")) {
     // Remove release/ from the `version if present
