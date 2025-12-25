@@ -103,7 +103,11 @@ open class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, stat
         val axisAlong = blockState.getValue(DirectionalAxisKineticBlock.AXIS_ALONG_FIRST_COORDINATE)
 
         if (facing.axis == Axis.Y) return if (axisAlong) Direction.WEST else Direction.NORTH
-        return facing.clockWise
+        return if (facing.axisDirection == Direction.AxisDirection.POSITIVE) {
+            facing.clockWise
+        } else {
+            facing.counterClockWise
+        }
     }
 
     open protected fun getPower(): Int {

@@ -111,6 +111,14 @@
   "block.vs_clockwork.lodefocus": "Lodefocus",
   "item.vs_clockwork.lodefocus": "Lodefocus",
 
+  "block.vs_clockwork.redstone_duct": "Redstone Duct",
+  "item.vs_clockwork.redstone_duct": "Redstone Duct",
+
+  "vs_clockwork.blade_controller.angle": "Blade Angle",
+
+  "vs_clockwork.logistics.firstFrequency": "Delivery Frequency",
+  "vs_clockwork.logistics.filter.click_to_set": "Click with an item to set.",
+
   "block.vs_clockwork.wanderlite_block": "Block of Wanderlite",
   "item.vs_clockwork.wanderlite_block": "Block of Wanderlite",
   "block.vs_clockwork.wanderlite_bricks": "Wanderlite Bricks",
@@ -163,6 +171,38 @@
 
   "block.vs_clockwork.spinoff_bearing": "Spinoff Bearing",
   "item.vs_clockwork.spinoff_bearing": "Spinoff Bearing",
+
+  "vs_clockwork.wanderwand.warning": "BETA WARNING : Currently, only SELECT and DESELECT function.",
+
+  "vs_clockwork.wanderwand.tool.select": "Select",
+  "vs_clockwork.wanderwand.tool.select.description.0": "Adds an area to the wand's selection memory.",
+  "vs_clockwork.wanderwand.tool.select.description.1": "[Right-click] to select a corner.",
+  "vs_clockwork.wanderwand.tool.select.description.2": "Areas will be divided into isolated groups.",
+  "vs_clockwork.wanderwand.tool.select.description.3": "The Infuser will assemble groups separately.",
+
+  "vs_clockwork.wanderwand.tool.deselect": "Deselect",
+  "vs_clockwork.wanderwand.tool.deselect.description.0": "Removes an area from the wand's selection memory.",
+  "vs_clockwork.wanderwand.tool.deselect.description.1": "[Right-click] to deselect a corner.",
+  "vs_clockwork.wanderwand.tool.deselect.description.2": "The selection will subtract from selected groups.",
+  "vs_clockwork.wanderwand.tool.deselect.description.3": "",
+
+  "vs_clockwork.wanderwand.tool.attach": "Attach",
+  "vs_clockwork.wanderwand.tool.attach.description.0": "Magically attaches two vessels together.",
+  "vs_clockwork.wanderwand.tool.attach.description.1": "[Right-click] on block faces to select.",
+  "vs_clockwork.wanderwand.tool.attach.description.2": "Attached vessels will be jointed together.",
+  "vs_clockwork.wanderwand.tool.attach.description.3": "[Left-click] near an attachment to remove it.",
+
+  "vs_clockwork.wanderwand.tool.bind": "Bind",
+  "vs_clockwork.wanderwand.tool.bind.description.0": "Creates a magical rope between two vessels.",
+  "vs_clockwork.wanderwand.tool.bind.description.1": "[Right-click] on block faces to select.",
+  "vs_clockwork.wanderwand.tool.bind.description.2": "While connecting, the rope will attach to you.",
+  "vs_clockwork.wanderwand.tool.bind.description.3": "[Left-click] near a binding to remove it.",
+
+  "vs_clockwork.wanderwand.tool.weld": "Weld",
+  "vs_clockwork.wanderwand.tool.weld.description.0": "Welds two vessels together permanently.",
+  "vs_clockwork.wanderwand.tool.weld.description.1": "[Right-click] on block faces to select.",
+  "vs_clockwork.wanderwand.tool.weld.description.2": "A hologram will indicate the orientation of the welded blocks.",
+  "vs_clockwork.wanderwand.tool.weld.description.3": "Welding vessels will fuse them into one.",
 
   "block.vs_clockwork.duct": "Duct",
   "item.vs_clockwork.duct": "Duct",

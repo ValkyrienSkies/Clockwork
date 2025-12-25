@@ -75,6 +75,7 @@ class LodefocusBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: Blo
                 val itemEntity = ItemEntity(sLevel, worldPos.x, worldPos.y, worldPos.z, oldItem, launchX, launchY, launchZ)
                 sLevel.addFreshEntity(itemEntity)
                 sLevel.playSound(null, worldPos.x, worldPos.y, worldPos.z, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 0.65f, 1.0f)
+                clearContent()
             }
         }
     }

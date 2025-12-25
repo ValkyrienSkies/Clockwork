@@ -9,6 +9,7 @@ import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Registry
 import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.Entity
@@ -26,9 +27,11 @@ import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronState.Companion.getState
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.SelectedAreaToolkit
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.GrabTool
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItem
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
+import org.valkyrienskies.mod.common.assembly.ShipAssembler
 import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft
@@ -146,16 +149,24 @@ class CreativeGravitronItem(properties: Properties) : CWItem(properties), Custom
 
             //todo: reimplement when wanderwand rework done
 
-//            for (item in player.inventory.items) {
-//                if (item.`is`(ClockworkItems.WANDERWAND.get().asItem())) {
-//                    val auricItem: WanderWandItem = item.item as WanderWandItem
-//
-//                    if (abstractAssemble(level, player, auricItem.selectedArea, blockPos, clickLocation, grab)) {
-//                        return true;
-//                    }
-//                    break
-//                }
-//            }
+            for (item in player.inventory.items) {
+                if (item.`is`(ClockworkItems.WANDERWAND.get().asItem())) {
+                    val selectedTag = item.tag?.get("selectedBlocks") as? CompoundTag ?: return false
+                    val blockposSet = WanderwandItem.readBlockPosSetFromNBT(selectedTag)
+
+                    for (component in WanderwandItem.findIsolatedComponents(blockposSet)) {
+
+                        if (component.any { ClockworkConfig.SERVER.blockBlacklist.contains(level.getBlockState(it).block.descriptionId) } ) continue
+                        if (component.contains(blockPos)) {
+                            ShipAssembler.assembleToShip(level, component.toList(), true)
+                            break
+                        }
+                        //assembleFromBlockSet(level as ServerLevel, component, false)
+
+                    }
+                    break
+                }
+            }
 
             return false
         }
