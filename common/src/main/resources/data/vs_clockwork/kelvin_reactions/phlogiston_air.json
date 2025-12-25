@@ -1,0 +1,23 @@
+{
+  "input_gasses": {
+    "vs_clockwork:phlogiston": {
+      "amount": 0.002,
+      "unit": "kg"
+    },
+    "kelvin:air": {
+      "amount": 0.001,
+      "unit": "kg"
+    }
+  },
+  "requirements": {
+    "kelvin:min_temperature": 500,
+    "kelvin:min_pressure": 1000
+  },
+  "energy": 16090400,
+  "result_gasses": {
+    "vs_clockwork:exhaust": {
+      "amount": 0.006,
+      "unit": "kg"
+    }
+  }
+}
