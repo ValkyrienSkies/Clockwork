@@ -129,7 +129,7 @@ class SugarRocketBlock(properties: Properties) : DirectionalBlock(properties), I
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
         super.onPlace(state, level, pos, oldState, isMoving)
         val hasNextBlock = level.getBlockEntity(pos.relative(state.getValue(DirectionalBlock.FACING))) is SugarRocketBlockEntity && level.getBlockState(pos.relative(state.getValue(DirectionalBlock.FACING))).getValue(DirectionalBlock.FACING) == state.getValue(DirectionalBlock.FACING)
-        val blockEntity = level.getBlockEntity(pos) as SugarRocketBlockEntity ?: return
+        val blockEntity = level.getBlockEntity(pos) as? SugarRocketBlockEntity ?: return
         blockEntity.hasNextBlock = hasNextBlock
     }
 
@@ -142,6 +142,9 @@ class SugarRocketBlock(properties: Properties) : DirectionalBlock(properties), I
         hit: BlockHitResult
     ): InteractionResult {
         if (!level.isClientSide) {
+            val be = level.getBlockEntity(pos) as? SugarRocketBlockEntity ?: return InteractionResult.FAIL
+            if (be.isBurning) return InteractionResult.FAIL
+
             val stack = player.getItemInHand(hand)
             if (stack.`is`(Items.SUGAR)) {
                 val blockEntity = level.getBlockEntity(pos) as? SugarRocketBlockEntity ?: return InteractionResult.FAIL
