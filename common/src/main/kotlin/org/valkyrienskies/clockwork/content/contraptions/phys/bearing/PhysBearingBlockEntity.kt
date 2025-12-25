@@ -14,6 +14,7 @@ import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOp
 import com.simibubi.create.foundation.item.TooltipHelper
 import com.simibubi.create.foundation.utility.ServerSpeedProvider
 import net.createmod.catnip.math.AngleHelper
+import net.fabricmc.loader.impl.lib.sat4j.core.Vec
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
@@ -196,7 +197,14 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     private fun loadTheRest(tag: CompoundTag, level: ServerLevel) {
         shouldRefresh = true
         var joint = this.joint?.joint as? VSRevoluteJoint ?: return
-        val mainId = level.getShipManagingPos(worldPosition)?.id ?: level.shipObjectWorld.dimensionToGroundBodyIdImmutable[level.dimensionId]!!
+        val mainId = level.getShipManagingPos(worldPosition)?.id
+
+        val oldBPos = BlockPos.of(tag.getLong(ClockworkConstants.Nbt.OLD_POS))
+        val oldPos = oldBPos.toJOMLD()
+
+        if (!level.isBlockInShipyard(oldBPos) && level.isBlockInShipyard(blockPos)) {
+            joint = joint.copy(pose1 = joint.pose1.copy(joint.pose1.pos.sub(0.5, 0.5, 0.5, Vector3d())))
+        }
 
         //TODO is this fine or dumb?
         val makeData = { joint: VSRevoluteJoint? -> PhysBearingData(
@@ -205,14 +213,13 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             getRealisticAngularSpeed(),
             movementMode!!.get() == LockedMode.FOLLOW_ANGLE,
             aligning,
-            if (level.shipObjectWorld.dimensionToGroundBodyIdImmutable.values.contains(mainId)) {-1L} else {mainId},
+            mainId ?: -1L,
             joint?.pose1?.pos?.get(Vector3d()) ?: Vector3d(),
             joint?.pose0?.pos?.get(Vector3d()) ?: Vector3d()
         ) }
 
         controllerCreationData = makeData(joint)
 
-        val oldPos = BlockPos.of(tag.getLong(ClockworkConstants.Nbt.OLD_POS)).toJOMLD()
         if (oldPos == worldPosition) {return}
 
         val subship = level.shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return
