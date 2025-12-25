@@ -133,7 +133,7 @@ object ClockworkMod {
 
         TickEvent.SERVER_LEVEL_POST.register {
             for (ship in it.shipObjectWorld.loadedShips) {
-                ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship.id)
+                //ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship.id)
             }
 
             ClockworkUtils.tick(it)
@@ -146,7 +146,6 @@ object ClockworkMod {
             DualLinkHandler.handler(player, hand, pos, face)
         })
 
-        //TODO remove when VS commands return
         CommandRegistrationEvent.EVENT.register { dispatcher, context, idk ->
             dispatcher.register(LiteralArgumentBuilder.literal<CommandSourceStack>("get-air-values").executes {
                 val level = it.source.level!!

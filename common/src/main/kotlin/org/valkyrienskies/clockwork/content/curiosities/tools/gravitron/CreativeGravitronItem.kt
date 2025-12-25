@@ -147,15 +147,13 @@ class CreativeGravitronItem(properties: Properties) : CWItem(properties), Custom
                 return false
             }
 
-            //todo: reimplement when wanderwand rework done
-
             for (item in player.inventory.items) {
                 if (item.`is`(ClockworkItems.WANDERWAND.get().asItem())) {
                     val selectedTag = item.tag?.get("selectedBlocks") as? CompoundTag ?: return false
                     val blockposSet = WanderwandItem.readBlockPosSetFromNBT(selectedTag)
 
                     for (component in WanderwandItem.findIsolatedComponents(blockposSet)) {
-
+                        if (component.firstOrNull { pos -> !level.getBlockState(pos).isAir } == null) continue
                         if (component.any { ClockworkConfig.SERVER.blockBlacklist.contains(level.getBlockState(it).block.descriptionId) } ) continue
                         if (component.contains(blockPos)) {
                             ShipAssembler.assembleToShip(level, component.toList(), true)
