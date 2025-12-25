@@ -51,10 +51,10 @@ class PocketForcesController: ShipPhysicsListener {
         //ClockworkMod.LOGGER.info(physShip.mass.toString())
 
         buoyancyForce.forEach {
-            println(it.value)
+            if (it.value > 1.0) println(it.value.toString() + "to" + it.key.toString())
             if (it.value.isFinite() && !it.value.isNaN()) { //just to be safe
 
-                physShipImpl.applyWorldForceToModelPos(Vector3d(0.0, it.value, 0.0), it.key)
+                physShipImpl.applyWorldForceToModelPos(Vector3d(0.0, it.value, 0.0))
             }
         }
     }
@@ -71,8 +71,9 @@ class PocketForcesController: ShipPhysicsListener {
             val yHeight = physShip.transform.shipToWorld.transformPosition(it.pocketCenter, Vector3d()).y()
             val atmoDensity = physLevel.aerodynamicUtils.getAirDensityForY(yHeight, this.dimensionId)
 
-            val buoyantForce = it.pocketVolume * (atmoDensity - it.hotDensity) * 10.0 * ClockworkConfig.SERVER.balloonForceMult
-            totalBuoyantForce[physShip.transform.toModel.transformPosition(it.pocketCenter, Vector3d())] = max(buoyantForce, 0.0)
+            val atmoGravity = physLevel.aerodynamicUtils.getAtmosphereForDimension(this.dimensionId).third
+            val buoyantForce = it.pocketVolume * (atmoDensity - it.hotDensity) * atmoGravity * ClockworkConfig.SERVER.balloonForceMult
+            totalBuoyantForce[it.pocketCenter] = max(buoyantForce, 0.0)
         }
         pocketQueue.clear()
 
@@ -194,10 +195,11 @@ class PocketForcesController: ShipPhysicsListener {
 
 
     private fun getPocketCenter(level: ServerLevel, pos: Vector3i): Vector3d {
+        val pocketSize = level.shipObjectWorld.getAirComponentSize(pos.x(), pos.y(), pos.z(), level.dimensionId)
         val collectX = level.shipObjectWorld.collectAirAugmentation(level.shipObjectWorld.createDoubleSumAugmentation("core", "x"), pos.x(), pos.y(), pos.z(), level.dimensionId)
         val collectY = level.shipObjectWorld.collectAirAugmentation(level.shipObjectWorld.createDoubleSumAugmentation("core", "y"), pos.x(), pos.y(), pos.z(), level.dimensionId)
         val collectZ = level.shipObjectWorld.collectAirAugmentation(level.shipObjectWorld.createDoubleSumAugmentation("core", "z"), pos.x(), pos.y(), pos.z(), level.dimensionId)
-        return Vector3d(collectX, collectY, collectZ)
+        return Vector3d(collectX/pocketSize, collectY/pocketSize, collectZ/pocketSize)
     }
 
     companion object {

@@ -758,5 +758,15 @@
     "block": "vs_clockwork:cobbled_nyx",
     "mass" : 850.0,
     "friction": 0.8
+  },
+  {
+    "block": "vs_clockwork:balloon_casing",
+    "mass" : 10.0,
+    "friction": 0.3
+  },
+  {
+    "block": "vs_clockwork:balloon_encased_shaft",
+    "mass" : 20.0,
+    "friction": 0.4
   }
 ]
