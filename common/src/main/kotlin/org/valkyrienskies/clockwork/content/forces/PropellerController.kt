@@ -174,7 +174,8 @@ class PropellerController(
     }
 
     private fun computeBladeForce(physShip: PhysShip, physProp: PropData, physLevel: PhysLevel): Pair<Vector3dc, Vector3dc> {
-        val estAngle = (physProp.bearingAngle + (physProp.bearingSpeed / 3.0 * ticksSinceLastUpdate.toDouble())) % 360.0
+        val invert = if (physProp.inverted) -1.0 else 1.0
+        val estAngle = (physProp.bearingAngle * invert + (physProp.bearingSpeed / 3.0 * ticksSinceLastUpdate.toDouble())) % 360.0
         val blades = physProp.blades
         val bladeCount = blades.size
         val angleBetweenBlades = 2 * Math.PI / bladeCount
@@ -197,14 +198,15 @@ class PropellerController(
         for (i in blades.indices) {
             val blade = blades[i]
             val bladeAngle = Math.toRadians(estAngle + (angleBetweenBlades * i.toDouble()))
-            val bladePitch = Math.toRadians(blade.angle)
+            val bladePitch = Math.toRadians(-blade.angle)
             val bladeWidth = if (blade.wide) 0.375 else 0.25
             val r = blade.length
             val rotatedDist = clockwiseAxis.mul(r, Vector3d()).rotateAxis(bladeAngle, physProp.bearingAxis.x(), physProp.bearingAxis.y(), physProp.bearingAxis.z(), Vector3d())
 
-            val effectiveVelocity = sqrt(velocityTowardsPropellerDir.pow(2.0) + (physProp.bearingSpeed * r).pow(2.0))
+            val rotationalVelocity = physProp.bearingSpeed * invert * r
+            val effectiveVelocity = velocityTowardsPropellerDir + rotationalVelocity
 
-            val angleOfAttack = bladePitch - atan(velocityTowardsPropellerDir / (physProp.bearingSpeed * r))
+            val angleOfAttack = bladePitch - atan(velocityTowardsPropellerDir / (physProp.bearingSpeed * invert * r))
 
             val liftCoefficient = 2.0 * Math.PI * angleOfAttack
             val dragCoefficient = 0.01 * liftCoefficient
@@ -214,7 +216,7 @@ class PropellerController(
 
             val dThrust = dLift * Math.cos(angleOfAttack) - dDrag * Math.sin(angleOfAttack)
 
-            val force = worldAxis.mul(dThrust * 25, Vector3d())
+            val force = worldAxis.mul(dThrust * 10, Vector3d())
             //val torque = rotatedDist.cross(force, Vector3d())
 
             netForce.add(force)
