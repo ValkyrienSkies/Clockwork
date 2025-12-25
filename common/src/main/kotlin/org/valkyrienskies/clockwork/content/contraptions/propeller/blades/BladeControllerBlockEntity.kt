@@ -90,6 +90,7 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
         super.tick()
         if (bladeCooldown > 0) bladeCooldown--
         if (level?.isClientSide == true) {
+            if (this.getBladeCount() == 0) return
             val angleBetweenBlades = 360.0 / this.getBladeCount().toDouble()
 
             if (previousBladeCount != getBladeCount()) {
