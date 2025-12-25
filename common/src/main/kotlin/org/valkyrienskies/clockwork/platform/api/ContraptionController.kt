@@ -7,9 +7,10 @@ import org.valkyrienskies.core.api.ships.Ship
 
 interface ContraptionController : IControlContraption {
     enum class LockedMode(private val icon: AllIcons) : INamedIconOptions {
+        FOLLOW_ANGLE(AllIcons.I_ROTATE_PLACE),
         UNLOCKED(AllIcons.I_ROTATE_PLACE_RETURNED),
-        LOCKED(AllIcons.I_ROTATE_PLACE),
-        FOLLOW_ANGLE(AllIcons.I_ROTATE_PLACE);
+        LOCKED(AllIcons.I_ROTATE_PLACE);
+
 
         private val translationKey: String
 

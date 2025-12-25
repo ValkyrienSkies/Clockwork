@@ -597,7 +597,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         if (lastMode != movementMode?.get() && movementMode?.get() == LockedMode.FOLLOW_ANGLE) {
             val shipOn = level!!.getShipObjectManagingPos(blockPos)?.transform
-            val shiptraption = level!!.shipObjectWorld.allShips.getById(shiptraptionID)!!.transform
+            val shiptraption = level!!.shipObjectWorld.allShips.getById(shiptraptionID)?.transform ?: return
 
             targetAngle = Math.toDegrees(getAngle(bearingAxis, shiptraption, shipOn)).toFloat()
         }
