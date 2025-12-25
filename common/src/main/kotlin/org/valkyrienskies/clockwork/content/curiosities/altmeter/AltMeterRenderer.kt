@@ -27,6 +27,6 @@ class AltMeterRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
 
         indicator.light<SuperByteBuffer>(light).overlay<SuperByteBuffer>(overlay)
             .color<SuperByteBuffer>(color)
-            .renderInto(ms, buffer.getBuffer(RenderType.solid()))
+            .renderInto(ms, buffer.getBuffer(RenderType.cutout()))
     }
 }
