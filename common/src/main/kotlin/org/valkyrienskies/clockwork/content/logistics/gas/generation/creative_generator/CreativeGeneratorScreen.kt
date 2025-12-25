@@ -30,7 +30,7 @@ class CreativeGeneratorScreen(private val be: CreativeGeneratorBlockEntity) : Ab
             val input = ScrollInput(0,0,51, 18)
             input.calling { state: Int -> be.gasValues[type] = state }
             input.withRange(0,8000)
-            input.withStepFunction {  c: ScrollValueBehaviour.StepContext -> if (c.shift) 100 else 10  }
+            input.withStepFunction {  c: ScrollValueBehaviour.StepContext -> if (c.control) 1000 else if (c.shift) 100 else 10  }
             input.state = be.gasValues[type] ?: 0
 
             scrollingElements.add(CreativeGeneratorScrolling.CreativeGeneratorScrollingElement(type, font, input))

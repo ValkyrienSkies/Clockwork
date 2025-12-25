@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_g
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod
@@ -55,9 +56,23 @@ class CreativeGeneratorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, stat
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         super.read(tag, clientPacket)
+
+        temperature = tag.getDouble("Temperature")
+        val gasValuesTag = tag.get("GasValues") as? CompoundTag ?: return
+         for (gasTypeLocation in gasValuesTag.allKeys) {
+            val gasType = GasTypeRegistry.getGasType(ResourceLocation(gasTypeLocation)) ?: continue
+            gasValues[gasType] = gasValuesTag.getInt(gasTypeLocation)
+        }
+
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
+
+        val gasValuesTag = CompoundTag()
+        gasValues.forEach { gasValuesTag.putInt(it.key.resourceLocation.toString(), it.value) }
+        tag.put("GasValues", gasValuesTag)
+        tag.putDouble("Temperature",temperature)
+
         super.write(tag, clientPacket)
     }
 
