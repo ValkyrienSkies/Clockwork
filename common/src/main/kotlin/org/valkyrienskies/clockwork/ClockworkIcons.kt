@@ -56,7 +56,8 @@ class ClockworkIcons(x: Int, y: Int) : ScreenElement {
         }
 
         private fun newRow(): ClockworkIcons {
-            return ClockworkIcons(x = 0, ++y)
+            x = 0
+            return ClockworkIcons(x, ++y)
         }
     }
 

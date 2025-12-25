@@ -15,6 +15,7 @@ import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toBlockPos
 import org.valkyrienskies.mod.common.util.toJOML
+import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
 
 interface IWanderliteBlock {
@@ -57,10 +58,10 @@ interface IWanderliteBlock {
     fun shipifyBlock(level: ServerLevel, blockPos: BlockPos)  {
         val blockList = collectBlockPositions(level, blockPos, 4)
 
-        ShipAssembler.assembleToShip(level, blockList, true)
+        val ship = ShipAssembler.assembleToShip(level, blockList, true)
 
         for (pos in blockList) {
-            ClockworkUtils.wanderliteNodesToAdd[pos] = forceMult
+            ClockworkUtils.wanderliteNodesToAdd[BlockPos.containing(ship.worldToShip.transformPosition(pos.toJOMLD()).toMinecraft())] = forceMult
             //addToShip(realConnectedShip, BlockPos(realConnectedShip.worldToShip.transformPosition(Vector3d(pos)).toMinecraft()), 2.0)
         }
 

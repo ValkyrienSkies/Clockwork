@@ -289,6 +289,7 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
         for (component in WanderwandItem.findIsolatedComponents(blockposSet)) {
 
+            if (component.firstOrNull { pos -> !level!!.getBlockState(pos).isAir } == null) continue
             if (component.any { ClockworkConfig.SERVER.blockBlacklist.contains(level!!.getBlockState(it).block.descriptionId) } ) continue
 
             //assembleFromBlockSet(level as ServerLevel, component, false)

@@ -84,9 +84,9 @@ dependencies {
     }
 
 
-    modImplementation("org.valkyrienskies.kelvin:kelvin-forge:${rootProject.minecraft_version}-${rootProject.kelvin_version}") { transitive = false
+    include(modImplementation("org.valkyrienskies.kelvin:kelvin-forge:${rootProject.minecraft_version}-${rootProject.kelvin_version}") { transitive = false
         exclude group: 'org.joml', module: ''
-    }
+    })
 
     //modImplementation("maven.modrinth:s:${rootProject.vlib_version}+forge")
 

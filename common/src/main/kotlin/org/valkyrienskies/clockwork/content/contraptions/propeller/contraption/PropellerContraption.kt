@@ -65,8 +65,6 @@ class PropellerContraption : Contraption {
 
     @Throws(AssemblyException::class)
     override fun searchMovedStructure(world: Level, pos: BlockPos, direction: Direction?): Boolean {
-        if (brass) return super.searchMovedStructure(world, pos.relative(direction, offset + 1), null)
-
         anchor = pos.relative(facing!!, offset + 1)
         if (bounds == null) bounds = AABB(BlockPos.ZERO)
 
@@ -82,6 +80,7 @@ class PropellerContraption : Contraption {
             queue.add(pos.relative(facing!!, offset + 1))
             return moveBlock(world, facing, queue, HashSet())
         }
+        if (brass) return super.searchMovedStructure(world, pos.relative(direction, offset + 1), null)
         throw notProp()
     }
 

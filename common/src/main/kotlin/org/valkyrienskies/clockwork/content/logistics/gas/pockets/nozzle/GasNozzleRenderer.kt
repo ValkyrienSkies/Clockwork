@@ -53,8 +53,13 @@ class GasNozzleRenderer(context: BlockEntityRendererProvider.Context?) : Kinetic
         var angle = time * be.speed * 3f / 10 % 360
         angle += offset
         angle = angle / 180f * Math.PI.toFloat()
-        val axis = CachedBuffers.partial(ClockworkPartials.NOZZLE_AXIS, blockState).rotateToFace(facing)
+
+        val axis = CachedBuffers.partial(ClockworkPartials.NOZZLE_AXIS, blockState)
         kineticRotationTransform(axis, be, rotaxis, angle, light)
+        axis.translate(0.5,0.5,0.5)
+            .rotateToFace(facing)
+            .translate(-0.5,-0.5,-0.5)
+
         axis.renderInto(ms, buffer.getBuffer(RenderType.solid()))
     }
 

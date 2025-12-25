@@ -43,7 +43,7 @@ class LodefocusBlock(properties: Properties) : Block(properties.pushReaction(Pus
                 }
             } else if (item.isEmpty) {
                 withBlockEntityDo(level, pos) { blockEntity ->
-                    blockEntity.dropCompass()
+                    if (blockEntity.insertionCooldown == 0) blockEntity.dropCompass()
                 }
             }
             return super.use(state, level, pos, player, hand, hit)

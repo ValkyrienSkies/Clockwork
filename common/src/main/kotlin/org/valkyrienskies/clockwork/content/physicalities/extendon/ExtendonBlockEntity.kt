@@ -82,7 +82,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
 
         val previousDistance = distanceJoint!!.minDistance!!
 
-        val distance = max((gasToDistance(kelvin, getDuctNodePosition(), level!!.dimensionId) + gasToDistance(kelvin, connectedBe!!.getDuctNodePosition(), level!!.dimensionId)), 0.15f)
+        val distance = max(1.5f,(gasToDistance(kelvin, getDuctNodePosition(), level!!.dimensionId) + gasToDistance(kelvin, connectedBe!!.getDuctNodePosition(), level!!.dimensionId)))
 
         if (distance == previousDistance) return
         if (abs(distance - previousDistance) < 0.01f) return
@@ -357,7 +357,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
             val temperature = network.getTemperatureAt(pos)
 
             val volume = temperature*idealGasConstant*moles/pressure
-            val height = 2 * volume / PI
+            val height = 4 * volume / PI
 
 
             return height.toFloat()

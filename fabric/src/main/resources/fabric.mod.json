@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "vs_clockwork",
   "version": "${version}",
-  "name": "Clockwork: Create x Valkyrien Skies",
+  "name": "Clockwork",
   "description": "An over-the-top spin on Create, powered by Valkyrien Skies.",
   "authors": [
     "Potato"
@@ -42,6 +42,7 @@
     "minecraft": ">=1.20.1",
     "valkyrienskies": ">=2.4.0",
     "kelvin": ">=0.4.0",
-    "create": ">=${create_fabric_version}"
+    "create": ">=${create_fabric_version}",
+    "architectury": ">=9.1.12"
   }
 }

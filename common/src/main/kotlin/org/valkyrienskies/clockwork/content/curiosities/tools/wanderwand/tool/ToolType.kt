@@ -13,11 +13,11 @@ enum class ToolType(val tool: IWanderwandTool, val icon: ClockworkIcons) {
     WELD(WeldTool(), ClockworkIcons.WELD);
 
     fun getDisplayName(): MutableComponent {
-        return ClockworkLang.translateDirect("gravitron.tool.${ClockworkLang.asId(name)}")
+        return ClockworkLang.translateDirect("wanderwand.tool.${ClockworkLang.asId(name)}")
     }
 
     fun getDescription(): List<Component> {
-        return translatedOptions("gravitron.tool.${ClockworkLang.asId(name)}.description")
+        return translatedOptions("wanderwand.tool.${ClockworkLang.asId(name)}.description")
     }
 
     companion object {

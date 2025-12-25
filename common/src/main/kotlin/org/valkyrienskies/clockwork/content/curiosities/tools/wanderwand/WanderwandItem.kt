@@ -1,14 +1,17 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand
 
+import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.Tag
+import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.TooltipFlag
 import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.ClockworkPackets.Companion.sendTo
 import org.valkyrienskies.clockwork.ClockworkSounds
@@ -25,6 +28,11 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
     override fun verifyTagAfterLoad(compoundTag: CompoundTag) {
         compoundTag.putBoolean("hasLoaded", false)
         super.verifyTagAfterLoad(compoundTag)
+    }
+
+    override fun appendHoverText(stack: ItemStack, level: Level?, tooltipComponents: MutableList<Component>, isAdvanced: TooltipFlag) {
+        tooltipComponents.add(Component.translatable("vs_clockwork.wanderwand.warning").withStyle(ChatFormatting.RED))
+        super.appendHoverText(stack, level, tooltipComponents, isAdvanced)
     }
 
     override fun inventoryTick(stack: ItemStack, level: Level, entity: Entity, slotId: Int, isSelected: Boolean) {
