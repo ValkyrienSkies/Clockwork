@@ -42,7 +42,6 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
         light: Int,
         overlay: Int
     ) {
-        val vb = buffer.getBuffer(RenderType.cutout())
         val tubebuffer = buffer.getBuffer(RenderType.entitySolid(texture))
 
         var axis0 = CachedBuffers.partial(ClockworkPartials.EXTENDON_AXIS0,be.blockState)
@@ -76,6 +75,7 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
                 renderTubes(direction.length().toFloat() * tubeLengthMultiplier, ms, angles, be.blockPos, be.connectedBe!!.blockPos, tubeRadiusMultiplier, tubeTextureMultiplier, tubebuffer)
             }
         }
+        val vb = buffer.getBuffer(RenderType.cutout())
 
         axis0.light<SuperByteBuffer>(light).renderInto(ms,vb)
         axis1.light<SuperByteBuffer>(light).renderInto(ms,vb)
