@@ -190,7 +190,8 @@ class PropellerController(
         }
 
         val worldAxis = physShip.transform.shipToWorld.transformDirection(physProp.bearingAxis, Vector3d()).normalize(Vector3d())
-        val velocityTowardsPropellerDir = physShip.velocity.dot(physShip.transform.shipToWorld.transformDirection(physProp.bearingAxis!!, Vector3d()).normalize())
+        val velocityTowardsPropellerDir = physShip.velocity.dot(worldAxis)
+        val induced = 0.0
 
         val netForce = Vector3d()
         val netTorque = Vector3d()
@@ -198,23 +199,32 @@ class PropellerController(
         for (i in blades.indices) {
             val blade = blades[i]
             val bladeAngle = Math.toRadians(estAngle + (angleBetweenBlades * i.toDouble()))
-            val bladePitch = Math.toRadians(-blade.angle)
+            val bladePitch = Math.toRadians(blade.angle)
             val bladeWidth = if (blade.wide) 0.375 else 0.25
             val r = blade.length
-            val rotatedDist = clockwiseAxis.mul(r, Vector3d()).rotateAxis(bladeAngle, physProp.bearingAxis.x(), physProp.bearingAxis.y(), physProp.bearingAxis.z(), Vector3d())
+            val rotatedDist = clockwiseAxis.mul(r, Vector3d()).rotateAxis(bladeAngle, physProp.bearingAxis!!.x(), physProp.bearingAxis.y(), physProp.bearingAxis.z(), Vector3d())
 
             val rotationalVelocity = physProp.bearingSpeed * invert * r
-            val effectiveVelocity = velocityTowardsPropellerDir + rotationalVelocity
 
-            val angleOfAttack = bladePitch - atan(velocityTowardsPropellerDir / (physProp.bearingSpeed * invert * r))
+            val absVt = abs(rotationalVelocity)
+            if (absVt < 1e-4) continue
+
+            val phi = atan2(velocityTowardsPropellerDir, rotationalVelocity)
+            var angleOfAttack = bladePitch - phi
 
             val liftCoefficient = 2.0 * Math.PI * angleOfAttack
-            val dragCoefficient = 0.01 * liftCoefficient
+            val dragCoefficient = 0.01 + 0.01 * liftCoefficient.pow(2.0)
 
-            val dLift = 0.5 * airDensityAtY * effectiveVelocity.pow(2.0) * bladeWidth * r * liftCoefficient
-            val dDrag = 0.5 * airDensityAtY * effectiveVelocity.pow(2.0) * bladeWidth * r * dragCoefficient
+            val vA = (-velocityTowardsPropellerDir) + induced
 
-            val dThrust = dLift * Math.cos(angleOfAttack) - dDrag * Math.sin(angleOfAttack)
+            val effectiveVelocity = sqrt(vA * vA + rotationalVelocity * rotationalVelocity)
+
+            val dA = bladeWidth * r
+            val q = 0.5 * airDensityAtY * effectiveVelocity.pow(2.0)
+            val dLift = q * dA * liftCoefficient
+            val dDrag = q * dA * dragCoefficient
+
+            val dThrust = dLift * cos(phi) - dDrag * sin(phi)
 
             val force = worldAxis.mul(dThrust * 10, Vector3d())
             //val torque = rotatedDist.cross(force, Vector3d())
