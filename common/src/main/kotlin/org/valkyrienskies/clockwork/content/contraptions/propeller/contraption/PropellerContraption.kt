@@ -74,7 +74,7 @@ class PropellerContraption : Contraption {
             val blockFacing = propellerBlock.getValue(BlockStateProperties.FACING)
 
             if (blockFacing != facing) {
-                return false
+                throw controllerWrongWay()
             }
             val queue = LinkedList<BlockPos>()
             queue.add(pos.relative(facing!!, offset + 1))
@@ -144,6 +144,11 @@ class PropellerContraption : Contraption {
         @JvmStatic
         fun notProp(): AssemblyException  {
             return AssemblyException(Component.translatable("contraptions.propeller.not_prop"))
+        }
+
+        @JvmStatic
+        fun controllerWrongWay(): AssemblyException  {
+            return AssemblyException(Component.translatable("contraptions.propeller.controller_wrong_way"))
         }
     }
 }
