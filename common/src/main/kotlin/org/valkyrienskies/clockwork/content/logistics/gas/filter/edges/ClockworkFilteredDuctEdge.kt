@@ -31,5 +31,31 @@ class ClockworkFilteredDuctEdge(
         return true
     }
 
+    override fun serialize(tag: CompoundTag): CompoundTag {
+
+        var filtered = ""
+        for (gas in filter) filtered += gas.resourceLocation.toString() + " "
+
+        tag.putString("filtered", filtered)
+        tag.putBoolean("blacklist", blacklist)
+
+        return super.serialize(tag)
+    }
+
+    override fun deserialize(tag: CompoundTag) {
+
+        val filtered = tag.getString("filtered")
+
+        val set = HashSet<GasType>()
+        for (str in filtered.split(" ")) {
+            val type = GasTypeRegistry.getGasType(ResourceLocation(str.trim())) ?: continue
+            set.add(type)
+        }
+        filter = set
+
+        blacklist = tag.getBoolean("blacklist")
+
+        return super.deserialize(tag)
+    }
 
 }

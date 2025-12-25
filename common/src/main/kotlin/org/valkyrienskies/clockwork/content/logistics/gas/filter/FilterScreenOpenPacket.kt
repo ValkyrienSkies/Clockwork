@@ -44,6 +44,7 @@ class FilterScreenOpenPacket(private val nodeA: DuctNodePos, private val nodeB: 
     override fun handle(context: ClientNetworkContext) {
         context.enqueueWork {
             ScreenOpener.open(FilterScreen(nodeA, nodeB, filter, blacklist))
+
         }
         context.setPacketHandled(true)
     }

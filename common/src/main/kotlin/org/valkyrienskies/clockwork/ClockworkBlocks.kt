@@ -930,7 +930,7 @@ object ClockworkBlocks {
         .initialProperties { SharedProperties.wooden() }
         .transform(axeOrPickaxe())
         .transform(BuilderTransformersClockwork.encasedShaft("balloon") { ClockworkSpriteShifts.BALLOON_CASING })
-        .transform(EncasingRegistry.addVariantTo { AllBlocks.SHAFT.get() })
+        //.transform(EncasingRegistry.addVariantTo { AllBlocks.SHAFT.get() })
         .register()
 
     @JvmField

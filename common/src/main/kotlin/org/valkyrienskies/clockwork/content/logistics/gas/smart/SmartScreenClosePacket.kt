@@ -2,7 +2,9 @@ package org.valkyrienskies.clockwork.content.logistics.gas.smart
 
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.api.edges.FilteredEdge
@@ -37,8 +39,17 @@ class SmartScreenClosePacket(private val nodeA: DuctNodePos, private val nodeB: 
             edge.filter = filter
             edge.moreThan = moreThan
             edge.comparisonValue = comparisonValue
+
+            forceUpdate(context.sender.level(), nodeA)
+            forceUpdate(context.sender.level(), nodeB)
         }
         context.setPacketHandled(true)
+    }
+
+    fun forceUpdate(level: Level, pos: DuctNodePos) {
+        val blockPos = pos.toMinecraft()
+        val be = level.getBlockEntity(blockPos) as? DuctBlockEntity ?: return
+        be.notifyUpdate()
     }
 
     override fun write(buffer: FriendlyByteBuf) {

@@ -41,15 +41,20 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
         super.read(tag, clientPacket)
         for (dir in Direction.values()) {
             if (tag.contains("DuctEdgeType${dir.name}")) {
-                this.DIR_TO_CONNECTION_TYPE[dir] = DuctEdgeType.values()[tag.getInt("DuctEdgeType${dir.name}")]
-                if (!clientPacket) shouldUpdateEdges = true
-
+                val edgeType = DuctEdgeType.entries[tag.getInt("DuctEdgeType${dir.name}")]
+                this.DIR_TO_CONNECTION_TYPE[dir] = edgeType
                 if (clientPacket) continue
+                shouldUpdateEdges = true
+
                 //val neighborDuct = level?.getBlockEntity(blockPos) as? DuctBlockEntity ?: continue
-                val serializedEdge = tag.get("DuctEdgeType${dir.name}") as? CompoundTag ?: continue
+                val serializedEdge = tag.get("DuctEdge${dir.name}") as? CompoundTag ?: continue
 
                 val kelvin = ClockworkMod.getKelvin()
                 val thisDuctPos = getDuctNodePosition()
+                val otherDuctPos = DuctNodePos(thisDuctPos.x + dir.normal.x, thisDuctPos.y + dir.normal.y, thisDuctPos.z + dir.normal.z, thisDuctPos.dimensionId)
+
+                setEdgeType(dir, otherDuctPos, edgeType, false)
+
                 val edge = kelvin.getEdgeBetween(getDuctNodePosition(), DuctNodePos(thisDuctPos.x + dir.normal.x, thisDuctPos.y + dir.normal.y, thisDuctPos.z + dir.normal.z, thisDuctPos.dimensionId)) ?: continue
 
                 edge.deserialize(serializedEdge)
@@ -62,6 +67,7 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
+        println("WRITING $clientPacket")
         for (dir in Direction.values()) {
             if (this.DIR_TO_CONNECTION_TYPE[dir] != null) {
                 tag.putInt("DuctEdgeType${dir.name}", this.DIR_TO_CONNECTION_TYPE[dir]!!.ordinal)
@@ -72,7 +78,7 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
                 val thisDuctPos = getDuctNodePosition()
                 val edge = kelvin.getEdgeBetween(thisDuctPos, DuctNodePos(thisDuctPos.x + dir.normal.x, thisDuctPos.y + dir.normal.y, thisDuctPos.z + dir.normal.z, thisDuctPos.dimensionId)) ?: continue
 
-                val serializedEdge = edge.serialize(tag)
+                val serializedEdge = edge.serialize(CompoundTag())
                 tag.put("DuctEdge${dir.name}", serializedEdge)
             }
         }
