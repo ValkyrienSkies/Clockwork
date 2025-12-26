@@ -98,7 +98,8 @@ object ClockworkMod {
         vsCore.registerAttachment(BearingController::class.java) { useTransientSerializer() }
 
         vsApi.shipLoadEvent.on { event -> val ship = event.ship;
-            PocketForcesController.getOrCreate(ship)
+            //TODO: UNCOMMENT WHEN POCKET FORCES IS FIXED
+            //PocketForcesController.getOrCreate(ship)
             //DragController.getOrCreate(ship)
             WanderShipControl.getOrCreate(ship)
 
@@ -133,7 +134,8 @@ object ClockworkMod {
 
         TickEvent.SERVER_LEVEL_POST.register {
             for (ship in it.shipObjectWorld.loadedShips) {
-                ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship.id)
+                //TODO: UNCOMMENT WHEN POCKET FORCES IS FIXED
+                //ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship.id)
             }
 
             ClockworkUtils.tick(it)
