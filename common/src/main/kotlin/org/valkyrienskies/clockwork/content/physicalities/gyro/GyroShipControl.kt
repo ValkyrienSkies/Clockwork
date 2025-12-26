@@ -3,8 +3,6 @@ package org.valkyrienskies.clockwork.content.physicalities.gyro
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import net.fabricmc.loader.impl.lib.sat4j.core.Vec
-import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.core.api.attachment.getAttachment
@@ -14,8 +12,6 @@ import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerTickListener
 import org.valkyrienskies.core.api.ships.ShipPhysicsListener
 import org.valkyrienskies.core.api.world.PhysLevel
-import org.valkyrienskies.core.impl.shadow.fr
-import org.valkyrienskies.core.impl.shadow.id
 import kotlin.math.abs
 import kotlin.math.exp
 
@@ -28,7 +24,7 @@ import kotlin.math.exp
 @JsonIgnoreProperties(ignoreUnknown = true)
 class GyroShipControl : ShipPhysicsListener, ServerTickListener {
 
-    private var targetUp: Vector3dc = Vector3d()
+    private var shipUp: Vector3dc = Vector3d(0.0,1.0,0.0)
     private var targetStrength = 1.0f
     private var physConsumption = 0f
     private var extraForceLinear = 0.0
@@ -52,10 +48,10 @@ class GyroShipControl : ShipPhysicsListener, ServerTickListener {
             return
         }
 
-        val shipWorldUp: Vector3dc = physShip.transform.shipToWorldRotation.transform(Vector3d(0.0,1.0,0.0))
+        val shipWorldUp: Vector3dc = physShip.transform.shipToWorldRotation.transform(shipUp, Vector3d())
         val offAxisOmega = physShip.angularVelocity.sub(
             shipWorldUp.normalize(physShip.angularVelocity.dot(shipWorldUp), Vector3d()), Vector3d())
-        val idealOmega = shipWorldUp.cross(targetUp, Vector3d()).sub(offAxisOmega)
+        val idealOmega = shipWorldUp.cross(Vector3d(0.0,1.0,0.0), Vector3d()).sub(offAxisOmega)
 
         val idealTorque = physShip.transform.shipToWorldRotation.transform(
             physShip.momentOfInertia.transform(
@@ -77,8 +73,8 @@ class GyroShipControl : ShipPhysicsListener, ServerTickListener {
         }
     }
 
-    fun pointTowards(targetUp: Vector3dc, power: Float) {
-        this.targetUp = targetUp//Quaterniond(AxisAngle4d(seatDir.normal.toJOMLD().angle(targetDirection), axis)).normalize()
+    fun pointTowards(shipUp: Vector3dc, power: Float) {
+        this.shipUp = shipUp//Quaterniond(AxisAngle4d(seatDir.normal.toJOMLD().angle(targetDirection), axis)).normalize()
         this.targetStrength = power
     }
 
