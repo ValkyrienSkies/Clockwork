@@ -19,6 +19,8 @@ import net.minecraft.world.level.LightLayer
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.content.contraptions.propeller.contraption.PropellerContraption
+import org.valkyrienskies.clockwork.content.forces.PropellerController
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
 
@@ -39,7 +41,7 @@ class BladeControllerMovementBehaviour: MovementBehaviour {
             }
             val rotation = context.rotation.apply(Vec3.ZERO)
             val deltaRotation = rotation.subtract(previousRotation)
-            if (deltaRotation.length() > 128.0 && ClockworkConfig.SERVER.bladeControllerUsesDurability) {
+            if (deltaRotation.length() > 128.0 && ClockworkConfig.SERVER.bladeControllerUsesDurability && (context.contraption is PropellerContraption && !(context.contraption as PropellerContraption).brass)) {
                 durabilityTick--
                 if (durabilityTick <= 0) {
                     durabilityTick = 60
