@@ -84,7 +84,7 @@
   "vs_clockwork.gas_exhaust.function": "Vents gas out of the network\nand into the surrounding area.",
   "vs_clockwork.gas_backtank.function": "Retains gas contents when broken.\nCan be worn to serve as a personal gas tank.",
   "vs_clockwork.gas_crafter.function": "Processes crafting recipes that require gas\nas an ingredient when placed above a basin.",
-  "vs_clockwork.coal_burner.function": "Burns furnace fuels to produce heat up to 1000°K.",
+  "vs_clockwork.coal_burner.function": "Burns furnace fuels to produce heat up to 1000K.",
   "vs_clockwork.gas_heater.function": "Uses Thermal Energy to heat a Steam Boiler.\nNot perfectly efficient.",
   "vs_clockwork.gas_nozzle.function": "Expels hot gas to heat a Hot Air Balloon.",
   "vs_clockwork.pump_duct.function": "Creates a pressure difference to\npump gas along the network.",

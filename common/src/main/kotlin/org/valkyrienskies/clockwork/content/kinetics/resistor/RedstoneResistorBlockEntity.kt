@@ -51,9 +51,9 @@ open class RedstoneResistorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos,
     private fun getPower(worldIn: Level, pos: BlockPos): Int {
         var power = 0
         for (direction in Iterate.directions) power =
-            Math.max(worldIn.getSignal(pos.relative(direction), direction), power)
+            worldIn.getSignal(pos.relative(direction), direction).coerceAtLeast(power)
         for (direction in Iterate.directions) power =
-            Math.max(worldIn.getSignal(pos.relative(direction), Direction.UP), power)
+            worldIn.getSignal(pos.relative(direction), Direction.UP).coerceAtLeast(power)
         return power
     }
 
