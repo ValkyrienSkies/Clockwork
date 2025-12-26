@@ -125,7 +125,7 @@ object ClockworkItems {
         }
         .transform(ClockworkRegistrate.customRenderedItem { Supplier { BladeItemRenderer() } })
         .tag(ClockworkTags.AllItemTags.PROP_BLADE.tag)
-        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
         .register()
 
     @JvmField
@@ -137,7 +137,7 @@ object ClockworkItems {
         }
         .transform(ClockworkRegistrate.customRenderedItem { Supplier { BladeItemRenderer() } })
         .tag(ClockworkTags.AllItemTags.PROP_BLADE.tag)
-        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
         .register()
 
     @JvmField
@@ -182,7 +182,7 @@ object ClockworkItems {
         .properties { properties: Item.Properties ->
             properties.stacksTo(1)
         }
-        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
         .tag(AllItemTags.PRESSURIZED_AIR_SOURCES.tag)
         .register()
 
@@ -199,7 +199,7 @@ object ClockworkItems {
         REGISTRATE.item<ExtendonHoseItem>("extendon_hose") { properties: Item.Properties? ->
             ExtendonHoseItem(properties!!)
         }
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
             .register()
 
     @JvmField

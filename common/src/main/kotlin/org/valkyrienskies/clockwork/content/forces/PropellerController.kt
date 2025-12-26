@@ -191,7 +191,7 @@ class PropellerController(
 
         val worldAxis = physShip.transform.shipToWorld.transformDirection(physProp.bearingAxis, Vector3d()).normalize(Vector3d())
         val velocityTowardsPropellerDir = physShip.velocity.dot(worldAxis)
-        val induced = 0.0
+        val induced = 0.5
 
         val netForce = Vector3d()
         val netTorque = Vector3d()

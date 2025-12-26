@@ -99,7 +99,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -114,7 +114,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutoutMipped() } }
             .properties { it.noOcclusion() }
             .item()
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -129,7 +129,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutoutMipped() } }
             .properties { it.noOcclusion() }
             .item()
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -144,7 +144,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutoutMipped() } }
             .onRegister(movementBehaviour(BladeControllerMovementBehaviour()))
             .item()
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -164,7 +164,7 @@ object ClockworkBlocks {
             }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
             .model(AssetLookup.customBlockItemModel("phys_bearing"))
             .build()
             .register()
@@ -180,7 +180,7 @@ object ClockworkBlocks {
             .properties { it.noOcclusion() }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -196,7 +196,7 @@ object ClockworkBlocks {
             .properties { it.noOcclusion() }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -211,7 +211,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -286,7 +286,7 @@ object ClockworkBlocks {
         .addLayer { Supplier { RenderType.cutout() } }
         .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
         .item()
-        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
         // I have no idea why the item model is still fucked when the block model is working
         .model(AssetLookup.customBlockItemModel("gyro"))
         .build()
@@ -305,7 +305,7 @@ object ClockworkBlocks {
         .addLayer { Supplier { RenderType.cutout() } }
         .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
         .item()
-        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
         .model(AssetLookup.customBlockItemModel("reactionwheel"))
         .build()
         .register()
@@ -361,7 +361,7 @@ object ClockworkBlocks {
         .item { block: WingBlock?, properties: Item.Properties? ->
             DyedWingBlockItem(block, properties)
         }
-        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
         .transform(ClockworkRegistrate.customRenderedBlockItem<DyedWingBlockItem, BlockBuilder<WingBlock, CreateRegistrate>> { Supplier { WingBlockItemRenderer(
             ClockworkPartials.WING_FRAME_ITEM) } })
         .register()
@@ -379,7 +379,7 @@ object ClockworkBlocks {
                 properties
             )
         }
-        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
         .transform(ClockworkRegistrate.customRenderedBlockItem { Supplier { WingBlockItemRenderer(
             ClockworkPartials.FLAP_FRAME_ITEM) } })
         .register()
@@ -418,7 +418,7 @@ object ClockworkBlocks {
             }
         })
         .item()
-        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
         .transform(customItemModel())
         .register()
 
@@ -434,25 +434,11 @@ object ClockworkBlocks {
         .addLayer { Supplier { RenderType.cutout() } }
         .properties { it.noOcclusion() }
         .item()
-        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
         .build()
         .register()
 
-    @JvmField
-    val CREATIVE_GENERATOR: BlockEntry<CreativeGeneratorBlock> = REGISTRATE.block<CreativeGeneratorBlock>(
-        "creative_gas_generator"
-    ) { properties: BlockBehaviour.Properties? ->
-        CreativeGeneratorBlock(
-            properties!!
-        )
-    }
-        .initialProperties { SharedProperties.netheriteMetal() }
-        .addLayer { Supplier { RenderType.cutout() } }
-        .properties { it.noOcclusion() }
-        .item()
-        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
-        .build()
-        .register()
+
 
 
     @JvmField
@@ -469,7 +455,7 @@ object ClockworkBlocks {
         //.onRegister(connectedTextures { DuctTankCTBehaviour(ClockworkSpriteShifts.DUCT_TANK, ClockworkSpriteShifts.DUCT_TANK_TOP, AllSpriteShifts.FLUID_TANK_INNER) })
         .onRegister(ClockworkRegistrate.blockModel { NonNullFunction<BakedModel, BakedModel> { originalModel: BakedModel -> DuctTankModel(originalModel) } })
         .item()
-        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
         .build()
         .register()
 
@@ -486,7 +472,7 @@ object ClockworkBlocks {
         .transform(ClockworkStress.setImpact(4.0))
         .properties { it.noOcclusion() }
         .item()
-        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
         .build()
         .register()
 
@@ -502,7 +488,7 @@ object ClockworkBlocks {
         .addLayer { Supplier { RenderType.cutoutMipped() } }
         .properties { it.noOcclusion() }
         .item()
-        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
         .model(AssetLookup.customBlockItemModel("pump", "item"))
         .transform(customItemModel())
         .transform(ClockworkStress.setImpact(4.0))
@@ -523,7 +509,7 @@ object ClockworkBlocks {
 //            BlockStateGen.axisBlock(c, p, { AssetLookup.partialBaseModel(c, p, "redstone_duct") })
 //        }
         .item()
-        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
         .model(AssetLookup.customBlockItemModel("redstone_duct", "block"))
         .transform(customItemModel())
         .transform(ClockworkStress.setImpact(4.0))
@@ -540,7 +526,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -573,7 +559,7 @@ object ClockworkBlocks {
             .properties { it.noOcclusion() }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -589,7 +575,7 @@ object ClockworkBlocks {
             .properties { it.noOcclusion() }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -605,7 +591,7 @@ object ClockworkBlocks {
             .properties { it.noOcclusion() }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -621,7 +607,7 @@ object ClockworkBlocks {
             .properties { it.noOcclusion() }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -636,7 +622,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -652,7 +638,7 @@ object ClockworkBlocks {
             .properties { it.noOcclusion() }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -667,7 +653,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -700,6 +686,22 @@ object ClockworkBlocks {
             .register()
 
     @JvmField
+    val CREATIVE_GENERATOR: BlockEntry<CreativeGeneratorBlock> = REGISTRATE.block<CreativeGeneratorBlock>(
+        "creative_gas_generator"
+    ) { properties: BlockBehaviour.Properties? ->
+        CreativeGeneratorBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .properties { it.noOcclusion() }
+        .item()
+        .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
+        .build()
+        .register()
+
+    @JvmField
     val GOO_BLOCK = REGISTRATE.block<GooBlock>("goo_block") { properties: BlockBehaviour.Properties? ->
         GooBlock(
             properties!!
@@ -708,7 +710,7 @@ object ClockworkBlocks {
         .initialProperties { Blocks.HONEY_BLOCK }
         .addLayer { Supplier { RenderType.translucent() } }
         .item()
-        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
         .build()
         .register()
 
@@ -723,7 +725,7 @@ object ClockworkBlocks {
         .initialProperties { SharedProperties.softMetal() }
         .addLayer { Supplier { RenderType.translucent() } }
         .item()
-        //.tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        //.tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
         .transform(customItemModel())
         .register()
 
@@ -908,6 +910,23 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
+    val WANDERGLASS = REGISTRATE.block<GenericWanderliteBlock>(
+        "wanderglass"
+    ) { properties: BlockBehaviour.Properties? ->
+        GenericWanderliteBlock(
+            properties!!
+        )
+    }
+        .initialProperties { SharedProperties.netheriteMetal() }
+        .properties { it.noOcclusion() ; it.lightLevel{ _ -> 1 } ; it.isViewBlocking{ _, _, _ -> false } }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .tag(ClockworkTags.AllBlockTags.SENSOR_LENS.tag)
+        .item()
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .build()
+        .register()
+
+    @JvmField
     val BALLOON_CASING = REGISTRATE.block<CasingBlock>(
         "balloon_casing"
     ) { properties: BlockBehaviour.Properties? ->
@@ -944,7 +963,7 @@ object ClockworkBlocks {
         .initialProperties { SharedProperties.wooden() }
         .addLayer { Supplier { RenderType.cutoutMipped() } }
         .item()
-        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        //.tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .transform(customItemModel())
         .register()
 
@@ -1019,26 +1038,9 @@ object ClockworkBlocks {
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .item()
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
             .build()
             .register()
-
-    @JvmField
-    val WANDERGLASS = REGISTRATE.block<GenericWanderliteBlock>(
-        "wanderglass"
-    ) { properties: BlockBehaviour.Properties? ->
-        GenericWanderliteBlock(
-            properties!!
-        )
-    }
-        .initialProperties { SharedProperties.netheriteMetal() }
-        .properties { it.noOcclusion() ; it.lightLevel{ _ -> 1 } ; it.isViewBlocking{ _, _, _ -> false } }
-        .addLayer { Supplier { RenderType.cutout() } }
-        .tag(ClockworkTags.AllBlockTags.SENSOR_LENS.tag)
-        .item()
-        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
-        .build()
-        .register()
 
     @JvmStatic
     fun register() {

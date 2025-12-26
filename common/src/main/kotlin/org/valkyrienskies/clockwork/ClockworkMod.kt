@@ -72,11 +72,25 @@ object ClockworkMod {
 
     val BASE_CREATIVE_TAB: RegistrySupplier<CreativeModeTab> = TAB_REGISTRY.register("clockwork_main") {
         CreativeTabRegistry.create(Component.translatable("itemGroup.vs_clockwork")) {
-            ItemStack(ClockworkBlocks.PHYSICS_INFUSER.asItem())
+            ItemStack(ClockworkItems.WANDERWAND.asItem())
+        }
+    }
+
+    val PHYSICAL_CREATIVE_TAB: RegistrySupplier<CreativeModeTab> = TAB_REGISTRY.register("clockwork_physicalities") {
+        CreativeTabRegistry.create(Component.translatable("itemGroup.vs_clockwork.physicalities")) {
+            ItemStack(ClockworkBlocks.GYRO.asItem())
+        }
+    }
+
+    val GAS_CREATIVE_TAB: RegistrySupplier<CreativeModeTab> = TAB_REGISTRY.register("clockwork_gasses") {
+        CreativeTabRegistry.create(Component.translatable("itemGroup.vs_clockwork.gasses")) {
+            ItemStack(ClockworkBlocks.AIR_COMPRESSOR.get())
         }
     }
 
     val BASE_CREATIVE_TABINFO: ResourceKey<CreativeModeTab> = BASE_CREATIVE_TAB.key
+    val PHYSICAL_CREATIVE_TABINFO: ResourceKey<CreativeModeTab> = PHYSICAL_CREATIVE_TAB.key
+    val GAS_CREATIVE_TABINFO: ResourceKey<CreativeModeTab> = GAS_CREATIVE_TAB.key
 
     @OptIn(VsBeta::class)
     @JvmStatic
