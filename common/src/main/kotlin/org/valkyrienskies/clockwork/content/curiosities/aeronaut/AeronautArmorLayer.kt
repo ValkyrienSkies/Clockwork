@@ -68,7 +68,7 @@ open class AeronautArmorLayer<T : LivingEntity, M : EntityModel<T>?>(renderer: R
                 val playerPosInShip = ship.worldToShip.transformPosition(player.position().toJOML())
                 val velAtPlayerPos = ship.angularVelocity.cross(playerPosInShip, Vector3d()).add(ship.velocity)
                     //val dragDecay = (player as IEntityDraggingInformationProvider).draggingInformation.ticksSinceStoodOnShip /
-                velocity.add(velAtPlayerPos)
+                velocity.set(velAtPlayerPos)
             }
         }
         val speed = velocity.length()
