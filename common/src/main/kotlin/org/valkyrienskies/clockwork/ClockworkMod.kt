@@ -78,7 +78,7 @@ object ClockworkMod {
 
     val PHYSICAL_CREATIVE_TAB: RegistrySupplier<CreativeModeTab> = TAB_REGISTRY.register("clockwork_physicalities") {
         CreativeTabRegistry.create(Component.translatable("itemGroup.vs_clockwork.physicalities")) {
-            ItemStack(ClockworkBlocks.GYRO.asItem())
+            ItemStack(ClockworkBlocks.PHYSICS_INFUSER.asItem())
         }
     }
 
