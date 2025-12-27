@@ -5,6 +5,7 @@ import com.tterrag.registrate.util.entry.EntityEntry
 import dev.architectury.injectables.annotations.ExpectPlatform
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
+import org.valkyrienskies.clockwork.content.contraptions.propeller.contraption.CopterContraptionEntity
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandHandler
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatEntity
@@ -34,6 +35,13 @@ object SharedValues {
     @get:ExpectPlatform
     @JvmStatic
     val sequencedSeat: EntityEntry<SequencedSeatEntity>
+        get() {
+            throw AssertionError()
+        }
+
+    @get:ExpectPlatform
+    @JvmStatic
+    val copterContraption: EntityEntry<CopterContraptionEntity>
         get() {
             throw AssertionError()
         }

@@ -40,7 +40,13 @@ class GasEngineBlock(properties: Properties) : RotatedPillarBlock(properties), I
 
     // Todo: Give fancier description since its an RPM producer
     override fun getAdditionalInfoLines(): List<Component> {
-        return listOf(Component.translatable("vs_clockwork.gas_engine.function").withStyle(ChatFormatting.GRAY).withStyle(ChatFormatting.ITALIC))
+        return listOf(
+            Component.translatable("vs_clockwork.gas_engine.function1").withStyle(ChatFormatting.GRAY).withStyle(
+            ChatFormatting.ITALIC),
+
+            Component.translatable("vs_clockwork.gas_engine.function2").withStyle(ChatFormatting.GRAY).withStyle(
+            ChatFormatting.ITALIC)
+        )
     }
 
     companion object {

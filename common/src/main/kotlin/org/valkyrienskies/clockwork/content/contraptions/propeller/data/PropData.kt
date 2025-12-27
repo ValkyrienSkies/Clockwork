@@ -19,6 +19,7 @@ class PropData: ForceApplierData<PropUpdateData> {
     var active: Boolean = false
     var brass: Boolean = false
     var blades: List<BladeData> = listOf()
+    var bearingAxisRot: Vector3dc? = null
 
     var currentBladePitch = 12.0
 
@@ -28,6 +29,7 @@ class PropData: ForceApplierData<PropUpdateData> {
         inverted = data.inverted
         active = data.active
         blades = data.blades
+        bearingAxisRot = data.bearingAxisRot
     }
 
     // Default constructor for Jackson, should never be invoked manually
@@ -36,6 +38,7 @@ class PropData: ForceApplierData<PropUpdateData> {
         position = null
         bearingAxis = null
         sailPositions = null
+        bearingAxisRot = null
     }
 
     constructor(

@@ -65,7 +65,7 @@ public class ClockworkModFabric implements ModInitializer {
         ClockworkBoilerHeaters.INSTANCE.init();
 
         ItemGroupEvents.modifyEntriesEvent(ClockworkMod.INSTANCE.getBASE_CREATIVE_TABINFO()).register(content -> {
-            content.accept(ClockworkBlocks.BALLOON_CASING.asItem());
+            content.addAfter(ClockworkBlocks.BALLOON_CASING.asItem(), ClockworkBlocks.IMPACT_SENSOR.asStack());
         });
     }
 

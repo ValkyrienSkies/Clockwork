@@ -162,8 +162,9 @@ class WanderwandEffectRenderer {
 
     private fun updateClusters(tag: CompoundTag) {
         clusters.clear()
-        val deserialized = WanderwandItem.readBlockPosSetFromNBT(tag)
-        clusters.addAll(WanderwandItem.findIsolatedComponents(deserialized))
+        val deserialized = WanderwandItem.readAABBSetFromNBT(tag)
+        val level = client.level ?: return
+        clusters.addAll(WanderwandItem.findIsolatedComponents(deserialized, level))
     }
 
     private fun startWelding(selPos: BlockPos, selDir: Direction, blocks: CompoundTag, shipId: ShipId) {

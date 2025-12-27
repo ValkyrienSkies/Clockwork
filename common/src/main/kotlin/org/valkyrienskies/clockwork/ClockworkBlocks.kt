@@ -37,6 +37,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlo
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeControllerBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeControllerMovementBehaviour
+import org.valkyrienskies.clockwork.content.contraptions.propeller.copter.CopterBearingBlock
 import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteBlock
 import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteSlab
 import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteStairs
@@ -107,6 +108,21 @@ object ClockworkBlocks {
     val BRASS_PROPELLER_BEARING: BlockEntry<PropellerBearingBlock> =
         REGISTRATE.block<PropellerBearingBlock>("brass_propeller_bearing") { properties: BlockBehaviour.Properties? ->
             PropellerBearingBlock(properties!!)
+        }
+            .transform(axeOrPickaxe())
+            //.transform(BuilderTransformersClockwork.bearing("propeller", "gearbox"))
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .addLayer { Supplier { RenderType.cutoutMipped() } }
+            .properties { it.noOcclusion() }
+            .item()
+            .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
+            .build()
+            .register()
+
+    @JvmField
+    val COPTER_BEARING: BlockEntry<CopterBearingBlock> =
+        REGISTRATE.block<CopterBearingBlock>("copter_bearing") { properties: BlockBehaviour.Properties? ->
+            CopterBearingBlock(properties!!)
         }
             .transform(axeOrPickaxe())
             //.transform(BuilderTransformersClockwork.bearing("propeller", "gearbox"))
@@ -396,7 +412,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
             .transform(customItemModel("physics_infuser", "item"))
             .register()
 

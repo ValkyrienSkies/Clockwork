@@ -21,7 +21,7 @@ import org.valkyrienskies.clockwork.ClockworkContraptions
 import org.valkyrienskies.clockwork.util.ClockworkConstants
 import java.util.*
 
-class PropellerContraption : Contraption {
+open class PropellerContraption : Contraption {
     var offset = 0
     var sailBlocks = 0
         protected set

@@ -13,12 +13,18 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.TooltipFlag
 import net.minecraft.world.level.Level
+import net.minecraft.world.phys.AABB
+import org.joml.primitives.AABBi
+import org.joml.primitives.AABBic
 import org.valkyrienskies.clockwork.ClockworkPackets.Companion.sendTo
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool.ToolType
 import org.valkyrienskies.clockwork.platform.CWItem
+import org.valkyrienskies.clockwork.util.AABBHelper.mergeAdjacentFast
+import org.valkyrienskies.clockwork.util.AABBHelper.subtractWithAABB
 import org.valkyrienskies.mod.common.getLoadedShipManagingPos
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
+import org.valkyrienskies.mod.common.util.toJOML
 import kotlin.math.max
 import kotlin.math.min
 
@@ -55,14 +61,12 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
                 if (leftClick && sPlayer.mainHandItem.item is WanderwandItem) {
                     val existingSelection = sPlayer.mainHandItem.tag?.get("selectedBlocks") as CompoundTag?
                     if (existingSelection != null) {
-                        val existingSelectionDeser = readBlockPosSetFromNBT(existingSelection)
-                        if (existingSelectionDeser.contains(firstPos)) {
-                            val components = findIsolatedComponents(existingSelectionDeser)
-                            val component = components.find { it.contains(firstPos) }
-                            if (component != null) {
-                                existingSelectionDeser.removeAll(component)
-                                sPlayer.mainHandItem.tag?.put("selectedBlocks", writeBlockPosSetToNBT(existingSelectionDeser))
-                            }
+                        val existingSelectionDeser = readAABBSetFromNBT(existingSelection)
+                        val existingAABB = existingSelectionDeser.find { it.containsPoint(firstPos.toJOML())}
+                        if (existingAABB != null) {
+                            existingSelectionDeser.remove(existingAABB)
+                            sPlayer.mainHandItem.tag?.remove("selectedBlocks")
+                            sPlayer.mainHandItem.tag?.put("selectedBlocks", writeAABBSetToNBT(existingSelectionDeser))
                         }
                     }
                 }
@@ -77,33 +81,28 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
             val maxY = max(firstPos.y, secondPos.y)
             val maxZ = max(firstPos.z, secondPos.z)
 
-            val selection = HashSet<BlockPos>()
-            for (x in minX..maxX) {
-                for (y in minY..maxY) {
-                    for (z in minZ..maxZ) {
-                        if (sLevel.getBlockState(BlockPos(x, y, z)).isAir) continue
-                        selection.add(BlockPos(x, y, z))
-                    }
-                }
-            }
+            val selection = AABBi(minX, minY, minZ, (maxX + 1), (maxY + 1), (maxZ + 1))
 
             if (sPlayer.mainHandItem.item is WanderwandItem) {
                 val wand = sPlayer.mainHandItem
 
                 if (!deselect) {
                     val existingSelection = wand.tag?.get("selectedBlocks") as CompoundTag?
+                    var toWrite: List<AABBic> = arrayListOf(selection)
                     if (existingSelection != null) {
-                        selection.addAll(readBlockPosSetFromNBT(existingSelection))
+                        val existingGroups = readAABBSetFromNBT(existingSelection)
+                        existingGroups.add(selection)
+                        toWrite = mergeAdjacentFast(existingGroups)
                     }
                     wand.tag?.remove("selectedBlocks")
-                    wand.tag?.put("selectedBlocks", writeBlockPosSetToNBT(selection))
+                    wand.tag?.put("selectedBlocks", writeAABBSetToNBT(toWrite))
                 } else {
                     val existingSelection = wand.tag?.get("selectedBlocks") as CompoundTag?
                     if (existingSelection != null) {
-                        val existingSelectionDeser = readBlockPosSetFromNBT(existingSelection)
-                        existingSelectionDeser.removeAll(selection)
+                        val existingSelectionDeser = readAABBSetFromNBT(existingSelection)
+                        val out = existingSelectionDeser.subtractWithAABB(selection)
                         wand.tag?.remove("selectedBlocks")
-                        wand.tag?.put("selectedBlocks", writeBlockPosSetToNBT(existingSelectionDeser))
+                        wand.tag?.put("selectedBlocks", writeAABBSetToNBT(out))
                     }
                 }
                 sendTo(WanderwandRenderUpdatePacket(firstPos, if (deselect) ToolType.DESELECT else ToolType.SELECT, blocks = wand.tag?.get("selectedBlocks") as CompoundTag?), sPlayer)
@@ -206,6 +205,47 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
         }
 
         @JvmStatic
+        fun writeAABBSetToNBT(aabbSet: List<AABBic>): CompoundTag {
+            val mainTag = CompoundTag()
+            val listTag = ListTag()
+
+            for (aabb in aabbSet) {
+                val aabbTag = CompoundTag()
+                aabbTag.putLong("lowerCorner", BlockPos(aabb.minX(), aabb.minY(), aabb.minZ()).asLong())
+                aabbTag.putLong("upperCorner", BlockPos(aabb.maxX(), aabb.maxY(), aabb.maxZ()).asLong())
+                listTag.add(aabbTag)
+            }
+
+            mainTag.put("AABBSet", listTag)
+            return mainTag
+        }
+
+        @JvmStatic
+        fun readAABBSetFromNBT(mainTag: CompoundTag): ArrayList<AABBic> {
+            val aabbSet: ArrayList<AABBic> = ArrayList()
+            val listTag = mainTag.getList("AABBSet", 10) // 10 stands for CompoundTag type
+
+            for (i in listTag.indices) {
+                val aabbTag = listTag.getCompound(i)
+                val lowerCornerLong = aabbTag.getLong("lowerCorner")
+                val upperCornerLong = aabbTag.getLong("upperCorner")
+                val lowerPos = BlockPos.of(lowerCornerLong)
+                val upperPos = BlockPos.of(upperCornerLong)
+                val aabb = AABBi(
+                    lowerPos.x,
+                    lowerPos.y,
+                    lowerPos.z,
+                    upperPos.x,
+                    upperPos.y,
+                    upperPos.z
+                )
+                aabbSet.add(aabb)
+            }
+            return aabbSet
+        }
+
+
+        @JvmStatic
         fun findIsolatedComponents(set: HashSet<BlockPos>): HashSet<HashSet<BlockPos>> {
             if (set.isEmpty()) return HashSet()
             if (set.size == 1) return HashSet(hashSetOf(set))
@@ -237,6 +277,29 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
             }
 
             return isolatedComponents
+        }
+
+        @JvmStatic
+        fun findIsolatedComponents(list: List<AABBic>, level: Level) : ArrayList<HashSet<BlockPos>> {
+            val allPositions = HashSet<BlockPos>()
+            for (aabb in list) {
+                val minX = aabb.minX()
+                val minY = aabb.minY()
+                val minZ = aabb.minZ()
+                val maxX = aabb.maxX()
+                val maxY = aabb.maxY()
+                val maxZ = aabb.maxZ()
+
+                for (x in minX until maxX) {
+                    for (y in minY until maxY) {
+                        for (z in minZ until maxZ) {
+                            if (level.getBlockState(BlockPos(x, y, z)).isAir) continue
+                            allPositions.add(BlockPos(x, y, z))
+                        }
+                    }
+                }
+            }
+            return ArrayList(findIsolatedComponents(allPositions))
         }
 
         @JvmStatic

@@ -32,6 +32,7 @@ import org.valkyrienskies.clockwork.ClockworkSoundScapes
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.contraption.PropellerContraption
+import org.valkyrienskies.clockwork.content.contraptions.propeller.copter.CopterBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropCreateData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropUpdateData
@@ -45,7 +46,7 @@ import kotlin.math.absoluteValue
 import kotlin.math.min
 import kotlin.math.sin
 
-class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState, val brass: Boolean = false) : KineticBlockEntity(type, pos, state), IBearingBlockEntity, IForceApplierBE<PropUpdateData, PropData, PropCreateData, PropellerController> {
+open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState, val brass: Boolean = false) : KineticBlockEntity(type, pos, state), IBearingBlockEntity, IForceApplierBE<PropUpdateData, PropData, PropCreateData, PropellerController> {
 
     var sailPositions: MutableList<Vector3ic> = ArrayList()
     var blades: MutableList<BladeData> = ArrayList()
@@ -61,13 +62,16 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
     var previousAngle = 0.0
 
     var active = false
+    @Volatile
     var running = false
 
     var starting = false
     var startingProgress = 0.0
 
+    @Volatile
     var stopping = false
     var disassemblyProgress = 0.0
+    var totalDisassemblyTime = 0.0
 
     var assembleNextTick = false
     var assembleCooldown = 0
@@ -92,6 +96,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         this.active = false
         this.stopping = true
         this.disassemblyProgress = currentOmega.absoluteValue
+        this.totalDisassemblyTime = disassemblyProgress
         setChanged()
         if (!level!!.isClientSide) ClockworkSounds.PROPELLER_STOP.playOnServer(level, worldPosition, 0.75f)
         sendData()
@@ -240,10 +245,10 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         if (running && propellerContraption != null) super.tickData(attachment, shouldUpdate) else removeApplier(PropellerController::class.java, level, worldPosition)
     }
 
-    fun assemble() {
+    open fun assemble() {
         if (level!!.getBlockState(worldPosition)
                 .block !is PropellerBearingBlock
-        ) return
+            && level!!.getBlockState(worldPosition).block !is CopterBearingBlock) return
         val direction = blockState.getValue(BlockStateProperties.FACING)
         val contraption: PropellerContraption
         try {
@@ -257,7 +262,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         if (contraption.blocks.isEmpty()) return
         val anchor = worldPosition.relative(direction)
         contraption.removeBlocksFromWorld(level, BlockPos.ZERO)
-        propellerContraption = ControlledContraptionEntity.create(level, this, contraption)
+        propellerContraption = createContraptionEntity(contraption)
         propellerContraption!!.setPos(anchor.x.toDouble(), anchor.y.toDouble(), anchor.z.toDouble())
         propellerContraption!!.rotationAxis = direction.axis
         propellerContraption?.let { level!!.addFreshEntity(it) }
@@ -265,6 +270,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         running = true
         starting = true
         stopping = false
+        totalDisassemblyTime = 0.0
         startingProgress = 0.0
         angle = 0.0
         currentOmega = 0.0
@@ -290,7 +296,11 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
         sendData()
     }
 
-    fun disassemble() {
+    open fun createContraptionEntity(contraption: PropellerContraption): ControlledContraptionEntity {
+        return ControlledContraptionEntity.create(level, this, contraption)
+    }
+
+    open fun disassemble() {
         if (!running && propellerContraption == null) return
 
         targetOmega = 0.0
@@ -421,6 +431,7 @@ class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state
                 starting = false
                 startingProgress = 0.0
                 disassemblyProgress = currentOmega.absoluteValue
+                totalDisassemblyTime = disassemblyProgress
             }
             stopping = compound.getBoolean("Stopping")
         }

@@ -1,0 +1,29 @@
+{
+  "type": "vs_clockwork:gas_crafting",
+  "ingredients": [
+    {
+      "item": "minecraft:blaze_powder"
+    }
+  ],
+  "input_gasses": {
+    "vs_clockwork:stellane": {
+      "amount": 0.002,
+      "unit": "kg"
+    },
+	"vs_clockwork:vitriol": {
+      "amount": 0.001,
+      "unit": "kg"
+    }
+  },
+  "result_gasses": {
+    "vs_clockwork:phlogiston": {
+      "amount": 0.003,
+      "unit": "kg"
+    }
+  },
+  "results": [],
+  "requirements": {
+    "kelvin:min_temperature": 1000.0
+  },
+  "energy": 1000
+}

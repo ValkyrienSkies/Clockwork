@@ -285,9 +285,9 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         if (inventory[0].item !is WanderwandItem) return
         val item = inventory[0]
         val selectedTag = item.tag?.get("selectedBlocks") as? CompoundTag ?: return
-        val blockposSet = WanderwandItem.readBlockPosSetFromNBT(selectedTag)
+        val blockposSet = WanderwandItem.readAABBSetFromNBT(selectedTag)
 
-        for (component in WanderwandItem.findIsolatedComponents(blockposSet)) {
+        for (component in WanderwandItem.findIsolatedComponents(blockposSet, level!!)) {
 
             if (component.firstOrNull { pos -> !level!!.getBlockState(pos).isAir } == null) continue
             if (component.any { ClockworkConfig.SERVER.blockBlacklist.contains(level!!.getBlockState(it).block.descriptionId) } ) continue

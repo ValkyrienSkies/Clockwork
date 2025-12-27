@@ -151,9 +151,9 @@ class CreativeGravitronItem(properties: Properties) : CWItem(properties), Custom
             for (item in player.inventory.items) {
                 if (item.`is`(ClockworkItems.WANDERWAND.get().asItem())) {
                     val selectedTag = item.tag?.get("selectedBlocks") as? CompoundTag ?: return false
-                    val blockposSet = WanderwandItem.readBlockPosSetFromNBT(selectedTag)
+                    val blockposSet = WanderwandItem.readAABBSetFromNBT(selectedTag)
 
-                    for (component in WanderwandItem.findIsolatedComponents(blockposSet)) {
+                    for (component in WanderwandItem.findIsolatedComponents(blockposSet, level)) {
                         if (component.firstOrNull { pos -> !level.getBlockState(pos).isAir } == null) continue
                         if (component.any { ClockworkConfig.SERVER.blockBlacklist.contains(level.getBlockState(it).block.descriptionId) } ) continue
                         if (component.contains(blockPos)) {
