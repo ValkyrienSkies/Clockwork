@@ -1,0 +1,84 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - '1.20.1/main'
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to build (e.g. 1.20.1/main)'
+        required: true
+        default: '1.20.1/main'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch || '1.20.1/main' }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Replace vs2_version with official 2.4.0
+        run: |
+          sed -i 's/^vs2_version=.*/vs2_version=2.4.0/' gradle.properties
+          echo "vs2_version changed"
+
+      - name: Grant execute permission for Gradle
+        run: chmod +x ./gradlew
+
+      - name: Build mod (Fabric + Forge)
+        run: ./gradlew build
+
+      - name: Package JARs
+        id: package
+        run: |
+          mkdir -p mod_jars
+
+          find fabric/build/libs -type f -name "clockwork-*-fabric-*.jar" \
+            ! -name "*-dev-shadow*" ! -name "*-sources*" \
+            -exec cp {} mod_jars/ \;
+
+          find forge/build/libs -type f -name "clockwork-*-forge-*.jar" \
+            ! -name "*-dev-shadow*" ! -name "*-sources*" \
+            -exec cp {} mod_jars/ \;
+
+          JAR=$(ls mod_jars/clockwork-*-fabric-*.jar | head -n1)
+          if [ -z "$JAR" ]; then
+            echo "No main Fabric JAR found!"
+            exit 1
+          fi
+
+          FILENAME=$(basename "$JAR")
+
+          PREFIX_AND_HASH=${FILENAME%.jar}
+          PREFIX_AND_HASH=${PREFIX_AND_HASH%-fabric-*}
+
+          HASH=$(echo "$FILENAME" | grep -oE '[a-f0-9]{10,}' | head -n1)
+
+          if [ -z "$HASH" ]; then
+            echo "Could not extract commit hash!"
+            exit 1
+          fi
+
+          ZIP_NAME="${PREFIX_AND_HASH}-${HASH}.zip"
+          zip -j "${ZIP_NAME}" mod_jars/*.jar
+
+          echo "Created ZIP: ${ZIP_NAME}"
+          ls -la
+
+          echo "zip_name=${ZIP_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Upload ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.package.outputs.zip_name }}
+          path: ${{ steps.package.outputs.zip_name }}
