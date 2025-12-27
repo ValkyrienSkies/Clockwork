@@ -29,8 +29,11 @@ import org.valkyrienskies.core.api.ships.properties.ChunkClaim
 import org.valkyrienskies.core.api.world.connectivity.DoubleComponentAugmentation
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil.defaultMapper
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
+import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
+import org.valkyrienskies.kelvin.util.INodeBlock
+import org.valkyrienskies.kelvin.util.INodeBlockEntity
 import org.valkyrienskies.mod.api.positionToWorld
 import org.valkyrienskies.mod.api.toBlockPos
 import org.valkyrienskies.mod.api.toJOML
@@ -62,6 +65,14 @@ object ClockworkUtils {
             }
         }
         successfullyAdded.forEach { wanderliteNodesToAdd.remove(it) }
+    }
+
+    fun getDuctNodePos(blockPos: BlockPos, level: Level?): DuctNodePos {
+        if (level == null) return DuctNodePos(blockPos.x.toDouble(), blockPos.y.toDouble(), blockPos.z.toDouble())
+        val be = level.getBlockEntity(blockPos) as? INodeBlockEntity
+
+        if (be != null) return be.getDuctNodePosition()
+        return DuctNodePos(blockPos.x.toDouble(), blockPos.y.toDouble(), blockPos.z.toDouble(), level.dimension().location())
     }
 
 //    @JvmStatic
