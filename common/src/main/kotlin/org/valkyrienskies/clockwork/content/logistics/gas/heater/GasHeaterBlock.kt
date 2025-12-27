@@ -97,7 +97,14 @@ class GasHeaterBlock(properties: Properties) : HorizontalDirectionalBlock(proper
     }
 
     override fun getAdditionalInfoLines(): List<Component> {
-        return listOf(Component.translatable("vs_clockwork.gas_heater.function").withStyle(ChatFormatting.GRAY).withStyle(ChatFormatting.ITALIC))
+        return listOf(
+            Component.translatable("vs_clockwork.gas_heater.function1").withStyle(ChatFormatting.GRAY).withStyle(
+            ChatFormatting.ITALIC),
+
+            Component.translatable("vs_clockwork.gas_heater.function2").withStyle(ChatFormatting.GRAY).withStyle(
+            ChatFormatting.ITALIC)
+
+        )
     }
 
 }

@@ -96,8 +96,13 @@ class ExtendonBlock(properties: Properties) : DirectionalBlock(properties), IBE<
     }
 
     override fun getAdditionalInfoLines(): List<Component> {
-        return listOf(Component.translatable("vs_clockwork.extendon.function").withStyle(ChatFormatting.GRAY).withStyle(
-            ChatFormatting.ITALIC))
+        return listOf(
+            Component.translatable("vs_clockwork.extendon.function1").withStyle(ChatFormatting.GRAY).withStyle(
+            ChatFormatting.ITALIC),
+
+            Component.translatable("vs_clockwork.extendon.function2").withStyle(ChatFormatting.GRAY).withStyle(
+            ChatFormatting.ITALIC)
+            )
     }
 
     override fun use(

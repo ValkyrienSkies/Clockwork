@@ -75,7 +75,8 @@ class CreativeGeneratorBlock(properties: Properties) : Block(properties), INodeB
         val list = ArrayList<Component>()
 
         list += Component.translatable("vs_clockwork.duct_stats.is_producer").withStyle(ChatFormatting.GOLD)
-        list += Component.translatable("vs_clockwork.creative_generator.function").withStyle(ChatFormatting.WHITE).withStyle(ChatFormatting.ITALIC)
+        list += Component.translatable("vs_clockwork.creative_generator.function1").withStyle(ChatFormatting.WHITE).withStyle(ChatFormatting.ITALIC)
+        list += Component.translatable("vs_clockwork.creative_generator.function2").withStyle(ChatFormatting.WHITE).withStyle(ChatFormatting.ITALIC)
 
         return list
     }

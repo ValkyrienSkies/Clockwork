@@ -161,8 +161,13 @@ class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(prop
     }
 
     override fun getAdditionalInfoLines(): List<Component> {
-        return listOf(Component.translatable("vs_clockwork.gas_backtank.function").withStyle(ChatFormatting.GRAY).withStyle(
-            ChatFormatting.ITALIC))
+        return listOf(
+            Component.translatable("vs_clockwork.gas_backtank.function1").withStyle(ChatFormatting.GRAY).withStyle(
+            ChatFormatting.ITALIC),
+
+            Component.translatable("vs_clockwork.gas_backtank.function2").withStyle(ChatFormatting.GRAY).withStyle(
+            ChatFormatting.ITALIC)
+            )
     }
 
     override fun getShape(
