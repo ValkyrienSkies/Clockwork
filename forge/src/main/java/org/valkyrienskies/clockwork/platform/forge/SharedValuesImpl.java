@@ -6,6 +6,7 @@ import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import com.tterrag.registrate.util.entry.EntityEntry;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import org.valkyrienskies.clockwork.content.contraptions.propeller.contraption.CopterContraptionEntity;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler;
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandHandler;
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatEntity;
@@ -33,6 +34,10 @@ public class SharedValuesImpl {
 
     public static EntityEntry<SequencedSeatEntity> getSequencedSeat() {
         return (EntityEntry) ForgeClockworkEntities.SEQUENCED_SEAT;
+    }
+
+    public static EntityEntry<CopterContraptionEntity> getCopterContraption() {
+        return (EntityEntry) ForgeClockworkEntities.COPTER_CONTRAPTION;
     }
 
     public static GravitronHandler getGravitronHandler() {

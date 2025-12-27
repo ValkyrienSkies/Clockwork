@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "vs_clockwork:block/copter_bearing/base",
+      "x": 180
+    },
+    "facing=up": {
+      "model": "vs_clockwork:block/copter_bearing/base"
+    },
+    "facing=north": {
+      "model": "vs_clockwork:block/copter_bearing/base",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "vs_clockwork:block/copter_bearing/base",
+      "x": 90,
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vs_clockwork:block/copter_bearing/base",
+      "x": 90,
+      "y": 270
+    },
+    "facing=east": {
+      "model": "vs_clockwork:block/copter_bearing/base",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

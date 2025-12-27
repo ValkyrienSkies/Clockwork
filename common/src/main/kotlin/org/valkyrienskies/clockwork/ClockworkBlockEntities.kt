@@ -31,6 +31,8 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlo
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeControllerBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeControllerRenderer
+import org.valkyrienskies.clockwork.content.contraptions.propeller.copter.CopterBearingBlockEntity
+import org.valkyrienskies.clockwork.content.contraptions.propeller.copter.CopterBearingRenderer
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterRenderer
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlockEntity
@@ -129,6 +131,30 @@ object ClockworkBlockEntities {
         .renderer {
             NonNullFunction { context: BlockEntityRendererProvider.Context? ->
                 BearingRenderer<PropellerBearingBlockEntity>(
+                    context!!
+                )
+            }
+        }
+        .register()
+
+    @JvmField
+    val COPTER_BEARING: BlockEntityEntry<CopterBearingBlockEntity> = (ClockworkMod.REGISTRATE
+        .blockEntity<CopterBearingBlockEntity>(
+            "copter_bearing"
+        ) { type: BlockEntityType<CopterBearingBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
+            CopterBearingBlockEntity(
+                type!!, pos!!, state!!
+            )
+        } as ClockworkBlockEntityBuilder)
+//        .clockworkVisual {
+//            ClockworkSimpleBlockEntityVisualFactory { ctx, blockEntity, partialTick ->
+//                BearingVisual(ctx, blockEntity, partialTick)
+//            }
+//        }
+        .validBlocks(ClockworkBlocks.COPTER_BEARING)
+        .renderer {
+            NonNullFunction { context: BlockEntityRendererProvider.Context? ->
+                CopterBearingRenderer(
                     context!!
                 )
             }

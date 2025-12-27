@@ -139,6 +139,18 @@ object ClockworkPartials {
 
     val ALTIMETER_REDSTONE = PartialModel.of(ClockworkMod.asResource("block/alt_meter/redstone"))
 
+    //endregion
+
+    //copter bearing
+    val SMART_PROP_TOP: PartialModel = PartialModel.of(ClockworkMod.asResource("block/copter_bearing/top"))
+    val SMART_PROP_BASE: PartialModel = PartialModel.of(ClockworkMod.asResource("block/copter_bearing/base"))
+
+    val SMART_PROP_PISTON_NW: PartialModel = PartialModel.of(ClockworkMod.asResource("block/copter_bearing/piston_nw"))
+    val SMART_PROP_PISTON_NE: PartialModel = PartialModel.of(ClockworkMod.asResource("block/copter_bearing/piston_ne"))
+    val SMART_PROP_PISTON_SW: PartialModel = PartialModel.of(ClockworkMod.asResource("block/copter_bearing/piston_sw"))
+    val SMART_PROP_PISTON_SE: PartialModel = PartialModel.of(ClockworkMod.asResource("block/copter_bearing/piston_se"))
+    val SMART_PROP_WAFER: PartialModel = PartialModel.of(ClockworkMod.asResource("block/copter_bearing/wafer"))
+
     private fun block(path: String): PartialModel {
         return PartialModel.of(ClockworkMod.asResource("block/$path"))
     }
