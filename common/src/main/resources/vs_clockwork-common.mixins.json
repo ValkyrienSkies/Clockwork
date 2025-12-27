@@ -14,6 +14,7 @@
     "accessors.IMixinClockworkContraption",
     "accessors.IMixinPistonContraption",
     "content.blade.RepairItemRecipeMixin",
+    "content.exhaust.MixinAirCurrent",
     "content.gas.MixinBacktankUtil",
     "content.gas.MixinComposterBlock",
     "content.gas_engine.MixinSteamEngineBlock",
