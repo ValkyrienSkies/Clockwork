@@ -8,6 +8,7 @@ import net.minecraft.world.item.crafting.CraftingBookCategory
 import net.minecraft.world.item.crafting.CustomRecipe
 import net.minecraft.world.item.crafting.RecipeSerializer
 import net.minecraft.world.level.Level
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkRecipes
 
@@ -20,6 +21,7 @@ class CraftingTableBladeRecipe(id: ResourceLocation, category: CraftingBookCateg
 
         var isWide = false
         var numBlades = 0
+        var length = 0.0
         for (item in container.items) {
             if (item.isEmpty) continue
             if (item.item !is BladeItem) return false
@@ -28,10 +30,11 @@ class CraftingTableBladeRecipe(id: ResourceLocation, category: CraftingBookCateg
                 if (numBlades > 0) return false
                 isWide = true
             } else if (item.`is`(ClockworkItems.PROPELLER_BLADE.get()) && isWide) return  false
+            length += item.tag?.getDouble("BladeLength") ?: 0.0
 
             numBlades++
         }
-        return numBlades >= 2
+        return numBlades >= 2 && length <= ClockworkConfig.SERVER.maxBladeSize
     }
 
     override fun assemble(
