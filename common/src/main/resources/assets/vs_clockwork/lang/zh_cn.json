@@ -55,8 +55,8 @@
   "item.vs_clockwork.intake": "进气管",
   "block.vs_clockwork.goo_block": "蓝胶黏液块",
   "item.vs_clockwork.goo_block": "蓝胶黏液块",
-  "block.vs_clockwork.slicker": "滑润器",
-  "item.vs_clockwork.slicker": "滑润器",
+  "block.vs_clockwork.slicker": "物理结构黏着器",
+  "item.vs_clockwork.slicker": "物理结构黏着器",
 
   "block.vs_clockwork.asteroid_block": "调试陨石生成器",
   "item.vs_clockwork.asteroid_block": "调试陨石生成器",
@@ -146,7 +146,7 @@
   "vs_clockwork.subtitle.gravitron_fling": "重力枪：发射物理结构",
   "vs_clockwork.subtitle.gravitron_shutdown": "重力枪：关闭",
   "vs_clockwork.subtitle.gravitron_freeze": "创造模式重力枪：冻结物理结构",
-  
+
   "block.vs_clockwork.wanderlite_block": "漫游水晶块",
   "item.vs_clockwork.wanderlite_block": "漫游水晶块",
   "block.vs_clockwork.wanderlite_bricks": "漫游水晶砖",
