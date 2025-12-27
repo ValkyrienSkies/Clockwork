@@ -156,7 +156,13 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
     }
 
     override fun getAdditionalInfoLines(): List<Component> {
-        return listOf(Component.translatable("vs_clockwork.pump_duct.function").withStyle(ChatFormatting.GRAY).withStyle(ChatFormatting.ITALIC))
+        return listOf(
+            Component.translatable("vs_clockwork.pump_duct.function1").withStyle(ChatFormatting.GRAY).withStyle(
+            ChatFormatting.ITALIC),
+
+            Component.translatable("vs_clockwork.pump_duct.function2").withStyle(ChatFormatting.GRAY).withStyle(
+            ChatFormatting.ITALIC)
+        )
     }
 
 

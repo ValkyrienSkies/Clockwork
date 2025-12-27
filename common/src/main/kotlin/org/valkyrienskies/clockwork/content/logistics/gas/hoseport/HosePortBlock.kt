@@ -42,7 +42,13 @@ class HosePortBlock(properties: Properties) : DirectionalBlock(properties), IBE<
     }
 
     override fun getAdditionalInfoLines(): List<Component> {
-        return listOf(Component.translatable("vs_clockwork.hose_port.function").withStyle(ChatFormatting.GRAY).withStyle(ChatFormatting.ITALIC))
+        return listOf(
+            Component.translatable("vs_clockwork.hose_port.function1").withStyle(ChatFormatting.GRAY).withStyle(
+            ChatFormatting.ITALIC),
+
+            Component.translatable("vs_clockwork.hose_port.function2").withStyle(ChatFormatting.GRAY).withStyle(
+            ChatFormatting.ITALIC)
+        )
     }
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
