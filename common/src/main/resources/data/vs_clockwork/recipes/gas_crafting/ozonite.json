@@ -1,0 +1,24 @@
+{
+  "type": "vs_clockwork:gas_crafting",
+  "ingredients": [
+    {
+      "item": "minecraft:lapis_lazuli"
+    }
+  ],
+  "input_gasses": {
+    "kelvin:air": {
+      "amount": 0.025,
+      "unit": "kg"
+    }
+  },
+  "result_gasses": {
+    "vs_clockwork:ozonite": {
+      "amount": 0.025,
+      "unit": "kg"
+    }
+  },
+  "results": [],
+  "requirements": {
+    "kelvin:min_temperature": 500.0
+  }
+}

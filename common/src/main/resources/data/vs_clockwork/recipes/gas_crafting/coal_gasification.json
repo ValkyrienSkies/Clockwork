@@ -27,7 +27,7 @@
   },
   "results": [],
   "requirements": {
-    "kelvin:min_temperature": 1100.0,
+    "kelvin:min_temperature": 700.0,
     "kelvin:inhibited_by": {
       "gas": "kelvin:air",
       "ratio": 0.1
