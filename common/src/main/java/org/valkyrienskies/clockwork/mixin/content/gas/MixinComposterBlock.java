@@ -58,10 +58,8 @@ public class MixinComposterBlock extends Block implements INodeBlock, IHaveDuctS
 
             double pressure = kelvin.getPressureAt(ductNodePos);
 
-            GasType gas = GasTypeRegistry.INSTANCE.getGasType(KelvinMod.MOD_ID,"methane");
-
-            if (pressure <= vs_clockwork$$maxPressure && gas != null) {
-                kelvin.addGasAtTemperature(ductNodePos, gas, 0.05, 305);
+            if (pressure <= vs_clockwork$$maxPressure) {
+                kelvin.addGasAtTemperature(ductNodePos, ClockworkGasses.INSTANCE.getMETHANE(), 0.05, 305);
             }
         }
     }
