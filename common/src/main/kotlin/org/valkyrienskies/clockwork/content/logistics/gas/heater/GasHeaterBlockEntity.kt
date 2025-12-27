@@ -8,6 +8,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.kelvin.api.DuctNodePos
@@ -41,11 +42,10 @@ class GasHeaterBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         if (state.block !is GasHeaterBlock) return
 
         val heatLevel = when {
-            temp < 400 -> HeatLevel.NONE
-            temp < 750 -> HeatLevel.SMOULDERING
-            temp < 1250 -> HeatLevel.FADING
-            temp < 1500 -> HeatLevel.KINDLED
-            else -> HeatLevel.SEETHING
+            temp >= ClockworkConfig.SERVER.heaterSeethingTemp -> HeatLevel.SEETHING
+            temp >= ClockworkConfig.SERVER.heaterKindledTemp -> HeatLevel.KINDLED
+            temp >= ClockworkConfig.SERVER.heaterSmoulderingTemp -> HeatLevel.SMOULDERING
+            else -> HeatLevel.NONE
         }
 
         val energyInHeater = kelvin.getHeatEnergy(getDuctNodePosition())

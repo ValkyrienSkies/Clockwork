@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork.content.logistics.gas.exhaust
 
 import com.simibubi.create.content.kinetics.fan.AirCurrent
 import com.simibubi.create.content.kinetics.fan.IAirCurrentSource
-import com.simibubi.create.content.kinetics.fan.processing.AllFanProcessingTypes
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.infrastructure.config.AllConfigs
 import net.minecraft.client.multiplayer.ClientLevel
@@ -27,7 +26,10 @@ class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
     IAirCurrentSource {
 
     val MASS_PER_EXHAUST = 0.0005
-    val SPEED_FOR_PRESSURE = 256.0 / 2000.0
+    // Airflow speed parameters cannot be easily made configurable because air current code runs both on server and client
+    // so values need to somehow be synced.
+    val MAX_AIRFLOW_SPEED = 256F // like a maxed out encased fan with default max rpm cap
+    val PRESSURE_TO_SPEED = 256F / 2500 // outflow pressure in exhausts is very low compared to thrusters, may need tweaking later
 
     @JvmField
     var airCurrent: AirCurrent? = null
@@ -91,6 +93,7 @@ class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
 
             val temp = network.getTemperatureAt(getDuctNodePosition())
             val duck = (airCurrent as? MixinAirCurrentDuck)
+            duck?.disableParticles(true)
             duck?.setOwnProcessingType(duck?.getProcessingTypeFor(temp))
 
             airCurrent?.rebuild();
@@ -111,8 +114,10 @@ class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
     override fun getSpeed(): Float {
         val network = KelvinMod.getKelvinByPlatform() ?: return 0F
         val pressure = network.getPressureAt(getDuctNodePosition())
-        // Pressure in exhausts is low, 2 kPa corresponds to a rather intense input
-        return min(pressure * SPEED_FOR_PRESSURE, 256.0).toFloat()
+        return min(
+            (pressure * PRESSURE_TO_SPEED).toFloat(),
+            MAX_AIRFLOW_SPEED
+        )
     }
 
     // Copied from Create.

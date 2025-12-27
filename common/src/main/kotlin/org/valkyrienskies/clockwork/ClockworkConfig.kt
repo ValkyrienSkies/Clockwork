@@ -103,5 +103,20 @@ object ClockworkConfig {
 
         @ConfigEntry(description = "Air density at which the air compressor will start generating aether. Setting it to 0 or a negative number will disable helium generation")
         var airCompressorHeliumAirDensity = 0.3
+
+        @ConfigEntry(description = "Temperature for the gas heater to act like a passive heat source (campfires, dormant blaze burners). Default is 500K (baking oven)")
+        var heaterSmoulderingTemp = 500
+
+        @ConfigEntry(description = "Temperature for the gas heater to act like a heated blaze burner. Default is 1000K (ceramic firing)")
+        var heaterKindledTemp = 1000
+
+        @ConfigEntry(description = "Temperature for the gas heater to act like a superheated blaze burner. Default is 1500K (real metallurgy)")
+        var heaterSeethingTemp = 1500
+
+        @ConfigEntry(description = "Temperature for gas exhaust to trigger bulk smoking. Default is 500K (baking oven)")
+        var bulkSmokingTemp = 500
+
+        @ConfigEntry(description = "Temperature for gas exhaust to trigger bulk blasting. Default is 1000K (ceramic firing)")
+        var bulkBlastingTemp = 1000
     }
 }
