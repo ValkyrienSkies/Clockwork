@@ -110,6 +110,7 @@ object ClockworkMod {
         vsCore.registerAttachment(SugarRocketController::class.java)
         vsCore.registerAttachment(GravitronController::class.java) { useTransientSerializer() }
         vsCore.registerAttachment(BearingController::class.java) { useTransientSerializer() }
+        vsCore.registerAttachment(BalloonController::class.java)
 
         vsApi.shipLoadEvent.on { event -> val ship = event.ship;
             //TODO: UNCOMMENT WHEN POCKET FORCES IS FIXED
@@ -150,6 +151,7 @@ object ClockworkMod {
             for (ship in it.shipObjectWorld.loadedShips) {
                 //TODO: UNCOMMENT WHEN POCKET FORCES IS FIXED
                 //ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship.id)
+                ship.getAttachment(BalloonController::class.java)?.gameTick(it, ship)
             }
 
             ClockworkUtils.tick(it)

@@ -51,7 +51,7 @@ object ClockworkConfig {
         var maxGravitronMass = 256
 
         @ConfigEntry(description = "Force multiplier for balloons. Realism is 1.0, default is 1000.0. Range: > 0.0", min = 0.0)
-        var balloonForceMult: Double = 500.0
+        var balloonForceMult: Double = 50.0
 
         @ConfigEntry(description = "Sets the gas retention efficiency of the balloon material; lower values simulate airtight rubber/synthetic, while higher values represent porous fabrics. Default 0.001.", min = 0.0, max = 1.0)
         var permeabilityConstant = 0.001
@@ -67,6 +67,12 @@ object ClockworkConfig {
 
         @ConfigEntry(description = "The max size that a propeller blade can reach. Sizes higher than this will refuse to craft.")
         var maxBladeSize = 4.0
+
+        @ConfigEntry(description = "The length of the raycast made by the Gas Nozzle when attempting to find a valid balloon ceiling.", min = 1.0)
+        var hotAirBalloonMaxRaycastDistance = 64.0
+
+        @ConfigEntry(description = "The maximum volume (in blocks) that the hot air balloon floodfill will scan when trying to determine the balloon's interior.", min = 1.0)
+        var hotAirBalloonMaxScanVolume = 100000.0
 
         @ConfigEntry(description = "Force multiplier when no rpm is given")
         var angleFollowingBaseAngleErrorMultiplier = 2.0
