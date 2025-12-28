@@ -99,8 +99,8 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
             val be = level!!.getBlockEntity(connectedPos!!)
             if (be != null && be !is UniversalShaftBlockEntity) connectedPos = null
             else if(be != null) {
-                connectedJoint = be as UniversalShaftBlockEntity
-                connectedBe = be as UniversalShaftBlockEntity
+                connectedJoint = be
+                connectedBe = be
             }
         }
         if (level == null || level!!.isClientSide) return

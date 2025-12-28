@@ -24,6 +24,7 @@ interface IUniversalJoint {
 
         val oJ = other as IUniversalJoint
         if (oJ.connectedJoint != null) return false
+        if (connectedJoint != null) return false
         if (other.javaClass != this.javaClass) return false
 
 
