@@ -83,11 +83,11 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
     lateinit var rotationDirection: ScrollOptionBehaviour<RotationDirection>
 
     override fun newCreateData(): PropCreateData {
-        return PropCreateData(worldPosition.toJOML(), blockState.getValue(BlockStateProperties.FACING).normal.toJOMLD(), angle, currentOmega, sailPositions, isInverted(), active, brass && blades.isEmpty(), blades)
+        return PropCreateData(worldPosition.toJOML(), blockState.getValue(BlockStateProperties.FACING).normal.toJOMLD(), angle, currentOmega, ArrayList(sailPositions), isInverted(), active, brass && blades.isEmpty(), ArrayList(blades))
     }
 
     override fun newUpdateData(): PropUpdateData {
-        return PropUpdateData(currentOmega, angle, isInverted(), active, blades)
+        return PropUpdateData(currentOmega, angle, isInverted(), active, ArrayList(blades))
     }
 
     fun shutDown() {
@@ -108,7 +108,7 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
             val blocks = propellerContraption!!.contraption.blocks
             for ((key, value) in blocks) {
                 if (AllTags.AllBlockTags.WINDMILL_SAILS.matches(value.state)) {
-                    println("Found sail at ${key}")
+                    //println("Found sail at ${key}")
                     sailPositions.add(key.toJOML())
                 }
             }

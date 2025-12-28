@@ -25,10 +25,10 @@ class WanderliteCubeItemRenderer(val renderMatrix: Boolean) : CustomRenderedItem
     ) {
 
         ms.pushPose()
-        val data = TransformData(Vector3f(0f, -0.65f, 0f), Vector3f(35f, -25f, 0f))
+        val data = TransformData(Vector3f(0f, -0.65f, 0f), Vector3f(35f, -25f, 10f))
 
         if (renderMatrix) {
-            var innerData = TransformData(Vector3f(0f, -0.65f, 0f), Vector3f(35f, -25f, 0f))
+            var innerData = TransformData(Vector3f(0f, -0.65f, 0f), Vector3f(35f, -25f, 10f))
             RenderUtil.renderCubeMatrix(ms, renderer!!, innerData, data, 2.5f, light)
         } else {
             RenderUtil.renderCube(ms, renderer!!, data, 2.5f, light)
