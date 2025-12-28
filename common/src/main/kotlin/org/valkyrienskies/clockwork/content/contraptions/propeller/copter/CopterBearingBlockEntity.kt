@@ -37,9 +37,7 @@ class CopterBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
     state, brass = true
 ), BlockEntityPhysicsListener {
 
-    override var dimension: DimensionId
-        get() = level!!.dimensionId
-        set(value) { }
+    override lateinit var dimension: DimensionId
 
     val facing: Direction
         get() = blockState.getValue(BlockStateProperties.FACING)

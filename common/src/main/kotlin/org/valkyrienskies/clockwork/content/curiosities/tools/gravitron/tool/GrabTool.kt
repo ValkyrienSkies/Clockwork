@@ -49,8 +49,8 @@ class GrabTool : GravitronToolBase() {
         updateTargetPos(isRegular)
         if (clickedPos != null && clickedLocation != null) {
             sendToServer(GravitronGrabPacket(clickedPos!!, clickedLocation!!, GRAB))
-        } else if (lastClickedPos != null && lastClickedLocation != null) {
-            sendToServer(GravitronGrabPacket(lastClickedPos, lastClickedLocation, GRAB))
+        } else {
+            sendToServer(GravitronGrabPacket(BlockPos.ZERO, Vec3.ZERO, GRAB))
         }
 
         return true

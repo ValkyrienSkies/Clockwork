@@ -73,9 +73,7 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
     val facing: Direction
         get() = blockState.getValue(BlockStateProperties.FACING)
 
-    override var dimension: DimensionId
-        get() = level!!.dimensionId
-        set(value) { }
+    override lateinit var dimension: DimensionId
 
     @Volatile
     var shouldVerifyConnection: Boolean = false

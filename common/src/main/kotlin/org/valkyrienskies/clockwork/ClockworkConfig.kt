@@ -129,6 +129,6 @@ object ClockworkConfig {
         var survivalGravitronYeetForce = 6000.0
 
         @ConfigEntry(description = "Maximum range (in blocks) the survival gravitron will interact with ships", min = 1.0, max = 1000.0)
-        var survivalGravitronMaxRange = 5.0
+        var survivalGravitronMaxRange = 20.0
     }
 }

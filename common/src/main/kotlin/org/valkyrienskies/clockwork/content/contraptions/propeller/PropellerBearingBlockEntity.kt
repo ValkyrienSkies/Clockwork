@@ -108,7 +108,7 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
             val blocks = propellerContraption!!.contraption.blocks
             for ((key, value) in blocks) {
                 if (AllTags.AllBlockTags.WINDMILL_SAILS.matches(value.state)) {
-                    //println("Found sail at ${key}")
+                    println("Found sail at ${key}")
                     sailPositions.add(key.toJOML())
                 }
             }
@@ -200,7 +200,7 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
         if (!level!!.isClientSide && level!!.getShipObjectManagingPos(blockPos) != null) {
             val shipOn = (level as ServerLevel).getShipObjectManagingPos(blockPos)!!
             val attachment = PropellerController.getOrCreate(shipOn)!!
-            if (!brass) getBlades()
+            getBlades()
             tickData(attachment, true)
         }
 
