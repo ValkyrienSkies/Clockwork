@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.forces
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect
+import com.fasterxml.jackson.annotation.JsonIgnore
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerLevel
@@ -30,10 +31,11 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 
 @OptIn(PhysTickOnly::class, VsBeta::class)
-@JsonAutoDetect
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class BalloonController: ShipPhysicsListener {
 
     val balloons: ConcurrentHashMap<Int, BalloonData> = ConcurrentHashMap()
+    @JsonIgnore
     val forcefulBalloons: ConcurrentHashMap<Int, PhysBalloonData> = ConcurrentHashMap()
 
     val nextBalloonID: Int

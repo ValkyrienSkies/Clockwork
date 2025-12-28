@@ -14,13 +14,14 @@ import org.valkyrienskies.clockwork.util.AABBHelper.mergeAdjacentFast
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.kelvin.api.GasType
 
-@JsonAutoDetect
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class BalloonData {
     val regions: ArrayList<AABBic>
-    val gasMasses: HashMap<GasType, Double>
+    val gasMasses: HashMap<String, Double>
     var currentEnergy: Double
     var currentVolume: Double
     var isLeaking: Boolean
+    @JsonIgnore
     var missingExternalPositions: Int
 
     @JsonIgnore
@@ -40,7 +41,7 @@ class BalloonData {
         this.missingExternalPositions = 0
     }
 
-    constructor(regions: ArrayList<AABBic>, gasMasses: HashMap<GasType, Double>, currentEnergy: Double, currentVolume: Double, isLeaking: Boolean) {
+    constructor(regions: ArrayList<AABBic>, gasMasses: HashMap<String, Double>, currentEnergy: Double, currentVolume: Double, isLeaking: Boolean) {
         this.regions = regions
         this.gasMasses = gasMasses
         this.currentEnergy = currentEnergy

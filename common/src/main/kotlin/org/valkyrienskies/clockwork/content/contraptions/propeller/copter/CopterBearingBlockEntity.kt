@@ -211,8 +211,16 @@ class CopterBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
         val invRotation = physShip.transform.shipToWorldRotation.invert(Quaterniond())
         //val modifiedInvRotation = Quaterniond(invRotation.x, -invRotation.y, invRotation.z, invRotation.w)
         //val localTarget = MathFunctions.rotateVecWithQuat(facing.normal.toJOMLD().mul(getDirectionScale().toDouble()).toMinecraft(), invRotation)
-        val desiredLocal = Vector3d(0.0, 1.0, 0.0).rotate(invRotation).mul(getDirectionScale().toDouble()).normalize() // or negate if needed
+        val facingNormal = facing.normal.toJOMLD()
+        // if facing is negative axis, flip facing
+        if (facing == Direction.DOWN || facing == Direction.NORTH || facing == Direction.WEST) {
+            facingNormal.mul(-1.0)
+        }
+        val desiredLocal = Vector3d(facingNormal).rotate(invRotation).mul(getDirectionScale().toDouble()).normalize() // or negate if needed
         val blockAxis = tiltVector.toJOML().normalize() // .rotate(physShip.transform.shipToWorldRotation)
+        if (facing == Direction.DOWN || facing == Direction.NORTH || facing == Direction.WEST) {
+            blockAxis.mul(-1.0)
+        }
 
         // You need ω in ship-local (rad/s). If you only have world ω, rotate it by invShipRot too.
         val omegaLocal = Vector3d(physShip.angularVelocity)
@@ -278,12 +286,21 @@ class CopterBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
 
                 //val localTarget = MathFunctions.rotateVecWithQuat(facing.normal.toJOMLD().mul(getDirectionScale().toDouble()).toMinecraft(), invRotation)
 
-                val desiredLocal = Vector3d(facing.normal.toJOMLD()).rotate(invRotation).mul(getDirectionScale().toDouble()) // or negate if needed
+                val facingNormal = facing.normal.toJOMLD()
+                // if facing is negative axis, flip facing
+                if (facing == Direction.DOWN || facing == Direction.NORTH || facing == Direction.WEST) {
+                    //facingNormal.mul(-1.0)
+                }
+                val desiredLocal = Vector3d(facingNormal).rotate(invRotation).mul(getDirectionScale().toDouble()) // or negate if needed
 
                 val trueTarget = if (stopping) {
                     VecHelper.lerp((disassemblyProgress / totalDisassemblyTime).toFloat(), blockNormalVector, clientTargetTiltVector)
                 } else {
-                    Vec3(desiredLocal.x, desiredLocal.y, desiredLocal.z)
+                    if (facing == Direction.DOWN || facing == Direction.NORTH || facing == Direction.WEST) {
+                        Vec3(-desiredLocal.x, -desiredLocal.y, -desiredLocal.z)
+                    } else {
+                        Vec3(desiredLocal.x, desiredLocal.y, desiredLocal.z)
+                    }
                 }
 
                 setTiltTarget(trueTarget)
