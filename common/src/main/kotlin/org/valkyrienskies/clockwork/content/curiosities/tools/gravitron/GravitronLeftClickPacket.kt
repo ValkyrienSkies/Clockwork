@@ -59,8 +59,7 @@ class GravitronLeftClickPacket : C2SCWPacket {
                         serverPlayer.cooldowns.addCooldown(stack.item, 20)
 
                         val lookDir = serverPlayer.lookAngle.normalize().toJOML()
-                        // TODO: use ClockworkConfig.SERVER.survivalGravitronYeetForce when thats fixed
-                        val magnitude = 1000 * ship.inertiaData.mass
+                        val magnitude = ClockworkConfig.SERVER.survivalGravitronYeetForce * ship.inertiaData.mass
                         val launchVec = lookDir.mul(magnitude)
                         val launchPos: Vector3dc = if (level.isBlockInShipyard(state.shipGrabbedPos!!.toMinecraft())) state.shipGrabbedPos!! else clickedPos!!.toJOMLD()
                         ValkyrienSkiesMod.getOrCreateGTPA(level.dimensionId).applyWorldForceToModelPos(ship.id, launchVec, launchPos)
