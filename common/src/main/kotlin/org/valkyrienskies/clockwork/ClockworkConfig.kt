@@ -124,5 +124,11 @@ object ClockworkConfig {
 
         @ConfigEntry(description = "Temperature for gas exhaust to trigger bulk blasting. Default is 1000K (ceramic firing)")
         var bulkBlastingTemp = 1000
+
+        @ConfigEntry(description = "Multiplier applied to ship mass when yeeting (left-clicking) with the survival gravitron", min = 0.0, max = 10000.0)
+        var survivalGravitronYeetForce = 6000.0
+
+        @ConfigEntry(description = "Maximum range (in blocks) the survival gravitron will interact with ships", min = 1.0, max = 1000.0)
+        var survivalGravitronMaxRange = 5.0
     }
 }

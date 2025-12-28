@@ -1,10 +1,7 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.infuser
 
 
-import com.simibubi.create.content.contraptions.AbstractContraptionEntity
 import com.simibubi.create.content.contraptions.AssemblyException
-import com.simibubi.create.content.contraptions.actors.seat.SeatEntity
-import com.simibubi.create.content.contraptions.glue.SuperGlueEntity
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.createmod.catnip.animation.LerpedFloat
@@ -12,28 +9,21 @@ import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.NonNullList
-import net.minecraft.core.Registry
-import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.core.registries.Registries
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
 import net.minecraft.util.RandomSource
 import net.minecraft.world.ContainerHelper
 import net.minecraft.world.WorldlyContainer
-import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.item.ItemEntity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
-import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkConfig
-import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.client.render.scanner.ScannerRenderer
@@ -45,15 +35,11 @@ import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.clockwork.util.EaseHelper.easeInBounce
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.core.api.ships.Ship
-import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.mod.common.assembly.ShipAssembler
-import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
-import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
 import java.util.*
-import java.util.function.Consumer
 import kotlin.collections.HashSet
 
 class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) :
@@ -77,7 +63,7 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         private set
     private val createdShips: MutableSet<Ship> = HashSet()
     private var sendAnimationUpdate = false
-    private val toDump: MutableSet<Set<AABB>> = HashSet()
+    private var launchForce = 0
     var shouldEjectDesignator = false
     var inventory = NonNullList.withSize(1, ItemStack.EMPTY)
 
@@ -130,26 +116,20 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         inventory[0] = ItemStack.EMPTY
     }
 
-    fun initialize(center: Vec3?, scanRadius: Float, scanComputeDuration: Int) {}
     override fun tick() {
         super.tick()
         if (level == null) return
         if (shouldEjectDesignator) {
             shouldEjectDesignator = false
             if (inventory[0].isEmpty) return
-            var launchForce = 0
-            for (cluster in toDump) {
-                val adi: WanderwandItem = inventory[0].item as WanderwandItem
-                //adi.selectedArea.dumpCluster(cluster)
-                launchForce++
-            }
-            toDump.clear()
+
             val ejected = ItemEntity(
                 level, blockPos.x.toDouble(), (blockPos.y + 1).toDouble(), blockPos.z.toDouble(),
-                ClockworkItems.WANDERWAND.asStack()//New item so the nbt gets cleared
+                inventory[0]
             )
+
             inventory[0] = ItemStack.EMPTY
-            ejected.deltaMovement = Vec3(0.0, launchForce.toDouble(), 0.0)
+            ejected.deltaMovement = Vec3(0.0, launchForce.toDouble() / 10.0, 0.0)
             level!!.addFreshEntity(ejected)
         }
         if (level is ServerLevel) {
@@ -287,10 +267,13 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         val selectedTag = item.tag?.get("selectedBlocks") as? CompoundTag ?: return
         val blockposSet = WanderwandItem.readAABBSetFromNBT(selectedTag)
 
+        launchForce = 0
         for (component in WanderwandItem.findIsolatedComponents(blockposSet, level!!)) {
 
             if (component.firstOrNull { pos -> !level!!.getBlockState(pos).isAir } == null) continue
             if (component.any { ClockworkConfig.SERVER.blockBlacklist.contains(level!!.getBlockState(it).block.descriptionId) } ) continue
+
+            launchForce++
 
             //assembleFromBlockSet(level as ServerLevel, component, false)
             ShipAssembler.assembleToShip(level!!, component.toList(), true)

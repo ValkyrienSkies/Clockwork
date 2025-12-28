@@ -5,6 +5,7 @@ import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.phys.Vec3
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.CreativeGravitronItem.Companion.grabssemble
@@ -45,15 +46,19 @@ class GravitronLeftClickPacket : C2SCWPacket {
 
                         // Only do cooldown for survival gravitron
                         val stack = serverPlayer.mainHandItem
+
+                        if (serverPlayer.cooldowns.isOnCooldown(stack.item)) return@enqueueWork
+
                         serverPlayer.cooldowns.addCooldown(stack.item, 20)
 
                         val lookDir = serverPlayer.lookAngle.normalize().toJOML()
-                        val magnitude = 600 * ship.inertiaData.mass
+                        // TODO: use ClockworkConfig.SERVER.survivalGravitronYeetForce when thats fixed
+                        val magnitude = 1000 * ship.inertiaData.mass
                         val launchVec = lookDir.mul(magnitude)
-                        ValkyrienSkiesMod.getOrCreateGTPA(level.dimensionId).applyWorldForceToBodyPos(ship.id, launchVec, state.shipGrabbedPos!!)
+                        ValkyrienSkiesMod.getOrCreateGTPA(level.dimensionId).applyWorldForceToModelPos(ship.id, launchVec, state.shipGrabbedPos!!)
                         GrabTool.dropShip(serverPlayer)
                         level.playSound(
-                            serverPlayer,
+                            null,
                             serverPlayer.blockPosition(),
                             ClockworkSounds.GRAVITRON_LAUNCH.mainEvent!!,
                             SoundSource.PLAYERS,
@@ -68,7 +73,7 @@ class GravitronLeftClickPacket : C2SCWPacket {
 
                         ship.isStatic = !ship.isStatic
                         level.playSound(
-                            serverPlayer,
+                            null,
                             serverPlayer.blockPosition(),
                             ClockworkSounds.GRAVITRON_FREEZE.mainEvent!!,
                             SoundSource.PLAYERS,
