@@ -58,8 +58,9 @@ class ValveDuctBlock(properties: Properties?) : DirectionalAxisKineticBlock(prop
     override fun neighborChanged(state: BlockState, level: Level, pos: BlockPos, neighborBlock: Block, neighborPos: BlockPos, movedByPiston: Boolean) {
         super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston)
 
+        if (state.block !is ValveDuctBlock) return
         val direction = Direction.fromDelta(neighborPos.x-pos.x,neighborPos.y-pos.y,neighborPos.z-pos.z) ?: return
-        if (direction.axis == state.getValue(BlockStateProperties.FACING).axis) withBlockEntityDo(level, pos) {
+        if (direction.axis == getDuctAxis(state)) withBlockEntityDo(level, pos) {
             it.updateConnection(it.level!!, pos, direction)
         }
     }

@@ -28,6 +28,18 @@ class ValveDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Blo
         .startWithValue(0.0)
         .chase(0.0, 0.0, LerpedFloat.Chaser.LINEAR)
 
+    override fun lazyTick() {
+        super.lazyTick()
+
+        if (level?.isClientSide != false) return
+        if (blockState.block !is ValveDuctBlock) return
+
+        val dir = Direction.get(Direction.AxisDirection.POSITIVE, ValveDuctBlock.getDuctAxis(blockState))
+        updateConnection(level!!, blockPos, dir)
+        updateConnection(level!!, blockPos, dir.opposite)
+    }
+
+
     override fun tick() {
         super.tick()
         pointer.tickChaser()
@@ -70,7 +82,7 @@ class ValveDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Blo
     }
 
     override fun getEdge(nodeA: DuctNodePos, nodeB: DuctNodePos, level: Level, blockPos: BlockPos, direction: Direction): DuctEdge {
-        return ApertureDuctEdge(ConnectionType.APERTURE, nodeA, nodeB,)
+        return ApertureDuctEdge(ConnectionType.APERTURE, nodeA, nodeB, aperture = pointer.value.toDouble()-0.125)
     }
 
 }
