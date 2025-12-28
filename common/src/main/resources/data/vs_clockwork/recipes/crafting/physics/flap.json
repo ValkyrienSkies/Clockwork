@@ -9,14 +9,14 @@
       "tag": "minecraft:wool"
     },
     "B": {
-      "item": "create:brass_nugget"
+      "item": "create:zinc_nugget"
     },
     "O": {
       "item": "create:iron_sheet"
     }
   },
   "result": {
-    "item": "vs_clockwork:wing",
+    "item": "vs_clockwork:flap",
     "count": 4
   }
 }

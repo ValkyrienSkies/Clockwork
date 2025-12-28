@@ -21,7 +21,8 @@
 	" C "
   ],
   "result": {
-    "item": "vs_clockwork:spinoff_bearing"
+    "item": "vs_clockwork:spinoff_bearing",
+    "count": 2
   },
   "show_notification": true
 }
