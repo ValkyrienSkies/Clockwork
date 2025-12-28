@@ -68,11 +68,25 @@ subprojects {
 
     repositories {
         maven { url = "https://maven.bawnorton.com/releases" }
+
+        // region JEI mavens
         maven {
             // location of the maven that hosts JEI files before January 2023
             name = "Progwml6's maven"
             url = "https://dvs1.progwml6.com/files/maven/"
         }
+        maven {
+            // location of the maven that hosts JEI files since January 2023
+            name = "Jared's maven"
+            url = "https://maven.blamejared.com/"
+        }
+        maven {
+            // location of a maven mirror for JEI files, as a fallback
+            name = "ModMaven"
+            url = "https://modmaven.dev"
+        }
+        // endregion
+
         mavenCentral()
         maven {
             name "createmod maven"
@@ -96,7 +110,6 @@ subprojects {
                 includeGroup "com.rbasamoyai"
             }
         }
-        //maven { url = "https://api.modrinth.com/maven" }
 
         maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" }
     }

@@ -56,7 +56,6 @@ repositories {
             }
         }
         maven { url = "https://jitpack.io/" }
-        maven { url = "https://cursemaven.com" }
     }
 }
 
@@ -85,6 +84,8 @@ dependencies {
         exclude group: 'org.joml', module: ''
     }
 
+    // JEI for testing
+    modRuntimeOnly  "mezz.jei:jei-${rootProject.minecraft_version}-forge:${rootProject.jei_version}"
 
     include(modImplementation("org.valkyrienskies.kelvin:kelvin-forge:${rootProject.minecraft_version}-${rootProject.kelvin_version}") { transitive = false
         exclude group: 'org.joml', module: ''
