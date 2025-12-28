@@ -222,9 +222,9 @@ class CopterBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
             blockAxis = blockAxis,
             desiredUp = desiredLocal,
             omegaShipLocal = omegaLocal,
-            kp = 4.0,      // start 3..10
+            kp = 2.0,      // start 3..10
             ki = 0.8,
-            kd = 4.0,      // start 1..6
+            kd = 6.0,      // start 1..6
             dt = 1.0/60.0
         )
 
