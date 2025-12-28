@@ -61,7 +61,10 @@ class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
         if (gasses.isEmpty()) return super.tick()
 
         if (level!!.isClientSide) {
-            val facing = level!!.getBlockState(blockPos).getValue(BlockStateProperties.FACING)
+
+            val state = level!!.getBlockState(blockPos)
+            if (state.block !is ExhaustBlock) return
+            val facing = state.getValue(BlockStateProperties.FACING)
             val random = level!!.random
 
             for (i in 1..floor(gasses.values.sum()/MASS_PER_EXHAUST).toInt()) {

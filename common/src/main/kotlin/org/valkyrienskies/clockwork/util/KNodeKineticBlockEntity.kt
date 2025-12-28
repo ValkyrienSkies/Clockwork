@@ -11,8 +11,6 @@ import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.logistics.gas.IClockworkNodeBE
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.util.INodeBlock

@@ -21,7 +21,6 @@ import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3i
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.shipObjectWorld
-import java.time.Clock
 import kotlin.math.abs
 import kotlin.math.roundToInt
 

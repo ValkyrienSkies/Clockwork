@@ -1,11 +1,9 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.pump
 
-import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.network.chat.Component
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
@@ -16,14 +14,12 @@ import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.clockwork.util.KNodeKineticBlockEntity
 import org.valkyrienskies.kelvin.api.DuctEdge
 import org.valkyrienskies.kelvin.api.DuctNodePos
-import org.valkyrienskies.kelvin.api.NodeBehaviorType
 import org.valkyrienskies.kelvin.api.edges.PumpDuctEdge
-import org.valkyrienskies.kelvin.api.nodes.PumpDuctNode
-import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
-import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.math.abs
 
 class PumpDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: BlockState): KNodeKineticBlockEntity(typeIn, pos, state), IConnectable {
+
+
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
 
