@@ -453,8 +453,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         shipOnID = shipOn?.id
 
         val posInWorld = shipOn?.transform?.shipToWorld?.transformPosition(
-            posInOwnerShip - bearingPos + shiptraption.inertiaData.centerOfMass + 0.5, Vector3d()
-        ) ?: (worldPos - bearingPos + shiptraption.inertiaData.centerOfMass + 0.5)
+            posInOwnerShip - bearingPos + shiptraption.inertiaData.centerOfMass , Vector3d()
+        ) ?: (worldPos - bearingPos + shiptraption.inertiaData.centerOfMass)
         val rotInWorld = shipOn?.transform?.shipToWorldRotation ?: Quaterniond()
         val scaling    = shipOn?.transform?.shipToWorldScaling ?: Vector3d(1.0, 1.0, 1.0)
 
