@@ -41,9 +41,9 @@ class CopterContraptionEntity(type: EntityType<*>, world: Level?) : ControlledCo
     override fun applyLocalTransforms(matrixStack: PoseStack?, partialTicks: Float) {
         val angle = getAngle(partialTicks)
         val axis = getRotationAxis()
-        var normal = Vec3(direction.stepX.toDouble(), direction.stepY.toDouble(), direction.stepZ.toDouble())
+        var normal = Vec3(superDirection.stepX.toDouble(), superDirection.stepY.toDouble(), superDirection.stepZ.toDouble())
         normal = normal.scale(1 / 16.0)
-        val pivotOffset = Vec3(0.0, -0.9, 0.0)
+        val pivotOffset = Vec3(superDirection.stepX * -0.9, superDirection.stepY * -0.9, superDirection.stepZ * -0.9)
 
         TransformStack.of(matrixStack)
             .nudge(id)

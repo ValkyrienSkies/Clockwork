@@ -141,7 +141,7 @@ object PhysBearingAssembler {
             AssemblyUtil.updateBlock(level, itPos, shipPos, level.getBlockState(shipPos))
         }
 
-        val shipCenterPos = newShip.inertiaData.centerOfMassInShip.add(0.5, 0.5, 0.5, Vector3d())
+        val shipCenterPos = newShip.inertiaData.centerOfMass.add(0.5, 0.5, 0.5, Vector3d())
         // This is giga sus, but whatever
         val shipPos = Vector3d(previousCenterBP).add(0.5, 0.5, 0.5)
         if (existingShip != null) {

@@ -138,7 +138,12 @@
   "contraptions.propeller.controller_wrong_way": "Blade Controller facing wrong way",
   "contraptions.propeller.not_prop": "Not a propeller",
   "propeller.rotation_direction.normal": "Normal",
-  "propeller.rotation_direction.reversed": "Reversed",
+  "propeller.rotation_direction.inverted": "Reversed",
+
+  "vs_clockwork.gas_heater.heater_info": "    Heater Info",
+  "vs_clockwork.gas_heater.heat_level": "Heat Level: %s",
+
+  "vs_clockwork.command.get_air_values": "At y: %d density: %d temperature: %d",
 
   "vs_clockwork.subtitle.gravitron_start": "Gravitron Booting Up",
   "vs_clockwork.subtitle.gravitron_grab": "Gravitron Grabbing Ship",
@@ -246,8 +251,11 @@
   "item.vs_clockwork.sealer": "Pocket Sealer",
   "block.vs_clockwork.gas_tank": "Gas Tank",
   "item.vs_clockwork.gas_tank": "Gas Tank",
+
   "block.vs_clockwork.gas_heater": "Gas Heater",
   "item.vs_clockwork.gas_heater": "Gas Heater",
+
+
   "block.vs_clockwork.creative_gas_generator": "Creative Gas Generator",
   "item.vs_clockwork.creative_gas_generator": "Creative Gas Generator",
   "block.vs_clockwork.air_compressor": "Air Compressor",
@@ -272,9 +280,16 @@
   "item.vs_clockwork.gas_backtank": "Gas Backtank",
   "item.vs_clockwork.screwdriver": "Screwdriver",
   "item.vs_clockwork.extendon_hose": "Hose Spool",
+
   "block.vs_clockwork.universal_shaft": "Universal Shaft",
   "item.vs_clockwork.universal_shaft": "Universal Shaft",
   "item.vs_clockwork.universal_shaft_item": "Compressible Shaft",
+  "vs_clockwork.universal_shaft.connection_start": "Connection Started...",
+  "vs_clockwork.universal_shaft.connection_failed": "Connection failed.",
+  "vs_clockwork.universal_shaft.connection_failed.too_far": "Connection failed: Joints are too far apart!",
+  "vs_clockwork.universal_shaft.connection_failed.to_itself": "Connection failed: Cannot connect a joint to itself!",
+  "vs_clockwork.universal_shaft.connection_end": "Connected!",
+
   "block.vs_clockwork.hose_port": "Hose Port",
   "item.vs_clockwork.hose_port": "Hose Port",
 
@@ -285,7 +300,6 @@
 
   "item.vs_clockwork.incomplete_telescoping_mechanism": "Incomplete Telescoping Mechanism",
   "item.vs_clockwork.incomplete_hose_spool": "Incomplete Hose Spool",
-
 
   "block.vs_clockwork.delivery_chute": "Delivery Chute",
   "item.vs_clockwork.delivery_chute": "Delivery Chute",
@@ -337,8 +351,14 @@
   "fluid.vs_clockwork.vanilla_frosting_bucket": "Vanilla Frosting",
   "fluid.vs_clockwork.chocolate_frosting_bucket": "Chocolate Frosting",
   "fluid.vs_clockwork.strawberry_frosting_bucket": "Strawberry Frosting",
+
   "block.vs_clockwork.phys_bearing": "Phys Bearing",
   "item.vs_clockwork.phys_bearing": "Phys Bearing",
+  "vs_clockwork.phys_bearing.rotation_mode": "Rotation Mode",
+  "vs_clockwork.phys_bearing.rotation_mode.follow_angle": "Follow angle",
+  "vs_clockwork.phys_bearing.rotation_mode.unlocked": "Unlocked",
+  "vs_clockwork.phys_bearing.rotation_mode.locked": "Locked",
+
   "vs_clockwork.gravitron.tool.grab": "Grab",
   "vs_clockwork.gravitron.tool.assemble": "Assemble",
   "vs_clockwork.gravitron.tool.grab_and_assemble": "Grabssemble",

@@ -24,6 +24,7 @@ import net.minecraft.world.level.ClipContext
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.*
+import org.valkyrienskies.clockwork.ClockworkMod.MOD_ID
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingData
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingUpdateData
@@ -117,7 +118,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
         super.addBehaviours(behaviours)
         movementMode = ScrollOptionBehaviour(
-            LockedMode::class.java, Component.translatableWithFallback("vs_clockwork:locked_mode", "Locked or Unlocked"),
+            LockedMode::class.java, Component.translatable("$MOD_ID.phys_bearing.rotation_mode"),
             this, movementModeSlot
         )
         movementMode!!.withCallback{movementModeChanged(it)}
@@ -201,11 +202,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         val oldBPos = BlockPos.of(tag.getLong(ClockworkConstants.Nbt.OLD_POS))
         val oldPos = oldBPos.toJOMLD()
-
-        //TODO VS bug
-        if (!level.isBlockInShipyard(oldBPos) && level.isBlockInShipyard(blockPos)) {
-            joint = joint.copy(pose1 = joint.pose1.copy(joint.pose1.pos.sub(0.5, 0.5, 0.5, Vector3d())))
-        }
 
         //TODO is this fine or dumb?
         val makeData = { joint: VSRevoluteJoint? -> PhysBearingData(
@@ -469,20 +465,13 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val ship1rot = getHingeRotation(direction)
         val ship2rot = getHingeRotation(direction)
 
-        //TODO VS bug
-        val worldOffset0 = if (shipOn != null) {
-            Vector3d(0.0, 0.0, 0.0)
-        } else {
-            Vector3d(0.5, 0.5, 0.5)
-        }
-
         val extraDist = 1.0
         val realSpeed = if (getSpeed().absoluteValue > 0.0f) getRealisticAngularSpeed() else 0.0f
         val newDriveVelocity = if (realSpeed != 0.0f) VSRevoluteJoint.VSRevoluteDriveVelocity(getRealisticAngularSpeed(), true) else null
         val angle = if (movementMode!!.get() == LockedMode.FOLLOW_ANGLE) { Math.toRadians(targetAngle.toDouble()).toFloat().let { VSD6Joint.AngularLimitPair(it, it.nextUp()) } } else {null}
         jointToCreate = VSRevoluteJoint(
             shiptraptionID, VSJointPose(bearingPos.fma(-extraDist, axis, Vector3d()), ship1rot),
-            shipOnID, VSJointPose(posInOwnerShip.fma(-extraDist, axis, Vector3d()).add(worldOffset0, Vector3d()), ship2rot),
+            shipOnID, VSJointPose(posInOwnerShip.fma(-extraDist, axis, Vector3d()), ship2rot),
             compliance = 1e-100,
             driveFreeSpin = this.movementMode!!.get() == LockedMode.UNLOCKED,
             driveVelocity = newDriveVelocity,

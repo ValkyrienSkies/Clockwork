@@ -173,7 +173,7 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
             active = !overStressed && !stalled
             updateSpinDir(currentOmega < 0)
             val lastTargetOmega = targetOmega
-            targetOmega = convertToAngular(this.getSpeed()).toDouble()
+            targetOmega = convertToAngular(this.getSpeed()).toDouble() * if (isInverted()) -1.0 else 1.0
 
             if (lastTargetOmega != targetOmega) {
                 sendData()
@@ -275,7 +275,7 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
         angle = 0.0
         currentOmega = 0.0
 
-        targetOmega = convertToAngular(this.getSpeed()).toDouble()
+        targetOmega = convertToAngular(this.getSpeed()).toDouble() * if (isInverted()) -1.0 else 1.0
 
         getBlades()
         if (brass && blades.isEmpty()) {
@@ -409,7 +409,7 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
         }
         if (propellerContraption == null || !running) pT = 0f
 
-        //val renderedOmega = if (!isInverted()) Mth.lerp(pT.toDouble(), getAngularSpeed(), targetOmega) else Mth.lerp(pT.toDouble(), -getAngularSpeed(), -targetOmega)
+        val renderedOmega = if (!isInverted()) Mth.lerp(pT.toDouble(), getAngularSpeed(), targetOmega) else Mth.lerp(pT.toDouble(), -getAngularSpeed(), -targetOmega)
         return Mth.lerp(pT.toDouble(), angle, angle + getAngularSpeed()).toFloat()
     }
 

@@ -303,6 +303,25 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
         }
 
         @JvmStatic
+        fun findIsolatedAABBComponents(list: List<AABBic>, level: Level) : ArrayList<List<AABBic>> {
+            val isolatedComponents = findIsolatedComponents(list, level)
+            val result = ArrayList<List<AABBic>>()
+            for (component in isolatedComponents) {
+                val aabbList = ArrayList<AABBic>()
+                component.forEach { pos ->
+                    aabbList.add(pos.toAABBic())
+                }
+                result.add(mergeAdjacentFast(aabbList))
+            }
+            return result
+        }
+
+        @JvmStatic
+        fun BlockPos.toAABBic(): AABBic {
+            return AABBi(this.x, this.y, this.z, this.x + 1, this.y + 1, this.z + 1)
+        }
+
+        @JvmStatic
         fun findCorners(set: HashSet<BlockPos>): Pair<BlockPos, BlockPos> {
             val minX = set.minByOrNull { it.x }!!.x
             val minY = set.minByOrNull { it.y }!!.y

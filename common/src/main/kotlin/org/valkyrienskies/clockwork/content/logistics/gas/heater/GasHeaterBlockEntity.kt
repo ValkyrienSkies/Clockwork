@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.ClockworkMod.MOD_ID
 import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
@@ -62,8 +63,9 @@ class GasHeaterBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     }
 
     override fun addToGoggleTooltip(tooltip: List<Component>?, isPlayerSneaking: Boolean): Boolean {
-        (tooltip as MutableList).add(Component.literal("    Heater Info").withStyle(ChatFormatting.GRAY))
-        tooltip.add(Component.literal("Heat Level: ${level!!.getBlockState(blockPos).getValue(HEAT_LEVEL).name}").withStyle(ChatFormatting.YELLOW))
+        (tooltip as MutableList).add(Component.translatable("$MOD_ID.gas_heater.heater_info").withStyle(ChatFormatting.GRAY))
+
+        tooltip.add(Component.translatable("$MOD_ID.gas_heater.heat_level", level!!.getBlockState(blockPos).getValue(HEAT_LEVEL).name).withStyle(ChatFormatting.YELLOW))
         tooltip.add(Component.empty())
 
         return super.addToGoggleTooltip(tooltip, isPlayerSneaking)

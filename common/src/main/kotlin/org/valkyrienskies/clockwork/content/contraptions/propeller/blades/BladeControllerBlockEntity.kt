@@ -311,7 +311,7 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
 
     class AngleControllerValueBoxTransform: ValueBoxTransform.Sided() {
         override fun getSouthLocation(): Vec3 {
-            return VecHelper.voxelSpace(4.0, 8.0, 18.5)
+            return VecHelper.voxelSpace(8.0, 8.0, 18.5)
         }
 
         override fun getLocalOffset(level: LevelAccessor, pos: BlockPos, state: BlockState): Vec3 {

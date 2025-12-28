@@ -63,7 +63,7 @@ class PocketForcesController: ShipPhysicsListener {
         val physShipImpl = physShip
 
         var totalBuoyantForce = HashMap<Vector3dc, Double>()
-        if (dimensionMap[dimensionId] == null || dimensionMap[dimensionId]!!.maxY <= 0.0) return totalBuoyantForce
+        //if (dimensionMap[dimensionId] == null || dimensionMap[dimensionId]!!.maxY <= 0.0) return totalBuoyantForce
 
 
 
