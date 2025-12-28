@@ -47,7 +47,7 @@ side = "BOTH"
 [[dependencies.vs_clockwork]]
 modId = "create"
 mandatory = true
-versionRange = "${create_version}"
+versionRange = "[6.0.7,)"
 ordering = "AFTER"
 side = "BOTH"
 

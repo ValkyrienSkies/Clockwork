@@ -42,7 +42,7 @@
     "minecraft": ">=1.20.1",
     "valkyrienskies": ">=2.4.1",
     "kelvin": ">=0.4.0",
-    "create": ">=${create_fabric_version}",
+    "create": ">=6.0.7",
     "architectury": ">=9.1.12"
   }
 }
