@@ -46,15 +46,19 @@ class GravitronLeftClickPacket : C2SCWPacket {
 
                         // Only do cooldown for survival gravitron
                         val stack = serverPlayer.mainHandItem
+
+                        if (serverPlayer.cooldowns.isOnCooldown(stack.item)) return@enqueueWork
+
                         serverPlayer.cooldowns.addCooldown(stack.item, 20)
 
                         val lookDir = serverPlayer.lookAngle.normalize().toJOML()
-                        val magnitude = ClockworkConfig.SERVER.survivalGravitronYeetForce * ship.inertiaData.mass
+                        // TODO: use ClockworkConfig.SERVER.survivalGravitronYeetForce when thats fixed
+                        val magnitude = 1000 * ship.inertiaData.mass
                         val launchVec = lookDir.mul(magnitude)
-                        ValkyrienSkiesMod.getOrCreateGTPA(level.dimensionId).applyWorldForceToBodyPos(ship.id, launchVec, state.shipGrabbedPos!!)
+                        ValkyrienSkiesMod.getOrCreateGTPA(level.dimensionId).applyWorldForceToModelPos(ship.id, launchVec, state.shipGrabbedPos!!)
                         GrabTool.dropShip(serverPlayer)
                         level.playSound(
-                            serverPlayer,
+                            null,
                             serverPlayer.blockPosition(),
                             ClockworkSounds.GRAVITRON_LAUNCH.mainEvent!!,
                             SoundSource.PLAYERS,
@@ -69,7 +73,7 @@ class GravitronLeftClickPacket : C2SCWPacket {
 
                         ship.isStatic = !ship.isStatic
                         level.playSound(
-                            serverPlayer,
+                            null,
                             serverPlayer.blockPosition(),
                             ClockworkSounds.GRAVITRON_FREEZE.mainEvent!!,
                             SoundSource.PLAYERS,
