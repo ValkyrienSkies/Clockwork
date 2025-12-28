@@ -5,6 +5,7 @@ import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.phys.Vec3
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.CreativeGravitronItem.Companion.grabssemble
@@ -48,7 +49,7 @@ class GravitronLeftClickPacket : C2SCWPacket {
                         serverPlayer.cooldowns.addCooldown(stack.item, 20)
 
                         val lookDir = serverPlayer.lookAngle.normalize().toJOML()
-                        val magnitude = 600 * ship.inertiaData.mass
+                        val magnitude = ClockworkConfig.SERVER.survivalGravitronYeetForce * ship.inertiaData.mass
                         val launchVec = lookDir.mul(magnitude)
                         ValkyrienSkiesMod.getOrCreateGTPA(level.dimensionId).applyWorldForceToBodyPos(ship.id, launchVec, state.shipGrabbedPos!!)
                         GrabTool.dropShip(serverPlayer)
