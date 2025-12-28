@@ -24,6 +24,7 @@ import net.minecraft.world.level.ClipContext
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.*
+import org.valkyrienskies.clockwork.ClockworkMod.MOD_ID
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingData
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingUpdateData
@@ -117,7 +118,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
         super.addBehaviours(behaviours)
         movementMode = ScrollOptionBehaviour(
-            LockedMode::class.java, Component.translatableWithFallback("vs_clockwork:locked_mode", "Locked or Unlocked"),
+            LockedMode::class.java, Component.translatable("$MOD_ID.phys_bearing.rotation_mode"),
             this, movementModeSlot
         )
         movementMode!!.withCallback{movementModeChanged(it)}

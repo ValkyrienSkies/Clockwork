@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.platform.api
 import com.simibubi.create.content.contraptions.IControlContraption
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.INamedIconOptions
 import com.simibubi.create.foundation.gui.AllIcons
+import org.valkyrienskies.clockwork.ClockworkMod.MOD_ID
 import org.valkyrienskies.core.api.ships.Ship
 
 interface ContraptionController : IControlContraption {
@@ -15,7 +16,7 @@ interface ContraptionController : IControlContraption {
         private val translationKey: String
 
         init {
-            translationKey = name
+            translationKey = "$MOD_ID.phys_bearing.rotation_mode.${name.lowercase()}"
         }
 
         override fun getIcon(): AllIcons {

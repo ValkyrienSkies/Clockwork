@@ -49,6 +49,7 @@ import org.valkyrienskies.mod.common.hooks.VSGameEvents
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.vsCore
 import org.valkyrienskies.mod.event.RegistryEvents
+import kotlin.math.roundToInt
 
 
 object ClockworkMod {
@@ -172,7 +173,7 @@ object ClockworkMod {
                 val density = level.shipObjectWorld.aerodynamicUtils.getAirTemperatureForY(player.position().y(),level.dimensionId)
                 val temperature = level.shipObjectWorld.aerodynamicUtils.getAirTemperatureForY(player.position().y(),level.dimensionId)
 
-                player.sendSystemMessage(Component.literal("At y: ${player.position().y} density: $density temperature: $temperature"))
+                player.sendSystemMessage(Component.translatable("$MOD_ID.command.get_air_values", player.position().y.roundToInt(), density.roundToInt(), temperature.roundToInt()))
 
                 0
             })
