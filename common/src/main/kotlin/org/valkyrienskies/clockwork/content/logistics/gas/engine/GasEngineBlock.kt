@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.engine
 
+import com.simibubi.create.content.kinetics.steamEngine.SteamEngineBlock
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
@@ -26,6 +27,16 @@ class GasEngineBlock(properties: Properties) : RotatedPillarBlock(properties), I
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, movedByPiston: Boolean) {
         super.onPlace(state, level, pos, oldState, movedByPiston)
         nodePlace(state, level, pos, oldState, movedByPiston)
+
+        if (level.isClientSide) return
+        for (dir in Direction.entries) {
+            val check = pos.relative(dir)
+            if (level.getBlockState(check).block is SteamEngineBlock) {
+                updateEngineState(level, pos, false)
+            }
+        }
+
+
     }
 
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, movedByPiston: Boolean) {

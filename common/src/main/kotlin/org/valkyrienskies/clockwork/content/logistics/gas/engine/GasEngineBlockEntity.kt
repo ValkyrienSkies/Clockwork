@@ -14,7 +14,7 @@ import kotlin.math.min
 class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState): KNodeBlockEntity(type, pos, state) {
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) { return }
 
-    val heatLoss get() = totalEfficiency * 100.0
+    val heatLoss get() = totalEfficiency * 1000.0
 
     var attachedEngines = 0
     var totalEfficiency = 0.0f
