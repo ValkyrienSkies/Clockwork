@@ -203,11 +203,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val oldBPos = BlockPos.of(tag.getLong(ClockworkConstants.Nbt.OLD_POS))
         val oldPos = oldBPos.toJOMLD()
 
-        //TODO VS bug
-        if (!level.isBlockInShipyard(oldBPos) && level.isBlockInShipyard(blockPos)) {
-            joint = joint.copy(pose1 = joint.pose1.copy(joint.pose1.pos.sub(0.5, 0.5, 0.5, Vector3d())))
-        }
-
         //TODO is this fine or dumb?
         val makeData = { joint: VSRevoluteJoint? -> PhysBearingData(
             bearingAxis.get(Vector3d()),
@@ -469,13 +464,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         val ship1rot = getHingeRotation(direction)
         val ship2rot = getHingeRotation(direction)
-
-        //TODO VS bug
-//        val worldOffset0 = if (shipOn != null) {
-//            Vector3d(0.0, 0.0, 0.0)
-//        } else {
-//            Vector3d(0.5, 0.5, 0.5)
-//        }
 
         val extraDist = 1.0
         val realSpeed = if (getSpeed().absoluteValue > 0.0f) getRealisticAngularSpeed() else 0.0f

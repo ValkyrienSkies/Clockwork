@@ -228,14 +228,12 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
                 val partnerHingeOrientation = partnerRotation.mul(Quaterniond(AxisAngle4d(Math.toRadians(90.0), 0.0, 0.0, 1.0)), Quaterniond()).normalize()
                 val attachmentOffset0: Vector3dc = selfRotation.transform(Vector3d(0.0, 0.5, 0.0))
                 val attachmentOffset1: Vector3dc = partnerRotation.transform(Vector3d(0.0, 0.5, 0.0))
-                val worldOffset0 = if (physShip == null) Vector3d(0.5, 0.5, 0.5) else Vector3d(0.0, 0.0, 0.0)
-                val worldOffset1 = if (partnerShipId == null) Vector3d(0.5, 0.5, 0.5) else Vector3d(0.0, 0.0, 0.0)
                 val selfPose = VSJointPose(
-                    this.position.toJOMLD().add(0.5, 0.5, 0.5).add(attachmentOffset0).add(worldOffset0),
+                    this.position.toJOMLD().add(0.5, 0.5, 0.5).add(attachmentOffset0),
                     hingeOrientation
                 )
                 val partnerPose = VSJointPose(
-                    partnerPos!!.toJOMLD().add(0.5, 0.5, 0.5).add(attachmentOffset1).add(worldOffset1),
+                    partnerPos!!.toJOMLD().add(0.5, 0.5, 0.5).add(attachmentOffset1),
                     partnerHingeOrientation
                 )
                 // we need to have the one that isn't on a ship be the first one for the calcs
