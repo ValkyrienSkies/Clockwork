@@ -33,6 +33,7 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity.RotationDirection
 import org.valkyrienskies.clockwork.util.ClockworkConstants
 import kotlin.math.abs
+import kotlin.math.round
 
 open class RedstoneResistorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
     SplitShaftBlockEntity(type, pos, state), IHaveGoggleInformation {
@@ -79,12 +80,13 @@ open class RedstoneResistorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos,
     override fun getRotationSpeedModifier(face: Direction): Float {
         if (hasSource()) {
             if (face != sourceFacing) {
-                val i = if (resistDirection.get() == ResistDirection.MAX_TO_NONE) {
-                    abs(state - 15) / 15f
+                var i = if (resistDirection.get() == ResistDirection.MAX_TO_NONE) {
+                    abs(state - 15) / 15.0
                 } else {
-                    abs(state) / 15f
+                    abs(state) / 15.0
                 }
-                return i
+                i = round(i*10)/10
+                return i.toFloat()
             }
         }
         return 1f
