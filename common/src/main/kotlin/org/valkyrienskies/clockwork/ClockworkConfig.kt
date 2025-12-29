@@ -97,13 +97,13 @@ object ClockworkConfig {
         var hotAirBalloonMaxScanSurface = 10000.0
 
         @ConfigEntry(description = "Force multiplier when no rpm is given")
-        var angleFollowingBaseAngleErrorMultiplier = 2.0
+        var angleFollowingBaseAngleErrorMultiplier = 50.0
 
         @ConfigEntry()
         var angleFollowingAngleErrorMultiplier = 50.0
 
         @ConfigEntry()
-        var angleFollowingOmegaErrorMultiplier = 10.0
+        var angleFollowingOmegaErrorMultiplier = 50.0
 
         @ConfigEntry(min = 0.0)
         var forceMulPerSailInPropeller = 5.0
