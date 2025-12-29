@@ -61,7 +61,7 @@ class GravitronLeftClickPacket : C2SCWPacket {
                         val lookDir = serverPlayer.lookAngle.normalize().toJOML()
                         val magnitude = ClockworkConfig.SERVER.survivalGravitronYeetForce * ship.inertiaData.mass
                         val launchVec = lookDir.mul(magnitude)
-                        val launchPos: Vector3dc = if (level.isBlockInShipyard(state.shipGrabbedPos!!.toMinecraft())) state.shipGrabbedPos!! else clickedPos!!.toJOMLD()
+                        val launchPos: Vector3dc = if (level.isBlockInShipyard(state.shipGrabbedPos!!.toMinecraft()) && level.getLoadedShipManagingPos(state.shipGrabbedPos!!)?.id == ship.id) state.shipGrabbedPos!! else clickedPos!!.toJOMLD()
                         ValkyrienSkiesMod.getOrCreateGTPA(level.dimensionId).applyWorldForceToModelPos(ship.id, launchVec, launchPos)
                         GrabTool.dropShip(serverPlayer)
                         level.playSound(

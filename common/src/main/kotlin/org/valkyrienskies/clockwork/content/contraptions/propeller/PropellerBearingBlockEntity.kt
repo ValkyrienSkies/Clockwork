@@ -14,6 +14,9 @@ import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOp
 import com.simibubi.create.foundation.gui.AllIcons
 import com.simibubi.create.foundation.utility.ServerSpeedProvider
 import net.createmod.catnip.lang.Lang
+import net.fabricmc.api.EnvType
+import net.fabricmc.api.Environment
+import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
@@ -38,6 +41,7 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropUpdateData
 import org.valkyrienskies.clockwork.content.forces.PropellerController
 import org.valkyrienskies.clockwork.content.generic.IForceApplierBE
+import org.valkyrienskies.clockwork.util.sound.PropellerSoundInstance
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toJOMLD
@@ -53,6 +57,9 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
     override var physID: Int = -1
 
     var propellerContraption: ControlledContraptionEntity? = null
+
+    @Environment(value = EnvType.CLIENT)
+    var soundInstance: PropellerSoundInstance? = null
 
     var targetOmega = 0.0
     var currentOmega = 0.0
@@ -131,11 +138,20 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
     }
 
     override fun tickAudio() {
-        if (starting) return
+        if (level == null || !level!!.isClientSide) return
         if (this.active && !this.stopping && this.getAngularSpeed() > 2.0) {
             val pitch = Mth.clamp((backFromAngular(this.currentOmega.absoluteValue).toFloat() / 256f) + .45f, .85f, 1f)
-            val scape = if (this.brass) ClockworkSoundScapes.AmbienceGroup.PROPELLER else ClockworkSoundScapes.AmbienceGroup.JURYRIGGED_PROPELLER
-            ClockworkSoundScapes.play(scape, this.worldPosition, pitch)
+            if (!this.brass) {
+                val scape = ClockworkSoundScapes.AmbienceGroup.RICKETY
+                ClockworkSoundScapes.play(scape, this.worldPosition, pitch)
+            }
+            val sound = if (this.brass) ClockworkSounds.PROPELLER.mainEvent else ClockworkSounds.JUNK_PROPELLER.mainEvent
+            if (sound != null) {
+                if (this.soundInstance == null || this.soundInstance!!.isStopped) {
+                    this.soundInstance = PropellerSoundInstance(this, level!!.random)
+                    Minecraft.getInstance().soundManager.play(this.soundInstance!!)
+                }
+            }
         }
     }
 

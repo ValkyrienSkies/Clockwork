@@ -326,7 +326,7 @@ class CopterBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
     }
 
     override fun newUpdateData(): PropUpdateData {
-        return PropUpdateData(currentOmega, angle, isInverted(), active, blades, tiltVector.toJOML())
+        return PropUpdateData(currentOmega, angle, isInverted(), active, ArrayList(blades), tiltVector.toJOML(), Quaterniond(tiltQuaternion))
     }
 
 }

@@ -20,6 +20,7 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.EnumProperty
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity
 import java.util.function.Consumer
 
@@ -57,7 +58,7 @@ class PropellerBearingBlock(properties: Properties) : BearingBlock(properties), 
     }
 
     override fun newBlockEntity(p_153215_: BlockPos, p_153216_: BlockState): BlockEntity? {
-        val isBrass = this.descriptionId == "block.vs_clockwork.brass_propeller_bearing"
+        val isBrass = p_153216_.`is`(ClockworkBlocks.BRASS_PROPELLER_BEARING.get())
         if (isBrass) {
             return PropellerBearingBlockEntity(ClockworkBlockEntities.PROPELLER_BEARING.get(), p_153215_, p_153216_, true)
         }

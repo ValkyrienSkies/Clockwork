@@ -38,7 +38,7 @@ class WanderShipControl : ShipPhysicsListener {
         val sumForce: Double = wanderBlocks.values.sum()
         // gravity is positive for whatever reason
         val (_, _, gravity) = physLevel.aerodynamicUtils.getAtmosphereForDimension(physLevel.dimension)
-        val yForce = sumForce * gravity * ClockworkConfig.SERVER.wanderOreForceMultiplier * 100
+        val yForce = sumForce * gravity * ClockworkConfig.SERVER.wanderOreForceMultiplier * 1000.0
         val force = Vector3d(0.0, yForce, 0.0)
 
         if (meanPos.isFinite && !meanPos.length().isNaN() && force.isFinite && !force.length().isNaN()) {

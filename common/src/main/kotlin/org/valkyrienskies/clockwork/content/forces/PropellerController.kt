@@ -16,6 +16,8 @@ import org.valkyrienskies.core.api.ships.*
 import org.valkyrienskies.core.api.ships.properties.ShipTransform
 import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.api.world.properties.DimensionId
+import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
+import org.valkyrienskies.core.internal.ships.VsiPhysShip
 import org.valkyrienskies.mod.common.util.toJOMLD
 import java.lang.Math
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -47,10 +49,10 @@ class PropellerController(
 
                 if (force.isFinite && torque.isFinite) {
                     if (physData.brass) {
-                        physShip.applyWorldForceToBodyPos(force.mul(if(physData.bearingSpeed > 0) 1.0 else -1.0, Vector3d()))
+                        physShip.applyWorldForceToBodyPos(force)
                         physShip.applyWorldTorque(torque)
                     } else {
-                        physShip.applyWorldForceToModelPos(force.mul(if(physData.bearingSpeed > 0) 1.0 else -1.0, Vector3d()), Vector3d(physData.position).add(0.5, 0.5, 0.5))
+                        physShip.applyWorldForceToModelPos(force, Vector3d(physData.position).add(0.5, 0.5, 0.5))
                         physShip.applyWorldTorque(torque)
                     }
 
@@ -73,22 +75,29 @@ class PropellerController(
     ): Pair<Vector3dc, Vector3dc> {
         val estAngle = (physProp.bearingAngle + (physProp.bearingSpeed / 3.0 * ticksSinceLastUpdate.toDouble())) % 360.0
 
-        val modifiedSpeed: Double = (physProp.bearingSpeed * 10.0 / 3.0) * if (physProp.inverted) -1.0 else 1.0 //* 1.25, A little bit easier to generate force //TODO config?
+        val internal = physShip as VsiPhysShip
+        val dragController = internal.dragController
+        val wind = dragController?.getWindVector() ?: Vector3d()
+
+        val omegaSign = sign(physProp.bearingSpeed.toDouble()).let { if (it == 0.0) 1.0 else it }
         val bearingVector: Vector3dc = Vector3d(physProp.position).add(0.5, 0.5, 0.5)
         val referencePropAxis = if (physProp.bearingAxisRot != null) {
             physProp.bearingAxisRot!!
         } else {
             physProp.bearingAxis!!
         }
-        val axis: Vector3dc = referencePropAxis.mul(sign(modifiedSpeed), Vector3d()).normalize()
+        val axis: Vector3dc = referencePropAxis.mul(omegaSign, Vector3d()).normalize()
         val rotation: Quaterniondc = Quaterniond(AxisAngle4d(Math.toRadians(estAngle), axis))
-        val angVel: Vector3dc = axis.mul(modifiedSpeed / 60.0 * (2.0 * Math.PI), Vector3d())
+        val angVel: Vector3dc = axis.mul(physProp.bearingSpeed.absoluteValue, Vector3d())
         val furthestTip = Vector3d()
         val worldAxis = physShip.transform.shipToWorld.transformDirection(axis, Vector3d()).normalize(Vector3d())
         val axialVelocity = physShip.velocity.dot(worldAxis)
         val pretendPitch = 12.0
         val netForce = Vector3d()
         val netTorque = Vector3d()
+        val tiltQuat = physProp.bearingTiltQuat ?: Quaterniond()
+
+        val eps = 1e-6
 
         for (pos in physProp.sailPositions!!) {
             val sailVector: Vector3dc = Vector3d(pos).add(bearingVector)
@@ -97,38 +106,91 @@ class PropellerController(
             if (offsetFalloff > 4.0) {
                 continue
             }
-            val rotatedDiff: Vector3dc = rotation.transform(diff, Vector3d())
-            val sailVel: Vector3dc = rotatedDiff.cross(angVel, Vector3d())
-            val rotatedPos = rotatedDiff.add(bearingVector, Vector3d())
-            val sailPosWorld: Vector3dc = physTransform.shipToWorld.transformPosition(rotatedPos, Vector3d())
-            val sailPosRelShip: Vector3dc = rotatedPos.sub(physTransform.positionInShip, Vector3d())
-            if (rotatedDiff.length() > furthestTip.length()) {
-                furthestTip.set(rotatedDiff)
+            val rotatedDiffShip: Vector3dc = tiltQuat.transform(rotation.transform(diff, Vector3d()), Vector3d())
+
+            val rotatedPosShip = rotatedDiffShip.add(bearingVector, Vector3d())
+
+            val sailPosWorld: Vector3dc = physTransform.shipToWorld.transformPosition(rotatedPosShip, Vector3d())
+
+            val rWorld = Vector3d(sailPosWorld).sub(physTransform.positionInWorld, Vector3d())
+
+            val vShipAtSailWorld = Vector3d(vel.add(wind, Vector3d())).add(Vector3d(omega).cross(rWorld, Vector3d()), Vector3d())
+
+            val vPropAtBladeShip = Vector3d(angVel).cross(rotatedDiffShip, Vector3d())
+            val vPropAtBladeWorld = physTransform.shipToWorld.transformDirection(vPropAtBladeShip, Vector3d())
+
+            val vRelWorld = Vector3d(vShipAtSailWorld).add(vPropAtBladeWorld).negate()
+
+            if (rotatedDiffShip.length() > furthestTip.length()) {
+                furthestTip.set(rotatedDiffShip)
             }
-            val inflowAngle = atan(axialVelocity / sailVel.length())
-            val optimalAngleOfAttack = 4.0
+//            val inflowAngle = atan2(axialVelocity / sailVel.length())
+
+            // decompose relative wind into axial + tangential (around prop axis)
+            val vAxial = vRelWorld.dot(worldAxis)                 // signed
+            val vAxialVec = Vector3d(worldAxis).mul(vAxial)
+
+            val vTanVec = Vector3d(vRelWorld).sub(vAxialVec)
+            val vTan = vTanVec.length()
+
+            // inflow angle phi: atan2(V_axial, V_tan)
+            val inflowAngle = atan2(vAxial, max(vTan, eps))
+
+            val optimalAngleOfAttack = Math.toRadians(4.0)
             val optimalPitch = inflowAngle + optimalAngleOfAttack
-            physProp.currentBladePitch = if (physProp.brass) {
-                Mth.lerp(0.05, physProp.currentBladePitch, optimalPitch)
+
+            val minPitch = Math.toRadians(-5.0)
+            val maxPitch = Math.toRadians(30.0)
+            val pitch = if (physProp.brass) {
+                Mth.lerp(0.05f, physProp.currentBladePitch.toFloat(), optimalPitch.toFloat()).toDouble()
             } else {
-                pretendPitch
-            }
+                Math.toRadians(12.0)
+            }.coerceIn(minPitch, maxPitch)
+
+            physProp.currentBladePitch = pitch
             val angleOfAttack = physProp.currentBladePitch - inflowAngle
-            val thrustCoefficient = (angleOfAttack * cos(inflowAngle)) - (0.1 * sin(inflowAngle))
+            //val thrustCoefficient = (angleOfAttack * cos(inflowAngle)) - (0.1 * sin(inflowAngle))
 
-            val q = 0.5 * physLevel.aerodynamicUtils.getAirDensityForY(sailPosWorld.y(), dimensionId) * ((axialVelocity).pow(2.0) + (sailVel.length()).pow(2.0))
+            val vUseful = max(abs(vAxial), 1.0)
 
-            val thrust = q * thrustCoefficient
+            ///todo make this based off SU consumption or something
+            val maxShaftPowerWatts = 10000.0 // 10 kW
 
-            val force = worldAxis.mul(thrust, Vector3d())
+            //val q = 0.5 * physLevel.aerodynamicUtils.getAirDensityForY(sailPosWorld.y(), dimensionId) * ((axialVelocity).pow(2.0) + (sailVel.length()).pow(2.0))
+
+            val rho = physLevel.aerodynamicUtils.getAirDensityForY(sailPosWorld.y(), dimensionId)
+            val v2 = vRelWorld.lengthSquared()
+
+            val liftCoefficient = 2.0 * Math.PI * angleOfAttack
+            val dragCoefficient = 0.01 + 0.01 * liftCoefficient.pow(2.0)
+
+            //val dA = 1.0 * r
+            val q = 0.5 * rho * v2
+            val dLift = q * liftCoefficient
+            val dDrag = q * dragCoefficient
+
+            val vtMin = 0.5 // m/s-ish (tune). Below this: fade thrust to 0.
+            val vtFade = 2.0 // how quickly it ramps in
+
+            val spinFactor = ((abs(physProp.bearingSpeed) - vtMin) / vtFade).coerceIn(0.0, 1.0)
+            // use a smoothstep to avoid a sharp corner
+            val sf = spinFactor * spinFactor * (3.0 - 2.0 * spinFactor)
+
+            val dThrust = (dLift * cos(-inflowAngle) - dDrag * sin(-inflowAngle)) * sf
+
+            val thrustCap = maxShaftPowerWatts / vUseful
+            val dThrustCapped = dThrust.coerceIn(-thrustCap, thrustCap)
+
+
+            val force = worldAxis.mul(dThrustCapped, Vector3d())
             //            Vector3d force2 = force.mul(physProp.bearingSpeed, new Vector3d());
-            val torque = sailPosRelShip.cross(force, Vector3d())
+            val torque = rWorld.cross(force.mul(omegaSign, Vector3d()), Vector3d())
 
-            force.mul(ClockworkConfig.SERVER.forceMulPerSailInPropeller)
+            force.mul(10.0) //ClockworkConfig.SERVER.forceMulPerSailInPropeller)
 
             if (offsetFalloff > 0.0001) force.div(offsetFalloff)
             if (offsetFalloff > 0.0001) torque.div(offsetFalloff)
-            if (force.isFinite) netForce.add(force)
+            if (force.isFinite) netForce.add(force.mul(omegaSign, Vector3d()))
             if (torque.isFinite) netTorque.add(torque)
         }
 
@@ -184,6 +246,10 @@ class PropellerController(
         val bladeCount = blades.size
         val angleBetweenBlades = 2 * Math.PI / bladeCount
 
+        val internal = physShip as VsiPhysShip
+        val dragController = internal.dragController
+        val wind = dragController?.getWindVector() ?: Vector3d()
+
         val airDensityAtY = physLevel.aerodynamicUtils.getAirDensityForY(physShip.transform.positionInWorld.y(), dimensionId)
         val airTemperatureAtY = physLevel.aerodynamicUtils.getAirTemperatureForY(physShip.transform.positionInWorld.y(), dimensionId)
 
@@ -204,10 +270,10 @@ class PropellerController(
         }
 
         val worldAxis = physShip.transform.shipToWorld.transformDirection(referencePropAxis, Vector3d()).normalize(Vector3d())
-        if (physProp.inverted) {
-            worldAxis.mul(-1.0).normalize()
-        }
-        val totalVelocityAtProp = physShip.velocity.add(physShip.angularVelocity.cross(Vector3d(physProp.position!!).sub(physShip.centerOfMass, Vector3d()).add(0.5, 0.5, 0.5), Vector3d()), Vector3d())
+//        if (physProp.inverted) {
+//            worldAxis.mul(-1.0).normalize()
+//        }
+        val totalVelocityAtProp = physShip.velocity.add(wind, Vector3d()).add(physShip.angularVelocity.cross(Vector3d(physProp.position!!).sub(physShip.centerOfMass, Vector3d()).add(0.5, 0.5, 0.5), Vector3d()), Vector3d())
         val velocityTowardsPropellerDir = totalVelocityAtProp.dot(worldAxis)
         if (velocityTowardsPropellerDir.isNaN() || velocityTowardsPropellerDir.isInfinite()) {
             return Vector3d() to Vector3d()
