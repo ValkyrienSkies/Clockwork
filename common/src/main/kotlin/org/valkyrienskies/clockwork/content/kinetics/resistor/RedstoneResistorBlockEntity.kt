@@ -15,6 +15,8 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.ticks.TickPriority
 import org.valkyrienskies.clockwork.util.ClockworkConstants
 import kotlin.math.abs
+import kotlin.math.round
+import kotlin.math.truncate
 
 open class RedstoneResistorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
     SplitShaftBlockEntity(type, pos, state), IHaveGoggleInformation {
@@ -60,8 +62,11 @@ open class RedstoneResistorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos,
     override fun getRotationSpeedModifier(face: Direction): Float {
         if (hasSource()) {
             if (face != sourceFacing) {
-                val i = abs(state - 15) / 15f;
-                return i
+                var i = abs(state - 15) / 15.0;
+                // We only keep 1 decimal place of precision on the mult, because anymore and
+                // create is stupid and fucks everything up with bad float math
+                i = round(i*10.0) / 10.0
+                return i.toFloat()
             }
         }
         return 1f
