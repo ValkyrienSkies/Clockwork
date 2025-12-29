@@ -93,6 +93,9 @@ object ClockworkConfig {
         @ConfigEntry(description = "The maximum volume (in blocks) that the hot air balloon floodfill will scan when trying to determine the balloon's interior.", min = 1.0)
         var hotAirBalloonMaxScanVolume = 100000.0
 
+        @ConfigEntry(description = "The maximum surface area (in blocks) that the hot air balloon floodfill will scan when trying to determine the balloon's exterior.", min = 1.0)
+        var hotAirBalloonMaxScanSurface = 10000.0
+
         @ConfigEntry(description = "Force multiplier when no rpm is given")
         var angleFollowingBaseAngleErrorMultiplier = 2.0
 

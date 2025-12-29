@@ -108,6 +108,12 @@ class BalloonData {
         return false
     }
 
+    fun getFirstValidExternalPosition(level: Level): BlockPos? {
+        return getExternalPositions().firstOrNull { pos ->
+            level.isLoaded(pos) && level.getBlockState(pos).isValidBalloonEnclosure(level, pos)
+        }
+    }
+
     fun getExternalPositions(): Set<BlockPos> {
         val externalPositions = mutableSetOf<BlockPos>()
         val directions = arrayOf(

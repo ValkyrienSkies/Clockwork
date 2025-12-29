@@ -82,12 +82,34 @@ class BalloonController: ShipPhysicsListener {
         }
         for ((id, balloon) in balloons) {
             if (balloon.shouldReScan) {
-                val newRegions = tryFillBalloon(
-                    BlockPos(
-                        balloon.regions[0].minX().toInt(),
-                        balloon.regions[0].minY().toInt(),
-                        balloon.regions[0].minZ().toInt()
-                    ),
+                val validScanStart = balloon.getFirstValidExternalPosition(level)
+                if (validScanStart == null) {
+                    // Balloon is no longer valid
+                    balloon.shouldReScan = false
+                    balloon.shouldRemove = true
+                    continue
+                }
+                val shell = scanShell(
+                    validScanStart,
+                    level,
+                    ClockworkConfig.SERVER.hotAirBalloonMaxScanSurface.toInt()
+                )
+                if (shell == null) {
+                    // Balloon is no longer valid
+                    balloon.shouldReScan = false
+                    balloon.shouldRemove = true
+                    continue
+                }
+                val seed = findInteriorSeedFromTop(shell.topShellPos, level)
+                if (seed == null) {
+                    // Balloon is no longer valid
+                    balloon.shouldReScan = false
+                    balloon.shouldRemove = true
+                    continue
+                }
+                val newRegions = tryFillBalloonFromShell(
+                    shell,
+                    seed,
                     level
                 )
                 if (newRegions.isNotEmpty()) {
@@ -148,19 +170,19 @@ class BalloonController: ShipPhysicsListener {
         if (result.type != HitResult.Type.BLOCK) {
             return -1
         }
-        val hitPos = result.blockPos!!
+        val hitPos = result.blockPos ?: return -1
         if (hitPos.distManhattan(startPos) < 2) {
             return -1
         }
-        val existingBalloonID = getExistingBalloon(hitPos.relative(Direction.DOWN))
-        if (existingBalloonID != -1) {
-            return existingBalloonID
-        }
 
-        //crawl to top of bloon so that we can be sure to start floodfill from roof level
-        val currentPos = crawlToHighest(hitPos.relative(Direction.DOWN), level)
+        val shellStart = hitPos // ray hit should be shell
+        val existingBalloonID = getExistingBalloon(shellStart.relative(Direction.DOWN))
+        if (existingBalloonID != -1) return existingBalloonID
 
-        val filled = tryFillBalloon(currentPos, level)
+        val shell = scanShell(shellStart, level, ClockworkConfig.SERVER.hotAirBalloonMaxScanSurface.toInt())
+            ?: return -1
+        val seed = findInteriorSeedFromTop(shell.topShellPos, level) ?: return -1
+        val filled = tryFillBalloonFromShell(shell, seed, level)
         if (filled.isEmpty()) {
             return -1
         }
@@ -176,73 +198,113 @@ class BalloonController: ShipPhysicsListener {
         return newBalloonID
     }
 
-    fun crawlToHighest(pos: BlockPos, level: Level): BlockPos {
-        var currentPos = pos
-        val visited = HashSet<BlockPos>()
-        val queue = ArrayDeque<BlockPos>()
-        queue.add(currentPos)
-        while (queue.isNotEmpty()) {
-            val p = queue.removeFirst()
-            if (visited.contains(p)) {
-                continue
-            }
-            visited.add(p)
-            val blockState = level.getBlockState(p)
-            if (blockState.isValidBalloonEnclosure(level, p)) {
-                continue
-            }
-            currentPos = p
+    fun scanShell(startShell: BlockPos, level: Level, maxShellBlocks: Int): ShellInfo? {
+        if (!level.getBlockState(startShell).isValidBalloonEnclosure(level, startShell)) return null
+
+        val visited = HashSet<Long>(4096)
+        val q = ArrayDeque<Long>()
+        q.add(startShell.asLong())
+
+        var minY = startShell.y
+        var maxY = startShell.y
+        var topPos = startShell
+
+        var minX = startShell.x
+        var maxX = startShell.x
+        var minZ = startShell.z
+        var maxZ = startShell.z
+
+        while (q.isNotEmpty() && visited.size < maxShellBlocks) {
+            val curL = q.removeFirst()
+            if (!visited.add(curL)) continue
+            val cur = BlockPos.of(curL)
+
+            val y = cur.y
+            if (y < minY) minY = y
+            if (y > maxY) { maxY = y; topPos = cur }
+
+            val x = cur.x
+            val z = cur.z
+            if (x < minX) minX = x
+            if (x > maxX) maxX = x
+            if (z < minZ) minZ = z
+            if (z > maxZ) maxZ = z
+
             for (dir in Direction.values()) {
-                if (dir == Direction.DOWN) {
-                    continue
-                }
-                val relativePos = p.relative(dir)
-                if (level.getBlockState(relativePos).isValidBalloonEnclosure(level, relativePos)) {
-                    continue
-                }
-                if (!visited.contains(relativePos)) {
-                    queue.add(relativePos)
-                }
+                val n = cur.relative(dir)
+                if (!level.getBlockState(n).isValidBalloonEnclosure(level, n)) continue
+                val nl = n.asLong()
+                if (!visited.contains(nl)) q.add(nl)
             }
         }
-        queue.sortByDescending { p -> p.y }
-        return queue.first()
+
+        // If we hit the cap, treat as failure (prevents scanning half a world if something is weird)
+        if (visited.size >= maxShellBlocks) return null
+
+        return ShellInfo(minY, maxY, topPos, minX, maxX, minZ, maxZ)
     }
 
-    /**
-     * Attempts to use floodfill to determine a balloon's inside area starting from [pos], where pos is a blockpos at roof level.
-     */
-    fun tryFillBalloon(pos: BlockPos, level: Level): List<AABBic> {
+    fun findInteriorSeedFromTop(shellTop: BlockPos, level: Level, maxStepsDown: Int = 64): BlockPos? {
+        var p = shellTop.below()
+        var steps = 0
+        while (steps++ < maxStepsDown) {
+            if (!level.getBlockState(p).isValidBalloonEnclosure(level, p)) return p
+            p = p.below()
+        }
+        return null
+    }
+
+    fun tryFillBalloonFromShell(shell: ShellInfo, seed: BlockPos, level: Level): List<AABBic> {
         val maxScan = ClockworkConfig.SERVER.hotAirBalloonMaxScanVolume
 
-        val toFill = ArrayList<AABBic>()
-        val visited = HashSet<BlockPos>()
-        val queue = ArrayDeque<BlockPos>()
-        queue.add(pos)
-        while (queue.isNotEmpty() && visited.size < maxScan) {
-            val currentPos = queue.removeFirst()
-            if (visited.contains(currentPos)) {
-                continue
-            }
-            visited.add(currentPos)
-            val blockState = level.getBlockState(currentPos)
-            if (blockState.isValidBalloonEnclosure(level, currentPos)) {
-                continue
-            }
-            val aabb = currentPos.toAABBic()
-            toFill.add(aabb)
+        val minYInterior = shell.minY + 1
+
+        // Slightly expand bounds so you can still touch the inside adjacent to the shell.
+        val minX = shell.minX - 1
+        val maxX = shell.maxX + 1
+        val minZ = shell.minZ - 1
+        val maxZ = shell.maxZ + 1
+
+        val visited = HashSet<Long>(maxScan.toInt() * 2)
+        val q = ArrayDeque<Long>()
+        q.add(seed.asLong())
+
+        val toFill = ArrayList<AABBic>(minOf(maxScan.toInt(), 4096))
+
+        while (q.isNotEmpty() && visited.size < maxScan.toInt()) {
+            val curL = q.removeFirst()
+            if (!visited.add(curL)) continue
+            val cur = BlockPos.of(curL)
+
+            // Bounds + open-bottom cut
+            if (cur.y <= minYInterior) continue
+            if (cur.x !in minX..maxX || cur.z !in minZ..maxZ) continue
+
+            val state = level.getBlockState(cur)
+            if (state.isValidBalloonEnclosure(level, cur)) continue
+
+            toFill.add(cur.toAABBic())
+
             for (dir in Direction.values()) {
-                if (dir == Direction.UP) {
-                    continue
-                }
-                val neighborPos = currentPos.relative(dir)
-                if (!visited.contains(neighborPos)) {
-                    queue.add(neighborPos)
-                }
+                // You previously skipped UP; with a top seed you can allow UP safely,
+                // but keeping it skipped is fine if you prefer.
+                val n = cur.relative(dir)
+                val nl = n.asLong()
+                if (!visited.contains(nl)) q.add(nl)
             }
         }
+
         return mergeAdjacentFast(toFill)
     }
+
+
+    data class ShellInfo(
+        val minY: Int,
+        val maxY: Int,
+        val topShellPos: BlockPos,
+        val minX: Int, val maxX: Int,
+        val minZ: Int, val maxZ: Int
+    )
 
     companion object {
         fun getOrCreate(ship: LoadedServerShip): BalloonController {
