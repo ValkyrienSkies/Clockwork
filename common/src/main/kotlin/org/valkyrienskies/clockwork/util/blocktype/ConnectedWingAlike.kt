@@ -52,7 +52,7 @@ abstract class ConnectedWingAlike(properties: Properties?) : Block(properties) {
 
     override fun getStateForPlacement(context: BlockPlaceContext): BlockState? {
         val state = super.getStateForPlacement(context);
-        return getNewState(state?.setValue(FACING, state.getValue(FACING)
+        return getNewState(state?.setValue(FACING, context.clickedFace
             .getOpposite()), context.level, context.clickedPos)
 
 //        val preferredFacing = getPreferredDirection(context)
