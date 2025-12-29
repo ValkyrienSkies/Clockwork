@@ -34,6 +34,7 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBear
 import org.valkyrienskies.clockwork.util.ClockworkConstants
 import kotlin.math.abs
 import kotlin.math.round
+import kotlin.math.truncate
 
 open class RedstoneResistorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
     SplitShaftBlockEntity(type, pos, state), IHaveGoggleInformation {

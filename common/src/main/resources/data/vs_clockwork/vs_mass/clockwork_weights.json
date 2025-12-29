@@ -646,12 +646,17 @@
   },
   {
     "block": "vs_clockwork:wanderlite_deepslate_ore",
-    "mass": 100,
+    "mass": 1000,
     "friction": 0.4
   },
   {
     "block": "vs_clockwork:wanderlite_end_ore",
-    "mass": 100,
+    "mass": 1000,
+    "friction": 0.4
+  },
+  {
+    "block": "vs_clockwork:wanderlite_nyx_ore",
+    "mass": 1000,
     "friction": 0.4
   },
   {
@@ -767,6 +772,16 @@
   {
     "block": "vs_clockwork:balloon_encased_shaft",
     "mass" : 20.0,
+    "friction": 0.4
+  },
+  {
+    "block": "vs_clockwork:smooth_wanderlite_stairs",
+    "mass": 750.0,
+    "friction": 0.4
+  },
+  {
+    "block": "vs_clockwork:smooth_wanderlite_slab",
+    "mass": 500.0,
     "friction": 0.4
   }
 ]

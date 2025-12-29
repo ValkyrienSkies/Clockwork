@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.contraptions.propeller.data
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect
+import org.joml.Quaterniondc
 import org.joml.Vector3dc
 import org.joml.Vector3i
 import org.joml.Vector3ic
@@ -20,8 +21,9 @@ class PropData: ForceApplierData<PropUpdateData> {
     var brass: Boolean = false
     var blades: List<BladeData> = listOf()
     var bearingAxisRot: Vector3dc? = null
+    var bearingTiltQuat: Quaterniondc? = null
 
-    var currentBladePitch = 12.0
+    var currentBladePitch = Math.toRadians(12.0)
 
     override fun updateData(data: PropUpdateData) {
         bearingAngle = data.rotationAngle
@@ -30,6 +32,7 @@ class PropData: ForceApplierData<PropUpdateData> {
         active = data.active
         blades = data.blades
         bearingAxisRot = data.bearingAxisRot
+        bearingTiltQuat = data.bearingTiltQuat
     }
 
     // Default constructor for Jackson, should never be invoked manually
@@ -39,6 +42,7 @@ class PropData: ForceApplierData<PropUpdateData> {
         bearingAxis = null
         sailPositions = null
         bearingAxisRot = null
+        bearingTiltQuat = null
     }
 
     constructor(

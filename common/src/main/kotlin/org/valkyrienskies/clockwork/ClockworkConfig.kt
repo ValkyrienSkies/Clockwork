@@ -84,7 +84,7 @@ object ClockworkConfig {
         var angleFollowingOmegaErrorMultiplier = 10.0
 
         @ConfigEntry(min = 0.0)
-        var forceMulPerSailInPropeller = 500.0
+        var forceMulPerSailInPropeller = 5.0
 
         @ConfigEntry(min = 0.0)
         var encasedFanForceMul = 40.0
