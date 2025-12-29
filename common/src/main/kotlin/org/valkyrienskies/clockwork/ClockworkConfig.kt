@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.util.gui.DuctUnits
 import org.valkyrienskies.core.internal.config.ConfigEntry
 
 object ClockworkConfig {
@@ -16,6 +17,24 @@ object ClockworkConfig {
 
         @ConfigEntry(description = "Enable rendering particles for DuctBlock")
         var renderDuctParticles = true
+
+        @ConfigEntry(description = "Use metric prefixes for units (15000 Pa = 15 kPa)")
+        var simplifyDisplayUnits = true
+
+        @ConfigEntry(description = "Gas mass display unit")
+        var massDisplayUnit = DuctUnits.MassUnit.KILOGRAM
+
+        @ConfigEntry(description = "Duct volume display unit")
+        var volumeDisplayUnit = DuctUnits.VolumeUnit.CUBIC_METER
+
+        @ConfigEntry(description = "Temperature display unit")
+        var tempDisplayUnit = DuctUnits.TemperatureUnit.KELVIN
+
+        @ConfigEntry(description = "Pressure display unit")
+        var pressureDisplayUnit = DuctUnits.PressureUnit.PASCAL
+
+        @ConfigEntry(description = "Gas energy display unit")
+        var energyDisplayUnit = DuctUnits.EnergyUnit.JOULE
     }
 
     class Server {
