@@ -54,7 +54,7 @@ class SteamGeneratorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state:
 
         val temperature = 80*(max(0.25, tank.boiler.activeHeat.toDouble()) * 100).pow(0.34)
 
-        if (network.getPressureAt(getDuctNodePosition()) > maxPressurePerLevel) return
+        if (network.getPressureAt(getDuctNodePosition()) > maxPressurePerLevel * max(1, tank.boiler.activeHeat)) return
 
         network.addGasAtTemperature(getDuctNodePosition(), steamGas, mass, temperature)
     }
