@@ -115,7 +115,7 @@ object ClockworkConfig {
         var wanderOreForceMultiplier = 2.0
 
         @ConfigEntry(min = 0.0)
-        var gasThrusterForceMul = 5.0
+        var gasThrusterForceMul = 20.0
 
         @ConfigEntry(min = 0.0)
         var sugarRocketBlockThrust = 10000.0
