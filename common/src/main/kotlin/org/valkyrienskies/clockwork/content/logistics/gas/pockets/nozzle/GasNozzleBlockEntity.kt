@@ -12,6 +12,8 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkAugmentations
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.forces.BalloonController
+import org.valkyrienskies.clockwork.content.forces.data.BalloonData
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
 import org.valkyrienskies.clockwork.util.KNodeKineticBlockEntity
@@ -20,6 +22,7 @@ import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3i
 import org.valkyrienskies.mod.common.dimensionId
+import org.valkyrienskies.mod.common.getLoadedShipManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -28,6 +31,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
     var hasPocket = false
     var pointerSpeed = 0.0
+    var scanCooldown = 0
 
     val pointer: LerpedFloat = LerpedFloat.linear()
         .startWithValue(0.5)
@@ -36,6 +40,11 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     var currentIdealOutput: Double = 0.0
 
     var pocketTemperature: Double = 0.0
+    var balloonVolume: Double = 0.0
+
+    var balloon: BalloonData? = null
+
+    var shouldFetchNextTick = false
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
 
@@ -43,6 +52,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         tag.putDouble("pointer_speed",pointerSpeed)
         tag.putBoolean("has_pocket",hasPocket)
         tag.putDouble("pocket_temperature", pocketTemperature)
+        if (!clientPacket) tag.putDouble("balloon_volume", balloonVolume)
         super.write(tag, clientPacket)
     }
 
@@ -53,6 +63,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         pointerSpeed = tag.getDouble("pointer_speed")
         hasPocket = tag.getBoolean("has_pocket")
         pocketTemperature = tag.getDouble("pocket_temperature")
+        if (clientPacket) balloonVolume = tag.getDouble("balloon_volume")
 
         pointer.chase(target, pointerSpeed, LerpedFloat.Chaser.LINEAR)
     }
@@ -71,21 +82,37 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
         val oldHas = hasPocket
         //println(serverLevel.shipObjectWorld.isIsolatedAir(blockPos.x, blockPos.y+1, blockPos.z, serverLevel.dimensionId))
-        hasPocket = serverLevel.shipObjectWorld.isIsolatedAir(blockPos.x, blockPos.y+1, blockPos.z, serverLevel.dimensionId)  == ConnectionStatus.DISCONNECTED
+        //hasPocket = serverLevel.shipObjectWorld.isIsolatedAir(blockPos.x, blockPos.y+1, blockPos.z, serverLevel.dimensionId)  == ConnectionStatus.DISCONNECTED
 
+        if (shouldFetchNextTick && scanCooldown <= 0) {
+            fetchBloon()
+            shouldFetchNextTick = false
+        }
+        if (scanCooldown > 0) {
+            scanCooldown--
+        }
 
         if (oldHas != hasPocket) sendData()
 
         if (hasPocket) {
             //flowIntoPocket()
-            if (serverLevel.shipObjectWorld.getAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("airupdated"), blockPos.x, blockPos.y +1, blockPos.z, serverLevel.dimensionId) < 1.0) {
-                serverLevel.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("airupdated"), blockPos.x, blockPos.y +1, blockPos.z, serverLevel.dimensionId, 0.0)
-            }
-            heatPocket()
-
-
+//            if (serverLevel.shipObjectWorld.getAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("airupdated"), blockPos.x, blockPos.y +1, blockPos.z, serverLevel.dimensionId) < 1.0) {
+//                serverLevel.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("airupdated"), blockPos.x, blockPos.y +1, blockPos.z, serverLevel.dimensionId, 0.0)
+//            }
+            //heatPocket()
+            heatBalloon()
         }
+    }
 
+    fun fetchBloon() {
+        val serverLevel = level as? ServerLevel ?: return
+        val ship = serverLevel.getLoadedShipManagingPos(blockPos) ?: return
+        val controller = BalloonController.getOrCreate(ship)
+        val balloonId = controller.tryGetOrCreateBalloon(blockPos.above(), serverLevel)
+        this.balloon = controller.getBalloonById(balloonId)
+        this.hasPocket = this.balloon != null
+        this.balloonVolume = this.balloon?.currentVolume ?: 0.0
+        this.scanCooldown = 60
     }
 
     override fun onSpeedChanged(previousSpeed: Float) {
@@ -99,6 +126,10 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
     fun getChaseSpeed(): Double {
         return Mth.clamp(abs(getSpeed().toDouble()) / 16.0 / 40.0, 0.0, 1.0)
+    }
+
+    private fun heatBalloon() {
+
     }
 
     private fun heatPocket() {

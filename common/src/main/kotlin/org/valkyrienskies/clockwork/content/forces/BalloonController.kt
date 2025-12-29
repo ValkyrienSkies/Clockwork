@@ -121,7 +121,7 @@ class BalloonController: ShipPhysicsListener {
                     balloon.shouldRemove = true
                 }
             }
-            if (balloon.isLeaking && !balloon.canLeakGassesOnly()) {
+            if (balloon.isLeaking && balloon.isNearlyAtmospheric(level)) {
                 balloon.shouldRemove = true
             }
             if (balloon.regions.isEmpty || balloon.currentVolume <= 0.0) {
@@ -151,6 +151,10 @@ class BalloonController: ShipPhysicsListener {
             }
         }
         return -1
+    }
+
+    fun getBalloonById(id: Int): BalloonData? {
+        return balloons[id]
     }
 
     fun addBalloon(balloonData: BalloonData) {
@@ -195,6 +199,7 @@ class BalloonController: ShipPhysicsListener {
             isLeaking = false
         )
         balloons[newBalloonID] = newBalloon
+        newBalloon.recalculateVolume()
         return newBalloonID
     }
 

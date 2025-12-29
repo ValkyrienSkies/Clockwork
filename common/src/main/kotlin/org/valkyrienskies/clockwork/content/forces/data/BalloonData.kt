@@ -3,16 +3,35 @@ package org.valkyrienskies.clockwork.content.forces.data
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonIgnore
 import net.minecraft.core.BlockPos
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.Level
 import org.joml.Vector3d
 import org.joml.Vector3dc
+import org.joml.Vector3i
 import org.joml.primitives.AABBic
+import org.valkyrienskies.clockwork.ClockworkAugmentations
+import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItem
 import org.valkyrienskies.clockwork.content.forces.BalloonController.Companion.isValidBalloonEnclosure
 import org.valkyrienskies.clockwork.util.AABBHelper.mergeAdjacentFast
+import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
 import org.valkyrienskies.core.api.ships.LoadedServerShip
+import org.valkyrienskies.kelvin.KelvinMod
+import org.valkyrienskies.kelvin.api.DuctNetwork
 import org.valkyrienskies.kelvin.api.GasType
+import org.valkyrienskies.kelvin.impl.DuctNetworkServer
+import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
+import org.valkyrienskies.mod.api.positionToWorld
+import org.valkyrienskies.mod.common.dimensionId
+import org.valkyrienskies.mod.common.getLoadedShipManagingPos
+import org.valkyrienskies.mod.common.shipObjectWorld
+import kotlin.collections.set
+import kotlin.math.absoluteValue
+import kotlin.math.max
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class BalloonData {
@@ -51,7 +70,73 @@ class BalloonData {
     }
 
     fun tick(level: ServerLevel, ship: LoadedServerShip): Boolean {
-        return true
+        //copy pasted from pocket forces
+        // Just so we can have x,y,z instead of first,second,third
+        val root = this.getCenter()
+        val rootYInWorld = ship.transform.positionToWorld(Vector3d(root.x().toDouble(), root.y().toDouble(), root.z().toDouble())).y
+        val atmoDensity = level.shipObjectWorld.aerodynamicUtils.getAirDensityForY(rootYInWorld, level.dimensionId)
+        val atmoPressure = level.shipObjectWorld.aerodynamicUtils.getAirPressureForY(rootYInWorld, level.dimensionId) //level.shipObjectWorld.aerodynamicUtils.getAirPressureForY(rootYInWorld, level.dimensionId)
+        val atmoTemperature = level.shipObjectWorld.aerodynamicUtils.getAirTemperatureForY(rootYInWorld, level.dimensionId)
+
+        val volume = this.currentVolume
+
+        var currentHeatEnergy = this.currentEnergy
+        var currentGasMasses = this.gasMasses.mapKeys { GasTypeRegistry.getGasType(ResourceLocation(it.key))!! }.toMutableMap()
+        //println("mass: ${gasMasses.values.sum()};  energy: $currentHeatEnergy;  temperature: ${currentHeatEnergy/(KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(gasMasses)}")
+
+        if (currentHeatEnergy.isNaN() || currentHeatEnergy >= 1e-9) {
+
+            val air = GasTypeRegistry.getGasType("kelvin","air")!!
+            gasMasses[air.resourceLocation.toString()] = gasMasses.getOrDefault(air.resourceLocation.toString(), 0.0) + atmoDensity * volume
+
+            val capacity = 1000 * air.specificHeatCapacity / air.adiabaticIndex
+            currentHeatEnergy = atmoTemperature * volume*atmoDensity * capacity
+
+            return false
+        }
+
+        val totalMass = currentGasMasses.values.sum()
+        val moles = currentGasMasses.entries.sumOf { it.key.massToMoles(it.value) }
+        val capacity = (KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(currentGasMasses)
+        var currentTemperature = currentHeatEnergy / capacity
+        val currentPressure = moles * DuctNetwork.idealGasConstant * currentTemperature / volume
+        val molarMass = currentGasMasses.entries.sumOf { it.key.density * 0.0224 * it.value } / totalMass
+        val estimatedSurfaceArea = 4.84 * volume.pow(2.0/3.0)
+
+        // Gas leak exiting
+        val gasExitRate = max(0.0, currentPressure - atmoPressure) * estimatedSurfaceArea * ClockworkConfig.SERVER.permeabilityConstant / sqrt(currentTemperature * DuctNetwork.idealGasConstant / molarMass) * max(1.0, missingExternalPositions.toDouble() + 1.0)
+        val exitGas = gasExitRate * 0.05
+        val exitGasMasses = HashMap<GasType, Double>()
+        currentGasMasses.forEach {
+            currentGasMasses[it.key] = currentGasMasses[it.key]!! - exitGas * it.value / totalMass
+            exitGasMasses[it.key] = exitGas * it.value / totalMass}
+        val exitHeat =  currentTemperature * ClockworkMod.getKelvin().mixtureCapacity(exitGasMasses)
+
+        currentHeatEnergy -= exitHeat
+        currentTemperature = currentHeatEnergy / capacity
+
+        // Gas leak heat transfer
+        val heatFlow = ClockworkConfig.SERVER.heatTransferCoefficient * estimatedSurfaceArea * (atmoTemperature - currentTemperature)
+        var newHeatEnergy = currentHeatEnergy + heatFlow * 0.05
+        val newCapacity = (KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(currentGasMasses)
+        var newTemperature = newHeatEnergy / newCapacity
+
+        // Gas leak entering
+        val air = GasTypeRegistry.GAS_TYPES[ResourceLocation("kelvin","air")]!!
+        val newMoles = currentGasMasses.entries.sumOf { it.key.massToMoles(it.value) }
+        val newPressure = newMoles * DuctNetwork.idealGasConstant * newTemperature / volume
+        val addMoles = max(0.0, atmoPressure - newPressure) * volume / (newTemperature * DuctNetwork.idealGasConstant)
+        currentGasMasses[air] = (currentGasMasses[air] ?: 0.0) + air.molesToMass(addMoles)
+
+        val addedHeat = air.molesToMass(addMoles) * atmoTemperature * (air.specificHeatCapacity * 1000 / air.adiabaticIndex)
+        newHeatEnergy += addedHeat
+
+        // Set Values
+        this.gasMasses.clear()
+        currentGasMasses.forEach { this.gasMasses[it.key.resourceLocation.toString()] = it.value }
+        this.currentEnergy = newHeatEnergy
+
+    return true
     }
 
     fun makeForceData(): PhysBalloonData {
@@ -147,8 +232,21 @@ class BalloonData {
         return gasMasses.values.sum() > 1e-9 && missingExternalPositions < externalSize / 4
     }
 
-    fun canLeakGassesOnly(): Boolean {
-        return gasMasses.values.sum() > 1e-9
+    fun isNearlyAtmospheric(level: ServerLevel): Boolean {
+        val root = this.getCenter()
+        val ship = level.getLoadedShipManagingPos(BlockPos(root.x().toInt(), root.y().toInt(), root.z().toInt())) ?: return false
+
+        val rootYInWorld = ship.transform.positionToWorld(Vector3d(root.x().toDouble(), root.y().toDouble(), root.z().toDouble())).y
+        val atmoPressure = level.shipObjectWorld.aerodynamicUtils.getAirPressureForY(rootYInWorld, level.dimensionId)
+        val internalPressure = run {
+            val moles = gasMasses.entries.sumOf { GasTypeRegistry.getGasType(ResourceLocation(it.key))!!.massToMoles(it.value) }
+            val capacity = (KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(gasMasses.mapKeys { GasTypeRegistry.getGasType(ResourceLocation(it.key))!! })
+            val temperature = currentEnergy / capacity
+            moles * DuctNetwork.idealGasConstant * temperature / currentVolume
+        }
+
+        return (internalPressure - atmoPressure).absoluteValue <= 1e-4
+
     }
 
     fun validate(level: Level): EnclosureStatus {
@@ -168,7 +266,7 @@ class BalloonData {
             val blockState = level.getBlockState(pos)
             if (!blockState.isValidBalloonEnclosure(level, pos)) {
                 missingExternalPositions ++
-                currentStatus = if (canLeak(externals.size)) {
+                currentStatus = if (canLeak(externals.size) && !isNearlyAtmospheric(level as ServerLevel)) {
                     EnclosureStatus.LEAKING
                 } else {
                     EnclosureStatus.INVALID
