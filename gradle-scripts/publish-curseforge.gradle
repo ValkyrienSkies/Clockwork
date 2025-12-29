@@ -1,3 +1,8 @@
+// make sure this script only publishes Clockwork and not the Kelvin submodule
+if (project.mod_name != 'clockwork') {
+    return
+}
+
 // Determine release type
 // alpha, beta, or release
 def vsReleaseType = 'release'
