@@ -48,14 +48,14 @@ abstract class KNodeBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state:
             return
         }
         if (this.level != null && ClockworkMod.getKelvin().getNodeAt(this.getDuctNodePosition()) != null) {
-            val pressureDiff = abs(ClockworkMod.getKelvin().getPressureAt(this.getDuctNodePosition()) - (ClockworkMod.getKelvin().nodeInfo[this.getDuctNodePosition()]?.previousPressure ?: 0.0))
-            if (pressureDiff > 0.01) {
+            //val pressureDiff = abs(ClockworkMod.getKelvin().getPressureAt(this.getDuctNodePosition()) - (ClockworkMod.getKelvin().nodeInfo[this.getDuctNodePosition()]?.previousPressure ?: 0.0))
+            //if (pressureDiff > 0.01) {
                 this.setChanged()
                 val tag = CompoundTag()
                 this.saveData(tag, this.getDuctNodePosition())
                 ClockworkPackets.sendToNear(this.level, BlockPos.containing(level.toWorldCoordinates(this.worldPosition)), 30,
                     KNodeSyncPacket(this.getDuctNodePosition(), tag))
-            }
+            //}
         }
     }
 
