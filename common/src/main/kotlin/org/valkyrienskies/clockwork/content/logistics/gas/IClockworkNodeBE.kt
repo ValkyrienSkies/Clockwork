@@ -17,6 +17,7 @@ import kotlin.apply
 
 interface IClockworkNodeBE: INodeBlockEntity, IHaveGoggleInformation {
 
+
     fun heatableGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
         ClockworkLang.translate("gui.ductInfo.title").forGoggles(tooltip)
 

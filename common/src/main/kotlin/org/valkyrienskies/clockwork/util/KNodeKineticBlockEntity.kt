@@ -9,6 +9,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.logistics.gas.IClockworkNodeBE
 import org.valkyrienskies.kelvin.KelvinMod
@@ -39,14 +40,14 @@ abstract class KNodeKineticBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos
         }
 
         if (this.level != null && ClockworkMod.getKelvin().getNodeAt(this.getDuctNodePosition()) != null) {
-            val pressureDiff = abs(ClockworkMod.getKelvin().getPressureAt(this.getDuctNodePosition()) - (ClockworkMod.getKelvin().nodeInfo[this.getDuctNodePosition()]?.previousPressure ?: 0.0))
-            if (pressureDiff > 0.01) {
+//            val pressureDiff = abs(ClockworkMod.getKelvin().getPressureAt(this.getDuctNodePosition()) - (ClockworkMod.getKelvin().nodeInfo[this.getDuctNodePosition()]?.previousPressure ?: 0.0))
+//            if (pressureDiff > 0.01) {
                 this.setChanged()
                 val tag = CompoundTag()
                 this.saveData(tag, this.getDuctNodePosition())
                 ClockworkPackets.sendToNear(this.level, BlockPos.containing(level.toWorldCoordinates(this.worldPosition)), 30,
                     KNodeSyncPacket(this.getDuctNodePosition(), tag))
-            }
+//            }
         }
     }
 
@@ -87,4 +88,8 @@ abstract class KNodeKineticBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos
         return true
     }
 
+    override fun remove() {
+        if (level?.isClientSide == true)
+            ClockworkModClient.getKelvin().removeNode(getDuctNodePosition())
+    }
 }

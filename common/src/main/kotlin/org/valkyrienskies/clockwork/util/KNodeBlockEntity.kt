@@ -9,6 +9,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.logistics.gas.IClockworkNodeBE
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
@@ -92,5 +93,11 @@ abstract class KNodeBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state:
             return blockPos.toDuctNodePos(level!!.dimension().location())
         }
         return blockPos.toDuctNodePos()
+    }
+
+    override fun remove() {
+
+        if (level?.isClientSide == true)
+            ClockworkModClient.getKelvin().removeNode(getDuctNodePosition())
     }
 }

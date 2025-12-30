@@ -77,11 +77,6 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
         super.write(tag, clientPacket)
     }
 
-    override fun remove() {
-        if (level != null && !level!!.isClientSide) ClockworkMod.getKelvin().removeNode(this.blockPos.toDuctNodePos(level!!.dimension().location()))
-        super.remove()
-    }
-
     override fun destroy() {
         if (level != null && !level!!.isClientSide) ClockworkMod.getKelvin().removeNode(this.blockPos.toDuctNodePos(level!!.dimension().location()))
         super.destroy()
