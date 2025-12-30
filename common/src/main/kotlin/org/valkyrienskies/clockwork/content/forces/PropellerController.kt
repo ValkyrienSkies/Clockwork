@@ -154,7 +154,7 @@ class PropellerController(
             val vUseful = max(abs(vAxial), 1.0)
 
             ///todo make this based off SU consumption or something
-            val maxShaftPowerWatts = 10000.0 // 10 kW
+            val maxSailPowerWatts = 10000.0 // 10 kW
 
             //val q = 0.5 * physLevel.aerodynamicUtils.getAirDensityForY(sailPosWorld.y(), dimensionId) * ((axialVelocity).pow(2.0) + (sailVel.length()).pow(2.0))
 
@@ -178,7 +178,7 @@ class PropellerController(
 
             val dThrust = (dLift * cos(-inflowAngle) - dDrag * sin(-inflowAngle)) * sf
 
-            val thrustCap = maxShaftPowerWatts / vUseful
+            val thrustCap = maxSailPowerWatts / vUseful
             val dThrustCapped = dThrust.coerceIn(-thrustCap, thrustCap)
 
 
@@ -288,7 +288,7 @@ class PropellerController(
             val bladeAngle = Math.toRadians(estAngle + (angleBetweenBlades * i.toDouble()))
             val bladePitch = -Math.toRadians(blade.angle) ///* rotationSense
             val bladeWidth = if (blade.wide) 0.375 else 0.25
-            val r = blade.length
+            val r = blade.length / 2.0
             val rotatedDist = clockwiseAxis.mul(r, Vector3d()).rotateAxis(bladeAngle, referencePropAxis.x(), referencePropAxis.y(), referencePropAxis.z(), Vector3d())
 
             val rotationalVelocity = physProp.bearingSpeed.absoluteValue * r
@@ -320,7 +320,15 @@ class PropellerController(
 
             val dThrust = (dLift * cos(phi) - dDrag * sin(phi)) * sf
 
-            val force = worldAxis.mul(dThrust * 10, Vector3d()).mul(omegaSign, Vector3d())
+            val vUseful = max(abs(velocityTowardsPropellerDir), 1.0)
+
+            ///todo make this based off SU consumption or something
+            val maxBladePowerWatts = 5000.0 * r // 10 kW
+
+            val thrustCap = maxBladePowerWatts / vUseful
+            val dThrustCapped = dThrust.coerceIn(-thrustCap, thrustCap)
+
+            val force = worldAxis.mul(dThrustCapped * 10, Vector3d()).mul(omegaSign, Vector3d())
             //val torque = rotatedDist.cross(force, Vector3d())
 
             netForce.add(force)
