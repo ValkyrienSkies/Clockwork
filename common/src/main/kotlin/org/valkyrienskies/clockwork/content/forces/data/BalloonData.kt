@@ -3,8 +3,10 @@ package org.valkyrienskies.clockwork.content.forces.data
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonIgnore
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.sounds.SoundSource
 import net.minecraft.world.level.Level
 import org.joml.Vector3d
 import org.joml.Vector3dc
@@ -14,15 +16,20 @@ import org.joml.primitives.AABBic
 import org.valkyrienskies.clockwork.ClockworkAugmentations
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItem
 import org.valkyrienskies.clockwork.content.forces.BalloonController.Companion.isValidBalloonEnclosure
+import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.LeakParticleData
 import org.valkyrienskies.clockwork.util.AABBHelper.mergeAdjacentFast
 import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.api.DuctNetwork
+import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.impl.DuctNetworkServer
+import org.valkyrienskies.kelvin.impl.client.particle.DefaultGasParticle
+import org.valkyrienskies.kelvin.impl.registry.GasParticlePickerRegistry
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.mod.api.positionToWorld
 import org.valkyrienskies.mod.common.dimensionId
@@ -32,6 +39,7 @@ import kotlin.collections.set
 import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.math.pow
+import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
@@ -45,6 +53,11 @@ class BalloonData {
     var missingExternalPositions: Int
     @JsonIgnore
     var leakPositions: HashSet<Vector3ic> = hashSetOf()
+    @JsonIgnore
+    var lastSentLeaks: HashSet<Vector3ic> = hashSetOf()
+
+    @JsonIgnore
+    var currentMaxLeaks = 1
 
     @JsonIgnore
     var shouldRemove = false
@@ -54,6 +67,9 @@ class BalloonData {
 
     @JsonIgnore
     var shouldValidate = false
+
+    @JsonIgnore
+    var timeSinceLeakSound = 0
 
     // Default constructor for Jackson, should never be invoked manually
     @Deprecated("")
@@ -76,6 +92,38 @@ class BalloonData {
     }
 
     fun tick(level: ServerLevel, ship: LoadedServerShip): Boolean {
+
+        if (this.isLeaking && missingExternalPositions > 0) {
+            var averageLeakPos = Vector3i(0,0,0)
+            for (pos in leakPositions) {
+                val blockPos = BlockPos(pos.x(), pos.y(), pos.z())
+                if (level.isLoaded(blockPos)) {
+                    sendLeakParticles(level, blockPos, findDirectionToOutside(level, blockPos, getExternalPositions()))
+                }
+                averageLeakPos.add(pos)
+            }
+            averageLeakPos.div(leakPositions.size)
+            if (timeSinceLeakSound <= 0) {
+
+                //HEAVY leak if over half max leaks, light otherwise
+                level.playSound(
+                    null,
+                    averageLeakPos.x.toDouble(),
+                    averageLeakPos.y.toDouble(),
+                    averageLeakPos.z.toDouble(),
+                    if (missingExternalPositions >= currentMaxLeaks / 2) ClockworkSounds.BALLOON_LEAKING_HEAVY.mainEvent!! else ClockworkSounds.BALLOON_LEAKING_LIGHT.mainEvent!!,
+                    SoundSource.BLOCKS,
+                    0.5f,
+                    1f
+                )
+                timeSinceLeakSound = 120
+            }
+        }
+
+        if (timeSinceLeakSound > 0) {
+            timeSinceLeakSound --
+        }
+
         //copy pasted from pocket forces
         // Just so we can have x,y,z instead of first,second,third
         val root = this.getCenter()
@@ -241,7 +289,8 @@ class BalloonData {
     }
 
     fun canLeak(externalSize: Int): Boolean {
-        return gasMasses.values.sum() > 1e-9 && missingExternalPositions < externalSize / 4
+        currentMaxLeaks = max(1, externalSize / 4)
+        return gasMasses.values.sum() > 1e-9 && missingExternalPositions < currentMaxLeaks
     }
 
     fun isNearlyAtmospheric(level: ServerLevel): Boolean {
@@ -291,6 +340,8 @@ class BalloonData {
 //                currentStatus = EnclosureStatus.LEAKING
 //            }
 //        }
+        lastSentLeaks.clear()
+        lastSentLeaks = HashSet(leakPositions)
         missingExternalPositions = 0
         leakPositions.clear()
         for (pos in externals) {
@@ -306,10 +357,68 @@ class BalloonData {
                 } else {
                     EnclosureStatus.INVALID
                 }
+                if (level is ServerLevel) {
+                    val isNew = !lastSentLeaks.contains(Vector3i(pos.x, pos.y, pos.z))
+                    if (isNew) {
+                        level.playSound(
+                            null,
+                            pos.x.toDouble(),
+                            pos.y.toDouble(),
+                            pos.z.toDouble(),
+                            ClockworkSounds.BALLOON_RUPTURE.mainEvent!!,
+                            SoundSource.BLOCKS,
+                            1f,
+                            0.9f + level.random.nextFloat() * 0.2f
+                        )
+                        sendInitialLeakParticleBurst(level, pos, findDirectionToOutside(level, pos, externals))
+                    }
+                }
             }
         }
         this.isLeaking = currentStatus == EnclosureStatus.LEAKING
         return currentStatus
+    }
+
+    fun findDirectionToOutside(level: ServerLevel, pos: BlockPos, externals: Set<BlockPos>): Direction {
+        for (dir in Direction.values()) {
+            val check = pos.relative(dir)
+            if (!this.containsPosition(pos) && !externals.contains(check)) {
+                return dir
+            }
+        }
+        return Direction.UP
+    }
+
+    fun sendInitialLeakParticleBurst(level: ServerLevel, position: BlockPos, dir: Direction) {
+        val leakParticle = LeakParticleData(dir, 0.1f + level.random.nextFloat() * 5f)
+        level.sendParticles(
+            leakParticle,
+            position.x.toDouble(),
+            position.y.toDouble(),
+            position.z.toDouble(),
+            50,
+            0.5,
+            0.5,
+            0.5,
+            1.0
+        )
+    }
+
+    fun sendLeakParticles(level: ServerLevel, position: BlockPos, dir: Direction) {
+        for (i in 1..4) {
+            val leakParticle = LeakParticleData(dir, 0.05f + level.random.nextFloat() * 0.5f)
+            level.sendParticles(
+                leakParticle,
+                position.x.toDouble(),
+                position.y.toDouble(),
+                position.z.toDouble(),
+                5,
+                0.5,
+                0.5,
+                0.5,
+                1.0
+            )
+        }
     }
 
     /**

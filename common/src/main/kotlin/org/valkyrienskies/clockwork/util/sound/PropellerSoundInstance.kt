@@ -25,6 +25,10 @@ class PropellerSoundInstance(val propeller: PropellerBearingBlockEntity, randomS
         this.z = propeller.blockPos.z.toDouble()
     }
 
+    fun stopNow() {
+        this.stop()
+    }
+
     override fun canStartSilent(): Boolean {
         return true
     }

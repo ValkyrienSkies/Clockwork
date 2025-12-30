@@ -2,24 +2,35 @@ package org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle
 
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.createmod.catnip.animation.LerpedFloat
+import net.fabricmc.api.EnvType
+import net.fabricmc.api.Environment
 import net.minecraft.ChatFormatting
+import net.minecraft.client.Minecraft
+import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
+import net.minecraft.util.RandomSource
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkAugmentations
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.ClockworkModClient
+import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.forces.BalloonController
 import org.valkyrienskies.clockwork.content.forces.data.BalloonData
+import org.valkyrienskies.clockwork.content.logistics.gas.exhaust.ExhaustBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlockEntity.Companion.FUEL_ENERGY_DENSITY
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlockEntity.Companion.LOG_BURN_TIME
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
 import org.valkyrienskies.clockwork.util.KNodeKineticBlockEntity
+import org.valkyrienskies.clockwork.util.KelvinParticleHelper
 import org.valkyrienskies.core.api.world.connectivity.ConnectionStatus
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.api.GasType
@@ -29,11 +40,14 @@ import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3i
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.getLoadedShipManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
+import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.iterator
 import kotlin.math.abs
+import kotlin.math.floor
 import kotlin.math.min
+import kotlin.math.pow
 import kotlin.math.roundToInt
 
 class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState): KNodeKineticBlockEntity(type, pos, state) {
@@ -54,6 +68,9 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     var balloon: BalloonData? = null
 
     var shouldFetchNextTick = false
+
+    @Environment(EnvType.CLIENT)
+    var soundInstance: GasNozzleSoundInstance? = null
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
 
@@ -83,10 +100,47 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         return
     }
 
+    fun randomPos(deviation: Double, random: RandomSource): Double {
+        return (0.5-deviation/2.0)+random.nextDouble()*deviation
+    }
+
+    override fun invalidate() {
+        if (level != null && level!!.isClientSide) clientInvalidate()
+        super.invalidate()
+    }
+
+    fun clientInvalidate() {
+        soundInstance?.stopNow()
+        soundInstance = null
+    }
+
     override fun tick() {
         super.tick()
 
         pointer.tickChaser()
+
+        if (level != null && level!!.isClientSide && hasPocket) {
+            val state = level!!.getBlockState(blockPos)
+            if (state.block !is GasNozzleBlock) return
+            val facing = Direction.UP
+            val random = level!!.random
+            val network = ClockworkModClient.getKelvin()
+            val gasses = network.getGasMassAt(getDuctNodePosition())
+            val pressure = network.getPressureAt(getDuctNodePosition())
+            val MASS_PER_EXHAUST = 0.0005
+
+            for (i in 1..floor((gasses.values.sum()*pointer.value)/MASS_PER_EXHAUST).toInt()) {
+                KelvinParticleHelper.spawnParticleWithRatio(level as ClientLevel, getDuctNodePosition(),
+                    blockPos.toJOMLD().add(randomPos(0.3, random), randomPos(0.3, random), randomPos(0.3, random)),
+                    facing.normal.toJOMLD().mul(Mth.clamp(0.0025 * pressure.pow(0.4), 0.1,5.0 )))
+            }
+
+            if (soundInstance == null) {
+                soundInstance = GasNozzleSoundInstance(this, random)
+                Minecraft.getInstance().soundManager.play(soundInstance)
+            }
+        }
+
         if (level == null || level!!.isClientSide) return
 
         val serverLevel = level!! as ServerLevel
@@ -103,7 +157,34 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
             scanCooldown--
         }
 
-        if (oldHas != hasPocket) sendData()
+        if (oldHas != hasPocket) {
+            if (hasPocket) {
+                serverLevel.playSound(
+                    null,
+                    blockPos,
+                    ClockworkSounds.GAS_NOZZLE_START.mainEvent!!,
+                    net.minecraft.sounds.SoundSource.BLOCKS,
+                    1.0f,
+                    0.5f + 0.5f * serverLevel.random.nextFloat()
+                )
+                // send initial particle burst
+                serverLevel.sendParticles(
+                    LeakParticleData(
+                        Direction.UP,
+                        2f,
+                    ),
+                    blockPos.x + 0.5,
+                    blockPos.y + 1.0,
+                    blockPos.z + 0.5,
+                    20,
+                    0.3,
+                    0.3,
+                    0.3,
+                    1.0
+                )
+            }
+            sendData()
+        }
 
         if (hasPocket) {
             if (balloon?.shouldRemove == true || balloon == null || balloon?.shouldReScan == true) {

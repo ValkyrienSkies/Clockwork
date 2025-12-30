@@ -5,6 +5,8 @@ import net.createmod.catnip.math.VecHelper
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.core.Direction.AxisDirection.POSITIVE
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
@@ -13,6 +15,7 @@ import net.minecraft.world.phys.Vec3
 import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.joml.Vector3d
+import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.propeller.contraption.CopterContraptionEntity
 import org.valkyrienskies.clockwork.content.contraptions.propeller.contraption.PropellerContraption
@@ -29,6 +32,8 @@ import org.valkyrienskies.mod.api.toJOML
 import org.valkyrienskies.mod.api.toMinecraft
 import org.valkyrienskies.mod.common.getLoadedShipManagingPos
 import org.valkyrienskies.mod.common.util.toJOMLD
+import org.valkyrienskies.mod.util.getVector3d
+import org.valkyrienskies.mod.util.putVector3d
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.exp
@@ -66,12 +71,25 @@ class CopterBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
     @Volatile
     var blockNormalVector: Vec3? = null
 
+    @Volatile
+    var desiredLocalOffset: Vector3dc = Vector3d(0.0, 0.0, 0.0)
+
     private var iAngle = 0.0           // integrates angle error (radians * seconds)
     private var lastErrAxis = Vector3d(0.0, 0.0, 0.0)
 
     init {
         tiltQuaternion.normalize()
         targetTiltQuaternion.normalize()
+    }
+
+    override fun write(compound: CompoundTag, clientPacket: Boolean) {
+        compound.putVector3d("DesiredOffsetFromPower", desiredLocalOffset)
+        super.write(compound, clientPacket)
+    }
+
+    override fun read(compound: CompoundTag, clientPacket: Boolean) {
+        desiredLocalOffset = compound.getVector3d("DesiredOffsetFromPower") ?: Vector3d(0.0, 0.0, 0.0)
+        super.read(compound, clientPacket)
     }
 
 
@@ -214,7 +232,7 @@ class CopterBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
         if (facing == Direction.DOWN || facing == Direction.NORTH || facing == Direction.WEST) {
             facingNormal.mul(-1.0)
         }
-        val desiredLocal = Vector3d(facingNormal).rotate(invRotation).mul(getDirectionScale().toDouble()).normalize() // or negate if needed
+        val desiredLocal = Vector3d(facingNormal).rotate(invRotation).mul(getDirectionScale().toDouble()).normalize().add(desiredLocalOffset).normalize()
         val blockAxis = tiltVector.toJOML().normalize() // .rotate(physShip.transform.shipToWorldRotation)
         if (facing == Direction.DOWN || facing == Direction.NORTH || facing == Direction.WEST) {
             blockAxis.mul(-1.0)
@@ -289,7 +307,7 @@ class CopterBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
                 if (facing == Direction.DOWN || facing == Direction.NORTH || facing == Direction.WEST) {
                     //facingNormal.mul(-1.0)
                 }
-                val desiredLocal = Vector3d(facingNormal).rotate(invRotation).mul(getDirectionScale().toDouble()) // or negate if needed
+                val desiredLocal = Vector3d(facingNormal).rotate(invRotation).mul(getDirectionScale().toDouble()).add(desiredLocalOffset).normalize()
 
                 val trueTarget = if (stopping) {
                     VecHelper.lerp((disassemblyProgress / totalDisassemblyTime).toFloat(), blockNormalVector, clientTargetTiltVector)
@@ -306,6 +324,16 @@ class CopterBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
                 setTiltTarget(blockNormalVector ?: Vec3(0.0, 1.0, 0.0))
             }
         }
+    }
+
+    override fun applyPowerEffect() {
+        val (axisOne, axisTwo) = getPowerDirections()
+        val positiveNormalOne = Direction.get(POSITIVE, axisOne).normal.toJOMLD()
+        val positiveNormalTwo = Direction.get(POSITIVE, axisTwo).normal.toJOMLD()
+
+        desiredLocalOffset = positiveNormalOne.mul(powerOne.toDouble() / 16.0 * getDirectionScale(), Vector3d()).add(
+            positiveNormalTwo.mul(powerTwo.toDouble() / 16.0 * getDirectionScale(), Vector3d())
+        )
     }
 
     override fun createContraptionEntity(contraption: PropellerContraption): ControlledContraptionEntity {
@@ -325,8 +353,10 @@ class CopterBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
         return if (speed > 0) 1f else -1f
     }
 
+
+
     override fun newUpdateData(): PropUpdateData {
-        return PropUpdateData(currentOmega, angle, isInverted(), active, ArrayList(blades), tiltVector.toJOML(), Quaterniond(tiltQuaternion))
+        return PropUpdateData(currentOmega, angle, isInverted(), active, ArrayList(blades), tiltVector.toJOML(), Quaterniond(tiltQuaternion), lastStressApplied)
     }
 
 }

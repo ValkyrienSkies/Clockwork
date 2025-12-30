@@ -7,6 +7,7 @@ import com.simibubi.create.content.contraptions.AssemblyException
 import com.simibubi.create.content.contraptions.ControlledContraptionEntity
 import com.simibubi.create.content.contraptions.bearing.BearingBlock
 import com.simibubi.create.content.contraptions.bearing.IBearingBlockEntity
+import com.simibubi.create.content.kinetics.base.DirectionalAxisKineticBlock
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.INamedIconOptions
@@ -19,6 +20,8 @@ import net.fabricmc.api.Environment
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.core.Direction.Axis
+import net.minecraft.core.Direction.AxisDirection.POSITIVE
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
@@ -31,6 +34,7 @@ import org.joml.Vector3i
 import org.joml.Vector3ic
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkLang
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkSoundScapes
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeData
@@ -89,12 +93,27 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
 
     lateinit var rotationDirection: ScrollOptionBehaviour<RotationDirection>
 
+    var powerOne = 0
+    var powerTwo = 0
+    var lastPowerOne = 0
+    var lastPowerTwo = 0
+
     override fun newCreateData(): PropCreateData {
         return PropCreateData(worldPosition.toJOML(), blockState.getValue(BlockStateProperties.FACING).normal.toJOMLD(), angle, currentOmega, ArrayList(sailPositions), isInverted(), active, brass && blades.isEmpty(), ArrayList(blades))
     }
 
     override fun newUpdateData(): PropUpdateData {
-        return PropUpdateData(currentOmega, angle, isInverted(), active, ArrayList(blades))
+        return PropUpdateData(currentOmega, angle, isInverted(), active, ArrayList(blades), lastStressApplied = lastStressApplied)
+    }
+
+    override fun invalidate() {
+        if (level != null && level!!.isClientSide) clientInvalidate()
+        super.invalidate()
+    }
+
+    fun clientInvalidate() {
+        soundInstance?.stopNow()
+        soundInstance = null
     }
 
     fun shutDown() {
@@ -132,6 +151,18 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
                         value.nbt!!.putBoolean("ShouldUpdatePhys", false)
                         blades = BladeData.fromTag(value.nbt!!)
                     }
+                }
+            }
+        }
+    }
+
+    fun setNewBladeAngle(bladeAngle: Double) {
+        if (propellerContraption != null) {
+            val blocks = propellerContraption!!.contraption.blocks
+            for ((key, value) in blocks) {
+                if (value.state.`is`(ClockworkBlocks.BLADE_CONTROLLER.get())) {
+                    value.nbt?.putDouble("BladeAngle", bladeAngle)
+                    break
                 }
             }
         }
@@ -183,6 +214,12 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
             startingProgress = 0.0
         }
 
+        lastPowerOne = powerOne
+        lastPowerTwo = powerTwo
+        val power = getPower()
+        powerOne = power.first
+        powerTwo = power.second
+
         previousAngle = angle
         previousOmega = currentOmega
         if (!stopping) {
@@ -224,9 +261,26 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
             var angularSpeed = getAngularSpeed().toFloat()
             val newAngle = (angle + angularSpeed).toFloat()
             angle = (newAngle % 360).toDouble()
+            applyPowerEffect()
+
         }
 
         applyRotation()
+    }
+    // reminder: override this for copter bearing since their redstone controls something different
+    open fun applyPowerEffect() {
+        if (!this.brass || blades.isEmpty()) return
+
+        val powerEffect = Mth.clamp((powerOne + powerTwo).toFloat() / 30f, -1f, 1f)
+        val angleChange = 2f * powerEffect
+
+        val currentAngle = blades[0].angle
+        val newAngle = (currentAngle + angleChange) % 360f
+
+        setNewBladeAngle(newAngle.toDouble())
+        //update our blades
+        blades.clear()
+        getBlades()
     }
 
     fun getAngularSpeed(): Double {
@@ -520,12 +574,50 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
         }
     }
 
+    fun getPowerDirections(): Pair<Axis, Axis> {
+        val perpendicularAxes = (Axis.values().filter {
+            it != (blockState as DirectionalAxisKineticBlock).getRotationAxis(
+                blockState
+            )
+        })
+        return perpendicularAxes[0] to perpendicularAxes[1]
+    }
+
+    protected fun getPower(): Pair<Int, Int> {
+        val perpendicularAxes = (Axis.values().filter {
+            it != (blockState as DirectionalAxisKineticBlock).getRotationAxis(
+                blockState
+            )
+        })
+
+        val powerOne = run {
+            val positiveDir = Direction.get(POSITIVE, perpendicularAxes[0])
+            val negativeDir = positiveDir.opposite
+
+            var power = 0
+            power += level!!.getSignal(blockPos.relative(positiveDir), positiveDir)
+            power -= level!!.getSignal(blockPos.relative(negativeDir), negativeDir)
+            power
+        }
+        val powerTwo = run {
+            val positiveDir = Direction.get(POSITIVE, perpendicularAxes[1])
+            val negativeDir = positiveDir.opposite
+
+            var power = 0
+            power += level!!.getSignal(blockPos.relative(positiveDir), positiveDir)
+            power -= level!!.getSignal(blockPos.relative(negativeDir), negativeDir)
+            power
+        }
+
+        return powerOne to powerTwo
+    }
+
     override fun calculateStressApplied(): Float {
         if(level!!.isClientSide) return lastStressApplied
         var stressImpact = 0.0
         val axis : Vector3dc = blockState.getValue(BlockStateProperties.FACING).normal.toJOMLD()
         if (propellerContraption != null) {
-            if(brass) {
+            if(sailPositions.isNotEmpty()) {
                 // Add stress impact from propeller contraption.
                 // Stress impact of propeller contraption is computed by:
                 // sum((sail relative pos from bearing).cross(bearing axis))

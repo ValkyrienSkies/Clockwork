@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.forge;
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
 import com.simibubi.create.content.contraptions.actors.seat.SeatEntity;
 import com.simibubi.create.content.contraptions.render.ContraptionEntityRenderer;
+import com.simibubi.create.content.contraptions.render.ContraptionVisual;
 import com.simibubi.create.foundation.data.CreateEntityBuilder;
 import com.tterrag.registrate.util.entry.EntityEntry;
 import com.tterrag.registrate.util.nullness.NonNullConsumer;
@@ -38,8 +39,8 @@ public class ForgeClockworkEntities {
                     "copter_contraption",
                     CopterContraptionEntity::new,
                     () -> ContraptionEntityRenderer::new,
-                    20, 40, false
-            ).register();
+                    20, 3, true
+            ).visual(() -> ContraptionVisual::new).register();
 
     private static <T extends Entity> CreateEntityBuilder<T, ?> contraption(String name, EntityType.EntityFactory<T> factory,
                                                                             NonNullSupplier<NonNullFunction<EntityRendererProvider.Context, EntityRenderer<? super T>>> renderer, int range,

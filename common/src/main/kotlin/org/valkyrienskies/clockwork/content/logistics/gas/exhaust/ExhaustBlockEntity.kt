@@ -13,6 +13,8 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
+import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.mixinduck.MixinAirCurrentDuck
 import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.KelvinParticleHelper
@@ -55,7 +57,11 @@ class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
         super.tick()
 
         // Kelvin behavior
-        val network = KelvinMod.getKelvinByPlatform() ?: return
+        val network = if (level?.isClientSide != true) {
+            ClockworkMod.getKelvin()
+        } else {
+            ClockworkModClient.getKelvin()
+        }
         val gasses = network.getGasMassAt(getDuctNodePosition())
         val pressure = network.getPressureAt(getDuctNodePosition())
         if (gasses.isEmpty()) return super.tick()
@@ -72,6 +78,7 @@ class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
                     blockPos.toJOMLD().add(randomPos(0.3, random), randomPos(0.3, random), randomPos(0.3, random)),
                     facing.normal.toJOMLD().mul(Mth.clamp(0.0025 * pressure.pow(0.4), 0.1,5.0 )))
             }
+            //println("PARTICLE PARTER ${floor(gasses.values.sum()/MASS_PER_EXHAUST).toInt()}")
         } else {
             for ((gas, value) in gasses) {
                 network.removeGas(getDuctNodePosition(), gas, value)

@@ -23,12 +23,13 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.contraption.P
 import org.valkyrienskies.clockwork.content.forces.PropellerController
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
+import kotlin.math.absoluteValue
 
 class BladeControllerMovementBehaviour: MovementBehaviour {
 
     var previousRotation = Vec3.ZERO
 
-    var durabilityTick = 60
+    var durabilityTick = 600
 
     override fun tick(context: MovementContext) {
         val blockEntityData = context.blockEntityData
@@ -41,10 +42,10 @@ class BladeControllerMovementBehaviour: MovementBehaviour {
             }
             val rotation = context.rotation.apply(Vec3.ZERO)
             val deltaRotation = rotation.subtract(previousRotation)
-            if (deltaRotation.length() > 128.0 && ClockworkConfig.SERVER.bladeControllerUsesDurability && (context.contraption is PropellerContraption && !(context.contraption as PropellerContraption).brass)) {
+            if (deltaRotation.length().absoluteValue >= 128.0 && ClockworkConfig.SERVER.bladeControllerUsesDurability && (context.contraption is PropellerContraption && !(context.contraption as PropellerContraption).brass)) {
                 durabilityTick--
                 if (durabilityTick <= 0) {
-                    durabilityTick = 60
+                    durabilityTick = 600
                     val toRemove = ArrayList<ItemStack>()
                     bladeList.forEach {
                         val broken = it.hurt(1, context.world.random, null)
@@ -55,14 +56,14 @@ class BladeControllerMovementBehaviour: MovementBehaviour {
                     }
                 }
             }
+            blockEntityData.putInt("BladeCount", bladeList.size)
+            blades.remove("Blades")
+            val newBlades = CompoundTag()
+            for (i in 1 .. bladeList.size) {
+                newBlades.put("Blade$i", bladeList[i - 1].save(CompoundTag()))
+            }
+            blockEntityData.put("Blades", newBlades)
             if (bladeList.size != bladeCount) {
-                blockEntityData.putInt("BladeCount", bladeList.size)
-                blades.remove("Blades")
-                val newBlades = CompoundTag()
-                for (i in 1 .. bladeList.size) {
-                    newBlades.put("Blade$i", bladeList[i - 1].save(CompoundTag()))
-                }
-                blockEntityData.put("Blades", newBlades)
                 blockEntityData.putBoolean("ShouldUpdatePhys", true)
             }
         }

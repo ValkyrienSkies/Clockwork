@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.fabric;
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
 import com.simibubi.create.content.contraptions.actors.seat.SeatEntity;
 import com.simibubi.create.content.contraptions.render.ContraptionEntityRenderer;
+import com.simibubi.create.content.contraptions.render.ContraptionVisual;
 import com.simibubi.create.foundation.data.CreateEntityBuilder;
 import com.tterrag.registrate.util.entry.EntityEntry;
 import com.tterrag.registrate.util.nullness.NonNullConsumer;
@@ -36,8 +37,12 @@ public class FabricClockworkEntities {
             "copter_contraption",
             CopterContraptionEntity::new,
             () -> ContraptionEntityRenderer::new,
-            20, 40, false
-    ).register();
+            20, 3, true
+    )
+            .visual(() -> {
+                return ContraptionVisual::new;
+            })
+            .register();
 
     //
 
