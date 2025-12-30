@@ -20,11 +20,16 @@ object BlockUpdateCollector {
             controller.balloons.forEach { (id, balloon) ->
                 val external = balloon.getExternalPositions()
                 if (state.isValidBalloonEnclosure(sLevel, pos)) {
-                    if (balloon.containsPosition(pos)) shouldUpdate.add(id)
+                    if (balloon.containsPosition(pos)) {
+                        shouldUpdate.add(id)
+                        balloon.shouldReScan = true
+                        shouldValidate.add(id)
+                    }
                     if (external.contains(pos)) balloon.validate(sLevel) // immediate validate to maybe seal leaks
                 }
                 if (!state.isValidBalloonEnclosure(sLevel, pos)) {
                     shouldValidate.add(id)
+                    balloon.shouldReScan = true
                 }
             }
             if (shouldUpdate.size > 1) {
@@ -60,14 +65,8 @@ object BlockUpdateCollector {
                 for (id in shouldValidate) {
                     val balloon = controller.balloons[id]
                     if (balloon != null) {
-                        val result = balloon.validate(sLevel)
-                        if (result.isAtLeast(BalloonData.EnclosureStatus.UNKNOWN)) {
-                            // all good
-                        } else {
-                            balloon.shouldRemove = true
-                        }
+                        balloon.shouldValidate = true
                     }
-
                 }
             }
         }

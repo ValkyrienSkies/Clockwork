@@ -103,7 +103,7 @@ object ClockworkMod {
 
         vsCore.registerAttachment(PocketForcesController::class.java)
         vsCore.registerAttachment(WanderShipControl::class.java)
-        vsCore.registerAttachment(GasThrusterController::class.java)
+        //vsCore.registerAttachment(GasThrusterController::class.java)
         vsCore.registerAttachment(PropellerController::class.java)
         vsCore.registerAttachment(ReactionWheelController::class.java)
         vsCore.registerAttachment(EncasedFanController::class.java)

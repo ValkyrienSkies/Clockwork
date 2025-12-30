@@ -9,6 +9,7 @@ import net.minecraft.world.level.Level
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.Vector3i
+import org.joml.Vector3ic
 import org.joml.primitives.AABBic
 import org.valkyrienskies.clockwork.ClockworkAugmentations
 import org.valkyrienskies.clockwork.ClockworkConfig
@@ -42,12 +43,17 @@ class BalloonData {
     var isLeaking: Boolean
     @JsonIgnore
     var missingExternalPositions: Int
+    @JsonIgnore
+    var leakPositions: HashSet<Vector3ic> = hashSetOf()
 
     @JsonIgnore
     var shouldRemove = false
 
     @JsonIgnore
     var shouldReScan = false
+
+    @JsonIgnore
+    var shouldValidate = false
 
     // Default constructor for Jackson, should never be invoked manually
     @Deprecated("")
@@ -81,21 +87,27 @@ class BalloonData {
         val volume = this.currentVolume
 
         var currentHeatEnergy = this.currentEnergy
-        var currentGasMasses = this.gasMasses.mapKeys { GasTypeRegistry.getGasType(ResourceLocation(it.key))!! }.toMutableMap()
+        //map, with gasses as GasType instead of the string of their resource location
+        var currentGasMasses: HashMap<GasType, Double> = HashMap()
+        for ((key, value) in gasMasses) {
+            val gasType = GasTypeRegistry.getGasType(ResourceLocation(key)) ?: continue
+            currentGasMasses[gasType] = value
+        }
         //println("mass: ${gasMasses.values.sum()};  energy: $currentHeatEnergy;  temperature: ${currentHeatEnergy/(KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(gasMasses)}")
 
-        if (currentHeatEnergy.isNaN() || currentHeatEnergy >= 1e-9) {
+        val totalMass = currentGasMasses.values.sum()
+        if (currentHeatEnergy.isNaN() || currentHeatEnergy <= 1e-9 || totalMass.isNaN() || totalMass < 1e-9) {
 
             val air = GasTypeRegistry.getGasType("kelvin","air")!!
-            gasMasses[air.resourceLocation.toString()] = gasMasses.getOrDefault(air.resourceLocation.toString(), 0.0) + atmoDensity * volume
+            gasMasses[air.resourceLocation.toString()] = atmoDensity * volume
 
             val capacity = 1000 * air.specificHeatCapacity / air.adiabaticIndex
             currentHeatEnergy = atmoTemperature * volume*atmoDensity * capacity
-
+            currentEnergy = currentHeatEnergy
             return false
         }
 
-        val totalMass = currentGasMasses.values.sum()
+
         val moles = currentGasMasses.entries.sumOf { it.key.massToMoles(it.value) }
         val capacity = (KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(currentGasMasses)
         var currentTemperature = currentHeatEnergy / capacity
@@ -105,7 +117,7 @@ class BalloonData {
 
         // Gas leak exiting
         val gasExitRate = max(0.0, currentPressure - atmoPressure) * estimatedSurfaceArea * ClockworkConfig.SERVER.permeabilityConstant / sqrt(currentTemperature * DuctNetwork.idealGasConstant / molarMass) * max(1.0, missingExternalPositions.toDouble() + 1.0)
-        val exitGas = gasExitRate * 0.05
+        val exitGas = gasExitRate * 0.01
         val exitGasMasses = HashMap<GasType, Double>()
         currentGasMasses.forEach {
             currentGasMasses[it.key] = currentGasMasses[it.key]!! - exitGas * it.value / totalMass
@@ -116,7 +128,7 @@ class BalloonData {
         currentTemperature = currentHeatEnergy / capacity
 
         // Gas leak heat transfer
-        val heatFlow = ClockworkConfig.SERVER.heatTransferCoefficient * estimatedSurfaceArea * (atmoTemperature - currentTemperature)
+        val heatFlow = ClockworkConfig.SERVER.heatTransferCoefficient * estimatedSurfaceArea * (atmoTemperature - currentTemperature) * max(1.0, missingExternalPositions.toDouble() * 2.0 + 1.0) / 2.0
         var newHeatEnergy = currentHeatEnergy + heatFlow * 0.05
         val newCapacity = (KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(currentGasMasses)
         var newTemperature = newHeatEnergy / newCapacity
@@ -176,9 +188,9 @@ class BalloonData {
             sumZ += (region.minZ() + region.maxZ()) / 2.0
         }
         val count = regions.size
-        center.x = sumX / count.toDouble() + 0.5
-        center.y = sumY / count.toDouble() + 0.5
-        center.z = sumZ / count.toDouble() + 0.5
+        center.x = sumX / count.toDouble()
+        center.y = sumY / count.toDouble()
+        center.z = sumZ / count.toDouble()
         return center
     }
 
@@ -258,7 +270,29 @@ class BalloonData {
             return EnclosureStatus.INVALID
         }
         var currentStatus = EnclosureStatus.VALID
+        //in hindsight, this is not really efficient anyways, so i wont bother
+//        if (leakPositions.isNotEmpty()) {
+//            val sealed = hashSetOf<Vector3ic>()
+//            for (pos in leakPositions) {
+//                val blockPos = BlockPos(pos.x(), pos.y(), pos.z())
+//                if (level.isLoaded(blockPos)) {
+//                    val blockState = level.getBlockState(blockPos)
+//                    if (blockState.isValidBalloonEnclosure(level, blockPos)) {
+//                        sealed.add(pos)
+//                    }
+//                }
+//            }
+//            leakPositions.removeAll(sealed)
+//            if (leakPositions.isEmpty()) {
+//                this.isLeaking = false
+//                missingExternalPositions = 0
+//                currentStatus = EnclosureStatus.VALID
+//            } else {
+//                currentStatus = EnclosureStatus.LEAKING
+//            }
+//        }
         missingExternalPositions = 0
+        leakPositions.clear()
         for (pos in externals) {
             if (!level.isLoaded(pos)) {
                 return EnclosureStatus.UNKNOWN
@@ -266,6 +300,7 @@ class BalloonData {
             val blockState = level.getBlockState(pos)
             if (!blockState.isValidBalloonEnclosure(level, pos)) {
                 missingExternalPositions ++
+                leakPositions.add(Vector3i(pos.x, pos.y, pos.z))
                 currentStatus = if (canLeak(externals.size) && !isNearlyAtmospheric(level as ServerLevel)) {
                     EnclosureStatus.LEAKING
                 } else {
@@ -273,6 +308,7 @@ class BalloonData {
                 }
             }
         }
+        this.isLeaking = currentStatus == EnclosureStatus.LEAKING
         return currentStatus
     }
 

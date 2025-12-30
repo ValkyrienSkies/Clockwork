@@ -45,6 +45,11 @@ class GasNozzleBlock(properties: Properties): HorizontalKineticBlock(properties)
         hand: InteractionHand,
         hit: BlockHitResult
     ): InteractionResult? {
+        if (player.getItemInHand(hand).isEmpty) {
+            withBlockEntityDo(level, pos) { be ->
+                be.shouldFetchNextTick = true
+            }
+        }
         return super.use(state, level, pos, player, hand, hit)
     }
 

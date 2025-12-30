@@ -6,6 +6,7 @@ import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
 import net.minecraft.world.level.block.entity.BlockEntityType
@@ -14,17 +15,25 @@ import org.valkyrienskies.clockwork.ClockworkAugmentations
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.forces.BalloonController
 import org.valkyrienskies.clockwork.content.forces.data.BalloonData
+import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlockEntity.Companion.FUEL_ENERGY_DENSITY
+import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlockEntity.Companion.LOG_BURN_TIME
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
 import org.valkyrienskies.clockwork.util.KNodeKineticBlockEntity
 import org.valkyrienskies.core.api.world.connectivity.ConnectionStatus
 import org.valkyrienskies.kelvin.KelvinMod
+import org.valkyrienskies.kelvin.api.GasType
+import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3i
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.getLoadedShipManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.iterator
 import kotlin.math.abs
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState): KNodeKineticBlockEntity(type, pos, state) {
@@ -52,7 +61,8 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         tag.putDouble("pointer_speed",pointerSpeed)
         tag.putBoolean("has_pocket",hasPocket)
         tag.putDouble("pocket_temperature", pocketTemperature)
-        if (!clientPacket) tag.putDouble("balloon_volume", balloonVolume)
+        tag.putDouble("balloon_volume", balloonVolume)
+        tag.putInt("leaks", currentIdealOutput.toInt())
         super.write(tag, clientPacket)
     }
 
@@ -63,7 +73,8 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         pointerSpeed = tag.getDouble("pointer_speed")
         hasPocket = tag.getBoolean("has_pocket")
         pocketTemperature = tag.getDouble("pocket_temperature")
-        if (clientPacket) balloonVolume = tag.getDouble("balloon_volume")
+        balloonVolume = tag.getDouble("balloon_volume")
+        currentIdealOutput = tag.getInt("leaks").toDouble()
 
         pointer.chase(target, pointerSpeed, LerpedFloat.Chaser.LINEAR)
     }
@@ -95,6 +106,12 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         if (oldHas != hasPocket) sendData()
 
         if (hasPocket) {
+            if (balloon?.shouldRemove == true || balloon == null || balloon?.shouldReScan == true) {
+                shouldFetchNextTick = true
+                hasPocket = false
+                sendData()
+                return
+            }
             //flowIntoPocket()
 //            if (serverLevel.shipObjectWorld.getAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("airupdated"), blockPos.x, blockPos.y +1, blockPos.z, serverLevel.dimensionId) < 1.0) {
 //                serverLevel.shipObjectWorld.setAirComponentAugmentation(ClockworkAugmentations.getComponentAugmentation("airupdated"), blockPos.x, blockPos.y +1, blockPos.z, serverLevel.dimensionId, 0.0)
@@ -102,6 +119,21 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
             //heatPocket()
             heatBalloon()
         }
+
+//        if (balloon != null) {
+//            var pocketGasMass: HashMap<GasType, Double> = HashMap()
+//            for ((key, value) in balloon!!.gasMasses) {
+//                val gasType = GasTypeRegistry.getGasType(ResourceLocation(key)) ?: continue
+//                pocketGasMass[gasType] = value
+//            }
+//            val pocketHeatEnergy = balloon!!.currentEnergy
+//            val pocketCapacity = ClockworkMod.getKelvin().mixtureCapacity(pocketGasMass)
+//            pocketTemperature = (pocketHeatEnergy) / pocketCapacity
+//            balloonVolume = balloon!!.currentVolume
+//            currentIdealOutput = balloon!!.missingExternalPositions.toDouble()
+//            sendData()
+//        }
+
     }
 
     fun fetchBloon() {
@@ -129,7 +161,38 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     }
 
     private fun heatBalloon() {
+        val balloon = this.balloon ?: return
 
+        var pocketGasMass: HashMap<GasType, Double> = HashMap()
+        for ((key, value) in balloon.gasMasses) {
+            val gasType = GasTypeRegistry.getGasType(ResourceLocation(key)) ?: continue
+            pocketGasMass[gasType] = value
+        }
+        val pocketHeatEnergy = balloon.currentEnergy
+
+        val gasMass = ClockworkMod.getKelvin().getGasMassAt(getDuctNodePosition())
+        val gasMassTotal = gasMass.values.sum()
+        val heatEnergy = ClockworkMod.getKelvin().getHeatEnergy(getDuctNodePosition())
+        val pocketCapacity = ClockworkMod.getKelvin().mixtureCapacity(pocketGasMass)
+        val currentPocketTemperature = (pocketHeatEnergy) / pocketCapacity
+        val targetTemperature = ClockworkMod.getKelvin().getTemperatureAt(getDuctNodePosition())
+        val maxEnergyAddedThisTick = (heatEnergy / 10.0) * pointer.value.toDouble()
+        val energyToAdd = min(pocketCapacity * (targetTemperature - currentPocketTemperature), maxEnergyAddedThisTick)
+
+        val usedUpMass = gasMassTotal * pointer.value
+        val usedEnergy = min(heatEnergy * pointer.value, energyToAdd)
+
+        pocketTemperature = (pocketHeatEnergy + usedEnergy) / pocketCapacity
+        balloonVolume = balloon.currentVolume
+        currentIdealOutput = balloon.missingExternalPositions.toDouble() // this is cursed but i made it without reloading the game so variable reuse lesgo
+
+        balloon.currentEnergy = pocketHeatEnergy + usedEnergy
+
+        gasMass.forEach {
+            KelvinMod.getKelvin().removeGas(getDuctNodePosition(), it.key,usedUpMass * it.value / gasMassTotal)
+        }
+
+        sendData()
     }
 
     private fun heatPocket() {
@@ -264,7 +327,12 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         if (!hasPocket || pocketTemperature.isNaN()) {
             (tooltip as MutableList?)?.add(Component.literal("Missing pocket.").withStyle(ChatFormatting.GRAY).withStyle(ChatFormatting.ITALIC))
         } else {
-            (tooltip as MutableList?)?.add(Component.literal("Pocket Temperature: ${pocketTemperature.roundToInt()}K").withStyle(ChatFormatting.RED))
+            (tooltip as MutableList?)?.add(Component.literal("Pocket Volume: ${"%,.2f".format(balloonVolume)} m³").withStyle(ChatFormatting.GREEN))
+            (tooltip as MutableList?)?.add(Component.literal("Pocket Temperature: ${pocketTemperature.roundToInt()}K").withStyle(ChatFormatting.GOLD))
+            if (currentIdealOutput.toInt() != 0) {
+                (tooltip as MutableList?)?.add(Component.literal("!! BALLOON INTEGRITY COMPROMISED !!").withStyle(ChatFormatting.RED))
+                (tooltip as MutableList?)?.add(Component.literal("Leaks Detected: ${currentIdealOutput.roundToInt()}").withStyle(ChatFormatting.DARK_RED))
+            }
         }
         return bool
     }

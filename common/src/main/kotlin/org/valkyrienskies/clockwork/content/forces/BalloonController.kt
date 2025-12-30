@@ -59,7 +59,7 @@ class BalloonController: ShipPhysicsListener {
         val yHeight = physShip.transform.shipToWorld.transformPosition(physBalloon.center, Vector3d()).y()
         val atmoDensity = physLevel.aerodynamicUtils.getAirDensityForY(yHeight, physLevel.dimension)
 
-        val buoyantForce = physBalloon.volume * (atmoDensity - physBalloon.internalDensity) * gravity * ClockworkConfig.SERVER.balloonForceMult
+        val buoyantForce = physBalloon.volume * (atmoDensity - physBalloon.internalDensity) * gravity * ClockworkConfig.SERVER.balloonForceMult * 100.0
         if (buoyantForce.isInfinite() || buoyantForce.isNaN()) {
             return 0.0
         }
@@ -81,6 +81,13 @@ class BalloonController: ShipPhysicsListener {
             balloons.remove(id)
         }
         for ((id, balloon) in balloons) {
+            if (balloon.shouldValidate) {
+                val status = balloon.validate(level)
+                balloon.shouldValidate = false
+//                if (status == BalloonData.EnclosureStatus.INVALID) {
+//                    balloon.shouldReScan = true
+//                }
+            }
             if (balloon.shouldReScan) {
                 val validScanStart = balloon.getFirstValidExternalPosition(level)
                 if (validScanStart == null) {
@@ -118,7 +125,11 @@ class BalloonController: ShipPhysicsListener {
                 } else {
                     // Balloon is no longer valid
                     balloon.shouldReScan = false
-                    balloon.shouldRemove = true
+                    if (balloon.isNearlyAtmospheric(level)) {
+                        balloon.shouldRemove = true
+                    } else {
+                        balloon.shouldRemove = balloon.validate(level) == BalloonData.EnclosureStatus.INVALID
+                    }
                 }
             }
             if (balloon.isLeaking && balloon.isNearlyAtmospheric(level)) {
@@ -235,11 +246,19 @@ class BalloonController: ShipPhysicsListener {
             if (z < minZ) minZ = z
             if (z > maxZ) maxZ = z
 
+            //also scan diagonal edges
             for (dir in Direction.values()) {
-                val n = cur.relative(dir)
-                if (!level.getBlockState(n).isValidBalloonEnclosure(level, n)) continue
-                val nl = n.asLong()
-                if (!visited.contains(nl)) q.add(nl)
+                for (diag in Direction.values()) {
+                    if (dir.axis == diag.axis) continue
+                    val n = cur.relative(dir).relative(diag)
+                    if (!level.getBlockState(n).isValidBalloonEnclosure(level, n)) continue
+                    val nl = n.asLong()
+                    if (!visited.contains(nl)) q.add(nl)
+                }
+//                val n = cur.relative(dir)
+//                if (!level.getBlockState(n).isValidBalloonEnclosure(level, n)) continue
+//                val nl = n.asLong()
+//                if (!visited.contains(nl)) q.add(nl)
             }
         }
 
@@ -283,7 +302,9 @@ class BalloonController: ShipPhysicsListener {
 
             // Bounds + open-bottom cut
             if (cur.y <= minYInterior) continue
-            if (cur.x !in minX..maxX || cur.z !in minZ..maxZ) continue
+            if (cur.x !in minX..maxX || cur.z !in minZ..maxZ) {
+                return emptyList()
+            }
 
             val state = level.getBlockState(cur)
             if (state.isValidBalloonEnclosure(level, cur)) continue
@@ -291,9 +312,8 @@ class BalloonController: ShipPhysicsListener {
             toFill.add(cur.toAABBic())
 
             for (dir in Direction.values()) {
-                // You previously skipped UP; with a top seed you can allow UP safely,
-                // but keeping it skipped is fine if you prefer.
                 val n = cur.relative(dir)
+                if (level.getBlockState(n).isValidBalloonEnclosure(level, n)) continue
                 val nl = n.asLong()
                 if (!visited.contains(nl)) q.add(nl)
             }

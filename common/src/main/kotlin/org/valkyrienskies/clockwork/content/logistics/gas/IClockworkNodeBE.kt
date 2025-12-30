@@ -33,7 +33,7 @@ interface IClockworkNodeBE: INodeBlockEntity, IHaveGoggleInformation {
                 add(ClockworkLang.translate("gui.ductInfo.volume").add(ClockworkLang.text(": ")).style(ChatFormatting.GREEN))
                 add(DuctTextUtil.translateVolume(ClockworkLang.builder(), volume, true).style(ChatFormatting.GREEN))
                 space()
-                forGoggles(tooltip, 1)
+                forGoggles(tooltip, 0)
             }
         }
         kelvin.getTemperatureAt(pos).let { temp ->
@@ -76,7 +76,7 @@ interface IClockworkNodeBE: INodeBlockEntity, IHaveGoggleInformation {
         kelvin.getHeatEnergy(pos).takeIf { it > 0.0 }?.let { energy ->
             found = true
             ClockworkLang.builder().apply {
-                add(ClockworkLang.translate("gui.ductInfo.energy").style(ChatFormatting.RED))
+                add(ClockworkLang.translate("gui.ductInfo.energy").add(ClockworkLang.text(": ")).style(ChatFormatting.RED))
                 add(DuctTextUtil.translateEnergy(ClockworkLang.builder(), energy, true).style(ChatFormatting.RED))
                 space()
 
