@@ -631,7 +631,6 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
                     // TODO: Single point for deriving blade width from blade.wide
                     // TODO: multiply internal RPM of propeller by 8.0
                     stressImpact += (PropellerController.calculateBladePower(0.0,
-                        this.theoreticalSpeed.toDouble() / 60.0,
                         this.theoreticalSpeed.toDouble() * 8.0 / 60.0,
                         blade.length, blade.angle, if (blade.wide) 0.375 else 0.25
                     ) / 100.0).roundToInt() / this.theoreticalSpeed
