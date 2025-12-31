@@ -23,6 +23,7 @@ import java.lang.Math
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.collections.HashMap
 import kotlin.math.*
+import kotlin.math.pow
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class PropellerController(
@@ -269,67 +270,37 @@ class PropellerController(
             physProp.bearingAxis!!
         }
 
-        val worldAxis = physShip.transform.shipToWorld.transformDirection(referencePropAxis, Vector3d()).normalize(Vector3d())
-//        if (physProp.inverted) {
-//            worldAxis.mul(-1.0).normalize()
-//        }
-        val totalVelocityAtProp = physShip.velocity.add(wind, Vector3d()).add(physShip.angularVelocity.cross(Vector3d(physProp.position!!).sub(physShip.centerOfMass, Vector3d()).add(0.5, 0.5, 0.5), Vector3d()), Vector3d())
+        // make consistent with sail's implementation
+        val worldAxis: Vector3dc = physShip.transform.shipToWorld
+            .transformDirection(referencePropAxis, Vector3d())
+            .mul(omegaSign)
+            .normalize(Vector3d())
+        val totalVelocityAtProp: Vector3dc = physShip.velocity.add(wind, Vector3d()).add(physShip.angularVelocity.cross(Vector3d(physProp.position!!).sub(physShip.centerOfMass, Vector3d()).add(0.5, 0.5, 0.5), Vector3d()), Vector3d())
         val velocityTowardsPropellerDir = totalVelocityAtProp.dot(worldAxis)
         if (velocityTowardsPropellerDir.isNaN() || velocityTowardsPropellerDir.isInfinite()) {
             return Vector3d() to Vector3d()
         }
-        val induced = 0.5
 
         val netForce = Vector3d()
         val netTorque = Vector3d()
 
         for (i in blades.indices) {
             val blade = blades[i]
-            val bladeAngle = Math.toRadians(estAngle + (angleBetweenBlades * i.toDouble()))
-            val bladePitch = -Math.toRadians(blade.angle) ///* rotationSense
             val bladeWidth = if (blade.wide) 0.375 else 0.25
-            val r = blade.length / 2.0
-            val rotatedDist = clockwiseAxis.mul(r, Vector3d()).rotateAxis(bladeAngle, referencePropAxis.x(), referencePropAxis.y(), referencePropAxis.z(), Vector3d())
+            // TODO: multiply internal RPM of propeller by 8.0
+            // bearingSpeed is in deg/t, convert to rev/s
+            val bladeRotationalSpeed = abs(physProp.bearingSpeed/360.0*20.0) * 8.0 // Unit in rev/s
 
-            val rotationalVelocity = physProp.bearingSpeed.absoluteValue * r
+            val power = calculateBladePower(velocityTowardsPropellerDir,
+                bladeRotationalSpeed, blade.length, blade.angle, bladeWidth)
+            if (power <= 0) continue
 
-            val absVt = abs(rotationalVelocity)
-            if (absVt < 1e-4) continue
+            val thrust = power.pow(2.0/3) * (2 * airDensityAtY * Math.PI * blade.length.pow(2)).pow(1.0/3)
 
-            val vtMin = 0.5 // m/s-ish (tune). Below this: fade thrust to 0.
-            val vtFade = 2.0 // how quickly it ramps in
-
-            val spinFactor = ((abs(rotationalVelocity) - vtMin) / vtFade).coerceIn(0.0, 1.0)
-            // use a smoothstep to avoid a sharp corner
-            val sf = spinFactor * spinFactor * (3.0 - 2.0 * spinFactor)
-
-            val phi = atan2(velocityTowardsPropellerDir, rotationalVelocity)
-            var angleOfAttack = bladePitch - phi
-
-            val liftCoefficient = 2.0 * Math.PI * angleOfAttack
-            val dragCoefficient = 0.01 + 0.01 * liftCoefficient.pow(2.0)
-
-            val vA = (-velocityTowardsPropellerDir) + induced
-
-            val effectiveVelocity = sqrt(vA * vA + rotationalVelocity * rotationalVelocity)
-
-            val dA = bladeWidth * r
-            val q = 0.5 * airDensityAtY * effectiveVelocity.pow(2.0)
-            val dLift = q * dA * liftCoefficient
-            val dDrag = q * dA * dragCoefficient
-
-            val dThrust = (dLift * cos(phi) - dDrag * sin(phi)) * sf
-
-            val vUseful = max(abs(velocityTowardsPropellerDir), 1.0)
-
-            ///todo make this based off SU consumption or something
-            val maxBladePowerWatts = 5000.0 * r // 10 kW
-
-            val thrustCap = maxBladePowerWatts / vUseful
-            val dThrustCapped = dThrust.coerceIn(-thrustCap, thrustCap)
-
-            val force = worldAxis.mul(dThrustCapped * 10, Vector3d()).mul(omegaSign, Vector3d())
-            //val torque = rotatedDist.cross(force, Vector3d())
+            val force: Vector3d = worldAxis.mul(-thrust, Vector3d())
+            if (blade.angle < 0) {
+                force.negate()
+            }
 
             netForce.add(force)
             netTorque.add(Vector3d())
@@ -350,6 +321,32 @@ class PropellerController(
                 ship.setAttachment(controller)
             }
             return ship.getAttachment(PropellerController::class.java)
+        }
+
+        fun calculateBladePower(velocityTowardsPropellerDir: Double,
+                                bladeRotationalSpeed: Double, bladeLength: Double, bladeAngle: Double, bladeWidth: Double): Double {
+            // Magic balancing constants
+            val b = 1.0
+            val c = 4.0
+
+            // Transform blade angle to usable range for powerCoefficient
+            val a = ln(Mth.clamp(abs(bladeAngle), 0.0, 90.0) + 1)/2.3
+            if (a == 0.0) return 0.0
+
+            val bladeDiameter = 2*bladeLength
+
+            val airspeed = max(0.0, velocityTowardsPropellerDir)
+            val advanceRatio = airspeed / (bladeRotationalSpeed * bladeDiameter)
+            val powerCoefficient =  b * (a - 1 - advanceRatio/(a.pow(3.0) * c.pow(2.0)))
+            // TODO: Calculate speed of sound
+            val machPowerMultiplier = 1 - 1.0/(1 + exp((331 - airspeed) / 30.0))
+            val power = powerCoefficient *
+                    bladeRotationalSpeed.pow(3) *
+                    bladeDiameter.pow(5) *
+                    bladeWidth * 4 *
+                    machPowerMultiplier
+
+            return max(power, 0.0)
         }
     }
 }
