@@ -289,7 +289,7 @@ class PropellerController(
             val bladeWidth = if (blade.wide) 0.375 else 0.25
             // TODO: multiply internal RPM of propeller by 8.0
             // bearingSpeed is in deg/t, convert to rev/s
-            val bladeRotationalSpeed = abs(physProp.bearingSpeed/360.0*20.0) * 8.0 // Unit in rev/s
+            val bladeRotationalSpeed = abs(physProp.bearingSpeed/360.0*20.0)// * 8.0 // Unit in rev/s
 
             val power = calculateBladePower(velocityTowardsPropellerDir,
                 bladeRotationalSpeed, blade.length, blade.angle, bladeWidth)

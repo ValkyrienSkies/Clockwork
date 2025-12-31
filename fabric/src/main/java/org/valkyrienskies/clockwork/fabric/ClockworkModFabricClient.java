@@ -36,7 +36,7 @@ public class ClockworkModFabricClient implements ClientModInitializer {
         ClockworkPartials.INSTANCE.init();
         FabricClockworkPartials.init();
 
-        ClockworkParticles.initClient();
+        ClockworkParticles.initClient(null);
 
         registerClientEvents();
         FabricClockworkClientEvents.register();

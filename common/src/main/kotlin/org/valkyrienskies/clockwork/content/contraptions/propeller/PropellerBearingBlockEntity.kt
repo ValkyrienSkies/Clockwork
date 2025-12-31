@@ -228,7 +228,7 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
             active = !overStressed && !stalled
             updateSpinDir(currentOmega < 0)
             val lastTargetOmega = targetOmega
-            targetOmega = convertToAngular(this.getSpeed()).toDouble() * if (isInverted()) -1.0 else 1.0
+            targetOmega = convertToAngular(this.getSpeed()).toDouble() * (if (isInverted()) -1.0 else 1.0) * 8.0
 
             if (lastTargetOmega != targetOmega) {
                 sendData()
@@ -347,7 +347,7 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
         angle = 0.0
         currentOmega = 0.0
 
-        targetOmega = convertToAngular(this.getSpeed()).toDouble() * if (isInverted()) -1.0 else 1.0
+        targetOmega = convertToAngular(this.getSpeed()).toDouble() * (if (isInverted()) -1.0 else 1.0) * 8.0
 
         getBlades()
         if (brass && blades.isEmpty()) {
@@ -577,7 +577,7 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
 
     fun getPowerDirections(): Pair<Axis, Axis> {
         val perpendicularAxes = (Axis.values().filter {
-            it != (blockState as DirectionalAxisKineticBlock).getRotationAxis(
+            it != (blockState.block as BearingBlock).getRotationAxis(
                 blockState
             )
         })
@@ -586,7 +586,7 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
 
     protected fun getPower(): Pair<Int, Int> {
         val perpendicularAxes = (Axis.values().filter {
-            it != (blockState.block as PropellerBearingBlock).getRotationAxis(
+            it != (blockState.block as BearingBlock).getRotationAxis(
                 blockState
             )
         })
@@ -630,10 +630,10 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
                 for (blade in blades) {
                     // TODO: Single point for deriving blade width from blade.wide
                     // TODO: multiply internal RPM of propeller by 8.0
-                    stressImpact += (PropellerController.calculateBladePower(0.0,
+                    stressImpact += ((PropellerController.calculateBladePower(0.0,
                         this.theoreticalSpeed.toDouble() * 8.0 / 60.0,
                         blade.length, blade.angle, if (blade.wide) 0.375 else 0.25
-                    ) / 100.0).roundToInt() / this.theoreticalSpeed
+                    ) / 100.0).roundToInt() / this.theoreticalSpeed) / 2.0
                 }
             }
         }
