@@ -152,6 +152,12 @@
   "vs_clockwork.subtitle.gravitron_shutdown": "Gravitron Shutting Down",
   "vs_clockwork.subtitle.gravitron_freeze": "Supercharged Gravitron Freezes Ship",
 
+  "vs_clockwork.subtitle.gas_nozzle_start": "Gas Nozzle opens",
+  "vs_clockwork.subtitle.gas_nozzle_loop": "Gas Nozzle blows",
+  "vs_clockwork.subtitle.balloon_leaking_light": "Hot air balloon leaking",
+  "vs_clockwork.subtitle.balloon_leaking_heavy": "Hot air balloon rapidly leaking",
+  "vs_clockwork.subtitle.balloon_rupture": "Hot air balloon ruptured",
+
   "block.vs_clockwork.wanderlite_block": "Block of Wanderlite",
   "item.vs_clockwork.wanderlite_block": "Block of Wanderlite",
   "block.vs_clockwork.wanderlite_bricks": "Wanderlite Bricks",

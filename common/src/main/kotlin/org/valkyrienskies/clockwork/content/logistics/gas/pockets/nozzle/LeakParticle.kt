@@ -21,7 +21,7 @@ class LeakParticle(
 ) : TextureSheetParticle(level, x, y, z, xSpeed, ySpeed, zSpeed) {
 
     init {
-        this.gravity = 0f
+        this.gravity = -0.5f
         this.xd = xSpeed
         this.yd = ySpeed
         this.zd = zSpeed

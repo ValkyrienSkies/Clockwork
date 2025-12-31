@@ -76,7 +76,7 @@ object ClockworkConfig {
         var permeabilityConstant = 0.001
 
         @ConfigEntry(description = "Controls how fast air pocket temperature equalizes with the ambient temperature; lower values simulate thick insulation, while higher values cause rapid cooling or heating. Default 0.001", min = 0.0, max = 1.0)
-        var heatTransferCoefficient = 0.001
+        var heatTransferCoefficient = 0.0005
 
         @ConfigEntry(description = "Effectiveness scalar for reaction wheels. Higher value means a single reaction wheel can better control an entire ship, regardless of its mass. Default value is 0.1.", min = 0.001, max = 1.0)
         var reactionWheelEffectiveness = 1.0
@@ -94,7 +94,7 @@ object ClockworkConfig {
         var hotAirBalloonMaxScanVolume = 100000.0
 
         @ConfigEntry(description = "The maximum surface area (in blocks) that the hot air balloon floodfill will scan when trying to determine the balloon's exterior.", min = 1.0)
-        var hotAirBalloonMaxScanSurface = 10000.0
+        var hotAirBalloonMaxScanSurface = 100000.0
 
         @ConfigEntry(description = "Force multiplier when no rpm is given")
         var angleFollowingBaseAngleErrorMultiplier = 50.0

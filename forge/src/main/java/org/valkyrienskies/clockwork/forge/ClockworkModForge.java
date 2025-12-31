@@ -45,6 +45,7 @@ public class ClockworkModForge {
         EventBuses.registerModEventBus(MOD_ID, modEventBus);
         ClockworkMod.INSTANCE.getREGISTRATE().registerEventListeners(modEventBus);
         ClockworkSounds.register();
+        ClockworkParticles.init();
         ClockworkBlocks.register();
         ClockworkItems.register();
         ClockworkBlockEntities.register();
@@ -53,8 +54,6 @@ public class ClockworkModForge {
 
         ClockworkEntities.register();
         ForgeClockworkEntities.register();
-
-        ClockworkParticles.init();
 
         modEventBus.addListener((RegisterParticleProvidersEvent event) -> ClockworkParticles.initClient(event));
 

@@ -16,6 +16,7 @@ import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.network.NetworkHooks;
 import org.valkyrienskies.clockwork.ClockworkBlocks;
+import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.ClockworkParticles;
 import org.valkyrienskies.clockwork.forge.util.DuctStatsForge;
 import org.valkyrienskies.clockwork.util.gui.DuctStats;
@@ -32,6 +33,7 @@ public class PlatformUtilsImpl {
     public static <D extends ParticleOptions> void registerParticleOnPlatform(ClockworkParticles.ParticleEntry<D> particleEntry, @Nullable Object event) {
         if (event instanceof RegisterParticleProvidersEvent pEvent) {
             particleEntry.typeFactory.get().register(particleEntry.object, pEvent);
+            ClockworkMod.INSTANCE.getLOGGER().info("Registered particle factory for " + particleEntry.name + " on Forge");
         }
 
     }

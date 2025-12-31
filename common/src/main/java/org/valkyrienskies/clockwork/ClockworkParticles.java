@@ -20,15 +20,24 @@ import java.util.function.Supplier;
 
 public enum ClockworkParticles {
     PHYS_LIGHTNING(PhysLightningParticle.Data::new),
-    LEAK(LeakParticleData::new);
+    LEAK("leak", LeakParticleData::new);
     private final ParticleEntry<?> entry;
 
     <D extends ParticleOptions> ClockworkParticles(Supplier<? extends ICustomParticleData<D>> typeFactory) {
         String name = Lang.asId(name());
+        ClockworkMod.INSTANCE.getLOGGER().info("Registering particle: " + name);
+        entry = new ParticleEntry<>(name, typeFactory);
+    }
+
+    <D extends ParticleOptions> ClockworkParticles(String name, Supplier<? extends ICustomParticleData<D>> typeFactory) {
+        ClockworkMod.INSTANCE.getLOGGER().info("Registering particle: " + name);
         entry = new ParticleEntry<>(name, typeFactory);
     }
 
     public static void init() {
+        for (final ClockworkParticles particle : values()) {
+            ParticleEntry.REGISTER.register(particle.entry.name, () -> particle.entry.object);
+        }
         ParticleEntry.REGISTER.registerAll();
     }
 
@@ -62,7 +71,6 @@ public enum ClockworkParticles {
             this.typeFactory = typeFactory;
 
             object = this.typeFactory.get().createType();
-            REGISTER.register(name, () -> object);
         }
 
         @Environment(EnvType.CLIENT)

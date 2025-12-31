@@ -37,6 +37,7 @@ public class ClockworkModFabric implements ModInitializer {
 
         ClockworkTags.INSTANCE.init();
         ClockworkSounds.register();
+        ClockworkParticles.init();
         ClockworkBlocks.register();
         ClockworkItems.register();
 
@@ -58,7 +59,7 @@ public class ClockworkModFabric implements ModInitializer {
         ClockworkMod.init();
         //AllClockworkConfigs.init();
 
-        ClockworkParticles.init();
+
         FabricClockworkSounds.init();
         registerServerEvents();
 

@@ -16,19 +16,20 @@ import net.minecraft.core.Direction
 import net.minecraft.core.particles.ParticleOptions
 import net.minecraft.core.particles.ParticleType
 import net.minecraft.network.FriendlyByteBuf
+import org.joml.Vector3f
 import org.valkyrienskies.clockwork.ClockworkParticles
 import java.util.Locale
 import java.util.function.BiFunction
 import java.util.function.Function
 
-class LeakParticleData @JvmOverloads constructor(var dir: Direction = Direction.UP, var speed: Float = 0f) : ParticleOptions,
+class LeakParticleData @JvmOverloads constructor(var dir: Vector3f = Vector3f(), var speed: Float = 0f) : ParticleOptions,
     ICustomParticleDataWithSprite<LeakParticleData> {
     override fun getType(): ParticleType<*> {
         return ClockworkParticles.LEAK.get()
     }
 
     override fun writeToNetwork(buffer: FriendlyByteBuf) {
-        buffer.writeEnum(dir)
+        buffer.writeVector3f(dir)
         buffer.writeFloat(speed)
     }
 
@@ -52,14 +53,16 @@ class LeakParticleData @JvmOverloads constructor(var dir: Direction = Direction.
     companion object {
         val CODEC: Codec<LeakParticleData> =
             RecordCodecBuilder.create<LeakParticleData>(Function { i: RecordCodecBuilder.Instance<LeakParticleData> ->
-                i!!.group<Int, Float>(
-                    Codec.INT.fieldOf("dir").forGetter<LeakParticleData>(Function { p: LeakParticleData -> p.dir.ordinal }),
+                i!!.group<Float, Float, Float, Float>(
+                    Codec.FLOAT.fieldOf("dirX").forGetter<LeakParticleData>(Function { p: LeakParticleData -> p.dir.x }),
+                    Codec.FLOAT.fieldOf("dirY").forGetter<LeakParticleData>(Function { p: LeakParticleData -> p.dir.y }),
+                    Codec.FLOAT.fieldOf("dirZ").forGetter<LeakParticleData>(Function { p: LeakParticleData -> p.dir.z }),
                     Codec.FLOAT.fieldOf("speed")
                         .forGetter<LeakParticleData>(Function { p: LeakParticleData -> p.speed })
                 )
                     .apply<LeakParticleData>(
                         i,
-                        BiFunction { dir: Int, speed: Float -> LeakParticleData(Direction.entries[dir], speed) })
+                        { dirX: Float, dirY: Float, dirZ: Float, speed: Float -> LeakParticleData(Vector3f(dirX, dirY, dirZ), speed) })
             })
         val DESERIALIZER: ParticleOptions.Deserializer<LeakParticleData> =
             object : ParticleOptions.Deserializer<LeakParticleData> {
@@ -69,17 +72,21 @@ class LeakParticleData @JvmOverloads constructor(var dir: Direction = Direction.
                     reader: StringReader
                 ): LeakParticleData {
                     reader.expect(' ')
-                    val dir = reader.readInt()
+                    val dirX = reader.readFloat()
+                    reader.expect(' ')
+                    val dirY = reader.readFloat()
+                    reader.expect(' ')
+                    val dirZ = reader.readFloat()
                     reader.expect(' ')
                     val speed = reader.readFloat()
-                    return LeakParticleData(Direction.entries[dir], speed)
+                    return LeakParticleData(Vector3f(dirX, dirY, dirZ), speed)
                 }
 
                 override fun fromNetwork(
                     particleTypeIn: ParticleType<LeakParticleData>,
                     buffer: FriendlyByteBuf
                 ): LeakParticleData {
-                    return LeakParticleData(Direction.entries[buffer.readInt()], buffer.readFloat())
+                    return LeakParticleData(buffer.readVector3f(), buffer.readFloat())
                 }
             }
     }

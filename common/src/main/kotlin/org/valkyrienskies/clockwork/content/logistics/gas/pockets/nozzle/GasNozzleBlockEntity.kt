@@ -18,6 +18,7 @@ import net.minecraft.util.RandomSource
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
+import org.joml.Vector3f
 import org.valkyrienskies.clockwork.ClockworkAugmentations
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
@@ -127,7 +128,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
             val network = ClockworkModClient.getKelvin()
             val gasses = network.getGasMassAt(getDuctNodePosition())
             val pressure = network.getPressureAt(getDuctNodePosition())
-            val MASS_PER_EXHAUST = 0.0005
+            val MASS_PER_EXHAUST = 0.001
 
             for (i in 1..floor((gasses.values.sum()*pointer.value)/MASS_PER_EXHAUST).toInt()) {
                 KelvinParticleHelper.spawnParticleWithRatio(level as ClientLevel, getDuctNodePosition(),
@@ -159,6 +160,12 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
         if (oldHas != hasPocket) {
             if (hasPocket) {
+                val shipOn = serverLevel.getLoadedShipManagingPos(blockPos)
+                val upInWorld = if (shipOn != null) {
+                    shipOn.transform.rotation.transform(Direction.UP.step())
+                } else {
+                    Direction.UP.step()
+                }
                 serverLevel.playSound(
                     null,
                     blockPos,
@@ -170,13 +177,13 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
                 // send initial particle burst
                 serverLevel.sendParticles(
                     LeakParticleData(
-                        Direction.UP,
+                        upInWorld,
                         2f,
                     ),
                     blockPos.x + 0.5,
                     blockPos.y + 1.0,
                     blockPos.z + 0.5,
-                    20,
+                    5,
                     0.3,
                     0.3,
                     0.3,
@@ -187,7 +194,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         }
 
         if (hasPocket) {
-            if (balloon?.shouldRemove == true || balloon == null || balloon?.shouldReScan == true) {
+            if (balloon?.shouldRemove == true || balloon == null) {
                 shouldFetchNextTick = true
                 hasPocket = false
                 sendData()
@@ -256,12 +263,12 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         val heatEnergy = ClockworkMod.getKelvin().getHeatEnergy(getDuctNodePosition())
         val pocketCapacity = ClockworkMod.getKelvin().mixtureCapacity(pocketGasMass)
         val currentPocketTemperature = (pocketHeatEnergy) / pocketCapacity
-        val targetTemperature = ClockworkMod.getKelvin().getTemperatureAt(getDuctNodePosition())
-        val maxEnergyAddedThisTick = (heatEnergy / 10.0) * pointer.value.toDouble()
-        val energyToAdd = min(pocketCapacity * (targetTemperature - currentPocketTemperature), maxEnergyAddedThisTick)
+        val targetTemperature = ClockworkMod.getKelvin().getTemperatureAt(getDuctNodePosition()) * pointer.value.toDouble()
+        val maxEnergyAddedThisTick = (heatEnergy / 2.0)
+        val energyToAdd = min(pocketCapacity * min(targetTemperature - currentPocketTemperature, 100.0), maxEnergyAddedThisTick)
 
         val usedUpMass = gasMassTotal * pointer.value
-        val usedEnergy = min(heatEnergy * pointer.value, energyToAdd)
+        val usedEnergy = min(heatEnergy, energyToAdd) * pointer.value
 
         pocketTemperature = (pocketHeatEnergy + usedEnergy) / pocketCapacity
         balloonVolume = balloon.currentVolume
@@ -410,7 +417,12 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
             (tooltip as MutableList?)?.add(Component.literal("[Right-click] to re-scan.").withStyle(ChatFormatting.DARK_GRAY).withStyle(ChatFormatting.ITALIC))
         } else {
             (tooltip as MutableList?)?.add(Component.literal("Pocket Volume: ${"%,.2f".format(balloonVolume)} m³").withStyle(ChatFormatting.GREEN))
-            (tooltip as MutableList?)?.add(Component.literal("Pocket Temperature: ${pocketTemperature.roundToInt()}K").withStyle(ChatFormatting.GOLD))
+            (tooltip as MutableList?)?.add(Component.literal("Pocket Temperature: ${pocketTemperature.roundToInt()} K").withStyle(ChatFormatting.GOLD))
+            if (isPlayerSneaking) {
+                val targetTemperature = ClockworkModClient.getKelvin().getTemperatureAt(getDuctNodePosition()) * pointer.value.toDouble()
+                (tooltip as MutableList?)?.add(Component.literal("Target Temperature: ${targetTemperature.roundToInt()} K").withStyle(ChatFormatting.YELLOW).withStyle(
+                    ChatFormatting.ITALIC))
+            }
             if (currentIdealOutput.toInt() != 0) {
                 (tooltip as MutableList?)?.add(Component.literal("!! BALLOON INTEGRITY COMPROMISED !!").withStyle(ChatFormatting.RED))
                 (tooltip as MutableList?)?.add(Component.literal("Leaks Detected: ${currentIdealOutput.roundToInt()}").withStyle(ChatFormatting.DARK_RED))

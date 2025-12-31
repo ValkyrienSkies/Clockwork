@@ -4,13 +4,18 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonIgnore
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.core.Vec3i
+import net.minecraft.core.particles.ParticleTypes
+import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.entity.ai.targeting.TargetingConditions
 import net.minecraft.world.level.ClipContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.HitResult
 import org.joml.Vector3d
 import org.joml.Vector3dc
+import org.joml.Vector3f
 import org.joml.primitives.AABBic
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItem.Companion.toAABBic
@@ -248,22 +253,36 @@ class BalloonController: ShipPhysicsListener {
 
             //also scan diagonal edges
             for (dir in Direction.values()) {
+                val n = cur.relative(dir)
                 for (diag in Direction.values()) {
-                    if (dir.axis == diag.axis) continue
-                    val n = cur.relative(dir).relative(diag)
-                    if (!level.getBlockState(n).isValidBalloonEnclosure(level, n)) continue
-                    val nl = n.asLong()
-                    if (!visited.contains(nl)) q.add(nl)
+                    if (dir.axis == diag.axis) {
+                        continue
+                    }
+                    val nd = n.relative(diag)
+                    for (corner in Direction.values()) {
+                        if (corner.axis == diag.axis || corner.axis == dir.axis) {
+                            continue
+                        }
+                        val nc = nd.relative(corner)
+                        if (!level.getBlockState(nc).isValidBalloonEnclosure(level, nc)) continue
+                        val nlc = nc.asLong()
+                        if (!visited.contains(nlc)) {
+                            q.add(nlc)
+                        }
+                    }
+                    if (!level.getBlockState(nd).isValidBalloonEnclosure(level, nd)) continue
+                    val ndl = nd.asLong()
+                    if (!visited.contains(ndl)) q.add(ndl)
                 }
-//                val n = cur.relative(dir)
-//                if (!level.getBlockState(n).isValidBalloonEnclosure(level, n)) continue
-//                val nl = n.asLong()
-//                if (!visited.contains(nl)) q.add(nl)
+                if (!level.getBlockState(n).isValidBalloonEnclosure(level, n)) continue
+                val nl = n.asLong()
+                if (!visited.contains(nl)) q.add(nl)
             }
+            // If we hit the cap, treat as failure (prevents scanning half a world if something is weird)
+            if (visited.size >= maxShellBlocks) return null
         }
 
-        // If we hit the cap, treat as failure (prevents scanning half a world if something is weird)
-        if (visited.size >= maxShellBlocks) return null
+
 
         return ShellInfo(minY, maxY, topPos, minX, maxX, minZ, maxZ)
     }
@@ -302,12 +321,38 @@ class BalloonController: ShipPhysicsListener {
 
             // Bounds + open-bottom cut
             if (cur.y <= minYInterior) continue
-            if (cur.x !in minX..maxX || cur.z !in minZ..maxZ) {
-                return emptyList()
-            }
-
             val state = level.getBlockState(cur)
             if (state.isValidBalloonEnclosure(level, cur)) continue
+            if (cur.x !in minX..maxX || cur.z !in minZ..maxZ) {
+//                if (level is ServerLevel) {
+//                    val player = (level as ServerLevel).getNearestPlayer(seed.x.toDouble(), seed.y.toDouble(), seed.z.toDouble(), 256.0, false)
+//                    //todo lang
+//                    level.sendParticles(
+//                        ParticleTypes.LARGE_SMOKE,
+//                        seed.x + 0.5,
+//                        seed.y + 0.5,
+//                        seed.z + 0.5,
+//                        20,
+//                        0.3,
+//                        0.3,
+//                        0.3,
+//                        0.0
+//                    )
+//                    player?.displayClientMessage(Component.literal("Invalid position at ${cur}"), true)
+//                    level.sendParticles(
+//                        ParticleTypes.LARGE_SMOKE,
+//                        cur.x + 0.5,
+//                        cur.y + 0.5,
+//                        cur.z + 0.5,
+//                        20,
+//                        0.3,
+//                        0.3,
+//                        0.3,
+//                        0.0
+//                    )
+//                }
+                return emptyList()
+            }
 
             toFill.add(cur.toAABBic())
 
@@ -344,7 +389,12 @@ class BalloonController: ShipPhysicsListener {
 
         @JvmStatic
         fun BlockState.isValidBalloonEnclosure(level: Level, pos: BlockPos): Boolean {
-            return !this.isAir && !this.getCollisionShape(level, pos).isEmpty
+            return !this.isAir && this.isCollisionShapeFullBlock(level, pos)
+        }
+
+        @JvmStatic
+        fun BlockState.isValidBalloonEnclosureDirectional(level: Level, pos: BlockPos, direction: Direction): Boolean {
+            return !this.isAir && !this.isFaceSturdy(level, pos, direction.opposite)
         }
     }
 }

@@ -40,6 +40,7 @@ class BladeControllerMovementBehaviour: MovementBehaviour {
             for (i in 0 until bladeCount) {
                 bladeList[i] = ItemStack.of(blades.getCompound("Blade${i+1}"))
             }
+            var currentBladeCount = bladeCount
             val rotation = context.rotation.apply(Vec3.ZERO)
             val deltaRotation = rotation.subtract(previousRotation)
             if (deltaRotation.length().absoluteValue >= 128.0 && ClockworkConfig.SERVER.bladeControllerUsesDurability && (context.contraption is PropellerContraption && !(context.contraption as PropellerContraption).brass)) {
@@ -53,11 +54,12 @@ class BladeControllerMovementBehaviour: MovementBehaviour {
                     }
                     toRemove.forEach {
                         bladeList.remove(it)
+                        currentBladeCount--
                     }
                 }
             }
-            if (bladeList.size != bladeCount) {
-                blockEntityData.putInt("BladeCount", bladeList.size)
+            if (currentBladeCount != bladeCount) {
+                blockEntityData.putInt("BladeCount", currentBladeCount)
                 blades.remove("Blades")
                 val newBlades = CompoundTag()
                 ContainerHelper.saveAllItems(newBlades, bladeList)

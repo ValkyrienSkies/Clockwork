@@ -10,6 +10,7 @@ import net.minecraft.sounds.SoundSource
 import net.minecraft.world.level.Level
 import org.joml.Vector3d
 import org.joml.Vector3dc
+import org.joml.Vector3f
 import org.joml.Vector3i
 import org.joml.Vector3ic
 import org.joml.primitives.AABBic
@@ -38,6 +39,7 @@ import org.valkyrienskies.mod.common.shipObjectWorld
 import kotlin.collections.set
 import kotlin.math.absoluteValue
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -98,7 +100,7 @@ class BalloonData {
             for (pos in leakPositions) {
                 val blockPos = BlockPos(pos.x(), pos.y(), pos.z())
                 if (level.isLoaded(blockPos)) {
-                    sendLeakParticles(level, blockPos, findDirectionToOutside(level, blockPos, getExternalPositions()))
+                    sendLeakParticles(level, blockPos, Direction.UP)
                 }
                 averageLeakPos.add(pos)
             }
@@ -164,7 +166,7 @@ class BalloonData {
         val estimatedSurfaceArea = 4.84 * volume.pow(2.0/3.0)
 
         // Gas leak exiting
-        val gasExitRate = max(0.0, currentPressure - atmoPressure) * estimatedSurfaceArea * ClockworkConfig.SERVER.permeabilityConstant / sqrt(currentTemperature * DuctNetwork.idealGasConstant / molarMass) * max(1.0, missingExternalPositions.toDouble() + 1.0)
+        val gasExitRate = max(0.0, (currentPressure - atmoPressure) / 2.0) * estimatedSurfaceArea * ClockworkConfig.SERVER.permeabilityConstant / sqrt(currentTemperature * DuctNetwork.idealGasConstant / molarMass) * max(1.0, missingExternalPositions.toDouble() + 1.0)
         val exitGas = gasExitRate * 0.01
         val exitGasMasses = HashMap<GasType, Double>()
         currentGasMasses.forEach {
@@ -370,7 +372,7 @@ class BalloonData {
                             1f,
                             0.9f + level.random.nextFloat() * 0.2f
                         )
-                        sendInitialLeakParticleBurst(level, pos, findDirectionToOutside(level, pos, externals))
+                        sendInitialLeakParticleBurst(level, pos, Direction.UP)
                     }
                 }
             }
@@ -382,7 +384,8 @@ class BalloonData {
     fun findDirectionToOutside(level: ServerLevel, pos: BlockPos, externals: Set<BlockPos>): Direction {
         for (dir in Direction.values()) {
             val check = pos.relative(dir)
-            if (!this.containsPosition(pos) && !externals.contains(check)) {
+            if (!this.containsPosition(check) && !externals.contains(check) && !level.getBlockState(check).isValidBalloonEnclosure(level, check)) {
+                //println(dir)
                 return dir
             }
         }
@@ -390,13 +393,17 @@ class BalloonData {
     }
 
     fun sendInitialLeakParticleBurst(level: ServerLevel, position: BlockPos, dir: Direction) {
-        val leakParticle = LeakParticleData(dir, 0.1f + level.random.nextFloat() * 5f)
+        val thisShip = level.getLoadedShipManagingPos(position) ?: return
+        val center = getCenter().sub(0.5, 0.5, 0.5, Vector3d())
+        val realDir = Vector3f(position.x.toFloat(), position.y.toFloat(), position.z.toFloat()).sub(Vector3f(center.x().toFloat(), center.y().toFloat(), center.z().toFloat())).normalize()
+        val worldDirection = thisShip.transform.shipToWorldRotation.transform(Vector3f(realDir.x.toFloat(), realDir.y.toFloat(), realDir.z.toFloat()))
+        val leakParticle = LeakParticleData(worldDirection, 0.1f + level.random.nextFloat() * 0.2f)
         level.sendParticles(
             leakParticle,
             position.x.toDouble(),
             position.y.toDouble(),
             position.z.toDouble(),
-            50,
+            level.random.nextInt(50, 100),
             0.5,
             0.5,
             0.5,
@@ -405,14 +412,18 @@ class BalloonData {
     }
 
     fun sendLeakParticles(level: ServerLevel, position: BlockPos, dir: Direction) {
-        for (i in 1..4) {
-            val leakParticle = LeakParticleData(dir, 0.05f + level.random.nextFloat() * 0.5f)
+        val thisShip = level.getLoadedShipManagingPos(position) ?: return
+        val center = getCenter().sub(0.5, 0.5, 0.5, Vector3d())
+        val realDir = Vector3f(position.x.toFloat(), position.y.toFloat(), position.z.toFloat()).sub(Vector3f(center.x().toFloat(), center.y().toFloat(), center.z().toFloat())).normalize()
+        val worldDirection = thisShip.transform.shipToWorldRotation.transform(Vector3f(realDir.x.toFloat(), realDir.y.toFloat(), realDir.z.toFloat()))
+        for (i in 1..missingExternalPositions.coerceAtMost(4)) {
+            val leakParticle = LeakParticleData(worldDirection, 0.05f + level.random.nextFloat() * 0.5f)
             level.sendParticles(
                 leakParticle,
-                position.x.toDouble(),
-                position.y.toDouble(),
-                position.z.toDouble(),
-                5,
+                position.x.toDouble() + 0.5,
+                position.y.toDouble() + 0.5,
+                position.z.toDouble() + 0.5,
+                if (missingExternalPositions >= currentMaxLeaks / 2) 2 else 1,
                 0.5,
                 0.5,
                 0.5,

@@ -473,17 +473,17 @@
   "balloon_rupture": {
     "sounds": [
       {
-        "name": "vs_clockwork:balloon_rupture_1",
+        "name": "vs_clockwork:balloon_rupturing_1",
         "type": "file",
         "attenuation_distance": 64
       },
       {
-        "name": "vs_clockwork:balloon_rupture_2",
+        "name": "vs_clockwork:balloon_rupturing_2",
         "type": "file",
         "attenuation_distance": 64
       },
       {
-        "name": "vs_clockwork:balloon_rupture_3",
+        "name": "vs_clockwork:balloon_rupturing_3",
         "type": "file",
         "attenuation_distance": 64
       }
