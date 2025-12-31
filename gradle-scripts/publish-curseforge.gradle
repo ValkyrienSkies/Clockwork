@@ -32,14 +32,12 @@ curseforge {
                 relations {
                     if (project.loader_platform == 'Forge') {
                         requiredDependency 'valkyrien-skies'
-                        embeddedLibrary 'architectury'
                         requiredDependency 'create'
                     }
 
                     if (project.loader_platform == 'Fabric') {
                         requiredDependency 'fabric-api'
                         requiredDependency 'valkyrien-skies'
-                        embeddedLibrary 'architectury'
                         requiredDependency 'create-fabric'
                     }
                 }
@@ -71,13 +69,11 @@ modrinth {
     dependencies {
         if (project.loader_platform == 'Forge') {
             required.project 'valkyrien-skies'
-            embedded.project 'architectury'
             required.project 'create'
         }
 
         if (project.loader_platform == 'Fabric') {
             required.project 'valkyrien-skies'
-            embedded.project 'architectury'
             required.project 'create-fabric'
         }
     }
