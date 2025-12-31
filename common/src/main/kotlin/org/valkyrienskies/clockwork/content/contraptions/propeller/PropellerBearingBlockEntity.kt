@@ -52,6 +52,7 @@ import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.math.abs
 import kotlin.math.absoluteValue
 import kotlin.math.min
+import kotlin.math.roundToInt
 import kotlin.math.sin
 
 open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState, val brass: Boolean = false) : KineticBlockEntity(type, pos, state), IBearingBlockEntity, IForceApplierBE<PropUpdateData, PropData, PropCreateData, PropellerController> {
@@ -227,7 +228,7 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
             active = !overStressed && !stalled
             updateSpinDir(currentOmega < 0)
             val lastTargetOmega = targetOmega
-            targetOmega = convertToAngular(this.getSpeed()).toDouble() * if (isInverted()) -1.0 else 1.0
+            targetOmega = convertToAngular(this.getSpeed()).toDouble() * (if (isInverted()) -1.0 else 1.0) * 8.0
 
             if (lastTargetOmega != targetOmega) {
                 sendData()
@@ -269,7 +270,7 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
     }
     // reminder: override this for copter bearing since their redstone controls something different
     open fun applyPowerEffect() {
-        if (!this.brass || blades.isEmpty()) return
+        if (!this.brass || blades.isEmpty() || (powerOne == 0 && powerTwo == 0)) return
 
         val powerEffect = Mth.clamp((powerOne + powerTwo).toFloat() / 30f, -1f, 1f)
         val angleChange = 2f * powerEffect
@@ -346,7 +347,7 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
         angle = 0.0
         currentOmega = 0.0
 
-        targetOmega = convertToAngular(this.getSpeed()).toDouble() * if (isInverted()) -1.0 else 1.0
+        targetOmega = convertToAngular(this.getSpeed()).toDouble() * (if (isInverted()) -1.0 else 1.0) * 8.0
 
         getBlades()
         if (brass && blades.isEmpty()) {
@@ -576,7 +577,7 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
 
     fun getPowerDirections(): Pair<Axis, Axis> {
         val perpendicularAxes = (Axis.values().filter {
-            it != (blockState as DirectionalAxisKineticBlock).getRotationAxis(
+            it != (blockState.block as BearingBlock).getRotationAxis(
                 blockState
             )
         })
@@ -585,7 +586,7 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
 
     protected fun getPower(): Pair<Int, Int> {
         val perpendicularAxes = (Axis.values().filter {
-            it != (blockState as DirectionalAxisKineticBlock).getRotationAxis(
+            it != (blockState.block as BearingBlock).getRotationAxis(
                 blockState
             )
         })
@@ -624,10 +625,15 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
                 for (sail in sailPositions) {
                     stressImpact += axis.cross(sail.x().toDouble(), sail.y().toDouble(), sail.z().toDouble(), Vector3d()).length()
                 }
-            } else {
+            } else if (this.theoreticalSpeed != 0f) {
                 // Add stress impact from propeller blades.
                 for (blade in blades) {
-                    stressImpact += abs(blade.length * sin(Math.toRadians(blade.angle)) * (if(blade.wide) 1.5 else 1.0))
+                    // TODO: Single point for deriving blade width from blade.wide
+                    // TODO: multiply internal RPM of propeller by 8.0
+                    stressImpact += ((PropellerController.calculateBladePower(0.0,
+                        this.theoreticalSpeed.toDouble() * 8.0 / 60.0,
+                        blade.length, blade.angle, if (blade.wide) 0.375 else 0.25
+                    ) / 100.0).roundToInt() / this.theoreticalSpeed) / 2.0
                 }
             }
         }

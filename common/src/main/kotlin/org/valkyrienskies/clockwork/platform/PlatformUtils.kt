@@ -5,6 +5,7 @@ import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType
 import dev.architectury.injectables.annotations.ExpectPlatform
 import net.minecraft.core.BlockPos
+import net.minecraft.core.particles.ParticleOptions
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.protocol.Packet
 import net.minecraft.server.level.ServerLevel
@@ -18,6 +19,7 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
+import org.valkyrienskies.clockwork.ClockworkParticles
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.InputKey
 import org.valkyrienskies.clockwork.util.blocktype.LiquidFuelType
 import org.valkyrienskies.clockwork.util.fluid.CWFluidTankBehaviour
@@ -29,6 +31,12 @@ object PlatformUtils {
     @ExpectPlatform
     @JvmStatic
     fun getEnvExecutor(toRun: Supplier<Runnable>) {
+        throw AssertionError()
+    }
+
+    @ExpectPlatform
+    @JvmStatic
+    fun <D : ParticleOptions> registerParticleOnPlatform(entry: ClockworkParticles.ParticleEntry<D>, event: Any?) {
         throw AssertionError()
     }
 

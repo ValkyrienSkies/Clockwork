@@ -13,6 +13,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import org.valkyrienskies.clockwork.content.curiosities.particles.PhysLightningParticle;
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.LeakParticleData;
+import org.valkyrienskies.clockwork.platform.PlatformUtils;
 import org.valkyrienskies.clockwork.platform.api.DeferredRegister;
 
 import java.util.function.Supplier;
@@ -32,10 +33,11 @@ public enum ClockworkParticles {
     }
 
     @Environment(EnvType.CLIENT)
-    public static void initClient() {
+    public static void initClient(Object event) {
         ParticleEngine particles = Minecraft.getInstance().particleEngine;
         for (final ClockworkParticles particle : values()) {
-            particle.entry.registerFactory(particles);
+            //particle.entry.registerFactory(particles);
+            PlatformUtils.registerParticleOnPlatform(particle.entry, event);
         }
     }
 
@@ -47,13 +49,13 @@ public enum ClockworkParticles {
         return entry.name;
     }
 
-    private static class ParticleEntry<D extends ParticleOptions> {
+    public static class ParticleEntry<D extends ParticleOptions> {
         private static final DeferredRegister<ParticleType<?>> REGISTER =
                 DeferredRegister.create(BuiltInRegistries.PARTICLE_TYPE, ClockworkMod.MOD_ID);
 
-        private final String name;
-        private final Supplier<? extends ICustomParticleData<D>> typeFactory;
-        private final ParticleType<D> object;
+        public final String name;
+        public final Supplier<? extends ICustomParticleData<D>> typeFactory;
+        public final ParticleType<D> object;
 
         public ParticleEntry(final String name, final Supplier<? extends ICustomParticleData<D>> typeFactory) {
             this.name = name;
