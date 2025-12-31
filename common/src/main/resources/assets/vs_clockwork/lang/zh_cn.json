@@ -138,7 +138,12 @@
   "contraptions.propeller.controller_wrong_way": "螺旋桨控制器朝向错误",
   "contraptions.propeller.not_prop": "这不是一个螺旋桨",
   "propeller.rotation_direction.normal": "正向",
-  "propeller.rotation_direction.reversed": "反向",
+  "propeller.rotation_direction.inverted": "反向",
+
+  "vs_clockwork.gas_heater.heater_info": "    加热器信息",
+  "vs_clockwork.gas_heater.heat_level": "热量等级: %s",
+
+  "vs_clockwork.command.get_air_values": "处于 y: %d 密度: %d 温度: %d",
 
   "vs_clockwork.subtitle.gravitron_start": "重力枪：启动",
   "vs_clockwork.subtitle.gravitron_grab": "重力枪：抓取物理结构",
@@ -246,8 +251,11 @@
   "item.vs_clockwork.sealer": "便携式密封器",
   "block.vs_clockwork.gas_tank": "气体储罐",
   "item.vs_clockwork.gas_tank": "气体储罐",
+
   "block.vs_clockwork.gas_heater": "气体加热器",
   "item.vs_clockwork.gas_heater": "气体加热器",
+
+
   "block.vs_clockwork.creative_gas_generator": "创造气体源",
   "item.vs_clockwork.creative_gas_generator": "创造气体源",
   "block.vs_clockwork.air_compressor": "空气压缩机",
@@ -272,9 +280,16 @@
   "item.vs_clockwork.gas_backtank": "气体背罐",
   "item.vs_clockwork.screwdriver": "螺丝刀",
   "item.vs_clockwork.extendon_hose": "软管卷轴",
+
   "block.vs_clockwork.universal_shaft": "万向传动杆节点",
   "item.vs_clockwork.universal_shaft": "万向传动杆节点",
   "item.vs_clockwork.universal_shaft_item": "万向传动杆",
+  "vs_clockwork.universal_shaft.connection_start": "开始连接……",
+  "vs_clockwork.universal_shaft.connection_failed": "连接失败。",
+  "vs_clockwork.universal_shaft.connection_failed.too_far": "连接失败：节点间距过远！",
+  "vs_clockwork.universal_shaft.connection_failed.to_itself": "连接失败：无法连接到自身！",
+  "vs_clockwork.universal_shaft.connection_end": "已连接！",
+
   "block.vs_clockwork.hose_port": "软管端口",
   "item.vs_clockwork.hose_port": "软管端口",
 
@@ -285,7 +300,6 @@
 
   "item.vs_clockwork.incomplete_telescoping_mechanism": "万向传动杆（半成品）",
   "item.vs_clockwork.incomplete_hose_spool": "软管卷轴（半成品）",
-
 
   "block.vs_clockwork.delivery_chute": "接收槽",
   "item.vs_clockwork.delivery_chute": "接收槽",
@@ -337,8 +351,14 @@
   "fluid.vs_clockwork.vanilla_frosting_bucket": "香草糖霜",
   "fluid.vs_clockwork.chocolate_frosting_bucket": "巧克力糖霜",
   "fluid.vs_clockwork.strawberry_frosting_bucket": "草莓糖霜",
+
   "block.vs_clockwork.phys_bearing": "物理轴承",
   "item.vs_clockwork.phys_bearing": "物理轴承",
+  "vs_clockwork.phys_bearing.rotation_mode": "旋转模式",
+  "vs_clockwork.phys_bearing.rotation_mode.follow_angle": "跟随角度",
+  "vs_clockwork.phys_bearing.rotation_mode.unlocked": "未锁定",
+  "vs_clockwork.phys_bearing.rotation_mode.locked": "锁定",
+
   "vs_clockwork.gravitron.tool.grab": "抓取",
   "vs_clockwork.gravitron.tool.assemble": "组装",
   "vs_clockwork.gravitron.tool.grab_and_assemble": "组装并抓取",
@@ -361,6 +381,39 @@
   "vs_clockwork.gravitron.tool.destroy.description.1": "小心你周围的环境，",
   "vs_clockwork.gravitron.tool.destroy.description.2": "物理结构将瞬间融入世界空间。",
   "vs_clockwork.gravitron.tool.destroy.description.3": "",
+
+  "vs_clockwork.unit.temp.kelvin": "K",
+  "vs_clockwork.unit.temp.celsius": "°C",
+  "vs_clockwork.unit.temp.fahrenheit": "°F",
+  "vs_clockwork.unit.pressure.pascal": "Pa",
+  "vs_clockwork.unit.pressure.kilopascal": "kPa",
+  "vs_clockwork.unit.pressure.megapascal": "MPa",
+  "vs_clockwork.unit.pressure.bar": "bar",
+  "vs_clockwork.unit.pressure.psi": "psi",
+  "vs_clockwork.unit.pressure.mm_hg": "mmHg",
+  "vs_clockwork.unit.energy.joule": "J",
+  "vs_clockwork.unit.energy.kilojoule": "kJ",
+  "vs_clockwork.unit.energy.megajoule": "MJ",
+  "vs_clockwork.unit.energy.gigajoule": "GJ",
+  "vs_clockwork.unit.energy.kcal": "kcal",
+  "vs_clockwork.unit.volume.cubic_meter": "m³",
+  "vs_clockwork.unit.volume.liter": "L",
+  "vs_clockwork.unit.volume.milliliter": "mL",
+  "vs_clockwork.unit.volume.gallon": "加仑",
+  "vs_clockwork.unit.volume.fluid_ounce": "液盎司",
+  "vs_clockwork.unit.mass.kilogram": "kg",
+  "vs_clockwork.unit.mass.ton": "t",
+  "vs_clockwork.unit.mass.gram": "g",
+  "vs_clockwork.unit.mass.imperial_ton": "英吨",
+  "vs_clockwork.unit.mass.ounce": "盎司",
+
+  "vs_clockwork.gui.ductInfo.title": "管道信息:",
+  "vs_clockwork.gui.ductInfo.volume": "体积",
+  "vs_clockwork.gui.ductInfo.temperature": "温度",
+  "vs_clockwork.gui.ductInfo.pressure": "压力",
+  "vs_clockwork.gui.ductInfo.energy": "热能",
+  "vs_clockwork.gui.ductInfo.title.contents": "管道内容:",
+  "vs_clockwork.gui.ductInfo.mass_total": "总计 ",
 
   "vs_clockwork.ponder.wanderwand.header": "漫游之杖",
   "vs_clockwork.ponder.wanderwand.text_1": "将漫游之杖放入物理注入器中",
