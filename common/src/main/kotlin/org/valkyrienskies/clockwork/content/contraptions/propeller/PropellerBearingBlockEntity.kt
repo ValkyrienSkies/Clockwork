@@ -627,7 +627,11 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
             } else {
                 // Add stress impact from propeller blades.
                 for (blade in blades) {
-                    stressImpact += abs(blade.length * sin(Math.toRadians(blade.angle)) * (if(blade.wide) 1.5 else 1.0))
+                    // TODO: Single point for deriving blade width from blade.wide
+                    stressImpact += (PropellerController.calculateBladePower(0.0,
+                        this.theoreticalSpeed.toDouble() / 60.0,
+                        blade.length, blade.angle, if (blade.wide) 0.375 else 0.25
+                    ) / this.theoreticalSpeed / 10.0).roundToInt()
                 }
             }
         }
