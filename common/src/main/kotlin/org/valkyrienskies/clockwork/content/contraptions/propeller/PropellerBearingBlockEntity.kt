@@ -586,7 +586,7 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
 
     protected fun getPower(): Pair<Int, Int> {
         val perpendicularAxes = (Axis.values().filter {
-            it != (blockState as DirectionalAxisKineticBlock).getRotationAxis(
+            it != (blockState.block as DirectionalAxisKineticBlock).getRotationAxis(
                 blockState
             )
         })
