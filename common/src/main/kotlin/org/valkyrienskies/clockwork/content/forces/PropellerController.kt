@@ -288,7 +288,8 @@ class PropellerController(
             val blade = blades[i]
             val bladeWidth = if (blade.wide) 0.375 else 0.25
             // TODO: multiply internal RPM of propeller by 8.0
-            val bladeRotationalSpeed = physProp.bearingSpeed * 8.0 / 60.0 // Unit in rev/s
+            // bearingSpeed is in deg/t, convert to rev/s
+            val bladeRotationalSpeed = abs(physProp.bearingSpeed/360.0*20.0) * 8.0 // Unit in rev/s
 
             val power = calculateBladePower(velocityTowardsPropellerDir,
                 bladeRotationalSpeed, blade.length, blade.angle, bladeWidth)
@@ -296,7 +297,7 @@ class PropellerController(
 
             val thrust = power.pow(2.0/3) * (2 * airDensityAtY * Math.PI * blade.length.pow(2)).pow(1.0/3)
 
-            val force: Vector3d = worldAxis.mul(thrust, Vector3d())
+            val force: Vector3d = worldAxis.mul(-thrust, Vector3d())
             if (blade.angle < 0) {
                 force.negate()
             }
@@ -332,14 +333,16 @@ class PropellerController(
             val a = ln(Mth.clamp(abs(bladeAngle), 0.0, 90.0) + 1)/2.3
             if (a == 0.0) return 0.0
 
-            // TODO: Calculate speed of sound
-            val airspeed = Mth.clamp(velocityTowardsPropellerDir, 0.0, 331.0)
-            val advanceRatio = airspeed / (bladeRotationalSpeed * bladeLength)
+            val bladeDiameter = 2*bladeLength
+
+            val airspeed = max(0.0, velocityTowardsPropellerDir)
+            val advanceRatio = airspeed / (bladeRotationalSpeed * bladeDiameter)
             val powerCoefficient =  b * (a - 1 - advanceRatio/(a.pow(3.0) * c.pow(2.0)))
-            val machPowerMultiplier = 1 - 1.0/(1+ exp((331 - airspeed) / 30.0))
+            // TODO: Calculate speed of sound
+            val machPowerMultiplier = 1 - 1.0/(1 + exp((331 - airspeed) / 30.0))
             val power = powerCoefficient *
                     bladeRotationalSpeed.pow(3) *
-                    (2 * bladeLength).pow(5) *
+                    bladeDiameter.pow(5) *
                     bladeWidth * 4 *
                     machPowerMultiplier
 
