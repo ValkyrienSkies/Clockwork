@@ -270,7 +270,7 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
     }
     // reminder: override this for copter bearing since their redstone controls something different
     open fun applyPowerEffect() {
-        if (!this.brass || blades.isEmpty()) return
+        if (!this.brass || blades.isEmpty() || (powerOne == 0 && powerTwo == 0)) return
 
         val powerEffect = Mth.clamp((powerOne + powerTwo).toFloat() / 30f, -1f, 1f)
         val angleChange = 2f * powerEffect

@@ -36,9 +36,9 @@ class BladeControllerMovementBehaviour: MovementBehaviour {
         val blades = blockEntityData.getCompound("Blades")
         if (!blades.isEmpty) {
             val bladeCount = blockEntityData.getInt("BladeCount")
-            val bladeList = mutableListOf<ItemStack>()
+            val bladeList = NonNullList.withSize(8, ItemStack.EMPTY)
             for (i in 1 .. bladeCount) {
-                bladeList.add(ItemStack.of(blades.getCompound("Blade$i")))
+                bladeList[i] = ItemStack.of(blades.getCompound("Blade$i"))
             }
             val rotation = context.rotation.apply(Vec3.ZERO)
             val deltaRotation = rotation.subtract(previousRotation)
@@ -56,14 +56,12 @@ class BladeControllerMovementBehaviour: MovementBehaviour {
                     }
                 }
             }
-            blockEntityData.putInt("BladeCount", bladeList.size)
-            blades.remove("Blades")
-            val newBlades = CompoundTag()
-            for (i in 1 .. bladeList.size) {
-                newBlades.put("Blade$i", bladeList[i - 1].save(CompoundTag()))
-            }
-            blockEntityData.put("Blades", newBlades)
             if (bladeList.size != bladeCount) {
+                blockEntityData.putInt("BladeCount", bladeList.size)
+                blades.remove("Blades")
+                val newBlades = CompoundTag()
+                ContainerHelper.saveAllItems(newBlades, bladeList)
+                blockEntityData.put("Blades", newBlades)
                 blockEntityData.putBoolean("ShouldUpdatePhys", true)
             }
         }
