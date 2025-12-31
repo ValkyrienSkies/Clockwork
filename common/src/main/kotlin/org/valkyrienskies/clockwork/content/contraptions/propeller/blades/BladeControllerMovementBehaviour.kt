@@ -37,8 +37,8 @@ class BladeControllerMovementBehaviour: MovementBehaviour {
         if (!blades.isEmpty) {
             val bladeCount = blockEntityData.getInt("BladeCount")
             val bladeList = NonNullList.withSize(8, ItemStack.EMPTY)
-            for (i in 1 .. bladeCount) {
-                bladeList[i] = ItemStack.of(blades.getCompound("Blade$i"))
+            for (i in 0 until bladeCount) {
+                bladeList[i] = ItemStack.of(blades.getCompound("Blade${i+1}"))
             }
             val rotation = context.rotation.apply(Vec3.ZERO)
             val deltaRotation = rotation.subtract(previousRotation)
