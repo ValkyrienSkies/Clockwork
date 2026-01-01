@@ -40,7 +40,7 @@ open class UniversalJointItem<T: IUniversalJoint>(properties: Properties) : Item
                 firstSelect = null
                 return fail()
             }
-            if (firstSelect == tBe) {
+            if (firstSelect == tBe || firstSelect!!.pos == tBe.pos) {
                 context.player!!.displayClientMessage(Component.translatable("$MOD_ID.universal_shaft.connection_failed.to_itself"), true)
                 firstSelect = null
                 return fail()

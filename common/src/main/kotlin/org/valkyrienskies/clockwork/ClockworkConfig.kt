@@ -57,7 +57,8 @@ object ClockworkConfig {
             "minecraft:water",
             "minecraft:flowing_water",
             "minecraft:lava",
-            "minecraft:flowing_lava"
+            "minecraft:flowing_lava",
+            "vs_clockwork:physics_infuser"
         )
 
         @ConfigEntry(description = "Enable collision sound effects")
