@@ -39,9 +39,9 @@ public class FabricClockworkEntities {
             () -> ContraptionEntityRenderer::new,
             20, 3, true
     )
-            .visual(() -> {
-                return ContraptionVisual::new;
-            })
+//            .visual(() -> {
+//                return ContraptionVisual::new;
+//            })
             .register();
 
     //
