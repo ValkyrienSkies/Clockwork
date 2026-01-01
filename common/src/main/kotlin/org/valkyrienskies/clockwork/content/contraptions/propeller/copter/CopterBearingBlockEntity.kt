@@ -327,6 +327,7 @@ class CopterBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
     }
 
     override fun applyPowerEffect() {
+        if (powerOne == 0 && powerTwo == 0) return
         val (axisOne, axisTwo) = getPowerDirections()
         val positiveNormalOne = Direction.get(POSITIVE, axisOne).normal.toJOMLD()
         val positiveNormalTwo = Direction.get(POSITIVE, axisTwo).normal.toJOMLD()
@@ -346,7 +347,7 @@ class CopterBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
             return 1f
         }
         val facing = blockState.getValue(BlockStateProperties.FACING)
-        speed = convertToDirection(speed, facing)
+        speed = -convertToDirection(speed, facing)
         if (rotationDirection.value == 1) {
             speed *= -1f
         }

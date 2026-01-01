@@ -228,12 +228,12 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
             active = !overStressed && !stalled
             updateSpinDir(currentOmega < 0)
             val lastTargetOmega = targetOmega
-            targetOmega = convertToAngular(this.getSpeed()).toDouble() * (if (isInverted()) -1.0 else 1.0) * 8.0
+            targetOmega = convertToAngular(this.getSpeed()).toDouble() * (if (isInverted()) -1.0 else 1.0)
 
             if (lastTargetOmega != targetOmega) {
                 sendData()
             }
-            currentOmega += Mth.clamp((targetOmega - currentOmega) / 10.0 / (if (starting) (targetOmega.absoluteValue + 1.0 - min(startingProgress.toDouble(), targetOmega.absoluteValue)) else 1.0), convertToAngular(-32f).toDouble(), convertToAngular(32f).toDouble())
+            currentOmega += Mth.clamp((targetOmega - currentOmega) / 2.0 / (if (starting) (targetOmega.absoluteValue + 1.0 - min(startingProgress.toDouble(), targetOmega.absoluteValue)) else 1.0), convertToAngular(-32f).toDouble(), convertToAngular(32f).toDouble())
         } else {
             active = false
             disassemblyProgress--
@@ -347,7 +347,7 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
         angle = 0.0
         currentOmega = 0.0
 
-        targetOmega = convertToAngular(this.getSpeed()).toDouble() * (if (isInverted()) -1.0 else 1.0) * 8.0
+        targetOmega = convertToAngular(this.getSpeed()).toDouble() * (if (isInverted()) -1.0 else 1.0)
 
         getBlades()
         if (brass && blades.isEmpty()) {
