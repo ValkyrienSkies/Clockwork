@@ -35,12 +35,12 @@ open class UniversalJointItem<T: IUniversalJoint>(properties: Properties) : Item
         }
         else {
             val worldDistance = context.level.toWorldCoordinates(firstSelect!!.pos).distanceTo(context.level.toWorldCoordinates(tBe.pos))
-            if (worldDistance > tBe.maxCreationDistance) { //todo add joint distance config
+            if (worldDistance > tBe.maxCreationDistance) {
                 context.player!!.displayClientMessage(Component.translatable("$MOD_ID.universal_shaft.connection_failed.too_far"), true)
                 firstSelect = null
                 return fail()
             }
-            if (firstSelect == tBe) {
+            if (firstSelect == tBe || firstSelect!!.pos == tBe.pos) {
                 context.player!!.displayClientMessage(Component.translatable("$MOD_ID.universal_shaft.connection_failed.to_itself"), true)
                 firstSelect = null
                 return fail()

@@ -22,7 +22,7 @@ object ClockworkGasses {
         }
     }
 
-    val EXHAUST = GasType("Exhaust", ClockworkMod.asResource("exhaust"),  density = 1.98, viscosity =1.10e-5, specificHeatCapacity = 0.846, thermalConductivity = 0.031, iconLocation = getIcon("exhaust"))
+    val EXHAUST = GasType("Exhaust", ClockworkMod.asResource("exhaust"),  density = 1.98, viscosity =1.10e-5, specificHeatCapacity = 2.846, thermalConductivity = 0.031, iconLocation = getIcon("exhaust"))
     val STEAM = GasType("Steam", ClockworkMod.asResource( "steam"),  density = 0.762 , viscosity = 1.223e-5, specificHeatCapacity = 2.2, thermalConductivity = 0.031, iconLocation = getIcon("steam"))
 
 

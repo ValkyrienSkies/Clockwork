@@ -57,7 +57,8 @@ object ClockworkConfig {
             "minecraft:water",
             "minecraft:flowing_water",
             "minecraft:lava",
-            "minecraft:flowing_lava"
+            "minecraft:flowing_lava",
+            "vs_clockwork:physics_infuser"
         )
 
         @ConfigEntry(description = "Enable collision sound effects")
@@ -87,6 +88,9 @@ object ClockworkConfig {
         @ConfigEntry(description = "The max size that a propeller blade can reach. Sizes higher than this will refuse to craft.")
         var maxBladeSize = 4.0
 
+        @ConfigEntry(description = "The maximum distance (in blocks) allowed between two Universal Joints while connected.", min = 1.0)
+        var maxUniversalJointDistance = 10.0
+
         @ConfigEntry(description = "The length of the raycast made by the Gas Nozzle when attempting to find a valid balloon ceiling.", min = 1.0)
         var hotAirBalloonMaxRaycastDistance = 64.0
 
@@ -115,7 +119,7 @@ object ClockworkConfig {
         var wanderOreForceMultiplier = 2.0
 
         @ConfigEntry(min = 0.0)
-        var gasThrusterForceMul = 20.0
+        var gasThrusterForceMul = 200.0
 
         @ConfigEntry(min = 0.0)
         var sugarRocketBlockThrust = 10000.0

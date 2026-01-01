@@ -1,6 +1,6 @@
 {
   "parent": "vs_clockwork:block/gyro/gyro",
-  "loader": "forge:obj",
+  "loader": "porting_lib:obj",
   "flip_v": true,
   "model": "vs_clockwork:models/block/gyro/gyro_item.obj",
   "display": {

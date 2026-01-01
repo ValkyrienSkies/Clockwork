@@ -83,7 +83,7 @@ class GyroBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockSt
         val powerXP = worldIn.getSignal(pos.relative(Direction.EAST), Direction.EAST)
         val powerXN = worldIn.getSignal(pos.relative(Direction.WEST), Direction.WEST)
 
-        this.redstonePower = Point(powerXP - powerXN,  powerZP - powerZN)
+        this.redstonePower = Point( powerZN - powerZP,  powerXN - powerXP)
     }
 
     public override fun write(compound: CompoundTag, clientPacket: Boolean) {
