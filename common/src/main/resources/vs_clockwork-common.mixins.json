@@ -5,6 +5,7 @@
   "mixins": [
     "MixinAbstractContraptionEntity",
     "MixinBlockStateInfoProvider",
+    "MixinBlockStressValues",
     "MixinEntity",
     "MixinLivingEntity",
     "MixinPlayer",

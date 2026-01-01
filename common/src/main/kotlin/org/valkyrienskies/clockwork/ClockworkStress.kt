@@ -82,7 +82,7 @@ class ClockworkStress : ConfigBase() {
         fun <B : Block, P> setImpact(value: Double): NonNullUnaryOperator<BlockBuilder<B, P>> {
             return NonNullUnaryOperator { builder: BlockBuilder<B, P> ->
                 assertFromClockwork(builder)
-                val id = Create.asResource(builder.getName())
+                val id = ClockworkMod.asResource(builder.getName())
                 DEFAULT_IMPACTS.put(id, value)
                 builder
             }
@@ -91,10 +91,22 @@ class ClockworkStress : ConfigBase() {
         fun <B : Block, P> setCapacity(value: Double): NonNullUnaryOperator<BlockBuilder<B, P>> {
             return NonNullUnaryOperator { builder: BlockBuilder<B, P> ->
                 assertFromClockwork(builder)
-                val id = Create.asResource(builder.getName())
+                val id = ClockworkMod.asResource(builder.getName())
                 DEFAULT_CAPACITIES.put(id, value)
                 builder
             }
+        }
+
+        fun getImpact(block: Block): DoubleSupplier? {
+            val id = CatnipServices.REGISTRIES.getKeyOrThrow(block)
+            val value = DEFAULT_IMPACTS[id]
+            return if (value == null) null else DoubleSupplier { value }
+        }
+
+        fun getCapacity(block: Block): DoubleSupplier? {
+            val id = CatnipServices.REGISTRIES.getKeyOrThrow(block)
+            val value = DEFAULT_CAPACITIES[id]
+            return if (value == null) null else DoubleSupplier { value }
         }
 
         private fun assertFromClockwork(builder: BlockBuilder<*, *>) {
