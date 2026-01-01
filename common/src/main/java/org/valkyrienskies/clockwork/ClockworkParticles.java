@@ -4,13 +4,9 @@ import com.simibubi.create.foundation.particle.ICustomParticleData;
 import net.createmod.catnip.lang.Lang;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.particle.ParticleEngine;
-import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 import org.valkyrienskies.clockwork.content.curiosities.particles.PhysLightningParticle;
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.LeakParticleData;
 import org.valkyrienskies.clockwork.platform.PlatformUtils;
@@ -43,7 +39,6 @@ public enum ClockworkParticles {
 
     @Environment(EnvType.CLIENT)
     public static void initClient(Object event) {
-        ParticleEngine particles = Minecraft.getInstance().particleEngine;
         for (final ClockworkParticles particle : values()) {
             //particle.entry.registerFactory(particles);
             PlatformUtils.registerParticleOnPlatform(particle.entry, event);
@@ -71,11 +66,6 @@ public enum ClockworkParticles {
             this.typeFactory = typeFactory;
 
             object = this.typeFactory.get().createType();
-        }
-
-        @Environment(EnvType.CLIENT)
-        public void registerFactory(final ParticleEngine particles) {
-            typeFactory.get().register(object, particles);
         }
     }
 }

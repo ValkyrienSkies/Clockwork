@@ -7,9 +7,11 @@ import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import com.tterrag.registrate.fabric.EnvExecutor;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -42,7 +44,7 @@ public class PlatformUtilsImpl {
     }
 
     public static <D extends ParticleOptions> void registerParticleOnPlatform(ClockworkParticles.ParticleEntry<D> particleEntry, @Nullable Object event) {
-        particleEntry.registerFactory(Minecraft.getInstance().particleEngine);
+        particleEntry.typeFactory.get().register(particleEntry.object, Minecraft.getInstance().particleEngine);
     }
 
     public static double getReachDistance(Player player) {

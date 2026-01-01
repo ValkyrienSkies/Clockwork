@@ -55,7 +55,9 @@ public class ClockworkModForge {
         ClockworkEntities.register();
         ForgeClockworkEntities.register();
 
-        modEventBus.addListener((RegisterParticleProvidersEvent event) -> ClockworkParticles.initClient(event));
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
+            modEventBus.addListener((RegisterParticleProvidersEvent event) -> ClockworkParticles.initClient(event));
+        });
 
         //AllClockworkConfigs.register(modLoadingContext);
 
