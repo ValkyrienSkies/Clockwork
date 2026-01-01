@@ -152,6 +152,12 @@
   "vs_clockwork.subtitle.gravitron_shutdown": "重力枪：关闭",
   "vs_clockwork.subtitle.gravitron_freeze": "创造模式重力枪：冻结物理结构",
 
+  "vs_clockwork.subtitle.gas_nozzle_start": "气体喷嘴：开启",
+  "vs_clockwork.subtitle.gas_nozzle_loop": "气体喷嘴：喷气",
+  "vs_clockwork.subtitle.balloon_leaking_light": "热气球：缓慢漏气",
+  "vs_clockwork.subtitle.balloon_leaking_heavy": "热气球：快速漏气",
+  "vs_clockwork.subtitle.balloon_rupture": "热气球：破裂",
+  
   "block.vs_clockwork.wanderlite_block": "漫游水晶块",
   "item.vs_clockwork.wanderlite_block": "漫游水晶块",
   "block.vs_clockwork.wanderlite_bricks": "漫游水晶砖",
