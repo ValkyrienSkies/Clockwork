@@ -93,6 +93,7 @@ class UniversalShaftBlock(properties: Properties?) : DirectionalKineticBlock(pro
             if (be.connectedBe != null) be.connectedBe!!.disconnect()
             be.disconnect()
             level.playSound(null, be.blockPos, ClockworkSounds.HOSE_RELEASE.mainEvent, SoundSource.BLOCKS, 1.0f, 1.0f)
+            if (!player.isCreative) player.addItem(be.getConnectionItem())
             return InteractionResult.SUCCESS
         }
 

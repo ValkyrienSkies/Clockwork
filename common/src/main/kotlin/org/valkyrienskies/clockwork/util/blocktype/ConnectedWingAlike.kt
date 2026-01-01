@@ -26,6 +26,8 @@ import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkShapes
+import org.valkyrienskies.clockwork.content.generic.ColorBlockEntity
+import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import java.util.function.Predicate
 import kotlin.collections.getValue
 
@@ -85,8 +87,23 @@ abstract class ConnectedWingAlike(properties: Properties?) : Block(properties) {
         val placementHelper: IPlacementHelper = PlacementHelpers.get(placementHelperId);
         if (!player.isShiftKeyDown() && player.mayBuild()) {
             if (placementHelper.matchesItem(heldItem)) {
-                placementHelper.getOffset(player, level, state, pos, hit)
-                    .placeInWorld(level, (heldItem.item) as BlockItem, player, hand, hit);
+                var color = -1
+                if (heldItem.item is DyedWingBlockItem) {
+                    color = if (heldItem.hasTag() && heldItem.getOrCreateTag().contains("Clockwork\$color")) heldItem.getOrCreateTag()
+                        .getInt("Clockwork\$color") else -1
+                }
+                val offset = placementHelper.getOffset(player, level, state, pos, hit)
+                val result = offset.placeInWorld(level, (heldItem.item) as BlockItem, player, hand, hit)
+
+                if (result != InteractionResult.SUCCESS) {
+                    return result
+                }
+
+                if (level.getBlockEntity(offset.blockPos) is ColorBlockEntity) {
+                    val be: ColorBlockEntity = (level.getBlockEntity(offset.blockPos) as ColorBlockEntity)
+                    be.setColor(color)
+                }
+
                 return InteractionResult.SUCCESS;
             }
         }

@@ -1,3 +1,16 @@
+## 0.5.4.2
+Hotfix #2 for 0.5.4
+
+#### Bugfixes:
+- Copter bearing crashing fabric cause I'm dumb
+- Add gas nozzle back to creative inventory for real this time
+- Readjust exhaust gas values
+- Colored wings should now place with their color when using placement helper
+- Universal joints return their item when disconnected
+- Universal joint distance is now configurable
+- Increased default Gas Thruster force by 10x
+- Maybe fix gyro and reaction wheel models
+
 ## 0.5.4.1
 Hotfix for 0.5.4
 

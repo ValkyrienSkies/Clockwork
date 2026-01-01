@@ -8,10 +8,12 @@ import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkGasses
+import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkSounds
@@ -215,6 +217,10 @@ class HosePortBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
             tooltip.add(Component.translatable("vs_clockwork.hose_port.disconnected"))
         }
         return og || other
+    }
+
+    override fun getConnectionItem(): ItemStack {
+        return ClockworkItems.EXTENDON_HOSE.asStack()
     }
 
     fun safeHeatableGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
