@@ -464,5 +464,8 @@
   "vs_clockwork.ponder.solid_delivery.text_9": "and belts",
 
   "death.attack.gas_burn": "%s was singed to a crisp",
-  "death.attack.gas_explosion": "%s couldn't handle the pressure"
+  "death.attack.gas_explosion": "%s couldn't handle the pressure",
+
+  "vs_clockwork.debug.invalid_balloon_enclosure": "Invalid balloon block: %s",
+  "vs_clockwork.debug.invalid_balloon_enclosure_direction": "Invalid balloon block for direction %s: %s"
 }

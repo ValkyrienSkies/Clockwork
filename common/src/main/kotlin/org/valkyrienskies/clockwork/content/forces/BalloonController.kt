@@ -23,6 +23,7 @@ import org.valkyrienskies.clockwork.content.forces.data.BalloonData
 import org.valkyrienskies.clockwork.content.forces.data.BalloonData.PhysBalloonData
 import org.valkyrienskies.clockwork.util.AABBHelper.mergeAdjacentFast
 import org.valkyrienskies.clockwork.util.AerodynamicUtils.dimensionMap
+import org.valkyrienskies.clockwork.util.DebugOutputUtil.indicatePositionToNearbyPlayers
 import org.valkyrienskies.core.api.VsBeta
 import org.valkyrienskies.core.api.attachment.getAttachment
 import org.valkyrienskies.core.api.ships.LoadedServerShip
@@ -358,7 +359,9 @@ class BalloonController: ShipPhysicsListener {
 
             for (dir in Direction.values()) {
                 val n = cur.relative(dir)
-                if (level.getBlockState(n).isValidBalloonEnclosure(level, n)) continue
+                val bs = level.getBlockState(n)
+                if (bs.isValidBalloonEnclosure(level, n))
+                    continue
                 val nl = n.asLong()
                 if (!visited.contains(nl)) q.add(nl)
             }
@@ -389,12 +392,21 @@ class BalloonController: ShipPhysicsListener {
 
         @JvmStatic
         fun BlockState.isValidBalloonEnclosure(level: Level, pos: BlockPos): Boolean {
-            return !this.isAir && this.isCollisionShapeFullBlock(level, pos)
+            if (this.isAir) return false
+            if (this.isCollisionShapeFullBlock(level, pos)) return true
+            // For debugging non-trivial failures when building balloon enclosures (non-full blocks)
+            if (ClockworkConfig.SERVER.hotAirBalloonDebugInvalidBlocks)
+                indicatePositionToNearbyPlayers(level, pos.center, "debug.invalid_balloon_enclosure", pos)
+            return false
         }
 
         @JvmStatic
         fun BlockState.isValidBalloonEnclosureDirectional(level: Level, pos: BlockPos, direction: Direction): Boolean {
-            return !this.isAir && !this.isFaceSturdy(level, pos, direction.opposite)
+            if (this.isAir) return false
+            if (this.isFaceSturdy(level, pos, direction.opposite)) return true
+            if (ClockworkConfig.SERVER.hotAirBalloonDebugInvalidBlocks)
+                indicatePositionToNearbyPlayers(level, pos.center, "debug.invalid_balloon_enclosure_directional", direction, pos)
+            return false
         }
     }
 }
