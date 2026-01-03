@@ -35,6 +35,12 @@ object ClockworkConfig {
 
         @ConfigEntry(description = "Gas energy display unit")
         var energyDisplayUnit = DuctUnits.EnergyUnit.JOULE
+
+        @ConfigEntry(description = "Threshold for high temperature warning. 0.9 = 90% of maximum", min = 0.0, max = 1.0)
+        var maxTemperatureWarning = 0.9
+
+        @ConfigEntry(description = "Threshold for high pressure warning. 0.9 = 90% of maximum", min = 0.0, max = 1.0)
+        var maxPressureWarning = 0.9
     }
 
     class Server {

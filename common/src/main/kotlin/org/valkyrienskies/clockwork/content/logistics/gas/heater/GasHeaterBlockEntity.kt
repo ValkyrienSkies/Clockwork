@@ -5,13 +5,16 @@ import com.simibubi.create.content.processing.burner.BlazeBurnerBlock.HeatLevel
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
+import net.minecraft.network.chat.CommonComponents
 import net.minecraft.network.chat.Component
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.ClockworkMod.MOD_ID
 import org.valkyrienskies.clockwork.util.KNodeBlockEntity
+import org.valkyrienskies.clockwork.util.gui.ClockworkTooltipHelper
+import org.valkyrienskies.clockwork.util.gui.DuctTextUtil
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 
@@ -63,11 +66,43 @@ class GasHeaterBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     }
 
     override fun addToGoggleTooltip(tooltip: List<Component>?, isPlayerSneaking: Boolean): Boolean {
-        (tooltip as MutableList).add(Component.translatable("$MOD_ID.gas_heater.heater_info").withStyle(ChatFormatting.GRAY))
-
-        tooltip.add(Component.translatable("$MOD_ID.gas_heater.heat_level", level!!.getBlockState(blockPos).getValue(HEAT_LEVEL).name).withStyle(ChatFormatting.YELLOW))
-        tooltip.add(Component.empty())
-
+        ClockworkLang.translate("gui.gas_heater.info.title").forGoggles((tooltip as MutableList))
+        when (blockState.getValue(HEAT_LEVEL)) {
+            HeatLevel.SEETHING, HeatLevel.FADING -> {
+                ClockworkTooltipHelper.addHint(tooltip, "gui.gas_heater.info.heat_level.superheated", ChatFormatting.AQUA)
+            }
+            HeatLevel.KINDLED -> {
+                ClockworkTooltipHelper.addHint(tooltip, "gui.gas_heater.info.heat_level.heated", ChatFormatting.GOLD)
+                if (isPlayerSneaking)
+                    ClockworkLang.translate("gui.gas_heater.info.heat_level.next",
+                        DuctTextUtil.translateTemperature(
+                            ClockworkLang.builder(),
+                            ClockworkConfig.SERVER.heaterSeethingTemp.toDouble(), true
+                        )
+                    ).style(ChatFormatting.DARK_GRAY).forGoggles(tooltip)
+            }
+            HeatLevel.SMOULDERING -> {
+                ClockworkTooltipHelper.addHint(tooltip, "gui.gas_heater.info.heat_level.passive", ChatFormatting.RED)
+                if (isPlayerSneaking)
+                    ClockworkLang.translate("gui.gas_heater.info.heat_level.next",
+                        DuctTextUtil.translateTemperature(
+                            ClockworkLang.builder(),
+                            ClockworkConfig.SERVER.heaterKindledTemp.toDouble(), true
+                        )
+                    ).style(ChatFormatting.DARK_GRAY).forGoggles(tooltip)
+            }
+            else -> {
+                ClockworkTooltipHelper.addHint(tooltip, "gui.gas_heater.info.heat_level.none", ChatFormatting.GRAY)
+                if (isPlayerSneaking)
+                    ClockworkLang.translate("gui.gas_heater.info.heat_level.next",
+                        DuctTextUtil.translateTemperature(
+                            ClockworkLang.builder(),
+                            ClockworkConfig.SERVER.heaterSmoulderingTemp.toDouble(), true
+                        )
+                    ).style(ChatFormatting.DARK_GRAY).forGoggles(tooltip)
+            }
+        }
+        tooltip.add(CommonComponents.EMPTY)
         return super.addToGoggleTooltip(tooltip, isPlayerSneaking)
     }
 }

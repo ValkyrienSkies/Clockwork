@@ -90,7 +90,7 @@ class AirCompressorRenderer(context: BlockEntityRendererProvider.Context?) : Kin
         val sizeMultiplier = when {
             minecraft.isPaused -> 0f
             // Deflate if particles were spawned OR if the compressor is off
-            be.clientParticles || !be.isActivated -> -1f
+            be.clientParticles || !be.active -> -1f
             else -> 1f
         }
 

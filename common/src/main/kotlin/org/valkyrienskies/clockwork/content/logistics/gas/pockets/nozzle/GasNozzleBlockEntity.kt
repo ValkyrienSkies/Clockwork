@@ -10,6 +10,7 @@ import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.CommonComponents
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerLevel
@@ -17,27 +18,25 @@ import net.minecraft.util.Mth
 import net.minecraft.util.RandomSource
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.level.block.state.properties.BlockStateProperties
-import org.joml.Vector3f
 import org.valkyrienskies.clockwork.ClockworkAugmentations
+import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.forces.BalloonController
 import org.valkyrienskies.clockwork.content.forces.data.BalloonData
-import org.valkyrienskies.clockwork.content.logistics.gas.exhaust.ExhaustBlock
-import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlockEntity.Companion.FUEL_ENERGY_DENSITY
-import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlockEntity.Companion.LOG_BURN_TIME
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
 import org.valkyrienskies.clockwork.util.KNodeKineticBlockEntity
 import org.valkyrienskies.clockwork.util.KelvinParticleHelper
-import org.valkyrienskies.core.api.world.connectivity.ConnectionStatus
+import org.valkyrienskies.clockwork.util.gui.ClockworkTooltipHelper
+import org.valkyrienskies.clockwork.util.gui.DuctTextUtil
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3i
+import org.valkyrienskies.mod.api.isBlockInShipyard
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.getLoadedShipManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
@@ -411,23 +410,44 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     }
 
     override fun addToGoggleTooltip(tooltip: List<Component>?, isPlayerSneaking: Boolean): Boolean {
-        val bool = super.addToGoggleTooltip(tooltip, isPlayerSneaking)
+        ClockworkLang.translate("gui.gas_nozzle.info.title").forGoggles((tooltip as MutableList))
+
+        if (!level.isBlockInShipyard(blockPos.x, blockPos.y, blockPos.z)) {
+            ClockworkTooltipHelper.addHint(tooltip, "gui.gas_nozzle.info.no_ship", ChatFormatting.GOLD)
+        }
         if (!hasPocket || pocketTemperature.isNaN()) {
-            (tooltip as MutableList?)?.add(Component.literal("Missing pocket.").withStyle(ChatFormatting.GRAY))
-            (tooltip as MutableList?)?.add(Component.literal("[Right-click] to re-scan.").withStyle(ChatFormatting.DARK_GRAY).withStyle(ChatFormatting.ITALIC))
+            ClockworkTooltipHelper.addHint(
+                tooltip, "gui.gas_nozzle.info.no_pocket", ChatFormatting.GOLD, 0, 0,
+                Minecraft.getInstance().options.keyUse.translatedKeyMessage
+            )
         } else {
-            (tooltip as MutableList?)?.add(Component.literal("Pocket Volume: ${"%,.2f".format(balloonVolume)} m³").withStyle(ChatFormatting.GREEN))
-            (tooltip as MutableList?)?.add(Component.literal("Pocket Temperature: ${pocketTemperature.roundToInt()} K").withStyle(ChatFormatting.GOLD))
+            ClockworkLang.translate(
+                "gui.gas_nozzle.info.volume",
+                DuctTextUtil.translateVolume(ClockworkLang.builder(), balloonVolume, true)
+            ).style(ChatFormatting.GREEN).forGoggles(tooltip)
+            ClockworkLang.translate(
+                "gui.gas_nozzle.info.temperature",
+                DuctTextUtil.translateTemperature(ClockworkLang.builder(), pocketTemperature, true)
+            ).style(ChatFormatting.GOLD).forGoggles(tooltip)
+
             if (isPlayerSneaking) {
                 val targetTemperature = ClockworkModClient.getKelvin().getTemperatureAt(getDuctNodePosition()) * pointer.value.toDouble()
-                (tooltip as MutableList?)?.add(Component.literal("Target Temperature: ${targetTemperature.roundToInt()} K").withStyle(ChatFormatting.YELLOW).withStyle(
-                    ChatFormatting.ITALIC))
+                ClockworkLang.translate(
+                    "gui.gas_nozzle.info.target_temperature",
+                    DuctTextUtil.translateTemperature(ClockworkLang.builder(), targetTemperature, true)
+                ).style(ChatFormatting.YELLOW).style(ChatFormatting.ITALIC).forGoggles(tooltip)
             }
             if (currentIdealOutput.toInt() != 0) {
-                (tooltip as MutableList?)?.add(Component.literal("!! BALLOON INTEGRITY COMPROMISED !!").withStyle(ChatFormatting.RED))
-                (tooltip as MutableList?)?.add(Component.literal("Leaks Detected: ${currentIdealOutput.roundToInt()}").withStyle(ChatFormatting.DARK_RED))
+                tooltip.add(CommonComponents.EMPTY)
+                ClockworkTooltipHelper.addHint(tooltip, "gui.gas_nozzle.info.leak", ChatFormatting.RED, -2)
+                ClockworkLang
+                    .translate("gui.gas_nozzle.info.leak.count", currentIdealOutput.roundToInt())
+                    .style(ChatFormatting.RED)
+                    .forGoggles(tooltip)
             }
         }
-        return bool
+        tooltip.add(CommonComponents.EMPTY)
+
+        return super.addToGoggleTooltip(tooltip, isPlayerSneaking)
     }
 }

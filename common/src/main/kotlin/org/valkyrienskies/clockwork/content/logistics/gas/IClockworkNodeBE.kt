@@ -5,11 +5,12 @@ import dev.architectury.platform.Platform
 import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
-import org.valkyrienskies.clockwork.ClockworkGasses
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.util.gui.DuctTextUtil
+import org.valkyrienskies.clockwork.util.gui.DuctTextUtil.gasComponent
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.util.INodeBlockEntity
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
@@ -28,59 +29,71 @@ interface IClockworkNodeBE: INodeBlockEntity, IHaveGoggleInformation {
         var found = false
 
         kelvin.nodeInfo[pos]?.totalVolume?.let { volume ->
-
             found = true
             ClockworkLang.builder().apply {
-                add(ClockworkLang.translate("gui.ductInfo.volume").add(ClockworkLang.text(": ")).style(ChatFormatting.GREEN))
-                add(DuctTextUtil.translateVolume(ClockworkLang.builder(), volume, true).style(ChatFormatting.GREEN))
-                space()
+                add(ClockworkLang.translate(
+                    "gui.ductInfo.volume",
+                DuctTextUtil.translateVolume(ClockworkLang.builder(), volume, true)
+                ).style(ChatFormatting.GREEN))
                 forGoggles(tooltip, 0)
             }
         }
         kelvin.getTemperatureAt(pos).let { temp ->
             found = true
             ClockworkLang.builder().apply {
-                add(ClockworkLang.translate("gui.ductInfo.temperature").add(ClockworkLang.text(": ")).style(ChatFormatting.GOLD))
-                add(DuctTextUtil.translateTemperature(ClockworkLang.builder(), temp, true).style(ChatFormatting.GOLD))
+                val max = blockStats?.getMaximumTemperature()
+                val critical = if (max != null) temp > max * ClockworkConfig.CLIENT.maxTemperatureWarning else false
+                val indents = if (critical) -2 else 0
+
+                if (critical) text("!! ")
+                add(ClockworkLang.translate(
+                    "gui.ductInfo.temperature",
+                    DuctTextUtil.translateTemperature(ClockworkLang.builder(), temp, true)
+                ))
+                style(ChatFormatting.GOLD)
 
                 if (isPlayerSneaking)
-                blockStats?.getMaximumTemperature()?.let { max ->
-                    add(ClockworkLang.text(" / ")
-                        .add(DuctTextUtil.translateTemperature(ClockworkLang.builder(), max, true))
-                        .style(ChatFormatting.DARK_GRAY)
-                    )
+                if (max != null) {
+                    add(ClockworkLang.translate(
+                        "gui.ductInfo.out_of",
+                        DuctTextUtil.translateTemperature(ClockworkLang.builder(), max, true)
+                    ).style(ChatFormatting.DARK_GRAY))
                 }
-                space()
-
-                forGoggles(tooltip, 0)
+                forGoggles(tooltip, indents)
             }
         }
         kelvin.getPressureAt(pos).takeIf { it > 0.0 }?.let { pressure ->
             found = true
             ClockworkLang.builder().apply {
-                add(ClockworkLang.translate("gui.ductInfo.pressure").add(ClockworkLang.text(": ")).style(ChatFormatting.BLUE))
-                add(DuctTextUtil.translatePressure(ClockworkLang.builder(), pressure, true).style(ChatFormatting.BLUE))
+                val max = blockStats?.getMaximumPressure()
+                val critical = if (max != null) pressure > max * ClockworkConfig.CLIENT.maxPressureWarning else false
+                val indents = if (critical) -2 else 0
+
+                if (critical) text("!! ")
+                add(ClockworkLang.translate(
+                    "gui.ductInfo.pressure",
+                    DuctTextUtil.translatePressure(ClockworkLang.builder(), pressure, true)
+                ))
+                style(ChatFormatting.BLUE)
 
                 if (isPlayerSneaking)
-                    blockStats?.getMaximumPressure()?.let { max ->
-                        add(ClockworkLang.text(" / ")
-                            .add(DuctTextUtil.translatePressure(ClockworkLang.builder(), max, true))
-                            .style(ChatFormatting.DARK_GRAY)
-                        )
+                    if (max != null) {
+                        add(ClockworkLang.translate(
+                            "gui.ductInfo.out_of",
+                            DuctTextUtil.translatePressure(ClockworkLang.builder(), max, true)
+                        ).style(ChatFormatting.DARK_GRAY))
                     }
-                space()
-
-                forGoggles(tooltip, 0)
+                forGoggles(tooltip, indents)
             }
         }
         if (isPlayerSneaking)
         kelvin.getHeatEnergy(pos).takeIf { it > 0.0 }?.let { energy ->
             found = true
             ClockworkLang.builder().apply {
-                add(ClockworkLang.translate("gui.ductInfo.energy").add(ClockworkLang.text(": ")).style(ChatFormatting.RED))
-                add(DuctTextUtil.translateEnergy(ClockworkLang.builder(), energy, true).style(ChatFormatting.RED))
-                space()
-
+                add(ClockworkLang.translate(
+                    "gui.ductInfo.energy",
+                    DuctTextUtil.translateEnergy(ClockworkLang.builder(), energy, true)
+                ).style(ChatFormatting.RED))
                 forGoggles(tooltip, 0)
             }
         }
@@ -94,41 +107,27 @@ interface IClockworkNodeBE: INodeBlockEntity, IHaveGoggleInformation {
                 .mapNotNull { (gas, amount) ->
                     if (amount <= 0.0) return@mapNotNull null
                     totalGasMass += amount
-
-                    val component = Component.empty().apply {
-                        append(Component.literal(ClockworkGasses.getDisplayCharacterCode(gas))
-                            .withStyle { it.withFont(ClockworkGasses.ICON_FONT_LOCATION) })
-                        if (isPlayerSneaking) {
-                            append(Component.literal(" ${gas.name} ").withStyle(ChatFormatting.GRAY))
-                        } else {
-                            append(Component.literal(" "))
-                        }
-                        append(DuctTextUtil.translateMass(ClockworkLang.builder(), amount, true).component())
-                    }
-                    finishedComponents.add(component)
+                    finishedComponents.add(gasComponent(gas, amount, isPlayerSneaking))
                 }
             if (finishedComponents.isEmpty()) return@let
 
             ClockworkLang.translate("gui.ductInfo.title.contents").forGoggles(tooltip)
 
-            val rows = mutableListOf<Pair<Component, Component>>()
-            for (num in finishedComponents.indices step 2) {
-                if (num + 1 < finishedComponents.size) {
-                    rows.add(Pair(finishedComponents[num], finishedComponents[num + 1]))
-                } else {
-                    rows.add(Pair(finishedComponents[num], Component.empty()))
-                }
-            }
-            for (row in rows) {
-                val rowComponent = Component.empty()
-                    .append(row.first)
-                    .append(Component.literal("  "))
-                    .append(row.second)
-                ClockworkLang.builder().add(rowComponent).forGoggles(tooltip, 1)
+            for (row in finishedComponents.chunked(2)) {
+                ClockworkLang.builder().add(
+                    ClockworkLang.builder().apply {
+                        add(row[0])
+                        if (row.size > 1) {
+                            text("  ")
+                            add(row[1])
+                        }
+                    }
+                ).forGoggles(tooltip, 1)
             }
 
             if (isPlayerSneaking && finishedComponents.size > 1)
-                ClockworkLang.translate("gui.ductInfo.mass_total").add(
+                ClockworkLang.translate(
+                    "gui.ductInfo.mass_total",
                     DuctTextUtil.translateMass(ClockworkLang.builder(), totalGasMass, true)
                 ).style(ChatFormatting.GRAY).forGoggles(tooltip, 1)
 
