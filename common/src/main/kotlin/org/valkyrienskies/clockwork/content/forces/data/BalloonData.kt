@@ -166,7 +166,7 @@ class BalloonData {
         val estimatedSurfaceArea = 4.84 * volume.pow(2.0/3.0)
 
         // Gas leak exiting
-        val gasExitRate = max(0.0, (currentPressure - atmoPressure) / 2.0) * estimatedSurfaceArea * ClockworkConfig.SERVER.permeabilityConstant / sqrt(currentTemperature * DuctNetwork.idealGasConstant / molarMass) * max(1.0, missingExternalPositions.toDouble() + 1.0)
+        val gasExitRate = max(0.0, (currentPressure - atmoPressure)) * estimatedSurfaceArea * ClockworkConfig.SERVER.permeabilityConstant / sqrt(currentTemperature * DuctNetwork.idealGasConstant / molarMass) * max(1.0, missingExternalPositions.toDouble() + 1.0)
         val exitGas = gasExitRate * 0.01
         val exitGasMasses = HashMap<GasType, Double>()
         currentGasMasses.forEach {
@@ -178,7 +178,7 @@ class BalloonData {
         currentTemperature = currentHeatEnergy / capacity
 
         // Gas leak heat transfer
-        val heatFlow = ClockworkConfig.SERVER.heatTransferCoefficient * estimatedSurfaceArea * (atmoTemperature - currentTemperature) * max(1.0, missingExternalPositions.toDouble() * 2.0 + 1.0) / 2.0
+        val heatFlow = ClockworkConfig.SERVER.heatTransferCoefficient * estimatedSurfaceArea * (atmoTemperature - currentTemperature) * max(1.0, missingExternalPositions.toDouble() * 2.0 + 1.0)
         var newHeatEnergy = currentHeatEnergy + heatFlow * 0.05
         val newCapacity = (KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(currentGasMasses)
         var newTemperature = newHeatEnergy / newCapacity
