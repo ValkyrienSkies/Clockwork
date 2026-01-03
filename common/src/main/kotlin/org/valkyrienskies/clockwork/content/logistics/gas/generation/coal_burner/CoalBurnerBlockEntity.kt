@@ -5,6 +5,7 @@ import dev.architectury.registry.fuel.FuelRegistry
 import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.Tag
 import net.minecraft.network.chat.Component
 import net.minecraft.world.Clearable
 import net.minecraft.world.entity.item.ItemEntity
@@ -75,8 +76,16 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
     }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
-        val subTag = tag.get("StoredFuelStack") as CompoundTag
-        storedFuelStack = ItemStack.of(subTag)
+        // For some reason the tag is null when pasted as a schematic?
+        // I suspect it's create clearing NBT on schematic pasted blocks
+        // to prevent things like signs with command-click events
+        val subTag: Tag? = tag.get("StoredFuelStack")
+
+        storedFuelStack = if (subTag == null) {
+            ItemStack.EMPTY
+        } else {
+            ItemStack.of(subTag as CompoundTag)
+        }
 
         super.read(tag, clientPacket)
     }
