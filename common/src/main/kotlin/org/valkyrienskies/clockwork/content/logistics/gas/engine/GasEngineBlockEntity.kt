@@ -1,8 +1,10 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.engine
 
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
+import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Vector3dc
@@ -41,9 +43,9 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     }
 
     //todo: this doesnt work on dedicated servers you moron
-//    fun spawnParticles(level: ClientLevel, pos: Vector3dc, speed: Vector3dc) {
-//        KelvinParticleHelper.spawnParticleWithRatio(level, getDuctNodePosition(), pos, speed)
-//    }
+    fun spawnParticles(level: Level, pos: Vector3dc, speed: Vector3dc) {
+        KelvinParticleHelper.spawnParticleWithRatio(level as ClientLevel, getDuctNodePosition(), pos, speed)
+    }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
         tag.putInt("AttachedEngines", attachedEngines)
