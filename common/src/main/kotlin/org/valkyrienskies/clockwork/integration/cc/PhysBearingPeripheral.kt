@@ -18,13 +18,13 @@ class PhysBearingPeripheral(private val level: ServerLevel, private val bpos: Bl
     @LuaFunction fun assemble() {be.assembleNextTick = true}
     @LuaFunction fun disassemble() {be.disassemble()}
 
-    @LuaFunction fun setLockedMode() {be.movementMode!!.setValue(ContraptionController.LockedMode.LOCKED.ordinal)}
+    @LuaFunction fun setFollowAngleMode() {be.movementMode!!.setValue(ContraptionController.LockedMode.FOLLOW_ANGLE.ordinal)}
     @LuaFunction fun setUnlockedMode() {be.movementMode!!.setValue(ContraptionController.LockedMode.UNLOCKED.ordinal)}
     @LuaFunction fun setAngle(angle: Double) {if (be.stopTargetAngleChange) {be.setAngle(angle.toFloat())} else {throw LuaException("Can't be changed until target angle change is stopped")}}
 
     @LuaFunction fun isBeingDisassembled() = be.disassembleWhenPossible
     @LuaFunction fun isActive() = be.isRunning
-    @LuaFunction fun isInLockedMode() = be.movementMode!!.get() == ContraptionController.LockedMode.LOCKED
+    @LuaFunction fun isInFollowAngleMode() = be.movementMode!!.get() == ContraptionController.LockedMode.FOLLOW_ANGLE
     @LuaFunction fun targetAngleIsFrozen() = be.stopTargetAngleChange
 
     @LuaFunction fun getConnectedToShip() = be.shiptraptionID

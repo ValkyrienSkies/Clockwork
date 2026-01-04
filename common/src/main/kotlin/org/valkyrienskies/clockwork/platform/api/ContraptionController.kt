@@ -10,6 +10,7 @@ interface ContraptionController : IControlContraption {
     enum class LockedMode(private val icon: AllIcons) : INamedIconOptions {
         FOLLOW_ANGLE(AllIcons.I_ROTATE_PLACE),
         UNLOCKED(AllIcons.I_ROTATE_PLACE_RETURNED),
+        //TODO idk how to safely remove this
         LOCKED(AllIcons.I_ROTATE_PLACE);
 
 

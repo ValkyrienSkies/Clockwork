@@ -115,6 +115,12 @@ object ClockworkConfig {
         @ConfigEntry()
         var angleFollowingOmegaErrorMultiplier = 50.0
 
+        @ConfigEntry(description = "Force multiplier when no rpm is given")
+        var unlockedModeRotationResistanceMultiplier = 1.0
+
+        @ConfigEntry()
+        var unlockedModeOmegaErrorMultiplier = 50.0
+
         @ConfigEntry(min = 0.0)
         var forceMulPerSailInPropeller = 5.0
 
