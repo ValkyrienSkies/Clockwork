@@ -20,9 +20,12 @@ import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkShapes
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPipeNode
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 import org.valkyrienskies.clockwork.util.blocktype.ConnectedWingAlike
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
+import org.valkyrienskies.kelvin.api.DuctNode
+import org.valkyrienskies.kelvin.api.DuctNodePos
 
 class ExhaustBlock(properties: Properties) : DirectionalBlock(properties), IBE<ExhaustBlockEntity>, IDuct, IHaveDuctStats {
 
@@ -75,6 +78,10 @@ class ExhaustBlock(properties: Properties) : DirectionalBlock(properties), IBE<E
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, movedByPiston: Boolean) {
         super.onPlace(state, level, pos, oldState, movedByPiston)
         nodePlace(state, level, pos, oldState, movedByPiston)
+    }
+
+    override fun createNode(pos: DuctNodePos): DuctNode {
+        return  DuctPipeNode(pos = pos, volume = 0.25, maxPressure = 16375049.0, maxTemperature = 1478.0)
     }
 
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, movedByPiston: Boolean) {
