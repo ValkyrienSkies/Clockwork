@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.forge;
 
+import dev.architectury.platform.Platform;
 import dev.architectury.platform.forge.EventBuses;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
@@ -41,6 +42,10 @@ public class ClockworkModForge {
 
         modEventBus.addListener(this::onConfigLoading);
         modEventBus.addListener(this::onConfigReloading);
+
+        if (Platform.isModLoaded("computercraft")) {
+            EVENT_BUS.register(new CCTweakedForgeEvents());
+        }
 
         EventBuses.registerModEventBus(MOD_ID, modEventBus);
         ClockworkMod.INSTANCE.getREGISTRATE().registerEventListeners(modEventBus);

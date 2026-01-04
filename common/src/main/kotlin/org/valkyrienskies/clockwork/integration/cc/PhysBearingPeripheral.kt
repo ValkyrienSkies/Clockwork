@@ -12,9 +12,7 @@ import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity
 import org.valkyrienskies.clockwork.platform.api.ContraptionController
 
-class PhysBearingPeripheral(private val level: ServerLevel, private val bpos: BlockPos): IPeripheral {
-    val be = level.getBlockEntity(bpos) as PhysBearingBlockEntity
-
+class PhysBearingPeripheral(private val be: PhysBearingBlockEntity): IPeripheral {
     @LuaFunction fun assemble() {be.assembleNextTick = true}
     @LuaFunction fun disassemble() {be.disassemble()}
 
@@ -34,6 +32,6 @@ class PhysBearingPeripheral(private val level: ServerLevel, private val bpos: Bl
     @LuaFunction fun getRPM() = be.speed
     @LuaFunction fun getFacingDirection() = be.blockState.getValue(BlockStateProperties.FACING).getName()
 
-    override fun equals(p0: IPeripheral?): Boolean = level.getBlockState(bpos).`is`(ClockworkBlocks.PHYS_BEARING.get())
+    override fun equals(p0: IPeripheral?): Boolean = be.level?.getBlockState(be.blockPos)?.`is`(ClockworkBlocks.PHYS_BEARING.get()) == true
     override fun getType(): String = "cw_phys_bearing"
 }
