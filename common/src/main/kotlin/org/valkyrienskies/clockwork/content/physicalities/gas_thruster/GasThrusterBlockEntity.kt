@@ -156,7 +156,6 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         sendData()
     }
 
-
     @OptIn(PhysTickOnly::class)
     override fun physTick(physShip: PhysShip?, physLevel: PhysLevel) {
         physShip?: return
