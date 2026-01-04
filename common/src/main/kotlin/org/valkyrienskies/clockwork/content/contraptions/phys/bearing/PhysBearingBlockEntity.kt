@@ -204,35 +204,28 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val oldBPos = BlockPos.of(tag.getLong(ClockworkConstants.Nbt.OLD_POS))
         val oldPos = oldBPos.toJOMLD()
 
-        //TODO is this fine or dumb?
-        val makeData = { joint: VSRevoluteJoint? -> PhysBearingData(
+        val newPos = worldPosition.toJOMLD()
+
+        val oldSPos = tag.getVector3d(ClockworkConstants.Nbt.OLD_SHIPTRAPTION_CENTER)!!
+        val newSPos = tag.getVector3d(ClockworkConstants.Nbt.NEW_SHIPTRAPTION_CENTER)!!
+
+        bearingPos = bearingPos.sub(oldSPos).add(newSPos)
+
+        this.joint = joint.copy(
+            shiptraptionID, pose0 = VSJointPose(joint.pose0.pos - oldSPos + newSPos, joint.pose0.rot),
+            mainId,         pose1 = VSJointPose(joint.pose1.pos - oldPos  + newPos,  joint.pose1.rot))
+
+        controllerCreationData = PhysBearingData(
             bearingAxis.get(Vector3d()),
             Math.toRadians(targetAngle.toDouble()),
             getRealisticAngularSpeed(),
             movementMode!!.get() == LockedMode.FOLLOW_ANGLE,
             aligning,
             mainId ?: -1L,
-            joint?.pose1?.pos?.get(Vector3d()) ?: Vector3d(),
-            joint?.pose0?.pos?.get(Vector3d()) ?: Vector3d()
-        ) }
+            this.joint?.pose1?.pos?.get(Vector3d()) ?: Vector3d(),
+            this.joint?.pose0?.pos?.get(Vector3d()) ?: Vector3d()
+        )
 
-        if (oldPos == worldPosition) {
-            controllerCreationData = makeData(joint)
-            tryMakeJoint()
-            return
-        }
-
-        val subship = level.shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return
-
-        val newPos = worldPosition.toJOMLD()
-
-        val oldSPos = tag.getVector3d(ClockworkConstants.Nbt.OLD_SHIPTRAPTION_CENTER)!!
-        val newSPos = tag.getVector3d(ClockworkConstants.Nbt.NEW_SHIPTRAPTION_CENTER)!!
-
-        this.joint = joint.copy(
-            subship.id, pose0 = VSJointPose(joint.pose0.pos - oldSPos + newSPos, joint.pose0.rot),
-            mainId,     pose1 = VSJointPose(joint.pose1.pos - oldPos  + newPos,  joint.pose1.rot))
-        controllerCreationData = makeData(this.joint)
         tryMakeJoint()
     }
 
@@ -473,7 +466,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             shiptraptionID, VSJointPose(bearingPos.fma(-extraDist, axis, Vector3d()), ship1rot),
             shipOnID, VSJointPose(posInOwnerShip.fma(-extraDist, axis, Vector3d()), ship2rot),
             compliance = 1e-100,
-            driveFreeSpin = this.movementMode!!.get() == LockedMode.UNLOCKED,
+            driveFreeSpin = movementMode!!.get() != LockedMode.LOCKED,
             driveVelocity = newDriveVelocity,
             angularLimitPair = angle
         )
