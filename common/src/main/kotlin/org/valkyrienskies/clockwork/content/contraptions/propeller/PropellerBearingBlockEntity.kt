@@ -399,6 +399,14 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
         sendData()
     }
 
+    // Create calculates stress *before* speed when kinetic network updates from a non-zero speed
+    // Therefore we force a recalc here
+    override fun onSpeedChanged(previousSpeed: Float) {
+        super.onSpeedChanged(previousSpeed)
+
+        this.calculateStressApplied()
+    }
+
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour?>) {
         super.addBehaviours(behaviours)
         rotationDirection = ScrollOptionBehaviour(
