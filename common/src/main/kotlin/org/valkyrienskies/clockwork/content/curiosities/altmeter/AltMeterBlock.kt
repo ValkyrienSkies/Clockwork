@@ -27,10 +27,7 @@ import org.valkyrienskies.clockwork.ClockworkShapes
 
 class AltMeterBlock(properties: Properties) : Block(properties), IBE<AltMeterBlockEntity> {
     init {
-        registerDefaultState(
-            stateDefinition.any()
-                .setValue(POWER, 0)
-                .setValue(POWERED, false))
+        registerDefaultState(stateDefinition.any().setValue(POWER, 0))
     }
 
     override fun use(
@@ -100,11 +97,9 @@ class AltMeterBlock(properties: Properties) : Block(properties), IBE<AltMeterBlo
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block?, BlockState?>) {
         builder.add(POWER)
-        builder.add(POWERED)
     }
 
     companion object {
         val POWER: IntegerProperty = BlockStateProperties.POWER
-        val POWERED: BooleanProperty = BlockStateProperties.POWERED
     }
 }
