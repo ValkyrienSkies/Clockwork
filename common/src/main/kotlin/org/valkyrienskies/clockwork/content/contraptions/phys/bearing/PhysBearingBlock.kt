@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork.content.contraptions.phys.bearing
 
 import com.simibubi.create.AllShapes
 import com.simibubi.create.content.contraptions.bearing.BearingBlock
-import com.simibubi.create.content.contraptions.bearing.MechanicalBearingBlockEntity
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -20,6 +19,7 @@ import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.ClockworkConfig
 import java.util.function.Consumer
 
 class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<PhysBearingBlockEntity> {
@@ -40,14 +40,11 @@ class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<P
     }
 
     override fun onWrenched(state: BlockState?, context: UseOnContext): InteractionResult {
-        if (!context.getLevel().isClientSide) {
-            val be = context.getLevel().getBlockEntity(context.getClickedPos())
-            if (be is MechanicalBearingBlockEntity) {
-                be.disassemble()
-                return InteractionResult.SUCCESS
-            }
-        }
-        return InteractionResult.FAIL
+        if (context.level.isClientSide) return super.onWrenched(state, context)
+        val be = context.getLevel().getBlockEntity(context.getClickedPos()) as? PhysBearingBlockEntity ?: return InteractionResult.FAIL
+        if (be.isRunning && !ClockworkConfig.SERVER.allowWrenchingActivatedPhysBearing) return InteractionResult.FAIL
+
+        return super.onWrenched(state, context)
     }
 
     override fun neighborChanged(state: BlockState, level: Level, pos: BlockPos, block: Block, fromPos: BlockPos, isMoving: Boolean) {

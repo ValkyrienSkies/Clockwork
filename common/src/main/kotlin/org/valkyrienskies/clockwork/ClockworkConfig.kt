@@ -112,6 +112,9 @@ object ClockworkConfig {
         @ConfigEntry()
         var unlockedModeOmegaErrorMultiplier = 50.0
 
+        @ConfigEntry()
+        var allowWrenchingActivatedPhysBearing = false
+
         @ConfigEntry(min = 0.0)
         var forceMulPerSailInPropeller = 5.0
 

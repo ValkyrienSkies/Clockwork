@@ -100,6 +100,10 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         private set
     var disassembleWhenPossible = false
         private set
+    @Volatile var joint : VSJoint? = null
+        private set
+    @Volatile var jointID : Int = -1
+        private set
 
     private var lastException: AssemblyException? = null
     private var open = false
@@ -122,8 +126,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     private var sequencedAngleLimit = -1.0f
     private var sequencedAngleProgress = 0f
 
-    @Volatile private var joint : VSJoint? = null
-    @Volatile private var jointID : Int = -1
     //pos of bearing in subship coordinates
     private var bearingPos: Vector3d = Vector3d()
     private var aligning = false
@@ -183,6 +185,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     @Volatile private var lastAngle = targetAngle
     @Volatile private var curAngle = targetAngle
     override fun physTick(physShip: PhysShip?, physLevel: PhysLevel) {
+        if (isRemoved || !isRunning) return
         if (jointID == -1) return
         val joint = joint as? VSFixedJoint ?: return
 
@@ -213,11 +216,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         physLevel.updateJoint(jointID, this.joint!!)
 
         pTick = max(pTick++, 2)
-    }
-
-    override fun remove() {
-        if (!level!!.isClientSide) { destroy() }
-        super.remove()
     }
 
     public override fun write(tag: CompoundTag, clientPacket: Boolean) {
