@@ -338,8 +338,10 @@
   "vs_clockwork.subtitle.propeller_start": "Propeller starting up",
   "vs_clockwork.subtitle.propeller_stop": "Propeller spinning down",
 
-
-  "alt_meter.trigger_height": "Height",
+  "alt_meter.title": "Altimeter",
+  "alt_meter.trigger_height": "Altitude",
+  "alt_meter.trigger_sensitivity": "Sensitivity",
+  "alt_meter.trigger_direction": "Direction",
   "sequenced_seat.operation.nothing": "None",
   "sequenced_seat.operation.distance": "Move",
   "sequenced_seat.operation.angle": "Rotate",
