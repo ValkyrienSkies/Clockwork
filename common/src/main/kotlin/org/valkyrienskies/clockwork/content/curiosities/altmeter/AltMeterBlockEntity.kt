@@ -10,7 +10,6 @@ import org.joml.Vector3d
 import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.mod.common.getShipManagingPos
 import kotlin.math.absoluteValue
-import kotlin.math.min
 
 class AltMeterBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
     SmartBlockEntity(typeIn, pos, state) {
@@ -31,20 +30,17 @@ class AltMeterBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: Blo
 
         val posInWorld = Vector3d(blockPos.x + 0.5, blockPos.y + 0.5, blockPos.z + 0.5)
         val shipOn = level.getShipManagingPos(blockPos)
+
         shipOn?.transform?.shipToWorld?.transformPosition(posInWorld)
         val distance = posInWorld.y - triggerHeightCopy
-        val shouldBePowered = distance.absoluteValue > 0.9
-        signalStrength = if (shouldBePowered) min(distance.absoluteValue.toInt(), 15) else 0
 
-        val isCurrentlyPowered = blockState.getValue(AltMeterBlock.POWERED)
+        signalStrength = if (distance.absoluteValue < 15) (15 - distance.absoluteValue.toInt()).coerceIn(0, 15) else 0
+        val currentPower = blockState.getValue(AltMeterBlock.POWER)
 
-        if (shouldBePowered != isCurrentlyPowered) {
-            if (shouldBePowered) {
-                // Same flags as a redstone torch update
-                level!!.setBlock(blockPos, blockState.setValue(AltMeterBlock.POWERED, true), 3)
-            } else {
-                level!!.setBlock(blockPos, blockState.setValue(AltMeterBlock.POWERED, false), 3)
-            }
+        if (currentPower != signalStrength) {
+            level!!.setBlock(blockPos, blockState
+                .setValue(AltMeterBlock.POWER, signalStrength)
+                .setValue(AltMeterBlock.POWERED, signalStrength > 0), 3)
         }
     }
 

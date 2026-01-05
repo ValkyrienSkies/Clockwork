@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.level.block.state.properties.BooleanProperty
+import net.minecraft.world.level.block.state.properties.IntegerProperty
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
@@ -26,7 +27,10 @@ import org.valkyrienskies.clockwork.ClockworkShapes
 
 class AltMeterBlock(properties: Properties) : Block(properties), IBE<AltMeterBlockEntity> {
     init {
-        registerDefaultState(stateDefinition.any().setValue(POWERED, false))
+        registerDefaultState(
+            stateDefinition.any()
+                .setValue(POWER, 0)
+                .setValue(POWERED, false))
     }
 
     override fun use(
@@ -54,7 +58,6 @@ class AltMeterBlock(properties: Properties) : Block(properties), IBE<AltMeterBlo
         pContext: CollisionContext?
     ): VoxelShape {
         return ClockworkShapes.ALT_METER
-
     }
 
     @Environment(value = EnvType.CLIENT)
@@ -80,10 +83,7 @@ class AltMeterBlock(properties: Properties) : Block(properties), IBE<AltMeterBlo
     }
 
     override fun getSignal(state: BlockState, level: BlockGetter, pos: BlockPos, direction: Direction): Int {
-        return if (state.getValue(POWERED)) {
-            (level.getBlockEntity(pos) as? AltMeterBlockEntity)?.getSignalPower()
-                ?: return 15
-        } else 0
+        return state.getValue(POWER)
     }
 
     override fun isSignalSource(state: BlockState): Boolean {
@@ -99,10 +99,12 @@ class AltMeterBlock(properties: Properties) : Block(properties), IBE<AltMeterBlo
     }
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block?, BlockState?>) {
+        builder.add(POWER)
         builder.add(POWERED)
     }
 
     companion object {
+        val POWER: IntegerProperty = BlockStateProperties.POWER
         val POWERED: BooleanProperty = BlockStateProperties.POWERED
     }
 }
