@@ -55,7 +55,6 @@ class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<P
         if (level.isClientSide) {return}
         val blockEntity = level.getBlockEntity(pos)
         if (blockEntity !is PhysBearingBlockEntity) {return}
-        blockEntity.stopTargetAngleChange = level.hasNeighborSignal(pos)
     }
 
     override fun getBlockEntityClass(): Class<PhysBearingBlockEntity> = PhysBearingBlockEntity::class.java
