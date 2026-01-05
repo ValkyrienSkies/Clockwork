@@ -52,7 +52,6 @@ import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.math.abs
 import kotlin.math.absoluteValue
 import kotlin.math.min
-import kotlin.math.roundToInt
 import kotlin.math.sin
 
 open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState, val brass: Boolean = false) : KineticBlockEntity(type, pos, state), IBearingBlockEntity, IForceApplierBE<PropUpdateData, PropData, PropCreateData, PropellerController> {
@@ -633,15 +632,10 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
                 for (sail in sailPositions) {
                     stressImpact += axis.cross(sail.x().toDouble(), sail.y().toDouble(), sail.z().toDouble(), Vector3d()).length()
                 }
-            } else if (this.theoreticalSpeed != 0f) {
+            } else {
                 // Add stress impact from propeller blades.
                 for (blade in blades) {
-                    // TODO: Single point for deriving blade width from blade.wide
-                    // TODO: multiply internal RPM of propeller by 8.0
-                    stressImpact += ((PropellerController.calculateBladePower(0.0,
-                        this.theoreticalSpeed.toDouble() * 8.0 / 60.0,
-                        blade.length, blade.angle, if (blade.wide) 0.375 else 0.25
-                    ) / 100.0).roundToInt() / this.theoreticalSpeed) / 2.0
+                    stressImpact += abs(blade.length * sin(Math.toRadians(blade.angle)) * (if(blade.wide) 1.5 else 1.0))
                 }
             }
         }
