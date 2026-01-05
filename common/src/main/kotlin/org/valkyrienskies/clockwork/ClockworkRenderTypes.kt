@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import com.mojang.blaze3d.vertex.VertexFormat
 import net.minecraft.Util
+import net.minecraft.client.renderer.RenderStateShard
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.resources.ResourceLocation
 import org.valkyrienskies.clockwork.ClockworkShaders.crystal
@@ -29,6 +30,8 @@ class ClockworkRenderTypes(
         } else {
             256
         }
+
+        private val TEX = ResourceLocation("minecraft", "textures/misc/white.png")
 
         val CRYSTAL = Util.memoize { resourceLocation: ResourceLocation? ->
             val compositeState: CompositeState? =
@@ -83,6 +86,25 @@ class ClockworkRenderTypes(
                 .setLightmapState(LIGHTMAP)
                 .setOverlayState(OVERLAY)
                 .setOutputState(TRANSLUCENT_TARGET)
+                .createCompositeState(true)
+        )
+
+        val WANDER_LIGHTNING: RenderType = create(
+            "yourmod_lightning_depthed",
+            DefaultVertexFormat.POSITION_COLOR_TEX,
+            VertexFormat.Mode.QUADS,
+            256,
+            false,
+            true,
+            RenderType.CompositeState.builder()
+                .setShaderState(POSITION_COLOR_TEX_SHADER)
+                .setTextureState(RenderStateShard.TextureStateShard(TEX, false, false))
+                .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY) // NOT additive
+                .setCullState(RenderStateShard.NO_CULL)
+                .setLightmapState(RenderStateShard.NO_LIGHTMAP)
+                .setOverlayState(RenderStateShard.NO_OVERLAY)
+                .setWriteMaskState(RenderStateShard.COLOR_WRITE) // don't write depth (optional)
+                .setDepthTestState(RenderStateShard.LEQUAL_DEPTH_TEST) // depth test ON
                 .createCompositeState(true)
         )
     }

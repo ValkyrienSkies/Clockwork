@@ -25,6 +25,7 @@ import org.valkyrienskies.clockwork.client.render.debug.KelvinEdgeRenderer;
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankArmorLayer;
 import org.valkyrienskies.clockwork.forge.content.curiosities.tools.aeronaut.ForgeAeronautArmorLayer;
 import org.valkyrienskies.clockwork.forge.content.logistics.gas.backtank.ForgeGasBacktankArmorLayer;
+import org.valkyrienskies.clockwork.util.render.LightningRenderer;
 
 import static net.createmod.ponder.PonderClient.isGameActive;
 
@@ -54,6 +55,7 @@ public class ClockworkClientEvents {
                 .getPosition();
 
         ClockworkModClient.getWANDERWAND_EFFECT_RENDERER().render(ms, DefaultSuperRenderTypeBuffer.getInstance(), camera, partialTicks);
+        LightningRenderer.INSTANCE.onRenderLevelStage(ms, partialTicks);
 
         buffer.draw();
         RenderSystem.enableCull();

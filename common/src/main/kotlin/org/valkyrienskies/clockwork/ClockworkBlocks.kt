@@ -45,6 +45,7 @@ import org.valkyrienskies.clockwork.content.curiosities.WanderliteOreBlock
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterBlock
 import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorTestBlock
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlock
+import org.valkyrienskies.clockwork.content.curiosities.debug.DebugLightningArcerBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.distance.DistanceSensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.impact.ImpactSensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.GyroscopicSensorBlock
@@ -1055,6 +1056,21 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .item()
             .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
+            .build()
+            .register()
+
+    @JvmField
+    val DEBUG_LIGHTNING_ARCER: BlockEntry<DebugLightningArcerBlock> =
+        REGISTRATE.block<DebugLightningArcerBlock>("debug_lightning_arcer") { properties: BlockBehaviour.Properties? ->
+            DebugLightningArcerBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.stone() }
+            .transform(axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
             .register()
 
