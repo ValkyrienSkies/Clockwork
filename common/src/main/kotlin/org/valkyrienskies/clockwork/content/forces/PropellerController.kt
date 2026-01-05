@@ -278,6 +278,7 @@ class PropellerController(
         if (velocityTowardsPropellerDir.isNaN() || velocityTowardsPropellerDir.isInfinite()) {
             return Vector3d() to Vector3d()
         }
+        val velocityFalloff =  1 - 1.0/(1 + exp((331 - abs(velocityTowardsPropellerDir)) / 30.0))
         val induced = 0.5
 
         val netForce = Vector3d()
@@ -288,7 +289,7 @@ class PropellerController(
             val bladeAngle = Math.toRadians(estAngle + (angleBetweenBlades * i.toDouble()))
             val bladePitch = -Math.toRadians(blade.angle) ///* rotationSense
             val bladeWidth = if (blade.wide) 0.375 else 0.25
-            val r = blade.length / 2.0
+            val r = blade.length
             val rotatedDist = clockwiseAxis.mul(r, Vector3d()).rotateAxis(bladeAngle, referencePropAxis.x(), referencePropAxis.y(), referencePropAxis.z(), Vector3d())
 
             val rotationalVelocity = physProp.bearingSpeed.absoluteValue * r
@@ -318,17 +319,9 @@ class PropellerController(
             val dLift = q * dA * liftCoefficient
             val dDrag = q * dA * dragCoefficient
 
-            val dThrust = (dLift * cos(phi) - dDrag * sin(phi)) * sf
+            val dThrust = (dLift * cos(phi) - dDrag * sin(phi)) * sf * velocityFalloff
 
-            val vUseful = max(abs(velocityTowardsPropellerDir), 1.0)
-
-            ///todo make this based off SU consumption or something
-            val maxBladePowerWatts = 5000.0 * r // 10 kW
-
-            val thrustCap = maxBladePowerWatts / vUseful
-            val dThrustCapped = dThrust.coerceIn(-thrustCap, thrustCap)
-
-            val force = worldAxis.mul(dThrustCapped * 10, Vector3d()).mul(omegaSign, Vector3d())
+            val force = worldAxis.mul(dThrust * 10, Vector3d()).mul(omegaSign, Vector3d())
             //val torque = rotatedDist.cross(force, Vector3d())
 
             netForce.add(force)
