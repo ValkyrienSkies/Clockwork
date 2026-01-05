@@ -24,6 +24,7 @@ import net.minecraft.world.level.ClipContext
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.*
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkMod.MOD_ID
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingData
@@ -42,13 +43,19 @@ import org.valkyrienskies.clockwork.util.minus
 import org.valkyrienskies.clockwork.util.plus
 import org.valkyrienskies.clockwork.util.times
 import org.valkyrienskies.core.api.attachment.getAttachment
+import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
+import org.valkyrienskies.core.api.world.PhysLevel
+import org.valkyrienskies.core.api.world.properties.DimensionId
 import org.valkyrienskies.core.internal.joints.*
 import org.valkyrienskies.core.impl.bodies.properties.BodyTransformFactory
 
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
+import org.valkyrienskies.core.internal.world.VsiPhysLevel
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3d
+import org.valkyrienskies.mod.api.BlockEntityPhysicsListener
+import org.valkyrienskies.mod.api.dimensionId
 import org.valkyrienskies.mod.common.*
 import org.valkyrienskies.mod.common.util.SplittingDisablerAttachment
 import org.valkyrienskies.mod.common.util.toJOML
@@ -59,13 +66,32 @@ import org.valkyrienskies.mod.util.putVector3d
 import java.lang.Math
 import kotlin.math.*
 
+//TODO move
+fun getHingeRotation(localDir: Vector3dc, right: Vector3dc = Vector3d(1.0, 0.0, 0.0)): Quaterniond {
+    if ((localDir - right).length() < 1e-5) { return Quaterniond() }
+
+    val v1l = right.length()
+    val v2l = localDir.length()
+
+    val a = right.cross(localDir, Vector3d())
+
+    val k = sqrt(v1l * v1l * v2l * v2l)
+    val kCosTheta = right.dot(localDir)
+
+    if (abs(kCosTheta / k + 1.0) < 1e-5) {
+        val ort = right.let { it.orthogonalize(it, Vector3d()) }
+        return Quaterniond(ort.x, ort.y, ort.z, 0.0).normalize()
+    }
+
+    return Quaterniond(a.x, a.y, a.z, k + kCosTheta).normalize()
+}
+
 class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) :
     GeneratingKineticBlockEntity(type, pos, state), IBearingBlockEntity, IDisplayAssemblyExceptions,
-    ContraptionController {
+    ContraptionController, BlockEntityPhysicsListener {
 
     var assembleNextTick = false
     var movementMode: ScrollOptionBehaviour<LockedMode>? = null
-    var stopTargetAngleChange = false
     var isRunning = false
         private set
     var shiptraptionID = NO_SHIPTRAPTION_ID
@@ -96,8 +122,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     private var sequencedAngleLimit = -1.0f
     private var sequencedAngleProgress = 0f
 
-    private var joint : VSRevoluteJoint? = null
-    private var jointID : Int = -1
+    @Volatile private var joint : VSJoint? = null
+    @Volatile private var jointID : Int = -1
     //pos of bearing in subship coordinates
     private var bearingPos: Vector3d = Vector3d()
     private var aligning = false
@@ -132,31 +158,61 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     }
 
     private fun updateDrive(driveVelocity: VSRevoluteJoint.VSRevoluteDriveVelocity? = null) {
-        controllerUpdateData = PhysBearingUpdateData(
-            Math.toRadians(targetAngle.toDouble()),
-            getRealisticAngularSpeed(),
-            movementMode!!.get() == LockedMode.FOLLOW_ANGLE || aligning
+        if (movementMode!!.get() == LockedMode.FOLLOW_ANGLE || aligning) {
+            joint = VSFixedJoint(joint!!.shipId0, joint!!.pose0, joint!!.shipId1, joint!!.pose1, compliance = 1e-100)
+            controllerUpdateData = PhysBearingUpdateData(
+                Math.toRadians(targetAngle.toDouble()),
+                0f,
+                false
+            )
+        } else {
+            joint = VSRevoluteJoint(joint!!.shipId0, joint!!.pose0, joint!!.shipId1, joint!!.pose1, compliance = 1e-100, driveFreeSpin = true)
+            controllerUpdateData = PhysBearingUpdateData(
+                Math.toRadians(targetAngle.toDouble()),
+                getRealisticAngularSpeed(),
+                false
+            )
+            (level as ServerLevel).gtpa.updateJoint(jointID, joint!!)
+        }
+    }
+
+    @Volatile override lateinit var dimension: DimensionId
+    @Volatile private var sDir1: Vector3dc? = null
+    @Volatile private var sDir2: Vector3dc? = null
+    @Volatile private var pTick = 0
+    @Volatile private var lastAngle = targetAngle
+    @Volatile private var curAngle = targetAngle
+    override fun physTick(physShip: PhysShip?, physLevel: PhysLevel) {
+        if (jointID == -1) return
+        val joint = joint as? VSFixedJoint ?: return
+
+        if (curAngle != targetAngle) {
+            pTick = 0
+            lastAngle = curAngle
+            curAngle = targetAngle
+        }
+
+        var angle = lastAngle + (targetAngle - lastAngle) * ((pTick+1) / 3.0)
+        if (aligning) { angle = 0.0 }
+
+        physLevel as VsiPhysLevel
+        if (sDir1 == null || sDir2 == null) {
+            sDir1 = bearingAxis
+            sDir2 = bearingAxis
+        }
+
+        val fRot2 = Quaterniond(AxisAngle4d(Math.toRadians(angle), sDir1)).mul(getHingeRotation(sDir1!!))
+        val fRot1 = getHingeRotation(sDir2!!)
+
+        this.joint = VSFixedJoint(
+            joint.shipId0, VSJointPose(joint.pose0.pos, fRot1),
+            joint.shipId1, VSJointPose(joint.pose1.pos, fRot2),
+            compliance = 1e-100
         )
 
-//        if (jointID == -1) return
-//        val driveVelocity = if (
-//        // unlocked needs driveVelocity to be null with no speed to spin freely for some reason
-//               movementMode?.get() != LockedMode.LOCKED && (driveVelocity?.velocity == 0.0f || driveVelocity == null)
-//            || movementMode?.get() == LockedMode.FOLLOW_ANGLE
-//            || aligning
-//            ) {
-//            null
-//        } else driveVelocity ?: VSRevoluteJoint.VSRevoluteDriveVelocity(0f)
-//
-//        joint = VSRevoluteJoint(
-//            joint!!.shipId0, joint!!.pose0,
-//            joint!!.shipId1, joint!!.pose1,
-//            compliance = 1e-100,
-//            driveFreeSpin = movementMode!!.get() != LockedMode.LOCKED,
-//            driveVelocity = driveVelocity,
-//        )
-//
-//        (level as ServerLevel).gtpa.updateJoint(jointID, joint!!)
+        physLevel.updateJoint(jointID, this.joint!!)
+
+        pTick = max(pTick++, 2)
     }
 
     override fun remove() {
@@ -169,7 +225,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         tag.putBoolean(ClockworkConstants.Nbt.RUNNING, isRunning)
         tag.putFloat(ClockworkConstants.Nbt.ANGLE, targetAngle)
-        tag.putBoolean("stopTargetAngleChange", stopTargetAngleChange)
         if (shiptraptionID != NO_SHIPTRAPTION_ID) {
             tag.putLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID, shiptraptionID)
         }
@@ -186,7 +241,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         tag.putBoolean("aligning", aligning)
 
         val mapper = VSJacksonUtil.dtoMapper
-        joint?.let { tag.putByteArray("joint", mapper.writeValueAsBytes(it)) }
+        when (joint) {
+            is VSRevoluteJoint -> tag.putByteArray("joint", mapper.writeValueAsBytes(joint!!))
+            is VSFixedJoint -> tag.putByteArray("fjoint", mapper.writeValueAsBytes(joint!!))
+        }
+
         tag.putInt("jointID", jointID)
 
         if (shiptraptionID == NO_SHIPTRAPTION_ID) return
@@ -211,9 +270,15 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         bearingPos = bearingPos.sub(oldSPos).add(newSPos)
 
-        this.joint = joint.copy(
-            shiptraptionID, pose0 = VSJointPose(joint.pose0.pos - oldSPos + newSPos, joint.pose0.rot),
-            mainId,         pose1 = VSJointPose(joint.pose1.pos - oldPos  + newPos,  joint.pose1.rot))
+        this.joint = when(joint) {
+            is VSRevoluteJoint -> joint.copy(
+                shiptraptionID, pose0 = VSJointPose(joint.pose0.pos - oldSPos + newSPos, joint.pose0.rot),
+                mainId,         pose1 = VSJointPose(joint.pose1.pos - oldPos  + newPos,  joint.pose1.rot))
+            is VSFixedJoint -> joint.copy(
+                shiptraptionID, pose0 = VSJointPose(joint.pose0.pos - oldSPos + newSPos, joint.pose0.rot),
+                mainId,         pose1 = VSJointPose(joint.pose1.pos - oldPos  + newPos,  joint.pose1.rot))
+            else -> throw AssertionError()
+        }
 
         controllerCreationData = PhysBearingData(
             bearingAxis.get(Vector3d()),
@@ -238,7 +303,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         open = tag.getBoolean(ClockworkConstants.Nbt.OPEN)
         isRunning = tag.getBoolean(ClockworkConstants.Nbt.RUNNING)
         targetAngle = tag.getFloat(ClockworkConstants.Nbt.ANGLE)
-        stopTargetAngleChange = tag.getBoolean("stopTargetAngleChange")
         lastException = AssemblyException.read(tag)
         if (tag.contains(ClockworkConstants.Nbt.SHIPTRAPTION_ID)) {
             shiptraptionID = tag.getLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID)
@@ -267,8 +331,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             val temp = mapper.readValue(tag.getByteArray("constraint"), VSJointAndId::class.java)
             joint = temp.joint as VSRevoluteJoint
             jointID = temp.jointId
-        } else {
-            joint = if (tag.contains("joint")) { mapper.readValue(tag.getByteArray("joint"), VSRevoluteJoint::class.java) } else { null }
+        } else if (tag.contains("joint")) {
+            joint = mapper.readValue(tag.getByteArray("joint"), VSRevoluteJoint::class.java)
+            jointID = tag.getInt("jointID")
+        } else if (tag.contains("fjoint")) {
+            joint = mapper.readValue(tag.getByteArray("fjoint"), VSFixedJoint::class.java)
             jointID = tag.getInt("jointID")
         }
 
@@ -369,17 +436,29 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         return hingeOrientation
     }
 
-    @Volatile var tryMakeJointNextTick = false
-
     fun tryMakeJoint() {
         val joint = joint ?: return
-        (level as ServerLevel).gtpa.addJoint(joint) { id ->
+
+        ClockworkMod.physTickOnce(level.dimensionId!!) { level, _, tryNextTick ->
+            level as VsiPhysLevel
+            val existing = level.getJointById(jointID)
+            if (existing != null && existing == joint) {
+                isRunning = true
+                return@physTickOnce
+            }
+            if (
+                joint.shipId0 != null && level.getShipById(joint.shipId0!!) == null ||
+                joint.shipId1 != null && level.getShipById(joint.shipId1!!) == null
+            ) {
+                tryNextTick()
+                return@physTickOnce
+            }
+            val id = level.addJoint(joint)
             if (id == -1) {
-                tryMakeJointNextTick = true
-                return@addJoint
+                tryNextTick()
+                return@physTickOnce
             }
             this.jointID = id
-            tryMakeJointNextTick = false
 
             isRunning = true
             targetAngle = 0f
@@ -570,6 +649,12 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         sendData()
         jointID = -1
         aligning = false
+
+        sDir1 = null
+        sDir2 = null
+        pTick = 0
+        lastAngle = 0f
+        curAngle = 0f
     }
 
     private fun tryAssembleNextTick() {
@@ -667,14 +752,13 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 controllerUpdateData = null
             }
             tryAssembleNextTick()
-            if (tryMakeJointNextTick) {tryMakeJoint()}
             if (disassembleWhenPossible) { shipDisassemble() }
         }
         tickAnimationLogic()
         if (!isRunning) return
         if (shiptraptionID == NO_SHIPTRAPTION_ID) {
             targetAngle = 0f
-        } else if (!stopTargetAngleChange) {
+        } else if (joint != null && jointID != -1) {
             val angularSpeed = -getActualAngularSpeed()
             var diff = 0.0f
 
@@ -690,7 +774,17 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 }
             }
             val newAngle = targetAngle + angularSpeed - diff
-            //don't remember reason for this, but there was one
+            //this is stupid
+            lastAngle = when {
+                newAngle >= 360f -> lastAngle - 360f
+                newAngle < 0f -> lastAngle + 360f
+                else -> lastAngle
+            }
+            curAngle = when {
+                newAngle >= 360f -> curAngle - 360f
+                newAngle < 0f -> curAngle + 360f
+                else -> curAngle
+            }
             targetAngle = when {
                 newAngle >= 360f -> newAngle - 360f
                 newAngle < 0f -> newAngle + 360f
