@@ -8,6 +8,7 @@ import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.block.entity.BlockEntity
+import org.valkyrienskies.clockwork.ClockworkMod.MOD_ID
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftBlockEntity
 import org.valkyrienskies.mod.common.toWorldCoordinates
@@ -30,26 +31,26 @@ open class UniversalJointItem<T: IUniversalJoint>(properties: Properties) : Item
         val tBe = be as T
         if (firstSelect == null) {
             firstSelect = tBe
-            context.player!!.displayClientMessage(Component.literal("Connection Started..."), true)
+            context.player!!.displayClientMessage(Component.translatable("$MOD_ID.universal_shaft.connection_start"), true)
         }
         else {
             val worldDistance = context.level.toWorldCoordinates(firstSelect!!.pos).distanceTo(context.level.toWorldCoordinates(tBe.pos))
-            if (worldDistance > tBe.maxCreationDistance) { //todo add joint distance config
-                context.player!!.displayClientMessage(Component.literal("Connection failed: Joints are too far apart!"), true)
+            if (worldDistance > tBe.maxCreationDistance) {
+                context.player!!.displayClientMessage(Component.translatable("$MOD_ID.universal_shaft.connection_failed.too_far"), true)
                 firstSelect = null
                 return fail()
             }
-            if (firstSelect == tBe) {
-                context.player!!.displayClientMessage(Component.literal("Connection failed: Cannot connect a joint to itself!"), true)
+            if (firstSelect == tBe || firstSelect!!.pos == tBe.pos) {
+                context.player!!.displayClientMessage(Component.translatable("$MOD_ID.universal_shaft.connection_failed.to_itself"), true)
                 firstSelect = null
                 return fail()
             }
             if (!firstSelect!!.tryConnect(context.level,be.blockPos)) {
-                context.player!!.displayClientMessage(Component.literal("Connection failed."), true)
+                context.player!!.displayClientMessage(Component.translatable("$MOD_ID.universal_shaft.connection_failed"), true)
                 firstSelect = null
                 return fail()
             }
-            context.player!!.displayClientMessage(Component.literal("Connected!"), true)
+            context.player!!.displayClientMessage(Component.translatable("$MOD_ID.universal_shaft.connection_end"), true)
             context.level!!.playSound(null, be.blockPos, ClockworkSounds.HOSE_ATTACH.mainEvent, SoundSource.BLOCKS, 1.0f, 1.0f)
 
             context.itemInHand.count -= 1

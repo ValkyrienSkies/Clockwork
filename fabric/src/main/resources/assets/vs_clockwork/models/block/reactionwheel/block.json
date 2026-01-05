@@ -1,0 +1,6 @@
+{
+  "parent": "vs_clockwork:block/reactionwheel/reactionwheel",
+  "loader": "porting_lib:obj",
+  "flip_v": true,
+  "model": "vs_clockwork:models/block/reactionwheel/reactionwheel_shaftless.obj"
+}

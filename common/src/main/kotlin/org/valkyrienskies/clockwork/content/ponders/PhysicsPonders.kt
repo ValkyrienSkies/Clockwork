@@ -18,6 +18,7 @@ import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkPonders.ponderLang
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity
+import org.valkyrienskies.clockwork.content.ponders.moveSectionAsShip
 
 object PhysicsPonders {
     fun flap(sceneBuilder: SceneBuilder, util: SceneBuildingUtil) {
@@ -392,7 +393,9 @@ object PhysicsPonders {
         scene.idle(37 * 4)
     }
 
-    fun gyro(scene: SceneBuilder, util: SceneBuildingUtil) {
+    fun gyro(sceneBuilder: SceneBuilder, util: SceneBuildingUtil) {
+        val scene = CreateSceneBuilder(sceneBuilder)
+
         scene.title("gyro", "Stabilize your ship")
         scene.configureBasePlate(0, 0, 5)
         scene.showBasePlate()
@@ -407,15 +410,21 @@ object PhysicsPonders {
 
         val contraption = scene.world().showIndependentSection(ship, Direction.DOWN)
         scene.world().moveSection(contraption, util.vector().of(0.0, 0.0, 0.0), 0)
+
         scene.overlay().showText(40)
             .attachKeyFrame()
             .text("Gyro will stabilize ship in its direction")
-        scene.idle(40)
-        scene.idle(20)
+        scene.idle(40+20)
+
         scene.overlay().showText(40)
             .attachKeyFrame()
             .text("Redstone input from each side will tilt the ship")
-        scene.idle(30)
+        scene.idle(40+20)
+
+        scene.world().configureCenterOfRotation(contraption, Vec3(2.0, 3.0, 2.0))
+        scene.world().moveSectionAsShip(scene, contraption, 20, Vec3(0.0, 0.1, 0.0))
+        scene.idle(20+5)
+
         scene.world().modifyBlockEntityNBT(
             leverN,
             AnalogLeverBlockEntity::class.java
@@ -425,9 +434,10 @@ object PhysicsPonders {
                 5
             )
         }
-        scene.world().configureCenterOfRotation(contraption, Vec3(2.0, 2.0, 2.0))
-        scene.world().rotateSection(contraption, -25.0, 0.0, 0.0, 30)
-        scene.idle(40)
+
+        scene.world().moveSectionAsShip(scene, contraption, 30, initialRotVel = Vec3(-2.5, 0.0, 0.0))
+        scene.idle(30+10)
+
         scene.world().modifyBlockEntityNBT(
             leverN,
             AnalogLeverBlockEntity::class.java
@@ -437,7 +447,8 @@ object PhysicsPonders {
                 0
             )
         }
-        scene.world().rotateSection(contraption, 25.0, 0.0, 0.0, 30)
+
+        scene.world().moveSectionAsShip(scene, contraption, 30, initialRotVel = Vec3(2.5, 0.0, 0.0))
         scene.idle(40)
 
         scene.world().modifyBlockEntityNBT(
@@ -449,8 +460,10 @@ object PhysicsPonders {
                 5
             )
         }
-        scene.world().rotateSection(contraption, 0.0, 0.0, 25.0, 30)
+
+        scene.world().moveSectionAsShip(scene, contraption, 30, initialRotVel = Vec3(0.0, 0.0, 2.5))
         scene.idle(40)
+
         scene.world().modifyBlockEntityNBT(
             leverE,
             AnalogLeverBlockEntity::class.java
@@ -460,7 +473,8 @@ object PhysicsPonders {
                 0
             )
         }
-        scene.world().rotateSection(contraption, 0.0, 0.0, -25.0, 30)
+
+        scene.world().moveSectionAsShip(scene, contraption, 30, initialRotVel = Vec3(0.0, 0.0, -2.5))
         scene.idle(40)
 
         scene.world().modifyBlockEntityNBT(
@@ -472,8 +486,10 @@ object PhysicsPonders {
                 10
             )
         }
-        scene.world().rotateSection(contraption, 0.0, 0.0, -50.0, 50)
+
+        scene.world().moveSectionAsShip(scene, contraption, 50, initialRotVel = Vec3(0.0, 0.0, -5.0))
         scene.idle(60)
+
         scene.world().modifyBlockEntityNBT(
             leverW,
             AnalogLeverBlockEntity::class.java
@@ -483,9 +499,12 @@ object PhysicsPonders {
                 0
             )
         }
-        scene.world().rotateSection(contraption, 0.0, 0.0, 50.0, 50)
-        scene.idle(40)
 
-        scene.idle(37 * 4)
+        scene.world().moveSectionAsShip(scene, contraption, 50, initialRotVel = Vec3(0.0, 0.0, 5.0))
+        scene.idle(60)
+
+        scene.idle(20)
+
+        scene.markAsFinished()
     }
 }

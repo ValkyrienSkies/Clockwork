@@ -12,6 +12,7 @@ import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.mod.common.assembly.ShipAssembler
 import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
+import org.valkyrienskies.mod.common.getLoadedShipManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toBlockPos
 import org.valkyrienskies.mod.common.util.toJOML
@@ -57,6 +58,11 @@ interface IWanderliteBlock {
 
     fun shipifyBlock(level: ServerLevel, blockPos: BlockPos)  {
         val blockList = collectBlockPositions(level, blockPos, 4)
+
+        val notAllAir = blockList.any { !level.getBlockState(it).isAir }
+        if (!notAllAir) {
+            return
+        }
 
         val ship = ShipAssembler.assembleToShip(level, blockList, true)
 

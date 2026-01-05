@@ -105,9 +105,9 @@ public abstract class MixinSteamEngineBlockEntity extends SmartBlockEntity {
 
         if (!level.isClientSide) return;
 
-//        if (efficiency > 0) engine.spawnParticles(level,
-//                new Vector3d(getBlockPos().getX() + level.random.nextDouble(), getBlockPos().getY() + level.random.nextDouble(), getBlockPos().getZ() + level.random.nextDouble()),
-//                new Vector3d(0.0,0.0,0.0));
+        if (efficiency > 0) engine.spawnParticles(level,
+                new Vector3d(getBlockPos().getX() + level.random.nextDouble(), getBlockPos().getY() + level.random.nextDouble(), getBlockPos().getZ() + level.random.nextDouble()),
+                new Vector3d(0.0,0.0,0.0));
 
 
     }

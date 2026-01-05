@@ -6,10 +6,14 @@ import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.network.chat.Component
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.InteractionResult
+import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.util.INodeBlock
@@ -31,6 +35,22 @@ class GasNozzleBlock(properties: Properties): HorizontalKineticBlock(properties)
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
         nodeRemove(state, level, pos, newState, isMoving)
         super.onRemove(state, level, pos, newState, isMoving)
+    }
+
+    override fun use(
+        state: BlockState,
+        level: Level,
+        pos: BlockPos,
+        player: Player,
+        hand: InteractionHand,
+        hit: BlockHitResult
+    ): InteractionResult? {
+        if (player.getItemInHand(hand).isEmpty) {
+            withBlockEntityDo(level, pos) { be ->
+                be.shouldFetchNextTick = true
+            }
+        }
+        return super.use(state, level, pos, player, hand, hit)
     }
 
     override fun getRotationAxis(state: BlockState): Direction.Axis {

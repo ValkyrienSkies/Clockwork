@@ -188,6 +188,31 @@ object ClockworkSounds {
         .attenuationDistance(16)
         .build()
 
+    val GAS_NOZZLE_START = create("gas_nozzle_start").subtitle("Gas Nozzle starting")
+        .category(SoundSource.BLOCKS)
+        .attenuationDistance(32)
+        .build()
+
+    val GAS_NOZZLE_LOOP = create("gas_nozzle_loop").subtitle("Gas Nozzle operating")
+        .category(SoundSource.BLOCKS)
+        .attenuationDistance(16)
+        .build()
+
+    val BALLOON_RUPTURE = create("balloon_rupture").subtitle("Balloon rupturing")
+        .category(SoundSource.BLOCKS)
+        .attenuationDistance(64)
+        .build()
+
+    val BALLOON_LEAKING_LIGHT = create("balloon_leaking_light").subtitle("Balloon leaking air (light)")
+        .category(SoundSource.BLOCKS)
+        .attenuationDistance(64)
+        .build()
+
+    val BALLOON_LEAKING_HEAVY = create("balloon_leaking_heavy").subtitle("Balloon leaking air (heavy)")
+        .category(SoundSource.BLOCKS)
+        .attenuationDistance(64)
+        .build()
+
     private val sounds: DeferredRegister<SoundEvent> =
         DeferredRegister.create(BuiltInRegistries.SOUND_EVENT, ClockworkMod.MOD_ID)
 

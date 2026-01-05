@@ -49,6 +49,7 @@ import org.valkyrienskies.mod.common.hooks.VSGameEvents
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.vsCore
 import org.valkyrienskies.mod.event.RegistryEvents
+import kotlin.math.roundToInt
 
 
 object ClockworkMod {
@@ -102,7 +103,7 @@ object ClockworkMod {
 
         vsCore.registerAttachment(PocketForcesController::class.java)
         vsCore.registerAttachment(WanderShipControl::class.java)
-        vsCore.registerAttachment(GasThrusterController::class.java)
+        //vsCore.registerAttachment(GasThrusterController::class.java)
         vsCore.registerAttachment(PropellerController::class.java)
         vsCore.registerAttachment(ReactionWheelController::class.java)
         vsCore.registerAttachment(EncasedFanController::class.java)
@@ -110,6 +111,7 @@ object ClockworkMod {
         vsCore.registerAttachment(SugarRocketController::class.java)
         vsCore.registerAttachment(GravitronController::class.java) { useTransientSerializer() }
         vsCore.registerAttachment(BearingController::class.java) { useTransientSerializer() }
+        vsCore.registerAttachment(BalloonController::class.java)
 
         vsApi.shipLoadEvent.on { event -> val ship = event.ship;
             //TODO: UNCOMMENT WHEN POCKET FORCES IS FIXED
@@ -150,6 +152,7 @@ object ClockworkMod {
             for (ship in it.shipObjectWorld.loadedShips) {
                 //TODO: UNCOMMENT WHEN POCKET FORCES IS FIXED
                 //ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship.id)
+                ship.getAttachment(BalloonController::class.java)?.gameTick(it, ship)
             }
 
             ClockworkUtils.tick(it)
@@ -170,7 +173,7 @@ object ClockworkMod {
                 val density = level.shipObjectWorld.aerodynamicUtils.getAirTemperatureForY(player.position().y(),level.dimensionId)
                 val temperature = level.shipObjectWorld.aerodynamicUtils.getAirTemperatureForY(player.position().y(),level.dimensionId)
 
-                player.sendSystemMessage(Component.literal("At y: ${player.position().y} density: $density temperature: $temperature"))
+                player.sendSystemMessage(Component.translatable("$MOD_ID.command.get_air_values", player.position().y.roundToInt(), density.roundToInt(), temperature.roundToInt()))
 
                 0
             })

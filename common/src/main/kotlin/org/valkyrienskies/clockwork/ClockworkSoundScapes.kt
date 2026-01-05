@@ -43,11 +43,11 @@ object ClockworkSoundScapes {
     }
 
     private fun propeller(pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos?): SoundScape {
-        return SoundScape(pitch, group, ship).continuous(ClockworkSounds.PROPELLER.mainEvent!!, 2f, 1f, ship, pos)
+        return SoundScape(pitch, group, ship).continuous(ClockworkSounds.PROPELLER.mainEvent!!, 8f, 1f, ship, pos)
     }
 
     private fun juryriggedPropeller(pitch: Float, group: AmbienceGroup, ship: Ship?, pos: BlockPos?): SoundScape {
-        return SoundScape(pitch, group, ship).continuous(ClockworkSounds.JUNK_PROPELLER.mainEvent!!, 4f, 1f, ship, pos)
+        return SoundScape(pitch, group, ship).continuous(ClockworkSounds.JUNK_PROPELLER.mainEvent!!, 10f, 1f, ship, pos)
             .repeating(ClockworkSounds.JUNK_RATTLE.mainEvent!!, 1.5f, 1f, 30)
     }
 

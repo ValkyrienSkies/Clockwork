@@ -73,6 +73,13 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
         super.onRemove(pState, pLevel, pPos, pNewState, pIsMoving)
     }
 
+    override fun canConnectTo(self: BlockPos, other: BlockPos, direction: Direction, level: BlockGetter): Boolean {
+        val state = level.getBlockState(self)
+        if (state.block !is PumpDuctBlock) return false
+        if (direction.axis != state.getValue(FACING).axis) return false
+        return super.canConnectTo(self, other, direction, level)
+    }
+
     override fun updateShape(
         state: BlockState,
         direction: Direction,

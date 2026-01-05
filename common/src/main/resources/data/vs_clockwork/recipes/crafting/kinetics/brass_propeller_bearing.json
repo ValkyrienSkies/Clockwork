@@ -10,10 +10,10 @@
       "tag": "minecraft:wooden_slabs"
     },
     "A": {
-      "item": "create:railway_casing"
+      "item": "create:cogwheel"
     },
     "E": {
-      "item": "create:electron_tube"
+      "item": "create:clockwork_bearing"
     }
   },
   "result": {

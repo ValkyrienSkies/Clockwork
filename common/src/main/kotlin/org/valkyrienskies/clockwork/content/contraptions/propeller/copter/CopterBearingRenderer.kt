@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.Direction
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
+import org.joml.AxisAngle4f
 import org.joml.Quaternionf
 import org.valkyrienskies.clockwork.ClockworkPartials
 
@@ -66,6 +67,30 @@ class CopterBearingRenderer(context: BlockEntityRendererProvider.Context) :
         println("Interpolating quaternion: ${String.format("%.3f", partialTicks)} \nprev=$formattedPrev, \ninte=$formattedInterpol, \ntarg=$formattedQuat")
          */
 
+//        ms.pushPose()
+//        ms.translate(0.5, 0.5, 0.5)
+//        //ms.mulPose(Quaternionf().rotateXYZ(0.0f, Math.toRadians(-180.0).toFloat(), 0.0f))
+//
+//        when (facing) {
+//            Direction.SOUTH -> {
+//                ms.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(270.0), 1f, 0f, 0f)))
+//                ms.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(90.0), 0f, 1f, 0f)))
+//            }
+//            Direction.WEST -> {
+//                ms.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(180.0), 0f, 0f, 1f)))
+//                ms.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(90.0), 0f, 1f, 0f)))
+//            }
+//            Direction.NORTH -> ms.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(0.0), 1f, 0f, 0f)))
+//            Direction.EAST -> {
+//                ms.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(180.0), 0f, 0f, 1f)))
+//                ms.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(90.0), 0f, 1f, 0f)))
+//            }
+//            Direction.UP -> ms.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(0.0), 1f, 0f, 0f)))
+//            Direction.DOWN -> ms.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(0.0), -1f, 0f, 0f)))
+//        }
+//
+//        ms.translate(-0.5, -0.5, -0.5)
+
 
         //Render Pistons
         renderPistons(ms, buffer, blockEntity, light)
@@ -75,6 +100,7 @@ class CopterBearingRenderer(context: BlockEntityRendererProvider.Context) :
 
         //Render Wafer
         renderWafer(ms, buffer, blockEntity, normal, blockEntity.clientTiltQuat, facing, light)
+        //ms.popPose()
     }
 
     private fun renderTop(
@@ -96,6 +122,10 @@ class CopterBearingRenderer(context: BlockEntityRendererProvider.Context) :
         val interpolatedAngle: Float = blockEntity.getInterpolatedAngle(partialTicks - 1)
         kineticRotationTransform(superBuffer, blockEntity, facing.axis, (interpolatedAngle / 180 * Math.PI).toFloat(), light)
 
+        if (facing.axis.isHorizontal)
+            superBuffer.rotateCentered(
+                AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble()),
+                Direction.UP,)
         superBuffer.rotateCentered(AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()), Direction.EAST)
         superBuffer.renderInto(ms, buffer.getBuffer(RenderType.solid()))
     }
@@ -107,12 +137,35 @@ class CopterBearingRenderer(context: BlockEntityRendererProvider.Context) :
         light: Int
     ) {
         var superBuffer: SuperByteBuffer = CachedBuffers.partial(pistonNW, blockEntity.blockState)
+        if (blockEntity.facing.axis.isHorizontal)
+            superBuffer.rotateCentered(
+                AngleHelper.rad(AngleHelper.horizontalAngle(blockEntity.facing.opposite).toDouble()),
+                Direction.UP,)
+        superBuffer.rotateCentered(AngleHelper.rad((-90 - AngleHelper.verticalAngle(blockEntity.facing)).toDouble()), Direction.EAST)
         superBuffer.light<SuperByteBuffer>(light).renderInto(ms, buffer.getBuffer(RenderType.solid()))
+
         superBuffer = CachedBuffers.partial(pistonNE, blockEntity.blockState)
+        if (blockEntity.facing.axis.isHorizontal)
+            superBuffer.rotateCentered(
+                AngleHelper.rad(AngleHelper.horizontalAngle(blockEntity.facing.opposite).toDouble()),
+                Direction.UP,)
+        superBuffer.rotateCentered(AngleHelper.rad((-90 - AngleHelper.verticalAngle(blockEntity.facing)).toDouble()), Direction.EAST)
         superBuffer.light<SuperByteBuffer>(light).renderInto(ms, buffer.getBuffer(RenderType.solid()))
+
         superBuffer = CachedBuffers.partial(pistonSW, blockEntity.blockState)
+        if (blockEntity.facing.axis.isHorizontal)
+            superBuffer.rotateCentered(
+                AngleHelper.rad(AngleHelper.horizontalAngle(blockEntity.facing.opposite).toDouble()),
+                Direction.UP,)
+        superBuffer.rotateCentered(AngleHelper.rad((-90 - AngleHelper.verticalAngle(blockEntity.facing)).toDouble()), Direction.EAST)
         superBuffer.light<SuperByteBuffer>(light).renderInto(ms, buffer.getBuffer(RenderType.solid()))
+
         superBuffer = CachedBuffers.partial(pistonSE, blockEntity.blockState)
+        if (blockEntity.facing.axis.isHorizontal)
+            superBuffer.rotateCentered(
+                AngleHelper.rad(AngleHelper.horizontalAngle(blockEntity.facing.opposite).toDouble()),
+                Direction.UP,)
+        superBuffer.rotateCentered(AngleHelper.rad((-90 - AngleHelper.verticalAngle(blockEntity.facing)).toDouble()), Direction.EAST)
         superBuffer.light<SuperByteBuffer>(light).renderInto(ms, buffer.getBuffer(RenderType.solid()))
     }
 
@@ -130,6 +183,13 @@ class CopterBearingRenderer(context: BlockEntityRendererProvider.Context) :
         superBuffer.translate(normal.scale(0.1))
         superBuffer.rotateCentered(tiltQuaternion)
         superBuffer.translate(normal.scale(-0.1))
+        if (facing.axis.isHorizontal)
+            superBuffer.rotateCentered(
+                AngleHelper.rad(AngleHelper.horizontalAngle(facing.opposite).toDouble()),
+                Direction.UP,)
+//        else if (!axisAlong) superBuffer.rotateCentered(
+//            AngleHelper.rad(90.0),
+//            Direction.UP)
 
         superBuffer.rotateCentered(AngleHelper.rad((-90 - AngleHelper.verticalAngle(facing)).toDouble()), Direction.EAST)
         superBuffer.light<SuperByteBuffer>(light).renderInto(ms, buffer.getBuffer(RenderType.solid()))

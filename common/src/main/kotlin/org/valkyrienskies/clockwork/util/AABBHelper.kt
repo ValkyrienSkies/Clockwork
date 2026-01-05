@@ -94,10 +94,12 @@ object AABBHelper {
                 var acc = g[0]
                 for (i in 1 until g.size) {
                     val b = g[i]
-                    if (acc.maxX == b.minX) {
-                        // same Y/Z by construction (group key)
-                        acc = AABBi(acc.minX, acc.minY, acc.minZ, b.maxX, acc.maxY, acc.maxZ)
-                        changed = true
+
+                    // Overlap OR touch on X => union interval
+                    if (b.minX <= acc.maxX) {
+                        val newMaxX = maxOf(acc.maxX, b.maxX)
+                        if (newMaxX != acc.maxX) changed = true
+                        acc = AABBi(acc.minX, acc.minY, acc.minZ, newMaxX, acc.maxY, acc.maxZ)
                     } else {
                         out.add(acc)
                         acc = b
@@ -123,9 +125,11 @@ object AABBHelper {
                 var acc = g[0]
                 for (i in 1 until g.size) {
                     val b = g[i]
-                    if (acc.maxY == b.minY) {
-                        acc = AABBi(acc.minX, acc.minY, acc.minZ, acc.maxX, b.maxY, acc.maxZ)
-                        changed = true
+
+                    if (b.minY <= acc.maxY) {
+                        val newMaxY = maxOf(acc.maxY, b.maxY)
+                        if (newMaxY != acc.maxY) changed = true
+                        acc = AABBi(acc.minX, acc.minY, acc.minZ, acc.maxX, newMaxY, acc.maxZ)
                     } else {
                         out.add(acc)
                         acc = b
@@ -151,9 +155,11 @@ object AABBHelper {
                 var acc = g[0]
                 for (i in 1 until g.size) {
                     val b = g[i]
-                    if (acc.maxZ == b.minZ) {
-                        acc = AABBi(acc.minX, acc.minY, acc.minZ, acc.maxX, acc.maxY, b.maxZ)
-                        changed = true
+
+                    if (b.minZ <= acc.maxZ) {
+                        val newMaxZ = maxOf(acc.maxZ, b.maxZ)
+                        if (newMaxZ != acc.maxZ) changed = true
+                        acc = AABBi(acc.minX, acc.minY, acc.minZ, acc.maxX, acc.maxY, newMaxZ)
                     } else {
                         out.add(acc)
                         acc = b
@@ -164,23 +170,56 @@ object AABBHelper {
             return out to changed
         }
 
+
         var anyChanged: Boolean
         do {
             anyChanged = false
 
             val (xMerged, cx) = mergePassX(cur)
-            cur = xMerged
-            anyChanged = anyChanged || cx
+            cur = xMerged; anyChanged = anyChanged || cx
 
             val (yMerged, cy) = mergePassY(cur)
-            cur = yMerged
-            anyChanged = anyChanged || cy
+            cur = yMerged; anyChanged = anyChanged || cy
 
             val (zMerged, cz) = mergePassZ(cur)
-            cur = zMerged
-            anyChanged = anyChanged || cz
+            cur = zMerged; anyChanged = anyChanged || cz
         } while (anyChanged)
 
-        return cur
+        return pruneContained(cur)
+    }
+
+    private fun containsHalfOpen(outer: AABBi, inner: AABBi): Boolean =
+        outer.minX <= inner.minX && outer.minY <= inner.minY && outer.minZ <= inner.minZ &&
+                outer.maxX >= inner.maxX && outer.maxY >= inner.maxY && outer.maxZ >= inner.maxZ
+
+    /**
+     * Removes any AABB that is fully contained in another.
+     * Complexity: O(n^2) worst-case, but usually fine after merging.
+     */
+    fun pruneContained(boxes: List<AABBi>): List<AABBi> {
+        if (boxes.size <= 1) return boxes
+
+
+        // Sort big-to-small correctly (no overflow)
+        val sorted = boxes.sortedWith(
+            compareByDescending<AABBi> {
+                val dx = (it.maxX - it.minX).toLong()
+                val dy = (it.maxY - it.minY).toLong()
+                val dz = (it.maxZ - it.minZ).toLong()
+                dx * dy * dz
+            }
+                .thenBy { it.minX }.thenBy { it.minY }.thenBy { it.minZ }
+                .thenBy { it.maxX }.thenBy { it.maxY }.thenBy { it.maxZ }
+        )
+
+        val kept = ArrayList<AABBi>(sorted.size)
+        for (b in sorted) {
+            var covered = false
+            for (k in kept) {
+                if (containsHalfOpen(k, b)) { covered = true; break }
+            }
+            if (!covered) kept.add(b)
+        }
+        return kept
     }
 }

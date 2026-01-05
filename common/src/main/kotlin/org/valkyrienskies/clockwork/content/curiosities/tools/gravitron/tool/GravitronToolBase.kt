@@ -7,6 +7,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronHandler
 import org.valkyrienskies.clockwork.platform.SharedValues
 import org.valkyrienskies.mod.common.util.toDoubles
@@ -19,7 +20,8 @@ abstract class GravitronToolBase : IGravitronTool {
 
     /**
      * This function will store the block the player looks
-     * at withing 15 blocks to be accessed by the Gravitrons other functions
+     * at (within [ClockworkConfig.Server.survivalGravitronMaxRange] blocks if [smallRange], otherwise 1000 blocks),
+     * to be accessed by the Gravitrons other functions
      */
     fun updateTargetPos(smallRange: Boolean = true) {
         val player = Minecraft.getInstance().player
@@ -28,7 +30,7 @@ abstract class GravitronToolBase : IGravitronTool {
         clickedLocation = null
 
         val trace = RaycastHelper.rayTraceRange(
-            player!!.level(), player, if (smallRange) 15.0 else 1000.0
+            player!!.level(), player, if (smallRange) ClockworkConfig.SERVER.survivalGravitronMaxRange else 1000.0
         )
         if (trace == null || trace.type != HitResult.Type.BLOCK) {
             return

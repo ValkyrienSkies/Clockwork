@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.util.gui.DuctUnits
 import org.valkyrienskies.core.internal.config.ConfigEntry
 
 object ClockworkConfig {
@@ -16,6 +17,30 @@ object ClockworkConfig {
 
         @ConfigEntry(description = "Enable rendering particles for DuctBlock")
         var renderDuctParticles = true
+
+        @ConfigEntry(description = "Use metric prefixes for units (15000 Pa = 15 kPa)")
+        var simplifyDisplayUnits = true
+
+        @ConfigEntry(description = "Gas mass display unit")
+        var massDisplayUnit = DuctUnits.MassUnit.KILOGRAM
+
+        @ConfigEntry(description = "Duct volume display unit")
+        var volumeDisplayUnit = DuctUnits.VolumeUnit.CUBIC_METER
+
+        @ConfigEntry(description = "Temperature display unit")
+        var tempDisplayUnit = DuctUnits.TemperatureUnit.KELVIN
+
+        @ConfigEntry(description = "Pressure display unit")
+        var pressureDisplayUnit = DuctUnits.PressureUnit.PASCAL
+
+        @ConfigEntry(description = "Gas energy display unit")
+        var energyDisplayUnit = DuctUnits.EnergyUnit.JOULE
+
+        @ConfigEntry(description = "Threshold for high temperature warning. 0.9 = 90% of maximum", min = 0.0, max = 1.0)
+        var maxTemperatureWarning = 0.9
+
+        @ConfigEntry(description = "Threshold for high pressure warning. 0.9 = 90% of maximum", min = 0.0, max = 1.0)
+        var maxPressureWarning = 0.9
     }
 
     class Server {
@@ -38,7 +63,8 @@ object ClockworkConfig {
             "minecraft:water",
             "minecraft:flowing_water",
             "minecraft:lava",
-            "minecraft:flowing_lava"
+            "minecraft:flowing_lava",
+            "vs_clockwork:physics_infuser"
         )
 
         @ConfigEntry(description = "Enable collision sound effects")
@@ -51,13 +77,13 @@ object ClockworkConfig {
         var maxGravitronMass = 256
 
         @ConfigEntry(description = "Force multiplier for balloons. Realism is 1.0, default is 1000.0. Range: > 0.0", min = 0.0)
-        var balloonForceMult: Double = 500.0
+        var balloonForceMult: Double = 50.0
 
         @ConfigEntry(description = "Sets the gas retention efficiency of the balloon material; lower values simulate airtight rubber/synthetic, while higher values represent porous fabrics. Default 0.001.", min = 0.0, max = 1.0)
         var permeabilityConstant = 0.001
 
         @ConfigEntry(description = "Controls how fast air pocket temperature equalizes with the ambient temperature; lower values simulate thick insulation, while higher values cause rapid cooling or heating. Default 0.001", min = 0.0, max = 1.0)
-        var heatTransferCoefficient = 0.001
+        var heatTransferCoefficient = 0.0005
 
         @ConfigEntry(description = "Effectiveness scalar for reaction wheels. Higher value means a single reaction wheel can better control an entire ship, regardless of its mass. Default value is 0.1.", min = 0.001, max = 1.0)
         var reactionWheelEffectiveness = 1.0
@@ -65,20 +91,38 @@ object ClockworkConfig {
         @ConfigEntry(description = "Whether or not blade controllers consume the durability of the blades inside while rotating at high speeds.")
         var bladeControllerUsesDurability = false
 
-        @ConfigEntry(description = "The substeps of blade force calculation. More steps means more \'accurate\' simulation, but also makes it significantly more performance heavy.")
-        var bladeIntegrationSteps = 10.0
+        @ConfigEntry(description = "The max size that a propeller blade can reach. Sizes higher than this will refuse to craft.")
+        var maxBladeSize = 4.0
+
+        @ConfigEntry(description = "The maximum distance (in blocks) allowed between two Universal Joints while connected.", min = 1.0)
+        var maxUniversalJointDistance = 10.0
+
+        @ConfigEntry(description = "The length of the raycast made by the Gas Nozzle when attempting to find a valid balloon ceiling.", min = 1.0)
+        var hotAirBalloonMaxRaycastDistance = 64.0
+
+        @ConfigEntry(description = "The maximum volume (in blocks) that the hot air balloon floodfill will scan when trying to determine the balloon's interior.", min = 1.0)
+        var hotAirBalloonMaxScanVolume = 100000.0
+
+        @ConfigEntry(description = "The maximum surface area (in blocks) that the hot air balloon floodfill will scan when trying to determine the balloon's exterior.", min = 1.0)
+        var hotAirBalloonMaxScanSurface = 100000.0
 
         @ConfigEntry(description = "Force multiplier when no rpm is given")
-        var angleFollowingBaseAngleErrorMultiplier = 2.0
+        var angleFollowingBaseAngleErrorMultiplier = 50.0
 
         @ConfigEntry()
         var angleFollowingAngleErrorMultiplier = 50.0
 
         @ConfigEntry()
-        var angleFollowingOmegaErrorMultiplier = 10.0
+        var angleFollowingOmegaErrorMultiplier = 50.0
+
+        @ConfigEntry(description = "Force multiplier when no rpm is given")
+        var unlockedModeRotationResistanceMultiplier = 1.0
+
+        @ConfigEntry()
+        var unlockedModeOmegaErrorMultiplier = 50.0
 
         @ConfigEntry(min = 0.0)
-        var forceMulPerSailInPropeller = 500.0
+        var forceMulPerSailInPropeller = 5.0
 
         @ConfigEntry(min = 0.0)
         var encasedFanForceMul = 40.0
@@ -87,7 +131,7 @@ object ClockworkConfig {
         var wanderOreForceMultiplier = 2.0
 
         @ConfigEntry(min = 0.0)
-        var gasThrusterForceMul = 2.0
+        var gasThrusterForceMul = 200.0
 
         @ConfigEntry(min = 0.0)
         var sugarRocketBlockThrust = 10000.0
@@ -118,5 +162,11 @@ object ClockworkConfig {
 
         @ConfigEntry(description = "Temperature for gas exhaust to trigger bulk blasting. Default is 1000K (ceramic firing)")
         var bulkBlastingTemp = 1000
+
+        @ConfigEntry(description = "Multiplier applied to ship mass when yeeting (left-clicking) with the survival gravitron", min = 0.0, max = 10000.0)
+        var survivalGravitronYeetForce = 1000.0
+
+        @ConfigEntry(description = "Maximum range (in blocks) the survival gravitron will interact with ships", min = 1.0, max = 1000.0)
+        var survivalGravitronMaxRange = 20.0
     }
 }

@@ -1,19 +1,19 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "P",
+    "H",
     "A",
     "S"
   ],
   "key": {
-    "P": {
+    "S": {
       "item": "create:iron_sheet"
     },
     "A": {
       "item": "create:andesite_casing"
     },
-    "S": {
-      "item": "create:electron_tube"
+    "H": {
+      "item": "create:copper_valve_handle"
     }
   },
   "result": {

@@ -1,22 +1,18 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    " P",
-    "TA",
-    " S"
+    "LAL",
+    " B "
   ],
   "key": {
-    "P": {
-      "item": "create:brass_sheet"
-    },
-    "A": {
-      "item": "create:railway_casing"
-    },
-	"T": {
+    "L": {
       "item": "create:transmitter"
     },
-    "S": {
-      "item": "create:electron_tube"
+    "A": {
+      "item": "vs_clockwork:andesite_flap_bearing"
+    },
+    "B": {
+      "item": "create:brass_sheet"
     }
   },
   "result": {

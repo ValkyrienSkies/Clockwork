@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "WB",
+    "BO"
+  ],
+  "key": {
+    "W": {
+      "tag": "minecraft:wool"
+    },
+    "B": {
+      "item": "create:zinc_nugget"
+    },
+    "O": {
+      "item": "create:iron_sheet"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:flap",
+    "count": 4
+  }
+}

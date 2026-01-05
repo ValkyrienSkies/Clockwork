@@ -46,6 +46,14 @@ configurations {
 
 repositories {
     if (!block_external_repositories) {
+        maven {
+            name = "Modrinth"
+            url = "https://api.modrinth.com/maven"
+            content {
+                includeModule("maven.modrinth", "jei")
+            }
+        }
+
         // mavens for Forge-exclusives
         maven { url = "https://maven.theillusivec4.top/" } // Curios
         maven { // Create Forge and Registrate Forge
@@ -56,7 +64,6 @@ repositories {
             }
         }
         maven { url = "https://jitpack.io/" }
-        maven { url = "https://cursemaven.com" }
     }
 }
 
@@ -85,6 +92,8 @@ dependencies {
         exclude group: 'org.joml', module: ''
     }
 
+    // JEI for testing
+    modRuntimeOnly("maven.modrinth:jei:MdKE2PdF")
 
     include(modImplementation("org.valkyrienskies.kelvin:kelvin-forge:${rootProject.minecraft_version}-${rootProject.kelvin_version}") { transitive = false
         exclude group: 'org.joml', module: ''

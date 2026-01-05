@@ -4,7 +4,11 @@ import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.sounds.SoundSource
+import net.minecraft.world.InteractionHand
 import net.minecraft.world.phys.Vec3
+import org.joml.Vector3d
+import org.joml.Vector3dc
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.CreativeGravitronItem.Companion.grabssemble
@@ -17,8 +21,11 @@ import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.getLoadedShipManagingPos
+import org.valkyrienskies.mod.common.isBlockInShipyard
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOML
+import org.valkyrienskies.mod.common.util.toJOMLD
+import org.valkyrienskies.mod.common.util.toMinecraft
 
 class GravitronLeftClickPacket : C2SCWPacket {
     var clickedPos: BlockPos? = null
@@ -41,19 +48,24 @@ class GravitronLeftClickPacket : C2SCWPacket {
                 if (ship != null) {
                     val state = GravitronState.getState(serverPlayer)
 
-                    if (SharedValues.gravitronHandler.isRegular) {
+                    val isRegular = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND).`is`(ClockworkItems.GRAVITRON.get().asItem())
+                    if (isRegular) {
 
                         // Only do cooldown for survival gravitron
                         val stack = serverPlayer.mainHandItem
+
+                        if (serverPlayer.cooldowns.isOnCooldown(stack.item)) return@enqueueWork
+
                         serverPlayer.cooldowns.addCooldown(stack.item, 20)
 
                         val lookDir = serverPlayer.lookAngle.normalize().toJOML()
-                        val magnitude = 600 * ship.inertiaData.mass
+                        val magnitude = ClockworkConfig.SERVER.survivalGravitronYeetForce * ship.inertiaData.mass
                         val launchVec = lookDir.mul(magnitude)
-                        ValkyrienSkiesMod.getOrCreateGTPA(level.dimensionId).applyWorldForceToBodyPos(ship.id, launchVec, state.shipGrabbedPos!!)
+                        val launchPos: Vector3dc = if (level.isBlockInShipyard(state.shipGrabbedPos!!.toMinecraft()) && level.getLoadedShipManagingPos(state.shipGrabbedPos!!)?.id == ship.id) state.shipGrabbedPos!! else clickedPos!!.toJOMLD()
+                        ValkyrienSkiesMod.getOrCreateGTPA(level.dimensionId).applyWorldForceToModelPos(ship.id, launchVec, launchPos)
                         GrabTool.dropShip(serverPlayer)
                         level.playSound(
-                            serverPlayer,
+                            null,
                             serverPlayer.blockPosition(),
                             ClockworkSounds.GRAVITRON_LAUNCH.mainEvent!!,
                             SoundSource.PLAYERS,
@@ -68,7 +80,7 @@ class GravitronLeftClickPacket : C2SCWPacket {
 
                         ship.isStatic = !ship.isStatic
                         level.playSound(
-                            serverPlayer,
+                            null,
                             serverPlayer.blockPosition(),
                             ClockworkSounds.GRAVITRON_FREEZE.mainEvent!!,
                             SoundSource.PLAYERS,

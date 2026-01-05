@@ -29,6 +29,7 @@ import net.minecraft.sounds.SoundSource
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.LivingEntity
+import org.joml.Vector3ic
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkRenderer
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.SecondScrollValueRenderer
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautGogglesItem
@@ -62,6 +63,9 @@ object ClockworkModClient {
         InputConstants.KEY_G,
         "category.vs_clockwork.clockwork_keys"
     )
+
+    @JvmStatic
+    val CLIENT_BALLOON_LEAKS = HashSet<Vector3ic>()
 
 
     @JvmStatic

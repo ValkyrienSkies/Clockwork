@@ -18,8 +18,10 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BooleanProperty
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import org.valkyrienskies.clockwork.content.forces.GasThrusterController
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPipeNode
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
+import org.valkyrienskies.kelvin.api.DuctNode
+import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.util.INodeBlock
 
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
@@ -85,6 +87,10 @@ class GasThrusterBlock(properties: Properties) : DirectionalBlock(properties), I
         nodePlace(state, level, pos, oldState, isMoving)
     }
 
+    override fun createNode(pos: DuctNodePos): DuctNode {
+        return  DuctPipeNode(pos = pos, volume = 0.25, maxPressure = 16375049.0, maxTemperature = 1478.0)
+    }
+
     override fun onRemove(
         pState: BlockState,
         pLevel: Level,
@@ -94,6 +100,10 @@ class GasThrusterBlock(properties: Properties) : DirectionalBlock(properties), I
     ) {
         nodeRemove(pState, pLevel, pPos, pNewState, pIsMoving)
         IBE.onRemove(pState, pLevel, pPos, pNewState)
+    }
+
+    override fun getInternalVolume(): Double {
+        return 0.25
     }
 
     override fun getBlockEntityClass(): Class<GasThrusterBlockEntity> {

@@ -4,7 +4,7 @@
 	"texture_size": [128, 128],
 	"textures": {
 		"0": "vs_clockwork:block/pneumocrafter",
-		"1": "create:block/display_link",
+		"1": "create:block/link_details",
 		"particle": "vs_clockwork:block/pneumocrafter"
 	},
 	"elements": [
@@ -36,12 +36,12 @@
 			"to": [8, 19, 13],
 			"rotation": {"angle": 0, "axis": "y", "origin": [16.5, 6, 0.5]},
 			"faces": {
-				"north": {"uv": [16, 8.5, 13.5, 11], "texture": "#1"},
-				"east": {"uv": [16, 8.5, 13.5, 11], "texture": "#1"},
-				"south": {"uv": [16, 8.5, 13.5, 11], "texture": "#1"},
-				"west": {"uv": [16, 8.5, 13.5, 11], "texture": "#1"},
-				"up": {"uv": [16, 6, 13.5, 8.5], "texture": "#1"},
-				"down": {"uv": [16, 11, 13.5, 13.5], "texture": "#1"}
+				"north": {"uv": [16, 5, 13.5, 7.5], "texture": "#1"},
+				"east": {"uv": [16, 0, 13.5, 2.5], "texture": "#1"},
+				"south": {"uv": [16, 2.5, 13.5, 5], "texture": "#1"},
+				"west": {"uv": [16, 0, 13.5, 2.5], "texture": "#1"},
+				"up": {"uv": [16, 0, 13.5, 2.5], "texture": "#1"},
+				"down": {"uv": [16, 0, 13.5, 2.5], "texture": "#1"}
 			}
 		},
 		{

@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.util.universal_joint
 
 import net.minecraft.core.BlockPos
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntity
 
@@ -24,6 +25,7 @@ interface IUniversalJoint {
 
         val oJ = other as IUniversalJoint
         if (oJ.connectedJoint != null) return false
+        if (connectedJoint != null) return false
         if (other.javaClass != this.javaClass) return false
 
 
@@ -40,5 +42,9 @@ interface IUniversalJoint {
 
     fun isThisJoint(be: BlockEntity): Boolean {
         return (be is IUniversalJoint)
+    }
+
+    fun getConnectionItem(): ItemStack {
+        return ItemStack.EMPTY
     }
 }

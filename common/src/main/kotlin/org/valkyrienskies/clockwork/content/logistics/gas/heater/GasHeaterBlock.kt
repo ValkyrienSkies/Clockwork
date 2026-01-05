@@ -21,6 +21,7 @@ import net.minecraft.world.level.block.state.StateDefinition
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.util.INodeBlock
 import org.valkyrienskies.kelvin.util.KelvinDamageSources
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
@@ -53,9 +54,10 @@ class GasHeaterBlock(properties: Properties) : HorizontalDirectionalBlock(proper
     override fun updateEntityAfterFallOn(level: BlockGetter, entity: Entity) {
         super.updateEntityAfterFallOn(level, entity)
 
+
         val blockPos = entity.blockPosition().below()
 
-        val kelvin = ClockworkMod.getKelvin()
+        val kelvin = KelvinMod.getKelvinByPlatform() ?: return
         val heatK = kelvin.getTemperatureAt(blockPos.toDuctNodePos(entity.level()!!.dimension().location()))
 
         if (heatK < 350) return

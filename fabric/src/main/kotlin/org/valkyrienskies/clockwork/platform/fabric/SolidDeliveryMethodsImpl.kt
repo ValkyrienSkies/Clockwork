@@ -32,7 +32,7 @@ object SolidDeliveryMethodsImpl {
         be ?: return false
 		val inv  = grabCapability(level, be) ?: return false
 
-        if (!be!!.itemStack.isEmpty && inv != null) {
+        if (!be.itemStack.isEmpty) {
             if (level.isClientSide && !be.isVirtual) return false
 
             TransferUtil.getTransaction().use { t ->
@@ -62,7 +62,7 @@ object SolidDeliveryMethodsImpl {
         be ?: return null
 
         val pos: BlockPos = be.blockPos.relative(Direction.DOWN)
-        val be: BlockEntity? = level.getBlockEntity(pos)
+        val be: BlockEntity? = level.getBlockEntity(pos) ?: return null
 
         return StorageProvider.createForItems(level, be!!.blockPos.below())
     }

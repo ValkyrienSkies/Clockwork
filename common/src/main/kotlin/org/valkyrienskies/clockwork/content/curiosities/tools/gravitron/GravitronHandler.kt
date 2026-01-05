@@ -53,11 +53,11 @@ open class GravitronHandler {
             if (wasActive) {
                 player?.level().let {
                     it?.playSound(
-                        null,
-                        player!!.blockPosition(),
-                        ClockworkSounds.GRAVITRON_SHUTDOWN.mainEvent,
+                        player!!,
+                        player.blockPosition(),
+                        ClockworkSounds.GRAVITRON_SHUTDOWN.mainEvent!!,
                         player.soundSource,
-                        1.0f,
+                        0.5f,
                         1.0f
                     )
                 }
@@ -68,15 +68,17 @@ open class GravitronHandler {
             }
             return
         }
-        init(player)
-        if (!wasActive && active) {
+
+        active = true
+
+        if (!wasActive) {
             player?.level().let {
                 it?.playSound(
-                    null,
-                    player!!.blockPosition(),
-                    ClockworkSounds.GRAVITRON_START.mainEvent,
+                    player!!,
+                    player.blockPosition(),
+                    ClockworkSounds.GRAVITRON_START.mainEvent!!,
                     player.soundSource,
-                    1.0f,
+                    0.3f,
                     1.0f
                 )
             }
@@ -106,10 +108,6 @@ open class GravitronHandler {
         }
         currentTool!!.tool.renderOverlay(poseStack.pose(), partialTicks, width, height)
         selectionScreen!!.renderPassive(poseStack, partialTicks)
-    }
-
-    private fun init(player: LocalPlayer?) {
-        active = true
     }
 
     private fun itemLost(player: Player): Boolean {

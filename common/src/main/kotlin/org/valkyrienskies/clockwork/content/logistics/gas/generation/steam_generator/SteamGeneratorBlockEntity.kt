@@ -19,6 +19,7 @@ class SteamGeneratorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state:
     var source = WeakReference<FluidTankBlockEntity?>(null)
 
     val maxMass = 0.1
+    val maxPressurePerLevel = 17000000/8.0
     val steamGas = GasTypeRegistry.getGasType("vs_clockwork", "steam")
 
     fun getTank(): FluidTankBlockEntity? {
@@ -43,16 +44,17 @@ class SteamGeneratorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state:
         val tank = getTank() ?: return
 
         val efficiency = clamp(tank.boiler.getEngineEfficiency(tank.totalTankSize), 0f, 1f)
-        tank.boiler.activeHeat
 
         if (efficiency == 0f) return
-        if (tank.boiler.activeHeat == 0) return
+        if (tank.boiler.activeHeat == 0 && !tank.boiler.passiveHeat) return
 
         val network = ClockworkMod.getKelvin()
 
         val mass = maxMass * efficiency
 
-        val temperature = 80*(tank.boiler.activeHeat.toDouble() * 100).pow(0.34)
+        val temperature = 80*(max(0.25, tank.boiler.activeHeat.toDouble()) * 100).pow(0.34)
+
+        if (network.getPressureAt(getDuctNodePosition()) > maxPressurePerLevel * max(1, tank.boiler.activeHeat)) return
 
         network.addGasAtTemperature(getDuctNodePosition(), steamGas, mass, temperature)
     }

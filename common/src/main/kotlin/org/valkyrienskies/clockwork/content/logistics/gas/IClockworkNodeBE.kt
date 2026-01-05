@@ -5,95 +5,138 @@ import dev.architectury.platform.Platform
 import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
-import org.valkyrienskies.clockwork.ClockworkGasses
+import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
-import org.valkyrienskies.kelvin.impl.client.DuctNetworkClient
+import org.valkyrienskies.clockwork.util.gui.DuctTextUtil
+import org.valkyrienskies.clockwork.util.gui.DuctTextUtil.gasComponent
+import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.util.INodeBlockEntity
-import kotlin.math.roundToInt
+import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
+import kotlin.apply
 
 interface IClockworkNodeBE: INodeBlockEntity, IHaveGoggleInformation {
 
-    fun heatableGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
-        tooltip.add(Component.literal("    Duct Info").withStyle(ChatFormatting.GRAY))
 
+    fun heatableGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
+        ClockworkLang.translate("gui.ductInfo.title").forGoggles(tooltip)
+
+        val pos = this.getDuctNodePosition()
+        val kelvin = if (Minecraft.getInstance().isLocalServer && Platform.isFabric()) ClockworkMod.getKelvin() else ClockworkModClient.getKelvin()
+        val blockStats = Minecraft.getInstance().level?.getBlockState(pos.toMinecraft())?.block as? IHaveDuctStats
 
         var found = false
 
-        val kelvin = if (Minecraft.getInstance().isLocalServer && Platform.isFabric()) ClockworkMod.getKelvin() else ClockworkModClient.getKelvin()
+        kelvin.nodeInfo[pos]?.totalVolume?.let { volume ->
+            found = true
+            ClockworkLang.builder().apply {
+                add(ClockworkLang.translate(
+                    "gui.ductInfo.volume",
+                DuctTextUtil.translateVolume(ClockworkLang.builder(), volume, true)
+                ).style(ChatFormatting.GREEN))
+                forGoggles(tooltip, 0)
+            }
+        }
+        kelvin.getTemperatureAt(pos).let { temp ->
+            found = true
+            ClockworkLang.builder().apply {
+                val max = blockStats?.getMaximumTemperature()
+                val critical = if (max != null) temp > max * ClockworkConfig.CLIENT.maxTemperatureWarning else false
+                val indents = if (critical) -2 else 0
 
-//        if (kelvin is DuctNetworkClient) {
-//            tooltip.add(Component.literal("Last Synchronized: ${kelvin.queryTicksSinceLastSync()}..."))
-//        }
-        if (kelvin.nodeInfo[this.getDuctNodePosition()] != null && kelvin.nodeInfo[this.getDuctNodePosition()]!!.totalVolume > 0.0) {
-            val totalVolume = kelvin.nodeInfo[this.getDuctNodePosition()]?.totalVolume ?: 0.0
-            tooltip.add(Component.literal("Volume: $totalVolume m³").withStyle(ChatFormatting.GREEN))
-            found = true
-        }
-        if (kelvin.getTemperatureAt(this.getDuctNodePosition()) > 0.0) {
-            tooltip.add(Component.literal("Temperature: ${kelvin.getTemperatureAt(this.getDuctNodePosition()).toInt()} K").withStyle(ChatFormatting.GOLD))
-            found = true
-        }
-        if (kelvin.nodeInfo[this.getDuctNodePosition()] != null && kelvin.nodeInfo[this.getDuctNodePosition()]!!.currentEnergy > 0.0 && isPlayerSneaking) {
-            val currentEnergy = kelvin.nodeInfo[this.getDuctNodePosition()]!!.currentEnergy
-            if (currentEnergy < 100000.0) {
-                tooltip.add(Component.literal("Thermal Energy: ${(currentEnergy).roundToInt()} J").withStyle(ChatFormatting.RED))
-            } else {
-                tooltip.add(Component.literal("Thermal Energy: ${(currentEnergy/1000.0).roundToInt()} kJ").withStyle(ChatFormatting.RED))
+                if (critical) text("!! ")
+                add(ClockworkLang.translate(
+                    "gui.ductInfo.temperature",
+                    DuctTextUtil.translateTemperature(ClockworkLang.builder(), temp, true)
+                ))
+                style(ChatFormatting.GOLD)
+
+                if (isPlayerSneaking)
+                if (max != null) {
+                    add(ClockworkLang.translate(
+                        "gui.ductInfo.out_of",
+                        DuctTextUtil.translateTemperature(ClockworkLang.builder(), max, true)
+                    ).style(ChatFormatting.DARK_GRAY))
+                }
+                forGoggles(tooltip, indents)
             }
         }
-        if (kelvin.getPressureAt(this.getDuctNodePosition()) > 0.0) {
-            val currentPressure = kelvin.getPressureAt(this.getDuctNodePosition())
-            if (currentPressure < 100000.0) {
-                tooltip.add(Component.literal("Pressure: ${currentPressure.roundToInt()} Pa").withStyle(ChatFormatting.BLUE))
-            } else {
-                tooltip.add(Component.literal("Pressure: ${(currentPressure/1000.0).roundToInt()} kPa").withStyle(ChatFormatting.BLUE))
-            }
+        kelvin.getPressureAt(pos).takeIf { it > 0.0 }?.let { pressure ->
             found = true
+            ClockworkLang.builder().apply {
+                val max = blockStats?.getMaximumPressure()
+                val critical = if (max != null) pressure > max * ClockworkConfig.CLIENT.maxPressureWarning else false
+                val indents = if (critical) -2 else 0
+
+                if (critical) text("!! ")
+                add(ClockworkLang.translate(
+                    "gui.ductInfo.pressure",
+                    DuctTextUtil.translatePressure(ClockworkLang.builder(), pressure, true)
+                ))
+                style(ChatFormatting.BLUE)
+
+                if (isPlayerSneaking)
+                    if (max != null) {
+                        add(ClockworkLang.translate(
+                            "gui.ductInfo.out_of",
+                            DuctTextUtil.translatePressure(ClockworkLang.builder(), max, true)
+                        ).style(ChatFormatting.DARK_GRAY))
+                    }
+                forGoggles(tooltip, indents)
+            }
         }
-        if (kelvin.getGasMassAt(this.getDuctNodePosition()).isNotEmpty()) {
-            //tooltip.add(Component.literal("Gas Masses:"))
-            val sortedByAmount = kelvin.getGasMassAt(this.getDuctNodePosition()).entries.sortedByDescending { it.value }
-            val rows = mutableListOf<Pair<Component, Component>>()
+        if (isPlayerSneaking)
+        kelvin.getHeatEnergy(pos).takeIf { it > 0.0 }?.let { energy ->
+            found = true
+            ClockworkLang.builder().apply {
+                add(ClockworkLang.translate(
+                    "gui.ductInfo.energy",
+                    DuctTextUtil.translateEnergy(ClockworkLang.builder(), energy, true)
+                ).style(ChatFormatting.RED))
+                forGoggles(tooltip, 0)
+            }
+        }
+        kelvin.getGasMassAt(pos).takeIf { it.isNotEmpty() }?.let { gasMap ->
+            found = true
+
+            var totalGasMass = 0.0
             val finishedComponents = mutableListOf<Component>()
+            gasMap.entries
+                .sortedByDescending { it.value }
+                .mapNotNull { (gas, amount) ->
+                    if (amount <= 0.0) return@mapNotNull null
+                    totalGasMass += amount
+                    finishedComponents.add(gasComponent(gas, amount, isPlayerSneaking))
+                }
+            if (finishedComponents.isEmpty()) return@let
 
-            for (entry in sortedByAmount) {
-                val iconComponent = Component.literal(ClockworkGasses.getDisplayCharacterCode(entry.key)).withStyle {it.withFont(
-                    ClockworkGasses.ICON_FONT_LOCATION)}
-                val nameComponent = if (isPlayerSneaking) Component.literal(" ${entry.key.name} ").withStyle(ChatFormatting.GRAY)
-                else Component.literal(" ")
-                val amtComponent =
-                    if (entry.value > 0 && entry.value < 1) Component.literal("${(entry.value*1000.0).roundToInt()}g")
-                    else if (entry.value >= 1) Component.literal("${(entry.value*1000.0).roundToInt()/1000.0}kg")
-                    else null
-                if (amtComponent != null) {
-                    val finalComponent = Component.empty().append(iconComponent).append(nameComponent).append(amtComponent)
-                    finishedComponents.add(finalComponent)
-                }
-            }
-            for (num in finishedComponents.indices step 2) {
-                if (num + 1 < finishedComponents.size) {
-                    rows.add(Pair(finishedComponents[num], finishedComponents[num + 1]))
-                } else {
-                    rows.add(Pair(finishedComponents[num], Component.empty()))
-                }
-            }
-            for (row in rows) {
-                val rowComponent = Component.empty()
-                    .append(row.first)
-                    .append(Component.literal("  "))
-                    .append(row.second)
-                tooltip.add(rowComponent)
+            ClockworkLang.translate("gui.ductInfo.title.contents").forGoggles(tooltip)
+
+            for (row in finishedComponents.chunked(2)) {
+                ClockworkLang.builder().add(
+                    ClockworkLang.builder().apply {
+                        add(row[0])
+                        if (row.size > 1) {
+                            text("  ")
+                            add(row[1])
+                        }
+                    }
+                ).forGoggles(tooltip, 1)
             }
 
-            found = true
+            if (isPlayerSneaking && finishedComponents.size > 1)
+                ClockworkLang.translate(
+                    "gui.ductInfo.mass_total",
+                    DuctTextUtil.translateMass(ClockworkLang.builder(), totalGasMass, true)
+                ).style(ChatFormatting.GRAY).forGoggles(tooltip, 1)
+
+            // can we pass leak ratio to client? looks useful
         }
 
         if (!found) {
-            tooltip.add(Component.literal("This node is empty.").withStyle(ChatFormatting.DARK_GRAY).withStyle(
-                ChatFormatting.ITALIC))
+            ClockworkLang.translate("gui.ductInfo.notFound").style(ChatFormatting.GRAY).forGoggles(tooltip, 1)
         }
-
         return found
     }
 }

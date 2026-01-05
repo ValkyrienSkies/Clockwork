@@ -1,31 +1,61 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.valve
 
-import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import net.createmod.catnip.animation.LerpedFloat
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.util.Mth
+import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.properties.BlockStateProperties
+import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlockEntity.Companion.maxPumpPressure
+import org.valkyrienskies.clockwork.util.ClockworkUtils
+import org.valkyrienskies.clockwork.util.KNodeKineticBlockEntity
+import org.valkyrienskies.kelvin.api.ConnectionType
+import org.valkyrienskies.kelvin.api.DuctEdge
+import org.valkyrienskies.kelvin.api.DuctNodePos
+import org.valkyrienskies.kelvin.api.edges.ApertureDuctEdge
+import org.valkyrienskies.kelvin.api.edges.PumpDuctEdge
 import kotlin.math.abs
 
-class ValveDuctBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : KineticBlockEntity(typeIn, pos,state) {
+class ValveDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeKineticBlockEntity(typeIn, pos, state), IConnectable {
 
     val pointer: LerpedFloat = LerpedFloat.linear()
         .startWithValue(0.0)
         .chase(0.0, 0.0, LerpedFloat.Chaser.LINEAR)
 
+    override fun lazyTick() {
+        super.lazyTick()
+
+        if (level?.isClientSide != false) return
+        if (blockState.block !is ValveDuctBlock) return
+
+        val dir = Direction.get(Direction.AxisDirection.POSITIVE, ValveDuctBlock.getDuctAxis(blockState))
+        updateConnection(level!!, blockPos, dir)
+        updateConnection(level!!, blockPos, dir.opposite)
+    }
+
+
     override fun tick() {
         super.tick()
         pointer.tickChaser()
 
-        if (level == null || level!!.isClientSide) return
-        val state = level!!.getBlockState(blockPos) ?: return
-        val block = state.block as ValveDuctBlock
+        if (level == null || level!!.isClientSide || blockState.block !is ValveDuctBlock) return
 
-        if (block.edge == null) return
+        val axis = ValveDuctBlock.getDuctAxis(blockState)
 
-        block.edge!!.aperture = pointer.value.toDouble()-block.edge!!.radius
+        val front = blockPos.relative(axis, -1)
+        val back = blockPos.relative(axis, 1)
+        if (level == null) return
+        val backEdge = ClockworkMod.getKelvin().getEdgeBetween(getDuctNodePosition(), ClockworkUtils.getDuctNodePos(back, level))
+        val frontEdge = ClockworkMod.getKelvin().getEdgeBetween(getDuctNodePosition(), ClockworkUtils.getDuctNodePos(front, level))
+
+        (backEdge as? ApertureDuctEdge)?.aperture = pointer.value.toDouble()-backEdge.radius
+        (frontEdge as? ApertureDuctEdge)?.aperture = pointer.value.toDouble()-frontEdge.radius
     }
 
     override fun onSpeedChanged(previousSpeed: Float) {
@@ -50,4 +80,9 @@ class ValveDuctBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, state: B
         super.read(compound, clientPacket)
         pointer.readNBT(compound.getCompound("Pointer"), clientPacket)
     }
+
+    override fun getEdge(nodeA: DuctNodePos, nodeB: DuctNodePos, level: Level, blockPos: BlockPos, direction: Direction): DuctEdge {
+        return ApertureDuctEdge(ConnectionType.APERTURE, nodeA, nodeB, aperture = pointer.value.toDouble()-0.125)
+    }
+
 }

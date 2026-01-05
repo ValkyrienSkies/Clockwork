@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.fabric;
 
+import dev.architectury.platform.Platform;
 import fuzs.forgeconfigapiport.api.config.v2.ForgeConfigRegistry;
 import fuzs.forgeconfigapiport.api.config.v2.ModConfigEvents;
 import io.github.fabricators_of_create.porting_lib.entity.events.LivingEntityEvents;
@@ -11,6 +12,8 @@ import net.minecraftforge.fml.config.ModConfig;
 import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.content.events.ClockworkCommonEvents;
 import org.valkyrienskies.mod.fabric.common.ValkyrienSkiesModFabric;
+
+import static org.valkyrienskies.clockwork.fabric.RegisterPeripheralLookupKt.registerPeripheralLookup;
 
 public class ClockworkModFabric implements ModInitializer {
 
@@ -37,6 +40,7 @@ public class ClockworkModFabric implements ModInitializer {
 
         ClockworkTags.INSTANCE.init();
         ClockworkSounds.register();
+        ClockworkParticles.init();
         ClockworkBlocks.register();
         ClockworkItems.register();
 
@@ -58,7 +62,7 @@ public class ClockworkModFabric implements ModInitializer {
         ClockworkMod.init();
         //AllClockworkConfigs.init();
 
-        ClockworkParticles.init();
+
         FabricClockworkSounds.init();
         registerServerEvents();
 
@@ -67,6 +71,10 @@ public class ClockworkModFabric implements ModInitializer {
         ItemGroupEvents.modifyEntriesEvent(ClockworkMod.INSTANCE.getBASE_CREATIVE_TABINFO()).register(content -> {
             content.addAfter(ClockworkBlocks.BALLOON_CASING.asItem(), ClockworkBlocks.IMPACT_SENSOR.asStack());
         });
+
+        if (Platform.isModLoaded("computercraft")) {
+            registerPeripheralLookup();
+        }
     }
 
     public static void registerServerEvents() {

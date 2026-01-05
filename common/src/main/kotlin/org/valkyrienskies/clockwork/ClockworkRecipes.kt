@@ -14,6 +14,7 @@ import net.minecraft.world.item.crafting.RecipeType
 import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer
 import org.valkyrienskies.clockwork.ClockworkMod.MOD_ID
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.CraftingTableBladeRecipe
+import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.CuttingBladeRecipe
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCraftingRecipe
 import java.util.function.Supplier
 
@@ -26,16 +27,13 @@ object ClockworkRecipes {
         SimpleCraftingRecipeSerializer(::CraftingTableBladeRecipe)
     }
 
-    val BLADE_CUTTING_SERIALIZER = RECIPE_SERIALIZERS.register("blade_cutting") {
-        SimpleCraftingRecipeSerializer(::CraftingTableBladeRecipe)
-    }
-
     enum class ClockworkRecipeTypes(private val serializerSupplier: Supplier<RecipeSerializer<*>>,
                                     private val typeSupplier: Supplier<RecipeType<*>>? = null,
                                     private val registerType: Boolean = true
     ) : IRecipeTypeInfo {
 
-        GAS_CRAFTING(ProcessingRecipeBuilder.ProcessingRecipeFactory(::GasCraftingRecipe));
+        GAS_CRAFTING(ProcessingRecipeBuilder.ProcessingRecipeFactory(::GasCraftingRecipe)),
+        BLADE_CUTTING(ProcessingRecipeBuilder.ProcessingRecipeFactory(::CuttingBladeRecipe));
 
         val serializer = RECIPE_SERIALIZERS.register(id, serializerSupplier)
 

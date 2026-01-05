@@ -6,9 +6,12 @@ import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.sounds.SoundSource
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity
 import org.valkyrienskies.clockwork.util.universal_joint.IUniversalJoint
@@ -23,7 +26,7 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
     var main: Boolean = false
 
     override val maxCreationDistance: Double
-        get() = 10.0 //todo add config
+        get() = ClockworkConfig.SERVER.maxUniversalJointDistance
 
     override fun onSpeedChanged(previousSpeed: Float) {
         super.onSpeedChanged(previousSpeed)
@@ -99,8 +102,8 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
             val be = level!!.getBlockEntity(connectedPos!!)
             if (be != null && be !is UniversalShaftBlockEntity) connectedPos = null
             else if(be != null) {
-                connectedJoint = be as UniversalShaftBlockEntity
-                connectedBe = be as UniversalShaftBlockEntity
+                connectedJoint = be
+                connectedBe = be
             }
         }
         if (level == null || level!!.isClientSide) return
@@ -119,6 +122,10 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
 
     override fun isThisJoint(be: BlockEntity): Boolean {
         return be is UniversalShaftBlockEntity
+    }
+
+    override fun getConnectionItem(): ItemStack {
+        return ClockworkItems.UNIVERSAL_SHAFT_ITEM.asStack()
     }
 
     override fun write(compound: CompoundTag, clientPacket: Boolean) {

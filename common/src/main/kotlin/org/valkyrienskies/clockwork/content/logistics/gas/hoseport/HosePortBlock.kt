@@ -121,7 +121,7 @@ class HosePortBlock(properties: Properties) : DirectionalBlock(properties), IBE<
         val be = level.getBlockEntity(pos) as? HosePortBlockEntity? ?: return super.use(state, level, pos, player, hand, hit)
         if (player.getItemInHand(InteractionHand.MAIN_HAND).item !is BlockItem && be.connectedJoint != null) {
             be.disconnect()
-            if (!player.isCreative) player.addItem(ClockworkItems.EXTENDON_HOSE.asStack())
+            if (!player.isCreative) player.addItem(be.getConnectionItem())
             return InteractionResult.SUCCESS
         }
 
