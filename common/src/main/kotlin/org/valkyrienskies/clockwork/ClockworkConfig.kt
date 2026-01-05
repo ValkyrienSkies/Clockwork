@@ -110,10 +110,10 @@ object ClockworkConfig {
         var angleFollowingBaseAngleErrorMultiplier = 50.0
 
         @ConfigEntry()
-        var angleFollowingAngleErrorMultiplier = 50.0
+        var angleFollowingAngleErrorMultiplier = 10.0
 
         @ConfigEntry()
-        var angleFollowingOmegaErrorMultiplier = 50.0
+        var angleFollowingOmegaErrorMultiplier = 10.0
 
         @ConfigEntry(description = "Force multiplier when no rpm is given")
         var unlockedModeRotationResistanceMultiplier = 1.0
