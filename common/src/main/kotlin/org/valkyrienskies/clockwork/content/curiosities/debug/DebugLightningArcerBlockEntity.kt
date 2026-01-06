@@ -31,6 +31,6 @@ class DebugLightningArcerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, st
     }
 
     fun getWorldPos(): Vec3 {
-        return this.level.toWorldCoordinates(worldPosition).add(0.5, 0.5, 0.5)
+        return this.level.toWorldCoordinates(Vec3.atCenterOf(worldPosition))
     }
 }
