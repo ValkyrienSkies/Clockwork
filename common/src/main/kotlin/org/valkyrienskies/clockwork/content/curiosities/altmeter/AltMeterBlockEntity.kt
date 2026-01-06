@@ -6,8 +6,8 @@ import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
-import org.joml.Vector3d
 import org.valkyrienskies.clockwork.util.ClockworkConstants
+import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3d
 import org.valkyrienskies.mod.common.getShipManagingPos
 import kotlin.math.absoluteValue
 
@@ -23,14 +23,9 @@ class AltMeterBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: Blo
         super.tick()
         if (level!!.isClientSide) return
 
-        // Copy so nullable checks are automated in if statements
-        val triggerHeightCopy = triggerHeight
-
-        val posInWorld = Vector3d(blockPos.x + 0.5, blockPos.y + 0.5, blockPos.z + 0.5)
-        val shipOn = level.getShipManagingPos(blockPos)
-
-        shipOn?.transform?.shipToWorld?.transformPosition(posInWorld)
-        val distance = posInWorld.y - triggerHeightCopy
+        val posInWorld = blockPos.toVector3d().add(.5, .5, .5)
+        level.getShipManagingPos(blockPos)?.transform?.shipToWorld?.transformPosition(posInWorld)
+        val distance = posInWorld.y - triggerHeight
 
         signalStrength = when (triggerDirection) {
             AltMeterDirection.BOTH -> (triggerSensitivity - distance.absoluteValue.toInt())

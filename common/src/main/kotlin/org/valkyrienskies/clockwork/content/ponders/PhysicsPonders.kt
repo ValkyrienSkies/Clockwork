@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.content.ponders
 
 import com.simibubi.create.AllBlocks
 import com.simibubi.create.content.redstone.analogLever.AnalogLeverBlockEntity
+import com.simibubi.create.content.redstone.nixieTube.NixieTubeBlockEntity
 import com.simibubi.create.foundation.ponder.CreateSceneBuilder
 import net.createmod.catnip.math.Pointing
 import net.createmod.ponder.api.PonderPalette
@@ -278,35 +279,237 @@ object PhysicsPonders {
     }
 
     fun altMeter(scene: SceneBuilder, util: SceneBuildingUtil) {
+        val scene = CreateSceneBuilder(scene)
         scene.title("alt_meter", "Measure height")
         scene.configureBasePlate(0, 0, 5)
         scene.showBasePlate()
         scene.setSceneOffsetY(-1f)
         scene.idle(15)
 
-        val ship = util.select().fromTo(0, 1, 0, 4, 3, 4)
+        val ship = util.select().fromTo(1, 1, 2, 3, 2, 2)
+        val lamp = util.select().position(3, 2, 2)
+        val nixie = util.select().position(1,2,2)
 
-        val contraption =
-            scene.world().showIndependentSection(ship, Direction.DOWN)
-        scene.world().moveSection(contraption, util.vector().of(0.0, 0.0, 0.0), 0)
+        //region Show altitude setting
+        var contraption = scene.world().showIndependentSection(ship, Direction.DOWN)
         scene.idle(15)
-        scene.overlay().showText(40)
-            .attachKeyFrame()
-            .text("Configure Altitude Meter to desired height")
-            .placeNearTarget()
-            .pointAt(util.vector().blockSurface(util.grid().at(0, 2, 0), Direction.WEST))
-        scene.idle(40)
-        scene.world().moveSection(contraption, util.vector().of(0.0, 2.0, 0.0), 20)
-        scene.idle(15)
-        scene.overlay().showText(40)
-            .attachKeyFrame()
-            .text("Redstone output will trigger at configured height")
-            .placeNearTarget()
-            .pointAt(util.vector().blockSurface(util.grid().at(0, 4, 0), Direction.WEST))
-        scene.world().toggleRedstonePower(ship)
-        scene.idle(40)
 
-        scene.idle(37 * 4)
+        scene.overlay().showText(60)
+            .text(scene.ponderLang(1))
+            .placeNearTarget()
+            .pointAt(util.vector().blockSurface(util.grid().at(2,2,2), Direction.UP))
+        scene.idle(70)
+
+        scene.world().moveSection(contraption, util.vector().of(.0, 1.0, .0), 10)
+        scene.idle(7)
+        scene.world().toggleRedstonePower(lamp)
+        scene.world().modifyBlockEntityNBT(
+            nixie,
+            NixieTubeBlockEntity::class.java
+        ) { nbt: CompoundTag? -> nbt!!.putInt("RedstoneStrength", 15) }
+        scene.idle(8)
+
+        scene.overlay().showText(60)
+            .text(scene.ponderLang(2))
+            .placeNearTarget()
+            .pointAt(util.vector().blockSurface(util.grid().at(3, 3, 2), Direction.UP))
+        scene.idle(70)
+
+        scene.world().moveSection(contraption, util.vector().of(.0, 1.0, .0), 10)
+        scene.idle(10)
+
+        scene.overlay().showText(60)
+            .text(scene.ponderLang(3))
+            .placeNearTarget()
+            .pointAt(util.vector().blockSurface(util.grid().at(3, 4, 2), Direction.UP))
+        scene.idle(70)
+        // endregion
+        scene.world().hideIndependentSection(contraption, Direction.UP)
+        scene.idle(20)
+        scene.world().toggleRedstonePower(lamp)
+        scene.world().modifyBlockEntityNBT(
+            nixie,
+            NixieTubeBlockEntity::class.java
+        ) { nbt: CompoundTag? -> nbt!!.putInt("RedstoneStrength", 0) }
+
+        // region Show sensitivity setting
+        scene.addKeyframe()
+        contraption = scene.world().showIndependentSection(ship, Direction.DOWN)
+        scene.idle(10)
+        scene.overlay().showText(120)
+            .text(scene.ponderLang(4))
+            .placeNearTarget()
+            .pointAt(util.vector().blockSurface(util.grid().at(2,2,2), Direction.UP))
+        scene.idle(130)
+
+        scene.world().moveSection(contraption, util.vector().of(.0, 1.0, .0), 10)
+        scene.idle(7)
+        scene.world().toggleRedstonePower(lamp)
+        scene.world().modifyBlockEntityNBT(
+            nixie,
+            NixieTubeBlockEntity::class.java
+        ) { nbt: CompoundTag? -> nbt!!.putInt("RedstoneStrength", 7) }
+        scene.idle(8)
+
+        scene.overlay().showText(90)
+            .text(scene.ponderLang(5))
+            .placeNearTarget()
+            .pointAt(util.vector().blockSurface(util.grid().at(1,3,2), Direction.WEST))
+        scene.idle(100)
+
+        scene.world().moveSection(contraption, util.vector().of(.0, 1.0, .0), 10)
+        scene.idle(7)
+        scene.world().modifyBlockEntityNBT(
+            nixie,
+            NixieTubeBlockEntity::class.java
+        ) { nbt: CompoundTag? -> nbt!!.putInt("RedstoneStrength", 15) }
+        scene.idle(40)
+        // endregion
+
+        scene.world().hideIndependentSection(contraption, Direction.UP)
+        scene.idle(20)
+        scene.world().toggleRedstonePower(lamp)
+        scene.world().modifyBlockEntityNBT(
+            nixie,
+            NixieTubeBlockEntity::class.java
+        ) { nbt: CompoundTag? -> nbt!!.putInt("RedstoneStrength", 0) }
+
+        // region Explain direction setting
+        scene.addKeyframe()
+        contraption = scene.world().showIndependentSection(ship, Direction.DOWN)
+        scene.idle(10)
+        scene.overlay().showText(90)
+            .text(scene.ponderLang(6))
+            .placeNearTarget()
+            .pointAt(util.vector().blockSurface(util.grid().at(2,2,2), Direction.UP))
+        scene.idle(100)
+        scene.overlay().showText(80)
+            .text(scene.ponderLang(7))
+            .placeNearTarget()
+            .pointAt(util.vector().blockSurface(util.grid().at(2,2,2), Direction.UP))
+        scene.idle(90)
+        // endregion
+
+        // region Show UP direction
+        scene.addKeyframe()
+        scene.overlay().showText(90)
+            .text(scene.ponderLang(8))
+            .placeNearTarget()
+            .pointAt(util.vector().blockSurface(util.grid().at(2,2,2), Direction.UP))
+        scene.idle(100)
+
+        scene.world().moveSection(contraption, util.vector().of(.0, 1.0, .0), 10)
+        scene.idle(7)
+        scene.world().toggleRedstonePower(lamp)
+        scene.world().modifyBlockEntityNBT(
+            nixie,
+            NixieTubeBlockEntity::class.java
+        ) { nbt: CompoundTag? -> nbt!!.putInt("RedstoneStrength", 7) }
+        scene.idle(20)
+
+        scene.world().moveSection(contraption, util.vector().of(.0, 1.0, .0), 10)
+        scene.idle(7)
+        scene.world().modifyBlockEntityNBT(
+            nixie,
+            NixieTubeBlockEntity::class.java
+        ) { nbt: CompoundTag? -> nbt!!.putInt("RedstoneStrength", 15) }
+        scene.idle(10)
+        // endregion
+
+        scene.world().hideIndependentSection(contraption, Direction.UP)
+        scene.idle(20)
+        scene.world().toggleRedstonePower(lamp)
+        scene.world().modifyBlockEntityNBT(
+            nixie,
+            NixieTubeBlockEntity::class.java
+        ) { nbt: CompoundTag? -> nbt!!.putInt("RedstoneStrength", 0) }
+
+        // region Show DOWN direction
+        scene.addKeyframe()
+        contraption = scene.world().showIndependentSection(ship, Direction.DOWN)
+        scene.world().moveSection(contraption, util.vector().of(.0, 2.0, .0), 0)
+
+        scene.overlay().showText(80)
+            .text(scene.ponderLang(9))
+            .placeNearTarget()
+            .pointAt(util.vector().blockSurface(util.grid().at(2,4,2), Direction.UP))
+        scene.idle(90)
+
+        scene.world().moveSection(contraption, util.vector().of(.0, -1.0, .0), 10)
+        scene.idle(7)
+        scene.world().toggleRedstonePower(lamp)
+        scene.world().modifyBlockEntityNBT(
+            nixie,
+            NixieTubeBlockEntity::class.java
+        ) { nbt: CompoundTag? -> nbt!!.putInt("RedstoneStrength", 7) }
+        scene.idle(20)
+
+        scene.world().moveSection(contraption, util.vector().of(.0, -1.0, .0), 10)
+        scene.idle(7)
+        scene.world().modifyBlockEntityNBT(
+            nixie,
+            NixieTubeBlockEntity::class.java
+        ) { nbt: CompoundTag? -> nbt!!.putInt("RedstoneStrength", 15) }
+        scene.idle(20)
+        // endregion
+
+        scene.world().hideIndependentSection(contraption, Direction.UP)
+        scene.idle(20)
+        scene.world().toggleRedstonePower(lamp)
+        scene.world().modifyBlockEntityNBT(
+            nixie,
+            NixieTubeBlockEntity::class.java
+        ) { nbt: CompoundTag? -> nbt!!.putInt("RedstoneStrength", 0) }
+
+        //region Show BOTH direction
+        scene.addKeyframe()
+        contraption = scene.world().showIndependentSection(ship, Direction.DOWN)
+        scene.overlay().showText(80)
+            .text(scene.ponderLang(10))
+            .placeNearTarget()
+            .pointAt(util.vector().blockSurface(util.grid().at(2,2,2), Direction.UP))
+        scene.idle(90)
+
+        scene.world().moveSection(contraption, util.vector().of(.0, 1.0, .0), 10)
+        scene.idle(7)
+        scene.world().toggleRedstonePower(lamp)
+        scene.world().modifyBlockEntityNBT(
+            nixie,
+            NixieTubeBlockEntity::class.java
+        ) { nbt: CompoundTag? -> nbt!!.putInt("RedstoneStrength", 7) }
+        scene.idle(20)
+
+        scene.world().moveSection(contraption, util.vector().of(.0, 1.0, .0), 10)
+        scene.idle(7)
+        scene.world().modifyBlockEntityNBT(
+            nixie,
+            NixieTubeBlockEntity::class.java
+        ) { nbt: CompoundTag? -> nbt!!.putInt("RedstoneStrength", 15) }
+        scene.idle(20)
+
+        scene.overlay().showText(80)
+            .text(scene.ponderLang(11))
+            .placeNearTarget()
+            .pointAt(util.vector().blockSurface(util.grid().at(1,4,2), Direction.WEST))
+        scene.idle(90)
+
+        scene.world().moveSection(contraption, util.vector().of(.0, 1.0, .0), 10)
+        scene.idle(7)
+        scene.world().modifyBlockEntityNBT(
+            nixie,
+            NixieTubeBlockEntity::class.java
+        ) { nbt: CompoundTag? -> nbt!!.putInt("RedstoneStrength", 7) }
+        scene.idle(20)
+
+        scene.world().moveSection(contraption, util.vector().of(.0, 1.0, .0), 10)
+        scene.idle(7)
+        scene.world().toggleRedstonePower(lamp)
+        scene.world().modifyBlockEntityNBT(
+            nixie,
+            NixieTubeBlockEntity::class.java
+        ) { nbt: CompoundTag? -> nbt!!.putInt("RedstoneStrength", 0) }
+        scene.idle(20)
+        //end region
     }
 
     fun createShip(sceneBuilder: SceneBuilder, util: SceneBuildingUtil) {
