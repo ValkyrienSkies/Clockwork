@@ -42,7 +42,11 @@ public abstract class SawBladeRecipeMixin extends BlockEntity {
     }
 
     @WrapOperation(method = "applyRecipe", at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/kinetics/saw/CuttingRecipe;rollResults()Ljava/util/List;"), remap = false)
-    private List<ItemStack> vs_clockwork$applyBladeRecipe(CuttingRecipe instance, Operation<List> original, @Local(name = "input") ItemStack input) {
-        return List.of(CuttingBladeRecipe.Companion.cutBlade(input.copyWithCount(1)));
+    private List<ItemStack> vs_clockwork$applyBladeRecipe(CuttingRecipe recipe, Operation<List<ItemStack>> original, @Local(name = "input") ItemStack input) {
+        if (recipe instanceof CuttingBladeRecipe) {
+            return List.of(CuttingBladeRecipe.Companion.cutBlade(input.copyWithCount(1)));
+        } else {
+            return original.call(recipe);
+        }
     }
 }
