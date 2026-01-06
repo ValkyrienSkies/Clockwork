@@ -347,7 +347,7 @@ class CopterBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
             return 1f
         }
         val facing = blockState.getValue(BlockStateProperties.FACING)
-        speed = -convertToDirection(speed, facing)
+        speed = convertToDirection(speed, facing)
         if (rotationDirection.value == 1) {
             speed *= -1f
         }
