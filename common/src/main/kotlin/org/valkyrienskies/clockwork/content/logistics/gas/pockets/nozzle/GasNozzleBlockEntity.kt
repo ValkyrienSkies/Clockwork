@@ -129,7 +129,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
             val pressure = network.getPressureAt(getDuctNodePosition())
             val MASS_PER_EXHAUST = 0.001
 
-            for (i in 1..floor((gasses.values.sum()*pointer.value)/MASS_PER_EXHAUST).toInt()) {
+            for (i in 1..min(floor((gasses.values.sum()*pointer.value)/MASS_PER_EXHAUST).toInt(), 60)) {
                 KelvinParticleHelper.spawnParticleWithRatio(level as ClientLevel, getDuctNodePosition(),
                     blockPos.toJOMLD().add(randomPos(0.3, random), randomPos(0.3, random), randomPos(0.3, random)),
                     facing.normal.toJOMLD().mul(Mth.clamp(0.0025 * pressure.pow(0.4), 0.1,5.0 )))
