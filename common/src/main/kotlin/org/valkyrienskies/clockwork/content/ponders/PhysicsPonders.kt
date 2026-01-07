@@ -17,9 +17,10 @@ import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkItems
-import org.valkyrienskies.clockwork.ClockworkPonders.ponderLang
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity
 import org.valkyrienskies.clockwork.content.ponders.moveSectionAsShip
+import org.valkyrienskies.clockwork.ponderLang
+import org.valkyrienskies.clockwork.sparklingPlane
 
 object PhysicsPonders {
     fun flap(sceneBuilder: SceneBuilder, util: SceneBuildingUtil) {
@@ -280,7 +281,7 @@ object PhysicsPonders {
 
     fun altMeter(scene: SceneBuilder, util: SceneBuildingUtil) {
         val scene = CreateSceneBuilder(scene)
-        scene.title("alt_meter", "Measure height")
+        scene.title("alt_meter", "Altitude Meter")
         scene.configureBasePlate(0, 0, 5)
         scene.showBasePlate()
         scene.setSceneOffsetY(-1f)
@@ -289,6 +290,9 @@ object PhysicsPonders {
         val ship = util.select().fromTo(1, 1, 2, 3, 2, 2)
         val lamp = util.select().position(3, 2, 2)
         val nixie = util.select().position(1,2,2)
+        val meter = BlockPos(2, 2, 2)
+
+        scene.idle(30)
 
         //region Show altitude setting
         var contraption = scene.world().showIndependentSection(ship, Direction.DOWN)
@@ -296,35 +300,40 @@ object PhysicsPonders {
 
         scene.overlay().showText(60)
             .text(scene.ponderLang(1))
-            .placeNearTarget()
-            .pointAt(util.vector().blockSurface(util.grid().at(2,2,2), Direction.UP))
-        scene.idle(70)
+            .pointAt(util.vector().blockSurface(meter, Direction.SOUTH))
+        scene.idle(60+20)
 
-        scene.world().moveSection(contraption, util.vector().of(.0, 1.0, .0), 10)
-        scene.idle(7)
+        scene.world().moveSectionAsShip(scene, contraption, 20, Vec3(0.0, 0.2, 0.0))
+        scene.idle(20-10)
+
         scene.world().toggleRedstonePower(lamp)
         scene.world().modifyBlockEntityNBT(
             nixie,
             NixieTubeBlockEntity::class.java
         ) { nbt: CompoundTag? -> nbt!!.putInt("RedstoneStrength", 15) }
-        scene.idle(8)
+        scene.idle(20)
+
+        scene.sparklingPlane(AABB(-1.0, 4.0, -1.0, 5.0, 4.0, 5.0), PonderPalette.GREEN, Direction.UP, 60)
 
         scene.overlay().showText(60)
             .text(scene.ponderLang(2))
             .placeNearTarget()
-            .pointAt(util.vector().blockSurface(util.grid().at(3, 3, 2), Direction.UP))
-        scene.idle(70)
+            .pointAt(util.vector().blockSurface(meter, Direction.SOUTH))
+        scene.idle(60+20)
 
-        scene.world().moveSection(contraption, util.vector().of(.0, 1.0, .0), 10)
-        scene.idle(10)
+        scene.world().moveSectionAsShip(scene, contraption, 20, Vec3(0.0, 0.2, 0.0))
+        scene.idle(20-10)
+
+        scene.sparklingPlane(AABB(-1.0, 4.0, -1.0, 5.0, 8.0, 5.0), PonderPalette.GREEN, Direction.UP, 60)
 
         scene.overlay().showText(60)
             .text(scene.ponderLang(3))
             .placeNearTarget()
-            .pointAt(util.vector().blockSurface(util.grid().at(3, 4, 2), Direction.UP))
+            .pointAt(util.vector().blockSurface(meter, Direction.SOUTH))
         scene.idle(70)
         // endregion
-        scene.world().hideIndependentSection(contraption, Direction.UP)
+
+        scene.world().hideIndependentSection(contraption, Direction.DOWN)
         scene.idle(20)
         scene.world().toggleRedstonePower(lamp)
         scene.world().modifyBlockEntityNBT(
@@ -334,39 +343,45 @@ object PhysicsPonders {
 
         // region Show sensitivity setting
         scene.addKeyframe()
+
         contraption = scene.world().showIndependentSection(ship, Direction.DOWN)
         scene.idle(10)
+
         scene.overlay().showText(120)
             .text(scene.ponderLang(4))
             .placeNearTarget()
-            .pointAt(util.vector().blockSurface(util.grid().at(2,2,2), Direction.UP))
-        scene.idle(130)
+            .pointAt(util.vector().blockSurface(meter, Direction.SOUTH))
+        scene.idle(120+20)
 
-        scene.world().moveSection(contraption, util.vector().of(.0, 1.0, .0), 10)
-        scene.idle(7)
+        scene.world().moveSectionAsShip(scene, contraption, 20, Vec3(0.0, 0.1, 0.0))
+        scene.idle(20-10)
+
         scene.world().toggleRedstonePower(lamp)
         scene.world().modifyBlockEntityNBT(
             nixie,
             NixieTubeBlockEntity::class.java
         ) { nbt: CompoundTag? -> nbt!!.putInt("RedstoneStrength", 7) }
-        scene.idle(8)
+        scene.idle(20)
+
+        scene.sparklingPlane(AABB(0.0, 0.0, 0.0, 5.0, 4.0, 5.0), PonderPalette.GREEN, Direction.DOWN, 90+20+10+30)
 
         scene.overlay().showText(90)
             .text(scene.ponderLang(5))
             .placeNearTarget()
-            .pointAt(util.vector().blockSurface(util.grid().at(1,3,2), Direction.WEST))
-        scene.idle(100)
+            .pointAt(util.vector().blockSurface(meter, Direction.SOUTH))
+        scene.idle(90+20)
 
-        scene.world().moveSection(contraption, util.vector().of(.0, 1.0, .0), 10)
-        scene.idle(7)
+        scene.world().moveSectionAsShip(scene, contraption, 20, Vec3(0.0, 0.1, 0.0))
+        scene.idle(20-10)
+
         scene.world().modifyBlockEntityNBT(
             nixie,
             NixieTubeBlockEntity::class.java
         ) { nbt: CompoundTag? -> nbt!!.putInt("RedstoneStrength", 15) }
-        scene.idle(40)
+        scene.idle(20)
         // endregion
 
-        scene.world().hideIndependentSection(contraption, Direction.UP)
+        scene.world().hideIndependentSection(contraption, Direction.DOWN)
         scene.idle(20)
         scene.world().toggleRedstonePower(lamp)
         scene.world().modifyBlockEntityNBT(
@@ -376,30 +391,37 @@ object PhysicsPonders {
 
         // region Explain direction setting
         scene.addKeyframe()
+
         contraption = scene.world().showIndependentSection(ship, Direction.DOWN)
         scene.idle(10)
+
         scene.overlay().showText(90)
             .text(scene.ponderLang(6))
             .placeNearTarget()
-            .pointAt(util.vector().blockSurface(util.grid().at(2,2,2), Direction.UP))
-        scene.idle(100)
+            .pointAt(util.vector().blockSurface(meter, Direction.SOUTH))
+        scene.idle(90+20)
+
         scene.overlay().showText(80)
             .text(scene.ponderLang(7))
             .placeNearTarget()
-            .pointAt(util.vector().blockSurface(util.grid().at(2,2,2), Direction.UP))
-        scene.idle(90)
+            .pointAt(util.vector().blockSurface(meter, Direction.SOUTH))
+        scene.idle(80+20)
         // endregion
 
         // region Show UP direction
         scene.addKeyframe()
+
         scene.overlay().showText(90)
             .text(scene.ponderLang(8))
             .placeNearTarget()
-            .pointAt(util.vector().blockSurface(util.grid().at(2,2,2), Direction.UP))
-        scene.idle(100)
+            .pointAt(util.vector().blockSurface(meter, Direction.SOUTH))
+        scene.idle(90+20)
 
-        scene.world().moveSection(contraption, util.vector().of(.0, 1.0, .0), 10)
-        scene.idle(7)
+        scene.sparklingPlane(AABB(0.0, 0.0, 0.0, 5.0, 4.0, 5.0), PonderPalette.GREEN, Direction.DOWN, 80)
+
+        scene.world().moveSectionAsShip(scene, contraption, 20, Vec3(0.0, 0.1, 0.0))
+        scene.idle(20-10)
+
         scene.world().toggleRedstonePower(lamp)
         scene.world().modifyBlockEntityNBT(
             nixie,
@@ -407,17 +429,19 @@ object PhysicsPonders {
         ) { nbt: CompoundTag? -> nbt!!.putInt("RedstoneStrength", 7) }
         scene.idle(20)
 
-        scene.world().moveSection(contraption, util.vector().of(.0, 1.0, .0), 10)
-        scene.idle(7)
+        scene.world().moveSectionAsShip(scene, contraption,  20, Vec3(0.0, 0.1, 0.0))
+        scene.idle(20-10)
+
         scene.world().modifyBlockEntityNBT(
             nixie,
             NixieTubeBlockEntity::class.java
         ) { nbt: CompoundTag? -> nbt!!.putInt("RedstoneStrength", 15) }
-        scene.idle(10)
+        scene.idle(20)
         // endregion
 
         scene.world().hideIndependentSection(contraption, Direction.UP)
         scene.idle(20)
+
         scene.world().toggleRedstonePower(lamp)
         scene.world().modifyBlockEntityNBT(
             nixie,
@@ -426,17 +450,25 @@ object PhysicsPonders {
 
         // region Show DOWN direction
         scene.addKeyframe()
-        contraption = scene.world().showIndependentSection(ship, Direction.DOWN)
-        scene.world().moveSection(contraption, util.vector().of(.0, 2.0, .0), 0)
+
+        contraption = scene.world().showIndependentSectionImmediately(ship)
+        // Move up to where we used to be before disappearing
+        scene.world().moveSection(contraption, Vec3(0.0, 3.0, 0.0), 0)
+        // Visually move up higher
+        scene.world().moveSection(contraption, Vec3(0.0, 1.0, 0.0),  10)
 
         scene.overlay().showText(80)
             .text(scene.ponderLang(9))
             .placeNearTarget()
-            .pointAt(util.vector().blockSurface(util.grid().at(2,4,2), Direction.UP))
-        scene.idle(90)
+            .pointAt(util.vector().blockSurface(BlockPos(2, 6, 2), Direction.SOUTH))
 
-        scene.world().moveSection(contraption, util.vector().of(.0, -1.0, .0), 10)
-        scene.idle(7)
+        scene.idle(80+20)
+
+        scene.sparklingPlane(AABB(0.0, 3.0, 0.0, 5.0, 6.0, 5.0), PonderPalette.GREEN, Direction.UP, 80)
+
+        scene.world().moveSectionAsShip(scene, contraption, 20, Vec3(0.0, -0.1, 0.0))
+        scene.idle(20-10)
+
         scene.world().toggleRedstonePower(lamp)
         scene.world().modifyBlockEntityNBT(
             nixie,
@@ -444,8 +476,9 @@ object PhysicsPonders {
         ) { nbt: CompoundTag? -> nbt!!.putInt("RedstoneStrength", 7) }
         scene.idle(20)
 
-        scene.world().moveSection(contraption, util.vector().of(.0, -1.0, .0), 10)
-        scene.idle(7)
+        scene.world().moveSectionAsShip(scene, contraption, 20, Vec3(0.0, -0.1, 0.0))
+        scene.idle(20-10)
+
         scene.world().modifyBlockEntityNBT(
             nixie,
             NixieTubeBlockEntity::class.java
@@ -453,8 +486,9 @@ object PhysicsPonders {
         scene.idle(20)
         // endregion
 
-        scene.world().hideIndependentSection(contraption, Direction.UP)
+        scene.world().hideIndependentSection(contraption, Direction.DOWN)
         scene.idle(20)
+
         scene.world().toggleRedstonePower(lamp)
         scene.world().modifyBlockEntityNBT(
             nixie,
@@ -463,15 +497,22 @@ object PhysicsPonders {
 
         //region Show BOTH direction
         scene.addKeyframe()
+
         contraption = scene.world().showIndependentSection(ship, Direction.DOWN)
+        scene.idle(10)
+
         scene.overlay().showText(80)
             .text(scene.ponderLang(10))
             .placeNearTarget()
-            .pointAt(util.vector().blockSurface(util.grid().at(2,2,2), Direction.UP))
-        scene.idle(90)
+            .pointAt(util.vector().blockSurface(meter, Direction.SOUTH))
+        scene.idle(80+20)
 
-        scene.world().moveSection(contraption, util.vector().of(.0, 1.0, .0), 10)
-        scene.idle(7)
+        scene.sparklingPlane(AABB(-1.0, 4.0, -1.0, 5.0, 8.0, 5.0), PonderPalette.GREEN, Direction.UP, 300)
+        scene.sparklingPlane(AABB(-1.0, 0.0, -1.0, 5.0, 4.0, 5.0), PonderPalette.GREEN, Direction.DOWN, 300)
+
+        scene.world().moveSectionAsShip(scene, contraption, 20, Vec3(0.0, 0.1, 0.0))
+        scene.idle(20-10)
+
         scene.world().toggleRedstonePower(lamp)
         scene.world().modifyBlockEntityNBT(
             nixie,
@@ -479,8 +520,9 @@ object PhysicsPonders {
         ) { nbt: CompoundTag? -> nbt!!.putInt("RedstoneStrength", 7) }
         scene.idle(20)
 
-        scene.world().moveSection(contraption, util.vector().of(.0, 1.0, .0), 10)
-        scene.idle(7)
+        scene.world().moveSectionAsShip(scene, contraption, 20, Vec3(0.0, 0.1, 0.0))
+        scene.idle(20-10)
+
         scene.world().modifyBlockEntityNBT(
             nixie,
             NixieTubeBlockEntity::class.java
@@ -490,19 +532,21 @@ object PhysicsPonders {
         scene.overlay().showText(80)
             .text(scene.ponderLang(11))
             .placeNearTarget()
-            .pointAt(util.vector().blockSurface(util.grid().at(1,4,2), Direction.WEST))
-        scene.idle(90)
+            .pointAt(util.vector().blockSurface(meter, Direction.SOUTH))
+        scene.idle(80+20)
 
-        scene.world().moveSection(contraption, util.vector().of(.0, 1.0, .0), 10)
-        scene.idle(7)
+        scene.world().moveSectionAsShip(scene, contraption, 20, Vec3(0.0, 0.1, 0.0))
+        scene.idle(20-10)
+
         scene.world().modifyBlockEntityNBT(
             nixie,
             NixieTubeBlockEntity::class.java
         ) { nbt: CompoundTag? -> nbt!!.putInt("RedstoneStrength", 7) }
         scene.idle(20)
 
-        scene.world().moveSection(contraption, util.vector().of(.0, 1.0, .0), 10)
-        scene.idle(7)
+        scene.world().moveSectionAsShip(scene, contraption, 20, Vec3(0.0, 0.1, 0.0))
+        scene.idle(20-10)
+
         scene.world().toggleRedstonePower(lamp)
         scene.world().modifyBlockEntityNBT(
             nixie,
@@ -510,6 +554,8 @@ object PhysicsPonders {
         ) { nbt: CompoundTag? -> nbt!!.putInt("RedstoneStrength", 0) }
         scene.idle(20)
         //end region
+
+        scene.markAsFinished()
     }
 
     fun createShip(sceneBuilder: SceneBuilder, util: SceneBuildingUtil) {

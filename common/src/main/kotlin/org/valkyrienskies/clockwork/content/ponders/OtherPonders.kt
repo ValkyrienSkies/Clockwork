@@ -8,7 +8,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.Rotation
-import org.valkyrienskies.clockwork.ClockworkPonders.ponderLang
+import org.valkyrienskies.clockwork.ponderLang
 
 object OtherPonders {
 
