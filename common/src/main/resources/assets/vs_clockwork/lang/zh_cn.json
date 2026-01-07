@@ -140,7 +140,7 @@
   "propeller.rotation_direction.normal": "正向",
   "propeller.rotation_direction.inverted": "反向",
 
-  "vs_clockwork.command.get_air_values": "处于 y: %d 密度: %d 温度: %d",
+  "vs_clockwork.command.get_air_values": "处于 y：%d；密度：%d；温度：%d",
 
   "vs_clockwork.subtitle.gravitron_start": "重力枪：启动",
   "vs_clockwork.subtitle.gravitron_grab": "重力枪：抓取物理结构",
@@ -335,8 +335,10 @@
   "vs_clockwork.subtitle.propeller_start": "螺旋桨：启动",
   "vs_clockwork.subtitle.propeller_stop": "螺旋桨：停转",
 
-
+  "alt_meter.title": "高度计",
   "alt_meter.trigger_height": "高度",
+  "alt_meter.trigger_sensitivity": "灵敏度",
+  "alt_meter.trigger_direction": "方向",
   "sequenced_seat.operation.nothing": "无",
   "sequenced_seat.operation.distance": "移动",
   "sequenced_seat.operation.angle": "旋转",
@@ -470,6 +472,15 @@
   "vs_clockwork.ponder.alt_meter.header": "高度计",
   "vs_clockwork.ponder.alt_meter.text_1": "将高度计配置到所需高度",
   "vs_clockwork.ponder.alt_meter.text_2": "达到配置高度时，它将输出红石信号",
+  "vs_clockwork.ponder.alt_meter.text_3": "超过该高度时，信号会继续输出",
+  "vs_clockwork.ponder.alt_meter.text_4": "你也可以配置灵敏度，即信号开始输出的范围",
+  "vs_clockwork.ponder.alt_meter.text_5": "信号强度会随着接近目标高度而增加",
+  "vs_clockwork.ponder.alt_meter.text_6": "方向设置允许你配置高度计输出信号的面",
+  "vs_clockwork.ponder.alt_meter.text_7": "可选设置包括：向上、向下与双向",
+  "vs_clockwork.ponder.alt_meter.text_8": "向上模式：使高度计从下方接近目标高度时输出信号",
+  "vs_clockwork.ponder.alt_meter.text_9": "向下模式：使高度计从上方接近目标高度时输出信号",
+  "vs_clockwork.ponder.alt_meter.text_10": "双向模式：使高度计从任意方向接近目标高度时输出信号",
+  "vs_clockwork.ponder.alt_meter.text_11": "达到目标高度时，信号强度将达到最大值，即15",
 
   "vs_clockwork.ponder.flap_bearing.header": "襟翼轴承",
   "vs_clockwork.ponder.flap_bearing.text_1": "襟翼轴承是一种特殊的轴承",
