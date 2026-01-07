@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item
 import net.minecraft.core.RegistryAccess
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.inventory.CraftingContainer
+import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.crafting.CraftingBookCategory
 import net.minecraft.world.item.crafting.CustomRecipe
@@ -22,6 +23,7 @@ class CraftingTableBladeRecipe(id: ResourceLocation, category: CraftingBookCateg
         var isWide = false
         var numBlades = 0
         var length = 0.0
+
         for (item in container.items) {
             if (item.isEmpty) continue
             if (item.item !is BladeItem) return false
@@ -41,32 +43,23 @@ class CraftingTableBladeRecipe(id: ResourceLocation, category: CraftingBookCateg
         container: CraftingContainer,
         registryAccess: RegistryAccess
     ): ItemStack? {
-        var length = 0.0
+        val items = container.items.filter { i -> i.item is BladeItem }
+        if (items.size < 2) return ItemStack.EMPTY
 
-        val newItem = ItemStack(container.items.first().item)
+        val newItem = ItemStack(items.first().item)
+        val length = items.map { i -> i.tag?.getDouble("BladeLength") ?: 0.0 }
+            .fold(0.0) { acc, d -> acc + d }
 
-        if (container.containerSize == 0) return ItemStack.EMPTY
-
-        for (i in 0..container.containerSize) {
-            val item = container.getItem(i)
-            length += item.tag?.getDouble("BladeLength") ?: 0.0
-        }
-
-        newItem.orCreateTag.putDouble("BladeLength", length)
-
-
-        return newItem
+        return newItem.apply { orCreateTag.putDouble("BladeLength", length) }
     }
 
 
 
     override fun canCraftInDimensions(width: Int, height: Int): Boolean {
-        //println(width)
         return width*height >= 2
     }
 
     override fun getSerializer(): RecipeSerializer<*>? {
         return ClockworkRecipes.BLADE_CRAFTING_SERIALIZER.get()
-
     }
 }
