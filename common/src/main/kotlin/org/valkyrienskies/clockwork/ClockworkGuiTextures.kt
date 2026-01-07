@@ -23,7 +23,7 @@ enum class ClockworkGuiTextures(
     WANDERLITE_SELECTED_1("widgets", 0, 22, 22, 22),
     WANDERLITE_SELECTED_2("widgets", 22, 22, 22, 22),
     GYRO("gyro", 200, 212),
-    ALT_METER("alt_meter", 173, 73),
+    ALT_METER("alt_meter", 173, 131),
 
     CREATIVE_GAS_GENERATOR("creative_gas_generator", 173, 112),
     CREATIVE_GAS_GENERATOR_FRAME("creative_gas_generator_frame", 173, 112),

@@ -23,7 +23,7 @@ class AltMeterRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
     ) {
         super.renderSafe(blockEntity, partialTicks, ms, buffer, light, overlay)
         val indicator = CachedBuffers.partial(ClockworkPartials.ALTIMETER_REDSTONE, blockEntity.blockState)
-        val color = Color.mixColors(0x2C0300, 0xCD0000, blockEntity.signalStrength / 15f)
+        val color = Color.mixColors(0x555555, 0xFFFFFF, blockEntity.signalStrength / 15f)
 
         indicator.light<SuperByteBuffer>(light).overlay<SuperByteBuffer>(overlay)
             .color<SuperByteBuffer>(color)

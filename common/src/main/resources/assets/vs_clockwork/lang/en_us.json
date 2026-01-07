@@ -335,8 +335,10 @@
   "vs_clockwork.subtitle.propeller_start": "Propeller starting up",
   "vs_clockwork.subtitle.propeller_stop": "Propeller spinning down",
 
-
-  "alt_meter.trigger_height": "Height",
+  "alt_meter.title": "Altimeter",
+  "alt_meter.trigger_height": "Altitude",
+  "alt_meter.trigger_sensitivity": "Sensitivity",
+  "alt_meter.trigger_direction": "Direction",
   "sequenced_seat.operation.nothing": "None",
   "sequenced_seat.operation.distance": "Move",
   "sequenced_seat.operation.angle": "Rotate",
@@ -468,8 +470,17 @@
   "vs_clockwork.ponder.resistor.text_5": "0 RPM",
 
   "vs_clockwork.ponder.alt_meter.header": "Altitude Meter",
-  "vs_clockwork.ponder.alt_meter.text_1": "Configure Altitude Meter to desired height",
-  "vs_clockwork.ponder.alt_meter.text_2": "Redstone output will trigger at configured height",
+  "vs_clockwork.ponder.alt_meter.text_1": "Right click the Altimeter to configure a target altitude",
+  "vs_clockwork.ponder.alt_meter.text_2": "The Altimeter will output a redstone signal at that altitude,",
+  "vs_clockwork.ponder.alt_meter.text_3": "As well as past that altitude",
+  "vs_clockwork.ponder.alt_meter.text_4": "You can also configure the sensitivity, the range at which it will start emitting a signal",
+  "vs_clockwork.ponder.alt_meter.text_5": "The signal strength will increase with proximity to the target altitude",
+  "vs_clockwork.ponder.alt_meter.text_6": "The direction setting allows you to chose which side of the target altitude the Altimeter will work",
+  "vs_clockwork.ponder.alt_meter.text_7": "Possible settings are: UP, DOWN and BOTH",
+  "vs_clockwork.ponder.alt_meter.text_8": "UP will make the Altimeter only output when approaching the target altitude from below",
+  "vs_clockwork.ponder.alt_meter.text_9": "DOWN will only output when approaching the target from above",
+  "vs_clockwork.ponder.alt_meter.text_10": "BOTH will output when approaching the target altitude both either the top or bottom",
+  "vs_clockwork.ponder.alt_meter.text_11": "It will reach a maximum of signal strength 15 directly at the target",
 
   "vs_clockwork.ponder.flap_bearing.header": "Flap Bearing",
   "vs_clockwork.ponder.flap_bearing.text_1": "Flap bearings are a unique kind of bearing",

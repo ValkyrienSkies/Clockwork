@@ -2,20 +2,29 @@ package org.valkyrienskies.clockwork.content.curiosities.altmeter
 
 import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.network.chat.Component
+import net.minecraft.world.level.block.PressurePlateBlock
+import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterBlockEntity.AltMeterDirection
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
 import org.valkyrienskies.clockwork.platform.api.network.ServerNetworkContext
 
 class UpdateAltMeterPacket : C2SCWPacket {
-    private val triggerHeight: Double
+    private val triggerHeight: Int
+    private val triggerSensitivity: Int
+    private val triggerDirection: AltMeterDirection
     private val pos: BlockPos
 
     constructor(buffer: FriendlyByteBuf) {
-        triggerHeight = buffer.readDouble()
+        triggerHeight = buffer.readInt()
+        triggerSensitivity = buffer.readInt()
+        triggerDirection = enumValueOf<AltMeterDirection>(buffer.readComponent().string)
         pos = buffer.readBlockPos()
     }
 
-    constructor(newHeight: Double, newPos: BlockPos) {
+    constructor(newHeight: Int, newSensitivity: Int, newDirection: AltMeterDirection, newPos: BlockPos) {
         triggerHeight = newHeight
+        triggerSensitivity = newSensitivity
+        triggerDirection = newDirection
         pos = newPos
     }
 
@@ -24,6 +33,8 @@ class UpdateAltMeterPacket : C2SCWPacket {
             val be = context.sender.level().getBlockEntity(pos) as AltMeterBlockEntity?
             if (be != null && be.canPlayerUse(context.sender)) {
                 be.triggerHeight = triggerHeight
+                be.triggerSensitivity = triggerSensitivity
+                be.triggerDirection = triggerDirection
                 be.notifyUpdate()
             }
         }
@@ -31,7 +42,9 @@ class UpdateAltMeterPacket : C2SCWPacket {
     }
 
     override fun write(buffer: FriendlyByteBuf) {
-        buffer.writeDouble(triggerHeight)
+        buffer.writeInt(triggerHeight)
+        buffer.writeInt(triggerSensitivity)
+        buffer.writeComponent(Component.literal(triggerDirection.name))
         buffer.writeBlockPos(pos)
     }
 }
