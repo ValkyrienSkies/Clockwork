@@ -292,8 +292,6 @@ object PhysicsPonders {
         val nixie = util.select().position(1,2,2)
         val meter = BlockPos(2, 2, 2)
 
-        scene.idle(30)
-
         //region Show altitude setting
         var contraption = scene.world().showIndependentSection(ship, Direction.DOWN)
         scene.idle(15)
