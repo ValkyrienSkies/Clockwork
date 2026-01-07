@@ -137,6 +137,8 @@ object ClockworkMod {
 
         ClockworkWorldgen.register()
 
+        ClockworkDamageTypes.init()
+
         //Register gas types
         ClockworkGasses.init()
 

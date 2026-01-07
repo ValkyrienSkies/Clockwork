@@ -18,7 +18,10 @@ import org.joml.Quaternionf
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
+import org.valkyrienskies.clockwork.util.arc.ArcBias
+import org.valkyrienskies.clockwork.util.arc.LightningBolt
 import kotlin.math.abs
+import kotlin.math.cos
 import kotlin.math.sin
 
 object RenderUtil {
@@ -112,7 +115,7 @@ object RenderUtil {
         return buffer
     }
 
-    private fun hash64(x: Long): Long {
+    fun hash64(x: Long): Long {
         var z = x.toULong() + 0x9E3779B97F4A7C15uL
         z = (z xor (z shr 30)) * 0xBF58476D1CE4E5B9uL
         z = (z xor (z shr 27)) * 0x94D049BB133111EBuL
@@ -120,7 +123,7 @@ object RenderUtil {
         return z.toLong()
     }
 
-    private fun rand01(state: Long): Double {
+    fun rand01(state: Long): Double {
         // 53-bit mantissa -> [0,1)
         val v = (hash64(state).toULong() shr 11).toLong()
         return v.toDouble() * (1.0 / (1L shl 53).toDouble())
@@ -203,6 +206,49 @@ object RenderUtil {
         return out
     }
 
+    private fun animateWiggleLocalTangent(
+        pts: List<Vec3>,
+        seed: Long,
+        time: Double,
+        amount: Double
+    ): List<Vec3> {
+        if (pts.size <= 2) return pts
+        val out = ArrayList<Vec3>(pts.size)
+        out.add(pts.first())
+
+        for (i in 1 until pts.size - 1) {
+            val prev = pts[i - 1]
+            val cur = pts[i]
+            val next = pts[i + 1]
+
+            val tangent = next.subtract(prev)
+            val len = tangent.length()
+            val tN = if (len > 1e-6) tangent.scale(1.0 / len) else Vec3(0.0, 1.0, 0.0)
+
+            val ref = if (kotlin.math.abs(tN.y) < 0.9) Vec3(0.0, 1.0, 0.0) else Vec3(1.0, 0.0, 0.0)
+            val u = tN.cross(ref).normalize()
+            val v = tN.cross(u).normalize()
+
+            val f0 = 14.0 + 22.0 * rand01(seed + i * 11L)
+            val f1 = 14.0 + 22.0 * rand01(seed + i * 19L)
+            val ph0 = rand01(seed + i * 23L) * Math.PI * 2.0
+            val ph1 = rand01(seed + i * 29L) * Math.PI * 2.0
+
+            val s0 = kotlin.math.sin(time * f0 + ph0)
+            val s1 = kotlin.math.sin(time * f1 + ph1)
+
+            val tt = i.toDouble() / (pts.size - 1).toDouble()
+            val taper = (tt * (1.0 - tt)) * 4.0
+
+            val disp = u.scale(s0 * amount * taper).add(v.scale(s1 * amount * taper))
+            out.add(cur.add(disp))
+        }
+
+        out.add(pts.last())
+        return out
+    }
+
+
     fun generatePolylinesFollow(
         inst: LightningBolt,
         nowGameTime: Long,
@@ -211,8 +257,11 @@ object RenderUtil {
         val start = inst.startProvider()
         val end = inst.endProvider()
 
+        // Backbone resolution: enough points so arc survives subdivision nicely
+        val backboneSegments = 8
+
         // Base fractal from fixed seed (stable)
-        var pts: List<Vec3> = listOf(start, end)
+        var pts: List<Vec3> = buildBackbone(start, end, inst.arcBias, backboneSegments)
         var mag = inst.maxOffset
         repeat(inst.subdivisions) { s ->
             pts = subdivideOnce(pts, mag, inst.seed + s * 99991L)
@@ -226,14 +275,21 @@ object RenderUtil {
         val time = kotlin.math.floor(rawTime * 12.0) / 12.0  // 12 steps per second
 
 
-        pts = animateWiggle(
+        pts = if (inst.arcBias == ArcBias.None) animateWiggle(
             pts = pts,
             start = start,
             end = end,
             seed = inst.seed xor 0xCAFEBABEL,
             time = time,
             amount = inst.maxOffset * 0.18 // small wiggle; keep the “shape”
-        )
+        ) else {
+            animateWiggleLocalTangent(
+                pts = pts,
+                seed = inst.seed xor 0xDEADBEEFL,
+                time = time,
+                amount = inst.maxOffset * 0.18
+            )
+        }
 
         val lines = ArrayList<List<Vec3>>()
         lines.add(pts)
@@ -250,8 +306,8 @@ object RenderUtil {
 
             val bdir = u.scale(randSigned(inst.seed + i * 17L)).add(v.scale(randSigned(inst.seed + i * 31L))).normalize()
             val trunkT = i.toDouble() / (pts.size - 1).toDouble()
-            val branchTaper = (1.0 - trunkT).coerceIn(0.0, 1.0) //todo add a parameter or somethign to bolt for if it should taper or not
-            val len = start.distanceTo(end) * inst.branchScale * (0.6 + 0.4 * rand01(inst.seed + i * 43L)) // * branchTaper
+            val branchTaper = if (inst.branchTaper) (1.0 - trunkT).coerceIn(0.0, 1.0) else 1.0
+            val len = start.distanceTo(end) * inst.branchScale * (0.6 + 0.4 * rand01(inst.seed + i * 43L)) * branchTaper
             val bend = p.add(bdir.scale(len))
 
             var bPts: List<Vec3> = listOf(p, bend)
@@ -308,6 +364,90 @@ object RenderUtil {
         vc.vertex(pose, aR.x.toFloat(), aR.y.toFloat(), aR.z.toFloat()).color(r, g, bl, alpha).uv(1f, 0f).endVertex()
         vc.vertex(pose, bR.x.toFloat(), bR.y.toFloat(), bR.z.toFloat()).color(r, g, bl, alpha).uv(1f, 1f).endVertex()
         vc.vertex(pose, bL.x.toFloat(), bL.y.toFloat(), bL.z.toFloat()).color(r, g, bl, alpha).uv(0f, 1f).endVertex()
+    }
+
+
+    private fun safeNormalize(v: Vec3): Vec3 =
+        if (v.lengthSqr() > 1e-12) v.normalize() else Vec3.ZERO
+
+    private fun buildBasis(axisN: Vec3): Pair<Vec3, Vec3> {
+        // Create orthonormal basis (U,V) perpendicular to axisN
+        val ref = if (abs(axisN.y) < 0.9) Vec3(0.0, 1.0, 0.0) else Vec3(1.0, 0.0, 0.0)
+        val u = safeNormalize(axisN.cross(ref))
+        val v = safeNormalize(axisN.cross(u))
+        return u to v
+    }
+
+    private fun buildBackbone(
+        start: Vec3,
+        end: Vec3,
+        arcBias: ArcBias,
+        segments: Int
+    ): List<Vec3> {
+        val out = ArrayList<Vec3>(segments + 1)
+        val chord = end.subtract(start)
+
+        for (i in 0..segments) {
+            val t = i.toDouble() / segments.toDouble()
+            var p = start.add(chord.scale(t))
+
+            val envelope = 4.0 * t * (1.0 - t) // 0 at ends, 1 at center
+
+            when (arcBias) {
+                ArcBias.None -> {}
+
+                is ArcBias.Parabola -> {
+                    val dir = safeNormalize(arcBias.direction)
+                    p = p.add(dir.scale(arcBias.strength * envelope))
+                }
+
+                is ArcBias.DoubleHump -> {
+                    val dir = safeNormalize(arcBias.direction)
+                    val wave = -sin(t * Math.PI * 2.0) // down-up-down if direction is "down"
+                    p = p.add(dir.scale(arcBias.strength * wave * envelope))
+                }
+
+                is ArcBias.SineWave -> {
+                    val dir = safeNormalize(arcBias.direction)
+                    val wave = sin(t * Math.PI * 2.0 * arcBias.frequency)
+                    p = p.add(dir.scale(arcBias.strength * wave * envelope))
+                }
+
+                is ArcBias.Spiral -> {
+                    val axisN = safeNormalize(arcBias.axis ?: chord)
+                    val (u, v) = buildBasis(axisN)
+
+                    val theta = (t * arcBias.turns) * (Math.PI * 2.0) + arcBias.phase
+
+                    // radius ramps from startMul to endMul along t, still enveloped to zero at endpoints
+                    val ramp = arcBias.radiusStartMul + (arcBias.radiusEndMul - arcBias.radiusStartMul) * t
+                    val r = arcBias.radius * ramp * envelope
+
+                    val offset = u.scale(cos(theta) * r).add(v.scale(sin(theta) * r))
+                    p = p.add(offset)
+                }
+
+                is ArcBias.DoubleHelix -> {
+                    val axisN = safeNormalize(arcBias.axis ?: chord)
+                    val (u, v) = buildBasis(axisN)
+
+                    val theta = (t * arcBias.turns) * (Math.PI * 2.0) + arcBias.phase
+
+                    // Two-strand feel: radius modulation twice per turn (cos 2θ).
+                    // strandSeparation in [0..1] controls how obvious the “two strands” are.
+                    val sep = arcBias.strandSeparation.coerceIn(0.0, 1.0)
+                    val mod = 1.0 + sep * cos(2.0 * theta) // 2 lobes per rotation
+                    val r = arcBias.radius * mod * envelope
+
+                    val offset = u.scale(cos(theta) * r).add(v.scale(sin(theta) * r))
+                    p = p.add(offset)
+                }
+            }
+
+            out.add(p)
+        }
+
+        return out
     }
 
 }

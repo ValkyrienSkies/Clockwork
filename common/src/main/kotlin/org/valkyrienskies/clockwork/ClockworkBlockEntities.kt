@@ -40,6 +40,8 @@ import org.valkyrienskies.clockwork.content.curiosities.clock.ClockRenderer
 import org.valkyrienskies.clockwork.content.curiosities.debug.DebugLightningArcerBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.LodefocusBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.LodefocusRenderer
+import org.valkyrienskies.clockwork.content.curiosities.solver.SolverBlockEntity
+import org.valkyrienskies.clockwork.content.curiosities.solver.SolverRenderer
 import org.valkyrienskies.clockwork.content.generic.ColorBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRenderer
@@ -882,6 +884,26 @@ object ClockworkBlockEntities {
             )
         }
         .validBlocks(ClockworkBlocks.DEBUG_LIGHTNING_ARCER)
+        .register()
+
+    @JvmField
+    val SOLVER: BlockEntityEntry<SolverBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity(
+            "solver"
+        ) { typeIn: BlockEntityType<SolverBlockEntity>, pos: BlockPos, state: BlockState ->
+            SolverBlockEntity(
+                typeIn,
+                pos, state!!
+            )
+        }
+        .validBlocks(ClockworkBlocks.SOLVER)
+        .renderer {
+            NonNullFunction { context: BlockEntityRendererProvider.Context? ->
+                SolverRenderer(
+                    context!!
+                )
+            }
+        }
         .register()
 
     @JvmStatic

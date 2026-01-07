@@ -2,30 +2,25 @@ package org.valkyrienskies.clockwork.forge;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.simibubi.create.content.equipment.armor.BacktankArmorLayer;
 import net.createmod.catnip.animation.AnimationTickHolder;
 import net.createmod.catnip.render.DefaultSuperRenderTypeBuffer;
 import net.createmod.catnip.render.SuperRenderTypeBuffer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.ClockworkModClient;
 import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketRenderer;
 import org.valkyrienskies.clockwork.client.render.debug.KelvinEdgeRenderer;
-import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankArmorLayer;
-import org.valkyrienskies.clockwork.forge.content.curiosities.tools.aeronaut.ForgeAeronautArmorLayer;
-import org.valkyrienskies.clockwork.forge.content.logistics.gas.backtank.ForgeGasBacktankArmorLayer;
-import org.valkyrienskies.clockwork.util.render.LightningRenderer;
+import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorRenderer;
+import org.valkyrienskies.clockwork.util.arc.LightningRenderer;
+import org.valkyrienskies.core.api.world.ClientShipWorld;
+import org.valkyrienskies.mod.api.ValkyrienSkies;
 
 import static net.createmod.ponder.PonderClient.isGameActive;
 
@@ -35,6 +30,10 @@ public class ClockworkClientEvents {
     public static void onRenderWorld(RenderLevelStageEvent event) {
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
             AirpocketRenderer.render(Minecraft.getInstance().level, event.getPoseStack(), Minecraft.getInstance().gameRenderer.getMainCamera());
+            ClientShipWorld shipWorld = ValkyrienSkies.getShipWorld(Minecraft.getInstance());
+            shipWorld.getLoadedShips().forEach ( ship -> {
+                MeteorRenderer.INSTANCE.onShipRender(ship, event.getPoseStack(), event.getCamera(), Minecraft.getInstance().renderBuffers().bufferSource(), AnimationTickHolder.getPartialTicks());
+            });
         }
 
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) {

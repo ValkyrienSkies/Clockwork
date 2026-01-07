@@ -50,6 +50,7 @@ import org.valkyrienskies.clockwork.content.curiosities.sensor.distance.Distance
 import org.valkyrienskies.clockwork.content.curiosities.sensor.impact.ImpactSensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.GyroscopicSensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.LodefocusBlock
+import org.valkyrienskies.clockwork.content.curiosities.solver.SolverBlock
 import org.valkyrienskies.clockwork.content.kinetics.casing.ExtendedEncasedShaftBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
@@ -1065,6 +1066,21 @@ object ClockworkBlocks {
             DebugLightningArcerBlock(properties!!)
         }
             .initialProperties { SharedProperties.stone() }
+            .transform(axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .build()
+            .register()
+
+    @JvmField
+    val SOLVER: BlockEntry<SolverBlock> =
+        REGISTRATE.block<SolverBlock>("solver") { properties: BlockBehaviour.Properties? ->
+            SolverBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.netheriteMetal() }
             .transform(axeOrPickaxe())
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
