@@ -238,9 +238,18 @@ object ClockworkItems {
     @JvmField
     val INCOMPLETE_HOSE_SPOOL: ItemEntry<SequencedAssemblyItem> = sequencedIngredient("incomplete_hose_spool")
 
+    @JvmField
+    val TRIODE : ItemEntry<Item> = ingredient("triode")
+
     @JvmStatic
     private fun sequencedIngredient(name: String): ItemEntry<SequencedAssemblyItem>  {
         return REGISTRATE.item(name, ::SequencedAssemblyItem)
+            .register();
+    }
+
+    @JvmStatic
+    private fun ingredient(name: String): ItemEntry<Item> {
+        return REGISTRATE.item(name, ::Item)
             .register();
     }
 

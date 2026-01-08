@@ -1071,7 +1071,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            //.tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
             .register()
 
@@ -1086,7 +1086,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
-            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            //.tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
             .register()
 
