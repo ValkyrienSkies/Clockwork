@@ -327,7 +327,7 @@ class CopterBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
     }
 
     override fun applyPowerEffect() {
-        if (powerOne == 0 && powerTwo == 0) return
+        //if (powerOne == 0 && powerTwo == 0) return
         val (axisOne, axisTwo) = getPowerDirections()
         val positiveNormalOne = Direction.get(POSITIVE, axisOne).normal.toJOMLD()
         val positiveNormalTwo = Direction.get(POSITIVE, axisTwo).normal.toJOMLD()
