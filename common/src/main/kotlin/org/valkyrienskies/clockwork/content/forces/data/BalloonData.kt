@@ -94,7 +94,9 @@ class BalloonData {
     }
 
     fun tick(level: ServerLevel, ship: LoadedServerShip): Boolean {
-
+        if (level.dimensionId != ship.chunkClaimDimension) {
+            return false
+        }
         if (this.isLeaking && missingExternalPositions > 0) {
             var averageLeakPos = Vector3i(0,0,0)
             for (pos in leakPositions) {
@@ -133,6 +135,8 @@ class BalloonData {
         val atmoDensity = level.shipObjectWorld.aerodynamicUtils.getAirDensityForY(rootYInWorld, level.dimensionId)
         val atmoPressure = level.shipObjectWorld.aerodynamicUtils.getAirPressureForY(rootYInWorld, level.dimensionId) //level.shipObjectWorld.aerodynamicUtils.getAirPressureForY(rootYInWorld, level.dimensionId)
         val atmoTemperature = level.shipObjectWorld.aerodynamicUtils.getAirTemperatureForY(rootYInWorld, level.dimensionId)
+
+        //println(atmoTemperature)
 
         val volume = this.currentVolume
 
@@ -175,30 +179,43 @@ class BalloonData {
         val exitHeat =  currentTemperature * ClockworkMod.getKelvin().mixtureCapacity(exitGasMasses)
 
         currentHeatEnergy -= exitHeat
-        currentTemperature = currentHeatEnergy / capacity
+        val newCapacity = (KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(currentGasMasses)
+        currentTemperature = currentHeatEnergy / newCapacity
 
         // Gas leak heat transfer
         val heatFlow = ClockworkConfig.SERVER.heatTransferCoefficient * estimatedSurfaceArea * (atmoTemperature - currentTemperature) * max(1.0, missingExternalPositions.toDouble() * 2.0 + 1.0)
         var newHeatEnergy = currentHeatEnergy + heatFlow * 0.05
-        val newCapacity = (KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(currentGasMasses)
+
         var newTemperature = newHeatEnergy / newCapacity
 
         // Gas leak entering
         val air = GasTypeRegistry.GAS_TYPES[ResourceLocation("kelvin","air")]!!
         val newMoles = currentGasMasses.entries.sumOf { it.key.massToMoles(it.value) }
         val newPressure = newMoles * DuctNetwork.idealGasConstant * newTemperature / volume
-        val addMoles = max(0.0, atmoPressure - newPressure) * volume / (newTemperature * DuctNetwork.idealGasConstant)
-        currentGasMasses[air] = (currentGasMasses[air] ?: 0.0) + air.molesToMass(addMoles)
+        val inPressureDelta = (atmoPressure - newPressure).coerceAtLeast(0.0)
+        if (inPressureDelta > 0.0) {
+            val leakScale = max(1.0, missingExternalPositions.toDouble() * 2.0 + 1.0)
+            val speedScale = sqrt(atmoTemperature * DuctNetwork.idealGasConstant / molarMass)
 
-        val addedHeat = air.molesToMass(addMoles) * atmoTemperature * (air.specificHeatCapacity * 1000 / air.adiabaticIndex)
-        newHeatEnergy += addedHeat
+            val gasEnterRate =
+                inPressureDelta * estimatedSurfaceArea *
+                        ClockworkConfig.SERVER.permeabilityConstant / speedScale *
+                        leakScale
+
+            val enterMass = gasEnterRate * 0.01
+
+            currentGasMasses[air] = (currentGasMasses[air] ?: 0.0) + enterMass
+
+            val airCpEff = air.specificHeatCapacity * 1000.0 / air.adiabaticIndex
+            newHeatEnergy += enterMass * atmoTemperature * airCpEff
+        }
 
         // Set Values
         this.gasMasses.clear()
         currentGasMasses.forEach { this.gasMasses[it.key.resourceLocation.toString()] = it.value }
         this.currentEnergy = newHeatEnergy
 
-    return true
+        return true
     }
 
     fun makeForceData(): PhysBalloonData {

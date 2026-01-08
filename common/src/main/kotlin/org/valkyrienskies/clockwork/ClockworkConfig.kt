@@ -80,7 +80,7 @@ object ClockworkConfig {
         var balloonForceMult: Double = 50.0
 
         @ConfigEntry(description = "Sets the gas retention efficiency of the balloon material; lower values simulate airtight rubber/synthetic, while higher values represent porous fabrics. Default 0.001.", min = 0.0, max = 1.0)
-        var permeabilityConstant = 0.001
+        var permeabilityConstant = 0.0005
 
         @ConfigEntry(description = "Controls how fast air pocket temperature equalizes with the ambient temperature; lower values simulate thick insulation, while higher values cause rapid cooling or heating. Default 0.001", min = 0.0, max = 1.0)
         var heatTransferCoefficient = 0.0005
