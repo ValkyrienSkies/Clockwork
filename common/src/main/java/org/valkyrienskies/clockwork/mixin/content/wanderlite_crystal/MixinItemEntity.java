@@ -24,7 +24,6 @@ public abstract class MixinItemEntity extends Entity {
 
     @Inject(method = "<init>(Lnet/minecraft/world/level/Level;DDDLnet/minecraft/world/item/ItemStack;DDD)V", at = @At("TAIL"))
     void constructor(Level level, double posX, double posY, double posZ, ItemStack itemStack, double deltaX, double deltaY, double deltaZ, CallbackInfo ci) {
-        System.out.println(itemStack.getItem());
         if (itemStack.getItem() instanceof WanderliteCrystal) {
             setNoGravity(true);
         }
