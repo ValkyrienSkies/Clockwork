@@ -23,7 +23,7 @@ import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft
 
-class GenericWanderliteBlock(properties: Properties, override val forceMult: Double = 1.0): Block(properties), IWanderliteBlock {
+class GenericWanderliteBlock(properties: Properties): Block(properties), IWanderliteBlock {
     override fun use(state: BlockState,
                      level: Level,
                      pos: BlockPos,
@@ -63,7 +63,7 @@ class GenericWanderliteBlock(properties: Properties, override val forceMult: Dou
         if (level is ServerLevel) {
             val ship = level.getShipObjectManagingPos(pos)
             if (ship != null) {
-                addToShip(ship, pos, forceMult)
+                addToShip(level, ship, pos)
             }
         }
         super.onPlace(state, level, pos, oldState, movedByPiston)

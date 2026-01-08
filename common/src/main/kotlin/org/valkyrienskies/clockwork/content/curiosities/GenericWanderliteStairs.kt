@@ -22,7 +22,7 @@ import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft
 
-class GenericWanderliteStairs(properties: Properties, override val forceMult: Double = 0.75): StairBlock(ClockworkBlocks.SMOOTH_WANDERLITE.defaultState, properties), IWanderliteBlock {
+class GenericWanderliteStairs(properties: Properties): StairBlock(ClockworkBlocks.SMOOTH_WANDERLITE.defaultState, properties), IWanderliteBlock {
     override fun use(state: BlockState,
                      level: Level,
                      pos: BlockPos,
@@ -62,7 +62,7 @@ class GenericWanderliteStairs(properties: Properties, override val forceMult: Do
         if (level is ServerLevel) {
             val ship = level.getShipObjectManagingPos(pos)
             if (ship != null) {
-                addToShip(ship, pos, forceMult)
+                addToShip(level, ship, pos)
             }
         }
         super.onPlace(state, level, pos, oldState, movedByPiston)

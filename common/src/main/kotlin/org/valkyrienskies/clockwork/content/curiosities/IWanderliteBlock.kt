@@ -4,27 +4,21 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.Level
-import org.joml.Vector3d
 import org.valkyrienskies.clockwork.content.forces.WanderShipControl
 import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.core.api.ships.LoadedServerShip
-import org.valkyrienskies.core.api.ships.ServerShip
-import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.mod.common.assembly.ShipAssembler
-import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
-import org.valkyrienskies.mod.common.getLoadedShipManagingPos
-import org.valkyrienskies.mod.common.shipObjectWorld
-import org.valkyrienskies.mod.common.util.toBlockPos
-import org.valkyrienskies.mod.common.util.toJOML
+import org.valkyrienskies.mod.common.config.MassDatapackResolver
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
+import org.valkyrienskies.mod.common.util.transformPosition
 
 interface IWanderliteBlock {
 
-    val forceMult: Double
+    fun addToShip(level: ServerLevel, ship: LoadedServerShip, pos: BlockPos) {
+        val weight = MassDatapackResolver.getBlockStateMass(level.getBlockState(pos)) ?: return
 
-    fun addToShip(ship: LoadedServerShip, pos: BlockPos, force: Double) {
-        WanderShipControl.getOrCreate(ship).addBlock(pos, force)
+        WanderShipControl.getOrCreate(ship).addBlock(pos, weight)
     }
     fun removeFromShip(ship: LoadedServerShip, pos: BlockPos) {
         WanderShipControl.getOrCreate(ship).removeBlock(pos)
@@ -67,9 +61,14 @@ interface IWanderliteBlock {
         val ship = ShipAssembler.assembleToShip(level, blockList, true)
 
         for (pos in blockList) {
-            ClockworkUtils.wanderliteNodesToAdd[BlockPos.containing(ship.worldToShip.transformPosition(pos.toJOMLD()).toMinecraft())] = forceMult
+            // Our old world-space position is now BlockState{air}
+            val shipBlockPos = BlockPos.containing(ship.transform.worldToShip.transformPosition(pos.center))
+
+            val weight = MassDatapackResolver.getBlockStateMass(level.getBlockState(shipBlockPos)) ?: continue
+            ClockworkUtils.wanderliteNodesToAdd[BlockPos.containing(ship.worldToShip.transformPosition(pos.toJOMLD()).toMinecraft())] = weight
             //addToShip(realConnectedShip, BlockPos(realConnectedShip.worldToShip.transformPosition(Vector3d(pos)).toMinecraft()), 2.0)
         }
 
     }
+
 }

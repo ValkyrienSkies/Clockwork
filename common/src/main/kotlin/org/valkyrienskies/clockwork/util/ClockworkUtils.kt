@@ -39,7 +39,9 @@ import org.valkyrienskies.mod.api.toBlockPos
 import org.valkyrienskies.mod.api.toJOML
 import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.BlockStateInfo
+import org.valkyrienskies.mod.common.config.MassDatapackResolver
 import org.valkyrienskies.mod.common.dimensionId
+import org.valkyrienskies.mod.common.getLoadedShipManagingPos
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.toWorldCoordinates
@@ -58,9 +60,10 @@ object ClockworkUtils {
     fun tick(level: ServerLevel) {
         val successfullyAdded = HashSet<BlockPos>()
         wanderliteNodesToAdd.forEach { (pos, force) ->
-            val ship = level.getShipObjectManagingPos(BlockPos(pos.x, pos.y, pos.z))
+            val ship = level.getLoadedShipManagingPos(BlockPos(pos.x, pos.y, pos.z))
             if (ship != null) {
-                ship.getAttachment<WanderShipControl>()?.addBlock(pos, force) ?: return@forEach
+                val weight = MassDatapackResolver.getBlockStateMass(level.getBlockState(pos)) ?: return@forEach
+                ship.getAttachment<WanderShipControl>()?.addBlock(pos, weight) ?: return@forEach
                 successfullyAdded.add(pos)
             }
         }
