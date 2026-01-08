@@ -205,6 +205,21 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 //            }
             //heatPocket()
             heatBalloon()
+            if (this.balloon != null) {
+                var pocketGasMass: HashMap<GasType, Double> = HashMap()
+                for ((key, value) in balloon!!.gasMasses) {
+                    val gasType = GasTypeRegistry.getGasType(ResourceLocation(key)) ?: continue
+                    pocketGasMass[gasType] = value
+                }
+                val pocketHeatEnergy = balloon!!.currentEnergy
+                val pocketCapacity = ClockworkMod.getKelvin().mixtureCapacity(pocketGasMass)
+                val currentPocketTemperature = (pocketHeatEnergy) / pocketCapacity
+                pocketTemperature = currentPocketTemperature
+                balloonVolume = balloon!!.currentVolume
+                currentIdealOutput = balloon!!.missingExternalPositions.toDouble() // this is cursed but i made it without reloading the game so variable reuse lesgo
+                sendData()
+            }
+
         }
 
 //        if (balloon != null) {
@@ -249,6 +264,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
     private fun heatBalloon() {
         val balloon = this.balloon ?: return
+        if (this.pointer.value <= 0) return
 
         var pocketGasMass: HashMap<GasType, Double> = HashMap()
         for ((key, value) in balloon.gasMasses) {
@@ -263,15 +279,16 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         val pocketCapacity = ClockworkMod.getKelvin().mixtureCapacity(pocketGasMass)
         val currentPocketTemperature = (pocketHeatEnergy) / pocketCapacity
         val targetTemperature = ClockworkMod.getKelvin().getTemperatureAt(getDuctNodePosition()) * pointer.value.toDouble()
+        if (currentPocketTemperature >= targetTemperature) return
         val maxEnergyAddedThisTick = (heatEnergy / 2.0)
         val energyToAdd = min(pocketCapacity * min(targetTemperature - currentPocketTemperature, 100.0), maxEnergyAddedThisTick)
 
         val usedUpMass = gasMassTotal * pointer.value
         val usedEnergy = min(heatEnergy, energyToAdd) * pointer.value
 
-        pocketTemperature = (pocketHeatEnergy + usedEnergy) / pocketCapacity
-        balloonVolume = balloon.currentVolume
-        currentIdealOutput = balloon.missingExternalPositions.toDouble() // this is cursed but i made it without reloading the game so variable reuse lesgo
+//        pocketTemperature = (pocketHeatEnergy + usedEnergy) / pocketCapacity
+//        balloonVolume = balloon.currentVolume
+//        currentIdealOutput = balloon.missingExternalPositions.toDouble() // this is cursed but i made it without reloading the game so variable reuse lesgo
 
         balloon.currentEnergy = pocketHeatEnergy + usedEnergy
 

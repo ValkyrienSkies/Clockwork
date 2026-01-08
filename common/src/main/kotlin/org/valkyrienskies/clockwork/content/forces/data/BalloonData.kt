@@ -184,7 +184,7 @@ class BalloonData {
 
         // Gas leak heat transfer
         val heatFlow = ClockworkConfig.SERVER.heatTransferCoefficient * estimatedSurfaceArea * (atmoTemperature - currentTemperature) * max(1.0, missingExternalPositions.toDouble() * 2.0 + 1.0)
-        var newHeatEnergy = currentHeatEnergy + heatFlow * 0.05
+        var newHeatEnergy = currentHeatEnergy + heatFlow //* 0.05
 
         var newTemperature = newHeatEnergy / newCapacity
 
