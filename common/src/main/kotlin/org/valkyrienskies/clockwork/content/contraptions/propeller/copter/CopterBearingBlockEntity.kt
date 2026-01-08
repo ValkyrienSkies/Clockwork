@@ -230,7 +230,7 @@ class CopterBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
         val facingNormal = facing.normal.toJOMLD()
         // if facing is negative axis, flip facing
         if (facing == Direction.DOWN || facing == Direction.NORTH || facing == Direction.WEST) {
-            facingNormal.mul(-1.0)
+            //facingNormal.mul(-1.0)
         }
         val desiredLocal = Vector3d(facingNormal).rotate(invRotation).mul(getDirectionScale().toDouble()).normalize().add(desiredLocalOffset).normalize()
         val blockAxis = tiltVector.toJOML().normalize() // .rotate(physShip.transform.shipToWorldRotation)
