@@ -146,7 +146,7 @@ class BalloonController: ShipPhysicsListener {
                 balloon.shouldRemove = true
             }
         }
-        val tickableBloons = balloons.filter { !it.value.shouldRemove && !it.value.shouldReScan }
+        val tickableBloons = balloons.filter { !it.value.shouldRemove }
         val shouldApplyForces = ArrayList<Int>()
         for ((id, balloon) in tickableBloons) {
             val result = balloon.tick(level, ship)
