@@ -162,5 +162,8 @@ object ClockworkConfig {
 
         @ConfigEntry(description = "Maximum range (in blocks) the survival gravitron will interact with ships", min = 1.0, max = 1000.0)
         var survivalGravitronMaxRange = 20.0
+
+        @ConfigEntry(description = "The density mult of wanderlite ore in meteors", min = 0.0)
+        val meteor_density = 0.0
     }
 }

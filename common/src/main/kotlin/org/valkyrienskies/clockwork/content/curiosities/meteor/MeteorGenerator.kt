@@ -7,6 +7,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.levelgen.SingleThreadedRandomSource
 import net.minecraft.world.level.levelgen.synth.PerlinNoise
 import org.valkyrienskies.clockwork.ClockworkBlocks
+import org.valkyrienskies.clockwork.ClockworkConfig
 import kotlin.random.Random
 import kotlin.random.nextInt
 
@@ -34,8 +35,7 @@ object MeteorGenerator {
             val t = threshold  - noise.getValue(x.toDouble()*resolution,y.toDouble()*resolution,z.toDouble()*resolution)/500
             val mb = metaBall(balls, BlockPos(x,y,z))
             val state: BlockState
-            //(mb > 2*t)
-            if (false) state = ClockworkBlocks.WANDERLITE_NYX_ORE.defaultState
+            if (mb > ClockworkConfig.SERVER.meteor_density*t) state = ClockworkBlocks.WANDERLITE_NYX_ORE.defaultState
             else if (mb > t) state = ClockworkBlocks.NYX.defaultState
             else state = Blocks.AIR.defaultBlockState()
 
