@@ -23,7 +23,8 @@
     "content.steam_generator.MixinBoilerData",
     "content.sugar_rocket.MixinFireCharge",
     "content.universal_joint.MixinRotationPropagator",
-    "content.wing.MixinAbstractCauldronBlock"
+    "content.wing.MixinAbstractCauldronBlock",
+    "content.wanderlite_crystal.MixinItemEntity"
   ],
   "client": [
     "MixinLevelRenderer",

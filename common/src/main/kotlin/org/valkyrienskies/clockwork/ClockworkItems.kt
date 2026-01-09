@@ -1,24 +1,20 @@
 package org.valkyrienskies.clockwork
 
-import com.simibubi.create.AllItems
 import com.simibubi.create.AllTags
 import com.simibubi.create.AllTags.AllItemTags
 import com.simibubi.create.content.equipment.goggles.GogglesItem
 import com.simibubi.create.content.processing.sequenced.SequencedAssemblyItem
 import com.simibubi.create.foundation.data.AssetLookup
 import com.tterrag.registrate.util.entry.ItemEntry
-import dev.architectury.core.item.ArchitecturyRecordItem
-import net.fabricmc.fabric.api.item.v1.FabricItemSettings
 import net.minecraft.tags.ItemTags
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.Rarity
-import net.minecraft.world.item.RecordItem
-import net.minecraft.world.item.SwordItem
 import net.minecraft.world.item.Tiers
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.BladeItem
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.BladeItemRenderer
+import org.valkyrienskies.clockwork.content.curiosities.WanderliteCrystal
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteCubeItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteItem
 import org.valkyrienskies.clockwork.content.curiosities.WanderlustMusicDisc
@@ -156,8 +152,8 @@ object ClockworkItems {
             .register()
 
     @JvmField
-    val WANDERLITE_CRYSTAL: ItemEntry<Item> = REGISTRATE.item<Item>("wanderlite_crystal") { properties: Item.Properties? ->
-        Item(properties!!)
+    val WANDERLITE_CRYSTAL: ItemEntry<WanderliteCrystal> = REGISTRATE.item("wanderlite_crystal") { properties: Item.Properties? ->
+        WanderliteCrystal(properties!!)
     }
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .register()
@@ -242,9 +238,18 @@ object ClockworkItems {
     @JvmField
     val INCOMPLETE_HOSE_SPOOL: ItemEntry<SequencedAssemblyItem> = sequencedIngredient("incomplete_hose_spool")
 
+    @JvmField
+    val TRIODE : ItemEntry<Item> = ingredient("triode")
+
     @JvmStatic
     private fun sequencedIngredient(name: String): ItemEntry<SequencedAssemblyItem>  {
         return REGISTRATE.item(name, ::SequencedAssemblyItem)
+            .register();
+    }
+
+    @JvmStatic
+    private fun ingredient(name: String): ItemEntry<Item> {
+        return REGISTRATE.item(name, ::Item)
             .register();
     }
 

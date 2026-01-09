@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.content.forces
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
@@ -13,6 +12,7 @@ import org.valkyrienskies.clockwork.util.Vector3icKeyDeserializer
 import org.valkyrienskies.clockwork.util.Vector3icKeySerializer
 import org.valkyrienskies.core.api.ships.*
 import org.valkyrienskies.core.api.world.PhysLevel
+import org.valkyrienskies.mod.common.util.toBlockPos
 import org.valkyrienskies.mod.common.util.toJOML
 import java.util.concurrent.ConcurrentHashMap
 
@@ -30,15 +30,17 @@ class WanderShipControl : ShipPhysicsListener {
     val wanderBlocks: ConcurrentHashMap<Vector3i, Double> = ConcurrentHashMap()
 
     override fun physTick(physShip: PhysShip, physLevel: PhysLevel) {
-        val meanPos: Vector3d = Vector3d()
-        for (blockPos in wanderBlocks.keys) {
-            meanPos.add(Vector3d(blockPos.x.toDouble() + 0.5, blockPos.y.toDouble() + 0.5, blockPos.z.toDouble() + 0.5))
+        val meanPos = Vector3d()
+        for (vector3i in wanderBlocks.keys) {
+            // I don't like adding magic +0.5 numbers, so I'm going to do these conversion shenanigans instead
+            meanPos.add(vector3i.toBlockPos().center.toJOML())
         }
         meanPos.div(wanderBlocks.size.toDouble())
+
         val sumForce: Double = wanderBlocks.values.sum()
         // gravity is positive for whatever reason
         val (_, _, gravity) = physLevel.aerodynamicUtils.getAtmosphereForDimension(physLevel.dimension)
-        val yForce = sumForce * gravity * ClockworkConfig.SERVER.wanderOreForceMultiplier * 1000.0
+        val yForce = sumForce * gravity * ClockworkConfig.SERVER.wanderOreForceMultiplier
         val force = Vector3d(0.0, yForce, 0.0)
 
         if (meanPos.isFinite && !meanPos.length().isNaN() && force.isFinite && !force.length().isNaN()) {
@@ -46,8 +48,8 @@ class WanderShipControl : ShipPhysicsListener {
         }
     }
 
-    fun addBlock(blockPos: BlockPos, force: Double) {
-        wanderBlocks[blockPos.toJOML()] = force
+    fun addBlock(blockPos: BlockPos, weight: Double) {
+        wanderBlocks[blockPos.toJOML()] = weight
     }
 
     fun removeBlock(blockPos: BlockPos) {

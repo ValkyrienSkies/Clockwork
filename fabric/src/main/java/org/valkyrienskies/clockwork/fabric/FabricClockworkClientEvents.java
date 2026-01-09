@@ -19,6 +19,7 @@ import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketRenderer;
 import org.valkyrienskies.clockwork.client.render.debug.KelvinEdgeRenderer;
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautArmorLayer;
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankArmorLayer;
+import org.valkyrienskies.clockwork.util.arc.LightningRenderer;
 
 import static net.createmod.ponder.PonderClient.isGameActive;
 
@@ -57,6 +58,7 @@ public class FabricClockworkClientEvents {
         KelvinEdgeRenderer.render(worldRenderContext.world(), worldRenderContext.matrixStack(), worldRenderContext.camera());
         ClockworkModClient.getWANDERWAND_EFFECT_RENDERER().render(ms, buffer, camera, partialTicks);
         AirpocketRenderer.render(worldRenderContext.world(), worldRenderContext.matrixStack(), worldRenderContext.camera());
+        LightningRenderer.INSTANCE.onRenderLevelStage(ms, partialTicks);
 
         buffer.draw();
         RenderSystem.enableCull();

@@ -22,6 +22,8 @@ object ClockworkConstants {
         val ID: String = "Id"
         val ROT_SPEED: String = "RotSpeed"
         val TRIGGER_HEIGHT: String = "TriggerHeight"
+        val TRIGGER_SENSITIVITY: String = "TriggerSensitivity"
+        val TRIGGER_DIRECTION: String = "TriggerDirection"
         val SHIPTRAPTION_ID: String = "ShiptraptionID"
         val BEARING_ID: String = "BearingID"
         val OPEN: String = "Open"

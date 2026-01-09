@@ -1,9 +1,6 @@
 {
   "variants": {
-    "powered=true": {
-      "model": "vs_clockwork:block/alt_meter/block_powered"
-    },
-    "powered=false": {
+    "": {
       "model": "vs_clockwork:block/alt_meter/block"
     }
   }

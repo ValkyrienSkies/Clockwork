@@ -6,23 +6,17 @@ import dev.architectury.event.events.client.ClientTickEvent
 import dev.architectury.registry.ReloadListenerRegistry
 import net.createmod.catnip.outliner.Outliner
 import net.createmod.ponder.foundation.PonderIndex
-import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRenderEvents
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents
 import net.minecraft.client.renderer.entity.EntityRendererProvider
 import net.minecraft.client.renderer.entity.LivingEntityRenderer
 import net.minecraft.client.Minecraft
-import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.packs.PackType
-import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandEffectRenderer
-import org.valkyrienskies.clockwork.platform.NativePlatform
-import java.io.IOException
 import java.util.*
 import dev.architectury.event.events.common.TickEvent
 import dev.architectury.registry.client.keymappings.KeyMappingRegistry
 import net.minecraft.client.KeyMapping
-import net.minecraft.client.multiplayer.ClientLevel
+import net.minecraft.core.BlockPos
 import net.minecraft.server.packs.resources.ResourceManager
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener
 import net.minecraft.sounds.SoundSource
@@ -32,15 +26,20 @@ import net.minecraft.world.entity.LivingEntity
 import org.joml.Vector3ic
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkRenderer
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.SecondScrollValueRenderer
-import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautGogglesItem
+import org.valkyrienskies.clockwork.content.curiosities.IArcConnector
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautGogglesState
-import org.valkyrienskies.clockwork.content.curiosities.aeronaut.IAeronautEquipment
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.IAeronautEquipment.Companion.wearingAeronautInSlot
-import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankArmorLayer
+import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorRenderer
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotGlobals
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
+import org.valkyrienskies.clockwork.util.arc.LightningManager
+import org.valkyrienskies.clockwork.util.arc.LightningRenderer
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.impl.client.DuctNetworkClient
+import org.valkyrienskies.mod.api.vsApi
+import org.valkyrienskies.mod.common.ValkyrienSkiesMod
+import org.valkyrienskies.mod.common.hooks.VSGameEvents
+import org.valkyrienskies.mod.common.shipObjectWorld
 
 object ClockworkModClient {
 
@@ -57,10 +56,26 @@ object ClockworkModClient {
     val RESOURCE_RELOAD_LISTENER: ResourceManagerReloadListener = ClockworkReloadListener()
 
     @JvmStatic
+    val LIGHTNING_NODES: HashMap<BlockPos, IArcConnector> = HashMap()
+
+    @JvmStatic
+    val METEOR_SHIP_IDS: HashSet<Long> = HashSet()
+
+    var debugNodeCooldown = 0
+
+    @JvmStatic
     val AERONAUT_GOGGLE_KEYBIND: KeyMapping = KeyMapping(
         "key.vs_clockwork.aeronaut_goggles_toggle",
         InputConstants.Type.KEYSYM,
         InputConstants.KEY_G,
+        "category.vs_clockwork.clockwork_keys"
+    )
+
+    @JvmStatic
+    val DEBUG_LIGHTNING_KEYBIND: KeyMapping = KeyMapping(
+        "key.vs_clockwork.debug_lightning_toggle",
+        InputConstants.Type.KEYSYM,
+        InputConstants.KEY_L,
         "category.vs_clockwork.clockwork_keys"
     )
 
@@ -88,9 +103,20 @@ object ClockworkModClient {
             DualLinkRenderer.tick()
             ClockworkSoundScapes.tick()
             SecondScrollValueRenderer.tickSecond()
+            ClockworkModClient.tickDebugLightningNodes(it)
+            val ships = Minecraft.getInstance().level.shipObjectWorld.loadedShips
+            if (ships != null) {
+                ships.forEach { it ->
+                    MeteorRenderer.updateMeteorStateWorld(it, MeteorRenderer.meteorList[it.id] ?: return@forEach)
+                }
+            }
         })
+//        VSGameEvents.postRenderShip.on {
+//            MeteorRenderer.onShipRender(it)
+//        }
 
         KeyMappingRegistry.register(AERONAUT_GOGGLE_KEYBIND)
+        KeyMappingRegistry.register(DEBUG_LIGHTNING_KEYBIND)
         ClientTickEvent.CLIENT_POST.register {
             while (AERONAUT_GOGGLE_KEYBIND.consumeClick()) {
                 val player = Minecraft.getInstance().player
@@ -121,6 +147,12 @@ object ClockworkModClient {
                             AeronautGogglesState.getState(player).gogglesDown = false
                         }
                     }
+                }
+            }
+            while (DEBUG_LIGHTNING_KEYBIND.consumeClick()) {
+                val level = Minecraft.getInstance().level
+                if (level != null) {
+                    LightningRenderer.spawnTestBolt()
                 }
             }
         }
@@ -172,6 +204,60 @@ object ClockworkModClient {
     @JvmStatic
     fun getKelvin(): DuctNetworkClient {
         return KelvinMod.getClientKelvin() as DuctNetworkClient
+    }
+
+    fun tickDebugLightningNodes(mc: Minecraft) {
+        val level = mc.level ?: return
+        if (mc.isPaused) return
+        if (debugNodeCooldown > 0) {
+            debugNodeCooldown--
+            return
+        }
+        val iterator = LIGHTNING_NODES.entries.iterator()
+        val alreadyMadePairs = mutableSetOf<Pair<BlockPos, BlockPos>>()
+        while (iterator.hasNext()) {
+            val entry = iterator.next()
+            val blockPos = entry.key
+            val blockEntity = entry.value
+
+            // If the block entity is no longer valid, remove it from the list
+            if (level.getBlockEntity(blockPos) != blockEntity) {
+                iterator.remove()
+                continue
+            }
+            val worldPosThis = blockEntity.getWorldPos()
+            for (node in LIGHTNING_NODES) {
+                if (!blockEntity.canConnect(node.value)) {
+                    continue
+                }
+                if (!node.value.canConnect(blockEntity)) {
+                    continue
+                }
+                if (alreadyMadePairs.contains(
+                        if (blockPos.hashCode() < node.key.hashCode()) {
+                            Pair(blockPos, node.key)
+                        } else {
+                            Pair(node.key, blockPos)
+                        }
+                    )) {
+                    continue
+                }
+                val otherPos = node.value.getWorldPos()
+                if (worldPosThis.distanceToSqr(otherPos) <= 64.0 && node.key != blockPos) {
+                    LightningManager.spawn(
+                        {blockEntity.getWorldPos()},
+                        {node.value.getWorldPos()},
+                    )
+                    val pair = if (blockPos.hashCode() < node.key.hashCode()) {
+                        Pair(blockPos, node.key)
+                    } else {
+                        Pair(node.key, blockPos)
+                    }
+                    alreadyMadePairs.add(pair)
+                }
+            }
+        }
+        debugNodeCooldown = 3
     }
 
     class ClockworkReloadListener : ResourceManagerReloadListener {

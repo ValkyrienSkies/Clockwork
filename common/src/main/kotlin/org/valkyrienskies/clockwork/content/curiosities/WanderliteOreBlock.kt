@@ -26,7 +26,7 @@ import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft
 
-class WanderliteOreBlock(properties: Properties, override val forceMult: Double = 0.5) : ExperienceBlock(properties), IWanderliteBlock {
+class WanderliteOreBlock(properties: Properties) : ExperienceBlock(properties), IWanderliteBlock {
 
     override fun use(state: BlockState,
                      level: Level,
@@ -66,7 +66,7 @@ class WanderliteOreBlock(properties: Properties, override val forceMult: Double 
         if (level is ServerLevel) {
             val ship = level.getShipObjectManagingPos(pos)
             if (ship != null) {
-                addToShip(ship, pos, forceMult)
+                addToShip(level, ship, pos)
             }
         }
         super.onPlace(state, level, pos, oldState, movedByPiston)

@@ -39,6 +39,8 @@ import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.clockwork.util.builder.ClockworkExpandedCreateRegistrate
 import org.valkyrienskies.clockwork.util.gui.DuctStats
 import org.valkyrienskies.core.api.VsBeta
+import org.valkyrienskies.core.api.world.PhysLevel
+import org.valkyrienskies.core.api.world.properties.DimensionId
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.impl.DuctNetworkServer
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
@@ -49,6 +51,7 @@ import org.valkyrienskies.mod.common.hooks.VSGameEvents
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.vsCore
 import org.valkyrienskies.mod.event.RegistryEvents
+import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.roundToInt
 
 
@@ -93,6 +96,8 @@ object ClockworkMod {
     val PHYSICAL_CREATIVE_TABINFO: ResourceKey<CreativeModeTab> = PHYSICAL_CREATIVE_TAB.key
     val GAS_CREATIVE_TABINFO: ResourceKey<CreativeModeTab> = GAS_CREATIVE_TAB.key
 
+    val physTickOnce = ConcurrentLinkedQueue<Pair<DimensionId, (PhysLevel, Double, () -> Unit) -> Unit>>()
+
     @OptIn(VsBeta::class)
     @JvmStatic
     fun init() {
@@ -131,6 +136,8 @@ object ClockworkMod {
         }
 
         ClockworkWorldgen.register()
+
+        ClockworkDamageTypes.init()
 
         //Register gas types
         ClockworkGasses.init()
@@ -181,6 +188,24 @@ object ClockworkMod {
         }
 
         vsApi.collisionStartEvent.on(CollisionSoundEffectHandler::onCollide)
+
+        vsApi.physTickEvent.on {
+            val temp = mutableListOf<Pair<DimensionId, (PhysLevel, Double, () -> Unit) -> Unit>>()
+            while (physTickOnce.isNotEmpty()) {
+                val (dimension, fn) = physTickOnce.poll() ?: continue
+                if (it.world.dimension != dimension) {
+                    temp.add(dimension to fn)
+                    continue
+                }
+                fn(it.world, it.delta) {temp.add(dimension to fn)}
+            }
+            physTickOnce.addAll(temp)
+        }
+    }
+
+    @JvmStatic
+    fun physTickOnce(dimensionId: String, fn: (level: PhysLevel, delta: Double, tryNextTick: () -> Unit) -> Unit) {
+        physTickOnce.add(dimensionId to fn)
     }
 
     @JvmStatic

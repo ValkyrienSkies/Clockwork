@@ -1,18 +1,25 @@
-## 0.5.4.3
-Final patch for 0.5.4
+## 0.5.4.4
+ACTUALLY final patch for 0.5.4
 
 #### Changes:
-- Rebalanced Balloons (again)
-- Rebalanced Gas Thrusters (again)
-- Rebalanced Gas Engines (again :wilted_rose:)
-- New tooltip info
-- Bearing should work now on Krunch backend maybe
-- New physics ponder stuff
-- Gas Nozzle ACTUALLY IN CREATIVE MENU I SWEAR
+- Rebalanced Balloons (YET again)
+- Adjusted Wanderlite forces
+- Wanderlite crystal items now float
+- Removed Create weights from Clockwork (They're in VS now)
+- Added the SOLVER (WIP, not in creative menu for now)
+- Added new lightning and beam renderer (For next update)
+- Altimeter reworked
+- Phys Bearings can be wrenched again
+- A bunch of other Phys Bearing tweaks
+- CC Tweaked Compat/integration is back
 
 #### Bugfixes:
-- Fix blade cutting recipe
-- Fixed invalid gas thruster and exhaust node size
-- Fixed phys bearings... mostly...
-- Fixed coal burner crashing on schem place
-- Fixed invalid gas flow for balloons causing them to reach -100 degrees celsius (wtf)
+- Fix sawblade mixin
+- Fix blade shapeless crafting
+- Ponder fixes
+- Copter Bearing fixes
+- Balloon leaking fixed
+- Balloon forces fixed
+- Balloons fixed (in general)
+- Gas Nozzle no longer manages to somehow lower balloon temperature (what)
+- Copter accepts redstone input of 0 again
