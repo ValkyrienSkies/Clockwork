@@ -27,7 +27,7 @@ object BlockUpdateCollector {
                     }
                     if (external.contains(pos)) balloon.validate(sLevel) // immediate validate to maybe seal leaks
                 }
-                if (!state.isValidBalloonEnclosure(sLevel, pos)) {
+                if (!state.isValidBalloonEnclosure(sLevel, pos) && (balloon.containsPosition(pos) || external.contains(pos))) {
                     shouldValidate.add(id)
                     balloon.shouldReScan = true
                 }
