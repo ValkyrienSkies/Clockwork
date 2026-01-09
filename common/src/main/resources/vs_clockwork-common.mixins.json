@@ -21,10 +21,11 @@
     "content.gas_engine.MixinSteamEngineBlock",
     "content.gas_engine.MixinSteamEngineBlockEntity",
     "content.steam_generator.MixinBoilerData",
+    "content.sugar_rocket.MixinDispenseItemBehavior",
     "content.sugar_rocket.MixinFireCharge",
     "content.universal_joint.MixinRotationPropagator",
-    "content.wing.MixinAbstractCauldronBlock",
-    "content.wanderlite_crystal.MixinItemEntity"
+    "content.wanderlite_crystal.MixinItemEntity",
+    "content.wing.MixinAbstractCauldronBlock"
   ],
   "client": [
     "MixinLevelRenderer",
