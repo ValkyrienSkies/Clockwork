@@ -97,7 +97,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     var shiptraptionID = NO_SHIPTRAPTION_ID
         private set
     var targetAngle = 0f
-        private set
+        get() = field
+        private set(idk) {field = idk}
     var disassembleWhenPossible = false
         private set
     @Volatile var joint : VSJoint? = null
@@ -309,6 +310,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         open = tag.getBoolean(ClockworkConstants.Nbt.OPEN)
         isRunning = tag.getBoolean(ClockworkConstants.Nbt.RUNNING)
         targetAngle = tag.getFloat(ClockworkConstants.Nbt.ANGLE)
+        lastAngle = targetAngle
+        curAngle = targetAngle
         lastException = AssemblyException.read(tag)
         if (tag.contains(ClockworkConstants.Nbt.SHIPTRAPTION_ID)) {
             shiptraptionID = tag.getLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID)
@@ -467,7 +470,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             this.jointID = id
 
             isRunning = true
-            targetAngle = 0f
             lastStateChanged = ticks
         }
     }
@@ -780,7 +782,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 }
             }
             val newAngle = targetAngle + angularSpeed - diff
-            targetAngle = newAngle
             //this is stupid
             lastAngle = when {
                 newAngle >= 360f * 2 -> lastAngle - 360f * 2
