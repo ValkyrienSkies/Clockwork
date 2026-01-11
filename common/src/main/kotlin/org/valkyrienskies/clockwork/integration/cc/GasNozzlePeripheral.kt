@@ -10,7 +10,10 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlockEntity
 
 class GasNozzlePeripheral(private val be: GasNozzleBlockEntity): IPeripheral {
-    @LuaFunction fun setPointer(value: Double) {be.pointer.chase(value.coerceIn(0.0, 1.0), be.pointerSpeed, LerpedFloat.Chaser.LINEAR)}
+    @LuaFunction fun setPointer(value: Double) {
+        be.pointer.chase(value.coerceIn(0.0, 1.0), 0.3, LerpedFloat.Chaser.LINEAR)
+        be.sendData()
+    }
 
     @LuaFunction fun hasBalloon() = be.hasPocket
 
