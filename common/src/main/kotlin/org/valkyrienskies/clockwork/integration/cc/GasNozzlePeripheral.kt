@@ -21,6 +21,7 @@ class GasNozzlePeripheral(private val be: GasNozzleBlockEntity): IPeripheral {
     @LuaFunction fun getPointerSpeed() = be.pointerSpeed
     @LuaFunction fun getPocketTemperature() = if (be.hasPocket) be.pocketTemperature else 0.0
     @LuaFunction fun getTargetTemperature() = ClockworkMod.getKelvin().getTemperatureAt(be.getDuctNodePosition()) * be.pointer.value
+    @LuaFunction fun getDuctTemperature() = ClockworkMod.getKelvin().getTemperatureAt(be.getDuctNodePosition())
     @LuaFunction fun getBalloonVolume() = be.balloonVolume
     @LuaFunction fun getLeaks() = if (be.hasPocket) be.currentIdealOutput.toInt() else 0
 
