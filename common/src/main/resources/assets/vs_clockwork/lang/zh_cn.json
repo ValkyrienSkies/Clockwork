@@ -476,7 +476,7 @@
   "vs_clockwork.ponder.alt_meter.text_3": "超过该高度时，信号会继续输出",
   "vs_clockwork.ponder.alt_meter.text_4": "你也可以配置灵敏度，即信号开始输出的范围",
   "vs_clockwork.ponder.alt_meter.text_5": "信号强度会随着接近目标高度而增加",
-  "vs_clockwork.ponder.alt_meter.text_6": "方向设置允许你配置高度计输出信号的面",
+  "vs_clockwork.ponder.alt_meter.text_6": "方向设置允许你配置高度计从哪个方向接近目标高度时输出信号",
   "vs_clockwork.ponder.alt_meter.text_7": "可选设置包括：向上、向下与双向",
   "vs_clockwork.ponder.alt_meter.text_8": "向上模式：使高度计从下方接近目标高度时输出信号",
   "vs_clockwork.ponder.alt_meter.text_9": "向下模式：使高度计从上方接近目标高度时输出信号",
