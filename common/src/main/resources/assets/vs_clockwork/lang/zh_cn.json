@@ -136,10 +136,13 @@
   "vs_clockwork.logistics.filter.click_to_set": "手持物品点击以设置。",
 
   "vs_clockwork.contraptions.propeller.rotation_direction": "旋转方向",
+  "vs_clockwork.contraptions.resistor.resist_direction": "阻尼器阻抗方向",
   "contraptions.propeller.controller_wrong_way": "螺旋桨控制器朝向错误",
   "contraptions.propeller.not_prop": "这不是一个螺旋桨",
   "propeller.rotation_direction.normal": "正向",
   "propeller.rotation_direction.inverted": "反向",
+  "resistor.resist_direction.none_to_max": "从小到大",
+  "resistor.resist_direction.max_to_none": "从大到小",
 
   "vs_clockwork.command.get_air_values": "处于 y：%d；密度：%d；温度：%d",
 
