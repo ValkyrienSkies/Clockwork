@@ -104,10 +104,10 @@ object ClockworkModClient {
             ClockworkSoundScapes.tick()
             SecondScrollValueRenderer.tickSecond()
             ClockworkModClient.tickDebugLightningNodes(it)
-            val ships = Minecraft.getInstance().level.shipObjectWorld.loadedShips
+            val ships = Minecraft.getInstance().level.shipObjectWorld?.loadedShips ?: return@Client
             if (ships != null) {
                 ships.forEach { it ->
-                    MeteorRenderer.updateMeteorStateWorld(it, MeteorRenderer.meteorList[it.id] ?: return@forEach)
+                    //MeteorRenderer.updateMeteorStateWorld(it, MeteorRenderer.meteorList[it.id] ?: return@forEach)
                 }
             }
         })
