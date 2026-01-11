@@ -73,7 +73,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     var soundInstance: GasNozzleSoundInstance? = null
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
-
+        tag.putDouble("pointer_value", pointer.value.toDouble())
         tag.putDouble("pointer_target",pointer.chaseTarget.toDouble())
         tag.putDouble("pointer_speed",pointerSpeed)
         tag.putBoolean("has_pocket",hasPocket)
@@ -93,6 +93,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         balloonVolume = tag.getDouble("balloon_volume")
         currentIdealOutput = tag.getInt("leaks").toDouble()
 
+        pointer.startWithValue(tag.getDouble("pointer_value"))
         pointer.chase(target, pointerSpeed, LerpedFloat.Chaser.LINEAR)
     }
 
