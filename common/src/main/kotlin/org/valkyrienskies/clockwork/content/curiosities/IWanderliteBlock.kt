@@ -58,7 +58,7 @@ interface IWanderliteBlock {
             return
         }
 
-        val ship = ShipAssembler.assembleToShip(level, blockList, true)
+        val ship = ShipAssembler.assembleToShip(level, blockList.toSet(), 1.0)
 
         for (pos in blockList) {
             // Our old world-space position is now BlockState{air}

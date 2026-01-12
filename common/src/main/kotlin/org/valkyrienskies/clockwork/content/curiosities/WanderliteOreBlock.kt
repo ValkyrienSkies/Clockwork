@@ -22,7 +22,6 @@ import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.mod.common.*
 import org.valkyrienskies.mod.common.assembly.ShipAssembler
-import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft
 
