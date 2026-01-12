@@ -262,7 +262,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
     }
 
     override fun createNode(pos: DuctNodePos): DuctNode {
-        return  DuctPipeNode(pos = pos, volume = 0.25, maxPressure = 16375049.0, maxTemperature = 1478.0)
+        return  DuctPipeNode(pos = pos, volume = getInternalVolume(), maxPressure = 16375049.0, maxTemperature = 1478.0)
     }
 
     override fun canBeReplaced(state: BlockState, fluid: Fluid): Boolean {
@@ -486,7 +486,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
     }
 
     override fun getInternalVolume(): Double {
-        return 0.25
+        return  ClockworkConfig.SERVER.ductVolme
     }
 
     override fun getAdditionalInfoLines(): List<Component> {

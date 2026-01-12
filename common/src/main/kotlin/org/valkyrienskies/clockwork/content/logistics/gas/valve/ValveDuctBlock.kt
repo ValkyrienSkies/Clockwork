@@ -18,7 +18,11 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPipeNode
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
+import org.valkyrienskies.kelvin.api.DuctNode
+import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.edges.ApertureDuctEdge
 import org.valkyrienskies.kelvin.util.INodeBlock
 
@@ -73,8 +77,12 @@ class ValveDuctBlock(properties: Properties?) : DirectionalAxisKineticBlock(prop
         return ClockworkBlockEntities.VALVE_DUCT.get()
     }
 
+    override fun createNode(pos: DuctNodePos): DuctNode {
+        return  DuctPipeNode(pos = pos, volume = getInternalVolume(), maxPressure = 16375049.0, maxTemperature = 1478.0)
+    }
+
     override fun getInternalVolume(): Double {
-        return 0.0
+        return  ClockworkConfig.SERVER.ductVolme
     }
 
     override fun getMaximumPressure(): Double {

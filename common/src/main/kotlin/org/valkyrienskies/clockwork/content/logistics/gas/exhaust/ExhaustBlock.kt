@@ -19,6 +19,7 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkShapes
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPipeNode
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
@@ -81,7 +82,7 @@ class ExhaustBlock(properties: Properties) : DirectionalBlock(properties), IBE<E
     }
 
     override fun createNode(pos: DuctNodePos): DuctNode {
-        return  DuctPipeNode(pos = pos, volume = 0.25, maxPressure = 16375049.0, maxTemperature = 1478.0)
+        return  DuctPipeNode(pos = pos, volume = ClockworkConfig.SERVER.ductVolme, maxPressure = 16375049.0, maxTemperature = 1478.0)
     }
 
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, movedByPiston: Boolean) {

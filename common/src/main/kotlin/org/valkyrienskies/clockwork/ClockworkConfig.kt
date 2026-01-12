@@ -70,6 +70,9 @@ object ClockworkConfig {
         @ConfigEntry(description = "Enable collision sound effects")
         var collisionSoundEffects = false
 
+        @ConfigEntry(description = "Duct-like volume. The volume used for ducts, valves, exhausts, etc.")
+        var ductVolme = 0.4
+
         @ConfigEntry(description = "Max collision events per tick. Dumps collision event queue if amount is bigger. Default is 100", min = 1.0)
         var collisionSoundEffectMax = 100
 

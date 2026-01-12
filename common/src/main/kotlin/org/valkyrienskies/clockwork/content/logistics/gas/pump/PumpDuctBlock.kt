@@ -21,13 +21,17 @@ import net.minecraft.world.level.material.Fluids
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPipeNode
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.api.DuctEdge
+import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.edges.PumpDuctEdge
+import org.valkyrienskies.kelvin.api.nodes.PipeDuctNode
 import org.valkyrienskies.kelvin.util.IEdgeBlock
 import org.valkyrienskies.kelvin.util.INodeBlock
 import org.valkyrienskies.kelvin.util.INodeBlockEntity
@@ -105,10 +109,13 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
         }
     }
 
+    override fun createNode(pos: DuctNodePos): DuctNode {
+        return  DuctPipeNode(pos = pos, volume = getInternalVolume(), maxPressure = 16375049.0, maxTemperature = 1478.0)
+    }
 
 
     override fun getInternalVolume(): Double {
-        return 0.0
+        return ClockworkConfig.SERVER.ductVolme
     }
 
     override fun getMaximumPressure(): Double {
