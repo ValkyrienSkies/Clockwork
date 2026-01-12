@@ -276,7 +276,7 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             launchForce++
 
             //assembleFromBlockSet(level as ServerLevel, component, false)
-            ShipAssembler.assembleToShip(level!!, component.toList(), true)
+            ShipAssembler.assembleToShip(level as ServerLevel, component, 1.0)
         }
 
 
