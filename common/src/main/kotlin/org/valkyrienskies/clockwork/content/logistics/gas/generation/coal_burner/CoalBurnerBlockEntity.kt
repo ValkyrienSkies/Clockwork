@@ -108,6 +108,9 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
             ItemStack.of(remainingTag as CompoundTag)
         }
 
+        fuelTicks = tag.getInt("FuelTicks")
+        maxBurnTime = tag.getDouble("MaxBurnTime")
+
         super.read(tag, clientPacket)
     }
 
@@ -120,6 +123,8 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
         remainingItemStack.save(remainingTag)
         tag.put("StoredFuelStack", subTag)
         tag.put("RemainingItemStack", remainingTag)
+        tag.putInt("FuelTicks", fuelTicks)
+        tag.putDouble("MaxBurnTime", maxBurnTime)
         super.write(tag, clientPacket)
     }
 
