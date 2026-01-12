@@ -33,7 +33,7 @@ import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.mod.common.assembly.ShipAssembler
-import org.valkyrienskies.mod.common.assembly.createNewShipWithBlocks
+import org.valkyrienskies.mod.common.assembly.ShipAssembler.assembleToShip
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft
 import java.util.function.Consumer
@@ -100,7 +100,7 @@ class CreativeGravitronItem(properties: Properties) : CWItem(properties), Custom
                         if (!it.isAir && !ClockworkConfig.SERVER.blockBlacklist.contains(
                                 BuiltInRegistries.BLOCK.getKey(it.block).toString())) {
 
-                            val connectedShip = createNewShipWithBlocks(blockPos, selection, serverLevel)
+                            val connectedShip = assembleToShip(serverLevel, selection.toSet().map { ic -> BlockPos(ic.x(), ic.y(), ic.z()) }.toSet(), 1.0)
 
                             val caughtEntities = SelectedAreaToolkit.entitiesFromCluster(cluster, serverLevel)
                             toolkit.dumpCluster(cluster)
@@ -157,7 +157,7 @@ class CreativeGravitronItem(properties: Properties) : CWItem(properties), Custom
                         if (component.firstOrNull { pos -> !level.getBlockState(pos).isAir } == null) continue
                         if (component.any { ClockworkConfig.SERVER.blockBlacklist.contains(level.getBlockState(it).block.descriptionId) } ) continue
                         if (component.contains(blockPos)) {
-                            ShipAssembler.assembleToShip(level, component.toList(), true)
+                            ShipAssembler.assembleToShip((level as? ServerLevel) ?: continue, component, 1.0)
                             level.playSound(
                                 null,
                                 blockPos,
