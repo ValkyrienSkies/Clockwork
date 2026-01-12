@@ -14,10 +14,10 @@
     "kelvin:min_pressure": 1000,
     "kelvin:max_temperature": 2300
   },
-  "energy": 120940,
+  "energy": 60000,
   "result_gasses": {
     "vs_clockwork:steam": {
-      "amount": 0.003,
+      "amount": 0.04,
       "unit": "kg"
     }
   }
