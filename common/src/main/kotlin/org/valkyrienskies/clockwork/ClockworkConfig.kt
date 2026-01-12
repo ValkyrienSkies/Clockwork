@@ -79,7 +79,7 @@ object ClockworkConfig {
         @ConfigEntry(description = "Force multiplier for balloons. Realism is 1.0, default is 1000.0. Range: > 0.0", min = 0.0)
         var balloonForceMult: Double = 50.0
 
-        @ConfigEntry(description = "Speed multiplier for the gas nozzle pointer, default is 0.5 Range: > 0.0", min = 0.0)
+        @ConfigEntry(description = "Speed multiplier for the gas nozzle pointer, default is 0.5. Range: > 0.0", min = 0.0)
         var gasNozzleSensitivity = 0.5
 
         @ConfigEntry(description = "Sets the gas retention efficiency of the balloon material; lower values simulate airtight rubber/synthetic, while higher values represent porous fabrics. Default 0.001.", min = 0.0, max = 1.0)
