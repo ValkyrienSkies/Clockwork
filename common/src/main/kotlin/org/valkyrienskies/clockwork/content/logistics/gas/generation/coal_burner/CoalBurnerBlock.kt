@@ -26,9 +26,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
-import org.valkyrienskies.core.impl.shadow.It
 import org.valkyrienskies.kelvin.util.INodeBlock
-import java.util.*
 
 
 class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(properties), INodeBlock, IBE<CoalBurnerBlockEntity>, IHaveDuctStats {

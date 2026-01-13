@@ -16,7 +16,6 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
-import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.math.min
 
