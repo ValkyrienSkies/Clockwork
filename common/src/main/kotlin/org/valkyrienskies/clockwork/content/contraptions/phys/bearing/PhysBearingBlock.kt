@@ -43,10 +43,11 @@ class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<P
     ): CompoundTag? {
         val tag = tag ?: return null
 
+        if (!tag.contains(ClockworkConstants.Nbt.SHIPTRAPTION_ID)) return tag
+        val oldShiptraptionCenter = tag.getVector3d(ClockworkConstants.Nbt.NEW_SHIPTRAPTION_CENTER) ?: return tag
         val oldId = tag.getLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID)
         tag.putLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID, oldShipIdToNewId[oldId] ?: -1)
         val (oldCenter, newCenter) = centerPositions[oldId] ?: (Vector3d() to Vector3d())
-        val oldShiptraptionCenter = tag.getVector3d(ClockworkConstants.Nbt.NEW_SHIPTRAPTION_CENTER)!!
         tag.putVector3d(ClockworkConstants.Nbt.NEW_SHIPTRAPTION_CENTER, oldShiptraptionCenter.sub(oldCenter).add(newCenter))
         return tag
     }
