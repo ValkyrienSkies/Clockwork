@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package org.valkyrienskies.clockwork.integration.cc
 
 import dan200.computercraft.api.lua.LuaException
