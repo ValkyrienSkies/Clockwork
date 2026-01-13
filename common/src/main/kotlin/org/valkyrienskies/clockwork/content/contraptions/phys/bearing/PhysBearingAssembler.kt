@@ -40,7 +40,7 @@ object PhysBearingAssembler {
 
     @JvmStatic
     fun moveBlocksFromTo(level: ServerLevel, blocks: DenseBlockPosSet, removeOriginal: Boolean, originCenter: BlockPos, toCenter: BlockPos): Boolean {
-        val blocks = blocks.filter { !(level.getBlockState(it.toBlockPos()).inAssemblyBlacklist()) }.map {it.toBlockPos()}
+        val blocks = blocks.filter { level.getBlockState(it.toBlockPos()).let{!it.isAir && !it.inAssemblyBlacklist()} }.map {it.toBlockPos()}
         for (itPos in blocks) {
             val relative: BlockPos = itPos.subtract(BlockPos(originCenter.x, originCenter.y, originCenter.z))
             val shipPos: BlockPos = toCenter.offset(relative)
