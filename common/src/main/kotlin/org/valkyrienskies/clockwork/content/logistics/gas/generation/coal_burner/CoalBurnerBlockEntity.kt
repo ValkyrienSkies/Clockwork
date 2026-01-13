@@ -64,8 +64,8 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
                     } else if (remainingItemStack.item.equals(remaining) && remainingItemStack.count + 1 <= remaining!!.maxStackSize) {
                         remainingItemStack.grow(1)
                     } else {
-                        val dropped = ItemEntity(level, blockPos.x.toDouble(),
-                            (blockPos.y + 1).toDouble(), blockPos.z.toDouble(), ItemStack(remaining))
+                        val dropped = ItemEntity(level, blockPos.x.toDouble() + 0.5,
+                            (blockPos.y + 1).toDouble(), blockPos.z.toDouble() + 0.5, ItemStack(remaining))
                         dropped.setDefaultPickUpDelay()
                         dropped.setDeltaMovement(0.0, 0.25, 0.0)
                         level!!.addFreshEntity(dropped)
