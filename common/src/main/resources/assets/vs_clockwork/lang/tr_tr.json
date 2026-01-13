@@ -414,12 +414,13 @@
   "vs_clockwork.unit.mass.ounce": "oz",
 
   "vs_clockwork.gui.ductInfo.title": "Boru Bilgisi:",
-  "vs_clockwork.gui.ductInfo.volume": "Hacim",
-  "vs_clockwork.gui.ductInfo.temperature": "Isı",
-  "vs_clockwork.gui.ductInfo.pressure": "Basınç",
-  "vs_clockwork.gui.ductInfo.energy": "Termal Enerji",
+  "vs_clockwork.gui.ductInfo.volume": "Hacim: %s",
+  "vs_clockwork.gui.ductInfo.temperature": "Isı: %s",
+  "vs_clockwork.gui.ductInfo.pressure": "Basınç: %s",
+  "vs_clockwork.gui.ductInfo.energy": "Termal Enerji: %s",
+  "vs_clockwork.gui.ductInfo.out_of": " / %s",
   "vs_clockwork.gui.ductInfo.title.contents": "Boru İçindekiler:",
-  "vs_clockwork.gui.ductInfo.mass_total": "Toplam ",
+  "vs_clockwork.gui.ductInfo.mass_total": "Toplam %s",
 
   "vs_clockwork.ponder.wanderwand.header": "Wander Asa",
   "vs_clockwork.ponder.wanderwand.text_1": "Asayı Fizik İnfüzörünün içine koyun",
