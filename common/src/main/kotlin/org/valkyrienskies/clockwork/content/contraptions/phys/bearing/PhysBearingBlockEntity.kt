@@ -92,7 +92,7 @@ fun getHingeRotation(localDir: Vector3dc, right: Vector3dc = Vector3d(1.0, 0.0, 
 
 class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) :
     GeneratingKineticBlockEntity(type, pos, state), IBearingBlockEntity, IDisplayAssemblyExceptions,
-    ContraptionController, BlockEntityPhysicsListener, ICopyableBlock {
+    ContraptionController, BlockEntityPhysicsListener {
 
     var assembleNextTick = false
     var movementMode: ScrollOptionBehaviour<LockedMode>? = null
@@ -361,25 +361,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val level = level as? ServerLevel ?: return
         loadingFn!!(level)
         loadingFn = null
-    }
-
-    override fun onCopy(level: ServerLevel, pos: BlockPos, state: BlockState, be: BlockEntity?, shipsBeingCopied: List<ServerShip>, centerPositions: Map<Long, Vector3d>): CompoundTag? = null
-    override fun onPaste(
-        level: ServerLevel,
-        pos: BlockPos,
-        state: BlockState,
-        oldShipIdToNewId: Map<Long, Long>,
-        centerPositions: Map<Long, Pair<Vector3d, Vector3d>>,
-        tag: CompoundTag?
-    ): CompoundTag? {
-        val tag = tag ?: return null
-
-        val oldId = tag.getLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID)
-        tag.putLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID, oldShipIdToNewId[oldId] ?: -1)
-        val (oldCenter, newCenter) = centerPositions[oldId] ?: (Vector3d() to Vector3d())
-        val oldShiptraptionCenter = tag.getVector3d(ClockworkConstants.Nbt.NEW_SHIPTRAPTION_CENTER)!!
-        tag.putVector3d(ClockworkConstants.Nbt.NEW_SHIPTRAPTION_CENTER, oldShiptraptionCenter.sub(oldCenter).add(newCenter))
-        return tag
     }
 
     override fun getInterpolatedAngle(partialTicks: Float): Float {
