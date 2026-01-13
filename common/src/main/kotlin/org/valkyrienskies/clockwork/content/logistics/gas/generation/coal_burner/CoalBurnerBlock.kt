@@ -27,7 +27,6 @@ import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.util.INodeBlock
-import java.util.*
 
 
 class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(properties), INodeBlock, IBE<CoalBurnerBlockEntity>, IHaveDuctStats {
@@ -52,10 +51,14 @@ class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(prope
 
         if (player.isShiftKeyDown) return InteractionResult.PASS
 
-
-        if (item == ItemStack.EMPTY && !be.storedFuelStack.isEmpty) {
-            player.setItemInHand(hand, be.storedFuelStack)
-            be.storedFuelStack = ItemStack.EMPTY
+        if (item == ItemStack.EMPTY) {
+            if (!be.remainingItemStack.isEmpty) {
+                player.setItemInHand(hand, be.remainingItemStack)
+                be.remainingItemStack = ItemStack.EMPTY
+            } else if (!be.storedFuelStack.isEmpty) {
+                player.setItemInHand(hand, be.storedFuelStack)
+                be.storedFuelStack = ItemStack.EMPTY
+            }
             return InteractionResult.SUCCESS
         }
         if (FuelRegistry.get(item)>0 && !player.isShiftKeyDown) {
