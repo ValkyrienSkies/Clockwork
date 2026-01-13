@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.forge;
 
 import com.simibubi.create.AllParticleTypes;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.server.packs.resources.ResourceProvider;
 import net.minecraftforge.api.distmarker.Dist;
@@ -12,14 +13,13 @@ import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import org.valkyrienskies.clockwork.ClockworkMod;
-import org.valkyrienskies.clockwork.ClockworkModClient;
-import org.valkyrienskies.clockwork.ClockworkPartials;
-import org.valkyrienskies.clockwork.ClockworkShaders;
+import org.valkyrienskies.clockwork.*;
 import org.valkyrienskies.clockwork.forge.content.curiosities.tools.aeronaut.ForgeAeronautArmorLayer;
 import org.valkyrienskies.clockwork.forge.content.curiosities.tools.gravitron.ForgeGravitronHandler;
 import org.valkyrienskies.clockwork.forge.content.curiosities.tools.wanderwand.ForgeWanderwandHandler;
 import org.valkyrienskies.clockwork.forge.content.logistics.gas.backtank.ForgeGasBacktankArmorLayer;
+import org.valkyrienskies.mod.common.hooks.VSGameEvents;
+import org.valkyrienskies.mod.event.RegistryEvents;
 
 import java.io.IOException;
 
@@ -35,8 +35,8 @@ public class ClockworkModForgeClient {
         ClockworkModClient.initClient();
         ClockworkShaders.INSTANCE.init();
         modEventBus.addListener(AllParticleTypes::registerFactories);
-
         //ClientReloadShadersEvent.EVENT.register(ClockworkModForgeClient::onShaderReload);
+        RegistryEvents.onRegistriesComplete(ClockworkModForgeClient::afterRegistries);
     }
 
     @SubscribeEvent
@@ -45,6 +45,11 @@ public class ClockworkModForgeClient {
                 .getEntityRenderDispatcher();
         ForgeGasBacktankArmorLayer.registerOnAll(dispatcher);
         ForgeAeronautArmorLayer.registerOnAll(dispatcher);
+    }
+
+    public static void afterRegistries() {
+        //ItemBlockRenderTypes.setRenderLayer(ClockworkBlocks.DEBUG_REENTRY_BLOCK.get(),
+        //        ClockworkRenderTypes.Companion.getREENTRY_FINAL());
     }
 
     @SubscribeEvent

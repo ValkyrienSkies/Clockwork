@@ -46,6 +46,7 @@ import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterBlock
 import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorTestBlock
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlock
 import org.valkyrienskies.clockwork.content.curiosities.debug.DebugLightningArcerBlock
+import org.valkyrienskies.clockwork.content.curiosities.meteor.DebugReentryBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.distance.DistanceSensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.impact.ImpactSensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.GyroscopicSensorBlock
@@ -1087,6 +1088,20 @@ object ClockworkBlocks {
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
             //.tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .build()
+            .register()
+
+    @JvmField
+    val DEBUG_REENTRY_BLOCK: BlockEntry<DebugReentryBlock> =
+        REGISTRATE.block<DebugReentryBlock>("debug_reentry_block") { properties: BlockBehaviour.Properties? ->
+            DebugReentryBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.stone() }
+            .transform(axeOrPickaxe())
+            .addLayer { Supplier { RenderType.solid() } }
+            .addLayer { Supplier { ClockworkRenderTypes.REENTRY_FINAL } }
+            .properties { it.noOcclusion() }
+            .item()
             .build()
             .register()
 

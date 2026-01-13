@@ -41,6 +41,8 @@ public class ClockworkModFabricClient implements ClientModInitializer {
         registerClientEvents();
         FabricClockworkClientEvents.register();
         ClockworkShaders.INSTANCE.init();
+
+        //BlockRenderLayerMap.INSTANCE.putBlock(ClockworkBlocks.DEBUG_REENTRY_BLOCK.get(), ClockworkRenderTypes.Companion.getREENTRY_FINAL());
         //ClientReloadShadersEvent.EVENT.register(ClockworkModClient::onShaderReload);
         //RegisterShadersCallback.EVENT.register(this::registerShaders);
 

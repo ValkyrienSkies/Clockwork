@@ -1,0 +1,4 @@
+{
+  "vertex": "vs_clockwork:rendertype/reentry/main",
+  "fragment": "vs_clockwork:rendertype/reentry/main"
+}

@@ -1,0 +1,23 @@
+{
+  "vertex": "vs_clockwork:rendertype/reentry/effect",
+  "geometry": "vs_clockwork:rendertype/reentry/effect",
+  "fragment": "vs_clockwork:rendertype/reentry/effect",
+  "textures": {
+    "NoiseSampler": "vs_clockwork:textures/noise/animated_noise.png"
+  },
+  "uniforms": [
+    { "name": "Direction", "type": "float", "count": 3, "values": [0.0, 1.0, 0.0] },
+    { "name": "Velocity",  "type": "float", "count": 1, "values": [0.0] },
+    { "name": "Length",    "type": "float", "count": 1, "values": [1.0] },
+    { "name": "Strength",  "type": "float", "count": 1, "values": [1.0] },
+    { "name": "Increment", "type": "float", "count": 1, "values": [0.0] },
+    { "name": "TaperSize", "type": "float", "count": 1, "values": [1.0] },
+
+    { "name": "TrailColor",    "type": "float", "count": 4, "values": [1.0, 1.0, 1.0, 1.0] },
+    { "name": "TrailColorHot", "type": "float", "count": 4, "values": [1.0, 1.0, 1.0, 1.0] },
+    { "name": "BowShockColor", "type": "float", "count": 4, "values": [1.0, 1.0, 1.0, 1.0] },
+
+    { "name": "BowShockOffset",          "type": "float", "count": 1, "values": [0.0] },
+    { "name": "BowShockColorLerpOffset", "type": "float", "count": 1, "values": [0.0] }
+  ]
+}

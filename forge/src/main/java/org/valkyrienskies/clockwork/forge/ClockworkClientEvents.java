@@ -55,6 +55,7 @@ public class ClockworkClientEvents {
 
         ClockworkModClient.getWANDERWAND_EFFECT_RENDERER().render(ms, DefaultSuperRenderTypeBuffer.getInstance(), camera, partialTicks);
         LightningRenderer.INSTANCE.onRenderLevelStage(ms, partialTicks);
+        MeteorRenderer.INSTANCE.tick();
 
         buffer.draw();
         RenderSystem.enableCull();

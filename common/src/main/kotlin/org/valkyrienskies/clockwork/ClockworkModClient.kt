@@ -104,6 +104,7 @@ object ClockworkModClient {
             ClockworkSoundScapes.tick()
             SecondScrollValueRenderer.tickSecond()
             ClockworkModClient.tickDebugLightningNodes(it)
+            if (Minecraft.getInstance().level == null || Minecraft.getInstance().level.shipObjectWorld == null) return@Client
             val ships = Minecraft.getInstance().level.shipObjectWorld?.loadedShips ?: return@Client
             if (ships != null) {
                 ships.forEach { it ->

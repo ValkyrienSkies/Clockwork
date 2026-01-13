@@ -18,6 +18,7 @@ import org.valkyrienskies.clockwork.ClockworkModClient;
 import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketRenderer;
 import org.valkyrienskies.clockwork.client.render.debug.KelvinEdgeRenderer;
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautArmorLayer;
+import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorRenderer;
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankArmorLayer;
 import org.valkyrienskies.clockwork.util.arc.LightningRenderer;
 
@@ -59,6 +60,7 @@ public class FabricClockworkClientEvents {
         ClockworkModClient.getWANDERWAND_EFFECT_RENDERER().render(ms, buffer, camera, partialTicks);
         AirpocketRenderer.render(worldRenderContext.world(), worldRenderContext.matrixStack(), worldRenderContext.camera());
         LightningRenderer.INSTANCE.onRenderLevelStage(ms, partialTicks);
+        MeteorRenderer.INSTANCE.tick();
 
         buffer.draw();
         RenderSystem.enableCull();

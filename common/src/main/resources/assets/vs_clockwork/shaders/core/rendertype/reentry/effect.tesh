@@ -1,0 +1,67 @@
+#version 150
+layout (triangles, equal_spacing, cw) in;
+
+in float VertexDistance[];
+in vec4 VertexColor[];
+in vec2 TexCoord0[];
+in TES_INPUT {
+//    vec3 worldPosition;
+    vec3 normal;
+    vec2 noiseTexCoord0;
+    vec2 noiseTexCoord1;
+} tes_in[];
+
+out float vertexDistance;
+out vec4 vertexColor;
+out vec2 texCoord0;
+out GS_INPUT {
+//    vec3 worldPosition;
+    vec3 normal;
+    vec2 noiseTexCoord0;
+    vec2 noiseTexCoord1;
+} gs_in;
+
+//vec2 biLerp(vec2 uv0, vec2 uv1, vec2 uv2, vec2 uv3, float u, float v) {
+//    vec2 uv4 = uv0 + u * (uv1 - uv0);
+//    vec2 uv5 = uv2 + u * (uv3 - uv2);
+//    return uv4 + v * (uv5 - uv4);
+//}
+//
+//vec3 biLerp(vec3 uv0, vec3 uv1, vec3 uv2, vec3 uv3, float u, float v) {
+//    vec3 uv4 = uv0 + u * (uv1 - uv0);
+//    vec3 uv5 = uv2 + u * (uv3 - uv2);
+//    return uv4 + v * (uv5 - uv4);
+//}
+//
+//vec4 biLerp(vec4 uv0, vec4 uv1, vec4 uv2, vec4 uv3, float u, float v) {
+//    vec4 uv4 = uv0 + u * (uv1 - uv0);
+//    vec4 uv5 = uv2 + u * (uv3 - uv2);
+//    return uv4 + v * (uv5 - uv4);
+//}
+
+void main() {
+    float u = gl_TessCoord.x;
+    float v = gl_TessCoord.y;
+    float w = gl_TessCoord.z;
+
+//    gs_in.worldPosition = biLerp(tes_in[0].worldPosition, tes_in[1].worldPosition, tes_in[2].worldPosition, tes_in[3].worldPosition, u, v);
+//    gs_in.normal = biLerp(tes_in[0].normal, tes_in[1].normal, tes_in[2].normal, tes_in[3].normal, u, v);
+//    gs_in.noiseTexCoord0 = biLerp(tes_in[0].noiseTexCoord0, tes_in[1].noiseTexCoord0, tes_in[2].noiseTexCoord0, tes_in[3].noiseTexCoord0, u, v);
+//    gs_in.noiseTexCoord1 = biLerp(tes_in[0].noiseTexCoord1, tes_in[1].noiseTexCoord1, tes_in[2].noiseTexCoord1, tes_in[3].noiseTexCoord1, u, v);
+//    gl_Position = biLerp(gl_in[0].gl_Position, gl_in[1].gl_Position, gl_in[2].gl_Position, gl_in[3].gl_Position, u, v);
+
+//    vertexDistance = u * VertexDistance[0] + v * VertexDistance[1] + w * VertexDistance[2];
+//    vertexColor = u * VertexColor[0] + v * VertexColor[1] + w * VertexColor[2];
+//    texCoord0 = u * TexCoord0[0] + v * TexCoord0[1] + w * TexCoord0[2];
+
+    vertexDistance = 0.0;
+    vertexColor = vec4(0.0);
+    texCoord0 = vec2(0.0);
+
+//    gs_in.worldPosition = u * tes_in[0].worldPosition + v * tes_in[1].worldPosition + w * tes_in[2].worldPosition;
+    gs_in.normal = u * tes_in[0].normal + v * tes_in[1].normal + w * tes_in[2].normal;
+    gs_in.noiseTexCoord0 = u * tes_in[0].noiseTexCoord0 + v * tes_in[1].noiseTexCoord0 + w * tes_in[2].noiseTexCoord0;
+    gs_in.noiseTexCoord1 = u * tes_in[0].noiseTexCoord1 + v * tes_in[1].noiseTexCoord1 + w * tes_in[2].noiseTexCoord1;
+    gl_Position = u * gl_in[0].gl_Position + v * gl_in[1].gl_Position + w * gl_in[2].gl_Position;
+
+}

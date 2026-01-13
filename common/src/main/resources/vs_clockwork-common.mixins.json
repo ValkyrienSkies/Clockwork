@@ -30,9 +30,12 @@
   "client": [
     "MixinLevelRenderer",
     "MixinLocalPlayer",
+    "accessors.RenderStateShardAccessor",
+    "accessors.RenderTypeAccessor",
     "client.MixinCamera",
     "client.MixinFogRenderer",
     "client.MixinItemInHandRenderer",
+    "client.MixinRenderType",
     "content.gravitron.MinecraftAccessor",
     "content.gravitron.MixinLocalPlayer"
   ],
