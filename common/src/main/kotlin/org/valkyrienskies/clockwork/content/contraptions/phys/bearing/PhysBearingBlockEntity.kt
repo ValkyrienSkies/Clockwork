@@ -21,6 +21,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
 import net.minecraft.world.level.ClipContext
+import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.*
@@ -58,6 +59,7 @@ import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3d
 import org.valkyrienskies.mod.api.BlockEntityPhysicsListener
 import org.valkyrienskies.mod.api.dimensionId
 import org.valkyrienskies.mod.common.*
+import org.valkyrienskies.mod.common.assembly.ICopyableBlock
 import org.valkyrienskies.mod.common.assembly.ShipAssembler.assembleToShip
 import org.valkyrienskies.mod.common.assembly.VSAssemblyEvents
 import org.valkyrienskies.mod.common.util.SplittingDisablerAttachment
@@ -90,7 +92,7 @@ fun getHingeRotation(localDir: Vector3dc, right: Vector3dc = Vector3d(1.0, 0.0, 
 
 class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) :
     GeneratingKineticBlockEntity(type, pos, state), IBearingBlockEntity, IDisplayAssemblyExceptions,
-    ContraptionController, BlockEntityPhysicsListener {
+    ContraptionController, BlockEntityPhysicsListener, ICopyableBlock {
 
     var assembleNextTick = false
     var movementMode: ScrollOptionBehaviour<LockedMode>? = null
@@ -359,6 +361,25 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val level = level as? ServerLevel ?: return
         loadingFn!!(level)
         loadingFn = null
+    }
+
+    override fun onCopy(level: ServerLevel, pos: BlockPos, state: BlockState, be: BlockEntity?, shipsBeingCopied: List<ServerShip>, centerPositions: Map<Long, Vector3d>): CompoundTag? = null
+    override fun onPaste(
+        level: ServerLevel,
+        pos: BlockPos,
+        state: BlockState,
+        oldShipIdToNewId: Map<Long, Long>,
+        centerPositions: Map<Long, Pair<Vector3d, Vector3d>>,
+        tag: CompoundTag?
+    ): CompoundTag? {
+        val tag = tag ?: return null
+
+        val oldId = tag.getLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID)
+        tag.putLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID, oldShipIdToNewId[oldId] ?: -1)
+        val (oldCenter, newCenter) = centerPositions[oldId] ?: (Vector3d() to Vector3d())
+        val oldShiptraptionCenter = tag.getVector3d(ClockworkConstants.Nbt.NEW_SHIPTRAPTION_CENTER)!!
+        tag.putVector3d(ClockworkConstants.Nbt.NEW_SHIPTRAPTION_CENTER, oldShiptraptionCenter.sub(oldCenter).add(newCenter))
+        return tag
     }
 
     override fun getInterpolatedAngle(partialTicks: Float): Float {
@@ -642,7 +663,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val subCouldSplit = subShip.getAttachment<SplittingDisablerAttachment>()?.let { if (it.canSplit()) { it.disableSplitting(); true } else {false} } ?: false
         val mainCouldSplit = mainShip?.getAttachment<SplittingDisablerAttachment>()?.let { if (it.canSplit()) { it.disableSplitting(); true } else {false} } ?: false
 
-        val hasMoved = PhysBearingAssembler.moveBlocksFromTo(level, blocks, true, inSubship, inMain)
+        val hasMoved = PhysBearingAssembler.moveBlocksFromTo(level, blocks, true, inSubship, inMain, subShip, mainShip)
 
         if (subCouldSplit) { subShip.getAttachment<SplittingDisablerAttachment>()?.enableSplitting() }
         if (mainCouldSplit) { mainShip?.getAttachment<SplittingDisablerAttachment>()?.enableSplitting() }
