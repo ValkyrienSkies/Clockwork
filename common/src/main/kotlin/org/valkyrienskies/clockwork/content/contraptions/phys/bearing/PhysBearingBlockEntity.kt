@@ -306,10 +306,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
-        if (wasMoved) {
-            super.read(tag, clientPacket)
-            return
-        }
         val angleBefore = targetAngle
         open = tag.getBoolean(ClockworkConstants.Nbt.OPEN)
         isRunning = tag.getBoolean(ClockworkConstants.Nbt.RUNNING)
