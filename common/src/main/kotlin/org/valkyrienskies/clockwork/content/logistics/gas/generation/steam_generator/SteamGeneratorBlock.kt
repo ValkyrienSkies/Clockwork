@@ -28,7 +28,11 @@ import org.valkyrienskies.kelvin.util.INodeBlock
 
 class SteamGeneratorBlock(properties: Properties) : FaceAttachedHorizontalDirectionalBlock(properties), IBE<SteamGeneratorBlockEntity>, IDuct, IHaveDuctStats {
 
-    init { registerDefaultState(defaultBlockState().setValue(FACE, AttachFace.FLOOR).setValue(FACING, Direction.NORTH)) }
+    init {
+        registerDefaultState(defaultBlockState()
+            .setValue(FACE, AttachFace.FLOOR)
+            .setValue(FACING, Direction.NORTH))
+    }
 
     override fun createBlockStateDefinition(pBuilder: StateDefinition.Builder<Block?, BlockState?>) {
         super.createBlockStateDefinition(pBuilder.add(FACE, FACING))
@@ -38,14 +42,11 @@ class SteamGeneratorBlock(properties: Properties) : FaceAttachedHorizontalDirect
         return canBlockAttach(pLevel, pPos, getConnectedDirection(pState).getOpposite())
     }
 
-
-
     override fun onPlace(pState: BlockState, pLevel: Level, pPos: BlockPos, pOldState: BlockState, pIsMoving: Boolean) {
+        println(pState)
         FluidTankBlock.updateBoilerState(pState, pLevel, pPos.relative(SteamEngineBlock.getFacing(pState).opposite))
         nodePlace(pState, pLevel, pPos, pOldState, pIsMoving)
     }
-
-
 
     override fun onRemove(pState: BlockState, pLevel: Level, pPos: BlockPos, pNewState: BlockState, pIsMoving: Boolean) {
         nodeRemove(pState, pLevel, pPos, pNewState, pIsMoving)
@@ -86,8 +87,7 @@ class SteamGeneratorBlock(properties: Properties) : FaceAttachedHorizontalDirect
 
         @JvmStatic
         fun canBlockAttach(reader: LevelReader, pos: BlockPos, direction: Direction): Boolean {
-            val blockpos = pos.relative(direction)
-            return reader.getBlockState(blockpos).block is FluidTankBlock
+            return reader.getBlockState(pos.relative(direction)).block is FluidTankBlock
         }
     }
 }

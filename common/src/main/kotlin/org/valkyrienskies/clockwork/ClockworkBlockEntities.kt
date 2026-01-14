@@ -54,6 +54,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBloc
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctRenderer
+import org.valkyrienskies.clockwork.content.logistics.gas.duct_bearing.DuctBearingBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.engine.GasEngineBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.exhaust.ExhaustBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlockEntity
@@ -517,6 +518,17 @@ object ClockworkBlockEntities {
             )
         }
         .validBlocks(ClockworkBlocks.COAL_BURNER)
+        .register()
+
+    val DUCT_BEARING: BlockEntityEntry<DuctBearingBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity("duct_bearing") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            DuctBearingBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .validBlocks(ClockworkBlocks.DUCT_BEARING)
         .register()
 
     @JvmField
