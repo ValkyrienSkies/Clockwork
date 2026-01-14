@@ -496,5 +496,9 @@
   "vs_clockwork.ponder.alt_meter.text_8": "ВВЕРХ заставит высотомер испускать сигнал при приближении к целевой высоте снизу",
   "vs_clockwork.ponder.alt_meter.text_9": "ВНИЗ заставит высотомер испускать сигнал при приближении к целевой высоте сверху",
   "vs_clockwork.ponder.alt_meter.text_10": "ОБА заставит высотомер испускать сигнал при приближении к целевой высоте как и сверху, так и снизу",
-  "vs_clockwork.ponder.alt_meter.text_11": "На целевой высоте сигнал достигнет максимальной силы, равной 15"
+  "vs_clockwork.ponder.alt_meter.text_11": "На целевой высоте сигнал достигнет максимальной силы, равной 15",
+  "alt_meter.trigger_height": "Высота",
+  "resistor.resist_direction.max_to_none": "От максимума к нулю",
+  "resistor.resist_direction.none_to_max": "От нуля до максимума",
+  "vs_clockwork.contraptions.resistor.resist_direction": "Направление работы резистора"
 }
