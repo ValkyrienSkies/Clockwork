@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.util
 
 import org.joml.primitives.AABBi
 import org.joml.primitives.AABBic
+import org.valkyrienskies.core.api.world.connectivity.SparseVoxelPosition
 
 object AABBHelper {
 
@@ -221,5 +222,12 @@ object AABBHelper {
             if (!covered) kept.add(b)
         }
         return kept
+    }
+
+    fun SparseVoxelPosition.toAABBic(): AABBi {
+        return AABBi(
+            x, y, z,
+            x + extent.toInt(), y + extent.toInt(), z + extent.toInt()
+        )
     }
 }
