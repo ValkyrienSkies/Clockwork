@@ -22,6 +22,7 @@ import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.joml.Vector3d
+import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.util.ClockworkConstants
@@ -32,13 +33,13 @@ import org.valkyrienskies.mod.util.putVector3d
 import java.util.function.Consumer
 
 class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<PhysBearingBlockEntity>, ICopyableBlock {
-    override fun onCopy(level: ServerLevel, pos: BlockPos, state: BlockState, be: BlockEntity?, shipsBeingCopied: List<ServerShip>, centerPositions: Map<Long, Vector3d>): CompoundTag? = null
+    override fun onCopy(level: ServerLevel, pos: BlockPos, state: BlockState, be: BlockEntity?, shipsBeingCopied: List<ServerShip>, centerPositions: Map<Long, Vector3dc>): CompoundTag? = null
     override fun onPaste(
         level: ServerLevel,
         pos: BlockPos,
         state: BlockState,
         oldShipIdToNewId: Map<Long, Long>,
-        centerPositions: Map<Long, Pair<Vector3d, Vector3d>>,
+        centerPositions: Map<Long, Pair<Vector3dc, Vector3dc>>,
         tag: CompoundTag?
     ): CompoundTag? {
         val tag = tag ?: return null
