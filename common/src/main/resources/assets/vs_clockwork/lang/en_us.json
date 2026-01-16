@@ -456,6 +456,7 @@
   "vs_clockwork.gui.ductInfo.title": "Duct Info:",
   "vs_clockwork.gui.ductInfo.volume": "Volume: %s",
   "vs_clockwork.gui.ductInfo.temperature": "Temperature: %s",
+  "vs_clockwork.gui.ductInfo.wallTemperature": "Wall Temperature: %s",
   "vs_clockwork.gui.ductInfo.pressure": "Pressure: %s",
   "vs_clockwork.gui.ductInfo.energy": "Thermal Energy: %s",
   "vs_clockwork.gui.ductInfo.out_of": " / %s",

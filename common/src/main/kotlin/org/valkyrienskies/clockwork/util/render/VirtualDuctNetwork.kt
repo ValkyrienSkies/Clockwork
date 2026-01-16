@@ -73,6 +73,10 @@ class VirtualDuctNetwork(
         TODO("Not yet implemented")
     }
 
+    override fun getWallTemperatureAt(node: DuctNodePos): Double {
+        TODO("Not yet implemented")
+    }
+
     override fun markChunkLoaded(pos: KelvinChunkPos) {
         TODO("Not yet implemented")
     }
