@@ -16,7 +16,6 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
-import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.math.min
 
@@ -27,6 +26,7 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
     var maxBurnTime: Double = 0.0
 
     var storedFuelStack: ItemStack = ItemStack.EMPTY
+    var remainingItemStack: ItemStack = ItemStack.EMPTY
 
     override fun tick() {
         super.tick()
@@ -56,6 +56,20 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
                 val burnTime = FuelRegistry.get(storedFuelStack)
                 fuelTicks += burnTime
                 maxBurnTime = burnTime.toDouble()
+                if (storedFuelStack.item.hasCraftingRemainingItem()) {
+                    val remaining = storedFuelStack.item.craftingRemainingItem
+                    if (remainingItemStack.isEmpty) {
+                        remainingItemStack = ItemStack(remaining)
+                    } else if (remainingItemStack.item.equals(remaining) && remainingItemStack.count + 1 <= remaining!!.maxStackSize) {
+                        remainingItemStack.grow(1)
+                    } else {
+                        val dropped = ItemEntity(level, blockPos.x.toDouble() + 0.5,
+                            (blockPos.y + 1).toDouble(), blockPos.z.toDouble() + 0.5, ItemStack(remaining))
+                        dropped.setDefaultPickUpDelay()
+                        dropped.setDeltaMovement(0.0, 0.25, 0.0)
+                        level!!.addFreshEntity(dropped)
+                    }
+                }
                 storedFuelStack.count -= 1
                 sendData()
             }
@@ -80,12 +94,21 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
         // I suspect it's create clearing NBT on schematic pasted blocks
         // to prevent things like signs with command-click events
         val subTag: Tag? = tag.get("StoredFuelStack")
-
         storedFuelStack = if (subTag == null) {
             ItemStack.EMPTY
         } else {
             ItemStack.of(subTag as CompoundTag)
         }
+
+        val remainingTag: Tag? = tag.get("RemainingItemStack")
+        remainingItemStack = if (remainingTag == null) {
+            ItemStack.EMPTY
+        } else {
+            ItemStack.of(remainingTag as CompoundTag)
+        }
+
+        fuelTicks = tag.getInt("FuelTicks")
+        maxBurnTime = tag.getDouble("MaxBurnTime")
 
         super.read(tag, clientPacket)
     }
@@ -95,7 +118,12 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
         // So that it doesn't load the burner block as the item
         val subTag = CompoundTag()
         storedFuelStack.save(subTag)
+        val remainingTag = CompoundTag()
+        remainingItemStack.save(remainingTag)
         tag.put("StoredFuelStack", subTag)
+        tag.put("RemainingItemStack", remainingTag)
+        tag.putInt("FuelTicks", fuelTicks)
+        tag.putDouble("MaxBurnTime", maxBurnTime)
         super.write(tag, clientPacket)
     }
 
@@ -104,19 +132,29 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 
         val ie = ItemEntity(level!!, vec3d.x, vec3d.y, vec3d.z, storedFuelStack)
         level!!.addFreshEntity(ie)
+        val ie2 = ItemEntity(level!!, vec3d.x, vec3d.y, vec3d.z, remainingItemStack)
+        level!!.addFreshEntity(ie2)
         super.destroy()
     }
 
     override fun clearContent() {
         storedFuelStack = ItemStack.EMPTY
+        remainingItemStack = ItemStack.EMPTY
     }
 
     override fun addToGoggleTooltip(tooltip: List<Component>?, isPlayerSneaking: Boolean): Boolean {
-        if (!storedFuelStack.isEmpty) {
+        if (!storedFuelStack.isEmpty || !remainingItemStack.isEmpty) {
             (tooltip as MutableList).add(Component.literal("    Coal burner Info").withStyle(ChatFormatting.GRAY))
-            tooltip.add(Component.literal("Fuel: ").withStyle(ChatFormatting.GOLD)
-                .append(storedFuelStack.displayName)
-                .append((Component.literal("x ${storedFuelStack.count}")).withStyle(ChatFormatting.GOLD)))
+            if (!storedFuelStack.isEmpty) {
+                tooltip.add(Component.literal("Fuel: ").withStyle(ChatFormatting.GOLD)
+                    .append(storedFuelStack.displayName)
+                    .append((Component.literal("x ${storedFuelStack.count}")).withStyle(ChatFormatting.GOLD)))
+            }
+            if (!remainingItemStack.isEmpty) {
+                tooltip.add(Component.literal("Remaining: ").withStyle(ChatFormatting.GOLD)
+                    .append(remainingItemStack.displayName)
+                    .append((Component.literal("x ${remainingItemStack.count}")).withStyle(ChatFormatting.GOLD)))
+            }
         }
 
         return super.addToGoggleTooltip(tooltip, isPlayerSneaking)

@@ -21,6 +21,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
 import net.minecraft.world.level.ClipContext
+import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.*
@@ -53,13 +54,14 @@ import org.valkyrienskies.core.impl.bodies.properties.BodyTransformFactory
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
 import org.valkyrienskies.core.internal.world.VsiPhysLevel
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
-import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3d
 import org.valkyrienskies.mod.api.BlockEntityPhysicsListener
 import org.valkyrienskies.mod.api.dimensionId
 import org.valkyrienskies.mod.common.*
+import org.valkyrienskies.mod.common.assembly.ICopyableBlock
 import org.valkyrienskies.mod.common.assembly.ShipAssembler.assembleToShip
+import org.valkyrienskies.mod.common.assembly.VSAssemblyEvents
 import org.valkyrienskies.mod.common.util.SplittingDisablerAttachment
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toJOMLD
@@ -304,10 +306,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
-        if (wasMoved) {
-            super.read(tag, clientPacket)
-            return
-        }
         val angleBefore = targetAngle
         open = tag.getBoolean(ClockworkConstants.Nbt.OPEN)
         isRunning = tag.getBoolean(ClockworkConstants.Nbt.RUNNING)
@@ -519,17 +517,23 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             }
             if (selection == null) return
 
-            //todo: move to using new assembly from VLib
-            //val (shiptraption, previousCenterBP, newCenter, _) = PhysBearingAssembler.assembleToShip(level, selection, true, 1.0, true)
-            //val previousCenter = Vector3d(previousCenterBP)
+            var centerPositions: Pair<Vector3d, Vector3d> = Pair(Vector3d(), Vector3d())
+
+            //TODO this is dumb, but i forgot to make assembly return center positions, oh well
+            val event = VSAssemblyEvents.onPasteBeforeBlocksAreLoaded.on {
+                centerPositions = it.centerPosition.first.get(Vector3d()) to it.centerPosition.second.get(Vector3d())
+            }
             val shiptraption = assembleToShip(
                 level,
                 selection.toSet().map { it.toMinecraft() }.toSet(), //accursed, unholy, abominable
                 1.0
             )
+            event.unregister()
+
+            val newPos = Vector3d(worldPos).sub(centerPositions.first).add(centerPositions.second)
 
             shiptraptionID = shiptraption.id
-            Triple(Vector3d(worldPos), shiptraption, direction)
+            Triple(newPos, shiptraption, direction)
         } else {
             shiptraptionID = otherShip.id
             Triple(otherPos.blockPos.toVector3d() + 0.5 - direction.normal.toJOMLD(), otherShip, otherPos.direction)
@@ -622,7 +626,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (!canDisassemble(bearingAxis, subShip, mainShip)) { return }
         val direction = originalDirection ?: blockState.getValue(BearingBlock.FACING)
         val inMain = worldPosition.relative(direction, 1)
-        val inSubship = bearingPos.add(bearingAxis, Vector3d())
+        val inSubship = bearingPos.add(bearingAxis, Vector3d()).let { BlockPos.containing(it.x, it.y, it.z) }
 
         //todo this is stupid
         val aabb = subShip.shipAABB!!
@@ -636,7 +640,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val subCouldSplit = subShip.getAttachment<SplittingDisablerAttachment>()?.let { if (it.canSplit()) { it.disableSplitting(); true } else {false} } ?: false
         val mainCouldSplit = mainShip?.getAttachment<SplittingDisablerAttachment>()?.let { if (it.canSplit()) { it.disableSplitting(); true } else {false} } ?: false
 
-        val hasMoved = PhysBearingAssembler.moveBlocksFromTo(level, blocks, true, inSubship.toDuctNodePos().toMinecraft(), inMain)
+        val hasMoved = PhysBearingAssembler.moveBlocksFromTo(level, blocks, true, inSubship, inMain, subShip, mainShip)
 
         if (subCouldSplit) { subShip.getAttachment<SplittingDisablerAttachment>()?.enableSplitting() }
         if (mainCouldSplit) { mainShip?.getAttachment<SplittingDisablerAttachment>()?.enableSplitting() }

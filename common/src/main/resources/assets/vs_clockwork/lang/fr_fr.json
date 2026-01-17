@@ -414,12 +414,12 @@
   "vs_clockwork.unit.mass.ounce": "oz",
 
   "vs_clockwork.gui.ductInfo.title": "Infos du conduit:",
-  "vs_clockwork.gui.ductInfo.volume": "Volume",
-  "vs_clockwork.gui.ductInfo.temperature": "Température",
-  "vs_clockwork.gui.ductInfo.pressure": "Pression",
-  "vs_clockwork.gui.ductInfo.energy": "Énergie thermique",
+  "vs_clockwork.gui.ductInfo.volume": "Volume : %s",
+  "vs_clockwork.gui.ductInfo.temperature": "Température : %s",
+  "vs_clockwork.gui.ductInfo.pressure": "Pression : %s",
+  "vs_clockwork.gui.ductInfo.energy": "Énergie thermique : %s",
   "vs_clockwork.gui.ductInfo.title.contents": "Contenus du conduit:",
-  "vs_clockwork.gui.ductInfo.mass_total": "Total ",
+  "vs_clockwork.gui.ductInfo.mass_total": "Total %s",
 
   "vs_clockwork.ponder.wanderwand.header": "Sceptrerrant",
   "vs_clockwork.ponder.wanderwand.text_1": "Place le sceptre dans le Physicateur",

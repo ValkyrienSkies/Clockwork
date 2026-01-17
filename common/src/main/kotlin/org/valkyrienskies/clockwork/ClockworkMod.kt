@@ -1,10 +1,7 @@
 package org.valkyrienskies.clockwork
 
-import com.mojang.blaze3d.platform.InputConstants
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.logging.LogUtils
-import com.simibubi.create.AllBlocks
-import com.simibubi.create.content.decoration.encasing.EncasingRegistry
 import com.simibubi.create.foundation.data.CreateRegistrate
 import com.simibubi.create.foundation.item.ItemDescription
 import com.simibubi.create.foundation.item.TooltipModifier
@@ -12,29 +9,26 @@ import dev.architectury.event.events.common.CommandRegistrationEvent
 import dev.architectury.event.events.common.InteractionEvent
 import dev.architectury.event.events.common.LifecycleEvent
 import dev.architectury.event.events.common.TickEvent
+import dev.architectury.platform.Platform
 import dev.architectury.registry.CreativeTabRegistry
 import dev.architectury.registry.registries.DeferredRegister
 import dev.architectury.registry.registries.RegistrySupplier
 import net.createmod.catnip.lang.FontHelper
-import net.minecraft.client.KeyMapping
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.core.registries.Registries
 import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.OutgoingChatMessage
 import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
 import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.crafting.RecipeSerializer
-import net.minecraft.world.item.crafting.RecipeType
 import org.slf4j.LoggerFactory
 import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketRenderer
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkHandler
-import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.CraftingTableBladeRecipe
 import org.valkyrienskies.clockwork.content.events.CollisionSoundEffectHandler
 import org.valkyrienskies.clockwork.content.forces.*
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroShipControl
+import org.valkyrienskies.clockwork.integration.cc.GenericPeripheralsCommon
 import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.clockwork.util.builder.ClockworkExpandedCreateRegistrate
 import org.valkyrienskies.clockwork.util.gui.DuctStats
@@ -46,11 +40,8 @@ import org.valkyrienskies.kelvin.impl.DuctNetworkServer
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.mod.api.dimensionId
 import org.valkyrienskies.mod.api.vsApi
-import org.valkyrienskies.mod.common.ValkyrienSkiesMod
-import org.valkyrienskies.mod.common.hooks.VSGameEvents
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.vsCore
-import org.valkyrienskies.mod.event.RegistryEvents
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.roundToInt
 
@@ -154,7 +145,6 @@ object ClockworkMod {
             ClockworkAugmentations.registerSumAugmentation("sealed", it.shipObjectWorld)
         }
 
-
         TickEvent.SERVER_LEVEL_POST.register {
             for (ship in it.shipObjectWorld.loadedShips) {
                 //TODO: UNCOMMENT WHEN POCKET FORCES IS FIXED
@@ -200,6 +190,10 @@ object ClockworkMod {
                 fn(it.world, it.delta) {temp.add(dimension to fn)}
             }
             physTickOnce.addAll(temp)
+        }
+
+        if (Platform.isModLoaded("computercraft")) {
+            GenericPeripheralsCommon.register()
         }
     }
 
