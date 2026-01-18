@@ -25,6 +25,6 @@ class GasNozzlePeripheral(private val be: GasNozzleBlockEntity): IPeripheral {
     @LuaFunction fun getBalloonVolume() = be.balloonVolume
     @LuaFunction fun getLeaks() = if (be.hasPocket) be.currentIdealOutput.toInt() else 0
 
-    override fun equals(p0: IPeripheral?): Boolean = be.level?.getBlockState(be.blockPos)?.`is`(ClockworkBlocks.GAS_NOZZLE.get()) == true
+    override fun equals(p0: IPeripheral?): Boolean = be.blockPos == (p0 as? GasNozzlePeripheral)?.be?.blockPos
     override fun getType(): String = "cw_gas_nozzle"
 }
