@@ -43,10 +43,13 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
 
     override fun inventoryTick(stack: ItemStack, level: Level, entity: Entity, slotId: Int, isSelected: Boolean) {
         if (!level.isClientSide && entity is ServerPlayer) {
-            if (!stack.orCreateTag.getBoolean("hasLoaded")) {
-                stack.tag!!.putBoolean("hasLoaded", true)
-                if (stack.tag!!.contains("selectedBlocks")) {
-                    sendTo(WanderwandRenderUpdatePacket(BlockPos.ZERO, ToolType.SELECT, blocks = stack.tag!!.get("selectedBlocks") as CompoundTag), entity as ServerPlayer)
+            val tag = stack.orCreateTag
+            if (!isSelected) {
+                tag.putBoolean("hasLoaded", false)
+            } else if (!tag.getBoolean("hasLoaded")) {
+                tag.putBoolean("hasLoaded", true)
+                if (tag.contains("selectedBlocks")) {
+                    sendTo(WanderwandRenderUpdatePacket(BlockPos.ZERO, ToolType.SELECT, blocks = tag.get("selectedBlocks") as CompoundTag), entity)
                 }
             }
         }
