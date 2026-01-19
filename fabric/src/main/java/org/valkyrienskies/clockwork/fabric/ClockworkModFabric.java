@@ -43,6 +43,7 @@ public class ClockworkModFabric implements ModInitializer {
         ClockworkParticles.init();
         ClockworkBlocks.register();
         ClockworkItems.register();
+        ClockworkDisplaySources.register();
 
         ClockworkBlockEntities.register();
 

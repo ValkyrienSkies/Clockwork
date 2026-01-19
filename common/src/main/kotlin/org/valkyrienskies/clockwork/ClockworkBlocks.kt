@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork
 
+import com.simibubi.create.api.behaviour.display.DisplaySource.displaySource
+
 import com.simibubi.create.AllBlocks
 import com.simibubi.create.AllSpriteShifts
 import com.simibubi.create.AllTags
@@ -559,6 +561,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .properties { it.noOcclusion() }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .transform(displaySource(ClockworkDisplaySources.GAS_NOZZLE))
             .item()
             .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
             .model(AssetLookup.customBlockItemModel("gas_nozzle"))

@@ -54,6 +54,7 @@ public class ClockworkModForge {
         ClockworkBlocks.register();
         ClockworkItems.register();
         ClockworkBlockEntities.register();
+        ClockworkDisplaySources.register();
 
         modEventBus.addListener(this::onRegister);
 
