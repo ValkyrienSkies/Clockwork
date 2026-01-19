@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap
 import com.simibubi.create.content.contraptions.ControlledContraptionEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
+import com.simibubi.create.infrastructure.config.AllConfigs
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.level.block.entity.BlockEntityType
@@ -57,7 +58,7 @@ class SmartFlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, stat
     }
 
     override fun getMaxSize(): Int {
-        return ClockworkConfig.SERVER.smartFlapBearingMaxSize
+        return AllConfigs.server().kinetics.maxBlocksMoved.get()
     }
 
 }
