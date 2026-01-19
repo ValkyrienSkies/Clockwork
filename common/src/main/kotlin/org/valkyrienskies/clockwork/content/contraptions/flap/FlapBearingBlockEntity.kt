@@ -19,12 +19,13 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
+import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.contraptions.flap.contraption.FlapContraption
 import org.valkyrienskies.core.impl.shadow.re
 
-open class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState, val maxSize: Long = ClockworkConfig.SERVER.flapBearingMaxSize.toLong()) :
+open class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
     KineticBlockEntity(type, pos, state), IBearingBlockEntity, IDisplayAssemblyExceptions {
 
     var isRunning = false
@@ -136,8 +137,8 @@ open class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, stat
 
         if (contraption == null) return
         if (contraption.blocks.isEmpty()) return
-        if (contraption.blocks.size > maxSize && maxSize != -1L) {
-            lastException = AssemblyException("structureTooLarge", maxSize)
+        if (contraption.blocks.size > getMaxSize() && getMaxSize() != -1) {
+            lastException = AssemblyException("structureTooLarge", getMaxSize())
             return sendData()
         }
         val anchor = worldPosition.relative(direction)
@@ -239,5 +240,9 @@ open class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, stat
 
     override fun getLastAssemblyException(): AssemblyException? {
         return lastException
+    }
+
+    open fun getMaxSize(): Int {
+        return ClockworkConfig.SERVER.flapBearingMaxSize
     }
 }

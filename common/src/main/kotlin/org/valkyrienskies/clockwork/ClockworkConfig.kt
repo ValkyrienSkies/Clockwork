@@ -172,7 +172,10 @@ object ClockworkConfig {
         @ConfigEntry(description = "The density mult of wanderlite ore in meteors", min = 0.0)
         val meteor_density = 0.0
 
-        @ConfigEntry(description = "Maximum size of an assembled flap bearing", min = 0.0, max = Int.MAX_VALUE.toDouble())
+        @ConfigEntry(description = "Maximum amount of blocks a flap bearing can assemble", min = 0.0, max = Int.MAX_VALUE.toDouble())
         var flapBearingMaxSize = 16
+
+        @ConfigEntry(description = "Maximum amount of blocks a smart flap bearing can assemble", min = 0.0, max = Int.MAX_VALUE.toDouble())
+        var smartFlapBearingMaxSize = 24
     }
 }
