@@ -39,6 +39,10 @@ class FlapBearingPeripheral(private val be: FlapBearingBlockEntity): IPeripheral
             throw LuaException("Flap bearing is not assembled")
         }
 
+        if ((angle < -22.5) || (angle > 22.5)) {
+            throw LuaException("Angle must be within range -22.5..22.5")
+        }
+
         if (setLocked.isPresent) {
             be.isLocked = setLocked.get()
         } else {

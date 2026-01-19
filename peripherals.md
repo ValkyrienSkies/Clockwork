@@ -360,7 +360,7 @@ Whether the flap bearing is currently locked, and will only respond to computer 
 ---
 
 ```lua
-setLocked(bool)
+setLocked(locked: bool)
 ```
 
 Set the flap bearing to `locked` true/false. If true, the flap bearing will only respond to computer angle input.
