@@ -9,8 +9,13 @@ Documentation on the lua peripherals and their functions implemented as CC: Twea
 Available on most blocks that have an internal inventory of gas 
 (some exceptions apply, which are gas-storing blocks with their own custom peripheral)
 
-When you see `gas` as a type parameter in the following documentation, 
-it represents a table in the following format:
+---
+
+```lua
+getGasDetails(gasName: string) -> table
+```
+
+Returns a table representing the gas properties, in the following format: 
 
 ```lua
 {
@@ -24,12 +29,7 @@ it represents a table in the following format:
 }
 ```
 
----
-
-```lua
-getGasDetails(gasName: string) -> gas
-```
-Throws if the gasName (resource location) is not found in the gas registry
+Throws if the `gasName` (resource location) is not found in the gas registry
 
 ---
 
@@ -69,7 +69,7 @@ Returns the temperature of the node, in Kelvin
 pushGas(toName: string, gasName: string, amount: number | nil)
 ```
 
-Pushed gas of type `gasName` from this node to the node with the peripheral name `toName`. 
+Push the gas of type `gasName` from this node to the node with the peripheral name `toName`. 
 If `amount` is not specified, it will move the entire amount of `gasName` in the node.
 
 Throws if:
@@ -93,7 +93,7 @@ The same as `pushGas`, documented above, except the gas is being moved from the 
 pushTemperature(toName: string, amount: number | nil)
 ```
 
-Pushes `amount` of Kelvin from this node to the node peripheral named `toName`. 
+Push `amount` of Kelvin from this node to the node peripheral named `toName`. 
 If amount is not specific, it will transfer all heat from this node into `toName`.
 
 Throws if:
