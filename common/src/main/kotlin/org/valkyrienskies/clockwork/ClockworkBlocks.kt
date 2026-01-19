@@ -196,6 +196,7 @@ object ClockworkBlocks {
         }
             .transform(axeOrPickaxe())
             .transform(ClockworkStress.setImpact(4.0))
+            .transform(displaySource(ClockworkDisplaySources.FLAP_BEARING))
             .addLayer { Supplier { RenderType.cutout() } }
             .properties { it.noOcclusion() }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
@@ -212,6 +213,7 @@ object ClockworkBlocks {
             .transform(axeOrPickaxe())
             //.transform(flapbearing())
             .transform(ClockworkStress.setImpact(4.0))
+            .transform(displaySource(ClockworkDisplaySources.FLAP_BEARING))
             .addLayer { Supplier { RenderType.cutout() } }
             .properties { it.noOcclusion() }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
