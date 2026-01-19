@@ -5,18 +5,23 @@ import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.CommonComponents
 import net.minecraft.network.chat.Component
+import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkConfig;
 import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.util.AerodynamicUtils
 import org.valkyrienskies.clockwork.util.KNodeKineticBlockEntity
 import org.valkyrienskies.clockwork.util.gui.ClockworkTooltipHelper
 import org.valkyrienskies.clockwork.util.gui.DuctTextUtil
+import org.valkyrienskies.core.api.util.AerodynamicUtils
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.mod.api.dimensionId
+import org.valkyrienskies.mod.api.shipWorld
+import org.valkyrienskies.mod.common.ValkyrienSkiesMod
+import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.toWorldCoordinates
+import org.valkyrienskies.mod.common.vsCore
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -42,12 +47,12 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
 
     fun getAirDensity(): Double {
         val position = level.toWorldCoordinates(blockPos)
-        return AerodynamicUtils.getAirDensityForY(position.y, level!!.dimensionId)
+        return vsCore.dummyShipWorldServer.aerodynamicUtils.getAirDensityForY(position.y, level!!.dimensionId)
     }
 
     fun getAirTemperature(): Double {
         val position = level.toWorldCoordinates(blockPos)
-        return AerodynamicUtils.getAirTemperatureForY(position.y, level!!.dimensionId)
+        return vsCore.dummyShipWorldServer.aerodynamicUtils.getAirTemperatureForY(position.y, level!!.dimensionId)
     }
 
     override fun tick() {

@@ -144,8 +144,6 @@
   "resistor.resist_direction.none_to_max": "None To Max",
   "resistor.resist_direction.max_to_none": "Max To None",
 
-  "vs_clockwork.command.get_air_values": "At y: %d density: %d temperature: %d",
-
   "vs_clockwork.subtitle.gravitron_start": "Gravitron Booting Up",
   "vs_clockwork.subtitle.gravitron_grab": "Gravitron Grabbing Ship",
   "vs_clockwork.subtitle.gravitron_release": "Gravitron Releasing Ship",

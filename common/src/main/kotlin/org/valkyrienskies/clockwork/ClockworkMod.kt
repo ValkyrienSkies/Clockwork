@@ -162,21 +162,6 @@ object ClockworkMod {
             DualLinkHandler.handler(player, hand, pos, face)
         })
 
-        CommandRegistrationEvent.EVENT.register { dispatcher, context, idk ->
-            dispatcher.register(LiteralArgumentBuilder.literal<CommandSourceStack>("get-air-values").executes {
-                val level = it.source.level!!
-                val player = it.source.player!!
-
-                val density = level.shipObjectWorld.aerodynamicUtils.getAirTemperatureForY(player.position().y(),level.dimensionId)
-                val temperature = level.shipObjectWorld.aerodynamicUtils.getAirTemperatureForY(player.position().y(),level.dimensionId)
-
-                player.sendSystemMessage(Component.translatable("$MOD_ID.command.get_air_values", player.position().y.roundToInt(), density.roundToInt(), temperature.roundToInt()))
-
-                0
-            })
-
-        }
-
         vsApi.collisionStartEvent.on(CollisionSoundEffectHandler::onCollide)
 
         vsApi.physTickEvent.on {

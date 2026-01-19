@@ -18,7 +18,6 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.RegisterEvent;
 import org.valkyrienskies.clockwork.*;
-import org.valkyrienskies.clockwork.util.AtmosphereParametersResolver;
 
 import static net.minecraftforge.common.MinecraftForge.EVENT_BUS;
 import static org.valkyrienskies.clockwork.ClockworkMod.MOD_ID;
@@ -104,7 +103,7 @@ public class ClockworkModForge {
     }
 
     private void registerResourceManagers(AddReloadListenerEvent event) {
-        event.addListener(AtmosphereParametersResolver.INSTANCE);
+
     }
 
     private void onTabModify(BuildCreativeModeTabContentsEvent event) {

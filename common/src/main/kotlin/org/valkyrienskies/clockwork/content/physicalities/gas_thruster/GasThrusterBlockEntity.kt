@@ -11,9 +11,10 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkSoundScapes
-import org.valkyrienskies.clockwork.util.AerodynamicUtils
+import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.clockwork.util.KNodeBlockEntity
 import org.valkyrienskies.core.api.ships.PhysShip
+import org.valkyrienskies.core.api.util.AerodynamicUtils
 import org.valkyrienskies.core.api.util.PhysTickOnly
 import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.api.world.properties.DimensionId
@@ -23,8 +24,9 @@ import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.api.BlockEntityPhysicsListener
-import org.valkyrienskies.mod.common.dimensionId
+import org.valkyrienskies.mod.api.dimensionId
 import org.valkyrienskies.mod.common.util.toJOMLD
+import org.valkyrienskies.mod.common.vsCore
 import kotlin.math.*
 import kotlin.random.Random
 
@@ -126,7 +128,7 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
 
         if (gasMasses.values.sum() == 0.0) return clearMassFlow()
 
-        val airPressure = AerodynamicUtils.getAirPressureForY(blockPos.y.toDouble(), level!!.dimensionId)
+        val airPressure = vsCore.dummyShipWorldServer.aerodynamicUtils.getAirPressureForY(blockPos.y.toDouble(), level!!.dimensionId)
         val gasPressure = kelvin.getPressureAt(ductnodepos)
         val temp = kelvin.getTemperatureAt(ductnodepos)
         val avgSpecificHeat = kelvin.mixtureCapacity(kelvin.getGasMassAt(ductnodepos))
@@ -140,11 +142,11 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
             velocity += edge.currentFlowRate
         }
 
-        val maxFlowRate = (AerodynamicUtils.DUCT_AREA * gasPressure / sqrt(temp)) * sqrt(avgSpecificHeat/AerodynamicUtils.UNIVERSAL_GAS_CONSTANT) * ((avgSpecificHeat+1)/2).pow(-(avgSpecificHeat+1)/(2*(avgSpecificHeat-1)))
+        val maxFlowRate = (ClockworkConstants.Misc.DUCT_AREA * gasPressure / sqrt(temp)) * sqrt(avgSpecificHeat/ AerodynamicUtils.UNIVERSAL_GAS_CONSTANT) * ((avgSpecificHeat+1)/2).pow(-(avgSpecificHeat+1)/(2*(avgSpecificHeat-1)))
         val flowRate = min(maxFlowRate, velocity)
 
         for (gas in gasMasses) {
-            velocity += flowRate/(gas.key.density*AerodynamicUtils.DUCT_AREA)
+            velocity += flowRate/(gas.key.density*ClockworkConstants.Misc.DUCT_AREA)
 
             val gasMassLoss = max(flowRate*0.05, gas.value)
 

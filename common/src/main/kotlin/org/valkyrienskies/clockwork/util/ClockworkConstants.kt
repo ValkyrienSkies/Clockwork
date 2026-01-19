@@ -54,4 +54,9 @@ object ClockworkConstants {
         val SEQUENCED_ANGLE_LIMIT: String = "SequencedAngleLimit"
         val SEQUENCED_ANGLE_PROGRESS: String = "SequencedAngleProgress"
     }
+
+    object Misc {
+        const val DUCT_RADIUS = 0.1875
+        const val DUCT_AREA = 0.11045
+    }
 }
