@@ -45,7 +45,7 @@ Will contain every gas name, even if the node does not contain that gas.
 getHeatEnergy() -> number
 ```
 
-Returns the total heat energy in the node, in __
+Returns the total heat energy in the node, in Joules
 
 ---
 
@@ -53,7 +53,7 @@ Returns the total heat energy in the node, in __
 getPressure() -> number
 ```
 
-Returns the pressure of the node, in __
+Returns the pressure of the node, in Pascals
 
 ---
 
