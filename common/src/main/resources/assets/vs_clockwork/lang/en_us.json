@@ -462,7 +462,7 @@
   "vs_clockwork.gui.ductInfo.title.contents": "Duct Contents:",
   "vs_clockwork.gui.ductInfo.mass_total": "Total %s",
 
-  "vs_clockwork.display_source.gas_nozzle.temp":  "Temperature in K",
+  "vs_clockwork.display_source.gas_nozzle.temp":  "Temperature in Kelvin",
   "vs_clockwork.display_source.gas_nozzle.leaks":  "Amount of Leaks",
   "vs_clockwork.display_source.gas_nozzle.volume":  "Balloon Volume in m³",
 
