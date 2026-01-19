@@ -41,6 +41,11 @@ open class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, stat
     private var lastPower: Int = 0
     private var currentPower: Int = 0
 
+    /**
+     * Only used by the CC peripheral so that it can set the angle manually
+     * without it resetting / being meddled with by redstone
+     */
+    var isLocked = false
 
     val angularSpeed: Double
         get() {
@@ -64,6 +69,9 @@ open class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, stat
             assemble()
         }
 
+        // Don't update from redstone if we're locked
+        if (isLocked) return
+
         lastPower = currentPower
         currentPower = getPower()
 
@@ -80,6 +88,7 @@ open class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, stat
         bearingAngle.setValue(tag.getFloat("BearingAngle").toDouble())
         bearingAngle.chase(tag.getFloat("TargetAngle").toDouble(), tag.getDouble("AngularSpeed"), chaser)
         isRunning = tag.getBoolean("IsRunning")
+        isLocked = tag.getBoolean("IsLocked")
 
         lastException = AssemblyException.read(tag)
 
@@ -91,6 +100,7 @@ open class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, stat
         tag.putFloat("TargetAngle",bearingAngle.chaseTarget)
         tag.putBoolean("IsRunning",isRunning)
         tag.putDouble("AngularSpeed",angularSpeed)
+        tag.putBoolean("IsLocked", isLocked)
 
         AssemblyException.write(tag,lastAssemblyException)
     }

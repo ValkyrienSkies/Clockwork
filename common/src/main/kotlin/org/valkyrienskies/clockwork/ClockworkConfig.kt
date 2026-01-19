@@ -177,5 +177,8 @@ object ClockworkConfig {
 
         @ConfigEntry(description = "Maximum amount of blocks a smart flap bearing can assemble", min = 0.0, max = Int.MAX_VALUE.toDouble())
         var smartFlapBearingMaxSize = 24
+
+        @ConfigEntry(description = "Whether the (smart) flap bearing peripheral can use setAngle without rotational power")
+        var cheatFlapBearingPeripheral = false
     }
 }
