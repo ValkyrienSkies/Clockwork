@@ -477,6 +477,11 @@
   "vs_clockwork.display_source.phys_bearing.current": "Current angle",
   "vs_clockwork.display_source.phys_bearing.mode": "Movement mode",
 
+  "vs_clockwork.display_source.duct.masses": "Mass summary",
+  "vs_clockwork.display_source.duct.energy": "Thermal energy",
+  "vs_clockwork.display_source.duct.pressure": "Pressure",
+  "vs_clockwork.display_source.duct.temperature": "Temperature",
+
   "vs_clockwork.ponder.wanderwand.header": "Wanderwand",
   "vs_clockwork.ponder.wanderwand.text_1": "Place the wand in the Physics Infuser",
   "vs_clockwork.ponder.wanderwand.text_2": "Or use the Gravitron",

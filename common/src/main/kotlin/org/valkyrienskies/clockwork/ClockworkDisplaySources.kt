@@ -6,6 +6,7 @@ import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingDisplay
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingDisplaySource
 import org.valkyrienskies.clockwork.content.contraptions.propeller.copter.CopterBearingDisplaySource
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterDisplaySource
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.KNodeDisplaySource
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleDisplaySource
 
 object ClockworkDisplaySources {
@@ -28,6 +29,10 @@ object ClockworkDisplaySources {
     @JvmField
     val PHYS_BEARING: RegistryEntry<PhysBearingDisplaySource> =
         REGISTRATE.displaySource("phys_bearing", ::PhysBearingDisplaySource).register()
+
+    @JvmField
+    val KNODE: RegistryEntry<KNodeDisplaySource> =
+        REGISTRATE.displaySource("duct", ::KNodeDisplaySource).register()
 
     @JvmStatic
     fun register() {

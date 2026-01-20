@@ -445,6 +445,7 @@ object ClockworkBlocks {
         .item()
         .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
         .transform(customItemModel())
+        .transform(displaySource(ClockworkDisplaySources.KNODE))
         .register()
 
     @JvmField
@@ -457,6 +458,7 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .addLayer { Supplier { RenderType.cutout() } }
+        .transform(displaySource(ClockworkDisplaySources.KNODE))
         .properties { it.noOcclusion() }
         .item()
         .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
@@ -477,6 +479,7 @@ object ClockworkBlocks {
         .initialProperties { SharedProperties.netheriteMetal() }
         .addLayer { Supplier { RenderType.cutout() } }
         .properties { it.noOcclusion() }
+        .transform(displaySource(ClockworkDisplaySources.KNODE))
         //.onRegister(connectedTextures { DuctTankCTBehaviour(ClockworkSpriteShifts.DUCT_TANK, ClockworkSpriteShifts.DUCT_TANK_TOP, AllSpriteShifts.FLUID_TANK_INNER) })
         .onRegister(ClockworkRegistrate.blockModel { NonNullFunction<BakedModel, BakedModel> { originalModel: BakedModel -> DuctTankModel(originalModel) } })
         .item()
@@ -495,6 +498,7 @@ object ClockworkBlocks {
         .initialProperties { SharedProperties.netheriteMetal() }
         .addLayer { Supplier { RenderType.cutout() } }
         .transform(ClockworkStress.setImpact(4.0))
+        .transform(displaySource(ClockworkDisplaySources.KNODE))
         .properties { it.noOcclusion() }
         .item()
         .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
@@ -584,6 +588,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .properties { it.noOcclusion() }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .transform(displaySource(ClockworkDisplaySources.KNODE))
             .item()
             .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
             .build()
@@ -600,6 +605,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .properties { it.noOcclusion() }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .transform(displaySource(ClockworkDisplaySources.KNODE))
             .item()
             .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
             .build()
@@ -616,6 +622,7 @@ object ClockworkBlocks {
             .addLayer { Supplier { RenderType.cutout() } }
             .properties { it.noOcclusion() }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .transform(displaySource(ClockworkDisplaySources.KNODE))
             .item()
             .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
             .build()
@@ -631,6 +638,7 @@ object ClockworkBlocks {
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .properties { it.noOcclusion() }
+            .transform(displaySource(ClockworkDisplaySources.KNODE))
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
             .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
@@ -647,6 +655,7 @@ object ClockworkBlocks {
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .transform(displaySource(ClockworkDisplaySources.KNODE))
             .item()
             .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
             .build()
@@ -662,6 +671,7 @@ object ClockworkBlocks {
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .properties { it.noOcclusion() }
+            .transform(displaySource(ClockworkDisplaySources.KNODE))
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
             .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
@@ -676,6 +686,7 @@ object ClockworkBlocks {
             .initialProperties { SharedProperties.netheriteMetal() }
             .transform(axeOrPickaxe())
             .properties { it.noOcclusion() }
+            .transform(displaySource(ClockworkDisplaySources.KNODE))
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
@@ -692,6 +703,7 @@ object ClockworkBlocks {
             .transform(axeOrPickaxe())
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
+            .transform(displaySource(ClockworkDisplaySources.KNODE))
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
             //.tab(ClockworkMod.BASE_CREATIVE_TABINFO)
@@ -707,6 +719,7 @@ object ClockworkBlocks {
             .initialProperties { SharedProperties.softMetal() }
             .transform(axeOrPickaxe())
             .properties { it.noOcclusion() }
+            .transform(displaySource(ClockworkDisplaySources.KNODE))
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .register()
@@ -722,6 +735,7 @@ object ClockworkBlocks {
         .initialProperties { SharedProperties.netheriteMetal() }
         .addLayer { Supplier { RenderType.cutout() } }
         .properties { it.noOcclusion() }
+        .transform(displaySource(ClockworkDisplaySources.KNODE))
         .item()
         .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
         .build()
