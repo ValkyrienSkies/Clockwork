@@ -130,6 +130,7 @@ object ClockworkBlocks {
         }
             .transform(axeOrPickaxe())
             //.transform(BuilderTransformersClockwork.bearing("propeller", "gearbox"))
+            .transform(displaySource(ClockworkDisplaySources.COPTER_BEARING))
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .addLayer { Supplier { RenderType.cutoutMipped() } }
             .properties { it.noOcclusion() }
