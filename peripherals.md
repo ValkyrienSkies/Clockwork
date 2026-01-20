@@ -394,6 +394,79 @@ Returns `true`, unless the bearing was already disassembled, in which case it wi
 
 ---
 
+## Altimeter peripheral
+
+Peripheral type: `cw_alt_meter`
+
+---
+
+```lua
+getHeight() -> number
+```
+
+Returns the current height the altimeter is at. 
+If the altimeter is on a ship, the height is automatically transformed from the shipyard into worldspace.
+
+---
+
+```lua
+getOutput() -> number
+```
+
+Gets the current redstone signal strength the altimeter is outputting, in the range `0..15`.
+
+---
+
+```lua
+getTargetHeight() -> number
+```
+
+Returns the target height the altimeter is currently set to.
+
+---
+
+```lua
+setTargetHeight(height: number)
+```
+
+Sets the target height of the altimeter. If `height` has decimals, they will be truncated.
+
+---
+
+```lua
+getSensitivity() -> number
+```
+
+Returns the sensitivity the altimeter is currently set to.
+
+---
+
+```lua
+setSensitivity(sensitivity: number)
+```
+
+Sets the sensitivity of the altimeter. If `sensitivity` has decimals, they will be truncated.
+
+---
+
+```lua
+getDirection() -> string
+```
+
+Returns the current direction mode of the altimeter. Will be one of: `UP`, `DOWN` or `BOTH`.
+
+---
+
+```lua
+setDirection(direction: string)
+```
+
+Sets the current direction mode of the altimeter. Not uppercase sensitive.
+
+Throws if `direction` is not one of: `UP`, `DOWN` or `BOTH`. 
+
+---
+
 This page is still a work in progress. 
 
 Spot an error, or want to add extra information?
