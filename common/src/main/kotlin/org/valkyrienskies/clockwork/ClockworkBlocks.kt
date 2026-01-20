@@ -176,6 +176,7 @@ object ClockworkBlocks {
         }
             .initialProperties { SharedProperties.stone() }
             .transform(axeOrPickaxe())
+            .transform(displaySource(ClockworkDisplaySources.PHYS_BEARING))
             .properties {
                 it.lightLevel { state: BlockState? -> PhysBearingBlock.getLight(state) }
             }
