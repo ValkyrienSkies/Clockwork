@@ -14,18 +14,11 @@ class GasNozzleDisplaySource : NumericSingleLineDisplaySource() {
         val nozzle = context?.sourceBlockEntity as? GasNozzleBlockEntity ?: return ZERO.copy()
         if (!nozzle.hasPocket) return ClockworkLang.translate("gui.gas_nozzle.info.no_pocket.title").component()
 
-        val pocketTemp = nozzle.pocketTemperature.toInt()
         val leaks = nozzle.currentIdealOutput.toInt()
         return when (context.sourceConfig().getInt("TargetData")) {
-            0 -> ClockworkLang.text(pocketTemp.toString())
-                .space()
-                .translate("unit.temp.kelvin")
-                .component()
-            1 -> ClockworkLang.text(leaks.toString())
-                .component()
-            2 -> DuctTextUtil.translateVolume(ClockworkLang.builder(),
-                nozzle.balloonVolume, true)
-                .component()
+            0 -> DuctTextUtil.translateTemperature(ClockworkLang.builder(), nozzle.pocketTemperature, true).component()
+            1 -> Component.literal(leaks.toString())
+            2 -> DuctTextUtil.translateVolume(ClockworkLang.builder(), nozzle.balloonVolume, true).component()
             else -> ZERO.copy() // Only reachable if the tag is corrupted
         }
     }
@@ -42,11 +35,13 @@ class GasNozzleDisplaySource : NumericSingleLineDisplaySource() {
         super.initConfigurationWidgets(context, builder, isFirstLine)
         if (isFirstLine) return
 
-        builder?.addSelectionScrollInput(0, 120, { selectionScrollInput, _ ->
+        builder?.addSelectionScrollInput(0, 137, { selectionScrollInput, _ ->
             selectionScrollInput
                 .forOptions(ClockworkLang.translatedOptions("display_source.gas_nozzle", "temp", "leaks", "volume"))
         }, "TargetData")
     }
 
     override fun allowsLabeling(context: DisplayLinkContext?) = true
+
+    override fun getPassiveRefreshTicks() = 40
 }
