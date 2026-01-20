@@ -6,11 +6,12 @@ import org.joml.*
 import org.junit.jupiter.api.Test
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropData
-import org.valkyrienskies.clockwork.util.AerodynamicUtils
-import org.valkyrienskies.clockwork.util.AerodynamicUtils.getAirDensityForY
 import org.valkyrienskies.core.api.ships.PhysShip
+import org.valkyrienskies.core.api.util.AerodynamicUtils
 import org.valkyrienskies.core.impl.game.ships.ShipTransformImpl
+import org.valkyrienskies.core.impl.shadow.DL
 import org.valkyrienskies.mod.common.util.toJOMLD
+import org.valkyrienskies.mod.common.vsCore
 import java.lang.Math
 import kotlin.math.*
 
@@ -104,7 +105,7 @@ class PropellerFormulaTest {
             val angleOfAttack = physProp.currentBladePitch - inflowAngle
             val thrustCoefficient = (angleOfAttack * cos(inflowAngle)) - (0.1 * sin(inflowAngle))
 
-            val q = 0.5 * getAirDensityForY(sailPosWorld.y(), dimensionId) * ((axialVelocity).pow(2.0) + (sailVel.length()).pow(2.0))
+            val q = 0.5 * DL().getAirDensityForY(sailPosWorld.y(), dimensionId) * ((axialVelocity).pow(2.0) + (sailVel.length()).pow(2.0))
 
             val thrust = q * thrustCoefficient
 
@@ -181,8 +182,9 @@ class PropellerFormulaTest {
         val bladeCount = blades.size
         val angleBetweenBlades = 2 * Math.PI / bladeCount
 
-        val airDensityAtY = AerodynamicUtils.getAirDensityForY(transform.positionInWorld.y(), dimensionId)
-        val airTemperatureAtY = AerodynamicUtils.getAirTemperatureForY(transform.positionInWorld.y(), dimensionId)
+        // Wow constructing a proguarded class is hella sus, but I think this is the best way
+        val airDensityAtY = DL().getAirDensityForY(transform.positionInWorld.y(), dimensionId)
+        val airTemperatureAtY = DL().getAirTemperatureForY(transform.positionInWorld.y(), dimensionId)
 
         val clockwiseAxis: Vector3dc = if (physProp.bearingAxis == Direction.UP.normal.toJOMLD()) {
             Direction.NORTH.normal.toJOMLD()

@@ -1,7 +1,8 @@
 package org.valkyrienskies.clockwork.content.forces
 
 import org.junit.jupiter.api.Test
-import org.valkyrienskies.mod.common.vsCore
+import org.valkyrienskies.core.impl.shadow.DL
+import org.valkyrienskies.mod.common.ValkyrienSkiesMod.vsCore
 
 class AerodynamicUtilsTest {
 
@@ -15,7 +16,7 @@ class AerodynamicUtilsTest {
         for (dimension in dimensions) {
             println("In: $dimension")
             for (i in stringArray.indices) {
-                println("${stringArray[i]}: ${vsCore.dummyShipWorldServer.aerodynamicUtils.getAirDensityForY(altitudes[i], dimension)}")
+                println("${stringArray[i]}: ${DL().getAirDensityForY(altitudes[i], dimension)}")
             }
         }
 
@@ -28,7 +29,7 @@ class AerodynamicUtilsTest {
         for (dimension in dimensions) {
             println("In: $dimension")
             for (i in stringArray.indices) {
-                println("${stringArray[i]}: ${vsCore.dummyShipWorldServer.aerodynamicUtils.getAirPressureForY(altitudes[i], dimension)}")
+                println("${stringArray[i]}: ${DL().getAirPressureForY(altitudes[i], dimension)}")
             }
         }
         println("----")
@@ -40,7 +41,7 @@ class AerodynamicUtilsTest {
         for (dimension in dimensions) {
             println("In: $dimension")
             for (i in stringArray.indices) {
-                println("${stringArray[i]}: ${vsCore.dummyShipWorldServer.aerodynamicUtils.getAirTemperatureForY(altitudes[i], dimension)}")
+                //println("${stringArray[i]}: ${vsCore.dummyShipWorldServer.aerodynamicUtils.getAirTemperatureForY(altitudes[i], dimension)}")
             }
         }
     }

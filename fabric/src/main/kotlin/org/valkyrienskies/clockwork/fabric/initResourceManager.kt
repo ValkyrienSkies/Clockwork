@@ -8,14 +8,13 @@ import net.minecraft.server.packs.resources.PreparableReloadListener
 import net.minecraft.server.packs.resources.ResourceManager
 import net.minecraft.util.profiling.ProfilerFiller
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.util.AtmosphereParametersResolver
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
 
 object RegisterResourceManagers {
     //idk java so i did this
     fun init() {
-        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(
+        /*ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(
             object : IdentifiableResourceReloadListener {
                 override fun getFabricId() = ResourceLocation(ClockworkMod.MOD_ID, "atmosphere_parameters")
 
@@ -30,6 +29,6 @@ object RegisterResourceManagers {
                     return AtmosphereParametersResolver.reload(preparationBarrier, resourceManager, preparationsProfiler, reloadProfiler, backgroundExecutor, gameExecutor)
                 }
             }
-        )
+        )*/
     }
 }
