@@ -230,6 +230,7 @@ object ClockworkBlocks {
         }
             .initialProperties { SharedProperties.stone() }
             .transform(axeOrPickaxe())
+            .transform(displaySource(ClockworkDisplaySources.ALT_METER))
             .properties { it.noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)

@@ -4,6 +4,7 @@ import com.tterrag.registrate.util.entry.RegistryEntry
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingDisplaySource
 import org.valkyrienskies.clockwork.content.contraptions.propeller.copter.CopterBearingDisplaySource
+import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterDisplaySource
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleDisplaySource
 
 object ClockworkDisplaySources {
@@ -18,6 +19,10 @@ object ClockworkDisplaySources {
     @JvmField
     val COPTER_BEARING: RegistryEntry<CopterBearingDisplaySource> =
         REGISTRATE.displaySource("copter_bearing", ::CopterBearingDisplaySource).register()
+
+    @JvmField
+    val ALT_METER: RegistryEntry<AltMeterDisplaySource> =
+        REGISTRATE.displaySource("alt_meter", ::AltMeterDisplaySource).register()
 
     @JvmStatic
     fun register() {

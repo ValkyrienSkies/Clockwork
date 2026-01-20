@@ -470,6 +470,10 @@
   "vs_clockwork.display_source.copter_bearing.target": "Target vector",
   "vs_clockwork.display_source.copter_bearing.offset": "Redstone offset vector",
 
+  "vs_clockwork.display_source.alt_meter.current": "Current height",
+  "vs_clockwork.display_source.alt_meter.target": "Target height",
+  "vs_clockwork.display_source.alt_meter.direction": "Trigger direction",
+
   "vs_clockwork.ponder.wanderwand.header": "Wanderwand",
   "vs_clockwork.ponder.wanderwand.text_1": "Place the wand in the Physics Infuser",
   "vs_clockwork.ponder.wanderwand.text_2": "Or use the Gravitron",
