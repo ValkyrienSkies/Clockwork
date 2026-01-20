@@ -35,7 +35,9 @@
     "client.MixinCamera",
     "client.MixinFogRenderer",
     "client.MixinItemInHandRenderer",
+    "client.MixinProgramManager",
     "client.MixinRenderType",
+    "client.MixinShaderInstance",
     "content.gravitron.MinecraftAccessor",
     "content.gravitron.MixinLocalPlayer"
   ],

@@ -40,6 +40,7 @@ import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.hooks.VSGameEvents
 import org.valkyrienskies.mod.common.shipObjectWorld
+import org.valkyrienskies.mod.util.logger
 
 object ClockworkModClient {
 
@@ -81,6 +82,9 @@ object ClockworkModClient {
 
     @JvmStatic
     val CLIENT_BALLOON_LEAKS = HashSet<Vector3ic>()
+
+    @JvmStatic
+    val MIXIN_LOGGER = logger("Shader Bakery").logger
 
 
     @JvmStatic
