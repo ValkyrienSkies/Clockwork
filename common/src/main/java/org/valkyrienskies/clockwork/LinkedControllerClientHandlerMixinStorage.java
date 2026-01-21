@@ -8,4 +8,8 @@ import net.minecraft.core.Direction;
  */
 public class LinkedControllerClientHandlerMixinStorage {
     public static Direction face;
+
+    public static void doNothing() {
+        System.out.println("I hate kotlin sometimes");
+    }
 }

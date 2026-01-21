@@ -116,6 +116,8 @@ subprojects {
 
     dependencies {
         minecraft "com.mojang:minecraft:${minecraft_version}"
+        implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:0.3.5"))
+
         // layered mappings - Mojmap names, parchment and QM docs and parameters
         mappings(loom.layered {
             it.parchment("org.parchmentmc.data:parchment-${minecraft_version}:${parchment_version}@zip")

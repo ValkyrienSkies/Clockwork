@@ -12,18 +12,20 @@ import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.item.ItemStack
 import org.valkyrienskies.clockwork.LinkedControllerClientHandlerMixinStorage
+import org.valkyrienskies.clockwork.LinkedControllerClientHandlerMixinStorage.doNothing
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkBehaviour
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkHandler.getFrontFacing
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
 import org.valkyrienskies.clockwork.platform.api.network.ServerNetworkContext
 
-class FlapLinkedControllerBindPacket(var button: Int, var linkLocation: BlockPos, var face: Direction): C2SCWPacket {
-    constructor(buffer: FriendlyByteBuf) : this(buffer.readVarInt(), buffer.readBlockPos(), buffer.readEnum(Direction::class.java))
+class FlapLinkedControllerBindPacket(var button: Int, var linkLocation: BlockPos, var face: Direction, var itemClassName: String): C2SCWPacket {
+    constructor(buffer: FriendlyByteBuf) : this(buffer.readVarInt(), buffer.readBlockPos(), buffer.readEnum(Direction::class.java), buffer.readUtf())
 
     override fun write(buffer: FriendlyByteBuf) {
         buffer.writeVarInt(button)
         buffer.writeBlockPos(linkLocation)
         buffer.writeEnum(face)
+        buffer.writeUtf(itemClassName)
     }
 
     override fun handle(context: ServerNetworkContext) {
@@ -32,13 +34,19 @@ class FlapLinkedControllerBindPacket(var button: Int, var linkLocation: BlockPos
             if (player.isSpectator) return@enqueueWork
 
             var controller = player.mainHandItem
-            println(controller)
-            if (!AllItems.LINKED_CONTROLLER.isIn(controller)) {
+
+            // We use reflection for this as a lazy way to use TweakedLinkedControllerItem instead of LinkedControllerItem
+            // (also we have to use reflection on it later anyway, so we might as well)
+            val itemClass = Class.forName(itemClassName)
+
+            if (!itemClass.isInstance(controller.item)) {
                 controller = player.offhandItem
-                if (!AllItems.LINKED_CONTROLLER.isIn(controller)) return@enqueueWork
+                if (!itemClass.isInstance(controller.item)) return@enqueueWork
             }
 
-            val getFrequencyItems = LinkedControllerItem::class.java.getDeclaredMethod("getFrequencyItems", ItemStack::class.java)
+            doNothing()
+
+            val getFrequencyItems = itemClass.getDeclaredMethod("getFrequencyItems", ItemStack::class.java)
 
             val frequencyItems = getFrequencyItems.invoke(null, controller)
 
