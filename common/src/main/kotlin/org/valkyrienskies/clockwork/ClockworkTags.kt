@@ -80,7 +80,8 @@ object ClockworkTags {
         optional: Boolean = namespace.optionalDefault,
         alwaysDatagen: Boolean = namespace.alwaysDatagenDefault
     ) {
-        PROP_BLADE;
+        PROP_BLADE,
+        DISABLE_SWING_ANIMATION;
 
         val tag: TagKey<Item>
         val alwaysDatagen: Boolean

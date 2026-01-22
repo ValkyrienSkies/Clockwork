@@ -58,6 +58,8 @@
   "block.vs_clockwork.slicker": "Slicker",
   "item.vs_clockwork.slicker": "Slicker",
   "item.vs_clockwork.triode": "Triode",
+  "item.vs_clockwork.handheld_drill": "Power Drill",
+  "item.vs_clockwork.handheld_saw": "Buzzsaw",
 
   "block.vs_clockwork.asteroid_block": "Debug Meteor Spawner",
   "item.vs_clockwork.asteroid_block": "Debug Meteor Spawner",

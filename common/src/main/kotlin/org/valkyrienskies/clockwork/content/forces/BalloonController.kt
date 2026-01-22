@@ -22,7 +22,6 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.Wanderw
 import org.valkyrienskies.clockwork.content.forces.data.BalloonData
 import org.valkyrienskies.clockwork.content.forces.data.BalloonData.PhysBalloonData
 import org.valkyrienskies.clockwork.util.AABBHelper.mergeAdjacentFast
-import org.valkyrienskies.clockwork.util.AerodynamicUtils.dimensionMap
 import org.valkyrienskies.core.api.VsBeta
 import org.valkyrienskies.core.api.attachment.getAttachment
 import org.valkyrienskies.core.api.ships.LoadedServerShip

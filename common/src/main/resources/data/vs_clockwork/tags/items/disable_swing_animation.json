@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "vs_clockwork:gravitron",
+    "vs_clockwork:creative_gravitron",
+    "vs_clockwork:handheld_drill",
+    "vs_clockwork:handheld_saw"
+  ]
+}

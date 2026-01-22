@@ -11,7 +11,6 @@ import org.valkyrienskies.clockwork.ClockworkAugmentations
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.utilities.PocketForcesQueueable
-import org.valkyrienskies.clockwork.util.AerodynamicUtils.dimensionMap
 import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
 import org.valkyrienskies.core.api.VsBeta
 import org.valkyrienskies.core.api.ships.*
