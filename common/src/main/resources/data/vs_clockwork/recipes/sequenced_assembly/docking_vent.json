@@ -7,7 +7,7 @@
   "results": [
     {
       "chance": 120.0,
-      "item": "vs_clockwork:duct_bearing",
+      "item": "vs_clockwork:docking_vent",
       "count": 2
     },
     {
@@ -36,7 +36,7 @@
       "type": "create:deploying",
       "ingredients": [
         {
-          "item": "vs_clockwork:incomplete_duct_bearing"
+          "item": "vs_clockwork:incomplete_docking_vent"
         },
         {
           "item": "create:brass_sheet"
@@ -44,7 +44,7 @@
       ],
       "results": [
         {
-          "item": "vs_clockwork:incomplete_duct_bearing"
+          "item": "vs_clockwork:incomplete_docking_vent"
         }
       ]
     },
@@ -52,7 +52,7 @@
       "type": "create:deploying",
       "ingredients": [
         {
-          "item": "vs_clockwork:incomplete_duct_bearing"
+          "item": "vs_clockwork:incomplete_docking_vent"
         },
         {
           "item": "minecraft:dried_kelp"
@@ -60,7 +60,7 @@
       ],
       "results": [
         {
-          "item": "vs_clockwork:incomplete_duct_bearing"
+          "item": "vs_clockwork:incomplete_docking_vent"
         }
       ]
     },
@@ -68,7 +68,7 @@
       "type": "create:deploying",
       "ingredients": [
         {
-          "item": "vs_clockwork:incomplete_duct_bearing"
+          "item": "vs_clockwork:incomplete_docking_vent"
         },
         {
           "item": "create:brass_sheet"
@@ -76,7 +76,7 @@
       ],
       "results": [
         {
-          "item": "vs_clockwork:incomplete_duct_bearing"
+          "item": "vs_clockwork:incomplete_docking_vent"
         }
       ]
     },
@@ -84,17 +84,17 @@
       "type": "create:cutting",
       "ingredients": [
         {
-          "item": "vs_clockwork:incomplete_duct_bearing"
+          "item": "vs_clockwork:incomplete_docking_vent"
         }
       ],
       "results": [
         {
-          "item": "vs_clockwork:incomplete_duct_bearing"
+          "item": "vs_clockwork:incomplete_docking_vent"
         }
       ]
     }
   ],
   "transitionalItem": {
-    "item": "vs_clockwork:incomplete_duct_bearing"
+    "item": "vs_clockwork:incomplete_docking_vent"
   }
 }

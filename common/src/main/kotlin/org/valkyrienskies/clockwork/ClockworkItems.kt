@@ -265,7 +265,7 @@ object ClockworkItems {
     val INCOMPLETE_HOSE_SPOOL: ItemEntry<SequencedAssemblyItem> = sequencedIngredient("incomplete_hose_spool")
 
     @JvmField
-    val INCOMPLETE_DUCT_BEARING: ItemEntry<SequencedAssemblyItem> = sequencedIngredient("incomplete_duct_bearing")
+    val INCOMPLETE_DOCKING_VENT: ItemEntry<SequencedAssemblyItem> = sequencedIngredient("incomplete_docking_vent")
 
     @JvmField
     val TRIODE : ItemEntry<Item> = ingredient("triode")

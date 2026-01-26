@@ -3,15 +3,11 @@ package org.valkyrienskies.clockwork
 import com.simibubi.create.api.behaviour.display.DisplaySource.displaySource
 
 import com.simibubi.create.AllBlocks
-import com.simibubi.create.AllSpriteShifts
 import com.simibubi.create.AllTags
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour.movementBehaviour
 import com.simibubi.create.content.decoration.encasing.CasingBlock
-import com.simibubi.create.content.decoration.encasing.EncasingRegistry
 import com.simibubi.create.content.fluids.PipeAttachmentModel
-import com.simibubi.create.content.kinetics.simpleRelays.encased.EncasedShaftBlock
 import com.simibubi.create.foundation.data.*
-import com.simibubi.create.foundation.data.CreateRegistrate.connectedTextures
 import com.simibubi.create.foundation.data.ModelGen.customItemModel
 import com.simibubi.create.foundation.data.TagGen.axeOrPickaxe
 import com.tterrag.registrate.builders.BlockBuilder
@@ -62,7 +58,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.engine.GasEngineBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.exhaust.ExhaustBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBlock
-import org.valkyrienskies.clockwork.content.logistics.gas.duct_bearing.DuctBearingBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.docking_vent.DockingVentBearingBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorBlock
@@ -73,7 +69,6 @@ import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozz
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.redstone.RedstoneDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankBlock
-import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankCTBehaviour
 import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankModel
 import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlock
@@ -450,8 +445,8 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val DUCT_BEARING: BlockEntry<DuctBearingBlock> = REGISTRATE.block( "duct_bearing" ) {
-        properties -> DuctBearingBlock(properties)
+    val DOCKING_VENT: BlockEntry<DockingVentBearingBlock> = REGISTRATE.block( "docking_vent" ) {
+        properties -> DockingVentBearingBlock(properties)
     }
         .initialProperties { Blocks.IRON_BLOCK }
         .transform(axeOrPickaxe())

@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.content.logistics.gas.duct_bearing;
+package org.valkyrienskies.clockwork.content.logistics.gas.docking_vent;
 
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
@@ -18,7 +18,7 @@ import org.valkyrienskies.clockwork.ClockworkShapes
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 import org.valkyrienskies.kelvin.util.INodeBlock
 
-class DuctBearingBlock(properties: Properties) : FaceAttachedHorizontalDirectionalBlock(properties), INodeBlock, IBE<DuctBearingBlockEntity> {
+class DockingVentBearingBlock(properties: Properties) : FaceAttachedHorizontalDirectionalBlock(properties), INodeBlock, IBE<DockingVentBlockEntity> {
 
     init {
         registerDefaultState(defaultBlockState()
@@ -36,15 +36,15 @@ class DuctBearingBlock(properties: Properties) : FaceAttachedHorizontalDirection
         pos: BlockPos,
         context: CollisionContext
     ): VoxelShape? {
-        return ClockworkShapes.DUCT_BEARING.get(getConnectedDirection(state))
+        return ClockworkShapes.DOCKING_VENT.get(getConnectedDirection(state))
     }
 
-    override fun getBlockEntityClass(): Class<DuctBearingBlockEntity> {
-        return DuctBearingBlockEntity::class.java
+    override fun getBlockEntityClass(): Class<DockingVentBlockEntity> {
+        return DockingVentBlockEntity::class.java
     }
 
-    override fun getBlockEntityType(): BlockEntityType<out DuctBearingBlockEntity> {
-        return ClockworkBlockEntities.DUCT_BEARING.get()
+    override fun getBlockEntityType(): BlockEntityType<out DockingVentBlockEntity> {
+        return ClockworkBlockEntities.DOCKING_VENT.get()
     }
 
     override fun canSurvive(pState: BlockState, pLevel: LevelReader, pPos: BlockPos): Boolean {

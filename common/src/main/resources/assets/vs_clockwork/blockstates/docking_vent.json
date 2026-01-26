@@ -1,55 +1,55 @@
 {
   "variants": {
     "face=ceiling,facing=east": {
-      "model": "vs_clockwork:block/duct_bearing",
+      "model": "vs_clockwork:block/docking_vent",
       "x": 180,
       "y": 270
     },
     "face=ceiling,facing=north": {
-      "model": "vs_clockwork:block/duct_bearing",
+      "model": "vs_clockwork:block/docking_vent",
       "x": 180,
       "y": 180
     },
     "face=ceiling,facing=south": {
-      "model": "vs_clockwork:block/duct_bearing",
+      "model": "vs_clockwork:block/docking_vent",
       "x": 180
     },
     "face=ceiling,facing=west": {
-      "model": "vs_clockwork:block/duct_bearing",
+      "model": "vs_clockwork:block/docking_vent",
       "x": 180,
       "y": 90
     },
     "face=floor,facing=east": {
-      "model": "vs_clockwork:block/duct_bearing",
+      "model": "vs_clockwork:block/docking_vent",
       "y": 90
     },
     "face=floor,facing=north": {
-      "model": "vs_clockwork:block/duct_bearing"
+      "model": "vs_clockwork:block/docking_vent"
     },
     "face=floor,facing=south": {
-      "model": "vs_clockwork:block/duct_bearing",
+      "model": "vs_clockwork:block/docking_vent",
       "y": 180
     },
     "face=floor,facing=west": {
-      "model": "vs_clockwork:block/duct_bearing",
+      "model": "vs_clockwork:block/docking_vent",
       "y": 270
     },
     "face=wall,facing=east": {
-      "model": "vs_clockwork:block/duct_bearing",
+      "model": "vs_clockwork:block/docking_vent",
       "x": 90,
       "y": 90
     },
     "face=wall,facing=north": {
-      "model": "vs_clockwork:block/duct_bearing",
+      "model": "vs_clockwork:block/docking_vent",
       "x": 90
     },
     "face=wall,facing=south": {
-      "model": "vs_clockwork:block/duct_bearing",
+      "model": "vs_clockwork:block/docking_vent",
       "x": 90,
       "y": 180
     },
     "face=wall,facing=west": {
-      "model": "vs_clockwork:block/duct_bearing",
+      "model": "vs_clockwork:block/docking_vent",
       "x": 90,
       "y": 270
     }

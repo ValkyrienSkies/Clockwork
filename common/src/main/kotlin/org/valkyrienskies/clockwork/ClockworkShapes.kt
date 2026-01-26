@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork
 
-import com.simibubi.create.AllShapes
 import net.createmod.catnip.math.VoxelShaper
 import net.minecraft.core.Direction
 import net.minecraft.world.level.block.Block
@@ -14,7 +13,7 @@ object ClockworkShapes {
     val AFTERBLAZER = shape(1.0, 0.0, 1.0, 15.0, 14.0, 15.0).forDirectional()
     val ALT_METER = shape(1.0, 0.0, 1.0, 15.0, 5.0, 15.0).add(4.0, 8.0, 4.0, 12.0, 16.0, 12.0).build()
     val SPINOFF_BEARING = shape(0.0, 0.0, 0.0, 16.0, 8.0, 16.0).forDirectional()
-    val DUCT_BEARING = shape(3.0, .0, 3.0, 13.0, 8.0, 13.0)
+    val DOCKING_VENT = shape(3.0, .0, 3.0, 13.0, 8.0, 13.0)
         .add(2.0, -2.0, 3.0, 14.0, 4.0, 13.0)
         .add(3.0, -2.0, 2.0, 13.0, 4.0, 14.0)
         .add(1.0, 0.0, 3.0, 15.0, 2.0, 13.0)
