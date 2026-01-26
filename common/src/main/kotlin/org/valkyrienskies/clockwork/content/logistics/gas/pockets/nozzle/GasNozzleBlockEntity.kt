@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle
 
+import com.simibubi.create.content.redstone.thresholdSwitch.ThresholdSwitchObservable
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.createmod.catnip.animation.LerpedFloat
 import net.fabricmc.api.EnvType
@@ -12,6 +13,7 @@ import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.CommonComponents
 import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.MutableComponent
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
@@ -51,7 +53,7 @@ import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
-class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState): KNodeKineticBlockEntity(type, pos, state) {
+class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState): KNodeKineticBlockEntity(type, pos, state), ThresholdSwitchObservable {
 
     var hasPocket = false
     var pointerSpeed = 0.0
@@ -469,4 +471,15 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
         return super.addToGoggleTooltip(tooltip, isPlayerSneaking)
     }
+
+    override fun getMaxValue(): Int {
+        val node = ClockworkMod.getKelvin().getNodeAt(this.getDuctNodePosition())
+        return node?.maxTemperature!!.toInt()
+    }
+
+    override fun getMinValue() = 0
+
+    override fun getCurrentValue(): Int = pocketTemperature.toInt()
+
+    override fun format(value: Int): MutableComponent? = DuctTextUtil.translateTemperature(ClockworkLang.builder(), value.toDouble(), true).component()
 }
