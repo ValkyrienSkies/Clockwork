@@ -40,6 +40,7 @@ import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.hooks.VSGameEvents
 import org.valkyrienskies.mod.common.shipObjectWorld
+import org.valkyrienskies.mod.common.shipWorldNullable
 
 object ClockworkModClient {
 
@@ -104,11 +105,9 @@ object ClockworkModClient {
             ClockworkSoundScapes.tick()
             SecondScrollValueRenderer.tickSecond()
             ClockworkModClient.tickDebugLightningNodes(it)
-            val ships = Minecraft.getInstance().level.shipObjectWorld?.loadedShips ?: return@Client
-            if (ships != null) {
-                ships.forEach { it ->
-                    //MeteorRenderer.updateMeteorStateWorld(it, MeteorRenderer.meteorList[it.id] ?: return@forEach)
-                }
+            val ships = Minecraft.getInstance().level.shipWorldNullable?.loadedShips ?: return@Client
+            ships.forEach { it ->
+                //MeteorRenderer.updateMeteorStateWorld(it, MeteorRenderer.meteorList[it.id] ?: return@forEach)
             }
         })
 //        VSGameEvents.postRenderShip.on {
@@ -129,7 +128,7 @@ object ClockworkModClient {
                             level.playSound(
                                 player,
                                 player.blockPosition(),
-                                ClockworkSounds.GOGGLES_EQUIP.mainEvent,
+                                ClockworkSounds.GOGGLES_EQUIP.mainEvent!!,
                                 SoundSource.PLAYERS,
                                 1.0f,
                                 1.0f
@@ -139,7 +138,7 @@ object ClockworkModClient {
                             level.playSound(
                                 player,
                                 player.blockPosition(),
-                                ClockworkSounds.GOGGLES_UNEQUIP.mainEvent,
+                                ClockworkSounds.GOGGLES_UNEQUIP.mainEvent!!,
                                 SoundSource.PLAYERS,
                                 1.0f,
                                 1.0f
