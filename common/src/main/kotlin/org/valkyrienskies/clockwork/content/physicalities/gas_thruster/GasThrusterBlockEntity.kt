@@ -13,11 +13,14 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkSoundScapes
 import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.clockwork.util.KNodeBlockEntity
+import org.valkyrienskies.core.api.VsBeta
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.util.AerodynamicUtils
+import org.valkyrienskies.core.api.util.GameTickOnly
 import org.valkyrienskies.core.api.util.PhysTickOnly
 import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.api.world.properties.DimensionId
+import org.valkyrienskies.core.internal.world.VsiServerShipWorld
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.GasType
@@ -25,11 +28,13 @@ import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.api.BlockEntityPhysicsListener
 import org.valkyrienskies.mod.api.dimensionId
+import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.vsCore
 import kotlin.math.*
 import kotlin.random.Random
 
+@OptIn(VsBeta::class)
 class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), BlockEntityPhysicsListener {
 
     @Volatile
@@ -115,6 +120,7 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         sendData()
     }
 
+    @OptIn(GameTickOnly::class)
     override fun tick() {
         super.tick()
 
@@ -128,7 +134,7 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
 
         if (gasMasses.values.sum() == 0.0) return clearMassFlow()
 
-        val airPressure = vsCore.dummyShipWorldServer.aerodynamicUtils.getAirPressureForY(blockPos.y.toDouble(), level!!.dimensionId)
+        val airPressure = (level?.shipObjectWorld as? VsiServerShipWorld)?.aerodynamicUtils?.getAirPressureForY(blockPos.y.toDouble(), level!!.dimensionId) ?: return clearMassFlow()
         val gasPressure = kelvin.getPressureAt(ductnodepos)
         val temp = kelvin.getTemperatureAt(ductnodepos)
         val avgSpecificHeat = kelvin.mixtureCapacity(kelvin.getGasMassAt(ductnodepos))
