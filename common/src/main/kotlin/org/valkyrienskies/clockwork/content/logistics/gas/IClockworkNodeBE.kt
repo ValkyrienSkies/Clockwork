@@ -41,18 +41,30 @@ interface IClockworkNodeBE: INodeBlockEntity, IHaveGoggleInformation {
         kelvin.getTemperatureAt(pos).let { temp ->
             found = true
             ClockworkLang.builder().apply {
+                add(ClockworkLang.translate(
+                    "gui.ductInfo.temperature",
+                    DuctTextUtil.translateTemperature(ClockworkLang.builder(), temp, true)
+                ))
+                style(ChatFormatting.GOLD)
+                forGoggles(tooltip, 0)
+            }
+        }
+
+        if (isPlayerSneaking)
+        kelvin.getWallTemperatureAt(pos).let { temp ->
+            found = true
+            ClockworkLang.builder().apply {
                 val max = blockStats?.getMaximumTemperature()
                 val critical = if (max != null) temp > max * ClockworkConfig.CLIENT.maxTemperatureWarning else false
                 val indents = if (critical) -2 else 0
 
                 if (critical) text("!! ")
                 add(ClockworkLang.translate(
-                    "gui.ductInfo.temperature",
+                    "gui.ductInfo.wallTemperature",
                     DuctTextUtil.translateTemperature(ClockworkLang.builder(), temp, true)
                 ))
-                style(ChatFormatting.GOLD)
+                style(ChatFormatting.GRAY)
 
-                if (isPlayerSneaking)
                 if (max != null) {
                     add(ClockworkLang.translate(
                         "gui.ductInfo.out_of",
