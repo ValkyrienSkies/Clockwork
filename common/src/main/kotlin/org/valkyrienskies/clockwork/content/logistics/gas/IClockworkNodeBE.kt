@@ -50,6 +50,7 @@ interface IClockworkNodeBE: INodeBlockEntity, IHaveGoggleInformation {
             }
         }
 
+        if (isPlayerSneaking)
         kelvin.getWallTemperatureAt(pos).let { temp ->
             found = true
             ClockworkLang.builder().apply {
@@ -62,9 +63,8 @@ interface IClockworkNodeBE: INodeBlockEntity, IHaveGoggleInformation {
                     "gui.ductInfo.wallTemperature",
                     DuctTextUtil.translateTemperature(ClockworkLang.builder(), temp, true)
                 ))
-                style(ChatFormatting.GOLD)
+                style(ChatFormatting.GRAY)
 
-                if (isPlayerSneaking)
                 if (max != null) {
                     add(ClockworkLang.translate(
                         "gui.ductInfo.out_of",
