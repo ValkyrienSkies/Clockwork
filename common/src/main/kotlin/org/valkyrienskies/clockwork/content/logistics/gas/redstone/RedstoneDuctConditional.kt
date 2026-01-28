@@ -58,9 +58,10 @@ class RedstoneDuctConditional (var type: ConditionalType, var moreThan: Boolean,
             val moreThan = tag.getBoolean("MoreThan")
             val comparisonValue = tag.getDouble("ComparisonValue")
 
-            val filterTag = tag.get("FilterList") as CompoundTag
+            // filterTag might be null if pasting from a schematic, this is just in case
+            val filterTag = tag.get("FilterList") as? CompoundTag
             val filter: MutableList<GasType> = mutableListOf()
-            filterTag.allKeys.forEach {
+            filterTag?.allKeys?.forEach {
                 val resourceLocation  = ResourceLocation.read(filterTag.getString(it)).result()
                 if (!resourceLocation.isEmpty) {
                     val gasType = GasTypeRegistry.getGasType(resourceLocation.get())

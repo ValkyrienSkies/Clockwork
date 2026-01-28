@@ -54,7 +54,14 @@ class AltMeterBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: Blo
         super.read(compound, clientPacket)
         triggerHeight = compound.getInt(ClockworkConstants.Nbt.TRIGGER_HEIGHT)
         triggerSensitivity = compound.getInt(ClockworkConstants.Nbt.TRIGGER_SENSITIVITY)
-        triggerDirection = enumValueOf<AltMeterDirection>(compound.getString(ClockworkConstants.Nbt.TRIGGER_DIRECTION))
+
+        // v will be "" ONLY when pasting from a schematic
+        var v = compound.getString(ClockworkConstants.Nbt.TRIGGER_DIRECTION)
+        if (v == "") {
+            v = AltMeterDirection.UP.name
+        }
+
+        triggerDirection = enumValueOf<AltMeterDirection>(v)
         signalStrength = compound.getInt("Signal Strength")
     }
 

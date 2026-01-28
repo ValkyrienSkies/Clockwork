@@ -85,7 +85,10 @@ class SequencedSeatRule(
             val keys = InputKey.fromInt(tag.getInt("keys"))
             val operation = SequencedSeatOperation.entries[tag.getInt("operation")]
             val value = operation.defaultValue()
-            value?.deserializeNBT(tag["value"]!!)
+            // tag[value] might be null if pasting from a schematic, this is just incase
+            tag["value"]?.let {
+                value?.deserializeNBT(it)
+            }
             return SequencedSeatRule(keys, operation, value)
         }
     }

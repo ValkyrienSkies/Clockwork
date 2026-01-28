@@ -125,7 +125,14 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
     }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
-        status = CompressorStatus.valueOf(tag.getString("status"))
+        var v = tag.getString("status")
+
+        // v will be "" ONLY when pasting from a schematic
+        if (v == "") {
+            v = CompressorStatus.INACTIVE.name
+        }
+
+        status = CompressorStatus.valueOf(v)
         super.read(tag, clientPacket)
     }
 

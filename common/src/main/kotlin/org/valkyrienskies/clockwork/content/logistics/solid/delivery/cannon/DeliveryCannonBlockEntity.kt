@@ -316,7 +316,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         currentStack = ItemStack.of(tag)
         midAirStack = ItemStack.of(tag)
 
-        if (tag.contains("shootingAtChute")) shootingAtChute = NbtUtils.readBlockPos(tag.get("shootingAtChute") as CompoundTag)
+        if (tag.contains("shootingAtChute")) shootingAtChute = NbtUtils.readBlockPos(tag.get("shootingAtChute") as? CompoundTag? ?: return)
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
