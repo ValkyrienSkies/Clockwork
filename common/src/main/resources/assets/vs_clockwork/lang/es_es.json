@@ -132,7 +132,7 @@
   "item.vs_clockwork.gravitron": "Gravitrón",
   "item.vs_clockwork.gyro": "Giroscopio",
   "item.vs_clockwork.gyroscopic_sensor": "Girotrón",
-  "item.vs_clockwork.handheld_drill": "Taladro eléctrico",
+  "item.vs_clockwork.handheld_drill": "Taladro de mano",
   "item.vs_clockwork.handheld_saw": "Sierra circular",
   "item.vs_clockwork.hose_port": "Puerto de mangera",
   "item.vs_clockwork.impact_sensor": "Impactotrón",
@@ -241,13 +241,13 @@
   "vs_clockwork.production_method.other": "Cuando está activo",
 
   "vs_clockwork.production_context.always": "Siempre",
-  "vs_clockwork.production_context.conditional": "Condicional",
+  "vs_clockwork.production_context.conditional": "",
 
   "vs_clockwork.production_condition.air_compressor_helium": "Densidad del aire < ",
   "vs_clockwork.production_condition.composter_methane": "Compostador lleno",
 
   "vs_clockwork.gas_exhaust.function1": "Expulsa gas fuera de la red",
-  "vs_clockwork.gas_exhaust.function2": "y hacia el entorno cercano.",
+  "vs_clockwork.gas_exhaust.function2": "hacia el entorno cercano.",
   "vs_clockwork.gas_backtank.function1": "Conserva el gas al romperse.",
   "vs_clockwork.gas_backtank.function2": "Puede llevarse puesto como tanque personal.",
   "vs_clockwork.gas_crafter.function1": "Procesa recetas que requieren gas",
@@ -395,7 +395,7 @@
   "vs_clockwork.ponder.wanderwand.header": "Wandervarita",
   "vs_clockwork.ponder.wanderwand.text_1": "Coloca la Wandervarita en el infusor de físicas",
   "vs_clockwork.ponder.wanderwand.text_2": "O usa el Gravitrón",
-  "vs_clockwork.ponder.wanderwand.text_3": "¡Esta nave ahora está afectada por la física!",
+  "vs_clockwork.ponder.wanderwand.text_3": "¡Esta nave ahora se ve afectada por la física!",
 
   "vs_clockwork.ponder.resistor.header": "Resistencia de redstone",
   "vs_clockwork.ponder.resistor.text_1": "16 RPM",
