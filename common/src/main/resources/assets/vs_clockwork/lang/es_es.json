@@ -191,8 +191,8 @@
   "itemGroup.clockwork": "Clockwork",
   "itemGroup.vs_clockwork": "Clockwork",
   "itemGroup.vs_clockwork.clockwork": "VS: Clockwork",
-  "itemGroup.vs_clockwork.gasses": "Clockwork Gasworks",
-  "itemGroup.vs_clockwork.physicalities": "Clockwork Physicalities",
+  "itemGroup.vs_clockwork.gasses": "Clockwork: Máquinas de gas",
+  "itemGroup.vs_clockwork.physicalities": "Clockwork: Fisicalidades",
   "itemGroup.vs_clockwork.vs_clockwork": "VS: Clockwork",
 
   "vs_clockwork.blade_controller.angle": "Ángulo de aspa",
