@@ -7,19 +7,19 @@ import dan200.computercraft.api.peripheral.IPeripheral
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity
-import org.valkyrienskies.clockwork.platform.api.ContraptionController
+import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingRotationMode
 
 class PhysBearingPeripheral(private val be: PhysBearingBlockEntity): IPeripheral {
     @LuaFunction fun assemble() {be.assembleNextTick = true}
     @LuaFunction fun disassemble() {be.disassemble()}
 
-    @LuaFunction fun setFollowAngleMode() {be.movementMode!!.setValue(ContraptionController.LockedMode.FOLLOW_ANGLE.ordinal)}
-    @LuaFunction fun setUnlockedMode() {be.movementMode!!.setValue(ContraptionController.LockedMode.UNLOCKED.ordinal)}
+    @LuaFunction fun setFollowAngleMode() {be.movementMode!!.setValue(PhysBearingRotationMode.FOLLOW_ANGLE.ordinal)}
+    @LuaFunction fun setUnlockedMode() {be.movementMode!!.setValue(PhysBearingRotationMode.UNLOCKED.ordinal)}
     @LuaFunction fun setAngle(angle: Double) {be.setAngle(angle.toFloat())}
 
     @LuaFunction fun isBeingDisassembled() = be.disassembleWhenPossible
     @LuaFunction fun isActive() = be.isRunning
-    @LuaFunction fun isInFollowAngleMode() = be.movementMode!!.get() == ContraptionController.LockedMode.FOLLOW_ANGLE
+    @LuaFunction fun isInFollowAngleMode() = be.movementMode!!.get() == PhysBearingRotationMode.FOLLOW_ANGLE
 
     @LuaFunction fun getConnectedToShip() = be.shiptraptionID
     @LuaFunction fun getTargetAngle() = be.targetAngle
