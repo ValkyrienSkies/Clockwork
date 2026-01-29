@@ -111,6 +111,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     private var ticks = 0
     private var lastStateChanged = 0
     private var cooldown = 20
+    private var pendingBreakDisassemble: Boolean = false
 
     private var sequencedAngleLimit = -1.0f
     private var sequencedAngleProgress = 0f
@@ -122,6 +123,27 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     private var lastSpeed = 0f
     private var lastMode = PhysBearingRotationMode.UNLOCKED
+    private var breakAfterDisassemble: Boolean = false
+    private var breakAfterDisassembleDropItems: Boolean = true
+
+    fun requestBreakAfterDisassemble(dropItems: Boolean): Boolean {
+        val wasRequested = breakAfterDisassemble
+        breakAfterDisassemble = true
+        breakAfterDisassembleDropItems = dropItems
+        return !wasRequested
+    }
+
+    fun requestDisassembleFromBreak() {
+        if (!isRunning) return
+        if (aligning || disassembleWhenPossible) return
+
+        // If we're still on cooldown (e.g., just assembled), schedule the disassembly to start once cooldown expires.
+        if (ticks - lastStateChanged <= cooldown) {
+            pendingBreakDisassemble = true
+            return
+        }
+        disassemble()
+    }
 
     init {
         setLazyTickRate(3)
@@ -150,9 +172,14 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         if (!isRunning || shiptraptionID == NO_SHIPTRAPTION_ID) return
 
+        // If this bearing is mounted on a ship, prefer the physics-provided owning ship id. This prevents cases where
+        // game ticks run before the owning ship is fully loaded and we accidentally treat it as world-attached.
+        if (physShip != null && mainShipId != physShip.id) {
+            mainShipId = physShip.id
+        }
+
         // Prevent creating a world-attached joint if this bearing is mounted on an unloaded ship.
         if (mainShipId == UNKNOWN_MAIN_SHIP_ID) return
-        if (mainShipId != NO_SHIPTRAPTION_ID && (physShip == null || physShip.id != mainShipId)) return
         val subPhysShip = physLevel.getShipById(shiptraptionID) ?: return
         val mainPhysShip = if (mainShipId == NO_SHIPTRAPTION_ID) null else physLevel.getShipById(mainShipId) ?: return
 
@@ -161,13 +188,13 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val mainId: Long? = if (mainShipId == NO_SHIPTRAPTION_ID) null else mainShipId
 
         val direction = originalDirection ?: return
-
         val axis = bearingAxis
         val hingeRot = getHingeRotation(direction)
-        val extraDist = 1.0
 
-        val subPose = VSJointPose(bearingPos.fma(-extraDist, axis, Vector3d()), hingeRot)
-        val mainPose = VSJointPose(Vector3d(worldPosition.center.toJOML()).fma(-extraDist, axis, Vector3d()), hingeRot)
+        // Place the hinge on the shared face between the bearing block and the first block of the attached ship.
+        // This avoids large lever-arms that can cause instability when the sub-ship is heavy/off-center.
+        val subPose = VSJointPose(Vector3d(bearingPos).fma(0.5, axis, Vector3d()), hingeRot)
+        val mainPose = VSJointPose(Vector3d(worldPosition.center.toJOML()).fma(0.5, axis, Vector3d()), hingeRot)
         val existing = if (jointID != -1) vsiPhysLevel.getJointById(jointID) else null
         if (shouldVerifyConnection) {
             if (existing != null) {
@@ -181,7 +208,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                     subPose,
                     mainId,
                     mainPose,
-                    maxForceTorque = DEFAULT_MAX_FORCE_TORQUE,
                     driveFreeSpin = true,
                 )
                 val id = vsiPhysLevel.addJoint(newJoint)
@@ -198,7 +224,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         val updated = when (existing) {
             is VSRevoluteJoint -> existing.copy(
-                maxForceTorque = existing.maxForceTorque ?: DEFAULT_MAX_FORCE_TORQUE,
+                maxForceTorque = existing.maxForceTorque,
                 driveVelocity = null,
                 driveForceLimit = null,
                 driveGearRatio = null,
@@ -209,7 +235,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 existing.pose0,
                 existing.shipId1,
                 existing.pose1,
-                maxForceTorque = DEFAULT_MAX_FORCE_TORQUE,
                 driveFreeSpin = true,
             )
             else -> return
@@ -217,6 +242,13 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (updated != existing) {
             vsiPhysLevel.updateJoint(jointID, updated)
             joint = updated
+        }
+
+        val activeJoint = if (updated != existing) updated else existing
+        val (subLocalPos, mainLocalPos) = when (activeJoint) {
+            is VSRevoluteJoint -> activeJoint.pose0.pos to activeJoint.pose1.pos
+            is VSFixedJoint -> activeJoint.pose0.pos to activeJoint.pose1.pos
+            else -> return
         }
 
         // Drive revolute rotation via torque instead of the built-in velocity drive.
@@ -239,24 +271,27 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 bearingAxis = axis,
                 targetAngleRad = targetAngleRad,
                 targetAngularVelocity = targetAngularVelocity,
-                subLocalPos = subPose.pos,
-                mainLocalPos = mainPose.pos,
+                subLocalPos = subLocalPos,
+                mainLocalPos = mainLocalPos,
                 dtSeconds = dtSeconds,
             )
         } else {
-            if (abs(desiredAngularVelocity) <= 1e-4f) return
             computeUnlockedTorque(
                 subShip = subPhysShip,
                 mainShip = mainPhysShip,
                 bearingAxis = axis,
                 desiredAngularVelocity = desiredAngularVelocity,
-                subLocalPos = subPose.pos,
-                mainLocalPos = mainPose.pos,
+                subLocalPos = subLocalPos,
+                mainLocalPos = mainLocalPos,
                 dtSeconds = dtSeconds,
             )
         }
 
         if (torque.lengthSquared() > 1e-18) {
+            val torqueMag = torque.length()
+            if (torqueMag > MAX_APPLIED_TORQUE_MAG) {
+                torque.mul(MAX_APPLIED_TORQUE_MAG / torqueMag)
+            }
             if (!subPhysShip.isStatic) subPhysShip.applyWorldTorque(torque)
             if (mainPhysShip != null && !mainPhysShip.isStatic) {
                 mainPhysShip.applyWorldTorque(torque.mul(-1.0, Vector3d()))
@@ -468,15 +503,14 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             ?: return null
         val axis = bearingAxis
         val hingeRot = getHingeRotation(direction)
-        val extraDist = 1.0
 
         return JointRemovalSnapshot(
             subShipId = subShipId,
             mainShipId = expectedMainShipId,
             mainShipIdKnown = expectedMainShipIdKnown,
-            subPos = bearingPos.fma(-extraDist, axis, Vector3d()),
+            subPos = Vector3d(bearingPos).fma(0.5, axis, Vector3d()),
             subRot = Quaterniond(hingeRot),
-            mainPos = Vector3d(worldPosition.center.toJOML()).fma(-extraDist, axis, Vector3d()),
+            mainPos = Vector3d(worldPosition.center.toJOML()).fma(0.5, axis, Vector3d()),
             mainRot = Quaterniond(hingeRot),
         )
     }
@@ -652,6 +686,15 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     override fun destroy() {
         val level = level ?: return
         if (level.isClientSide || level !is ServerLevel) return
+        // If the bearing is broken while running and the ship is aligned, disassemble it instead of leaving the
+        // assembled sub-ship behind.
+        if (isRunning && shiptraptionID != NO_SHIPTRAPTION_ID) {
+            val subShip = level.shipObjectWorld.loadedShips.getById(shiptraptionID)
+            val mainShip = level.getShipObjectManagingPos(worldPosition)
+            if (subShip != null && canDisassemble(bearingAxis, subShip, mainShip)) {
+                shipDisassemble()
+            }
+        }
         scheduleJointRemoval(level)
     }
 
@@ -738,6 +781,18 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         joint = null
         shouldVerifyConnection = false
         aligning = false
+        pendingBreakDisassemble = false
+
+        if (breakAfterDisassemble) {
+            breakAfterDisassemble = false
+            val drop = breakAfterDisassembleDropItems
+            breakAfterDisassembleDropItems = true
+            if (level != null && !level.isClientSide) {
+                if (level.getBlockState(worldPosition).block is BearingBlock) {
+                    level.destroyBlock(worldPosition, drop)
+                }
+            }
+        }
     }
 
     private fun tryAssembleNextTick() {
@@ -811,6 +866,10 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (!level!!.isClientSide) {
             if (isRunning && originalDirection == null && level!!.getBlockState(worldPosition).block is BearingBlock) {
                 originalDirection = blockState.getValue(BearingBlock.FACING)
+            }
+            if (pendingBreakDisassemble && ticks - lastStateChanged > cooldown) {
+                pendingBreakDisassemble = false
+                disassemble()
             }
             if (isRunning && shiptraptionID != NO_SHIPTRAPTION_ID) {
                 // If the connected ship was removed (not just unloaded), close back up.
@@ -971,13 +1030,13 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         private const val FOLLOW_ANGLE_TARGET_ERROR_MIN_DEG: Double = 0.5
         private const val MAX_MOTOR_ACCEL: Double = 200.0
         private const val MAX_MOTOR_DELTA_OMEGA: Double = 1.0
+        private const val MAX_APPLIED_TORQUE_MAG: Double = 1.0E9
         private const val ANGLE_FOLLOW_WN: Double = 25.0
         private const val ANGLE_FOLLOW_ZETA: Double = 1.5
         private const val ANGLE_FOLLOW_KP: Double = ANGLE_FOLLOW_WN * ANGLE_FOLLOW_WN
         private const val ANGLE_FOLLOW_KD: Double = 2.0 * ANGLE_FOLLOW_WN * ANGLE_FOLLOW_ZETA
         private const val JOINT_MATCH_POS_TOLERANCE: Double = 1e-3
         private const val JOINT_MATCH_ROT_DOT_TOLERANCE: Double = 1e-5
-        private val DEFAULT_MAX_FORCE_TORQUE = VSJointMaxForceTorque(1.0E10F, 1.0E10F)
 
         //tolerance is in degrees
         @JvmStatic
@@ -1006,16 +1065,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val axisGlobal = Vector3d(bearingAxis)
         mainShip?.transform?.shipToWorldRotation?.transform(axisGlobal)
 
-        // Skip if joint axes aren't aligned enough (prevents unstable torque if something got misconfigured)
-        val subAxisGlobal = subShip.transform.shipToWorldRotation.transform(Vector3d(bearingAxis), Vector3d())
-        val axisInMain = if (mainShip != null) {
-            mainShip.transform.shipToWorldRotation.transformInverse(subAxisGlobal, Vector3d())
-        } else {
-            subAxisGlobal
-        }
-        val cos = axisInMain.angleCos(bearingAxis)
-        if (cos < 0.9961947 && cos > -0.9961947) return Vector3d()
-
         val angleWrapped = getAngle(bearingAxis, subShip.transform, mainShip?.transform)
         val actualAngle = angleWrapped + (Math.PI * 2.0) * Math.round((targetAngleRad - angleWrapped) / (Math.PI * 2.0))
         val angleError = targetAngleRad - actualAngle
@@ -1029,7 +1078,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val effectiveInertia = getEffectiveAngularInertia(subShip, mainShip, axisGlobal, subLocalPos, mainLocalPos)
         if (effectiveInertia <= 0.0) return Vector3d()
 
-        val accelCmd = angleError * ANGLE_FOLLOW_KP + omegaError * ANGLE_FOLLOW_KD
+        val accelCmdUnclamped = angleError * ANGLE_FOLLOW_KP + omegaError * ANGLE_FOLLOW_KD
+        val accelLimit = motorAccelCap(dtSeconds, maxDeltaOmega = 20.0)
+        val accelCmd = accelCmdUnclamped.coerceIn(-accelLimit, accelLimit)
         val torqueMag = effectiveInertia * accelCmd
         return axisGlobal.mul(torqueMag, Vector3d())
     }
@@ -1046,16 +1097,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         // Axis in world space
         val axisGlobal = Vector3d(bearingAxis)
         mainShip?.transform?.shipToWorldRotation?.transform(axisGlobal)
-
-        // Skip if joint axes aren't aligned enough (prevents unstable torque if something got misconfigured)
-        val subAxisGlobal = subShip.transform.shipToWorldRotation.transform(Vector3d(bearingAxis), Vector3d())
-        val axisInMain = if (mainShip != null) {
-            mainShip.transform.shipToWorldRotation.transformInverse(subAxisGlobal, Vector3d())
-        } else {
-            subAxisGlobal
-        }
-        val cos = axisInMain.angleCos(bearingAxis)
-        if (cos < 0.9961947 && cos > -0.9961947) return Vector3d()
 
         val omegaTarget = -desiredAngularVelocity.toDouble()
         val omegaRelative = Vector3d(subShip.angularVelocity).also { rel ->
