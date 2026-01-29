@@ -42,6 +42,7 @@ import org.valkyrienskies.mod.api.dimensionId
 import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.vsCore
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.roundToInt
 
@@ -88,6 +89,7 @@ object ClockworkMod {
     val GAS_CREATIVE_TABINFO: ResourceKey<CreativeModeTab> = GAS_CREATIVE_TAB.key
 
     val physTickOnce = ConcurrentLinkedQueue<Pair<DimensionId, (PhysLevel, Double, () -> Unit) -> Unit>>()
+    private val lastPhysDeltaSecondsByDimension = ConcurrentHashMap<DimensionId, Double>()
 
     @OptIn(VsBeta::class)
     @JvmStatic
@@ -165,6 +167,7 @@ object ClockworkMod {
         vsApi.collisionStartEvent.on(CollisionSoundEffectHandler::onCollide)
 
         vsApi.physTickEvent.on {
+            lastPhysDeltaSecondsByDimension[it.world.dimension] = it.delta
             val temp = mutableListOf<Pair<DimensionId, (PhysLevel, Double, () -> Unit) -> Unit>>()
             while (physTickOnce.isNotEmpty()) {
                 val (dimension, fn) = physTickOnce.poll() ?: continue
@@ -185,6 +188,11 @@ object ClockworkMod {
     @JvmStatic
     fun physTickOnce(dimensionId: String, fn: (level: PhysLevel, delta: Double, tryNextTick: () -> Unit) -> Unit) {
         physTickOnce.add(dimensionId to fn)
+    }
+
+    @JvmStatic
+    fun getLastPhysDeltaSeconds(dimensionId: DimensionId): Double {
+        return lastPhysDeltaSecondsByDimension[dimensionId] ?: (1.0 / 60.0)
     }
 
     @JvmStatic
