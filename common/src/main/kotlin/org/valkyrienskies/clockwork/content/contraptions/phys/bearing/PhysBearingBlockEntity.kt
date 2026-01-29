@@ -800,8 +800,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         const val NO_SHIPTRAPTION_ID: Long = -1
         private const val UNKNOWN_MAIN_SHIP_ID: Long = Long.MIN_VALUE
         private const val REVOLUTE_DRIVE_WARMUP_TICKS: Int = 5
-        private const val MAX_MOTOR_ACCEL: Double = 20.0
+        private const val MAX_MOTOR_ACCEL: Double = 200.0
         private const val MAX_MOTOR_DELTA_OMEGA: Double = 1.0
+        private const val MAX_MOTOR_DELTA_OMEGA_STOP: Double = 4.0
         private const val ANGLE_FOLLOW_WN: Double = 6.0
         private const val ANGLE_FOLLOW_KP: Double = ANGLE_FOLLOW_WN * ANGLE_FOLLOW_WN
         private const val ANGLE_FOLLOW_KD: Double = 2.0 * ANGLE_FOLLOW_WN
@@ -815,9 +816,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         }
     }
 
-    private fun motorAccelCap(dtSeconds: Double): Double {
+    private fun motorAccelCap(dtSeconds: Double, maxDeltaOmega: Double = MAX_MOTOR_DELTA_OMEGA): Double {
         if (dtSeconds <= 1e-6) return MAX_MOTOR_ACCEL
-        return min(MAX_MOTOR_ACCEL, MAX_MOTOR_DELTA_OMEGA / dtSeconds)
+        return min(MAX_MOTOR_ACCEL, maxDeltaOmega / dtSeconds)
     }
 
     private fun computeAngleFollowingTorque(
@@ -857,7 +858,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val effectiveInertia = getEffectiveAngularInertia(subShip, mainShip, axisGlobal, subLocalPos, mainLocalPos)
         if (effectiveInertia <= 0.0) return Vector3d()
 
-        val accelCmd = (angleError * ANGLE_FOLLOW_KP + omegaError * ANGLE_FOLLOW_KD).coerceIn(-motorAccelCap(dtSeconds), motorAccelCap(dtSeconds))
+        val maxDeltaOmega = if (abs(targetAngularVelocity) <= 1e-3) MAX_MOTOR_DELTA_OMEGA_STOP else MAX_MOTOR_DELTA_OMEGA
+        val accelLimit = motorAccelCap(dtSeconds, maxDeltaOmega)
+        val accelCmd = (angleError * ANGLE_FOLLOW_KP + omegaError * ANGLE_FOLLOW_KD).coerceIn(-accelLimit, accelLimit)
         val torqueMag = effectiveInertia * accelCmd
         return axisGlobal.mul(torqueMag, Vector3d())
     }
