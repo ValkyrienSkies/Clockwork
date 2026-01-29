@@ -45,7 +45,6 @@ public class ClockworkModForge {
         if (Platform.isModLoaded("computercraft")) {
             EVENT_BUS.register(new CCTweakedForgeEvents());
         }
-        EVENT_BUS.register(new PhysBearingForgeEvents());
 
         EventBuses.registerModEventBus(MOD_ID, modEventBus);
         ClockworkMod.INSTANCE.getREGISTRATE().registerEventListeners(modEventBus);

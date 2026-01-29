@@ -111,7 +111,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     private var ticks = 0
     private var lastStateChanged = 0
     private var cooldown = 20
-    private var pendingBreakDisassemble: Boolean = false
 
     private var sequencedAngleLimit = -1.0f
     private var sequencedAngleProgress = 0f
@@ -123,27 +122,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     private var lastSpeed = 0f
     private var lastMode = PhysBearingRotationMode.UNLOCKED
-    private var breakAfterDisassemble: Boolean = false
-    private var breakAfterDisassembleDropItems: Boolean = true
-
-    fun requestBreakAfterDisassemble(dropItems: Boolean): Boolean {
-        val wasRequested = breakAfterDisassemble
-        breakAfterDisassemble = true
-        breakAfterDisassembleDropItems = dropItems
-        return !wasRequested
-    }
-
-    fun requestDisassembleFromBreak() {
-        if (!isRunning) return
-        if (aligning || disassembleWhenPossible) return
-
-        // If we're still on cooldown (e.g., just assembled), schedule the disassembly to start once cooldown expires.
-        if (ticks - lastStateChanged <= cooldown) {
-            pendingBreakDisassemble = true
-            return
-        }
-        disassemble()
-    }
 
     init {
         setLazyTickRate(3)
@@ -686,15 +664,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     override fun destroy() {
         val level = level ?: return
         if (level.isClientSide || level !is ServerLevel) return
-        // If the bearing is broken while running and the ship is aligned, disassemble it instead of leaving the
-        // assembled sub-ship behind.
-        if (isRunning && shiptraptionID != NO_SHIPTRAPTION_ID) {
-            val subShip = level.shipObjectWorld.loadedShips.getById(shiptraptionID)
-            val mainShip = level.getShipObjectManagingPos(worldPosition)
-            if (subShip != null && canDisassemble(bearingAxis, subShip, mainShip)) {
-                shipDisassemble()
-            }
-        }
         scheduleJointRemoval(level)
     }
 
@@ -781,18 +750,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         joint = null
         shouldVerifyConnection = false
         aligning = false
-        pendingBreakDisassemble = false
-
-        if (breakAfterDisassemble) {
-            breakAfterDisassemble = false
-            val drop = breakAfterDisassembleDropItems
-            breakAfterDisassembleDropItems = true
-            if (level != null && !level.isClientSide) {
-                if (level.getBlockState(worldPosition).block is BearingBlock) {
-                    level.destroyBlock(worldPosition, drop)
-                }
-            }
-        }
     }
 
     private fun tryAssembleNextTick() {
@@ -866,10 +823,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (!level!!.isClientSide) {
             if (isRunning && originalDirection == null && level!!.getBlockState(worldPosition).block is BearingBlock) {
                 originalDirection = blockState.getValue(BearingBlock.FACING)
-            }
-            if (pendingBreakDisassemble && ticks - lastStateChanged > cooldown) {
-                pendingBreakDisassemble = false
-                disassemble()
             }
             if (isRunning && shiptraptionID != NO_SHIPTRAPTION_ID) {
                 // If the connected ship was removed (not just unloaded), close back up.
