@@ -28,6 +28,7 @@ import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.clockwork.util.ClockworkUtils.getVector3d
 import org.valkyrienskies.core.api.ships.ServerShip
+import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.assembly.ICopyableBlock
 import org.valkyrienskies.mod.util.putVector3d
 import java.util.function.Consumer
@@ -44,12 +45,44 @@ class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<P
     ): CompoundTag? {
         val tag = tag ?: return null
 
-        if (!tag.contains(ClockworkConstants.Nbt.SHIPTRAPTION_ID)) return tag
-        val oldShiptraptionCenter = tag.getVector3d(ClockworkConstants.Nbt.NEW_SHIPTRAPTION_CENTER) ?: return tag
-        val oldId = tag.getLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID)
-        tag.putLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID, oldShipIdToNewId[oldId] ?: -1)
-        val (oldCenter, newCenter) = centerPositions[oldId] ?: (Vector3d() to Vector3d())
-        tag.putVector3d(ClockworkConstants.Nbt.NEW_SHIPTRAPTION_CENTER, oldShiptraptionCenter.sub(oldCenter).add(newCenter))
+        // Remap the main ship id (the ship the bearing block itself is on). If we can't remap, force a re-resolve.
+        if (tag.contains("mainShipId")) {
+            val oldMainId = tag.getLong("mainShipId")
+            if (oldMainId != PhysBearingBlockEntity.NO_SHIPTRAPTION_ID) {
+                val newMainId = oldShipIdToNewId[oldMainId]
+                if (newMainId != null) {
+                    tag.putLong("mainShipId", newMainId)
+                } else {
+                    val shipNow = level.getShipManagingPos(pos)
+                    if (shipNow != null) {
+                        tag.putLong("mainShipId", shipNow.id)
+                    } else {
+                        tag.putLong("mainShipId", PhysBearingBlockEntity.NO_SHIPTRAPTION_ID)
+                    }
+                }
+            }
+        }
+
+        // Remap the connected ship id and adjust stored bearing-local coordinates by the new ship center.
+        if (tag.contains(ClockworkConstants.Nbt.SHIPTRAPTION_ID)) {
+            val oldSubShipId = tag.getLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID)
+            val newSubShipId = oldShipIdToNewId[oldSubShipId] ?: PhysBearingBlockEntity.NO_SHIPTRAPTION_ID
+            tag.putLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID, newSubShipId)
+            tag.remove("jointID")
+
+            val bearingPos = tag.getVector3d("bearingPos")
+            val centers = centerPositions[oldSubShipId]
+            if (bearingPos != null && centers != null) {
+                val (oldCenter, newCenter) = centers
+                tag.putVector3d("bearingPos", bearingPos.sub(oldCenter, Vector3d()).add(newCenter))
+            }
+
+            if (newSubShipId == PhysBearingBlockEntity.NO_SHIPTRAPTION_ID) {
+                tag.putBoolean(ClockworkConstants.Nbt.RUNNING, false)
+            }
+        } else {
+            tag.remove("jointID")
+        }
         return tag
     }
 

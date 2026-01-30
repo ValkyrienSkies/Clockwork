@@ -91,8 +91,13 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     @Volatile private var desiredModeOrdinal: Int = PhysBearingRotationMode.UNLOCKED.ordinal
     @Volatile private var desiredAngularVelocity: Float = 0f
     @Volatile private var physTargetAngle: Double = 0.0
-    @Volatile private var desiredAngleOmega: Double = 0.0
     @Volatile private var physAligning: Boolean = false
+    private var lastFixedJointMainRot: Quaterniond? = null
+    private var followAngleSmoothInitialized: Boolean = false
+    private var followAngleSmoothTimeSeconds: Double = 0.0
+    private var followAngleSmoothFromAngleRad: Double = 0.0
+    private var followAngleSmoothToAngleRad: Double = 0.0
+    private var followAngleSmoothCurrentAngleRad: Double = 0.0
 
     private var lastException: AssemblyException? = null
     private var open = false
@@ -120,7 +125,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     private var aligning = false
     private var bearingAxis: Vector3d = Vector3d()
 
-    private var lastSpeed = 0f
     private var lastMode = PhysBearingRotationMode.UNLOCKED
 
     init {
@@ -149,6 +153,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val vsiPhysLevel = physLevel as? VsiPhysLevel ?: return
 
         if (!isRunning || shiptraptionID == NO_SHIPTRAPTION_ID) return
+        val dtSeconds = if (this::dimension.isInitialized) {
+            ClockworkMod.getLastPhysDeltaSeconds(dimension)
+        } else {
+            1.0 / 60.0
+        }
 
         // If this bearing is mounted on a ship, prefer the physics-provided owning ship id. This prevents cases where
         // game ticks run before the owning ship is fully loaded and we accidentally treat it as world-attached.
@@ -174,6 +183,40 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val subPose = VSJointPose(Vector3d(bearingPos).fma(0.5, axis, Vector3d()), hingeRot)
         val mainPose = VSJointPose(Vector3d(worldPosition.center.toJOML()).fma(0.5, axis, Vector3d()), hingeRot)
         val existing = if (jointID != -1) vsiPhysLevel.getJointById(jointID) else null
+
+        val fixedJointMaxForceTorque = run {
+            val axisGlobal = Vector3d(axis)
+            mainPhysShip?.transform?.shipToWorldRotation?.transform(axisGlobal)
+
+            val inertia = getEffectiveAngularInertia(subPhysShip, mainPhysShip, axisGlobal, subPose.pos, mainPose.pos)
+            val omegaRelative = Vector3d(subPhysShip.angularVelocity).also { rel ->
+                if (mainPhysShip != null && !mainPhysShip.isStatic) rel.sub(mainPhysShip.angularVelocity)
+            }
+            val omegaAlongAxis = abs(axisGlobal.dot(omegaRelative))
+            val accelToStopNow = if (dtSeconds > 1e-6) omegaAlongAxis / dtSeconds else omegaAlongAxis
+            val targetAccel = max(FIXED_JOINT_MAX_ANG_ACCEL_RAD_S2, accelToStopNow)
+
+            val maxTorque = (inertia * targetAccel).coerceIn(FIXED_JOINT_MIN_TORQUE, FIXED_JOINT_MAX_TORQUE_CAP)
+            VSJointMaxForceTorque(FIXED_JOINT_MAX_FORCE, maxTorque.toFloat())
+        }
+
+        fun fixedJointForAngle(targetAngleRad: Double): VSFixedJoint {
+            val mainRot = quaternionAroundAxis(axis, targetAngleRad).mul(hingeRot, Quaterniond()).normalize()
+            val last = lastFixedJointMainRot
+            if (last != null && mainRot.dot(last) < 0.0) {
+                mainRot.set(-mainRot.x, -mainRot.y, -mainRot.z, -mainRot.w)
+            }
+            lastFixedJointMainRot = Quaterniond(mainRot)
+            return VSFixedJoint(
+                shipId0 = shiptraptionID,
+                pose0 = subPose,
+                shipId1 = mainId,
+                pose1 = VSJointPose(mainPose.pos, mainRot),
+                maxForceTorque = fixedJointMaxForceTorque,
+                compliance = FIXED_JOINT_COMPLIANCE,
+            )
+        }
+
         if (shouldVerifyConnection) {
             if (existing != null) {
                 joint = existing
@@ -181,18 +224,29 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             } else {
                 jointID = -1
                 joint = null
-                val newJoint: VSJoint = VSRevoluteJoint(
-                    shiptraptionID,
-                    subPose,
-                    mainId,
-                    mainPose,
-                    driveFreeSpin = true,
-                )
+                val newJoint: VSJoint = if (shouldFollowAngle) {
+                    lastFixedJointMainRot = null
+                    followAngleSmoothInitialized = false
+                    val targetAngleRad = if (physAligning) 0.0 else Math.toRadians(physTargetAngle)
+                    val rotationApplied = !physAligning && abs(desiredAngularVelocity) > 1e-6f
+                    fixedJointForAngle(smoothFollowAngleTarget(targetAngleRad, dtSeconds, rotationApplied))
+                } else {
+                    lastFixedJointMainRot = null
+                    followAngleSmoothInitialized = false
+                    VSRevoluteJoint(
+                        shiptraptionID,
+                        subPose,
+                        mainId,
+                        mainPose,
+                        driveFreeSpin = true,
+                    )
+                }
                 val id = vsiPhysLevel.addJoint(newJoint)
                 if (id != -1) {
                     jointID = id
                     joint = newJoint
                     shouldVerifyConnection = false
+                    driveWarmupTicks = if (shouldFollowAngle) 0 else REVOLUTE_DRIVE_WARMUP_TICKS
                 }
                 return
             }
@@ -200,33 +254,52 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             return
         }
 
-        val updated = when (existing) {
-            is VSRevoluteJoint -> existing.copy(
-                maxForceTorque = existing.maxForceTorque,
-                driveVelocity = null,
-                driveForceLimit = null,
-                driveGearRatio = null,
-                driveFreeSpin = true
-            )
-            is VSFixedJoint -> VSRevoluteJoint(
-                existing.shipId0,
-                existing.pose0,
-                existing.shipId1,
-                existing.pose1,
-                driveFreeSpin = true,
-            )
-            else -> return
+        val updated: VSJoint = if (shouldFollowAngle) {
+            val targetAngleRad = if (physAligning) 0.0 else Math.toRadians(physTargetAngle)
+            when (existing) {
+                is VSFixedJoint -> {
+                    val rotationApplied = !physAligning && abs(desiredAngularVelocity) > 1e-6f
+                    fixedJointForAngle(smoothFollowAngleTarget(targetAngleRad, dtSeconds, rotationApplied))
+                }
+                is VSRevoluteJoint -> {
+                    lastFixedJointMainRot = null
+                    followAngleSmoothInitialized = false
+                    val rotationApplied = !physAligning && abs(desiredAngularVelocity) > 1e-6f
+                    fixedJointForAngle(smoothFollowAngleTarget(targetAngleRad, dtSeconds, rotationApplied))
+                }
+                else -> return
+            }
+        } else {
+            when (existing) {
+                is VSRevoluteJoint -> existing.copy(
+                    maxForceTorque = existing.maxForceTorque,
+                    driveVelocity = null,
+                    driveForceLimit = null,
+                    driveGearRatio = null,
+                    driveFreeSpin = true
+                )
+                is VSFixedJoint -> {
+                    lastFixedJointMainRot = null
+                    followAngleSmoothInitialized = false
+                    driveWarmupTicks = REVOLUTE_DRIVE_WARMUP_TICKS
+                    VSRevoluteJoint(
+                        existing.shipId0,
+                        existing.pose0,
+                        existing.shipId1,
+                        existing.pose1,
+                        driveFreeSpin = true,
+                    )
+                }
+                else -> return
+            }
         }
         if (updated != existing) {
             vsiPhysLevel.updateJoint(jointID, updated)
             joint = updated
         }
 
-        val activeJoint = if (updated != existing) updated else existing
-        val (subLocalPos, mainLocalPos) = when (activeJoint) {
-            is VSRevoluteJoint -> activeJoint.pose0.pos to activeJoint.pose1.pos
-            is VSFixedJoint -> activeJoint.pose0.pos to activeJoint.pose1.pos
-            else -> return
+        if (shouldFollowAngle) {
+            return
         }
 
         // Drive revolute rotation via torque instead of the built-in velocity drive.
@@ -234,36 +307,21 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             driveWarmupTicks--
             return
         }
-        val dtSeconds = if (this::dimension.isInitialized) {
-            ClockworkMod.getLastPhysDeltaSeconds(dimension)
-        } else {
-            1.0 / 60.0
-        }
+        if (abs(desiredAngularVelocity) <= 1e-6f) return
 
-        val torque = if (shouldFollowAngle) {
-            val targetAngleRad = if (physAligning) 0.0 else Math.toRadians(physTargetAngle)
-            val targetAngularVelocity = if (physAligning) 0.0 else desiredAngleOmega
-            computeAngleFollowingTorque(
-                subShip = subPhysShip,
-                mainShip = mainPhysShip,
-                bearingAxis = axis,
-                targetAngleRad = targetAngleRad,
-                targetAngularVelocity = targetAngularVelocity,
-                subLocalPos = subLocalPos,
-                mainLocalPos = mainLocalPos,
-                dtSeconds = dtSeconds,
-            )
-        } else {
-            computeUnlockedTorque(
-                subShip = subPhysShip,
-                mainShip = mainPhysShip,
-                bearingAxis = axis,
-                desiredAngularVelocity = desiredAngularVelocity,
-                subLocalPos = subLocalPos,
-                mainLocalPos = mainLocalPos,
-                dtSeconds = dtSeconds,
-            )
-        }
+        val revoluteJoint = updated as? VSRevoluteJoint ?: return
+        val subLocalPos = revoluteJoint.pose0.pos
+        val mainLocalPos = revoluteJoint.pose1.pos
+
+        val torque = computeUnlockedTorque(
+            subShip = subPhysShip,
+            mainShip = mainPhysShip,
+            bearingAxis = axis,
+            desiredAngularVelocity = desiredAngularVelocity,
+            subLocalPos = subLocalPos,
+            mainLocalPos = mainLocalPos,
+            dtSeconds = dtSeconds,
+        )
 
         if (torque.lengthSquared() > 1e-18) {
             val torqueMag = torque.length()
@@ -335,11 +393,12 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         bearingAxis = tag.getVector3d("bearingAxis") ?: (originalDirection?.normal?.toJOMLD() ?: Vector3d(0.0, 1.0, 0.0))
         aligning = tag.getBoolean("aligning")
         physTargetAngle = if (aligning) 0.0 else targetAngleUnwrapped
-        desiredAngleOmega = 0.0
         physAligning = aligning
         mainShipId = if (tag.contains("mainShipId")) tag.getLong("mainShipId") else UNKNOWN_MAIN_SHIP_ID
         unresolvedMainShipTicks = 0
         driveWarmupTicks = if (isRunning) REVOLUTE_DRIVE_WARMUP_TICKS else 0
+        lastFixedJointMainRot = null
+        followAngleSmoothInitialized = false
         joint = null
         jointID = if (isRunning && tag.contains("jointID")) tag.getInt("jointID") else -1
 
@@ -437,10 +496,53 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         return hingeOrientation
     }
 
+    private fun quaternionAroundAxis(axis: Vector3dc, angleRad: Double): Quaterniond {
+        val half = angleRad * 0.5
+        val s = sin(half)
+        return Quaterniond(
+            axis.x() * s,
+            axis.y() * s,
+            axis.z() * s,
+            org.joml.Math.cosFromSin(s, half),
+        )
+    }
+
+    private fun smoothFollowAngleTarget(targetAngleRad: Double, dtSeconds: Double, rotationApplied: Boolean): Double {
+        if (!followAngleSmoothInitialized) {
+            followAngleSmoothInitialized = true
+            followAngleSmoothFromAngleRad = targetAngleRad
+            followAngleSmoothToAngleRad = targetAngleRad
+            followAngleSmoothCurrentAngleRad = targetAngleRad
+            followAngleSmoothTimeSeconds = GAME_TICK_SECONDS
+            return targetAngleRad
+        }
+
+        if (!rotationApplied) {
+            followAngleSmoothFromAngleRad = targetAngleRad
+            followAngleSmoothToAngleRad = targetAngleRad
+            followAngleSmoothCurrentAngleRad = targetAngleRad
+            followAngleSmoothTimeSeconds = GAME_TICK_SECONDS
+            return targetAngleRad
+        }
+
+        if (targetAngleRad != followAngleSmoothToAngleRad) {
+            followAngleSmoothFromAngleRad = followAngleSmoothCurrentAngleRad
+            followAngleSmoothToAngleRad = targetAngleRad
+            followAngleSmoothTimeSeconds = 0.0
+        }
+
+        followAngleSmoothTimeSeconds = min(GAME_TICK_SECONDS, followAngleSmoothTimeSeconds + dtSeconds)
+        val alpha = if (GAME_TICK_SECONDS <= 1e-9) 1.0 else followAngleSmoothTimeSeconds / GAME_TICK_SECONDS
+        followAngleSmoothCurrentAngleRad =
+            followAngleSmoothFromAngleRad + (followAngleSmoothToAngleRad - followAngleSmoothFromAngleRad) * alpha
+        return followAngleSmoothCurrentAngleRad
+    }
+
     private data class JointRemovalSnapshot(
         val subShipId: Long,
         val mainShipId: Long?,
         val mainShipIdKnown: Boolean,
+        val rotationsKnown: Boolean,
         val subPos: Vector3d,
         val subRot: Quaterniond,
         val mainPos: Vector3d,
@@ -477,7 +579,35 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             else -> mainShipId to true
         }
 
-        val direction = originalDirection ?: (blockState.block as? BearingBlock)?.let { blockState.getValue(BearingBlock.FACING) }
+        val currentJoint = joint
+        if (currentJoint is VSRevoluteJoint || currentJoint is VSFixedJoint) {
+            val pose0: VSJointPose
+            val pose1: VSJointPose
+            when (currentJoint) {
+                is VSRevoluteJoint -> {
+                    pose0 = currentJoint.pose0
+                    pose1 = currentJoint.pose1
+                }
+                is VSFixedJoint -> {
+                    pose0 = currentJoint.pose0
+                    pose1 = currentJoint.pose1
+                }
+                else -> throw AssertionError()
+            }
+            return JointRemovalSnapshot(
+                subShipId = subShipId,
+                mainShipId = expectedMainShipId,
+                mainShipIdKnown = expectedMainShipIdKnown,
+                rotationsKnown = true,
+                subPos = Vector3d(pose0.pos),
+                subRot = Quaterniond(pose0.rot),
+                mainPos = Vector3d(pose1.pos),
+                mainRot = Quaterniond(pose1.rot),
+            )
+        }
+
+        val direction = originalDirection
+            ?: (blockState.block as? BearingBlock)?.let { blockState.getValue(BearingBlock.FACING) }
             ?: return null
         val axis = bearingAxis
         val hingeRot = getHingeRotation(direction)
@@ -486,6 +616,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             subShipId = subShipId,
             mainShipId = expectedMainShipId,
             mainShipIdKnown = expectedMainShipIdKnown,
+            rotationsKnown = false,
             subPos = Vector3d(bearingPos).fma(0.5, axis, Vector3d()),
             subRot = Quaterniond(hingeRot),
             mainPos = Vector3d(worldPosition.center.toJOML()).fma(0.5, axis, Vector3d()),
@@ -556,8 +687,10 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         if (!positionsMatch(subPosCandidate, expected.subPos)) return false
         if (!positionsMatch(mainPosCandidate, expected.mainPos)) return false
-        if (!rotationsMatch(subRotCandidate, expected.subRot)) return false
-        if (!rotationsMatch(mainRotCandidate, expected.mainRot)) return false
+        if (expected.rotationsKnown) {
+            if (!rotationsMatch(subRotCandidate, expected.subRot)) return false
+            if (!rotationsMatch(mainRotCandidate, expected.mainRot)) return false
+        }
         return true
     }
 
@@ -745,7 +878,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         targetAngleUnwrapped = 0.0
         isSpeedDrivenTargetAngle = false
         physTargetAngle = 0.0
-        desiredAngleOmega = 0.0
+        lastFixedJointMainRot = null
+        followAngleSmoothInitialized = false
         sendData()
         joint = null
         shouldVerifyConnection = false
@@ -860,7 +994,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 desiredModeOrdinal = mode.ordinal
                 desiredAngularVelocity = 0.0f
                 physTargetAngle = 0.0
-                desiredAngleOmega = 0.0
                 physAligning = aligning
             }
             return
@@ -919,14 +1052,13 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         if (!level!!.isClientSide) {
             desiredModeOrdinal = mode.ordinal
-            desiredAngularVelocity = if (mode != PhysBearingRotationMode.FOLLOW_ANGLE && !aligning && abs(getSpeed()) > 0.0f) {
+            desiredAngularVelocity = if (!aligning && abs(getSpeed()) > 0.0f) {
                 getRealisticAngularSpeed()
             } else {
                 0.0f
             }
             physAligning = aligning
             physTargetAngle = if (aligning) 0.0 else targetAngleUnwrapped
-            desiredAngleOmega = if (aligning) 0.0 else Math.toRadians(angleDeltaDeg) / 0.05
         }
     }
 
@@ -984,10 +1116,12 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         private const val MAX_MOTOR_ACCEL: Double = 200.0
         private const val MAX_MOTOR_DELTA_OMEGA: Double = 1.0
         private const val MAX_APPLIED_TORQUE_MAG: Double = 1.0E9
-        private const val ANGLE_FOLLOW_WN: Double = 25.0
-        private const val ANGLE_FOLLOW_ZETA: Double = 1.5
-        private const val ANGLE_FOLLOW_KP: Double = ANGLE_FOLLOW_WN * ANGLE_FOLLOW_WN
-        private const val ANGLE_FOLLOW_KD: Double = 2.0 * ANGLE_FOLLOW_WN * ANGLE_FOLLOW_ZETA
+        private const val GAME_TICK_SECONDS: Double = 1.0 / 20.0
+        private const val FIXED_JOINT_MAX_FORCE: Float = 1.0E10F
+        private const val FIXED_JOINT_COMPLIANCE: Double = 1e-12
+        private const val FIXED_JOINT_MAX_ANG_ACCEL_RAD_S2: Double = 10_000.0
+        private const val FIXED_JOINT_MIN_TORQUE: Double = 1.0E6
+        private const val FIXED_JOINT_MAX_TORQUE_CAP: Double = 1.0E12
         private const val JOINT_MATCH_POS_TOLERANCE: Double = 1e-3
         private const val JOINT_MATCH_ROT_DOT_TOLERANCE: Double = 1e-5
 
@@ -1002,40 +1136,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     private fun motorAccelCap(dtSeconds: Double, maxDeltaOmega: Double = MAX_MOTOR_DELTA_OMEGA): Double {
         if (dtSeconds <= 1e-6) return MAX_MOTOR_ACCEL
         return min(MAX_MOTOR_ACCEL, maxDeltaOmega / dtSeconds)
-    }
-
-    private fun computeAngleFollowingTorque(
-        subShip: PhysShip,
-        mainShip: PhysShip?,
-        bearingAxis: Vector3dc,
-        targetAngleRad: Double,
-        targetAngularVelocity: Double,
-        subLocalPos: Vector3dc,
-        mainLocalPos: Vector3dc,
-        dtSeconds: Double,
-    ): Vector3d {
-        // Axis in world space
-        val axisGlobal = Vector3d(bearingAxis)
-        mainShip?.transform?.shipToWorldRotation?.transform(axisGlobal)
-
-        val angleWrapped = getAngle(bearingAxis, subShip.transform, mainShip?.transform)
-        val actualAngle = angleWrapped + (Math.PI * 2.0) * Math.round((targetAngleRad - angleWrapped) / (Math.PI * 2.0))
-        val angleError = targetAngleRad - actualAngle
-
-        val omegaRelative = Vector3d(subShip.angularVelocity).also { rel ->
-            if (mainShip != null && !mainShip.isStatic) rel.sub(mainShip.angularVelocity)
-        }
-        val omegaActual = axisGlobal.dot(omegaRelative)
-        val omegaError = targetAngularVelocity - omegaActual
-
-        val effectiveInertia = getEffectiveAngularInertia(subShip, mainShip, axisGlobal, subLocalPos, mainLocalPos)
-        if (effectiveInertia <= 0.0) return Vector3d()
-
-        val accelCmdUnclamped = angleError * ANGLE_FOLLOW_KP + omegaError * ANGLE_FOLLOW_KD
-        val accelLimit = motorAccelCap(dtSeconds, maxDeltaOmega = 20.0)
-        val accelCmd = accelCmdUnclamped.coerceIn(-accelLimit, accelLimit)
-        val torqueMag = effectiveInertia * accelCmd
-        return axisGlobal.mul(torqueMag, Vector3d())
     }
 
     private fun computeUnlockedTorque(
