@@ -58,11 +58,13 @@
   "block.vs_clockwork.slicker": "物理结构黏着器",
   "item.vs_clockwork.slicker": "物理结构黏着器",
   "item.vs_clockwork.triode": "三极管",
+  "item.vs_clockwork.handheld_drill": "手持式动力钻头",
+  "item.vs_clockwork.handheld_saw": "手持式动力锯",
 
   "block.vs_clockwork.asteroid_block": "调试陨石生成器",
   "item.vs_clockwork.asteroid_block": "调试陨石生成器",
 
-  "item.vs_clockwork.music_disc_wanderlust": "修复了的音乐唱片",
+  "item.vs_clockwork.music_disc_wanderlust": "修复的音乐唱片",
   "item.vs_clockwork.music_disc_wanderlust.desc": "Tomato - wanderlust",
   "item.vs_clockwork.music_disc_wanderlust.lore1": "你使用了其他位面的材料修复了这张唱片。",
   "item.vs_clockwork.music_disc_wanderlust.lore2": "它再次完整了，但感觉有些地方……不一样了。",
@@ -144,8 +146,6 @@
   "resistor.resist_direction.none_to_max": "从小到大",
   "resistor.resist_direction.max_to_none": "从大到小",
 
-  "vs_clockwork.command.get_air_values": "处于 y：%d；密度：%d；温度：%d",
-
   "vs_clockwork.subtitle.gravitron_start": "重力枪：启动",
   "vs_clockwork.subtitle.gravitron_grab": "重力枪：抓取物理结构",
   "vs_clockwork.subtitle.gravitron_release": "重力枪：释放物理结构",
@@ -153,8 +153,8 @@
   "vs_clockwork.subtitle.gravitron_shutdown": "重力枪：关闭",
   "vs_clockwork.subtitle.gravitron_freeze": "创造模式重力枪：冻结物理结构",
 
-  "vs_clockwork.subtitle.gas_nozzle_start": "气体喷嘴：开启",
-  "vs_clockwork.subtitle.gas_nozzle_loop": "气体喷嘴：喷气",
+  "vs_clockwork.subtitle.gas_nozzle_start": "气体喷口：开启",
+  "vs_clockwork.subtitle.gas_nozzle_loop": "气体喷口：喷气",
   "vs_clockwork.subtitle.balloon_leaking_light": "热气球：缓慢漏气",
   "vs_clockwork.subtitle.balloon_leaking_heavy": "热气球：快速漏气",
   "vs_clockwork.subtitle.balloon_rupture": "热气球：破裂",
@@ -250,8 +250,8 @@
   "item.vs_clockwork.pump_duct": "气泵",
   "block.vs_clockwork.valve_duct": "气体阀门",
   "item.vs_clockwork.valve_duct": "气体阀门",
-  "block.vs_clockwork.gas_nozzle": "气体喷嘴",
-  "item.vs_clockwork.gas_nozzle": "气体喷嘴",
+  "block.vs_clockwork.gas_nozzle": "气体喷口",
+  "item.vs_clockwork.gas_nozzle": "气体喷口",
   "block.vs_clockwork.gas_vent": "气体通风口",
   "item.vs_clockwork.gas_vent": "气体通风口",
   "block.vs_clockwork.sealer": "便携式密封器",
@@ -456,11 +456,32 @@
   "vs_clockwork.gui.ductInfo.title": "管道信息:",
   "vs_clockwork.gui.ductInfo.volume": "体积：%s",
   "vs_clockwork.gui.ductInfo.temperature": "温度：%s",
+  "vs_clockwork.gui.ductInfo.wallTemperature": "管道壁温度：%s",
   "vs_clockwork.gui.ductInfo.pressure": "压力：%s",
   "vs_clockwork.gui.ductInfo.energy": "热能：%s",
   "vs_clockwork.gui.ductInfo.out_of": " / %s",
   "vs_clockwork.gui.ductInfo.title.contents": "管道内容物:",
   "vs_clockwork.gui.ductInfo.mass_total": "总计：%s",
+
+  "vs_clockwork.display_source.gas_nozzle.temp":  "温度（开尔文）",
+  "vs_clockwork.display_source.gas_nozzle.leaks":  "泄漏量",
+  "vs_clockwork.display_source.gas_nozzle.volume":  "气室体积（立方米）",
+
+  "vs_clockwork.display_source.copter_bearing.current": "当前向量",
+  "vs_clockwork.display_source.copter_bearing.target": "目标向量",
+  "vs_clockwork.display_source.copter_bearing.offset": "红石偏移向量",
+
+  "vs_clockwork.display_source.alt_meter.current": "当前高度",
+  "vs_clockwork.display_source.alt_meter.target": "目标高度",
+  "vs_clockwork.display_source.alt_meter.direction": "触发方向",
+
+  "vs_clockwork.display_source.phys_bearing.current": "当前角度",
+  "vs_clockwork.display_source.phys_bearing.mode": "运动模式",
+
+  "vs_clockwork.display_source.duct.masses": "总质量",
+  "vs_clockwork.display_source.duct.energy": "热能",
+  "vs_clockwork.display_source.duct.pressure": "压力",
+  "vs_clockwork.display_source.duct.temperature": "温度",
 
   "vs_clockwork.ponder.wanderwand.header": "漫游之杖",
   "vs_clockwork.ponder.wanderwand.text_1": "将漫游之杖放入物理注入器中",
