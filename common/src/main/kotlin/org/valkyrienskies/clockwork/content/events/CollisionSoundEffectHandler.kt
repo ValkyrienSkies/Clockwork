@@ -1,11 +1,7 @@
 package org.valkyrienskies.clockwork.content.events
 
-import kotlinx.coroutines.MainScope
-import net.fabricmc.loader.impl.lib.sat4j.core.Vec
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
-import net.minecraft.server.level.ServerPlayer
-import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Vector3d
@@ -13,24 +9,29 @@ import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.core.api.VsBeta
 import org.valkyrienskies.core.api.events.CollisionEvent
-import org.valkyrienskies.core.util.squared
-import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.shipObjectWorld
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.abs
 import kotlin.math.exp
-import kotlin.math.hypot
-import kotlin.math.log
+import kotlin.math.min
 import kotlin.math.pow
 
 @OptIn(VsBeta::class)
 object CollisionSoundEffectHandler {
 
     val collisionQueue = ConcurrentLinkedQueue<CollisionEvent>()
+    private val collisionQueueSize = AtomicInteger(0)
+    private const val MAX_COLLISION_EVENTS_PROCESSED_PER_TICK: Int = 16
 
     fun onCollide(event: CollisionEvent) {
-        if (ClockworkConfig.SERVER.collisionSoundEffects) collisionQueue.add(event)
+        if (!ClockworkConfig.SERVER.collisionSoundEffects) return
+        val max = ClockworkConfig.SERVER.collisionSoundEffectMax
+        // ConcurrentLinkedQueue#size is O(n); track size ourselves and drop overflow events.
+        if (collisionQueueSize.get() >= max) return
+        collisionQueue.add(event)
+        collisionQueueSize.incrementAndGet()
     }
 
     private fun getValidState(level: ServerLevel, pos: Vector3dc): BlockState {
@@ -44,16 +45,40 @@ object CollisionSoundEffectHandler {
     }
 
     fun tick(level: ServerLevel) {
-        val groundId = level.shipObjectWorld.dimensionToGroundBodyIdImmutable[level.dimensionId]
+        val groundId = level.shipObjectWorld.dimensionToGroundBodyIdImmutable[level.dimensionId] ?: -1L
 
-        if (collisionQueue.size > ClockworkConfig.SERVER.collisionSoundEffectMax) collisionQueue.clear()
+        val maxQueue = ClockworkConfig.SERVER.collisionSoundEffectMax
+        val maxRotations = min(maxQueue, MAX_COLLISION_EVENTS_PROCESSED_PER_TICK * 4)
 
-        while (!collisionQueue.isEmpty()) {
-            //if (collisionQueue.isNotEmpty()) println("Collision Queue size: ${collisionQueue.size}")
+        // The queue is shared across dimensions; rotate non-matching events instead of looping forever.
+        var rotations = 0
+        var processed = 0
+        if (collisionQueueSize.get() > maxQueue) {
+            // If the queue somehow exceeds max (e.g. config change), drain extras gradually to avoid large hitches.
+            var dropped = 0
+            while (dropped < MAX_COLLISION_EVENTS_PROCESSED_PER_TICK && collisionQueueSize.get() > maxQueue) {
+                val droppedEvent = collisionQueue.poll() ?: break
+                collisionQueueSize.decrementAndGet()
+                dropped++
+                // Keep events from other dimensions by rotating them to the back.
+                if (droppedEvent.dimensionId != level.dimensionId) {
+                    collisionQueue.add(droppedEvent)
+                    collisionQueueSize.incrementAndGet()
+                    rotations++
+                }
+            }
+        }
 
-            val event = collisionQueue.first()
-            if (event.dimensionId != level.dimensionId) continue
-            collisionQueue.remove()
+        while (processed < MAX_COLLISION_EVENTS_PROCESSED_PER_TICK && rotations < maxRotations) {
+            val event = collisionQueue.poll() ?: break
+            collisionQueueSize.decrementAndGet()
+            if (event.dimensionId != level.dimensionId) {
+                collisionQueue.add(event)
+                collisionQueueSize.incrementAndGet()
+                rotations++
+                continue
+            }
+            processed++
 
             val contact = event.contactPoints.first()
 
