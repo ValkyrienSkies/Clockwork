@@ -84,7 +84,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         private set
     @Volatile private var mainShipId: Long = UNKNOWN_MAIN_SHIP_ID
     @Volatile private var groundBodyId: Long = UNKNOWN_GROUND_BODY_ID
-    private var unresolvedMainShipTicks: Int = 0
     @Volatile private var driveWarmupTicks: Int = 0
     @Volatile private var shouldVerifyConnection: Boolean = false
     @Volatile private var desiredModeOrdinal: Int = PhysBearingRotationMode.UNLOCKED.ordinal
@@ -566,7 +565,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             mainShipId = UNKNOWN_MAIN_SHIP_ID
         }
         groundBodyId = serverLevel?.shipObjectWorld?.dimensionToGroundBodyIdImmutable?.get(serverLevel.dimensionId) ?: UNKNOWN_GROUND_BODY_ID
-        unresolvedMainShipTicks = 0
         driveWarmupTicks = if (isRunning) REVOLUTE_DRIVE_WARMUP_TICKS else 0
         followAngleSmoothInitialized = false
         joint = null
@@ -981,7 +979,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         this.bearingPos = bearingPos
         this.mainShipId = shipOn?.id ?: NO_SHIPTRAPTION_ID
         this.groundBodyId = level.shipObjectWorld.dimensionToGroundBodyIdImmutable[level.dimensionId] ?: UNKNOWN_GROUND_BODY_ID
-        this.unresolvedMainShipTicks = 0
         this.driveWarmupTicks = 0
         this.joint = null
         this.jointID = -1
@@ -1076,7 +1073,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         shiptraptionID = NO_SHIPTRAPTION_ID
         mainShipId = UNKNOWN_MAIN_SHIP_ID
         groundBodyId = UNKNOWN_GROUND_BODY_ID
-        unresolvedMainShipTicks = 0
         driveWarmupTicks = 0
         isRunning = false
         updateGeneratedRotation()
@@ -1181,15 +1177,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 val resolved = serverLevel.getShipManagingPos(worldPosition)?.id
                 if (resolved != null) {
                     mainShipId = resolved
-                    unresolvedMainShipTicks = 0
                 } else if (!serverLevel.isChunkInShipyard(worldPosition.x shr 4, worldPosition.z shr 4)) {
                     // Only treat this as world-attached if this chunk isn't part of any shipyard. Otherwise keep
                     // waiting; assuming world-attached can create a ground joint at the wrong location and launch
                     // the ship when it finally finishes loading.
                     mainShipId = NO_SHIPTRAPTION_ID
-                    unresolvedMainShipTicks = 0
-                } else {
-                    unresolvedMainShipTicks++
                 }
             } else if (isRunning && mainShipId == NO_SHIPTRAPTION_ID) {
                 // If we ever persisted a wrong world-attached main id while the bearing is actually on a ship,
@@ -1197,7 +1189,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 if (serverLevel.isChunkInShipyard(worldPosition.x shr 4, worldPosition.z shr 4)) {
                     val resolved = serverLevel.getShipManagingPos(worldPosition)?.id
                     mainShipId = resolved ?: UNKNOWN_MAIN_SHIP_ID
-                    unresolvedMainShipTicks = 0
                 }
             }
             if (lastMode != mode && mode == PhysBearingRotationMode.FOLLOW_ANGLE) {
