@@ -45,22 +45,14 @@ class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<P
     ): CompoundTag? {
         val tag = tag ?: return null
 
-        // Remap the main ship id (the ship the bearing block itself is on). If we can't remap, force a re-resolve.
-        if (tag.contains("mainShipId")) {
-            val oldMainId = tag.getLong("mainShipId")
-            if (oldMainId != PhysBearingBlockEntity.NO_SHIPTRAPTION_ID) {
-                val newMainId = oldShipIdToNewId[oldMainId]
-                if (newMainId != null) {
-                    tag.putLong("mainShipId", newMainId)
-                } else {
-                    val shipNow = level.getShipManagingPos(pos)
-                    if (shipNow != null) {
-                        tag.putLong("mainShipId", shipNow.id)
-                    } else {
-                        tag.putLong("mainShipId", PhysBearingBlockEntity.NO_SHIPTRAPTION_ID)
-                    }
-                }
-            }
+        // The bearing's main ship id should always match the ship it ends up placed on (or be unresolved if the ship
+        // isn't available yet). Remapping the old id can incorrectly leave a world-attached (-1) value when pasting
+        // into a ship, which can cause bad ground joints and loading impulses.
+        val shipNow = level.getShipManagingPos(pos)
+        if (shipNow != null) {
+            tag.putLong("mainShipId", shipNow.id)
+        } else {
+            tag.remove("mainShipId")
         }
 
         // Remap the connected ship id and adjust stored bearing-local coordinates by the new ship center.
