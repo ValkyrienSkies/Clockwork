@@ -125,6 +125,9 @@ object ClockworkConfig {
         var forceMulPerSailInPropeller = 5.0
 
         @ConfigEntry(min = 0.0)
+        var forceMulPerBladeInPropeller = 5.0
+
+        @ConfigEntry(min = 0.0)
         var encasedFanForceMul = 40.0
 
         @ConfigEntry(min = 0.0, description = "Wanderlite blocks exert enough force to lift their own weight, times this multiplier.")

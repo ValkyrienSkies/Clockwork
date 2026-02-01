@@ -186,7 +186,7 @@ class PropellerController(
             //            Vector3d force2 = force.mul(physProp.bearingSpeed, new Vector3d());
             val torque = rWorld.cross(force.mul(omegaSign, Vector3d()), Vector3d())
 
-            force.mul(10.0) //ClockworkConfig.SERVER.forceMulPerSailInPropeller)
+            force.mul(ClockworkConfig.SERVER.forceMulPerSailInPropeller)
 
             if (offsetFalloff > 0.0001) force.div(offsetFalloff)
             if (offsetFalloff > 0.0001) torque.div(offsetFalloff)
@@ -321,7 +321,7 @@ class PropellerController(
 
             val dThrust = (dLift * cos(phi) - dDrag * sin(phi)) * sf * velocityFalloff
 
-            val force = worldAxis.mul(dThrust * 10, Vector3d()).mul(omegaSign, Vector3d())
+            val force = worldAxis.mul(dThrust * ClockworkConfig.SERVER.forceMulPerBladeInPropeller, Vector3d()).mul(omegaSign, Vector3d())
             //val torque = rotatedDist.cross(force, Vector3d())
 
             netForce.add(force)
