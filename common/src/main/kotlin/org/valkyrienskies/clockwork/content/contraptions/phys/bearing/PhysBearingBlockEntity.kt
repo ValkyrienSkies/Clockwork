@@ -231,11 +231,12 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val stiffnessT = servoStiffnessSetting.toDouble() / SERVO_STIFFNESS_MAX.toDouble()
 
         val wn = lerpLog(SERVO_WN_MIN, SERVO_WN_MAX, stiffnessT.coerceIn(0.0, 1.0))
-        servoKp = wn * wn
-        servoKd = 2.0 * SERVO_DAMPING_RATIO * wn
+        val testScale = SERVO_TEST_SCALE
+        servoKp = wn * wn * testScale
+        servoKd = 2.0 * SERVO_DAMPING_RATIO * wn * testScale
 
-        servoMaxAlpha = lerpLog(SERVO_ALPHA_MIN, SERVO_ALPHA_MAX, strengthT.coerceIn(0.0, 1.0))
-        servoTorqueLimit = lerpLog(SERVO_FORCE_TORQUE_MIN, SERVO_FORCE_TORQUE_MAX, strengthT.coerceIn(0.0, 1.0))
+        servoMaxAlpha = lerpLog(SERVO_ALPHA_MIN, SERVO_ALPHA_MAX, strengthT.coerceIn(0.0, 1.0)) * testScale
+        servoTorqueLimit = lerpLog(SERVO_FORCE_TORQUE_MIN, SERVO_FORCE_TORQUE_MAX, strengthT.coerceIn(0.0, 1.0)) * testScale
     }
 
     private fun updateDrive() {
@@ -1208,6 +1209,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         // - "Stiffness" controls closed-loop natural frequency (wn), with Kp = wn^2.
         // - Kd is chosen for a fixed damping ratio to minimize sway/overshoot.
         // - "Strength" caps both max torque and max angular acceleration.
+        // Temporary: boost slider magnitudes for testing (e.g., UI 100 behaves like 1000).
+        private const val SERVO_TEST_SCALE = 1.0
         private const val SERVO_DAMPING_RATIO = 1.25
         private const val SERVO_WN_MIN = 4.0
         private const val SERVO_WN_MAX = 64.0
