@@ -364,6 +364,8 @@
   "vs_clockwork.phys_bearing.rotation_mode.follow_angle": "Suivre l'angle",
   "vs_clockwork.phys_bearing.rotation_mode.unlocked": "Débloqué",
   "vs_clockwork.phys_bearing.rotation_mode.locked": "Bloqué",
+  "vs_clockwork.phys_bearing.servo_strength": "Force du servo",
+  "vs_clockwork.phys_bearing.servo_stiffness": "Rigidité du servo",
 
   "vs_clockwork.gravitron.tool.grab": "Attraper",
   "vs_clockwork.gravitron.tool.assemble": "Assembler",

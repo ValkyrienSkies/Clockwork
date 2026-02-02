@@ -399,6 +399,8 @@
   "vs_clockwork.phys_bearing.rotation_mode.follow_angle": "Соответствуя углу",
   "vs_clockwork.phys_bearing.rotation_mode.locked": "Заблокированный",
   "vs_clockwork.phys_bearing.rotation_mode.unlocked": "Разблокированный",
+  "vs_clockwork.phys_bearing.servo_strength": "Сила сервопривода",
+  "vs_clockwork.phys_bearing.servo_stiffness": "Жёсткость сервопривода",
   "vs_clockwork.pump_duct.function1": "Создаёт разницу в давлении между",
   "vs_clockwork.pump_duct.function2": "помпой и газовой системой.",
   "vs_clockwork.subtitle.gravitron_fling": "Гравитрон запускает корабль",

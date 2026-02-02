@@ -364,6 +364,8 @@
   "vs_clockwork.phys_bearing.rotation_mode.follow_angle": "Açıyı Takip Et",
   "vs_clockwork.phys_bearing.rotation_mode.unlocked": "Açık",
   "vs_clockwork.phys_bearing.rotation_mode.locked": "Kilitli",
+  "vs_clockwork.phys_bearing.servo_strength": "Servo Gücü",
+  "vs_clockwork.phys_bearing.servo_stiffness": "Servo Sertliği",
 
   "vs_clockwork.gravitron.tool.grab": "Tut",
   "vs_clockwork.gravitron.tool.assemble": "Monte Et",

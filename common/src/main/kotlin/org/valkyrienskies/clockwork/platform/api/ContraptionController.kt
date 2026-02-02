@@ -11,7 +11,7 @@ interface ContraptionController : IControlContraption {
         FOLLOW_ANGLE(AllIcons.I_ROTATE_PLACE),
         UNLOCKED(AllIcons.I_ROTATE_PLACE_RETURNED),
         //TODO idk how to safely remove this
-        LOCKED(AllIcons.I_ROTATE_PLACE);
+        LOCKED(AllIcons.I_DISABLE);
 
 
         private val translationKey: String

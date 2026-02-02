@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.bearing
 
+import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllSoundEvents
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity
 import com.simibubi.create.content.contraptions.AssemblyException
@@ -9,21 +10,28 @@ import com.simibubi.create.content.contraptions.bearing.BearingBlock
 import com.simibubi.create.content.contraptions.bearing.IBearingBlockEntity
 import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity
 import com.simibubi.create.content.kinetics.transmission.sequencer.SequencerInstructions
+import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
+import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour
+import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour
 import com.simibubi.create.foundation.item.TooltipHelper
 import com.simibubi.create.foundation.utility.ServerSpeedProvider
+import dev.engine_room.flywheel.lib.transform.TransformStack
 import net.createmod.catnip.math.AngleHelper
+import net.createmod.catnip.math.VecHelper
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
+import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.ClipContext
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.phys.Vec3
 import org.joml.*
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkMod.MOD_ID
@@ -126,12 +134,25 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     @Volatile private var lockedHoldAngleRad: Double? = null
     @Volatile private var followOmegaFeedForwardRadSec: Double = 0.0
 
+    private var servoStrengthBehaviour: ServoStrengthScrollValueBehaviour? = null
+    private var servoStiffnessBehaviour: ServoStiffnessScrollValueBehaviour? = null
+
+    @Volatile private var servoStrengthSetting: Int = SERVO_STRENGTH_DEFAULT
+    @Volatile private var servoStiffnessSetting: Int = SERVO_STIFFNESS_DEFAULT
+
+    // Derived (phys-thread) servo parameters.
+    @Volatile private var servoKp: Double = SERVO_KP
+    @Volatile private var servoKd: Double = SERVO_KD
+    @Volatile private var servoMaxAlpha: Double = SERVO_MAX_ALPHA
+    @Volatile private var servoTorqueLimit: Double = SERVO_MAX_TORQUE.toDouble()
+
     private var controllerCreationData: PhysBearingData? = null
     private var controllerUpdateData: PhysBearingUpdateData? = null
     private var loadingFn: ((ServerLevel) -> Unit)? = null
 
     init {
         setLazyTickRate(3)
+        recomputeServoTuning()
     }
 
     private fun movementModeChanged(value: Int) {
@@ -150,6 +171,71 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         movementMode!!.withCallback{movementModeChanged(it)}
         movementMode!!.requiresWrench()
         behaviours.add(movementMode!!)
+
+        servoStrengthBehaviour = ServoStrengthScrollValueBehaviour(
+            Component.translatable("$MOD_ID.phys_bearing.servo_strength"),
+            this,
+            ServoSettingValueBoxTransform(8.0, 4.0)
+        ).also {
+            it.between(SERVO_STRENGTH_MIN, SERVO_STRENGTH_MAX)
+            it.currentValue = servoStrengthSetting
+            it.withCallback { v -> setServoStrengthSetting(v, sendUpdate = true) }
+            it.requiresWrench()
+            behaviours.add(it)
+        }
+
+        servoStiffnessBehaviour = ServoStiffnessScrollValueBehaviour(
+            Component.translatable("$MOD_ID.phys_bearing.servo_stiffness"),
+            this,
+            ServoSettingValueBoxTransform(8.0, 12.0)
+        ).also {
+            it.between(SERVO_STIFFNESS_MIN, SERVO_STIFFNESS_MAX)
+            it.currentValue = servoStiffnessSetting
+            it.withCallback { v -> setServoStiffnessSetting(v, sendUpdate = true) }
+            it.requiresWrench()
+            behaviours.add(it)
+        }
+    }
+
+    private fun setServoStrengthSetting(value: Int, sendUpdate: Boolean) {
+        val clamped = value.coerceIn(SERVO_STRENGTH_MIN, SERVO_STRENGTH_MAX)
+        if (servoStrengthSetting == clamped) return
+        servoStrengthSetting = clamped
+        recomputeServoTuning()
+        if (sendUpdate && level != null && !level!!.isClientSide) {
+            updateDrive()
+            sendData()
+        }
+    }
+
+    private fun setServoStiffnessSetting(value: Int, sendUpdate: Boolean) {
+        val clamped = value.coerceIn(SERVO_STIFFNESS_MIN, SERVO_STIFFNESS_MAX)
+        if (servoStiffnessSetting == clamped) return
+        servoStiffnessSetting = clamped
+        recomputeServoTuning()
+        if (sendUpdate && level != null && !level!!.isClientSide) {
+            updateDrive()
+            sendData()
+        }
+    }
+
+    private fun lerpLog(min: Double, max: Double, t: Double): Double {
+        if (min <= 0.0 || max <= 0.0) return min + (max - min) * t
+        val lnMin = ln(min)
+        val lnMax = ln(max)
+        return exp(lnMin + (lnMax - lnMin) * t)
+    }
+
+    private fun recomputeServoTuning() {
+        val strengthT = servoStrengthSetting.toDouble() / SERVO_STRENGTH_MAX.toDouble()
+        val stiffnessT = servoStiffnessSetting.toDouble() / SERVO_STIFFNESS_MAX.toDouble()
+
+        val wn = lerpLog(SERVO_WN_MIN, SERVO_WN_MAX, stiffnessT.coerceIn(0.0, 1.0))
+        servoKp = wn * wn
+        servoKd = 2.0 * SERVO_DAMPING_RATIO * wn
+
+        servoMaxAlpha = lerpLog(SERVO_ALPHA_MIN, SERVO_ALPHA_MAX, strengthT.coerceIn(0.0, 1.0))
+        servoTorqueLimit = lerpLog(SERVO_FORCE_TORQUE_MIN, SERVO_FORCE_TORQUE_MAX, strengthT.coerceIn(0.0, 1.0))
     }
 
     private fun updateDrive() {
@@ -288,8 +374,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         }
         val omegaErr = omegaFf - omegaActual
         val errorForControl = errorRad.coerceIn(-SERVO_MAX_ERROR_RAD, SERVO_MAX_ERROR_RAD)
-        var alphaCmd = SERVO_KP * errorForControl + SERVO_KD * omegaErr
-        alphaCmd = alphaCmd.coerceIn(-SERVO_MAX_ALPHA, SERVO_MAX_ALPHA)
+        var alphaCmd = servoKp * errorForControl + servoKd * omegaErr
+        alphaCmd = alphaCmd.coerceIn(-servoMaxAlpha, servoMaxAlpha)
 
         // Ensure the joint isn't treated as free-spin in servo modes. We do NOT rely on the joint motor here because
         // it's backend-dependent; instead we apply an explicit torque servo below.
@@ -324,7 +410,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         // Torque = I_eff * alpha_cmd, clamped.
         var torqueMag = torqueMassMultiplier * alphaCmd
-        val maxTorque = SERVO_MAX_TORQUE.toDouble()
+        val maxTorque = servoTorqueLimit
         torqueMag = torqueMag.coerceIn(-maxTorque, maxTorque)
 
         val torqueVec = axisWorld.mul(torqueMag, Vector3d())
@@ -472,6 +558,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         }
 
         super.read(tag, clientPacket)
+        // Behaviours were just read; sync derived servo parameters from the persisted values.
+        servoStrengthBehaviour?.also { setServoStrengthSetting(it.currentValue, sendUpdate = false) }
+        servoStiffnessBehaviour?.also { setServoStiffnessSetting(it.currentValue, sendUpdate = false) }
         if (clientPacket) {return}
 
         // may not have level on read so i have to do this
@@ -1013,8 +1102,119 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     override fun getBlockPosition(): BlockPos = worldPosition
     override fun isWoodenTop(): Boolean = false
 
+    private class ServoSettingValueBoxTransform(private val y: Double, private val x: Double) : ValueBoxTransform.Sided() {
+        override fun getSouthLocation(): Vec3 {
+            return VecHelper.voxelSpace(x, y, 15.5)
+        }
+
+        override fun getLocalOffset(level: LevelAccessor, pos: BlockPos, state: BlockState): Vec3 {
+            return super.getLocalOffset(level, pos, state)
+                .add(
+                    Vec3.atLowerCornerOf(state.getValue(BearingBlock.FACING).normal)
+                        .scale((-2 / 16f).toDouble())
+                )
+        }
+
+        override fun rotate(level: LevelAccessor, pos: BlockPos, state: BlockState, ms: PoseStack) {
+            if (!side.axis.isHorizontal) {
+                TransformStack.of(ms)
+                    .rotateYDegrees((AngleHelper.horizontalAngle(state.getValue(BearingBlock.FACING)) + 180))
+            }
+            super.rotate(level, pos, state, ms)
+        }
+
+        override fun isSideActive(state: BlockState, direction: Direction): Boolean {
+            // Match Create's bearing mode selector faces: show on the 4 side faces around the bearing axis.
+            return direction.axis != state.getValue(BearingBlock.FACING).axis
+        }
+    }
+
+    private open class ServoTuningScrollValueBehaviour(
+        label: Component,
+        be: GeneratingKineticBlockEntity,
+        slot: ValueBoxTransform,
+        private val behaviourNetId: Int
+    ) : ScrollValueBehaviour(label, be, slot) {
+        // ScrollValueBehaviour.value is protected; expose it for BE init/sync.
+        var currentValue: Int
+            get() = value
+            set(v) { value = v }
+
+        override fun netId(): Int = behaviourNetId
+    }
+
+    private class ServoStrengthScrollValueBehaviour(
+        label: Component,
+        be: GeneratingKineticBlockEntity,
+        slot: ValueBoxTransform
+    ) : ServoTuningScrollValueBehaviour(label, be, slot, 1) {
+
+        override fun getType(): BehaviourType<*> = TYPE
+
+        override fun getClipboardKey(): String = "PhysBearingServoStrength"
+
+        override fun write(nbt: CompoundTag, clientPacket: Boolean) {
+            nbt.putInt(NBT_KEY, currentValue)
+        }
+
+        override fun read(nbt: CompoundTag, clientPacket: Boolean) {
+            if (nbt.contains(NBT_KEY)) currentValue = nbt.getInt(NBT_KEY)
+        }
+
+        companion object {
+            val TYPE: BehaviourType<ServoStrengthScrollValueBehaviour> =
+                BehaviourType("phys_bearing_servo_strength")
+            private const val NBT_KEY = "ServoStrength"
+        }
+    }
+
+    private class ServoStiffnessScrollValueBehaviour(
+        label: Component,
+        be: GeneratingKineticBlockEntity,
+        slot: ValueBoxTransform
+    ) : ServoTuningScrollValueBehaviour(label, be, slot, 2) {
+
+        override fun getType(): BehaviourType<*> = TYPE
+
+        override fun getClipboardKey(): String = "PhysBearingServoStiffness"
+
+        override fun write(nbt: CompoundTag, clientPacket: Boolean) {
+            nbt.putInt(NBT_KEY, currentValue)
+        }
+
+        override fun read(nbt: CompoundTag, clientPacket: Boolean) {
+            if (nbt.contains(NBT_KEY)) currentValue = nbt.getInt(NBT_KEY)
+        }
+
+        companion object {
+            val TYPE: BehaviourType<ServoStiffnessScrollValueBehaviour> =
+                BehaviourType("phys_bearing_servo_stiffness")
+            private const val NBT_KEY = "ServoStiffness"
+        }
+    }
+
     companion object {
         const val NO_SHIPTRAPTION_ID: Long = -1
+
+        // Per-bearing tuning UI (Create value boxes).
+        private const val SERVO_STRENGTH_MIN = 0
+        private const val SERVO_STRENGTH_MAX = 100
+        private const val SERVO_STRENGTH_DEFAULT = 50
+        private const val SERVO_STIFFNESS_MIN = 0
+        private const val SERVO_STIFFNESS_MAX = 100
+        private const val SERVO_STIFFNESS_DEFAULT = 50
+
+        // Slider mapping:
+        // - "Stiffness" controls closed-loop natural frequency (wn), with Kp = wn^2.
+        // - Kd is chosen for a fixed damping ratio to minimize sway/overshoot.
+        // - "Strength" caps both max torque and max angular acceleration.
+        private const val SERVO_DAMPING_RATIO = 1.25
+        private const val SERVO_WN_MIN = 4.0
+        private const val SERVO_WN_MAX = 64.0
+        private const val SERVO_ALPHA_MIN = 30.0
+        private const val SERVO_ALPHA_MAX = 480.0
+        private const val SERVO_FORCE_TORQUE_MIN = 1.0e8
+        private const val SERVO_FORCE_TORQUE_MAX = 1.0e10
 
         // Servo tuning (acceleration-space PD):
         //   alpha_cmd = Kp * angle_error + Kd * (omega_target - omega_actual)

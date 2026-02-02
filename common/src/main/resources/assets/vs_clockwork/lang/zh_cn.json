@@ -367,6 +367,8 @@
   "vs_clockwork.phys_bearing.rotation_mode.follow_angle": "跟随角度",
   "vs_clockwork.phys_bearing.rotation_mode.unlocked": "未锁定",
   "vs_clockwork.phys_bearing.rotation_mode.locked": "锁定",
+  "vs_clockwork.phys_bearing.servo_strength": "伺服强度",
+  "vs_clockwork.phys_bearing.servo_stiffness": "伺服刚度",
 
   "vs_clockwork.gravitron.tool.grab": "抓取",
   "vs_clockwork.gravitron.tool.assemble": "组装",

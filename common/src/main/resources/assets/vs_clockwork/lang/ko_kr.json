@@ -382,6 +382,8 @@
   "vs_clockwork.phys_bearing.rotation_mode.follow_angle": "각도 따라가기",
   "vs_clockwork.phys_bearing.rotation_mode.unlocked": "잠금 해제됨",
   "vs_clockwork.phys_bearing.rotation_mode.locked": "잠금됨",
+  "vs_clockwork.phys_bearing.servo_strength": "서보 강도",
+  "vs_clockwork.phys_bearing.servo_stiffness": "서보 강성",
 
   "vs_clockwork.gravitron.tool.grab": "잡기",
   "vs_clockwork.gravitron.tool.assemble": "조립",
