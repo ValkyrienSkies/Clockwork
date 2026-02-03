@@ -130,6 +130,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     private var lastAligningState = false
     private var missingSubShipTicks = 0
 
+    private var followAngleStalled = false
+    private var followAngleStallTicks = 0
+    private var followAngleStallDirSign = 0
+    private var lastActualAngleRadForStall: Double? = null
+
     // Phys-thread reads these; game-thread writes them.
     @Volatile private var servoMode: LockedMode = LockedMode.UNLOCKED
     @Volatile private var lockedHoldAngleRad: Double? = null
@@ -281,7 +286,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         joint = baseJoint
         servoMode = mode
         // Sign matches tick() targetAngle integration and BearingController's ideal omega convention.
-        followOmegaFeedForwardRadSec = if (!aligning && mode == LockedMode.FOLLOW_ANGLE) -getRealisticAngularSpeed().toDouble() else 0.0
+        followOmegaFeedForwardRadSec =
+            if (!aligning && mode == LockedMode.FOLLOW_ANGLE && !followAngleStalled) -getRealisticAngularSpeed().toDouble() else 0.0
 
         controllerUpdateData = PhysBearingUpdateData(
             Math.toRadians(targetAngle.toDouble()),
@@ -302,6 +308,114 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         // Returns error in (-pi, pi].
         val d = target - current
         return atan2(sin(d), cos(d))
+    }
+
+    private fun normalizeAngleDeg0To720(angleDeg: Double): Float {
+        val period = 360.0 * 2.0
+        var wrapped = angleDeg % period
+        if (wrapped < 0.0) wrapped += period
+        return wrapped.toFloat()
+    }
+
+    private fun clearFollowAngleStallState() {
+        followAngleStalled = false
+        followAngleStallTicks = 0
+        followAngleStallDirSign = 0
+        lastActualAngleRadForStall = null
+    }
+
+    private fun updateFollowAngleStallState(cmdSpeedDegPerTick: Float) {
+        val level = level as? ServerLevel ?: return
+        val mode = movementMode?.get() ?: LockedMode.UNLOCKED
+        if (!isRunning || aligning || mode != LockedMode.FOLLOW_ANGLE || shiptraptionID == NO_SHIPTRAPTION_ID) {
+            if (followAngleStalled || followAngleStallTicks != 0 || lastActualAngleRadForStall != null) {
+                clearFollowAngleStallState()
+                updateDrive()
+                sendData()
+            }
+            return
+        }
+
+        val cmdMag = abs(cmdSpeedDegPerTick)
+        val cmdSign = cmdSpeedDegPerTick.sign.toInt()
+
+        // If the player stops commanding rotation, clear stall so the next input can move again.
+        if (cmdMag < FOLLOW_STALL_MIN_CMD_DEG_PER_TICK || cmdSign == 0) {
+            if (followAngleStalled) {
+                clearFollowAngleStallState()
+                if (DEBUG_SERVO) {
+                    ClockworkMod.LOGGER.info("[PhysBearing] follow stall cleared (cmd=0)")
+                }
+                updateDrive()
+                sendData()
+            } else {
+                followAngleStallTicks = 0
+                followAngleStallDirSign = 0
+                lastActualAngleRadForStall = null
+            }
+            return
+        }
+
+        // If stalled, only clear when the player reverses direction.
+        if (followAngleStalled) {
+            if (cmdSign != followAngleStallDirSign) {
+                clearFollowAngleStallState()
+                if (DEBUG_SERVO) {
+                    ClockworkMod.LOGGER.info("[PhysBearing] follow stall cleared (dir change)")
+                }
+                updateDrive()
+                sendData()
+            }
+            return
+        }
+
+        val actualRad = getActualAngle() ?: run {
+            // Can't observe motion yet; don't accumulate stall ticks.
+            followAngleStallTicks = 0
+            lastActualAngleRadForStall = null
+            return
+        }
+
+        val lastRad = lastActualAngleRadForStall
+        lastActualAngleRadForStall = actualRad
+
+        // Direction changed => restart stall detection.
+        if (followAngleStallDirSign != 0 && cmdSign != followAngleStallDirSign) {
+            followAngleStallTicks = 0
+        }
+        followAngleStallDirSign = cmdSign
+
+        if (lastRad == null) return
+
+        val actualDeltaRad = abs(shortestAngleErrorRad(actualRad, lastRad))
+        val cmdDeltaRad = cmdMag.toDouble() * (Math.PI / 180.0) // deg/tick -> rad/tick
+        val epsRad = max(FOLLOW_STALL_EPS_RAD_BASE, cmdDeltaRad * FOLLOW_STALL_EPS_FRACTION)
+
+        if (actualDeltaRad < epsRad) {
+            followAngleStallTicks++
+        } else {
+            followAngleStallTicks = 0
+        }
+
+        if (followAngleStallTicks < FOLLOW_STALL_TICKS) return
+
+        // Stalled: stop advancing the expected angle and remove omega feed-forward so we stop pushing into collisions.
+        followAngleStalled = true
+        followAngleStallTicks = 0
+        followAngleStallDirSign = cmdSign
+        targetAngle = normalizeAngleDeg0To720(Math.toDegrees(actualRad))
+
+        if (DEBUG_SERVO) {
+            ClockworkMod.LOGGER.info(
+                "[PhysBearing] follow stalled (cmdDegTick={}, actualDeltaRad={}, epsRad={})",
+                cmdSpeedDegPerTick,
+                actualDeltaRad,
+                epsRad
+            )
+        }
+
+        updateDrive()
+        sendData()
     }
 
     private fun getAngularInertia(physShip: PhysShip, localPos: Vector3dc, axisGlobal: Vector3dc): Double {
@@ -443,6 +557,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         tag.putVector3d("bearingPos", bearingPos)
         tag.putVector3d("bearingAxis", bearingAxis)
         tag.putBoolean("aligning", aligning)
+        if (clientPacket) {
+            tag.putBoolean("followAngleStalled", followAngleStalled)
+        }
 
         val mapper = VSJacksonUtil.dtoMapper
         // Avoid saving a potentially large/non-zero drive velocity from mid-servo movement.
@@ -537,6 +654,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         bearingPos = tag.getVector3d("bearingPos")!!
         bearingAxis = tag.getVector3d("bearingAxis")!!
         aligning = tag.getBoolean("aligning")
+        if (clientPacket && tag.contains("followAngleStalled")) {
+            followAngleStalled = tag.getBoolean("followAngleStalled")
+        }
 
         val mapper = VSJacksonUtil.dtoMapper
 
@@ -604,6 +724,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         get() {
             val mode = movementMode?.get() ?: LockedMode.UNLOCKED
             if (aligning || mode == LockedMode.LOCKED) return 0f
+            if (mode == LockedMode.FOLLOW_ANGLE && followAngleStalled) return 0f
             var speed = convertToAngular(getSpeed())
             if (getSpeed() == 0f) speed = 0f
             if (level!!.isClientSide) {
@@ -908,6 +1029,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         lastAngle = 0f
         curAngle = 0f
+
+        clearFollowAngleStallState()
     }
 
     private fun tryAssembleNextTick() {
@@ -1045,10 +1168,20 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         tickAnimationLogic()
         if (!isRunning) return
         val mode = movementMode?.get() ?: LockedMode.UNLOCKED
+        if (mode != LockedMode.FOLLOW_ANGLE && (followAngleStalled || followAngleStallTicks != 0 || lastActualAngleRadForStall != null)) {
+            // Stall state is only meaningful for FOLLOW_ANGLE.
+            clearFollowAngleStallState()
+        }
         if (shiptraptionID == NO_SHIPTRAPTION_ID) {
             targetAngle = 0f
         } else if (joint != null && jointID != -1 && !aligning && mode != LockedMode.LOCKED) {
             val angularSpeed = -getActualAngularSpeed()
+            if (!level!!.isClientSide && mode == LockedMode.FOLLOW_ANGLE) {
+                updateFollowAngleStallState(angularSpeed)
+            }
+            if (mode == LockedMode.FOLLOW_ANGLE && followAngleStalled) {
+                // Don't advance the expected angle while stalled.
+            } else {
             var diff = 0.0f
 
             if (sequencedAngleLimit >= 0.0f) {
@@ -1078,6 +1211,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 newAngle >= 360f * 2 -> newAngle - 360f * 2
                 newAngle < 0f -> newAngle + 360f * 2
                 else -> newAngle
+            }
             }
         }
         //needs to be after targetAngle change
@@ -1239,7 +1373,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         // - Kd is chosen for a fixed damping ratio to minimize sway/overshoot.
         // - "Strength" caps both max torque and max angular acceleration.
         // Temporary: boost slider magnitudes for testing (e.g., UI 100 behaves like 1000 if set to 10.0).
-        private const val SERVO_TEST_SCALE = 1.0
+        private const val SERVO_TEST_SCALE = 2.0
         private const val SERVO_DAMPING_RATIO = 1.25
         private const val SERVO_WN_MIN = 4.0
         private const val SERVO_WN_MAX = 64.0
@@ -1249,6 +1383,13 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         private const val SERVO_FORCE_TORQUE_MAX = 1.0e10
 
         private const val MISSING_SUBSHIP_GRACE_TICKS = 20
+
+        // FOLLOW_ANGLE stall detection: if we keep commanding rotation but the actual angle isn't moving,
+        // stop advancing the expected angle so we don't push into collisions indefinitely.
+        private const val FOLLOW_STALL_MIN_CMD_DEG_PER_TICK = 0.05f
+        private const val FOLLOW_STALL_TICKS = 5
+        private const val FOLLOW_STALL_EPS_RAD_BASE = 1.0e-4
+        private const val FOLLOW_STALL_EPS_FRACTION = 0.005
 
         // Servo tuning (acceleration-space PD):
         //   alpha_cmd = Kp * angle_error + Kd * (omega_target - omega_actual)
