@@ -58,7 +58,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.engine.GasEngineBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.exhaust.ExhaustBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBlock
-import org.valkyrienskies.clockwork.content.logistics.gas.docking_vent.DockingVentBearingBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.docking_vent.DockingVentBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorBlock
@@ -445,14 +445,12 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val DOCKING_VENT: BlockEntry<DockingVentBearingBlock> = REGISTRATE.block( "docking_vent" ) {
-        properties -> DockingVentBearingBlock(properties)
+    val DOCKING_VENT: BlockEntry<DockingVentBlock> = REGISTRATE.block( "docking_vent" ) {
+        properties -> DockingVentBlock(properties)
     }
-        .initialProperties { Blocks.IRON_BLOCK }
         .transform(axeOrPickaxe())
         .properties { it.noOcclusion() }
         .addLayer { Supplier { RenderType.cutout() } }
-        .properties { it.noOcclusion() }
         .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
         .item()
         .tab(ClockworkMod.GAS_CREATIVE_TABINFO)

@@ -112,7 +112,7 @@ dependencies {
         exclude(group: "net.fabricmc.fabric-api")
     }
 
-    modCompileOnly("cc.tweaked:cc-tweaked-${minecraft_version}-fabric-api:${cc_version}")
+    modImplementation("cc.tweaked:cc-tweaked-${minecraft_version}-fabric-api:${cc_version}")
     //modRuntimeOnly("cc.tweaked:cc-tweaked-${minecraft_version}-fabric:${cc_version}")
 
 //JEI

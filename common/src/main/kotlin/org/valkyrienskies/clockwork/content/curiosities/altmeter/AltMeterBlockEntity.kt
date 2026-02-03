@@ -32,11 +32,9 @@ class AltMeterBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: Blo
             AltMeterDirection.DOWN -> (triggerSensitivity - distance.toInt())
             AltMeterDirection.UP -> (triggerSensitivity + distance.toInt())
         }.coerceIn(0..triggerSensitivity)
-            .toRange(0..triggerSensitivity, 0..15);
+            .toRange(0..triggerSensitivity, 0..15)
 
-        val currentPower = blockState.getValue(AltMeterBlock.POWER)
-
-        if (currentPower != signalStrength) {
+        blockState.getValue(AltMeterBlock.POWER).takeIf { it != signalStrength }.apply {
             level!!.setBlock(blockPos, blockState
                 .setValue(AltMeterBlock.POWER, signalStrength), 3)
         }

@@ -13,12 +13,7 @@ object ClockworkShapes {
     val AFTERBLAZER = shape(1.0, 0.0, 1.0, 15.0, 14.0, 15.0).forDirectional()
     val ALT_METER = shape(1.0, 0.0, 1.0, 15.0, 5.0, 15.0).add(4.0, 8.0, 4.0, 12.0, 16.0, 12.0).build()
     val SPINOFF_BEARING = shape(0.0, 0.0, 0.0, 16.0, 8.0, 16.0).forDirectional()
-    val DOCKING_VENT = shape(3.0, .0, 3.0, 13.0, 8.0, 13.0)
-        .add(2.0, -2.0, 3.0, 14.0, 4.0, 13.0)
-        .add(3.0, -2.0, 2.0, 13.0, 4.0, 14.0)
-        .add(1.0, 0.0, 3.0, 15.0, 2.0, 13.0)
-        .add(3.0, 0.0, 1.0, 13.0, 2.0, 15.0)
-        .forDirectional()
+    val DOCKING_VENT = shape(2.0, .0, 2.0, 14.0, 8.0, 14.0).forDirectional()
     val UNIVERSAL_SHAFT = shape(5.0, 0.0, 5.0, 11.0, 10.0, 11.0).forDirectional()
 
     // Why the .8 and .2 you ask? Because otherwise the model _slightly_ overlaps the hitbox, and that looks uggo
@@ -31,7 +26,7 @@ object ClockworkShapes {
         return Builder(shape)
     }
 
-    fun shape(x1: Double, y1: Double, z1: Double, x2: Double, y2: Double, z2: Double): Builder {
+    private fun shape(x1: Double, y1: Double, z1: Double, x2: Double, y2: Double, z2: Double): Builder {
         return shape(cuboid(x1, y1, z1, x2, y2, z2))
     }
 
