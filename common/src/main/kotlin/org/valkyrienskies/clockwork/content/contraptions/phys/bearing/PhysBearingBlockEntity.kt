@@ -128,6 +128,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     private var lastSpeed = 0f
     private var lastMode = LockedMode.UNLOCKED
     private var lastAligningState = false
+    private var missingSubShipTicks = 0
 
     // Phys-thread reads these; game-thread writes them.
     @Volatile private var servoMode: LockedMode = LockedMode.UNLOCKED
@@ -997,6 +998,34 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 loadingFn = null
             }
 
+            // If the attached sub-ship was deleted (e.g., removed by VS), stop the bearing and let it close.
+            // Use allShips (not loadedShips) so chunk load ordering doesn't spuriously disable the bearing.
+            if (isRunning && shiptraptionID != NO_SHIPTRAPTION_ID) {
+                val sLevel = level as ServerLevel
+                val exists = sLevel.shipObjectWorld.allShips.getById(shiptraptionID) != null
+                if (!exists) {
+                    missingSubShipTicks++
+                    if (missingSubShipTicks >= MISSING_SUBSHIP_GRACE_TICKS) {
+                        if (DEBUG_SERVO) {
+                            ClockworkMod.LOGGER.info("[PhysBearing] subShip missing; disabling (shipId={}, jointId={})", shiptraptionID, jointID)
+                        }
+                        if (jointID != -1) sLevel.gtpa.removeJoint(jointID)
+                        controllerCreationData = null
+                        controllerUpdateData = null
+                        // Ensure the close animation can run even if we were mid-opening.
+                        if (!open && openProgress > 0f) open = true
+                        opening = false
+                        resetState()
+                        tickAnimationLogic()
+                        return
+                    }
+                } else {
+                    missingSubShipTicks = 0
+                }
+            } else {
+                missingSubShipTicks = 0
+            }
+
             val subShip = (level as ServerLevel).shipObjectWorld.loadedShips.getById(shiptraptionID)
             controllerCreationData?.also {
                 bearingID = BearingController
@@ -1209,7 +1238,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         // - "Stiffness" controls closed-loop natural frequency (wn), with Kp = wn^2.
         // - Kd is chosen for a fixed damping ratio to minimize sway/overshoot.
         // - "Strength" caps both max torque and max angular acceleration.
-        // Temporary: boost slider magnitudes for testing (e.g., UI 100 behaves like 1000).
+        // Temporary: boost slider magnitudes for testing (e.g., UI 100 behaves like 1000 if set to 10.0).
         private const val SERVO_TEST_SCALE = 1.0
         private const val SERVO_DAMPING_RATIO = 1.25
         private const val SERVO_WN_MIN = 4.0
@@ -1218,6 +1247,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         private const val SERVO_ALPHA_MAX = 480.0
         private const val SERVO_FORCE_TORQUE_MIN = 1.0e8
         private const val SERVO_FORCE_TORQUE_MAX = 1.0e10
+
+        private const val MISSING_SUBSHIP_GRACE_TICKS = 20
 
         // Servo tuning (acceleration-space PD):
         //   alpha_cmd = Kp * angle_error + Kd * (omega_target - omega_actual)
