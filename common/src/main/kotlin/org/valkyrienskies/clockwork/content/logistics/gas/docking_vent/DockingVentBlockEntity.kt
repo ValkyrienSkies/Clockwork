@@ -217,20 +217,20 @@ class DockingVentBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
 
         if(snapDelay > 0) return false
 
-        val sLevel = level as ServerLevel
+        (level as? ServerLevel)?.let { sLevel ->
+            val selfShip = sLevel.getLoadedShipManagingPos(this.position)
+            val partnerShip = sLevel.getLoadedShipManagingPos(partnerPos!!.toVector3d())
 
-        val selfShip = sLevel.getLoadedShipManagingPos(this.position)
-        val partnerShip = sLevel.getLoadedShipManagingPos(partnerPos!!.toVector3d())
+            val selfWorldPosition = position.toJOMLD().toWorldPosition(selfShip)
+            val partnerWorldPosition = partnerPos!!.toJOMLD().toWorldPosition(partnerShip)
 
-        val selfWorldPosition = position.toJOMLD().toWorldPosition(selfShip)
-        val partnerWorldPosition = partnerPos!!.toJOMLD().toWorldPosition(partnerShip)
+            if ((selfWorldPosition - partnerWorldPosition).length() > 2) return true
 
-        if ((selfWorldPosition - partnerWorldPosition).length() > 2) return true
+            val selfWorldFacing = facing.normal.toJOMLD().toWorldFacing(selfShip)
+            val partnerWorldFacing = partner!!.facing.normal.toJOMLD().toWorldFacing(partnerShip)
 
-        val selfWorldFacing = facing.normal.toJOMLD().toWorldFacing(selfShip)
-        val partnerWorldFacing = partner!!.facing.normal.toJOMLD().toWorldFacing(partnerShip)
-
-        if (selfWorldFacing.angle(partnerWorldFacing) < PI*4/6) return true
+            if (selfWorldFacing.angle(partnerWorldFacing) < PI*4/6) return true
+        }
 
         return false
     }
@@ -253,7 +253,7 @@ class DockingVentBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         if (isDestructive) {
             (level as? ServerLevel)?.let {
                 it.playSound(
-                    null, position, ClockworkSounds.GEAR_WHIRR.mainEvent!!, SoundSource.BLOCKS,
+                    null, position, ClockworkSounds.JOINT_BREAK.mainEvent!!, SoundSource.BLOCKS,
                     0.5f, 1.0f
                 )
                 it.destroyBlock(position, true)
