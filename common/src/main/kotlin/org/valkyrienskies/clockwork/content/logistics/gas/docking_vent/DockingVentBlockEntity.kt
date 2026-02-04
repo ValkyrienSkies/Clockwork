@@ -87,6 +87,7 @@ class DockingVentBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
     var shouldVerifyPartner: Boolean = false
 
     var reconnectDelay: Byte = 0
+    var snapDelay: Byte = 0
     var canConnect : Boolean = true
 
     override fun addBehaviours(behaviours: List<BlockEntityBehaviour?>?) {}
@@ -141,6 +142,7 @@ class DockingVentBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         if (partner == null && canConnect) tryConnect(sLevel)
 
         if (reconnectDelay > 0) reconnectDelay--
+        if (snapDelay > 0) snapDelay--
     }
 
     private fun verifyPartner() {
@@ -206,11 +208,14 @@ class DockingVentBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
                     null, position, ClockworkSounds.GEAR_WHIRR.mainEvent!!, SoundSource.BLOCKS,
                     0.5f, 1.0f
                 )
+                snapDelay = 10
             }
     }
 
     @OptIn(GameTickOnly::class)
     private fun isOverstressed(): Boolean {
+
+        if(snapDelay > 0) return false
 
         val sLevel = level as ServerLevel
 

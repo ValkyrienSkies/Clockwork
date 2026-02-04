@@ -67,6 +67,7 @@ class DockingVentBlock(properties: Properties) : FaceAttachedHorizontalDirection
         newState: BlockState,
         movedByPiston: Boolean
     ) {
+        nodeRemove(state, level, pos, newState, movedByPiston)
         IBE.onRemove(state, level, pos, newState)
     }
 
