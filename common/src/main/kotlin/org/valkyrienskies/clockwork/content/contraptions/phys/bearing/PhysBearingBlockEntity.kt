@@ -166,6 +166,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     @Volatile private var servoApparentInertiaScale: Double = 1.0
     @Volatile private var servoPrevOmegaActualForApparentInertiaScaleRadSec: Double = Double.NaN
     @Volatile private var servoPrevAppliedHingeTorqueMag: Double = 0.0
+    @Volatile private var tickAuthority: Double = 1.0
+    @Volatile private var tickChainedDynamic: Boolean = false
+    @Volatile private var tickGyroRisk: Boolean = false
+    @Volatile private var omegaEmaRadSec: Double = 0.0
+    @Volatile private var appInertiaConsistentTicks: Int = 0
 
     private var controllerCreationData: PhysBearingData? = null
     private var controllerUpdateData: PhysBearingUpdateData? = null
@@ -453,6 +458,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         servoApparentInertiaScale = 1.0
         servoPrevOmegaActualForApparentInertiaScaleRadSec = Double.NaN
         servoPrevAppliedHingeTorqueMag = 0.0
+        omegaEmaRadSec = 0.0
+        appInertiaConsistentTicks = 0
+        tickAuthority = 1.0
+        tickChainedDynamic = false
+        tickGyroRisk = false
     }
 
     private fun servoStrength01(): Double {
@@ -485,7 +495,13 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         omegaErr: Double
     ): Double {
         val maxScale = apparentInertiaScaleMax()
-        var scale = servoApparentInertiaScale.coerceIn(1.0, maxScale)
+        val maxScaleLocal = if (tickChainedDynamic) {
+            // Harder cap in chains unless slider is very high via apparentInertiaScaleMax().
+            lerpClamped(2.0, maxScale, chainAuthorityBlend01())
+        } else {
+            maxScale
+        }
+        var scale = servoApparentInertiaScale.coerceIn(1.0, maxScaleLocal)
         val dt = SERVO_PHYS_TICK_DT_SEC
         val prevOmega = servoPrevOmegaActualForApparentInertiaScaleRadSec
         val prevTorque = servoPrevAppliedHingeTorqueMag
@@ -493,30 +509,53 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             abs(errorRad) > SERVO_APPARENT_INERTIA_ACTIVE_ERROR_RAD ||
                 abs(omegaErr) > SERVO_APPARENT_INERTIA_ACTIVE_OMEGA_ERR_RAD_SEC
 
-        if (
-            demandingMotion &&
-            dt > 1.0e-6 &&
-            baseInertia.isFinite() &&
-            baseInertia > SERVO_APPARENT_INERTIA_MIN_BASE &&
-            prevOmega.isFinite() &&
-            prevTorque.isFinite() &&
-            abs(prevTorque) > SERVO_APPARENT_INERTIA_MIN_OBS_TORQUE
-        ) {
-            val alphaObserved = (omegaActual - prevOmega) / dt
-            if (alphaObserved.isFinite()) {
-                if (prevTorque * alphaObserved > 0.0) {
-                    // Keep denominator bounded so near-zero measured accel under heavy load drives authority up quickly.
-                    val alphaDenom = max(abs(alphaObserved), SERVO_APPARENT_INERTIA_ALPHA_FLOOR_RAD_SEC2)
-                    val targetScale = (abs(prevTorque) / (baseInertia * alphaDenom)).coerceIn(1.0, maxScale)
-                    val lpAlpha =
-                        if (targetScale > scale) SERVO_APPARENT_INERTIA_RISE_ALPHA else SERVO_APPARENT_INERTIA_FALL_ALPHA
-                    scale = lowPass(scale, targetScale, lpAlpha)
+        if (demandingMotion) {
+            if (
+                dt > 1.0e-6 &&
+                baseInertia.isFinite() &&
+                baseInertia > SERVO_APPARENT_INERTIA_MIN_BASE &&
+                prevOmega.isFinite() &&
+                prevTorque.isFinite() &&
+                abs(prevTorque) > SERVO_APPARENT_INERTIA_MIN_OBS_TORQUE
+            ) {
+                val alphaObserved = (omegaActual - prevOmega) / dt
+                if (alphaObserved.isFinite()) {
+                    if (prevTorque * alphaObserved > 0.0) {
+                        appInertiaConsistentTicks++
+                    } else {
+                        appInertiaConsistentTicks = 0
+                    }
+
+                    // Debounce: require consistent sign for a few ticks before increasing scale.
+                    if (appInertiaConsistentTicks < APP_INERTIA_DEBOUNCE_TICKS) {
+                        scale = lowPass(scale, 1.0, SERVO_APPARENT_INERTIA_OPPOSED_DECAY_ALPHA)
+                    } else {
+                        val alphaDenom = max(abs(alphaObserved), SERVO_APPARENT_INERTIA_ALPHA_FLOOR_RAD_SEC2)
+                        val targetScale = (abs(prevTorque) / (baseInertia * alphaDenom)).coerceIn(1.0, maxScaleLocal)
+
+                        val lpAlpha =
+                            if (targetScale > scale) SERVO_APPARENT_INERTIA_RISE_ALPHA else SERVO_APPARENT_INERTIA_FALL_ALPHA
+                        val proposed = lowPass(scale, targetScale, lpAlpha)
+
+                        // Slew-rate limit to prevent explosive growth from noise.
+                        val maxRise = if (tickChainedDynamic) APP_INERTIA_MAX_RISE_PER_TICK_CHAIN else APP_INERTIA_MAX_RISE_PER_TICK
+                        val minFall = APP_INERTIA_MIN_FALL_PER_TICK
+                        val limited = proposed
+                            .coerceAtMost(scale * maxRise)
+                            .coerceAtLeast(scale * minFall)
+
+                        scale = limited
+                    }
                 } else {
-                    // Opposing acceleration usually means external disturbances/joint coupling; do not chase aggressively.
-                    scale = lowPass(scale, 1.0, SERVO_APPARENT_INERTIA_OPPOSED_DECAY_ALPHA)
+                    appInertiaConsistentTicks = 0
+                    scale = lowPass(scale, 1.0, SERVO_APPARENT_INERTIA_IDLE_DECAY_ALPHA)
                 }
+            } else {
+                appInertiaConsistentTicks = 0
+                scale = lowPass(scale, 1.0, SERVO_APPARENT_INERTIA_IDLE_DECAY_ALPHA)
             }
         } else {
+            appInertiaConsistentTicks = 0
             scale = lowPass(scale, 1.0, SERVO_APPARENT_INERTIA_IDLE_DECAY_ALPHA)
         }
 
@@ -527,7 +566,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             scale = lowPass(scale, 1.0, SERVO_APPARENT_INERTIA_SETTLED_DECAY_ALPHA)
         }
 
-        val clamped = scale.coerceIn(1.0, maxScale)
+        val clamped = if (scale.isFinite()) scale.coerceIn(1.0, maxScaleLocal) else 1.0
         servoApparentInertiaScale = clamped
         servoPrevOmegaActualForApparentInertiaScaleRadSec = omegaActual
         return clamped
@@ -738,6 +777,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val subDynamic = !subShip.isStatic
         val mainDynamic = mainShip != null && !mainShip.isStatic
         if (!subDynamic && !mainDynamic) return
+        val authority = tickAuthority
+        val chainedDynamic = tickChainedDynamic
+        val gyroRisk = tickGyroRisk
 
         val anchor0World = subShip.transform.shipToWorld.transformPosition(joint.pose0.pos, Vector3d())
         val anchor1World = if (mainShip != null) {
@@ -755,7 +797,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val errorLen = anchorErrorRaw.length()
         val relVelLen = relVel.length()
         val worldAnchored = mainShip == null || mainShip.isStatic
-        val chainedDynamic = mainShip != null && !mainShip.isStatic && !subShip.isStatic
         val chainBlend = if (chainedDynamic) chainAuthorityBlend01() else 1.0
         val seatErrorDeadband = if (chainedDynamic) {
             lerpClamped(SERVO_SEAT_CHAIN_ERROR_DEADBAND_M, SERVO_SEAT_ERROR_DEADBAND_M, chainBlend)
@@ -767,7 +808,14 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         } else {
             SERVO_SEAT_VEL_DEADBAND
         }
-        if (errorLen < seatErrorDeadband && relVelLen < seatVelDeadband) return
+        val deadbandScale = when {
+            gyroRisk -> 3.0
+            chainedDynamic -> 2.0
+            else -> 1.0
+        }
+        val seatErrorDeadbandScaled = seatErrorDeadband * deadbandScale
+        val seatVelDeadbandScaled = seatVelDeadband * deadbandScale
+        if (errorLen < seatErrorDeadbandScaled && relVelLen < seatVelDeadbandScaled) return
         val anchorError = if (errorLen > SERVO_SEAT_MAX_ERROR_M && errorLen > 1.0e-9) {
             anchorErrorRaw.mul(SERVO_SEAT_MAX_ERROR_M / errorLen, Vector3d())
         } else {
@@ -808,16 +856,25 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val seatKp = seatWn * seatWn * seatKpScale
         val seatKd = 2.0 * seatDamping * seatWn * seatKdScale
 
+        val velSuppression = 1.0 / (1.0 + relVelLen * 2.0)
+        val seatAuthority = (authority * velSuppression).coerceIn(AUTH_MIN, 1.0)
         var seatAccCmd = anchorError.mul(seatKp, Vector3d()).add(relVel.mul(seatKd, Vector3d()))
+        seatAccCmd.mul(seatAuthority)
         if (!seatAccCmd.isFiniteVec()) return
         val maxSeatAccel = when {
             worldAnchored -> SERVO_SEAT_MAX_ACCEL_WORLD_ANCHOR
             chainedDynamic -> lerpClamped(SERVO_SEAT_MAX_ACCEL_CHAIN, SERVO_SEAT_MAX_ACCEL_HARD, chainBlend)
             else -> SERVO_SEAT_MAX_ACCEL_HARD
         }
+        val accelScale = when {
+            gyroRisk -> 0.35
+            chainedDynamic -> 0.60
+            else -> 1.0
+        }
+        val maxSeatAccelScaled = maxSeatAccel * accelScale * seatAuthority
         val seatAccLen = seatAccCmd.length()
-        if (seatAccLen > maxSeatAccel && seatAccLen > 1.0e-9) {
-            seatAccCmd.mul(maxSeatAccel / seatAccLen)
+        if (seatAccLen > maxSeatAccelScaled && seatAccLen > 1.0e-9) {
+            seatAccCmd.mul(maxSeatAccelScaled / seatAccLen)
         }
 
         var seatForce = seatAccCmd.mul(effMass, Vector3d())
@@ -830,9 +887,15 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         } else {
             minSeatForce
         }
+        val forceScale = when {
+            gyroRisk -> 0.40
+            chainedDynamic -> 0.70
+            else -> 1.0
+        }
+        val maxSeatForceScaled = maxSeatForce * forceScale * seatAuthority
         val seatForceLen = seatForce.length()
-        if (seatForceLen > maxSeatForce && seatForceLen > 1.0e-9) {
-            seatForce.mul(maxSeatForce / seatForceLen)
+        if (seatForceLen > maxSeatForceScaled && seatForceLen > 1.0e-9) {
+            seatForce.mul(maxSeatForceScaled / seatForceLen)
         }
 
         if (subDynamic) {
@@ -853,6 +916,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val subDynamic = !subShip.isStatic
         val mainDynamic = mainShip != null && !mainShip.isStatic
         if (!subDynamic && !mainDynamic) return
+        val authority = tickAuthority
+        val chainedDynamic = tickChainedDynamic
+        val gyroRisk = tickGyroRisk
 
         val swingErrorWorldRaw = computeSwingErrorWorld(subShip, mainShip, axisWorldUnit)
         val swingErrorLen = swingErrorWorldRaw.length()
@@ -864,14 +930,19 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val offAxisOmega = rejectAlongAxis(relOmegaWorld, axisWorldUnit)
         val offAxisOmegaLen = offAxisOmega.length()
         val worldAnchored = mainShip == null || mainShip.isStatic
-        val chainedDynamic = mainShip != null && !mainShip.isStatic && !subShip.isStatic
         val chainBlend = if (chainedDynamic) chainAuthorityBlend01() else 1.0
         val tiltOmegaDeadband = if (chainedDynamic) {
             lerpClamped(SERVO_TILT_CHAIN_OMEGA_DEADBAND, SERVO_TILT_OMEGA_DEADBAND, chainBlend)
         } else {
             SERVO_TILT_OMEGA_DEADBAND
         }
-        if ((!offAxisOmegaLen.isFinite() || offAxisOmegaLen < tiltOmegaDeadband) && swingErrorWorld.length() < 1.0e-6) return
+        val tiltDeadbandScale = when {
+            gyroRisk -> 6.0
+            chainedDynamic -> 3.0
+            else -> 1.0
+        }
+        val tiltOmegaDeadbandScaled = tiltOmegaDeadband * tiltDeadbandScale
+        if ((!offAxisOmegaLen.isFinite() || offAxisOmegaLen < tiltOmegaDeadbandScaled) && swingErrorWorld.length() < 1.0e-6) return
 
         val sliderScale = SERVO_SLIDER_TEST_SCALE.coerceAtLeast(0.0)
         val tiltWnScale = when {
@@ -899,10 +970,13 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         } else {
             SERVO_TILT_FULL_STIFFNESS_ERROR_RAD
         }
+        val stiffnessAllowed = !gyroRisk && offAxisOmegaLen < 0.6 && abs(relOmegaWorld.dot(axisWorldUnit)).let { abs(it) } < 8.0
         val stiffnessBlend =
-            smoothStep(dampOnlyErrorRad, fullStiffnessErrorRad, swingErrorWorld.length())
+            if (stiffnessAllowed) smoothStep(dampOnlyErrorRad, fullStiffnessErrorRad, swingErrorWorld.length())
+            else 0.0
 
         var tiltAlphaCmd = swingErrorWorld.mul(-tiltKp * stiffnessBlend, Vector3d()).add(offAxisOmega.mul(-tiltKd, Vector3d()))
+        tiltAlphaCmd.mul(authority)
         if (!tiltAlphaCmd.isFiniteVec()) return
         var tiltAlphaLen = tiltAlphaCmd.length()
         val maxTiltAlpha = when {
@@ -954,10 +1028,16 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             else -> SERVO_TILT_MAX_ALPHA_EQUIV
         }
         val clampedMaxTiltTorque = min(maxTiltTorque, maxTiltTorqueByAlpha)
-        if (!clampedMaxTiltTorque.isFinite() || clampedMaxTiltTorque <= 0.0) return
+        val torqueScale = when {
+            gyroRisk -> 0.25
+            chainedDynamic -> 0.55
+            else -> 1.0
+        }
+        val clampedMaxTiltTorqueFinal = clampedMaxTiltTorque * torqueScale * authority
+        if (!clampedMaxTiltTorqueFinal.isFinite() || clampedMaxTiltTorqueFinal <= 0.0) return
         val tiltTorqueLen = tiltTorque.length()
-        if (tiltTorqueLen > clampedMaxTiltTorque && tiltTorqueLen > 1.0e-9) {
-            tiltTorque.mul(clampedMaxTiltTorque / tiltTorqueLen)
+        if (tiltTorqueLen > clampedMaxTiltTorqueFinal && tiltTorqueLen > 1.0e-9) {
+            tiltTorque.mul(clampedMaxTiltTorqueFinal / tiltTorqueLen)
         }
 
         if (subDynamic) {
@@ -1007,24 +1087,74 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (mainShip != null) relOmegaWorld.sub(mainShip.angularVelocity)
         val omegaActualRaw = relOmegaWorld.dot(axisWorld) // rad/s along the bearing axis
         if (!omegaActualRaw.isFinite()) return
+
+        // Update omega EMA for stability (reduces solver noise driving estimator/servo).
+        omegaEmaRadSec = lowPass(omegaEmaRadSec, omegaActualRaw, OMEGA_EMA_ALPHA)
+        val omegaActualForControl = if (omegaEmaRadSec.isFinite()) omegaEmaRadSec else omegaActualRaw
+
+        val offAxisOmegaWorld = rejectAlongAxis(relOmegaWorld, axisWorld)
+        val offAxisOmegaLen = offAxisOmegaWorld.length().let { if (it.isFinite()) it else 0.0 }
+
+        // Estimate anchor relative speed cheaply using existing helper (only if mainShip exists):
+        val anchor0World = subShip.transform.shipToWorld.transformPosition(revolute.pose0.pos, Vector3d())
+        val pose1Local = Vector3d(worldPosition.center.toJOML()).fma(-SERVO_JOINT_ANCHOR_OFFSET, bearingAxis, Vector3d())
+        val anchor1World =
+            if (mainShip != null) mainShip.transform.shipToWorld.transformPosition(pose1Local, Vector3d()) else pose1Local
+
+        val subAnchorVel = if (anchor0World.isFiniteVec()) getPointVelocityWorld(subShip, anchor0World) else Vector3d()
+        val mainAnchorVel = if (mainShip != null && anchor1World.isFiniteVec()) getPointVelocityWorld(mainShip, anchor1World) else Vector3d()
+        val relAnchorVel = mainAnchorVel.sub(subAnchorVel, Vector3d())
+        val relAnchorSpeed = relAnchorVel.length().let { if (it.isFinite()) it else 0.0 }
+
+        val chainedDynamic = !subShip.isStatic && mainShip != null && !mainShip.isStatic
+        tickChainedDynamic = chainedDynamic
+
+        val chainFactor = if (chainedDynamic) AUTH_CHAIN_BASE else 1.0
+        val omegaFactor = 1.0 / (1.0 + abs(omegaActualForControl) / AUTH_OMEGA_SOFT_LIMIT)
+        val offAxisFactor = 1.0 / (1.0 + offAxisOmegaLen / AUTH_OFFAXIS_SOFT_LIMIT)
+        val relVelFactor = 1.0 / (1.0 + relAnchorSpeed / AUTH_RELVEL_SOFT_LIMIT)
+        var authority = (chainFactor * omegaFactor * offAxisFactor * relVelFactor).coerceIn(AUTH_MIN, 1.0)
+
+        val gyroRisk =
+            (offAxisOmegaLen > GYRO_RISK_OFFAXIS_OMEGA) ||
+                (abs(omegaActualForControl) > GYRO_RISK_HINGE_OMEGA) ||
+                (relAnchorSpeed > GYRO_RISK_RELVEL)
+
+        tickGyroRisk = gyroRisk
+        if (gyroRisk) {
+            authority = max(AUTH_MIN, authority * 0.6)
+        }
+
         val errorForControl = errorRad.coerceIn(-SERVO_MAX_ERROR_RAD, SERVO_MAX_ERROR_RAD)
         val holdBlend = smoothStep(SERVO_HOLD_BLEND_ERROR_RAD, SERVO_HOLD_RELEASE_ERROR_RAD, abs(errorForControl))
 
         val omegaFilterAlpha = lerpClamped(SERVO_OMEGA_FILTER_ALPHA_NEAR_HOLD, SERVO_OMEGA_FILTER_ALPHA_ACTIVE, holdBlend)
-        servoOmegaActualFilteredRadSec = lowPass(servoOmegaActualFilteredRadSec, omegaActualRaw, omegaFilterAlpha)
+        servoOmegaActualFilteredRadSec = lowPass(servoOmegaActualFilteredRadSec, omegaActualForControl, omegaFilterAlpha)
         val omegaActual = if (servoOmegaActualFilteredRadSec.isFinite()) {
             servoOmegaActualFilteredRadSec
         } else {
-            omegaActualRaw
+            omegaActualForControl
         }
 
         // FOLLOW_ANGLE should respond immediately to kinetic input; use a feed-forward target omega and a PD in
         // acceleration-space. This avoids the "infinite torque" behavior that destabilizes heavy/offset ships.
-        val omegaFfRaw = if (!aligning && mode == LockedMode.FOLLOW_ANGLE && !followAngleStalled) {
+        var omegaFfRaw = if (!aligning && mode == LockedMode.FOLLOW_ANGLE && !followAngleStalled) {
             followOmegaFeedForwardRadSec.coerceIn(-SERVO_MAX_OMEGA, SERVO_MAX_OMEGA)
         } else {
             0.0
         }
+
+        // Prevent FF stacking in chains: strongly attenuate if both ships are dynamic.
+        if (chainedDynamic && omegaFfRaw != 0.0) {
+            // chainBlend is computed later currently; compute it here:
+            val chainBlendLocal = chainAuthorityBlend01()
+            val chainFfScale = lerpClamped(0.15, 0.65, chainBlendLocal)
+            omegaFfRaw *= chainFfScale
+        }
+
+        // Always apply authority to FF (stronger than linear to suppress oscillations).
+        omegaFfRaw *= (authority * authority)
+
         val followFfScale = if (!aligning && mode == LockedMode.FOLLOW_ANGLE && !followAngleStalled) {
             smoothStep(FOLLOW_FF_FADE_START_ERROR_RAD, FOLLOW_FF_FADE_END_ERROR_RAD, abs(errorForControl))
         } else {
@@ -1039,11 +1169,14 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         }
 
         // Close to hold, fade positional stiffness and let damping dominate.
-        val omegaFromPositionRaw = (servoPosGain * errorForControl).coerceIn(-servoPosOmegaLimit, servoPosOmegaLimit)
+        val posGainNow = servoPosGain * authority
+        val omegaGainNow = servoOmegaGain * authority
+
+        val omegaFromPositionRaw = (posGainNow * errorForControl).coerceIn(-servoPosOmegaLimit, servoPosOmegaLimit)
         val omegaFromPosition = omegaFromPositionRaw * holdBlend
         val omegaTarget = (omegaFromPosition + omegaFf).coerceIn(-SERVO_MAX_OMEGA, SERVO_MAX_OMEGA)
         val omegaErr = omegaTarget - omegaActual
-        var alphaCmdRaw = servoOmegaGain * omegaErr
+        var alphaCmdRaw = omegaGainNow * omegaErr
 
         // Prevent tiny setpoint chatter from exciting heavy ships near lock.
         if (
@@ -1062,6 +1195,12 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         } else {
             alphaCmdRaw
         }
+        val jitter = abs(alphaCmdRaw - alphaCmd).let { if (it.isFinite()) it else 0.0 }
+        if (jitter > AUTH_JITTER_SOFT_LIMIT) {
+            val jitterFactor = 1.0 / (1.0 + (jitter - AUTH_JITTER_SOFT_LIMIT) / AUTH_JITTER_SOFT_LIMIT)
+            authority = max(AUTH_MIN, authority * jitterFactor)
+        }
+        tickAuthority = authority
 
         // Discrete-time stability clamp: limit per-tick omega step to avoid high-frequency solver excitation.
         val maxOmegaStepPerTick = lerpClamped(
@@ -1095,7 +1234,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         }
 
         // Torque servo (works even when revolute drive velocity is not honored).
-        val chainedDynamic = !subShip.isStatic && mainShip != null && !mainShip.isStatic
         val chainBlend = if (chainedDynamic) chainAuthorityBlend01() else 1.0
         val torqueMassMultiplierBase: Double = run {
             val canSub = !subShip.isStatic
@@ -1119,13 +1257,14 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             }
         }
         if (!torqueMassMultiplierBase.isFinite() || torqueMassMultiplierBase <= 0.0) {
+            appInertiaConsistentTicks = 0
             servoApparentInertiaScale = lowPass(servoApparentInertiaScale, 1.0, SERVO_APPARENT_INERTIA_IDLE_DECAY_ALPHA)
-            servoPrevOmegaActualForApparentInertiaScaleRadSec = omegaActual
+            servoPrevOmegaActualForApparentInertiaScaleRadSec = omegaActualForControl
             servoPrevAppliedHingeTorqueMag = 0.0
             return
         }
         val apparentInertiaScale =
-            updateApparentInertiaScale(torqueMassMultiplierBase, omegaActual, errorForControl, omegaErr)
+            updateApparentInertiaScale(torqueMassMultiplierBase, omegaActualForControl, errorForControl, omegaErr)
         val torqueMassMultiplier = torqueMassMultiplierBase * apparentInertiaScale
         if (!torqueMassMultiplier.isFinite() || torqueMassMultiplier <= 0.0) {
             servoPrevAppliedHingeTorqueMag = 0.0
@@ -1139,8 +1278,12 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         // Torque servo: tau = I_eff * alpha_cmd.
         var servoTorqueMag = torqueMassMultiplier * alphaCmd
         if (!servoTorqueMag.isFinite()) return
-        val maxTorque = if (servoTorqueLimit.isFinite() && servoTorqueLimit > 0.0) servoTorqueLimit else SERVO_TORQUE_MIN
-        servoTorqueMag = servoTorqueMag.coerceIn(-maxTorque, maxTorque)
+        val baseMaxTorque = if (servoTorqueLimit.isFinite() && servoTorqueLimit > 0.0) servoTorqueLimit else SERVO_TORQUE_MIN
+        var maxTorqueNow = baseMaxTorque * authority
+        if (gyroRisk) maxTorqueNow *= GYRO_RISK_TORQUE_SCALE
+        maxTorqueNow = max(maxTorqueNow, SERVO_TORQUE_MIN)
+
+        servoTorqueMag = servoTorqueMag.coerceIn(-maxTorqueNow, maxTorqueNow)
 
         // Explicit hinge-axis damping torque for hold/near-target operation:
         // tau_damp = -c * omega, where c = I_eff * damping_rate.
@@ -1154,18 +1297,19 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         var dampingTorqueMag = 0.0
         if (applyHingeDamping) {
-            val dampingRate =
+            var dampingRate =
                 if (mode == LockedMode.LOCKED || aligning) SERVO_HINGE_DAMPING_RATE_LOCKED else SERVO_HINGE_DAMPING_RATE_NEAR_TARGET
+            if (gyroRisk) dampingRate *= 1.2
             val dampingCoeff = torqueMassMultiplier * dampingRate
             dampingTorqueMag = -dampingCoeff * omegaActual
             val maxDampingTorque = min(
-                maxTorque * SERVO_HINGE_DAMPING_MAX_TORQUE_FRACTION,
+                maxTorqueNow * SERVO_HINGE_DAMPING_MAX_TORQUE_FRACTION,
                 torqueMassMultiplier * SERVO_HINGE_DAMPING_MAX_ALPHA_EQUIV
             )
             dampingTorqueMag = dampingTorqueMag.coerceIn(-maxDampingTorque, maxDampingTorque)
         }
 
-        val torqueMag = (servoTorqueMag + dampingTorqueMag).coerceIn(-maxTorque, maxTorque)
+        val torqueMag = (servoTorqueMag + dampingTorqueMag).coerceIn(-maxTorqueNow, maxTorqueNow)
         if (!torqueMag.isFinite()) {
             servoPrevAppliedHingeTorqueMag = 0.0
             return
@@ -2041,6 +2185,15 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         private const val SERVO_CHAIN_AUTHORITY_BLEND_END = 0.70
         private const val SERVO_CHAIN_COUPLED_EQ_MAX_RATIO = 8.0
 
+        // Authority scheduler (chain/gyro stability)
+        private const val AUTH_MIN = 0.18
+        private const val AUTH_CHAIN_BASE = 0.55
+        private const val AUTH_OMEGA_SOFT_LIMIT = 6.0 // rad/s
+        private const val AUTH_OFFAXIS_SOFT_LIMIT = 1.2 // rad/s
+        private const val AUTH_RELVEL_SOFT_LIMIT = 0.6 // m/s
+        private const val AUTH_JITTER_SOFT_LIMIT = 40.0 // rad/s^2 difference between raw and filtered alpha
+        private const val OMEGA_EMA_ALPHA = 0.35 // omega EMA smoothing
+
         // Apparent inertia compensation:
         // Estimate effective hinge inertia from previous applied torque vs observed omega response, then scale
         // authority up for downstream chained loads so nested ships behave closer to one rigid assembly.
@@ -2060,6 +2213,18 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         private const val SERVO_APPARENT_INERTIA_SETTLED_ERROR_RAD = 0.01
         private const val SERVO_APPARENT_INERTIA_SETTLED_OMEGA_RAD_SEC = 0.10
         private const val SERVO_APPARENT_INERTIA_SETTLED_DECAY_ALPHA = 0.12
+
+        // Apparent inertia estimator stability
+        private const val APP_INERTIA_DEBOUNCE_TICKS = 3
+        private const val APP_INERTIA_MAX_RISE_PER_TICK_CHAIN = 1.04
+        private const val APP_INERTIA_MAX_RISE_PER_TICK = 1.08
+        private const val APP_INERTIA_MIN_FALL_PER_TICK = 0.98
+
+        // Gyro safety detection thresholds (heuristics)
+        private const val GYRO_RISK_OFFAXIS_OMEGA = 1.2 // rad/s
+        private const val GYRO_RISK_HINGE_OMEGA = 14.0 // rad/s
+        private const val GYRO_RISK_RELVEL = 1.0 // m/s
+        private const val GYRO_RISK_TORQUE_SCALE = 0.5
 
         // Hinge-axis explicit damping: tau_damp = -c * omega (c = I_eff * damping_rate).
         // Applied in LOCKED/aligning or when close to target with near-zero command.
