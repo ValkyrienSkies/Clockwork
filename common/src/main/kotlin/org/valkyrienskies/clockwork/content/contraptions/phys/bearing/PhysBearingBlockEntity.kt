@@ -141,16 +141,27 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     @Volatile private var followOmegaFeedForwardRadSec: Double = 0.0
 
     private var servoStrengthBehaviour: ServoStrengthScrollValueBehaviour? = null
-    private var servoStiffnessBehaviour: ServoStiffnessScrollValueBehaviour? = null
 
     @Volatile private var servoStrengthSetting: Int = SERVO_STRENGTH_DEFAULT
-    @Volatile private var servoStiffnessSetting: Int = SERVO_STIFFNESS_DEFAULT
 
     // Derived (phys-thread) servo parameters.
-    @Volatile private var servoKp: Double = SERVO_KP
-    @Volatile private var servoKd: Double = SERVO_KD
-    @Volatile private var servoMaxAlpha: Double = SERVO_MAX_ALPHA
-    @Volatile private var servoTorqueLimit: Double = SERVO_MAX_TORQUE.toDouble()
+    // Cascaded control:
+    //   omega_from_error = clamp(posGain * angle_error)
+    //   alpha_cmd = omegaGain * (omega_target - omega_actual)
+    @Volatile private var servoPosGain: Double = 0.0
+    @Volatile private var servoOmegaGain: Double = 0.0
+    @Volatile private var servoPosOmegaLimit: Double = 0.0
+    @Volatile private var servoTorqueLimit: Double = 0.0
+    @Volatile private var servoSeatWn: Double = 0.0
+    @Volatile private var servoSeatDampingRatio: Double = 0.0
+    @Volatile private var servoSeatForceLimit: Double = 0.0
+    @Volatile private var servoTiltWn: Double = 0.0
+    @Volatile private var servoTiltDampingRatio: Double = 0.0
+    @Volatile private var servoTiltTorqueLimit: Double = 0.0
+    private var physServoTickCounter: Int = 0
+    // Phys-thread filtered feedback used to avoid exciting solver jitter near hold.
+    @Volatile private var servoOmegaActualFilteredRadSec: Double = 0.0
+    @Volatile private var servoAlphaCmdFilteredRadSec2: Double = 0.0
 
     private var controllerCreationData: PhysBearingData? = null
     private var controllerUpdateData: PhysBearingUpdateData? = null
@@ -189,35 +200,12 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             it.requiresWrench()
             behaviours.add(it)
         }
-
-        servoStiffnessBehaviour = ServoStiffnessScrollValueBehaviour(
-            Component.translatable("$MOD_ID.phys_bearing.servo_stiffness"),
-            this,
-            ServoSettingValueBoxTransform(8.0, 12.0)
-        ).also {
-            it.between(SERVO_STIFFNESS_MIN, SERVO_STIFFNESS_MAX)
-            it.currentValue = servoStiffnessSetting
-            it.withCallback { v -> setServoStiffnessSetting(v, sendUpdate = true) }
-            it.requiresWrench()
-            behaviours.add(it)
-        }
     }
 
     private fun setServoStrengthSetting(value: Int, sendUpdate: Boolean) {
         val clamped = value.coerceIn(SERVO_STRENGTH_MIN, SERVO_STRENGTH_MAX)
         if (servoStrengthSetting == clamped) return
         servoStrengthSetting = clamped
-        recomputeServoTuning()
-        if (sendUpdate && level != null && !level!!.isClientSide) {
-            updateDrive()
-            sendData()
-        }
-    }
-
-    private fun setServoStiffnessSetting(value: Int, sendUpdate: Boolean) {
-        val clamped = value.coerceIn(SERVO_STIFFNESS_MIN, SERVO_STIFFNESS_MAX)
-        if (servoStiffnessSetting == clamped) return
-        servoStiffnessSetting = clamped
         recomputeServoTuning()
         if (sendUpdate && level != null && !level!!.isClientSide) {
             updateDrive()
@@ -233,29 +221,139 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     }
 
     private fun recomputeServoTuning() {
-        val strengthT = servoStrengthSetting.toDouble() / SERVO_STRENGTH_MAX.toDouble()
-        val stiffnessT = servoStiffnessSetting.toDouble() / SERVO_STIFFNESS_MAX.toDouble()
+        val tuneT = servoStrengthSetting.toDouble() / SERVO_STRENGTH_MAX.toDouble()
+        val sliderScale = SERVO_SLIDER_TEST_SCALE.coerceAtLeast(0.0)
+        val tuneTClamped = tuneT.coerceIn(0.0, 1.0)
 
-        val wn = lerpLog(SERVO_WN_MIN, SERVO_WN_MAX, stiffnessT.coerceIn(0.0, 1.0))
-        val testScale = SERVO_TEST_SCALE
-        servoKp = wn * wn * testScale
-        servoKd = 2.0 * SERVO_DAMPING_RATIO * wn * testScale
+        // Single slider drives all control aggressiveness and authority.
+        var wn = lerpLog(SERVO_WN_MIN, SERVO_WN_MAX, tuneTClamped) * sliderScale
+        val maxError = max(SERVO_MAX_ERROR_RAD, 1.0e-3)
+        val wnCap = sqrt(SERVO_MAX_ALPHA_HARD / maxError)
+        wn = wn.coerceAtMost(wnCap)
+        val dampingRatio = (SERVO_DAMPING_RATIO_MIN +
+            (SERVO_DAMPING_RATIO_MAX - SERVO_DAMPING_RATIO_MIN) * tuneTClamped) * sliderScale
 
-        servoMaxAlpha = lerpLog(SERVO_ALPHA_MIN, SERVO_ALPHA_MAX, strengthT.coerceIn(0.0, 1.0)) * testScale
-        servoTorqueLimit = lerpLog(SERVO_FORCE_TORQUE_MIN, SERVO_FORCE_TORQUE_MAX, strengthT.coerceIn(0.0, 1.0)) * testScale
+        // Cascaded gains:
+        // - posGain maps angle error -> target omega.
+        // - omegaGain maps omega error -> target angular acceleration.
+        servoPosGain = wn
+        servoOmegaGain = 2.0 * dampingRatio * wn
+        servoPosOmegaLimit = (lerpLog(SERVO_POS_OMEGA_LIMIT_MIN, SERVO_POS_OMEGA_LIMIT_MAX, tuneTClamped) * sliderScale)
+            .coerceAtMost(SERVO_MAX_OMEGA)
+
+        // Authority limits.
+        servoTorqueLimit =
+            lerpLog(SERVO_TORQUE_MIN, SERVO_TORQUE_MAX, tuneTClamped) * sliderScale
+
+        // Anchor-seat controller (position lock).
+        val seatWnRaw = lerpLog(SERVO_SEAT_WN_MIN, SERVO_SEAT_WN_MAX, tuneTClamped) * sliderScale
+        val seatWnCap = sqrt(SERVO_SEAT_MAX_ACCEL_HARD / max(SERVO_SEAT_MAX_ERROR_M, 1.0e-3))
+        servoSeatWn = seatWnRaw.coerceAtMost(seatWnCap)
+        servoSeatDampingRatio = (SERVO_SEAT_DAMPING_RATIO_MIN +
+            (SERVO_SEAT_DAMPING_RATIO_MAX - SERVO_SEAT_DAMPING_RATIO_MIN) * tuneTClamped) * sliderScale
+        servoSeatForceLimit = lerpLog(SERVO_SEAT_FORCE_LIMIT_MIN, SERVO_SEAT_FORCE_LIMIT_MAX, tuneTClamped) * sliderScale
+
+        // Off-axis orientation lock (swing lock, not twist lock).
+        val tiltWnRaw = lerpLog(SERVO_TILT_WN_MIN, SERVO_TILT_WN_MAX, tuneTClamped) * sliderScale
+        val tiltWnCap = sqrt(SERVO_TILT_MAX_ALPHA_HARD / max(SERVO_TILT_MAX_ERROR_RAD, 1.0e-3))
+        servoTiltWn = tiltWnRaw.coerceAtMost(tiltWnCap)
+        servoTiltDampingRatio = (SERVO_TILT_DAMPING_RATIO_MIN +
+            (SERVO_TILT_DAMPING_RATIO_MAX - SERVO_TILT_DAMPING_RATIO_MIN) * tuneTClamped) * sliderScale
+        servoTiltTorqueLimit = lerpLog(SERVO_TILT_TORQUE_MIN, SERVO_TILT_TORQUE_MAX, tuneTClamped) * sliderScale
+    }
+
+    private fun computeJointMaxForceTorque(): VSJointMaxForceTorque {
+        val torqueLimit = servoTorqueLimit
+        val maxTorque = if (torqueLimit.isFinite() && torqueLimit > 0.0) torqueLimit else SERVO_TORQUE_MIN
+        return VSJointMaxForceTorque(SERVO_JOINT_MAX_FORCE, maxTorque.toFloat())
+    }
+
+    private fun Vector3dc.isFiniteVec(): Boolean {
+        return x().isFinite() && y().isFinite() && z().isFinite()
+    }
+
+    private fun maybeReanchorJoint(
+        joint: VSRevoluteJoint,
+        subShip: PhysShip,
+        mainShip: PhysShip?,
+        hingeOmegaRadSec: Double
+    ): VSRevoluteJoint {
+        if (SERVO_REANCHOR_PERIOD_TICKS <= 0) return joint
+        physServoTickCounter++
+        if (physServoTickCounter % SERVO_REANCHOR_PERIOD_TICKS != 0) return joint
+
+        val anchor0World = subShip.transform.shipToWorld.transformPosition(joint.pose0.pos, Vector3d())
+
+        // Anchor 1 is defined by the bearing block position in the main frame (ship or world).
+        val pose1Local = Vector3d(worldPosition.center.toJOML()).fma(-SERVO_JOINT_ANCHOR_OFFSET, bearingAxis, Vector3d())
+        val anchor1World =
+            if (mainShip != null) mainShip.transform.shipToWorld.transformPosition(pose1Local, Vector3d()) else pose1Local
+
+        if (!anchor0World.isFiniteVec() || !anchor1World.isFiniteVec()) return joint
+        val subAnchorVel = getPointVelocityWorld(subShip, anchor0World)
+        val mainAnchorVel = if (mainShip != null) getPointVelocityWorld(mainShip, anchor1World) else Vector3d()
+        val relAnchorVel = mainAnchorVel.sub(subAnchorVel, Vector3d())
+        val relAnchorSpeed = relAnchorVel.length()
+        val absHingeOmega = abs(hingeOmegaRadSec)
+        if (!relAnchorSpeed.isFinite() || !absHingeOmega.isFinite()) return joint
+        if (absHingeOmega > SERVO_REANCHOR_MAX_HINGE_OMEGA_RAD_SEC || relAnchorSpeed > SERVO_REANCHOR_MAX_REL_VEL_MPS) return joint
+
+        // As hinge/anchor motion rises, shrink reanchor corrections to avoid injecting impulses.
+        val motionRatio = max(
+            absHingeOmega / max(SERVO_REANCHOR_MAX_HINGE_OMEGA_RAD_SEC, 1.0e-6),
+            relAnchorSpeed / max(SERVO_REANCHOR_MAX_REL_VEL_MPS, 1.0e-6)
+        )
+        val motionScale = (1.0 - motionRatio).coerceIn(0.0, 1.0)
+        if (motionScale < SERVO_REANCHOR_MIN_MOTION_SCALE) return joint
+
+        val err = anchor0World.distance(anchor1World)
+        if (!err.isFinite()) return joint
+        if (err < SERVO_REANCHOR_POS_EPS) return joint
+
+        // Don't do large corrections in one go; that can introduce impulses. Nudge toward the desired anchor.
+        val deltaWorld = anchor1World.sub(anchor0World, Vector3d())
+        val maxStepNow = SERVO_REANCHOR_MAX_STEP * motionScale
+        if (maxStepNow < SERVO_REANCHOR_MIN_STEP) return joint
+        val step = min(err, maxStepNow)
+        val targetWorld = if (err > 0.0) {
+            anchor0World.add(deltaWorld.mul(step / err, Vector3d()), Vector3d())
+        } else {
+            anchor1World
+        }
+
+        val newPose0Pos = subShip.transform.worldToShip.transformPosition(targetWorld, Vector3d())
+        val newPose0 = VSJointPose(newPose0Pos, joint.pose0.rot)
+        val newPose1 = VSJointPose(pose1Local, joint.pose1.rot)
+
+        if (DEBUG_SERVO) {
+            ClockworkMod.LOGGER.info(
+                "[PhysBearing] re-anchor (err={}, step={}, motionScale={}, relVel={}, omega={}, jointId={}, ship0={}, ship1={})",
+                err,
+                step,
+                motionScale,
+                relAnchorSpeed,
+                absHingeOmega,
+                jointID,
+                joint.shipId0,
+                joint.shipId1
+            )
+        }
+
+        return joint.copy(pose0 = newPose0, pose1 = newPose1)
     }
 
     private fun updateDrive() {
         val level = level as? ServerLevel ?: return
         val existing = joint ?: return
         val mode = movementMode?.get() ?: LockedMode.UNLOCKED
+        val maxForceTorque = computeJointMaxForceTorque()
 
         // Keep the joint REVOLUTE in all modes; servo is implemented via driveVelocity in physTick.
         val revolute = when (existing) {
             is VSRevoluteJoint -> existing
             is VSFixedJoint -> VSRevoluteJoint(
                 existing.shipId0, existing.pose0, existing.shipId1, existing.pose1,
-                maxForceTorque = VSJointMaxForceTorque(SERVO_MAX_FORCE, SERVO_MAX_TORQUE),
+                maxForceTorque = maxForceTorque,
                 compliance = SERVO_COMPLIANCE,
                 driveFreeSpin = true
             )
@@ -265,7 +363,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val servoActive = aligning || mode != LockedMode.UNLOCKED
         val baseJoint = if (servoActive) {
             revolute.copy(
-                maxForceTorque = VSJointMaxForceTorque(SERVO_MAX_FORCE, SERVO_MAX_TORQUE),
+                maxForceTorque = maxForceTorque,
                 compliance = SERVO_COMPLIANCE,
                 // We don't rely on the revolute motor for servo behavior; see physTick torque servo.
                 driveVelocity = null,
@@ -275,10 +373,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             )
         } else {
             revolute.copy(
-                maxForceTorque = VSJointMaxForceTorque(SERVO_MAX_FORCE, SERVO_MAX_TORQUE),
+                maxForceTorque = maxForceTorque,
                 compliance = SERVO_COMPLIANCE,
                 driveVelocity = null,
                 driveForceLimit = null,
+                driveGearRatio = null,
                 driveFreeSpin = true
             )
         }
@@ -308,6 +407,29 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         // Returns error in (-pi, pi].
         val d = target - current
         return atan2(sin(d), cos(d))
+    }
+
+    private fun lerpClamped(min: Double, max: Double, t: Double): Double {
+        val tc = t.coerceIn(0.0, 1.0)
+        return min + (max - min) * tc
+    }
+
+    private fun smoothStep(edge0: Double, edge1: Double, x: Double): Double {
+        if (edge1 <= edge0) return if (x >= edge1) 1.0 else 0.0
+        val t = ((x - edge0) / (edge1 - edge0)).coerceIn(0.0, 1.0)
+        return t * t * (3.0 - 2.0 * t)
+    }
+
+    private fun lowPass(previous: Double, sample: Double, alpha: Double): Double {
+        if (!sample.isFinite()) return previous
+        if (!previous.isFinite()) return sample
+        val a = alpha.coerceIn(0.0, 1.0)
+        return previous + (sample - previous) * a
+    }
+
+    private fun clearServoFilterState() {
+        servoOmegaActualFilteredRadSec = 0.0
+        servoAlphaCmdFilteredRadSec2 = 0.0
     }
 
     private fun normalizeAngleDeg0To720(angleDeg: Double): Float {
@@ -448,6 +570,215 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         return 1.0 / (1.0 / left + 1.0 / right)
     }
 
+    private fun rejectAlongAxis(vec: Vector3dc, axisUnit: Vector3dc): Vector3d {
+        return vec.sub(axisUnit.mul(axisUnit.dot(vec), Vector3d()), Vector3d())
+    }
+
+    private fun getPointVelocityWorld(ship: PhysShip, pointWorld: Vector3dc): Vector3d {
+        val r = pointWorld.sub(ship.transform.positionInWorld, Vector3d())
+        return ship.velocity.add(Vector3d(ship.angularVelocity).cross(r, Vector3d()), Vector3d())
+    }
+
+    private fun computeSwingErrorWorld(
+        subShip: PhysShip,
+        mainShip: PhysShip?,
+        axisWorldUnit: Vector3dc
+    ): Vector3d {
+        val subRotWorld = Quaterniond(subShip.transform.shipToWorldRotation)
+        val mainRotWorld = if (mainShip != null) Quaterniond(mainShip.transform.shipToWorldRotation) else Quaterniond()
+
+        // Relative rotation from main to sub.
+        val qRel = Quaterniond(mainRotWorld).conjugate().mul(subRotWorld, Quaterniond()).normalize()
+
+        // Decompose qRel into swing/twist around the hinge axis (in main frame), then keep swing only.
+        val axisMain = Quaterniond(mainRotWorld).conjugate().transform(axisWorldUnit, Vector3d())
+        if (axisMain.lengthSquared() < 1.0e-9) return Vector3d()
+        axisMain.normalize()
+
+        val relVecMain = Vector3d(qRel.x, qRel.y, qRel.z)
+        val projected = axisMain.mul(relVecMain.dot(axisMain), Vector3d())
+        val twist = Quaterniond(projected.x, projected.y, projected.z, qRel.w)
+        val twistUnit = if (twist.lengthSquared() < 1.0e-12) Quaterniond() else twist.normalize()
+        val swing = qRel.mul(Quaterniond(twistUnit).conjugate(), Quaterniond()).normalize()
+
+        val swingVecMain = Vector3d(swing.x, swing.y, swing.z)
+        val swingVecLen = swingVecMain.length()
+        if (swingVecLen < 1.0e-9 || !swingVecLen.isFinite()) return Vector3d()
+
+        var angle = 2.0 * atan2(swingVecLen, swing.w.coerceIn(-1.0, 1.0))
+        if (angle > Math.PI) angle -= Math.PI * 2.0
+        if (!angle.isFinite()) return Vector3d()
+
+        val swingAxisMain = swingVecMain.mul(1.0 / swingVecLen, Vector3d())
+        val errorMain = swingAxisMain.mul(angle, Vector3d())
+        return mainRotWorld.transform(errorMain, Vector3d())
+    }
+
+    private fun applyAnchorSeatStabilizer(
+        joint: VSRevoluteJoint,
+        subShip: PhysShip,
+        mainShip: PhysShip?
+    ) {
+        val subDynamic = !subShip.isStatic
+        val mainDynamic = mainShip != null && !mainShip.isStatic
+        if (!subDynamic && !mainDynamic) return
+
+        val anchor0World = subShip.transform.shipToWorld.transformPosition(joint.pose0.pos, Vector3d())
+        val anchor1World = if (mainShip != null) {
+            mainShip.transform.shipToWorld.transformPosition(joint.pose1.pos, Vector3d())
+        } else {
+            joint.pose1.pos.get(Vector3d())
+        }
+        if (!anchor0World.isFiniteVec() || !anchor1World.isFiniteVec()) return
+
+        // Revolute should keep anchors coincident in all directions.
+        val anchorErrorRaw = anchor1World.sub(anchor0World, Vector3d())
+        val subAnchorVel = if (subDynamic) getPointVelocityWorld(subShip, anchor0World) else Vector3d()
+        val mainAnchorVel = if (mainDynamic) getPointVelocityWorld(mainShip!!, anchor1World) else Vector3d()
+        val relVel = mainAnchorVel.sub(subAnchorVel, Vector3d())
+        val errorLen = anchorErrorRaw.length()
+        val relVelLen = relVel.length()
+        if (errorLen < SERVO_SEAT_ERROR_DEADBAND_M && relVelLen < SERVO_SEAT_VEL_DEADBAND) return
+        val anchorError = if (errorLen > SERVO_SEAT_MAX_ERROR_M && errorLen > 1.0e-9) {
+            anchorErrorRaw.mul(SERVO_SEAT_MAX_ERROR_M / errorLen, Vector3d())
+        } else {
+            anchorErrorRaw
+        }
+
+        val effMass = when {
+            subDynamic && mainDynamic -> parallelOperator(subShip.mass, mainShip!!.mass)
+            subDynamic -> subShip.mass
+            else -> mainShip!!.mass
+        }
+        if (!effMass.isFinite() || effMass <= 0.0) return
+
+        val sliderScale = SERVO_SLIDER_TEST_SCALE.coerceAtLeast(0.0)
+        val worldAnchored = mainShip == null || mainShip.isStatic
+        val seatWn = servoSeatWn.coerceIn(0.0, SERVO_SEAT_WN_MAX * sliderScale)
+        val seatDamping = servoSeatDampingRatio.coerceIn(0.0, SERVO_SEAT_DAMPING_RATIO_MAX * sliderScale)
+        val seatKpScale = if (worldAnchored) SERVO_SEAT_WORLD_ANCHOR_KP_SCALE else 1.0
+        val seatKdScale = if (worldAnchored) SERVO_SEAT_WORLD_ANCHOR_KD_SCALE else 1.0
+        val seatKp = seatWn * seatWn * seatKpScale
+        val seatKd = 2.0 * seatDamping * seatWn * seatKdScale
+
+        var seatAccCmd = anchorError.mul(seatKp, Vector3d()).add(relVel.mul(seatKd, Vector3d()))
+        if (!seatAccCmd.isFiniteVec()) return
+        val maxSeatAccel = if (worldAnchored) SERVO_SEAT_MAX_ACCEL_WORLD_ANCHOR else SERVO_SEAT_MAX_ACCEL_HARD
+        val seatAccLen = seatAccCmd.length()
+        if (seatAccLen > maxSeatAccel && seatAccLen > 1.0e-9) {
+            seatAccCmd.mul(maxSeatAccel / seatAccLen)
+        }
+
+        var seatForce = seatAccCmd.mul(effMass, Vector3d())
+        if (!seatForce.isFiniteVec()) return
+
+        val minSeatForce = SERVO_SEAT_FORCE_LIMIT_MIN * sliderScale
+        val maxSeatForceCap = SERVO_SEAT_FORCE_LIMIT_MAX * sliderScale
+        val maxSeatForce = if (servoSeatForceLimit.isFinite() && servoSeatForceLimit > 0.0) {
+            servoSeatForceLimit.coerceIn(minSeatForce, maxSeatForceCap)
+        } else {
+            minSeatForce
+        }
+        val seatForceLen = seatForce.length()
+        if (seatForceLen > maxSeatForce && seatForceLen > 1.0e-9) {
+            seatForce.mul(maxSeatForce / seatForceLen)
+        }
+
+        if (subDynamic) {
+            subShip.applyWorldForceToModelPos(seatForce, joint.pose0.pos.get(Vector3d()))
+        }
+        if (mainDynamic) {
+            mainShip!!.applyWorldForceToModelPos(seatForce.mul(-1.0, Vector3d()), joint.pose1.pos.get(Vector3d()))
+        }
+    }
+
+    private fun applyOffAxisAngularStabilizer(
+        joint: VSRevoluteJoint,
+        subShip: PhysShip,
+        mainShip: PhysShip?,
+        axisWorldUnit: Vector3dc,
+        relOmegaWorld: Vector3dc
+    ) {
+        val subDynamic = !subShip.isStatic
+        val mainDynamic = mainShip != null && !mainShip.isStatic
+        if (!subDynamic && !mainDynamic) return
+
+        val swingErrorWorldRaw = computeSwingErrorWorld(subShip, mainShip, axisWorldUnit)
+        val swingErrorLen = swingErrorWorldRaw.length()
+        val swingErrorWorld = if (swingErrorLen > SERVO_TILT_MAX_ERROR_RAD && swingErrorLen > 1.0e-9) {
+            swingErrorWorldRaw.mul(SERVO_TILT_MAX_ERROR_RAD / swingErrorLen, Vector3d())
+        } else {
+            swingErrorWorldRaw
+        }
+        val offAxisOmega = rejectAlongAxis(relOmegaWorld, axisWorldUnit)
+        val offAxisOmegaLen = offAxisOmega.length()
+        if ((!offAxisOmegaLen.isFinite() || offAxisOmegaLen < SERVO_TILT_OMEGA_DEADBAND) && swingErrorWorld.length() < 1.0e-6) return
+
+        val sliderScale = SERVO_SLIDER_TEST_SCALE.coerceAtLeast(0.0)
+        val worldAnchored = mainShip == null || mainShip.isStatic
+        val tiltWnScale = if (worldAnchored) SERVO_TILT_WORLD_ANCHOR_WN_SCALE else 1.0
+        val tiltWn = (servoTiltWn.coerceIn(0.0, SERVO_TILT_WN_MAX * sliderScale) * tiltWnScale)
+        val tiltDamping = servoTiltDampingRatio.coerceIn(0.0, SERVO_TILT_DAMPING_RATIO_MAX * sliderScale)
+        val tiltKp = tiltWn * tiltWn
+        val tiltKd = 2.0 * tiltDamping * tiltWn
+        val stiffnessBlend =
+            smoothStep(SERVO_TILT_DAMP_ONLY_ERROR_RAD, SERVO_TILT_FULL_STIFFNESS_ERROR_RAD, swingErrorWorld.length())
+
+        var tiltAlphaCmd = swingErrorWorld.mul(-tiltKp * stiffnessBlend, Vector3d()).add(offAxisOmega.mul(-tiltKd, Vector3d()))
+        if (!tiltAlphaCmd.isFiniteVec()) return
+        var tiltAlphaLen = tiltAlphaCmd.length()
+        val maxTiltAlpha = if (worldAnchored) SERVO_TILT_MAX_ALPHA_WORLD_ANCHOR else SERVO_TILT_MAX_ALPHA_HARD
+        if (tiltAlphaLen > maxTiltAlpha && tiltAlphaLen > 1.0e-9) {
+            tiltAlphaCmd.mul(maxTiltAlpha / tiltAlphaLen)
+            tiltAlphaLen = tiltAlphaCmd.length()
+        }
+
+        val tiltAxis = if (tiltAlphaLen > 1.0e-9) {
+            tiltAlphaCmd.mul(1.0 / tiltAlphaLen, Vector3d())
+        } else if (offAxisOmegaLen > 1.0e-9) {
+            offAxisOmega.mul(1.0 / offAxisOmegaLen, Vector3d())
+        } else {
+            return
+        }
+
+        val effInertia = when {
+            subDynamic && mainDynamic -> {
+                val subInertia = getAngularInertia(subShip, joint.pose0.pos, tiltAxis)
+                val mainInertia = getAngularInertia(mainShip!!, joint.pose1.pos, tiltAxis)
+                parallelOperator(subInertia, mainInertia)
+            }
+            subDynamic -> getAngularInertia(subShip, joint.pose0.pos, tiltAxis)
+            else -> getAngularInertia(mainShip!!, joint.pose1.pos, tiltAxis)
+        }
+        if (!effInertia.isFinite() || effInertia <= 0.0) return
+
+        var tiltTorque = tiltAlphaCmd.mul(effInertia, Vector3d())
+        if (!tiltTorque.isFiniteVec()) return
+        val maxTiltTorque = if (servoTiltTorqueLimit.isFinite() && servoTiltTorqueLimit > 0.0) {
+            servoTiltTorqueLimit
+        } else {
+            SERVO_TILT_TORQUE_MIN * sliderScale
+        }
+        val maxTiltTorqueByAlpha = effInertia * if (worldAnchored) {
+            SERVO_TILT_MAX_ALPHA_EQUIV_WORLD_ANCHOR
+        } else {
+            SERVO_TILT_MAX_ALPHA_EQUIV
+        }
+        val clampedMaxTiltTorque = min(maxTiltTorque, maxTiltTorqueByAlpha)
+        if (!clampedMaxTiltTorque.isFinite() || clampedMaxTiltTorque <= 0.0) return
+        val tiltTorqueLen = tiltTorque.length()
+        if (tiltTorqueLen > clampedMaxTiltTorque && tiltTorqueLen > 1.0e-9) {
+            tiltTorque.mul(clampedMaxTiltTorque / tiltTorqueLen)
+        }
+
+        if (subDynamic) {
+            subShip.applyWorldTorque(tiltTorque)
+        }
+        if (mainDynamic) {
+            mainShip!!.applyWorldTorque(tiltTorque.mul(-1.0, Vector3d()))
+        }
+    }
+
     override fun physTick(physShip: PhysShip?, physLevel: PhysLevel) {
         if (isRemoved || !isRunning) return
         val jointId = jointID
@@ -456,7 +787,10 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val revolute = joint as? VSRevoluteJoint ?: return
         val mode = servoMode
         val servoActive = aligning || mode != LockedMode.UNLOCKED
-        if (!servoActive) return
+        if (!servoActive) {
+            clearServoFilterState()
+            return
+        }
 
         // We need both transforms to compute angle; if ships aren't loaded yet, just wait.
         val subShip = revolute.shipId0?.let { physLevel.getShipById(it) } ?: run {
@@ -471,42 +805,109 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             mode == LockedMode.LOCKED -> lockedHoldAngleRad ?: currentAngleRad.also { lockedHoldAngleRad = it }
             else -> Math.toRadians(targetAngle.toDouble())
         }
+        if (!currentAngleRad.isFinite() || !targetAngleRad.isFinite()) return
 
         var errorRad = shortestAngleErrorRad(targetAngleRad, currentAngleRad)
         if (abs(errorRad) < SERVO_DEADBAND_RAD) errorRad = 0.0
         val axisWorld = bearingAxis.get(Vector3d())
         mainShip?.transform?.shipToWorldRotation?.transform(axisWorld)
+        if (axisWorld.lengthSquared() < 1.0e-9) return
+        axisWorld.normalize()
 
         val relOmegaWorld = Vector3d(subShip.angularVelocity)
         if (mainShip != null) relOmegaWorld.sub(mainShip.angularVelocity)
-        val omegaActual = relOmegaWorld.dot(axisWorld) // rad/s along the bearing axis
+        val omegaActualRaw = relOmegaWorld.dot(axisWorld) // rad/s along the bearing axis
+        if (!omegaActualRaw.isFinite()) return
+        val errorForControl = errorRad.coerceIn(-SERVO_MAX_ERROR_RAD, SERVO_MAX_ERROR_RAD)
+        val holdBlend = smoothStep(SERVO_HOLD_BLEND_ERROR_RAD, SERVO_HOLD_RELEASE_ERROR_RAD, abs(errorForControl))
+
+        val omegaFilterAlpha = lerpClamped(SERVO_OMEGA_FILTER_ALPHA_NEAR_HOLD, SERVO_OMEGA_FILTER_ALPHA_ACTIVE, holdBlend)
+        servoOmegaActualFilteredRadSec = lowPass(servoOmegaActualFilteredRadSec, omegaActualRaw, omegaFilterAlpha)
+        val omegaActual = if (servoOmegaActualFilteredRadSec.isFinite()) {
+            servoOmegaActualFilteredRadSec
+        } else {
+            omegaActualRaw
+        }
 
         // FOLLOW_ANGLE should respond immediately to kinetic input; use a feed-forward target omega and a PD in
         // acceleration-space. This avoids the "infinite torque" behavior that destabilizes heavy/offset ships.
-        val omegaFf = if (!aligning && mode == LockedMode.FOLLOW_ANGLE) {
+        val omegaFfRaw = if (!aligning && mode == LockedMode.FOLLOW_ANGLE && !followAngleStalled) {
             followOmegaFeedForwardRadSec.coerceIn(-SERVO_MAX_OMEGA, SERVO_MAX_OMEGA)
         } else {
             0.0
         }
-        val omegaErr = omegaFf - omegaActual
-        val errorForControl = errorRad.coerceIn(-SERVO_MAX_ERROR_RAD, SERVO_MAX_ERROR_RAD)
-        var alphaCmd = servoKp * errorForControl + servoKd * omegaErr
-        alphaCmd = alphaCmd.coerceIn(-servoMaxAlpha, servoMaxAlpha)
+        val followFfScale = if (!aligning && mode == LockedMode.FOLLOW_ANGLE && !followAngleStalled) {
+            smoothStep(FOLLOW_FF_FADE_START_ERROR_RAD, FOLLOW_FF_FADE_END_ERROR_RAD, abs(errorForControl))
+        } else {
+            0.0
+        }
+        var omegaFf = (omegaFfRaw * followFfScale).coerceIn(-SERVO_MAX_OMEGA, SERVO_MAX_OMEGA)
+        if (
+            followAngleStalled ||
+            (abs(errorForControl) < FOLLOW_FF_ZERO_ERROR_RAD && abs(omegaActual) < FOLLOW_FF_ZERO_OMEGA_RAD_SEC)
+        ) {
+            omegaFf = 0.0
+        }
+
+        // Close to hold, fade positional stiffness and let damping dominate.
+        val omegaFromPositionRaw = (servoPosGain * errorForControl).coerceIn(-servoPosOmegaLimit, servoPosOmegaLimit)
+        val omegaFromPosition = omegaFromPositionRaw * holdBlend
+        val omegaTarget = (omegaFromPosition + omegaFf).coerceIn(-SERVO_MAX_OMEGA, SERVO_MAX_OMEGA)
+        val omegaErr = omegaTarget - omegaActual
+        var alphaCmdRaw = servoOmegaGain * omegaErr
+
+        // Prevent tiny setpoint chatter from exciting heavy ships near lock.
+        if (
+            abs(errorForControl) < SERVO_HOLD_ERROR_RAD &&
+            abs(omegaActual) < SERVO_HOLD_OMEGA_RAD_SEC &&
+            abs(omegaTarget) < SERVO_HOLD_OMEGA_RAD_SEC &&
+            abs(omegaFf) < SERVO_HOLD_OMEGA_RAD_SEC
+        ) {
+            alphaCmdRaw = 0.0
+        }
+
+        val alphaFilterAlpha = lerpClamped(SERVO_ALPHA_FILTER_ALPHA_NEAR_HOLD, SERVO_ALPHA_FILTER_ALPHA_ACTIVE, holdBlend)
+        servoAlphaCmdFilteredRadSec2 = lowPass(servoAlphaCmdFilteredRadSec2, alphaCmdRaw, alphaFilterAlpha)
+        var alphaCmd = if (servoAlphaCmdFilteredRadSec2.isFinite()) {
+            servoAlphaCmdFilteredRadSec2
+        } else {
+            alphaCmdRaw
+        }
+
+        // Discrete-time stability clamp: limit per-tick omega step to avoid high-frequency solver excitation.
+        val maxOmegaStepPerTick = lerpClamped(
+            SERVO_HOLD_MAX_OMEGA_STEP_PER_TICK,
+            SERVO_ACTIVE_MAX_OMEGA_STEP_PER_TICK,
+            holdBlend
+        )
+        val alphaLimitByDt = if (SERVO_PHYS_TICK_DT_SEC > 0.0) {
+            maxOmegaStepPerTick / SERVO_PHYS_TICK_DT_SEC
+        } else {
+            SERVO_MAX_ALPHA_HARD
+        }
+        val alphaLimit = min(SERVO_MAX_ALPHA_HARD, alphaLimitByDt.coerceAtLeast(0.0))
+        alphaCmd = alphaCmd.coerceIn(-alphaLimit, alphaLimit)
+        if (!alphaCmd.isFinite()) return
 
         // Ensure the joint isn't treated as free-spin in servo modes. We do NOT rely on the joint motor here because
         // it's backend-dependent; instead we apply an explicit torque servo below.
-        val updated = revolute.copy(
-            maxForceTorque = VSJointMaxForceTorque(SERVO_MAX_FORCE, SERVO_MAX_TORQUE),
+        var updated = revolute.copy(
+            maxForceTorque = computeJointMaxForceTorque(),
             compliance = SERVO_COMPLIANCE,
             driveVelocity = null,
             driveForceLimit = null,
             driveGearRatio = null,
             driveFreeSpin = false
         )
+        updated = maybeReanchorJoint(updated, subShip, mainShip, omegaActual)
         if (updated != revolute) {
             joint = updated
             (physLevel as? VsiPhysLevel)?.updateJoint(jointId, updated)
         }
+
+        // Strong translational lock at the anchors, plus off-axis angular swing lock.
+        applyAnchorSeatStabilizer(updated, subShip, mainShip)
+        applyOffAxisAngularStabilizer(updated, subShip, mainShip, axisWorld, relOmegaWorld)
 
         // Torque servo (works even when revolute drive velocity is not honored).
         val torqueMassMultiplier: Double = run {
@@ -523,11 +924,39 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 else -> mainInertia
             }
         }
+        if (!torqueMassMultiplier.isFinite() || torqueMassMultiplier <= 0.0) return
 
-        // Torque = I_eff * alpha_cmd, clamped.
-        var torqueMag = torqueMassMultiplier * alphaCmd
-        val maxTorque = servoTorqueLimit
-        torqueMag = torqueMag.coerceIn(-maxTorque, maxTorque)
+        // Torque servo: tau = I_eff * alpha_cmd.
+        var servoTorqueMag = torqueMassMultiplier * alphaCmd
+        if (!servoTorqueMag.isFinite()) return
+        val maxTorque = if (servoTorqueLimit.isFinite() && servoTorqueLimit > 0.0) servoTorqueLimit else SERVO_TORQUE_MIN
+        servoTorqueMag = servoTorqueMag.coerceIn(-maxTorque, maxTorque)
+
+        // Explicit hinge-axis damping torque for hold/near-target operation:
+        // tau_damp = -c * omega, where c = I_eff * damping_rate.
+        val nearTargetForDamping = abs(errorForControl) < SERVO_DAMPING_NEAR_TARGET_ERROR_RAD
+        val commandNearZero =
+            abs(omegaTarget) < SERVO_DAMPING_HOLD_CMD_OMEGA_RAD_SEC &&
+                abs(omegaFfRaw) < SERVO_DAMPING_HOLD_CMD_OMEGA_RAD_SEC
+        val holdLikeState = mode == LockedMode.LOCKED || aligning || nearTargetForDamping
+        val applyHingeDamping =
+            holdLikeState && commandNearZero && abs(omegaActual) >= SERVO_DAMPING_MIN_ACTIVE_OMEGA_RAD_SEC
+
+        var dampingTorqueMag = 0.0
+        if (applyHingeDamping) {
+            val dampingRate =
+                if (mode == LockedMode.LOCKED || aligning) SERVO_HINGE_DAMPING_RATE_LOCKED else SERVO_HINGE_DAMPING_RATE_NEAR_TARGET
+            val dampingCoeff = torqueMassMultiplier * dampingRate
+            dampingTorqueMag = -dampingCoeff * omegaActual
+            val maxDampingTorque = min(
+                maxTorque * SERVO_HINGE_DAMPING_MAX_TORQUE_FRACTION,
+                torqueMassMultiplier * SERVO_HINGE_DAMPING_MAX_ALPHA_EQUIV
+            )
+            dampingTorqueMag = dampingTorqueMag.coerceIn(-maxDampingTorque, maxDampingTorque)
+        }
+
+        val torqueMag = (servoTorqueMag + dampingTorqueMag).coerceIn(-maxTorque, maxTorque)
+        if (!torqueMag.isFinite()) return
 
         val torqueVec = axisWorld.mul(torqueMag, Vector3d())
         if (!subShip.isStatic) {
@@ -597,7 +1026,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             is VSRevoluteJoint -> joint
             is VSFixedJoint -> VSRevoluteJoint(
                 joint.shipId0, joint.pose0, joint.shipId1, joint.pose1,
-                maxForceTorque = VSJointMaxForceTorque(SERVO_MAX_FORCE, SERVO_MAX_TORQUE),
+                maxForceTorque = computeJointMaxForceTorque(),
                 compliance = SERVO_COMPLIANCE,
                 driveFreeSpin = true
             )
@@ -672,7 +1101,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             val fj = mapper.readValue(tag.getByteArray("fjoint"), VSFixedJoint::class.java)
             joint = VSRevoluteJoint(
                 fj.shipId0, fj.pose0, fj.shipId1, fj.pose1,
-                maxForceTorque = VSJointMaxForceTorque(SERVO_MAX_FORCE, SERVO_MAX_TORQUE),
+                maxForceTorque = computeJointMaxForceTorque(),
                 compliance = SERVO_COMPLIANCE,
                 driveFreeSpin = true
             )
@@ -682,7 +1111,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         super.read(tag, clientPacket)
         // Behaviours were just read; sync derived servo parameters from the persisted values.
         servoStrengthBehaviour?.also { setServoStrengthSetting(it.currentValue, sendUpdate = false) }
-        servoStiffnessBehaviour?.also { setServoStiffnessSetting(it.currentValue, sendUpdate = false) }
         if (clientPacket) {return}
 
         // may not have level on read so i have to do this
@@ -906,13 +1334,13 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val ship1rot = getHingeRotation(direction)
         val ship2rot = getHingeRotation(direction)
 
-        val extraDist = 1.0
+        val extraDist = SERVO_JOINT_ANCHOR_OFFSET
 //        val realSpeed = if (getSpeed().absoluteValue > 0.0f) getRealisticAngularSpeed() else 0.0f
 //        val newDriveVelocity = if (realSpeed != 0.0f) VSRevoluteJoint.VSRevoluteDriveVelocity(getRealisticAngularSpeed(), true) else null
         joint = VSRevoluteJoint(
             shiptraptionID, VSJointPose(bearingPos.fma(-extraDist, axis, Vector3d()), ship1rot),
             shipOnID, VSJointPose(posInOwnerShip.fma(-extraDist, axis, Vector3d()), ship2rot),
-            maxForceTorque = VSJointMaxForceTorque(SERVO_MAX_FORCE, SERVO_MAX_TORQUE),
+            maxForceTorque = computeJointMaxForceTorque(),
             compliance = SERVO_COMPLIANCE,
             driveFreeSpin = true
 //            driveVelocity = newDriveVelocity,
@@ -1030,6 +1458,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         lastAngle = 0f
         curAngle = 0f
 
+        physServoTickCounter = 0
+        clearServoFilterState()
         clearFollowAngleStallState()
     }
 
@@ -1332,31 +1762,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         }
     }
 
-    private class ServoStiffnessScrollValueBehaviour(
-        label: Component,
-        be: GeneratingKineticBlockEntity,
-        slot: ValueBoxTransform
-    ) : ServoTuningScrollValueBehaviour(label, be, slot, 2) {
-
-        override fun getType(): BehaviourType<*> = TYPE
-
-        override fun getClipboardKey(): String = "PhysBearingServoStiffness"
-
-        override fun write(nbt: CompoundTag, clientPacket: Boolean) {
-            nbt.putInt(NBT_KEY, currentValue)
-        }
-
-        override fun read(nbt: CompoundTag, clientPacket: Boolean) {
-            if (nbt.contains(NBT_KEY)) currentValue = nbt.getInt(NBT_KEY)
-        }
-
-        companion object {
-            val TYPE: BehaviourType<ServoStiffnessScrollValueBehaviour> =
-                BehaviourType("phys_bearing_servo_stiffness")
-            private const val NBT_KEY = "ServoStiffness"
-        }
-    }
-
     companion object {
         const val NO_SHIPTRAPTION_ID: Long = -1
 
@@ -1364,23 +1769,28 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         private const val SERVO_STRENGTH_MIN = 0
         private const val SERVO_STRENGTH_MAX = 100
         private const val SERVO_STRENGTH_DEFAULT = 50
-        private const val SERVO_STIFFNESS_MIN = 0
-        private const val SERVO_STIFFNESS_MAX = 100
-        private const val SERVO_STIFFNESS_DEFAULT = 50
 
         // Slider mapping:
-        // - "Stiffness" controls closed-loop natural frequency (wn), with Kp = wn^2.
-        // - Kd is chosen for a fixed damping ratio to minimize sway/overshoot.
-        // - "Strength" caps both max torque and max angular acceleration.
-        // Temporary: boost slider magnitudes for testing (e.g., UI 100 behaves like 1000 if set to 10.0).
-        private const val SERVO_TEST_SCALE = 2.0
-        private const val SERVO_DAMPING_RATIO = 1.25
-        private const val SERVO_WN_MIN = 4.0
-        private const val SERVO_WN_MAX = 64.0
-        private const val SERVO_ALPHA_MIN = 30.0
-        private const val SERVO_ALPHA_MAX = 480.0
-        private const val SERVO_FORCE_TORQUE_MIN = 1.0e8
-        private const val SERVO_FORCE_TORQUE_MAX = 1.0e10
+        // - Single "Strength" slider controls both stiffness and authority.
+        // - Angular control is acceleration-space:
+        //     omega_from_error = clamp(wn * angle_error)
+        //     alpha_cmd = (2*zeta*wn) * (omega_target - omega_actual)
+        //   Then apply torque = I_eff * alpha_cmd.
+        private const val SERVO_DAMPING_RATIO_MIN = 1.6 // zeta; >= 1 to reduce sway/overshoot
+        private const val SERVO_DAMPING_RATIO_MAX = 2.4
+        private const val SERVO_WN_MIN = 2.0
+        private const val SERVO_WN_MAX = 24.0
+        private const val SERVO_POS_OMEGA_LIMIT_MIN = 3.0
+        private const val SERVO_POS_OMEGA_LIMIT_MAX = 28.0
+
+        // Slider output ranges can be globally amplified for testing.
+        // This scales all slider-driven magnitudes from the shared strength slider.
+        // Hard clamps (omega/alpha/error and seat acceleration/force clamps) remain in effect.
+        private const val SERVO_SLIDER_TEST_SCALE = 1.0
+
+        // Strength -> torque limit (log-mapped).
+        private const val SERVO_TORQUE_MIN = 1.0e7
+        private const val SERVO_TORQUE_MAX = 1.0e10
 
         private const val MISSING_SUBSHIP_GRACE_TICKS = 20
 
@@ -1391,20 +1801,89 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         private const val FOLLOW_STALL_EPS_RAD_BASE = 1.0e-4
         private const val FOLLOW_STALL_EPS_FRACTION = 0.005
 
-        // Servo tuning (acceleration-space PD):
-        //   alpha_cmd = Kp * angle_error + Kd * (omega_target - omega_actual)
-        // Then we apply torque = I_eff * alpha_cmd.
-        private const val SERVO_KP = 250.0 // (rad/s^2)/rad
-        private const val SERVO_KD = 40.0  // (rad/s^2)/(rad/s)
+        // Servo tuning.
         private const val SERVO_MAX_OMEGA = 80.0 // rad/s (feed-forward clamp)
-        private const val SERVO_MAX_ALPHA = 120.0 // rad/s^2 (hard stability clamp)
+        private const val SERVO_MAX_ALPHA_HARD = 180.0 // rad/s^2 (hard stability clamp)
         private const val SERVO_MAX_ERROR_RAD = 0.75 // rad (~43 deg), avoids absurd snap torques on large steps
         private const val SERVO_DEADBAND_RAD = 1.0e-4 // ~0.006 degrees
+        private const val SERVO_HOLD_ERROR_RAD = 2.0e-3 // ~0.11 degrees
+        private const val SERVO_HOLD_OMEGA_RAD_SEC = 0.04
 
-        // Joint strength. Values are intentionally very high to avoid "sagging".
-        private const val SERVO_MAX_FORCE = 1.0e9f
-        private const val SERVO_MAX_TORQUE = 1.0e9f
-        private const val SERVO_DRIVE_FORCE_LIMIT = 1.0e9f
+        // Near hold behavior:
+        // - fade stiffness/feed-forward near target so damping can dissipate residual energy
+        // - low-pass omega/alpha to avoid exciting high-frequency solver jitter
+        // - per-tick omega-step clamp keeps discrete-time response stable at high strength/inertia
+        private const val SERVO_PHYS_TICK_DT_SEC = 1.0 / 20.0
+        private const val SERVO_HOLD_BLEND_ERROR_RAD = 0.004
+        private const val SERVO_HOLD_RELEASE_ERROR_RAD = 0.03
+        private const val SERVO_OMEGA_FILTER_ALPHA_NEAR_HOLD = 0.45
+        private const val SERVO_OMEGA_FILTER_ALPHA_ACTIVE = 0.80
+        private const val SERVO_ALPHA_FILTER_ALPHA_NEAR_HOLD = 0.75
+        private const val SERVO_ALPHA_FILTER_ALPHA_ACTIVE = 0.95
+        private const val SERVO_HOLD_MAX_OMEGA_STEP_PER_TICK = 0.30
+        private const val SERVO_ACTIVE_MAX_OMEGA_STEP_PER_TICK = 1.6
+
+        // Hinge-axis explicit damping: tau_damp = -c * omega (c = I_eff * damping_rate).
+        // Applied in LOCKED/aligning or when close to target with near-zero command.
+        private const val SERVO_DAMPING_NEAR_TARGET_ERROR_RAD = 0.03
+        private const val SERVO_DAMPING_HOLD_CMD_OMEGA_RAD_SEC = 0.20
+        private const val SERVO_DAMPING_MIN_ACTIVE_OMEGA_RAD_SEC = 0.03
+        private const val SERVO_HINGE_DAMPING_RATE_LOCKED = 1.4
+        private const val SERVO_HINGE_DAMPING_RATE_NEAR_TARGET = 1.0
+        private const val SERVO_HINGE_DAMPING_MAX_TORQUE_FRACTION = 0.12
+        private const val SERVO_HINGE_DAMPING_MAX_ALPHA_EQUIV = 8.0
+
+        // FOLLOW_ANGLE feed-forward safety: fade and zero FF near target to avoid hunting.
+        private const val FOLLOW_FF_FADE_START_ERROR_RAD = 0.02
+        private const val FOLLOW_FF_FADE_END_ERROR_RAD = 0.18
+        private const val FOLLOW_FF_ZERO_ERROR_RAD = 0.03
+        private const val FOLLOW_FF_ZERO_OMEGA_RAD_SEC = 0.10
+
+        // Off-axis anchor seating (perpendicular to hinge axis) to suppress lateral wobble under heavy load.
+        // Shared strength slider maps both seat stiffness and seat force limit.
+        private const val SERVO_SEAT_DAMPING_RATIO_MIN = 1.4
+        private const val SERVO_SEAT_DAMPING_RATIO_MAX = 2.8
+        private const val SERVO_SEAT_WN_MIN = 2.0
+        private const val SERVO_SEAT_WN_MAX = 20.0
+        private const val SERVO_SEAT_MAX_ERROR_M = 0.35
+        private const val SERVO_SEAT_MAX_ACCEL_HARD = 40.0 // m/s^2 hard stability clamp
+        private const val SERVO_SEAT_MAX_ACCEL_WORLD_ANCHOR = 8.0
+        private const val SERVO_SEAT_WORLD_ANCHOR_KP_SCALE = 0.35
+        private const val SERVO_SEAT_WORLD_ANCHOR_KD_SCALE = 0.65
+        private const val SERVO_SEAT_ERROR_DEADBAND_M = 1.0e-3
+        private const val SERVO_SEAT_VEL_DEADBAND = 0.02
+        private const val SERVO_SEAT_FORCE_LIMIT_MIN = 5.0e5
+        private const val SERVO_SEAT_FORCE_LIMIT_MAX = 2.0e10
+
+        // Off-axis angular swing lock (suppresses metronome-like side swing in bearing chains).
+        private const val SERVO_TILT_OMEGA_DEADBAND = 2.0e-3 // rad/s
+        private const val SERVO_TILT_DAMPING_RATIO_MIN = 1.8
+        private const val SERVO_TILT_DAMPING_RATIO_MAX = 3.0
+        private const val SERVO_TILT_WN_MIN = 6.0
+        private const val SERVO_TILT_WN_MAX = 60.0
+        private const val SERVO_TILT_MAX_ERROR_RAD = 0.4
+        private const val SERVO_TILT_DAMP_ONLY_ERROR_RAD = 0.01
+        private const val SERVO_TILT_FULL_STIFFNESS_ERROR_RAD = 0.12
+        private const val SERVO_TILT_WORLD_ANCHOR_WN_SCALE = 0.35
+        private const val SERVO_TILT_MAX_ALPHA_WORLD_ANCHOR = 20.0
+        private const val SERVO_TILT_MAX_ALPHA_HARD = 200.0 // rad/s^2 hard stability clamp
+        private const val SERVO_TILT_MAX_ALPHA_EQUIV = 12.0
+        private const val SERVO_TILT_MAX_ALPHA_EQUIV_WORLD_ANCHOR = 4.0
+        private const val SERVO_TILT_TORQUE_MIN = 1.0e6
+        private const val SERVO_TILT_TORQUE_MAX = 5.0e11
+
+        // Joint constraint strength (keeps the bearing locked into the rotation plane).
+        private const val SERVO_JOINT_MAX_FORCE = 1.0e10f
+        private const val SERVO_JOINT_ANCHOR_OFFSET = 1.0
+
+        // Gentle re-anchoring to correct accumulated joint drift (does not retarget angle/pose each tick).
+        private const val SERVO_REANCHOR_PERIOD_TICKS = 30
+        private const val SERVO_REANCHOR_POS_EPS = 0.12
+        private const val SERVO_REANCHOR_MAX_STEP = 0.03
+        private const val SERVO_REANCHOR_MAX_HINGE_OMEGA_RAD_SEC = 0.25
+        private const val SERVO_REANCHOR_MAX_REL_VEL_MPS = 0.12
+        private const val SERVO_REANCHOR_MIN_MOTION_SCALE = 0.20
+        private const val SERVO_REANCHOR_MIN_STEP = 0.003
 
         // Extremely stiff, but not pathological (avoid ~1e-100 which can blow up solvers).
         private const val SERVO_COMPLIANCE = 1.0e-10
