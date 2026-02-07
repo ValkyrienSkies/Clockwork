@@ -98,6 +98,12 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
     var lastPowerOne = 0
     var lastPowerTwo = 0
 
+    /**
+     * Only used by the CC peripheral so that it can set the blade angle manually
+     * without it resetting / being meddled with by redstone
+     */
+    var isLocked = false
+
     override fun newCreateData(): PropCreateData {
         return PropCreateData(worldPosition.toJOML(), blockState.getValue(BlockStateProperties.FACING).normal.toJOMLD(), angle, currentOmega, ArrayList(sailPositions), isInverted(), active, brass && blades.isEmpty(), ArrayList(blades))
     }
@@ -269,7 +275,7 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
     }
     // reminder: override this for copter bearing since their redstone controls something different
     open fun applyPowerEffect() {
-        if (!this.brass || blades.isEmpty() || (powerOne == 0 && powerTwo == 0)) return
+        if (!this.brass || blades.isEmpty() || (powerOne == 0 && powerTwo == 0) || isLocked) return
 
         val powerEffect = Mth.clamp((powerOne + powerTwo).toFloat() / 30f, -1f, 1f)
         val angleChange = 2f * powerEffect
