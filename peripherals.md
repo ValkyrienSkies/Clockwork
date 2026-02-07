@@ -78,6 +78,7 @@ Throws if:
 - `gasName` is not found in the gas registry
 - `amount` is `<=0`
 - `amount` is larger than the amount of `gasName` in the node
+- `cheatKelvinPeripheral` is not enabled in the server config (disabled by default)
 
 ---
 
@@ -101,6 +102,7 @@ Throws if:
 - `toName` is not a gas node peripheral
 - `amount` is `<=0`
 - `amount` is larger than the temperature in the node
+- `cheatKelvinPeripheral` is not enabled in the server config (disabled by default)
 
 ---
 

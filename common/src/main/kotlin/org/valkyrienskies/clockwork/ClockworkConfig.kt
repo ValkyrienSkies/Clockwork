@@ -180,5 +180,8 @@ object ClockworkConfig {
 
         @ConfigEntry(description = "Whether the (smart) flap bearing peripheral can use setAngle without rotational power")
         var cheatFlapBearingPeripheral = false
+
+        @ConfigEntry(description = "Whether the generic kelvin peripheral can move gas/heat through only a peripheral connection")
+        var cheatKelvinPeripheral = false
     }
 }
