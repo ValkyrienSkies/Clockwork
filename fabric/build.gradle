@@ -116,7 +116,7 @@ dependencies {
     //modRuntimeOnly("cc.tweaked:cc-tweaked-${minecraft_version}-fabric:${cc_version}")
 
 //JEI
-    //modRuntimeOnly("mezz.jei:jei-${minecraft_version}-fabric:${jei_version_fabric}")
+    modRuntimeOnly("mezz.jei:jei-${minecraft_version}-fabric:${jei_version_fabric}")
 
     implementation("org.joml:joml-primitives:1.10.0")
     implementation("org.joml:joml:1.10.4")

@@ -7,13 +7,13 @@
   ],
   "input_gasses": {
     "vs_clockwork:steam": {
-      "amount": 0.01,
+      "amount": 0.05,
       "unit": "kg"
     }
   },
   "result_gasses": {
     "vs_clockwork:bog": {
-      "amount": 0.01,
+      "amount": 0.03,
       "unit": "kg"
     },
     "vs_clockwork:exhaust": {
