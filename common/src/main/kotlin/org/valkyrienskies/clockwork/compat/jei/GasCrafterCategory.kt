@@ -165,15 +165,13 @@ class GasCrafterCategory(val info: Info<GasCraftingRecipe>) : CreateRecipeCatego
         override fun getWidth(): Int = 177
 
         override fun getHeight(): Int {
-            val recipe = currentRecipe ?: return 103
+            val recipe = currentRecipe ?: return 83
 
 
-            val requirementCount = recipe.gasRecipe?.requirements?.size ?: return 103
-            val calculatedHeight = 103 + (requirementCount * 20)
-
+            val requirementCount = (if (recipe.requiredHeat != HeatCondition.NONE) 1 else 0) + (recipe.gasRecipe?.requirements?.size ?: return 83)
+            val calculatedHeight = 83 + (requirementCount * 20)
             return calculatedHeight
         }
-
         override fun draw(guiGraphics: GuiGraphics, xOffset: Int, yOffset: Int) {
             // Empty background
         }
