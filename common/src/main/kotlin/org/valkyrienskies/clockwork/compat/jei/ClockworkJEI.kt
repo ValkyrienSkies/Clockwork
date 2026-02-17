@@ -47,6 +47,7 @@ class ClockworkJEI() : IModPlugin {
     private val ID: ResourceLocation = ClockworkMod.asResource("jei_plugin")
     var runtime: IJeiRuntime? = null
 
+
     private fun loadCategories() {
         allCategories.clear()
 
@@ -55,7 +56,7 @@ class ClockworkJEI() : IModPlugin {
             .catalyst { ClockworkBlocks.GAS_CRAFTER.get() }
             .catalyst { AllBlocks.BASIN.get() }
             .itemIcon(ClockworkBlocks.GAS_CRAFTER.get())
-            .emptyBackground(177, 103)
+            .background(GasCrafterCategory.GasCraftingRecipeBackground)
             .build(
                 "gas_crafting",
                 CreateRecipeCategory.Factory { info: CreateRecipeCategory.Info<GasCraftingRecipe> ->
