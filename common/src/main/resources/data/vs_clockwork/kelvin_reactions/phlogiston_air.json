@@ -13,10 +13,10 @@
     "kelvin:min_temperature": 500,
     "kelvin:min_pressure": 1000
   },
-  "energy": 160000,
+  "energy": 1600000,
   "result_gasses": {
     "vs_clockwork:exhaust": {
-      "amount": 0.04,
+      "amount": 0.004,
       "unit": "kg"
     }
   }
