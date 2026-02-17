@@ -35,7 +35,7 @@ object GasCrafterMethodsImpl {
         val availableItems: IItemHandler? = basin?.getCapability(ForgeCapabilities.ITEM_HANDLER)?.orElse(null)
         val availableFluids: IFluidHandler? = basin?.getCapability(ForgeCapabilities.FLUID_HANDLER)?.orElse(null)
 
-        val heat: BlazeBurnerBlock.HeatLevel = if (basin != null) BasinBlockEntity.getHeatLevelOf(basin.blockState) else BlazeBurnerBlock.HeatLevel.NONE
+        val heat: BlazeBurnerBlock.HeatLevel = if (basin != null) BasinBlockEntity.getHeatLevelOf(basin.level!!.getBlockState(basin.blockPos.below())) else BlazeBurnerBlock.HeatLevel.NONE
         if (isGasCrafterRecipe && !recipe.getRequiredHeat()
                 .testBlazeBurner(heat)
         ) return false
