@@ -105,7 +105,8 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
                         val existingSelectionDeser = readAABBSetFromNBT(existingSelection)
                         val out = existingSelectionDeser.subtractWithAABB(selection)
                         wand.tag?.remove("selectedBlocks")
-                        wand.tag?.put("selectedBlocks", writeAABBSetToNBT(out))
+                        val optimizedOut = mergeAdjacentFast(out)
+                        wand.tag?.put("selectedBlocks", writeAABBSetToNBT(optimizedOut))
                     }
                 }
                 sendTo(WanderwandRenderUpdatePacket(firstPos, if (deselect) ToolType.DESELECT else ToolType.SELECT, blocks = wand.tag?.get("selectedBlocks") as? CompoundTag?), sPlayer)
