@@ -6,7 +6,7 @@ import org.joml.primitives.AABBic
 object AABBHelper {
 
     private fun isEmpty(b: AABBi): Boolean =
-        b.minX == b.maxX || b.minY == b.maxY || b.minZ == b.maxZ
+        b.minX >= b.maxX || b.minY >= b.maxY || b.minZ >= b.maxZ
 
     private fun intersectionHalfOpen(a: AABBi, c: AABBi): AABBi? {
         val ix0 = maxOf(a.minX, c.minX)
