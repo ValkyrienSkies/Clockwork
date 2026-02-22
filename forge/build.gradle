@@ -121,7 +121,6 @@ dependencies {
     modCompileOnly("dev.engine-room.flywheel:flywheel-forge-api-${minecraft_version}:${flywheel_forge_version}")
     modRuntimeOnly("dev.engine-room.flywheel:flywheel-forge-${minecraft_version}:${flywheel_forge_version}")
 
-    modCompileOnly("maven.modrinth:valkyrien-warium:0.3.1")
 
     // JOML
     compileOnly("org.joml:joml:1.10.4")
