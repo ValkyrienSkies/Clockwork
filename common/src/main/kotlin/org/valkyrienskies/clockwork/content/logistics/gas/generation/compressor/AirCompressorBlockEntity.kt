@@ -47,12 +47,12 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
 
     fun getAirDensity(): Double {
         val position = level.toWorldCoordinates(blockPos)
-        return vsCore.dummyShipWorldServer.aerodynamicUtils.getAirDensityForY(position.y, level!!.dimensionId)
+        return (level as? ServerLevel)?.shipObjectWorld?.aerodynamicUtils?.getAirDensityForY(position.y, level!!.dimensionId) ?: 1.0
     }
 
     fun getAirTemperature(): Double {
         val position = level.toWorldCoordinates(blockPos)
-        return vsCore.dummyShipWorldServer.aerodynamicUtils.getAirTemperatureForY(position.y, level!!.dimensionId)
+        return (level as? ServerLevel)?.shipObjectWorld?.aerodynamicUtils?.getAirTemperatureForY(position.y, level!!.dimensionId) ?: 0.0
     }
 
     override fun tick() {

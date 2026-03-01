@@ -39,7 +39,10 @@ import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import java.util.EnumMap
 import org.valkyrienskies.kelvin.api.DuctNetwork.Companion.idealGasConstant
+import org.valkyrienskies.mod.api.vsApi
+import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.dimensionId
+import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.vsCore
 import kotlin.math.PI
 import kotlin.math.abs
@@ -359,7 +362,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
             var moles = 0.0
             for ((gas, mass) in network.getGasMassAt(pos)) moles +=  gas.massToMoles(mass)
 
-            val pressure = vsCore.dummyShipWorldServer.aerodynamicUtils.getAirPressureForY(pos.y, dimensionId)
+            val pressure = vsApi.getServerShipWorld(ValkyrienSkiesMod.currentServer)?.aerodynamicUtils?.getAirPressureForY(pos.y, dimensionId) ?: 1.0
             val temperature = network.getTemperatureAt(pos)
 
             val volume = temperature*idealGasConstant*moles/pressure
