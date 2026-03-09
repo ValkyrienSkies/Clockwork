@@ -1,9 +1,8 @@
-package org.valkyrienskies.clockwork.compat.jei
+package org.valkyrienskies.clockwork.compat.jei.animated_blocks
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.Axis
 import com.simibubi.create.AllBlocks
-import com.simibubi.create.AllPartialModels
 import com.simibubi.create.compat.jei.category.animations.AnimatedKinetics
 import net.createmod.catnip.animation.AnimationTickHolder
 import net.minecraft.client.gui.GuiGraphics

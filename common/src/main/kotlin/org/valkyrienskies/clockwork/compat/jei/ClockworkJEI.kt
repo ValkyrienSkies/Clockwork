@@ -1,20 +1,21 @@
 package org.valkyrienskies.clockwork.compat.jei
 
 import com.simibubi.create.AllBlocks
-import com.simibubi.create.AllFluids
 import com.simibubi.create.compat.jei.CreateJEI.consumeTypedRecipes
 import com.simibubi.create.compat.jei.DoubleItemIcon
 import com.simibubi.create.compat.jei.EmptyBackground
 import com.simibubi.create.compat.jei.ItemIcon
-import com.simibubi.create.compat.jei.ToolboxColoringRecipeMaker
 import com.simibubi.create.compat.jei.category.CreateRecipeCategory
+import com.simibubi.create.foundation.gui.AllGuiTextures
 import com.simibubi.create.foundation.recipe.IRecipeTypeInfo
 import com.simibubi.create.infrastructure.config.AllConfigs
 import com.simibubi.create.infrastructure.config.CRecipes
 import mezz.jei.api.IModPlugin
 import mezz.jei.api.JeiPlugin
-import mezz.jei.api.constants.RecipeTypes
+import mezz.jei.api.gui.builder.IRecipeLayoutBuilder
+import mezz.jei.api.gui.builder.IRecipeSlotBuilder
 import mezz.jei.api.gui.drawable.IDrawable
+import mezz.jei.api.recipe.RecipeIngredientRole
 import mezz.jei.api.recipe.RecipeType
 import mezz.jei.api.registration.IRecipeCatalystRegistration
 import mezz.jei.api.registration.IRecipeCategoryRegistration
@@ -23,17 +24,22 @@ import mezz.jei.api.runtime.IIngredientManager
 import mezz.jei.api.runtime.IJeiRuntime
 import net.createmod.catnip.config.ConfigBase
 import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.crafting.CraftingRecipe
 import net.minecraft.world.item.crafting.Recipe
 import net.minecraft.world.level.ItemLike
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkRecipes
+import org.valkyrienskies.clockwork.compat.jei.categories.GasCrafterCategory
+import org.valkyrienskies.clockwork.compat.jei.categories.GasReactionCategory
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCraftingRecipe
-import java.util.List
+import org.valkyrienskies.kelvin.api.recipe.KelvinGasIngredient
+import org.valkyrienskies.kelvin.integration.jei.GasIngredientRenderer
+import org.valkyrienskies.kelvin.integration.jei.GasIngredientType
+import org.valkyrienskies.kelvin.integration.jei.KelvinJeiPlugin
 import java.util.function.Consumer
 import java.util.function.Function
 import java.util.function.Predicate
@@ -77,10 +83,14 @@ class ClockworkJEI() : IModPlugin {
     override fun registerCategories(registration: IRecipeCategoryRegistration) {
         loadCategories()
         registration.addRecipeCategories(*allCategories.toTypedArray())
+
+        registration.addRecipeCategories(GasReactionCategory())
     }
 
     override fun registerRecipeCatalysts(registration: IRecipeCatalystRegistration) {
         allCategories.forEach(Consumer { c: CreateRecipeCategory<*>? -> c!!.registerCatalysts(registration) })
+
+        registration.addRecipeCatalyst(ClockworkBlocks.DUCT.asStack(), KelvinJeiPlugin.GAS_REACTION_RECIPE_TYPE)
     }
 
     override fun registerRecipes(registration: IRecipeRegistration) {
@@ -242,6 +252,40 @@ class ClockworkJEI() : IModPlugin {
                 .getRecipes()
                 .forEach(consumer)
         }
+
+        fun addInputGasSlot(builder: IRecipeLayoutBuilder, x: Int, y: Int, ingredient: KelvinGasIngredient, background: IDrawable = BASIC_SLOT): IRecipeSlotBuilder {
+            return addGasSlot(builder, x, y, RecipeIngredientRole.INPUT, background)
+                .addIngredient(KelvinJeiPlugin.Companion.GAS_INGREDIENT_TYPE, ingredient)
+        }
+
+        fun addOutputGasSlot(builder: IRecipeLayoutBuilder, x: Int, y: Int, ingredient: KelvinGasIngredient, background: IDrawable = BASIC_SLOT): IRecipeSlotBuilder {
+            return addGasSlot(builder, x, y, RecipeIngredientRole.OUTPUT, background)
+                .addIngredient(KelvinJeiPlugin.Companion.GAS_INGREDIENT_TYPE, ingredient)
+        }
+
+        fun addGasSlot(builder: IRecipeLayoutBuilder, x: Int, y: Int, role: RecipeIngredientRole, background: IDrawable): IRecipeSlotBuilder {
+            return builder.addSlot(role, x, y)
+                .setBackground(background, -1, -1)
+                .setCustomRenderer(GasIngredientType(), GasIngredientRenderer())
+        }
+
+        fun asDrawable(texture: AllGuiTextures): IDrawable {
+            return object : IDrawable {
+                override fun getWidth(): Int {
+                    return texture.getWidth()
+                }
+
+                override fun getHeight(): Int {
+                    return texture.getHeight()
+                }
+
+                override fun draw(graphics: GuiGraphics, xOffset: Int, yOffset: Int) {
+                    texture.render(graphics, xOffset, yOffset)
+                }
+            }
+        }
+
+        val BASIC_SLOT = asDrawable(AllGuiTextures.JEI_SLOT);
 
         private val allCategories: MutableList<CreateRecipeCategory<*>?> = ArrayList<CreateRecipeCategory<*>?>()
     }

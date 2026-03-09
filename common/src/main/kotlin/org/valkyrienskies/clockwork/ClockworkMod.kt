@@ -180,6 +180,8 @@ object ClockworkMod {
         if (Platform.isModLoaded("computercraft")) {
             GenericPeripheralsCommon.register()
         }
+
+        KelvinMod.disableReactionJEI()
     }
 
     @JvmStatic

@@ -1,10 +1,9 @@
-package org.valkyrienskies.clockwork.compat.jei
+package org.valkyrienskies.clockwork.compat.jei.categories
 
 import com.simibubi.create.AllBlocks
 import com.simibubi.create.AllItems
 import com.simibubi.create.compat.jei.category.CreateRecipeCategory
 import com.simibubi.create.compat.jei.category.animations.AnimatedBlazeBurner
-import com.simibubi.create.compat.jei.category.animations.AnimatedMixer
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock
 import com.simibubi.create.content.processing.recipe.HeatCondition
 import com.simibubi.create.foundation.gui.AllGuiTextures
@@ -20,13 +19,16 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.world.item.ItemStack
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
+import org.valkyrienskies.clockwork.compat.jei.ClockworkJEI.Companion.addInputGasSlot
+import org.valkyrienskies.clockwork.compat.jei.ClockworkJEI.Companion.addOutputGasSlot
+import org.valkyrienskies.clockwork.compat.jei.animated_blocks.AnimatedGasCrafter
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCraftingRecipe
 import org.valkyrienskies.kelvin.api.recipe.KelvinGasIngredient
 import org.valkyrienskies.kelvin.integration.jei.GasIngredientRenderer
 import org.valkyrienskies.kelvin.integration.jei.GasIngredientType
 import org.valkyrienskies.kelvin.integration.jei.KelvinJeiPlugin
 import javax.annotation.ParametersAreNonnullByDefault
-
+import kotlin.collections.iterator
 
 @ParametersAreNonnullByDefault
 class GasCrafterCategory(val info: Info<GasCraftingRecipe>) : CreateRecipeCategory<GasCraftingRecipe>(info) {
@@ -113,7 +115,7 @@ class GasCrafterCategory(val info: Info<GasCraftingRecipe>) : CreateRecipeCatego
         for (gasIngredient in recipe.gasRecipe!!.gasses) {
             val x = 17 + xOffset + (i % 3) * 19
             val y = 51 - (i / 3) * 19
-            addInputGasSlot(builder, x, y, KelvinGasIngredient(gasIngredient.key, gasIngredient.value))
+            addInputGasSlot(builder, x, y, KelvinGasIngredient(gasIngredient.key, gasIngredient.value), getRenderedSlot())
             i++
         }
 
@@ -142,7 +144,7 @@ class GasCrafterCategory(val info: Info<GasCraftingRecipe>) : CreateRecipeCatego
             for (gasIngredient in recipe.gasRecipe!!.result) {
                 val x = 142 - (if (size % 2 != 0 && i == size - 1) 0 else if (i % 2 == 0) 10 else -9)
                 val y = -19 * (i / 2) + 51
-                addOutputGasSlot(builder, x, y, KelvinGasIngredient(gasIngredient.key, gasIngredient.value))
+                addOutputGasSlot(builder, x, y, KelvinGasIngredient(gasIngredient.key, gasIngredient.value), getRenderedSlot())
                 i++
             }
 
@@ -174,25 +176,6 @@ class GasCrafterCategory(val info: Info<GasCraftingRecipe>) : CreateRecipeCatego
         }
         override fun draw(guiGraphics: GuiGraphics, xOffset: Int, yOffset: Int) {
             // Empty background
-        }
-    }
-
-    companion object {
-
-        fun addInputGasSlot(builder: IRecipeLayoutBuilder, x: Int, y: Int, ingredient: KelvinGasIngredient): IRecipeSlotBuilder {
-            return addGasSlot(builder, x, y, RecipeIngredientRole.INPUT)
-                .addIngredient(KelvinJeiPlugin.GAS_INGREDIENT_TYPE, ingredient)
-        }
-
-        fun addOutputGasSlot(builder: IRecipeLayoutBuilder, x: Int, y: Int, ingredient: KelvinGasIngredient): IRecipeSlotBuilder {
-            return addGasSlot(builder, x, y, RecipeIngredientRole.OUTPUT)
-                .addIngredient(KelvinJeiPlugin.GAS_INGREDIENT_TYPE, ingredient)
-        }
-
-        fun addGasSlot(builder: IRecipeLayoutBuilder, x: Int, y: Int, role: RecipeIngredientRole): IRecipeSlotBuilder {
-            return builder.addSlot(role, x, y)
-                .setBackground(getRenderedSlot(), -1, -1)
-                .setCustomRenderer(GasIngredientType(), GasIngredientRenderer())
         }
     }
 }
