@@ -202,7 +202,9 @@ class BalloonController: ShipPhysicsListener {
 
         val shell = scanShell(shellStart, level, ClockworkConfig.SERVER.hotAirBalloonMaxScanSurface.toInt())
             ?: return -1
-        val seed = findInteriorSeedFromTop(shell.topShellPos, level) ?: return -1
+
+        //Finding valid position inside the balloon
+        val seed = shellStart.relative(Direction.DOWN)//findInteriorSeedFromTop(shell.topShellPos, level) ?: return -1
         val filled = tryFillBalloonFromShell(shell, seed, level)
         if (filled.isEmpty()) {
             return -1
