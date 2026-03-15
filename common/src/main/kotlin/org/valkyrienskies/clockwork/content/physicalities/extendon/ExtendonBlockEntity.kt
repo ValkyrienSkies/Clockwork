@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.physicalities.extendon
 
-import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import dev.architectury.platform.Platform
 import net.minecraft.ChatFormatting
@@ -23,7 +22,7 @@ import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkSounds
-import org.valkyrienskies.clockwork.util.KNodeBlockEntity
+import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.clockwork.util.universal_joint.IUniversalJoint
 import org.valkyrienskies.clockwork.util.updateJoint
@@ -42,12 +41,9 @@ import org.valkyrienskies.kelvin.api.DuctNetwork.Companion.idealGasConstant
 import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.dimensionId
-import org.valkyrienskies.mod.common.shipObjectWorld
-import org.valkyrienskies.mod.common.vsCore
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.roundToInt
 
 class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), IUniversalJoint {

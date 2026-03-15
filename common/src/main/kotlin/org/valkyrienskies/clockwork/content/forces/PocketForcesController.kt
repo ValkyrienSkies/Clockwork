@@ -24,6 +24,7 @@ import org.valkyrienskies.kelvin.api.DuctNetwork
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.impl.DuctNetworkServer
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
+import org.valkyrienskies.kelvin.util.GasPhysics.mixtureCapacity
 import org.valkyrienskies.mod.api.positionToWorld
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.shipObjectWorld
@@ -146,7 +147,7 @@ class PocketForcesController: ShipPhysicsListener {
 
                 val totalMass = gasMasses.values.sum()
                 val moles = gasMasses.entries.sumOf { it.key.massToMoles(it.value) }
-                val capacity = (KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(gasMasses)
+                val capacity = mixtureCapacity(gasMasses)
                 var currentTemperature = currentHeatEnergy / capacity
                 val currentPressure = moles * DuctNetwork.idealGasConstant * currentTemperature / volume
                 val molarMass = gasMasses.entries.sumOf { it.key.density * 0.0224 * it.value } / totalMass
@@ -159,7 +160,7 @@ class PocketForcesController: ShipPhysicsListener {
                 gasMasses.forEach {
                     gasMasses[it.key] = gasMasses[it.key]!! - exitGas * it.value / totalMass
                     exitGasMasses[it.key] = exitGas * it.value / totalMass}
-                val exitHeat =  currentTemperature * ClockworkMod.getKelvin().mixtureCapacity(exitGasMasses)
+                val exitHeat =  currentTemperature * mixtureCapacity(exitGasMasses)
 
                 currentHeatEnergy -= exitHeat
                 currentTemperature = currentHeatEnergy / capacity
@@ -167,7 +168,7 @@ class PocketForcesController: ShipPhysicsListener {
                 // Gas leak heat transfer
                 val heatFlow = ClockworkConfig.SERVER.heatTransferCoefficient * estimatedSurfaceArea * (atmoTemperature - currentTemperature)
                 var newHeatEnergy = currentHeatEnergy + heatFlow * 0.05
-                val newCapacity = (KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(gasMasses)
+                val newCapacity = mixtureCapacity(gasMasses)
                 var newTemperature = newHeatEnergy / newCapacity
 
                 // Gas leak entering

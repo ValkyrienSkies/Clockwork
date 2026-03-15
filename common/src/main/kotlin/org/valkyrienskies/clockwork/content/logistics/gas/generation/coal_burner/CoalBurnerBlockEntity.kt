@@ -11,10 +11,7 @@ import net.minecraft.nbt.Tag
 import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.Clearable
-import net.minecraft.world.Container
-import net.minecraft.world.WorldlyContainer
 import net.minecraft.world.entity.item.ItemEntity
-import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.entity.BlockEntityType
@@ -22,9 +19,10 @@ import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.kelvin.api.DuctNodePos
-import org.valkyrienskies.clockwork.util.KNodeBlockEntity
+import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.blocktype.ISyncableStorage
 import org.valkyrienskies.clockwork.util.blocktype.SyncableStoragePacket
+import org.valkyrienskies.kelvin.util.GasPhysics.mixtureCapacity
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.math.min
@@ -65,7 +63,7 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
             val currentInternalGasses = kelvin.getGasMassAt(blockPos.toDuctNodePos(level!!.dimension().location()))
             val currentInternalTemperature = kelvin.getTemperatureAt(blockPos.toDuctNodePos(level!!.dimension().location()))
             if (currentInternalGasses.values.sum() > 1e-5) {
-                val currentInternalHeatCapacity = kelvin.mixtureCapacity(currentInternalGasses)
+                val currentInternalHeatCapacity = mixtureCapacity(currentInternalGasses)
                 val targetTemperature = 1000.0
                 val maxEnergyAddedThisTick = (FUEL_ENERGY_DENSITY * (maxBurnTime / LOG_BURN_TIME)) / 20.0
                 val energyToAdd = min(currentInternalHeatCapacity * (targetTemperature - currentInternalTemperature), maxEnergyAddedThisTick)

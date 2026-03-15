@@ -11,17 +11,13 @@ import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkConfig;
 import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.util.KNodeKineticBlockEntity
+import org.valkyrienskies.clockwork.util.kelvin.KNodeKineticBlockEntity
 import org.valkyrienskies.clockwork.util.gui.ClockworkTooltipHelper
 import org.valkyrienskies.clockwork.util.gui.DuctTextUtil
-import org.valkyrienskies.core.api.util.AerodynamicUtils
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.mod.api.dimensionId
-import org.valkyrienskies.mod.api.shipWorld
-import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.toWorldCoordinates
-import org.valkyrienskies.mod.common.vsCore
 import kotlin.math.abs
 import kotlin.math.max
 

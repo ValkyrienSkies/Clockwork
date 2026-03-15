@@ -28,13 +28,14 @@ import org.valkyrienskies.clockwork.content.forces.BalloonController
 import org.valkyrienskies.clockwork.content.forces.data.BalloonData
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
-import org.valkyrienskies.clockwork.util.KNodeKineticBlockEntity
-import org.valkyrienskies.clockwork.util.KelvinParticleHelper
+import org.valkyrienskies.clockwork.util.kelvin.KNodeKineticBlockEntity
+import org.valkyrienskies.clockwork.util.kelvin.KelvinParticleHelper
 import org.valkyrienskies.clockwork.util.gui.ClockworkTooltipHelper
 import org.valkyrienskies.clockwork.util.gui.DuctTextUtil
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
+import org.valkyrienskies.kelvin.util.GasPhysics.mixtureCapacity
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3i
 import org.valkyrienskies.mod.api.isBlockInShipyard
@@ -214,7 +215,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
                     pocketGasMass[gasType] = value
                 }
                 val pocketHeatEnergy = balloon!!.currentEnergy
-                val pocketCapacity = ClockworkMod.getKelvin().mixtureCapacity(pocketGasMass)
+                val pocketCapacity = mixtureCapacity(pocketGasMass)
                 val currentPocketTemperature = (pocketHeatEnergy) / pocketCapacity
                 pocketTemperature = currentPocketTemperature
                 balloonVolume = balloon!!.currentVolume
@@ -278,7 +279,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         val gasMass = ClockworkMod.getKelvin().getGasMassAt(getDuctNodePosition())
         val gasMassTotal = gasMass.values.sum()
         val heatEnergy = ClockworkMod.getKelvin().getHeatEnergy(getDuctNodePosition())
-        val pocketCapacity = ClockworkMod.getKelvin().mixtureCapacity(pocketGasMass)
+        val pocketCapacity = mixtureCapacity(pocketGasMass)
         val currentPocketTemperature = (pocketHeatEnergy) / pocketCapacity
         val targetTemperature = ClockworkMod.getKelvin().getTemperatureAt(getDuctNodePosition()) * pointer.value.toDouble()
         if (currentPocketTemperature >= targetTemperature) return
@@ -315,7 +316,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         val usedUpMass = gasMassTotal * pointer.value
         val usedEnergy = heatEnergy * pointer.value
 
-        pocketTemperature = (pocketHeatEnergy + usedEnergy) / ClockworkMod.getKelvin().mixtureCapacity(pocketGasMass)
+        pocketTemperature = (pocketHeatEnergy + usedEnergy) / mixtureCapacity(pocketGasMass)
 
         serverLevel.shipObjectWorld.setAirComponentAugmentation(
             ClockworkAugmentations.getComponentAugmentation("heatEnergy"),

@@ -32,6 +32,7 @@ import org.valkyrienskies.kelvin.impl.DuctNetworkServer
 import org.valkyrienskies.kelvin.impl.client.particle.DefaultGasParticle
 import org.valkyrienskies.kelvin.impl.registry.GasParticlePickerRegistry
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
+import org.valkyrienskies.kelvin.util.GasPhysics.mixtureCapacity
 import org.valkyrienskies.mod.api.positionToWorld
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.getLoadedShipManagingPos
@@ -163,7 +164,7 @@ class BalloonData {
 
 
         val moles = currentGasMasses.entries.sumOf { it.key.massToMoles(it.value) }
-        val capacity = (KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(currentGasMasses)
+        val capacity = mixtureCapacity(currentGasMasses)
         var currentTemperature = currentHeatEnergy / capacity
         val currentPressure = moles * DuctNetwork.idealGasConstant * currentTemperature / volume
         val molarMass = currentGasMasses.entries.sumOf { it.key.density * 0.0224 * it.value } / totalMass
@@ -176,10 +177,10 @@ class BalloonData {
         currentGasMasses.forEach {
             currentGasMasses[it.key] = currentGasMasses[it.key]!! - exitGas * it.value / totalMass
             exitGasMasses[it.key] = exitGas * it.value / totalMass}
-        val exitHeat =  currentTemperature * ClockworkMod.getKelvin().mixtureCapacity(exitGasMasses)
+        val exitHeat =  mixtureCapacity(exitGasMasses)
 
         currentHeatEnergy -= exitHeat
-        val newCapacity = (KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(currentGasMasses)
+        val newCapacity = mixtureCapacity(currentGasMasses)
         currentTemperature = currentHeatEnergy / newCapacity
 
         // Gas leak heat transfer
@@ -320,7 +321,7 @@ class BalloonData {
         val atmoPressure = level.shipObjectWorld.aerodynamicUtils.getAirPressureForY(rootYInWorld, level.dimensionId)
         val internalPressure = run {
             val moles = gasMasses.entries.sumOf { GasTypeRegistry.getGasType(ResourceLocation(it.key))!!.massToMoles(it.value) }
-            val capacity = (KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(gasMasses.mapKeys { GasTypeRegistry.getGasType(ResourceLocation(it.key))!! })
+            val capacity = mixtureCapacity(gasMasses.mapKeys { GasTypeRegistry.getGasType(ResourceLocation(it.key))!! })
             val temperature = currentEnergy / capacity
             moles * DuctNetwork.idealGasConstant * temperature / currentVolume
         }

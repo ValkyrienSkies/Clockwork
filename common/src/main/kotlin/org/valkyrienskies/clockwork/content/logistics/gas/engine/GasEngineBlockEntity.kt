@@ -8,8 +8,8 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Vector3dc
-import org.valkyrienskies.clockwork.util.KNodeBlockEntity
-import org.valkyrienskies.clockwork.util.KelvinParticleHelper
+import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
+import org.valkyrienskies.clockwork.util.kelvin.KelvinParticleHelper
 import org.valkyrienskies.kelvin.KelvinMod
 import kotlin.math.min
 

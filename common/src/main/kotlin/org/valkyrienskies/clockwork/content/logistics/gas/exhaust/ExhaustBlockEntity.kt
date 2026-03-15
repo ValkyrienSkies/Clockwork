@@ -16,8 +16,8 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.mixinduck.MixinAirCurrentDuck
-import org.valkyrienskies.clockwork.util.KNodeBlockEntity
-import org.valkyrienskies.clockwork.util.KelvinParticleHelper
+import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
+import org.valkyrienskies.clockwork.util.kelvin.KelvinParticleHelper
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.api.world.properties.DimensionId

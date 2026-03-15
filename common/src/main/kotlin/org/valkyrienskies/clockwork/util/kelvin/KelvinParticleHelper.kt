@@ -1,11 +1,10 @@
-package org.valkyrienskies.clockwork.util
+package org.valkyrienskies.clockwork.util.kelvin
 
 import net.minecraft.client.multiplayer.ClientLevel
 import org.joml.Vector3dc
-import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.kelvin.api.DuctNodePos
-import org.valkyrienskies.kelvin.api.GasType
+import kotlin.collections.iterator
 
 object KelvinParticleHelper {
     fun spawnParticleWithRatio(level: ClientLevel, ductNodePos: DuctNodePos, pos: Vector3dc, speed: Vector3dc) {

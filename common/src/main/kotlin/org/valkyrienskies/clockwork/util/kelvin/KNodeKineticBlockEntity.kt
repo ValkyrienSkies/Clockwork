@@ -1,4 +1,4 @@
-package org.valkyrienskies.clockwork.util
+package org.valkyrienskies.clockwork.util.kelvin
 
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import net.minecraft.core.BlockPos
@@ -17,7 +17,6 @@ import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.util.INodeBlock
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.toWorldCoordinates
-import kotlin.math.abs
 
 abstract class KNodeKineticBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KineticBlockEntity(typeIn, pos, state), IClockworkNodeBE {
 

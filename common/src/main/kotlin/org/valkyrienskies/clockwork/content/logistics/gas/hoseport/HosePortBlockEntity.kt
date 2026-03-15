@@ -18,16 +18,12 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity.Companion.getQuaterniond
-import org.valkyrienskies.clockwork.util.KNodeBlockEntity
+import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.clockwork.util.universal_joint.IUniversalJoint
 import org.valkyrienskies.clockwork.util.updateJoint
 import org.valkyrienskies.core.api.ships.properties.ShipId
-import org.valkyrienskies.core.internal.joints.VSD6Joint
-import org.valkyrienskies.core.internal.joints.VSD6Joint.D6Axis
-import org.valkyrienskies.core.internal.joints.VSD6Joint.D6Motion
 import org.valkyrienskies.core.internal.joints.VSDistanceJoint
-import org.valkyrienskies.core.internal.joints.VSJointMaxForceTorque
 import org.valkyrienskies.core.internal.joints.VSJointPose
 import org.valkyrienskies.kelvin.api.ConnectionType
 import org.valkyrienskies.kelvin.api.DuctEdge
@@ -37,8 +33,6 @@ import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.toWorldCoordinates
 import org.valkyrienskies.mod.common.util.toJOMLD
-import java.util.EnumMap
-import kotlin.collections.set
 import kotlin.math.roundToInt
 
 class HosePortBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), IUniversalJoint {

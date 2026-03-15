@@ -1,8 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.storage.tank
 
 import com.simibubi.create.api.connectivity.ConnectivityHandler
-import com.simibubi.create.content.fluids.tank.FluidTankBlock
-import com.simibubi.create.content.fluids.tank.FluidTankBlockEntity
 import com.simibubi.create.foundation.blockEntity.IMultiBlockEntityContainer
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
@@ -12,10 +10,9 @@ import net.minecraft.nbt.NbtUtils
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
-import org.valkyrienskies.clockwork.util.KNodeBlockEntity
+import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
-import kotlin.math.abs
 
 class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state),
     IMultiBlockEntityContainer {

@@ -12,7 +12,7 @@ import net.minecraft.world.item.crafting.Recipe
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkRecipes
-import org.valkyrienskies.clockwork.util.KNodeBlockEntity
+import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import java.util.*
 import java.util.function.Predicate
 import kotlin.math.max

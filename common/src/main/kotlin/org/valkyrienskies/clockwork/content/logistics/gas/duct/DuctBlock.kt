@@ -48,7 +48,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.N
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.SOUTH_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.UP_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.WEST_CONNECTION
-import org.valkyrienskies.clockwork.util.KelvinParticleHelper
+import org.valkyrienskies.clockwork.util.kelvin.KelvinParticleHelper
 import org.valkyrienskies.clockwork.util.MathFunctions.isWithin
 import org.valkyrienskies.clockwork.util.MathFunctions.removeAxis
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats

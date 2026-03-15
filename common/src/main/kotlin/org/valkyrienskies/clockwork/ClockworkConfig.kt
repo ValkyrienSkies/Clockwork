@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork
 
 import org.valkyrienskies.clockwork.util.gui.DuctUnits
+import org.valkyrienskies.clockwork.util.kelvin.KelvinSolverType
 import org.valkyrienskies.core.internal.config.ConfigEntry
 
 object ClockworkConfig {
@@ -177,6 +178,9 @@ object ClockworkConfig {
 
         @ConfigEntry(description = "Maximum amount of blocks a smart flap bearing can assemble", min = 0.0, max = Int.MAX_VALUE.toDouble())
         var smartFlapBearingMaxSize = 24
+
+        @ConfigEntry(description = "The gas physics solver used by Kelvin. Options: CLASSIC, JACOBI_SIMPLIFIED, JACOBI")
+        var kelvinSolver: KelvinSolverType = KelvinSolverType.JACOBI
 
         @ConfigEntry(description = "Whether the (smart) flap bearing peripheral can use setAngle without rotational power")
         var cheatFlapBearingPeripheral = false

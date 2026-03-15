@@ -1,9 +1,7 @@
 package org.valkyrienskies.clockwork.content.curiosities.solver
 
-import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
@@ -20,7 +18,7 @@ import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkDamageTypes
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.content.curiosities.IArcConnector
-import org.valkyrienskies.clockwork.util.KNodeBlockEntity
+import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.arc.ArcBias
 import org.valkyrienskies.clockwork.util.arc.LightningBolt
 import org.valkyrienskies.clockwork.util.arc.LightningManager
@@ -28,7 +26,6 @@ import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.getLoadedShipManagingPos
-import org.valkyrienskies.mod.common.toWorldCoordinates
 import org.valkyrienskies.mod.common.util.toDoubles
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toJOMLD
