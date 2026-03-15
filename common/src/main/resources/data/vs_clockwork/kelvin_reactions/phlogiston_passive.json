@@ -8,10 +8,10 @@
   "requirements": {
     "kelvin:min_temperature": 700
   },
-  "energy": 80000,
+  "energy": 10000,
   "result_gasses": {
     "vs_clockwork:exhaust": {
-      "amount": 0.002,
+      "amount": 0.008,
       "unit": "kg"
     }
   }

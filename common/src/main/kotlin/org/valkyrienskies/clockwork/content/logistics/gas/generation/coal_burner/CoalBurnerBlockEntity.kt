@@ -64,9 +64,8 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
             val currentInternalTemperature = kelvin.getTemperatureAt(blockPos.toDuctNodePos(level!!.dimension().location()))
             if (currentInternalGasses.values.sum() > 1e-5) {
                 val currentInternalHeatCapacity = mixtureCapacity(currentInternalGasses)
-                val targetTemperature = 1000.0
-                val maxEnergyAddedThisTick = (FUEL_ENERGY_DENSITY * (maxBurnTime / LOG_BURN_TIME)) / 20.0
-                val energyToAdd = min(currentInternalHeatCapacity * (targetTemperature - currentInternalTemperature), maxEnergyAddedThisTick)
+                val targetTemperature = 850.0
+                val energyToAdd = min(currentInternalHeatCapacity * (targetTemperature - currentInternalTemperature), MAX_JOULES_PER_TICK)
                 if (energyToAdd > 0) {
                     kelvin.modHeatEnergy(blockPos.toDuctNodePos(level!!.dimension().location()), energyToAdd)
                 }
@@ -265,7 +264,6 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 
 
     companion object {
-        const val FUEL_ENERGY_DENSITY = 17000.0 // J per kg
-        const val LOG_BURN_TIME = 300.0 // ticks
+        const val MAX_JOULES_PER_TICK = 10000.0
     }
 }

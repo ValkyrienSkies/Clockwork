@@ -13,14 +13,14 @@
     "kelvin:min_temperature": 600,
     "kelvin:max_temperature": 1300
   },
-  "energy": 70000,
+  "energy": 7000,
   "result_gasses": {
     "vs_clockwork:exhaust": {
-      "amount": 0.004,
+      "amount": 0.016,
       "unit": "kg"
     },
     "vs_clockwork:steam": {
-      "amount": 0.004,
+      "amount": 0.016,
       "unit": "kg"
     }
   }
