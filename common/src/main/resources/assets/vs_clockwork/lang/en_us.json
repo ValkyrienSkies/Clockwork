@@ -561,6 +561,16 @@
   "vs_clockwork.ponder.plane_tips.text_8": "Cambered wings will have an angle of 20",
   "vs_clockwork.ponder.plane_tips.text_9": "Causing your plane to turn",
 
+  "vs_clockwork.ponder.duct.header": "Gas Ducts",
+  "vs_clockwork.ponder.duct.text_1": "Ducts form the core of Clockwork's gas networks.",
+  "vs_clockwork.ponder.duct.text_2": "Gas flows automatically between connected ducts, moving from high to low pressure.",
+  "vs_clockwork.ponder.duct.text_3": "Using a Wrench on a connection toggles it on, off, or forces it.",
+  "vs_clockwork.ponder.duct.text_4": "A Screwdriver cycles edge types: Pipe, One-Way, Filtered, and Smart.",
+  "vs_clockwork.ponder.duct.text_5": "Sneak-clicking with a Screwdriver cycles the pipe connection entirely, allowing purely structural links.",
+  "vs_clockwork.ponder.duct.text_6": "If a duct is caught in an explosion, it will become a leak and gas will violently escape!",
+  "vs_clockwork.ponder.duct.text_7": "Right-Clicking a leak with a Wrench will seal it back up.",
+
+
   "death.attack.gas_burn": "%s was singed to a crisp",
   "death.attack.gas_explosion": "%s couldn't handle the pressure"
 }

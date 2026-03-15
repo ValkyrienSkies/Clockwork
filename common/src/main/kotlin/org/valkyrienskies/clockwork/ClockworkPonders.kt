@@ -18,6 +18,7 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec2
 import net.minecraft.world.phys.Vec3
+import org.valkyrienskies.clockwork.content.ponders.KelvinPonders.duct
 import org.valkyrienskies.clockwork.content.ponders.KineticPonders.redstoneResistor
 import org.valkyrienskies.clockwork.content.ponders.OtherPonders.solid_delivery
 import org.valkyrienskies.clockwork.content.ponders.PhysicsPonders.altMeter
@@ -74,6 +75,10 @@ object ClockworkPonders {
             .addStoryBoard(
                 "solid_delivery", ::solid_delivery
             )
+
+        HELPER.forComponents(ClockworkBlocks.DUCT).addStoryBoard(
+            "duct", ::duct
+        )
     }
 
 }
