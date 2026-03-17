@@ -57,6 +57,9 @@
   "item.vs_clockwork.goo_block": "Yapışkan Madde Bloğu",
   "block.vs_clockwork.slicker": "Mekanik Yapıştırıcı",
   "item.vs_clockwork.slicker": "Mekanik Yapıştırıcı",
+  "item.vs_clockwork.triode": "Triode",
+  "item.vs_clockwork.handheld_drill": "Matkap",
+  "item.vs_clockwork.handheld_saw": "Testere",
 
   "block.vs_clockwork.asteroid_block": "Debug Meteor Spawner",
   "item.vs_clockwork.asteroid_block": "Debug Meteor Spawner",
@@ -135,10 +138,13 @@
   "vs_clockwork.logistics.filter.click_to_set": "Ayarlamak için bir eşya ile tıklayın.",
 
   "vs_clockwork.contraptions.propeller.rotation_direction": "Dönme Yönü",
+  "vs_clockwork.contraptions.resistor.resist_direction": "Dirençleyici Direnç Yönü",
   "contraptions.propeller.controller_wrong_way": "Pervane Kanadı Kontrolcüsü yanlış yöne bakıyor",
   "contraptions.propeller.not_prop": "Pervane değil",
   "propeller.rotation_direction.normal": "Normal",
   "propeller.rotation_direction.inverted": "Tersine çevrilmiş",
+  "resistor.resist_direction.none_to_max": "Sıfırdan Maksimuma",
+  "resistor.resist_direction.max_to_none": "Maksimumdan Sıfıra",
 
   "vs_clockwork.gas_heater.heater_info": "    Isıtıcı Bilgisi",
   "vs_clockwork.gas_heater.heat_level": "Isı Seviyesi: %s",
@@ -339,7 +345,10 @@
   "vs_clockwork.subtitle.propeller_stop": "Pervane duruyor",
 
 
+  "alt_meter.title": "Yükseklikölçer",
   "alt_meter.trigger_height": "Yükseklik",
+  "alt_meter.trigger_sensitivity": "Hassasiyet",
+  "alt_meter.trigger_direction": "Yön",  
   "sequenced_seat.operation.nothing": "Hiçbir şey",
   "sequenced_seat.operation.distance": "Hareket",
   "sequenced_seat.operation.angle": "Dönmek",
@@ -388,6 +397,12 @@
   "vs_clockwork.gravitron.tool.destroy.description.2": "gemi yerine oturacak.",
   "vs_clockwork.gravitron.tool.destroy.description.3": "",
 
+  "vs_clockwork.unit.temp": "Sıcaklık",
+  "vs_clockwork.unit.pressure": "Basınç",
+  "vs_clockwork.unit.energy": "Enerji",
+  "vs_clockwork.unit.volume": "Hacim",
+  "vs_clockwork.unit.mass": "Kütle",  
+
   "vs_clockwork.unit.temp.kelvin": "K",
   "vs_clockwork.unit.temp.celsius": "°C",
   "vs_clockwork.unit.temp.fahrenheit": "°F",
@@ -413,6 +428,37 @@
   "vs_clockwork.unit.mass.imperial_ton": "ton",
   "vs_clockwork.unit.mass.ounce": "oz",
 
+  "vs_clockwork.gui.air_compressor.info.title": "Kompresör Bilgisi:",
+  "vs_clockwork.gui.air_compressor.info.obstructed.title": "Engellenmiş",
+  "vs_clockwork.gui.air_compressor.info.obstructed": "Üstünde katı bir blok varken çalışamaz.",
+  "vs_clockwork.gui.air_compressor.info.exhausted.title": "Tükenmiş",
+  "vs_clockwork.gui.air_compressor.info.exhausted": "Sistemin içindeki _Basınç_ pompalamaya devam etmek için _çok yüksek._",
+  "vs_clockwork.gui.air_compressor.info.active.title": "Aktif",
+  "vs_clockwork.gui.air_compressor.info.active": "%s de hava pompalanıyor",
+
+  "vs_clockwork.gui.gas_nozzle.info.title": "Balon Bilgisi:",
+  "vs_clockwork.gui.gas_nozzle.info.no_pocket.title": "Balon Yok",
+  "vs_clockwork.gui.gas_nozzle.info.no_pocket": "Taramak için boş elle [%s].",
+  "vs_clockwork.gui.gas_nozzle.info.no_ship.title": "Bir gemide değil",
+  "vs_clockwork.gui.gas_nozzle.info.no_ship": "Balonlar sadece _Gemilerde_ monte edilebilir",
+  "vs_clockwork.gui.gas_nozzle.info.volume": "Balon Hacmi: %s",
+  "vs_clockwork.gui.gas_nozzle.info.temperature": "Balon Sıcaklığı: %s",
+  "vs_clockwork.gui.gas_nozzle.info.target_temperature": "Hedef Sıcaklık: %s",
+  "vs_clockwork.gui.gas_nozzle.info.leak.title": "!! Balon Bütünlüğü Bozuldu !!",
+  "vs_clockwork.gui.gas_nozzle.info.leak": "Gaz _sızıyor!_",
+  "vs_clockwork.gui.gas_nozzle.info.leak.count": "Tepit Edilen Sızıntılar: %d",
+
+  "vs_clockwork.gui.gas_heater.info.title": "Isıtıcı Bilgisi:",
+  "vs_clockwork.gui.gas_heater.info.heat_level.superheated.title": "Süper Isıtılmış!",
+  "vs_clockwork.gui.gas_heater.info.heat_level.superheated": " _Blaze Pastası_ verilmiş bir _Blaze Ocağı_ ile eşdeğerdir. _Kazan_ ve _Hazne_lerle çalışır.",
+  "vs_clockwork.gui.gas_heater.info.heat_level.heated.title": "Isıtılmış",
+  "vs_clockwork.gui.gas_heater.info.heat_level.heated": "Çalışan bir _Blaze Ocağı_na eşdeğerdir. _Kazan_ ve _Hazne_lerle çalışır.",
+  "vs_clockwork.gui.gas_heater.info.heat_level.passive.title": "Pasif",
+  "vs_clockwork.gui.gas_heater.info.heat_level.passive": "Lav ve Kamp Ateşi gibi _Pasif ısı kaynağı_na eşdeğerdir.",
+  "vs_clockwork.gui.gas_heater.info.heat_level.none.title": "Not Heated",
+  "vs_clockwork.gui.gas_heater.info.heat_level.none": "Create makinelerini ısıtmak için bu makineye sıcak _gaz_ pompala.",
+  "vs_clockwork.gui.gas_heater.info.heat_level.next": "Sonraki Kademe: %s",
+  
   "vs_clockwork.gui.ductInfo.title": "Boru Bilgisi:",
   "vs_clockwork.gui.ductInfo.volume": "Hacim: %s",
   "vs_clockwork.gui.ductInfo.temperature": "Isı: %s",
@@ -422,6 +468,26 @@
   "vs_clockwork.gui.ductInfo.title.contents": "Boru İçindekiler:",
   "vs_clockwork.gui.ductInfo.mass_total": "Toplam %s",
 
+  "vs_clockwork.display_source.gas_nozzle.temp":  "Kelvin cinsinden Sıcaklık",
+  "vs_clockwork.display_source.gas_nozzle.leaks":  "Sızınti Miktarı",
+  "vs_clockwork.display_source.gas_nozzle.volume":  "m³ cinsinden Balon Hacimi",
+
+  "vs_clockwork.display_source.copter_bearing.current": "Mevcut vektör",
+  "vs_clockwork.display_source.copter_bearing.target": "Hedef vektör",
+  "vs_clockwork.display_source.copter_bearing.offset": "Kızıltaş ofset vektör",
+
+  "vs_clockwork.display_source.alt_meter.current": "Mevcut Yükseklik",
+  "vs_clockwork.display_source.alt_meter.target": "Hedef Yükseklik",
+  "vs_clockwork.display_source.alt_meter.direction": "Tetikleme yönü",
+
+  "vs_clockwork.display_source.phys_bearing.current": "Mevcut Açı",
+  "vs_clockwork.display_source.phys_bearing.mode": "Hareket Modu",
+
+  "vs_clockwork.display_source.duct.masses": "Kütle özeti",
+  "vs_clockwork.display_source.duct.energy": "Termal enerji",
+  "vs_clockwork.display_source.duct.pressure": "Basınç",
+  "vs_clockwork.display_source.duct.temperature": "Sıcaklık",  
+  
   "vs_clockwork.ponder.wanderwand.header": "Wander Asa",
   "vs_clockwork.ponder.wanderwand.text_1": "Asayı Fizik İnfüzörünün içine koyun",
   "vs_clockwork.ponder.wanderwand.text_2": "Yada Yerçekimi Silahını kullanın",
@@ -434,8 +500,17 @@
   "vs_clockwork.ponder.resistor.text_5": "0 Devir/dk",
 
   "vs_clockwork.ponder.alt_meter.header": "Yükseklik Ölçer",
-  "vs_clockwork.ponder.alt_meter.text_1": "Yükseklik Ölçeri istenen yüksekliğe ayarlayın",
-  "vs_clockwork.ponder.alt_meter.text_2": "Ayarlanan Yükseklikte Kızıltaş Sinyali tetiklenecektir",
+  "vs_clockwork.ponder.alt_meter.text_1": "Hedef yüksekliği ayarlamak için Yükseklik Ölçere Sağ tıklayın",
+  "vs_clockwork.ponder.alt_meter.text_2": "Yükseklik Ölçek ayarlanan yüksekliğe gelince bir kızıltaş sinyali verecektir,",
+  "vs_clockwork.ponder.alt_meter.text_3": "Ayarlanan Yüksekliği geçincede",
+  "vs_clockwork.ponder.alt_meter.text_4": "Ayrıca hassasiyetinide ayarlayabilirsiniz, sinyal vermeye başlayacağı mesafeyi",
+  "vs_clockwork.ponder.alt_meter.text_5": "Hedef yüksekliğe yaklaştıkça sinyal gücü artacaktır",
+  "vs_clockwork.ponder.alt_meter.text_6": "Yön ayarı Yükseklik Ölçerin hedef yükseliğin hangi yönünden çalışacağını ayarlar",
+  "vs_clockwork.ponder.alt_meter.text_7": "Seçilebilecek ayarlar: YUKARI, AŞAĞI ve İKİSİDE",
+  "vs_clockwork.ponder.alt_meter.text_8": "YUKARI modu Yükseklik Ölçerin hedef yüksekliğe alttan yaklaşırken sinyal vermesini sağlayacaktır",
+  "vs_clockwork.ponder.alt_meter.text_9": "AŞAĞI modu sadece hedef yüksekliğe üstten yaklaşırken sinyal vermesini sağlayacaktır",
+  "vs_clockwork.ponder.alt_meter.text_10": "İKİSİDE modu hedef yüksekliğe ya aşağıdan yada yukarıdan yaklaşırken sinyal vermesini sağlayacaktır",
+  "vs_clockwork.ponder.alt_meter.text_11": "Hedefe tam ulaştığında sinyal gücü maksimumu olan 15'e ulaşacaktır",
 
   "vs_clockwork.ponder.flap_bearing.header": "Kanatçık Rulmanı",
   "vs_clockwork.ponder.flap_bearing.text_1": "Kanatçık Rulmanları benzersiz bir Rulman türüdür",
@@ -464,6 +539,42 @@
   "vs_clockwork.ponder.solid_delivery.text_8": "Oluklar,",
   "vs_clockwork.ponder.solid_delivery.text_9": "ve Kayışların üstüne konulabilir",
 
+  "vs_clockwork.ponder.wings.header": "Kanatlar",
+  "vs_clockwork.ponder.wings.text_1": "Valkyrien Skies'da her blok aerodinamik etkilerin altındadır",
+  "vs_clockwork.ponder.wings.text_2": "Bir bloğun şekli, aerodinamik davranışlarını etkiler",
+  "vs_clockwork.ponder.wings.text_3": "Buda, basamak gibi blokların az da olsa kaldırma kuvveti sağlayabileceği anlama gelir",
+  "vs_clockwork.ponder.wings.text_4": "Ve havada ilerlerken hava direncinden diğer bloklara göre daha az etkilenirler",
+  "vs_clockwork.ponder.wings.text_5": "Kanat bloklarının aerodinamik etkileri basamaklara göre daha fazladır",
+  "vs_clockwork.ponder.wings.text_6": "Kaldırma kuvvetleri daha yüksektir ve hava direncinden çok daha az etkilenirler",
+
+  "vs_clockwork.ponder.cambered_wings.header": "Kamberli Kanatlar",
+  "vs_clockwork.ponder.cambered_wings.text_1": "Normal kanatların taban hücum açısı 0'dır",
+  "vs_clockwork.ponder.cambered_wings.text_2": "Bu, onların gerçek hayatta olduğu gibi davrandıkları anlamına gelir",
+  "vs_clockwork.ponder.cambered_wings.text_3": "Genellikle hoş bir süzülme sağlarlar",
+  "vs_clockwork.ponder.cambered_wings.text_4": "Kamberli kanatlar 20 derece taban hucüm açısına sahiptirler",
+  "vs_clockwork.ponder.cambered_wings.text_5": "Bu, 20 derece yukarı eğilmişlermiş gibi davrandıkları anlamına gelir",
+  "vs_clockwork.ponder.cambered_wings.text_6": "Buyüzden Normal Kanatlara göre çok daha fazla kaldırma kuvveti üretirler",
+
+  "vs_clockwork.ponder.plane_tips.header": "Uçak İpuçları",
+  "vs_clockwork.ponder.plane_tips.text_1": "İpucu #1: çoğu zaman normal kanat kullanın",
+  "vs_clockwork.ponder.plane_tips.text_2": "Normal kanatlar çoğu uçaklar için yeterli kaldırma kuvveti üretirler",
+  "vs_clockwork.ponder.plane_tips.text_3": "Çok fazla kamberli kanat kullanmak aşırı taklaya neden olabilir",
+  "vs_clockwork.ponder.plane_tips.text_4": "İpucu #2: Dikey Stabilizatör ekleyin",
+  "vs_clockwork.ponder.plane_tips.text_5": "Dikey Stabilizatör'e sahip olmak havadaki dengenizi önemli ölçüde arttırabilir",
+  "vs_clockwork.ponder.plane_tips.text_6": "Dönüş sırasında 'kaymayı' azaltır",
+  "vs_clockwork.ponder.plane_tips.text_7": "Ancak, kamberli kanat kullanmayın",
+  "vs_clockwork.ponder.plane_tips.text_8": "Kamberli kanatların açısı 20 derecedir",
+  "vs_clockwork.ponder.plane_tips.text_9": "Bu yüzden uçaklarınızın dönmesine sebep olacaktır",
+
+  "vs_clockwork.ponder.duct.header": "Gaz Boruları",
+  "vs_clockwork.ponder.duct.text_1": "Borular Clockwork'ün gaz şebekelerinin temelini oluşturur.",
+  "vs_clockwork.ponder.duct.text_2": "Gaz, bağlı borular arasında otomatik olarak akar ve yüksek basınçtan düşük basınca doğru hareket eder.",
+  "vs_clockwork.ponder.duct.text_3": "Bir bağlantı üzerinde Ayarlı Anahtar kullanmak, bağlantıyı açar, kapatır veya zorla bağlar.",
+  "vs_clockwork.ponder.duct.text_4": "Bir Tornavida, şu kenar türleri arasında geçiş yapar: Boru, Tek-Yön, Filtreli ve Akıllı",
+  "vs_clockwork.ponder.duct.text_5": "Tornavida ile Eğil-Tıklayarak boğru bağlantıları arasında geçiş yapmanızı sağlar, böylece tamamen yapısal bağlantılar yapabilirsiniz",
+  "vs_clockwork.ponder.duct.text_6": "Bir boru patlamaya maruz kalırsa, sızıntıya neden olur ve gaz şiddetli bir şekilde dışarı çıkar!",
+  "vs_clockwork.ponder.duct.text_7": "Sızıntıya Ayarlı Anahtar ile Sağ Tıklayarak sızıntıyı kapatabilirsiniz",  
+
   "death.attack.gas_burn": "%s kızartıldı",
-  "death.attack.gas_explosion": "%s basınça dayanamadı"
+  "death.attack.gas_explosion": "%s basınca dayanamadı"
 }
