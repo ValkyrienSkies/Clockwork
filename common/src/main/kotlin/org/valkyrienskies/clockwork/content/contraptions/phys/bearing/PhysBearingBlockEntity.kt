@@ -38,12 +38,14 @@ import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.clockwork.util.ClockworkConstants.Nbt.ORIGINAL_DIRECTION
 import org.valkyrienskies.clockwork.util.ClockworkUtils.getVector3d
 import org.valkyrienskies.clockwork.util.GlueAssembler.collectGlued
+import org.valkyrienskies.clockwork.util.VS2AssemblyBridge
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.clockwork.util.updateJoint
 import org.valkyrienskies.clockwork.util.minus
 import org.valkyrienskies.clockwork.util.plus
 import org.valkyrienskies.clockwork.util.times
 import org.valkyrienskies.core.api.attachment.getAttachment
+import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.world.PhysLevel
@@ -60,8 +62,6 @@ import org.valkyrienskies.mod.api.BlockEntityPhysicsListener
 import org.valkyrienskies.mod.api.dimensionId
 import org.valkyrienskies.mod.common.*
 import org.valkyrienskies.mod.common.assembly.ICopyableBlock
-import org.valkyrienskies.mod.common.assembly.ShipAssembler.assembleToShip
-import org.valkyrienskies.mod.common.assembly.VSAssemblyEvents
 import org.valkyrienskies.mod.common.util.SplittingDisablerAttachment
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toJOMLD
@@ -143,6 +143,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     private var controllerCreationData: PhysBearingData? = null
     private var controllerUpdateData: PhysBearingUpdateData? = null
     private var loadingFn: ((ServerLevel) -> Unit)? = null
+    private var assemblyInProgress = false
+    private var disassemblyInProgress = false
 
     init {
         setLazyTickRate(3)
@@ -236,6 +238,10 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         tag.putBoolean(ClockworkConstants.Nbt.RUNNING, isRunning)
         tag.putFloat(ClockworkConstants.Nbt.ANGLE, targetAngle)
+        tag.putBoolean("assemblyInProgress", assemblyInProgress)
+        tag.putBoolean("disassemblyInProgress", disassemblyInProgress)
+        tag.putBoolean("assembleNextTick", assembleNextTick)
+        tag.putBoolean("disassembleWhenPossible", disassembleWhenPossible)
         if (shiptraptionID != NO_SHIPTRAPTION_ID) {
             tag.putLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID, shiptraptionID)
         }
@@ -310,6 +316,10 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         open = tag.getBoolean(ClockworkConstants.Nbt.OPEN)
         isRunning = tag.getBoolean(ClockworkConstants.Nbt.RUNNING)
         targetAngle = tag.getFloat(ClockworkConstants.Nbt.ANGLE)
+        assemblyInProgress = tag.getBoolean("assemblyInProgress")
+        disassemblyInProgress = tag.getBoolean("disassemblyInProgress")
+        assembleNextTick = tag.getBoolean("assembleNextTick")
+        disassembleWhenPossible = tag.getBoolean("disassembleWhenPossible")
         lastAngle = targetAngle
         curAngle = targetAngle
         lastException = AssemblyException.read(tag)
@@ -350,6 +360,15 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         super.read(tag, clientPacket)
         if (clientPacket) {return}
+
+        if (assemblyInProgress && !isRunning) {
+            assemblyInProgress = false
+            assembleNextTick = true
+        }
+        if (disassemblyInProgress && shiptraptionID != NO_SHIPTRAPTION_ID) {
+            disassemblyInProgress = false
+            disassembleWhenPossible = true
+        }
 
         // may not have level on read so i have to do this
         loadingFn = { level -> loadTheRest(tag, level) }
@@ -474,7 +493,44 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         }
     }
 
+    private fun createCurrentBearingData(mainShipId: Long): PhysBearingData? {
+        val currentJoint = joint ?: return null
+        return PhysBearingData(
+            bearingAxis.get(Vector3d()),
+            Math.toRadians(targetAngle.toDouble()),
+            getRealisticAngularSpeed(),
+            movementMode!!.get() == LockedMode.FOLLOW_ANGLE,
+            aligning,
+            mainShipId,
+            currentJoint.pose1.pos.get(Vector3d()),
+            currentJoint.pose0.pos.get(Vector3d())
+        )
+    }
+
+    private fun suspendBearingForTransfer(level: ServerLevel, subShip: LoadedServerShip) {
+        if (bearingID != -1) {
+            BearingController.getOrCreate(subShip)?.removePhysBearing(bearingID)
+            bearingID = -1
+        }
+        controllerCreationData = null
+        controllerUpdateData = null
+
+        if (joint != null && jointID != -1) {
+            level.gtpa.removeJoint(jointID)
+            jointID = -1
+        }
+
+        isRunning = false
+    }
+
+    private fun restoreBearingAfterFailedTransfer(level: ServerLevel, subShip: LoadedServerShip, mainShip: ServerShip?) {
+        controllerCreationData = createCurrentBearingData(mainShip?.id ?: -1L)
+        tryMakeJoint()
+        sendData()
+    }
+
     private fun assemble() {
+        if (assemblyInProgress) return
         if (level!!.getBlockState(worldPosition).block !is BearingBlock) return
         val level = level as ServerLevel
 
@@ -504,7 +560,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val otherShip = level.getShipObjectManagingPos(otherPos.blockPos)
         val posInOwnerShip = Vector3d(worldPos)
 
-        val (bearingPos, shiptraption, otherDirection) = if (otherShip == null) {
+        if (otherShip == null) {
             val selection: DenseBlockPosSet?
             try {
                 selection = collectGlued(level, attachPoint)
@@ -517,33 +573,68 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             }
             if (selection == null) return
 
-            var centerPositions: Pair<Vector3d, Vector3d> = Pair(Vector3d(), Vector3d())
-
-            //TODO this is dumb, but i forgot to make assembly return center positions, oh well
-            val event = VSAssemblyEvents.onPasteBeforeBlocksAreLoaded.on {
-                centerPositions = it.centerPosition.first.get(Vector3d()) to it.centerPosition.second.get(Vector3d())
-            }
-            val shiptraption = assembleToShip(
+            assemblyInProgress = true
+            sendData()
+            val server = level.server
+            VS2AssemblyBridge.queueAssembleToShipFull(
                 level,
-                selection.toSet().map { it.toMinecraft() }.toSet(), //accursed, unholy, abominable
+                selection.toSet().map { it.toMinecraft() }.toSet(),
                 1.0
-            )
-            event.unregister()
-
-            val newPos = Vector3d(worldPos).sub(centerPositions.first).add(centerPositions.second)
-
-            shiptraptionID = shiptraption.id
-            Triple(newPos, shiptraption, direction)
-        } else {
-            shiptraptionID = otherShip.id
-            Triple(otherPos.blockPos.toVector3d() + 0.5 - direction.normal.toJOMLD(), otherShip, otherPos.direction)
+            ).thenAccept { assembleContext ->
+                server.execute {
+                    val serverLevel = this.level as? ServerLevel ?: return@execute
+                    if (isRemoved) {
+                        assemblyInProgress = false
+                        return@execute
+                    }
+                    val queuedBearingPos = Vector3d(worldPosition.center.toJOML())
+                        .sub(assembleContext.fromCenter)
+                        .add(assembleContext.toCenter)
+                    finishAssembly(
+                        serverLevel,
+                        direction,
+                        queuedBearingPos,
+                        serverLevel.getShipObjectManagingPos(worldPosition),
+                        assembleContext.ship
+                    )
+                }
+            }.exceptionally { error: Throwable ->
+                server.execute {
+                    assemblyInProgress = false
+                    lastException = AssemblyException(
+                        Component.literal(error.cause?.message ?: error.message ?: "Failed to assemble bearing ship")
+                    )
+                    sendData()
+                }
+                null
+            }
+            return
         }
 
+        finishAssembly(
+            level,
+            direction,
+            otherPos.blockPos.toVector3d() + 0.5 - direction.normal.toJOMLD(),
+            shipOn,
+            otherShip
+        )
+    }
+
+    private fun finishAssembly(
+        level: ServerLevel,
+        direction: Direction,
+        bearingPos: Vector3dc,
+        shipOn: ServerShip?,
+        shiptraption: ServerShip
+    ) {
+        val worldPos: Vector3dc = worldPosition.center.toJOML()
+        val axis = direction.normal.toJOMLD()
+        val posInOwnerShip = Vector3d(worldPos)
+        val shipOnID = shipOn?.id
+        shiptraptionID = shiptraption.id
 
         // AllSoundEvents.CONTRAPTION_ASSEMBLE.playOnServer(level, worldPosition);
         ClockworkSounds.PHYSICS_INFUSER_LIGHTNING.playOnServer(level, worldPosition)
-
-        val shipOnID = shipOn?.id
 
         val posInWorld = shipOn?.transform?.shipToWorld?.transformPosition(
             posInOwnerShip - bearingPos + shiptraption.inertiaData.centerOfMass , Vector3d()
@@ -570,7 +661,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         )
 
         this.bearingAxis = axis
-        this.bearingPos = bearingPos
+        this.bearingPos = bearingPos.get(Vector3d())
+        this.assemblyInProgress = false
+        this.lastException = null
 
         controllerCreationData = PhysBearingData(
             bearingAxis.get(Vector3d()),
@@ -600,6 +693,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     }
 
     fun disassemble() {
+        if (disassemblyInProgress) return
         if (!isRunning && shiptraptionID == NO_SHIPTRAPTION_ID) return
         if (ticks - lastStateChanged <= cooldown) return
         targetAngle = 0f
@@ -618,6 +712,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     }
 
     private fun shipDisassemble() {
+        if (disassemblyInProgress) return
         if (shiptraptionID == NO_SHIPTRAPTION_ID || level!!.isClientSide) { return }
         val level = level as ServerLevel
         val subShip = level.shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return
@@ -627,34 +722,34 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val direction = originalDirection ?: blockState.getValue(BearingBlock.FACING)
         val inMain = worldPosition.relative(direction, 1)
         val inSubship = bearingPos.add(bearingAxis, Vector3d()).let { BlockPos.containing(it.x, it.y, it.z) }
-
-        //todo this is stupid
-        val aabb = subShip.shipAABB!!
-        val blocks = DenseBlockPosSet()
-        for (x in aabb.minX() - 1 until  aabb.maxX() + 1) {
-        for (z in aabb.minZ() - 1 until  aabb.maxZ() + 1) {
-        for (y in aabb.minY() - 1 until  aabb.maxY() + 1) {
-            blocks.add(x, y, z)
-        } } }
+        val blocks = PhysBearingAssembler.collectLoadedShipBlocks(level, subShip) ?: return
+        if (blocks.isEmpty()) return
 
         val subCouldSplit = subShip.getAttachment<SplittingDisablerAttachment>()?.let { if (it.canSplit()) { it.disableSplitting(); true } else {false} } ?: false
         val mainCouldSplit = mainShip?.getAttachment<SplittingDisablerAttachment>()?.let { if (it.canSplit()) { it.disableSplitting(); true } else {false} } ?: false
 
-        val hasMoved = PhysBearingAssembler.moveBlocksFromTo(level, blocks, true, inSubship, inMain, subShip, mainShip)
+        suspendBearingForTransfer(level, subShip)
+        disassemblyInProgress = true
+        sendData()
+        PhysBearingAssembler.queueMoveBlocksFromTo(level, blocks, true, inSubship, inMain, subShip, mainShip)
+            .whenComplete { hasMoved, error ->
+                level.server.execute {
+                    if (subCouldSplit) { subShip.getAttachment<SplittingDisablerAttachment>()?.enableSplitting() }
+                    if (mainCouldSplit) { mainShip?.getAttachment<SplittingDisablerAttachment>()?.enableSplitting() }
 
-        if (subCouldSplit) { subShip.getAttachment<SplittingDisablerAttachment>()?.enableSplitting() }
-        if (mainCouldSplit) { mainShip?.getAttachment<SplittingDisablerAttachment>()?.enableSplitting() }
+                    disassemblyInProgress = false
+                    if (error != null || !hasMoved) {
+                        aligning = false
+                        assembleNextTick = false
+                        disassembleWhenPossible = false
+                        restoreBearingAfterFailedTransfer(level, subShip, mainShip)
+                        return@execute
+                    }
 
-        if (!hasMoved) {
-            aligning = false
-            assembleNextTick = false
-            disassembleWhenPossible = false
-            return
-        }
-        BearingController.getOrCreate(subShip)!!.removePhysBearing(bearingID)
-
-        lastStateChanged = ticks
-        resetState()
+                    lastStateChanged = ticks
+                    resetState()
+                }
+            }
     }
 
     private fun resetState() {
@@ -667,15 +762,21 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         sequencedAngleLimit = -1.0f
         sequencedAngleProgress = 0f
         targetAngle = 0f
-        sendData()
-        jointID = -1
         aligning = false
+        assemblyInProgress = false
+        disassemblyInProgress = false
+        jointID = -1
+        joint = null
+        controllerCreationData = null
+        controllerUpdateData = null
 
         sDir1 = null
         sDir2 = null
         pTick = 0
         lastAngle = 0f
         curAngle = 0f
+
+        sendData()
     }
 
     private fun tryAssembleNextTick() {

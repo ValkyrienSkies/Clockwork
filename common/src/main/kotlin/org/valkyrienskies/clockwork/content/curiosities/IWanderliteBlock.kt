@@ -6,8 +6,8 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.content.forces.WanderShipControl
 import org.valkyrienskies.clockwork.util.ClockworkUtils
+import org.valkyrienskies.clockwork.util.VS2AssemblyBridge
 import org.valkyrienskies.core.api.ships.LoadedServerShip
-import org.valkyrienskies.mod.common.assembly.ShipAssembler
 import org.valkyrienskies.mod.common.config.MassDatapackResolver
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
@@ -58,17 +58,16 @@ interface IWanderliteBlock {
             return
         }
 
-        val ship = ShipAssembler.assembleToShip(level, blockList.toSet(), 1.0)
+        VS2AssemblyBridge.queueAssembleToShip(level, blockList.toSet(), 1.0).thenAccept { ship ->
+            for (pos in blockList) {
+                // Our old world-space position is now BlockState{air}
+                val shipBlockPos = BlockPos.containing(ship.transform.worldToShip.transformPosition(pos.center))
 
-        for (pos in blockList) {
-            // Our old world-space position is now BlockState{air}
-            val shipBlockPos = BlockPos.containing(ship.transform.worldToShip.transformPosition(pos.center))
-
-            val weight = MassDatapackResolver.getBlockStateMass(level.getBlockState(shipBlockPos)) ?: continue
-            ClockworkUtils.wanderliteNodesToAdd[BlockPos.containing(ship.worldToShip.transformPosition(pos.toJOMLD()).toMinecraft())] = weight
-            //addToShip(realConnectedShip, BlockPos(realConnectedShip.worldToShip.transformPosition(Vector3d(pos)).toMinecraft()), 2.0)
+                val weight = MassDatapackResolver.getBlockStateMass(level.getBlockState(shipBlockPos)) ?: continue
+                ClockworkUtils.wanderliteNodesToAdd[BlockPos.containing(ship.worldToShip.transformPosition(pos.toJOMLD()).toMinecraft())] = weight
+                //addToShip(realConnectedShip, BlockPos(realConnectedShip.worldToShip.transformPosition(Vector3d(pos)).toMinecraft()), 2.0)
+            }
         }
-
     }
 
 }

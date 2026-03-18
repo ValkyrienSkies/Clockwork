@@ -1,96 +1,137 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.bearing
 
 import net.minecraft.core.BlockPos
-import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
-import net.minecraft.world.level.block.Block
-import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.ticks.ScheduledTick
-import org.joml.Vector3d
-import org.joml.Vector3dc
+import org.valkyrienskies.clockwork.util.VS2AssemblyBridge
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
-import org.valkyrienskies.mod.common.assembly.ICopyableBlock
-import org.valkyrienskies.mod.common.assembly.ShipAssembler
-import org.valkyrienskies.mod.common.assembly.VSAssemblyEvents
 import org.valkyrienskies.mod.common.inAssemblyBlacklist
 import org.valkyrienskies.mod.common.util.toBlockPos
-import org.valkyrienskies.mod.common.util.toJOMLD
+import java.util.concurrent.CompletableFuture
 
 //TODO should be in ShipAssembler itself
 object PhysBearingAssembler {
-    @JvmStatic
-    fun copyBlock(level: ServerLevel, from: BlockPos, to: BlockPos, originShip: ServerShip?, toShip: ServerShip?, centerPositions: Pair<Vector3dc, Vector3dc>) {
-        val state = level.getBlockState(from)
-        val block = state.block
-        val be = level.getBlockEntity(from)
+    fun collectLoadedShipBlocks(level: ServerLevel, ship: ServerShip): List<BlockPos>? {
+        val result = ArrayList<BlockPos>()
+        var hasMissingChunk = false
 
-        var tag = (if (block is ICopyableBlock) block.onCopy(level, from, state, be,
-            mutableListOf<ServerShip>().also { if (originShip != null) it.add(originShip) }.also { if (toShip != null) it.add(toShip) },
-            ShipAssembler.SingleItemMap(originShip?.id ?: -1L, centerPositions.first.get(Vector3d()), Vector3d()) //return actual center position only for origin ship
-        ) else null) ?: be?.saveWithId()
-        level.getChunk(to).setBlockState(to, state, false)
-        tag = (if (block is ICopyableBlock) block.onPaste(level, to, state,
-            ShipAssembler.SingleItemMap(originShip?.id ?: -1L, toShip?.id ?: -1L, -1L) {it}, // return actual change (originShip -> toShip), otherwise identity
-            ShipAssembler.SingleItemMap(originShip?.id ?: -1L, Vector3d(centerPositions.first) to Vector3d(centerPositions.second), Vector3d() to Vector3d()),
-            tag
-        ) else tag) ?: tag
+        ship.activeChunksSet.forEach { chunkX, chunkZ ->
+            val chunk = level.chunkSource.getChunkNow(chunkX, chunkZ)
+            if (chunk == null) {
+                hasMissingChunk = true
+                return@forEach
+            }
 
-        // Transfer pending schedule-ticks
-        if (level.blockTicks.hasScheduledTick(from, state.block)) {
-            level.blockTicks.schedule(ScheduledTick<Block?>(state.block, to, 0, 0))
+            for (sectionIndex in 0 until chunk.sections.size) {
+                val section = chunk.sections[sectionIndex]
+                if (section == null || section.hasOnlyAir()) continue
+
+                val bottomY = (sectionIndex shl 4) + level.minBuildHeight
+
+                for (x in 0..15) {
+                    for (y in 0..15) {
+                        for (z in 0..15) {
+                            val state = section.getBlockState(x, y, z)
+                            if (state.isAir || state.inAssemblyBlacklist()) continue
+
+                            result.add(BlockPos((chunkX shl 4) + x, bottomY + y, (chunkZ shl 4) + z))
+                        }
+                    }
+                }
+            }
         }
 
-        // Transfer block-entity data
-        if (state.hasBlockEntity() && be != null && tag != null) {
-            val newBlockentity = level.getBlockEntity(to)
-            newBlockentity?.load(tag)
+        return if (hasMissingChunk) null else result
+    }
+
+    private fun getLoadedBlockState(level: ServerLevel, pos: BlockPos) =
+        level.chunkSource.getChunkNow(pos.x shr 4, pos.z shr 4)?.getBlockState(pos)
+
+    private fun prepareBlocks(
+        level: ServerLevel,
+        blocks: Collection<BlockPos>,
+        originCenter: BlockPos,
+        toCenter: BlockPos,
+        requireLoadedSources: Boolean
+    ): List<BlockPos>? {
+        val filteredBlocks = ArrayList<BlockPos>(blocks.size)
+
+        for (sourcePos in blocks) {
+            val sourceState = getLoadedBlockState(level, sourcePos)
+                ?: if (requireLoadedSources) return null else continue
+
+            if (sourceState.isAir || sourceState.inAssemblyBlacklist()) continue
+
+            val relative = sourcePos.subtract(originCenter)
+            val destPos = toCenter.offset(relative)
+            val destState = getLoadedBlockState(level, destPos) ?: return null
+            if (!destState.isAir) return emptyList()
+
+            filteredBlocks.add(sourcePos)
         }
+
+        return filteredBlocks
     }
 
     @JvmStatic
     fun moveBlocksFromTo(level: ServerLevel, blocks: DenseBlockPosSet, removeOriginal: Boolean, originCenter: BlockPos, toCenter: BlockPos, originShip: ServerShip?, toShip: ServerShip?): Boolean {
-        val blocks = blocks.filter { level.getBlockState(it.toBlockPos()).let{!it.isAir && !it.inAssemblyBlacklist()} }.map {it.toBlockPos()}
-        if (blocks.isEmpty()) return false
-        for (itPos in blocks) {
-            val relative: BlockPos = itPos.subtract(BlockPos(originCenter.x, originCenter.y, originCenter.z))
-            val shipPos: BlockPos = toCenter.offset(relative)
-            if (!level.getBlockState(shipPos).isAir) {return false}
+        val filteredBlocks = prepareBlocks(
+            level,
+            blocks.map { it.toBlockPos() },
+            originCenter,
+            toCenter,
+            requireLoadedSources = true
+        ) ?: return false
+
+        if (filteredBlocks.isEmpty()) return false
+
+        val result = VS2AssemblyBridge.moveBlocksFromTo(
+            level,
+            filteredBlocks,
+            removeOriginal,
+            originCenter,
+            toCenter,
+            originShip,
+            toShip
+        )
+        return result.wasSuccessful
+    }
+
+    @JvmStatic
+    fun queueMoveBlocksFromTo(level: ServerLevel, blocks: Collection<BlockPos>, removeOriginal: Boolean, originCenter: BlockPos, toCenter: BlockPos, originShip: ServerShip?, toShip: ServerShip?): CompletableFuture<Boolean> {
+        val filteredBlocks = prepareBlocks(
+            level,
+            blocks,
+            originCenter,
+            toCenter,
+            requireLoadedSources = true
+        ) ?: return CompletableFuture.completedFuture(false)
+
+        if (filteredBlocks.isEmpty()) {
+            return CompletableFuture.completedFuture(false)
         }
 
-        val eventData = mutableMapOf<String, CompoundTag>()
+        return VS2AssemblyBridge.queueMoveBlocksFromTo(
+            level,
+            filteredBlocks,
+            removeOriginal,
+            originCenter,
+            toCenter,
+            originShip,
+            toShip
+        ).thenApply { it.wasSuccessful }
+    }
 
-        val (minB, maxB) = ShipAssembler.findMinAndMax(blocks)
-        val oldMin = minB.toJOMLD()
-        val oldMax = maxB.toJOMLD()
-        val oldCenter = originCenter.toJOMLD()
-        val newCenter = toCenter.toJOMLD()
-
-        VSAssemblyEvents.beforeCopy.emit(VSAssemblyEvents.BeforeCopy(level, oldMin, oldMax, originCenter.toJOMLD(), originShip, blocks.toSet(), eventData))
-        //TODO
-//        VSAssemblyEvents.onPasteBeforeBlocksAreLoaded.emit(VSAssemblyEvents.OnPasteBeforeBlocksAreLoaded(level, originShip, toShip, oldCenter to newCenter, eventData))
-
-        for (itPos in blocks) {
-            val relative: BlockPos = itPos.subtract(BlockPos(originCenter.x, originCenter.y, originCenter.z))
-            val shipPos: BlockPos = toCenter.offset(relative)
-            copyBlock(level, itPos, shipPos, originShip, toShip, originCenter.toJOMLD() to toCenter.toJOMLD())
-        }
-
-        if (removeOriginal) {
-            for (itPos in blocks) {
-                level.removeBlockEntity(itPos)
-                level.getChunk(itPos).setBlockState(itPos, Blocks.AIR.defaultBlockState(), true)
-            }
-        }
-
-        for (itPos in blocks) {
-            val relative: BlockPos = itPos.subtract(BlockPos(originCenter.x, originCenter.y, originCenter.z))
-            val shipPos: BlockPos = toCenter.offset(relative)
-            level.chunkSource.blockChanged(shipPos)
-        }
-
-//        VSAssemblyEvents.onPasteAfterBlocksAreLoaded.emit(VSAssemblyEvents.OnPasteAfterBlocksAreLoaded(level, originShip, toShip, oldCenter to newCenter, eventData))
-
-        return true
+    @JvmStatic
+    fun queueMoveBlocksFromTo(level: ServerLevel, blocks: DenseBlockPosSet, removeOriginal: Boolean, originCenter: BlockPos, toCenter: BlockPos, originShip: ServerShip?, toShip: ServerShip?): CompletableFuture<Boolean> {
+        return queueMoveBlocksFromTo(
+            level,
+            blocks.map { it.toBlockPos() },
+            removeOriginal,
+            originCenter,
+            toCenter,
+            originShip,
+            toShip
+        )
     }
 }

@@ -7,7 +7,6 @@ import com.simibubi.create.foundation.item.CustomArmPoseItem
 import net.minecraft.client.model.HumanoidModel
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.core.BlockPos
-import net.minecraft.core.Registry
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
@@ -31,9 +30,8 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.Gra
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItem
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.clockwork.util.ClockworkUtils
+import org.valkyrienskies.clockwork.util.VS2AssemblyBridge
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
-import org.valkyrienskies.mod.common.assembly.ShipAssembler
-import org.valkyrienskies.mod.common.assembly.ShipAssembler.assembleToShip
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft
 import java.util.function.Consumer
@@ -100,35 +98,39 @@ class CreativeGravitronItem(properties: Properties) : CWItem(properties), Custom
                         if (!it.isAir && !ClockworkConfig.SERVER.blockBlacklist.contains(
                                 BuiltInRegistries.BLOCK.getKey(it.block).toString())) {
 
-                            val connectedShip = assembleToShip(serverLevel, selection.toSet().map { ic -> BlockPos(ic.x(), ic.y(), ic.z()) }.toSet(), 1.0)
-
                             val caughtEntities = SelectedAreaToolkit.entitiesFromCluster(cluster, serverLevel)
                             toolkit.dumpCluster(cluster)
-                            if (caughtEntities.isNotEmpty()) {
-                                caughtEntities.forEach(Consumer { entity: Entity ->
-                                    if (entity is AbstractContraptionEntity || entity is SuperGlueEntity || entity is SeatEntity) {
-                                        if (entity !is SuperGlueEntity) {
-                                            val oldPos: Vector3dc = entity.position().toJOML()
-                                            val newPos: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldPos, Vector3d())
-                                            entity.moveTo(newPos.toMinecraft())
-                                        } else {
-                                            val oldBounds = entity.boundingBox
-                                            val oldMax: Vector3dc = Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
-                                            val oldMin: Vector3dc = Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
-                                            val newMax: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldMax, Vector3d())
-                                            val newMin: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldMin, Vector3d())
-                                            val newBounds = AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z())
-                                            entity.boundingBox = newBounds
-                                            entity.resetPositionToBB()
+                            VS2AssemblyBridge.queueAssembleToShip(
+                                serverLevel,
+                                selection.toSet().map { ic -> BlockPos(ic.x(), ic.y(), ic.z()) }.toSet(),
+                                1.0
+                            ).thenAccept { connectedShip ->
+                                if (caughtEntities.isNotEmpty()) {
+                                    caughtEntities.forEach(Consumer { entity: Entity ->
+                                        if (entity is AbstractContraptionEntity || entity is SuperGlueEntity || entity is SeatEntity) {
+                                            if (entity !is SuperGlueEntity) {
+                                                val oldPos: Vector3dc = entity.position().toJOML()
+                                                val newPos: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldPos, Vector3d())
+                                                entity.moveTo(newPos.toMinecraft())
+                                            } else {
+                                                val oldBounds = entity.boundingBox
+                                                val oldMax: Vector3dc = Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
+                                                val oldMin: Vector3dc = Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
+                                                val newMax: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldMax, Vector3d())
+                                                val newMin: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldMin, Vector3d())
+                                                val newBounds = AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z())
+                                                entity.boundingBox = newBounds
+                                                entity.resetPositionToBB()
+                                            }
                                         }
-                                    }
-                                })
-                            }
-                            if (grab) {
-                                val grabPosInShip: Vec3 = clickLocation
-                                val tag = player.mainHandItem.orCreateTag
-                                tag.putLong("ShipId", connectedShip.id)
-                                tag.put("GrabbedPosInShip", ClockworkUtils.writeVec3(grabPosInShip))
+                                    })
+                                }
+                                if (grab) {
+                                    val grabPosInShip: Vec3 = clickLocation
+                                    val tag = player.mainHandItem.orCreateTag
+                                    tag.putLong("ShipId", connectedShip.id)
+                                    tag.put("GrabbedPosInShip", ClockworkUtils.writeVec3(grabPosInShip))
+                                }
                             }
 
                             return true
@@ -157,15 +159,17 @@ class CreativeGravitronItem(properties: Properties) : CWItem(properties), Custom
                         if (component.firstOrNull { pos -> !level.getBlockState(pos).isAir } == null) continue
                         if (component.any { ClockworkConfig.SERVER.blockBlacklist.contains(level.getBlockState(it).block.descriptionId) } ) continue
                         if (component.contains(blockPos)) {
-                            ShipAssembler.assembleToShip((level as? ServerLevel) ?: continue, component, 1.0)
-                            level.playSound(
-                                null,
-                                blockPos,
-                                ClockworkSounds.PHYSICS_INFUSER_FINISH.mainEvent,
-                                player.soundSource,
-                                1.0f,
-                                1.0f
-                            )
+                            VS2AssemblyBridge.queueAssembleToShip((level as? ServerLevel) ?: continue, component, 1.0)
+                                .thenAccept {
+                                    level.playSound(
+                                        null,
+                                        blockPos,
+                                        ClockworkSounds.PHYSICS_INFUSER_FINISH.mainEvent,
+                                        player.soundSource,
+                                        1.0f,
+                                        1.0f
+                                    )
+                                }
                             break
                         }
                         //assembleFromBlockSet(level as ServerLevel, component, false)

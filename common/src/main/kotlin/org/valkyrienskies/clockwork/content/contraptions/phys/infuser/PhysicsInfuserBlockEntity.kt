@@ -30,12 +30,12 @@ import org.valkyrienskies.clockwork.client.render.scanner.ScannerRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer.Companion.SCAN_GROWTH_DURATION
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItem
 import org.valkyrienskies.clockwork.util.ClockworkConstants
+import org.valkyrienskies.clockwork.util.VS2AssemblyBridge
 //import org.valkyrienskies.clockwork.util.ClockworkUtils.assembleFromBlockSet
 //import org.valkyrienskies.clockwork.util.ClockworkUtils.assembleFromDenseBlockSet
 import org.valkyrienskies.clockwork.util.EaseHelper.easeInBounce
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.core.api.ships.Ship
-import org.valkyrienskies.mod.common.assembly.ShipAssembler
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
@@ -276,7 +276,7 @@ class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             launchForce++
 
             //assembleFromBlockSet(level as ServerLevel, component, false)
-            ShipAssembler.assembleToShip(level as ServerLevel, component, 1.0)
+            VS2AssemblyBridge.queueAssembleToShip(level as ServerLevel, component, 1.0)
         }
 
 
