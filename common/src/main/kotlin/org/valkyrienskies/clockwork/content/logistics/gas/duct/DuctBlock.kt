@@ -445,7 +445,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
         // Handle hissing sound
         val maxPressure = 16375049.0
-        if (pressure > 0.7 * maxPressure) {
+        if (pressure > 0.7 * maxPressure ) {
             val pitch = 2 * pressure / maxPressure
             val scape = ClockworkSoundScapes.AmbienceGroup.GAS_HISS
             ClockworkSoundScapes.play(scape, pos, pitch.toFloat())
