@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.mixin.content.gas;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -49,8 +51,8 @@ public class MixinComposterBlock extends Block implements INodeBlock, IHaveDuctS
         super(properties);
     }
 
-    @Inject(method = "tick", at = @At("HEAD"))
-    public void vs_clockwork$$tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, CallbackInfo ci) {
+    @WrapMethod(method = "tick", remap = false)
+    public void vs_clockwork$$tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, Operation<Void> original) {
         if (state.getValue(ComposterBlock.LEVEL) == 7) {
             DuctNetwork kelvin = ClockworkMod.getKelvin();
             ResourceLocation location =  VSGameUtilsKt.getResourceKey(VSGameUtilsKt.getDimensionId(level)).location();
@@ -62,6 +64,7 @@ public class MixinComposterBlock extends Block implements INodeBlock, IHaveDuctS
                 kelvin.addGasAtTemperature(ductNodePos, ClockworkGasses.INSTANCE.getMETHANE(), 0.05, 305);
             }
         }
+        original.call(state, level, pos, random);
     }
 
 
