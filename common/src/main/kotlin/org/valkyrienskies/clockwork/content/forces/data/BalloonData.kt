@@ -177,7 +177,7 @@ class BalloonData {
         currentGasMasses.forEach {
             currentGasMasses[it.key] = currentGasMasses[it.key]!! - exitGas * it.value / totalMass
             exitGasMasses[it.key] = exitGas * it.value / totalMass}
-        val exitHeat =  mixtureCapacity(exitGasMasses)
+        val exitHeat =  currentTemperature * mixtureCapacity(exitGasMasses)
 
         currentHeatEnergy -= exitHeat
         val newCapacity = mixtureCapacity(currentGasMasses)
