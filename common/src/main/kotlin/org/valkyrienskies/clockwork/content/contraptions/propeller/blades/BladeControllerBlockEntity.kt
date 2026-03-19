@@ -51,7 +51,7 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
         this.angleController = AngleScrollValueBehaviour(Component.translatable("vs_clockwork.blade_controller.angle"), this, AngleControllerValueBoxTransform())
-        this.angleController.between(-180,180) // Should do this in controller class, but due to certain questionable create coding decisions, we're doing it here
+        this.angleController.between(-90,90) // Should do this in controller class, but due to certain questionable create coding decisions, we're doing it here
 
         //this.lengthController = LengthScrollValueBehaviour(TranslatableComponent("vs_clockwork.blade_controller.length"), this, LengthControllerValueBoxTransform())
 
