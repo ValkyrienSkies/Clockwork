@@ -36,7 +36,6 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
 
         if (level!!.isClientSide) return
         if (updateConnectivity) updateConnectivity()
-        sendData()
     }
 
     fun queueConnectivityUpdate() {
@@ -48,7 +47,8 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         if (tag.contains("Controller")) controllerCT = NbtUtils.readBlockPos(tag.getCompound("Controller"))
         if (tag.contains("Height")) heightCT = tag.getInt("Height")
         if (tag.contains("Width")) widthCT = tag.getInt("Width")
-        super.read(tag, clientPacket)
+
+        if (isController) super.read(tag, clientPacket)
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean)  {
@@ -57,11 +57,13 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         tag.putInt("Height", height)
         tag.putInt("Width", width)
         if (controller != null) tag.put("Controller", NbtUtils.writeBlockPos(controller!!))
-        super.write(tag, clientPacket)
+
+        if (isController) super.write(tag, clientPacket)
     }
 
     override fun getDuctNodePosition(): DuctNodePos {
-        return controller!!.toDuctNodePos(level!!.dimension().location())
+        return if (level == null) controller!!.toDuctNodePos()
+        else controller!!.toDuctNodePos(level!!.dimension().location())
     }
 
     override fun lazyTick() {
