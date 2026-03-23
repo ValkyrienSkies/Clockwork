@@ -170,8 +170,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             controllerUpdateData = PhysBearingUpdateData(
                 Math.toRadians(targetAngle.toDouble()),
                 0f,
-                false
+                true
             )
+            (level as ServerLevel).gtpa.updateJoint(jointID, joint!!)
         } else {
             joint = VSRevoluteJoint(joint!!.shipId0, joint!!.pose0, joint!!.shipId1, joint!!.pose1, compliance = 1e-100, driveFreeSpin = true)
             controllerUpdateData = PhysBearingUpdateData(
@@ -200,7 +201,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             curAngle = targetAngle
         }
 
-        var angle = Math.toRadians(lastAngle + (targetAngle - lastAngle) * ((pTick+1) / 3.0))
+        val interpProgress = (pTick + 1).toDouble() / 3.0
+        val shortestDelta = shortestAngleDeltaDegrees(lastAngle, curAngle)
+        var angle = Math.toRadians(lastAngle + shortestDelta * interpProgress)
         if (aligning) { angle = 0.0 }
 
         physLevel as VsiPhysLevel
@@ -228,7 +231,18 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         physLevel.updateJoint(jointID, this.joint!!)
 
-        pTick = max(pTick++, 2)
+        pTick = min(pTick + 1, 2)
+    }
+
+    private fun shortestAngleDeltaDegrees(from: Float, to: Float): Float {
+        var delta = to - from
+        while (delta > 180f) {
+            delta -= 360f
+        }
+        while (delta < -180f) {
+            delta += 360f
+        }
+        return delta
     }
 
     public override fun write(tag: CompoundTag, clientPacket: Boolean) {

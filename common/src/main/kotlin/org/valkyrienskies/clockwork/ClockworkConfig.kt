@@ -119,6 +119,18 @@ object ClockworkConfig {
         @ConfigEntry()
         var unlockedModeOmegaErrorMultiplier = 50.0
 
+        @ConfigEntry(min = 0.0, description = "Maximum torque magnitude applied by unlocked PhysBearing controller. Set 0 to disable clamping.")
+        var unlockedModeMaxTorque = 5000.0
+
+        @ConfigEntry(min = 0.0, description = "Proportional gain for follow-angle PhysBearing mode.")
+        var angleFollowingAngleErrorMultiplier = 60.0
+
+        @ConfigEntry(min = 0.0, description = "Derivative gain for follow-angle PhysBearing mode.")
+        var angleFollowingOmegaErrorMultiplier = 16.0
+
+        @ConfigEntry(min = 0.0, description = "Maximum torque magnitude applied by follow-angle PhysBearing controller. Set 0 to disable clamping.")
+        var angleFollowingMaxTorque = 5000.0
+
         @ConfigEntry()
         var allowWrenchingActivatedPhysBearing = false
 
