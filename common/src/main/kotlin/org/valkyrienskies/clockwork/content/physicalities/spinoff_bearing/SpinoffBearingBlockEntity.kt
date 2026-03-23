@@ -37,7 +37,6 @@ import org.valkyrienskies.core.api.util.PhysTickOnly
 import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.api.world.properties.DimensionId
 import org.valkyrienskies.core.internal.joints.VSJointId
-import org.valkyrienskies.core.internal.joints.VSJointMaxForceTorque
 import org.valkyrienskies.core.internal.joints.VSJointPose
 import org.valkyrienskies.core.internal.joints.VSRevoluteJoint
 import org.valkyrienskies.core.internal.world.VsiPhysLevel

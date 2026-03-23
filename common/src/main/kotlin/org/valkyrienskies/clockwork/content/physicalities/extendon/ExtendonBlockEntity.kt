@@ -22,6 +22,7 @@ import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkSounds
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.clockwork.util.universal_joint.IUniversalJoint
@@ -63,6 +64,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
     var main: Boolean = false
 
     var loadFn: (() -> Unit)? = null
+    private var lastInvalidDistanceLogTick: Long = Long.MIN_VALUE
 
     override fun tick() {
         super.tick()
@@ -89,7 +91,14 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         if (abs(distance - previousDistance) < 0.01f) return
 
         var lerpedDistance = previousDistance + (distance - previousDistance) * 0.1f
-        if (lerpedDistance.isInfinite() || lerpedDistance.isNaN()) lerpedDistance = previousDistance
+        if (lerpedDistance.isInfinite() || lerpedDistance.isNaN()) {
+            val currentTick = level?.gameTime ?: 0L
+            if (currentTick - lastInvalidDistanceLogTick >= 20L) {
+                ClockworkMod.LOGGER.warn("Invalid extendon lerpedDistance detected at $blockPos, reverting to previous distance")
+                lastInvalidDistanceLogTick = currentTick
+            }
+            lerpedDistance = previousDistance
+        }
         if (abs(lerpedDistance - distance) < 0.001f) lerpedDistance = distance
 
         val tempJoint = VSJointAndId(distanceJointId!!, VSDistanceJoint(distanceJoint!!.shipId0, distanceJoint!!.pose0, distanceJoint!!.shipId1, distanceJoint!!.pose1, minDistance = lerpedDistance, maxDistance = lerpedDistance))
@@ -122,12 +131,13 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
     }
 
     override fun disconnect() {
-        if (connectedJoint == null) return
+        val other = connectedBe
+        if (connectedJoint == null && other == null) return
 
-        if (connectedBe!!.edge == null) edge = null
+        if (other?.edge == null) edge = null
         else if (edge != null) removeEdge()
 
-        if (connectedBe!!.distanceJoint == null) {
+        if (other?.distanceJoint == null) {
             distanceJoint = null
             distanceJointId = null
             sphericalJoint = null
@@ -135,12 +145,22 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         } else if (distanceJointId != null) removeJoint()
 
         connectedBe = null
+        connectedJoint = null
         main = false
 
         level?.playSound(null, blockPos, ClockworkSounds.HOSE_RELEASE.mainEvent, net.minecraft.sounds.SoundSource.BLOCKS, 1.0f, 1.0f)
 
+        other?.also {
+            if (it.connectedBe === this || it.connectedJoint === this) {
+                it.connectedBe = null
+                it.connectedJoint = null
+                it.main = false
+                it.setChanged()
+                it.sendData()
+            }
+        }
 
-        super.disconnect()
+        setChanged()
         sendData()
     }
 
@@ -173,7 +193,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         val quater1 = getQuaterniond(level.getBlockState(connectedBe!!.blockPos).getValue(BlockStateProperties.FACING))
 
         distanceJoint = VSDistanceJoint(pose0 = VSJointPose(pos0, quater0), pose1 = VSJointPose(pos1, quater1) , shipId0 = shipId0, shipId1 = shipId1,
-            minDistance = 0.5f, maxDistance = 1000f, damping = 1000f )
+            minDistance = 0.5f, maxDistance = 1000f, damping = ClockworkConfig.SERVER.extendonDistanceJointDamping.toFloat() )
         level.gtpa.addJoint(distanceJoint!!) { distanceJointId = it }
 
         val limit = VSD6Joint.LimitCone(Math.PI.toFloat()/4f, Math.PI.toFloat()/4f)
@@ -244,7 +264,16 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
                 connectedBe?.connectedBe = this
             }
             main = compound.getBoolean("IsMain")
-        } else disconnect()
+        } else {
+            connectedBe = null
+            connectedJoint = null
+            edge = null
+            distanceJoint = null
+            distanceJointId = null
+            sphericalJoint = null
+            sphericalJointId = null
+            main = false
+        }
 
         super.read(compound, clientPacket)
     }
@@ -273,6 +302,11 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
             tooltip.add(Component.translatable("vs_clockwork.hose_port.disconnected"))
         }
         return og || other
+    }
+
+    override fun remove() {
+        disconnect()
+        super.remove()
     }
 
     override fun getConnectionItem(): ItemStack {

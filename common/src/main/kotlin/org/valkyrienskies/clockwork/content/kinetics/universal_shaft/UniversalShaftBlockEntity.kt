@@ -62,16 +62,20 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
             connectedBe!!.connectedPos = null
             connectedBe!!.connectedJoint = null
             connectedBe!!.main = false
+            connectedBe!!.setSpeed(0f)
             connectedBe!!.detachKinetics()
             connectedBe!!.clearKineticInformation()
+            connectedBe!!.setChanged()
             connectedBe!!.sendData()
         }
         connectedPos = null
         connectedBe = null
         connectedJoint = null
         main = false
+        setSpeed(0f)
         detachKinetics()
         clearKineticInformation()
+        setChanged()
         sendData()
     }
 
@@ -145,6 +149,10 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
             main = compound.getBoolean("main")
         } else {
             connectedPos = null
+            connectedBe = null
+            connectedJoint = null
+            main = false
+            setSpeed(0f)
         }
 
         super.read(compound, clientPacket)

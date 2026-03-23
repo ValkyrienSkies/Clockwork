@@ -3,7 +3,8 @@
 	"credit": "Made with Blockbench",
 	"texture_size": [64, 64],
 	"textures": {
-		"2": "vs_clockwork:block/blade_controller"
+		"2": "vs_clockwork:block/blade_controller",
+		"particle": "vs_clockwork:block/blade_controller"
 	},
 	"elements": [
 		{

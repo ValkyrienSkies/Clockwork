@@ -3,7 +3,8 @@
 	"parent": "block/block",
 	"texture_size": [64, 64],
 	"textures": {
-		"0": "vs_clockwork:block/clock"
+		"0": "vs_clockwork:block/clock",
+		"particle": "vs_clockwork:block/clock"
 	},
 	"elements": [
 		{
