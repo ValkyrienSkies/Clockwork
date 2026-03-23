@@ -143,8 +143,8 @@ object ClockworkConfig {
         @ConfigEntry(min = 0.0, description = "Maximum net torque magnitude applied by each propeller controller update. Set 0 to disable clamping.")
         var propellerMaxTorque = 50000.0
 
-        @ConfigEntry(min = 0.0, description = "Damping used by extendon distance joints. Lower values reduce aggressive spring-like oscillation.")
-        var extendonDistanceJointDamping = 100.0
+        @ConfigEntry(min = 0.0, description = "Damping used by extendon distance joints. Default matches legacy extendon behavior.")
+        var extendonDistanceJointDamping = 1000.0
 
         @ConfigEntry(min = 0.0)
         var encasedFanForceMul = 40.0
