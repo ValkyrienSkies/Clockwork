@@ -561,6 +561,18 @@
   "vs_clockwork.ponder.plane_tips.text_8": "曲面机翼将保持20°迎角",
   "vs_clockwork.ponder.plane_tips.text_9": "你的飞机会不受控制地转向",
 
+  "vs_clockwork.ponder.duct.header": "气体管道",
+  "vs_clockwork.ponder.duct.text_1": "气体管道是Clockwork气体网络的核心。",
+  "vs_clockwork.ponder.duct.text_2": "气体只能通过气体管道流动。",
+  "vs_clockwork.ponder.duct.text_3": "使用扳手点击连接处可以设定是否连接。",
+  "vs_clockwork.ponder.duct.text_4": "按住Shift并使用螺丝刀右击管道一边，可以循环切换其类型。类型有：",
+  "vs_clockwork.ponder.duct.text_5": "单向",
+  "vs_clockwork.ponder.duct.text_6": "过滤",
+  "vs_clockwork.ponder.duct.text_7": "智能",
+  "vs_clockwork.ponder.duct.text_8": "使用用螺丝刀右击智能或过滤类型的边，可以对其进行编辑。",
+  "vs_clockwork.ponder.duct.text_9": "如果管道被爆炸波及，它会变成一处泄漏点，气体将猛烈喷出！",
+  "vs_clockwork.ponder.duct.text_10": "使用扳手右击泄漏点即可将其重新密封。",
+
   "death.attack.gas_burn": "%s被烤焦了",
   "death.attack.gas_explosion": "%s没有控制好气压"
 }
