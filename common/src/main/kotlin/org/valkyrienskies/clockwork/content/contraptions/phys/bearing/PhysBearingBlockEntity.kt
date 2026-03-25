@@ -143,6 +143,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     private var controllerCreationData: PhysBearingData? = null
     private var controllerUpdateData: PhysBearingUpdateData? = null
     private var loadingFn: ((ServerLevel) -> Boolean)? = null
+    private var skipNextServerUpdateAfterRestore = false
     private var deferredRestoreTries = 0
     private var restoredFollowAngleMode: Boolean? = null
 
@@ -196,8 +197,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             )
         }
 
-        pushControllerUpdate(updateData)
         (level as ServerLevel).gtpa.updateJoint(jointID, joint!!)
+        pushControllerUpdate(updateData)
     }
 
     @Volatile override lateinit var dimension: DimensionId
@@ -340,6 +341,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         }
 
         val followAngleMode = restoredFollowAngleMode ?: (movementMode?.get() == LockedMode.FOLLOW_ANGLE)
+        movementMode?.setValue(
+            if (followAngleMode) LockedMode.FOLLOW_ANGLE.ordinal else LockedMode.UNLOCKED.ordinal
+        )
         controllerCreationData = PhysBearingData(
             bearingAxis.get(Vector3d()),
             Math.toRadians(targetAngle.toDouble()),
@@ -352,6 +356,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         )
 
         tryMakeJoint()
+        skipNextServerUpdateAfterRestore = true
         deferredRestoreTries = 0
         restoredFollowAngleMode = null
         return true
@@ -509,8 +514,12 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         ClockworkMod.physTickOnce(level.dimensionId!!) { level, _, tryNextTick ->
             level as VsiPhysLevel
             val existing = level.getJointById(jointID)
-            if (existing != null && existing == joint) {
+            if (existing != null) {
+                // Persisted restore can resolve before BE reconciliation and may not be bit-identical
+                // to our recomputed local copy. Reuse the restored joint to avoid creating duplicates.
+                this.joint = existing
                 isRunning = true
+                lastStateChanged = ticks
                 return@physTickOnce
             }
             if (
@@ -892,7 +901,13 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             }
         }
         //needs to be after targetAngle change
-        if (!level!!.isClientSide) { tryUpdateData() }
+        if (!level!!.isClientSide) {
+            if (skipNextServerUpdateAfterRestore) {
+                skipNextServerUpdateAfterRestore = false
+            } else {
+                tryUpdateData()
+            }
+        }
     }
 
     override fun onSpeedChanged(previousSpeed: Float) {
@@ -904,6 +919,17 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         }
 
         if (level != null && !level!!.isClientSide && joint != null) {
+            // Defer speed-driven drive updates until restore/controller wiring is fully ready.
+            if (
+                skipNextServerUpdateAfterRestore ||
+                loadingFn != null ||
+                controllerCreationData != null ||
+                bearingID == -1
+            ) {
+                super.onSpeedChanged(previousSpeed)
+                return
+            }
+
             lastSpeed = getSpeed()
             val realSpeed = if (abs(getSpeed()) > 0.0f) getRealisticAngularSpeed() else 0.0f
             val newDriveVelocity = if (realSpeed != 0.0f) VSRevoluteJoint.VSRevoluteDriveVelocity(getRealisticAngularSpeed(), true) else VSRevoluteJoint.VSRevoluteDriveVelocity(0f, true)
