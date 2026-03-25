@@ -20,6 +20,7 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.sign
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
@@ -74,6 +75,9 @@ class BearingController : ShipPhysicsListener {
         val prevRPM = data.angularSpeed
         val prevAngle = data.bearingAngle
         data.actualAngle = getAngle(data.bearingAxis!!, physShip.transform, otherPhysShip?.transform)
+        if (!java.lang.Double.isFinite(data.actualAngle) || !java.lang.Double.isFinite(data.bearingAngle) || !java.lang.Float.isFinite(data.angularSpeed)) {
+            return Vector3d()
+        }
         if (data.aligning) {
             data.angularSpeed = abs(prevRPM) * if (data.actualAngle > 0) -1 else 1
             data.bearingAngle = 0.0
@@ -174,9 +178,15 @@ class BearingController : ShipPhysicsListener {
             torqueMassMultiplier * ClockworkConfig.SERVER.unlockedModeOmegaErrorMultiplier,
             Vector3d()
         )
-        val maxTorque = ClockworkConfig.SERVER.unlockedModeMaxTorque
-        if (maxTorque > 0.0 && torque.lengthSquared() > maxTorque * maxTorque) {
-            torque.normalize(maxTorque)
+        if (!torque.isFinite()) {
+            return Vector3d()
+        }
+        val configuredMaxTorque = ClockworkConfig.SERVER.unlockedModeMaxTorque
+        val inertiaScaledMinTorque = torqueMassMultiplier * ClockworkConfig.SERVER.unlockedModeMinAngularAcceleration
+        val effectiveMaxTorque = if (configuredMaxTorque > 0.0) max(configuredMaxTorque, inertiaScaledMinTorque) else 0.0
+
+        if (effectiveMaxTorque > 0.0 && torque.lengthSquared() > effectiveMaxTorque * effectiveMaxTorque) {
+            torque.normalize(effectiveMaxTorque)
         }
         return torque
     }
@@ -213,19 +223,40 @@ class BearingController : ShipPhysicsListener {
             return Vector3d()
         }
 
-        val angleErr = shortestAngleDeltaRadians(data.bearingAngle, data.actualAngle)
+        val rawAngleErr = shortestAngleDeltaRadians(data.bearingAngle, data.actualAngle)
+        val deadbandRad = Math.toRadians(ClockworkConfig.SERVER.angleFollowingAngleDeadbandDeg)
+        val angleErr = when {
+            rawAngleErr > deadbandRad -> rawAngleErr - deadbandRad
+            rawAngleErr < -deadbandRad -> rawAngleErr + deadbandRad
+            else -> 0.0
+        }
         val omegaErr = -bearingAxisInGlobal.dot(actualRelativeOmega)
         var torque = (
             angleErr * torqueMassMultiplier * ClockworkConfig.SERVER.angleFollowingAngleErrorMultiplier +
                 omegaErr * torqueMassMultiplier * ClockworkConfig.SERVER.angleFollowingOmegaErrorMultiplier
             )
+        if (!java.lang.Double.isFinite(torque)) {
+            return Vector3d()
+        }
 
         val maxTorque = ClockworkConfig.SERVER.angleFollowingMaxTorque
         if (maxTorque > 0.0) {
             torque = torque.coerceIn(-maxTorque, maxTorque)
         }
 
+        val maxTorqueStep = ClockworkConfig.SERVER.angleFollowingMaxTorqueStep
+        if (maxTorqueStep > 0.0) {
+            val minTorque = data.lastLockedTorque - maxTorqueStep
+            val maxTorqueForStep = data.lastLockedTorque + maxTorqueStep
+            torque = torque.coerceIn(minTorque, maxTorqueForStep)
+        }
+        data.lastLockedTorque = torque
+
         return bearingAxisInGlobal.mul(torque, Vector3d())
+    }
+
+    private fun Vector3dc.isFinite(): Boolean {
+        return java.lang.Double.isFinite(x()) && java.lang.Double.isFinite(y()) && java.lang.Double.isFinite(z())
     }
 
     private fun shortestAngleDeltaRadians(target: Double, actual: Double): Double {
