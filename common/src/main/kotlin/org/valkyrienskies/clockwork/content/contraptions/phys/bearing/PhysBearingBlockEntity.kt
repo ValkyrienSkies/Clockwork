@@ -45,6 +45,7 @@ import org.valkyrienskies.clockwork.util.minus
 import org.valkyrienskies.clockwork.util.plus
 import org.valkyrienskies.clockwork.util.times
 import org.valkyrienskies.core.api.attachment.getAttachment
+import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.world.PhysLevel
@@ -140,6 +141,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     private var lastSpeed = 0f
     private var lastMode = LockedMode.UNLOCKED
+    private var lastAligning = false
 
     private var controllerCreationData: PhysBearingData? = null
     private var controllerUpdateData: PhysBearingUpdateData? = null
@@ -149,12 +151,121 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     private var deferredRestoreTries = 0
     private var restoredFollowAngleMode: Boolean? = null
     private var pendingJointCreationToken: Long = 0
+    @Volatile private var pendingLockedStateReseedAfterRestore = false
+    private var pendingExplicitTargetCommandAfterRestore = false
+    private var followAngleArmed = true
+    private var waitingForFreshCommandAfterRestore = false
+    private var pendingFollowAngleResumeAfterRestore = false
 
     private fun isSettlingAfterRestore(): Boolean = settleTicksRemainingAfterRestore > 0
+    private fun isFollowAngleMode(): Boolean = movementMode?.get() == LockedMode.FOLLOW_ANGLE
+    private fun isHardLockedMode(): Boolean = isFollowAngleMode() || aligning
 
     private fun getConfiguredRestoreSettleTicks(): Int {
         val seconds = ClockworkConfig.SERVER.physBearingRestoreSettleSeconds
         return max(0, (seconds * 20.0).roundToInt())
+    }
+
+    private fun initializeLockedRuntimeState(angle: Float) {
+        lockedCurrentAngle = angle
+        lockedInterpolationStartAngle = angle
+        lockedInterpolationGoalAngle = angle
+        lockedInterpolationTick = 0
+        sDir1 = null
+        sDir2 = null
+    }
+
+    private fun promoteLockedRuntimeGoal(goalAngle: Float) {
+        if (!goalAngle.isFinite()) {
+            return
+        }
+
+        if (lockedInterpolationGoalAngle == goalAngle && lockedCurrentAngle == goalAngle) {
+            return
+        }
+
+        lockedInterpolationStartAngle = lockedCurrentAngle
+        lockedInterpolationGoalAngle = goalAngle
+        lockedInterpolationTick = 0
+    }
+
+    private fun getActualAngleDegrees(
+        serverLevel: ServerLevel,
+        subShip: LoadedServerShip? = serverLevel.shipObjectWorld.loadedShips.getById(shiptraptionID),
+        mainShip: LoadedServerShip? = joint?.shipId1
+            ?.takeIf { it != NO_SHIPTRAPTION_ID }
+            ?.let(serverLevel.shipObjectWorld.loadedShips::getById)
+    ): Float? {
+        val loadedSubShip = subShip ?: return null
+        val actualAngleDegrees = Math.toDegrees(getAngle(bearingAxis, loadedSubShip.transform, mainShip?.transform)).toFloat()
+        return actualAngleDegrees.takeIf(Float::isFinite)
+    }
+
+    private fun armFollowAngle() {
+        followAngleArmed = true
+        waitingForFreshCommandAfterRestore = false
+        pendingFollowAngleResumeAfterRestore = false
+    }
+
+    private fun holdFollowAngleAfterRestore(actualAngleDegrees: Float) {
+        targetAngle = actualAngleDegrees
+        initializeLockedRuntimeState(actualAngleDegrees)
+        followAngleArmed = false
+        waitingForFreshCommandAfterRestore = true
+        pendingFollowAngleResumeAfterRestore = false
+        sequencedAngleLimit = -1.0f
+        sequencedAngleProgress = 0.0f
+    }
+
+    private fun beginAlignmentFromActual(actualAngleDegrees: Float) {
+        initializeLockedRuntimeState(actualAngleDegrees)
+        targetAngle = 0f
+        promoteLockedRuntimeGoal(0f)
+        armFollowAngle()
+    }
+
+    private fun syncLockedRuntimeStateToActualPose(serverLevel: ServerLevel): Float? {
+        val actualAngleDegrees = getActualAngleDegrees(serverLevel) ?: return null
+        targetAngle = actualAngleDegrees
+        initializeLockedRuntimeState(actualAngleDegrees)
+        return actualAngleDegrees
+    }
+
+    private fun rebaseAngleNearReference(angleDegrees: Float, referenceDegrees: Float): Float {
+        val turns = round((referenceDegrees - angleDegrees) / 360f)
+        return angleDegrees + turns * 360f
+    }
+
+    private fun finalizeLockedStateRestoreIfReady(serverLevel: ServerLevel): Boolean {
+        if (!pendingLockedStateReseedAfterRestore || isSettlingAfterRestore()) {
+            return false
+        }
+
+        val actualAngleDegrees = getActualAngleDegrees(serverLevel) ?: return false
+        initializeLockedRuntimeState(actualAngleDegrees)
+
+        if (aligning) {
+            beginAlignmentFromActual(actualAngleDegrees)
+        } else if (pendingExplicitTargetCommandAfterRestore) {
+            targetAngle = rebaseAngleNearReference(targetAngle, lockedCurrentAngle)
+            promoteLockedRuntimeGoal(targetAngle)
+            armFollowAngle()
+        } else if (pendingFollowAngleResumeAfterRestore) {
+            targetAngle = actualAngleDegrees
+            initializeLockedRuntimeState(actualAngleDegrees)
+            followAngleArmed = false
+            waitingForFreshCommandAfterRestore = true
+        } else if (followAngleArmed) {
+            targetAngle = actualAngleDegrees
+            waitingForFreshCommandAfterRestore = false
+        } else {
+            holdFollowAngleAfterRestore(actualAngleDegrees)
+        }
+
+        controllerCreationData?.bearingAngle = Math.toRadians(targetAngle.toDouble())
+        pendingLockedStateReseedAfterRestore = false
+        pendingExplicitTargetCommandAfterRestore = false
+        return true
     }
 
     private fun invalidatePendingJointCreation() {
@@ -260,24 +371,21 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     @Volatile override lateinit var dimension: DimensionId
     @Volatile private var sDir1: Vector3dc? = null
     @Volatile private var sDir2: Vector3dc? = null
-    @Volatile private var pTick = 0
-    @Volatile private var lastAngle = targetAngle
-    @Volatile private var curAngle = targetAngle
+    @Volatile private var lockedInterpolationTick = 0
+    @Volatile private var lockedInterpolationStartAngle = targetAngle
+    @Volatile private var lockedInterpolationGoalAngle = targetAngle
+    @Volatile private var lockedCurrentAngle = targetAngle
     override fun physTick(physShip: PhysShip?, physLevel: PhysLevel) {
         if (isRemoved || !isRunning) return
         if (jointID == -1) return
         val joint = joint as? VSFixedJoint ?: return
+        if (pendingLockedStateReseedAfterRestore) return
+        if (isFollowAngleMode() && !aligning && waitingForFreshCommandAfterRestore) return
 
-        if (curAngle != targetAngle) {
-            pTick = 0
-            lastAngle = curAngle
-            curAngle = targetAngle
-        }
-
-        val interpProgress = (pTick + 1).toDouble() / 3.0
-        val shortestDelta = shortestAngleDeltaDegrees(lastAngle, curAngle)
-        var angle = Math.toRadians(lastAngle + shortestDelta * interpProgress)
-        if (aligning) { angle = 0.0 }
+        val interpProgress = (lockedInterpolationTick + 1).toDouble() / 3.0
+        val shortestDelta = shortestAngleDeltaDegrees(lockedInterpolationStartAngle, lockedInterpolationGoalAngle)
+        val interpolatedAngle = (lockedInterpolationStartAngle + shortestDelta * interpProgress).toFloat()
+        val angle = Math.toRadians(interpolatedAngle.toDouble())
 
         physLevel as VsiPhysLevel
         if (sDir1 == null || sDir2 == null) {
@@ -304,7 +412,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         physLevel.updateJoint(jointID, this.joint!!)
 
-        pTick = min(pTick + 1, 2)
+        lockedCurrentAngle = interpolatedAngle
+        lockedInterpolationTick = min(lockedInterpolationTick + 1, 2)
     }
 
     private fun shortestAngleDeltaDegrees(from: Float, to: Float): Float {
@@ -366,9 +475,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             }
             return false
         }
-
         val mainId = joint.shipId1
-        if (mainId != null && mainId != NO_SHIPTRAPTION_ID && level.shipObjectWorld.loadedShips.getById(mainId) == null) {
+        val mainShip = mainId
+            ?.takeIf { it != NO_SHIPTRAPTION_ID }
+            ?.let(level.shipObjectWorld.loadedShips::getById)
+        if (mainId != null && mainId != NO_SHIPTRAPTION_ID && mainShip == null) {
             deferredRestoreTries++
             if (deferredRestoreTries % 40 == 0) {
                 ClockworkMod.LOGGER.warn("Deferring phys bearing restore at {}: main ship {} is not loaded yet (attempt {}).", worldPosition, mainId, deferredRestoreTries)
@@ -419,6 +530,21 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         movementMode?.setValue(
             if (followAngleMode) LockedMode.FOLLOW_ANGLE.ordinal else LockedMode.UNLOCKED.ordinal
         )
+        pendingLockedStateReseedAfterRestore = this.joint is VSFixedJoint && (followAngleMode || aligning)
+        pendingExplicitTargetCommandAfterRestore = false
+        pendingFollowAngleResumeAfterRestore = false
+        if (pendingLockedStateReseedAfterRestore && !aligning) {
+            followAngleArmed = false
+            waitingForFreshCommandAfterRestore = true
+            sequencedAngleLimit = -1.0f
+            sequencedAngleProgress = 0.0f
+        } else {
+            followAngleArmed = true
+            waitingForFreshCommandAfterRestore = false
+        }
+        lastMode = movementMode?.get() ?: lastMode
+        lastSpeed = getSpeed()
+        lastAligning = aligning
         controllerCreationData = PhysBearingData(
             bearingAxis.get(Vector3d()),
             Math.toRadians(targetAngle.toDouble()),
@@ -443,8 +569,15 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         open = tag.getBoolean(ClockworkConstants.Nbt.OPEN)
         isRunning = tag.getBoolean(ClockworkConstants.Nbt.RUNNING)
         targetAngle = tag.getFloat(ClockworkConstants.Nbt.ANGLE)
-        lastAngle = targetAngle
-        curAngle = targetAngle
+        initializeLockedRuntimeState(targetAngle)
+        pendingLockedStateReseedAfterRestore = false
+        pendingExplicitTargetCommandAfterRestore = false
+        followAngleArmed = true
+        waitingForFreshCommandAfterRestore = false
+        pendingFollowAngleResumeAfterRestore = false
+        lastMode = movementMode?.get() ?: lastMode
+        lastSpeed = getSpeed()
+        lastAligning = aligning
         lastException = AssemblyException.read(tag)
         if (tag.contains(ClockworkConstants.Nbt.SHIPTRAPTION_ID)) {
             shiptraptionID = tag.getLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID)
@@ -456,6 +589,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             if (shiptraptionID == NO_SHIPTRAPTION_ID) {
                 clientAngleDiff = AngleHelper.getShortestAngleDiff(angleBefore.toDouble(), targetAngle.toDouble())
                 targetAngle = angleBefore
+                initializeLockedRuntimeState(targetAngle)
             }
         } else {
             shiptraptionID = NO_SHIPTRAPTION_ID
@@ -761,6 +895,15 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         this.bearingAxis = axis
         this.bearingPos = bearingPos
+        initializeLockedRuntimeState(targetAngle)
+        pendingLockedStateReseedAfterRestore = false
+        pendingExplicitTargetCommandAfterRestore = false
+        followAngleArmed = true
+        waitingForFreshCommandAfterRestore = false
+        pendingFollowAngleResumeAfterRestore = false
+        lastMode = movementMode!!.get()
+        lastSpeed = getSpeed()
+        lastAligning = aligning
 
         controllerCreationData = PhysBearingData(
             bearingAxis.get(Vector3d()),
@@ -872,10 +1015,14 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         sDir1 = null
         sDir2 = null
-        pTick = 0
-        lastAngle = 0f
-        curAngle = 0f
+        initializeLockedRuntimeState(0f)
         settleTicksRemainingAfterRestore = 0
+        pendingLockedStateReseedAfterRestore = false
+        pendingExplicitTargetCommandAfterRestore = false
+        followAngleArmed = true
+        waitingForFreshCommandAfterRestore = false
+        pendingFollowAngleResumeAfterRestore = false
+        lastAligning = false
     }
 
     private fun tryAssembleNextTick() {
@@ -886,22 +1033,49 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     }
 
     private fun tryUpdateData() {
-        if (shiptraptionID == NO_SHIPTRAPTION_ID) {return}
-        if (   (lastSpeed == getSpeed() && lastMode == movementMode?.get())
-            && (movementMode!!.get() != LockedMode.FOLLOW_ANGLE && !aligning)
-        ) {return}
+        if (shiptraptionID == NO_SHIPTRAPTION_ID || joint == null) {return}
 
-        if (lastMode != movementMode?.get() && movementMode?.get() == LockedMode.FOLLOW_ANGLE) {
-            val shipOn = level!!.getShipObjectManagingPos(blockPos)?.transform
-            val shiptraption = level!!.shipObjectWorld.allShips.getById(shiptraptionID)?.transform ?: return
+        val mode = movementMode!!.get()
+        val speed = getSpeed()
+        val modeChanged = lastMode != mode
+        val speedChanged = lastSpeed != speed
+        val aligningChanged = lastAligning != aligning
 
-            targetAngle = Math.toDegrees(getAngle(bearingAxis, shiptraption, shipOn)).toFloat()
+        if (!modeChanged && !speedChanged && !aligningChanged) {
+            return
         }
 
-        lastSpeed = getSpeed()
-        lastMode = movementMode!!.get()
+        val serverLevel = level as? ServerLevel ?: return
+        val shouldBeLocked = mode == LockedMode.FOLLOW_ANGLE || aligning
 
-        val realSpeed = if (abs(getSpeed()) > 0.0f) getRealisticAngularSpeed() else 0.0f
+        when {
+            aligning && (modeChanged || aligningChanged) -> {
+                val actualAngleDegrees = getActualAngleDegrees(serverLevel) ?: return
+                beginAlignmentFromActual(actualAngleDegrees)
+                pendingExplicitTargetCommandAfterRestore = false
+            }
+            mode == LockedMode.FOLLOW_ANGLE && (modeChanged || (lastAligning && !aligning)) -> {
+                val actualAngleDegrees = getActualAngleDegrees(serverLevel) ?: return
+                initializeLockedRuntimeState(actualAngleDegrees)
+                targetAngle = actualAngleDegrees
+                armFollowAngle()
+                pendingExplicitTargetCommandAfterRestore = false
+            }
+            !shouldBeLocked -> {
+                armFollowAngle()
+                pendingExplicitTargetCommandAfterRestore = false
+            }
+        }
+
+        lastSpeed = speed
+        lastMode = mode
+        lastAligning = aligning
+
+        if (!modeChanged && !aligningChanged && shouldBeLocked) {
+            return
+        }
+
+        val realSpeed = if (abs(speed) > 0.0f) getRealisticAngularSpeed() else 0.0f
         val newDriveVelocity = if (realSpeed != 0.0f) VSRevoluteJoint.VSRevoluteDriveVelocity(getRealisticAngularSpeed(), true) else null
         updateDrive(newDriveVelocity)
     }
@@ -939,6 +1113,13 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     }
 
     fun getActualAngularSpeed(): Float {
+        if (isFollowAngleMode() && !aligning && waitingForFreshCommandAfterRestore) {
+            return 0f
+        }
+        return getCommandedAngularSpeedIgnoringRestoreHold()
+    }
+
+    private fun getCommandedAngularSpeedIgnoringRestoreHold(): Float {
         val dir = originalDirection!!
         return convertToAngular(getSpeed()) * if (dir == Direction.WEST || dir == Direction.NORTH || dir == Direction.DOWN) 1 else -1
     }
@@ -960,21 +1141,25 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 }
             }
 
-            val subShip = (level as ServerLevel).shipObjectWorld.loadedShips.getById(shiptraptionID)
+            val serverLevel = level as ServerLevel
+            val subShip = serverLevel.shipObjectWorld.loadedShips.getById(shiptraptionID)
+            if (settleTicksRemainingAfterRestore > 0) {
+                settleTicksRemainingAfterRestore--
+            }
+            finalizeLockedStateRestoreIfReady(serverLevel)
             controllerCreationData?.also {
+                if (pendingLockedStateReseedAfterRestore) return@also
                 bearingID = BearingController
                     .getOrCreate(subShip ?: return@also)!!
                     .addPhysBearing(it)
                 controllerCreationData = null
             }
             controllerUpdateData?.also {
+                if (pendingLockedStateReseedAfterRestore) return@also
                 BearingController
                     .getOrCreate(subShip ?: return@also)!!
                     .updatePhysBearing(bearingID, it)
                 controllerUpdateData = null
-            }
-            if (settleTicksRemainingAfterRestore > 0) {
-                settleTicksRemainingAfterRestore--
             }
             tryAssembleNextTick()
             if (disassembleWhenPossible) { shipDisassemble() }
@@ -983,8 +1168,24 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (!isRunning) return
         if (shiptraptionID == NO_SHIPTRAPTION_ID) {
             targetAngle = 0f
+            initializeLockedRuntimeState(0f)
         } else if (joint != null && jointID != -1) {
-            val angularSpeed = if (isSettlingAfterRestore()) 0.0f else -getActualAngularSpeed()
+            val commandedAngularSpeed = if (isSettlingAfterRestore()) 0.0f else -getCommandedAngularSpeedIgnoringRestoreHold()
+            // Start the first post-restore move from the current settled pose, not the persisted target.
+            if (
+                !level!!.isClientSide &&
+                isFollowAngleMode() &&
+                !aligning &&
+                waitingForFreshCommandAfterRestore &&
+                pendingFollowAngleResumeAfterRestore &&
+                abs(commandedAngularSpeed) > 1e-6f
+            ) {
+                val serverLevel = level as? ServerLevel
+                if (serverLevel != null && syncLockedRuntimeStateToActualPose(serverLevel) != null) {
+                    armFollowAngle()
+                }
+            }
+            val angularSpeed = if (isFollowAngleMode() && !aligning && waitingForFreshCommandAfterRestore) 0.0f else commandedAngularSpeed
             var diff = 0.0f
 
             if (sequencedAngleLimit >= 0.0f) {
@@ -999,22 +1200,18 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 }
             }
             val newAngle = targetAngle + angularSpeed - diff
-            val isFollowAngleMode = movementMode?.get() == LockedMode.FOLLOW_ANGLE || aligning
-            if (isFollowAngleMode) {
-                // Keep follow-angle continuous across multiple turns to avoid periodic wrap impulses.
-                targetAngle = newAngle
+            if (isHardLockedMode()) {
+                if (aligning) {
+                    targetAngle = 0f
+                    if (lockedInterpolationGoalAngle != 0f) {
+                        promoteLockedRuntimeGoal(0f)
+                    }
+                } else if (isFollowAngleMode() && followAngleArmed && newAngle != targetAngle) {
+                    targetAngle = newAngle
+                    promoteLockedRuntimeGoal(targetAngle)
+                }
             } else {
                 // Preserve legacy wrapping behavior for non-follow-angle modes.
-                lastAngle = when {
-                    newAngle >= 360f * 2 -> lastAngle - 360f * 2
-                    newAngle < 0f -> lastAngle + 360f * 2
-                    else -> lastAngle
-                }
-                curAngle = when {
-                    newAngle >= 360f * 2 -> curAngle - 360f * 2
-                    newAngle < 0f -> curAngle + 360f * 2
-                    else -> curAngle
-                }
                 targetAngle = when {
                     newAngle >= 360f * 2 -> newAngle - 360f * 2
                     newAngle < 0f -> newAngle + 360f * 2
@@ -1042,23 +1239,12 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             sequencedAngleLimit = sequenceContext.getEffectiveValue(theoreticalSpeed.toDouble()).toFloat()
         }
 
-        if (level != null && !level!!.isClientSide && joint != null) {
-            // Defer speed-driven drive updates until restore/controller wiring is fully ready.
-            if (
-                skipNextServerUpdateAfterRestore ||
-                isSettlingAfterRestore() ||
-                loadingFn != null ||
-                controllerCreationData != null ||
-                bearingID == -1
-            ) {
-                super.onSpeedChanged(previousSpeed)
-                return
+        if (level != null && !level!!.isClientSide && isFollowAngleMode() && !aligning) {
+            if (waitingForFreshCommandAfterRestore) {
+                pendingFollowAngleResumeAfterRestore = abs(getSpeed()) > 1e-6f
+            } else {
+                armFollowAngle()
             }
-
-            lastSpeed = getSpeed()
-            val realSpeed = if (abs(getSpeed()) > 0.0f) getRealisticAngularSpeed() else 0.0f
-            val newDriveVelocity = if (realSpeed != 0.0f) VSRevoluteJoint.VSRevoluteDriveVelocity(getRealisticAngularSpeed(), true) else VSRevoluteJoint.VSRevoluteDriveVelocity(0f, true)
-            updateDrive(newDriveVelocity)
         }
         super.onSpeedChanged(previousSpeed)
     }
@@ -1091,7 +1277,38 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     override fun onStall() { if (!level!!.isClientSide) sendData() }
     override fun isValid(): Boolean = !isRemoved
     override fun isAttachedTo(contraption: AbstractContraptionEntity): Boolean = false
-    override fun setAngle(forcedAngle: Float) { targetAngle = forcedAngle }
+    override fun setAngle(forcedAngle: Float) {
+        if (!forcedAngle.isFinite()) {
+            return
+        }
+
+        if (aligning) {
+            targetAngle = 0f
+            return
+        }
+
+        val serverLevel = level as? ServerLevel
+        val referenceAngle = when {
+            isHardLockedMode() && waitingForFreshCommandAfterRestore && serverLevel != null ->
+                syncLockedRuntimeStateToActualPose(serverLevel) ?: lockedCurrentAngle
+            isHardLockedMode() -> lockedCurrentAngle
+            else -> targetAngle
+        }
+        targetAngle = rebaseAngleNearReference(forcedAngle, referenceAngle)
+
+        if (!isHardLockedMode()) {
+            return
+        }
+
+        armFollowAngle()
+        if (pendingLockedStateReseedAfterRestore) {
+            pendingExplicitTargetCommandAfterRestore = true
+            return
+        }
+
+        pendingExplicitTargetCommandAfterRestore = false
+        promoteLockedRuntimeGoal(targetAngle)
+    }
     override fun getLastAssemblyException(): AssemblyException? = lastException
     override fun getBlockPosition(): BlockPos = worldPosition
     override fun isWoodenTop(): Boolean = false
