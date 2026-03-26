@@ -28,8 +28,11 @@ import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity
+import org.valkyrienskies.clockwork.util.findMatchingJoint
+import org.valkyrienskies.clockwork.util.findMatchingJointIds
 import org.valkyrienskies.clockwork.util.hasFinitePoseData
 import org.valkyrienskies.clockwork.util.gtpa
+import org.valkyrienskies.clockwork.util.removeMatchingJointsExcept
 import org.valkyrienskies.core.api.VsBeta
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
@@ -81,6 +84,8 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
     @Volatile
     var shouldRemoveJoint: Boolean = false
     var shouldVerifyPartner: Boolean = false
+    private var deferredRestoreTries: Int = 0
+    private var pendingRemovalJoint: VSRevoluteJoint? = null
 
     var reconnectDelay: Int = 0
     var canConnect : Boolean = true
@@ -111,6 +116,7 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
             isLeader = tag.getBoolean("isLeader")
         }
         jointId = tag.getInt("jointId")
+        deferredRestoreTries = 0
         shouldVerifyPartner = true
     }
 
@@ -218,59 +224,61 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
     ) {
         if (shouldVerifyConnection) {
             val vsiPhysLevel = physLevel as VsiPhysLevel
-            vsiPhysLevel.getJointById(jointId)?.let { existingJoint ->
-                if (existingJoint !is VSRevoluteJoint || !existingJoint.hasFinitePoseData()) {
+            if (jointId != -1) {
+                vsiPhysLevel.getJointById(jointId)?.let { existingJoint ->
+                    if (existingJoint !is VSRevoluteJoint || !existingJoint.hasFinitePoseData()) {
+                        ClockworkMod.LOGGER.warn(
+                            "Discarding invalid restored spinoff bearing joint at {} (joint={}).",
+                            blockPos,
+                            jointId
+                        )
+                        vsiPhysLevel.removeJoint(jointId)
+                        isConnected = false
+                        jointId = -1
+                        deferredRestoreTries = 0
+                    } else {
+                        isConnected = true
+                        vsiPhysLevel.removeMatchingJointsExcept(existingJoint, jointId)
+                        shouldVerifyConnection = false
+                        deferredRestoreTries = 0
+                    }
+                } ?: run {
+                    deferredRestoreTries++
+                    if (deferredRestoreTries < MAX_RESTORE_TRIES) {
+                        if (deferredRestoreTries % 20 == 0) {
+                            ClockworkMod.LOGGER.warn(
+                                "Deferring spinoff bearing restore at {} while waiting for joint {} to load (attempt {}).",
+                                blockPos,
+                                jointId,
+                                deferredRestoreTries
+                            )
+                        }
+                        return
+                    }
+
                     ClockworkMod.LOGGER.warn(
-                        "Discarding invalid restored spinoff bearing joint at {} (joint={}).",
+                        "Discarding stale spinoff bearing joint reference at {} (joint={}) after {} restore attempts.",
                         blockPos,
-                        jointId
+                        jointId,
+                        deferredRestoreTries
                     )
-                    vsiPhysLevel.removeJoint(jointId)
                     isConnected = false
                     jointId = -1
-                } else {
-                    isConnected = true
-                    shouldVerifyConnection = false
+                    deferredRestoreTries = 0
                 }
-            } ?: run {
-                isConnected = false
-                jointId = -1
             }
             if (!isConnected) {
                 if (partnerShipId == physShip?.id) return
                 if (partnerFacing == null || partnerPos == null) return
-                //create joint between the two bearings
-                val selfRotation = facing.getQuaternion()
-                val partnerRotation = partnerFacing?.opposite!!.getQuaternion()
-                val hingeOrientation = selfRotation.mul(Quaterniond(AxisAngle4d(Math.toRadians(90.0), 0.0, 0.0, 1.0)), Quaterniond()).normalize()
-                val partnerHingeOrientation = partnerRotation.mul(Quaterniond(AxisAngle4d(Math.toRadians(90.0), 0.0, 0.0, 1.0)), Quaterniond()).normalize()
-                val attachmentOffset0: Vector3dc = selfRotation.transform(Vector3d(0.0, 0.5, 0.0))
-                val attachmentOffset1: Vector3dc = partnerRotation.transform(Vector3d(0.0, 0.5, 0.0))
-                val selfPose = VSJointPose(
-                    this.position.toJOMLD().add(0.5, 0.5, 0.5).add(attachmentOffset0),
-                    hingeOrientation
-                )
-                val partnerPose = VSJointPose(
-                    partnerPos!!.toJOMLD().add(0.5, 0.5, 0.5).add(attachmentOffset1),
-                    partnerHingeOrientation
-                )
-                // we need to have the one that isn't on a ship be the first one for the calcs
-                val revoluteJoint = if (physShip == null) {
-                    VSRevoluteJoint(
-                        null,
-                        selfPose,
-                        partnerShipId,
-                        partnerPose,
-                        driveFreeSpin = true
-                    )
-                } else {
-                    VSRevoluteJoint(
-                        partnerShipId,
-                        partnerPose,
-                        physShip.id,
-                        selfPose,
-                        driveFreeSpin = true
-                    )
+                val revoluteJoint = buildExpectedJoint(physShip?.id) ?: return
+                val matchingJoint = vsiPhysLevel.findMatchingJoint(revoluteJoint)
+                if (matchingJoint?.joint is VSRevoluteJoint) {
+                    jointId = matchingJoint.jointId
+                    isConnected = true
+                    vsiPhysLevel.removeMatchingJointsExcept(matchingJoint.joint, matchingJoint.jointId)
+                    shouldVerifyConnection = false
+                    deferredRestoreTries = 0
+                    return
                 }
                 if (!revoluteJoint.hasFinitePoseData()) {
                     ClockworkMod.LOGGER.warn(
@@ -282,19 +290,31 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
                     return
                 }
                 jointId = vsiPhysLevel.addJoint(revoluteJoint)
+                if (jointId != -1) {
+                    vsiPhysLevel.removeMatchingJointsExcept(revoluteJoint, jointId)
+                }
+                isConnected = jointId != -1
                 shouldVerifyConnection = false
+                deferredRestoreTries = 0
             }
         }
         if (shouldRemoveJoint) {
-            val vsiPhysLevel = physLevel as VsiPhysLevel
-            vsiPhysLevel.removeJoint(jointId)
-            isConnected = false
-            jointId = -1
-            shouldRemoveJoint = false
+            val serverLevel = level as? ServerLevel
+            if (serverLevel != null) {
+                removeTrackedJoint(serverLevel)
+            } else {
+                val vsiPhysLevel = physLevel as VsiPhysLevel
+                vsiPhysLevel.removeJoint(jointId)
+                isConnected = false
+                jointId = -1
+                shouldRemoveJoint = false
+                pendingRemovalJoint = null
+            }
         }
     }
 
     fun disconnect() {
+        pendingRemovalJoint = buildExpectedJoint(level?.getLoadedShipManagingPos(position)?.id)
         this.shouldRemoveJoint = true
         this.shouldVerifyConnection = false
         this.isConnected = false
@@ -303,16 +323,68 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
         partnerShipId = null
         partnerFacing = null
         reconnectDelay = 10
+        deferredRestoreTries = 0
     }
 
     private fun removeTrackedJoint(serverLevel: ServerLevel) {
+        val idsToRemove = linkedSetOf<Int>()
         if (jointId != -1) {
-            serverLevel.gtpa.removeJoint(jointId)
+            idsToRemove.add(jointId)
         }
+        (pendingRemovalJoint ?: buildExpectedJoint(level?.getLoadedShipManagingPos(position)?.id))?.also { expectedJoint ->
+            idsToRemove.addAll(serverLevel.gtpa.findMatchingJointIds(expectedJoint))
+        }
+        idsToRemove.forEach(serverLevel.gtpa::removeJoint)
         isConnected = false
         shouldVerifyConnection = false
         shouldRemoveJoint = false
         jointId = -1
+        deferredRestoreTries = 0
+        pendingRemovalJoint = null
+    }
+
+    private fun buildExpectedJoint(selfShipId: ShipId?): VSRevoluteJoint? {
+        val partnerFacing = partnerFacing ?: return null
+        val partnerPos = partnerPos ?: return null
+
+        val selfRotation = facing.getQuaternion()
+        val partnerRotation = partnerFacing.opposite.getQuaternion()
+        val hingeOrientation = selfRotation.mul(
+            Quaterniond(AxisAngle4d(Math.toRadians(90.0), 0.0, 0.0, 1.0)),
+            Quaterniond()
+        ).normalize()
+        val partnerHingeOrientation = partnerRotation.mul(
+            Quaterniond(AxisAngle4d(Math.toRadians(90.0), 0.0, 0.0, 1.0)),
+            Quaterniond()
+        ).normalize()
+        val attachmentOffset0: Vector3dc = selfRotation.transform(Vector3d(0.0, 0.5, 0.0))
+        val attachmentOffset1: Vector3dc = partnerRotation.transform(Vector3d(0.0, 0.5, 0.0))
+        val selfPose = VSJointPose(
+            this.position.toJOMLD().add(0.5, 0.5, 0.5).add(attachmentOffset0),
+            hingeOrientation
+        )
+        val partnerPose = VSJointPose(
+            partnerPos.toJOMLD().add(0.5, 0.5, 0.5).add(attachmentOffset1),
+            partnerHingeOrientation
+        )
+
+        return if (selfShipId == null) {
+            VSRevoluteJoint(
+                null,
+                selfPose,
+                partnerShipId,
+                partnerPose,
+                driveFreeSpin = true
+            )
+        } else {
+            VSRevoluteJoint(
+                partnerShipId,
+                partnerPose,
+                selfShipId,
+                selfPose,
+                driveFreeSpin = true
+            )
+        }
     }
 
     override fun destroy() {
@@ -369,5 +441,9 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
     }
 
     override fun addBehaviours(behaviours: List<BlockEntityBehaviour?>?) {
+    }
+
+    companion object {
+        private const val MAX_RESTORE_TRIES = 40
     }
 }

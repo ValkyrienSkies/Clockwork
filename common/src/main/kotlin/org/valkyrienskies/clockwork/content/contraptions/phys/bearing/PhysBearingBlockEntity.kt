@@ -39,6 +39,9 @@ import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.clockwork.util.ClockworkConstants.Nbt.ORIGINAL_DIRECTION
 import org.valkyrienskies.clockwork.util.ClockworkUtils.getVector3d
 import org.valkyrienskies.clockwork.util.GlueAssembler.collectGlued
+import org.valkyrienskies.clockwork.util.findMatchingJoint
+import org.valkyrienskies.clockwork.util.findMatchingJointIds
+import org.valkyrienskies.clockwork.util.removeMatchingJointsExcept
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.clockwork.util.updateJoint
 import org.valkyrienskies.clockwork.util.minus
@@ -275,9 +278,17 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     private fun removeTrackedJoint(serverLevel: ServerLevel) {
         invalidatePendingJointCreation()
 
+        val idsToRemove = linkedSetOf<Int>()
         val id = jointID
         if (id != -1) {
-            serverLevel.gtpa.removeJoint(id)
+            idsToRemove.add(id)
+        }
+        joint?.also { storedJoint ->
+            idsToRemove.addAll(serverLevel.gtpa.findMatchingJointIds(storedJoint))
+        }
+
+        idsToRemove.forEach { jointId ->
+            serverLevel.gtpa.removeJoint(jointId)
         }
 
         joint = null
@@ -753,9 +764,45 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 // Persisted restore can resolve before BE reconciliation and may not be bit-identical
                 // to our recomputed local copy. Reuse the restored joint to avoid creating duplicates.
                 this.joint = existing
+                level.removeMatchingJointsExcept(existing, jointID)
+                deferredRestoreTries = 0
                 isRunning = true
                 lastStateChanged = ticks
                 return@physTickOnce
+            }
+            val matchingExisting = level.findMatchingJoint(joint)
+            if (matchingExisting != null) {
+                this.joint = matchingExisting.joint
+                this.jointID = matchingExisting.jointId
+                level.removeMatchingJointsExcept(matchingExisting.joint, matchingExisting.jointId)
+                deferredRestoreTries = 0
+                isRunning = true
+                lastStateChanged = ticks
+                return@physTickOnce
+            }
+            if (jointID != -1) {
+                deferredRestoreTries++
+                if (deferredRestoreTries <= MAX_RESTORED_JOINT_RESOLVE_TRIES) {
+                    if (deferredRestoreTries % 20 == 0) {
+                        ClockworkMod.LOGGER.warn(
+                            "Deferring phys bearing joint restore at {} while waiting for joint {} to resolve (attempt {}).",
+                            worldPosition,
+                            jointID,
+                            deferredRestoreTries
+                        )
+                    }
+                    tryNextTick()
+                    return@physTickOnce
+                }
+
+                ClockworkMod.LOGGER.warn(
+                    "Discarding stale phys bearing joint reference at {} (joint={}) after {} restore attempts.",
+                    worldPosition,
+                    jointID,
+                    deferredRestoreTries
+                )
+                jointID = -1
+                deferredRestoreTries = 0
             }
             if (
                 joint.shipId0 != null && level.getShipById(joint.shipId0!!) == null ||
@@ -778,6 +825,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             }
 
             this.jointID = id
+            level.removeMatchingJointsExcept(joint, id)
+            deferredRestoreTries = 0
 
             isRunning = true
             lastStateChanged = ticks
@@ -1344,6 +1393,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     companion object {
         const val NO_SHIPTRAPTION_ID: Long = -1
         private const val FOLLOW_ANGLE_MODE_TAG = "followAngleMode"
+        private const val MAX_RESTORED_JOINT_RESOLVE_TRIES = 40
 
         //tolerance is in degrees
         @JvmStatic
