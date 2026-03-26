@@ -148,12 +148,29 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     private var settleTicksRemainingAfterRestore = 0
     private var deferredRestoreTries = 0
     private var restoredFollowAngleMode: Boolean? = null
+    private var pendingJointCreationToken: Long = 0
 
     private fun isSettlingAfterRestore(): Boolean = settleTicksRemainingAfterRestore > 0
 
     private fun getConfiguredRestoreSettleTicks(): Int {
         val seconds = ClockworkConfig.SERVER.physBearingRestoreSettleSeconds
         return max(0, (seconds * 20.0).roundToInt())
+    }
+
+    private fun invalidatePendingJointCreation() {
+        pendingJointCreationToken++
+    }
+
+    private fun removeTrackedJoint(serverLevel: ServerLevel) {
+        invalidatePendingJointCreation()
+
+        val id = jointID
+        if (id != -1) {
+            serverLevel.gtpa.removeJoint(id)
+        }
+
+        joint = null
+        jointID = -1
     }
 
     /**
@@ -390,6 +407,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 this.joint!!.pose0.pos,
                 this.joint!!.pose1.pos
             )
+            if (jointID != -1) {
+                level.gtpa.removeJoint(jointID)
+            }
             this.joint = null
             jointID = -1
             return true  // Recovery successful; bearing unlinked until next assembly
@@ -566,6 +586,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     fun tryMakeJoint() {
         val joint = joint ?: return
+        val creationToken = pendingJointCreationToken + 1
+        pendingJointCreationToken = creationToken
 
         // Validate joint before attempting to register it with the physics system
         if (!isJointPoseFinite(joint)) {
@@ -574,11 +596,24 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 "Joint will not be created to prevent physics instability.",
                 worldPosition
             )
+            val serverLevel = level as? ServerLevel
+            if (serverLevel != null) {
+                removeTrackedJoint(serverLevel)
+            } else {
+                invalidatePendingJointCreation()
+                this.joint = null
+                this.jointID = -1
+            }
             return
         }
 
         ClockworkMod.physTickOnce(level.dimensionId!!) { level, _, tryNextTick ->
             level as VsiPhysLevel
+
+            if (creationToken != pendingJointCreationToken) {
+                return@physTickOnce
+            }
+
             val existing = level.getJointById(jointID)
             if (existing != null) {
                 // Persisted restore can resolve before BE reconciliation and may not be bit-identical
@@ -597,9 +632,17 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             }
             val id = level.addJoint(joint)
             if (id == -1) {
-                tryNextTick()
+                if (creationToken == pendingJointCreationToken) {
+                    tryNextTick()
+                }
                 return@physTickOnce
             }
+
+            if (creationToken != pendingJointCreationToken) {
+                level.removeJoint(id)
+                return@physTickOnce
+            }
+
             this.jointID = id
 
             isRunning = true
@@ -740,36 +783,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val level = level ?: return
         if (level.isClientSide || level !is ServerLevel) return
 
-        val ship = level.shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return
-        BearingController.getOrCreate(ship)!!.removePhysBearing(bearingID)
+        removeTrackedJoint(level)
 
-        // Remove the primary tracked joint
-        joint?.let { level.gtpa.removeJoint(jointID) }
-
-        // Also search for and remove any orphaned joints created during restore that may reference
-        // this bearing's ship IDs. This prevents corrupt joints from persisting and causing
-        // instability when placing/breaking blocks in connected ships.
-        val vsiPhysLevel = level as? VsiPhysLevel
-        if (vsiPhysLevel != null && shiptraptionID != NO_SHIPTRAPTION_ID) {
-            val subShipId = shiptraptionID
-            val mainShipId = joint?.shipId1
-            
-            // Search through the physics system for joints referencing this bearing's connected ships
-            // Note: We avoid a full linear scan by relying on the tracked jointID above;
-            // this secondary cleanup is a safety net for edge cases where async joint creation
-            // produced additional joints not reflected in our tracking
-            try {
-                // Attempt to find and remove any joints that reference both our connected ships
-                // This is a defensive measure against orphaned/corrupt joints from failed restore attempts
-                if (mainShipId != null) {
-                    // We cannot directly iterate the physics engine's joint map from here,
-                    // but we maintain our primary joint removal above which should handle
-                    // the normal case. For orphaned joints, they become ghosts without
-                    // a parent contraption and are eventually cleaned up.
-                }
-            } catch (e: Exception) {
-                ClockworkMod.LOGGER.debug("Error during orphaned joint cleanup at {}: {}", worldPosition, e.message)
-            }
+        val ship = level.shipObjectWorld.loadedShips.getById(shiptraptionID)
+        if (ship != null) {
+            BearingController.getOrCreate(ship)!!.removePhysBearing(bearingID)
         }
     }
 
@@ -779,7 +797,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         targetAngle = 0f
         if (shiptraptionID == NO_SHIPTRAPTION_ID) return
         val level = level as ServerLevel
-        val ship = level.shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return resetState()
+        val ship = level.shipObjectWorld.loadedShips.getById(shiptraptionID) ?: run {
+            removeTrackedJoint(level)
+            resetState()
+            return
+        }
 
         if (!canDisassemble(bearingAxis, ship, level.getShipObjectManagingPos(worldPosition))) {
             disassembleWhenPossible = !disassembleWhenPossible
@@ -826,12 +848,14 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             return
         }
         BearingController.getOrCreate(subShip)!!.removePhysBearing(bearingID)
+        removeTrackedJoint(level)
 
         lastStateChanged = ticks
         resetState()
     }
 
     private fun resetState() {
+        invalidatePendingJointCreation()
         bearingID = -1
         shiptraptionID = NO_SHIPTRAPTION_ID
         isRunning = false
@@ -842,6 +866,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         sequencedAngleProgress = 0f
         targetAngle = 0f
         sendData()
+        joint = null
         jointID = -1
         aligning = false
 
