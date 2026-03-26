@@ -30,8 +30,8 @@ import org.valkyrienskies.clockwork.util.*
 import org.valkyrienskies.core.api.util.GameTickOnly
 
 class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlockEntityRenderer<ExtendonBlockEntity>(context) {
-    override fun shouldRenderOffScreen(blockEntity: ExtendonBlockEntity) = !blockEntity.isRemoved
-    override fun shouldRender(blockEntity: ExtendonBlockEntity, cameraPos: Vec3): Boolean = !blockEntity.isRemoved
+    override fun shouldRenderOffScreen(blockEntity: ExtendonBlockEntity) = true
+    override fun shouldRender(blockEntity: ExtendonBlockEntity, cameraPos: Vec3): Boolean = true
 
     @OptIn(GameTickOnly::class)
     override fun renderSafe(
@@ -42,11 +42,6 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
         light: Int,
         overlay: Int
     ) {
-        val level = be.level ?: return
-        if (be.isRemoved) return
-        if (level.getBlockEntity(be.blockPos) !== be) return
-        if (level.getBlockState(be.blockPos).block !is ExtendonBlock) return
-
         val tubebuffer = buffer.getBuffer(RenderType.entitySolid(texture))
 
         var axis0 = CachedBuffers.partial(ClockworkPartials.EXTENDON_AXIS0,be.blockState)
