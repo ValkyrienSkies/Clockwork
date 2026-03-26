@@ -140,6 +140,9 @@ object ClockworkConfig {
         @ConfigEntry(min = 0.0, description = "Follow-angle deadband in degrees. Within this error band, the angle term is ignored to avoid oscillation.")
         var angleFollowingAngleDeadbandDeg = 0.75
 
+        @ConfigEntry(min = 0.0, description = "Seconds to block Phys Bearing rotation updates after restore/reload so joints can settle. 0 disables the settle gate.")
+        var physBearingRestoreSettleSeconds = 5.0
+
         @ConfigEntry()
         var allowWrenchingActivatedPhysBearing = false
 
