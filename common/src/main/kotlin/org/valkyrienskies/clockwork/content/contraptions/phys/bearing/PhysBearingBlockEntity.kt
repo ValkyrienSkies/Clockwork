@@ -997,6 +997,22 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         resetState()
     }
 
+    private fun deactivateAfterSubShipDestroyed(level: ServerLevel) {
+        if (!isRunning || shiptraptionID == NO_SHIPTRAPTION_ID) {
+            return
+        }
+
+        ClockworkMod.LOGGER.warn(
+            "Deactivating phys bearing at {} because sub-ship {} no longer exists.",
+            worldPosition,
+            shiptraptionID
+        )
+
+        removeTrackedJoint(level)
+        lastStateChanged = ticks
+        resetState()
+    }
+
     private fun resetState() {
         invalidatePendingJointCreation()
         bearingID = -1
@@ -1012,6 +1028,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         joint = null
         jointID = -1
         aligning = false
+        controllerCreationData = null
+        controllerUpdateData = null
+        loadingFn = null
 
         sDir1 = null
         sDir2 = null
@@ -1022,6 +1041,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         followAngleArmed = true
         waitingForFreshCommandAfterRestore = false
         pendingFollowAngleResumeAfterRestore = false
+        restoredFollowAngleMode = null
+        skipNextServerUpdateAfterRestore = false
+        deferredRestoreTries = 0
         lastAligning = false
     }
 
@@ -1104,9 +1126,12 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             openProgress = 1f
         }
 
-        if (open && !isRunning && openProgress > 0.0f) {
+        if (!isRunning && openProgress > 0.0f) {
+            opening = false
+            open = true
             openProgress -= 0.05f
-        } else if (openProgress <= 0.0f) {
+        } else if (!isRunning && openProgress <= 0.0f) {
+            opening = false
             open = false
             openProgress = 0.0f
         }
@@ -1147,6 +1172,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 settleTicksRemainingAfterRestore--
             }
             finalizeLockedStateRestoreIfReady(serverLevel)
+            if (isRunning && shiptraptionID != NO_SHIPTRAPTION_ID && subShip == null && loadingFn == null) {
+                deactivateAfterSubShipDestroyed(serverLevel)
+            }
             controllerCreationData?.also {
                 if (pendingLockedStateReseedAfterRestore) return@also
                 bearingID = BearingController

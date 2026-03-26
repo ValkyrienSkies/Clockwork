@@ -23,6 +23,7 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.util.hasFinitePoseData
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.clockwork.util.universal_joint.IUniversalJoint
@@ -64,10 +65,11 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
 
     var main: Boolean = false
 
-    var loadFn: (() -> Unit)? = null
+    var loadFn: (() -> Boolean)? = null
     private var lastInvalidDistanceLogTick: Long = Long.MIN_VALUE
     private var pendingJointCreationToken: Long = 0L
     private var connectBlendTicksRemaining: Int = 0
+    private var deferredRestoreTries: Int = 0
 
     private fun invalidatePendingJointCreation() {
         pendingJointCreationToken++
@@ -82,6 +84,110 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         main = false
     }
 
+    private fun hasTrackedJointIds(): Boolean = distanceJointId != null && sphericalJointId != null
+
+    private fun tryAdoptTrackedJoints(serverLevel: ServerLevel): Boolean? {
+        val trackedDistanceId = distanceJointId ?: return false
+        val trackedSphericalId = sphericalJointId ?: return false
+
+        val existingDistance = serverLevel.gtpa.getJointById(trackedDistanceId)
+        val existingSpherical = serverLevel.gtpa.getJointById(trackedSphericalId)
+
+        if (existingDistance == null || existingSpherical == null) {
+            return null
+        }
+
+        if (existingDistance !is VSDistanceJoint || existingSpherical !is VSD6Joint ||
+            !existingDistance.hasFinitePoseData() || !existingSpherical.hasFinitePoseData()
+        ) {
+            ClockworkMod.LOGGER.warn(
+                "Discarding invalid restored extendon joints at {} (distance={}, spherical={}).",
+                blockPos,
+                trackedDistanceId,
+                trackedSphericalId
+            )
+            removeJoint()
+            return false
+        }
+
+        distanceJoint = existingDistance
+        sphericalJoint = existingSpherical
+        return true
+    }
+
+    private fun restoreConnection(other: ExtendonBlockEntity): Boolean {
+        val serverLevel = level as? ServerLevel ?: return false
+
+        if (connectedJoint != null && connectedJoint !== other) {
+            disconnect()
+        }
+        if (other.connectedJoint != null && other.connectedJoint !== this) {
+            other.disconnect()
+        }
+
+        val candidates = mutableListOf<ExtendonBlockEntity>()
+        if (main && hasTrackedJointIds()) {
+            candidates.add(this)
+        }
+        if (other.main && other.hasTrackedJointIds() && !candidates.contains(other)) {
+            candidates.add(other)
+        }
+        if (hasTrackedJointIds() && !candidates.contains(this)) {
+            candidates.add(this)
+        }
+        if (other.hasTrackedJointIds() && !candidates.contains(other)) {
+            candidates.add(other)
+        }
+
+        var waitingOnRestoredJoint = false
+        for (candidate in candidates) {
+            when (candidate.tryAdoptTrackedJoints(serverLevel)) {
+                true -> {
+                    deferredRestoreTries = 0
+                    if (candidate === this) {
+                        connectTo(other)
+                    } else {
+                        other.connectTo(this)
+                    }
+                    return true
+                }
+
+                null -> waitingOnRestoredJoint = true
+                false -> Unit
+            }
+        }
+
+        if (waitingOnRestoredJoint) {
+            deferredRestoreTries++
+            if (deferredRestoreTries < MAX_RESTORE_TRIES) {
+                if (deferredRestoreTries % 20 == 0) {
+                    ClockworkMod.LOGGER.warn(
+                        "Deferring extendon joint restore at {} while waiting for tracked joints to load (attempt {}).",
+                        blockPos,
+                        deferredRestoreTries
+                    )
+                }
+                return false
+            }
+
+            ClockworkMod.LOGGER.warn(
+                "Discarding stale extendon joint references at {} after {} restore attempts.",
+                blockPos,
+                deferredRestoreTries
+            )
+            if (hasTrackedJointIds()) {
+                removeJoint()
+            }
+            if (other.hasTrackedJointIds()) {
+                other.removeJoint()
+            }
+        }
+
+        deferredRestoreTries = 0
+        connectTo(other)
+        return true
+    }
+
     override fun tick() {
         super.tick()
 
@@ -89,8 +195,9 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         if (level!!.isClientSide) return
 
         loadFn?.also {
-            it.invoke()
-            loadFn = null
+            if (it.invoke()) {
+                loadFn = null
+            }
         }
 
         if (connectedBe == null || connectedJoint == null || distanceJoint == null || distanceJointId == null || !main) return
@@ -159,7 +266,11 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         if (connectedBe!!.edge != null) edge = connectedBe!!.edge
         else createEdge(blockPos.toDuctNodePos(level!!.dimension().location()), other.pos.toDuctNodePos(connectedBe!!.level!!.dimension().location()))
 
-        if (connectedBe!!.distanceJoint != null) {
+        if (distanceJoint != null && distanceJointId != null && sphericalJoint != null && sphericalJointId != null) {
+            // Keep the restored joint state that this side already owns.
+        } else if (connectedBe!!.distanceJoint != null && connectedBe!!.distanceJointId != null &&
+            connectedBe!!.sphericalJoint != null && connectedBe!!.sphericalJointId != null
+        ) {
             distanceJoint = connectedBe!!.distanceJoint
             distanceJointId = connectedBe!!.distanceJointId
             sphericalJoint = connectedBe!!.sphericalJoint
@@ -249,6 +360,12 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         val quater1 = getQuaterniond(level.getBlockState(connectedBe!!.blockPos).getValue(BlockStateProperties.FACING))
         distanceJoint = VSDistanceJoint(pose0 = VSJointPose(pos0, quater0), pose1 = VSJointPose(pos1, quater1) , shipId0 = shipId0, shipId1 = shipId1,
             minDistance = 0.5f, maxDistance = 1000f, damping = ClockworkConfig.SERVER.extendonDistanceJointDamping.toFloat() )
+        if (!distanceJoint!!.hasFinitePoseData()) {
+            ClockworkMod.LOGGER.warn("Rejecting corrupted extendon distance joint at {} during creation.", blockPos)
+            invalidatePendingJointCreation()
+            clearJointStateOnly()
+            return
+        }
         level.gtpa.addJoint(distanceJoint!!) {
             if (creationToken != pendingJointCreationToken) {
                 level.gtpa.removeJoint(it)
@@ -270,6 +387,12 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
 
 
         sphericalJoint = VSD6Joint(pose0 = VSJointPose(pos0, quater0), pose1 = VSJointPose(pos1, quater1) , shipId0 = shipId0, shipId1 = shipId1, swingLimit = limit, motions = motions,  )
+        if (!sphericalJoint!!.hasFinitePoseData()) {
+            ClockworkMod.LOGGER.warn("Rejecting corrupted extendon spherical joint at {} during creation.", blockPos)
+            invalidatePendingJointCreation()
+            clearJointStateOnly()
+            return
+        }
         level.gtpa.addJoint(sphericalJoint!!) {
             if (creationToken != pendingJointCreationToken) {
                 level.gtpa.removeJoint(it)
@@ -305,6 +428,8 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
             compound.putInt("ConnectedPosY",connectedBe!!.pos.y)
             compound.putInt("ConnectedPosZ",connectedBe!!.pos.z)
             compound.putBoolean("IsMain", main)
+            distanceJointId?.let { compound.putInt(DISTANCE_JOINT_ID_TAG, it) }
+            sphericalJointId?.let { compound.putInt(SPHERICAL_JOINT_ID_TAG, it) }
         }
 
         super.write(compound, clientPacket)
@@ -313,11 +438,20 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
     override fun read(compound: CompoundTag, clientPacket: Boolean) {
         if (compound.contains("ConnectedPosX")) {
             val bpos = BlockPos(compound.getInt("ConnectedPosX"),compound.getInt("ConnectedPosY"),compound.getInt("ConnectedPosZ"))
+            distanceJointId = if (compound.contains(DISTANCE_JOINT_ID_TAG)) compound.getInt(DISTANCE_JOINT_ID_TAG) else null
+            sphericalJointId = if (compound.contains(SPHERICAL_JOINT_ID_TAG)) compound.getInt(SPHERICAL_JOINT_ID_TAG) else null
+            if (distanceJointId == null || sphericalJointId == null) {
+                distanceJointId = null
+                sphericalJointId = null
+            }
             if (!clientPacket) {
                 loadFn = {
-                    (level!!.getBlockEntity(bpos) as? ExtendonBlockEntity)?.also {
-                        it.disconnect()
-                        connectTo(it)
+                    val other = level!!.getBlockEntity(bpos) as? ExtendonBlockEntity
+                    if (other == null) {
+                        disconnect()
+                        true
+                    } else {
+                        restoreConnection(other)
                     }
                 }
             } else {
@@ -447,6 +581,9 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
 
     companion object {
         private const val INITIAL_CONNECT_BLEND_TICKS = 16
+        private const val DISTANCE_JOINT_ID_TAG = "DistanceJointId"
+        private const val SPHERICAL_JOINT_ID_TAG = "SphericalJointId"
+        private const val MAX_RESTORE_TRIES = 40
 
         // Calculates volume of cylinder via Ideal Gas Law, and then calculates said cylinder's height
         // Doesn't account for the elastic force of the hose, because doing so would require solving a cubic polynomial

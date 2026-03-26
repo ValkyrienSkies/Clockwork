@@ -25,8 +25,10 @@ import org.joml.Quaterniond
 import org.joml.Quaterniondc
 import org.joml.Vector3d
 import org.joml.Vector3dc
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity
+import org.valkyrienskies.clockwork.util.hasFinitePoseData
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.core.api.VsBeta
 import org.valkyrienskies.core.api.ships.LoadedServerShip
@@ -131,6 +133,14 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
                 }
             }
             if (partner == null) {
+                if (jointId != -1) {
+                    ClockworkMod.LOGGER.warn(
+                        "Removing orphaned spinoff bearing joint at {} because partner {} is missing after load.",
+                        blockPos,
+                        partnerPos
+                    )
+                    removeTrackedJoint(sLevel)
+                }
                 partnerPos = null
                 partnerShipId = null
             }
@@ -208,9 +218,20 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
     ) {
         if (shouldVerifyConnection) {
             val vsiPhysLevel = physLevel as VsiPhysLevel
-            vsiPhysLevel.getJointById(jointId)?.let {
-                isConnected = true
-                shouldVerifyConnection = false
+            vsiPhysLevel.getJointById(jointId)?.let { existingJoint ->
+                if (existingJoint !is VSRevoluteJoint || !existingJoint.hasFinitePoseData()) {
+                    ClockworkMod.LOGGER.warn(
+                        "Discarding invalid restored spinoff bearing joint at {} (joint={}).",
+                        blockPos,
+                        jointId
+                    )
+                    vsiPhysLevel.removeJoint(jointId)
+                    isConnected = false
+                    jointId = -1
+                } else {
+                    isConnected = true
+                    shouldVerifyConnection = false
+                }
             } ?: run {
                 isConnected = false
                 jointId = -1
@@ -251,6 +272,15 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
                         driveFreeSpin = true
                     )
                 }
+                if (!revoluteJoint.hasFinitePoseData()) {
+                    ClockworkMod.LOGGER.warn(
+                        "Rejecting corrupted spinoff bearing joint at {} during creation.",
+                        blockPos
+                    )
+                    shouldVerifyConnection = false
+                    jointId = -1
+                    return
+                }
                 jointId = vsiPhysLevel.addJoint(revoluteJoint)
                 shouldVerifyConnection = false
             }
@@ -266,11 +296,23 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
 
     fun disconnect() {
         this.shouldRemoveJoint = true
+        this.shouldVerifyConnection = false
+        this.isConnected = false
         partner = null
         partnerPos = null
         partnerShipId = null
         partnerFacing = null
         reconnectDelay = 10
+    }
+
+    private fun removeTrackedJoint(serverLevel: ServerLevel) {
+        if (jointId != -1) {
+            serverLevel.gtpa.removeJoint(jointId)
+        }
+        isConnected = false
+        shouldVerifyConnection = false
+        shouldRemoveJoint = false
+        jointId = -1
     }
 
     override fun destroy() {

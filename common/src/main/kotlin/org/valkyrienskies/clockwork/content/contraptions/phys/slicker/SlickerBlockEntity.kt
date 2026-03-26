@@ -61,6 +61,10 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
 
     private fun removeConstraint(level: ServerLevel?, removeTags: Boolean) {
         val extraData = PlatformUtils.getExtraData(this).getCompound(ClockworkConstants.Nbt.CONDENSED_DATA)
+        extraData.putLong(
+            ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_CREATION_TOKEN,
+            extraData.getLong(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_CREATION_TOKEN) + 1L
+        )
         if (extraData.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT)) {
             if (level != null) {
                 level.gtpa.removeJoint(extraData.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID))
@@ -69,6 +73,7 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
                 extraData.remove(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)
                 extraData.remove(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT)
                 extraData.remove(ClockworkConstants.Nbt.SHIP_SLICKER_DISTANCE)
+                extraData.remove(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_CREATION_TOKEN)
             }
         }
     }
