@@ -17,7 +17,10 @@ import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkSounds
+import org.valkyrienskies.clockwork.util.findMatchingJoint
+import org.valkyrienskies.clockwork.util.findMatchingJointIds
 import org.valkyrienskies.clockwork.util.hasFinitePoseData
+import org.valkyrienskies.clockwork.util.removeMatchingJointsExcept
 import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity.Companion.getQuaterniond
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.gtpa
@@ -82,6 +85,47 @@ class HosePortBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         }
 
         distanceJoint = existingJoint
+        serverLevel.gtpa.removeMatchingJointsExcept(existingJoint, trackedJointId)
+        return true
+    }
+
+    private fun buildJointBlueprint(other: HosePortBlockEntity): VSDistanceJoint? {
+        val serverLevel = level as? ServerLevel ?: return null
+        val shipId0 = getShipID()
+        val shipId1 = other.getShipID()
+        val pos0 = blockPos.toJOMLD()
+        val pos1 = other.blockPos.toJOMLD()
+        val quater0 = getQuaterniond(serverLevel.getBlockState(blockPos).getValue(BlockStateProperties.FACING))
+        val quater1 = getQuaterniond(serverLevel.getBlockState(other.blockPos).getValue(BlockStateProperties.FACING))
+        val distanceInWorld = serverLevel.toWorldCoordinates(pos0).distance(serverLevel.toWorldCoordinates(pos1))
+
+        return VSDistanceJoint(
+            pose0 = VSJointPose(pos0, quater0),
+            pose1 = VSJointPose(pos1, quater1),
+            shipId0 = shipId0,
+            shipId1 = shipId1,
+            minDistance = 0f,
+            maxDistance = (distanceInWorld + 1.0).roundToInt().toFloat()
+        )
+    }
+
+    private fun tryAdoptMatchingJoint(serverLevel: ServerLevel, other: HosePortBlockEntity): Boolean {
+        val expectedJoint = buildJointBlueprint(other) ?: return false
+        val matchingJoint = serverLevel.gtpa.findMatchingJoint(expectedJoint) ?: return false
+        val adoptedJoint = matchingJoint.joint as? VSDistanceJoint
+        if (adoptedJoint == null || !adoptedJoint.hasFinitePoseData()) {
+            ClockworkMod.LOGGER.warn(
+                "Discarding invalid structurally matched hose port joint at {} (joint={}).",
+                blockPos,
+                matchingJoint.jointId
+            )
+            serverLevel.gtpa.removeJoint(matchingJoint.jointId)
+            return false
+        }
+
+        distanceJoint = adoptedJoint
+        distanceJointId = matchingJoint.jointId
+        serverLevel.gtpa.removeMatchingJointsExcept(adoptedJoint, matchingJoint.jointId)
         return true
     }
 
@@ -125,6 +169,12 @@ class HosePortBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
                 null -> waitingOnRestoredJoint = true
                 false -> Unit
             }
+        }
+
+        if (tryAdoptMatchingJoint(serverLevel, other)) {
+            deferredRestoreTries = 0
+            connectTo(other)
+            return true
         }
 
         if (waitingOnRestoredJoint) {
@@ -258,19 +308,7 @@ class HosePortBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         val level = level as ServerLevel
 
         if (connectedBe == null) throw IllegalStateException("Null connected block entity")
-
-        val shipId0 = getShipID()
-        val shipId1 = connectedBe!!.getShipID()
-        val pos0 = blockPos.toJOMLD()
-        val pos1 = connectedBe!!.blockPos.toJOMLD()
-        val quater0 = getQuaterniond(level.getBlockState(blockPos).getValue(BlockStateProperties.FACING))
-        val quater1 = getQuaterniond(level.getBlockState(connectedBe!!.blockPos).getValue(BlockStateProperties.FACING))
-
-        val distanceInWorld = level.toWorldCoordinates(pos0).distance(level.toWorldCoordinates(pos1))
-
-        distanceJoint = VSDistanceJoint(pose0 = VSJointPose(pos0, quater0), pose1 = VSJointPose(pos1, quater1) , shipId0 = shipId0, shipId1 = shipId1,
-            minDistance = 0f, maxDistance = (distanceInWorld + 1.0).roundToInt().toFloat()
-        )
+        distanceJoint = buildJointBlueprint(connectedBe!!) ?: return
         if (!distanceJoint!!.hasFinitePoseData()) {
             ClockworkMod.LOGGER.warn("Rejecting corrupted hose port joint at {} during creation.", blockPos)
             invalidatePendingJointCreation()
@@ -284,6 +322,7 @@ class HosePortBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
                 return@addJoint
             }
             distanceJointId = it
+            level.gtpa.removeMatchingJointsExcept(distanceJoint!!, it)
         }
 
         main = true
@@ -293,7 +332,12 @@ class HosePortBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         val level = level as ServerLevel
         invalidatePendingJointCreation()
 
-        level.gtpa.removeJoint(distanceJointId!!)
+        val idsToRemove = linkedSetOf<Int>()
+        distanceJointId?.let(idsToRemove::add)
+        distanceJoint?.also { idsToRemove.addAll(level.gtpa.findMatchingJointIds(it)) }
+            ?: connectedBe?.let { other -> buildJointBlueprint(other)?.also { idsToRemove.addAll(level.gtpa.findMatchingJointIds(it)) } }
+
+        idsToRemove.forEach(level.gtpa::removeJoint)
 
         clearJointStateOnly()
     }

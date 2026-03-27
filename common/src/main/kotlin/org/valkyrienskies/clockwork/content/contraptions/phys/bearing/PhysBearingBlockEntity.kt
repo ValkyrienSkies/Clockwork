@@ -41,7 +41,11 @@ import org.valkyrienskies.clockwork.util.ClockworkUtils.getVector3d
 import org.valkyrienskies.clockwork.util.GlueAssembler.collectGlued
 import org.valkyrienskies.clockwork.util.findMatchingJoint
 import org.valkyrienskies.clockwork.util.findMatchingJointIds
+import org.valkyrienskies.clockwork.util.findCompatiblePhysBearingJoint
+import org.valkyrienskies.clockwork.util.findCompatiblePhysBearingJointIds
+import org.valkyrienskies.clockwork.util.matchesByAnchors
 import org.valkyrienskies.clockwork.util.removeMatchingJointsExcept
+import org.valkyrienskies.clockwork.util.removeCompatiblePhysBearingJointsExcept
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.clockwork.util.updateJoint
 import org.valkyrienskies.clockwork.util.minus
@@ -285,6 +289,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         }
         joint?.also { storedJoint ->
             idsToRemove.addAll(serverLevel.gtpa.findMatchingJointIds(storedJoint))
+            idsToRemove.addAll(serverLevel.gtpa.findCompatiblePhysBearingJointIds(storedJoint))
         }
 
         idsToRemove.forEach { jointId ->
@@ -529,11 +534,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 this.joint!!.pose0.pos,
                 this.joint!!.pose1.pos
             )
-            if (jointID != -1) {
-                level.gtpa.removeJoint(jointID)
-            }
-            this.joint = null
-            jointID = -1
+            removeTrackedJoint(level)
             return true  // Recovery successful; bearing unlinked until next assembly
         }
 
@@ -761,20 +762,50 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
             val existing = level.getJointById(jointID)
             if (existing != null) {
-                // Persisted restore can resolve before BE reconciliation and may not be bit-identical
-                // to our recomputed local copy. Reuse the restored joint to avoid creating duplicates.
-                this.joint = existing
-                level.removeMatchingJointsExcept(existing, jointID)
-                deferredRestoreTries = 0
-                isRunning = true
-                lastStateChanged = ticks
-                return@physTickOnce
+                val canReuseExactJoint =
+                    isJointPoseFinite(existing) && (
+                        existing.matchesByAnchors(joint) ||
+                            level.findCompatiblePhysBearingJointIds(joint).contains(jointID)
+                        )
+
+                if (canReuseExactJoint) {
+                    if (existing::class != joint::class) {
+                        level.updateJoint(jointID, joint)
+                        this.joint = joint
+                    } else {
+                        // Persisted restore can resolve before BE reconciliation and may not be bit-identical
+                        // to our recomputed local copy. Reuse the restored joint to avoid creating duplicates.
+                        this.joint = existing
+                    }
+                    level.removeMatchingJointsExcept(this.joint!!, jointID)
+                    level.removeCompatiblePhysBearingJointsExcept(this.joint!!, jointID)
+                    deferredRestoreTries = 0
+                    isRunning = true
+                    lastStateChanged = ticks
+                    return@physTickOnce
+                }
             }
             val matchingExisting = level.findMatchingJoint(joint)
             if (matchingExisting != null) {
                 this.joint = matchingExisting.joint
                 this.jointID = matchingExisting.jointId
                 level.removeMatchingJointsExcept(matchingExisting.joint, matchingExisting.jointId)
+                level.removeCompatiblePhysBearingJointsExcept(matchingExisting.joint, matchingExisting.jointId)
+                deferredRestoreTries = 0
+                isRunning = true
+                lastStateChanged = ticks
+                return@physTickOnce
+            }
+            val compatibleExisting = level.findCompatiblePhysBearingJoint(joint)
+            if (compatibleExisting != null) {
+                this.jointID = compatibleExisting.jointId
+                if (compatibleExisting.joint::class != joint::class) {
+                    level.updateJoint(compatibleExisting.jointId, joint)
+                    this.joint = joint
+                } else {
+                    this.joint = compatibleExisting.joint
+                }
+                level.removeCompatiblePhysBearingJointsExcept(this.joint!!, compatibleExisting.jointId)
                 deferredRestoreTries = 0
                 isRunning = true
                 lastStateChanged = ticks
@@ -826,6 +857,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
             this.jointID = id
             level.removeMatchingJointsExcept(joint, id)
+            level.removeCompatiblePhysBearingJointsExcept(joint, id)
             deferredRestoreTries = 0
 
             isRunning = true

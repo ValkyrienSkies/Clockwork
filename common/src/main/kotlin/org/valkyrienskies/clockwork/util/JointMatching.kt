@@ -2,8 +2,10 @@ package org.valkyrienskies.clockwork.util
 
 import org.valkyrienskies.core.internal.joints.VSJoint
 import org.valkyrienskies.core.internal.joints.VSJointAndId
+import org.valkyrienskies.core.internal.joints.VSFixedJoint
 import org.valkyrienskies.core.internal.joints.VSJointId
 import org.valkyrienskies.core.internal.joints.VSJointPose
+import org.valkyrienskies.core.internal.joints.VSRevoluteJoint
 import org.valkyrienskies.core.internal.world.VsiPhysLevel
 import org.valkyrienskies.mod.common.util.GameToPhysicsAdapter
 import kotlin.math.abs
@@ -37,6 +39,30 @@ fun VsiPhysLevel.findMatchingJoints(target: VSJoint): List<VSJointAndId> =
 fun VsiPhysLevel.findMatchingJointIds(target: VSJoint): List<VSJointId> =
     getAllJoints().findMatchingJointIds(target)
 
+fun GameToPhysicsAdapter.findCompatiblePhysBearingJoint(target: VSJoint): VSJointAndId? =
+    getAllJoints().findCompatiblePhysBearingJoint(target)
+
+fun GameToPhysicsAdapter.findCompatiblePhysBearingJointIds(target: VSJoint): List<VSJointId> =
+    getAllJoints().findCompatiblePhysBearingJointIds(target)
+
+fun VsiPhysLevel.findCompatiblePhysBearingJoint(target: VSJoint): VSJointAndId? =
+    getAllJoints().findCompatiblePhysBearingJoint(target)
+
+fun VsiPhysLevel.findCompatiblePhysBearingJointIds(target: VSJoint): List<VSJointId> =
+    getAllJoints().findCompatiblePhysBearingJointIds(target)
+
+fun GameToPhysicsAdapter.removeCompatiblePhysBearingJointsExcept(target: VSJoint, keepJointId: VSJointId): Int {
+    val duplicateIds = findCompatiblePhysBearingJointIds(target).filter { it != keepJointId }
+    duplicateIds.forEach(::removeJoint)
+    return duplicateIds.size
+}
+
+fun VsiPhysLevel.removeCompatiblePhysBearingJointsExcept(target: VSJoint, keepJointId: VSJointId): Int {
+    val duplicateIds = findCompatiblePhysBearingJointIds(target).filter { it != keepJointId }
+    duplicateIds.forEach(::removeJoint)
+    return duplicateIds.size
+}
+
 fun GameToPhysicsAdapter.removeMatchingJointsExcept(target: VSJoint, keepJointId: VSJointId): Int {
     val duplicateIds = findMatchingJointIds(target).filter { it != keepJointId }
     duplicateIds.forEach(::removeJoint)
@@ -54,6 +80,11 @@ private fun Map<VSJointId, VSJoint>.findMatchingJoint(target: VSJoint): VSJointA
         ?.let { (jointId, joint) -> VSJointAndId(jointId, joint) }
 }
 
+private fun Map<VSJointId, VSJoint>.findCompatiblePhysBearingJoint(target: VSJoint): VSJointAndId? {
+    return entries.firstOrNull { (_, joint) -> joint.matchesCompatiblePhysBearingJoint(target) }
+        ?.let { (jointId, joint) -> VSJointAndId(jointId, joint) }
+}
+
 private fun Map<VSJointId, VSJoint>.findMatchingJoints(target: VSJoint): List<VSJointAndId> {
     return entries.asSequence()
         .filter { (_, joint) -> joint.matchesByAnchors(target) }
@@ -64,6 +95,13 @@ private fun Map<VSJointId, VSJoint>.findMatchingJoints(target: VSJoint): List<VS
 private fun Map<VSJointId, VSJoint>.findMatchingJointIds(target: VSJoint): List<VSJointId> {
     return entries.asSequence()
         .filter { (_, joint) -> joint.matchesByAnchors(target) }
+        .map { (jointId, _) -> jointId }
+        .toList()
+}
+
+private fun Map<VSJointId, VSJoint>.findCompatiblePhysBearingJointIds(target: VSJoint): List<VSJointId> {
+    return entries.asSequence()
+        .filter { (_, joint) -> joint.matchesCompatiblePhysBearingJoint(target) }
         .map { (jointId, _) -> jointId }
         .toList()
 }
@@ -81,6 +119,15 @@ private fun VSJoint.matchesSwappedAnchors(other: VSJoint): Boolean {
         pose0.matchesPose(other.pose1) &&
         pose1.matchesPose(other.pose0)
 }
+
+private fun VSJoint.matchesCompatiblePhysBearingJoint(other: VSJoint): Boolean {
+    return isPhysBearingJointFamily() &&
+        other.isPhysBearingJointFamily() &&
+        (matchesDirectAnchors(other) || matchesSwappedAnchors(other))
+}
+
+private fun VSJoint.isPhysBearingJointFamily(): Boolean =
+    this is VSFixedJoint || this is VSRevoluteJoint
 
 private fun VSJointPose.matchesPose(other: VSJointPose): Boolean {
     return pos.distanceSquared(other.pos) <= JOINT_POSITION_EPSILON * JOINT_POSITION_EPSILON &&

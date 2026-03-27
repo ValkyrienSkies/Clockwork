@@ -30,8 +30,11 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.mixin.accessors.IMixinPistonContraption
 import org.valkyrienskies.clockwork.mixinduck.MixinAbstractContraptionEntityDuck
 import org.valkyrienskies.clockwork.util.ClockworkConstants
+import org.valkyrienskies.clockwork.util.findMatchingJoint
+import org.valkyrienskies.clockwork.util.findMatchingJointIds
 import org.valkyrienskies.clockwork.util.hasFinitePoseData
 import org.valkyrienskies.clockwork.util.gtpa
+import org.valkyrienskies.clockwork.util.removeMatchingJointsExcept
 import org.valkyrienskies.clockwork.util.updateJoint
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.Ship
@@ -182,8 +185,14 @@ class SlickerMovementBehavior : MovementBehaviour {
                 return
             }
 
-            val existingConstraint = (context.world as ServerLevel).gtpa.getJointById(attachConstraintId)
-            if (existingConstraint !is VSFixedJoint || !existingConstraint.hasFinitePoseData()) {
+            val resolvedConstraint = resolveTrackedConstraint(
+                context.world as ServerLevel,
+                extraData,
+                attachConstraint,
+                BlockPos.containing(context.localPos.x.toDouble(), context.localPos.y.toDouble(), context.localPos.z.toDouble()),
+                "update"
+            )
+            if (resolvedConstraint == null) {
                 ClockworkMod.LOGGER.warn(
                     "Discarding stale or invalid slicker constraint at {} during update (joint={}).",
                     context.localPos,
@@ -194,10 +203,10 @@ class SlickerMovementBehavior : MovementBehaviour {
             }
 
             distance = 1.0
-            ship1 = attachConstraint.shipId0?.let { context.world.shipObjectWorld.loadedShips.getById(it) }
-            ship2 = attachConstraint.shipId1?.let { context.world.shipObjectWorld.loadedShips.getById(it) }
-            ship2Pos = Vector3d(attachConstraint.pose1.pos)
-            ship2Rot = Quaterniond(attachConstraint.pose1.rot)
+            ship1 = resolvedConstraint.shipId0?.let { context.world.shipObjectWorld.loadedShips.getById(it) }
+            ship2 = resolvedConstraint.shipId1?.let { context.world.shipObjectWorld.loadedShips.getById(it) }
+            ship2Pos = Vector3d(resolvedConstraint.pose1.pos)
+            ship2Rot = Quaterniond(resolvedConstraint.pose1.rot)
 
             if (ship1 == null && ship2 == null) return
 
@@ -240,8 +249,18 @@ class SlickerMovementBehavior : MovementBehaviour {
                     return
                 }
 
-                (context.world as ServerLevel).gtpa.updateJoint(attachConstraintId, attachConstraint2)
-                extraData.putInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID, attachConstraintId)
+                val level = context.world as ServerLevel
+                val resolvedConstraintId = reuseOrCreateConstraint(
+                    level,
+                    extraData,
+                    attachConstraint2,
+                    BlockPos.containing(context.localPos.x.toDouble(), context.localPos.y.toDouble(), context.localPos.z.toDouble()),
+                    0
+                )
+
+                resolvedConstraintId?.let {
+                    extraData.putInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID, it)
+                }
                 extraData.putByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT, mapper.writeValueAsBytes(attachConstraint2))
                 extraData.putDouble(ClockworkConstants.Nbt.SHIP_SLICKER_DISTANCE, distance)
 
@@ -372,29 +391,36 @@ class SlickerMovementBehavior : MovementBehaviour {
                     tag.getByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT),
                     VSFixedJoint::class.java
                 )
-                val existingConstraint = level.gtpa.getJointById(attachConstraintId)
-
                 if (!storedConstraint.hasFinitePoseData()) {
                     ClockworkMod.LOGGER.warn(
                         "Discarding invalid slicker constraint data at {} during attach.",
                         BlockPos.containing(myPos.toMinecraft())
                     )
                     removeConstraint(level, true, tag)
-                } else if (existingConstraint !is VSFixedJoint || !existingConstraint.hasFinitePoseData()) {
-                    ClockworkMod.LOGGER.warn(
-                        "Discarding stale or invalid slicker constraint at {} during attach (joint={}).",
-                        BlockPos.containing(myPos.toMinecraft()),
-                        attachConstraintId
-                    )
-                    removeConstraint(level, true, tag)
                 } else {
-                    adjustedDistance = 1.0
-                    realShip1 = storedConstraint.shipId0?.let { level.shipObjectWorld.loadedShips.getById(it) }
-                    realShip2 = storedConstraint.shipId1?.let { level.shipObjectWorld.loadedShips.getById(it) }
-                    realShip1Pos = Vector3d(storedConstraint.pose0.pos)
-                    realShip2Pos = Vector3d(storedConstraint.pose1.pos)
-                    realShip1Rot = Quaterniond(storedConstraint.pose0.rot)
-                    realShip2Rot = Quaterniond(storedConstraint.pose1.rot)
+                    val resolvedConstraint = resolveTrackedConstraint(
+                        level,
+                        tag,
+                        storedConstraint,
+                        BlockPos.containing(myPos.toMinecraft()),
+                        "attach"
+                    )
+                    if (resolvedConstraint == null) {
+                        ClockworkMod.LOGGER.warn(
+                            "Discarding stale or invalid slicker constraint at {} during attach (joint={}).",
+                            BlockPos.containing(myPos.toMinecraft()),
+                            attachConstraintId
+                        )
+                        removeConstraint(level, true, tag)
+                    } else {
+                        adjustedDistance = 1.0
+                        realShip1 = resolvedConstraint.shipId0?.let { level.shipObjectWorld.loadedShips.getById(it) }
+                        realShip2 = resolvedConstraint.shipId1?.let { level.shipObjectWorld.loadedShips.getById(it) }
+                        realShip1Pos = Vector3d(resolvedConstraint.pose0.pos)
+                        realShip2Pos = Vector3d(resolvedConstraint.pose1.pos)
+                        realShip1Rot = Quaterniond(resolvedConstraint.pose0.rot)
+                        realShip2Rot = Quaterniond(resolvedConstraint.pose1.rot)
+                    }
                 }
             }
 
@@ -411,26 +437,17 @@ class SlickerMovementBehavior : MovementBehaviour {
                     return
                 }
 
-                val existingConstraintId =
-                    if (tag.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)) tag.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID) else -1
-                val canReuseExisting = level.gtpa.getJointById(existingConstraintId) is VSFixedJoint
+                val resolvedConstraintId = reuseOrCreateConstraint(
+                    level,
+                    tag,
+                    attachConstraint,
+                    BlockPos.containing(myPos.toMinecraft()),
+                    3
+                )
 
-                if (canReuseExisting) {
-                    level.gtpa.updateJoint(existingConstraintId, attachConstraint)
-                    tag.putInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID, existingConstraintId)
-                } else {
-                    val creationToken = nextConstraintCreationToken(tag)
-                    level.gtpa.addJoint(attachConstraint, 3, { jointId ->
-                        if (tag.getLong(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_CREATION_TOKEN) != creationToken) {
-                            if (jointId != null && jointId != -1) {
-                                level.gtpa.removeJoint(jointId)
-                            }
-                            return@addJoint
-                        }
-                        tag.putInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID, jointId ?: -1)
-                    })
+                resolvedConstraintId?.let {
+                    tag.putInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID, it)
                 }
-
                 tag.putByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT, mapper.writeValueAsBytes(attachConstraint))
 
                 tag.putDouble(ClockworkConstants.Nbt.SHIP_SLICKER_DISTANCE, adjustedDistance)
@@ -493,9 +510,16 @@ class SlickerMovementBehavior : MovementBehaviour {
                 ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_CREATION_TOKEN,
                 compoundTag.getLong(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_CREATION_TOKEN) + 1L
             )
+            val idsToRemove = linkedSetOf<Int>()
             if (compoundTag.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)) {
-                level.gtpa.removeJoint(compoundTag.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID))
+                idsToRemove.add(compoundTag.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID))
             }
+            readStoredConstraint(compoundTag)?.also { storedConstraint ->
+                if (storedConstraint.hasFinitePoseData()) {
+                    idsToRemove.addAll(level.gtpa.findMatchingJointIds(storedConstraint))
+                }
+            }
+            idsToRemove.forEach(level.gtpa::removeJoint)
 
             if (removeTags) {
                 compoundTag.remove(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)
@@ -509,6 +533,110 @@ class SlickerMovementBehavior : MovementBehaviour {
             val nextToken = tag.getLong(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_CREATION_TOKEN) + 1L
             tag.putLong(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_CREATION_TOKEN, nextToken)
             return nextToken
+        }
+
+        private fun readStoredConstraint(tag: CompoundTag): VSFixedJoint? {
+            if (!tag.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT)) {
+                return null
+            }
+            return mapper.readValue(tag.getByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT), VSFixedJoint::class.java)
+        }
+
+        private fun resolveTrackedConstraint(
+            level: ServerLevel,
+            tag: CompoundTag,
+            expectedConstraint: VSFixedJoint,
+            blockPos: BlockPos,
+            stage: String
+        ): VSFixedJoint? {
+            if (tag.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)) {
+                val trackedConstraintId = tag.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)
+                val existingConstraint = level.gtpa.getJointById(trackedConstraintId)
+                if (existingConstraint is VSFixedJoint) {
+                    if (!existingConstraint.hasFinitePoseData()) {
+                        ClockworkMod.LOGGER.warn(
+                            "Discarding invalid slicker constraint at {} during {} (joint={}).",
+                            blockPos,
+                            stage,
+                            trackedConstraintId
+                        )
+                        level.gtpa.removeJoint(trackedConstraintId)
+                    } else {
+                        level.gtpa.removeMatchingJointsExcept(existingConstraint, trackedConstraintId)
+                        return existingConstraint
+                    }
+                } else if (existingConstraint != null) {
+                    ClockworkMod.LOGGER.warn(
+                        "Discarding slicker constraint at {} during {} because joint {} resolved to {}.",
+                        blockPos,
+                        stage,
+                        trackedConstraintId,
+                        existingConstraint::class.simpleName
+                    )
+                    level.gtpa.removeJoint(trackedConstraintId)
+                }
+            }
+
+            val matchingConstraint = level.gtpa.findMatchingJoint(expectedConstraint)
+            val matchingJoint = matchingConstraint?.joint as? VSFixedJoint
+            if (matchingJoint == null) {
+                if (matchingConstraint != null) {
+                    level.gtpa.removeJoint(matchingConstraint.jointId)
+                }
+                return null
+            }
+            if (!matchingJoint.hasFinitePoseData()) {
+                ClockworkMod.LOGGER.warn(
+                    "Discarding invalid structurally matched slicker constraint at {} during {} (joint={}).",
+                    blockPos,
+                    stage,
+                    matchingConstraint.jointId
+                )
+                level.gtpa.removeJoint(matchingConstraint.jointId)
+                return null
+            }
+
+            tag.putInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID, matchingConstraint.jointId)
+            level.gtpa.removeMatchingJointsExcept(matchingJoint, matchingConstraint.jointId)
+            return matchingJoint
+        }
+
+        private fun reuseOrCreateConstraint(
+            level: ServerLevel,
+            tag: CompoundTag,
+            attachConstraint: VSFixedJoint,
+            blockPos: BlockPos,
+            priority: Int
+        ): Int? {
+            val resolvedConstraint = resolveTrackedConstraint(level, tag, attachConstraint, blockPos, "creation")
+            if (resolvedConstraint != null) {
+                val resolvedConstraintId = tag.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)
+                level.gtpa.updateJoint(resolvedConstraintId, attachConstraint)
+                level.gtpa.removeMatchingJointsExcept(attachConstraint, resolvedConstraintId)
+                return resolvedConstraintId
+            }
+
+            val creationToken = nextConstraintCreationToken(tag)
+            level.gtpa.addJoint(attachConstraint, priority) { jointId ->
+                if (tag.getLong(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_CREATION_TOKEN) != creationToken) {
+                    if (jointId != null && jointId != -1) {
+                        level.gtpa.removeJoint(jointId)
+                    }
+                    return@addJoint
+                }
+                if (jointId != null && jointId != -1) {
+                    tag.putInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID, jointId)
+                    level.gtpa.removeMatchingJointsExcept(attachConstraint, jointId)
+                } else {
+                    tag.putInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID, -1)
+                }
+            }
+
+            return if (tag.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)) {
+                tag.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID).takeIf { it != -1 }
+            } else {
+                null
+            }
         }
     }
 }
