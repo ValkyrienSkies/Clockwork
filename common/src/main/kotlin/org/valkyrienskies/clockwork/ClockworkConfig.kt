@@ -141,7 +141,7 @@ object ClockworkConfig {
         var angleFollowingAngleDeadbandDeg = 0.75
 
         @ConfigEntry(min = 0.0, description = "Seconds to block Phys Bearing rotation updates after restore/reload so joints can settle. 0 disables the settle gate.")
-        var physBearingRestoreSettleSeconds = 5.0
+        var physBearingRestoreSettleSeconds = 1.0
 
         @ConfigEntry()
         var allowWrenchingActivatedPhysBearing = false
