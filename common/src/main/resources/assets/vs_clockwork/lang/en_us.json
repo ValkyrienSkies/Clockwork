@@ -573,6 +573,8 @@
   "vs_clockwork.ponder.duct.text_9": "If a duct is caught in an explosion, it will become a leak and gas will violently escape!",
   "vs_clockwork.ponder.duct.text_10": "Right-Clicking a leak with a Wrench will seal it back up.",
 
+  "vs_clockwork.recipe.gas_crafting": "Gas Crafting",
+
   "death.attack.gas_burn": "%s was singed to a crisp",
   "death.attack.gas_explosion": "%s couldn't handle the pressure"
 }
