@@ -12,6 +12,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.sounds.SoundSource
+import net.minecraft.util.RandomSource
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.EquipmentSlot
@@ -23,10 +24,13 @@ import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
+import net.minecraft.world.level.storage.loot.LootParams
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
@@ -34,6 +38,7 @@ import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBackTankItem.Companion.AirKgsToAirTicks
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
+import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.NodeBehaviorType
@@ -42,11 +47,11 @@ import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.serialization.NodeNBTUtil
 import org.valkyrienskies.kelvin.util.INodeBlock
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
+import org.valkyrienskies.mod.common.executeOrSchedule
 import java.util.*
 
 class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(properties), IBE<GasBacktankBlockEntity>,
     INodeBlock, IHaveDuctStats {
-
 
 
     init {
@@ -105,6 +110,13 @@ class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(prop
         return stack
     }
 
+    override fun getDrops(state: BlockState, params: LootParams.Builder): List<ItemStack> {
+        val origin = params.getParameter(LootContextParams.ORIGIN)
+        val pos = BlockPos.containing(origin)
+        val level = params.level
+
+        return listOf(getCloneItemStack(level, pos, state))
+    }
 
     override fun use(
         state: BlockState, world: Level, pos: BlockPos, player: Player, hand: InteractionHand,
@@ -130,13 +142,15 @@ class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(prop
     ) {
         super.setPlacedBy(worldIn, pos, state, placer, stack)
         if (worldIn.isClientSide) return
+
         val tag = stack.getOrCreateTag()
         //println("$pos ${worldIn.dimension().location()}")
         val network = ClockworkMod.getKelvin()
         if (network.nodeInfo[pos.toDuctNodePos(worldIn.dimension().location())] == null) {
-            nodePlace(state, worldIn, pos, state, false)
+            nodePlace(state, worldIn, pos, Blocks.AIR.defaultBlockState(), false)
         }
         deserializeNode(pos.toDuctNodePos(worldIn.dimension().location()), tag)
+
     }
 
     fun deserializeNode(pos: DuctNodePos, tag: CompoundTag) {
