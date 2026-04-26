@@ -51,8 +51,8 @@ public class MixinComposterBlock extends Block implements INodeBlock, IHaveDuctS
         super(properties);
     }
 
-    @WrapMethod(method = "tick", remap = false)
-    public void vs_clockwork$$tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, Operation<Void> original) {
+    @Inject(method = "tick", at = @At(value = "HEAD"))
+    public void vs_clockwork$$tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, CallbackInfo ci) {
         if (state.getValue(ComposterBlock.LEVEL) == 7) {
             DuctNetwork kelvin = ClockworkMod.getKelvin();
             ResourceLocation location =  VSGameUtilsKt.getResourceKey(VSGameUtilsKt.getDimensionId(level)).location();
@@ -64,7 +64,6 @@ public class MixinComposterBlock extends Block implements INodeBlock, IHaveDuctS
                 kelvin.addGasAtTemperature(ductNodePos, ClockworkGasses.INSTANCE.getMETHANE(), 0.05, 305);
             }
         }
-        original.call(state, level, pos, random);
     }
 
 
