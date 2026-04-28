@@ -64,7 +64,7 @@
 			"rotation": {"angle": 0, "axis": "x", "origin": [8, 8, 12.5]},
 			"faces": {
 				"north": {"uv": [5.33333, 4, 9.33333, 3.33333], "rotation": 270, "texture": "#0"},
-				"east": {"uv": [5.33333, 0, 9.33333, 4], "rotation": 270, "texture": "#0"},
+				"east": {"uv": [9.33333, 0, 5.33333, 4], "rotation": 270, "texture": "#0"},
 				"south": {"uv": [9.33333, 0, 5.33333, 0.66667], "rotation": 90, "texture": "#0"},
 				"west": {"uv": [5.33333, 0, 9.33333, 4], "rotation": 90, "texture": "#0"},
 				"up": {"uv": [5.33333, 3.33333, 9.33333, 4], "rotation": 270, "texture": "#0"},

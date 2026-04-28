@@ -30,6 +30,7 @@ class FlapBearingRenderer(context: BlockEntityRendererProvider.Context) :
         light: Int,
         overlay: Int
     ) {
+        if (be is SmartFlapBearingBlockEntity) DualLinkRenderer.renderOnBlockEntity(be, partialTicks, ms, buffer, light, overlay)
         if (VisualizationManager.supportsVisualization(be.getLevel())) return
 
         super.renderSafe(be, partialTicks, ms, buffer, light, overlay)
@@ -60,11 +61,6 @@ class FlapBearingRenderer(context: BlockEntityRendererProvider.Context) :
 
         renderRotatingBuffer(be, getRotatedModel(be, be.blockState), ms,
             buffer.getBuffer(RenderType.solid()), light)
-
-
-
-        if (be !is SmartFlapBearingBlockEntity) return
-        DualLinkRenderer.renderOnBlockEntity(be, partialTicks, ms, buffer, light, overlay)
     }
 
     override fun getRotatedModel(te: FlapBearingBlockEntity, state: BlockState): SuperByteBuffer {
