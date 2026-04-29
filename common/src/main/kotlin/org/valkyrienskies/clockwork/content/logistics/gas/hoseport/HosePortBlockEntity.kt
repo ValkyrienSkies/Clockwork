@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.content.logistics.gas.hoseport
 
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import dev.architectury.platform.Platform
+import net.createmod.ponder.api.level.PonderLevel
 import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
@@ -293,13 +294,13 @@ class HosePortBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     }
 
     private fun createEdge(nodeA: DuctNodePos, nodeB: DuctNodePos) {
-        val kelvin = ClockworkMod.getKelvin()
+        val kelvin = ClockworkMod.getKelvin(level)
         edge = PipeDuctEdge(nodeA = nodeA, nodeB = nodeB, type = ConnectionType.PIPE)
         kelvin.addEdge(nodeA, nodeB, edge!!)
     }
 
     private fun removeEdge() {
-        val kelvin = ClockworkMod.getKelvin()
+        val kelvin = ClockworkMod.getKelvin(level)
         kelvin.removeEdge(edge!!.nodeA,edge!!.nodeB)
         edge = null
     }
@@ -425,7 +426,9 @@ class HosePortBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     fun safeHeatableGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
         var found = false
 
-        val kelvin = if (Minecraft.getInstance().isLocalServer && Platform.isFabric()) ClockworkMod.getKelvin() else ClockworkModClient.getKelvin()
+        val kelvin = if (level is PonderLevel) ClockworkMod.getKelvin(level)
+            else if (Minecraft.getInstance().isLocalServer && Platform.isFabric()) ClockworkMod.getKelvin()
+            else ClockworkModClient.getKelvin()
 
         if (kelvin.getTemperatureAt(this.getDuctNodePosition()) > 0.0) {
             tooltip.add(Component.literal("Temperature: ${kelvin.getTemperatureAt(this.getDuctNodePosition()).toInt()} K").withStyle(ChatFormatting.GOLD))

@@ -47,7 +47,7 @@ class SteamGeneratorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state:
         if (efficiency == 0f) return
         if (tank.boiler.activeHeat == 0 && !tank.boiler.passiveHeat) return
 
-        val network = ClockworkMod.getKelvin()
+        val network = ClockworkMod.getKelvin(level)
 
         val mass = maxMass * efficiency
 

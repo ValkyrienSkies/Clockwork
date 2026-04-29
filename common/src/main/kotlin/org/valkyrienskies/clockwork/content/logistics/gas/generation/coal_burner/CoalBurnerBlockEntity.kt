@@ -55,7 +55,7 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
             this.previousTotalItems = totalItems
         }
 
-        val kelvin = ClockworkMod.getKelvin()
+        val kelvin = ClockworkMod.getKelvin(level)
 
         kelvin.getNodeAt(blockPos.toDuctNodePos(level!!.dimension().location())) ?: return
         if (fuelTicks>0) {

@@ -28,3 +28,7 @@ repositories {
    //...
 }
 ```
+
+# License
+Clockwork is currently licensed under Apache 2.0. 
+This applies to all code files, _however_ the asset files (all files under `src/main/resources/assets`) are licensed as ARR.

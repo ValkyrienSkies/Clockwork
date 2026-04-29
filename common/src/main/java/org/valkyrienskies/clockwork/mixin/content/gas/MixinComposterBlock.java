@@ -52,7 +52,7 @@ public class MixinComposterBlock extends Block implements INodeBlock, IHaveDuctS
     @Inject(method = "tick", at = @At("TAIL"), require = 0)
     private void vs_clockwork$$tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, CallbackInfo ci) {
         if (state.getValue(ComposterBlock.LEVEL) == 7) {
-            DuctNetwork kelvin = ClockworkMod.getKelvin();
+            DuctNetwork kelvin = ClockworkMod.getKelvin(level);
             ResourceLocation location =  VSGameUtilsKt.getResourceKey(VSGameUtilsKt.getDimensionId(level)).location();
             DuctNodePos ductNodePos = new DuctNodePos(pos.getX(), pos.getY(), pos.getZ(), location);
 
@@ -95,7 +95,7 @@ public class MixinComposterBlock extends Block implements INodeBlock, IHaveDuctS
             if (state.isAir() || !(state.getBlock() instanceof INodeBlock)) {
                 return;
             }
-            ClockworkMod.getKelvin().addNode(KelvinExtensions.INSTANCE.toDuctNodePos(pos, level.dimension().location()), createNode(KelvinExtensions.INSTANCE.toDuctNodePos(pos, level.dimension().location())));
+            ClockworkMod.getKelvin(level).addNode(KelvinExtensions.INSTANCE.toDuctNodePos(pos, level.dimension().location()), createNode(KelvinExtensions.INSTANCE.toDuctNodePos(pos, level.dimension().location())));
         } else {
             //ClockworkModClient.getKelvin().addNode(KelvinExtensions.INSTANCE.toDuctNodePos(pos, level.dimension().location()), createNode(KelvinExtensions.INSTANCE.toDuctNodePos(pos, level.dimension().location())));
         }
@@ -105,7 +105,7 @@ public class MixinComposterBlock extends Block implements INodeBlock, IHaveDuctS
     public void nodeRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
         if (!level.isClientSide()) {
             if (newState.isAir() || !(newState.getBlock() instanceof INodeBlock)) {
-                ClockworkMod.getKelvin().removeNode(KelvinExtensions.INSTANCE.toDuctNodePos(pos, level.dimension().location()));
+                ClockworkMod.getKelvin(level).removeNode(KelvinExtensions.INSTANCE.toDuctNodePos(pos, level.dimension().location()));
             }
         } else {
             ClockworkModClient.getKelvin().removeNode(KelvinExtensions.INSTANCE.toDuctNodePos(pos, level.dimension().location()));

@@ -5,6 +5,7 @@ import com.simibubi.create.content.redstone.displayLink.DisplayLinkContext
 import com.simibubi.create.content.redstone.displayLink.target.DisplayTargetStats
 import com.simibubi.create.foundation.gui.ModularGuiLineBuilder
 import net.minecraft.network.chat.Component
+import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.network.chat.MutableComponent
 import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.ClockworkMod.getKelvin
@@ -23,7 +24,7 @@ class KNodeDisplaySource: DisplaySource() {
 
         // Give multi-line mass overview
         if (data == 0) {
-            var masses = getKelvin().getGasMassAt(node.getDuctNodePosition()).mapKeys { (gas, _) -> gas.name }
+            var masses = getKelvin((node as? BlockEntity)?.level).getGasMassAt(node.getDuctNodePosition()).mapKeys { (gas, _) -> gas.name }
             masses = masses.filter { it.value > 0 }
             val components = mutableListOf<MutableComponent>()
 
@@ -39,19 +40,19 @@ class KNodeDisplaySource: DisplaySource() {
 
         // Heat energy
         if (data == 1) {
-            val energy = getKelvin().getHeatEnergy(node.getDuctNodePosition())
+            val energy = getKelvin((node as? BlockEntity)?.level).getHeatEnergy(node.getDuctNodePosition())
             return listOf(DuctTextUtil.translateEnergy(ClockworkLang.builder(), energy, true).component())
         }
 
         // Pressure
         if (data == 2) {
-            val pressure = getKelvin().getPressureAt(node.getDuctNodePosition())
+            val pressure = getKelvin((node as? BlockEntity)?.level).getPressureAt(node.getDuctNodePosition())
             return listOf(DuctTextUtil.translatePressure(ClockworkLang.builder(), pressure, true).component())
         }
 
         // Temperature
         if (data == 3) {
-            val temp = getKelvin().getTemperatureAt(node.getDuctNodePosition())
+            val temp = getKelvin((node as? BlockEntity)?.level).getTemperatureAt(node.getDuctNodePosition())
             return listOf(DuctTextUtil.translateTemperature(ClockworkLang.builder(), temp, true).component())
         }
 

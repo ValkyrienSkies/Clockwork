@@ -34,11 +34,11 @@ abstract class KNodeKineticBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos
         } else if (this.dataToLoad != null) {
             val nodeBlock: INodeBlock? = this.level!!.getBlockState(this.blockPos).block as? INodeBlock
             nodeBlock?.nodePlace(this.blockState, this.level!!, this.blockPos, Blocks.AIR.defaultBlockState(), false)
-            ClockworkMod.getKelvin().markLoaded(this.getDuctNodePosition())
+            ClockworkMod.getKelvin(level).markLoaded(this.getDuctNodePosition())
             return
         }
 
-        if (this.level != null && ClockworkMod.getKelvin().getNodeAt(this.getDuctNodePosition()) != null) {
+        if (this.level != null && ClockworkMod.getKelvin(level).getNodeAt(this.getDuctNodePosition()) != null) {
 //            val pressureDiff = abs(ClockworkMod.getKelvin().getPressureAt(this.getDuctNodePosition()) - (ClockworkMod.getKelvin().nodeInfo[this.getDuctNodePosition()]?.previousPressure ?: 0.0))
 //            if (pressureDiff > 0.01) {
                 this.setChanged()

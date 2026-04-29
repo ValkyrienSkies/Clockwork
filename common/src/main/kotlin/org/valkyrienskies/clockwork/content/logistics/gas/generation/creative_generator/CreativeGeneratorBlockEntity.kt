@@ -26,7 +26,7 @@ class CreativeGeneratorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, stat
     override fun tick() {
         super.tick()
         if (level!!.isClientSide) return
-        val kelvin = ClockworkMod.getKelvin()
+        val kelvin = ClockworkMod.getKelvin(level)
         val node = kelvin.getNodeAt(blockPos.toDuctNodePos(level!!.dimension().location())) ?: return
         val masses = kelvin.getGasMassAt(getDuctNodePosition())
 

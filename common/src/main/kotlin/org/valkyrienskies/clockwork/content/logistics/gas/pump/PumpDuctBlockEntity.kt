@@ -43,8 +43,8 @@ class PumpDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Bloc
         val front = blockPos.relative(blockState.getValue(BlockStateProperties.FACING))
         val back = blockPos.relative(blockState.getValue(BlockStateProperties.FACING).opposite)
         if (level == null) return
-        val backEdge = ClockworkMod.getKelvin().getEdgeBetween(getDuctNodePosition(), ClockworkUtils.getDuctNodePos(back, level))
-        val frontEdge = ClockworkMod.getKelvin().getEdgeBetween(getDuctNodePosition(), ClockworkUtils.getDuctNodePos(front, level))
+        val backEdge = ClockworkMod.getKelvin(level).getEdgeBetween(getDuctNodePosition(), ClockworkUtils.getDuctNodePos(back, level))
+        val frontEdge = ClockworkMod.getKelvin(level).getEdgeBetween(getDuctNodePosition(), ClockworkUtils.getDuctNodePos(front, level))
 
         (backEdge as? PumpDuctEdge)?.pumpPressure = pumpPressure
         (frontEdge as? PumpDuctEdge)?.pumpPressure = pumpPressure

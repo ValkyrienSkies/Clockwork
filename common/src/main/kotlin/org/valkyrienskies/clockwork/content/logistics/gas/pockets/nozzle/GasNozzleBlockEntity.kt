@@ -276,12 +276,12 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         }
         val pocketHeatEnergy = balloon.currentEnergy
 
-        val gasMass = ClockworkMod.getKelvin().getGasMassAt(getDuctNodePosition())
+        val gasMass = ClockworkMod.getKelvin(level).getGasMassAt(getDuctNodePosition())
         val gasMassTotal = gasMass.values.sum()
-        val heatEnergy = ClockworkMod.getKelvin().getHeatEnergy(getDuctNodePosition())
+        val heatEnergy = ClockworkMod.getKelvin(level).getHeatEnergy(getDuctNodePosition())
         val pocketCapacity = mixtureCapacity(pocketGasMass)
         val currentPocketTemperature = (pocketHeatEnergy) / pocketCapacity
-        val targetTemperature = ClockworkMod.getKelvin().getTemperatureAt(getDuctNodePosition()) * pointer.value.toDouble()
+        val targetTemperature = ClockworkMod.getKelvin(level).getTemperatureAt(getDuctNodePosition()) * pointer.value.toDouble()
         if (currentPocketTemperature >= targetTemperature) return
         val maxEnergyAddedThisTick = (heatEnergy / 2.0)
         val energyToAdd = min(pocketCapacity * min(targetTemperature - currentPocketTemperature, 100.0), maxEnergyAddedThisTick)
@@ -309,9 +309,9 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         val (pocketGasMass, pocketHeatEnergy) = retrieveGasInfoFromPocket(pocketRef.toVector3i(), serverLevel)
         val pocketGasMassTotal = pocketGasMass.values.sum()
 
-        val gasMass = ClockworkMod.getKelvin().getGasMassAt(getDuctNodePosition())
+        val gasMass = ClockworkMod.getKelvin(level).getGasMassAt(getDuctNodePosition())
         val gasMassTotal = gasMass.values.sum()
-        val heatEnergy = ClockworkMod.getKelvin().getHeatEnergy(getDuctNodePosition())
+        val heatEnergy = ClockworkMod.getKelvin(level).getHeatEnergy(getDuctNodePosition())
 
         val usedUpMass = gasMassTotal * pointer.value
         val usedEnergy = heatEnergy * pointer.value

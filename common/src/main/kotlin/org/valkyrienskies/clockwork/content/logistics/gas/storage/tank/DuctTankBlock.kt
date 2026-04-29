@@ -51,13 +51,13 @@ class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE
 
         withBlockEntityDo(level, pos) { blockEntity ->
             val size = blockEntity.width.squared() * blockEntity.height
-            ClockworkMod.getKelvin().addNode(blockEntity.getDuctNodePosition(), createTankNode(blockEntity.getDuctNodePosition(), size.toDouble()))
+            ClockworkMod.getKelvin(level).addNode(blockEntity.getDuctNodePosition(), createTankNode(blockEntity.getDuctNodePosition(), size.toDouble()))
         }
     }
 
     override fun nodeRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
         if (!level.isClientSide) {
-            ClockworkMod.getKelvin().removeNode(pos.toDuctNodePos(level.dimension().location()))
+            ClockworkMod.getKelvin(level).removeNode(pos.toDuctNodePos(level.dimension().location()))
         } else {
             ClockworkModClient.getKelvin().removeNode(pos.toDuctNodePos(level.dimension().location()))
         }

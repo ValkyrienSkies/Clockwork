@@ -43,11 +43,11 @@ abstract class KNodeBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state:
                         (this.blockState.block as DuctBlock).getConnectedState(this.level!!, this.blockState, this.blockPos) ?: this.blockState
                     )
                 }
-                ClockworkMod.getKelvin().markLoaded(this.getDuctNodePosition())
+                ClockworkMod.getKelvin(level).markLoaded(this.getDuctNodePosition())
             }
             return
         }
-        if (this.level != null && ClockworkMod.getKelvin().getNodeAt(this.getDuctNodePosition()) != null) {
+        if (this.level != null && ClockworkMod.getKelvin(level).getNodeAt(this.getDuctNodePosition()) != null) {
             //val pressureDiff = abs(ClockworkMod.getKelvin().getPressureAt(this.getDuctNodePosition()) - (ClockworkMod.getKelvin().nodeInfo[this.getDuctNodePosition()]?.previousPressure ?: 0.0))
             //if (pressureDiff > 0.01) {
                 this.setChanged()

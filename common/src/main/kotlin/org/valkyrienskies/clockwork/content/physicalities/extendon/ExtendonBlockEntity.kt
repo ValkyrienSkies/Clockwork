@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.content.physicalities.extendon
 
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import dev.architectury.platform.Platform
+import net.createmod.ponder.api.level.PonderLevel
 import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
@@ -341,7 +342,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         ) return
 
 
-        val kelvin = ClockworkMod.getKelvin()
+        val kelvin = ClockworkMod.getKelvin(level)
         val serverLevel = level as ServerLevel
 
         val previousDistance = distanceJoint!!.minDistance!!
@@ -437,13 +438,13 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
     }
 
     private fun createEdge(nodeA: DuctNodePos, nodeB: DuctNodePos) {
-        val kelvin = ClockworkMod.getKelvin()
+        val kelvin = ClockworkMod.getKelvin(level)
         edge = PipeDuctEdge(nodeA = nodeA, nodeB = nodeB, type = ConnectionType.PIPE)
         kelvin.addEdge(nodeA, nodeB, edge!!)
     }
 
     private fun removeEdge() {
-        val kelvin = ClockworkMod.getKelvin()
+        val kelvin = ClockworkMod.getKelvin(level)
         kelvin.removeEdge(edge!!.nodeA,edge!!.nodeB)
         edge = null
     }
@@ -581,7 +582,9 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
                     .withStyle(ChatFormatting.AQUA)))
 
             // extendon specific: display current length
-            val kelvin = if (Minecraft.getInstance().isLocalServer && Platform.isFabric()) ClockworkMod.getKelvin() else ClockworkModClient.getKelvin()
+            val kelvin = if (level is PonderLevel) ClockworkMod.getKelvin(level)
+            else if (Minecraft.getInstance().isLocalServer && Platform.isFabric()) ClockworkMod.getKelvin()
+            else ClockworkModClient.getKelvin()
 
             val currentLength = (max(1.5f,(gasToDistance(kelvin, getDuctNodePosition(), level!!.dimensionId) + gasToDistance(kelvin, connectedBe!!.getDuctNodePosition(), level!!.dimensionId))) * 10.0f).roundToInt() / 10.0f
             tooltip.add(Component.translatable("vs_clockwork.extendon.current_length").append(Component.literal(currentLength.toString()).append("m").withStyle(ChatFormatting.YELLOW)))
@@ -603,7 +606,9 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
     fun safeHeatableGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
         var found = false
 
-        val kelvin = if (Minecraft.getInstance().isLocalServer && Platform.isFabric()) ClockworkMod.getKelvin() else ClockworkModClient.getKelvin()
+        val kelvin = if (level is PonderLevel) ClockworkMod.getKelvin(level)
+            else if (Minecraft.getInstance().isLocalServer && Platform.isFabric()) ClockworkMod.getKelvin()
+            else ClockworkModClient.getKelvin()
 
         if (kelvin.getTemperatureAt(this.getDuctNodePosition()) > 0.0) {
             tooltip.add(Component.literal("Temperature: ${kelvin.getTemperatureAt(this.getDuctNodePosition()).toInt()} K").withStyle(ChatFormatting.GOLD))

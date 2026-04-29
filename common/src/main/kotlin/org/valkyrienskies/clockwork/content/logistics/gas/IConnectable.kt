@@ -43,7 +43,7 @@ interface IConnectable: INodeBlockEntity {
     fun getEdge(nodeA: DuctNodePos, nodeB: DuctNodePos, level: Level, blockPos: BlockPos, direction: Direction): DuctEdge
 
     fun setEdge(nodeA: DuctNodePos, nodeB: DuctNodePos, level: Level, blockPos: BlockPos, direction: Direction) {
-        ClockworkMod.getKelvin().removeEdge(nodeA, nodeB)
-        ClockworkMod.getKelvin().addEdge(nodeA, nodeB, getEdge(nodeA, nodeB, level, blockPos, direction))
+        ClockworkMod.getKelvin(level).removeEdge(nodeA, nodeB)
+        ClockworkMod.getKelvin(level).addEdge(nodeA, nodeB, getEdge(nodeA, nodeB, level, blockPos, direction))
     }
 }
