@@ -18,6 +18,10 @@ import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkSounds
+import org.valkyrienskies.clockwork.util.findMatchingJoint
+import org.valkyrienskies.clockwork.util.findMatchingJointIds
+import org.valkyrienskies.clockwork.util.hasFinitePoseData
+import org.valkyrienskies.clockwork.util.removeMatchingJointsExcept
 import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity.Companion.getQuaterniond
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.gtpa
@@ -51,7 +55,159 @@ class HosePortBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
 
     var main: Boolean = false
 
-    var loadFn: (() -> Unit)? = null
+    var loadFn: (() -> Boolean)? = null
+    private var pendingJointCreationToken: Long = 0L
+    private var deferredRestoreTries: Int = 0
+
+    private fun invalidatePendingJointCreation() {
+        pendingJointCreationToken++
+    }
+
+    private fun clearJointStateOnly() {
+        distanceJoint = null
+        distanceJointId = null
+        main = false
+    }
+
+    private fun hasTrackedJointId(): Boolean = distanceJointId != null
+
+    private fun tryAdoptTrackedJoint(serverLevel: ServerLevel): Boolean? {
+        val trackedJointId = distanceJointId ?: return false
+        val existingJoint = serverLevel.gtpa.getJointById(trackedJointId) ?: return null
+
+        if (existingJoint !is VSDistanceJoint || !existingJoint.hasFinitePoseData()) {
+            ClockworkMod.LOGGER.warn(
+                "Discarding invalid restored hose port joint at {} (joint={}).",
+                blockPos,
+                trackedJointId
+            )
+            removeJoint()
+            return false
+        }
+
+        distanceJoint = existingJoint
+        serverLevel.gtpa.removeMatchingJointsExcept(existingJoint, trackedJointId)
+        return true
+    }
+
+    private fun buildJointBlueprint(other: HosePortBlockEntity): VSDistanceJoint? {
+        val serverLevel = level as? ServerLevel ?: return null
+        val shipId0 = getShipID()
+        val shipId1 = other.getShipID()
+        val pos0 = blockPos.toJOMLD()
+        val pos1 = other.blockPos.toJOMLD()
+        val quater0 = getQuaterniond(serverLevel.getBlockState(blockPos).getValue(BlockStateProperties.FACING))
+        val quater1 = getQuaterniond(serverLevel.getBlockState(other.blockPos).getValue(BlockStateProperties.FACING))
+        val distanceInWorld = serverLevel.toWorldCoordinates(pos0).distance(serverLevel.toWorldCoordinates(pos1))
+
+        return VSDistanceJoint(
+            pose0 = VSJointPose(pos0, quater0),
+            pose1 = VSJointPose(pos1, quater1),
+            shipId0 = shipId0,
+            shipId1 = shipId1,
+            minDistance = 0f,
+            maxDistance = (distanceInWorld + 1.0).roundToInt().toFloat()
+        )
+    }
+
+    private fun tryAdoptMatchingJoint(serverLevel: ServerLevel, other: HosePortBlockEntity): Boolean {
+        val expectedJoint = buildJointBlueprint(other) ?: return false
+        val matchingJoint = serverLevel.gtpa.findMatchingJoint(expectedJoint) ?: return false
+        val adoptedJoint = matchingJoint.joint as? VSDistanceJoint
+        if (adoptedJoint == null || !adoptedJoint.hasFinitePoseData()) {
+            ClockworkMod.LOGGER.warn(
+                "Discarding invalid structurally matched hose port joint at {} (joint={}).",
+                blockPos,
+                matchingJoint.jointId
+            )
+            serverLevel.gtpa.removeJoint(matchingJoint.jointId)
+            return false
+        }
+
+        distanceJoint = adoptedJoint
+        distanceJointId = matchingJoint.jointId
+        serverLevel.gtpa.removeMatchingJointsExcept(adoptedJoint, matchingJoint.jointId)
+        return true
+    }
+
+    private fun restoreConnection(other: HosePortBlockEntity): Boolean {
+        val serverLevel = level as? ServerLevel ?: return false
+
+        if (connectedJoint != null && connectedJoint !== other) {
+            disconnect()
+        }
+        if (other.connectedJoint != null && other.connectedJoint !== this) {
+            other.disconnect()
+        }
+
+        val candidates = mutableListOf<HosePortBlockEntity>()
+        if (main && hasTrackedJointId()) {
+            candidates.add(this)
+        }
+        if (other.main && other.hasTrackedJointId() && !candidates.contains(other)) {
+            candidates.add(other)
+        }
+        if (hasTrackedJointId() && !candidates.contains(this)) {
+            candidates.add(this)
+        }
+        if (other.hasTrackedJointId() && !candidates.contains(other)) {
+            candidates.add(other)
+        }
+
+        var waitingOnRestoredJoint = false
+        for (candidate in candidates) {
+            when (candidate.tryAdoptTrackedJoint(serverLevel)) {
+                true -> {
+                    deferredRestoreTries = 0
+                    if (candidate === this) {
+                        connectTo(other)
+                    } else {
+                        other.connectTo(this)
+                    }
+                    return true
+                }
+
+                null -> waitingOnRestoredJoint = true
+                false -> Unit
+            }
+        }
+
+        if (tryAdoptMatchingJoint(serverLevel, other)) {
+            deferredRestoreTries = 0
+            connectTo(other)
+            return true
+        }
+
+        if (waitingOnRestoredJoint) {
+            deferredRestoreTries++
+            if (deferredRestoreTries < MAX_RESTORE_TRIES) {
+                if (deferredRestoreTries % 20 == 0) {
+                    ClockworkMod.LOGGER.warn(
+                        "Deferring hose port joint restore at {} while waiting for tracked joints to load (attempt {}).",
+                        blockPos,
+                        deferredRestoreTries
+                    )
+                }
+                return false
+            }
+
+            ClockworkMod.LOGGER.warn(
+                "Discarding stale hose port joint references at {} after {} restore attempts.",
+                blockPos,
+                deferredRestoreTries
+            )
+            if (hasTrackedJointId()) {
+                removeJoint()
+            }
+            if (other.hasTrackedJointId()) {
+                other.removeJoint()
+            }
+        }
+
+        deferredRestoreTries = 0
+        connectTo(other)
+        return true
+    }
 
     override fun tick() {
         super.tick()
@@ -59,8 +215,9 @@ class HosePortBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         if (level!!.isClientSide) return
 
         loadFn?.also {
-            it.invoke()
-            loadFn = null
+            if (it.invoke()) {
+                loadFn = null
+            }
         }
 
         if (distanceJointId != null && distanceJoint != null) {
@@ -76,7 +233,9 @@ class HosePortBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         if (connectedBe!!.edge != null) edge = connectedBe!!.edge
         else createEdge(blockPos.toDuctNodePos(level!!.dimension().location()), other.pos.toDuctNodePos(connectedBe!!.level!!.dimension().location()))
 
-        if (connectedBe!!.distanceJoint != null) {
+        if (distanceJoint != null && distanceJointId != null) {
+            // Keep the restored joint state that this side already owns.
+        } else if (connectedBe!!.distanceJoint != null && connectedBe!!.distanceJointId != null) {
             distanceJoint = connectedBe!!.distanceJoint
             distanceJointId = connectedBe!!.distanceJointId
             main = false
@@ -89,23 +248,48 @@ class HosePortBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     }
 
     override fun disconnect() {
-        if (connectedJoint == null) return
+        invalidatePendingJointCreation()
+        val other = connectedBe
+        val hadLogicalConnection = connectedJoint != null || other != null
 
-        if (connectedBe!!.edge == null) edge = null
+        if (!hadLogicalConnection && distanceJointId == null) {
+            clearJointStateOnly()
+            connectedBe = null
+            connectedJoint = null
+            edge = null
+            return
+        }
+
+        if (other?.edge == null) edge = null
         else if (edge != null) removeEdge()
 
-        if (connectedBe!!.distanceJoint == null) {
-            distanceJoint = null
-            distanceJointId = null
-        } else if (distanceJointId != null) removeJoint()
+        if (distanceJointId != null) {
+            removeJoint()
+        } else {
+            clearJointStateOnly()
+        }
 
         connectedBe = null
-        main = false
+        connectedJoint = null
 
-        level?.playSound(null, blockPos, ClockworkSounds.HOSE_RELEASE.mainEvent, net.minecraft.sounds.SoundSource.BLOCKS, 1.0f, 1.0f)
+        if (hadLogicalConnection) {
+            level?.playSound(null, blockPos, ClockworkSounds.HOSE_RELEASE.mainEvent, net.minecraft.sounds.SoundSource.BLOCKS, 1.0f, 1.0f)
+        }
 
+        other?.also {
+            it.invalidatePendingJointCreation()
+            if (it.connectedBe === this || it.connectedJoint === this) {
+                it.connectedBe = null
+                it.connectedJoint = null
+                it.edge = null
+                it.clearJointStateOnly()
+                it.setChanged()
+                it.sendData()
+            }
+        }
 
         super.disconnect()
+        setChanged()
         sendData()
     }
 
@@ -125,33 +309,38 @@ class HosePortBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         val level = level as ServerLevel
 
         if (connectedBe == null) throw IllegalStateException("Null connected block entity")
-
-        val shipId0 = getShipID()
-        val shipId1 = connectedBe!!.getShipID()
-        val pos0 = blockPos.toJOMLD()
-        val pos1 = connectedBe!!.blockPos.toJOMLD()
-        val quater0 = getQuaterniond(level.getBlockState(blockPos).getValue(BlockStateProperties.FACING))
-        val quater1 = getQuaterniond(level.getBlockState(connectedBe!!.blockPos).getValue(BlockStateProperties.FACING))
-
-        val distanceInWorld = level.toWorldCoordinates(pos0).distance(level.toWorldCoordinates(pos1))
-
-        distanceJoint = VSDistanceJoint(pose0 = VSJointPose(pos0, quater0), pose1 = VSJointPose(pos1, quater1) , shipId0 = shipId0, shipId1 = shipId1,
-            minDistance = 0f, maxDistance = (distanceInWorld + 1.0).roundToInt().toFloat()
-        )
-        level.gtpa.addJoint(distanceJoint!!) { distanceJointId = it }
+        distanceJoint = buildJointBlueprint(connectedBe!!) ?: return
+        if (!distanceJoint!!.hasFinitePoseData()) {
+            ClockworkMod.LOGGER.warn("Rejecting corrupted hose port joint at {} during creation.", blockPos)
+            invalidatePendingJointCreation()
+            clearJointStateOnly()
+            return
+        }
+        val creationToken = ++pendingJointCreationToken
+        level.gtpa.addJoint(distanceJoint!!) {
+            if (creationToken != pendingJointCreationToken) {
+                level.gtpa.removeJoint(it)
+                return@addJoint
+            }
+            distanceJointId = it
+            level.gtpa.removeMatchingJointsExcept(distanceJoint!!, it)
+        }
 
         main = true
     }
 
     private fun removeJoint() {
         val level = level as ServerLevel
+        invalidatePendingJointCreation()
 
-        level.gtpa.removeJoint(distanceJointId!!)
+        val idsToRemove = linkedSetOf<Int>()
+        distanceJointId?.let(idsToRemove::add)
+        distanceJoint?.also { idsToRemove.addAll(level.gtpa.findMatchingJointIds(it)) }
+            ?: connectedBe?.let { other -> buildJointBlueprint(other)?.also { idsToRemove.addAll(level.gtpa.findMatchingJointIds(it)) } }
 
-        distanceJoint = null
-        distanceJointId = null
+        idsToRemove.forEach(level.gtpa::removeJoint)
 
-        main = false
+        clearJointStateOnly()
     }
 
 
@@ -168,6 +357,7 @@ class HosePortBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
             compound.putInt("ConnectedPosY",connectedBe!!.pos.y)
             compound.putInt("ConnectedPosZ",connectedBe!!.pos.z)
             compound.putBoolean("IsMain", main)
+            distanceJointId?.let { compound.putInt(DISTANCE_JOINT_ID_TAG, it) }
         }
 
         super.write(compound, clientPacket)
@@ -176,11 +366,15 @@ class HosePortBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     override fun read(compound: CompoundTag, clientPacket: Boolean) {
         if (compound.contains("ConnectedPosX")) {
             val bpos = BlockPos(compound.getInt("ConnectedPosX"),compound.getInt("ConnectedPosY"),compound.getInt("ConnectedPosZ"))
+            distanceJointId = if (compound.contains(DISTANCE_JOINT_ID_TAG)) compound.getInt(DISTANCE_JOINT_ID_TAG) else null
             if (!clientPacket) {
                 loadFn = {
-                    (level!!.getBlockEntity(bpos) as? HosePortBlockEntity)?.also {
-                        it.disconnect()
-                        connectTo(it)
+                    val other = level!!.getBlockEntity(bpos) as? HosePortBlockEntity
+                    if (other == null) {
+                        disconnect()
+                        true
+                    } else {
+                        restoreConnection(other)
                     }
                 }
             } else {
@@ -190,9 +384,20 @@ class HosePortBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
                 connectedBe?.connectedBe = this
             }
             main = compound.getBoolean("IsMain")
-        } else disconnect()
+        } else {
+            connectedBe = null
+            connectedJoint = null
+            edge = null
+            clearJointStateOnly()
+        }
 
         super.read(compound, clientPacket)
+    }
+
+    override fun remove() {
+        invalidatePendingJointCreation()
+        disconnect()
+        super.remove()
     }
 
     override fun heatableGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
@@ -290,5 +495,10 @@ class HosePortBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         }
 
         return found
+    }
+
+    companion object {
+        private const val DISTANCE_JOINT_ID_TAG = "DistanceJointId"
+        private const val MAX_RESTORE_TRIES = 40
     }
 }

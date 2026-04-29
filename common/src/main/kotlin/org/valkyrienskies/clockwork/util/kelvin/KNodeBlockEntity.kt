@@ -98,5 +98,7 @@ abstract class KNodeBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state:
 
         if (level?.isClientSide == true)
             ClockworkModClient.getKelvin().removeNode(getDuctNodePosition())
+
+        super.remove()
     }
 }

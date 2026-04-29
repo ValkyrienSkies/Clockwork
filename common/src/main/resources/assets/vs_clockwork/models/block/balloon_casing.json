@@ -1,6 +1,7 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "vs_clockwork:block/balloon_casing"
+    "all": "vs_clockwork:block/balloon_casing",
+    "particle": "vs_clockwork:block/balloon_casing"
   }
 }

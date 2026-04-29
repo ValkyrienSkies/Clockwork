@@ -90,5 +90,7 @@ abstract class KNodeKineticBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos
     override fun remove() {
         if (level?.isClientSide == true)
             ClockworkModClient.getKelvin().removeNode(getDuctNodePosition())
+
+        super.remove()
     }
 }

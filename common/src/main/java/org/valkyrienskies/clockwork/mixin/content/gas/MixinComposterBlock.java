@@ -1,7 +1,5 @@
 package org.valkyrienskies.clockwork.mixin.content.gas;
 
-import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -44,15 +42,15 @@ import java.util.Map;
 public class MixinComposterBlock extends Block implements INodeBlock, IHaveDuctStats {
 
     @Unique
-    Double vs_clockwork$$maxPressure = 100000.0;
+    private static final double vs_clockwork$$maxPressure = 100000.0;
 
 
     public MixinComposterBlock(Properties properties) {
         super(properties);
     }
 
-    @Inject(method = "tick", at = @At(value = "HEAD"))
-    public void vs_clockwork$$tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, CallbackInfo ci) {
+    @Inject(method = "tick", at = @At("TAIL"), require = 0)
+    private void vs_clockwork$$tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, CallbackInfo ci) {
         if (state.getValue(ComposterBlock.LEVEL) == 7) {
             DuctNetwork kelvin = ClockworkMod.getKelvin(level);
             ResourceLocation location =  VSGameUtilsKt.getResourceKey(VSGameUtilsKt.getDimensionId(level)).location();

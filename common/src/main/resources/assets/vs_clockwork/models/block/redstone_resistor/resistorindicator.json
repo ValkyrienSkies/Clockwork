@@ -1,7 +1,8 @@
 {
   "credit": "Made with Blockbench",
   "textures": {
-    "2": "vs_clockwork:block/redstoneresistor"
+    "2": "vs_clockwork:block/redstoneresistor",
+    "particle": "vs_clockwork:block/redstoneresistor"
   },
   "elements": [
     {
