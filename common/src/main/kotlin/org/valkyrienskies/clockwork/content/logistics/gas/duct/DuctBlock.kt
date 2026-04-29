@@ -384,7 +384,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
             playScrewSound(context.level, context.clickedPos)
 
             val dimension = context.level.dimension().location()
-            val foundEdge = ClockworkMod.getKelvin().getEdgeBetween(
+            val foundEdge = ClockworkMod.getKelvin(context.level).getEdgeBetween(
                 context.clickedPos.toDuctNodePos(dimension),
                 context.clickedPos.relative(changeDirection).toDuctNodePos(dimension)
             )

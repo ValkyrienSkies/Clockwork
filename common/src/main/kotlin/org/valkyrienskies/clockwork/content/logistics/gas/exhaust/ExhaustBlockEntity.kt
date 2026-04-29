@@ -4,6 +4,7 @@ import com.simibubi.create.content.kinetics.fan.AirCurrent
 import com.simibubi.create.content.kinetics.fan.IAirCurrentSource
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.infrastructure.config.AllConfigs
+import net.createmod.ponder.api.level.PonderLevel
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -68,7 +69,9 @@ class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
         super.tick()
 
         // Kelvin behavior
-        val network = if (level?.isClientSide != true) {
+        val network = if (level is PonderLevel) {
+            ClockworkMod.getKelvin(level)
+        } else if (level?.isClientSide != true) {
             ClockworkMod.getKelvin()
         } else {
             ClockworkModClient.getKelvin()

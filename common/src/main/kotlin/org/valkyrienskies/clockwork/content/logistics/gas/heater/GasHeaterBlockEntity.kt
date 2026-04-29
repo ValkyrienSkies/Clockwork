@@ -36,7 +36,7 @@ class GasHeaterBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
 
         if (level?.isClientSide != false ) return
-        val kelvin = ClockworkMod.getKelvin()
+        val kelvin = ClockworkMod.getKelvin(level)
 
 
         val node = kelvin.getNodeAt(getDuctNodePosition()) ?: return

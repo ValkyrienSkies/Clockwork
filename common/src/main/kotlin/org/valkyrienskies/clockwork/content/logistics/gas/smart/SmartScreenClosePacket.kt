@@ -38,7 +38,7 @@ class SmartScreenClosePacket(private val nodeA: DuctNodePos, private val nodeB: 
     override fun handle(context: ServerNetworkContext) {
         context.enqueueWork {
 
-            val edge = ClockworkMod.getKelvin().edges[Pair(nodeA, nodeB)] as SmartDuctEdge? ?: return@enqueueWork
+            val edge = ClockworkMod.getKelvin(context.sender.level()).edges[Pair(nodeA, nodeB)] as SmartDuctEdge? ?: return@enqueueWork
             edge.filter = filter
             edge.moreThan = moreThan
             edge.comparisonValue = comparisonValue

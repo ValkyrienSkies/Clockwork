@@ -128,7 +128,7 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         if (level!!.isClientSide) return clientTick()
 
         val ductnodepos = getDuctNodePosition()
-        val kelvin = ClockworkMod.getKelvin()
+        val kelvin = ClockworkMod.getKelvin(level)
         val node = kelvin.getNodeAt(ductnodepos) ?: return clearMassFlow()
         val gasMasses = kelvin.getGasMassAt(ductnodepos)
 

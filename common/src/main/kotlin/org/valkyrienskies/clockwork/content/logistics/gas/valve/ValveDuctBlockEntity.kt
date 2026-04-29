@@ -47,8 +47,8 @@ class ValveDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Blo
         val front = blockPos.relative(axis, -1)
         val back = blockPos.relative(axis, 1)
         if (level == null) return
-        val backEdge = ClockworkMod.getKelvin().getEdgeBetween(getDuctNodePosition(), ClockworkUtils.getDuctNodePos(back, level))
-        val frontEdge = ClockworkMod.getKelvin().getEdgeBetween(getDuctNodePosition(), ClockworkUtils.getDuctNodePos(front, level))
+        val backEdge = ClockworkMod.getKelvin(level).getEdgeBetween(getDuctNodePosition(), ClockworkUtils.getDuctNodePos(back, level))
+        val frontEdge = ClockworkMod.getKelvin(level).getEdgeBetween(getDuctNodePosition(), ClockworkUtils.getDuctNodePos(front, level))
 
         (backEdge as? ApertureDuctEdge)?.aperture = pointer.value.toDouble()-backEdge.radius
         (frontEdge as? ApertureDuctEdge)?.aperture = pointer.value.toDouble()-frontEdge.radius

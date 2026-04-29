@@ -101,7 +101,7 @@ object GasCrafterMethodsImpl {
                 return false
             }
 
-            val currentMasses = ClockworkMod.getKelvin().getGasMassAt(be.getDuctNodePosition())
+            val currentMasses = ClockworkMod.getKelvin(be.level).getGasMassAt(be.getDuctNodePosition())
             GasIngredients@ for ((gasType, mass) in gasIngredients) {
                 val mass = mass
                 if ((currentMasses[gasType] ?: 0.0) < mass) return false
@@ -109,7 +109,7 @@ object GasCrafterMethodsImpl {
 
             baseGasRecipe?.requirements?.forEach { (requirement, element) ->
                 if (!requirement.apply_requirement(be.level!!, be.getDuctNodePosition(),
-                        ClockworkMod.getKelvin(), element)) return false
+                        ClockworkMod.getKelvin(be.level), element)) return false
             }
 
 
@@ -149,7 +149,7 @@ object GasCrafterMethodsImpl {
 
                 for ((gasType, mass) in gasResults) {
                     val mass = mass
-                    ClockworkMod.getKelvin().modGasMass(be.getDuctNodePosition(), gasType, mass)
+                    ClockworkMod.getKelvin(be.level).modGasMass(be.getDuctNodePosition(), gasType, mass)
                 }
             }
         }
