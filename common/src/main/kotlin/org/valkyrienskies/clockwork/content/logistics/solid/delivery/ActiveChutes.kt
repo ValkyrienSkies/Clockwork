@@ -2,103 +2,47 @@ package org.valkyrienskies.clockwork.content.logistics.solid.delivery
 
 import com.simibubi.create.content.redstone.link.RedstoneLinkNetworkHandler.Frequency
 import net.minecraft.core.BlockPos
-import net.minecraft.server.level.ServerLevel
-import net.minecraft.world.phys.Vec3
-import org.joml.Vector3d
-import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonRenderer
+import net.minecraft.resources.ResourceKey
+import net.minecraft.world.level.Level
+import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlockEntity
-import org.valkyrienskies.core.util.x
-import org.valkyrienskies.core.util.y
-import org.valkyrienskies.core.util.z
-import org.valkyrienskies.mod.common.util.toJOMLD
 
 object ActiveChutes {
-     val actives: HashMap<BlockPos, DeliveryChuteBlockEntity> = HashMap()
-     val unloaded: HashMap<BlockPos, DeliveryChuteBlockEntity> = HashMap()
+    private val chutesByDimension = HashMap<ResourceKey<Level>, MutableSet<BlockPos>>()
 
-    val chutesToRemove: ArrayList<BlockPos> = ArrayList()
-
-    fun addChute(pos: BlockPos, chute: DeliveryChuteBlockEntity) {
-        actives[pos] = chute
+    fun addChute(level: Level?, pos: BlockPos) {
+        if (level == null) return
+        chutesByDimension.getOrPut(level.dimension()) { HashSet() }.add(pos.immutable())
     }
 
-    fun removeChute(pos: BlockPos) {
-        chutesToRemove.add(pos)
+    fun removeChute(level: Level?, pos: BlockPos) {
+        if (level == null) return
+        chutesByDimension[level.dimension()]?.remove(pos)
     }
 
-    private fun unloadChute(pos: BlockPos) {
-        unloaded[pos] = actives[pos]!!
-        actives.remove(pos)
+    fun getChute(level: Level, pos: BlockPos): DeliveryChuteBlockEntity? {
+        if (chutesByDimension[level.dimension()]?.contains(pos) != true) return null
+        return level.getBlockEntity(pos) as? DeliveryChuteBlockEntity
     }
 
-    private fun loadChute(pos: BlockPos) {
-        actives[pos] = unloaded[pos]!!
-        unloaded.remove(pos)
-    }
+    fun getSortedChutesWithFrequency(
+        level: Level,
+        origin: Vector3dc,
+        maxDistance: Double,
+        frequency: Frequency
+    ): List<BlockPos> {
+        val positions = chutesByDimension[level.dimension()] ?: return emptyList()
+        val maxDistanceSqr = maxDistance * maxDistance
 
-    fun getChutes(): HashMap<BlockPos, DeliveryChuteBlockEntity> {
-        return actives
-    }
-
-    fun getNearestChute(pos: BlockPos, maxDistance: Double): BlockPos? {
-        var closest: BlockPos? = null
-        var closestDistance: Double = Double.MAX_VALUE
-        for (chute in actives.keys) {
-            val realPos = actives[chute]!!.realPos!!
-            val realBlockPos = BlockPos(realPos.x().toInt(), realPos.y().toInt(), realPos.z().toInt())
-            if (realBlockPos.closerThan(pos, maxDistance)) {
-                if (realPos.distance(pos.toJOMLD()) < closestDistance) {
-                    closest = chute
-                    closestDistance = chute.toJOMLD().distance(pos.toJOMLD())
-                }
+        return positions
+            .mapNotNull { pos ->
+                val be = level.getBlockEntity(pos) as? DeliveryChuteBlockEntity ?: return@mapNotNull null
+                if (be.frequencySlotBehaviour.frequency != frequency) return@mapNotNull null
+                val realPos = be.realPos
+                val distSqr = realPos.distanceSquared(origin)
+                if (distSqr > maxDistanceSqr) null else pos to distSqr
             }
-        }
-        return closest
-    }
-
-    fun getSortedChuteWithFrequency(pos: Vector3d, maxDistance: Double, frequency: Frequency): MutableList<BlockPos>{
-        val inRange = mutableListOf<BlockPos>()
-
-        //println(actives)
-        for (entry in actives) {
-            val realChutePos = entry.value.realPos ?: continue
-            if (realChutePos.distance(pos) > maxDistance) continue
-            if (entry.value.frequencySlotBehaviour.frequency != frequency) continue
-
-            inRange.add(entry.key)
-        }
-
-        inRange.sortWith(compareBy { actives[it]!!.realPos!!.distance(pos) })
-        return inRange
-    }
-
-
-    fun tick(level: ServerLevel) {
-
-        for (pos in chutesToRemove) {
-            actives.remove(pos)
-            unloaded
-        }
-        chutesToRemove.clear()
-
-//        val toUnload: ArrayList<BlockPos> = ArrayList()
-//        for (pos in actives.keys) {
-//            if (!level.isLoaded(pos)) {
-//                toUnload.add(pos)
-//            }
-//        }
-//        for (pos in toUnload) {
-//            unloadChute(pos)
-//        }
-//
-//        val toLoad: ArrayList<BlockPos> = ArrayList()
-//        for (pos in unloaded.keys) {
-//            if (level.isLoaded(pos)) {
-//                toLoad.add(pos)
-//            }
-//        }
-//        for (pos in toLoad) {
-//            loadChute(pos)
-//        }
+            .sortedBy { it.second }
+            .map { it.first }
     }
 }

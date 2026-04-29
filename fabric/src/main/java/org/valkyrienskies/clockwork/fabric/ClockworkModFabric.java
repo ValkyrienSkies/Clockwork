@@ -10,7 +10,6 @@ import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraftforge.fml.config.ModConfig;
 import org.valkyrienskies.clockwork.*;
-import org.valkyrienskies.clockwork.content.events.ClockworkCommonEvents;
 import org.valkyrienskies.mod.fabric.common.ValkyrienSkiesModFabric;
 
 import static org.valkyrienskies.clockwork.fabric.RegisterPeripheralLookupKt.registerPeripheralLookup;
@@ -79,7 +78,6 @@ public class ClockworkModFabric implements ModInitializer {
     }
 
     public static void registerServerEvents() {
-        ServerTickEvents.START_WORLD_TICK.register(ClockworkCommonEvents.INSTANCE::onWorldTick);
         LivingEntityEvents.LivingTickEvent.TICK.register(FabricClockworkCommonEvents::onLivingTick);
         AttackBlockCallback.EVENT.register(FabricClockworkCommonEvents::playerLeftClick);
     }
