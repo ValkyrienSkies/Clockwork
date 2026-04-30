@@ -8,8 +8,8 @@
   ],
   "input_gasses": {
     "vs_clockwork:vitriol": {
-      "amount": 0.025,
-      "unit": "kg"
+      "amount": 25,
+      "unit": "g"
     }
   },
   "result_gasses": {
