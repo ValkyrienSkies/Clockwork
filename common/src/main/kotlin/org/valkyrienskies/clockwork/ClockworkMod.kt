@@ -95,7 +95,7 @@ object ClockworkMod {
 
     val physTickOnce = ConcurrentLinkedQueue<Pair<DimensionId, (PhysLevel, Double, () -> Unit) -> Unit>>()
 
-    private val ponderNetworks = WeakHashMap<PonderLevel, VirtualDuctNetwork>()
+
 
     @OptIn(VsBeta::class)
     @JvmStatic
@@ -208,7 +208,7 @@ object ClockworkMod {
     @JvmStatic
     fun getKelvin(level: Level?): DuctNetwork<*> {
         if (level is PonderLevel) {
-            return ponderNetworks.getOrPut(level) { VirtualDuctNetwork() }
+            return ClockworkModClient.ponderNetworks.getOrPut(level) { VirtualDuctNetwork() }
         }
         return getKelvin()
     }

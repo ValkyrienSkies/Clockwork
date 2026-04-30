@@ -15,6 +15,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.Wanderw
 import java.util.*
 import dev.architectury.event.events.common.TickEvent
 import dev.architectury.registry.client.keymappings.KeyMappingRegistry
+import net.createmod.ponder.api.level.PonderLevel
 import net.minecraft.client.KeyMapping
 import net.minecraft.core.BlockPos
 import net.minecraft.server.packs.resources.ResourceManager
@@ -34,6 +35,7 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_s
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 import org.valkyrienskies.clockwork.util.arc.LightningManager
 import org.valkyrienskies.clockwork.util.arc.LightningRenderer
+import org.valkyrienskies.clockwork.util.render.VirtualDuctNetwork
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.impl.client.DuctNetworkClient
 import org.valkyrienskies.mod.api.vsApi
@@ -61,6 +63,9 @@ object ClockworkModClient {
 
     @JvmStatic
     val METEOR_SHIP_IDS: HashSet<Long> = HashSet()
+
+    @JvmStatic
+    val ponderNetworks = WeakHashMap<PonderLevel, VirtualDuctNetwork>()
 
     var debugNodeCooldown = 0
 
@@ -109,6 +114,7 @@ object ClockworkModClient {
             ships.forEach { it ->
                 //MeteorRenderer.updateMeteorStateWorld(it, MeteorRenderer.meteorList[it.id] ?: return@forEach)
             }
+            ponderNetworks.forEach { (level, network) -> network.tick(level, 10) }
         })
 //        VSGameEvents.postRenderShip.on {
 //            MeteorRenderer.onShipRender(it)
