@@ -37,7 +37,9 @@ try {
     val kelvin = file("Kelvin")
     if (kelvin.isDirectory) {
         //ts is evil as hell, but we have to do it because of an intellij bug :(
-        includeBuild(kelvin.toPath().toRealPath().toAbsolutePath().toString())
+        includeBuild(kelvin.toPath().toRealPath().toAbsolutePath().toString()) {
+            name = "kelvin"
+        }
     }
 } catch (ignore: SecurityException) {}
 

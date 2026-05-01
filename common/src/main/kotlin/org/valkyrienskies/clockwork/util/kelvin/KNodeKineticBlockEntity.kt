@@ -55,7 +55,7 @@ abstract class KNodeKineticBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
-        if (ensureNodeExists() && !clientPacket) {
+        if (!clientPacket && ensureNodeExists()) {
             saveData(tag, this.getDuctNodePosition(), clientPacket)
         }
         super.write(tag, clientPacket)
@@ -63,7 +63,7 @@ abstract class KNodeKineticBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         super.read(tag, clientPacket)
-        if (ensureNodeExists() && !clientPacket) {
+        if (!clientPacket && ensureNodeExists()) {
             //if (!clientPacket) println("node exists, loading")
             loadData(tag, this.getDuctNodePosition(), clientPacket)
         } else {

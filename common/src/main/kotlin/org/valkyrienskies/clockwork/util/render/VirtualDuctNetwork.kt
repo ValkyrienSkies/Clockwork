@@ -28,7 +28,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 class VirtualDuctNetwork(
-    override var disabled: Boolean = true,
+    override var disabled: Boolean = false,
     override val edges: HashMap<Pair<DuctNodePos, DuctNodePos>, DuctEdge> = HashMap(),
     override val nodeInfo: HashMap<DuctNodePos, DuctNodeInfo> = HashMap(),
     override val nodes: HashMap<DuctNodePos, DuctNode> = HashMap(),
