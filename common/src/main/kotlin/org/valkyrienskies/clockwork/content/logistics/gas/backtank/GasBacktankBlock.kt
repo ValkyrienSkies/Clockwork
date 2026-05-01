@@ -145,16 +145,16 @@ class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(prop
 
         val tag = stack.getOrCreateTag()
         //println("$pos ${worldIn.dimension().location()}")
-        val network = ClockworkMod.getKelvin()
+        val network = ClockworkMod.getKelvin(worldIn)
         if (network.nodeInfo[pos.toDuctNodePos(worldIn.dimension().location())] == null) {
             nodePlace(state, worldIn, pos, Blocks.AIR.defaultBlockState(), false)
         }
-        deserializeNode(pos.toDuctNodePos(worldIn.dimension().location()), tag)
+        deserializeNode(pos.toDuctNodePos(worldIn.dimension().location()), tag, worldIn)
 
     }
 
-    fun deserializeNode(pos: DuctNodePos, tag: CompoundTag) {
-        val network = ClockworkMod.getKelvin()
+    fun deserializeNode(pos: DuctNodePos, tag: CompoundTag, level: Level) {
+        val network = ClockworkMod.getKelvin(level)
         val temperature = tag.getDouble("KelvinTemperature")
 
         for (gasResourceLocation in tag.allKeys) {

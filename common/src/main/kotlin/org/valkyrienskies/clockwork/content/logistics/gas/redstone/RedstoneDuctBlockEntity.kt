@@ -35,7 +35,7 @@ class RedstoneDuctBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: B
     }
 
     fun getPower(): Int {
-        return if (conditional != null && conditional!!.passes(ClockworkMod.getKelvin(), getDuctNodePosition())) 15 else 0
+        return if (conditional != null && conditional!!.passes(ClockworkMod.getKelvin(level), getDuctNodePosition())) 15 else 0
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {

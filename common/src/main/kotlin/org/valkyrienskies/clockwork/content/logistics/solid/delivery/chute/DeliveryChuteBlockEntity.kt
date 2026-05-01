@@ -45,21 +45,21 @@ class DeliveryChuteBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state
     }
 
     override fun tick() {
-        if (this.level == null || this.level!!.isClientSide) return
+        val level = this.level ?: return
+        if (level.isClientSide) return
 
-        if (ActiveChutes.actives[this.worldPosition] == null)
-            ActiveChutes.addChute(this.worldPosition, this)
+        ActiveChutes.addChute(level, this.worldPosition)
 
         if (!itemStack.isEmpty) SolidDeliveryMethods.pushTo(level, this)
     }
 
     override fun remove() {
-        ActiveChutes.removeChute(this.worldPosition)
+        ActiveChutes.removeChute(level, this.worldPosition)
         super.remove()
     }
 
     override fun destroy() {
-        ActiveChutes.removeChute(this.worldPosition)
+        ActiveChutes.removeChute(level, this.worldPosition)
         super.destroy()
     }
 

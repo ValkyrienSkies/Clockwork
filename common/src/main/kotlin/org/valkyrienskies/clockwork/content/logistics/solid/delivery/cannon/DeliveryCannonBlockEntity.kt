@@ -131,9 +131,9 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         if (level!!.isClientSide) return
 
         if (shootingAtChute != null) {
-            val chute = ActiveChutes.actives[shootingAtChute]
+            val chute = ActiveChutes.getChute(level!!, shootingAtChute!!)
             if (chute != null) distance.updateChaseTarget(chute.realPos.distance(realPos).toFloat())
-            else if (ActiveChutes.unloaded[shootingAtChute] == null) reset()
+            else reset()
 
             if (abs(distance.value - distance.chaseTarget) < 0.5 && chute != null) {
                 chute.busy = false
@@ -149,7 +149,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
         if (midAirStack.isEmpty && !currentStack.isEmpty) {
             // TODO: CONFIGURE MAX DISTANCE
-            val chutes = ActiveChutes.getSortedChuteWithFrequency(realPos,100.0,frequencySlotBehaviour.frequency)
+            val chutes = ActiveChutes.getSortedChutesWithFrequency(level!!, realPos, 100.0, frequencySlotBehaviour.frequency)
             if (chutes.isEmpty()) return
 
             var chute: BlockPos? = null
@@ -158,7 +158,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             for (possibleChute in chutes) {
                 if (isRoundRobin && possibleChute in visitedChutes) continue
                 chute = possibleChute
-                chuteBe = ActiveChutes.actives[chute] ?: continue
+                chuteBe = ActiveChutes.getChute(level!!, chute) ?: continue
                 if (chuteBe.busy || !chuteBe.receiveItem(currentStack, true) || isObstructed(chuteBe)) {
                     chuteBe = null
                     continue
@@ -175,7 +175,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
                 shootingAtChute = chute
                 midAirStack = currentStack
                 currentStack = ItemStack.EMPTY
-                distance.updateChaseTarget(realPos.distance(ActiveChutes.actives[chute]!!.realPos).toFloat())
+                distance.updateChaseTarget(realPos.distance(chuteBe.realPos).toFloat())
 
                 chuteBe.busy = true
 

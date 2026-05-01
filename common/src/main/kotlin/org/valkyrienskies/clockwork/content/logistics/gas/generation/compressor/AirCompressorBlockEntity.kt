@@ -58,7 +58,7 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
 
         if (level!!.isClientSide) return
 
-        val kelvin = ClockworkMod.getKelvin()
+        val kelvin = ClockworkMod.getKelvin(level)
         kelvin.getNodeAt(getDuctNodePosition()) ?: return
 
         val speed = abs(getSpeed())

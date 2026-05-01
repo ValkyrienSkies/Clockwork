@@ -28,6 +28,7 @@ import org.joml.*
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkMod.MOD_ID
 import org.valkyrienskies.clockwork.ClockworkSounds
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingData
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingUpdateData
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
@@ -38,12 +39,20 @@ import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.clockwork.util.ClockworkConstants.Nbt.ORIGINAL_DIRECTION
 import org.valkyrienskies.clockwork.util.ClockworkUtils.getVector3d
 import org.valkyrienskies.clockwork.util.GlueAssembler.collectGlued
+import org.valkyrienskies.clockwork.util.findMatchingJoint
+import org.valkyrienskies.clockwork.util.findMatchingJointIds
+import org.valkyrienskies.clockwork.util.findCompatiblePhysBearingJoint
+import org.valkyrienskies.clockwork.util.findCompatiblePhysBearingJointIds
+import org.valkyrienskies.clockwork.util.matchesByAnchors
+import org.valkyrienskies.clockwork.util.removeMatchingJointsExcept
+import org.valkyrienskies.clockwork.util.removeCompatiblePhysBearingJointsExcept
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.clockwork.util.updateJoint
 import org.valkyrienskies.clockwork.util.minus
 import org.valkyrienskies.clockwork.util.plus
 import org.valkyrienskies.clockwork.util.times
 import org.valkyrienskies.core.api.attachment.getAttachment
+import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.world.PhysLevel
@@ -139,10 +148,200 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     private var lastSpeed = 0f
     private var lastMode = LockedMode.UNLOCKED
+    private var lastAligning = false
 
     private var controllerCreationData: PhysBearingData? = null
     private var controllerUpdateData: PhysBearingUpdateData? = null
-    private var loadingFn: ((ServerLevel) -> Unit)? = null
+    private var loadingFn: ((ServerLevel) -> Boolean)? = null
+    private var skipNextServerUpdateAfterRestore = false
+    private var settleTicksRemainingAfterRestore = 0
+    private var deferredRestoreTries = 0
+    private var restoredFollowAngleMode: Boolean? = null
+    private var pendingJointCreationToken: Long = 0
+    @Volatile private var pendingLockedStateReseedAfterRestore = false
+    private var pendingExplicitTargetCommandAfterRestore = false
+    private var followAngleArmed = true
+    private var waitingForFreshCommandAfterRestore = false
+    private var pendingFollowAngleResumeAfterRestore = false
+
+    private fun isSettlingAfterRestore(): Boolean = settleTicksRemainingAfterRestore > 0
+    private fun isFollowAngleMode(): Boolean = movementMode?.get() == LockedMode.FOLLOW_ANGLE
+    private fun isHardLockedMode(): Boolean = isFollowAngleMode() || aligning
+
+    private fun getConfiguredRestoreSettleTicks(): Int {
+        val seconds = ClockworkConfig.SERVER.physBearingRestoreSettleSeconds
+        return max(0, (seconds * 20.0).roundToInt())
+    }
+
+    private fun initializeLockedRuntimeState(angle: Float) {
+        lockedCurrentAngle = angle
+        lockedInterpolationStartAngle = angle
+        lockedInterpolationGoalAngle = angle
+        lockedInterpolationTick = 0
+        sDir1 = null
+        sDir2 = null
+    }
+
+    private fun promoteLockedRuntimeGoal(goalAngle: Float) {
+        if (!goalAngle.isFinite()) {
+            return
+        }
+
+        if (lockedInterpolationGoalAngle == goalAngle && lockedCurrentAngle == goalAngle) {
+            return
+        }
+
+        lockedInterpolationStartAngle = lockedCurrentAngle
+        lockedInterpolationGoalAngle = goalAngle
+        lockedInterpolationTick = 0
+    }
+
+    private fun getActualAngleDegrees(
+        serverLevel: ServerLevel,
+        subShip: LoadedServerShip? = serverLevel.shipObjectWorld.loadedShips.getById(shiptraptionID),
+        mainShip: LoadedServerShip? = joint?.shipId1
+            ?.takeIf { it != NO_SHIPTRAPTION_ID }
+            ?.let(serverLevel.shipObjectWorld.loadedShips::getById)
+    ): Float? {
+        val loadedSubShip = subShip ?: return null
+        val actualAngleDegrees = Math.toDegrees(getAngle(bearingAxis, loadedSubShip.transform, mainShip?.transform)).toFloat()
+        return actualAngleDegrees.takeIf(Float::isFinite)
+    }
+
+    private fun armFollowAngle() {
+        followAngleArmed = true
+        waitingForFreshCommandAfterRestore = false
+        pendingFollowAngleResumeAfterRestore = false
+    }
+
+    private fun holdFollowAngleAfterRestore(actualAngleDegrees: Float) {
+        targetAngle = actualAngleDegrees
+        initializeLockedRuntimeState(actualAngleDegrees)
+        followAngleArmed = false
+        waitingForFreshCommandAfterRestore = true
+        pendingFollowAngleResumeAfterRestore = false
+        sequencedAngleLimit = -1.0f
+        sequencedAngleProgress = 0.0f
+    }
+
+    private fun beginAlignmentFromActual(actualAngleDegrees: Float) {
+        initializeLockedRuntimeState(actualAngleDegrees)
+        targetAngle = 0f
+        promoteLockedRuntimeGoal(0f)
+        armFollowAngle()
+    }
+
+    private fun syncLockedRuntimeStateToActualPose(serverLevel: ServerLevel): Float? {
+        val actualAngleDegrees = getActualAngleDegrees(serverLevel) ?: return null
+        targetAngle = actualAngleDegrees
+        initializeLockedRuntimeState(actualAngleDegrees)
+        return actualAngleDegrees
+    }
+
+    private fun rebaseAngleNearReference(angleDegrees: Float, referenceDegrees: Float): Float {
+        val turns = round((referenceDegrees - angleDegrees) / 360f)
+        return angleDegrees + turns * 360f
+    }
+
+    private fun finalizeLockedStateRestoreIfReady(serverLevel: ServerLevel): Boolean {
+        if (!pendingLockedStateReseedAfterRestore || isSettlingAfterRestore()) {
+            return false
+        }
+
+        val actualAngleDegrees = getActualAngleDegrees(serverLevel) ?: return false
+        initializeLockedRuntimeState(actualAngleDegrees)
+
+        if (aligning) {
+            beginAlignmentFromActual(actualAngleDegrees)
+        } else if (pendingExplicitTargetCommandAfterRestore) {
+            targetAngle = rebaseAngleNearReference(targetAngle, lockedCurrentAngle)
+            promoteLockedRuntimeGoal(targetAngle)
+            armFollowAngle()
+        } else if (pendingFollowAngleResumeAfterRestore) {
+            targetAngle = actualAngleDegrees
+            initializeLockedRuntimeState(actualAngleDegrees)
+            followAngleArmed = false
+            waitingForFreshCommandAfterRestore = true
+        } else if (followAngleArmed) {
+            targetAngle = actualAngleDegrees
+            waitingForFreshCommandAfterRestore = false
+        } else {
+            holdFollowAngleAfterRestore(actualAngleDegrees)
+        }
+
+        controllerCreationData?.bearingAngle = Math.toRadians(targetAngle.toDouble())
+        pendingLockedStateReseedAfterRestore = false
+        pendingExplicitTargetCommandAfterRestore = false
+        return true
+    }
+
+    private fun invalidatePendingJointCreation() {
+        pendingJointCreationToken++
+    }
+
+    private fun removeTrackedJoint(serverLevel: ServerLevel) {
+        invalidatePendingJointCreation()
+
+        val idsToRemove = linkedSetOf<Int>()
+        val id = jointID
+        if (id != -1) {
+            idsToRemove.add(id)
+        }
+        joint?.also { storedJoint ->
+            idsToRemove.addAll(serverLevel.gtpa.findMatchingJointIds(storedJoint))
+            idsToRemove.addAll(serverLevel.gtpa.findCompatiblePhysBearingJointIds(storedJoint))
+        }
+
+        idsToRemove.forEach { jointId ->
+            serverLevel.gtpa.removeJoint(jointId)
+        }
+
+        joint = null
+        jointID = -1
+    }
+
+    /**
+     * Validates that a joint's poses have finite (non-NaN, non-infinite) values.
+     * Corrupt joints with NaN/infinite positions or rotations can cause severe physics instability.
+     */
+    private fun isJointPoseFinite(joint: VSJoint): Boolean {
+        // Check pose0 position (Vector3dc uses method access)
+        val pos0 = joint.pose0.pos
+        if (!java.lang.Double.isFinite(pos0.x()) || !java.lang.Double.isFinite(pos0.y()) || !java.lang.Double.isFinite(pos0.z())) {
+            return false
+        }
+        // Check pose0 rotation (Quaterniondc uses method access)
+        val rot0 = joint.pose0.rot
+        if (!java.lang.Double.isFinite(rot0.x()) || !java.lang.Double.isFinite(rot0.y()) || 
+            !java.lang.Double.isFinite(rot0.z()) || !java.lang.Double.isFinite(rot0.w())) {
+            return false
+        }
+        // Check pose1 position
+        val pos1 = joint.pose1.pos
+        if (!java.lang.Double.isFinite(pos1.x()) || !java.lang.Double.isFinite(pos1.y()) || !java.lang.Double.isFinite(pos1.z())) {
+            return false
+        }
+        // Check pose1 rotation
+        val rot1 = joint.pose1.rot
+        if (!java.lang.Double.isFinite(rot1.x()) || !java.lang.Double.isFinite(rot1.y()) || 
+            !java.lang.Double.isFinite(rot1.z()) || !java.lang.Double.isFinite(rot1.w())) {
+            return false
+        }
+        return true
+    }
+
+    private fun pushControllerUpdate(updateData: PhysBearingUpdateData) {
+        val serverLevel = level as? ServerLevel ?: return
+        val subShip = serverLevel.shipObjectWorld.loadedShips.getById(shiptraptionID)
+        val controller = subShip?.let { BearingController.getOrCreate(it) }
+
+        if (controller != null && bearingID != -1) {
+            controller.updatePhysBearing(bearingID, updateData)
+            controllerUpdateData = null
+        } else {
+            controllerUpdateData = updateData
+        }
+    }
 
     init {
         setLazyTickRate(3)
@@ -165,43 +364,44 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     }
 
     private fun updateDrive(driveVelocity: VSRevoluteJoint.VSRevoluteDriveVelocity? = null) {
-        if (movementMode!!.get() == LockedMode.FOLLOW_ANGLE || aligning) {
+        val updateData = if (movementMode!!.get() == LockedMode.FOLLOW_ANGLE || aligning) {
             joint = VSFixedJoint(joint!!.shipId0, joint!!.pose0, joint!!.shipId1, joint!!.pose1, compliance = 1e-100)
-            controllerUpdateData = PhysBearingUpdateData(
+            PhysBearingUpdateData(
                 Math.toRadians(targetAngle.toDouble()),
                 0f,
-                false
+                true
             )
         } else {
             joint = VSRevoluteJoint(joint!!.shipId0, joint!!.pose0, joint!!.shipId1, joint!!.pose1, compliance = 1e-100, driveFreeSpin = true)
-            controllerUpdateData = PhysBearingUpdateData(
+            PhysBearingUpdateData(
                 Math.toRadians(targetAngle.toDouble()),
                 getRealisticAngularSpeed(),
                 false
             )
-            (level as ServerLevel).gtpa.updateJoint(jointID, joint!!)
         }
+
+        (level as ServerLevel).gtpa.updateJoint(jointID, joint!!)
+        pushControllerUpdate(updateData)
     }
 
     @Volatile override lateinit var dimension: DimensionId
     @Volatile private var sDir1: Vector3dc? = null
     @Volatile private var sDir2: Vector3dc? = null
-    @Volatile private var pTick = 0
-    @Volatile private var lastAngle = targetAngle
-    @Volatile private var curAngle = targetAngle
+    @Volatile private var lockedInterpolationTick = 0
+    @Volatile private var lockedInterpolationStartAngle = targetAngle
+    @Volatile private var lockedInterpolationGoalAngle = targetAngle
+    @Volatile private var lockedCurrentAngle = targetAngle
     override fun physTick(physShip: PhysShip?, physLevel: PhysLevel) {
         if (isRemoved || !isRunning) return
         if (jointID == -1) return
         val joint = joint as? VSFixedJoint ?: return
+        if (pendingLockedStateReseedAfterRestore) return
+        if (isFollowAngleMode() && !aligning && waitingForFreshCommandAfterRestore) return
 
-        if (curAngle != targetAngle) {
-            pTick = 0
-            lastAngle = curAngle
-            curAngle = targetAngle
-        }
-
-        var angle = Math.toRadians(lastAngle + (targetAngle - lastAngle) * ((pTick+1) / 3.0))
-        if (aligning) { angle = 0.0 }
+        val interpProgress = (lockedInterpolationTick + 1).toDouble() / 3.0
+        val shortestDelta = shortestAngleDeltaDegrees(lockedInterpolationStartAngle, lockedInterpolationGoalAngle)
+        val interpolatedAngle = (lockedInterpolationStartAngle + shortestDelta * interpProgress).toFloat()
+        val angle = Math.toRadians(interpolatedAngle.toDouble())
 
         physLevel as VsiPhysLevel
         if (sDir1 == null || sDir2 == null) {
@@ -228,7 +428,19 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         physLevel.updateJoint(jointID, this.joint!!)
 
-        pTick = max(pTick++, 2)
+        lockedCurrentAngle = interpolatedAngle
+        lockedInterpolationTick = min(lockedInterpolationTick + 1, 2)
+    }
+
+    private fun shortestAngleDeltaDegrees(from: Float, to: Float): Float {
+        var delta = to - from
+        while (delta > 180f) {
+            delta -= 360f
+        }
+        while (delta < -180f) {
+            delta += 360f
+        }
+        return delta
     }
 
     public override fun write(tag: CompoundTag, clientPacket: Boolean) {
@@ -250,6 +462,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         tag.putVector3d("bearingPos", bearingPos)
         tag.putVector3d("bearingAxis", bearingAxis)
         tag.putBoolean("aligning", aligning)
+        tag.putBoolean(FOLLOW_ANGLE_MODE_TAG, movementMode?.get() == LockedMode.FOLLOW_ANGLE)
 
         val mapper = VSJacksonUtil.dtoMapper
         when (joint) {
@@ -267,17 +480,36 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         tag.putVector3d(ClockworkConstants.Nbt.NEW_SHIPTRAPTION_CENTER, bearingPos)
     }
 
-    private fun loadTheRest(tag: CompoundTag, level: ServerLevel) {
-        var joint = this.joint ?: return
-        val mainId = level.getShipManagingPos(worldPosition)?.id
+    private fun loadTheRest(tag: CompoundTag, level: ServerLevel): Boolean {
+        val joint = this.joint ?: return true
+
+        val subShip = level.shipObjectWorld.loadedShips.getById(shiptraptionID)
+        if (shiptraptionID != NO_SHIPTRAPTION_ID && subShip == null) {
+            deferredRestoreTries++
+            if (deferredRestoreTries % 40 == 0) {
+                ClockworkMod.LOGGER.warn("Deferring phys bearing restore at {}: sub-ship {} is not loaded yet (attempt {}).", worldPosition, shiptraptionID, deferredRestoreTries)
+            }
+            return false
+        }
+        val mainId = joint.shipId1
+        val mainShip = mainId
+            ?.takeIf { it != NO_SHIPTRAPTION_ID }
+            ?.let(level.shipObjectWorld.loadedShips::getById)
+        if (mainId != null && mainId != NO_SHIPTRAPTION_ID && mainShip == null) {
+            deferredRestoreTries++
+            if (deferredRestoreTries % 40 == 0) {
+                ClockworkMod.LOGGER.warn("Deferring phys bearing restore at {}: main ship {} is not loaded yet (attempt {}).", worldPosition, mainId, deferredRestoreTries)
+            }
+            return false
+        }
 
         val oldBPos = BlockPos.of(tag.getLong(ClockworkConstants.Nbt.OLD_POS))
         val oldPos = oldBPos.toJOMLD()
 
         val newPos = worldPosition.toJOMLD()
 
-        val oldSPos = tag.getVector3d(ClockworkConstants.Nbt.OLD_SHIPTRAPTION_CENTER) ?: return
-        val newSPos = tag.getVector3d(ClockworkConstants.Nbt.NEW_SHIPTRAPTION_CENTER) ?: return
+        val oldSPos = tag.getVector3d(ClockworkConstants.Nbt.OLD_SHIPTRAPTION_CENTER) ?: return true
+        val newSPos = tag.getVector3d(ClockworkConstants.Nbt.NEW_SHIPTRAPTION_CENTER) ?: return true
 
         bearingPos = bearingPos.sub(oldSPos).add(newSPos)
 
@@ -291,11 +523,45 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             else -> throw AssertionError()
         }
 
+        // Validate that the restored joint has finite poses; corrupt (NaN/infinite) joints must be discarded
+        // to prevent cascading physics instability when placing/breaking blocks in the connected ship
+        if (!isJointPoseFinite(this.joint!!)) {
+            ClockworkMod.LOGGER.warn(
+                "Discarding corrupted phys bearing joint at {} with non-finite pose data (NaN or infinite). " +
+                "This joint would cause physics instability and block placement errors. " +
+                "Restored joint poses: pose0.pos={}, pose1.pos={}",
+                worldPosition,
+                this.joint!!.pose0.pos,
+                this.joint!!.pose1.pos
+            )
+            removeTrackedJoint(level)
+            return true  // Recovery successful; bearing unlinked until next assembly
+        }
+
+        val followAngleMode = restoredFollowAngleMode ?: (movementMode?.get() == LockedMode.FOLLOW_ANGLE)
+        movementMode?.setValue(
+            if (followAngleMode) LockedMode.FOLLOW_ANGLE.ordinal else LockedMode.UNLOCKED.ordinal
+        )
+        pendingLockedStateReseedAfterRestore = this.joint is VSFixedJoint && (followAngleMode || aligning)
+        pendingExplicitTargetCommandAfterRestore = false
+        pendingFollowAngleResumeAfterRestore = false
+        if (pendingLockedStateReseedAfterRestore && !aligning) {
+            followAngleArmed = false
+            waitingForFreshCommandAfterRestore = true
+            sequencedAngleLimit = -1.0f
+            sequencedAngleProgress = 0.0f
+        } else {
+            followAngleArmed = true
+            waitingForFreshCommandAfterRestore = false
+        }
+        lastMode = movementMode?.get() ?: lastMode
+        lastSpeed = getSpeed()
+        lastAligning = aligning
         controllerCreationData = PhysBearingData(
             bearingAxis.get(Vector3d()),
             Math.toRadians(targetAngle.toDouble()),
             getRealisticAngularSpeed(),
-            movementMode!!.get() == LockedMode.FOLLOW_ANGLE,
+            followAngleMode,
             aligning,
             mainId ?: -1L,
             this.joint?.pose1?.pos?.get(Vector3d()) ?: Vector3d(),
@@ -303,6 +569,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         )
 
         tryMakeJoint()
+        skipNextServerUpdateAfterRestore = true
+        settleTicksRemainingAfterRestore = getConfiguredRestoreSettleTicks()
+        deferredRestoreTries = 0
+        restoredFollowAngleMode = null
+        return true
     }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
@@ -310,8 +581,15 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         open = tag.getBoolean(ClockworkConstants.Nbt.OPEN)
         isRunning = tag.getBoolean(ClockworkConstants.Nbt.RUNNING)
         targetAngle = tag.getFloat(ClockworkConstants.Nbt.ANGLE)
-        lastAngle = targetAngle
-        curAngle = targetAngle
+        initializeLockedRuntimeState(targetAngle)
+        pendingLockedStateReseedAfterRestore = false
+        pendingExplicitTargetCommandAfterRestore = false
+        followAngleArmed = true
+        waitingForFreshCommandAfterRestore = false
+        pendingFollowAngleResumeAfterRestore = false
+        lastMode = movementMode?.get() ?: lastMode
+        lastSpeed = getSpeed()
+        lastAligning = aligning
         lastException = AssemblyException.read(tag)
         if (tag.contains(ClockworkConstants.Nbt.SHIPTRAPTION_ID)) {
             shiptraptionID = tag.getLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID)
@@ -323,15 +601,20 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             if (shiptraptionID == NO_SHIPTRAPTION_ID) {
                 clientAngleDiff = AngleHelper.getShortestAngleDiff(angleBefore.toDouble(), targetAngle.toDouble())
                 targetAngle = angleBefore
+                initializeLockedRuntimeState(targetAngle)
             }
         } else {
             shiptraptionID = NO_SHIPTRAPTION_ID
         }
         sequencedAngleLimit = tag.getFloat(ClockworkConstants.Nbt.SEQUENCED_ANGLE_LIMIT)
         sequencedAngleProgress = tag.getFloat(ClockworkConstants.Nbt.SEQUENCED_ANGLE_PROGRESS)
+        restoredFollowAngleMode = if (tag.contains(FOLLOW_ANGLE_MODE_TAG)) tag.getBoolean(FOLLOW_ANGLE_MODE_TAG) else null
 
-        bearingPos = tag.getVector3d("bearingPos")!!
-        bearingAxis = tag.getVector3d("bearingAxis")!!
+        bearingPos = tag.getVector3d("bearingPos") ?: Vector3d()
+        val defaultAxis = (blockState.block as? BearingBlock)
+            ?.let { blockState.getValue(BearingBlock.FACING).normal.toJOMLD() }
+            ?: Vector3d(0.0, 1.0, 0.0)
+        bearingAxis = tag.getVector3d("bearingAxis") ?: defaultAxis
         aligning = tag.getBoolean("aligning")
 
         val mapper = VSJacksonUtil.dtoMapper
@@ -353,10 +636,12 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         // may not have level on read so i have to do this
         loadingFn = { level -> loadTheRest(tag, level) }
+        deferredRestoreTries = 0
 
         val level = level as? ServerLevel ?: return
-        loadingFn!!(level)
-        loadingFn = null
+        if (loadingFn!!(level)) {
+            loadingFn = null
+        }
     }
 
     override fun getInterpolatedAngle(partialTicks: Float): Float {
@@ -447,13 +732,108 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     fun tryMakeJoint() {
         val joint = joint ?: return
+        val creationToken = pendingJointCreationToken + 1
+        pendingJointCreationToken = creationToken
+
+        // Validate joint before attempting to register it with the physics system
+        if (!isJointPoseFinite(joint)) {
+            ClockworkMod.LOGGER.warn(
+                "Rejecting corrupted phys bearing joint at {} during registration: non-finite pose data. " +
+                "Joint will not be created to prevent physics instability.",
+                worldPosition
+            )
+            val serverLevel = level as? ServerLevel
+            if (serverLevel != null) {
+                removeTrackedJoint(serverLevel)
+            } else {
+                invalidatePendingJointCreation()
+                this.joint = null
+                this.jointID = -1
+            }
+            return
+        }
 
         ClockworkMod.physTickOnce(level.dimensionId!!) { level, _, tryNextTick ->
             level as VsiPhysLevel
-            val existing = level.getJointById(jointID)
-            if (existing != null && existing == joint) {
-                isRunning = true
+
+            if (creationToken != pendingJointCreationToken) {
                 return@physTickOnce
+            }
+
+            val existing = level.getJointById(jointID)
+            if (existing != null) {
+                val canReuseExactJoint =
+                    isJointPoseFinite(existing) && (
+                        existing.matchesByAnchors(joint) ||
+                            level.findCompatiblePhysBearingJointIds(joint).contains(jointID)
+                        )
+
+                if (canReuseExactJoint) {
+                    if (existing::class != joint::class) {
+                        level.updateJoint(jointID, joint)
+                        this.joint = joint
+                    } else {
+                        // Persisted restore can resolve before BE reconciliation and may not be bit-identical
+                        // to our recomputed local copy. Reuse the restored joint to avoid creating duplicates.
+                        this.joint = existing
+                    }
+                    level.removeMatchingJointsExcept(this.joint!!, jointID)
+                    level.removeCompatiblePhysBearingJointsExcept(this.joint!!, jointID)
+                    deferredRestoreTries = 0
+                    isRunning = true
+                    lastStateChanged = ticks
+                    return@physTickOnce
+                }
+            }
+            val matchingExisting = level.findMatchingJoint(joint)
+            if (matchingExisting != null) {
+                this.joint = matchingExisting.joint
+                this.jointID = matchingExisting.jointId
+                level.removeMatchingJointsExcept(matchingExisting.joint, matchingExisting.jointId)
+                level.removeCompatiblePhysBearingJointsExcept(matchingExisting.joint, matchingExisting.jointId)
+                deferredRestoreTries = 0
+                isRunning = true
+                lastStateChanged = ticks
+                return@physTickOnce
+            }
+            val compatibleExisting = level.findCompatiblePhysBearingJoint(joint)
+            if (compatibleExisting != null) {
+                this.jointID = compatibleExisting.jointId
+                if (compatibleExisting.joint::class != joint::class) {
+                    level.updateJoint(compatibleExisting.jointId, joint)
+                    this.joint = joint
+                } else {
+                    this.joint = compatibleExisting.joint
+                }
+                level.removeCompatiblePhysBearingJointsExcept(this.joint!!, compatibleExisting.jointId)
+                deferredRestoreTries = 0
+                isRunning = true
+                lastStateChanged = ticks
+                return@physTickOnce
+            }
+            if (jointID != -1) {
+                deferredRestoreTries++
+                if (deferredRestoreTries <= MAX_RESTORED_JOINT_RESOLVE_TRIES) {
+                    if (deferredRestoreTries % 20 == 0) {
+                        ClockworkMod.LOGGER.warn(
+                            "Deferring phys bearing joint restore at {} while waiting for joint {} to resolve (attempt {}).",
+                            worldPosition,
+                            jointID,
+                            deferredRestoreTries
+                        )
+                    }
+                    tryNextTick()
+                    return@physTickOnce
+                }
+
+                ClockworkMod.LOGGER.warn(
+                    "Discarding stale phys bearing joint reference at {} (joint={}) after {} restore attempts.",
+                    worldPosition,
+                    jointID,
+                    deferredRestoreTries
+                )
+                jointID = -1
+                deferredRestoreTries = 0
             }
             if (
                 joint.shipId0 != null && level.getShipById(joint.shipId0!!) == null ||
@@ -464,10 +844,21 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             }
             val id = level.addJoint(joint)
             if (id == -1) {
-                tryNextTick()
+                if (creationToken == pendingJointCreationToken) {
+                    tryNextTick()
+                }
                 return@physTickOnce
             }
+
+            if (creationToken != pendingJointCreationToken) {
+                level.removeJoint(id)
+                return@physTickOnce
+            }
+
             this.jointID = id
+            level.removeMatchingJointsExcept(joint, id)
+            level.removeCompatiblePhysBearingJointsExcept(joint, id)
+            deferredRestoreTries = 0
 
             isRunning = true
             lastStateChanged = ticks
@@ -561,16 +952,39 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val extraDist = 1.0
 //        val realSpeed = if (getSpeed().absoluteValue > 0.0f) getRealisticAngularSpeed() else 0.0f
 //        val newDriveVelocity = if (realSpeed != 0.0f) VSRevoluteJoint.VSRevoluteDriveVelocity(getRealisticAngularSpeed(), true) else null
-        joint = VSRevoluteJoint(
-            shiptraptionID, VSJointPose(bearingPos.fma(-extraDist, axis, Vector3d()), ship1rot),
-            shipOnID, VSJointPose(posInOwnerShip.fma(-extraDist, axis, Vector3d()), ship2rot),
-            compliance = 1e-100,
-            driveFreeSpin = true//movementMode!!.get() != LockedMode.LOCKED,
-//            driveVelocity = newDriveVelocity,
-        )
+        val pose0 = VSJointPose(bearingPos.fma(-extraDist, axis, Vector3d()), ship1rot)
+        val pose1 = VSJointPose(posInOwnerShip.fma(-extraDist, axis, Vector3d()), ship2rot)
+        val startsLocked = movementMode!!.get() == LockedMode.FOLLOW_ANGLE || aligning
+        joint = if (startsLocked) {
+            VSFixedJoint(
+                shiptraptionID,
+                pose0,
+                shipOnID,
+                pose1,
+                compliance = 1e-100
+            )
+        } else {
+            VSRevoluteJoint(
+                shiptraptionID,
+                pose0,
+                shipOnID,
+                pose1,
+                compliance = 1e-100,
+                driveFreeSpin = true
+            )
+        }
 
         this.bearingAxis = axis
         this.bearingPos = bearingPos
+        initializeLockedRuntimeState(targetAngle)
+        pendingLockedStateReseedAfterRestore = false
+        pendingExplicitTargetCommandAfterRestore = false
+        followAngleArmed = true
+        waitingForFreshCommandAfterRestore = false
+        pendingFollowAngleResumeAfterRestore = false
+        lastMode = movementMode!!.get()
+        lastSpeed = getSpeed()
+        lastAligning = aligning
 
         controllerCreationData = PhysBearingData(
             bearingAxis.get(Vector3d()),
@@ -593,10 +1007,12 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val level = level ?: return
         if (level.isClientSide || level !is ServerLevel) return
 
-        val ship = level.shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return
-        BearingController.getOrCreate(ship)!!.removePhysBearing(bearingID)
+        removeTrackedJoint(level)
 
-        joint?.let { level.gtpa.removeJoint(jointID) }
+        val ship = level.shipObjectWorld.loadedShips.getById(shiptraptionID)
+        if (ship != null) {
+            BearingController.getOrCreate(ship)!!.removePhysBearing(bearingID)
+        }
     }
 
     fun disassemble() {
@@ -605,7 +1021,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         targetAngle = 0f
         if (shiptraptionID == NO_SHIPTRAPTION_ID) return
         val level = level as ServerLevel
-        val ship = level.shipObjectWorld.loadedShips.getById(shiptraptionID) ?: return resetState()
+        val ship = level.shipObjectWorld.loadedShips.getById(shiptraptionID) ?: run {
+            removeTrackedJoint(level)
+            resetState()
+            return
+        }
 
         if (!canDisassemble(bearingAxis, ship, level.getShipObjectManagingPos(worldPosition))) {
             disassembleWhenPossible = !disassembleWhenPossible
@@ -652,12 +1072,30 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             return
         }
         BearingController.getOrCreate(subShip)!!.removePhysBearing(bearingID)
+        removeTrackedJoint(level)
 
         lastStateChanged = ticks
         resetState()
     }
 
+    private fun deactivateAfterSubShipDestroyed(level: ServerLevel) {
+        if (!isRunning || shiptraptionID == NO_SHIPTRAPTION_ID) {
+            return
+        }
+
+        ClockworkMod.LOGGER.warn(
+            "Deactivating phys bearing at {} because sub-ship {} no longer exists.",
+            worldPosition,
+            shiptraptionID
+        )
+
+        removeTrackedJoint(level)
+        lastStateChanged = ticks
+        resetState()
+    }
+
     private fun resetState() {
+        invalidatePendingJointCreation()
         bearingID = -1
         shiptraptionID = NO_SHIPTRAPTION_ID
         isRunning = false
@@ -668,14 +1106,26 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         sequencedAngleProgress = 0f
         targetAngle = 0f
         sendData()
+        joint = null
         jointID = -1
         aligning = false
+        controllerCreationData = null
+        controllerUpdateData = null
+        loadingFn = null
 
         sDir1 = null
         sDir2 = null
-        pTick = 0
-        lastAngle = 0f
-        curAngle = 0f
+        initializeLockedRuntimeState(0f)
+        settleTicksRemainingAfterRestore = 0
+        pendingLockedStateReseedAfterRestore = false
+        pendingExplicitTargetCommandAfterRestore = false
+        followAngleArmed = true
+        waitingForFreshCommandAfterRestore = false
+        pendingFollowAngleResumeAfterRestore = false
+        restoredFollowAngleMode = null
+        skipNextServerUpdateAfterRestore = false
+        deferredRestoreTries = 0
+        lastAligning = false
     }
 
     private fun tryAssembleNextTick() {
@@ -686,22 +1136,49 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     }
 
     private fun tryUpdateData() {
-        if (shiptraptionID == NO_SHIPTRAPTION_ID) {return}
-        if (   (lastSpeed == getSpeed() && lastMode == movementMode?.get())
-            && (movementMode!!.get() != LockedMode.FOLLOW_ANGLE && !aligning)
-        ) {return}
+        if (shiptraptionID == NO_SHIPTRAPTION_ID || joint == null) {return}
 
-        if (lastMode != movementMode?.get() && movementMode?.get() == LockedMode.FOLLOW_ANGLE) {
-            val shipOn = level!!.getShipObjectManagingPos(blockPos)?.transform
-            val shiptraption = level!!.shipObjectWorld.allShips.getById(shiptraptionID)?.transform ?: return
+        val mode = movementMode!!.get()
+        val speed = getSpeed()
+        val modeChanged = lastMode != mode
+        val speedChanged = lastSpeed != speed
+        val aligningChanged = lastAligning != aligning
 
-            targetAngle = Math.toDegrees(getAngle(bearingAxis, shiptraption, shipOn)).toFloat()
+        if (!modeChanged && !speedChanged && !aligningChanged) {
+            return
         }
 
-        lastSpeed = getSpeed()
-        lastMode = movementMode!!.get()
+        val serverLevel = level as? ServerLevel ?: return
+        val shouldBeLocked = mode == LockedMode.FOLLOW_ANGLE || aligning
 
-        val realSpeed = if (abs(getSpeed()) > 0.0f) getRealisticAngularSpeed() else 0.0f
+        when {
+            aligning && (modeChanged || aligningChanged) -> {
+                val actualAngleDegrees = getActualAngleDegrees(serverLevel) ?: return
+                beginAlignmentFromActual(actualAngleDegrees)
+                pendingExplicitTargetCommandAfterRestore = false
+            }
+            mode == LockedMode.FOLLOW_ANGLE && (modeChanged || (lastAligning && !aligning)) -> {
+                val actualAngleDegrees = getActualAngleDegrees(serverLevel) ?: return
+                initializeLockedRuntimeState(actualAngleDegrees)
+                targetAngle = actualAngleDegrees
+                armFollowAngle()
+                pendingExplicitTargetCommandAfterRestore = false
+            }
+            !shouldBeLocked -> {
+                armFollowAngle()
+                pendingExplicitTargetCommandAfterRestore = false
+            }
+        }
+
+        lastSpeed = speed
+        lastMode = mode
+        lastAligning = aligning
+
+        if (!modeChanged && !aligningChanged && shouldBeLocked) {
+            return
+        }
+
+        val realSpeed = if (abs(speed) > 0.0f) getRealisticAngularSpeed() else 0.0f
         val newDriveVelocity = if (realSpeed != 0.0f) VSRevoluteJoint.VSRevoluteDriveVelocity(getRealisticAngularSpeed(), true) else null
         updateDrive(newDriveVelocity)
     }
@@ -730,15 +1207,25 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             openProgress = 1f
         }
 
-        if (open && !isRunning && openProgress > 0.0f) {
+        if (!isRunning && openProgress > 0.0f) {
+            opening = false
+            open = true
             openProgress -= 0.05f
-        } else if (openProgress <= 0.0f) {
+        } else if (!isRunning && openProgress <= 0.0f) {
+            opening = false
             open = false
             openProgress = 0.0f
         }
     }
 
     fun getActualAngularSpeed(): Float {
+        if (isFollowAngleMode() && !aligning && waitingForFreshCommandAfterRestore) {
+            return 0f
+        }
+        return getCommandedAngularSpeedIgnoringRestoreHold()
+    }
+
+    private fun getCommandedAngularSpeedIgnoringRestoreHold(): Float {
         val dir = originalDirection!!
         return convertToAngular(getSpeed()) * if (dir == Direction.WEST || dir == Direction.NORTH || dir == Direction.DOWN) 1 else -1
     }
@@ -755,18 +1242,29 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (level!!.isClientSide) clientAngleDiff /= 2f
         if (!level!!.isClientSide) {
             loadingFn?.also {
-                it(level as ServerLevel)
-                loadingFn = null
+                if (it(level as ServerLevel)) {
+                    loadingFn = null
+                }
             }
 
-            val subShip = (level as ServerLevel).shipObjectWorld.loadedShips.getById(shiptraptionID)
+            val serverLevel = level as ServerLevel
+            val subShip = serverLevel.shipObjectWorld.loadedShips.getById(shiptraptionID)
+            if (settleTicksRemainingAfterRestore > 0) {
+                settleTicksRemainingAfterRestore--
+            }
+            finalizeLockedStateRestoreIfReady(serverLevel)
+            if (isRunning && shiptraptionID != NO_SHIPTRAPTION_ID && subShip == null && loadingFn == null) {
+                deactivateAfterSubShipDestroyed(serverLevel)
+            }
             controllerCreationData?.also {
+                if (pendingLockedStateReseedAfterRestore) return@also
                 bearingID = BearingController
                     .getOrCreate(subShip ?: return@also)!!
                     .addPhysBearing(it)
                 controllerCreationData = null
             }
             controllerUpdateData?.also {
+                if (pendingLockedStateReseedAfterRestore) return@also
                 BearingController
                     .getOrCreate(subShip ?: return@also)!!
                     .updatePhysBearing(bearingID, it)
@@ -779,8 +1277,24 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (!isRunning) return
         if (shiptraptionID == NO_SHIPTRAPTION_ID) {
             targetAngle = 0f
+            initializeLockedRuntimeState(0f)
         } else if (joint != null && jointID != -1) {
-            val angularSpeed = -getActualAngularSpeed()
+            val commandedAngularSpeed = if (isSettlingAfterRestore()) 0.0f else -getCommandedAngularSpeedIgnoringRestoreHold()
+            // Start the first post-restore move from the current settled pose, not the persisted target.
+            if (
+                !level!!.isClientSide &&
+                isFollowAngleMode() &&
+                !aligning &&
+                waitingForFreshCommandAfterRestore &&
+                pendingFollowAngleResumeAfterRestore &&
+                abs(commandedAngularSpeed) > 1e-6f
+            ) {
+                val serverLevel = level as? ServerLevel
+                if (serverLevel != null && syncLockedRuntimeStateToActualPose(serverLevel) != null) {
+                    armFollowAngle()
+                }
+            }
+            val angularSpeed = if (isFollowAngleMode() && !aligning && waitingForFreshCommandAfterRestore) 0.0f else commandedAngularSpeed
             var diff = 0.0f
 
             if (sequencedAngleLimit >= 0.0f) {
@@ -795,25 +1309,35 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                 }
             }
             val newAngle = targetAngle + angularSpeed - diff
-            //this is stupid
-            lastAngle = when {
-                newAngle >= 360f * 2 -> lastAngle - 360f * 2
-                newAngle < 0f -> lastAngle + 360f * 2
-                else -> lastAngle
-            }
-            curAngle = when {
-                newAngle >= 360f * 2 -> curAngle - 360f * 2
-                newAngle < 0f -> curAngle + 360f * 2
-                else -> curAngle
-            }
-            targetAngle = when {
-                newAngle >= 360f * 2 -> newAngle - 360f * 2
-                newAngle < 0f -> newAngle + 360f * 2
-                else -> newAngle
+            if (isHardLockedMode()) {
+                if (aligning) {
+                    targetAngle = 0f
+                    if (lockedInterpolationGoalAngle != 0f) {
+                        promoteLockedRuntimeGoal(0f)
+                    }
+                } else if (isFollowAngleMode() && followAngleArmed && newAngle != targetAngle) {
+                    targetAngle = newAngle
+                    promoteLockedRuntimeGoal(targetAngle)
+                }
+            } else {
+                // Preserve legacy wrapping behavior for non-follow-angle modes.
+                targetAngle = when {
+                    newAngle >= 360f * 2 -> newAngle - 360f * 2
+                    newAngle < 0f -> newAngle + 360f * 2
+                    else -> newAngle
+                }
             }
         }
         //needs to be after targetAngle change
-        if (!level!!.isClientSide) { tryUpdateData() }
+        if (!level!!.isClientSide) {
+            if (skipNextServerUpdateAfterRestore) {
+                skipNextServerUpdateAfterRestore = false
+            } else if (isSettlingAfterRestore()) {
+                // Hold control updates until the post-restore stabilization window elapses.
+            } else {
+                tryUpdateData()
+            }
+        }
     }
 
     override fun onSpeedChanged(previousSpeed: Float) {
@@ -824,11 +1348,12 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             sequencedAngleLimit = sequenceContext.getEffectiveValue(theoreticalSpeed.toDouble()).toFloat()
         }
 
-        if (level != null && !level!!.isClientSide && joint != null) {
-            lastSpeed = getSpeed()
-            val realSpeed = if (abs(getSpeed()) > 0.0f) getRealisticAngularSpeed() else 0.0f
-            val newDriveVelocity = if (realSpeed != 0.0f) VSRevoluteJoint.VSRevoluteDriveVelocity(getRealisticAngularSpeed(), true) else VSRevoluteJoint.VSRevoluteDriveVelocity(0f, true)
-            updateDrive(newDriveVelocity)
+        if (level != null && !level!!.isClientSide && isFollowAngleMode() && !aligning) {
+            if (waitingForFreshCommandAfterRestore) {
+                pendingFollowAngleResumeAfterRestore = abs(getSpeed()) > 1e-6f
+            } else {
+                armFollowAngle()
+            }
         }
         super.onSpeedChanged(previousSpeed)
     }
@@ -861,13 +1386,46 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     override fun onStall() { if (!level!!.isClientSide) sendData() }
     override fun isValid(): Boolean = !isRemoved
     override fun isAttachedTo(contraption: AbstractContraptionEntity): Boolean = false
-    override fun setAngle(forcedAngle: Float) { targetAngle = forcedAngle }
+    override fun setAngle(forcedAngle: Float) {
+        if (!forcedAngle.isFinite()) {
+            return
+        }
+
+        if (aligning) {
+            targetAngle = 0f
+            return
+        }
+
+        val serverLevel = level as? ServerLevel
+        val referenceAngle = when {
+            isHardLockedMode() && waitingForFreshCommandAfterRestore && serverLevel != null ->
+                syncLockedRuntimeStateToActualPose(serverLevel) ?: lockedCurrentAngle
+            isHardLockedMode() -> lockedCurrentAngle
+            else -> targetAngle
+        }
+        targetAngle = rebaseAngleNearReference(forcedAngle, referenceAngle)
+
+        if (!isHardLockedMode()) {
+            return
+        }
+
+        armFollowAngle()
+        if (pendingLockedStateReseedAfterRestore) {
+            pendingExplicitTargetCommandAfterRestore = true
+            return
+        }
+
+        pendingExplicitTargetCommandAfterRestore = false
+        promoteLockedRuntimeGoal(targetAngle)
+    }
     override fun getLastAssemblyException(): AssemblyException? = lastException
     override fun getBlockPosition(): BlockPos = worldPosition
     override fun isWoodenTop(): Boolean = false
 
     companion object {
         const val NO_SHIPTRAPTION_ID: Long = -1
+        private const val FOLLOW_ANGLE_MODE_TAG = "followAngleMode"
+        private const val MAX_RESTORED_JOINT_RESOLVE_TRIES = 40
 
         //tolerance is in degrees
         @JvmStatic

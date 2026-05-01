@@ -47,7 +47,7 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
             }
         }
         if (clientPacket) return
-        if (level != null) ClockworkMod.getKelvin().markLoaded(this.blockPos.toDuctNodePos(level!!.dimension().location()))
+        if (level != null) ClockworkMod.getKelvin(level).markLoaded(this.blockPos.toDuctNodePos(level!!.dimension().location()))
 
         val edgeDataTag = tag.get("edgeData") as? CompoundTag ?: return
         edgeDataTag.allKeys.forEach {
@@ -76,7 +76,7 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
     }
 
     override fun destroy() {
-        if (level != null && !level!!.isClientSide) ClockworkMod.getKelvin().removeNode(this.blockPos.toDuctNodePos(level!!.dimension().location()))
+        if (level != null && !level!!.isClientSide) ClockworkMod.getKelvin(level).removeNode(this.blockPos.toDuctNodePos(level!!.dimension().location()))
         super.destroy()
     }
 
@@ -110,7 +110,7 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
             syncEdge(dir)
             //println("SETTING EDGE TYPE: ${this.getDuctNodePosition()} to $otherDuctNodePos with $edgeType")
             if ((previousType != edgeType && !silent) || forced) {
-                ClockworkMod.getKelvin().removeEdge(getDuctNodePosition(), otherDuctNodePos)
+                ClockworkMod.getKelvin(level).removeEdge(getDuctNodePosition(), otherDuctNodePos)
                 if (edgeType != DuctEdgeType.NONE) {
 
                     // Edge directionality is important for oneway
@@ -135,7 +135,7 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
                     if (edgeData[EdgePos(nodeA, nodeB)] != null)
                         newEdge.deserialize(edgeData[EdgePos(nodeA, nodeB)]!!)
 
-                    ClockworkMod.getKelvin().addEdge(nodeA, nodeB, newEdge)
+                    ClockworkMod.getKelvin(level).addEdge(nodeA, nodeB, newEdge)
                 }
             }
         }

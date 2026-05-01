@@ -1,6 +1,7 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "vs_clockwork:block/asteroid_block"
+    "all": "vs_clockwork:block/asteroid_block",
+    "particle": "vs_clockwork:block/asteroid_block"
   }
 }

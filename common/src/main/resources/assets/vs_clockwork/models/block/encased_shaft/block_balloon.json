@@ -2,6 +2,7 @@
   "parent": "create:block/encased_shaft/block",
   "textures": {
     "casing": "vs_clockwork:block/balloon_casing",
-    "opening": "vs_clockwork:block/balloon_gearbox"
+    "opening": "vs_clockwork:block/balloon_gearbox",
+    "particle": "vs_clockwork:block/balloon_casing"
   }
 }

@@ -217,6 +217,18 @@ class CopterBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
         return Vector3d(currentAxis).rotate(qStep).normalize()
     }
 
+    private fun normalizeOr(vec: Vector3d, fallback: Vector3d): Vector3d {
+        val lenSq = vec.lengthSquared()
+        if (!java.lang.Double.isFinite(lenSq) || lenSq < 1e-12) {
+            return Vector3d(fallback).normalize()
+        }
+        return vec.mul(1.0 / kotlin.math.sqrt(lenSq))
+    }
+
+    private fun isFinite(vec: Vector3d): Boolean {
+        return java.lang.Double.isFinite(vec.x) && java.lang.Double.isFinite(vec.y) && java.lang.Double.isFinite(vec.z)
+    }
+
     override fun physTick(
         physShip: PhysShip?,
         physLevel: PhysLevel
@@ -232,7 +244,8 @@ class CopterBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
         if (facing == Direction.DOWN || facing == Direction.NORTH || facing == Direction.WEST) {
             //facingNormal.mul(-1.0)
         }
-        val desiredLocal = Vector3d(facingNormal).rotate(invRotation).mul(getDirectionScale().toDouble()).normalize().add(desiredLocalOffset).normalize()
+        val baseDesiredLocal = normalizeOr(Vector3d(facingNormal).rotate(invRotation).mul(getDirectionScale().toDouble()), facingNormal)
+        val desiredLocal = normalizeOr(baseDesiredLocal.add(Vector3d(desiredLocalOffset)), baseDesiredLocal)
         val blockAxis = tiltVector.toJOML().normalize() // .rotate(physShip.transform.shipToWorldRotation)
         if (facing == Direction.DOWN || facing == Direction.NORTH || facing == Direction.WEST) {
             blockAxis.mul(-1.0)
@@ -251,6 +264,10 @@ class CopterBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
             kd = 6.0,      // start 1..6
             dt = 1.0/60.0
         )
+
+        if (!isFinite(stabilized)) {
+            return
+        }
 
         setTiltTarget(Vec3(stabilized.x, stabilized.y, stabilized.z), true)
         lerpTarget()
@@ -307,7 +324,8 @@ class CopterBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
                 if (facing == Direction.DOWN || facing == Direction.NORTH || facing == Direction.WEST) {
                     //facingNormal.mul(-1.0)
                 }
-                val desiredLocal = Vector3d(facingNormal).rotate(invRotation).mul(getDirectionScale().toDouble()).add(desiredLocalOffset).normalize()
+                val baseDesiredLocal = normalizeOr(Vector3d(facingNormal).rotate(invRotation).mul(getDirectionScale().toDouble()), facingNormal)
+                val desiredLocal = normalizeOr(baseDesiredLocal.add(Vector3d(desiredLocalOffset)), baseDesiredLocal)
 
                 val trueTarget = if (stopping) {
                     VecHelper.lerp((disassemblyProgress / totalDisassemblyTime).toFloat(), blockNormalVector, clientTargetTiltVector)
