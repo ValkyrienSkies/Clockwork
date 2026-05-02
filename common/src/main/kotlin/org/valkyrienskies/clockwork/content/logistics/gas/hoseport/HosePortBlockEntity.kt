@@ -295,7 +295,7 @@ class HosePortBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
 
     private fun createEdge(nodeA: DuctNodePos, nodeB: DuctNodePos) {
         val kelvin = ClockworkMod.getKelvin(level)
-        edge = PipeDuctEdge(nodeA = nodeA, nodeB = nodeB, type = ConnectionType.PIPE)
+        edge = PipeDuctEdge(nodeA = nodeA, nodeB = nodeB, type = ConnectionType.PIPE, radius = 0.3125, length = 0.375)
         kelvin.addEdge(nodeA, nodeB, edge!!)
     }
 

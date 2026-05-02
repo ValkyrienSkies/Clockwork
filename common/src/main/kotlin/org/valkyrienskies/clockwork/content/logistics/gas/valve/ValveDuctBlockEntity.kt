@@ -78,7 +78,7 @@ class ValveDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Blo
     }
 
     override fun getEdge(nodeA: DuctNodePos, nodeB: DuctNodePos, level: Level, blockPos: BlockPos, direction: Direction): DuctEdge {
-        return ApertureDuctEdge(ConnectionType.APERTURE, nodeA, nodeB, aperture = pointer.value.toDouble()-0.125)
+        return ApertureDuctEdge(ConnectionType.APERTURE, nodeA, nodeB, radius = 0.3125, length = 0.375, aperture = pointer.value.toDouble() - 0.125)
     }
 
 }

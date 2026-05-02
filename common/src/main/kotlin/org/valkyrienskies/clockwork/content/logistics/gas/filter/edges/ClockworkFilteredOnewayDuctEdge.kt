@@ -13,7 +13,7 @@ class ClockworkFilteredOnewayDuctEdge(
     override val type: ConnectionType,
     override val nodeA: DuctNodePos,
     override val nodeB: DuctNodePos,
-    override var radius: Double = 0.125, override var length: Double = 0.5, override var currentFlowRate: Double = 0.0,
+    override var radius: Double = 0.3125, override var length: Double = 0.375, override var currentFlowRate: Double = 0.0,
     override val filter: HashSet<GasType> = HashSet(),
     override var blacklist: Boolean = false,
     override var reversed: Boolean = false,

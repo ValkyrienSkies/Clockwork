@@ -52,8 +52,8 @@ class PumpDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Bloc
 
     override fun getEdge(nodeA: DuctNodePos, nodeB: DuctNodePos, level: Level, blockPos: BlockPos, direction: Direction): DuctEdge {
         val facing = blockState?.getValue(BlockStateProperties.FACING) ?: Direction.UP
-        if (direction == facing) return PumpDuctEdge(nodeA, nodeB, target = nodeB, pumpPressure = pumpPressure)
-        return PumpDuctEdge(nodeA, nodeB, target = nodeA, pumpPressure = pumpPressure)
+        if (direction == facing) return PumpDuctEdge(nodeA, nodeB, target = nodeB, pumpPressure = pumpPressure, radius = 0.3125, length = 0.375)
+        return PumpDuctEdge(nodeA, nodeB, target = nodeA, pumpPressure = pumpPressure, radius = 0.3125, length = 0.375)
     }
 
 
