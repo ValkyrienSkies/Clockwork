@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.util.render
 
+import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap
 import net.createmod.ponder.api.level.PonderLevel
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.resources.ResourceLocation
@@ -115,8 +116,8 @@ class VirtualDuctNetwork(
         return nodeInfo[node]?.currentTemperature ?: 0.0001
     }
 
-    override fun getGasMassAt(node: DuctNodePos): HashMap<GasType, Double> {
-        return nodeInfo[node]?.currentGasMasses ?: HashMap()
+    override fun getGasMassAt(node: DuctNodePos): Map<GasType, Double> {
+        return nodeInfo[node]?.currentGasMasses ?: emptyMap()
     }
 
     override fun getEdgeBetween(from: DuctNodePos, to: DuctNodePos): DuctEdge? {
@@ -137,7 +138,7 @@ class VirtualDuctNetwork(
         nodes[pos] = node
         // Seed wall thermal energy at ambient (273.15K) so a fresh node doesn't act as a
         // 0K cold sink for the first gas to enter. Combined energy = wallCap * T_ambient.
-        nodeInfo[pos] = DuctNodeInfo(node.behavior, 273.15, 0.0, HashMap(), node.volume, currentEnergy = node.heatCapacity * 273.15)
+        nodeInfo[pos] = DuctNodeInfo(node.behavior, 273.15, 0.0, Object2DoubleOpenHashMap(), node.volume, currentEnergy = node.heatCapacity * 273.15)
         if (nodesInDimension[pos.dimensionId] == null) {
             nodesInDimension[pos.dimensionId] = hashSetOf()
         }
@@ -363,7 +364,7 @@ class VirtualDuctNetwork(
         }
     }
 
-    private fun calcReaction(ductNodePos: DuctNodePos, gasMasses: HashMap<GasType, Double>, inputGasses: HashMap<GasType, Double>, outputGasses: HashMap<GasType, Double>, deltaEnergy: Double) {
+    private fun calcReaction(ductNodePos: DuctNodePos, gasMasses: Map<GasType, Double>, inputGasses: Map<GasType, Double>, outputGasses: Map<GasType, Double>, deltaEnergy: Double) {
 
         var reactionAmount = Double.MAX_VALUE
         for (gas in inputGasses) {
