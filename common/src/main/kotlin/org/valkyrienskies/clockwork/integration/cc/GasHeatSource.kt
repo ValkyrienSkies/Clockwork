@@ -55,7 +55,7 @@ object GasHeatSource: GenericPeripheral {
     @LuaFunction
     @JvmStatic
     fun pushGas(from: INodeBlockEntity, computer: IComputerAccess, toName: String, gasName: String, amount: Optional<Double>) {
-        if (!ClockworkConfig.SERVER.cheatKelvinPeripheral) throw LuaException("Cheat kelvin peripheral not enabled in config")
+        if (!ClockworkConfig.KELVIN.cheatKelvinPeripheral) throw LuaException("Cheat kelvin peripheral not enabled in config")
         val origin = from.getDuctNodePosition()
         val end = getNodePosFromPeripheral(computer, toName)
         val gas = getGasOrThrow(gasName)
@@ -66,7 +66,7 @@ object GasHeatSource: GenericPeripheral {
     @LuaFunction
     @JvmStatic
     fun pullGas(to: INodeBlockEntity, computer: IComputerAccess, fromName: String, gasName: String, amount: Optional<Double>) {
-        if (!ClockworkConfig.SERVER.cheatKelvinPeripheral) throw LuaException("Cheat kelvin peripheral not enabled in config")
+        if (!ClockworkConfig.KELVIN.cheatKelvinPeripheral) throw LuaException("Cheat kelvin peripheral not enabled in config")
         val end = to.getDuctNodePosition()
         val origin = getNodePosFromPeripheral(computer, fromName)
         val gas = getGasOrThrow(gasName)
@@ -77,7 +77,7 @@ object GasHeatSource: GenericPeripheral {
     @LuaFunction
     @JvmStatic
     fun pushTemperature(from: INodeBlockEntity, computer: IComputerAccess, toName: String, amount: Optional<Double>) {
-        if (!ClockworkConfig.SERVER.cheatKelvinPeripheral) throw LuaException("Cheat kelvin peripheral not enabled in config")
+        if (!ClockworkConfig.KELVIN.cheatKelvinPeripheral) throw LuaException("Cheat kelvin peripheral not enabled in config")
         val origin = from.getDuctNodePosition()
         val end = getNodePosFromPeripheral(computer, toName)
 
@@ -87,7 +87,7 @@ object GasHeatSource: GenericPeripheral {
     @LuaFunction
     @JvmStatic
     fun pullTemperature(to: INodeBlockEntity, computer: IComputerAccess, fromName: String, amount: Optional<Double>) {
-        if (!ClockworkConfig.SERVER.cheatKelvinPeripheral) throw LuaException("Cheat kelvin peripheral not enabled in config")
+        if (!ClockworkConfig.KELVIN.cheatKelvinPeripheral) throw LuaException("Cheat kelvin peripheral not enabled in config")
         val end = to.getDuctNodePosition()
         val origin = getNodePosFromPeripheral(computer, fromName)
 

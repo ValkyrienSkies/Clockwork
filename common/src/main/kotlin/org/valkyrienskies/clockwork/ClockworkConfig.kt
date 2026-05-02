@@ -12,6 +12,9 @@ object ClockworkConfig {
     @JvmField
     val SERVER = Server()
 
+    @JvmField
+    val KELVIN = Kelvin()
+
 
     class Client {
         @ConfigEntry(description = "Enable debug rendering")
@@ -48,7 +51,7 @@ object ClockworkConfig {
     class Server {
 
         @ConfigCategory(title = "Kelvin")
-        val kelvin = KELVIN()
+        val kelvin = Kelvin()
 
         @ConfigEntry(description = "Enable verbose debug logging")
         var debugMode = false
@@ -221,7 +224,7 @@ object ClockworkConfig {
 
     }
 
-    class KELVIN {
+    class Kelvin {
         @ConfigEntry(description = "The gas physics solver used by Kelvin.")
         var kelvinSolver: KelvinSolverType = KelvinSolverType.JACOBI_SEIDEL
 

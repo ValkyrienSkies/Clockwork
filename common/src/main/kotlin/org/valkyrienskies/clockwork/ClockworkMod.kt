@@ -201,7 +201,7 @@ object ClockworkMod {
     @Deprecated(message = "Shouldn't be used directly anymore. Causes crashes if called during a ponder")
     @JvmStatic
     fun getKelvin(): DuctNetwork<*> {
-        KelvinMod.Kelvin.solver = ClockworkConfig.SERVER.kelvinSolver.getSolver()
+        KelvinMod.Kelvin.solver = ClockworkConfig.KELVIN.kelvinSolver.getSolver()
         return KelvinMod.getKelvin() as DuctNetworkServer
     }
 

@@ -51,7 +51,7 @@ abstract class KNodeKineticBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos
     }
 
     override fun setLazyTickRate(slowTickRate: Int) {
-        super.setLazyTickRate(ClockworkConfig.SERVER.kelvinNodeBlockEntityLazyTickRate)
+        super.setLazyTickRate(ClockworkConfig.KELVIN.kelvinNodeBlockEntityLazyTickRate)
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
