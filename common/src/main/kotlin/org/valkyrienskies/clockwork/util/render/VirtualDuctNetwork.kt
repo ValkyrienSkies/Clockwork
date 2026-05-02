@@ -13,7 +13,7 @@ import org.valkyrienskies.kelvin.impl.DuctNodeInfo
 import org.valkyrienskies.kelvin.impl.client.ClientKelvinInfo
 import org.valkyrienskies.kelvin.impl.recipe.KelvinReactionDataLoader
 import org.valkyrienskies.kelvin.impl.registry.GasParticlePickerRegistry
-import org.valkyrienskies.kelvin.impl.solvers.JacobiSolver
+import org.valkyrienskies.kelvin.impl.solvers.JacobiSeidelSolver
 import org.valkyrienskies.kelvin.util.GasExplosionDamageCalculator
 import org.valkyrienskies.kelvin.util.KelvinChunkPos
 import org.valkyrienskies.kelvin.util.KelvinDamageSources
@@ -35,7 +35,7 @@ class VirtualDuctNetwork(
     override val nodesInDimension: HashMap<ResourceLocation, HashSet<DuctNodePos>> = HashMap(),
     override val unloadedNodes: HashSet<DuctNodePos> = HashSet(),
 ) : DuctNetwork<PonderLevel> {
-    var solver: KelvinSolver = JacobiSolver()
+    var solver: KelvinSolver = JacobiSeidelSolver()
 
     override fun createGasParticle(
         level: PonderLevel, gasType: GasType, pos: DuctNodePos,
