@@ -22,7 +22,6 @@ import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.blocktype.ISyncableStorage
 import org.valkyrienskies.clockwork.util.blocktype.SyncableStoragePacket
-import org.valkyrienskies.kelvin.util.GasPhysics.mixtureCapacity
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.math.min
@@ -60,14 +59,18 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
         kelvin.getNodeAt(blockPos.toDuctNodePos(level!!.dimension().location())) ?: return
         if (fuelTicks>0) {
             fuelTicks-=1
-            val currentInternalGasses = kelvin.getGasMassAt(blockPos.toDuctNodePos(level!!.dimension().location()))
-            val currentInternalTemperature = kelvin.getTemperatureAt(blockPos.toDuctNodePos(level!!.dimension().location()))
+            val ductPos = blockPos.toDuctNodePos(level!!.dimension().location())
+            val currentInternalGasses = kelvin.getGasMassAt(ductPos)
+            val currentInternalTemperature = kelvin.getTemperatureAt(ductPos)
             if (currentInternalGasses.values.sum() > 1e-5) {
-                val currentInternalHeatCapacity = mixtureCapacity(currentInternalGasses)
+                // Use combined gas+wall heat capacity: hitting the target temperature
+                // requires heating both the gas and the duct wall, otherwise the burner
+                // wastes work to a wall that keeps draining gas heat back down.
+                val currentInternalHeatCapacity = kelvin.getNodeHeatCapacity(ductPos)
                 val targetTemperature = 850.0
                 val energyToAdd = min(currentInternalHeatCapacity * (targetTemperature - currentInternalTemperature), MAX_JOULES_PER_TICK)
                 if (energyToAdd > 0) {
-                    kelvin.modHeatEnergy(blockPos.toDuctNodePos(level!!.dimension().location()), energyToAdd)
+                    kelvin.modHeatEnergy(ductPos, energyToAdd)
                 }
             }
 

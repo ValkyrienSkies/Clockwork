@@ -68,7 +68,7 @@ public class MixinComposterBlock extends Block implements INodeBlock, IHaveDuctS
     @NotNull
     @Override
     public DuctNode createNode(@NotNull DuctNodePos pos) {
-        return new PipeDuctNode(pos, NodeBehaviorType.PIPE, new HashSet<>(),1.0, 16375049.0, 1478.0, 1687.5, 44.9);
+        return new PipeDuctNode(pos, NodeBehaviorType.PIPE, new HashSet<>(),1.0, 16375049.0, 1478.0, 44.9);
     }
 
     @Override
