@@ -29,7 +29,7 @@ import kotlin.math.pow
 
 class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state),
     IAirCurrentSource, BlockEntityPhysicsListener {
-    val MASS_PER_EXHAUST = 0.001
+    val MASS_PER_EXHAUST = 0.01
 
     val facing: Direction = state.getValue(BlockStateProperties.FACING)
 
@@ -81,14 +81,15 @@ class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
             val facing = state.getValue(BlockStateProperties.FACING)
 
             val particleCount = gasses.values.sum() / MASS_PER_EXHAUST
-            val speed = Mth.clamp(0.0025 * pressure.pow(0.4), 0.1, 5.0)
+            val speed = Mth.clamp(0.001 * pressure.pow(0.4), 0.03, 1.0)
             KelvinParticleHelper.spawnJetWithRatio(
                 level as ClientLevel,
                 getDuctNodePosition(),
                 blockPos.toJOMLD().add(0.5, 0.5, 0.5),
                 facing,
                 speed,
-                particleCount
+                particleCount,
+                outwardOffset = 0.3
             )
         } else {
             for ((gas, value) in gasses) {

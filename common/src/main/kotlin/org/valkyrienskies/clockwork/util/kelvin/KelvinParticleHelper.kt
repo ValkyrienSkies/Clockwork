@@ -50,14 +50,15 @@ object KelvinParticleHelper {
         outward: Direction,
         speedMagnitude: Double,
         particleCount: Double,
-        radius: Double = DEFAULT_DISK_RADIUS
+        radius: Double = DEFAULT_DISK_RADIUS,
+        outwardOffset: Double = 0.5
     ) {
         val n = stochasticCount(particleCount, level.random)
         if (n <= 0) return
         val pos = Vector3d()
         val vel = Vector3d()
         repeat(n) {
-            sampleJet(blockCenter, outward, speedMagnitude, radius, level.random, pos, vel)
+            sampleJet(blockCenter, outward, speedMagnitude, radius, outwardOffset, level.random, pos, vel)
             spawnParticleWithRatio(level, ductNodePos, pos, vel)
         }
     }
@@ -70,7 +71,8 @@ object KelvinParticleHelper {
         outward: Direction,
         speedMagnitude: Double,
         particleCount: Double,
-        radius: Double = DEFAULT_DISK_RADIUS
+        radius: Double = DEFAULT_DISK_RADIUS,
+        outwardOffset: Double = 0.5
     ) {
         val n = stochasticCount(particleCount, level.random)
         if (n <= 0) return
@@ -78,7 +80,7 @@ object KelvinParticleHelper {
         val pos = Vector3d()
         val vel = Vector3d()
         repeat(n) {
-            sampleJet(blockCenter, outward, speedMagnitude, radius, level.random, pos, vel)
+            sampleJet(blockCenter, outward, speedMagnitude, radius, outwardOffset, level.random, pos, vel)
             network.createGasParticle(level, gas, ductNodePos, pos.x, pos.y, pos.z, vel.x, vel.y, vel.z)
         }
     }
@@ -98,6 +100,7 @@ object KelvinParticleHelper {
         outward: Direction,
         speedMagnitude: Double,
         radius: Double,
+        outwardOffset: Double,
         random: RandomSource,
         outPos: Vector3d,
         outVel: Vector3d
@@ -112,7 +115,7 @@ object KelvinParticleHelper {
         val ny = outward.normal.y.toDouble()
         val nz = outward.normal.z.toDouble()
         outPos.set(blockCenter)
-            .add(nx * 0.5, ny * 0.5, nz * 0.5)
+            .add(nx * outwardOffset, ny * outwardOffset, nz * outwardOffset)
             .add(axis1.x() * u, axis1.y() * u, axis1.z() * u)
             .add(axis2.x() * v, axis2.y() * v, axis2.z() * v)
         outVel.set(nx * speedMagnitude, ny * speedMagnitude, nz * speedMagnitude)
