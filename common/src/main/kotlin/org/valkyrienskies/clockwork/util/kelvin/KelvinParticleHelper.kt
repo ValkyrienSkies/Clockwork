@@ -23,12 +23,10 @@ object KelvinParticleHelper {
     private val AXIS_Z: Vector3dc = Vector3d(0.0, 0.0, 1.0)
 
     fun spawnParticleWithRatio(level: ClientLevel, ductNodePos: DuctNodePos, pos: Vector3dc, speed: Vector3dc) {
-
         val network = ClockworkModClient.getKelvin()
         val gasMasses = network.getGasMassAt(ductNodePos)
 
         if (gasMasses.isEmpty()) return
-
         val sum = gasMasses.values.sum()
         var cumulative = 0.0
         var particleGas = gasMasses.keys.first()
@@ -111,11 +109,15 @@ object KelvinParticleHelper {
         val theta = random.nextDouble() * 2.0 * PI
         val u = r * cos(theta)
         val v = r * sin(theta)
+        // Smear each spawn over one tick's worth of forward travel so successive ticks'
+        // batches blend into a continuous stream instead of stroboscopic rings.
+        val trajectoryJitter = random.nextDouble() * speedMagnitude
+        val totalForward = outwardOffset + trajectoryJitter
         val nx = outward.normal.x.toDouble()
         val ny = outward.normal.y.toDouble()
         val nz = outward.normal.z.toDouble()
         outPos.set(blockCenter)
-            .add(nx * outwardOffset, ny * outwardOffset, nz * outwardOffset)
+            .add(nx * totalForward, ny * totalForward, nz * totalForward)
             .add(axis1.x() * u, axis1.y() * u, axis1.z() * u)
             .add(axis2.x() * v, axis2.y() * v, axis2.z() * v)
         outVel.set(nx * speedMagnitude, ny * speedMagnitude, nz * speedMagnitude)

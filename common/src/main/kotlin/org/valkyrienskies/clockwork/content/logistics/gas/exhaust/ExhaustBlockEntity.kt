@@ -81,7 +81,7 @@ class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
             val facing = state.getValue(BlockStateProperties.FACING)
 
             val particleCount = gasses.values.sum() / MASS_PER_EXHAUST
-            val speed = Mth.clamp(0.001 * pressure.pow(0.4), 0.03, 1.0)
+            val speed = Mth.clamp(0.0005 * pressure.pow(0.4), 0.02, 0.5)
             KelvinParticleHelper.spawnJetWithRatio(
                 level as ClientLevel,
                 getDuctNodePosition(),
