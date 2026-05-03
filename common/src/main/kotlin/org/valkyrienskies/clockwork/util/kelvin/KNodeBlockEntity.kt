@@ -60,7 +60,7 @@ abstract class KNodeBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state:
     }
 
     override fun setLazyTickRate(slowTickRate: Int) {
-        super.setLazyTickRate(ClockworkConfig.SERVER.kelvinNodeBlockEntityLazyTickRate)
+        super.setLazyTickRate(ClockworkConfig.KELVIN.kelvinNodeBlockEntityLazyTickRate)
     }
 
     override fun addToGoggleTooltip(

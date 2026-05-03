@@ -13,7 +13,7 @@
     "kelvin:min_temperature": 775,
     "kelvin:max_temperature": 1500
   },
-  "energy": 7500,
+  "energy": 75000,
   "result_gasses": {
     "vs_clockwork:steam": {
       "amount": 0.02,

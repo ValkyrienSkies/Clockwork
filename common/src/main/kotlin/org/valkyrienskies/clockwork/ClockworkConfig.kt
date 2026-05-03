@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork
 
 import org.valkyrienskies.clockwork.util.gui.DuctUnits
 import org.valkyrienskies.clockwork.util.kelvin.KelvinSolverType
+import org.valkyrienskies.core.internal.config.ConfigCategory
 import org.valkyrienskies.core.internal.config.ConfigEntry
 
 object ClockworkConfig {
@@ -10,6 +11,9 @@ object ClockworkConfig {
 
     @JvmField
     val SERVER = Server()
+
+    @JvmField
+    val KELVIN = Kelvin()
 
 
     class Client {
@@ -45,12 +49,13 @@ object ClockworkConfig {
     }
 
     class Server {
+
+        @ConfigCategory(title = "Kelvin")
+        val kelvin = Kelvin()
+
         @ConfigEntry(description = "Enable verbose debug logging")
         var debugMode = false
 
-        @ConfigEntry(description = "Kelvin sub steps (per Tick)")
-        var kelvinSubSteps = 10
-      
         // Blacklist of blocks that don't get added for ship building
         // @ConfigEntry(description = "Blacklist of blocks that don't get assembled")
         // todo: VS config system does not support collections!
@@ -170,8 +175,7 @@ object ClockworkConfig {
         @ConfigEntry(min = 0.0)
         var sugarRocketBlockThrust = 10000.0
 
-        @ConfigEntry(description = "The lazytick rate for Kelvin node block entity updates")
-        var kelvinNodeBlockEntityLazyTickRate = 10
+
 
         @ConfigEntry(description = "The amount of air (in kg) that the air compressor produces per tick at sea level and 1 rpm")
         var airCompressorSpeed = 0.0001
@@ -212,11 +216,23 @@ object ClockworkConfig {
         @ConfigEntry(description = "Maximum amount of blocks a smart flap bearing can assemble", min = 0.0, max = Int.MAX_VALUE.toDouble())
         var smartFlapBearingMaxSize = 24
 
-        @ConfigEntry(description = "The gas physics solver used by Kelvin. Options: CLASSIC, JACOBI_SIMPLIFIED, JACOBI")
-        var kelvinSolver: KelvinSolverType = KelvinSolverType.JACOBI
+
 
         @ConfigEntry(description = "Whether the (smart) flap bearing peripheral can use setAngle without rotational power")
         var cheatFlapBearingPeripheral = false
+
+
+    }
+
+    class Kelvin {
+        @ConfigEntry(description = "The gas physics solver used by Kelvin.")
+        var kelvinSolver: KelvinSolverType = KelvinSolverType.JACOBI_SEIDEL
+
+        @ConfigEntry(description = "Kelvin sub steps (per Tick)")
+        var kelvinSubSteps = 10
+
+        @ConfigEntry(description = "The lazytick rate for Kelvin node block entity updates")
+        var kelvinNodeBlockEntityLazyTickRate = 10
 
         @ConfigEntry(description = "Whether the generic kelvin peripheral can move gas/heat through only a peripheral connection")
         var cheatKelvinPeripheral = false

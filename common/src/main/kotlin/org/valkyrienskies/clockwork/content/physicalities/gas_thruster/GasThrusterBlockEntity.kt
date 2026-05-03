@@ -21,7 +21,7 @@ import org.valkyrienskies.core.api.util.PhysTickOnly
 import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.api.world.properties.DimensionId
 import org.valkyrienskies.core.internal.world.VsiServerShipWorld
-import org.valkyrienskies.kelvin.KelvinMod
+import org.valkyrienskies.clockwork.util.kelvin.KelvinParticleHelper
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
@@ -32,7 +32,6 @@ import org.valkyrienskies.mod.api.dimensionId
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.math.*
-import kotlin.random.Random
 
 @OptIn(VsBeta::class)
 class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), BlockEntityPhysicsListener {
@@ -94,21 +93,23 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
 
 
         // Handle particles
-        val ductNetwork = KelvinMod.KelvinClient
-        for ((gas,mass) in gasMassFlow) {
-            val particleCount = mass/massPerParticle
-            val direction = blockState.getValue(BlockStateProperties.FACING)
-            val speed = direction.normal.toJOMLD().mul(-cbrt(abs(velocity))/50)
+        val direction = blockState.getValue(BlockStateProperties.FACING)
+        val outward = direction.opposite
+        val speed = cbrt(abs(velocity)) / 50
+        val center = blockPos.toJOMLD().add(0.5, 0.5, 0.5)
+        val ductNodePos = blockPos.toDuctNodePos(level!!.dimension().location())
 
-
-            fun random() = Random.nextDouble(-0.35,0.35)
-            val position = blockPos.toJOMLD().add(0.5, 0.5, 0.5)
-
-
-            for (count in 1..particleCount.toInt()) {
-                ductNetwork.createGasParticle(level as ClientLevel, gas, blockPos.toDuctNodePos(level!!.dimension().location()),
-                    position.x+random(), position.y+random(), position.z+random(), speed.x, speed.y, speed.z)
-            }
+        for ((gas, mass) in gasMassFlow) {
+            val particleCount = mass / massPerParticle
+            KelvinParticleHelper.spawnJetForGas(
+                level as ClientLevel,
+                ductNodePos,
+                gas,
+                center,
+                outward,
+                speed,
+                particleCount
+            )
         }
     }
 

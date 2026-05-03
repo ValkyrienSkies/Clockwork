@@ -82,7 +82,7 @@ class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(prop
     }
 
     override fun createNode(pos: DuctNodePos): DuctNode {
-        return TankDuctNode(pos = pos, behavior =  NodeBehaviorType.TANK, volume = 0.75, maxPressure = 16375049.0, maxTemperature = 1478.0, size = 3.0, heatConductivity = 1687.5, heatCapacity = 44.9)
+        return TankDuctNode(pos = pos, behavior =  NodeBehaviorType.TANK, volume = 0.75, maxPressure = 16375049.0, maxTemperature = 1478.0, size = 3.0, heatCapacity = 44.9)
     }
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
