@@ -368,6 +368,14 @@
   "vs_clockwork.phys_bearing.rotation_mode.unlocked": "Unlocked",
   "vs_clockwork.phys_bearing.rotation_mode.locked": "Locked",
 
+  "block.vs_clockwork.gimbal_bearing": "Gimbal Bearing",
+  "item.vs_clockwork.gimbal_bearing": "Gimbal Bearing",
+  "vs_clockwork.gimbal_bearing.mode": "Gimbal Mode",
+  "vs_clockwork.gimbal_bearing.mode.locked": "Locked",
+  "vs_clockwork.gimbal_bearing.mode.gyroscopic": "Gyroscopic",
+  "vs_clockwork.gimbal_bearing.mode.unlocked": "Unlocked",
+  "vs_clockwork.gimbal_bearing.max_angle": "Max Angle",
+
   "vs_clockwork.gravitron.tool.grab": "Grab",
   "vs_clockwork.gravitron.tool.assemble": "Assemble",
   "vs_clockwork.gravitron.tool.grab_and_assemble": "Grabssemble",

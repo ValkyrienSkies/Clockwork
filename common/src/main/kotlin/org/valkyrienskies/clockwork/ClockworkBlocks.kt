@@ -33,6 +33,7 @@ import org.valkyrienskies.clockwork.client.render.WingBlockItemRenderer
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap.SmartFlapBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock
+import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.GimbalBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlock
 import org.valkyrienskies.clockwork.content.physicalities.goo.GooBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock
@@ -188,6 +189,21 @@ object ClockworkBlocks {
             .item()
             .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
             .model(AssetLookup.customBlockItemModel("phys_bearing"))
+            .build()
+            .register()
+
+    @JvmField
+    val GIMBAL_BEARING: BlockEntry<GimbalBearingBlock> =
+        REGISTRATE.block<GimbalBearingBlock>("gimbal_bearing") { properties: BlockBehaviour.Properties? ->
+            GimbalBearingBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.stone() }
+            .transform(axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
             .build()
             .register()
 

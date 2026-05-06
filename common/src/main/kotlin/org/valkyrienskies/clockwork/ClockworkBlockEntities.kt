@@ -24,6 +24,7 @@ import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingVisual
 import org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap.SmartFlapBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingRenderer
+import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.GimbalBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlockEntity
@@ -206,6 +207,20 @@ object ClockworkBlockEntities {
         }
         .register()
 
+
+    @JvmField
+    val GIMBAL_BEARING: BlockEntityEntry<GimbalBearingBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<GimbalBearingBlockEntity>(
+            "gimbal_bearing"
+        ) { type: BlockEntityType<GimbalBearingBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
+            GimbalBearingBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .validBlocks(ClockworkBlocks.GIMBAL_BEARING)
+        .register()
 
     @JvmField
     val COMMAND_SEAT: BlockEntityEntry<SequencedSeatBlockEntity> = ClockworkMod.REGISTRATE
