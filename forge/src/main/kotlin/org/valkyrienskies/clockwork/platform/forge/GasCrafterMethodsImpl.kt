@@ -89,9 +89,9 @@ object GasCrafterMethodsImpl {
                     val drainedAmount = min(amountRequired, fluidStack.getAmount())
                     if (!simulate) {
                         fluidStack.shrink(drainedAmount)
-                        fluidsAffected = true
                     }
                     amountRequired -= drainedAmount
+                    fluidsAffected = true
                     if (amountRequired != 0) continue
                     extractedFluidsFromTank[tank] += drainedAmount
                     continue@FluidIngredients
@@ -121,7 +121,9 @@ object GasCrafterMethodsImpl {
                     .forEach(Consumer { obj: SmartFluidTankBehaviour.TankSegment? -> obj!!.onFluidStackChanged() })
             }
 
-            if (simulate && itemsAffected) {
+            // Note: this OR operation will break if input ingredients must have a count > 1
+            // But right now, that can't happen, we hard code a required count of 1
+            if (simulate && (itemsAffected || fluidsAffected)) {
                 val remainderContainer: CraftingContainer =
                     DummyCraftingContainer(availableItems, extractedItemsFromSlot)
 
