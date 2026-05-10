@@ -127,7 +127,7 @@ object GasCrafterMethodsImpl {
                 val remainderContainer: CraftingContainer =
                     DummyCraftingContainer(availableItems, extractedItemsFromSlot)
 
-                if (recipe is BasinRecipe) {
+                if (recipe is GasCraftingRecipe) {
                     recipeOutputItems.addAll(recipe.rollResults())
 
                     for (fluidStack in recipe.getFluidResults()) if (!fluidStack.isEmpty()) recipeOutputFluids.add(

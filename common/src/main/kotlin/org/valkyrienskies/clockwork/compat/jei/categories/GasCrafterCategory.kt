@@ -134,12 +134,16 @@ class GasCrafterCategory(val info: Info<GasCraftingRecipe>) : CreateRecipeCatego
             i++
         }
 
+        // TODO: Fix, this is broken on forge
+        // fluidResult is the fabric FluidStack. This function needs to be split into forge/fabric
+        // but that involves adding JEI to both their gradles... pain
         for (fluidResult in recipe.getFluidResults()) {
             val xPosition = 142 - (if (size % 2 != 0 && i == size - 1) 0 else if (i % 2 == 0) 10 else -9)
             val yPosition = -19 * (i / 2) + 51
             addFluidSlot(builder, xPosition, yPosition, fluidResult)
             i++
         }
+
         if (recipe.gasRecipe != null)
             for (gasIngredient in recipe.gasRecipe!!.result) {
                 val x = 142 - (if (size % 2 != 0 && i == size - 1) 0 else if (i % 2 == 0) 10 else -9)
