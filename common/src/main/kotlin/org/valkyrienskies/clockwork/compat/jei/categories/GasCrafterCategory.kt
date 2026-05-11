@@ -10,7 +10,6 @@ import com.simibubi.create.foundation.gui.AllGuiTextures
 import com.simibubi.create.foundation.item.ItemHelper
 import com.simibubi.create.foundation.utility.CreateLang
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder
-import mezz.jei.api.gui.builder.IRecipeSlotBuilder
 import mezz.jei.api.gui.drawable.IDrawable
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView
 import mezz.jei.api.recipe.IFocusGroup
@@ -23,12 +22,9 @@ import org.valkyrienskies.clockwork.compat.jei.ClockworkJEI.Companion.addInputGa
 import org.valkyrienskies.clockwork.compat.jei.ClockworkJEI.Companion.addOutputGasSlot
 import org.valkyrienskies.clockwork.compat.jei.animated_blocks.AnimatedGasCrafter
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCraftingRecipe
+import org.valkyrienskies.clockwork.platform.GasCrafterJEI.addFluidOutputSlots
 import org.valkyrienskies.kelvin.api.recipe.KelvinGasIngredient
-import org.valkyrienskies.kelvin.integration.jei.GasIngredientRenderer
-import org.valkyrienskies.kelvin.integration.jei.GasIngredientType
-import org.valkyrienskies.kelvin.integration.jei.KelvinJeiPlugin
 import javax.annotation.ParametersAreNonnullByDefault
-import kotlin.collections.iterator
 
 @ParametersAreNonnullByDefault
 class GasCrafterCategory(val info: Info<GasCraftingRecipe>) : CreateRecipeCategory<GasCraftingRecipe>(info) {
@@ -134,15 +130,7 @@ class GasCrafterCategory(val info: Info<GasCraftingRecipe>) : CreateRecipeCatego
             i++
         }
 
-        // TODO: Fix, this is broken on forge
-        // fluidResult is the fabric FluidStack. This function needs to be split into forge/fabric
-        // but that involves adding JEI to both their gradles... pain
-        for (fluidResult in recipe.getFluidResults()) {
-            val xPosition = 142 - (if (size % 2 != 0 && i == size - 1) 0 else if (i % 2 == 0) 10 else -9)
-            val yPosition = -19 * (i / 2) + 51
-            addFluidSlot(builder, xPosition, yPosition, fluidResult)
-            i++
-        }
+        i = addFluidOutputSlots(size, i, recipe, builder)
 
         if (recipe.gasRecipe != null)
             for (gasIngredient in recipe.gasRecipe!!.result) {
