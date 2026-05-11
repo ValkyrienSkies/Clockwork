@@ -112,8 +112,6 @@ object GasCrafterMethodsImpl {
                         ClockworkMod.getKelvin(be.level), element)) return false
             }
 
-
-
             if (fluidsAffected) {
                 basin!!.getBehaviour(SmartFluidTankBehaviour.INPUT)
                     .forEach(Consumer { obj: SmartFluidTankBehaviour.TankSegment? -> obj!!.onFluidStackChanged() })
@@ -149,10 +147,16 @@ object GasCrafterMethodsImpl {
             if (basin != null && !basin.acceptOutputs(recipeOutputItems, recipeOutputFluids, simulate)) return false
             if (!simulate) {
 
+                for ((gas, deltaMass) in gasIngredients) {
+                    ClockworkMod.getKelvin(be.level).modGasMass(be.getDuctNodePosition(), gas, -deltaMass)
+                }
+
                 for ((gasType, mass) in gasResults) {
                     val mass = mass
                     ClockworkMod.getKelvin(be.level).modGasMass(be.getDuctNodePosition(), gasType, mass)
                 }
+
+                ClockworkMod.getKelvin(be.level).modHeatEnergy(be.getDuctNodePosition(), baseGasRecipe?.energy ?: 0.0)
             }
         }
 
