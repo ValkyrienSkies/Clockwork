@@ -17,6 +17,7 @@
     "content.blade.SawBladeRecipeMixin",
     "content.exhaust.MixinAirCurrent",
     "content.gas.MixinBacktankUtil",
+    "content.gas.MixinComposterBlock",
     "content.gas_engine.MixinSteamEngineBlock",
     "content.gas_engine.MixinSteamEngineBlockEntity",
     "content.steam_generator.MixinBoilerData",
