@@ -10,7 +10,6 @@ import com.simibubi.create.foundation.gui.AllGuiTextures
 import com.simibubi.create.foundation.item.ItemHelper
 import com.simibubi.create.foundation.utility.CreateLang
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder
-import mezz.jei.api.gui.drawable.IDrawable
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView
 import mezz.jei.api.recipe.IFocusGroup
 import mezz.jei.api.recipe.RecipeIngredientRole
@@ -30,6 +29,7 @@ import javax.annotation.ParametersAreNonnullByDefault
 class GasCrafterCategory(val info: Info<GasCraftingRecipe>) : CreateRecipeCategory<GasCraftingRecipe>(info) {
     private val crafter = AnimatedGasCrafter()
     private val heater = AnimatedBlazeBurner()
+    private var currentRecipe: GasCraftingRecipe? = null
 
     override fun draw(
         recipe: GasCraftingRecipe,
@@ -59,8 +59,8 @@ class GasCrafterCategory(val info: Info<GasCraftingRecipe>) : CreateRecipeCatego
 
 
         if (requiredHeat != HeatCondition.NONE) heater.withHeat(requiredHeat.visualizeAsBlazeBurner())
-            .draw(graphics, getBackground()!!.getWidth() / 2 + 3, 55)
-        crafter.draw(graphics, getBackground()!!.getWidth() / 2 + 3, 34)
+            .draw(graphics, width / 2 + 3, 55)
+        crafter.draw(graphics, width / 2 + 3, 34)
 
 
         var i = if (requiredHeat == HeatCondition.NONE) 0 else 1
@@ -68,9 +68,19 @@ class GasCrafterCategory(val info: Info<GasCraftingRecipe>) : CreateRecipeCatego
         if (recipe.gasRecipe?.requirements != null)
         recipe.gasRecipe!!.requirements.forEach {
             ClockworkGuiTextures.JEI_DARKER_BAR.render(graphics, 4, 80+20*i)
-            graphics.drawString(Minecraft.getInstance().font, it.key.get_text(it.value), 7, 85+20*i, 16777215)
+            graphics.drawString(Minecraft.getInstance().font, it.key.get_text(it.value), 9, 86+20*i, 16777215, false)
             i++
         }
+    }
+
+    override fun getWidth(): Int = 177
+
+    override fun getHeight(): Int {
+        val recipe = currentRecipe ?: return 83
+
+        val requirementCount = (if (recipe.requiredHeat != HeatCondition.NONE) 1 else 0) + (recipe.gasRecipe?.requirements?.size ?: return 83)
+        val calculatedHeight = 83 + (requirementCount * 20)
+        return calculatedHeight
     }
 
     override fun setRecipe(
@@ -78,7 +88,7 @@ class GasCrafterCategory(val info: Info<GasCraftingRecipe>) : CreateRecipeCatego
         recipe: GasCraftingRecipe,
         focuses: IFocusGroup
     ) {
-        (background as? GasCraftingRecipeBackground)?.currentRecipe = recipe
+        this.currentRecipe = recipe
 
         val condensedIngredients = ItemHelper.condenseIngredients(recipe.getIngredients())
 
@@ -150,24 +160,6 @@ class GasCrafterCategory(val info: Info<GasCraftingRecipe>) : CreateRecipeCatego
             builder
                 .addSlot(RecipeIngredientRole.CATALYST, 153, 81)
                 .addItemStack(AllItems.BLAZE_CAKE.asStack())
-        }
-    }
-
-    object GasCraftingRecipeBackground : IDrawable {
-        var currentRecipe: GasCraftingRecipe? = null
-
-        override fun getWidth(): Int = 177
-
-        override fun getHeight(): Int {
-            val recipe = currentRecipe ?: return 83
-
-
-            val requirementCount = (if (recipe.requiredHeat != HeatCondition.NONE) 1 else 0) + (recipe.gasRecipe?.requirements?.size ?: return 83)
-            val calculatedHeight = 83 + (requirementCount * 20)
-            return calculatedHeight
-        }
-        override fun draw(guiGraphics: GuiGraphics, xOffset: Int, yOffset: Int) {
-            // Empty background
         }
     }
 }

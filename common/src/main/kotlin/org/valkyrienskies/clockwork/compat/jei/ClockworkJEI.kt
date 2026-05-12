@@ -62,7 +62,6 @@ class ClockworkJEI() : IModPlugin {
             .catalyst { ClockworkBlocks.GAS_CRAFTER.get() }
             .catalyst { AllBlocks.BASIN.get() }
             .itemIcon(ClockworkBlocks.GAS_CRAFTER.get())
-            .background(GasCrafterCategory.GasCraftingRecipeBackground)
             .build(
                 "gas_crafting",
                 CreateRecipeCategory.Factory { info: CreateRecipeCategory.Info<GasCraftingRecipe> ->
@@ -255,12 +254,12 @@ class ClockworkJEI() : IModPlugin {
 
         fun addInputGasSlot(builder: IRecipeLayoutBuilder, x: Int, y: Int, ingredient: KelvinGasIngredient, background: IDrawable = BASIC_SLOT): IRecipeSlotBuilder {
             return addGasSlot(builder, x, y, RecipeIngredientRole.INPUT, background)
-                .addIngredient(KelvinJeiPlugin.Companion.GAS_INGREDIENT_TYPE, ingredient)
+                .addIngredient(KelvinJeiPlugin.GAS_INGREDIENT_TYPE, ingredient)
         }
 
         fun addOutputGasSlot(builder: IRecipeLayoutBuilder, x: Int, y: Int, ingredient: KelvinGasIngredient, background: IDrawable = BASIC_SLOT): IRecipeSlotBuilder {
             return addGasSlot(builder, x, y, RecipeIngredientRole.OUTPUT, background)
-                .addIngredient(KelvinJeiPlugin.Companion.GAS_INGREDIENT_TYPE, ingredient)
+                .addIngredient(KelvinJeiPlugin.GAS_INGREDIENT_TYPE, ingredient)
         }
 
         fun addGasSlot(builder: IRecipeLayoutBuilder, x: Int, y: Int, role: RecipeIngredientRole, background: IDrawable): IRecipeSlotBuilder {
