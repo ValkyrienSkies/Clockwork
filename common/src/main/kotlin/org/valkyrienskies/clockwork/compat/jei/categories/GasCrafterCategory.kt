@@ -11,6 +11,7 @@ import com.simibubi.create.foundation.item.ItemHelper
 import com.simibubi.create.foundation.utility.CreateLang
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView
+import mezz.jei.api.helpers.IGuiHelper
 import mezz.jei.api.recipe.IFocusGroup
 import mezz.jei.api.recipe.RecipeIngredientRole
 import net.minecraft.client.Minecraft
@@ -26,7 +27,7 @@ import org.valkyrienskies.kelvin.api.recipe.KelvinGasIngredient
 import javax.annotation.ParametersAreNonnullByDefault
 
 @ParametersAreNonnullByDefault
-class GasCrafterCategory(val info: Info<GasCraftingRecipe>) : CreateRecipeCategory<GasCraftingRecipe>(info) {
+class GasCrafterCategory(val info: Info<GasCraftingRecipe>, val guiHelper: IGuiHelper) : CreateRecipeCategory<GasCraftingRecipe>(info) {
     private val crafter = AnimatedGasCrafter()
     private val heater = AnimatedBlazeBurner()
     private var currentRecipe: GasCraftingRecipe? = null

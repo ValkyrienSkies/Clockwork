@@ -15,6 +15,7 @@ import mezz.jei.api.JeiPlugin
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder
 import mezz.jei.api.gui.builder.IRecipeSlotBuilder
 import mezz.jei.api.gui.drawable.IDrawable
+import mezz.jei.api.helpers.IGuiHelper
 import mezz.jei.api.recipe.RecipeIngredientRole
 import mezz.jei.api.recipe.RecipeType
 import mezz.jei.api.registration.IRecipeCatalystRegistration
@@ -54,7 +55,7 @@ class ClockworkJEI() : IModPlugin {
     var runtime: IJeiRuntime? = null
 
 
-    private fun loadCategories() {
+    private fun loadCategories(helper: IGuiHelper) {
         allCategories.clear()
 
         builder(GasCraftingRecipe::class.java)
@@ -65,7 +66,7 @@ class ClockworkJEI() : IModPlugin {
             .build(
                 "gas_crafting",
                 CreateRecipeCategory.Factory { info: CreateRecipeCategory.Info<GasCraftingRecipe> ->
-                    GasCrafterCategory(info)
+                    GasCrafterCategory(info, helper)
                 })
     }
         
@@ -80,10 +81,11 @@ class ClockworkJEI() : IModPlugin {
     }
 
     override fun registerCategories(registration: IRecipeCategoryRegistration) {
-        loadCategories()
+        val helper = registration.jeiHelpers.guiHelper
+        loadCategories(helper)
         registration.addRecipeCategories(*allCategories.toTypedArray())
 
-        registration.addRecipeCategories(GasReactionCategory())
+        registration.addRecipeCategories(GasReactionCategory(helper))
     }
 
     override fun registerRecipeCatalysts(registration: IRecipeCatalystRegistration) {
