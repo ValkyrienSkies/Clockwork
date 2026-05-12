@@ -66,9 +66,12 @@ class GasCrafterCategory(val info: Info<GasCraftingRecipe>, val guiHelper: IGuiH
 
         var i = if (requiredHeat == HeatCondition.NONE) 0 else 1
 
+        var first = true
         if (recipe.gasRecipe?.requirements != null)
         recipe.gasRecipe!!.requirements.forEach {
-            ClockworkGuiTextures.JEI_DARKER_BAR.render(graphics, 4, 80+20*i)
+            val screenElement = if (first) ClockworkGuiTextures.JEI_DARKER_BAR else ClockworkGuiTextures.JEI_DARKER_BAR_FULL
+            first = false
+            screenElement.render(graphics, 4, 80+20*i)
             graphics.drawString(Minecraft.getInstance().font, it.key.get_text(it.value), 9, 86+20*i, 16777215, false)
             i++
         }

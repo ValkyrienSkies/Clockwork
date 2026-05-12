@@ -95,7 +95,7 @@ class GasReactionCategory(val guiHelper: IGuiHelper) : IRecipeCategory<GasBaseRe
 
         var i = 0
         recipe.requirements.forEach {
-            ClockworkGuiTextures.JEI_DARKER_BAR.render(graphics, 4, 20+20*i)
+            ClockworkGuiTextures.JEI_DARKER_BAR_FULL.render(graphics, 4, 20+20*i)
             graphics.drawString(Minecraft.getInstance().font, it.key.get_text(it.value), 7, 25+20*i, 16777215)
             i++
         }

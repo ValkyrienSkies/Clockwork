@@ -38,7 +38,7 @@ enum class ClockworkGuiTextures(
     COMMAND_SEAT("command_seat", 173, 159),
     WANDER_TOOL_BACKGROUND("overlay", 0, 0, 16, 16),
 
-    JEI_BAR("jei_widgets", 0, 201, 169, 19),
+    JEI_DARKER_BAR_FULL("jei_widgets", 0, 201, 169, 19),
 	JEI_DARKER_BAR("jei_widgets", 0, 221, 169, 19);
 
     constructor(location: String, width: Int, height: Int) : this(
