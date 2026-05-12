@@ -26,6 +26,7 @@ import mezz.jei.api.runtime.IJeiRuntime
 import net.createmod.catnip.config.ConfigBase
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.crafting.Recipe
@@ -34,9 +35,12 @@ import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkRecipes
+import org.valkyrienskies.clockwork.compat.jei.DuctStatsDummyRecipe.Companion.DUCT_STATS_DUMMY_TYPE
+import org.valkyrienskies.clockwork.compat.jei.categories.DuctStatsCategory
 import org.valkyrienskies.clockwork.compat.jei.categories.GasCrafterCategory
 import org.valkyrienskies.clockwork.compat.jei.categories.GasReactionCategory
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCraftingRecipe
+import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.api.recipe.KelvinGasIngredient
 import org.valkyrienskies.kelvin.integration.jei.GasIngredientRenderer
 import org.valkyrienskies.kelvin.integration.jei.GasIngredientType
@@ -84,8 +88,8 @@ class ClockworkJEI() : IModPlugin {
         val helper = registration.jeiHelpers.guiHelper
         loadCategories(helper)
         registration.addRecipeCategories(*allCategories.toTypedArray())
-
         registration.addRecipeCategories(GasReactionCategory(helper))
+        registration.addRecipeCategories(DuctStatsCategory(registration.jeiHelpers))
     }
 
     override fun registerRecipeCatalysts(registration: IRecipeCatalystRegistration) {
@@ -97,8 +101,21 @@ class ClockworkJEI() : IModPlugin {
     override fun registerRecipes(registration: IRecipeRegistration) {
         allCategories.forEach(Consumer { c: CreateRecipeCategory<*>? -> c!!.registerRecipes(registration) })
 
-    }
+        // Is this potentially laggy on extra large modpacks? maybe? not sure
+        // we should test with greg
+        val blocks = BuiltInRegistries.BLOCK.stream().filter { block ->
+            block is IHaveDuctStats && block.getProductionStats().isNotEmpty()
+        }
+        val recipes = mutableListOf<DuctStatsDummyRecipe>()
 
+        blocks.forEach { block ->
+            (block as IHaveDuctStats).getProductionStats().forEach { (key, value) ->
+                recipes.add(DuctStatsDummyRecipe(block, Pair(key, value)))
+            }
+        }
+
+        registration.addRecipes(DUCT_STATS_DUMMY_TYPE, recipes)
+    }
 
     class CategoryBuilder<T : Recipe<*>?>(private val recipeClass: Class<out T?>) {
         private var predicate = Predicate { cRecipes: CRecipes? -> true }
