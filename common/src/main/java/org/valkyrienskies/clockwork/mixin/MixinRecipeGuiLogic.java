@@ -19,7 +19,8 @@ public class MixinRecipeGuiLogic {
      */
     @WrapOperation(
             method = "getVisibleRecipeLayoutsWithButtons",
-            at = @At(value = "INVOKE", target = "Ljava/util/Optional;orElseGet(Ljava/util/function/Supplier;)Ljava/lang/Object;")
+            at = @At(value = "INVOKE", target = "Ljava/util/Optional;orElseGet(Ljava/util/function/Supplier;)Ljava/lang/Object;"),
+            require = 0
     )
     private static <T> T thingy(Optional instance, Supplier<? extends Integer> supplier, Operation<Integer> original, @Local IRecipeCategory<?> recipeCategory) {
         if (recipeCategory instanceof GasReactionCategory) {
