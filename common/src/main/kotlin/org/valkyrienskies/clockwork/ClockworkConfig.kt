@@ -53,6 +53,9 @@ object ClockworkConfig {
         @ConfigCategory(title = "Kelvin")
         val kelvin = Kelvin()
 
+        @ConfigCategory(title = "Gimbal Bearing")
+        val gimbal = Gimbal()
+
         @ConfigEntry(description = "Enable verbose debug logging")
         var debugMode = false
 
@@ -222,6 +225,29 @@ object ClockworkConfig {
         var cheatFlapBearingPeripheral = false
 
 
+    }
+
+    class Gimbal {
+        @ConfigEntry(min = 0.0, description = "Proportional gain for the Gimbal Bearing PID (Locked / Gyroscopic modes).")
+        var gimbalAngleErrorMultiplier = 2000.0
+
+        @ConfigEntry(min = 0.0, description = "Derivative gain for the Gimbal Bearing PID (Locked / Gyroscopic modes).")
+        var gimbalOmegaErrorMultiplier = 200.0
+
+        @ConfigEntry(min = 0.0, description = "Maximum torque the Gimbal Bearing PID may apply, scaled per RPM and per kg of contraption mass. Set 0 to disable clamping.")
+        var gimbalMaxTorquePerRpmPerKg = 5.0
+
+        @ConfigEntry(min = 0.0, description = "Constant-torque magnitude the Gimbal Bearing applies in Unlocked mode, scaled per RPM and per kg of contraption mass.")
+        var gimbalUnlockedForcePerRpmPerKg = 5.0
+
+        @ConfigEntry(min = 0.0, description = "Proportional gain for the Gimbal Bearing twist-lock PID (substitutes for the missing TWIST=LOCKED joint constraint when running on Krunch). Always active while assembled.")
+        var gimbalTwistKp = 200.0
+
+        @ConfigEntry(min = 0.0, description = "Derivative gain for the Gimbal Bearing twist-lock PID.")
+        var gimbalTwistKd = 30.0
+
+        @ConfigEntry(min = 0.0, description = "Maximum twist-correction torque, scaled per kg of contraption mass. Set 0 to disable clamping.")
+        var gimbalTwistMaxTorquePerKg = 5.0
     }
 
     class Kelvin {
