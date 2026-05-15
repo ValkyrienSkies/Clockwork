@@ -50,6 +50,7 @@ commands:
         root: .
         paths:
           - artifacts
+
   save_artifacts_and_generate_discord:
     parameters:
       artifact_name:
