@@ -45,6 +45,11 @@ commands:
       # Store artifacts
       - store_artifacts:
           path: artifacts
+      # Make artifacts available to downstream jobs
+      - persist_to_workspace:
+        root: .
+        paths:
+          - artifacts
   save_artifacts_and_generate_discord:
     parameters:
       artifact_name:
