@@ -136,6 +136,7 @@
 
   "vs_clockwork.logistics.firstFrequency": "Delivery Frequency",
   "vs_clockwork.logistics.filter.click_to_set": "Click with an item to set.",
+  "vs_clockwork.logistics.filter.click_to_replace": "Click with an item to replace.",
 
   "vs_clockwork.contraptions.propeller.rotation_direction": "Rotation Direction",
   "vs_clockwork.contraptions.resistor.resist_direction": "Resistor Resist Direction",
