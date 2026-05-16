@@ -78,6 +78,7 @@ Throws if:
 - `gasName` is not found in the gas registry
 - `amount` is `<=0`
 - `amount` is larger than the amount of `gasName` in the node
+- `cheatKelvinPeripheral` is not enabled in the server config (disabled by default)
 
 ---
 
@@ -101,6 +102,7 @@ Throws if:
 - `toName` is not a gas node peripheral
 - `amount` is `<=0`
 - `amount` is larger than the temperature in the node
+- `cheatKelvinPeripheral` is not enabled in the server config (disabled by default)
 
 ---
 
@@ -390,6 +392,87 @@ disassemble() -> bool
 ```
 
 Disassembles the flap bearing. 
+Returns `true`, unless the bearing was already disassembled, in which case it will return `false`
+
+---
+
+## Propeller Bearing peripheral
+
+Peripheral type: `cw_prop_bearing`
+
+---
+
+```lua
+isBrass() -> bool
+```
+
+Whether the propeller bearing is a brass propeller bearing (false if it is a jury rigged bearing)
+
+---
+
+```lua
+getAngle() -> number
+```
+
+The current angle the bearing is at. Will be within the range `-360 .. 360`
+
+---
+
+```lua
+setBladeAngle(angle: number, locked: bool | nil)
+```
+
+Sets the blade angle of any blade controllers on the bearing. `angle` must be in the range `-180 .. 180`.
+
+If `locked` is not specified, the bearing will be "locked"
+and no longer respond to any redstone input (only computer input) until `setLocked` is used.
+If `locked` is specified as `false`, the bearing will not be locked, and will respond to redstone input, but will also reset every tick.
+
+Throws if:
+- The peripheral is not a brass propeller bearing
+- The propeller bearing is not assembled
+
+---
+
+```lua
+isLocked() -> bool
+```
+
+Whether the propeller bearing is currently locked, and will only respond to computer input (not redstone).
+
+---
+
+```lua
+setLocked(locked: bool)
+```
+
+Set the propeller bearing `locked` to true/false. If true, the propeller bearing will only respond to computer blade angle input.
+If false, the propeller bearing can accept redstone _or_ computer input, but will reset to the redstone input each tick.
+
+---
+
+```lua
+isRunning() -> bool
+```
+
+Is the propeller bearing currently assembled
+
+---
+
+```lua
+assemble() -> bool
+```
+
+Assembles the propeller bearing.
+Returns `true`, unless the bearing was already assembled, in which case it will return `false`
+
+---
+
+```lua
+disassemble() -> bool
+```
+
+Disassembles the propeller bearing.
 Returns `true`, unless the bearing was already disassembled, in which case it will return `false`
 
 ---

@@ -3,22 +3,27 @@ package org.valkyrienskies.clockwork.content.ponders
 import com.simibubi.create.AllBlocks
 import com.simibubi.create.content.redstone.analogLever.AnalogLeverBlockEntity
 import com.simibubi.create.content.redstone.nixieTube.NixieTubeBlockEntity
+import com.simibubi.create.foundation.collision.Matrix3d
+import com.simibubi.create.foundation.collision.OrientedBB
 import com.simibubi.create.foundation.ponder.CreateSceneBuilder
 import net.createmod.catnip.math.Pointing
 import net.createmod.ponder.api.PonderPalette
 import net.createmod.ponder.api.scene.SceneBuilder
 import net.createmod.ponder.api.scene.SceneBuildingUtil
+import net.createmod.ponder.foundation.instruction.RotateSceneInstruction
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.RedStoneWireBlock
+import net.minecraft.world.level.block.Rotation
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkItems
+import org.valkyrienskies.clockwork.chaseParallelogram
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity
-import org.valkyrienskies.clockwork.content.ponders.moveSectionAsShip
 import org.valkyrienskies.clockwork.ponderLang
 import org.valkyrienskies.clockwork.sparklingPlane
 
@@ -597,7 +602,7 @@ object PhysicsPonders {
         scene.idle(20)
         scene.overlay().showText(40)
             .attachKeyFrame()
-            .text("Place the wand in the Physics Infuser")
+            .text(scene.ponderLang(1))
             .placeNearTarget()
             .pointAt(util.vector().blockSurface(util.grid().at(0, 2, 0), Direction.WEST))
         scene.overlay().showControls(util.vector().blockSurface(util.grid().at(0, 2, 0), Direction.DOWN), Pointing.DOWN, 40)
@@ -607,7 +612,7 @@ object PhysicsPonders {
         scene.idle(50)
         scene.overlay().showText(40)
             .attachKeyFrame()
-            .text("Or use the Gravitron")
+            .text(scene.ponderLang(2))
             .placeNearTarget()
             .pointAt(util.vector().blockSurface(util.grid().at(2, 2, 2), Direction.WEST))
         scene.overlay().showControls(util.vector().blockSurface(util.grid().at(2, 2, 2), Direction.DOWN), Pointing.DOWN, 40)
@@ -634,7 +639,7 @@ object PhysicsPonders {
         scene.idle(20)
         scene.overlay().showText(40)
             .attachKeyFrame()
-            .text("This Ship is now affected by physics!")
+            .text(scene.ponderLang(3))
             .placeNearTarget()
             .pointAt(util.vector().blockSurface(util.grid().at(2, 0, 3), Direction.WEST))
         scene.idle(37 * 4)
@@ -660,12 +665,12 @@ object PhysicsPonders {
 
         scene.overlay().showText(40)
             .attachKeyFrame()
-            .text("Gyro will stabilize ship in its direction")
+            .text(scene.ponderLang(1))
         scene.idle(40+20)
 
         scene.overlay().showText(40)
             .attachKeyFrame()
-            .text("Redstone input from each side will tilt the ship")
+            .text(scene.ponderLang(2))
         scene.idle(40+20)
 
         scene.world().configureCenterOfRotation(contraption, Vec3(2.0, 3.0, 2.0))
@@ -751,6 +756,315 @@ object PhysicsPonders {
         scene.idle(60)
 
         scene.idle(20)
+
+        scene.markAsFinished()
+    }
+
+    fun wings(sceneBuilder: SceneBuilder, util: SceneBuildingUtil) {
+        val scene = CreateSceneBuilder(sceneBuilder)
+
+        scene.title("wings", "Wings")
+        scene.configureBasePlate(0, 0, 7)
+
+        scene.showBasePlate()
+        scene.idle(10)
+
+        val horizontalFlaps = util.select().fromTo(1, 2, 1, 3, 2, 5) // Select both main wings
+            .substract(util.select().position(1, 2, 1)) // subtract cut-out corners
+            .substract(util.select().position(1, 2, 5))
+            .add(util.select().fromTo(5, 2, 2, 5, 2, 4)) // add back wings
+            .substract(util.select().fromTo(1, 2, 3, 5, 2, 3)) // cut out main body
+
+        val entirePlane = util.select().layer(2).add(util.select().layer(3))
+
+        scene.world().replaceBlocks(horizontalFlaps, Blocks.OAK_SLAB.defaultBlockState(), false)
+
+        scene.world().showSection(entirePlane, Direction.DOWN)
+        scene.idle(15)
+
+        scene.overlay().showText(60)
+            .text(scene.ponderLang(1))
+        scene.idle(60+10)
+
+        scene.overlay().showText(60)
+            .text(scene.ponderLang(2))
+            .attachKeyFrame()
+        scene.idle(60+20)
+
+        scene.overlay().showText(60)
+            .text(scene.ponderLang(3))
+            .pointAt(util.vector().centerOf(BlockPos(1, 2, 2)))
+        scene.idle(60+10)
+
+        scene.overlay().showText(60)
+            .text(scene.ponderLang(4))
+            .pointAt(util.vector().centerOf(BlockPos(1, 2, 2)))
+        scene.idle(60+20)
+
+        // For the particles
+        scene.world().replaceBlocks(horizontalFlaps, ClockworkBlocks.FLAP.defaultState, true)
+        // For the actual flap blocks (so they have connected textures, which for some reason replaceBlocks doesn't do)
+        scene.world().restoreBlocks(horizontalFlaps)
+
+        scene.idle(10)
+
+        scene.addKeyframe()
+
+        scene.overlay().showText(60)
+            .text(scene.ponderLang(5))
+            .pointAt(util.vector().centerOf(BlockPos(1, 2, 2)))
+        scene.idle(60+20)
+
+        scene.overlay().showText(60)
+            .text(scene.ponderLang(6))
+            .pointAt(util.vector().centerOf(BlockPos(1, 2, 2)))
+        scene.idle(60+20)
+
+        scene.markAsFinished()
+    }
+
+    fun camberedWings(sceneBuilder: SceneBuilder, util: SceneBuildingUtil) {
+        val scene = CreateSceneBuilder(sceneBuilder)
+
+        scene.title("cambered_wings", "Cambered wings")
+        scene.configureBasePlate(0, 0, 7)
+
+        var floor = scene.world().showIndependentSection(util.select().layer(0), Direction.DOWN)
+        scene.idle(10)
+
+        val horizontalFlaps = util.select().fromTo(1, 2, 1, 3, 2, 5) // Select both main wings
+            .substract(util.select().position(1, 2, 1)) // subtract cut-out corners
+            .substract(util.select().position(1, 2, 5))
+            .add(util.select().fromTo(5, 2, 2, 5, 2, 4)) // add back wings
+            .substract(util.select().fromTo(1, 2, 3, 5, 2, 3)) // cut out main body
+
+        val entirePlane = util.select().layer(2).add(util.select().layer(3))
+
+        var contraption = scene.world().showIndependentSection(entirePlane, Direction.DOWN)
+        scene.idle(15)
+
+        scene.overlay().showText(60)
+            .text(scene.ponderLang(1))
+            .pointAt(util.vector().centerOf(BlockPos(1, 2, 2)))
+        scene.idle(60+10)
+
+        scene.addInstruction(RotateSceneInstruction(0f, 180f, false))
+        scene.idle(40)
+        scene.addKeyframe()
+
+        scene.overlay().chaseBoundingBoxOutline(PonderPalette.GREEN, 1, AABB(1.0, 2.25, 1.0, 4.0, 2.75, 1.0), 80)
+        scene.overlay().chaseBoundingBoxOutline(PonderPalette.GREEN, 2, AABB(5.0, 2.25, 1.0, 6.0, 2.75, 1.0), 80)
+
+        scene.overlay().showText(70)
+            .text(scene.ponderLang(2))
+            .pointAt(util.vector().centerOf(BlockPos(1, 2, 1)))
+        scene.idle(70+20)
+
+        scene.addInstruction(RotateSceneInstruction(-35f, 55f + 90f, false))
+        scene.idle(35)
+        scene.addKeyframe()
+
+        scene.overlay().showText(40)
+            .text(scene.ponderLang(3))
+            .pointAt(util.vector().centerOf(BlockPos(1, 2, 2)))
+        scene.idle(40+20)
+
+        scene.world().moveSectionAsShip(scene, contraption, 80, Vec3(0.0, -0.01, 0.0), Vec3(0.0, 0.0, 0.2))
+        scene.world().moveSectionAsShip(scene, floor, 80, Vec3(0.4, 0.0, 0.0))
+
+        scene.idle(80)
+
+        scene.world().hideIndependentSection(contraption, Direction.UP)
+        scene.world().hideIndependentSection(floor, Direction.DOWN)
+
+        scene.idle(15)
+
+        floor = scene.world().showIndependentSection(util.select().layer(0), Direction.UP)
+
+        scene.idle(15)
+
+        contraption = scene.world().showIndependentSection(entirePlane, Direction.DOWN)
+
+        scene.idle(15)
+
+
+
+        scene.addKeyframe()
+
+        // Particles
+        scene.world().replaceBlocks(horizontalFlaps, ClockworkBlocks.WING.defaultState, true)
+
+        // Actual wings (so we get connected textures)
+        var cambered = scene.world().showIndependentSectionImmediately(util.select().layersFrom(4))
+        scene.world().moveSection(cambered, Vec3(0.0, -2.0, 0.0), 0)
+
+        // remove right after to prevent z-fighting
+        scene.world().replaceBlocks(horizontalFlaps, Blocks.AIR.defaultBlockState(), false)
+
+
+
+        scene.overlay().showText(60)
+            .text(scene.ponderLang(4))
+            .pointAt(util.vector().centerOf(BlockPos(1, 2, 2)))
+        scene.idle(60+10)
+
+        scene.addInstruction(RotateSceneInstruction(0f, 180f, false))
+        scene.idle(40)
+        scene.addKeyframe()
+
+
+        scene.overlay().chaseParallelogram(PonderPalette.GREEN, Vec3(5.0, 2.6, 1.0), 1.0, 0.4, Math.toRadians(-20.0), Direction.SOUTH, 80)
+        scene.overlay().chaseParallelogram(PonderPalette.GREEN, Vec3(3.0, 2.6, 1.0), 1.0, 0.4, Math.toRadians(-20.0), Direction.SOUTH, 80)
+        scene.overlay().chaseParallelogram(PonderPalette.GREEN, Vec3(2.0, 2.6, 1.0), 1.0, 0.4, Math.toRadians(-20.0), Direction.SOUTH, 80)
+        scene.overlay().chaseParallelogram(PonderPalette.GREEN, Vec3(1.0, 2.6, 1.0), 1.0, 0.4, Math.toRadians(-20.0), Direction.SOUTH, 80)
+
+        scene.overlay().showText(70)
+            .text(scene.ponderLang(5))
+            .pointAt(util.vector().centerOf(BlockPos(1, 2, 1)))
+        scene.idle(70+20)
+
+        scene.addInstruction(RotateSceneInstruction(-35f, 55f + 90f, false))
+        scene.idle(40)
+        scene.addKeyframe()
+
+        scene.overlay().showText(40)
+            .text(scene.ponderLang(6))
+            .pointAt(util.vector().centerOf(BlockPos(1, 2, 2)))
+        scene.idle(40+20)
+
+        scene.world().moveSectionAsShip(scene, contraption, 80, Vec3(0.0, -0.01, 0.0), Vec3(0.0, 0.0, -0.2))
+        scene.world().moveSectionAsShip(scene, cambered, 80, Vec3(0.0, -0.01, 0.0), Vec3(0.0, 0.0, -0.2))
+        scene.world().moveSectionAsShip(scene, floor, 80, Vec3(0.4, 0.0, 0.0))
+
+        scene.idle(80)
+
+        scene.world().hideIndependentSection(contraption, Direction.UP)
+        scene.world().hideIndependentSection(cambered, Direction.UP)
+        scene.world().hideIndependentSection(floor, Direction.DOWN)
+
+        scene.idle(15)
+
+        floor = scene.world().showIndependentSection(util.select().layer(0), Direction.UP)
+
+        scene.idle(15)
+
+        contraption = scene.world().showIndependentSection(entirePlane, Direction.DOWN)
+
+        cambered = scene.world().showIndependentSectionImmediately(util.select().layersFrom(4))
+        // Two move operations so we line up with the fadein movement (mostly)
+        scene.world().moveSection(cambered, Vec3(0.0, -1.5, 0.0), 0)
+        scene.world().moveSection(cambered, Vec3(0.0, -0.5, 0.0), 15)
+
+        scene.idle(15)
+
+        scene.markAsFinished()
+    }
+
+    fun planeTips(sceneBuilder: SceneBuilder, util: SceneBuildingUtil) {
+        val scene = CreateSceneBuilder(sceneBuilder)
+
+        scene.title("plane_tips", "Plane Tips")
+        scene.configureBasePlate(0, 0, 7)
+
+        var floor = scene.world().showIndependentSection(util.select().layer(0), Direction.DOWN)
+        scene.idle(10)
+
+        val horizontalFlaps = util.select().fromTo(1, 2, 1, 3, 2, 5) // Select both main wings
+            .substract(util.select().position(1, 2, 1)) // subtract cut-out corners
+            .substract(util.select().position(1, 2, 5))
+            .add(util.select().fromTo(5, 2, 2, 5, 2, 4)) // add back wings
+            .substract(util.select().fromTo(1, 2, 3, 5, 2, 3)) // cut out main body
+
+        val entirePlane = util.select().layer(2).add(util.select().layer(3))
+
+        var contraption = scene.world().showIndependentSection(entirePlane, Direction.DOWN)
+        scene.idle(15)
+
+        scene.overlay().showText(50)
+            .text(scene.ponderLang(1))
+        scene.idle(50+10)
+
+        scene.overlay().showText(60)
+            .text(scene.ponderLang(2))
+            .pointAt(util.vector().centerOf(BlockPos(1, 2, 2)))
+        scene.idle(60+10)
+
+        // Particles
+        scene.world().replaceBlocks(horizontalFlaps, ClockworkBlocks.WING.defaultState, true)
+
+        // Actual wings (so we get connected textures)
+        var cambered = scene.world().showIndependentSectionImmediately(util.select().layersFrom(4))
+        scene.world().moveSection(cambered, Vec3(0.0, -2.0, 0.0), 0)
+
+        // remove right after to prevent z-fighting
+        scene.world().replaceBlocks(horizontalFlaps, Blocks.AIR.defaultBlockState(), false)
+
+        scene.overlay().showText(60)
+            .text(scene.ponderLang(3))
+            .pointAt(util.vector().centerOf(BlockPos(1, 2, 2)))
+        scene.idle(60+20)
+
+        scene.world().hideIndependentSection(cambered, Direction.UP)
+        scene.idle(15)
+        scene.world().restoreBlocks(horizontalFlaps)
+
+        scene.addKeyframe()
+
+        scene.overlay().showText(50)
+            .text(scene.ponderLang(4))
+        scene.idle(50+10)
+
+        scene.overlay().showText(60)
+            .text(scene.ponderLang(5))
+            .pointAt(util.vector().centerOf(BlockPos(5, 3, 3)))
+        scene.idle(60+10)
+
+        scene.overlay().showText(40)
+            .text(scene.ponderLang(6))
+            .pointAt(util.vector().centerOf(BlockPos(5, 3, 3)))
+        scene.idle(40+20)
+
+        scene.world().setBlock(BlockPos(5, 3, 3), ClockworkBlocks.WING.defaultState.rotate(Rotation.CLOCKWISE_90), true)
+        scene.idle(10)
+
+        scene.overlay().showText(60)
+            .text(scene.ponderLang(7))
+            .pointAt(util.vector().centerOf(BlockPos(5, 3, 3)))
+        scene.idle(60+20)
+
+        scene.addInstruction(RotateSceneInstruction(-90f, 180f, false))
+        scene.idle(35)
+        scene.addKeyframe()
+
+        scene.overlay().chaseParallelogram(PonderPalette.GREEN, Vec3(5.0, 4.0, 3.6), 1.0, 0.4, Math.toRadians(-20.0), Direction.DOWN, 60+10+60+10)
+
+        scene.overlay().showText(60)
+            .text(scene.ponderLang(8))
+            .pointAt(util.vector().centerOf(BlockPos(5, 3, 3)))
+        scene.idle(60+10)
+
+        scene.overlay().showText(60)
+            .text(scene.ponderLang(9))
+            .pointAt(util.vector().centerOf(BlockPos(5, 3, 3)))
+        scene.idle(60+10)
+
+        scene.world().moveSectionAsShip(scene, floor, 80, Vec3(0.4, 0.0, 0.0), Vec3(0.0, -0.5, 0.0))
+        scene.idle(80)
+
+        scene.world().hideIndependentSection(floor, Direction.DOWN)
+        floor = scene.world().showIndependentSection(util.select().layer(0), Direction.UP)
+        scene.addInstruction(RotateSceneInstruction(-35f, 55f + 90f, false))
+        scene.world().setBlock(BlockPos(5, 3, 3), ClockworkBlocks.FLAP.defaultState.rotate(Rotation.CLOCKWISE_90), true)
+        scene.idle(40)
+
+        // TODO: Explain best practices for flap bearings
+        // (aka use front ones to turn, back ones for lift)
+        // (also mention that you can use cambered wings on flap bearings too, its just weird)
+        /*scene.addKeyframe()
+
+        scene.overlay().showText(50)
+            .text("Tip #3: Add a vertical stabilizer")
+        scene.idle(50+10)*/
 
         scene.markAsFinished()
     }

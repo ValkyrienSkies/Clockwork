@@ -7,11 +7,10 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Math.clamp
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.util.KNodeBlockEntity
+import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import java.lang.ref.WeakReference
 import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.pow
 
 class SteamGeneratorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state) {
@@ -48,7 +47,7 @@ class SteamGeneratorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state:
         if (efficiency == 0f) return
         if (tank.boiler.activeHeat == 0 && !tank.boiler.passiveHeat) return
 
-        val network = ClockworkMod.getKelvin()
+        val network = ClockworkMod.getKelvin(level)
 
         val mass = maxMass * efficiency
 

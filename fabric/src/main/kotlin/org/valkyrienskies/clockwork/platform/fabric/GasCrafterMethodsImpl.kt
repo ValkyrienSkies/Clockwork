@@ -31,7 +31,7 @@ object GasCrafterMethodsImpl {
         val availableItems = basin?.getItemStorage(null)
         val availableFluids = basin?.getFluidStorage(null)
 
-        val heat = if (basin != null)  BasinBlockEntity.getHeatLevelOf(basin.blockState) else BlazeBurnerBlock.HeatLevel.NONE
+        val heat: BlazeBurnerBlock.HeatLevel = if (basin != null) BasinBlockEntity.getHeatLevelOf(basin.level!!.getBlockState(basin.blockPos.below())) else BlazeBurnerBlock.HeatLevel.NONE
         if (isGasCrafterRecipe && !recipe.requiredHeat.testBlazeBurner(heat)) return false
 
         val recipeOutputItems: MutableList<ItemStack> = ArrayList()
@@ -115,7 +115,7 @@ object GasCrafterMethodsImpl {
 
                 baseGasRecipe?.requirements?.forEach { (requirement, element) ->
                     if (!requirement.apply_requirement(be.level!!, be.getDuctNodePosition(),
-                        ClockworkMod.getKelvin(), element)) return false
+                        ClockworkMod.getKelvin(be.level), element)) return false
                 }
             }
 
@@ -124,7 +124,7 @@ object GasCrafterMethodsImpl {
 
             if (itemsAffected && !basin!!.acceptOutputs(recipeOutputItems, recipeOutputFluids, t)) return false
 
-            val currentMasses = ClockworkMod.getKelvin().getGasMassAt(be.getDuctNodePosition())
+            val currentMasses = ClockworkMod.getKelvin(be.level).getGasMassAt(be.getDuctNodePosition())
             GasIngredients@ for ((gasType, mass) in gasIngredients) {
                 val mass = mass
                 if ((currentMasses[gasType] ?: 0.0) < mass) return false
@@ -134,15 +134,15 @@ object GasCrafterMethodsImpl {
                 t.commit()
 
                 for ((gas, deltaMass) in gasIngredients) {
-                    ClockworkMod.getKelvin().modGasMass(be.getDuctNodePosition(), gas, -deltaMass)
+                    ClockworkMod.getKelvin(be.level).modGasMass(be.getDuctNodePosition(), gas, -deltaMass)
                 }
 
                 for ((gasType, mass) in gasResults) {
                     val mass = mass
-                    ClockworkMod.getKelvin().modGasMass(be.getDuctNodePosition(), gasType, mass)
+                    ClockworkMod.getKelvin(be.level).modGasMass(be.getDuctNodePosition(), gasType, mass)
                 }
 
-                ClockworkMod.getKelvin().modHeatEnergy(be.getDuctNodePosition(), baseGasRecipe?.energy ?: 0.0)
+                ClockworkMod.getKelvin(be.level).modHeatEnergy(be.getDuctNodePosition(), baseGasRecipe?.energy ?: 0.0)
 
             }
             return true

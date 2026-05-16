@@ -7,6 +7,7 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.Tesselator
 import com.mojang.blaze3d.vertex.VertexFormat
 import dev.architectury.platform.Platform
+import net.createmod.ponder.api.level.PonderLevel
 import net.minecraft.client.Camera
 import net.minecraft.client.Minecraft
 import net.minecraft.client.multiplayer.ClientLevel
@@ -30,7 +31,9 @@ object KelvinEdgeRenderer {
     fun render(level: ClientLevel, poseStack: PoseStack, camera: Camera) {
         if (!Minecraft.getInstance().options.renderDebug) return
 
-        val network = if (Minecraft.getInstance().isLocalServer && Platform.isFabric()) ClockworkMod.getKelvin() else ClockworkModClient.getKelvin()
+        val network = if (level is PonderLevel) ClockworkMod.getKelvin(level)
+            else if (Minecraft.getInstance().isLocalServer && Platform.isFabric()) ClockworkMod.getKelvin()
+            else ClockworkModClient.getKelvin()
 
         val cameraPos = camera.position
 

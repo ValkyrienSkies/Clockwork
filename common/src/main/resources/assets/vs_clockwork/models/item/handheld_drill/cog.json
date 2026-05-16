@@ -1,0 +1,124 @@
+{
+	"format_version": "1.21.11",
+	"credit": "Made with Blockbench",
+	"texture_size": [48, 48],
+	"textures": {
+		"1": "vs_clockwork:item/mechanical_handdrill",
+		"particle": "create:block/mechanical_arm"
+	},
+	"elements": [
+		{
+			"name": "Joint 5",
+			"from": [5.5, 6.5, -2],
+			"to": [10.5, 11.5, 0],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 9, -1]},
+			"faces": {
+				"north": {"uv": [6.66667, 4.33333, 8.33333, 6], "texture": "#1"},
+				"east": {"uv": [11, 10, 11.66667, 11.66667], "texture": "#1"},
+				"south": {"uv": [6.33333, 6.66667, 8, 8.33333], "texture": "#1"},
+				"west": {"uv": [11.33333, 3, 12, 4.66667], "texture": "#1"},
+				"up": {"uv": [13, 5.66667, 11.33333, 5], "texture": "#1"},
+				"down": {"uv": [13, 6, 11.33333, 6.66667], "texture": "#1"}
+			}
+		},
+		{
+			"name": "Joint 6",
+			"from": [7, 5, -1.9],
+			"to": [9, 13, -0.1],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 9, -1]},
+			"faces": {
+				"north": {"uv": [8.33333, 6.33333, 9, 9], "texture": "#1"},
+				"east": {"uv": [8.66667, 2, 9.33333, 4.66667], "texture": "#1"},
+				"south": {"uv": [4.33333, 8.66667, 5, 11.33333], "texture": "#1"},
+				"west": {"uv": [5.33333, 8.66667, 6, 11.33333], "texture": "#1"},
+				"up": {"uv": [13, 13.66667, 12.33333, 13], "texture": "#1"},
+				"down": {"uv": [14, 4.33333, 13.33333, 5], "texture": "#1"}
+			}
+		},
+		{
+			"name": "Joint 7",
+			"from": [7, 5, -1.9],
+			"to": [9, 13, -0.1],
+			"rotation": {"angle": 45, "axis": "z", "origin": [8, 9, -1]},
+			"faces": {
+				"north": {"uv": [8.33333, 6.33333, 9, 9], "texture": "#1"},
+				"east": {"uv": [8.66667, 2, 9.33333, 4.66667], "texture": "#1"},
+				"south": {"uv": [4.33333, 8.66667, 5, 11.33333], "texture": "#1"},
+				"west": {"uv": [5.33333, 8.66667, 6, 11.33333], "texture": "#1"},
+				"up": {"uv": [13, 13.66667, 12.33333, 13], "texture": "#1"},
+				"down": {"uv": [14, 4.33333, 13.33333, 5], "texture": "#1"}
+			}
+		},
+		{
+			"name": "Joint 8",
+			"from": [4, 8, -1.9],
+			"to": [12, 10, -0.1],
+			"rotation": {"angle": 45, "axis": "z", "origin": [8, 9, -1]},
+			"faces": {
+				"north": {"uv": [8.33333, 6.33333, 9, 9], "rotation": 90, "texture": "#1"},
+				"east": {"uv": [14, 4.33333, 13.33333, 5], "rotation": 270, "texture": "#1"},
+				"south": {"uv": [4.33333, 8.66667, 5, 11.33333], "rotation": 270, "texture": "#1"},
+				"west": {"uv": [13, 13.66667, 12.33333, 13], "rotation": 270, "texture": "#1"},
+				"up": {"uv": [8.66667, 2, 9.33333, 4.66667], "rotation": 270, "texture": "#1"},
+				"down": {"uv": [5.33333, 8.66667, 6, 11.33333], "rotation": 270, "texture": "#1"}
+			}
+		},
+		{
+			"name": "Joint 9",
+			"from": [4, 8, -1.9],
+			"to": [12, 10, -0.1],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 9, -1]},
+			"faces": {
+				"north": {"uv": [8.33333, 6.33333, 9, 9], "rotation": 270, "texture": "#1"},
+				"east": {"uv": [13, 13.66667, 12.33333, 13], "rotation": 90, "texture": "#1"},
+				"south": {"uv": [4.33333, 8.66667, 5, 11.33333], "rotation": 90, "texture": "#1"},
+				"west": {"uv": [14, 4.33333, 13.33333, 5], "rotation": 90, "texture": "#1"},
+				"up": {"uv": [5.33333, 8.66667, 6, 11.33333], "rotation": 90, "texture": "#1"},
+				"down": {"uv": [8.66667, 2, 9.33333, 4.66667], "rotation": 90, "texture": "#1"}
+			}
+		}
+	],
+	"display": {
+		"thirdperson_righthand": {
+			"rotation": [34.5, 0, 0],
+			"translation": [0, -8.5, -0.75],
+			"scale": [0.8, 0.8, 0.8]
+		},
+		"thirdperson_lefthand": {
+			"rotation": [34.5, 0, 0],
+			"translation": [0, -8.5, -0.75],
+			"scale": [0.8, 0.8, 0.8]
+		},
+		"firstperson_righthand": {
+			"translation": [2.5, -3.5, 0],
+			"scale": [0.8, 0.8, 0.8]
+		},
+		"firstperson_lefthand": {
+			"translation": [2.5, -3.5, 0],
+			"scale": [0.8, 0.8, 0.8]
+		},
+		"ground": {
+			"translation": [0, 2, 0],
+			"scale": [0.5, 0.5, 0.5]
+		},
+		"gui": {
+			"rotation": [-35, 143, 73],
+			"translation": [0, -0.25, 0],
+			"scale": [0.6, 0.6, 0.6]
+		},
+		"fixed": {
+			"rotation": [0, -180, 0]
+		},
+		"on_shelf": {
+			"rotation": [0, -180, 0]
+		}
+	},
+	"groups": [
+		{
+			"name": "group",
+			"origin": [8, 9, 4],
+			"color": 0,
+			"children": [0, 1, 2, 3, 4]
+		}
+	]
+}

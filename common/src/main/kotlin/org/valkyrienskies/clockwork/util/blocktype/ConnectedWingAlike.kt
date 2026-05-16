@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.util.blocktype
 
-import com.simibubi.create.content.kinetics.base.IRotate
 import net.createmod.catnip.data.Iterate
 import net.createmod.catnip.placement.IPlacementHelper
 import net.createmod.catnip.placement.PlacementHelpers
@@ -17,6 +16,7 @@ import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.DirectionalBlock
 import net.minecraft.world.level.block.Rotation
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
@@ -29,7 +29,6 @@ import org.valkyrienskies.clockwork.ClockworkShapes
 import org.valkyrienskies.clockwork.content.generic.ColorBlockEntity
 import org.valkyrienskies.clockwork.content.physicalities.wing.DyedWingBlockItem
 import java.util.function.Predicate
-import kotlin.collections.getValue
 
 abstract class ConnectedWingAlike(properties: Properties?) : Block(properties) {
     init {
@@ -54,8 +53,12 @@ abstract class ConnectedWingAlike(properties: Properties?) : Block(properties) {
 
     override fun getStateForPlacement(context: BlockPlaceContext): BlockState? {
         val state = super.getStateForPlacement(context);
-        return getNewState(state?.setValue(FACING, context.clickedFace
-            .getOpposite()), context.level, context.clickedPos)
+        return getNewState(
+            state?.setValue(
+                DirectionalBlock.FACING,
+                context.nearestLookingDirection.opposite
+            ), context.level, context.clickedPos
+        )
 
 //        val preferredFacing = getPreferredDirection(context)
 //        return if (preferredFacing != null && (context.player == null || !context.player!!.isShiftKeyDown)) {

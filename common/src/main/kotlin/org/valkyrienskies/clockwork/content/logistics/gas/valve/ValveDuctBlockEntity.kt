@@ -8,18 +8,14 @@ import net.minecraft.util.Mth
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
-import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlockEntity.Companion.maxPumpPressure
 import org.valkyrienskies.clockwork.util.ClockworkUtils
-import org.valkyrienskies.clockwork.util.KNodeKineticBlockEntity
+import org.valkyrienskies.clockwork.util.kelvin.KNodeKineticBlockEntity
 import org.valkyrienskies.kelvin.api.ConnectionType
 import org.valkyrienskies.kelvin.api.DuctEdge
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.edges.ApertureDuctEdge
-import org.valkyrienskies.kelvin.api.edges.PumpDuctEdge
 import kotlin.math.abs
 
 class ValveDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeKineticBlockEntity(typeIn, pos, state), IConnectable {
@@ -51,8 +47,8 @@ class ValveDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Blo
         val front = blockPos.relative(axis, -1)
         val back = blockPos.relative(axis, 1)
         if (level == null) return
-        val backEdge = ClockworkMod.getKelvin().getEdgeBetween(getDuctNodePosition(), ClockworkUtils.getDuctNodePos(back, level))
-        val frontEdge = ClockworkMod.getKelvin().getEdgeBetween(getDuctNodePosition(), ClockworkUtils.getDuctNodePos(front, level))
+        val backEdge = ClockworkMod.getKelvin(level).getEdgeBetween(getDuctNodePosition(), ClockworkUtils.getDuctNodePos(back, level))
+        val frontEdge = ClockworkMod.getKelvin(level).getEdgeBetween(getDuctNodePosition(), ClockworkUtils.getDuctNodePos(front, level))
 
         (backEdge as? ApertureDuctEdge)?.aperture = pointer.value.toDouble()-backEdge.radius
         (frontEdge as? ApertureDuctEdge)?.aperture = pointer.value.toDouble()-frontEdge.radius
@@ -82,7 +78,7 @@ class ValveDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Blo
     }
 
     override fun getEdge(nodeA: DuctNodePos, nodeB: DuctNodePos, level: Level, blockPos: BlockPos, direction: Direction): DuctEdge {
-        return ApertureDuctEdge(ConnectionType.APERTURE, nodeA, nodeB, aperture = pointer.value.toDouble()-0.125)
+        return ApertureDuctEdge(ConnectionType.APERTURE, nodeA, nodeB, radius = 0.3125, length = 0.375, aperture = pointer.value.toDouble() - 0.125)
     }
 
 }

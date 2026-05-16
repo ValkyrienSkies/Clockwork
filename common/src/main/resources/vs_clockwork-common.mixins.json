@@ -8,6 +8,7 @@
     "MixinEntity",
     "MixinLivingEntity",
     "MixinPlayer",
+    "MixinRecipeGuiLogic",
     "MixinToolboxHandler",
     "MixinWaterBlock",
     "accessors.FluidAccessor",

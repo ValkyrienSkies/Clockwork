@@ -1,6 +1,7 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "vs_clockwork:block/wanderglass"
+    "all": "vs_clockwork:block/wanderglass",
+    "particle": "vs_clockwork:block/wanderglass"
   }
 }

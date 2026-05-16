@@ -7,13 +7,13 @@
     }
   ],
   "input_gasses": {
-    "vs_clockwork:ozonite": {
-      "amount": 0.025,
-      "unit": "kg"
+    "vs_clockwork:vitriol": {
+      "amount": 25,
+      "unit": "g"
     }
   },
   "result_gasses": {
-    "vs_clockwork:vitriol": {
+    "vs_clockwork:ozonite": {
       "amount": 0.002,
       "unit": "kg"
     },

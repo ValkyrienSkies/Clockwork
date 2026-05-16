@@ -12,6 +12,7 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.ai.attributes.Attribute
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.CreativeModeTab
 import net.minecraft.world.item.ItemStack
@@ -43,6 +44,12 @@ object PlatformUtils {
     @ExpectPlatform
     @JvmStatic
     fun getReachDistance(player: Player): Double {
+        throw AssertionError()
+    }
+
+    @ExpectPlatform
+    @JvmStatic
+    fun getReachAttribute(): Attribute {
         throw AssertionError()
     }
 

@@ -11,17 +11,13 @@ import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkConfig;
 import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.util.KNodeKineticBlockEntity
+import org.valkyrienskies.clockwork.util.kelvin.KNodeKineticBlockEntity
 import org.valkyrienskies.clockwork.util.gui.ClockworkTooltipHelper
 import org.valkyrienskies.clockwork.util.gui.DuctTextUtil
-import org.valkyrienskies.core.api.util.AerodynamicUtils
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.mod.api.dimensionId
-import org.valkyrienskies.mod.api.shipWorld
-import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.toWorldCoordinates
-import org.valkyrienskies.mod.common.vsCore
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -47,12 +43,12 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
 
     fun getAirDensity(): Double {
         val position = level.toWorldCoordinates(blockPos)
-        return vsCore.dummyShipWorldServer.aerodynamicUtils.getAirDensityForY(position.y, level!!.dimensionId)
+        return (level as? ServerLevel)?.shipObjectWorld?.aerodynamicUtils?.getAirDensityForY(position.y, level!!.dimensionId) ?: 1.0
     }
 
     fun getAirTemperature(): Double {
         val position = level.toWorldCoordinates(blockPos)
-        return vsCore.dummyShipWorldServer.aerodynamicUtils.getAirTemperatureForY(position.y, level!!.dimensionId)
+        return (level as? ServerLevel)?.shipObjectWorld?.aerodynamicUtils?.getAirTemperatureForY(position.y, level!!.dimensionId) ?: 0.0
     }
 
     override fun tick() {
@@ -62,7 +58,7 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
 
         if (level!!.isClientSide) return
 
-        val kelvin = ClockworkMod.getKelvin()
+        val kelvin = ClockworkMod.getKelvin(level)
         kelvin.getNodeAt(getDuctNodePosition()) ?: return
 
         val speed = abs(getSpeed())
@@ -125,7 +121,14 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
     }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
-        status = CompressorStatus.valueOf(tag.getString("status"))
+        var v = tag.getString("status")
+
+        // v will be "" ONLY when pasting from a schematic
+        if (v == "") {
+            v = CompressorStatus.INACTIVE.name
+        }
+
+        status = CompressorStatus.valueOf(v)
         super.read(tag, clientPacket)
     }
 

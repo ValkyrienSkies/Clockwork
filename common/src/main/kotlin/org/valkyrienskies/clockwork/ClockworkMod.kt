@@ -14,6 +14,8 @@ import dev.architectury.registry.CreativeTabRegistry
 import dev.architectury.registry.registries.DeferredRegister
 import dev.architectury.registry.registries.RegistrySupplier
 import net.createmod.catnip.lang.FontHelper
+import net.createmod.ponder.api.level.PonderLevel
+import net.minecraft.client.Minecraft
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.core.registries.Registries
 import net.minecraft.network.chat.Component
@@ -21,6 +23,7 @@ import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.CreativeModeTab
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.Level
 import org.slf4j.LoggerFactory
 import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketRenderer
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkHandler
@@ -32,16 +35,19 @@ import org.valkyrienskies.clockwork.integration.cc.GenericPeripheralsCommon
 import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.clockwork.util.builder.ClockworkExpandedCreateRegistrate
 import org.valkyrienskies.clockwork.util.gui.DuctStats
+import org.valkyrienskies.clockwork.util.render.VirtualDuctNetwork
 import org.valkyrienskies.core.api.VsBeta
 import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.api.world.properties.DimensionId
 import org.valkyrienskies.kelvin.KelvinMod
+import org.valkyrienskies.kelvin.api.DuctNetwork
 import org.valkyrienskies.kelvin.impl.DuctNetworkServer
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.mod.api.dimensionId
 import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.vsCore
+import java.util.WeakHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.roundToInt
 
@@ -89,6 +95,8 @@ object ClockworkMod {
 
     val physTickOnce = ConcurrentLinkedQueue<Pair<DimensionId, (PhysLevel, Double, () -> Unit) -> Unit>>()
 
+
+
     @OptIn(VsBeta::class)
     @JvmStatic
     fun init() {
@@ -96,6 +104,7 @@ object ClockworkMod {
         ClockworkTags.init()
         ClockworkRecipes.init()
         TAB_REGISTRY.register()
+
 
         vsCore.registerAttachment(PocketForcesController::class.java)
         vsCore.registerAttachment(WanderShipControl::class.java)
@@ -180,6 +189,8 @@ object ClockworkMod {
         if (Platform.isModLoaded("computercraft")) {
             GenericPeripheralsCommon.register()
         }
+
+        KelvinMod.disableReactionJEI()
     }
 
     @JvmStatic
@@ -187,9 +198,19 @@ object ClockworkMod {
         physTickOnce.add(dimensionId to fn)
     }
 
+    @Deprecated(message = "Shouldn't be used directly anymore. Causes crashes if called during a ponder")
     @JvmStatic
-    fun getKelvin(): DuctNetworkServer {
+    fun getKelvin(): DuctNetwork<*> {
+        KelvinMod.Kelvin.solver = ClockworkConfig.KELVIN.kelvinSolver.getSolver()
         return KelvinMod.getKelvin() as DuctNetworkServer
+    }
+
+    @JvmStatic
+    fun getKelvin(level: Level?): DuctNetwork<*> {
+        if (level is PonderLevel) {
+            return ClockworkModClient.ponderNetworks.getOrPut(level) { VirtualDuctNetwork() }
+        }
+        return getKelvin()
     }
 
     @JvmStatic

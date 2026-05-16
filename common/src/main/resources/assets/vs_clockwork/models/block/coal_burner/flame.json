@@ -1,7 +1,8 @@
 {
 	"credit": "Made with Blockbench",
 	"textures": {
-		"1": "vs_clockwork:block/coal_burner_flame"
+		"1": "vs_clockwork:block/coal_burner_flame",
+		"particle": "vs_clockwork:block/coal_burner_flame"
 	},
 	"elements": [
 		{

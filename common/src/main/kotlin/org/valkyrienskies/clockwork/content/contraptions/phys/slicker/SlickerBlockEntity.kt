@@ -23,7 +23,9 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlo
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerMovementBehavior.Companion.isAttachedToShipOrWorld
 import org.valkyrienskies.clockwork.platform.PlatformUtils
 import org.valkyrienskies.clockwork.util.ClockworkConstants
+import org.valkyrienskies.clockwork.util.findMatchingJointIds
 import org.valkyrienskies.clockwork.util.gtpa
+import org.valkyrienskies.clockwork.util.hasFinitePoseData
 import org.valkyrienskies.core.internal.joints.VSFixedJoint
 import org.valkyrienskies.core.impl.util.serialization.VSJacksonUtil
 import org.valkyrienskies.mod.common.toWorldCoordinates
@@ -61,14 +63,27 @@ class SlickerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
 
     private fun removeConstraint(level: ServerLevel?, removeTags: Boolean) {
         val extraData = PlatformUtils.getExtraData(this).getCompound(ClockworkConstants.Nbt.CONDENSED_DATA)
+        extraData.putLong(
+            ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_CREATION_TOKEN,
+            extraData.getLong(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_CREATION_TOKEN) + 1L
+        )
         if (extraData.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT)) {
             if (level != null) {
-                level.gtpa.removeJoint(extraData.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID))
+                val idsToRemove = linkedSetOf<Int>()
+                if (extraData.contains(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)) {
+                    idsToRemove.add(extraData.getInt(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID))
+                }
+                val storedConstraint = mapper.readValue(extraData.getByteArray(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT), VSFixedJoint::class.java)
+                if (storedConstraint.hasFinitePoseData()) {
+                    idsToRemove.addAll(level.gtpa.findMatchingJointIds(storedConstraint))
+                }
+                idsToRemove.forEach(level.gtpa::removeJoint)
             }
             if (removeTags) {
                 extraData.remove(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_ID)
                 extraData.remove(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT)
                 extraData.remove(ClockworkConstants.Nbt.SHIP_SLICKER_DISTANCE)
+                extraData.remove(ClockworkConstants.Nbt.ATTACHMENT_CONSTRAINT_CREATION_TOKEN)
             }
         }
     }

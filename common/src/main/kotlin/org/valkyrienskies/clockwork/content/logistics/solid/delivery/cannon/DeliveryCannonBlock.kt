@@ -1,11 +1,11 @@
 package org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon
 
 import com.simibubi.create.content.kinetics.belt.BeltBlock
-import com.simibubi.create.content.logistics.chute.ChuteBlock
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.Direction.Axis
+import net.minecraft.world.Containers
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
@@ -21,8 +21,6 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
-import net.minecraft.world.level.block.state.properties.BlockStateProperties
-import net.minecraft.world.level.block.state.properties.DirectionProperty
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotGlobals
@@ -68,6 +66,26 @@ class DeliveryCannonBlock(properties: Properties) : HorizontalDirectionalBlock(p
             return Blocks.AIR.defaultBlockState()
         }
         return super.updateShape(state, direction, neighborState, level, currentPos, neighborPos)
+    }
+
+    override fun onRemove(
+        blockState: BlockState,
+        level: Level,
+        blockPos: BlockPos,
+        blockState2: BlockState,
+        bl: Boolean
+    ) {
+        if (!blockState.`is`(blockState2.block)) {
+            val blockEntity = level.getBlockEntity(blockPos)
+            if (blockEntity is DeliveryCannonBlockEntity) {
+                val pos = blockPos.center
+                Containers.dropItemStack(level, pos.x, pos.y, pos.z, blockEntity.currentStack)
+                blockEntity.currentStack = ItemStack.EMPTY
+                level.updateNeighbourForOutputSignal(blockPos, this)
+            }
+
+            super.onRemove(blockState, level, blockPos, blockState2, bl)
+        }
     }
 
     override fun use(

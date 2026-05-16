@@ -1,6 +1,7 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "vs_clockwork:block/lodefocus"
+    "all": "vs_clockwork:block/lodefocus",
+    "particle": "vs_clockwork:block/lodefocus"
   }
 }

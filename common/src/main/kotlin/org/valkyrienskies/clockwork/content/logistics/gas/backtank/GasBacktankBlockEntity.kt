@@ -5,7 +5,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
-import org.valkyrienskies.clockwork.util.KNodeBlockEntity
+import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 
 class GasBacktankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state) {
 

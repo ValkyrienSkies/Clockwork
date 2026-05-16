@@ -41,7 +41,7 @@ class FilterClosePacket(private val nodeA: DuctNodePos, private val nodeB: DuctN
     override fun handle(context: ServerNetworkContext) {
         context.enqueueWork {
 
-            val edge = ClockworkMod.getKelvin().edges[Pair(nodeA, nodeB)] as FilteredEdge? ?: return@enqueueWork
+            val edge = ClockworkMod.getKelvin(context.sender.level()).edges[Pair(nodeA, nodeB)] as FilteredEdge? ?: return@enqueueWork
             edge.modFilter(filter, blacklist)
 
             forceUpdate(context.sender.level(), nodeA, nodeB, edge)

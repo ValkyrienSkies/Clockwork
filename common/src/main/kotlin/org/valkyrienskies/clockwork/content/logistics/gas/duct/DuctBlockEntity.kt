@@ -1,8 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.duct
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
@@ -14,7 +12,7 @@ import net.minecraft.world.phys.AABB
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.magnitudeSqr
-import org.valkyrienskies.clockwork.util.KNodeBlockEntity
+import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.util.INodeBlockEntity
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
@@ -49,7 +47,7 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
             }
         }
         if (clientPacket) return
-        if (level != null) ClockworkMod.getKelvin().markLoaded(this.blockPos.toDuctNodePos(level!!.dimension().location()))
+        if (level != null) ClockworkMod.getKelvin(level).markLoaded(this.blockPos.toDuctNodePos(level!!.dimension().location()))
 
         val edgeDataTag = tag.get("edgeData") as? CompoundTag ?: return
         edgeDataTag.allKeys.forEach {
@@ -78,7 +76,7 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
     }
 
     override fun destroy() {
-        if (level != null && !level!!.isClientSide) ClockworkMod.getKelvin().removeNode(this.blockPos.toDuctNodePos(level!!.dimension().location()))
+        if (level != null && !level!!.isClientSide) ClockworkMod.getKelvin(level).removeNode(this.blockPos.toDuctNodePos(level!!.dimension().location()))
         super.destroy()
     }
 
@@ -112,7 +110,7 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
             syncEdge(dir)
             //println("SETTING EDGE TYPE: ${this.getDuctNodePosition()} to $otherDuctNodePos with $edgeType")
             if ((previousType != edgeType && !silent) || forced) {
-                ClockworkMod.getKelvin().removeEdge(getDuctNodePosition(), otherDuctNodePos)
+                ClockworkMod.getKelvin(level).removeEdge(getDuctNodePosition(), otherDuctNodePos)
                 if (edgeType != DuctEdgeType.NONE) {
 
                     // Edge directionality is important for oneway
@@ -137,7 +135,7 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
                     if (edgeData[EdgePos(nodeA, nodeB)] != null)
                         newEdge.deserialize(edgeData[EdgePos(nodeA, nodeB)]!!)
 
-                    ClockworkMod.getKelvin().addEdge(nodeA, nodeB, newEdge)
+                    ClockworkMod.getKelvin(level).addEdge(nodeA, nodeB, newEdge)
                 }
             }
         }

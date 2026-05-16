@@ -150,6 +150,13 @@ object ClockworkPartials {
     val SMART_PROP_PISTON_SW: PartialModel = PartialModel.of(ClockworkMod.asResource("block/copter_bearing/piston_sw"))
     val SMART_PROP_PISTON_SE: PartialModel = PartialModel.of(ClockworkMod.asResource("block/copter_bearing/piston_se"))
     val SMART_PROP_WAFER: PartialModel = PartialModel.of(ClockworkMod.asResource("block/copter_bearing/wafer"))
+    //endregion
+
+    val HANDHELD_DRILL_BIT: PartialModel = PartialModel.of(ClockworkMod.asResource("item/handheld_drill/head"))
+    val HANDHELD_DRILL_COG: PartialModel = PartialModel.of(ClockworkMod.asResource("item/handheld_drill/cog"))
+
+    val HANDHELD_SAW_BUZZSAW: PartialModel = PartialModel.of(ClockworkMod.asResource("item/handheld_saw/saw"))
+    val HANDHELD_SAW_COG: PartialModel = PartialModel.of(ClockworkMod.asResource("item/handheld_saw/cog"))
 
     private fun block(path: String): PartialModel {
         return PartialModel.of(ClockworkMod.asResource("block/$path"))

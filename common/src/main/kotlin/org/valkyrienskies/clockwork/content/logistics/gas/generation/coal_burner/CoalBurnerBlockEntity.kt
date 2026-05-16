@@ -4,22 +4,30 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import dev.architectury.registry.fuel.FuelRegistry
 import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
+import net.minecraft.core.NonNullList
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.Tag
 import net.minecraft.network.chat.Component
+import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.Clearable
 import net.minecraft.world.entity.item.ItemEntity
+import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.kelvin.api.DuctNodePos
-import org.valkyrienskies.clockwork.util.KNodeBlockEntity
+import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
+import org.valkyrienskies.clockwork.util.blocktype.ISyncableStorage
+import org.valkyrienskies.clockwork.util.blocktype.SyncableStoragePacket
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.math.min
 
-class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), Clearable {
+class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), Clearable,
+    ISyncableStorage {
 
 
     var fuelTicks: Int = 0
@@ -27,24 +35,42 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 
     var storedFuelStack: ItemStack = ItemStack.EMPTY
     var remainingItemStack: ItemStack = ItemStack.EMPTY
+    var previousTotalItems: Int = 0
 
     override fun tick() {
         super.tick()
+
         if (level!!.isClientSide) return
-        val kelvin = ClockworkMod.getKelvin()
+
+        // Bit of a cheesy way to check for a change but whatever
+        val totalItems = storedFuelStack.count + remainingItemStack.count
+        if (totalItems != previousTotalItems) {
+            ClockworkPackets.sendToNear(
+                level as ServerLevel,
+                this.worldPosition,
+                64,
+                SyncableStoragePacket(this)
+            )
+            this.previousTotalItems = totalItems
+        }
+
+        val kelvin = ClockworkMod.getKelvin(level)
 
         kelvin.getNodeAt(blockPos.toDuctNodePos(level!!.dimension().location())) ?: return
         if (fuelTicks>0) {
             fuelTicks-=1
-            val currentInternalGasses = kelvin.getGasMassAt(blockPos.toDuctNodePos(level!!.dimension().location()))
-            val currentInternalTemperature = kelvin.getTemperatureAt(blockPos.toDuctNodePos(level!!.dimension().location()))
+            val ductPos = blockPos.toDuctNodePos(level!!.dimension().location())
+            val currentInternalGasses = kelvin.getGasMassAt(ductPos)
+            val currentInternalTemperature = kelvin.getTemperatureAt(ductPos)
             if (currentInternalGasses.values.sum() > 1e-5) {
-                val currentInternalHeatCapacity = kelvin.mixtureCapacity(currentInternalGasses)
-                val targetTemperature = 1000.0
-                val maxEnergyAddedThisTick = (FUEL_ENERGY_DENSITY * (maxBurnTime / LOG_BURN_TIME)) / 20.0
-                val energyToAdd = min(currentInternalHeatCapacity * (targetTemperature - currentInternalTemperature), maxEnergyAddedThisTick)
+                // Use combined gas+wall heat capacity: hitting the target temperature
+                // requires heating both the gas and the duct wall, otherwise the burner
+                // wastes work to a wall that keeps draining gas heat back down.
+                val currentInternalHeatCapacity = kelvin.getNodeHeatCapacity(ductPos)
+                val targetTemperature = 850.0
+                val energyToAdd = min(currentInternalHeatCapacity * (targetTemperature - currentInternalTemperature), MAX_JOULES_PER_TICK)
                 if (energyToAdd > 0) {
-                    kelvin.modHeatEnergy(blockPos.toDuctNodePos(level!!.dimension().location()), energyToAdd)
+                    kelvin.modHeatEnergy(ductPos, energyToAdd)
                 }
             }
 
@@ -160,8 +186,87 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
         return super.addToGoggleTooltip(tooltip, isPlayerSneaking)
     }
 
+    override fun getSlotsForFace(side: Direction): IntArray {
+        return intArrayOf(if (side == Direction.DOWN) 1 else 0)
+    }
+
+    override fun canPlaceItemThroughFace(
+        index: Int,
+        itemStack: ItemStack,
+        direction: Direction?
+    ): Boolean {
+        return (direction != Direction.DOWN) && (FuelRegistry.get(itemStack) > 0) && (index == 0)
+    }
+
+    override fun canTakeItemThroughFace(
+        index: Int,
+        stack: ItemStack,
+        direction: Direction
+    ): Boolean {
+        return (direction == Direction.DOWN) && (index == 1)
+    }
+
+    override fun getContainerSize(): Int {
+        return 2
+    }
+
+    override fun isEmpty(): Boolean {
+        return storedFuelStack.isEmpty && remainingItemStack.isEmpty
+    }
+
+    override fun getItem(slot: Int): ItemStack {
+        return if (slot == 0) storedFuelStack else remainingItemStack
+    }
+
+    // We let the remainder item (bucket) be extracted from DOWN
+    // You can't extract the fuel from DOWN because... why would you want that
+    override fun removeItem(slot: Int, amount: Int): ItemStack {
+        if (remainingItemStack.isEmpty) {
+            return ItemStack.EMPTY
+        }
+        val result = remainingItemStack.split(amount)
+        if (remainingItemStack.isEmpty) {
+            remainingItemStack = ItemStack.EMPTY
+        }
+        return result
+    }
+    override fun removeItemNoUpdate(slot: Int): ItemStack {
+        val result = remainingItemStack.copy()
+        remainingItemStack = ItemStack.EMPTY
+        return result
+    }
+
+    override fun setItem(slot: Int, stack: ItemStack) {
+        if (slot != 0) return
+        storedFuelStack = stack
+    }
+
+    override fun stillValid(player: Player): Boolean {
+        return level!!.getBlockEntity(this.worldPosition) === this
+    }
+
+    override fun sync(storage: NonNullList<ItemStack>) {
+        storedFuelStack = storage[0]
+        remainingItemStack = storage[1]
+    }
+
+    override fun getStorageInventory(): NonNullList<ItemStack> {
+        var list = NonNullList.withSize(2, ItemStack.EMPTY)
+        list[0] = storedFuelStack
+        list[1] = remainingItemStack
+        return list
+    }
+
+    override fun getStorageInventorySize(): Int {
+        return 1
+    }
+
+    override fun getBlockPositionFromISS(): BlockPos {
+        return this.worldPosition
+    }
+
+
     companion object {
-        const val FUEL_ENERGY_DENSITY = 17000.0 // J per kg
-        const val LOG_BURN_TIME = 300.0 // ticks
+        const val MAX_JOULES_PER_TICK = 10000.0
     }
 }

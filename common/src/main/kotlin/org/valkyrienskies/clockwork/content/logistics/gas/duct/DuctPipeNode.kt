@@ -8,7 +8,7 @@ import org.valkyrienskies.kelvin.api.nodes.ILeakNode
 import org.valkyrienskies.kelvin.api.nodes.PipeDuctNode
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
 
-class DuctPipeNode(pos: DuctNodePos, volume: Double, maxPressure: Double, maxTemperature: Double) : PipeDuctNode(pos, NodeBehaviorType.PIPE, volume = volume, maxPressure = maxPressure, maxTemperature = maxTemperature), ILeakNode {
+class DuctPipeNode(pos: DuctNodePos, volume: Double, maxPressure: Double, maxTemperature: Double) : PipeDuctNode(pos, NodeBehaviorType.PIPE, volume = volume, maxPressure = maxPressure, maxTemperature = maxTemperature, heatCapacity = 44.9), ILeakNode {
 
     override fun getLeakRatio(level: Level): Double {
         val state = level.getBlockState(pos.toMinecraft())

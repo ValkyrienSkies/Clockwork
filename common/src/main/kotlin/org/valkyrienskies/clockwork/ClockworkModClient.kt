@@ -15,6 +15,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.Wanderw
 import java.util.*
 import dev.architectury.event.events.common.TickEvent
 import dev.architectury.registry.client.keymappings.KeyMappingRegistry
+import net.createmod.ponder.api.level.PonderLevel
 import net.minecraft.client.KeyMapping
 import net.minecraft.core.BlockPos
 import net.minecraft.server.packs.resources.ResourceManager
@@ -34,12 +35,14 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_s
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 import org.valkyrienskies.clockwork.util.arc.LightningManager
 import org.valkyrienskies.clockwork.util.arc.LightningRenderer
+import org.valkyrienskies.clockwork.util.render.VirtualDuctNetwork
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.impl.client.DuctNetworkClient
 import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.hooks.VSGameEvents
 import org.valkyrienskies.mod.common.shipObjectWorld
+import org.valkyrienskies.mod.common.shipWorldNullable
 
 object ClockworkModClient {
 
@@ -60,6 +63,9 @@ object ClockworkModClient {
 
     @JvmStatic
     val METEOR_SHIP_IDS: HashSet<Long> = HashSet()
+
+    @JvmStatic
+    val ponderNetworks = WeakHashMap<PonderLevel, VirtualDuctNetwork>()
 
     var debugNodeCooldown = 0
 
@@ -104,12 +110,11 @@ object ClockworkModClient {
             ClockworkSoundScapes.tick()
             SecondScrollValueRenderer.tickSecond()
             ClockworkModClient.tickDebugLightningNodes(it)
-            val ships = Minecraft.getInstance().level.shipObjectWorld?.loadedShips ?: return@Client
-            if (ships != null) {
-                ships.forEach { it ->
-                    //MeteorRenderer.updateMeteorStateWorld(it, MeteorRenderer.meteorList[it.id] ?: return@forEach)
-                }
+            val ships = Minecraft.getInstance().level.shipWorldNullable?.loadedShips ?: return@Client
+            ships.forEach { it ->
+                //MeteorRenderer.updateMeteorStateWorld(it, MeteorRenderer.meteorList[it.id] ?: return@forEach)
             }
+            ponderNetworks.forEach { (level, network) -> network.tick(level, 10) }
         })
 //        VSGameEvents.postRenderShip.on {
 //            MeteorRenderer.onShipRender(it)
@@ -129,7 +134,7 @@ object ClockworkModClient {
                             level.playSound(
                                 player,
                                 player.blockPosition(),
-                                ClockworkSounds.GOGGLES_EQUIP.mainEvent,
+                                ClockworkSounds.GOGGLES_EQUIP.mainEvent!!,
                                 SoundSource.PLAYERS,
                                 1.0f,
                                 1.0f
@@ -139,7 +144,7 @@ object ClockworkModClient {
                             level.playSound(
                                 player,
                                 player.blockPosition(),
-                                ClockworkSounds.GOGGLES_UNEQUIP.mainEvent,
+                                ClockworkSounds.GOGGLES_UNEQUIP.mainEvent!!,
                                 SoundSource.PLAYERS,
                                 1.0f,
                                 1.0f

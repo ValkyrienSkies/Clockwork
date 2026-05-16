@@ -1,0 +1,20 @@
+{
+  "type": "vs_clockwork:gas_crafting",
+  "heatRequirement": "heated",
+  "ingredients": [
+    {
+      "fluid": "create:potion",
+      "amount": 100,
+      "nbt": {"Potion": "minecraft:awkward"}
+    }
+  ],
+  "input_gasses": {},
+  "result_gasses": {
+    "vs_clockwork:vitriol": {
+      "amount": 0.05,
+      "unit": "kg"
+    }
+  },
+  "results": [],
+  "energy": 10000
+}

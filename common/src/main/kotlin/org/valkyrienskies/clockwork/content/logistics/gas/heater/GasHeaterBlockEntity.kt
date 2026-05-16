@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.util.KNodeBlockEntity
+import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.gui.ClockworkTooltipHelper
 import org.valkyrienskies.clockwork.util.gui.DuctTextUtil
 import org.valkyrienskies.kelvin.api.DuctNodePos
@@ -36,7 +36,7 @@ class GasHeaterBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
 
         if (level?.isClientSide != false ) return
-        val kelvin = ClockworkMod.getKelvin()
+        val kelvin = ClockworkMod.getKelvin(level)
 
 
         val node = kelvin.getNodeAt(getDuctNodePosition()) ?: return

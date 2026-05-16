@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.redstone
 
-import com.simibubi.create.foundation.block.IBE
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.createmod.catnip.gui.ScreenOpener
 import net.minecraft.core.BlockPos
@@ -9,8 +8,7 @@ import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.util.KNodeBlockEntity
-import org.valkyrienskies.kelvin.api.edges.SmartEdge.FilterType
+import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 
 class RedstoneDuctBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state) {
 
@@ -37,7 +35,7 @@ class RedstoneDuctBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: B
     }
 
     fun getPower(): Int {
-        return if (conditional != null && conditional!!.passes(ClockworkMod.getKelvin(), getDuctNodePosition())) 15 else 0
+        return if (conditional != null && conditional!!.passes(ClockworkMod.getKelvin(level), getDuctNodePosition())) 15 else 0
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {

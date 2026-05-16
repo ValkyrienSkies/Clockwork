@@ -23,10 +23,14 @@ import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautGoggles
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautGogglesRenderer
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautJacketItem
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautJumpersItem
+import org.valkyrienskies.clockwork.content.curiosities.tools.drill.HandheldDrillRenderer
+import org.valkyrienskies.clockwork.content.curiosities.tools.drill.HandheldMechanicalDrill
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.CreativeGravitronItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronItemRenderer
+import org.valkyrienskies.clockwork.content.curiosities.tools.saw.HandheldMechanicalSaw
+import org.valkyrienskies.clockwork.content.curiosities.tools.saw.HandheldSawRenderer
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver.ScrewdriverItem
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftItem
@@ -230,6 +234,28 @@ object ClockworkItems {
             AeronautBootsItem(properties!!)
         }
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .register()
+
+    @JvmField
+    val HANDHELD_DRILL: ItemEntry<HandheldMechanicalDrill> =
+        REGISTRATE.item<HandheldMechanicalDrill>("handheld_drill") { properties: Item.Properties? ->
+            HandheldMechanicalDrill(Tiers.NETHERITE, 1, 1f, properties!!)
+        }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .transform(ClockworkRegistrate.customRenderedItem { Supplier { HandheldDrillRenderer() } })
+            .tag(ClockworkTags.AllItemTags.DISABLE_SWING_ANIMATION.tag)
+            .model(AssetLookup.itemModelWithPartials())
+            .register()
+
+    @JvmField
+    val HANDHELD_SAW: ItemEntry<HandheldMechanicalSaw> =
+        REGISTRATE.item<HandheldMechanicalSaw>("handheld_saw") { properties: Item.Properties? ->
+            HandheldMechanicalSaw(Tiers.NETHERITE, 4f, 1f, properties!!)
+        }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .transform(ClockworkRegistrate.customRenderedItem { Supplier { HandheldSawRenderer() } })
+            .tag(ClockworkTags.AllItemTags.DISABLE_SWING_ANIMATION.tag)
+            .model(AssetLookup.itemModelWithPartials())
             .register()
 
     @JvmField

@@ -2,9 +2,11 @@ package org.valkyrienskies.clockwork.content.logistics.gas
 
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation
 import dev.architectury.platform.Platform
+import net.createmod.ponder.api.level.PonderLevel
 import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
+import net.minecraft.world.level.block.entity.BlockEntity
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.ClockworkMod
@@ -23,7 +25,10 @@ interface IClockworkNodeBE: INodeBlockEntity, IHaveGoggleInformation {
         ClockworkLang.translate("gui.ductInfo.title").forGoggles(tooltip)
 
         val pos = this.getDuctNodePosition()
-        val kelvin = if (Minecraft.getInstance().isLocalServer && Platform.isFabric()) ClockworkMod.getKelvin() else ClockworkModClient.getKelvin()
+        val beLevel = (this as? BlockEntity)?.level
+        val kelvin = if (beLevel is PonderLevel) ClockworkMod.getKelvin(beLevel)
+            else if (Minecraft.getInstance().isLocalServer && Platform.isFabric()) ClockworkMod.getKelvin()
+            else ClockworkModClient.getKelvin()
         val blockStats = Minecraft.getInstance().level?.getBlockState(pos.toMinecraft())?.block as? IHaveDuctStats
 
         var found = false
@@ -52,8 +57,7 @@ interface IClockworkNodeBE: INodeBlockEntity, IHaveGoggleInformation {
                 ))
                 style(ChatFormatting.GOLD)
 
-                if (isPlayerSneaking)
-                if (max != null) {
+                if (isPlayerSneaking && max != null) {
                     add(ClockworkLang.translate(
                         "gui.ductInfo.out_of",
                         DuctTextUtil.translateTemperature(ClockworkLang.builder(), max, true)

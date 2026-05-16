@@ -16,6 +16,7 @@ import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.CreativeModeTab;
@@ -49,6 +50,10 @@ public class PlatformUtilsImpl {
 
     public static double getReachDistance(Player player) {
         return ReachEntityAttributes.getReachDistance(player, player.isCreative() ? 5.0 : 4.5);
+    }
+
+    public static Attribute getReachAttribute() {
+        return ReachEntityAttributes.REACH;
     }
 
 

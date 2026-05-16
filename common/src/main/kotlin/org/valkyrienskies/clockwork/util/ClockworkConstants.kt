@@ -43,6 +43,7 @@ object ClockworkConstants {
         val SHIP_SLICKER_DISTANCE: String = "ShipStickerDistance"
         val ATTACHMENT_CONSTRAINT: String = "AttachmentConstraint"
         val ATTACHMENT_CONSTRAINT_ID: String = "AttachmentConstraintId"
+        val ATTACHMENT_CONSTRAINT_CREATION_TOKEN: String = "AttachmentConstraintCreationToken"
         val ORIENTATION_CONSTRAINT: String = "OrientationConstraint"
         val ORIENTATION_CONSTRAINT_ID: String = "OrientationConstraintId"
         val ORIGINAL_DIRECTION: String = "OriginalDirection"

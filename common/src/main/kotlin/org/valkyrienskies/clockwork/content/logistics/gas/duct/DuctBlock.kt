@@ -48,7 +48,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.N
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.SOUTH_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.UP_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.WEST_CONNECTION
-import org.valkyrienskies.clockwork.util.KelvinParticleHelper
+import org.valkyrienskies.clockwork.util.kelvin.KelvinParticleHelper
 import org.valkyrienskies.clockwork.util.MathFunctions.isWithin
 import org.valkyrienskies.clockwork.util.MathFunctions.removeAxis
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
@@ -384,7 +384,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
             playScrewSound(context.level, context.clickedPos)
 
             val dimension = context.level.dimension().location()
-            val foundEdge = ClockworkMod.getKelvin().getEdgeBetween(
+            val foundEdge = ClockworkMod.getKelvin(context.level).getEdgeBetween(
                 context.clickedPos.toDuctNodePos(dimension),
                 context.clickedPos.relative(changeDirection).toDuctNodePos(dimension)
             )
@@ -445,7 +445,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
         // Handle hissing sound
         val maxPressure = 16375049.0
-        if (pressure > 0.7 * maxPressure) {
+        if (pressure > 0.7 * maxPressure ) {
             val pitch = 2 * pressure / maxPressure
             val scape = ClockworkSoundScapes.AmbienceGroup.GAS_HISS
             ClockworkSoundScapes.play(scape, pos, pitch.toFloat())

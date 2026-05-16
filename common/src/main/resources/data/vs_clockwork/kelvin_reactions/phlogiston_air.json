@@ -10,10 +10,9 @@
     }
   },
   "requirements": {
-    "kelvin:min_temperature": 500,
-    "kelvin:min_pressure": 1000
+    "kelvin:min_temperature": 500
   },
-  "energy": 160000,
+  "energy": 200000,
   "result_gasses": {
     "vs_clockwork:exhaust": {
       "amount": 0.04,

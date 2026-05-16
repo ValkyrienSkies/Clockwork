@@ -12,24 +12,28 @@ import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkSoundScapes
 import org.valkyrienskies.clockwork.util.ClockworkConstants
-import org.valkyrienskies.clockwork.util.KNodeBlockEntity
+import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
+import org.valkyrienskies.core.api.VsBeta
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.util.AerodynamicUtils
+import org.valkyrienskies.core.api.util.GameTickOnly
 import org.valkyrienskies.core.api.util.PhysTickOnly
 import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.api.world.properties.DimensionId
-import org.valkyrienskies.kelvin.KelvinMod
+import org.valkyrienskies.core.internal.world.VsiServerShipWorld
+import org.valkyrienskies.clockwork.util.kelvin.KelvinParticleHelper
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
+import org.valkyrienskies.kelvin.util.GasPhysics.mixtureCapacity
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.api.BlockEntityPhysicsListener
 import org.valkyrienskies.mod.api.dimensionId
+import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOMLD
-import org.valkyrienskies.mod.common.vsCore
 import kotlin.math.*
-import kotlin.random.Random
 
+@OptIn(VsBeta::class)
 class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), BlockEntityPhysicsListener {
 
     @Volatile
@@ -89,21 +93,23 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
 
 
         // Handle particles
-        val ductNetwork = KelvinMod.KelvinClient
-        for ((gas,mass) in gasMassFlow) {
-            val particleCount = mass/massPerParticle
-            val direction = blockState.getValue(BlockStateProperties.FACING)
-            val speed = direction.normal.toJOMLD().mul(-cbrt(abs(velocity))/50)
+        val direction = blockState.getValue(BlockStateProperties.FACING)
+        val outward = direction.opposite
+        val speed = cbrt(abs(velocity)) / 50
+        val center = blockPos.toJOMLD().add(0.5, 0.5, 0.5)
+        val ductNodePos = blockPos.toDuctNodePos(level!!.dimension().location())
 
-
-            fun random() = Random.nextDouble(-0.35,0.35)
-            val position = blockPos.toJOMLD().add(0.5, 0.5, 0.5)
-
-
-            for (count in 1..particleCount.toInt()) {
-                ductNetwork.createGasParticle(level as ClientLevel, gas, blockPos.toDuctNodePos(level!!.dimension().location()),
-                    position.x+random(), position.y+random(), position.z+random(), speed.x, speed.y, speed.z)
-            }
+        for ((gas, mass) in gasMassFlow) {
+            val particleCount = mass / massPerParticle
+            KelvinParticleHelper.spawnJetForGas(
+                level as ClientLevel,
+                ductNodePos,
+                gas,
+                center,
+                outward,
+                speed,
+                particleCount
+            )
         }
     }
 
@@ -115,6 +121,7 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         sendData()
     }
 
+    @OptIn(GameTickOnly::class)
     override fun tick() {
         super.tick()
 
@@ -122,16 +129,16 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         if (level!!.isClientSide) return clientTick()
 
         val ductnodepos = getDuctNodePosition()
-        val kelvin = ClockworkMod.getKelvin()
+        val kelvin = ClockworkMod.getKelvin(level)
         val node = kelvin.getNodeAt(ductnodepos) ?: return clearMassFlow()
         val gasMasses = kelvin.getGasMassAt(ductnodepos)
 
         if (gasMasses.values.sum() == 0.0) return clearMassFlow()
 
-        val airPressure = vsCore.dummyShipWorldServer.aerodynamicUtils.getAirPressureForY(blockPos.y.toDouble(), level!!.dimensionId)
+        val airPressure = (level?.shipObjectWorld as? VsiServerShipWorld)?.aerodynamicUtils?.getAirPressureForY(blockPos.y.toDouble(), level!!.dimensionId) ?: return clearMassFlow()
         val gasPressure = kelvin.getPressureAt(ductnodepos)
         val temp = kelvin.getTemperatureAt(ductnodepos)
-        val avgSpecificHeat = kelvin.mixtureCapacity(kelvin.getGasMassAt(ductnodepos))
+        val avgSpecificHeat = mixtureCapacity(kelvin.getGasMassAt(ductnodepos))
 
 
         if (gasPressure < airPressure) return clearMassFlow()

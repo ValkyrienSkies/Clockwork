@@ -44,7 +44,7 @@ class GasCrafterBlock(properties: Properties) : DirectionalBlock(properties), IB
     }
 
     init {
-        this.registerDefaultState(defaultBlockState()!!.setValue(FACING, Direction.NORTH))
+        this.registerDefaultState(defaultBlockState()!!.setValue(FACING, Direction.DOWN))
     }
 
     override fun rotate(state: BlockState, rotation: Rotation): BlockState {

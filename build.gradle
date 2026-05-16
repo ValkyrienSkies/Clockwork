@@ -74,16 +74,19 @@ subprojects {
             // location of the maven that hosts JEI files before January 2023
             name = "Progwml6's maven"
             url = "https://dvs1.progwml6.com/files/maven/"
+            content { includeGroup "mezz.jei" }
         }
         maven {
             // location of the maven that hosts JEI files since January 2023
             name = "Jared's maven"
             url = "https://maven.blamejared.com/"
+            content { includeGroup "mezz.jei" }
         }
         maven {
             // location of a maven mirror for JEI files, as a fallback
             name = "ModMaven"
             url = "https://modmaven.dev"
+            content { includeGroup "mezz.jei" }
         }
         // endregion
 

@@ -6,12 +6,14 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
+import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.network.NetworkHooks;
@@ -40,6 +42,10 @@ public class PlatformUtilsImpl {
 
     public static double getReachDistance(Player player) {
         return player.getEntityReach();
+    }
+
+    public static Attribute getReachAttribute() {
+        return ForgeMod.BLOCK_REACH.get();
     }
 
     public static Packet<?> createExtraDataSpawnPacket(Entity entity) {

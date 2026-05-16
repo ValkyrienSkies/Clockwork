@@ -62,7 +62,7 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
         fun select(sLevel: ServerLevel, sPlayer: ServerPlayer, firstPos: BlockPos, secondPos: BlockPos, isSecond: Boolean, deselect: Boolean, leftClick: Boolean) {
             if (!isSecond) {
                 if (leftClick && sPlayer.mainHandItem.item is WanderwandItem) {
-                    val existingSelection = sPlayer.mainHandItem.tag?.get("selectedBlocks") as CompoundTag?
+                    val existingSelection = sPlayer.mainHandItem.tag?.get("selectedBlocks") as? CompoundTag?
                     if (existingSelection != null) {
                         val existingSelectionDeser = readAABBSetFromNBT(existingSelection)
                         val existingAABB = existingSelectionDeser.find { it.containsPoint(firstPos.toJOML())}
@@ -105,10 +105,11 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
                         val existingSelectionDeser = readAABBSetFromNBT(existingSelection)
                         val out = existingSelectionDeser.subtractWithAABB(selection)
                         wand.tag?.remove("selectedBlocks")
-                        wand.tag?.put("selectedBlocks", writeAABBSetToNBT(out))
+                        val optimizedOut = mergeAdjacentFast(out)
+                        wand.tag?.put("selectedBlocks", writeAABBSetToNBT(optimizedOut))
                     }
                 }
-                sendTo(WanderwandRenderUpdatePacket(firstPos, if (deselect) ToolType.DESELECT else ToolType.SELECT, blocks = wand.tag?.get("selectedBlocks") as CompoundTag?), sPlayer)
+                sendTo(WanderwandRenderUpdatePacket(firstPos, if (deselect) ToolType.DESELECT else ToolType.SELECT, blocks = wand.tag?.get("selectedBlocks") as? CompoundTag?), sPlayer)
             }
         }
 

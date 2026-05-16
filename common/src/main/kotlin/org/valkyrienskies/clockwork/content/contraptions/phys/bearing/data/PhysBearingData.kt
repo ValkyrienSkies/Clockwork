@@ -14,4 +14,5 @@ data class PhysBearingData(
     var mainPos: Vector3d = Vector3d(),
     var subPos: Vector3d = Vector3d(),
     var actualAngle: Double = 0.0,
+    var lastLockedTorque: Double = 0.0,
 )

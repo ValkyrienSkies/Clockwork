@@ -186,13 +186,17 @@ class PropellerController(
             //            Vector3d force2 = force.mul(physProp.bearingSpeed, new Vector3d());
             val torque = rWorld.cross(force.mul(omegaSign, Vector3d()), Vector3d())
 
-            force.mul(10.0) //ClockworkConfig.SERVER.forceMulPerSailInPropeller)
+            force.mul(ClockworkConfig.SERVER.forceMulPerSailInPropeller)
 
-            if (offsetFalloff > 0.0001) force.div(offsetFalloff)
-            if (offsetFalloff > 0.0001) torque.div(offsetFalloff)
+            val falloffSafe = abs(offsetFalloff).coerceAtLeast(0.1)
+            force.div(falloffSafe)
+            torque.div(falloffSafe)
             if (force.isFinite) netForce.add(force.mul(omegaSign, Vector3d()))
             if (torque.isFinite) netTorque.add(torque)
         }
+
+        clampVectorMagnitudeInPlace(netForce, ClockworkConfig.SERVER.propellerMaxForce)
+        clampVectorMagnitudeInPlace(netTorque, ClockworkConfig.SERVER.propellerMaxTorque)
 
         //netTorque.add(conserveMomentum(physShip, physProp, furthestTip, angVel))
         //        System.out.println(netTorque);
@@ -321,14 +325,25 @@ class PropellerController(
 
             val dThrust = (dLift * cos(phi) - dDrag * sin(phi)) * sf * velocityFalloff
 
-            val force = worldAxis.mul(dThrust * 10, Vector3d()).mul(omegaSign, Vector3d())
+            val force = worldAxis.mul(dThrust * ClockworkConfig.SERVER.forceMulPerSailInPropeller, Vector3d()).mul(omegaSign, Vector3d())
             //val torque = rotatedDist.cross(force, Vector3d())
 
             netForce.add(force)
             netTorque.add(Vector3d())
         }
 
+        clampVectorMagnitudeInPlace(netForce, ClockworkConfig.SERVER.propellerMaxForce)
+        clampVectorMagnitudeInPlace(netTorque, ClockworkConfig.SERVER.propellerMaxTorque)
+
         return netForce to netTorque
+    }
+
+    private fun clampVectorMagnitudeInPlace(vec: Vector3d, maxMagnitude: Double) {
+        if (maxMagnitude <= 0.0) return
+        val maxSq = maxMagnitude * maxMagnitude
+        if (vec.lengthSquared() > maxSq) {
+            vec.normalize(maxMagnitude)
+        }
     }
 
     private fun setDimension(dimID: DimensionId) {
