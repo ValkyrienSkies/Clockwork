@@ -17,6 +17,8 @@
     "content.blade.RepairItemRecipeMixin",
     "content.blade.SawBladeRecipeMixin",
     "content.exhaust.MixinAirCurrent",
+    "content.flap_bearing.MixinLinkedControllerClientHandler",
+    "content.flap_bearing.MixinLinkedControllerItem",
     "content.gas.MixinBacktankUtil",
     "content.gas.MixinComposterBlock",
     "content.gas_engine.MixinSteamEngineBlock",
