@@ -5,6 +5,7 @@ import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.level.Level
+import org.valkyrienskies.clockwork.client.render.BladeAngleSyncPacket
 import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap.FlapLinkedControllerBindPacket
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.UpdateAltMeterPacket
@@ -56,6 +57,7 @@ enum class ClockworkPackets(
     // Server to Client
     COLORBLOCKENTITY(BlockEntityColorPacket::class.java, ::BlockEntityColorPacket),
     SYNCABLESTORAGE(SyncableStoragePacket::class.java, ::SyncableStoragePacket),
+    BLADEANGLESYNC(BladeAngleSyncPacket::class.java, ::BladeAngleSyncPacket),
 
     SLICKERATTACHMENT(SlickerAttachmentSyncPacket::class.java, ::SlickerAttachmentSyncPacket),
     GRAVITRON_DIAL_PACKET(GravitronDialPacket::class.java, ::GravitronDialPacket),

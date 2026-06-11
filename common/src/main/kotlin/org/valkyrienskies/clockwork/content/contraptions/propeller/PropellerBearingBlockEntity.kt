@@ -7,7 +7,6 @@ import com.simibubi.create.content.contraptions.AssemblyException
 import com.simibubi.create.content.contraptions.ControlledContraptionEntity
 import com.simibubi.create.content.contraptions.bearing.BearingBlock
 import com.simibubi.create.content.contraptions.bearing.IBearingBlockEntity
-import com.simibubi.create.content.kinetics.base.DirectionalAxisKineticBlock
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.INamedIconOptions
@@ -30,13 +29,13 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.joml.Vector3d
 import org.joml.Vector3dc
-import org.joml.Vector3i
 import org.joml.Vector3ic
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkLang
-import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSoundScapes
 import org.valkyrienskies.clockwork.ClockworkSounds
+import org.valkyrienskies.clockwork.client.render.BladeAngleSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.contraption.PropellerContraption
 import org.valkyrienskies.clockwork.content.contraptions.propeller.copter.CopterBearingBlock
@@ -45,6 +44,7 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropUpdateData
 import org.valkyrienskies.clockwork.content.forces.PropellerController
 import org.valkyrienskies.clockwork.content.generic.IForceApplierBE
+import org.valkyrienskies.clockwork.util.blocktype.SyncableStoragePacket
 import org.valkyrienskies.clockwork.util.sound.PropellerSoundInstance
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.util.toJOML
@@ -171,6 +171,15 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
                     break
                 }
             }
+
+            if (!level!!.isClientSide) {
+                ClockworkPackets.sendToNear(
+                    level,
+                    this.worldPosition,
+                    64,
+                    BladeAngleSyncPacket(propellerContraption!!.id, bladeAngle)
+                )
+            }
         }
     }
 
@@ -280,13 +289,18 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
         val powerEffect = Mth.clamp((powerOne + powerTwo).toFloat() / 30f, -1f, 1f)
         val angleChange = 2f * powerEffect
 
+        // save spamming the network if nothing is changing
+        if (angleChange == 0f) return;
+
         val currentAngle = blades[0].angle
-        val newAngle = (currentAngle + angleChange) % 360f
+        val newAngle = (currentAngle + angleChange).coerceIn(-90.0, 90.0)
 
         setNewBladeAngle(newAngle.toDouble())
         //update our blades
         blades.clear()
         getBlades()
+
+        this.orCreateNetwork.updateStressFor(this, calculateStressApplied())
     }
 
     fun getAngularSpeed(): Double {
