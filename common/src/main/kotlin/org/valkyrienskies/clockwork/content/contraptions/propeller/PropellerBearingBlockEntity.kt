@@ -282,6 +282,7 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
 
         applyRotation()
     }
+
     // reminder: override this for copter bearing since their redstone controls something different
     open fun applyPowerEffect() {
         if (!this.brass || blades.isEmpty() || (powerOne == 0 && powerTwo == 0) || isLocked) return
@@ -300,7 +301,7 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
         blades.clear()
         getBlades()
 
-        this.orCreateNetwork.updateStressFor(this, calculateStressApplied())
+        this.orCreateNetwork?.updateStressFor(this, calculateStressApplied())
     }
 
     fun getAngularSpeed(): Double {
