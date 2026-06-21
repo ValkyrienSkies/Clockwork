@@ -27,19 +27,18 @@ class AltMeterBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: Blo
         level.getShipManagingPos(blockPos)?.transform?.shipToWorld?.transformPosition(posInWorld)
         val distance = posInWorld.y - triggerHeight
 
-        signalStrength = when (triggerDirection) {
+        when (triggerDirection) {
             AltMeterDirection.BOTH -> (triggerSensitivity - distance.absoluteValue.toInt())
             AltMeterDirection.DOWN -> (triggerSensitivity - distance.toInt())
             AltMeterDirection.UP -> (triggerSensitivity + distance.toInt())
         }.coerceIn(0..triggerSensitivity)
-            .toRange(0..triggerSensitivity, 0..15);
+            .toRange(0..triggerSensitivity, 0..15)
+            .takeIf { it != blockState.getValue(AltMeterBlock.POWER) }
+            ?.let {
+                level!!.setBlock(blockPos, blockState
+                    .setValue(AltMeterBlock.POWER, it), 3)
+            }
 
-        val currentPower = blockState.getValue(AltMeterBlock.POWER)
-
-        if (currentPower != signalStrength) {
-            level!!.setBlock(blockPos, blockState
-                .setValue(AltMeterBlock.POWER, signalStrength), 3)
-        }
     }
 
     public override fun write(compound: CompoundTag, clientPacket: Boolean) {

@@ -3,7 +3,6 @@ package org.valkyrienskies.clockwork
 import com.simibubi.create.AllPartialModels
 import com.simibubi.create.content.contraptions.bearing.BearingRenderer
 import com.simibubi.create.content.contraptions.bearing.BearingVisual
-import com.simibubi.create.content.fluids.pump.PumpRenderer
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.content.kinetics.base.ShaftRenderer
 import com.simibubi.create.content.kinetics.base.ShaftVisual
@@ -11,7 +10,6 @@ import com.simibubi.create.content.kinetics.base.SingleAxisRotatingVisual
 import com.tterrag.registrate.util.entry.BlockEntityEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
 import dev.engine_room.flywheel.lib.model.Models
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -54,6 +52,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBloc
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctRenderer
+import org.valkyrienskies.clockwork.content.logistics.gas.docking_vent.DockingVentBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.engine.GasEngineBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.exhaust.ExhaustBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlockEntity
@@ -517,6 +516,17 @@ object ClockworkBlockEntities {
             )
         }
         .validBlocks(ClockworkBlocks.COAL_BURNER)
+        .register()
+
+    val DOCKING_VENT: BlockEntityEntry<DockingVentBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity("docking_vent") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            DockingVentBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .validBlocks(ClockworkBlocks.DOCKING_VENT)
         .register()
 
     @JvmField

@@ -20,8 +20,9 @@ import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkShapes
+import org.valkyrienskies.kelvin.util.INodeBlock
 
-class SpinoffBearingBlock(properties: Properties) : DirectionalBlock(properties), IBE<SpinoffBearingBlockEntity> {
+class SpinoffBearingBlock(properties: Properties) : DirectionalBlock(properties),INodeBlock, IBE<SpinoffBearingBlockEntity> {
 
     init {
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.UP))
@@ -72,6 +73,11 @@ class SpinoffBearingBlock(properties: Properties) : DirectionalBlock(properties)
     ) {
         IBE.onRemove(state, level, pos, newState)
         //super.onRemove(state, level, pos, newState, movedByPiston)
+    }
+
+    override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, movedByPiston: Boolean) {
+        super.onPlace(state, level, pos, oldState, movedByPiston)
+        nodePlace(state, level, pos, oldState, movedByPiston)
     }
 
     override fun getBlockEntityClass(): Class<SpinoffBearingBlockEntity> {

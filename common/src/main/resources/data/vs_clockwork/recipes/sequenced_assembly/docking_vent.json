@@ -1,0 +1,100 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "vs_clockwork:duct"
+  },
+  "loops": 2,
+  "results": [
+    {
+      "chance": 120.0,
+      "item": "vs_clockwork:docking_vent",
+      "count": 2
+    },
+    {
+      "chance": 10.0,
+      "item": "minecraft:duct"
+    },
+    {
+      "chance": 8.0,
+      "item": "minecraft:dried_kelp"
+    },
+    {
+      "chance": 5.0,
+      "item": "create:brass_sheet"
+    },
+    {
+      "chance": 3.0,
+      "item": "create:brass_ingot"
+    },
+    {
+      "chance": 3.0,
+      "item": "create:chute"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "vs_clockwork:incomplete_docking_vent"
+        },
+        {
+          "item": "create:brass_sheet"
+        }
+      ],
+      "results": [
+        {
+          "item": "vs_clockwork:incomplete_docking_vent"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "vs_clockwork:incomplete_docking_vent"
+        },
+        {
+          "item": "minecraft:dried_kelp"
+        }
+      ],
+      "results": [
+        {
+          "item": "vs_clockwork:incomplete_docking_vent"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "vs_clockwork:incomplete_docking_vent"
+        },
+        {
+          "item": "create:brass_sheet"
+        }
+      ],
+      "results": [
+        {
+          "item": "vs_clockwork:incomplete_docking_vent"
+        }
+      ]
+    },
+    {
+      "type": "create:cutting",
+      "ingredients": [
+        {
+          "item": "vs_clockwork:incomplete_docking_vent"
+        }
+      ],
+      "results": [
+        {
+          "item": "vs_clockwork:incomplete_docking_vent"
+        }
+      ]
+    }
+  ],
+  "transitionalItem": {
+    "item": "vs_clockwork:incomplete_docking_vent"
+  }
+}
