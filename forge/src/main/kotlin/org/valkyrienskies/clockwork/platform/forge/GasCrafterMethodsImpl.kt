@@ -89,9 +89,9 @@ object GasCrafterMethodsImpl {
                     val drainedAmount = min(amountRequired, fluidStack.getAmount())
                     if (!simulate) {
                         fluidStack.shrink(drainedAmount)
-                        fluidsAffected = true
                     }
                     amountRequired -= drainedAmount
+                    fluidsAffected = true
                     if (amountRequired != 0) continue
                     extractedFluidsFromTank[tank] += drainedAmount
                     continue@FluidIngredients
@@ -112,8 +112,6 @@ object GasCrafterMethodsImpl {
                         ClockworkMod.getKelvin(be.level), element)) return false
             }
 
-
-
             if (fluidsAffected) {
                 basin!!.getBehaviour(SmartFluidTankBehaviour.INPUT)
                     .forEach(Consumer { obj: SmartFluidTankBehaviour.TankSegment? -> obj!!.onFluidStackChanged() })
@@ -121,11 +119,13 @@ object GasCrafterMethodsImpl {
                     .forEach(Consumer { obj: SmartFluidTankBehaviour.TankSegment? -> obj!!.onFluidStackChanged() })
             }
 
-            if (simulate && itemsAffected) {
+            // Note: this OR operation will break if input ingredients must have a count > 1
+            // But right now, that can't happen, we hard code a required count of 1
+            if (simulate && (itemsAffected || fluidsAffected)) {
                 val remainderContainer: CraftingContainer =
                     DummyCraftingContainer(availableItems, extractedItemsFromSlot)
 
-                if (recipe is BasinRecipe) {
+                if (recipe is GasCraftingRecipe) {
                     recipeOutputItems.addAll(recipe.rollResults())
 
                     for (fluidStack in recipe.getFluidResults()) if (!fluidStack.isEmpty()) recipeOutputFluids.add(
@@ -147,10 +147,16 @@ object GasCrafterMethodsImpl {
             if (basin != null && !basin.acceptOutputs(recipeOutputItems, recipeOutputFluids, simulate)) return false
             if (!simulate) {
 
+                for ((gas, deltaMass) in gasIngredients) {
+                    ClockworkMod.getKelvin(be.level).modGasMass(be.getDuctNodePosition(), gas, -deltaMass)
+                }
+
                 for ((gasType, mass) in gasResults) {
                     val mass = mass
                     ClockworkMod.getKelvin(be.level).modGasMass(be.getDuctNodePosition(), gasType, mass)
                 }
+
+                ClockworkMod.getKelvin(be.level).modHeatEnergy(be.getDuctNodePosition(), baseGasRecipe?.energy ?: 0.0)
             }
         }
 

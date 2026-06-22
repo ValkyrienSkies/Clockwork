@@ -51,12 +51,9 @@ object DualLinkHandler {
 
         if (!state.hasProperty(BlockStateProperties.FACING) || !state.hasProperty(DirectionalAxisKineticBlock.AXIS_ALONG_FIRST_COORDINATE)) return EventResult.pass()
 
-
         val type: BehaviourType<DualLinkBehaviour>
         if (face == getFrontFacing(state)) type =  DualLinkBehaviour.FRONT_TYPE
         else type = DualLinkBehaviour.BACK_TYPE
-
-
 
         val behaviour = BlockEntityBehaviour.get(world, pos, type)
             ?: return EventResult.pass()

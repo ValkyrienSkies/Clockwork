@@ -10,9 +10,8 @@ import com.simibubi.create.foundation.gui.AllGuiTextures
 import com.simibubi.create.foundation.item.ItemHelper
 import com.simibubi.create.foundation.utility.CreateLang
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder
-import mezz.jei.api.gui.builder.IRecipeSlotBuilder
-import mezz.jei.api.gui.drawable.IDrawable
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView
+import mezz.jei.api.helpers.IGuiHelper
 import mezz.jei.api.recipe.IFocusGroup
 import mezz.jei.api.recipe.RecipeIngredientRole
 import net.minecraft.client.Minecraft
@@ -23,17 +22,15 @@ import org.valkyrienskies.clockwork.compat.jei.ClockworkJEI.Companion.addInputGa
 import org.valkyrienskies.clockwork.compat.jei.ClockworkJEI.Companion.addOutputGasSlot
 import org.valkyrienskies.clockwork.compat.jei.animated_blocks.AnimatedGasCrafter
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCraftingRecipe
+import org.valkyrienskies.clockwork.platform.GasCrafterJEI.addFluidOutputSlots
 import org.valkyrienskies.kelvin.api.recipe.KelvinGasIngredient
-import org.valkyrienskies.kelvin.integration.jei.GasIngredientRenderer
-import org.valkyrienskies.kelvin.integration.jei.GasIngredientType
-import org.valkyrienskies.kelvin.integration.jei.KelvinJeiPlugin
 import javax.annotation.ParametersAreNonnullByDefault
-import kotlin.collections.iterator
 
 @ParametersAreNonnullByDefault
-class GasCrafterCategory(val info: Info<GasCraftingRecipe>) : CreateRecipeCategory<GasCraftingRecipe>(info) {
+class GasCrafterCategory(val info: Info<GasCraftingRecipe>, val guiHelper: IGuiHelper) : CreateRecipeCategory<GasCraftingRecipe>(info) {
     private val crafter = AnimatedGasCrafter()
     private val heater = AnimatedBlazeBurner()
+    private var currentRecipe: GasCraftingRecipe? = null
 
     override fun draw(
         recipe: GasCraftingRecipe,
@@ -63,18 +60,31 @@ class GasCrafterCategory(val info: Info<GasCraftingRecipe>) : CreateRecipeCatego
 
 
         if (requiredHeat != HeatCondition.NONE) heater.withHeat(requiredHeat.visualizeAsBlazeBurner())
-            .draw(graphics, getBackground()!!.getWidth() / 2 + 3, 55)
-        crafter.draw(graphics, getBackground()!!.getWidth() / 2 + 3, 34)
+            .draw(graphics, width / 2 + 3, 55)
+        crafter.draw(graphics, width / 2 + 3, 34)
 
 
         var i = if (requiredHeat == HeatCondition.NONE) 0 else 1
 
+        var first = true
         if (recipe.gasRecipe?.requirements != null)
         recipe.gasRecipe!!.requirements.forEach {
-            ClockworkGuiTextures.JEI_DARKER_BAR.render(graphics, 4, 80+20*i)
-            graphics.drawString(Minecraft.getInstance().font, it.key.get_text(it.value), 7, 85+20*i, 16777215)
+            val screenElement = if (first) ClockworkGuiTextures.JEI_DARKER_BAR else ClockworkGuiTextures.JEI_DARKER_BAR_FULL
+            first = false
+            screenElement.render(graphics, 4, 80+20*i)
+            graphics.drawString(Minecraft.getInstance().font, it.key.get_text(it.value), 9, 86+20*i, 16777215, false)
             i++
         }
+    }
+
+    override fun getWidth(): Int = 177
+
+    override fun getHeight(): Int {
+        val recipe = currentRecipe ?: return 83
+
+        val requirementCount = (if (recipe.requiredHeat != HeatCondition.NONE) 1 else 0) + (recipe.gasRecipe?.requirements?.size ?: return 83)
+        val calculatedHeight = 83 + (requirementCount * 20)
+        return calculatedHeight
     }
 
     override fun setRecipe(
@@ -82,7 +92,7 @@ class GasCrafterCategory(val info: Info<GasCraftingRecipe>) : CreateRecipeCatego
         recipe: GasCraftingRecipe,
         focuses: IFocusGroup
     ) {
-        (background as? GasCraftingRecipeBackground)?.currentRecipe = recipe
+        this.currentRecipe = recipe
 
         val condensedIngredients = ItemHelper.condenseIngredients(recipe.getIngredients())
 
@@ -134,12 +144,8 @@ class GasCrafterCategory(val info: Info<GasCraftingRecipe>) : CreateRecipeCatego
             i++
         }
 
-        for (fluidResult in recipe.getFluidResults()) {
-            val xPosition = 142 - (if (size % 2 != 0 && i == size - 1) 0 else if (i % 2 == 0) 10 else -9)
-            val yPosition = -19 * (i / 2) + 51
-            addFluidSlot(builder, xPosition, yPosition, fluidResult)
-            i++
-        }
+        i = addFluidOutputSlots(size, i, recipe, builder)
+
         if (recipe.gasRecipe != null)
             for (gasIngredient in recipe.gasRecipe!!.result) {
                 val x = 142 - (if (size % 2 != 0 && i == size - 1) 0 else if (i % 2 == 0) 10 else -9)
@@ -158,24 +164,6 @@ class GasCrafterCategory(val info: Info<GasCraftingRecipe>) : CreateRecipeCatego
             builder
                 .addSlot(RecipeIngredientRole.CATALYST, 153, 81)
                 .addItemStack(AllItems.BLAZE_CAKE.asStack())
-        }
-    }
-
-    object GasCraftingRecipeBackground : IDrawable {
-        var currentRecipe: GasCraftingRecipe? = null
-
-        override fun getWidth(): Int = 177
-
-        override fun getHeight(): Int {
-            val recipe = currentRecipe ?: return 83
-
-
-            val requirementCount = (if (recipe.requiredHeat != HeatCondition.NONE) 1 else 0) + (recipe.gasRecipe?.requirements?.size ?: return 83)
-            val calculatedHeight = 83 + (requirementCount * 20)
-            return calculatedHeight
-        }
-        override fun draw(guiGraphics: GuiGraphics, xOffset: Int, yOffset: Int) {
-            // Empty background
         }
     }
 }

@@ -23,7 +23,6 @@ sourceSets {
 
 dependencies {
     modImplementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
-    implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:0.3.5"))
     implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.3.7-beta.1"))
 
     implementation(("io.github.llamalad7:mixinextras-common:0.4.1"))
@@ -40,6 +39,7 @@ dependencies {
     // VS2
     modApi("org.valkyrienskies:valkyrienskies-120-common:${rootProject.vs2_version}") {
         exclude group: "com.simibubi"
+        exclude group: "maven.modrinth"
     }
     implementation("org.valkyrienskies.core:api:${rootProject.vscore_version}") {
         exclude group: 'org.joml', module: ''
@@ -66,6 +66,8 @@ dependencies {
     modCompileOnlyApi("cc.tweaked:cc-tweaked-${minecraft_version}-common-api:$cc_version")
     modCompileOnly("cc.tweaked:cc-tweaked-${minecraft_version}-common:$cc_version")
     modCompileOnlyApi("mezz.jei:jei-${minecraft_version}-common-api:${jei_version_fabric}")
+    modCompileOnly("maven.modrinth:jei:MdKE2PdF")
+
 
     var kotestVersion = "5.4.1"
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
