@@ -239,15 +239,6 @@ object ClockworkConfig {
 
         @ConfigEntry(min = 0.0, description = "Angular acceleration the Gimbal Bearing applies in Unlocked mode, scaled by redstone strength and per RPM.")
         var gimbalUnlockedForcePerRpmPerKg = 1.5
-
-        @ConfigEntry(min = 0.0, description = "Proportional gain for the Gimbal Bearing twist-lock PID (substitutes for the missing TWIST=LOCKED joint constraint when running on Krunch). Always active while assembled.")
-        var gimbalTwistKp = 200.0
-
-        @ConfigEntry(min = 0.0, description = "Derivative gain for the Gimbal Bearing twist-lock PID.")
-        var gimbalTwistKd = 20.0
-
-        @ConfigEntry(min = 0.0, description = "Maximum angular acceleration the twist-correction's proportional term may demand. Set 0 to disable clamping.")
-        var gimbalTwistMaxTorquePerKg = 5.0
     }
 
     class Kelvin {

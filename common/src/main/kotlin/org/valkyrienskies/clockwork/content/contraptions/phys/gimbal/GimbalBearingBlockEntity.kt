@@ -7,13 +7,10 @@ import com.simibubi.create.content.contraptions.IDisplayAssemblyExceptions
 import com.simibubi.create.content.contraptions.bearing.BearingBlock
 import com.simibubi.create.content.contraptions.bearing.IBearingBlockEntity
 import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity
-import com.simibubi.create.content.contraptions.DirectionalExtenderScrollOptionSlot
-import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour
-import net.createmod.catnip.math.VecHelper
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
@@ -45,6 +42,8 @@ import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.api.world.properties.DimensionId
 import org.valkyrienskies.core.impl.bodies.properties.BodyTransformFactory
 import org.valkyrienskies.core.internal.joints.VSD6Joint
+import org.valkyrienskies.core.internal.joints.VSD6Joint.D6Axis
+import org.valkyrienskies.core.internal.joints.VSD6Joint.D6Motion
 import org.valkyrienskies.core.internal.joints.VSJoint
 import org.valkyrienskies.core.internal.joints.VSJointPose
 import org.valkyrienskies.core.internal.joints.VSSphericalJoint
@@ -61,6 +60,7 @@ import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.world.clipIncludeShips
 import org.valkyrienskies.core.api.attachment.getAttachment
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
+import java.util.EnumMap
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
@@ -89,7 +89,7 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         private set
 
     var modeBehaviour: ScrollOptionBehaviour<GimbalMode>? = null
-    var maxAngleBehaviour: MaxAngleScrollValueBehaviour? = null
+    var maxAngleBehaviour: ScrollValueBehaviour? = null
 
     private var lastException: AssemblyException? = null
 
@@ -122,18 +122,18 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
             GimbalMode::class.java,
             Component.translatable("$MOD_ID.gimbal_bearing.mode"),
             this,
-            ModeSlot()
+            movementModeSlot
         )
         modeBehaviour!!.requiresWrench()
         behaviours.add(modeBehaviour!!)
 
-        maxAngleBehaviour = MaxAngleScrollValueBehaviour(
+        maxAngleBehaviour = ScrollValueBehaviour(
             Component.translatable("$MOD_ID.gimbal_bearing.max_angle"),
             this,
-            MaxAngleSlot()
+            BackFaceValueBoxTransform()
         )
-        maxAngleBehaviour!!.between(0, MAX_ANGLE_LIMIT_DEG)
-        maxAngleBehaviour!!.withCallback { onMaxAngleChanged() }
+            .between(0, MAX_ANGLE_LIMIT_DEG)
+            .withCallback { onMaxAngleChanged() }
         maxAngleBehaviour!!.value = DEFAULT_MAX_ANGLE_DEG
         behaviours.add(maxAngleBehaviour!!)
     }
@@ -164,7 +164,6 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         val len = v.length()
         if (len > 1.0) v.div(len)
         redstoneVecLocal = v
-
     }
 
     private fun rebuildJointSwingLimitIfNeeded() {
@@ -341,14 +340,22 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
 
         val maxAngle = getMaxAngleDeg()
         val limitRad = Math.toRadians(maxAngle.toDouble()).toFloat().coerceAtLeast(MIN_LIMIT_RAD)
+        val motions = EnumMap<VSD6Joint.D6Axis, D6Motion>(D6Axis::class.java)
+        motions[D6Axis.X] = D6Motion.LOCKED
+        motions[D6Axis.Y] = D6Motion.LOCKED
+        motions[D6Axis.Z] = D6Motion.LOCKED
+        motions[D6Axis.TWIST] = D6Motion.LOCKED
+        motions[D6Axis.SWING1] = D6Motion.LIMITED
+        motions[D6Axis.SWING2] = D6Motion.LIMITED
 
-        joint = VSSphericalJoint(
+        joint = VSD6Joint(
             shipId0 = shiptraptionID,
             pose0 = pose0,
             shipId1 = shipOnID,
             pose1 = pose1,
             compliance = 1e-100,
-            limitCone = VSD6Joint.LimitCone(limitRad, limitRad)
+            motions = motions,
+            swingLimit = VSD6Joint.LimitCone(limitRad,limitRad)
         )
         bearingAxisLocal = axis
         bearingPosInSub = bearingPos
@@ -489,26 +496,23 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
     }
 
     override fun physTick(physShip: PhysShip?, physLevel: PhysLevel) {
-        if (isRemoved || !isRunning) return
+        if (isRemoved || !isRunning || joint == null) return
         val subShip = physLevel.getShipById(shiptraptionID) ?: return
         if (subShip.isStatic) return
-
-        if (subShip.mass <= 0.0) return
-
-        val hostRot = physShip?.transform?.shipToWorldRotation?.let { Quaterniond(it) } ?: Quaterniond()
-
-        // Always-on twist correction: VSSphericalJoint allows free roll, so we substitute
-        // the hard TWIST=LOCKED constraint with a stiff PID along the bearing axis.
-        applyTwistCorrection(subShip, physShip, hostRot)
 
         val rsLocal = redstoneVecLocal
         val rsLen = min(rsLocal.length(), 1.0)
         val tiltAngleRad = rsLen * Math.toRadians(getMaxAngleDeg().toDouble())
         val mode = getMode()
 
+        val mass = subShip.mass
+        if (mass <= 0.0) return
         val rpmAbs = abs(getSpeed())
         if (rpmAbs < 1e-3) return
 
+        val maxTorque = ClockworkConfig.SERVER.gimbal.gimbalMaxTorquePerRpmPerKg * rpmAbs * mass
+
+        val hostRot = physShip?.transform?.shipToWorldRotation?.let { Quaterniond(it) } ?: Quaterniond()
         val refRot = if (mode == GimbalMode.GYROSCOPIC) Quaterniond(assemblyHostRotation) else hostRot
 
         val currentAxisWorld = Vector3d(bearingAxisLocal).rotate(subShip.transform.shipToWorldRotation, Vector3d())
@@ -520,8 +524,7 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
             val tLen = torqueAxis.length()
             if (tLen < 1e-9) return
             torqueAxis.div(tLen)
-            val Ieff = inertiaAlongWorld(subShip, torqueAxis)
-            val torqueMag = rsLen * ClockworkConfig.SERVER.gimbal.gimbalUnlockedForcePerRpmPerKg * rpmAbs * Ieff
+            val torqueMag = rsLen * ClockworkConfig.SERVER.gimbal.gimbalUnlockedForcePerRpmPerKg * rpmAbs * mass
             val torque = torqueAxis.mul(torqueMag, Vector3d())
             applyTorquePair(subShip, physShip, torque)
             return
@@ -549,77 +552,11 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
 
         val kp = ClockworkConfig.SERVER.gimbal.gimbalAngleErrorMultiplier
         val kd = ClockworkConfig.SERVER.gimbal.gimbalOmegaErrorMultiplier
-        val Ieff = inertiaAlongWorld(subShip, errAxisUnit)
-        // Cap the proportional term only (slew-rate limit). The derivative term must remain
-        // uncapped so damping can decelerate the contraption faster than the cap's α at any RPM —
-        // capping the sum produces bang-bang behavior and symmetric overshoot near neutral.
-        val pCap = ClockworkConfig.SERVER.gimbal.gimbalMaxTorquePerRpmPerKg * rpmAbs
-        var pAlpha = kp * errAngle
-        if (pCap > 0.0) pAlpha = pAlpha.coerceIn(-pCap, pCap)
-        val dAlpha = -kd * omegaAlongErr
-        val torqueMag = (pAlpha + dAlpha) * Ieff
+        var torqueMag = (kp * errAngle - kd * omegaAlongErr) * mass
         if (!java.lang.Double.isFinite(torqueMag)) return
+        if (maxTorque > 0.0) torqueMag = torqueMag.coerceIn(-maxTorque, maxTorque)
         val torque = errAxisUnit.mul(torqueMag, Vector3d())
         applyTorquePair(subShip, physShip, torque)
-    }
-
-    /**
-     * Effective moment of inertia of [physShip] for a torque applied along [axisWorld].
-     * Computes `axisLocal · I_local · axisLocal` after rotating the world axis into the body frame.
-     * Scaling PID torques by this rather than mass makes `α = τ/I = Kp·err − Kd·ω` shape-independent;
-     * otherwise compact bodies (single blocks) end up with effective gains ~6× larger than typical
-     * contraptions and can cross the explicit-Euler stability threshold at the joint solver's tick rate.
-     */
-    private fun inertiaAlongWorld(physShip: PhysShip, axisWorld: Vector3dc): Double {
-        val len = axisWorld.length()
-        if (len < 1e-9) return 0.0
-        val axisUnitWorld = Vector3d(axisWorld).div(len)
-        val axisLocal = physShip.transform.shipToWorldRotation.transformInverse(axisUnitWorld, Vector3d())
-        val Iv = physShip.momentOfInertia.transform(axisLocal, Vector3d())
-        return Iv.dot(axisLocal)
-    }
-
-    private fun applyTwistCorrection(subShip: PhysShip, hostShip: PhysShip?, hostRot: Quaterniond) {
-        val kp = ClockworkConfig.SERVER.gimbal.gimbalTwistKp
-        val kd = ClockworkConfig.SERVER.gimbal.gimbalTwistKd
-        if (kp <= 0.0 && kd <= 0.0) return
-
-        // Relative rotation expressed in host's local frame: q_rel = q_host^-1 * q_sub
-        val qHostInv = Quaterniond(hostRot).invert()
-        val qSub = Quaterniond(subShip.transform.shipToWorldRotation)
-        val qRel = qHostInv.mul(qSub, Quaterniond())
-
-        // Canonicalize: q and -q represent the same rotation; force w >= 0 so atan2 stays in
-        // the principal branch and small rotations don't flip to ±2π between phys-ticks.
-        if (qRel.w < 0.0) {
-            qRel.set(-qRel.x, -qRel.y, -qRel.z, -qRel.w)
-        }
-
-        // Twist angle around bearingAxisLocal: 2 * atan2(qImag · axis, qW)
-        val a = bearingAxisLocal
-        val sinHalf = qRel.x * a.x + qRel.y * a.y + qRel.z * a.z
-        val cosHalf = qRel.w
-        var twistAngle = 2.0 * atan2(sinHalf, cosHalf)
-        while (twistAngle > Math.PI) twistAngle -= 2.0 * Math.PI
-        while (twistAngle < -Math.PI) twistAngle += 2.0 * Math.PI
-
-        // Twist-axis angular velocity in world: project (subOmega - hostOmega) onto bearingAxisWorld
-        val bearingAxisWorld = Vector3d(a).rotate(hostRot, Vector3d())
-        val subOmega = Vector3d(subShip.angularVelocity)
-        val hostOmega = if (hostShip != null) Vector3d(hostShip.angularVelocity) else Vector3d()
-        val omegaRel = subOmega.sub(hostOmega, Vector3d())
-        val omegaTwist = omegaRel.dot(bearingAxisWorld)
-
-        val Ieff = inertiaAlongWorld(subShip, bearingAxisWorld)
-        // Cap proportional only; damping must stay responsive — see swing PID note above.
-        val pCap = ClockworkConfig.SERVER.gimbal.gimbalTwistMaxTorquePerKg
-        var pAlpha = -kp * twistAngle
-        if (pCap > 0.0) pAlpha = pAlpha.coerceIn(-pCap, pCap)
-        val dAlpha = -kd * omegaTwist
-        val torqueMag = (pAlpha + dAlpha) * Ieff
-        if (!java.lang.Double.isFinite(torqueMag)) return
-        val torque = bearingAxisWorld.mul(torqueMag, Vector3d())
-        applyTorquePair(subShip, hostShip, torque)
     }
 
     private fun applyTorquePair(subShip: PhysShip, hostShip: PhysShip?, torque: Vector3dc) {
@@ -642,39 +579,14 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
     override fun getLastAssemblyException(): AssemblyException? = lastException
     override fun getBlockPosition(): BlockPos = worldPosition
 
-
-    private class ModeSlot : DirectionalExtenderScrollOptionSlot({ state, dir ->
-        val facingAxis = state.getValue(BearingBlock.FACING).axis
-        dir.axis != facingAxis && dir.axis != maxAngleAxisFor(facingAxis)
-    })
-
-    private class MaxAngleSlot : DirectionalExtenderScrollOptionSlot({ state, dir ->
-        dir.axis == maxAngleAxisFor(state.getValue(BearingBlock.FACING).axis)
-    })
-
-
-    class MaxAngleScrollValueBehaviour(
-        label: Component,
-        be: com.simibubi.create.foundation.blockEntity.SmartBlockEntity,
-        slot: ValueBoxTransform
-    ) : ScrollValueBehaviour(label, be, slot) {
-        override fun getType(): BehaviourType<*> = TYPE
-        override fun netId(): Int = NET_ID
-
-        override fun write(nbt: CompoundTag, clientPacket: Boolean) {
-            // ScrollValueBehaviour writes to the hardcoded "ScrollValue" key, which collides
-            // with the mode behaviour. Use our own key and skip the parent's NBT write.
-            nbt.putInt(NBT_KEY, value)
+    /** Value box transform that places the box on the face opposite the bearing's facing direction. */
+    private class BackFaceValueBoxTransform : ValueBoxTransform.Sided() {
+        override fun isSideActive(state: BlockState, direction: Direction): Boolean {
+            return direction == state.getValue(BearingBlock.FACING).opposite
         }
 
-        override fun read(nbt: CompoundTag, clientPacket: Boolean) {
-            if (nbt.contains(NBT_KEY)) value = nbt.getInt(NBT_KEY)
-        }
-
-        companion object {
-            @JvmField val TYPE = BehaviourType<MaxAngleScrollValueBehaviour>()
-            private const val NET_ID = 1
-            private const val NBT_KEY = "GimbalMaxAngleScrollValue"
+        override fun getSouthLocation(): net.minecraft.world.phys.Vec3 {
+            return net.createmod.catnip.math.VecHelper.voxelSpace(8.0, 8.0, 15.5)
         }
     }
 
@@ -704,15 +616,5 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         const val DEFAULT_MAX_ANGLE_DEG = 45
         const val MAX_ANGLE_LIMIT_DEG = 180
         private const val MIN_LIMIT_RAD = 1e-3f
-
-        /**
-         * For a given bearing facing axis, returns which of the two lateral axes the max-angle
-         * widget uses. The mode widget gets the other lateral axis.
-         */
-        fun maxAngleAxisFor(facingAxis: Direction.Axis): Direction.Axis = when (facingAxis) {
-            Direction.Axis.X -> Direction.Axis.Z
-            Direction.Axis.Y -> Direction.Axis.Z
-            Direction.Axis.Z -> Direction.Axis.Y
-        }
     }
 }
