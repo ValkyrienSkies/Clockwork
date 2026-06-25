@@ -1,31 +1,36 @@
 package org.valkyrienskies.clockwork
 
-import com.simibubi.create.api.behaviour.display.DisplaySource.displaySource
-
 import com.simibubi.create.AllBlocks
-import com.simibubi.create.AllSpriteShifts
 import com.simibubi.create.AllTags
+import com.simibubi.create.api.behaviour.display.DisplaySource.displaySource
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour.movementBehaviour
 import com.simibubi.create.content.decoration.encasing.CasingBlock
+import com.simibubi.create.content.decoration.encasing.CasingConnectivity
+import com.simibubi.create.content.decoration.encasing.EncasedCTBehaviour
 import com.simibubi.create.content.decoration.encasing.EncasingRegistry
 import com.simibubi.create.content.fluids.PipeAttachmentModel
-import com.simibubi.create.content.kinetics.simpleRelays.encased.EncasedShaftBlock
-import com.simibubi.create.foundation.data.*
+import com.simibubi.create.foundation.block.connected.CTSpriteShiftEntry
+import com.simibubi.create.foundation.data.AssetLookup
+import com.simibubi.create.foundation.data.BuilderTransformers
+import com.simibubi.create.foundation.data.CreateRegistrate
 import com.simibubi.create.foundation.data.CreateRegistrate.connectedTextures
 import com.simibubi.create.foundation.data.ModelGen.customItemModel
+import com.simibubi.create.foundation.data.SharedProperties
 import com.simibubi.create.foundation.data.TagGen.axeOrPickaxe
 import com.tterrag.registrate.builders.BlockBuilder
 import com.tterrag.registrate.providers.DataGenContext
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider
 import com.tterrag.registrate.util.entry.BlockEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
+import com.tterrag.registrate.util.nullness.NonNullSupplier
+import com.tterrag.registrate.util.nullness.NonNullUnaryOperator
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.resources.model.BakedModel
-import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.CreativeModeTabs
 import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
@@ -34,7 +39,6 @@ import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap.SmartFlapBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlock
-import org.valkyrienskies.clockwork.content.physicalities.goo.GooBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeControllerBlock
@@ -45,9 +49,9 @@ import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteSlab
 import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteStairs
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteOreBlock
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterBlock
-import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorTestBlock
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlock
 import org.valkyrienskies.clockwork.content.curiosities.debug.DebugLightningArcerBlock
+import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorTestBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.distance.DistanceSensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.impact.ImpactSensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.GyroscopicSensorBlock
@@ -58,10 +62,10 @@ import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBl
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.engine.GasEngineBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.exhaust.ExhaustBlock
-import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorBlock
@@ -72,13 +76,13 @@ import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozz
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.redstone.RedstoneDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankBlock
-import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankCTBehaviour
 import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankModel
 import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlock
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlock
 import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlock
 import org.valkyrienskies.clockwork.content.physicalities.gas_thruster.GasThrusterBlock
+import org.valkyrienskies.clockwork.content.physicalities.goo.GooBlock
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroBlock
 import org.valkyrienskies.clockwork.content.physicalities.reactionwheel.ReactionWheelBlock
 import org.valkyrienskies.clockwork.content.physicalities.spinoff_bearing.SpinoffBearingBlock
@@ -95,7 +99,7 @@ object ClockworkBlocks {
 
     @JvmField
     val SUGAR_ROCKET: BlockEntry<SugarRocketBlock> =
-        REGISTRATE.block<SugarRocketBlock>("sugar_rocket") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("sugar_rocket") { properties: BlockBehaviour.Properties? ->
             SugarRocketBlock(properties!!)
         }
             .initialProperties(AllBlocks.BELT)
@@ -110,7 +114,7 @@ object ClockworkBlocks {
 
     @JvmField
     val BRASS_PROPELLER_BEARING: BlockEntry<PropellerBearingBlock> =
-        REGISTRATE.block<PropellerBearingBlock>("brass_propeller_bearing") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("brass_propeller_bearing") { properties: BlockBehaviour.Properties? ->
             PropellerBearingBlock(properties!!)
         }
             .transform(axeOrPickaxe())
@@ -125,7 +129,7 @@ object ClockworkBlocks {
 
     @JvmField
     val COPTER_BEARING: BlockEntry<CopterBearingBlock> =
-        REGISTRATE.block<CopterBearingBlock>("copter_bearing") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("copter_bearing") { properties: BlockBehaviour.Properties? ->
             CopterBearingBlock(properties!!)
         }
             .transform(axeOrPickaxe())
@@ -156,7 +160,7 @@ object ClockworkBlocks {
 
     @JvmField
     val BLADE_CONTROLLER: BlockEntry<BladeControllerBlock> =
-        REGISTRATE.block<BladeControllerBlock>("blade_controller") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("blade_controller") { properties: BlockBehaviour.Properties? ->
             BladeControllerBlock(properties!!)
         }
             .transform(axeOrPickaxe())
@@ -171,7 +175,7 @@ object ClockworkBlocks {
 
     @JvmField
     val PHYS_BEARING: BlockEntry<PhysBearingBlock> =
-        REGISTRATE.block<PhysBearingBlock>("phys_bearing") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("phys_bearing") { properties: BlockBehaviour.Properties? ->
             PhysBearingBlock(properties!!)
         }
             .initialProperties { SharedProperties.stone() }
@@ -193,7 +197,7 @@ object ClockworkBlocks {
 
     @JvmField
     val ANDESITE_FLAP_BEARING: BlockEntry<FlapBearingBlock> =
-        REGISTRATE.block<FlapBearingBlock>("andesite_flap_bearing") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("andesite_flap_bearing") { properties: BlockBehaviour.Properties? ->
             FlapBearingBlock(properties)
         }
             .transform(axeOrPickaxe())
@@ -209,7 +213,7 @@ object ClockworkBlocks {
 
     @JvmField
     val SMART_FLAP_BEARING: BlockEntry<SmartFlapBearingBlock> =
-        REGISTRATE.block<SmartFlapBearingBlock>("smart_flap_bearing") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("smart_flap_bearing") { properties: BlockBehaviour.Properties? ->
             SmartFlapBearingBlock(properties)
         }
             .transform(axeOrPickaxe())
@@ -226,7 +230,7 @@ object ClockworkBlocks {
 
     @JvmField
     val ALT_METER: BlockEntry<AltMeterBlock> =
-        REGISTRATE.block<AltMeterBlock>("alt_meter") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("alt_meter") { properties: BlockBehaviour.Properties? ->
             AltMeterBlock(properties!!)
         }
             .initialProperties { SharedProperties.stone() }
@@ -242,7 +246,7 @@ object ClockworkBlocks {
 
     @JvmField
     val DISTANCE_SENSOR: BlockEntry<DistanceSensorBlock> =
-        REGISTRATE.block<DistanceSensorBlock>("distance_sensor") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("distance_sensor") { properties: BlockBehaviour.Properties? ->
             DistanceSensorBlock(properties!!)
         }
             .initialProperties { SharedProperties.stone() }
@@ -256,7 +260,7 @@ object ClockworkBlocks {
             .register()
 
     @JvmField
-    val GYROSCOPIC_SENSOR: BlockEntry<GyroscopicSensorBlock> = REGISTRATE.block<GyroscopicSensorBlock>("gyroscopic_sensor") { properties: BlockBehaviour.Properties? ->
+    val GYROSCOPIC_SENSOR: BlockEntry<GyroscopicSensorBlock> = REGISTRATE.block("gyroscopic_sensor") { properties: BlockBehaviour.Properties? ->
         GyroscopicSensorBlock(properties!!)
     }
         .initialProperties { SharedProperties.stone() }
@@ -270,7 +274,7 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val LODEFOCUS: BlockEntry<LodefocusBlock> = REGISTRATE.block<LodefocusBlock>("lodefocus") { properties: BlockBehaviour.Properties? ->
+    val LODEFOCUS: BlockEntry<LodefocusBlock> = REGISTRATE.block("lodefocus") { properties: BlockBehaviour.Properties? ->
         LodefocusBlock(properties!!)
     }
         .initialProperties { Blocks.GLASS }
@@ -286,7 +290,7 @@ object ClockworkBlocks {
 
     @JvmField
     val IMPACT_SENSOR: BlockEntry<ImpactSensorBlock> =
-        REGISTRATE.block<ImpactSensorBlock>("impact_sensor") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("impact_sensor") { properties: BlockBehaviour.Properties? ->
             ImpactSensorBlock(properties!!)
         }
             .initialProperties { SharedProperties.stone() }
@@ -300,7 +304,7 @@ object ClockworkBlocks {
             .register()
 
     @JvmField
-    val GYRO: BlockEntry<GyroBlock> = REGISTRATE.block<GyroBlock>("gyro") { properties: BlockBehaviour.Properties? ->
+    val GYRO: BlockEntry<GyroBlock> = REGISTRATE.block("gyro") { properties: BlockBehaviour.Properties? ->
         GyroBlock(properties!!)
     }
         .initialProperties { SharedProperties.stone() }
@@ -318,7 +322,7 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val REACTIONWHEEL: BlockEntry<ReactionWheelBlock> = REGISTRATE.block<ReactionWheelBlock>(
+    val REACTIONWHEEL: BlockEntry<ReactionWheelBlock> = REGISTRATE.block(
         "reactionwheel"
     ) { properties: BlockBehaviour.Properties? ->
         ReactionWheelBlock(
@@ -337,24 +341,24 @@ object ClockworkBlocks {
 
     @JvmField
     val REDSTONE_RESISTOR: BlockEntry<RedstoneResistorBlock> =
-        REGISTRATE.block<RedstoneResistorBlock>("redstone_resistor") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("redstone_resistor") { properties: BlockBehaviour.Properties? ->
             RedstoneResistorBlock(properties!!)
         }
             .initialProperties { SharedProperties.stone() }
             .properties {
                 it.noOcclusion()
             }
-            .transform<Block, RedstoneResistorBlock, CreateRegistrate, BlockBuilder<RedstoneResistorBlock, CreateRegistrate>>(
+            .transform(
                 ClockworkStress.setNoImpact()
             )
-            .transform<Block, RedstoneResistorBlock, CreateRegistrate, BlockBuilder<RedstoneResistorBlock, CreateRegistrate>>(
+            .transform(
                 axeOrPickaxe()
             )
             .addLayer { Supplier { RenderType.cutoutMipped() } }
             .item()
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .transform(
-                customItemModel<BlockItem, BlockBuilder<RedstoneResistorBlock, CreateRegistrate>>(
+                customItemModel(
                     "redstone_resistor",
                     "item"
                 )
@@ -363,7 +367,7 @@ object ClockworkBlocks {
 
     @JvmField
     val COMMAND_SEAT: BlockEntry<SequencedSeatBlock> =
-        REGISTRATE.block<SequencedSeatBlock>("command_seat") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("command_seat") { properties: BlockBehaviour.Properties? ->
             SequencedSeatBlock(properties!!)
         }
             .properties {
@@ -377,22 +381,22 @@ object ClockworkBlocks {
             .register()
 
     @JvmField
-    val WING: BlockEntry<WingBlock> = REGISTRATE.block<WingBlock>("wing") { properties: BlockBehaviour.Properties? ->
+    val WING: BlockEntry<WingBlock> = REGISTRATE.block("wing") { properties: BlockBehaviour.Properties? ->
         WingBlock(properties)
     }
-        .transform<Block, WingBlock, CreateRegistrate, BlockBuilder<WingBlock, CreateRegistrate>>(axeOrPickaxe())
+        .transform(axeOrPickaxe())
         .addLayer { Supplier { RenderType.cutoutMipped() } }
         .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
         .item { block: WingBlock?, properties: Item.Properties? ->
             DyedWingBlockItem(block, properties)
         }
         .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
-        .transform(ClockworkRegistrate.customRenderedBlockItem<DyedWingBlockItem, BlockBuilder<WingBlock, CreateRegistrate>> { Supplier { WingBlockItemRenderer(
+        .transform(ClockworkRegistrate.customRenderedBlockItem { Supplier { WingBlockItemRenderer(
             ClockworkPartials.WING_FRAME_ITEM) } })
         .register()
 
     @JvmField
-    val FLAP: BlockEntry<FlapBlock> = REGISTRATE.block<FlapBlock>("flap") { properties: BlockBehaviour.Properties? ->
+    val FLAP: BlockEntry<FlapBlock> = REGISTRATE.block("flap") { properties: BlockBehaviour.Properties? ->
         FlapBlock(properties)
     }
         .transform(axeOrPickaxe())
@@ -411,10 +415,10 @@ object ClockworkBlocks {
 
     @JvmField
     val PHYSICS_INFUSER: BlockEntry<PhysicsInfuserBlock> =
-        REGISTRATE.block<PhysicsInfuserBlock>("physics_infuser") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("physics_infuser") { properties: BlockBehaviour.Properties? ->
             PhysicsInfuserBlock(properties!!)
         }
-            .transform<Block, PhysicsInfuserBlock, CreateRegistrate, BlockBuilder<PhysicsInfuserBlock, CreateRegistrate>>(
+            .transform(
                 axeOrPickaxe()
             )
 
@@ -426,7 +430,7 @@ object ClockworkBlocks {
             .register()
 
     @JvmField
-    val DUCT: BlockEntry<DuctBlock> = REGISTRATE.block<DuctBlock>(
+    val DUCT: BlockEntry<DuctBlock> = REGISTRATE.block(
         "duct"
     ) { properties: BlockBehaviour.Properties? ->
         DuctBlock(
@@ -449,7 +453,7 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val COAL_BURNER: BlockEntry<CoalBurnerBlock> = REGISTRATE.block<CoalBurnerBlock>(
+    val COAL_BURNER: BlockEntry<CoalBurnerBlock> = REGISTRATE.block(
         "coal_burner"
     ) { properties: BlockBehaviour.Properties? ->
         CoalBurnerBlock(
@@ -488,7 +492,7 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val AIR_COMPRESSOR: BlockEntry<AirCompressorBlock> = REGISTRATE.block<AirCompressorBlock>(
+    val AIR_COMPRESSOR: BlockEntry<AirCompressorBlock> = REGISTRATE.block(
         "air_compressor"
     ) { properties: BlockBehaviour.Properties? ->
         AirCompressorBlock(
@@ -506,7 +510,7 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val PUMP_DUCT: BlockEntry<PumpDuctBlock> = REGISTRATE.block<PumpDuctBlock>(
+    val PUMP_DUCT: BlockEntry<PumpDuctBlock> = REGISTRATE.block(
         "pump_duct"
     ) { properties: BlockBehaviour.Properties? ->
         PumpDuctBlock(
@@ -524,7 +528,7 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val REDSTONE_DUCT: BlockEntry<RedstoneDuctBlock> = REGISTRATE.block<RedstoneDuctBlock>(
+    val REDSTONE_DUCT: BlockEntry<RedstoneDuctBlock> = REGISTRATE.block(
         "redstone_duct"
     ) { properties: BlockBehaviour.Properties? ->
         RedstoneDuctBlock(
@@ -546,7 +550,7 @@ object ClockworkBlocks {
 
     @JvmField
     val VALVE_DUCT: BlockEntry<ValveDuctBlock> =
-        REGISTRATE.block<ValveDuctBlock>("valve_duct") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("valve_duct") { properties: BlockBehaviour.Properties? ->
             ValveDuctBlock(properties!!)
         }
             .initialProperties { SharedProperties.netheriteMetal() }
@@ -561,7 +565,7 @@ object ClockworkBlocks {
 
     @JvmField
     val GAS_NOZZLE: BlockEntry<GasNozzleBlock> =
-        REGISTRATE.block<GasNozzleBlock>("gas_nozzle") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("gas_nozzle") { properties: BlockBehaviour.Properties? ->
             GasNozzleBlock(properties!!)
         }
             .initialProperties { Blocks.IRON_BLOCK }
@@ -579,7 +583,7 @@ object ClockworkBlocks {
 
     @JvmField
     val STEAM_GENERATOR: BlockEntry<SteamGeneratorBlock> =
-        REGISTRATE.block<SteamGeneratorBlock>("steam_generator") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("steam_generator") { properties: BlockBehaviour.Properties? ->
             SteamGeneratorBlock(properties!!)
         }
             .initialProperties { Blocks.IRON_BLOCK }
@@ -596,7 +600,7 @@ object ClockworkBlocks {
 
     @JvmField
     val GAS_ENGINE: BlockEntry<GasEngineBlock> =
-        REGISTRATE.block<GasEngineBlock>("gas_engine") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("gas_engine") { properties: BlockBehaviour.Properties? ->
             GasEngineBlock(properties!!)
         }
             .initialProperties { Blocks.IRON_BLOCK }
@@ -630,7 +634,7 @@ object ClockworkBlocks {
 
     @JvmField
     val EXHAUST: BlockEntry<ExhaustBlock> =
-        REGISTRATE.block<ExhaustBlock>("exhaust") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("exhaust") { properties: BlockBehaviour.Properties? ->
             ExhaustBlock(properties!!)
         }
             .initialProperties { Blocks.IRON_BLOCK }
@@ -647,7 +651,7 @@ object ClockworkBlocks {
 
     @JvmField
     val GAS_HEATER: BlockEntry<GasHeaterBlock> =
-        REGISTRATE.block<GasHeaterBlock>("gas_heater") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("gas_heater") { properties: BlockBehaviour.Properties? ->
             GasHeaterBlock(properties!!)
         }
             .initialProperties { Blocks.IRON_BLOCK }
@@ -663,7 +667,7 @@ object ClockworkBlocks {
 
     @JvmField
     val GAS_THRUSTER: BlockEntry<GasThrusterBlock> =
-        REGISTRATE.block<GasThrusterBlock>("gas_thruster") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("gas_thruster") { properties: BlockBehaviour.Properties? ->
             GasThrusterBlock(properties!!)
         }
             .initialProperties { Blocks.IRON_BLOCK }
@@ -680,7 +684,7 @@ object ClockworkBlocks {
 
     @JvmField
     val EXTENDON: BlockEntry<ExtendonBlock> =
-        REGISTRATE.block<ExtendonBlock>("extendon") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("extendon") { properties: BlockBehaviour.Properties? ->
             ExtendonBlock(properties!!)
         }
             .initialProperties { SharedProperties.netheriteMetal() }
@@ -696,7 +700,7 @@ object ClockworkBlocks {
 
     @JvmField
     val HOSE_PORT: BlockEntry<HosePortBlock> =
-        REGISTRATE.block<HosePortBlock>("hose_port") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("hose_port") { properties: BlockBehaviour.Properties? ->
             HosePortBlock(properties!!)
         }
             .initialProperties { SharedProperties.netheriteMetal() }
@@ -713,7 +717,7 @@ object ClockworkBlocks {
 
     @JvmField
     val GAS_BACKTANK: BlockEntry<GasBacktankBlock> =
-        REGISTRATE.block<GasBacktankBlock>("gas_backtank") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("gas_backtank") { properties: BlockBehaviour.Properties? ->
             GasBacktankBlock(properties!!)
         }
             .initialProperties { SharedProperties.softMetal() }
@@ -725,7 +729,7 @@ object ClockworkBlocks {
             .register()
 
     @JvmField
-    val CREATIVE_GENERATOR: BlockEntry<CreativeGeneratorBlock> = REGISTRATE.block<CreativeGeneratorBlock>(
+    val CREATIVE_GENERATOR: BlockEntry<CreativeGeneratorBlock> = REGISTRATE.block(
         "creative_gas_generator"
     ) { properties: BlockBehaviour.Properties? ->
         CreativeGeneratorBlock(
@@ -742,7 +746,7 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val GOO_BLOCK = REGISTRATE.block<GooBlock>("goo_block") { properties: BlockBehaviour.Properties? ->
+    val GOO_BLOCK = REGISTRATE.block("goo_block") { properties: BlockBehaviour.Properties? ->
         GooBlock(
             properties!!
         )
@@ -755,7 +759,7 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val SLICKER = REGISTRATE.block<SlickerBlock>(
+    val SLICKER = REGISTRATE.block(
         "slicker"
     ) { properties: BlockBehaviour.Properties? ->
         SlickerBlock(
@@ -770,7 +774,7 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val WANDERLITE_DEEPSLATE_ORE = REGISTRATE.block<WanderliteOreBlock>(
+    val WANDERLITE_DEEPSLATE_ORE = REGISTRATE.block(
         "wanderlite_deepslate_ore"
     ) { properties: BlockBehaviour.Properties? ->
         WanderliteOreBlock(
@@ -784,7 +788,7 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val WANDERLITE_END_ORE = REGISTRATE.block<WanderliteOreBlock>(
+    val WANDERLITE_END_ORE = REGISTRATE.block(
         "wanderlite_end_ore"
     ) { properties: BlockBehaviour.Properties? ->
         WanderliteOreBlock(
@@ -798,7 +802,7 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val WANDERLITE_NYX_ORE = REGISTRATE.block<WanderliteOreBlock>(
+    val WANDERLITE_NYX_ORE = REGISTRATE.block(
         "wanderlite_nyx_ore"
     ) { properties: BlockBehaviour.Properties? ->
         WanderliteOreBlock(
@@ -815,7 +819,7 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val NYX = REGISTRATE.block<Block>(
+    val NYX = REGISTRATE.block(
         "nyx"
     ) { properties: BlockBehaviour.Properties? ->
         Block(
@@ -832,7 +836,7 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val COBBLED_NYX = REGISTRATE.block<Block>(
+    val COBBLED_NYX = REGISTRATE.block(
         "cobbled_nyx"
     ) { properties: BlockBehaviour.Properties? ->
         Block(
@@ -849,7 +853,7 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val CHARGED_NYX = REGISTRATE.block<Block>(
+    val CHARGED_NYX = REGISTRATE.block(
         "charged_nyx"
     ) { properties: BlockBehaviour.Properties? ->
         Block(
@@ -866,7 +870,7 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val WANDERLITE_BLOCK = REGISTRATE.block<GenericWanderliteBlock>(
+    val WANDERLITE_BLOCK = REGISTRATE.block(
         "wanderlite_block"
     ) { properties: BlockBehaviour.Properties? ->
         GenericWanderliteBlock(
@@ -880,7 +884,7 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val CHISELED_WANDERLITE = REGISTRATE.block<GenericWanderliteBlock>(
+    val CHISELED_WANDERLITE = REGISTRATE.block(
         "chiseled_wanderlite"
     ) { properties: BlockBehaviour.Properties? ->
         GenericWanderliteBlock(
@@ -894,7 +898,7 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val SMOOTH_WANDERLITE = REGISTRATE.block<GenericWanderliteBlock>(
+    val SMOOTH_WANDERLITE = REGISTRATE.block(
         "smooth_wanderlite"
     ) { properties: BlockBehaviour.Properties? ->
         GenericWanderliteBlock(
@@ -908,7 +912,7 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val SMOOTH_WANDERLITE_SLAB = REGISTRATE.block<GenericWanderliteSlab>(
+    val SMOOTH_WANDERLITE_SLAB = REGISTRATE.block(
         "smooth_wanderlite_slab"
     ) { properties: BlockBehaviour.Properties? ->
         GenericWanderliteSlab(
@@ -922,7 +926,7 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val SMOOTH_WANDERLITE_STAIRS = REGISTRATE.block<GenericWanderliteStairs>(
+    val SMOOTH_WANDERLITE_STAIRS = REGISTRATE.block(
         "smooth_wanderlite_stairs"
     ) { properties: BlockBehaviour.Properties? ->
         GenericWanderliteStairs(
@@ -936,7 +940,7 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val WANDERLITE_BRICKS = REGISTRATE.block<GenericWanderliteBlock>(
+    val WANDERLITE_BRICKS = REGISTRATE.block(
         "wanderlite_bricks"
     ) { properties: BlockBehaviour.Properties? ->
         GenericWanderliteBlock(
@@ -950,7 +954,7 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val WANDERGLASS = REGISTRATE.block<GenericWanderliteBlock>(
+    val WANDERGLASS = REGISTRATE.block(
         "wanderglass"
     ) { properties: BlockBehaviour.Properties? ->
         GenericWanderliteBlock(
@@ -967,7 +971,7 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val BALLOON_CASING = REGISTRATE.block<CasingBlock>(
+    val BALLOON_CASING = REGISTRATE.block(
         "balloon_casing"
     ) { properties: BlockBehaviour.Properties? ->
         CasingBlock(
@@ -979,7 +983,7 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val BALLOON_ENCASED_SHAFT = REGISTRATE.block<ExtendedEncasedShaftBlock>(
+    val BALLOON_ENCASED_SHAFT = REGISTRATE.block(
         "balloon_encased_shaft"
     ) { properties: BlockBehaviour.Properties? ->
         ExtendedEncasedShaftBlock.balloon(
@@ -995,7 +999,7 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
-    val CLOCK: BlockEntry<ClockBlock> = REGISTRATE.block<ClockBlock>(
+    val CLOCK: BlockEntry<ClockBlock> = REGISTRATE.block(
         "clock"
     ) { properties: BlockBehaviour.Properties? ->
         ClockBlock(
@@ -1011,7 +1015,7 @@ object ClockworkBlocks {
 
     @JvmField
     val DELIVERY_CANNON: BlockEntry<DeliveryCannonBlock> =
-        REGISTRATE.block<DeliveryCannonBlock>("delivery_cannon") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("delivery_cannon") { properties: BlockBehaviour.Properties? ->
             DeliveryCannonBlock(properties!!)
         }
             .initialProperties { SharedProperties.wooden() }
@@ -1026,7 +1030,7 @@ object ClockworkBlocks {
 
     @JvmField
     val DELIVERY_CHUTE: BlockEntry<DeliveryChuteBlock> =
-        REGISTRATE.block<DeliveryChuteBlock>("delivery_chute") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("delivery_chute") { properties: BlockBehaviour.Properties? ->
             DeliveryChuteBlock(properties!!)
         }
             .initialProperties { SharedProperties.wooden() }
@@ -1041,7 +1045,7 @@ object ClockworkBlocks {
 
     @JvmField
     val ASTEROID: BlockEntry<MeteorTestBlock> =
-        REGISTRATE.block<MeteorTestBlock>("asteroid_block") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("asteroid_block") { properties: BlockBehaviour.Properties? ->
             MeteorTestBlock(properties!!)
         }
             .initialProperties { SharedProperties.wooden() }
@@ -1056,7 +1060,7 @@ object ClockworkBlocks {
 
     @JvmField
     val UNIVERSAL_SHAFT: BlockEntry<UniversalShaftBlock> =
-        REGISTRATE.block<UniversalShaftBlock>("universal_shaft") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("universal_shaft") { properties: BlockBehaviour.Properties? ->
             UniversalShaftBlock(properties!!)
         }
             .initialProperties { SharedProperties.stone() }
@@ -1071,7 +1075,7 @@ object ClockworkBlocks {
 
     @JvmField
     val SPINOFF_BEARING: BlockEntry<SpinoffBearingBlock> =
-        REGISTRATE.block<SpinoffBearingBlock>("spinoff_bearing") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("spinoff_bearing") { properties: BlockBehaviour.Properties? ->
             SpinoffBearingBlock(properties!!)
         }
             .transform(axeOrPickaxe())
@@ -1086,7 +1090,7 @@ object ClockworkBlocks {
 
     @JvmField
     val DEBUG_LIGHTNING_ARCER: BlockEntry<DebugLightningArcerBlock> =
-        REGISTRATE.block<DebugLightningArcerBlock>("debug_lightning_arcer") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("debug_lightning_arcer") { properties: BlockBehaviour.Properties? ->
             DebugLightningArcerBlock(properties!!)
         }
             .initialProperties { SharedProperties.stone() }
@@ -1101,7 +1105,7 @@ object ClockworkBlocks {
 
     @JvmField
     val SOLVER: BlockEntry<SolverBlock> =
-        REGISTRATE.block<SolverBlock>("solver") { properties: BlockBehaviour.Properties? ->
+        REGISTRATE.block("solver") { properties: BlockBehaviour.Properties? ->
             SolverBlock(properties!!)
         }
             .initialProperties { SharedProperties.netheriteMetal() }
