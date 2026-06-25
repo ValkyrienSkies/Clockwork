@@ -30,8 +30,7 @@ public class MixinLinkedControllerClientHandler {
 
     @WrapOperation(
             method = "tick",
-            at = @At(value = "INVOKE", target = "Lcom/simibubi/create/foundation/blockEntity/behaviour/BlockEntityBehaviour;get(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lcom/simibubi/create/foundation/blockEntity/behaviour/BehaviourType;)Lcom/simibubi/create/foundation/blockEntity/behaviour/BlockEntityBehaviour;"),
-            remap = false
+            at = @At(value = "INVOKE", target = "Lcom/simibubi/create/foundation/blockEntity/behaviour/BlockEntityBehaviour;get(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lcom/simibubi/create/foundation/blockEntity/behaviour/BehaviourType;)Lcom/simibubi/create/foundation/blockEntity/behaviour/BlockEntityBehaviour;")
     )
     private static <T extends BlockEntityBehaviour> T wrapGetBehaviour(BlockGetter be, BlockPos e, BehaviourType<T> reader, Operation<T> original) {
         // Clockwork flap bearing will never return the LinkBehaviour create is wanting, since it's using a custom behaviour.
