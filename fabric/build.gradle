@@ -87,7 +87,7 @@ dependencies {
     api "org.jetbrains.kotlin:kotlin-reflect:2.0.0"
 
     // Create - dependencies are added transitively
-    modImplementation("com.simibubi.create:create-fabric-${minecraft_version}:${create_fabric_version}") {
+    modImplementation("com.simibubi.create:create-fabric:${create_fabric_version}") {
         exclude group: 'com.github.AlphaMode', module: 'fakeconfigtoml'
         exclude group: "me.jellysquid"
         exclude module: "sodium"
