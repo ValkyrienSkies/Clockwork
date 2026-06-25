@@ -975,7 +975,7 @@ object ClockworkBlocks {
         )
     }
         .initialProperties { SharedProperties.wooden() }
-        .transform(BuilderTransformers.casing { ClockworkSpriteShifts.BALLOON_CASING })
+        .transform(casing { ClockworkSpriteShifts.BALLOON_CASING })
         .register()
 
     @JvmField
@@ -989,7 +989,9 @@ object ClockworkBlocks {
         .initialProperties { SharedProperties.wooden() }
         .transform(axeOrPickaxe())
         .transform(BuilderTransformersClockwork.encasedShaft("balloon") { ClockworkSpriteShifts.BALLOON_CASING })
-        //.transform(EncasingRegistry.addVariantTo { AllBlocks.SHAFT.get() })
+        .transform(EncasingRegistry.addVariantTo { AllBlocks.SHAFT.get() })
+        .item()
+        .build()
         .register()
 
     @JvmField
@@ -1115,5 +1117,36 @@ object ClockworkBlocks {
     @JvmStatic
     fun register() {
 
+    }
+
+    /**
+     * We use this instead of [BuilderTransformers.casing] because this function uses
+     * the correct inventory tab
+     */
+    fun <B : CasingBlock> casing(
+        ct: Supplier<CTSpriteShiftEntry>
+    ): NonNullUnaryOperator<BlockBuilder<B, CreateRegistrate>> {
+        return NonNullUnaryOperator { b: BlockBuilder<B, CreateRegistrate> ->
+            b.initialProperties(NonNullSupplier { SharedProperties.stone() })
+                .properties { p: BlockBehaviour.Properties -> p.sound(SoundType.WOOD) }
+                .transform<Block, B, CreateRegistrate, BlockBuilder<B, CreateRegistrate>>(axeOrPickaxe<B, CreateRegistrate>())
+                .blockstate { c: DataGenContext<Block, B>, p: RegistrateBlockstateProvider ->
+                    p.simpleBlock(
+                        c.get()
+                    )
+                }
+                .onRegister(connectedTextures<B> { EncasedCTBehaviour(ct.get()) })
+                .onRegister(CreateRegistrate.casingConnectivity<B> { block: B, cc: CasingConnectivity ->
+                    cc.makeCasing(
+                        block,
+                        ct.get()
+                    )
+                })
+                .tag(AllTags.AllBlockTags.CASING.tag)
+                .item()
+                .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+                .tag(AllTags.AllItemTags.CASING.tag)
+                .build()
+        }
     }
 }
