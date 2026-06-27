@@ -160,6 +160,12 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
 
     fun getMode(): GimbalMode = modeBehaviour?.get() ?: GimbalMode.LOCKED
 
+    fun getRenderBearingAxisLocal(): Vector3d = Vector3d(bearingAxisLocal)
+
+    fun getRenderBearingPosInSub(): Vector3d = Vector3d(bearingPosInSub)
+
+    fun getRenderDirection(): Direction = originalDirection ?: facing
+
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
         super.addBehaviours(behaviours)
 
@@ -1070,11 +1076,11 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         const val DEFAULT_MAX_ANGLE_DEG = 45
         const val MAX_ANGLE_LIMIT_DEG = 55
         private const val MIN_LIMIT_RAD = 1e-3f
-        private const val FACE_ATTACHMENT_OFFSET_BLOCKS = 0.25
+        private const val FACE_ATTACHMENT_OFFSET_BLOCKS = 0.05
         private const val CONTROLLER_LIMIT_MARGIN_DEG = 1.0
         private const val CONTROLLER_LIMIT_MARGIN_FRACTION = 0.02
-        private const val MIN_CONTROL_LEVER_ARM_BLOCKS = 0.25
-        private const val CONTROL_FORCE_POINT_OFFSET_BLOCKS = 0.25
+        private const val MIN_CONTROL_LEVER_ARM_BLOCKS = 0.05
+        private const val CONTROL_FORCE_POINT_OFFSET_BLOCKS = 0.05
 
         fun maxAngleAxisFor(facingAxis: Direction.Axis): Direction.Axis = when (facingAxis) {
             Direction.Axis.X -> Direction.Axis.Z

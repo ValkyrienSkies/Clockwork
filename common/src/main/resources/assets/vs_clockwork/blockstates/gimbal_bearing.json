@@ -1,28 +1,28 @@
 {
   "variants": {
     "facing=down": {
-      "model": "vs_clockwork:block/phys_bearing/block",
+      "model": "vs_clockwork:block/gimbal_bearing/block",
       "x": 180
     },
     "facing=up": {
-      "model": "vs_clockwork:block/phys_bearing/block"
+      "model": "vs_clockwork:block/gimbal_bearing/block"
     },
     "facing=north": {
-      "model": "vs_clockwork:block/phys_bearing/block",
+      "model": "vs_clockwork:block/gimbal_bearing/block",
       "x": 90
     },
     "facing=south": {
-      "model": "vs_clockwork:block/phys_bearing/block",
+      "model": "vs_clockwork:block/gimbal_bearing/block",
       "x": 90,
       "y": 180
     },
     "facing=west": {
-      "model": "vs_clockwork:block/phys_bearing/block",
+      "model": "vs_clockwork:block/gimbal_bearing/block",
       "x": 90,
       "y": 270
     },
     "facing=east": {
-      "model": "vs_clockwork:block/phys_bearing/block",
+      "model": "vs_clockwork:block/gimbal_bearing/block",
       "x": 90,
       "y": 90
     }

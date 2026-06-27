@@ -3,27 +3,35 @@ package org.valkyrienskies.clockwork.content.contraptions.phys.gimbal
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
-import net.minecraft.client.Minecraft
+import net.createmod.catnip.render.CachedBuffers
+import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
+import net.minecraft.core.Direction
+import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
+import org.joml.AxisAngle4d
 import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3dc
-import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.core.api.ships.ClientShip
+import org.valkyrienskies.core.api.util.GameTickOnly
 import org.valkyrienskies.mod.common.getLoadedShipManagingPos
-import kotlin.math.ln
-import kotlin.math.min
+import org.valkyrienskies.mod.common.shipObjectWorld
+import org.valkyrienskies.mod.common.util.toJOMLD
+import kotlin.math.atan2
+import kotlin.math.sqrt
 
+@OptIn(GameTickOnly::class)
 class GimbalBearingRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEntityRenderer<GimbalBearingBlockEntity>(
     context
 ) {
     override fun shouldRenderOffScreen(blockEntity: GimbalBearingBlockEntity): Boolean = true
 
     override fun shouldRender(blockEntity: GimbalBearingBlockEntity, cameraPos: Vec3): Boolean = true
-
     override fun renderSafe(
         be: GimbalBearingBlockEntity?,
         partialTicks: Float,
@@ -33,224 +41,252 @@ class GimbalBearingRenderer(context: BlockEntityRendererProvider.Context) : Smar
         overlay: Int
     ) {
         if (be == null) return
-        if (!be.debugHasForceData) return
-        if (!ClockworkConfig.CLIENT.debugRender && !Minecraft.getInstance().options.renderDebug) return
 
         val level = be.level ?: return
-        val shipOn = level.getLoadedShipManagingPos(be.blockPos) as? ClientShip
-        var blockOriginWorld = Vector3d(be.blockPos.x.toDouble(), be.blockPos.y.toDouble(), be.blockPos.z.toDouble())
-        if (shipOn != null) {
-            blockOriginWorld = shipOn.renderTransform.shipToWorld.transformPosition(blockOriginWorld, Vector3d())
-        }
+        val blockState = be.blockState
+        val vertexConsumer = buffer.getBuffer(RenderType.cutout())
+        val hostShip = level.getLoadedShipManagingPos(be.blockPos) as? ClientShip
+        val hostPose = createHostPose(be)
+        val platePose = createPlatePose(be, hostShip) ?: hostPose
 
-        fun worldToRenderLocal(world: Vector3dc): Vector3d = Vector3d(world).sub(blockOriginWorld)
+        renderPlate(blockState, platePose, ms, vertexConsumer, light, overlay)
+        renderArms(blockState, hostPose, platePose, ms, vertexConsumer, light, overlay)
 
-        ms.pushPose()
-        if (shipOn != null) {
-            ms.mulPose(shipOn.renderTransform.rotation.invert(Quaterniond()).toFloat())
-        }
-
-        val vc = buffer.getBuffer(RenderType.lines())
-        val pose = ms.last()
-
-        val subAnchor = Vector3d(be.debugSubAnchorWorld)
-        val hostAnchor = Vector3d(be.debugHostAnchorWorld)
-        val currentPoint = Vector3d(be.debugCurrentPointWorld)
-        val targetPoint = Vector3d(be.debugTargetPointWorld)
-
-        renderCross(pose, vc, worldToRenderLocal(subAnchor), 0.16, CYAN)
-        renderCross(pose, vc, worldToRenderLocal(hostAnchor), 0.16, BLUE)
-        renderCross(pose, vc, worldToRenderLocal(currentPoint), 0.12, WHITE)
-        renderCross(pose, vc, worldToRenderLocal(targetPoint), 0.12, GREEN)
-
-        renderLine(pose, vc, worldToRenderLocal(currentPoint), worldToRenderLocal(targetPoint), YELLOW)
-
-        renderWorldArrow(
-            pose,
-            vc,
-            currentPoint,
-            scaledDebugVector(be.debugForceWorld, be.debugMaxForce, FORCE_ARROW_LENGTH),
-            blockOriginWorld,
-            RED
-        )
-        renderWorldArrow(
-            pose,
-            vc,
-            hostAnchor,
-            scaledDebugVector(be.debugOppositeForceWorld, be.debugMaxForce, FORCE_ARROW_LENGTH),
-            blockOriginWorld,
-            MAGENTA
-        )
-
-        renderWorldArrow(pose, vc, subAnchor, normalizedDebugVector(be.debugCurrentAxisWorld, AXIS_ARROW_LENGTH), blockOriginWorld, CYAN)
-        renderWorldArrow(pose, vc, hostAnchor, normalizedDebugVector(be.debugTargetAxisWorld, AXIS_ARROW_LENGTH), blockOriginWorld, GREEN)
-        renderWorldArrow(pose, vc, hostAnchor, normalizedDebugVector(be.debugRedstoneWorld, REDSTONE_ARROW_LENGTH), blockOriginWorld, ORANGE)
-
-        renderWorldArrow(
-            pose,
-            vc,
-            currentPoint,
-            scaledVelocityVector(be.debugControlledPointVelocityWorld),
-            blockOriginWorld,
-            WHITE
-        )
-        renderWorldArrow(
-            pose,
-            vc,
-            targetPoint,
-            scaledVelocityVector(be.debugTargetPointVelocityWorld),
-            blockOriginWorld,
-            GREEN_FAINT
-        )
-        renderWorldArrow(
-            pose,
-            vc,
-            currentPoint,
-            scaledVelocityVector(be.debugRelativeVelocityWorld),
-            blockOriginWorld,
-            YELLOW_FAINT
-        )
-        renderWorldArrow(
-            pose,
-            vc,
-            subAnchor,
-            scaledVelocityVector(be.debugSubAnchorVelocityWorld),
-            blockOriginWorld,
-            CYAN_FAINT
-        )
-        renderWorldArrow(
-            pose,
-            vc,
-            hostAnchor,
-            scaledVelocityVector(be.debugHostAnchorVelocityWorld),
-            blockOriginWorld,
-            BLUE_FAINT
-        )
-        renderWorldArrow(
-            pose,
-            vc,
-            subAnchor,
-            scaledVelocityVector(be.debugAnchorRelativeVelocityWorld),
-            blockOriginWorld,
-            ORANGE_FAINT
-        )
-
-        ms.popPose()
         super.renderSafe(be, partialTicks, ms, buffer, light, overlay)
     }
 
-    private fun renderWorldArrow(
-        pose: PoseStack.Pose,
-        vc: VertexConsumer,
-        startWorld: Vector3dc,
-        vectorWorld: Vector3dc,
-        blockOriginWorld: Vector3dc,
-        color: Int
-    ) {
-        if (vectorWorld.lengthSquared() < 1e-12) return
-        val start = Vector3d(startWorld).sub(blockOriginWorld)
-        val end = Vector3d(startWorld).add(vectorWorld).sub(blockOriginWorld)
-        renderArrow(pose, vc, start, end, color)
+    private fun createHostPose(be: GimbalBearingBlockEntity): RenderPose {
+        val basis = basisForDirection(be.getRenderDirection())
+        val faceCenter = Vector3d(0.5, 0.5, 0.5).fma(0.5, basis.normal)
+        return RenderPose(faceCenter, basis.u, basis.normal, basis.v)
     }
 
-    private fun renderArrow(
-        pose: PoseStack.Pose,
-        vc: VertexConsumer,
-        start: Vector3dc,
-        end: Vector3dc,
-        color: Int
-    ) {
-        renderLine(pose, vc, start, end, color)
+    private fun createPlatePose(be: GimbalBearingBlockEntity, hostShip: ClientShip?): RenderPose? {
+        if (!be.isRunning || be.shiptraptionID == GimbalBearingBlockEntity.NO_SHIPTRAPTION_ID) return null
+        val level = be.level ?: return null
+        val subShip = level.shipObjectWorld?.loadedShips?.getById(be.shiptraptionID) as? ClientShip ?: return null
+        val direction = be.getRenderDirection()
+        val savedAxis = be.getRenderBearingAxisLocal()
+        val axisLocal = if (savedAxis.lengthSquared() > 1e-12) savedAxis else direction.normal.toJOMLD()
+        val localBasis = basisForDirection(direction)
 
-        val dir = end.sub(start, Vector3d())
-        val len = dir.length()
-        if (len < 1e-6) return
-        dir.div(len)
+        val faceCenterWorld = subShip.renderTransform.shipToWorld.transformPosition(be.getRenderBearingPosInSub(), Vector3d())
+        val normalWorld = subShip.renderTransform.rotation.transform(axisLocal, Vector3d()).normalize()
+        val uWorld = subShip.renderTransform.rotation.transform(localBasis.u, Vector3d()).normalize()
+        val vWorld = subShip.renderTransform.rotation.transform(localBasis.v, Vector3d()).normalize()
 
-        val sideSeed = if (kotlin.math.abs(dir.y()) < 0.9) Vector3d(0.0, 1.0, 0.0) else Vector3d(1.0, 0.0, 0.0)
-        val side = dir.cross(sideSeed, Vector3d()).normalize()
-        val back = Vector3d(end).fma(-min(0.25, len * 0.35), dir)
-        val spread = min(0.12, len * 0.18)
-
-        renderLine(pose, vc, end, Vector3d(back).fma(spread, side), color)
-        renderLine(pose, vc, end, Vector3d(back).fma(-spread, side), color)
+        return RenderPose(
+            worldPointToRenderLocal(be, hostShip, faceCenterWorld),
+            worldDirectionToRenderLocal(hostShip, uWorld),
+            worldDirectionToRenderLocal(hostShip, normalWorld),
+            worldDirectionToRenderLocal(hostShip, vWorld)
+        ).orthonormalized()
     }
 
-    private fun renderCross(
-        pose: PoseStack.Pose,
-        vc: VertexConsumer,
-        center: Vector3dc,
-        radius: Double,
-        color: Int
+    private fun renderPlate(
+        blockState: BlockState,
+        platePose: RenderPose,
+        ms: PoseStack,
+        vertexConsumer: VertexConsumer,
+        light: Int,
+        overlay: Int
     ) {
-        renderLine(pose, vc, Vector3d(center).add(-radius, 0.0, 0.0), Vector3d(center).add(radius, 0.0, 0.0), color)
-        renderLine(pose, vc, Vector3d(center).add(0.0, -radius, 0.0), Vector3d(center).add(0.0, radius, 0.0), color)
-        renderLine(pose, vc, Vector3d(center).add(0.0, 0.0, -radius), Vector3d(center).add(0.0, 0.0, radius), color)
+        ms.pushPose()
+        applyModelPose(ms, platePose, PLATE_FACE_CENTER_MODEL)
+        CachedBuffers.partial(ClockworkPartials.GIMBAL_PLATE, blockState)
+            .light<SuperByteBuffer>(light)
+            .overlay<SuperByteBuffer>(overlay)
+            .renderInto(ms, vertexConsumer)
+        ms.popPose()
     }
 
-    private fun renderLine(
-        pose: PoseStack.Pose,
-        vc: VertexConsumer,
-        start: Vector3dc,
-        end: Vector3dc,
-        argb: Int
+    private fun renderArms(
+        blockState: BlockState,
+        hostPose: RenderPose,
+        platePose: RenderPose,
+        ms: PoseStack,
+        vertexConsumer: VertexConsumer,
+        light: Int,
+        overlay: Int
     ) {
-        val normal = end.sub(start, Vector3d())
-        if (normal.lengthSquared() < 1e-12) normal.set(0.0, 1.0, 0.0) else normal.normalize()
+        val plateCenter = modelPoint(platePose, 0.5, ARM_TOP_Y, 0.5)
+        val hostCenter = modelPoint(hostPose, 0.5, ARM_BOTTOM_Y, 0.5)
+        for (corner in CORNERS) {
+            val x = if (corner.xSign < 0) ARM_INSET else 1.0 - ARM_INSET
+            val z = if (corner.zSign < 0) ARM_INSET else 1.0 - ARM_INSET
+            val base = modelPoint(hostPose, x, ARM_BOTTOM_Y, z)
+            val plateCorner = modelPoint(platePose, x, ARM_TOP_Y, z)
+            val target = slidingTarget(base, plateCorner, plateCenter, ARM_LENGTH)
+            val link = target.sub(base, Vector3d())
+            if (link.lengthSquared() < 1e-10) continue
 
-        vc.vertex(pose.pose(), start.x().toFloat(), start.y().toFloat(), start.z().toFloat())
-            .color((argb ushr 16) and 0xFF, (argb ushr 8) and 0xFF, argb and 0xFF, (argb ushr 24) and 0xFF)
-            .normal(pose.normal(), normal.x().toFloat(), normal.y().toFloat(), normal.z().toFloat())
-            .endVertex()
-        vc.vertex(pose.pose(), end.x().toFloat(), end.y().toFloat(), end.z().toFloat())
-            .color((argb ushr 16) and 0xFF, (argb ushr 8) and 0xFF, argb and 0xFF, (argb ushr 24) and 0xFF)
-            .normal(pose.normal(), normal.x().toFloat(), normal.y().toFloat(), normal.z().toFloat())
-            .endVertex()
-    }
+            val linkDir = link.normalize(Vector3d())
+            val desiredRadial = target.sub(plateCenter, Vector3d())
+            if (desiredRadial.lengthSquared() < 1e-10) {
+                desiredRadial.set(base).sub(hostCenter)
+            }
+            val cornerRotation = Quaterniond(AxisAngle4d(corner.rotationRad, 0.0, 1.0, 0.0))
+            val bottomModel = rotateModelCorner(ARM_BOTTOM_MODEL, cornerRotation)
+            val modelRadial = rotateDirection(DEFAULT_CORNER_RADIAL, cornerRotation)
+            val armRotation = quaternionFromDirectionAndRoll(DEFAULT_NORMAL, linkDir, modelRadial, desiredRadial)
 
-    private fun scaledDebugVector(vec: Vector3dc, referenceMagnitude: Double, maxLength: Double): Vector3d {
-        val len = vec.length()
-        if (len < 1e-9) return Vector3d()
-        val displayLen = if (referenceMagnitude > 1e-9) {
-            (len / referenceMagnitude).coerceIn(0.0, 1.0) * maxLength
-        } else {
-            min(maxLength, ln(1.0 + len) * 0.35)
+            ms.pushPose()
+            ms.translate(base.x, base.y, base.z)
+            ms.mulPose(armRotation.toFloat())
+            ms.translate(
+                ARM_ROTATION_CENTER.x - bottomModel.x,
+                ARM_ROTATION_CENTER.y - bottomModel.y,
+                ARM_ROTATION_CENTER.z - bottomModel.z
+            )
+            ms.mulPose(cornerRotation.toFloat())
+            ms.translate(-ARM_ROTATION_CENTER.x, -ARM_ROTATION_CENTER.y, -ARM_ROTATION_CENTER.z)
+            CachedBuffers.partial(ClockworkPartials.GIMBAL_ARM, blockState)
+                .light<SuperByteBuffer>(light)
+                .overlay<SuperByteBuffer>(overlay)
+                .renderInto(ms, vertexConsumer)
+            ms.popPose()
         }
-        return Vector3d(vec).normalize(displayLen)
     }
 
-    private fun scaledVelocityVector(vec: Vector3dc): Vector3d {
-        val len = vec.length()
-        if (len < 1e-9) return Vector3d()
-        return Vector3d(vec).normalize(min(VELOCITY_ARROW_LENGTH, ln(1.0 + len) * 0.45))
+    private fun applyModelPose(ms: PoseStack, pose: RenderPose, modelPivot: Vector3dc) {
+        ms.translate(pose.origin.x, pose.origin.y, pose.origin.z)
+        ms.mulPose(quaternionFromModelAxes(pose.normal, pose.v).toFloat())
+        ms.translate(-modelPivot.x(), -modelPivot.y(), -modelPivot.z())
     }
 
-    private fun normalizedDebugVector(vec: Vector3dc, length: Double): Vector3d {
-        if (vec.lengthSquared() < 1e-12) return Vector3d()
-        return Vector3d(vec).normalize(length)
+    private fun modelPoint(pose: RenderPose, x: Double, y: Double, z: Double): Vector3d =
+        Vector3d(pose.origin)
+            .fma(x - PLATE_FACE_CENTER_MODEL.x, pose.u)
+            .fma(y - PLATE_FACE_CENTER_MODEL.y, pose.normal)
+            .fma(z - PLATE_FACE_CENTER_MODEL.z, pose.v)
+
+    private fun slidingTarget(base: Vector3dc, corner: Vector3dc, center: Vector3dc, length: Double): Vector3d {
+        val diagonal = center.sub(corner, Vector3d())
+        val fromBase = corner.sub(base, Vector3d())
+        val a = diagonal.lengthSquared()
+        if (a < 1e-12) return Vector3d(corner)
+
+        val b = 2.0 * fromBase.dot(diagonal)
+        val c = fromBase.lengthSquared() - length * length
+        val discriminant = b * b - 4.0 * a * c
+        if (discriminant >= 0.0) {
+            val sqrtDiscriminant = sqrt(discriminant)
+            val t0 = (-b - sqrtDiscriminant) / (2.0 * a)
+            val t1 = (-b + sqrtDiscriminant) / (2.0 * a)
+            val t = listOf(t0, t1)
+                .filter { it in 0.0..1.0 }
+                .minByOrNull { kotlin.math.abs(it) }
+            if (t != null) return Vector3d(corner).fma(t, diagonal)
+        }
+
+        val nearest = (-fromBase.dot(diagonal) / a).coerceIn(0.0, 1.0)
+        return Vector3d(corner).fma(nearest, diagonal)
     }
 
-    private fun Quaterniond.toFloat() = org.joml.Quaternionf(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat())
+    private fun worldPointToRenderLocal(be: GimbalBearingBlockEntity, hostShip: ClientShip?, world: Vector3dc): Vector3d {
+        val blockOrigin = Vector3d(be.blockPos.x.toDouble(), be.blockPos.y.toDouble(), be.blockPos.z.toDouble())
+        return if (hostShip != null) {
+            hostShip.renderTransform.worldToShip.transformPosition(world, Vector3d()).sub(blockOrigin)
+        } else {
+            Vector3d(world).sub(blockOrigin)
+        }
+    }
+
+    private fun worldDirectionToRenderLocal(hostShip: ClientShip?, worldDirection: Vector3dc): Vector3d =
+        if (hostShip != null) {
+            hostShip.renderTransform.worldToShip.transformDirection(worldDirection, Vector3d()).normalize()
+        } else {
+            Vector3d(worldDirection).normalize()
+        }
+
+    private fun quaternionFromModelAxes(normal: Vector3dc, v: Vector3dc): Quaterniond {
+        val normalUnit = Vector3d(normal).normalize()
+        val vUnit = Vector3d(v).normalize()
+        val base = Quaterniond().rotationTo(DEFAULT_NORMAL, normalUnit)
+        val currentV = base.transform(DEFAULT_V, Vector3d()).normalize()
+        val roll = signedAngle(currentV, vUnit, normalUnit)
+        return Quaterniond(AxisAngle4d(roll, normalUnit.x, normalUnit.y, normalUnit.z)).mul(base)
+    }
+
+    private fun quaternionFromDirectionAndRoll(
+        defaultDirection: Vector3dc,
+        targetDirection: Vector3dc,
+        modelRadial: Vector3dc,
+        desiredRadial: Vector3dc
+    ): Quaterniond {
+        val targetUnit = Vector3d(targetDirection).normalize()
+        val base = Quaterniond().rotationTo(defaultDirection, targetUnit)
+        val currentRadial = projectPerpendicular(base.transform(modelRadial, Vector3d()), targetUnit)
+        val desired = projectPerpendicular(desiredRadial, targetUnit)
+        if (currentRadial.lengthSquared() < 1e-10 || desired.lengthSquared() < 1e-10) return base
+        currentRadial.normalize()
+        desired.normalize()
+        val roll = signedAngle(currentRadial, desired, targetUnit)
+        return Quaterniond(AxisAngle4d(roll, targetUnit.x, targetUnit.y, targetUnit.z)).mul(base)
+    }
+
+    private fun signedAngle(from: Vector3dc, to: Vector3dc, axis: Vector3dc): Double {
+        val cross = from.cross(to, Vector3d())
+        return atan2(axis.dot(cross), from.dot(to))
+    }
+
+    private fun projectPerpendicular(vector: Vector3dc, normal: Vector3dc): Vector3d =
+        Vector3d(vector).fma(-vector.dot(normal), normal)
+
+    private fun rotateModelCorner(point: Vector3dc, rotation: Quaterniond): Vector3d =
+        Vector3d(point).sub(ARM_ROTATION_CENTER).rotate(rotation).add(ARM_ROTATION_CENTER)
+
+    private fun rotateDirection(direction: Vector3dc, rotation: Quaterniond): Vector3d =
+        Vector3d(direction).rotate(rotation).normalize()
+
+    private fun basisForDirection(direction: Direction): RenderBasis {
+        val normal = direction.normal.toJOMLD()
+        val u = when (direction) {
+            Direction.UP, Direction.DOWN, Direction.NORTH, Direction.SOUTH -> Vector3d(1.0, 0.0, 0.0)
+            Direction.EAST -> Vector3d(0.0, 0.0, -1.0)
+            Direction.WEST -> Vector3d(0.0, 0.0, 1.0)
+        }
+        val v = u.cross(normal, Vector3d()).normalize()
+        return RenderBasis(u.normalize(), normal.normalize(), v)
+    }
+
+    private fun Quaterniond.toFloat() = Quaternionf(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat())
+
+    private data class RenderBasis(val u: Vector3d, val normal: Vector3d, val v: Vector3d)
+
+    private data class RenderPose(val origin: Vector3d, val u: Vector3d, val normal: Vector3d, val v: Vector3d) {
+        fun orthonormalized(): RenderPose {
+            val normalUnit = Vector3d(normal).normalize()
+            val uUnit = Vector3d(u).fma(-u.dot(normalUnit), normalUnit)
+            if (uUnit.lengthSquared() < 1e-10) uUnit.set(1.0, 0.0, 0.0)
+            uUnit.normalize()
+            val vUnit = uUnit.cross(normalUnit, Vector3d()).normalize()
+            return RenderPose(origin, uUnit, normalUnit, vUnit)
+        }
+    }
+
+    private data class Corner(val xSign: Int, val zSign: Int, val rotationRad: Double)
 
     companion object {
-        private const val FORCE_ARROW_LENGTH = 3.0
-        private const val VELOCITY_ARROW_LENGTH = 2.0
-        private const val AXIS_ARROW_LENGTH = 1.25
-        private const val REDSTONE_ARROW_LENGTH = 1.0
+        private val DEFAULT_NORMAL = Vector3d(0.0, 1.0, 0.0)
+        private val DEFAULT_V = Vector3d(0.0, 0.0, 1.0)
+        private val DEFAULT_CORNER_RADIAL = Vector3d(-1.0, 0.0, -1.0).normalize()
 
-        private const val RED = 0xFFFF3030.toInt()
-        private const val MAGENTA = 0xFFFF40FF.toInt()
-        private const val CYAN = 0xFF30FFFF.toInt()
-        private const val BLUE = 0xFF4070FF.toInt()
-        private const val GREEN = 0xFF30FF50.toInt()
-        private const val YELLOW = 0xFFFFFF30.toInt()
-        private const val WHITE = 0xFFFFFFFF.toInt()
-        private const val ORANGE = 0xFFFFA030.toInt()
+        private const val ARM_INSET = 5 / 16.0
+        private const val ARM_VERTICAL_OFFSET = 8.5 / 16.0
+        private const val ARM_BOTTOM_Y = 7.0 / 16.0 + ARM_VERTICAL_OFFSET
+        private const val ARM_TOP_Y = 14.0 / 16.0 + ARM_VERTICAL_OFFSET
+        private const val ARM_LENGTH = ARM_TOP_Y - ARM_BOTTOM_Y
 
-        private const val CYAN_FAINT = 0xAA30FFFF.toInt()
-        private const val BLUE_FAINT = 0xAA4070FF.toInt()
-        private const val GREEN_FAINT = 0xAA30FF50.toInt()
-        private const val YELLOW_FAINT = 0xAAFFFF30.toInt()
-        private const val ORANGE_FAINT = 0xAAFFA030.toInt()
+        private val PLATE_FACE_CENTER_MODEL = Vector3d(0.5, 1.0, 0.5)
+        private val ARM_ROTATION_CENTER = Vector3d(0.5, 0.0, 0.5)
+        private val ARM_BOTTOM_MODEL = Vector3d(ARM_INSET, ARM_BOTTOM_Y, ARM_INSET)
+
+        private val CORNERS = listOf(
+            Corner(-1, -1, 0.0),
+            Corner(-1, 1, Math.PI / 2.0),
+            Corner(1, 1, Math.PI),
+            Corner(1, -1, -Math.PI / 2.0)
+        )
     }
 }

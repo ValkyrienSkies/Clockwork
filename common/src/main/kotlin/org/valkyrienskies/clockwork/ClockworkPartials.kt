@@ -158,6 +158,9 @@ object ClockworkPartials {
     val HANDHELD_SAW_BUZZSAW: PartialModel = PartialModel.of(ClockworkMod.asResource("item/handheld_saw/saw"))
     val HANDHELD_SAW_COG: PartialModel = PartialModel.of(ClockworkMod.asResource("item/handheld_saw/cog"))
 
+    val GIMBAL_PLATE = block("gimbal_bearing/plate")
+    val GIMBAL_ARM = block("gimbal_bearing/arm")
+
     private fun block(path: String): PartialModel {
         return PartialModel.of(ClockworkMod.asResource("block/$path"))
     }
