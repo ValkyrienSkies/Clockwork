@@ -429,8 +429,8 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         val shipOnID = shipOn?.id
 
         val posInWorld = shipOn?.transform?.shipToWorld?.transformPosition(
-            Vector3d(ownerFaceAnchor).sub(bearingPos).add(shiptraption.inertiaData.centerOfMass), Vector3d()
-        ) ?: Vector3d(ownerFaceAnchor).sub(bearingPos).add(shiptraption.inertiaData.centerOfMass)
+            Vector3d(ownerJointAnchor).sub(bearingPos).add(shiptraption.inertiaData.centerOfMass), Vector3d()
+        ) ?: Vector3d(ownerJointAnchor).sub(bearingPos).add(shiptraption.inertiaData.centerOfMass)
         val rotInWorld = shipOn?.transform?.shipToWorldRotation?.let { Quaterniond(it) } ?: Quaterniond()
         val scaling = shipOn?.transform?.shipToWorldScaling ?: Vector3d(1.0, 1.0, 1.0)
 
@@ -442,7 +442,7 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
 
         val ship1rot = directionHingeRotation(direction)
         val ship2rot = directionHingeRotation(direction)
-        val pose0 = VSJointPose(Vector3d(bearingPos).fma(JOINT_ATTACHMENT_OFFSET_BLOCKS, axis), ship1rot)
+        val pose0 = VSJointPose(Vector3d(bearingPos), ship1rot)
         val pose1 = VSJointPose(ownerJointAnchor, ship2rot)
 
         val maxAngle = getMaxAngleDeg()
@@ -618,7 +618,7 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
 
         val rsLocal = redstoneVecLocal
         val rsLen = min(rsLocal.length(), 1.0)
-        val tiltAngleRad = rsLen * Math.toRadians(getMaxAngleDeg().toDouble())
+        val tiltAngleRad = rsLen * getControllerTargetLimitRad()
         val mode = getMode()
 
         val mass = subShip.mass
@@ -632,12 +632,15 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         val hostAnchorWorld = physShip?.transform?.shipToWorld?.transformPosition(hostAnchorLocal, Vector3d())
             ?: Vector3d(hostAnchorLocal)
         val subAnchorLocal = getSubJointAnchorLocal()
-        val forceApplicationLocal = Vector3d(subShip.centerOfMass)
+        val centerOfMassLocal = Vector3d(subShip.centerOfMass)
         val subAnchorWorld = subShip.transform.shipToWorld.transformPosition(subAnchorLocal, Vector3d())
-        val forceApplicationWorld = subShip.transform.shipToWorld.transformPosition(forceApplicationLocal, Vector3d())
         val currentAxisWorld = Vector3d(bearingAxisLocal).rotate(subShip.transform.shipToWorldRotation, Vector3d())
+        val subAnchorVelocity = getPointVelocityWorld(subShip, subAnchorWorld)
+        val hostAnchorVelocity = physShip?.let { getPointVelocityWorld(it, hostAnchorWorld) } ?: Vector3d()
 
         if (mode == GimbalMode.UNLOCKED) {
+            val forceApplicationLocal = centerOfMassLocal
+            val forceApplicationWorld = subShip.transform.shipToWorld.transformPosition(forceApplicationLocal, Vector3d())
             if (rsLen < 1e-6) return
             val forceDir = Vector3d(rsLocal).rotate(hostRot)
             val forceLen = forceDir.length()
@@ -645,8 +648,6 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
             val forceDirUnit = forceDir.div(forceLen, Vector3d())
             val forceMag = rsLen * ClockworkConfig.SERVER.gimbal.gimbalUnlockedForcePerRpmPerKg * rpmAbs * mass
             val force = forceDirUnit.mul(forceMag, Vector3d())
-            val subAnchorVelocity = getPointVelocityWorld(subShip, subAnchorWorld)
-            val hostAnchorVelocity = physShip?.let { getPointVelocityWorld(it, hostAnchorWorld) } ?: Vector3d()
             setGimbalDebugSnapshot(
                 mode = mode,
                 targetAngleDeg = Math.toDegrees(tiltAngleRad),
@@ -677,7 +678,16 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         val targetRot = getTargetRotation(refRot, rsLocal, rsLen, tiltAngleRad)
         val targetAxisWorld = Vector3d(bearingAxisLocal).rotate(targetRot, Vector3d())
         val redstoneWorld = if (rsLen > 1e-6) Vector3d(rsLocal).rotate(refRot) else Vector3d()
-        val controlledPointLocal = forceApplicationLocal
+        val controlledPointLocal = getControlledForcePointLocal(
+            subShip,
+            subAnchorLocal,
+            centerOfMassLocal,
+            rsLocal,
+            rsLen,
+            currentAxisWorld,
+            targetAxisWorld
+        )
+        val forceApplicationLocal = controlledPointLocal
         val targetOffsetWorld = controlledPointLocal.sub(subAnchorLocal, Vector3d()).rotate(targetRot)
         val targetPointWorld = Vector3d(hostAnchorWorld).add(targetOffsetWorld)
         val currentPointWorld = subShip.transform.shipToWorld.transformPosition(controlledPointLocal, Vector3d())
@@ -699,8 +709,6 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         if (maxForce > 0.0 && force.lengthSquared() > maxForce * maxForce) {
             force.normalize(maxForce)
         }
-        val subAnchorVelocity = getPointVelocityWorld(subShip, subAnchorWorld)
-        val hostAnchorVelocity = physShip?.let { getPointVelocityWorld(it, hostAnchorWorld) } ?: Vector3d()
         if (positionError.lengthSquared() < 1e-12 && relativeVelocity.lengthSquared() < 1e-12) {
             force.set(0.0, 0.0, 0.0)
         }
@@ -734,7 +742,73 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         Vector3d(worldPosition.center.toJOML()).fma(0.5 + JOINT_ATTACHMENT_OFFSET_BLOCKS, bearingAxisLocal)
 
     private fun getSubJointAnchorLocal(): Vector3d =
-        Vector3d(bearingPosInSub).fma(JOINT_ATTACHMENT_OFFSET_BLOCKS, bearingAxisLocal)
+        Vector3d(bearingPosInSub)
+
+    private fun getControllerTargetLimitRad(): Double {
+        val physicalLimitRad = Math.toRadians(getMaxAngleDeg().toDouble())
+        val marginRad = min(
+            physicalLimitRad * CONTROLLER_LIMIT_MARGIN_FRACTION,
+            Math.toRadians(CONTROLLER_LIMIT_MARGIN_DEG)
+        )
+        return (physicalLimitRad - marginRad).coerceAtLeast(0.0)
+    }
+
+    private fun getControlledForcePointLocal(
+        subShip: PhysShip,
+        subAnchorLocal: Vector3dc,
+        centerOfMassLocal: Vector3dc,
+        rsLocal: Vector3dc,
+        rsLen: Double,
+        currentAxisWorld: Vector3dc,
+        targetAxisWorld: Vector3dc
+    ): Vector3d {
+        val swingAxisLocal = getSwingAxisLocal(subShip, rsLocal, rsLen, currentAxisWorld, targetAxisWorld)
+        val centerLeverSq = centerOfMassLocal.sub(subAnchorLocal, Vector3d())
+            .cross(swingAxisLocal, Vector3d())
+            .lengthSquared()
+        if (centerLeverSq >= MIN_CONTROL_LEVER_ARM_BLOCKS * MIN_CONTROL_LEVER_ARM_BLOCKS) {
+            return Vector3d(centerOfMassLocal)
+        }
+
+        return Vector3d(centerOfMassLocal).fma(
+            CONTROL_FORCE_POINT_OFFSET_BLOCKS,
+            getFallbackForcePointDirectionLocal(swingAxisLocal)
+        )
+    }
+
+    private fun getSwingAxisLocal(
+        subShip: PhysShip,
+        rsLocal: Vector3dc,
+        rsLen: Double,
+        currentAxisWorld: Vector3dc,
+        targetAxisWorld: Vector3dc
+    ): Vector3d {
+        if (rsLen > 1e-6) {
+            val tiltDirLocal = Vector3d(rsLocal).normalize()
+            val swingAxisLocal = Vector3d(bearingAxisLocal).cross(tiltDirLocal, Vector3d())
+            val axisLen = swingAxisLocal.length()
+            if (axisLen > 1e-9) return swingAxisLocal.div(axisLen)
+        }
+
+        val swingAxisWorld = Vector3d(currentAxisWorld).cross(targetAxisWorld, Vector3d())
+        val axisLen = swingAxisWorld.length()
+        if (axisLen > 1e-9) {
+            return subShip.transform.worldToShip.transformDirection(swingAxisWorld.div(axisLen), Vector3d()).normalize()
+        }
+
+        return getPerpendicularDirectionLocal(bearingAxisLocal)
+    }
+
+    private fun getFallbackForcePointDirectionLocal(swingAxisLocal: Vector3dc): Vector3d {
+        val direction = Vector3d(swingAxisLocal).cross(bearingAxisLocal, Vector3d())
+        if (direction.lengthSquared() > 1e-12) return direction.normalize()
+        return getPerpendicularDirectionLocal(swingAxisLocal)
+    }
+
+    private fun getPerpendicularDirectionLocal(axisLocal: Vector3dc): Vector3d {
+        val seed = if (abs(axisLocal.y()) < 0.9) Vector3d(0.0, 1.0, 0.0) else Vector3d(1.0, 0.0, 0.0)
+        return Vector3d(axisLocal).cross(seed, Vector3d()).normalize()
+    }
 
     private fun getTargetRotation(refRot: Quaterniond, rsLocal: Vector3dc, rsLen: Double, tiltAngleRad: Double): Quaterniond {
         val targetRot = Quaterniond(refRot)
@@ -855,24 +929,20 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
     override fun getLastAssemblyException(): AssemblyException? = lastException
     override fun getBlockPosition(): BlockPos = worldPosition
 
-    /**
-     * Mode slot: shown on lateral sides whose axis is not the max-angle axis.
-     * Restricted so it does not share faces with the max-angle widget.
-     */
+
+
     private class ModeSlot : DirectionalExtenderScrollOptionSlot({ state, dir ->
         val facingAxis = state.getValue(BearingBlock.FACING).axis
         dir.axis != facingAxis && dir.axis != maxAngleAxisFor(facingAxis)
     })
 
-    /** Max-angle slot: shown on the two lateral sides on the [maxAngleAxisFor] axis. */
+
     private class MaxAngleSlot : DirectionalExtenderScrollOptionSlot({ state, dir ->
         dir.axis == maxAngleAxisFor(state.getValue(BearingBlock.FACING).axis)
     })
 
-    /**
-     * Distinct behaviour type and net id so value-edit packets route to the max-angle behaviour
-     * instead of colliding with the mode behaviour.
-     */
+
+    // Had to make a separate behaviour so that packets routed to it
     class MaxAngleScrollValueBehaviour(
         label: Component,
         be: com.simibubi.create.foundation.blockEntity.SmartBlockEntity,
@@ -923,6 +993,10 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         const val MAX_ANGLE_LIMIT_DEG = 180
         private const val MIN_LIMIT_RAD = 1e-3f
         private const val JOINT_ATTACHMENT_OFFSET_BLOCKS = 0.5
+        private const val CONTROLLER_LIMIT_MARGIN_DEG = 1.0
+        private const val CONTROLLER_LIMIT_MARGIN_FRACTION = 0.02
+        private const val MIN_CONTROL_LEVER_ARM_BLOCKS = 0.25
+        private const val CONTROL_FORCE_POINT_OFFSET_BLOCKS = 0.5
 
         fun maxAngleAxisFor(facingAxis: Direction.Axis): Direction.Axis = when (facingAxis) {
             Direction.Axis.X -> Direction.Axis.Z
