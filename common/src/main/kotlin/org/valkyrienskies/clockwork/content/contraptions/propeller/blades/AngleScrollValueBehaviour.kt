@@ -34,7 +34,7 @@ class AngleScrollValueBehaviour(label: Component, be: SmartBlockEntity, slot: Va
                 settings
             )
         }
-        return ValueSettingsBoard(label, 180, 10, rows, formatter)
+        return ValueSettingsBoard(label, 90, 10, rows, formatter)
     }
 
     override fun setValueSettings(

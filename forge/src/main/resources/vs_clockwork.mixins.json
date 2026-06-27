@@ -4,6 +4,8 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "MixinFireBlock",
+    "MixinTweakedLinkedControllerClientHandler",
+    "MixinTweakedLinkedControllerItem",
     "accessors.ItemAccessor"
   ],
   "client": [

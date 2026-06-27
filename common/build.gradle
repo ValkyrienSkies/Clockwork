@@ -23,14 +23,13 @@ sourceSets {
 
 dependencies {
     modImplementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
-    implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:0.3.5"))
     implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.3.7-beta.1"))
 
     implementation(("io.github.llamalad7:mixinextras-common:0.4.1"))
 
     modApi("dev.architectury:architectury:${rootProject.architectury_version}")
 
-    modCompileOnly("com.simibubi.create:create-fabric-${minecraft_version}:${create_fabric_version}")
+    modCompileOnly("com.simibubi.create:create-fabric:${create_fabric_version}")
             { exclude group: 'com.github.AlphaMode', module: 'fakeconfigtoml' }
 
     modCompileOnly("net.fabricmc.fabric-api:fabric-api:${fabric_api_version}")

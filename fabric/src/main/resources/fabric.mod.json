@@ -29,9 +29,6 @@
     ],
     "client": [
       "org.valkyrienskies.clockwork.fabric.ClockworkModFabricClient"
-    ],
-    "modmenu": [
-        "org.valkyrienskies.clockwork.fabric.ClockworkModFabric${'$'}ModMenu"
     ]
   },
   "mixins": [
