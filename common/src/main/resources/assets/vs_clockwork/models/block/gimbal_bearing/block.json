@@ -1,0 +1,71 @@
+{
+	"format_version": "1.9.0",
+	"credit": "Made with Blockbench",
+	"texture_size": [64, 64],
+	"textures": {
+		"0": "vs_clockwork:block/gimbal_bearing"
+	},
+	"elements": [
+		{
+			"from": [2, 6, 2],
+			"to": [3, 10, 14],
+			"rotation": {"angle": 0, "axis": "y", "origin": [2, 7, 8]},
+			"faces": {
+				"north": {"uv": [8.5, 11, 8.75, 12], "texture": "#0"},
+				"east": {"uv": [5.5, 11, 8.5, 12], "texture": "#0"},
+				"south": {"uv": [11.75, 11, 12, 12], "texture": "#0"},
+				"west": {"uv": [8.75, 11, 11.75, 12], "texture": "#0"},
+				"up": {"uv": [8.75, 11, 8.5, 8], "texture": "#0"},
+				"down": {"uv": [9, 8, 8.75, 11], "texture": "#0"}
+			}
+		},
+		{
+			"from": [13, 6, 2],
+			"to": [14, 10, 14],
+			"rotation": {"angle": 0, "axis": "y", "origin": [13, 7, 8]},
+			"faces": {
+				"north": {"uv": [8.5, 11, 8.75, 12], "texture": "#0"},
+				"east": {"uv": [8.75, 11, 11.75, 12], "texture": "#0"},
+				"south": {"uv": [11.75, 11, 12, 12], "texture": "#0"},
+				"west": {"uv": [3, 11.25, 5.5, 12.25], "texture": "#0"},
+				"up": {"uv": [8.75, 11, 8.5, 8], "texture": "#0"},
+				"down": {"uv": [9, 8, 8.75, 11], "texture": "#0"}
+			}
+		},
+		{
+			"from": [3, 6, 2],
+			"to": [13, 10, 3],
+			"rotation": {"angle": 0, "axis": "y", "origin": [4, 7, 6]},
+			"faces": {
+				"north": {"uv": [0.25, 11.25, 2.75, 12.25], "texture": "#0"},
+				"east": {"uv": [0, 11.25, 0.25, 12.25], "texture": "#0"},
+				"south": {"uv": [3, 11.25, 5.5, 12.25], "texture": "#0"},
+				"west": {"uv": [2.75, 11.25, 3, 12.25], "texture": "#0"},
+				"up": {"uv": [2.75, 11.25, 0.25, 11], "texture": "#0"},
+				"down": {"uv": [5.25, 11, 2.75, 11.25], "texture": "#0"}
+			}
+		},
+		{
+			"from": [3, 6, 13],
+			"to": [13, 10, 14],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 8, 13.5]},
+			"faces": {
+				"north": {"uv": [3, 11.25, 5.5, 12.25], "texture": "#0"},
+				"east": {"uv": [0, 11.25, 0.25, 12.25], "texture": "#0"},
+				"south": {"uv": [0.25, 11.25, 2.75, 12.25], "texture": "#0"},
+				"west": {"uv": [2.75, 11.25, 3, 12.25], "texture": "#0"},
+				"up": {"uv": [2.75, 11.25, 0.25, 11], "texture": "#0"},
+				"down": {"uv": [5.25, 11, 2.75, 11.25], "texture": "#0"}
+			}
+		}
+	],
+	"groups": [
+		{
+			"name": "Config Board",
+			"origin": [0, 0, 0],
+			"scope": 0,
+			"color": 0,
+			"children": [0, 1, 2, 3]
+		}
+	]
+}

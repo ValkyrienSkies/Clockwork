@@ -204,7 +204,7 @@ object ClockworkConfig {
         @ConfigEntry(description = "Temperature for gas exhaust to trigger bulk blasting. Default is 1000K (ceramic firing)")
         var bulkBlastingTemp = 1000
 
-        @ConfigEntry(description = "Multiplier applied to ship mass when yeeting (left-clicking) with the survival gravitron", min = 0.0, max = 10000.0)
+        @ConfigEntry(description = "Multiplier applied to ship mass when yeeting (left-clicking) with t he survival gravitron", min = 0.0, max = 10000.0)
         var survivalGravitronYeetForce = 1000.0
 
         @ConfigEntry(description = "Maximum range (in blocks) the survival gravitron will interact with ships", min = 1.0, max = 1000.0)
@@ -228,26 +228,17 @@ object ClockworkConfig {
     }
 
     class Gimbal {
-        @ConfigEntry(min = 0.0, description = "Proportional gain for the Gimbal Bearing PID (Locked / Gyroscopic modes).")
-        var gimbalAngleErrorMultiplier = 2000.0
+        @ConfigEntry(min = 0.0, description = "Proportional gain for the Gimbal Bearing force controller (Locked / Gyroscopic modes). Interpreted as target acceleration per block of center-of-mass position error.")
+        var gimbalPositionErrorMultiplier = 400.0
 
-        @ConfigEntry(min = 0.0, description = "Derivative gain for the Gimbal Bearing PID (Locked / Gyroscopic modes).")
-        var gimbalOmegaErrorMultiplier = 200.0
+        @ConfigEntry(min = 0.0, description = "Derivative gain for the Gimbal Bearing force controller. Damps relative point velocity between the shiptraption and the target pose.")
+        var gimbalVelocityErrorMultiplier = 30.0
 
-        @ConfigEntry(min = 0.0, description = "Maximum torque the Gimbal Bearing PID may apply, scaled per RPM and per kg of contraption mass. Set 0 to disable clamping.")
-        var gimbalMaxTorquePerRpmPerKg = 5.0
+        @ConfigEntry(min = 0.0, description = "Maximum force the Gimbal Bearing may apply, scaled per RPM per kilogram. Set 0 to disable clamping.")
+        var gimbalMaxForcePerRpmPerKg = 10.5
 
-        @ConfigEntry(min = 0.0, description = "Constant-torque magnitude the Gimbal Bearing applies in Unlocked mode, scaled per RPM and per kg of contraption mass.")
-        var gimbalUnlockedForcePerRpmPerKg = 5.0
-
-        @ConfigEntry(min = 0.0, description = "Proportional gain for the Gimbal Bearing twist-lock PID (substitutes for the missing TWIST=LOCKED joint constraint when running on Krunch). Always active while assembled.")
-        var gimbalTwistKp = 200.0
-
-        @ConfigEntry(min = 0.0, description = "Derivative gain for the Gimbal Bearing twist-lock PID.")
-        var gimbalTwistKd = 30.0
-
-        @ConfigEntry(min = 0.0, description = "Maximum twist-correction torque, scaled per kg of contraption mass. Set 0 to disable clamping.")
-        var gimbalTwistMaxTorquePerKg = 5.0
+        @ConfigEntry(min = 0.0, description = "Direct force the Gimbal Bearing applies in Unlocked mode, scaled by redstone strength per RPM per kilogram.")
+        var gimbalUnlockedForcePerRpmPerKg = 1.5
     }
 
     class Kelvin {

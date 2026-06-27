@@ -1,0 +1,53 @@
+{
+	"format_version": "1.9.0",
+	"credit": "Made with Blockbench",
+	"texture_size": [64, 64],
+	"textures": {
+		"0": "vs_clockwork:block/gimbal_bearing"
+	},
+	"elements": [
+		{
+			"from": [2, 8, 2],
+			"to": [4, 14, 3],
+			"rotation": {"angle": 0, "axis": "y", "origin": [3.5, 11, 3.5]},
+			"faces": {
+				"north": {"uv": [0.25, 0.25, 0.75, 1.5], "texture": "#0"},
+				"east": {"uv": [0, 0.25, 0.25, 1.5], "texture": "#0"},
+				"south": {"uv": [1, 0.25, 1.5, 1.5], "texture": "#0"},
+				"west": {"uv": [0.75, 0.25, 1, 1.5], "texture": "#0"},
+				"up": {"uv": [0.75, 0.25, 0.25, 0], "texture": "#0"},
+				"down": {"uv": [1.25, 0, 0.75, 0.25], "texture": "#0"}
+			}
+		},
+		{
+			"from": [2, 8, 3],
+			"to": [3, 14, 4],
+			"rotation": {"angle": 0, "axis": "y", "origin": [3.5, 11, 3.5]},
+			"faces": {
+				"north": {"uv": [1.75, 0.25, 2, 1.5], "texture": "#0"},
+				"east": {"uv": [1.5, 0.25, 1.75, 1.5], "texture": "#0"},
+				"south": {"uv": [2.25, 0.25, 2.5, 1.5], "texture": "#0"},
+				"west": {"uv": [2, 0.25, 2.25, 1.5], "texture": "#0"},
+				"up": {"uv": [2, 0.25, 1.75, 0], "texture": "#0"},
+				"down": {"uv": [2.25, 0, 2, 0.25], "texture": "#0"}
+			}
+		}
+	],
+	"groups": [
+		{
+			"name": "Bearing Plate",
+			"origin": [0, 8, 0],
+			"scope": 0,
+			"color": 0,
+			"children": [
+				{
+					"name": "Arm",
+					"origin": [-5, 14, -5],
+					"scope": 0,
+					"color": 0,
+					"children": [0, 1]
+				}
+			]
+		}
+	]
+}
