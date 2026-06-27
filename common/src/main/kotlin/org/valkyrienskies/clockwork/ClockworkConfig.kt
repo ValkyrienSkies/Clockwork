@@ -235,7 +235,7 @@ object ClockworkConfig {
         var gimbalVelocityErrorMultiplier = 30.0
 
         @ConfigEntry(min = 0.0, description = "Maximum force the Gimbal Bearing may apply, scaled per RPM per kilogram. Set 0 to disable clamping.")
-        var gimbalMaxForcePerRpmPerKg = 1.5
+        var gimbalMaxForcePerRpmPerKg = 10.5
 
         @ConfigEntry(min = 0.0, description = "Direct force the Gimbal Bearing applies in Unlocked mode, scaled by redstone strength per RPM per kilogram.")
         var gimbalUnlockedForcePerRpmPerKg = 1.5

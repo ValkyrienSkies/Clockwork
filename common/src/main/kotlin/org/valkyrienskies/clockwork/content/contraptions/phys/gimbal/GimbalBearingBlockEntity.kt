@@ -7,6 +7,8 @@ import com.simibubi.create.content.contraptions.IDisplayAssemblyExceptions
 import com.simibubi.create.content.contraptions.bearing.BearingBlock
 import com.simibubi.create.content.contraptions.bearing.IBearingBlockEntity
 import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity
+import com.simibubi.create.content.contraptions.DirectionalExtenderScrollOptionSlot
+import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour
@@ -85,7 +87,7 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         private set
 
     var modeBehaviour: ScrollOptionBehaviour<GimbalMode>? = null
-    var maxAngleBehaviour: ScrollValueBehaviour? = null
+    var maxAngleBehaviour: MaxAngleScrollValueBehaviour? = null
 
     private var lastException: AssemblyException? = null
 
@@ -163,18 +165,18 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
             GimbalMode::class.java,
             Component.translatable("$MOD_ID.gimbal_bearing.mode"),
             this,
-            movementModeSlot
+            ModeSlot()
         )
         modeBehaviour!!.requiresWrench()
         behaviours.add(modeBehaviour!!)
 
-        maxAngleBehaviour = ScrollValueBehaviour(
+        maxAngleBehaviour = MaxAngleScrollValueBehaviour(
             Component.translatable("$MOD_ID.gimbal_bearing.max_angle"),
             this,
-            BackFaceValueBoxTransform()
+            MaxAngleSlot()
         )
-            .between(0, MAX_ANGLE_LIMIT_DEG)
-            .withCallback { onMaxAngleChanged() }
+        maxAngleBehaviour!!.between(0, MAX_ANGLE_LIMIT_DEG)
+        maxAngleBehaviour!!.withCallback { onMaxAngleChanged() }
         maxAngleBehaviour!!.value = DEFAULT_MAX_ANGLE_DEG
         behaviours.add(maxAngleBehaviour!!)
     }
@@ -367,7 +369,8 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         val worldPos: Vector3dc = worldPosition.center.toJOML()
         val axis = direction.normal.toJOMLD()
         val shipOn = level.getShipObjectManagingPos(worldPosition)
-        val ownerAnchor = Vector3d(worldPos).fma(0.5, axis)
+        val ownerFaceAnchor = Vector3d(worldPos).fma(0.5, axis)
+        val ownerJointAnchor = Vector3d(ownerFaceAnchor).fma(JOINT_ATTACHMENT_OFFSET_BLOCKS, axis)
 
         val startPos = Vector3d(worldPos).fma(0.5, axis)
         val endPos = Vector3d(worldPos).fma(1.5, axis)
@@ -410,7 +413,7 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
             )
             event.unregister()
 
-            val newPos = Vector3d(ownerAnchor).sub(centerPositions.first).add(centerPositions.second)
+            val newPos = Vector3d(ownerFaceAnchor).sub(centerPositions.first).add(centerPositions.second)
             shiptraptionID = ship.id
             Pair(newPos, ship)
         } else {
@@ -426,8 +429,8 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         val shipOnID = shipOn?.id
 
         val posInWorld = shipOn?.transform?.shipToWorld?.transformPosition(
-            Vector3d(ownerAnchor).sub(bearingPos).add(shiptraption.inertiaData.centerOfMass), Vector3d()
-        ) ?: Vector3d(ownerAnchor).sub(bearingPos).add(shiptraption.inertiaData.centerOfMass)
+            Vector3d(ownerFaceAnchor).sub(bearingPos).add(shiptraption.inertiaData.centerOfMass), Vector3d()
+        ) ?: Vector3d(ownerFaceAnchor).sub(bearingPos).add(shiptraption.inertiaData.centerOfMass)
         val rotInWorld = shipOn?.transform?.shipToWorldRotation?.let { Quaterniond(it) } ?: Quaterniond()
         val scaling = shipOn?.transform?.shipToWorldScaling ?: Vector3d(1.0, 1.0, 1.0)
 
@@ -439,8 +442,8 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
 
         val ship1rot = directionHingeRotation(direction)
         val ship2rot = directionHingeRotation(direction)
-        val pose0 = VSJointPose(Vector3d(bearingPos), ship1rot)
-        val pose1 = VSJointPose(Vector3d(ownerAnchor), ship2rot)
+        val pose0 = VSJointPose(Vector3d(bearingPos).fma(JOINT_ATTACHMENT_OFFSET_BLOCKS, axis), ship1rot)
+        val pose1 = VSJointPose(ownerJointAnchor, ship2rot)
 
         val maxAngle = getMaxAngleDeg()
         val limitRad = Math.toRadians(maxAngle.toDouble()).toFloat().coerceAtLeast(MIN_LIMIT_RAD)
@@ -625,11 +628,12 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
 
         val hostRot = physShip?.transform?.shipToWorldRotation?.let { Quaterniond(it) } ?: Quaterniond()
         val refRot = if (mode == GimbalMode.GYROSCOPIC) Quaterniond(assemblyHostRotation) else hostRot
-        val hostAnchorLocal = getOwnerAnchorLocal()
+        val hostAnchorLocal = getOwnerJointAnchorLocal()
         val hostAnchorWorld = physShip?.transform?.shipToWorld?.transformPosition(hostAnchorLocal, Vector3d())
             ?: Vector3d(hostAnchorLocal)
+        val subAnchorLocal = getSubJointAnchorLocal()
         val forceApplicationLocal = Vector3d(subShip.centerOfMass)
-        val subAnchorWorld = subShip.transform.shipToWorld.transformPosition(bearingPosInSub, Vector3d())
+        val subAnchorWorld = subShip.transform.shipToWorld.transformPosition(subAnchorLocal, Vector3d())
         val forceApplicationWorld = subShip.transform.shipToWorld.transformPosition(forceApplicationLocal, Vector3d())
         val currentAxisWorld = Vector3d(bearingAxisLocal).rotate(subShip.transform.shipToWorldRotation, Vector3d())
 
@@ -674,7 +678,7 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         val targetAxisWorld = Vector3d(bearingAxisLocal).rotate(targetRot, Vector3d())
         val redstoneWorld = if (rsLen > 1e-6) Vector3d(rsLocal).rotate(refRot) else Vector3d()
         val controlledPointLocal = forceApplicationLocal
-        val targetOffsetWorld = controlledPointLocal.sub(bearingPosInSub, Vector3d()).rotate(targetRot)
+        val targetOffsetWorld = controlledPointLocal.sub(subAnchorLocal, Vector3d()).rotate(targetRot)
         val targetPointWorld = Vector3d(hostAnchorWorld).add(targetOffsetWorld)
         val currentPointWorld = subShip.transform.shipToWorld.transformPosition(controlledPointLocal, Vector3d())
 
@@ -726,8 +730,11 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         applyForcePair(subShip, physShip, force, forceApplicationLocal, hostAnchorLocal)
     }
 
-    private fun getOwnerAnchorLocal(): Vector3d =
-        Vector3d(worldPosition.center.toJOML()).fma(0.5, bearingAxisLocal)
+    private fun getOwnerJointAnchorLocal(): Vector3d =
+        Vector3d(worldPosition.center.toJOML()).fma(0.5 + JOINT_ATTACHMENT_OFFSET_BLOCKS, bearingAxisLocal)
+
+    private fun getSubJointAnchorLocal(): Vector3d =
+        Vector3d(bearingPosInSub).fma(JOINT_ATTACHMENT_OFFSET_BLOCKS, bearingAxisLocal)
 
     private fun getTargetRotation(refRot: Quaterniond, rsLocal: Vector3dc, rsLen: Double, tiltAngleRad: Double): Quaterniond {
         val targetRot = Quaterniond(refRot)
@@ -848,14 +855,44 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
     override fun getLastAssemblyException(): AssemblyException? = lastException
     override fun getBlockPosition(): BlockPos = worldPosition
 
-    /** Value box transform that places the box on the face opposite the bearing's facing direction. */
-    private class BackFaceValueBoxTransform : ValueBoxTransform.Sided() {
-        override fun isSideActive(state: BlockState, direction: Direction): Boolean {
-            return direction == state.getValue(BearingBlock.FACING).opposite
+    /**
+     * Mode slot: shown on lateral sides whose axis is not the max-angle axis.
+     * Restricted so it does not share faces with the max-angle widget.
+     */
+    private class ModeSlot : DirectionalExtenderScrollOptionSlot({ state, dir ->
+        val facingAxis = state.getValue(BearingBlock.FACING).axis
+        dir.axis != facingAxis && dir.axis != maxAngleAxisFor(facingAxis)
+    })
+
+    /** Max-angle slot: shown on the two lateral sides on the [maxAngleAxisFor] axis. */
+    private class MaxAngleSlot : DirectionalExtenderScrollOptionSlot({ state, dir ->
+        dir.axis == maxAngleAxisFor(state.getValue(BearingBlock.FACING).axis)
+    })
+
+    /**
+     * Distinct behaviour type and net id so value-edit packets route to the max-angle behaviour
+     * instead of colliding with the mode behaviour.
+     */
+    class MaxAngleScrollValueBehaviour(
+        label: Component,
+        be: com.simibubi.create.foundation.blockEntity.SmartBlockEntity,
+        slot: ValueBoxTransform
+    ) : ScrollValueBehaviour(label, be, slot) {
+        override fun getType(): BehaviourType<*> = TYPE
+        override fun netId(): Int = NET_ID
+
+        override fun write(nbt: CompoundTag, clientPacket: Boolean) {
+            nbt.putInt(NBT_KEY, value)
         }
 
-        override fun getSouthLocation(): net.minecraft.world.phys.Vec3 {
-            return net.createmod.catnip.math.VecHelper.voxelSpace(8.0, 8.0, 15.5)
+        override fun read(nbt: CompoundTag, clientPacket: Boolean) {
+            if (nbt.contains(NBT_KEY)) value = nbt.getInt(NBT_KEY)
+        }
+
+        companion object {
+            @JvmField val TYPE = BehaviourType<MaxAngleScrollValueBehaviour>()
+            private const val NET_ID = 1
+            private const val NBT_KEY = "GimbalMaxAngleScrollValue"
         }
     }
 
@@ -885,5 +922,12 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         const val DEFAULT_MAX_ANGLE_DEG = 45
         const val MAX_ANGLE_LIMIT_DEG = 180
         private const val MIN_LIMIT_RAD = 1e-3f
+        private const val JOINT_ATTACHMENT_OFFSET_BLOCKS = 0.5
+
+        fun maxAngleAxisFor(facingAxis: Direction.Axis): Direction.Axis = when (facingAxis) {
+            Direction.Axis.X -> Direction.Axis.Z
+            Direction.Axis.Y -> Direction.Axis.Z
+            Direction.Axis.Z -> Direction.Axis.Y
+        }
     }
 }
