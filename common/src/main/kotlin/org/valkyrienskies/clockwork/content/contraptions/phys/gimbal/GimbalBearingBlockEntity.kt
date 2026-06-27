@@ -150,6 +150,8 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
     private val cooldown = 20
 
     private var pendingJointCreationToken: Long = 0L
+    private var restoreJointAfterLoad = false
+    private var deferredJointRestoreTries = 0
 
     private val facing: Direction
         get() = blockState.getValue(BlockStateProperties.FACING)
@@ -284,6 +286,16 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         if (tag.contains("JointID")) jointID = tag.getInt("JointID")
         readGimbalDebug(tag)
         lastJointMaxAngleDeg = getMaxAngleDeg()
+
+        if (!clientPacket && isRunning && shiptraptionID != NO_SHIPTRAPTION_ID) {
+            restoreJointAfterLoad = true
+            deferredJointRestoreTries = 0
+            joint = null
+            jointID = -1
+        } else if (!clientPacket) {
+            restoreJointAfterLoad = false
+            deferredJointRestoreTries = 0
+        }
     }
 
     private fun writeGimbalDebug(tag: CompoundTag) {
@@ -347,8 +359,77 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         ticks++
         if (level == null || level!!.isClientSide) return
 
+        tryRestoreJointAfterLoad()
         tryAssembleNextTick()
         if (isRunning) sendData()
+    }
+
+    private fun tryRestoreJointAfterLoad() {
+        if (!restoreJointAfterLoad) return
+        val serverLevel = level as? ServerLevel ?: return
+        if (!isRunning || shiptraptionID == NO_SHIPTRAPTION_ID) {
+            restoreJointAfterLoad = false
+            deferredJointRestoreTries = 0
+            return
+        }
+        if (joint != null) {
+            restoreJointAfterLoad = false
+            deferredJointRestoreTries = 0
+            return
+        }
+        if (!rebuildJointFromSavedState(serverLevel)) return
+        restoreJointAfterLoad = false
+        deferredJointRestoreTries = 0
+    }
+
+    private fun rebuildJointFromSavedState(serverLevel: ServerLevel): Boolean {
+        if (serverLevel.shipObjectWorld.loadedShips.getById(shiptraptionID) == null) {
+            deferredJointRestoreTries++
+            if (deferredJointRestoreTries % 40 == 0) {
+                ClockworkMod.LOGGER.warn(
+                    "Deferring gimbal bearing joint restore at {} because ship {} is not loaded yet (attempt {}).",
+                    worldPosition,
+                    shiptraptionID,
+                    deferredJointRestoreTries
+                )
+            }
+            return false
+        }
+
+        val direction = originalDirection ?: blockState.getValue(BearingBlock.FACING)
+        if (bearingAxisLocal.lengthSquared() < 1e-12) {
+            bearingAxisLocal = direction.normal.toJOMLD()
+        }
+
+        val maxAngle = getMaxAngleDeg()
+        val limitRad = Math.toRadians(maxAngle.toDouble()).toFloat().coerceAtLeast(MIN_LIMIT_RAD)
+        val motions = createGimbalJointMotions()
+        val shipRot = directionHingeRotation(direction)
+
+        joint = VSD6Joint(
+            shipId0 = shiptraptionID,
+            pose0 = VSJointPose(getSubJointAnchorLocal(), shipRot),
+            shipId1 = serverLevel.getShipObjectManagingPos(worldPosition)?.id,
+            pose1 = VSJointPose(getOwnerJointAnchorLocal(), shipRot),
+            compliance = 1e-100,
+            motions = motions,
+            swingLimit = VSD6Joint.LimitCone(limitRad, limitRad)
+        )
+        jointID = -1
+        lastJointMaxAngleDeg = maxAngle
+        tryMakeJoint()
+        return true
+    }
+
+    private fun createGimbalJointMotions(): EnumMap<VSD6Joint.D6Axis, D6Motion> {
+        val motions = EnumMap<VSD6Joint.D6Axis, D6Motion>(D6Axis::class.java)
+        motions[D6Axis.X] = D6Motion.LOCKED
+        motions[D6Axis.Y] = D6Motion.LOCKED
+        motions[D6Axis.Z] = D6Motion.LOCKED
+        motions[D6Axis.TWIST] = D6Motion.LOCKED
+        motions[D6Axis.SWING1] = D6Motion.LIMITED
+        motions[D6Axis.SWING2] = D6Motion.LIMITED
+        return motions
     }
 
     private fun tryAssembleNextTick() {
@@ -370,7 +451,7 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         val axis = direction.normal.toJOMLD()
         val shipOn = level.getShipObjectManagingPos(worldPosition)
         val ownerFaceAnchor = Vector3d(worldPos).fma(0.5, axis)
-        val ownerJointAnchor = Vector3d(ownerFaceAnchor).fma(JOINT_ATTACHMENT_OFFSET_BLOCKS, axis)
+        val ownerJointAnchor = Vector3d(ownerFaceAnchor)
 
         val startPos = Vector3d(worldPos).fma(0.5, axis)
         val endPos = Vector3d(worldPos).fma(1.5, axis)
@@ -427,10 +508,11 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         }
 
         val shipOnID = shipOn?.id
+        val subJointAnchor = Vector3d(bearingPos).fma(-FACE_ATTACHMENT_OFFSET_BLOCKS, axis)
 
         val posInWorld = shipOn?.transform?.shipToWorld?.transformPosition(
-            Vector3d(ownerJointAnchor).sub(bearingPos).add(shiptraption.inertiaData.centerOfMass), Vector3d()
-        ) ?: Vector3d(ownerJointAnchor).sub(bearingPos).add(shiptraption.inertiaData.centerOfMass)
+            Vector3d(ownerJointAnchor).sub(subJointAnchor).add(shiptraption.inertiaData.centerOfMass), Vector3d()
+        ) ?: Vector3d(ownerJointAnchor).sub(subJointAnchor).add(shiptraption.inertiaData.centerOfMass)
         val rotInWorld = shipOn?.transform?.shipToWorldRotation?.let { Quaterniond(it) } ?: Quaterniond()
         val scaling = shipOn?.transform?.shipToWorldScaling ?: Vector3d(1.0, 1.0, 1.0)
 
@@ -442,18 +524,12 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
 
         val ship1rot = directionHingeRotation(direction)
         val ship2rot = directionHingeRotation(direction)
-        val pose0 = VSJointPose(Vector3d(bearingPos), ship1rot)
+        val pose0 = VSJointPose(subJointAnchor, ship1rot)
         val pose1 = VSJointPose(ownerJointAnchor, ship2rot)
 
         val maxAngle = getMaxAngleDeg()
         val limitRad = Math.toRadians(maxAngle.toDouble()).toFloat().coerceAtLeast(MIN_LIMIT_RAD)
-        val motions = EnumMap<VSD6Joint.D6Axis, D6Motion>(D6Axis::class.java)
-        motions[D6Axis.X] = D6Motion.LOCKED
-        motions[D6Axis.Y] = D6Motion.LOCKED
-        motions[D6Axis.Z] = D6Motion.LOCKED
-        motions[D6Axis.TWIST] = D6Motion.LOCKED
-        motions[D6Axis.SWING1] = D6Motion.LIMITED
-        motions[D6Axis.SWING2] = D6Motion.LIMITED
+        val motions = createGimbalJointMotions()
 
         joint = VSD6Joint(
             shipId0 = shiptraptionID,
@@ -590,6 +666,8 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         shiptraptionID = NO_SHIPTRAPTION_ID
         isRunning = false
         assembleNextTick = false
+        restoreJointAfterLoad = false
+        deferredJointRestoreTries = 0
         joint = null
         jointID = -1
         clearGimbalDebugSnapshot()
@@ -739,10 +817,10 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
     }
 
     private fun getOwnerJointAnchorLocal(): Vector3d =
-        Vector3d(worldPosition.center.toJOML()).fma(0.5 + JOINT_ATTACHMENT_OFFSET_BLOCKS, bearingAxisLocal)
+        Vector3d(worldPosition.center.toJOML()).fma(0.5, bearingAxisLocal)
 
     private fun getSubJointAnchorLocal(): Vector3d =
-        Vector3d(bearingPosInSub)
+        Vector3d(bearingPosInSub).fma(-FACE_ATTACHMENT_OFFSET_BLOCKS, bearingAxisLocal)
 
     private fun getControllerTargetLimitRad(): Double {
         val physicalLimitRad = Math.toRadians(getMaxAngleDeg().toDouble())
@@ -990,13 +1068,13 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
     companion object {
         const val NO_SHIPTRAPTION_ID: Long = -1
         const val DEFAULT_MAX_ANGLE_DEG = 45
-        const val MAX_ANGLE_LIMIT_DEG = 180
+        const val MAX_ANGLE_LIMIT_DEG = 55
         private const val MIN_LIMIT_RAD = 1e-3f
-        private const val JOINT_ATTACHMENT_OFFSET_BLOCKS = 0.5
+        private const val FACE_ATTACHMENT_OFFSET_BLOCKS = 0.25
         private const val CONTROLLER_LIMIT_MARGIN_DEG = 1.0
         private const val CONTROLLER_LIMIT_MARGIN_FRACTION = 0.02
         private const val MIN_CONTROL_LEVER_ARM_BLOCKS = 0.25
-        private const val CONTROL_FORCE_POINT_OFFSET_BLOCKS = 0.5
+        private const val CONTROL_FORCE_POINT_OFFSET_BLOCKS = 0.25
 
         fun maxAngleAxisFor(facingAxis: Direction.Axis): Direction.Axis = when (facingAxis) {
             Direction.Axis.X -> Direction.Axis.Z
