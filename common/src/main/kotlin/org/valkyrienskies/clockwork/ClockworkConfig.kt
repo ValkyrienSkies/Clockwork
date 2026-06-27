@@ -228,16 +228,16 @@ object ClockworkConfig {
     }
 
     class Gimbal {
-        @ConfigEntry(min = 0.0, description = "Proportional gain for the Gimbal Bearing PID (Locked / Gyroscopic modes). Interpreted as target angular acceleration per radian of error: alpha = kp * err - kd * omega.")
-        var gimbalAngleErrorMultiplier = 400.0
+        @ConfigEntry(min = 0.0, description = "Proportional gain for the Gimbal Bearing force controller (Locked / Gyroscopic modes). Interpreted as target acceleration per block of center-of-mass position error.")
+        var gimbalPositionErrorMultiplier = 400.0
 
-        @ConfigEntry(min = 0.0, description = "Derivative gain for the Gimbal Bearing PID. Keep below ~50 to avoid discrete-time damping overshoot at the joint solver's tick rate.")
-        var gimbalOmegaErrorMultiplier = 30.0
+        @ConfigEntry(min = 0.0, description = "Derivative gain for the Gimbal Bearing force controller. Damps relative point velocity between the shiptraption and the target pose.")
+        var gimbalVelocityErrorMultiplier = 30.0
 
-        @ConfigEntry(min = 0.0, description = "Maximum angular acceleration the Gimbal Bearing PID's proportional term may demand, scaled per RPM. Acts as a slew-rate limit. Set 0 to disable clamping.")
-        var gimbalMaxTorquePerRpmPerKg = 1.5
+        @ConfigEntry(min = 0.0, description = "Maximum force the Gimbal Bearing may apply, scaled per RPM per kilogram. Set 0 to disable clamping.")
+        var gimbalMaxForcePerRpmPerKg = 1.5
 
-        @ConfigEntry(min = 0.0, description = "Angular acceleration the Gimbal Bearing applies in Unlocked mode, scaled by redstone strength and per RPM.")
+        @ConfigEntry(min = 0.0, description = "Direct force the Gimbal Bearing applies in Unlocked mode, scaled by redstone strength per RPM per kilogram.")
         var gimbalUnlockedForcePerRpmPerKg = 1.5
     }
 

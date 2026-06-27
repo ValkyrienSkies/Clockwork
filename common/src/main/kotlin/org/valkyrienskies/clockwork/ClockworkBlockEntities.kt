@@ -25,6 +25,7 @@ import org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap.SmartFl
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.GimbalBearingBlockEntity
+import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.GimbalBearingRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlockEntity
@@ -220,6 +221,13 @@ object ClockworkBlockEntities {
             )
         }
         .validBlocks(ClockworkBlocks.GIMBAL_BEARING)
+        .renderer {
+            NonNullFunction { context: BlockEntityRendererProvider.Context? ->
+                GimbalBearingRenderer(
+                    context!!
+                )
+            }
+        }
         .register()
 
     @JvmField
