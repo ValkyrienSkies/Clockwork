@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.contraptions.propeller.blades
 
 import com.mojang.blaze3d.vertex.PoseStack
+import com.mojang.math.Axis
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
@@ -310,27 +311,30 @@ class BladeControllerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state:
     }
 
     class AngleControllerValueBoxTransform: ValueBoxTransform.Sided() {
-        override fun getSouthLocation(): Vec3 {
-            return VecHelper.voxelSpace(8.0, 8.0, 18.5)
+        override fun getSouthLocation(): Vec3? {
+            return VecHelper.voxelSpace(8.0, 8.0, 16.5)
         }
 
-        override fun getLocalOffset(level: LevelAccessor, pos: BlockPos, state: BlockState): Vec3 {
-            return super.getLocalOffset(level, pos, state)
-                .add(
-                    Vec3.atLowerCornerOf(state.getValue(BlockStateProperties.FACING).normal)
-                        .scale((-2 / 16f).toDouble())
-                )
+        override fun getLocalOffset(level: LevelAccessor?, pos: BlockPos?, state: BlockState): Vec3 {
+            val facing = state.getValue<Direction?>(BlockStateProperties.FACING)
+            return super.getLocalOffset(level, pos, state).add(
+                Vec3.atLowerCornerOf(facing.normal)
+                    .scale((-6 / 16f).toDouble())
+            )
         }
 
-        override fun rotate(level: LevelAccessor, pos: BlockPos, state: BlockState, ms: PoseStack) {
-            if (!side.axis.isHorizontal) TransformStack.of(ms)
-                .rotateYDegrees((AngleHelper.horizontalAngle(state.getValue(BlockStateProperties.FACING)) + 180))
+        override fun rotate(level: LevelAccessor?, pos: BlockPos?, state: BlockState, ms: PoseStack?) {
             super.rotate(level, pos, state, ms)
+            val facing = state.getValue<Direction?>(BlockStateProperties.FACING)
+            if (facing.axis === Axis.YP) return
+            if (side != Direction.UP) return
+            TransformStack.of(ms)
+                .rotateZDegrees(-AngleHelper.horizontalAngle(facing) + 180)
         }
 
         override fun isSideActive(state: BlockState, direction: Direction): Boolean {
             val facing = state.getValue(BlockStateProperties.FACING)
-            return direction == facing
+            return direction != facing && direction != facing.opposite
         }
     }
 
