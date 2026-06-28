@@ -1,5 +1,5 @@
 {
-  "parent": "vs_clockwork:block/phys_bearing/item",
+  "parent": "vs_clockwork:block/gimbal_bearing/item",
   "textures": {
     "1": "vs_clockwork:block/phys_bearing"
   }
