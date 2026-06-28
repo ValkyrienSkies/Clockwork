@@ -75,7 +75,7 @@ open class AeronautArmorLayer<T : LivingEntity, M : EntityModel<T>?>(renderer: R
         goggleState.flapAngle = -min(maxFlapAngle, (speed.toFloat() /200f) * maxFlapAngle) //+ sin(partialTicks * 0.05f) * (speed.toFloat() / 20000f)
         //if (goggleState.flapAngle > 1) println("am i even real bro")
         //println(goggleState.flapAngle)
-        if (player.wearingAeronautInSlot(EquipmentSlot.HEAD)) {
+        if (entity.wearingAeronautInSlot(EquipmentSlot.HEAD)) {
             ms.pushPose()
 
 //        ms.scale(0.5f, 0.5f, 0.5f)
