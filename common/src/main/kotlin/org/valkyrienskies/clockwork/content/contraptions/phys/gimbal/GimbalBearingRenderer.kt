@@ -273,14 +273,17 @@ class GimbalBearingRenderer(context: BlockEntityRendererProvider.Context) : Smar
         private val DEFAULT_CORNER_RADIAL = Vector3d(-1.0, 0.0, -1.0).normalize()
 
         private const val ARM_INSET = 5 / 16.0
-        private const val ARM_VERTICAL_OFFSET = 8.5 / 16.0
+        private const val ARM_VERTICAL_OFFSET = 3 / 16.0
         private const val ARM_BOTTOM_Y = 7.0 / 16.0 + ARM_VERTICAL_OFFSET
         private const val ARM_TOP_Y = 14.0 / 16.0 + ARM_VERTICAL_OFFSET
-        private const val ARM_LENGTH = ARM_TOP_Y - ARM_BOTTOM_Y
+        private const val ARM_MODEL_HINGE_XZ = 3.5 / 16.0
+        private const val ARM_MODEL_BOTTOM_Y = 8.0 / 16.0
+        private const val ARM_MODEL_TOP_Y = 14.0 / 16.0
+        private const val ARM_LENGTH = ARM_MODEL_TOP_Y - ARM_MODEL_BOTTOM_Y
 
         private val PLATE_FACE_CENTER_MODEL = Vector3d(0.5, 1.0, 0.5)
         private val ARM_ROTATION_CENTER = Vector3d(0.5, 0.0, 0.5)
-        private val ARM_BOTTOM_MODEL = Vector3d(ARM_INSET, ARM_BOTTOM_Y, ARM_INSET)
+        private val ARM_BOTTOM_MODEL = Vector3d(ARM_MODEL_HINGE_XZ, ARM_MODEL_BOTTOM_Y, ARM_MODEL_HINGE_XZ)
 
         private val CORNERS = listOf(
             Corner(-1, -1, 0.0),
