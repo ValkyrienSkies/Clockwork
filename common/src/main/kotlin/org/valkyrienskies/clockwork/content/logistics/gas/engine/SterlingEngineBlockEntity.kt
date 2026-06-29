@@ -29,6 +29,7 @@ class SterlingEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
 
     var totalEfficiency = 0.0f
     var reActivateSource = false
+    private var lastFacing = state.getValue(BlockStateProperties.FACING)
 
     override fun lazyTick() {
         super.lazyTick()
@@ -41,7 +42,10 @@ class SterlingEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
         updateConnection(level, blockPos, facing.opposite)
 
         val efficiency = GasEngineBlockEntity.tempToEfficiency(ClockworkMod.getKelvin(level).getTemperatureAt(getDuctNodePosition()))
-        if (efficiency != totalEfficiency) {
+        val facingChanged = facing != lastFacing
+        if (facingChanged) lastFacing = facing
+
+        if (efficiency != totalEfficiency || facingChanged) {
             totalEfficiency = efficiency
             updateGeneratedRotation()
         }
@@ -54,6 +58,14 @@ class SterlingEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
         if (level.isClientSide) return
 
         ClockworkMod.getKelvin(level).modHeatEnergy(getDuctNodePosition(), -heatLoss * totalEfficiency)
+
+        val facing = blockState.getValue(BlockStateProperties.FACING)
+        if (facing != lastFacing) {
+            lastFacing = facing
+            updateGeneratedRotation()
+        } else if (!hasSource() && speed == 0f && getGeneratedSpeed() != 0f) {
+            updateGeneratedRotation()
+        }
 
         if (reActivateSource) {
             updateGeneratedRotation()
