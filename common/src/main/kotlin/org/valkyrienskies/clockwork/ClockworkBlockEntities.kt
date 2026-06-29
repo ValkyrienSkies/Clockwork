@@ -57,6 +57,8 @@ import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBloc
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.engine.GasEngineBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.engine.SterlingEngineBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.engine.SterlingEngineRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.exhaust.ExhaustBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlockEntity
@@ -646,6 +648,30 @@ object ClockworkBlockEntities {
             )
         }
         .validBlocks(ClockworkBlocks.GAS_ENGINE)
+        .register()
+
+    @JvmField
+    val STERLING_ENGINE: BlockEntityEntry<SterlingEngineBlockEntity> = (ClockworkMod.REGISTRATE
+        .blockEntity("sterling_engine") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            SterlingEngineBlockEntity(
+                type,
+                pos,
+                state
+            )
+        } as ClockworkBlockEntityBuilder)
+        .clockworkVisual {
+            ClockworkSimpleBlockEntityVisualFactory { ctx, blockEntity, partialTick ->
+                SingleAxisRotatingVisual(ctx, blockEntity, partialTick, Direction.SOUTH, Models.partial(AllPartialModels.MECHANICAL_PUMP_COG))
+            }
+        }
+        .validBlocks(ClockworkBlocks.STERLING_ENGINE)
+        .renderer {
+            NonNullFunction { context: BlockEntityRendererProvider.Context? ->
+                SterlingEngineRenderer(
+                    context!!
+                )
+            }
+        }
         .register()
 
     @JvmField

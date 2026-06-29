@@ -28,6 +28,7 @@
     "vs_clockwork:gas_nozzle",
     "vs_clockwork:steam_generator",
     "vs_clockwork:gas_engine",
+    "vs_clockwork:sterling_engine",
     "vs_clockwork:gas_crafter",
     "vs_clockwork:exhaust",
     "vs_clockwork:gas_heater",

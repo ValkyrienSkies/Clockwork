@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "vs_clockwork:block/sterling_engine/block",
+      "x": 90
+    },
+    "facing=east": {
+      "model": "vs_clockwork:block/sterling_engine/block",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "vs_clockwork:block/sterling_engine/block"
+    },
+    "facing=south": {
+      "model": "vs_clockwork:block/sterling_engine/block",
+      "y": 180
+    },
+    "facing=up": {
+      "model": "vs_clockwork:block/sterling_engine/block",
+      "x": 270
+    },
+    "facing=west": {
+      "model": "vs_clockwork:block/sterling_engine/block",
+      "y": 270
+    }
+  }
+}
