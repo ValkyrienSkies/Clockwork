@@ -466,6 +466,13 @@
   "vs_clockwork.gui.gas_heater.info.heat_level.none": "Pump hot _gas_ into this machine to heat Create machines.",
   "vs_clockwork.gui.gas_heater.info.heat_level.next": "Next Tier: %s",
 
+  "vs_clockwork.gui.gas_engine.info.title": "Gas Engine Info:",
+  "vs_clockwork.gui.sterling_engine.info.title": "Sterling Engine Info:",
+  "vs_clockwork.gui.engine.temperature": "Temperature",
+  "vs_clockwork.gui.engine.temperature_dots": ": ",
+  "vs_clockwork.gui.engine.flowrate": "Flowrate",
+  "vs_clockwork.gui.engine.flowrate_dots": ": ",
+
   "vs_clockwork.gui.ductInfo.title": "Duct Info:",
   "vs_clockwork.gui.ductInfo.volume": "Volume: %s",
   "vs_clockwork.gui.ductInfo.temperature": "Temperature: %s",

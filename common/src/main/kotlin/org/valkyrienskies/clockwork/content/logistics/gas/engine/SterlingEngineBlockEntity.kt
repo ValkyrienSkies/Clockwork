@@ -6,10 +6,12 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
 import org.valkyrienskies.clockwork.util.kelvin.KNodeKineticBlockEntity
@@ -19,15 +21,15 @@ import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.edges.PipeDuctEdge
 import kotlin.math.abs
 import kotlin.math.floor
-import kotlin.math.min
 import kotlin.math.sign
 
 class SterlingEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
     KNodeKineticBlockEntity(type, pos, state), IConnectable {
 
-    val heatLoss get() = totalEfficiency * 5000.0
+    val heatLoss get() = totalEfficiency * ClockworkConfig.SERVER.gasEngine.sterlingEngineMaxHeatLoss
 
     var totalEfficiency = 0.0f
+    var temperatureEfficiency = 0.0f
     var reActivateSource = false
     private var lastFacing = state.getValue(BlockStateProperties.FACING)
 
@@ -41,12 +43,22 @@ class SterlingEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
         updateConnection(level, blockPos, facing)
         updateConnection(level, blockPos, facing.opposite)
 
-        val efficiency = GasEngineBlockEntity.tempToEfficiency(ClockworkMod.getKelvin(level).getTemperatureAt(getDuctNodePosition()))
+        val targetEfficiency = GasEngineLogic.calculateTemperatureEfficiency(
+            level,
+            getDuctNodePosition(),
+            ClockworkConfig.SERVER.gasEngine.sterlingEngineTemperatureIncrement
+        )
+        val nextEfficiency = GasEngineLogic.smoothEfficiency(
+            totalEfficiency,
+            targetEfficiency,
+            ClockworkConfig.SERVER.gasEngine.sterlingEngineEfficiencySmoothing
+        )
         val facingChanged = facing != lastFacing
         if (facingChanged) lastFacing = facing
 
-        if (efficiency != totalEfficiency || facingChanged) {
-            totalEfficiency = efficiency
+        if (nextEfficiency != totalEfficiency || targetEfficiency != temperatureEfficiency || facingChanged) {
+            totalEfficiency = nextEfficiency
+            temperatureEfficiency = targetEfficiency
             updateGeneratedRotation()
         }
     }
@@ -57,7 +69,9 @@ class SterlingEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
         val level = level ?: return
         if (level.isClientSide) return
 
-        ClockworkMod.getKelvin(level).modHeatEnergy(getDuctNodePosition(), -heatLoss * totalEfficiency)
+        if (heatLoss > 0.0) {
+            ClockworkMod.getKelvin(level).modHeatEnergy(getDuctNodePosition(), -heatLoss)
+        }
 
         val facing = blockState.getValue(BlockStateProperties.FACING)
         if (facing != lastFacing) {
@@ -100,13 +114,16 @@ class SterlingEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
     }
 
     override fun calculateAddedStressCapacity(): Float {
-        val capacity = getEngineEfficiency() * BASE_STRESS_CAPACITY / getSpeedModifier(getEngineEfficiency())
+        val efficiency = getEngineEfficiency()
+        val generatedSpeed = 16.0 * getSpeedModifier(efficiency)
+        val wholeStress = floor(efficiency * ClockworkConfig.SERVER.gasEngine.sterlingEngineStressCapacity * 16.0)
+        val capacity = if (generatedSpeed <= 0.0) 0f else (wholeStress / generatedSpeed).toFloat()
         lastCapacityProvided = capacity
         return capacity
     }
 
     fun getEngineEfficiency(): Float {
-        return min(totalEfficiency, 1f).coerceAtLeast(0f)
+        return totalEfficiency.coerceIn(0f, 1f)
     }
 
     fun updateGeneratedRotation() {
@@ -181,8 +198,7 @@ class SterlingEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
     }
 
     private fun getSpeedModifier(efficiency: Float): Int {
-        val extraSpeed = if (efficiency >= 1f) 3 else min(2.0, floor(efficiency * 4.0)).toInt()
-        return 1 + extraSpeed
+        return GasEngineLogic.getSpeedModifier(efficiency)
     }
 
     override fun getEdge(nodeA: DuctNodePos, nodeB: DuctNodePos, level: Level, blockPos: BlockPos, direction: Direction): DuctEdge {
@@ -191,15 +207,18 @@ class SterlingEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
         tag.putFloat("TotalEfficiency", totalEfficiency)
+        tag.putFloat("TemperatureEfficiency", temperatureEfficiency)
         super.write(tag, clientPacket)
     }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         totalEfficiency = tag.getFloat("TotalEfficiency")
+        temperatureEfficiency = tag.getFloat("TemperatureEfficiency")
         super.read(tag, clientPacket)
     }
 
-    companion object {
-        const val BASE_STRESS_CAPACITY = 1024f
+    override fun addToGoggleTooltip(tooltip: List<Component>?, isPlayerSneaking: Boolean): Boolean {
+        EngineGoggleTooltip.addSterlingEngineTooltip(tooltip as MutableList<Component>, temperatureEfficiency)
+        return super.addToGoggleTooltip(tooltip, isPlayerSneaking)
     }
 }

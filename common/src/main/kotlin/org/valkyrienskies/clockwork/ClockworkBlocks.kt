@@ -68,7 +68,6 @@ import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBloc
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.engine.GasEngineBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.engine.SterlingEngineBlock
-import org.valkyrienskies.clockwork.content.logistics.gas.engine.SterlingEngineBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.exhaust.ExhaustBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlock
@@ -649,7 +648,7 @@ object ClockworkBlocks {
             .onRegister { block: SterlingEngineBlock ->
                 BlockStressValues.CAPACITIES.register(
                     block,
-                    DoubleSupplier { SterlingEngineBlockEntity.BASE_STRESS_CAPACITY.toDouble() }
+                    DoubleSupplier { ClockworkConfig.SERVER.gasEngine.sterlingEngineStressCapacity }
                 )
             }
             .onRegister(BlockStressValues.setGeneratorSpeed(64, true))

@@ -56,6 +56,9 @@ object ClockworkConfig {
         @ConfigCategory(title = "Gimbal Bearing")
         val gimbal = Gimbal()
 
+        @ConfigCategory(title = "Gas Engine")
+        val gasEngine = GasEngine()
+
         @ConfigEntry(description = "Enable verbose debug logging")
         var debugMode = false
 
@@ -204,6 +207,7 @@ object ClockworkConfig {
         @ConfigEntry(description = "Temperature for gas exhaust to trigger bulk blasting. Default is 1000K (ceramic firing)")
         var bulkBlastingTemp = 1000
 
+
         @ConfigEntry(description = "Multiplier applied to ship mass when yeeting (left-clicking) with t he survival gravitron", min = 0.0, max = 10000.0)
         var survivalGravitronYeetForce = 1000.0
 
@@ -239,6 +243,38 @@ object ClockworkConfig {
 
         @ConfigEntry(min = 0.0, description = "Direct force the Gimbal Bearing applies in Unlocked mode, scaled by redstone strength per RPM per kilogram.")
         var gimbalUnlockedForcePerRpmPerKg = 1.5
+    }
+
+    class GasEngine {
+        @ConfigEntry(description = "Gas mass flow rate through a Gas Engine required for full power, in kg/s. Set to 0 to make any non-zero through-flow full power.", min = 0.0)
+        var gasEngineFlowForFullEfficiency = 5.0
+
+        @ConfigEntry(description = "Gas mass flow rate below which a Gas Engine treats through-flow as zero, in kg/s.", min = 0.0)
+        var gasEngineMinimumFlowRate = 0.5
+
+        @ConfigEntry(description = "Gas Engine flow rate increment, in kg/s. Through-flow is rounded down to this step before efficiency is calculated. Set to 0 to disable flow stepping.", min = 0.0)
+        var gasEngineFlowRateIncrement = 0.1
+
+        @ConfigEntry(description = "Gas Engine temperature increment, in K. Efficiency gains one tier per increment above 80K.", min = 1.0)
+        var gasEngineTemperatureIncrement = 290.0
+
+        @ConfigEntry(description = "Maximum heat energy consumed per tick by a loaded Gas Engine at full efficiency.", min = 0.0)
+        var gasEngineMaxHeatLoss = 5000.0
+
+        @ConfigEntry(description = "How quickly Gas Engine efficiency approaches changes in gas flow. 0 is instant, 1 is one tick.", min = 0.0, max = 1.0)
+        var gasEngineEfficiencySmoothing = 0.2
+
+        @ConfigEntry(description = "Sterling Engine temperature increment, in K. Efficiency gains one tier per increment above 80K.", min = 1.0)
+        var sterlingEngineTemperatureIncrement = 290.0
+
+        @ConfigEntry(description = "Maximum heat energy consumed per tick by a Sterling Engine at full efficiency.", min = 0.0)
+        var sterlingEngineMaxHeatLoss = 5000.0
+
+        @ConfigEntry(description = "Base stress capacity provided by a Sterling Engine at full efficiency.", min = 0.0)
+        var sterlingEngineStressCapacity = 1024.0
+
+        @ConfigEntry(description = "How quickly Sterling Engine efficiency approaches changes in temperature. 0 is instant, 1 is one tick.", min = 0.0, max = 1.0)
+        var sterlingEngineEfficiencySmoothing = 0.2
     }
 
     class Kelvin {
