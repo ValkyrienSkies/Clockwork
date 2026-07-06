@@ -196,10 +196,10 @@ object ClockworkConfig {
         var heaterSmoulderingTemp = 500
 
         @ConfigEntry(description = "Temperature for the gas heater to act like a heated blaze burner. Default is 1000K (ceramic firing)")
-        var heaterKindledTemp = 1000
+        var heaterKindledTemp = 800
 
         @ConfigEntry(description = "Temperature for the gas heater to act like a superheated blaze burner. Default is 1500K (real metallurgy)")
-        var heaterSeethingTemp = 1500
+        var heaterSeethingTemp = 1300
 
         @ConfigEntry(description = "Temperature for gas exhaust to trigger bulk smoking. Default is 500K (baking oven)")
         var bulkSmokingTemp = 500
