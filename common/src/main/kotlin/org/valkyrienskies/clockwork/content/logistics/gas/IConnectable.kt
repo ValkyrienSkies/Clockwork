@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.util.DuctNetworkUtils.configureMetalDuctEdge
 import org.valkyrienskies.kelvin.api.DuctEdge
 import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
@@ -44,6 +45,6 @@ interface IConnectable: INodeBlockEntity {
 
     fun setEdge(nodeA: DuctNodePos, nodeB: DuctNodePos, level: Level, blockPos: BlockPos, direction: Direction) {
         ClockworkMod.getKelvin(level).removeEdge(nodeA, nodeB)
-        ClockworkMod.getKelvin(level).addEdge(nodeA, nodeB, getEdge(nodeA, nodeB, level, blockPos, direction))
+        ClockworkMod.getKelvin(level).addEdge(nodeA, nodeB, configureMetalDuctEdge(getEdge(nodeA, nodeB, level, blockPos, direction)))
     }
 }

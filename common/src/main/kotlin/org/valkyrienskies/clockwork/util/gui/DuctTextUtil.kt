@@ -28,27 +28,27 @@ object DuctTextUtil {
 
     @JvmStatic
     fun translateTemperature(builder: LangBuilder, value: Double, allowSimplify: Boolean, unit: TemperatureUnit? = null): LangBuilder {
-        return translate(builder, value, allowSimplify, TemperatureUnit.BASE, ClockworkConfig.CLIENT.tempDisplayUnit)
+        return translate(builder, value, allowSimplify, TemperatureUnit.BASE, unit ?: ClockworkConfig.CLIENT.tempDisplayUnit)
     }
 
     @JvmStatic
     fun translatePressure(builder: LangBuilder, value: Double, allowSimplify: Boolean, unit: PressureUnit? = null): LangBuilder {
-        return translate(builder, value, allowSimplify, PressureUnit.BASE, ClockworkConfig.CLIENT.pressureDisplayUnit)
+        return translate(builder, value, allowSimplify, PressureUnit.BASE, unit ?: ClockworkConfig.CLIENT.pressureDisplayUnit)
     }
 
     @JvmStatic
     fun translateEnergy(builder: LangBuilder, value: Double, allowSimplify: Boolean, unit: EnergyUnit? = null): LangBuilder {
-        return translate(builder, value, allowSimplify, EnergyUnit.BASE, ClockworkConfig.CLIENT.energyDisplayUnit)
+        return translate(builder, value, allowSimplify, EnergyUnit.BASE, unit ?: ClockworkConfig.CLIENT.energyDisplayUnit)
     }
 
     @JvmStatic
     fun translateVolume(builder: LangBuilder, value: Double, allowSimplify: Boolean, unit: VolumeUnit? = null): LangBuilder {
-        return translate(builder, value, allowSimplify, VolumeUnit.BASE, ClockworkConfig.CLIENT.volumeDisplayUnit)
+        return translate(builder, value, allowSimplify, VolumeUnit.BASE, unit ?: ClockworkConfig.CLIENT.volumeDisplayUnit)
     }
 
     @JvmStatic
     fun translateMass(builder: LangBuilder, value: Double, allowSimplify: Boolean, unit: MassUnit? = null): LangBuilder {
-        return translate(builder, value, allowSimplify, MassUnit.BASE, ClockworkConfig.CLIENT.massDisplayUnit)
+        return translate(builder, value, allowSimplify, MassUnit.BASE, unit ?: ClockworkConfig.CLIENT.massDisplayUnit)
     }
 
     @JvmStatic

@@ -11,6 +11,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.AABB
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
+import org.valkyrienskies.clockwork.util.DuctNetworkUtils.configureMetalDuctEdge
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.magnitudeSqr
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.kelvin.api.DuctNodePos
@@ -135,6 +136,7 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
                     if (edgeData[EdgePos(nodeA, nodeB)] != null)
                         newEdge.deserialize(edgeData[EdgePos(nodeA, nodeB)]!!)
 
+                    configureMetalDuctEdge(newEdge)
                     ClockworkMod.getKelvin(level).addEdge(nodeA, nodeB, newEdge)
                 }
             }

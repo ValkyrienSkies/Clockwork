@@ -8,14 +8,13 @@ import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.kelvin.api.DuctNetwork
 import org.valkyrienskies.kelvin.api.DuctEdge
 import org.valkyrienskies.kelvin.api.DuctNodePos
-import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.min
 
 object GasEngineLogic {
-    const val EFFICIENCY_STEPS = 6
-    const val BAR_SEGMENTS = 18
-    const val DEFAULT_TEMPERATURE_INCREMENT = 290.0
+    const val BAR_SEGMENTS = 20
+    const val EFFICIENCY_STEPS = BAR_SEGMENTS
+    const val DEFAULT_TEMPERATURE_INCREMENT = 60.0
     const val TEMPERATURE_OFFSET = 290.0
 
     fun calculateEfficiency(
@@ -52,10 +51,11 @@ object GasEngineLogic {
     ): EfficiencyComponents {
         val kelvin = ClockworkMod.getKelvin(level)
         val temperatureEfficiency = calculateTemperatureEfficiency(kelvin, ductNodePos, temperatureIncrement)
-        val flowRate = getEffectiveThroughput(kelvin, level, blockPos, ductNodePos, axis, minimumFlowRate, flowRateIncrement)
+        val rawFlowRate = getThroughput(kelvin, level, blockPos, ductNodePos, axis)
+        val flowRate = getEffectiveThroughput(rawFlowRate, minimumFlowRate, flowRateIncrement)
         val flowEfficiency = flowToEfficiency(flowRate, flowForFullEfficiency)
 
-        return EfficiencyComponents(temperatureEfficiency, flowEfficiency, flowRate)
+        return EfficiencyComponents(temperatureEfficiency, flowEfficiency, flowRate, rawFlowRate)
     }
 
     fun calculateTemperatureEfficiency(level: Level, ductNodePos: DuctNodePos, temperatureIncrement: Double): Float {
@@ -80,12 +80,13 @@ object GasEngineLogic {
         return (steps / EFFICIENCY_STEPS.toFloat()).coerceAtLeast(0f)
     }
 
-    fun smoothEfficiency(current: Float, target: Float, smoothing: Double): Float {
-        if (smoothing <= 0.0) return target
+    fun temperatureUntilNextTier(temperature: Double, temperatureIncrement: Double): Double {
+        val safeIncrement = if (temperatureIncrement > 0.0) temperatureIncrement else DEFAULT_TEMPERATURE_INCREMENT
+        val tier = floor((temperature - TEMPERATURE_OFFSET) / safeIncrement).toInt().coerceIn(0, EFFICIENCY_STEPS)
+        if (tier >= EFFICIENCY_STEPS) return 0.0
 
-        val clampedSmoothing = smoothing.coerceAtMost(1.0).toFloat()
-        val next = current + (target - current) * clampedSmoothing
-        return if (abs((target - next).toDouble()) < 0.0001) target else next
+        val nextTierTemperature = TEMPERATURE_OFFSET + (tier + 1) * safeIncrement
+        return (nextTierTemperature - temperature).coerceAtLeast(0.0)
     }
 
     fun getEffectiveThroughput(
@@ -117,8 +118,64 @@ object GasEngineLogic {
         flowRateIncrement: Double
     ): Double {
         val throughput = getThroughput(kelvin, level, blockPos, ductNodePos, axis)
+        return getEffectiveThroughput(throughput, minimumFlowRate, flowRateIncrement)
+    }
+
+    fun getEffectiveThroughput(
+        throughput: Double,
+        minimumFlowRate: Double,
+        flowRateIncrement: Double
+    ): Double {
         if (throughput < minimumFlowRate) return 0.0
         return stepValue(throughput, flowRateIncrement)
+    }
+
+    fun flowUntilNextTierGramsPerTick(
+        throughput: Double,
+        flowForFullEfficiency: Double,
+        minimumFlowRate: Double,
+        flowRateIncrement: Double
+    ): Double {
+        return flowUntilNextTierKilogramsPerTick(
+            throughput,
+            flowForFullEfficiency,
+            minimumFlowRate,
+            flowRateIncrement
+        ) * 1000.0
+    }
+
+    fun flowUntilNextTierKilogramsPerTick(
+        throughput: Double,
+        flowForFullEfficiency: Double,
+        minimumFlowRate: Double,
+        flowRateIncrement: Double
+    ): Double {
+        return flowUntilNextTier(throughput, flowForFullEfficiency, minimumFlowRate, flowRateIncrement) / 20.0
+    }
+
+    fun flowUntilNextTier(
+        throughput: Double,
+        flowForFullEfficiency: Double,
+        minimumFlowRate: Double,
+        flowRateIncrement: Double
+    ): Double {
+        if (flowForFullEfficiency <= 0.0) return 0.0
+
+        val rawThroughput = throughput.coerceAtLeast(0.0)
+        val minimum = minimumFlowRate.coerceAtLeast(0.0)
+        if (rawThroughput < minimum) return minimum - rawThroughput
+
+        val tierSize = if (flowRateIncrement > 0.0) flowRateIncrement else flowForFullEfficiency / EFFICIENCY_STEPS
+        if (tierSize <= 0.0) return 0.0
+
+        val fullTier = if (flowRateIncrement > 0.0)
+            floor((flowForFullEfficiency + tierSize - 1e-9) / tierSize) * tierSize
+        else flowForFullEfficiency
+        if (rawThroughput >= fullTier) return 0.0
+
+        val currentTier = floor(rawThroughput / tierSize) * tierSize
+        val nextTier = (currentTier + tierSize).coerceAtLeast(minimum).coerceAtMost(fullTier)
+        return (nextTier - rawThroughput).coerceAtLeast(0.0)
     }
 
     fun getThroughput(level: Level, blockPos: BlockPos, ductNodePos: DuctNodePos, axis: Direction.Axis): Double {
@@ -185,7 +242,8 @@ object GasEngineLogic {
     data class EfficiencyComponents(
         val temperatureEfficiency: Float,
         val flowEfficiency: Float,
-        val flowRate: Double
+        val flowRate: Double,
+        val rawFlowRate: Double
     ) {
         val totalEfficiency: Float get() = temperatureEfficiency * flowEfficiency
     }

@@ -23,6 +23,7 @@ import org.valkyrienskies.clockwork.util.findMatchingJointIds
 import org.valkyrienskies.clockwork.util.hasFinitePoseData
 import org.valkyrienskies.clockwork.util.removeMatchingJointsExcept
 import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity.Companion.getQuaterniond
+import org.valkyrienskies.clockwork.util.DuctNetworkUtils.configureMetalDuctEdge
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.clockwork.util.universal_joint.IUniversalJoint
@@ -295,7 +296,7 @@ class HosePortBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
 
     private fun createEdge(nodeA: DuctNodePos, nodeB: DuctNodePos) {
         val kelvin = ClockworkMod.getKelvin(level)
-        edge = PipeDuctEdge(nodeA = nodeA, nodeB = nodeB, type = ConnectionType.PIPE, radius = 0.3125, length = 0.375)
+        edge = configureMetalDuctEdge(PipeDuctEdge(nodeA = nodeA, nodeB = nodeB, type = ConnectionType.PIPE, radius = 0.3125, length = 0.375))
         kelvin.addEdge(nodeA, nodeB, edge!!)
     }
 

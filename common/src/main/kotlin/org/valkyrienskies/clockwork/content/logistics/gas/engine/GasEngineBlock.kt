@@ -1,11 +1,13 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.engine
 
+import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock
 import com.simibubi.create.content.kinetics.steamEngine.SteamEngineBlock
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.network.chat.Component
+import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.RotatedPillarBlock
@@ -22,6 +24,12 @@ class GasEngineBlock(properties: Properties) : RotatedPillarBlock(properties), I
 
     override fun getBlockEntityType(): BlockEntityType<out GasEngineBlockEntity> {
         return ClockworkBlockEntities.GAS_ENGINE.get()
+    }
+
+    override fun getStateForPlacement(context: BlockPlaceContext): BlockState? {
+        val nearestLookingDirection = context.nearestLookingDirection
+        return defaultBlockState().setValue(AXIS, nearestLookingDirection.axis)
+
     }
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, movedByPiston: Boolean) {

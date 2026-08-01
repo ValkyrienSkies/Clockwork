@@ -3,6 +3,9 @@ package org.valkyrienskies.clockwork.content.logistics.gas.engine
 import com.simibubi.create.AllBlocks
 import com.simibubi.create.api.stress.BlockStressValues
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
+import dev.architectury.platform.Platform
+import net.createmod.ponder.api.level.PonderLevel
+import net.minecraft.client.Minecraft
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
@@ -14,6 +17,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.kelvin.KelvinParticleHelper
 import kotlin.math.min
@@ -28,6 +32,7 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     var temperatureEfficiency = 0.0f
     var flowEfficiency = 0.0f
     var flowRate = 0.0
+    var rawFlowRate = 0.0
 
     override fun lazyTick() {
         super.lazyTick()
@@ -43,22 +48,18 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
             ClockworkConfig.SERVER.gasEngine.gasEngineFlowRateIncrement,
             ClockworkConfig.SERVER.gasEngine.gasEngineTemperatureIncrement
         )
-        val nextEfficiency = GasEngineLogic.smoothEfficiency(
-            totalEfficiency,
-            components.totalEfficiency,
-            ClockworkConfig.SERVER.gasEngine.gasEngineEfficiencySmoothing
-        )
 
-        if (
-            nextEfficiency != totalEfficiency ||
+        if (components.totalEfficiency != totalEfficiency ||
             components.temperatureEfficiency != temperatureEfficiency ||
             components.flowEfficiency != flowEfficiency ||
-            components.flowRate != flowRate
-        ) {
-            totalEfficiency = nextEfficiency
+            components.flowRate != flowRate ||
+            components.rawFlowRate != rawFlowRate) {
+
+            totalEfficiency = components.totalEfficiency
             temperatureEfficiency = components.temperatureEfficiency
             flowEfficiency = components.flowEfficiency
             flowRate = components.flowRate
+            rawFlowRate = components.rawFlowRate
             sendData()
         }
     }
@@ -85,8 +86,27 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     }
 
     override fun addToGoggleTooltip(tooltip: List<Component>?, isPlayerSneaking: Boolean): Boolean {
-        EngineGoggleTooltip.addGasEngineTooltip(tooltip as MutableList<Component>, temperatureEfficiency, flowEfficiency)
+        EngineGoggleTooltip.addGasEngineTooltip(
+            tooltip as MutableList<Component>,
+            temperatureEfficiency,
+            flowEfficiency,
+            isPlayerSneaking,
+            getTooltipTemperature(),
+            ClockworkConfig.SERVER.gasEngine.gasEngineTemperatureIncrement,
+            rawFlowRate,
+            ClockworkConfig.SERVER.gasEngine.gasEngineFlowForFullEfficiency,
+            ClockworkConfig.SERVER.gasEngine.gasEngineMinimumFlowRate,
+            ClockworkConfig.SERVER.gasEngine.gasEngineFlowRateIncrement
+        )
         return super.addToGoggleTooltip(tooltip, isPlayerSneaking)
+    }
+
+    private fun getTooltipTemperature(): Double {
+        val beLevel = level ?: return 0.0
+        val kelvin = if (beLevel is PonderLevel) ClockworkMod.getKelvin(beLevel)
+            else if (Minecraft.getInstance().isLocalServer && Platform.isFabric()) ClockworkMod.getKelvin()
+            else ClockworkModClient.getKelvin()
+        return kelvin.getTemperatureAt(getDuctNodePosition())
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
@@ -95,6 +115,7 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         tag.putFloat("TemperatureEfficiency", temperatureEfficiency)
         tag.putFloat("FlowEfficiency", flowEfficiency)
         tag.putDouble("FlowRate", flowRate)
+        tag.putDouble("RawFlowRate", rawFlowRate)
 
         super.write(tag, clientPacket)
     }
@@ -105,6 +126,7 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         temperatureEfficiency = tag.getFloat("TemperatureEfficiency")
         flowEfficiency = tag.getFloat("FlowEfficiency")
         flowRate = tag.getDouble("FlowRate")
+        rawFlowRate = tag.getDouble("RawFlowRate")
 
         super.read(tag, clientPacket)
     }

@@ -23,6 +23,7 @@ import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkSounds
+import org.valkyrienskies.clockwork.util.DuctNetworkUtils.configureMetalDuctEdge
 import org.valkyrienskies.clockwork.util.findMatchingJoint
 import org.valkyrienskies.clockwork.util.findMatchingJointIds
 import org.valkyrienskies.clockwork.util.hasFinitePoseData
@@ -439,7 +440,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
 
     private fun createEdge(nodeA: DuctNodePos, nodeB: DuctNodePos) {
         val kelvin = ClockworkMod.getKelvin(level)
-        edge = PipeDuctEdge(nodeA = nodeA, nodeB = nodeB, type = ConnectionType.PIPE, radius = 0.3125, length = 0.375)
+        edge = configureMetalDuctEdge(PipeDuctEdge(nodeA = nodeA, nodeB = nodeB, type = ConnectionType.PIPE, radius = 0.3125, length = 0.375))
         kelvin.addEdge(nodeA, nodeB, edge!!)
     }
 

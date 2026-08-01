@@ -3,6 +3,9 @@ package org.valkyrienskies.clockwork.content.logistics.gas.engine
 import com.simibubi.create.content.kinetics.base.IRotate.SpeedLevel
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
+import dev.architectury.platform.Platform
+import net.createmod.ponder.api.level.PonderLevel
+import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
@@ -13,6 +16,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
 import org.valkyrienskies.clockwork.util.kelvin.KNodeKineticBlockEntity
 import org.valkyrienskies.kelvin.api.ConnectionType
@@ -26,10 +30,9 @@ import kotlin.math.sign
 class SterlingEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
     KNodeKineticBlockEntity(type, pos, state), IConnectable {
 
-    val heatLoss get() = totalEfficiency * ClockworkConfig.SERVER.gasEngine.sterlingEngineMaxHeatLoss
+    val heatLoss get() = efficiency * ClockworkConfig.SERVER.gasEngine.sterlingEngineMaxHeatLoss
 
-    var totalEfficiency = 0.0f
-    var temperatureEfficiency = 0.0f
+    var efficiency = 0.0f
     var reActivateSource = false
     private var lastFacing = state.getValue(BlockStateProperties.FACING)
 
@@ -43,22 +46,17 @@ class SterlingEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
         updateConnection(level, blockPos, facing)
         updateConnection(level, blockPos, facing.opposite)
 
-        val targetEfficiency = GasEngineLogic.calculateTemperatureEfficiency(
+        val newEfficiency = GasEngineLogic.calculateTemperatureEfficiency(
             level,
             getDuctNodePosition(),
             ClockworkConfig.SERVER.gasEngine.sterlingEngineTemperatureIncrement
         )
-        val nextEfficiency = GasEngineLogic.smoothEfficiency(
-            totalEfficiency,
-            targetEfficiency,
-            ClockworkConfig.SERVER.gasEngine.sterlingEngineEfficiencySmoothing
-        )
+
         val facingChanged = facing != lastFacing
         if (facingChanged) lastFacing = facing
 
-        if (nextEfficiency != totalEfficiency || targetEfficiency != temperatureEfficiency || facingChanged) {
-            totalEfficiency = nextEfficiency
-            temperatureEfficiency = targetEfficiency
+        if (newEfficiency != efficiency || facingChanged) {
+            efficiency = newEfficiency
             updateGeneratedRotation()
         }
     }
@@ -123,7 +121,7 @@ class SterlingEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
     }
 
     fun getEngineEfficiency(): Float {
-        return totalEfficiency.coerceIn(0f, 1f)
+        return efficiency.coerceIn(0f, 1f)
     }
 
     fun updateGeneratedRotation() {
@@ -206,19 +204,31 @@ class SterlingEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
-        tag.putFloat("TotalEfficiency", totalEfficiency)
-        tag.putFloat("TemperatureEfficiency", temperatureEfficiency)
+        tag.putFloat("TotalEfficiency", efficiency)
         super.write(tag, clientPacket)
     }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
-        totalEfficiency = tag.getFloat("TotalEfficiency")
-        temperatureEfficiency = tag.getFloat("TemperatureEfficiency")
+        efficiency = tag.getFloat("TotalEfficiency")
         super.read(tag, clientPacket)
     }
 
     override fun addToGoggleTooltip(tooltip: List<Component>?, isPlayerSneaking: Boolean): Boolean {
-        EngineGoggleTooltip.addSterlingEngineTooltip(tooltip as MutableList<Component>, temperatureEfficiency)
+        EngineGoggleTooltip.addSterlingEngineTooltip(
+            tooltip as MutableList<Component>,
+            efficiency,
+            isPlayerSneaking,
+            getTooltipTemperature(),
+            ClockworkConfig.SERVER.gasEngine.sterlingEngineTemperatureIncrement
+        )
         return super.addToGoggleTooltip(tooltip, isPlayerSneaking)
+    }
+
+    private fun getTooltipTemperature(): Double {
+        val beLevel = level ?: return 0.0
+        val kelvin = if (beLevel is PonderLevel) ClockworkMod.getKelvin(beLevel)
+            else if (Minecraft.getInstance().isLocalServer && Platform.isFabric()) ClockworkMod.getKelvin()
+            else ClockworkModClient.getKelvin()
+        return kelvin.getTemperatureAt(getDuctNodePosition())
     }
 }
