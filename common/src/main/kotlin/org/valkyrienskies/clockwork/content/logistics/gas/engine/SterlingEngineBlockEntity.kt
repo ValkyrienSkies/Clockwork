@@ -116,7 +116,7 @@ class SterlingEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
     override fun calculateAddedStressCapacity(): Float {
         val efficiency = getEngineEfficiency()
         val generatedSpeed = 16.0 * getSpeedModifier(efficiency)
-        val wholeStress = floor(efficiency * ClockworkConfig.SERVER.gasEngine.sterlingEngineStressCapacity * 16.0)
+        val wholeStress = floor(efficiency * ClockworkConfig.SERVER.gasEngine.sterlingEngineStressCapacity)
         val capacity = if (generatedSpeed <= 0.0) 0f else (wholeStress / generatedSpeed).toFloat()
         lastCapacityProvided = capacity
         return capacity

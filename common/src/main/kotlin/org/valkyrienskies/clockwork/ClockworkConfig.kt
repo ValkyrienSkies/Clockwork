@@ -253,10 +253,10 @@ object ClockworkConfig {
         var gasEngineMinimumFlowRate = 0.5
 
         @ConfigEntry(description = "Gas Engine flow rate increment, in kg/s. Through-flow is rounded down to this step before efficiency is calculated. Set to 0 to disable flow stepping.", min = 0.0)
-        var gasEngineFlowRateIncrement = 0.1
+        var gasEngineFlowRateIncrement = 0.25
 
         @ConfigEntry(description = "Gas Engine temperature increment, in K. Efficiency gains one tier per increment above 80K.", min = 1.0)
-        var gasEngineTemperatureIncrement = 290.0
+        var gasEngineTemperatureIncrement = 60.0
 
         @ConfigEntry(description = "Maximum heat energy consumed per tick by a loaded Gas Engine at full efficiency.", min = 0.0)
         var gasEngineMaxHeatLoss = 5000.0
@@ -265,13 +265,13 @@ object ClockworkConfig {
         var gasEngineEfficiencySmoothing = 0.2
 
         @ConfigEntry(description = "Sterling Engine temperature increment, in K. Efficiency gains one tier per increment above 80K.", min = 1.0)
-        var sterlingEngineTemperatureIncrement = 290.0
+        var sterlingEngineTemperatureIncrement = 60.0
 
         @ConfigEntry(description = "Maximum heat energy consumed per tick by a Sterling Engine at full efficiency.", min = 0.0)
         var sterlingEngineMaxHeatLoss = 5000.0
 
         @ConfigEntry(description = "Base stress capacity provided by a Sterling Engine at full efficiency.", min = 0.0)
-        var sterlingEngineStressCapacity = 1024.0
+        var sterlingEngineStressCapacity = 8192.0
 
         @ConfigEntry(description = "How quickly Sterling Engine efficiency approaches changes in temperature. 0 is instant, 1 is one tick.", min = 0.0, max = 1.0)
         var sterlingEngineEfficiencySmoothing = 0.2

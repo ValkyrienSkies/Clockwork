@@ -16,7 +16,7 @@ object GasEngineLogic {
     const val EFFICIENCY_STEPS = 6
     const val BAR_SEGMENTS = 18
     const val DEFAULT_TEMPERATURE_INCREMENT = 290.0
-    const val TEMPERATURE_OFFSET = 80.0
+    const val TEMPERATURE_OFFSET = 290.0
 
     fun calculateEfficiency(
         level: Level,

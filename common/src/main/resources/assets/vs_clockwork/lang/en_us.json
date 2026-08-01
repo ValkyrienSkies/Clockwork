@@ -471,7 +471,7 @@
   "vs_clockwork.gui.engine.temperature": "Temperature",
   "vs_clockwork.gui.engine.temperature_dots": ": ",
   "vs_clockwork.gui.engine.flowrate": "Flowrate",
-  "vs_clockwork.gui.engine.flowrate_dots": ": ",
+  "vs_clockwork.gui.engine.flowrate_dots": ":      ",
 
   "vs_clockwork.gui.ductInfo.title": "Duct Info:",
   "vs_clockwork.gui.ductInfo.volume": "Volume: %s",
