@@ -1,11 +1,11 @@
 package org.valkyrienskies.clockwork
 
-import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.logging.LogUtils
+import com.simibubi.create.AllBlocks
+import com.simibubi.create.api.boiler.BoilerHeater
 import com.simibubi.create.foundation.data.CreateRegistrate
 import com.simibubi.create.foundation.item.ItemDescription
 import com.simibubi.create.foundation.item.TooltipModifier
-import dev.architectury.event.events.common.CommandRegistrationEvent
 import dev.architectury.event.events.common.InteractionEvent
 import dev.architectury.event.events.common.LifecycleEvent
 import dev.architectury.event.events.common.TickEvent
@@ -15,8 +15,6 @@ import dev.architectury.registry.registries.DeferredRegister
 import dev.architectury.registry.registries.RegistrySupplier
 import net.createmod.catnip.lang.FontHelper
 import net.createmod.ponder.api.level.PonderLevel
-import net.minecraft.client.Minecraft
-import net.minecraft.commands.CommandSourceStack
 import net.minecraft.core.registries.Registries
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceKey
@@ -43,13 +41,10 @@ import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.api.DuctNetwork
 import org.valkyrienskies.kelvin.impl.DuctNetworkServer
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
-import org.valkyrienskies.mod.api.dimensionId
 import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.vsCore
-import java.util.WeakHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
-import kotlin.math.roundToInt
 
 
 object ClockworkMod {
@@ -104,7 +99,6 @@ object ClockworkMod {
         ClockworkTags.init()
         ClockworkRecipes.init()
         TAB_REGISTRY.register()
-
 
         vsCore.registerAttachment(PocketForcesController::class.java)
         vsCore.registerAttachment(WanderShipControl::class.java)
@@ -193,6 +187,11 @@ object ClockworkMod {
         KelvinMod.disableReactionJEI()
     }
 
+    @JvmStatic
+    fun registerHeaters() {
+        // Needs to be deferred (event.enqueueWork) on forge, but fabric it can be run immediately
+        BoilerHeater.REGISTRY.register(ClockworkBlocks.GAS_HEATER.get(), BoilerHeater.BLAZE_BURNER)
+    }
     @JvmStatic
     fun physTickOnce(dimensionId: String, fn: (level: PhysLevel, delta: Double, tryNextTick: () -> Unit) -> Unit) {
         physTickOnce.add(dimensionId to fn)

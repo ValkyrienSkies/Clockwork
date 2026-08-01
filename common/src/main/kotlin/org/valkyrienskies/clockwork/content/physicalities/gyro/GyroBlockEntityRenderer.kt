@@ -25,7 +25,7 @@ class GyroBlockEntityRenderer(context: BlockEntityRendererProvider.Context?) :
     private var crystalAngle = 0f
 
     override fun renderSafe(be: GyroBlockEntity, partialTicks: Float, ms: PoseStack, buffer: MultiBufferSource?, light: Int, overlay: Int) {
-        super.renderSafe(be, partialTicks, ms, buffer, light, overlay)
+        //super.renderSafe(be, partialTicks, ms, buffer, light, overlay)
 
         val blockState: BlockState = be.blockState
         val speed: Float = be.visualSpeed.getValue(partialTicks) * 3 / 10f

@@ -64,9 +64,9 @@ object RenderUtil {
         matrices.translate(-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)),-(1 / (scale.toDouble() * 4)))
 
         matrices.translate(-modelCorrection.x().toDouble(), -modelCorrection.y().toDouble(), -modelCorrection.z().toDouble())
-        Quaternionf(AxisAngle4f(AngleHelper.rad(rotationVec.y().toDouble()), 0f, 1f, 0f))
-        Quaternionf(AxisAngle4f(AngleHelper.rad(rotationVec.x().toDouble()), 1f, 0f, 0f))
-        Quaternionf(AxisAngle4f(AngleHelper.rad(rotationVec.z().toDouble()), 0f, 0f, 1f))
+        matrices.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(rotationVec.y().toDouble()), 0f, 1f, 0f)))
+        matrices.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(rotationVec.x().toDouble()), 1f, 0f, 0f)))
+        matrices.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(rotationVec.z().toDouble()), 0f, 0f, 1f)))
         matrices.translate(modelCorrection.x().toDouble(), modelCorrection.y().toDouble(), modelCorrection.z().toDouble())
         renderer.render(model.get(), renderType, light)
 

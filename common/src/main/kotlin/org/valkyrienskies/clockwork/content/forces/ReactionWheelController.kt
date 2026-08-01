@@ -34,7 +34,7 @@ class ReactionWheelController(
             val wheelMass = ClockworkConfig.SERVER.reactionWheelEffectiveness * 64.0
             physShip.applyWorldTorque(
                 physShip.transform.shipToWorld.transformDirection(Vector3d(data.direction), Vector3d())
-                    .normalize()
+                    .normalize().negate()
                     .mul(data.currentRPM * wheelMass))
         }
 

@@ -38,7 +38,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-@Mixin(ComposterBlock.class)
+@Mixin(value = ComposterBlock.class, priority = 1001)
 public class MixinComposterBlock extends Block implements INodeBlock, IHaveDuctStats {
 
     @Unique

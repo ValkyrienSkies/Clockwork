@@ -9,6 +9,7 @@
     "MixinLivingEntity",
     "MixinPlayer",
     "MixinRecipeGuiLogic",
+    "MixinSchematicActionsQueue",
     "MixinToolboxHandler",
     "MixinWaterBlock",
     "accessors.FluidAccessor",

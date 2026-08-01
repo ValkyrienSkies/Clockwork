@@ -17,6 +17,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtUtils
+import net.minecraft.network.chat.Component
 import net.minecraft.sounds.SoundSource
 import net.minecraft.util.Mth
 import net.minecraft.util.RandomSource
@@ -39,6 +40,7 @@ import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_s
 import org.valkyrienskies.clockwork.platform.SolidDeliveryMethods
 import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.clockwork.util.EaseHelper
+import org.valkyrienskies.clockwork.util.gui.ClockworkTooltipHelper
 import org.valkyrienskies.mod.api.toFloat
 import org.valkyrienskies.mod.api.toMinecraft
 import org.valkyrienskies.mod.common.getShipManagingPos
@@ -191,8 +193,8 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     }
 
     fun reset() {
-        xRot.updateChaseTarget(defaultXrot.toFloat())
-        yRot.updateChaseTarget(0f)
+        /*xRot.updateChaseTarget(defaultXrot.toFloat())
+        yRot.updateChaseTarget(0f)*/
         distance.setValue(0.0)
         distance.updateChaseTarget(0f)
 
@@ -308,10 +310,17 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         super.read(tag, clientPacket)
 
-        // The CompoundTag? ?: return is sus I will admit
-        xRot.readNBT(tag.get("xRot") as CompoundTag? ?: return, clientPacket)
-        yRot.readNBT(tag.get("yRot") as CompoundTag? ?: return, clientPacket)
-        distance.readNBT(tag.get("distance") as CompoundTag? ?:return, clientPacket)
+        // This is sus I will admit
+        (tag.get("xRot") as CompoundTag?)?.let {
+            xRot.readNBT(it, clientPacket)
+        }
+        (tag.get("yRot") as CompoundTag?)?.let {
+            yRot.readNBT(it, clientPacket)
+        }
+
+        (tag.get("distance") as CompoundTag?)?.let {
+            distance.readNBT(it, clientPacket)
+        }
 
         currentStack = ItemStack.of(tag)
         midAirStack = ItemStack.of(tag)
@@ -368,6 +377,20 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         }
     }
 
+    override fun addToGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
+        shootingAtChute ?: return false
+        val be = level?.getBlockEntity(shootingAtChute!!)
+        if (be is DeliveryChuteBlockEntity) {
+            if (!be.receiveItem(currentStack, true)) {
+                ClockworkTooltipHelper.addTitleAndHint(
+                    tooltip,
+                    "gui.delivery_cannon.info.obstructed.title",
+                    "gui.delivery_cannon.info.obstructed")
+                return true
+            }
+        }
+        return false
+    }
 
     enum class DistributionMode(private val icon: AllIcons) : INamedIconOptions {
         ROUND_ROBIN(AllIcons.I_TUNNEL_ROUND_ROBIN),

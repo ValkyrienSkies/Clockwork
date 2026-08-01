@@ -3,25 +3,28 @@ package org.valkyrienskies.clockwork.content.physicalities.spinoff_bearing
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.item.ItemStack
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
-import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.DirectionalBlock
-import net.minecraft.world.level.block.RenderShape
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
+import org.joml.Vector3d
+import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkShapes
+import org.valkyrienskies.core.api.ships.ServerShip
+import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
+import org.valkyrienskies.mod.common.assembly.ICopyableBlock
 
-class SpinoffBearingBlock(properties: Properties) : DirectionalBlock(properties), IBE<SpinoffBearingBlockEntity> {
+class SpinoffBearingBlock(properties: Properties) : DirectionalBlock(properties), IBE<SpinoffBearingBlockEntity>, ICopyableBlock {
 
     init {
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.UP))
@@ -80,5 +83,47 @@ class SpinoffBearingBlock(properties: Properties) : DirectionalBlock(properties)
 
     override fun getBlockEntityType(): BlockEntityType<out SpinoffBearingBlockEntity> {
         return ClockworkBlockEntities.SPINOFF_BEARING.get()
+    }
+
+    override fun onCopy(
+        level: ServerLevel,
+        pos: BlockPos,
+        state: BlockState,
+        be: BlockEntity?,
+        shipsBeingCopied: List<ServerShip>,
+        centerPositions: Map<Long, Vector3dc>
+    ): CompoundTag? {
+        return null
+    }
+
+    override fun onPaste(
+        level: ServerLevel,
+        pos: BlockPos,
+        state: BlockState,
+        oldShipIdToNewId: Map<Long, Long>,
+        centerPositions: Map<Long, Pair<Vector3dc, Vector3dc>>,
+        tag: CompoundTag?
+    ): CompoundTag? {
+        tag ?: return null
+
+        if (tag.contains("partnerX") && tag.contains("partnerY") && tag.contains("partnerZ")) {
+            val x = tag.getInt("partnerX")
+            val y = tag.getInt("partnerY")
+            val z = tag.getInt("partnerZ")
+            var vectorPartner = Vector3d(x.toDouble(), y.toDouble(), z.toDouble()).add(0.5, 0.5, 0.5)
+
+            val partnerId = tag.getInt("partnerShipId").toLong()
+            val centerMigrate = centerPositions[partnerId] ?: return null
+            vectorPartner = vectorPartner.sub(centerMigrate.first).add(centerMigrate.second)
+            val bp = vectorPartner.toMinecraft()
+            tag.putInt("partnerX", bp.x)
+            tag.putInt("partnerY", bp.y)
+            tag.putInt("partnerZ", bp.z)
+
+            tag.putInt("jointId", -1)
+            return tag
+        }
+
+        return null
     }
 }

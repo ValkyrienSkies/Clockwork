@@ -10,6 +10,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearin
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctBlockEntity
 
 val PERIPHERALS = mapOf<BlockEntityType<*>, (BlockEntity, Direction?) -> IPeripheral>(
     ClockworkBlockEntities.PHYS_BEARING.get() to {be, _ -> PhysBearingPeripheral(be as PhysBearingBlockEntity)},
@@ -17,7 +18,8 @@ val PERIPHERALS = mapOf<BlockEntityType<*>, (BlockEntity, Direction?) -> IPeriph
     ClockworkBlockEntities.FLAP_BEARING.get() to {be, _ -> FlapBearingPeripheral(be as FlapBearingBlockEntity)},
     ClockworkBlockEntities.SMART_FLAP_BEARING.get() to {be, _ -> FlapBearingPeripheral(be as FlapBearingBlockEntity)},
     ClockworkBlockEntities.ALT_METER.get() to {be, _ -> AltMeterPeripheral(be as AltMeterBlockEntity)},
-    ClockworkBlockEntities.PROPELLER_BEARING.get() to {be, _ -> PropellerBearingPeripheral(be as PropellerBearingBlockEntity)}
+    ClockworkBlockEntities.PROPELLER_BEARING.get() to {be, _ -> PropellerBearingPeripheral(be as PropellerBearingBlockEntity)},
+    ClockworkBlockEntities.VALVE_DUCT.get() to {be, _ -> ValveDuctPeripheral(be as ValveDuctBlockEntity)}
 )
 
 fun getPeripheralCommon(be: BlockEntity, direction: Direction?): IPeripheral? = PERIPHERALS[be.type]?.invoke(be, direction)

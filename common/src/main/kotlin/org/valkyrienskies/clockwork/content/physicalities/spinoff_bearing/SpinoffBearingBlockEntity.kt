@@ -4,17 +4,11 @@ import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.core.Direction.DOWN
-import net.minecraft.core.Direction.EAST
-import net.minecraft.core.Direction.NORTH
-import net.minecraft.core.Direction.SOUTH
-import net.minecraft.core.Direction.UP
-import net.minecraft.core.Direction.WEST
+import net.minecraft.core.Direction.*
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.sounds.SoundSource
 import net.minecraft.world.level.ClipContext
-import net.minecraft.world.level.block.DirectionalBlock.FACING
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
@@ -27,12 +21,7 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkSounds
-import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity
-import org.valkyrienskies.clockwork.util.findMatchingJoint
-import org.valkyrienskies.clockwork.util.findMatchingJointIds
-import org.valkyrienskies.clockwork.util.hasFinitePoseData
-import org.valkyrienskies.clockwork.util.gtpa
-import org.valkyrienskies.clockwork.util.removeMatchingJointsExcept
+import org.valkyrienskies.clockwork.util.*
 import org.valkyrienskies.core.api.VsBeta
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
@@ -46,11 +35,11 @@ import org.valkyrienskies.core.internal.joints.VSJointPose
 import org.valkyrienskies.core.internal.joints.VSRevoluteJoint
 import org.valkyrienskies.core.internal.world.VsiPhysLevel
 import org.valkyrienskies.mod.api.BlockEntityPhysicsListener
-import org.valkyrienskies.mod.api.dimensionId
 import org.valkyrienskies.mod.common.getLoadedShipManagingPos
 import org.valkyrienskies.mod.common.toWorldCoordinates
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.world.clipIncludeShips
+import java.lang.Math
 
 @OptIn(PhysTickOnly::class, GameTickOnly::class, VsBeta::class)
 class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : SmartBlockEntity(type, pos,
@@ -84,7 +73,6 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
     @Volatile
     var shouldRemoveJoint: Boolean = false
     var shouldVerifyPartner: Boolean = false
-    private var deferredRestoreTries: Int = 0
     private var pendingRemovalJoint: VSRevoluteJoint? = null
 
     var reconnectDelay: Int = 0
@@ -100,6 +88,12 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
             tag.putInt("partnerZ", partnerPos!!.z)
         }
         tag.putInt("jointId", jointId)
+
+        // We only serialize this for the ICopyableBlock.onPaste in SpinoffBearingBlock
+        partnerShipId?.let {
+            tag.putLong("partnerShipId", it)
+        }
+
         tag.putBoolean("isLeader", isLeader)
         super.write(tag, clientPacket)
     }
@@ -115,8 +109,8 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
         if (tag.contains("isLeader")) {
             isLeader = tag.getBoolean("isLeader")
         }
+
         jointId = tag.getInt("jointId")
-        deferredRestoreTries = 0
         shouldVerifyPartner = true
     }
 
@@ -235,36 +229,11 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
                         vsiPhysLevel.removeJoint(jointId)
                         isConnected = false
                         jointId = -1
-                        deferredRestoreTries = 0
                     } else {
                         isConnected = true
                         vsiPhysLevel.removeMatchingJointsExcept(existingJoint, jointId)
                         shouldVerifyConnection = false
-                        deferredRestoreTries = 0
                     }
-                } ?: run {
-                    deferredRestoreTries++
-                    if (deferredRestoreTries < MAX_RESTORE_TRIES) {
-                        if (deferredRestoreTries % 20 == 0) {
-                            ClockworkMod.LOGGER.warn(
-                                "Deferring spinoff bearing restore at {} while waiting for joint {} to load (attempt {}).",
-                                blockPos,
-                                jointId,
-                                deferredRestoreTries
-                            )
-                        }
-                        return
-                    }
-
-                    ClockworkMod.LOGGER.warn(
-                        "Discarding stale spinoff bearing joint reference at {} (joint={}) after {} restore attempts.",
-                        blockPos,
-                        jointId,
-                        deferredRestoreTries
-                    )
-                    isConnected = false
-                    jointId = -1
-                    deferredRestoreTries = 0
                 }
             }
             if (!isConnected) {
@@ -277,7 +246,6 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
                     isConnected = true
                     vsiPhysLevel.removeMatchingJointsExcept(matchingJoint.joint, matchingJoint.jointId)
                     shouldVerifyConnection = false
-                    deferredRestoreTries = 0
                     return
                 }
                 if (!revoluteJoint.hasFinitePoseData()) {
@@ -295,7 +263,6 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
                 }
                 isConnected = jointId != -1
                 shouldVerifyConnection = false
-                deferredRestoreTries = 0
             }
         }
         if (shouldRemoveJoint) {
@@ -323,7 +290,6 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
         partnerShipId = null
         partnerFacing = null
         reconnectDelay = 10
-        deferredRestoreTries = 0
     }
 
     private fun removeTrackedJoint(serverLevel: ServerLevel) {
@@ -339,7 +305,6 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
         shouldVerifyConnection = false
         shouldRemoveJoint = false
         jointId = -1
-        deferredRestoreTries = 0
         pendingRemovalJoint = null
     }
 
@@ -368,7 +333,7 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
             partnerHingeOrientation
         )
 
-        return if (selfShipId == null) {
+        val joint = if (selfShipId == null) {
             VSRevoluteJoint(
                 null,
                 selfPose,
@@ -385,6 +350,10 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
                 driveFreeSpin = true
             )
         }
+
+        joint.serialized()
+
+        return joint
     }
 
     override fun destroy() {
@@ -441,9 +410,5 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
     }
 
     override fun addBehaviours(behaviours: List<BlockEntityBehaviour?>?) {
-    }
-
-    companion object {
-        private const val MAX_RESTORE_TRIES = 40
     }
 }

@@ -231,12 +231,18 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
 
         val neighborBe = level.getBlockEntity(neighborPos)
-        if (neighborBe !is INodeBlockEntity) {
+        val neighborDuctNodePos: DuctNodePos
+        if (neighborBe is INodeBlockEntity) {
+            neighborDuctNodePos = neighborBe.getDuctNodePosition()
+        } else if (neighborState.block is INodeBlock) {
+            // Blocks with no BlockEntity (e.g. a mixed-in vanilla block like ComposterBlock) still
+            // register a node keyed by their raw position, so fall back to that instead of requiring
+            // an INodeBlockEntity to exist.
+            neighborDuctNodePos = neighborPos.toDuctNodePos(level.dimension().location())
+        } else {
             blockEntity.clearEdgeType(direction)
             return finalConnection
         }
-
-        val neighborDuctNodePos = neighborBe.getDuctNodePosition()
         val storedType = blockEntity.DIR_TO_CONNECTION_TYPE[direction] ?: DuctEdgeType.PIPE
         val connectionType = if (finalConnection.isConnected) (if (storedType != DuctEdgeType.NONE) storedType else DuctEdgeType.PIPE) else DuctEdgeType.NONE
 

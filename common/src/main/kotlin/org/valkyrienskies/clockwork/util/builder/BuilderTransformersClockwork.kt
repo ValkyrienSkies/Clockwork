@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.util.builder
 import com.simibubi.create.AllBlocks
 import com.simibubi.create.AllTags
 import com.simibubi.create.content.decoration.encasing.CasingBlock
+import com.simibubi.create.content.decoration.encasing.CasingConnectivity
 import com.simibubi.create.content.decoration.encasing.EncasedCTBehaviour
 import com.simibubi.create.content.kinetics.base.AbstractEncasedShaftBlock
 import com.simibubi.create.content.kinetics.base.RotatedPillarKineticBlock
@@ -158,22 +159,36 @@ object BuilderTransformersClockwork {
         }
     }
 
+    /**
+     * We use this instead of [com.simibubi.create.foundation.data.BuilderTransformers.casing] because this function uses
+     * the correct inventory tab
+     */
     fun <B : CasingBlock> casing(
         ct: Supplier<CTSpriteShiftEntry>
     ): NonNullUnaryOperator<BlockBuilder<B, CreateRegistrate>> {
-        return NonNullUnaryOperator { builder: BlockBuilder<B, CreateRegistrate> ->
-            builder.initialProperties { SharedProperties.wooden() }
-                .properties {p -> p.sound(SoundType.WOOD)}
+        return NonNullUnaryOperator { b: BlockBuilder<B, CreateRegistrate> ->
+            b.initialProperties(NonNullSupplier { SharedProperties.stone() })
+                .properties { p: BlockBehaviour.Properties -> p.sound(SoundType.WOOD) }
                 .transform(axeOrPickaxe())
-                .onRegister(CreateRegistrate.connectedTextures{ EncasedCTBehaviour(ct.get()) })
-                .blockstate{ c, p -> p.simpleBlock(c.get()) }
-                .onRegister { it -> CreateRegistrate.connectedTextures<B> { EncasedCTBehaviour(ct.get()) } }
-                .onRegister { it -> CreateRegistrate.casingConnectivity<B> { block, cc -> cc.makeCasing(block, ct.get())} }
+                .transform<Block, B, CreateRegistrate, BlockBuilder<B, CreateRegistrate>>(axeOrPickaxe<B, CreateRegistrate>())
+                .blockstate { c: DataGenContext<Block, B>, p: RegistrateBlockstateProvider ->
+                    p.simpleBlock(
+                        c.get()
+                    )
+                }
+                .onRegister(CreateRegistrate.connectedTextures<B> { EncasedCTBehaviour(ct.get()) })
+                .onRegister(CreateRegistrate.casingConnectivity<B> { block: B, cc: CasingConnectivity ->
+                    cc.makeCasing(
+                        block,
+                        ct.get()
+                    )
+                })
                 .tag(AllTags.AllBlockTags.CASING.tag)
                 .item()
-                .tag(AllTags.AllItemTags.CASING.tag)
                 .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+                .tag(AllTags.AllItemTags.CASING.tag)
                 .build()
         }
     }
 }
+

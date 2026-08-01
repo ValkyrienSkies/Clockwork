@@ -1,7 +1,5 @@
 package org.valkyrienskies.clockwork
 
-import com.simibubi.create.foundation.collision.Matrix3d
-import com.simibubi.create.foundation.collision.OrientedBB
 import com.tterrag.registrate.util.entry.ItemProviderEntry
 import net.createmod.ponder.Ponder
 import net.createmod.ponder.api.ParticleEmitter
@@ -16,7 +14,6 @@ import net.minecraft.core.particles.ParticleOptions
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.Vec2
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.content.ponders.KelvinPonders.duct
 import org.valkyrienskies.clockwork.content.ponders.KineticPonders.redstoneResistor
@@ -34,6 +31,7 @@ object ClockworkPonders {
 
     fun init(helper: PonderSceneRegistrationHelper<ResourceLocation>) {
         val HELPER: PonderSceneRegistrationHelper<ItemProviderEntry<*>> = helper.withKeyFunction { it.id }
+
         HELPER.forComponents(ClockworkItems.WANDERWAND, ClockworkBlocks.PHYSICS_INFUSER)
             .addStoryBoard(
                 "wanderwand", ::createShip

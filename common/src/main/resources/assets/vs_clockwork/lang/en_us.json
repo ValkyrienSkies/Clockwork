@@ -435,6 +435,11 @@
   "vs_clockwork.unit.mass.imperial_ton": "ton",
   "vs_clockwork.unit.mass.ounce": "oz",
 
+  "vs_clockwork.gui.delivery_cannon.info.obstructed.title": "Cannon cannot activate",
+  "vs_clockwork.gui.delivery_cannon.info.obstructed": "It appears the destination chute is full. The cannon cannot fire until the chute is emptied.",
+  "vs_clockwork.gui.delivery_chute.info.obstructed.title": "Chute contains excess items",
+  "vs_clockwork.gui.delivery_chute.info.obstructed": "The storage below this delivery chute is full.",
+
   "vs_clockwork.gui.air_compressor.info.title": "Compressor Info:",
   "vs_clockwork.gui.air_compressor.info.obstructed.title": "Obstructed",
   "vs_clockwork.gui.air_compressor.info.obstructed": "Cannot operate with a solid block directly above.",
@@ -504,6 +509,9 @@
   "vs_clockwork.display_source.duct.energy": "Thermal energy",
   "vs_clockwork.display_source.duct.pressure": "Pressure",
   "vs_clockwork.display_source.duct.temperature": "Temperature",
+
+  "vs_clockwork.ponder.tag.cw_ponders": "VS: Clockwork",
+  "vs_clockwork.ponder.tag.cw_ponders.description": "Features added by Valkyrien Skies: Clockwork",
 
   "vs_clockwork.ponder.wanderwand.header": "Wanderwand",
   "vs_clockwork.ponder.wanderwand.text_1": "Place the wand in the Physics Infuser",

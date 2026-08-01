@@ -195,7 +195,7 @@ object ClockworkConfig {
         @ConfigEntry(description = "Temperature for the gas heater to act like a passive heat source (campfires, dormant blaze burners). Default is 500K (baking oven)")
         var heaterSmoulderingTemp = 500
 
-        @ConfigEntry(description = "Temperature for the gas heater to act like a heated blaze burner. Default is 1000K (ceramic firing)")
+        @ConfigEntry(description = "Temperature for the gas heater to act like a heated blaze burner. Default is 800K (almost ceramic firing). Default allows a coal burner to reach kindled temps, skipping blaze progression.")
         var heaterKindledTemp = 800
 
         @ConfigEntry(description = "Temperature for the gas heater to act like a superheated blaze burner. Default is 1500K (real metallurgy)")

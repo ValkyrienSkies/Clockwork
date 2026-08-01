@@ -75,6 +75,8 @@ public class ClockworkModFabric implements ModInitializer {
         if (Platform.isModLoaded("computercraft")) {
             registerPeripheralLookup();
         }
+
+        ClockworkMod.registerHeaters();
     }
 
     public static void registerServerEvents() {

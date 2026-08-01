@@ -6,32 +6,23 @@ import com.simibubi.create.api.behaviour.display.DisplaySource.displaySource
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour.movementBehaviour
 import com.simibubi.create.api.stress.BlockStressValues
 import com.simibubi.create.content.decoration.encasing.CasingBlock
-import com.simibubi.create.content.decoration.encasing.CasingConnectivity
-import com.simibubi.create.content.decoration.encasing.EncasedCTBehaviour
 import com.simibubi.create.content.decoration.encasing.EncasingRegistry
 import com.simibubi.create.content.fluids.PipeAttachmentModel
-import com.simibubi.create.foundation.block.connected.CTSpriteShiftEntry
 import com.simibubi.create.foundation.data.AssetLookup
-import com.simibubi.create.foundation.data.BuilderTransformers
 import com.simibubi.create.foundation.data.CreateRegistrate
-import com.simibubi.create.foundation.data.CreateRegistrate.connectedTextures
 import com.simibubi.create.foundation.data.ModelGen.customItemModel
 import com.simibubi.create.foundation.data.SharedProperties
 import com.simibubi.create.foundation.data.TagGen.axeOrPickaxe
-import com.tterrag.registrate.builders.BlockBuilder
 import com.tterrag.registrate.providers.DataGenContext
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider
 import com.tterrag.registrate.util.entry.BlockEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
-import com.tterrag.registrate.util.nullness.NonNullSupplier
-import com.tterrag.registrate.util.nullness.NonNullUnaryOperator
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.resources.model.BakedModel
 import net.minecraft.world.item.CreativeModeTabs
 import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.block.state.BlockBehaviour
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
@@ -1020,9 +1011,9 @@ object ClockworkBlocks {
         CasingBlock(
             properties!!
         )
-    }
-        .initialProperties { SharedProperties.wooden() }
-        .transform(casing { ClockworkSpriteShifts.BALLOON_CASING })
+    }.initialProperties { SharedProperties.wooden() }
+        .transform(BuilderTransformersClockwork.casing { ClockworkSpriteShifts.BALLOON_CASING })
+
         .register()
 
     @JvmField
@@ -1166,34 +1157,4 @@ object ClockworkBlocks {
 
     }
 
-    /**
-     * We use this instead of [BuilderTransformers.casing] because this function uses
-     * the correct inventory tab
-     */
-    fun <B : CasingBlock> casing(
-        ct: Supplier<CTSpriteShiftEntry>
-    ): NonNullUnaryOperator<BlockBuilder<B, CreateRegistrate>> {
-        return NonNullUnaryOperator { b: BlockBuilder<B, CreateRegistrate> ->
-            b.initialProperties(NonNullSupplier { SharedProperties.stone() })
-                .properties { p: BlockBehaviour.Properties -> p.sound(SoundType.WOOD) }
-                .transform<Block, B, CreateRegistrate, BlockBuilder<B, CreateRegistrate>>(axeOrPickaxe<B, CreateRegistrate>())
-                .blockstate { c: DataGenContext<Block, B>, p: RegistrateBlockstateProvider ->
-                    p.simpleBlock(
-                        c.get()
-                    )
-                }
-                .onRegister(connectedTextures<B> { EncasedCTBehaviour(ct.get()) })
-                .onRegister(CreateRegistrate.casingConnectivity<B> { block: B, cc: CasingConnectivity ->
-                    cc.makeCasing(
-                        block,
-                        ct.get()
-                    )
-                })
-                .tag(AllTags.AllBlockTags.CASING.tag)
-                .item()
-                .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
-                .tag(AllTags.AllItemTags.CASING.tag)
-                .build()
-        }
-    }
 }

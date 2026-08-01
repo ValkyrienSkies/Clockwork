@@ -24,6 +24,11 @@ class ValveDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Blo
         .startWithValue(0.0)
         .chase(0.0, 0.0, LerpedFloat.Chaser.LINEAR)
 
+    /**
+     * Used for Computer Craft computers to set the target angle
+     */
+    var computerTarget: Double? = null
+
     override fun lazyTick() {
         super.lazyTick()
 
@@ -57,10 +62,19 @@ class ValveDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Blo
     override fun onSpeedChanged(previousSpeed: Float) {
         super.onSpeedChanged(previousSpeed)
 
-        val target = (if (speed > 0) 1 else 0).toDouble()
-        pointer.chase(target, getChaseSpeed(), LerpedFloat.Chaser.LINEAR)
-        sendData()
+        updateTarget()
+    }
 
+    fun updateTarget() {
+        var target = (if (speed > 0) 1 else 0).toDouble()
+
+        computerTarget?.let {
+            target = it
+        }
+
+        pointer.chase(target, getChaseSpeed(), LerpedFloat.Chaser.LINEAR)
+
+        sendData()
     }
 
     private fun getChaseSpeed(): Double {

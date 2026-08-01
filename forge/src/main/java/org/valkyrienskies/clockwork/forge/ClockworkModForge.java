@@ -89,6 +89,7 @@ public class ClockworkModForge {
 //                () -> new ConfigGuiHandler.ConfigGuiFactory((minecraft, screen) -> VSClothConfig.createConfigScreenFor(screen, ClockworkConfig.class))
 //        );
 
+
     }
 
     private void onConfigLoading(ModConfigEvent.Loading event) {
@@ -113,7 +114,9 @@ public class ClockworkModForge {
         }
     }
 
-    public static void init(final FMLCommonSetupEvent event) {}
+    public static void init(final FMLCommonSetupEvent event) {
+        event.enqueueWork(ClockworkMod::registerHeaters);
+    }
 
     private void onClientSetup(FMLClientSetupEvent event) {
         ItemBlockRenderTypes.setRenderLayer(ClockworkBlocks.GOO_BLOCK.get(), RenderType.translucent());

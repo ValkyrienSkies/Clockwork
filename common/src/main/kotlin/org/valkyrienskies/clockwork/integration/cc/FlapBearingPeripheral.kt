@@ -4,15 +4,12 @@ package org.valkyrienskies.clockwork.integration.cc
 
 import dan200.computercraft.api.lua.LuaException
 import dan200.computercraft.api.lua.LuaFunction
+import dan200.computercraft.api.peripheral.IComputerAccess
 import dan200.computercraft.api.peripheral.IPeripheral
-import net.createmod.catnip.animation.LerpedFloat
-import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkConfig
-import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap.SmartFlapBearingBlockEntity
-import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlockEntity
-import java.util.Optional
+import java.util.*
 
 class FlapBearingPeripheral(private val be: FlapBearingBlockEntity): IPeripheral {
 
@@ -75,6 +72,10 @@ class FlapBearingPeripheral(private val be: FlapBearingBlockEntity): IPeripheral
         if (!be.isRunning) return false
         be.disassemble()
         return true
+    }
+
+    override fun detach(computer: IComputerAccess?) {
+        be.isLocked = false
     }
 
     override fun equals(p0: IPeripheral?): Boolean = be.blockPos == (p0 as? FlapBearingPeripheral)?.be?.blockPos
