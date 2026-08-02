@@ -37,7 +37,7 @@ class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
     // Airflow speed parameters cannot be easily made configurable because air current code runs both on server and client
     // so values need to somehow be synced.
     val MAX_AIRFLOW_SPEED = 256F // like a maxed out encased fan with default max rpm cap
-    val PRESSURE_TO_SPEED = 256F / 10000F // outflow pressure in exhausts is very low compared to thrusters, may need tweaking later
+    val PRESSURE_TO_SPEED = 256F / 1000000F // outflow pressure in exhausts is very low compared to thrusters, may need tweaking later
 
     @JvmField
     var airCurrent: AirCurrent? = null
@@ -116,7 +116,7 @@ class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
             val temp = network.getTemperatureAt(getDuctNodePosition())
             val duck = (airCurrent as? MixinAirCurrentDuck)
             duck?.disableParticles(true)
-            duck?.setOwnProcessingType(duck?.getProcessingTypeFor(temp))
+            duck?.setOwnProcessingType(duck.getProcessingTypeFor(temp))
 
             airCurrent?.rebuild();
             sendData();
