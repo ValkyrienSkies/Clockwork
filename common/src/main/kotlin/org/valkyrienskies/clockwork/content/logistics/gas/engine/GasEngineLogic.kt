@@ -14,6 +14,7 @@ import kotlin.math.min
 object GasEngineLogic {
     const val BAR_SEGMENTS = 20
     const val EFFICIENCY_STEPS = BAR_SEGMENTS
+    const val MAX_TOTAL_EFFICIENCY = 3f
     const val DEFAULT_TEMPERATURE_INCREMENT = 60.0
     const val TEMPERATURE_OFFSET = 290.0
 
@@ -211,6 +212,21 @@ object GasEngineLogic {
         return (throughput / flowForFullEfficiency).coerceIn(0.0, 1.0).toFloat()
     }
 
+    fun combineEfficiencies(temperatureEfficiency: Float, flowEfficiency: Float): Float {
+        return temperatureEfficiency.coerceIn(0f, 1f) *
+            flowEfficiency.coerceIn(0f, 1f) *
+            MAX_TOTAL_EFFICIENCY
+    }
+
+    fun efficiencyPerAttachedEngine(totalEfficiency: Float, attachedEngines: Int): Float {
+        if (attachedEngines <= 0) return 0f
+        return (totalEfficiency.coerceAtLeast(0f) / attachedEngines).coerceAtMost(1f)
+    }
+
+    fun totalEfficiencyFraction(totalEfficiency: Float): Float {
+        return (totalEfficiency / MAX_TOTAL_EFFICIENCY).coerceIn(0f, 1f)
+    }
+
     fun getSpeedModifier(efficiency: Float): Int {
         return 1 + if (efficiency >= 1f) 3 else min(2.0, floor(efficiency * 4.0)).toInt()
     }
@@ -245,6 +261,6 @@ object GasEngineLogic {
         val flowRate: Double,
         val rawFlowRate: Double
     ) {
-        val totalEfficiency: Float get() = temperatureEfficiency * flowEfficiency
+        val totalEfficiency: Float get() = combineEfficiencies(temperatureEfficiency, flowEfficiency)
     }
 }

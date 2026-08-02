@@ -20,12 +20,12 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.kelvin.KelvinParticleHelper
-import kotlin.math.min
 
 class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState): KNodeBlockEntity(type, pos, state) {
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) { return }
 
-    val heatLoss get() = totalEfficiency * ClockworkConfig.SERVER.gasEngine.gasEngineMaxHeatLoss
+    val heatLoss get() = GasEngineLogic.totalEfficiencyFraction(totalEfficiency) *
+        ClockworkConfig.SERVER.gasEngine.gasEngineMaxHeatLoss
 
     var attachedEngines = 0
     var totalEfficiency = 0.0f
@@ -73,7 +73,7 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     }
 
     fun getEngineEfficiency(): Float {
-        val efficiency = if (attachedEngines == 0) 0f else min(totalEfficiency / attachedEngines, 1f)
+        val efficiency = GasEngineLogic.efficiencyPerAttachedEngine(totalEfficiency, attachedEngines)
         return GasEngineLogic.roundEfficiencyForWholeStress(
             efficiency,
             BlockStressValues.getCapacity(AllBlocks.STEAM_ENGINE.get())
