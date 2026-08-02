@@ -124,6 +124,10 @@ class SterlingEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
         return efficiency.coerceIn(0f, 1f)
     }
 
+    private fun getTotalStressCapacity(): Double {
+        return floor(getEngineEfficiency() * ClockworkConfig.SERVER.gasEngine.sterlingEngineStressCapacity)
+    }
+
     fun updateGeneratedRotation() {
         val generatedSpeed = getGeneratedSpeed()
         val previousSpeed = speed
@@ -219,7 +223,8 @@ class SterlingEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
             efficiency,
             isPlayerSneaking,
             getTooltipTemperature(),
-            ClockworkConfig.SERVER.gasEngine.sterlingEngineTemperatureIncrement
+            ClockworkConfig.SERVER.gasEngine.sterlingEngineTemperatureIncrement,
+            getTotalStressCapacity()
         )
         return super.addToGoggleTooltip(tooltip, isPlayerSneaking)
     }

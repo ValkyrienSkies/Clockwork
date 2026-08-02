@@ -20,6 +20,7 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.kelvin.KelvinParticleHelper
+import kotlin.math.floor
 
 class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState): KNodeBlockEntity(type, pos, state) {
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) { return }
@@ -78,6 +79,14 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         )
     }
 
+    private fun getTotalStressCapacity(): Double {
+        if (attachedEngines <= 0) return 0.0
+        return floor(
+            getEngineEfficiency() * 16.0 * attachedEngines *
+                BlockStressValues.getCapacity(AllBlocks.STEAM_ENGINE.get())
+        )
+    }
+
     //todo: this doesnt work on dedicated servers you moron
     fun spawnParticles(level: Level, pos: Vector3dc, speed: Vector3dc) {
         KelvinParticleHelper.spawnParticleWithRatio(level as ClientLevel, getDuctNodePosition(), pos, speed)
@@ -92,7 +101,9 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
             getTooltipTemperature(),
             ClockworkConfig.SERVER.gasEngine.gasEngineTemperatureIncrement,
             rawFlowRate,
-            ClockworkConfig.SERVER.gasEngine.gasEngineFlowRateIncrement
+            ClockworkConfig.SERVER.gasEngine.gasEngineFlowRateIncrement,
+            getTotalStressCapacity(),
+            attachedEngines
         )
         return super.addToGoggleTooltip(tooltip, isPlayerSneaking)
     }
